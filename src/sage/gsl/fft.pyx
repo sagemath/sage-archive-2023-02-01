@@ -29,6 +29,7 @@ include '../ext/stdsage.pxi'
 import sage.plot.all
 import sage.libs.pari.all
 from sage.rings.integer import Integer
+from sage.rings.complex_number import ComplexNumber
 
 def FastFourierTransform(size, base_ring=None):
     """
@@ -68,7 +69,7 @@ cdef class FastFourierTransform_complex(FastFourierTransform_base):
         # just set real for now
         if i < 0 or i >= self.n:
             raise IndexError
-        if isinstance(xy, tuple):
+        if isinstance(xy, (tuple, ComplexNumber)):
             self.data[2*i] = xy[0]
             self.data[2*i+1] = xy[1]
         else:

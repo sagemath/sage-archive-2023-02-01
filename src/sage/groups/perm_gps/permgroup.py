@@ -236,7 +236,30 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         Coerce x into this permutation group.
 
+        The input can be either a string that defines a permutation in
+        cycle notation, a permutation group element, a list of
+        integers that gives the permutation as a mapping, a list of
+        tuples, or the integer 1.
+
         EXAMPLES:
+        We illustrate each way to make a permutation in S4:
+            sage: G = SymmetricGroup(4)
+            sage: G((1,2,3,4))
+            (1,2,3,4)
+            sage: G([(1,2),(3,4)])
+            (1,2)(3,4)
+            sage: G('(1,2)(3,4)')
+            (1,2)(3,4)
+            sage: G([1,2,4,3])
+            (3,4)
+            sage: G([2,3,4,1])
+            (1,2,3,4)
+            sage: G(G((1,2,3,4)))
+            (1,2,3,4)
+            sage: G(1)
+            ()
+
+        Some more examples:
             sage: G = PermutationGroup([(1,2,3,4)])
             sage: G([(1,3), (2,4)])
             (1,3)(2,4)
@@ -257,6 +280,10 @@ class PermutationGroup_generic(group.FiniteGroup):
             else:
                 return PermutationGroupElement(x._gap_(), self, check = True)
         elif isinstance(x, (list, str)):
+            if isinstance(x, list) and len(x) > 0 and not isinstance(x[0], tuple):
+                # todo: This is ok, but is certainly not "industry strength" fast
+                # compared to what is possible.
+                x = gap.eval('PermList(%s)'%x)
             return PermutationGroupElement(x, self, check = True)
         elif isinstance(x, tuple):
             return PermutationGroupElement([x], self, check = True)

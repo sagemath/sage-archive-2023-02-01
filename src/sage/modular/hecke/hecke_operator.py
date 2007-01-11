@@ -285,6 +285,16 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         return self.hecke_module_morphism().trace()
 
+    def __getitem__(self, ij):
+        """
+        EXAMPLE:
+            sage: M = ModularSymbols(1,12)
+            sage: T = M.hecke_operator(2).matrix_form()
+            sage: T[0,0]
+            -24
+        """
+        return self.matrix()[ij]
+
 
 class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
     def __init__(self, parent, A):
@@ -325,7 +335,6 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             [4860    0 2049]
         """
         return self.__matrix
-
 
     def _mul_(self, other):
         return self.parent()(other.matrix() * self.matrix())

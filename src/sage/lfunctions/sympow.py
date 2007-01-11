@@ -48,6 +48,8 @@ from sage.structure.sage_object import SageObject
 from sage.misc.all import pager, verbose
 import sage.rings.all
 
+cygwin = os.uname()[0][:6] == "CYGWIN"
+
 class Sympow(SageObject):
     r"""
     Watkins Symmetric Power $L$-function Calculator
@@ -60,6 +62,10 @@ class Sympow(SageObject):
     this class.  Type \code{sympow.help()} for a list of commands and
     how to call them.
     """
+    def __init__(self):
+        if cygwin:
+            raise RuntimeError, "The program Sympow doesn't support MS Windows."
+
     def _repr_(self):
         return "Watkins Symmetric Power L-function Calculator"
 

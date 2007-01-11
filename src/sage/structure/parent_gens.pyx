@@ -15,10 +15,11 @@ OPTIONAL: It is also good if they define gens() to return all gens,
 but this is not necessary.
 
 The \code{gens} function returns a tuple of all generators, the
-\code{ngens} function returns the number of generators, and the
-\code{_assign_names}, \code{name} and \code{names} functions allow one
-to change or obtain the way generators are printed. (They \emph{only}
-affect printing!)
+\code{ngens} function returns the number of generators.
+
+The \code{_assign_names} functions is for internal use only, and is
+called when objects are created to set the generator names.  It can
+only be called once.
 
 The following examples illustrate these functions in the context of
 multivariate polynomial rings and free modules.

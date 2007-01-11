@@ -457,8 +457,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: h1 = lambda x : sqrt(x^3  - 1)
-            sage: h2 = lambda x : -sqrt(x^3  - 1)
+            sage: h1 = lambda x : abs(sqrt(x^3  - 1))
+            sage: h2 = lambda x : -abs(sqrt(x^3  - 1))
             sage: g1 = plot(h1, 1, 5)
             sage: g2 = plot(h2, 1, 5)
             sage: h = g1 + g2
@@ -736,46 +736,46 @@ class Graphics(SageObject):
             axes = self.__show_axes
 
         self.axes_label(l=axes_label)
-        if self.__show_axes:
+        if axes:
             #an axes instance
             sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
                             axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
                             tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
 
-            #adjust the xy limits and draw the axes:
-            if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
-                if frame: #add the frame axes and the normal axes with no ticks
-                    xmin, xmax = self.__xmin, self.__xmax
-                    ymin, ymax = self.__ymin, self.__ymax
-                    subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-                    subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                    #add a frame to the plot
-                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                            axes_with_no_ticks=True, axes_label=axes_label)
-                else: #regular plot with regular axes
-                    xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
-                    subplot.set_xlim(xmin, xmax)
-                    subplot.set_ylim(ymin, ymax)
-                    sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-
-            elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
+        #adjust the xy limits and draw the axes:
+        if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
+            if frame: #add the frame axes and the normal axes with no ticks
                 xmin, xmax = self.__xmin, self.__xmax
                 ymin, ymax = self.__ymin, self.__ymax
                 subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
                 subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                if axes: #axes=True unless user specifies axes=False
-                    sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-            elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
-                xmin, xmax = self.__xmin, self.__xmax
-                ymin, ymax = self.__ymin, self.__ymax
-                subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-                subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                if axes: #axes=True unless user specifies axes=False
-                    sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
-            else: #regular plot with no axes
+                #add a frame to the plot
+                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
+                                        axes_with_no_ticks=True, axes_label=axes_label)
+            else: #regular plot with regular axes
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
+                sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+
+        elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
+            xmin, xmax = self.__xmin, self.__xmax
+            ymin, ymax = self.__ymin, self.__ymax
+            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            if axes: #axes=True unless user specifies axes=False
+                sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
+        elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
+            xmin, xmax = self.__xmin, self.__xmax
+            ymin, ymax = self.__ymin, self.__ymax
+            subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
+            subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
+            if axes: #axes=True unless user specifies axes=False
+                sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
+        else: #regular plot with no axes
+            xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+            subplot.set_xlim(xmin, xmax)
+            subplot.set_ylim(ymin, ymax)
 
         # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
         # matplotlib looks at the file extension to see what the renderer should be.
@@ -910,7 +910,13 @@ class GraphicPrimitive_Line(GraphicPrimitive):
         return {'alpha':'How transparent the line is.',
                 'thickness':'How thick the line is.',
                 'rgbcolor':'The color as an rgb tuple.',
-                'hue':'The color given as a hue.'}
+                'hue':'The color given as a hue.',
+                'linestyle':"The style of the line, which is one of '--' (dashed), '-.' (dash dot), '-' (solid), 'steps', ':' (dotted).",
+                'marker':"'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown), '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point), '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right), '<' (triangle_left), '>' (triangle_right), 'None' (nothing), 'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up), 'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon), 's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)",
+                'markersize':'the size of the marker in points',
+                'markeredgecolor':'the markerfacecolor can be any color arg',
+                'markeredgewidth':'the size of the markter edge in points'
+                }
 
     def _repr_(self):
         return "Line defined by %s points"%len(self)
@@ -928,8 +934,12 @@ class GraphicPrimitive_Line(GraphicPrimitive):
 
     def _render_on_subplot(self, subplot):
         import matplotlib.patches as patches
+        options = dict(self.options())
+        del options['alpha']
+        del options['thickness']
+        del options['rgbcolor']
+        p = patches.Line2D(self.xdata, self.ydata, **options)
         options = self.options()
-        p = patches.Line2D(self.xdata, self.ydata)
         a = float(options['alpha'])
         p.set_alpha(a)
         p.set_linewidth(float(options['thickness']))
@@ -1230,8 +1240,8 @@ class GraphicPrimitive_Text(GraphicPrimitive):
         return {'fontsize': 'How big the text is.',
                 'rgbcolor':'The color as an rgb tuple.',
                 'hue':'The color given as a hue.',
-                'vertical_alignment':'if True align vertically.',
-                'horizontal_alignment':'if True align vertically.'}
+                'vertical_alignment': 'how to align vertically: top, center, bottom',
+                'horizontal_alignment':'how to align horizontally: left, center, right'}
 
     def _render_on_subplot(self, subplot):
         options = self.options()
@@ -1672,6 +1682,29 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     lines.  You can change this to change the defaults for all future
     lines.  Use line.reset() to reset to the default options.
 
+    INPUT:
+    \begin{verbatim}
+        alpha -- How transparent the line is
+        thickness -- How thick the line is
+        rgbcolor -- The color as an rgb tuple
+        hue -- The color given as a hue
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        linestyle -- The style of the line, which is one of
+                  '--' (dashed), '-.' (dash dot), '-' (solid),
+                  'steps', ':' (dotted)
+        marker  -- "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
+                   '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
+                   '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
+                   '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
+                   's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+       markersize -- the size of the marker in points
+       markeredgecolor -- the markerfacecolor can be any color arg
+       markeredgewidth -- the size of the markter edge in points
+    \end{verbatim}
+
+
     EXAMPLES:
     A blue conchoid of Nicomedes:
 
@@ -1998,7 +2031,9 @@ class PlotFactory(GraphicPrimitiveFactory):
     the defaults for all future plots.  Use plot.reset()
     to reset to the default options.
 
-    The options are:
+    PLOT OPTIONS:
+    The plot options are
+
         plot_points -- the number of points to initially plot before
                        doing adaptive refinement
         plot_division -- the maximum number points including those
@@ -2007,6 +2042,32 @@ class PlotFactory(GraphicPrimitiveFactory):
 
         xmin -- starting x value
         xmax -- ending x value
+
+    APPEARANCE OPTIONS:
+    The following options affect the appearance of the line through the points
+    on the graph of X (these are the same as for the line function):
+
+    INPUT:
+    \begin{verbatim}
+        alpha -- How transparent the line is
+        thickness -- How thick the line is
+        rgbcolor -- The color as an rgb tuple
+        hue -- The color given as a hue
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        linestyle -- The style of the line, which is one of
+                  '--' (dashed), '-.' (dash dot), '-' (solid),
+                  'steps', ':' (dotted)
+        marker  -- "'0' (tickleft), '1' (tickright), '2' (tickup), '3' (tickdown),
+                   '' (nothing), ' ' (nothing), '+' (plus), ',' (pixel), '.' (point),
+                   '1' (tri_down), '3' (tri_left), '2' (tri_up), '4' (tri_right),
+                   '<' (triangle_left), '>' (triangle_right), 'None' (nothing),
+                   'D' (diamond), 'H' (hexagon2), '_' (hline), '^' (triangle_up),
+                   'd' (thin_diamond), 'h' (hexagon1), 'o' (circle), 'p' (pentagon),
+                   's' (square), 'v' (triangle_down), 'x' (x), '|' (vline)"
+       markersize -- the size of the marker in points
+       markeredgecolor -- the markerfacecolor can be any color arg
+       markeredgewidth -- the size of the marker edge in points
+    \end{verbatim}
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced
@@ -2032,14 +2093,19 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We draw the graph of an elliptic curve as the union
     of graphs of 2 functions.
-        sage: def h1(x): return sqrt(x^3  - 1)
-        sage: def h2(x): return -sqrt(x^3  - 1)
-        sage: plot([h1, h2], 1,4)    # random output because of random sampling
+        sage: def h1(x): return abs(sqrt(x^3  - 1))
+        sage: def h2(x): return -abs(sqrt(x^3  - 1))
+        sage: plot([h1, h2], 1,4)    # slightly random output because of random sampling
         Graphics object consisting of 2 graphics primitives
 
     We can also directly plot the elliptic curve:
         sage: E = EllipticCurve([0,-1])
         sage: P = plot(E, 1, 4, rgbcolor=hue(0.6))
+
+    We can change the line style to one of '--' (dashed), '-.' (dash dot),
+    '-' (solid), 'steps', ':' (dotted):
+        sage: g = plot(sin,0,10, linestyle='-.')
+        sage: g.save('sage.png')
     """
     def _reset(self):
         o = self.options
@@ -2051,7 +2117,8 @@ class PlotFactory(GraphicPrimitiveFactory):
         return "plot; type plot? for help and examples."
 
     def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, show=None, **kwds):
+                 polar=False, label='',
+                 show=None, **kwds):
         if show is None:
             show = SHOW_DEFAULT
         try:
@@ -2111,7 +2178,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except (TypeError, ValueError), msg:
-                raise ValueError, "Unable to compute f(%s)"%x
+                raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2134,6 +2201,13 @@ class PlotFactory(GraphicPrimitiveFactory):
         if polar:
             data = [(y*cos(x), y*sin(x)) for x, y in data]
         G = line(data, coerce=False, **options)
+
+        # Label?
+        if label:
+            label = '  '+str(label)
+            G += text(label, data[-1], horizontal_alignment='left',
+                      vertical_alignment='center')
+
         if show:
             G.show(**kwds)
         return G
@@ -2146,6 +2220,15 @@ class TextFactory(GraphicPrimitiveFactory_text):
     """
     Text at the point (x,y)
     Type text.options for a dictionary of options.
+
+    text(string, position, options...)
+
+    OPTIONS:
+        fontsize -- How big the text is
+        rgbcolor -- The color as an rgb tuple
+        hue -- The color given as a hue
+        vertical_alignment -- how to align vertically: top, center, bottom
+        horizontal_alignment -- how to align horizontally: left, center, right
 
     EXAMPLES:
         Type this to see some text in top right plane:
@@ -2214,7 +2297,7 @@ def polar_plot(funcs, xmin, xmax, show=None, **kwargs):
         sage: p1 = polar_plot(lambda x:sin(5*x)^2, 0, 2*pi, rgbcolor=hue(0.6))
 
     A red figure-8:
-        sage: p2 = polar_plot(lambda x:sqrt(1 - sin(x)^2), 0, 2*pi, rgbcolor=hue(1.0))
+        sage: p2 = polar_plot(lambda x:abs(sqrt(1 - sin(x)^2)), 0, 2*pi, rgbcolor=hue(1.0))
 
     A green limacon of Pascal:
         sage: p3 = polar_plot(lambda x:2 + 2*cos(x), 0, 2*pi, rgbcolor=hue(0.3))
@@ -2365,7 +2448,7 @@ class GraphicsArray(SageObject):
     def append(self, g):
         self._glist.append(g)
 
-    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, **args):
+    def _render(self, filename, dpi=None, figsize=DEFAULT_FIGSIZE, axes=None, **args):
         r"""
         \code{render} loops over all graphics objects
         in the array and adds them to the subplot.
@@ -2383,21 +2466,25 @@ class GraphicsArray(SageObject):
         for i,g in zip(range(1, dims+1), glist):
             subplot = figure.add_subplot(rows, cols, i)
             g.save(filename, dpi=dpi, figure=figure, sub=subplot,
-                   savenow = (i==dims), verify=do_verify, **args)#only save if i==dims.
+                   savenow = (i==dims), verify=do_verify,
+                   axes = axes,
+                   **args)#only save if i==dims.
 
-    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
+    def save(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+             axes = None, **args):
         """
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, figsize=figsize, **args)
+        self._render(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
 
-    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE, **args):
+    def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
+             axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
         """
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, figsize=figsize, **args)
+            self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'

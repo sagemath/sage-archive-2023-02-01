@@ -342,6 +342,8 @@ def prod(x, z=None):
         except AttributeError:
             pass
 
+    if not isinstance(x, list):
+        x = list(x)
     if z is None:
         if len(x) == 0:
             import sage.rings.integer
@@ -433,8 +435,11 @@ def uniq(x):
     and is such that the entries in the sublist are unique.
 
     EXAMPLES:
-        sage: uniq([1,1,8,-5,3,-5,'a','x','a'])
+        sage: v = uniq([1,1,8,-5,3,-5,'a','x','a'])
+        sage: v            # potentially random ordering of output
         ['a', 'x', -5, 1, 3, 8]
+        sage: set(v) == set(['a', 'x', -5, 1, 3, 8])
+        True
     """
     v = list(set(x))
     v.sort()
@@ -797,14 +802,32 @@ def powerset(X):
         sage: [z for z in powerset([0,[1,2]])]
         [[], [0], [[1, 2]], [0, [1, 2]]]
 
+    Iterating over the power set of an infinite set is also allowed:
+        sage: i = 0
+        sage: for x in powerset(ZZ):
+        ...    if i > 10:
+        ...       break
+        ...    else:
+        ...       i += 1
+        ...    print x,
+        [] [0] [1] [0, 1] [-1] [0, -1] [1, -1] [0, 1, -1] [2] [0, 2] [1, 2]
+
     \begin{notice} The reason we return lists instead of sets is that
     the elements of sets must be hashable and many structures on which
     one wants the powerset consist of non-hashable objects.
     \end{notice}
+
+    AUTHORS:
+        -- William Stein
+        -- Nils Bruin (2006-12-19): rewrite to work for not-necessarily
+                                    finite objects X.
     """
-    pairs = [(2**i, x) for i, x in enumerate(X)]
-    for n in xrange(2**len(pairs)):
-        yield [x for m, x in pairs if m&n]
+    yield []
+    pairs = []
+    for x in X:
+        pairs.append((2**len(pairs),x))
+        for w in xrange(2**(len(pairs)-1), 2**(len(pairs))):
+            yield [x for m, x in pairs if m & w]
 
 #################################################################
 # Type checking

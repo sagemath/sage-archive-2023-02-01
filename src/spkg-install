@@ -28,17 +28,10 @@ fi
 if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
     hg pull "$SAGE_SERVER"/hg/sage-main
-    if [ $? -ne 0 ]; then
-        echo "WARNING -- Unable to pull in *latest* SAGE source code."
-        echo "Building what you downloaded."
-    else
-        # Make the pulled in changes take effect.
-        hg update -f
-        if [ $? -ne 0 ]; then
-            echo "Error applying pulled in changes to new SAGE source code."
-            exit 1
-        fi
-    fi
+    hg merge
+    hg ci -m "merge"
+    # Make the pulled in changes take effect.
+    hg update
 
     # Since we are doing an upgrade, it is very important that the
     # build always completely works with no dependency issues. It is
@@ -57,7 +50,13 @@ fi
 mkdir "$DEVEL/sage-main"
 cp -pr * .hg* "$DEVEL/sage-main/"
 
+cd "$DEVEL/sage-main"
 
+# for backward compatibility
+# (going from sage-1.4 to sage-1.5)
+rm -f */*/interrupt.h */*/*/interrupt.h */*/*/*/interrupt.h
+
+# touch and build everything
 sage -b main
 
 if [ $? -ne 0 ]; then

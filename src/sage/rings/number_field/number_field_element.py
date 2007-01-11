@@ -152,6 +152,38 @@ class NumberFieldElement(field_element.FieldElement):
     def __cmp__(self, other):
         return cmp(self.__element, other.__element)
 
+    def __abs__(self, i=0, prec=53):
+        """
+        Return the absolute value of this element with respect to the
+        ith complex embedding of parent, to the given precision.
+
+        EXAMPLES:
+            sage: z = CyclotomicField(7).gen()
+            sage: abs(z)
+            0.999999999999999
+            sage: abs(z^2 + 17*z - 3)
+            16.0604426799930
+            sage: K.<a> = NumberField(x^3+17)
+            sage: abs(a)
+            2.57128159065823
+            sage: a.__abs__(prec=100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(1,100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(2,100)
+            2.5712815906582353554531872087
+
+        Here's one where the absolute value depends on the embedding.
+            sage: K.<b> = NumberField(x^2-2)
+            sage: a = 1 + b
+            sage: a.__abs__(i=0)
+            0.414213562373094
+            sage: a.__abs__(i=1)
+            2.41421356237309
+        """
+        P = self.parent().complex_embeddings(prec)[i]
+        return abs(P(self))
+
     def __pow__(self, right):
         right = int(right)
         if right < 0:
@@ -209,6 +241,46 @@ class NumberFieldElement(field_element.FieldElement):
         if self.__element.degree() >= 1:
             raise TypeError, "Unable to coerce %s to a rational"%self
         return self.__element[0]
+
+    def conjugate(self):
+        """
+        Return the complex conjugate of the number field element.  Currently,
+        this is implemented for cyclotomic fields and quadratic extensions of Q.
+        It seems likely that there are other number fields for which the idea of
+        a conjugate would be easy to compute.
+
+        EXAMPLES:
+            sage: I=QuadraticField(-1,'I').gen(0)
+            sage: I.conjugate()
+            -I
+            sage: (I/(1+I)).conjugate()
+            -1/2*I + 1/2
+            sage: z6=CyclotomicField(6).gen(0)
+            sage: (2*z6).conjugate()
+            -2*zeta6 + 2
+
+            sage: K.<b> = NumberField(x^3 - 2)
+            sage: b.conjugate()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
+        """
+        coeffs = self.parent().polynomial().list()
+        if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
+            # polynomial looks like x^2+d
+            # i.e. we live in a quadratic extension of QQ
+            if coeffs[0] > 0:
+                gen = self.parent().gen()
+                return self.polynomial()(-gen)
+            else:
+                return self
+        elif isinstance(self.parent(), number_field.NumberField_cyclotomic):
+            # We are in a cyclotomic field
+            # Replace the generator zeta_n with (zeta_n)^(n-1)
+            gen = self.parent().gen()
+            return self.polynomial()(gen ** (gen.multiplicative_order()-1))
+        else:
+            raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
     def polynomial(self):
         return self.__element

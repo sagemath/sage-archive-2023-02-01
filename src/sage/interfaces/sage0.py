@@ -101,19 +101,37 @@ class Sage(Expect):
     \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
-                       logfile=None,  preparse=True, server=None):
+                       logfile=None,  preparse=True, server=None,
+                       do_monitor=False, python=True):
+        if python:
+            command = "sage -python -u"
+            prompt = ">>>"
+            init_code = ['from sage.all import *', 'import cPickle']
+        else:
+            command = "sage"
+            prompt = "sage: "
+            init_code = ['import cPickle']
+
         Expect.__init__(self,
                         name = 'sage',
-                        prompt = '>>> ',
-                        command = "sage -python -u",
+                        prompt = prompt,
+                        command = command,
                         server = server,
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         logfile = logfile,
-                        init_code=['from sage.all import *', 'import cPickle']
+                        init_code = init_code,
+                        do_monitor = do_monitor,
                         )
         self._preparse = preparse
+        self._is_local = (server is None)
+
+    def is_local(self):
+        return self._is_local
+
+    def trait_names(self):
+        return eval(self.eval('globals().keys()'))
 
     def quit(self, verbose=False):
         if not self._expect is None:
@@ -202,7 +220,7 @@ class Sage(Expect):
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
-        if out.find("Traceback") != -1:
+        if 'Traceback' in out:
             raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):

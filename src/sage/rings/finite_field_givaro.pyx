@@ -67,6 +67,8 @@ cdef extern from "stdsage.h":
     object PY_NEW(object t)
     int PY_TYPE_CHECK(object o, object t)
     PyObject** FAST_SEQ_UNSAFE(object o)
+    void init_csage()
+#init_csage()
 
 from sage.rings.ring cimport FiniteField
 from sage.rings.ring cimport Ring
@@ -216,9 +218,12 @@ cdef class FiniteField_givaro(FiniteField):
     cardinality must be < 2^16. See FiniteField_ext_pari for larger
     cardinalities.
     """
-    #cdef object __weakref__   # so it is possible to make weakrefs to this finite field -- BROKEN **
-                               # see trac #165
+
+    # so it is possible to make weakrefs to this finite field
+    cdef object __weakref__
+
     cdef GivaroGfq *objectptr # C++ object
+
     cdef object _polynomial_ring
     cdef object _prime_subfield
     cdef object _array

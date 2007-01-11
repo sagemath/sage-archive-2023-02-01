@@ -90,7 +90,7 @@ AUTHORS:
 from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
 from sage.misc.misc import verbose
 from sage.libs.pari.all import pari
-
+import sage.rings.all
 
 class Gp(Expect):
     """
@@ -313,6 +313,24 @@ class GpElement(ExpectElement):
         if attrname[:1] == "_":
             raise AttributeError
         return GpFunctionElement(self, attrname)
+
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: CC(gp(1+15*I))
+             1.00000000000000 + 15.0000000000000*I
+            sage: CC(gp(11243.9812+15*I))
+             11243.9811999999 + 15.0000000000000*I
+            sage: ComplexField(10)(gp(11243.9812+15*I))
+             11000 + 15*I
+        """
+        GP = self.parent()
+        orig = GP.get_real_precision()
+        GP.set_real_precision(int(CC.prec()*3.33)+1)
+        real = str(self.real()).replace(' E','e')
+        imag = str(self.imag()).replace(' E','e')
+        GP.set_real_precision(orig)
+        return sage.rings.all.ComplexNumber( CC, real, imag )
 
     def __len__(self):
         return int(self.length())

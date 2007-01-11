@@ -39,7 +39,8 @@ def qsieve(n, block=True, time=False, verbose=False):
         sage: v, t = qsieve(n, time=True)   # uses the sieve    (optional: time doesn't work on cygwin)
         sage: v                                          # optional
         [10000000000000000051, 100000000000000000039]
-        sage: t   # random output                        # optional
+        sage.: t
+        '0.36 real         0.19 user         0.00 sys'
     """
     Z = sage.rings.integer.Integer
     n = Z(n)
@@ -114,14 +115,14 @@ class qsieve_nonblock:
     still use SAGE in parallel:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
-        sage: q = qsieve(n, block=False, time=True)             # optional (time not supported on cygwin)
-        sage: q           # random output        (optional)
+        sage: q = qsieve(n, block=False, time=True)
+        sage: q           # random output
         Proper factors so far: []
-        sage: q           # random output        (optional)
+        sage: q           # random output
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()    # random output       (optional)
+        sage: q.list()    # random output
         [10000000000000000051, 100000000000000000039]
-        sage: q.time()    # random output     (optional)
+        sage.: q.time()    # random output     (optional -- no time support on Cygwin)
         '0.21'
 
         sage: q = qsieve(next_prime(10^20)*next_prime(10^21), block=False)

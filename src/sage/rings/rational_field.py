@@ -165,7 +165,7 @@ class RationalField(_uniq, field.Field):
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer)):
             return self(x)
-        raise TypeError
+        raise TypeError, 'no implicit coercion of element to the rational numbers'
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

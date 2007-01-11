@@ -552,32 +552,40 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _multiply_by_scalar(self, right):
         # self * right,  where right need not be a ring element in the base ring
         # This does type checking and canonical coercion then calls _lmul_c_impl.
-        if PY_TYPE_CHECK(right, Element) and (<Element>right)._parent is self._parent._base:
-            # No coercion needed
-            return self._lmul_c(right)
+        if PY_TYPE_CHECK(right, Element):
+            if (<Element>right)._parent is self._parent._base:
+                # No coercion needed
+                return self._lmul_c(right)
+            else:
+                # Otherwise we do an explicit canonical coercion.
+                try:
+                    return self._lmul_c( self._parent._base._coerce_c(right) )
+                except TypeError:
+                    # that failed -- try to base extend right then do the multiply:
+                    self = self.base_extend((<RingElement>right)._parent)
+                    return (<ModuleElement>self)._lmul_c(right)
         else:
-            # Otherwise we do an explicit canonical coercion.
-            try:
-                return self._lmul_c( self._parent._base._coerce_c(right) )
-            except TypeError:
-                # that failed -- try to base extend right then do the multiply:
-                self = self.base_extend((<RingElement>right)._parent)
-                return (<ModuleElement>self)._lmul_c(right)
+            # right is not an element at all
+            return (<ModuleElement>self)._lmul_c(self._parent._base._coerce_c(right))
 
     cdef ModuleElement _rmultiply_by_scalar(self, left):
         # left * self, where left need not be a ring element in the base ring
         # This does type checking and canonical coercion then calls _rmul_c_impl.
-        if PY_TYPE_CHECK(left, Element) and (<Element>self)._parent is self._parent._base:
-            # No coercion needed
-            return self._rmul_c(right)
+        if PY_TYPE_CHECK(left, Element):
+            if (<Element>self)._parent is self._parent._base:
+                # No coercion needed
+                return self._rmul_c(right)
+            else:
+                # Otherwise we do an explicit canonical coercion.
+                try:
+                    return self._rmul_c(self._parent._base._coerce_c(left))
+                except TypeError:
+                    # that failed -- try to base extend self then do the multiply:
+                    self = self.base_extend((<RingElement>left)._parent)
+                    return (<ModuleElement>self)._rmul_c(left)
         else:
-            # Otherwise we do an explicit canonical coercion.
-            try:
-                return self._rmul_c(self._parent._base._coerce_c(left))
-            except TypeError:
-                # that failed -- try to base extend self then do the multiply:
-                self = self.base_extend((<RingElement>left)._parent)
-                return (<ModuleElement>self)._rmul_c(left)
+            # now left is not an element at all.
+            return (<ModuleElement>self)._rmul_c(self._parent._base._coerce_c(left))
 
     cdef ModuleElement _lmul_nonscalar_c(left, right):
         # Compute the product left * right, where right is assumed to be a nonscalar (so no coercion)

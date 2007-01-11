@@ -41,6 +41,15 @@ class TextCell(Cell_generic):
         self.__text = text
         self.__worksheet = worksheet
 
+    def set_worksheet(self, worksheet, id=None):
+        self.__worksheet = worksheet
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        if not id is None:
+            self.__id = id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
     def html(self, ncols, do_print=False, do_math_parse=True):
         """
             do_math_parse -- bool (default: True)
@@ -98,6 +107,26 @@ class Cell(Cell_generic):
         if not id is None:
             self.set_id(id)
         self.__out_html = self.files_html()
+
+    def id(self):
+        return self.__id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def set_id(self, id):
+        self.__id = int(id)
+
+    def worksheet(self):
+        return self.__worksheet
+
+    def notebook(self):
+        return self.__worksheet.notebook()
+
+    def directory(self):
+        if not os.path.exists(self.__dir):
+            os.makedirs(self.__dir)
+        return self.__dir
 
     def __cmp__(self, right):
         return cmp(self.id(), right.id())
@@ -208,26 +237,6 @@ class Cell(Cell_generic):
 
     def computing(self):
         return self in self.__worksheet.queue()
-
-    def directory(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        return self.__dir
-
-    def id(self):
-        return self.__id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
-
-    def set_id(self, id):
-        self.__id = int(id)
-
-    def worksheet(self):
-        return self.__worksheet
-
-    def notebook(self):
-        return self.__worksheet.notebook()
 
     def set_input_text(self, input):
         self.__version = 1+self.version()

@@ -42,7 +42,7 @@ usage_advanced() {
     echo "  -i -s [packages] -- install the given SAGE packages, not deleting their spkg/build directories."
     echo "  -ipython <...> -- run SAGE's Ipython using the default environment (not SAGE), passing additional options to Ipython"
     echo "  -kash <..>    -- run SAGE's Kash with given arguments"
-    echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"
+    #echo "  -ldist VER    -- build a library SAGE distribution (for install into existing Python)"
     echo "  -lisp [...]   -- run Lisp interpreter included with SAGE"
     echo "  -log          -- add entry to <SAGE_ROOT>/changelog.txt"
     echo "  -maxima <..>  -- run SAGE's Maxima with given arguments"
@@ -484,6 +484,9 @@ if [ $1 = '-sdist' -o $1 = "--sdist" ]; then
 fi
 
 if [ $1 = '-ldist' -o $1 = "--ldist" ]; then
+   echo "sage -ldist currently disabled"
+   echo "To work on it, remove the exit after this message in SAGE_ROOT/local/bin/sage-sage"
+   exit 1
    if [ $# -ne 2 ]; then
        echo "** MISSING VERSION NUMBER! ** "
    fi

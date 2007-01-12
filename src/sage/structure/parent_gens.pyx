@@ -575,7 +575,7 @@ class localvars:
 
     NOTES: I wrote this because it was needed to print elements of the
     quotient of a ring R by an ideal I using the print function for
-    elemnts of R.  See the code in \code{quotient_ring_element.pyx}.
+    elements of R.  See the code in \code{quotient_ring_element.pyx}.
 
     AUTHOR: William Stein (2006-10-31)
     """
@@ -585,7 +585,7 @@ class localvars:
             self._names = normalize_names(obj.ngens(), names)
             self._latex_names = latex_names
         else:
-            self._names = normalize_names(obj.ngens(), names)
+            self._names = names
             self._latex_names = latex_names
 
     def __enter__(self):

@@ -1046,7 +1046,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         # TODO: This is slow
 
         if self.parent().base_ring() is ZZ:
-            return self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+            res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+            coef = arith.gcd(self.element().dict().values() + f.element().dict().values(),True)
+            return coef*res
 
         return self.parent()(self._singular_().gcd(f._singular_()))
 

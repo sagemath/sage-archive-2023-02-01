@@ -4,7 +4,9 @@ Base class for matrices
 NOTE: For design documentation see matrix/docs.py.
 
 EXAMPLES:
-
+    sage: matrix(2,[1,2,3,4])
+    [1 2]
+    [3 4]
 """
 
 ################################################################################
@@ -1642,9 +1644,6 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two matrices with the same parent.
-
-        EXAMPLES:
-            sage:
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
@@ -1662,8 +1661,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = FreeAlgebra(QQ,2)
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
-
-
         """
         return self._add_c_impl(right._left_scalar_multiply(-1))
 
@@ -2132,7 +2129,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES:
         EXAMPLE cmparing sparse and dense matrices:
-            sage:
             sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
             True
             sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)

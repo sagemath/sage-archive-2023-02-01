@@ -84,7 +84,7 @@ class Tachyon(SageObject):
         sage: t.plane((0,0,-1), (0,0,1), 'white')
         sage: t.plane((0,-20,0), (0,1,0), 'white')
         sage: t.plane((-20,0,0), (1,0,0), 'white')
-        sage:
+
         sage: k=0
         sage: for i in srange(-1,1,0.05):
         ...    k += 1
@@ -535,7 +535,7 @@ class TachyonTriangleFactory(TriangleFactory):
             return TachyonSmoothTriangle(a,b,c,da,db,dc,color)
 
     def get_colors(self, list):
-        return texture_recolor(self._tachyon, self._texture, list)
+        return self._tachyon.texture_recolor(self._texture, list)
 
 
 

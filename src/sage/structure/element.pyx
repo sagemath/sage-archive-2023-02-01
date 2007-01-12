@@ -296,6 +296,16 @@ cdef class Element(sage_object.SageObject):
             return "\\left(%s\\right)"%s
 
     def _is_atomic(self):
+        """
+        Return True if and only if parenthesis are not required when *printing* out
+        any of x - self, x + self, x^self and x/self.
+
+        EXAMPLES:
+            sage: n = 5; n._is_atomic()
+            True
+            sage: n = x+1; n._is_atomic()
+            False
+        """
         if self._parent.is_atomic_repr():
             return True
         s = str(self)

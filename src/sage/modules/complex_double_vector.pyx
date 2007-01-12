@@ -121,7 +121,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             sage: v[5]
             Traceback (most recent call last):
             ...
-            IndexError: index 5 out of range
+            IndexError: index out of range
         """
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement x

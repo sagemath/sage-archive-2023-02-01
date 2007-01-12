@@ -614,6 +614,7 @@ class Worksheet:
 
         # Finished a computation.
         self.__comp_is_running = False
+        del self.__queue[0]
         out = self._process_output(out)
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
@@ -635,7 +636,6 @@ class Worksheet:
                                     max_out=HISTORY_MAX_OUTPUT)
             self.notebook().add_to_history(history)
 
-        del self.__queue[0]
         return 'd', C
 
     def best_completion(self, s, word):

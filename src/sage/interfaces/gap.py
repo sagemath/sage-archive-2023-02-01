@@ -165,7 +165,9 @@ if not os.path.exists('%s/gap/'%DOT_SAGE):
 gap_cmd = "gap"
 
 def gap_command(use_workspace_cache=True):
-    if use_workspace_cache and os.path.exists(WORKSPACE):
+    if use_workspace_cache:
+        if not os.path.exists(WORKSPACE):
+            gap_reset_workspace()
         return "%s -L %s"%(gap_cmd, WORKSPACE), False
     else:
         return gap_cmd, True

@@ -238,7 +238,7 @@ class ode_solver(object):
          sage: f = T.interpolate_solution(i=2)
          sage: plot(f,0,12).save('sage3.png')
          sage: f = T.interpolate_solution()
-         sage: f(pi)
+         sage: f(pi)                # slightly random precision
          0.53794722843358245
 
          Unfortunately because python functions are used, this solver is slow on system that require many function evaluations.

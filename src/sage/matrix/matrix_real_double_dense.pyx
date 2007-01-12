@@ -287,7 +287,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
-            sage: m.eigen()
+            sage: m.eigen()           # random-ish platform-dependent output (low order digits)
             (array([  1.33484692e+01,  -1.34846923e+00,  -4.69022010e-16]),
              array([[-0.16476382, -0.79969966,  0.40824829],
                    [-0.50577448, -0.10420579, -0.81649658],

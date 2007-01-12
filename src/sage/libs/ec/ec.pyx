@@ -66,7 +66,7 @@ def ec(ainvs):
 
     EXAMPLES:
         sage: import sage.libs.ec.all as ec
-        sage: ec.ec([1,2,3,4,5])
+        sage: ec.ec([1,2,3,4,5])    # slightly random output (the lratio)
         {'conductor': '10351', 'Modular degree': '464', 'Curve1': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'minimal equation': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0NUM': '1', 'lratio': '1.2653937917645377009', 'analytic rank': '1', 'X0CURVE': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0CURVE moddeg': '464'} # 32-bit
         Traceback (most recent call last):                       # 64-bit
         ...                                                      # 64-bit

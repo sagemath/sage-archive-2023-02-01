@@ -54,11 +54,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     sage: m = Matrix(RDF, [[1,2],[3,4]])
     sage: m**2
-    sage: n= m^(-1)
+    [ 7.0 10.0]
+    [15.0 22.0]
+    sage: n= m^(-1); n
+    [-2.0  1.0]
+    [ 1.5 -0.5]
 
     To compute eigenvalues the use the function eigen
 
-    sage:p,e = m.eigen()
+    sage: p,e = m.eigen()
 
     the result of eigen is a pair p,e . p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors.
@@ -73,7 +77,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     sage: b = vector(RDF,[5,6])
     sage: m.solve_left(b)
-
+    (-4.0, 4.5)
 
     """
 
@@ -280,7 +284,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         dims[0] = _M._matrix.size1
         dims[1] = _M._matrix.size2
         temp = PyArray_FromDims(2, dims, 12)#, char_pointer)
-        _n.flags = _n.flags&(~NPY_OWNDATA) # this performas a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
+        _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
         _n = temp                           # this isn't quite working yet so we invalidate the pointer at the end
         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
         result = numpy.linalg.eig(_n)

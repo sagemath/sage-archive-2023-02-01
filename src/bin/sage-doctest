@@ -130,11 +130,12 @@ def extract_doc(file_name, module):
     #j = module_name.rfind(".")
     #module_name = module_name[:j]
 
-    F = open(file_name).read()
+    F = open(file_name).readlines()
     # Put line numbers on every input line
     v = []
     i = 1
-    for L in F.split('\n'):
+    for L in F:
+        L = L.rstrip()
         if L.lstrip()[:5] == 'sage:':
             #L += '\t\t#<--- "LINE %s of %s"'%(i, file_name)
             L += '###_sage"line %s:_sage_    %s_sage"'%(i, L[4:].strip())
@@ -238,7 +239,7 @@ def pythonify(F):
     return F
 
 def post_process(s, file):
-    s = s.replace('.doctest/','')
+    s = s.replace('.doctest_','')
     if file[-3:] == 'pyx':
         s = s.replace('"%s", line'%file[:-1], '"%s", line'%file)
     i = s.find("Failed example:")
@@ -256,6 +257,8 @@ def post_process(s, file):
     c = '###line [0-9]*\n'
     r = re.compile(c)
     s = r.sub('\n',s)
+    if cnt > 0:
+        s += "For whitespace errors, see the file .doctest_%s"%file
     return s
 
 __alarm_time=0
@@ -283,13 +286,11 @@ def test_file(file):
         name = os.path.basename(file)
         name = name[:name.find(".")]
         s = extract_doc(file, name)
-        f = ".doctest/%s.py"%name
-        #f = "__test_%s.py"%name
+        f = ".doctest_%s.py"%name
         if not os.path.exists(".doctest"):
             os.makedirs(".doctest")
         open(f,"w").write(s)
         cmd = "%s %s"%(PYTHON, f)
-        #n = os.system(cmd)
         tm = time.time()
         try:
             if verbose:
@@ -308,7 +309,7 @@ def test_file(file):
             sys.exit(1)
 
         if time.time() - tm >= TIMEOUT:
-            err = "*** *** Error: TIMED OUT! *** ***"
+            err += "*** *** Error: TIMED OUT! *** ***"
             print err
 
         s = post_process(out, file)  + err

@@ -53,6 +53,8 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 import multi_polynomial_ring
 import polynomial_ring
 
+from integer_ring import ZZ
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
@@ -1037,6 +1039,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
             raise TypeError, "self and f must have the same parent"
+
+
+        # Singular ignores coefficents anyway, thus it is okay to work over Z here
+        # PARI uses the coefficents btw.
+        # TODO: This is slow
+
+        if self.parent().base_ring() is ZZ:
+            return self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+
         return self.parent()(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):

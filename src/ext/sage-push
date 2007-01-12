@@ -2,5 +2,5 @@
 
 hg status
 hg diff
-hg commit
+hg commit -m "new"
 hg push ssh://was@sage.math.washington.edu/www/sage/hg/extcode-main

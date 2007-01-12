@@ -297,8 +297,8 @@ cdef class Element(sage_object.SageObject):
 
     def _is_atomic(self):
         """
-        Return True if and only if parenthesis are not required when *printing* out
-        any of x - self, x + self, x^self and x/self.
+        Return True if and only if parenthesis are not required when
+        *printing* out any of $x - s$, $x + s$, $x^s$ and $x/s$.
 
         EXAMPLES:
             sage: n = 5; n._is_atomic()

@@ -257,10 +257,14 @@ class Cell(Cell_generic):
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
+            if not self.computing():
+                file = "%s/full_output.txt"%self.directory()
+                open(file,"w").write(output)
+                html+="<br><a href='/%s' target='_new' class='file_link'>full_output.txt</a>"%file
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
-                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
-                output = output[:MAX_OUTPUT] + '\n(truncated)'
+                output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output
         self.__out_html = html
         self.__sage = sage
@@ -485,7 +489,7 @@ class Cell(Cell_generic):
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
             else:
-                files.append('<a target="_new" href="%s/%s">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s/%s" class="file_link">%s</a>'%(dir, F, F))
         if len(images) == 0:
             images = ''
         else:

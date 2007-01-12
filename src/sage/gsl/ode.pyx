@@ -1,6 +1,16 @@
+##############################################################################
+#       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
+
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include 'gsl.pxi'
+
+
 import sage.plot.plot
 import sage.gsl.interpolation
 

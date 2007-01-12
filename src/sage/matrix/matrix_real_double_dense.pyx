@@ -68,6 +68,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     of eigenvalues and the e is a matrix whose columns are the eigenvectors.
     currently e is a numpy matrix and p is a numpy vector. To make it a RDF
     matrix and vector
+
     sage: p = vector(RDF,list(p))
     sage: e = Matrix(RDF,list(e))
 
@@ -275,6 +276,26 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def eigen(self):
+        """
+        Computes the eigenvalues and eigenvectors of this matrix:
+
+        OUTPUT:
+             eigenvalues -- as a list
+             corresponding eigenvectors -- as a list
+
+        These are still formated via numpy, but this will change.
+
+        EXAMPLES:
+            sage: m = Matrix(RDF, 3, range(9))
+            sage: m.eigen()
+            (array([  1.33484692e+01,  -1.34846923e+00,  -4.69022010e-16]),
+             array([[-0.16476382, -0.79969966,  0.40824829],
+                   [-0.50577448, -0.10420579, -0.81649658],
+                   [-0.84678513,  0.59128809,  0.40824829]]))
+
+        IMPLEMENTATION:
+            Uses numpy.
+        """
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef Matrix_real_double_dense _M
         _M=self
@@ -284,15 +305,28 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         dims[0] = _M._matrix.size1
         dims[1] = _M._matrix.size2
         temp = PyArray_FromDims(2, dims, 12)#, char_pointer)
-        _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
         _n = temp                           # this isn't quite working yet so we invalidate the pointer at the end
+        _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
         result = numpy.linalg.eig(_n)
         _n.data = <char *> NULL    #keep numpy from deallocating memory
         return result   #todo: make the result a real double matrix
-#        return [list(result[0]),Matrix(sage.rings.real_double.RDF,list(result[1]) )] #todo: don't go through python
 
     def solve_left(self, vec):
+        """
+        Solve the equation A*x = b, where
+
+        EXAMPLES:
+            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
+            [ 1.0  2.0  5.0]
+            [ 7.6  2.3  1.0]
+            [ 1.0  2.0 -1.0]
+            sage: b = vector(RDF,[1,2,3])
+            sage: x = A.solve_left(b); x
+            (-0.113695090439, 1.39018087855, -0.333333333333)
+            sage: A*x
+            (1.0, 2.0, 3.0)
+        """
         import solve
         return solve.solve_matrix_real_double_dense(self, vec)
 

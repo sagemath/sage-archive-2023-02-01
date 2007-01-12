@@ -2099,11 +2099,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             return self.parent()(1)
         if n < 0:
             return (~self)**(-n)
-        ans = self.parent()(1)
+        if n == 1:
+            return self
+        ans = None
         apow = self
         while n != 0:
             if n%2 != 0:
-                ans = ans * apow
+                if ans is None:
+                    ans = apow
+                else:
+                    ans = ans * apow
             n = n/2
             if n == 0:  # to not waste time doing an extra multiplication/increment
                 break

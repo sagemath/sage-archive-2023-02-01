@@ -247,7 +247,12 @@ cdef class RealDoubleField_class(Field):
 
 
 
-
+def new_RealDoubleElement():
+    global _RDF
+    cdef RealDoubleElement x
+    x = PY_NEW(RealDoubleElement)
+    (<Element>x)._parent = _RDF
+    return x
 
 cdef class RealDoubleElement(FieldElement):
     def __init__(self, x):

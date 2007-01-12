@@ -589,7 +589,7 @@ def latex_variable_name(x):
     # * The "\d" means "decimal digit"
     # * The "+" means "1 or more"
     # * The "$" means "at the end of the line"
-    m = re.search('\d+$',v)
+    m = re.search('\d+$',x)
     if m is None:
         return x
     return '%s_{%s}'%(x[:m.start()], x[m.start():])

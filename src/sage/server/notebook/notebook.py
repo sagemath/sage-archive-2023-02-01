@@ -980,11 +980,19 @@ class Notebook(SageObject):
         body_html += '<textarea class="edit" id="cell_intext" rows="30" name="textfield">'+t+'</textarea>'
         body_html += '</form>'
         body_html += """The format is as follows: <pre>
+Arbitrary HTML
 {{{
 Input
 ///
 Output
 }}}
+Arbitrary HTML
+{{{
+Input
+///
+Output
+}}}
+...
 </pre>"""
 
 

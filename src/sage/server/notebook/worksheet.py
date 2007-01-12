@@ -1102,6 +1102,10 @@ class Worksheet:
                 input = self.do_sage_extensions_preparsing(input)
                 input = input.split('\n')
 
+                # The following is all so the last line (or single lines)
+                # will implicitly print as they should, unless they are
+                # an assignment.   "display hook"  It's very complicated,
+                # but it has to be...
                 i = len(input)-1
                 if i >= 0:
                     while len(input[i]) > 0 and input[i][0] in ' \t':

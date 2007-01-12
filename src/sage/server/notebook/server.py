@@ -559,7 +559,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             notebook.export_worksheet(filename, filename)
         except KeyError:
-            self.file_not_found()
+            self.file_not_found(filename)
             return
         self.send_response(200)
         self.send_header("Content-type", 'application/sage')
@@ -614,6 +614,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                 self.html_worksheet(worksheet_filename, do_print=False)
             return
 
+        elif path == 'robots.txt':
+            self.wfile.write(self.robots())
+            return
+
         elif path[-4:] == '.sws':
 
             worksheet_filename = path[:-4]
@@ -635,12 +639,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if path in static_images: #this list is defined at the top of this file
                 binfile = self.image(path)
             elif path[:7] == 'jsmath/':
-                binfile = open(SAGE_EXTCODE + "/javascript/" + path, 'rb').read()
+                binfile = open(SAGE_EXTCODE + "/notebook/javascript/" + path, 'rb').read()
             else:
                 binfile = open(path, 'rb').read()
         except IOError, msg:
             print 'file not found', msg
-            return self.file_not_found()
+            return self.file_not_found(path)
         self.send_response(200)
 
         mime_type = mimetypes.guess_type(self.path)[0]
@@ -701,11 +705,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                                        worksheet_authorized = auth))
 
 
-    def file_not_found(self):
+    def file_not_found(self, filename):
         self.send_response(404)
         self.send_header("Content-type", 'text/plain')
         self.end_headers()
-        self.wfile.write("SAGE Server: File not found")
+        self.wfile.write("SAGE Server: File '%s' not found"%filename)
 
     def do_GET(self):
         """
@@ -885,8 +889,34 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             self._images = {}
             return self.image(filename)
         except KeyError:
-            self._images[filename] = open(SAGE_ROOT + '/data/extcode/images/' + filename, 'rb').read()
+            self._images[filename] = open(SAGE_EXTCODE +
+                  '/notebook/images/' + filename, 'rb').read()
             return self._images[filename]
+
+    def robots(self):
+        """
+        Return the robots.txt file contents (as a string) that should
+        be used when search engines hit this site.
+
+        The default is to not allow any robots.  This can be
+        customized by creating a file robots.txt inside the
+        sage_notebook directory.
+        """
+        try:
+            return self._robots
+        except AttributeError:
+            pass
+        filename = '%s/robots.txt'%notebook.directory()
+        if os.path.exists(filename):
+            robots_txt = open(filename).read()
+        else:
+            robots_txt = """
+User-agent: *
+Disallow: /
+            """
+            open(filename,'w').write(robots_txt)
+        self._robots = robots_txt
+        return robots_txt
 
 
 class NotebookServer:

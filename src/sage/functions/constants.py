@@ -192,6 +192,9 @@ class Constant(Function):
         self._conversions = conversions
         RingElement.__init__(self, ConstantRing)
 
+    def _neg_(self):
+        return -Integer(1)*self
+
     def __call__(self, x):
         return self
 

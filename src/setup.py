@@ -284,7 +284,7 @@ ext_modules = [ \
     dwt,
 
     gsl_array,
-    #gsl_ode,
+    gsl_ode,
     gsl_fft,
     gsl_interpolation,
     gsl_callback,

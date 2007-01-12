@@ -470,6 +470,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  2  4]
             [ 6  8 10]
             [12 14 16]
+            sage: b = MatrixSpace(ZZ,3)(range(9))
+            sage: b.swap_rows(1,2)
+            sage: a+b
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
         """
         cdef Py_ssize_t i
 

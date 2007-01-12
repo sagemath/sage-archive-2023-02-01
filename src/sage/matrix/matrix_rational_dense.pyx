@@ -15,8 +15,11 @@ include "../ext/cdefs.pxi"
 
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
+from matrix_integer_dense cimport Matrix_integer_dense
 import sage.structure.coerce
+from sage.structure.element cimport ModuleElement
 from sage.rings.integer cimport Integer
+from sage.rings.integer_ring import ZZ
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -190,22 +193,145 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 2 functionality
-    #   * cdef _add_c_impl
+    # x * cdef _add_c_impl
     #   * cdef _mul_c_impl
     #   * cdef _cmp_c_impl
-    #   * __neg__
+    # x * __neg__
     #   * __invert__
-    #   * __copy__
+    # x * __copy__
     #   * _multiply_classical
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
-    # cdef ModuleElement _add_c_impl(self, ModuleElement right):
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        """
+        Add two dense matrices over QQ.
+
+        EXAMPLES:
+        sage: a = MatrixSpace(QQ,3)(range(9))
+        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+        sage: a+b
+        [   1  3/2  7/3]
+        [13/4 21/5 31/6]
+        [43/7 57/8 73/9]
+        sage: b.swap_rows(1,2)
+        sage: #a+b
+
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+
+        cdef mpq_t *M_row
+        cdef mpq_t *self_row
+        cdef mpq_t *right_row
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            M_row = M._matrix[i]
+            self_row = self._matrix[i]
+            right_row = (<Matrix_rational_dense>right)._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_add(M_row[0], self_row[0], right_row[0])
+                M_row = M_row + 1
+                self_row = self_row + 1
+                right_row = right_row + 1
+        _sig_off
+        return M
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        """
+        Add two dense matrices over QQ.
+
+        EXAMPLES:
+        sage: a = MatrixSpace(QQ,3)(range(9))
+        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+        sage: a-b
+        [  -1  1/2  5/3]
+        [11/4 19/5 29/6]
+        [41/7 55/8 71/9]
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+
+        cdef mpq_t *M_row
+        cdef mpq_t *self_row
+        cdef mpq_t *right_row
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            M_row = M._matrix[i]
+            self_row = self._matrix[i]
+            right_row = (<Matrix_rational_dense>right)._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_sub(M_row[0], self_row[0], right_row[0])
+                M_row = M_row + 1
+                self_row = self_row + 1
+                right_row = right_row + 1
+        _sig_off
+        return M
+
+    def __neg__(self):
+        """
+        Negate a matrix over QQ.
+
+        EXAMPLES:
+        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+        sage: -a
+        [  -1 -1/2 -1/3]
+        [-1/4 -1/5 -1/6]
+        [-1/7 -1/8 -1/9]
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+
+        cdef mpq_t *M_row
+        cdef mpq_t *self_row
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            M_row = M._matrix[i]
+            self_row = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_neg(M_row[0], self_row[0])
+                M_row = M_row + 1
+                self_row = self_row + 1
+        _sig_off
+        return M
+
+    def __copy__(self):
+        """
+        Negate a matrix over QQ.
+
+        EXAMPLES:
+        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+        sage: -a
+        [  -1 -1/2 -1/3]
+        [-1/4 -1/5 -1/6]
+        [-1/7 -1/8 -1/9]
+        """
+        cdef Py_ssize_t i, j
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+
+        cdef mpq_t *M_row
+        cdef mpq_t *self_row
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            M_row = M._matrix[i]
+            self_row = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_set(M_row[0], self_row[0])
+                M_row = M_row + 1
+                self_row = self_row + 1
+        _sig_off
+        return M
+
+
+
     # cdef _mul_c_impl(self, Matrix right):
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
-    # def __neg__(self):
     # def __invert__(self):
-    # def __copy__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
     # def _dict(self):
@@ -213,12 +339,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
-    #    * cdef _sub_c_impl
-    #    * __deepcopy__
-    #    * __invert__
-    #    * _multiply_classical
-    #    * Matrix windows -- only if you need strassen for that base
-    #    * Other functions (list them here):
+    # x * cdef _sub_c_impl
+    #   * __deepcopy__
+    #   * __invert__
+    #   * _multiply_classical
+    #   * Matrix windows -- only if you need strassen for that base
+    #   * Other functions (list them here):
+    # x * denom(self):
+    # x * mpz_denom(self, mpz_t d):
+    # x * _clear_denom(self):
+    # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     ########################################################################
     def denom(self):
         """
@@ -240,18 +370,89 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return z
 
     cdef int mpz_denom(self, mpz_t d) except -1:
-        cdef mpz_t y
         mpz_set_si(d,1)
-        mpz_init(y)
         cdef int i, j
+        cdef mpq_t *self_row
         _sig_on
         for i from 0 <= i < self._nrows:
+            self_row = self._matrix[i]
             for j from 0 <= j < self._ncols:
-                mpq_get_den(y,self._matrix[i][j])
-                mpz_lcm(d, d, y)
+                mpz_lcm(d, d, mpq_denref(self_row[0]))
+                self_row = self_row + 1
         _sig_off
-        mpz_clear(y)
         return 0
+
+    def _clear_denom(self):
+        """
+        INPUT:
+            self -- a matrix
+        OUTPUT:
+            D*self, D
+
+        The product is a matrix over ZZ
+        """
+        cdef Integer D
+        cdef Py_ssize_t i, j
+        cdef Matrix_integer_dense A
+        cdef mpq_t *self_row
+        cdef mpz_t *A_row
+        D = <Integer>Integer.__new__(Integer)
+        self.mpz_denom(D.value)
+        MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
+        A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
+        _sig_on
+        for i from 0 <= i < self._nrows:
+            A_row = A._matrix[i]
+            self_row = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpz_init(A_row[0])
+                mpz_divexact(A_row[0], D.value, mpq_denref(self_row[0]))
+                mpz_mul(A_row[0], A_row[0], mpq_numref(self_row[0]))
+                A_row = A_row + 1
+                self_row = self_row + 1
+        _sig_off
+        return A, D
+
+    def _multiply_multi_modular(left, Matrix_rational_dense right):
+        """
+        Multiply this matrix by right using a multimodular algorithm
+        and return the result.
+
+        EXAMPLES:
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a._multiply_multi_modular(b)
+            [ 15/28   9/20   7/18]
+            [  33/7 117/40   20/9]
+            [249/28   27/5  73/18]
+            sage: a = MatrixSpace(QQ,10,5)(range(50))
+            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
+            sage: a._multiply_multi_modular(b) == a._multiply_classical(b)
+            True
+
+        """
+        cdef Matrix_integer_dense A, B, AB
+        cdef Matrix_rational_dense res
+        cdef Integer D
+        cdef mpz_t* AB_row,
+        cdef mpq_t* res_row
+        A_denom, B_denom
+        A, A_denom = left._clear_denom()
+        B, B_denom = right._clear_denom()
+        AB = A*B # A._multiply_multi_modular(B)
+        D = A_denom * B_denom
+        res = Matrix_rational_dense.__new__(Matrix_rational_dense, left.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
+        for i from 0 <= i < res._nrows:
+            AB_row = AB._matrix[i]
+            res_row = res._matrix[i]
+            for j from 0 <= j < res._ncols:
+                mpz_set(mpq_numref(res_row[0]), AB_row[0])
+                mpz_set(mpq_denref(res_row[0]), D.value)
+                mpq_canonicalize(res_row[0])
+                AB_row = AB_row + 1
+                res_row = res_row + 1
+        _sig_off
+        return res
 
     cdef int mpz_height(self, mpz_t height) except -1:
         cdef mpz_t x, h

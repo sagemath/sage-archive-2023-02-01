@@ -883,8 +883,6 @@ cdef class gen:
             2-dimensional column vector the quotient and the
             remainder, with respect to v (to main variable if v is
             omitted).
-
-        sage:
         """
         t0GEN(y)
         _sig_on

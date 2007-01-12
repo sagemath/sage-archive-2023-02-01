@@ -16,6 +16,7 @@ AUTHOR:
 from sage.structure.element cimport ModuleElement, RingElement, Vector
 
 from sage.rings.real_double cimport RealDoubleElement
+from sage.rings.real_double import new_RealDoubleElement
 
 cimport free_module_element
 import  free_module_element
@@ -101,10 +102,28 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             gsl_vector_set(self.v,i,x)
 
     def __getitem__(self,size_t i):
+        """
+        Return the ith entry of self.
+
+        EXAMPLES:
+            sage: v = vector(RDF, [1, sqrt(2), -1]); v
+            (1.0, 1.41421356237, -1.0)
+            sage: a = v[1]; a
+            1.41421356237
+            sage: parent(a)
+            Real Double Field
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        cdef RealDoubleElement x
         if i < 0 or i >=self.v.size:
-            raise IndexError
+            raise IndexError, 'index out of range'
         else:
-            return gsl_vector_get(self.v,i)
+            x = new_RealDoubleElement()
+            x._value = gsl_vector_get(self.v,i)
+            return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef gsl_vector* v

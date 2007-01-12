@@ -73,8 +73,8 @@ from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
 from sage.interfaces.all import *
-#from sage.functions.all  import *
-from sage.calculus.all   import *
+from sage.functions.all  import *
+#from sage.calculus.all   import *
 from sage.server.all     import *
 import sage.tests.all as tests
 
@@ -138,7 +138,7 @@ true = True
 false = False
 
 oo = infinity
-#x = PolynomialRing(QQ,'x').gen()
+x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()
@@ -261,7 +261,7 @@ InteractiveShell.exit = _quit_sage_
 
 from sage.ext.interactive_constructors_c import inject_on, inject_off
 
-from catalogue import new
+from catalogue.all import new
 
 import sage.ext.sig
 sage.ext.sig.get_bad_sigs()

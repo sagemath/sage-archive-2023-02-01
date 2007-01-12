@@ -759,52 +759,52 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         modular symbols and self is isomorphic to the direct sum of
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
-
-        EXAMPLES:
-            sage: M = ModularSymbols(Gamma0(22), 2); M
-            Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
-            sage: for b, e in M.factorization():
-            ...    print b.dimension(), b.level(), e
-            1 11 2
-            1 11 2
-            1 11 2
-            1 22 1
-
-        An example with sign 1:
-            sage: M = ModularSymbols(Gamma0(22), 2, sign=1); M
-            Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
-            sage: for b, e in M.factorization():
-            ...    print b.dimension(), b.level(), e
-            1 11 2
-            1 11 2
-            1 22 1
-
-        An example for Gamma1:
-            sage: M = ModularSymbols(Gamma1(26), 2, sign=1); M
-            Modular Symbols space of dimension 33 for Gamma_1(26) of weight 2 with sign 1 and over Rational Field
-            sage: for b, e in M.factorization():
-            ...    print b.dimension(), b.level(), e
-            1 13 2
-            1 13 2
-            1 13 2
-            2 13 2
-            2 13 2
-            2 13 2
-            2 13 2
-            2 13 2
-            1 26 1
-            1 26 1
-            1 26 1
-            2 26 1
-            2 26 1
-
-        An example with level divisible by a square:
-            sage: M = ModularSymbols(Gamma0(2*9),2); M
-            ???
-            sage: for b, e in M.factorization():
-            ...    print b.dimension(), b.level(), e
-            ???
         """
+
+##         EXAMPLES:
+##             sage: M = ModularSymbols(Gamma0(22), 2); M
+##             Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
+##             sage: M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 11 2
+##             1 11 2
+##             1 11 2
+##             1 22 1
+
+##         An example with sign 1:
+##             sage: M = ModularSymbols(Gamma0(22), 2, sign=1); M
+##             Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 11 2
+##             1 11 2
+##             1 22 1
+
+##         An example for Gamma1:
+##             sage: M = ModularSymbols(Gamma1(26), 2, sign=1); M
+##             Modular Symbols space of dimension 33 for Gamma_1(26) of weight 2 with sign 1 and over Rational Field
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 13 2
+##             1 13 2
+##             1 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             1 26 1
+##             1 26 1
+##             1 26 1
+##             2 26 1
+##             2 26 1
+
+##         An example with level divisible by a square:
+##             sage: M = ModularSymbols(Gamma0(2*9),2); M
+##             ???
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             ???
         try:
             return self._factorization
         except AttributeError:
@@ -1108,7 +1108,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         A = Z**self.dimension()  # free Z module of rank the dimension of self.
         self.__integral_structure = A.span(X)
         return self.__integral_structure
-
 
 
 class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):

@@ -1,3 +1,5 @@
+"""nodoctest"""
+
 from __future__ import with_statement
 
 from sage.misc.latex import Latex, lprint, typeset, JSMath

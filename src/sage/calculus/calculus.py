@@ -16,6 +16,8 @@ from sage.misc.sage_eval import sage_eval
 
 from sage.functions.constants import Constant
 
+import pdb
+
 class PrimitiveFunction(SageObject):
     def __init__(self):
         # nothing so far
@@ -121,7 +123,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # derivative
     ###################################################################
-    def derivative(self, v, n=1, *args):
+    def derivative(self, *args):
         """
         EXAMPLES:
             sage: h = sin(x)/cos(x)
@@ -134,24 +136,35 @@ class SymbolicExpression(RingElement):
             sage: diff(u,x,y)
             sin(x)*sin(y) - cos(x)*cos(y)
         """
-        if not isinstance(v, SymbolicVariable):
-            raise TypeError, "second argument to diff must be a variable"
-        if isinstance(n, (int, long, Integer)):
-            if n == 0:
-                return self
-            if n < 0:
-                raise ValueError, "can not take negative derivative"
-        f = self.parent()(self._maxima_().diff(v))
-        if isinstance(n, (int, long, Integer)):
-            if n == 1:
-                return f
-            args = [v]*(n-1)
-        else:
-            args = [n] + list(args)
-        # TODO -- does maxima have an n-th derivative and x, y, z-th partials function
-        # would be *faster* to call that directly.
-        for x in args:
-            f = f.derivative(x)
+        # check each time
+        s = ""
+        for i in range(len(args)):
+            if isinstance(args[i], SymbolicVariable):
+                s = s + '%s, ' %str(args[i])
+                # check to see if this is followed by an integer
+                try:
+                    if isinstance(args[i+1], (int, long, Integer)):
+                        s = s + '%s, ' %str(args[i+1])
+                    else:
+                        s = s + '1, '
+                except IndexError:
+                    s = s + '1'
+            elif isinstance(args[i], (int, long, Integer)):
+                if args[i] == 0:
+                    return self
+                if args[i] < 0:
+                    raise ValueError, "can not take negative derivative"
+            else:
+                raise TypeError, "arguments must be integers or \
+                SymbolicVariable objects"
+
+        try:
+            if s[-2] == ',':
+                s = s[:-2]
+        except IndexError:
+            pass
+        t = maxima('diff(%s, %s)'%(self._maxima_().name(), s))
+        f = self.parent()(t)
         return f
 
 
@@ -225,7 +238,7 @@ class Symbolic_object(SymbolicExpression):
     def _latex_(self):
         return latex(self._obj)
 
-    # TODO: do _sub_, etc.
+    # TODO: do _pow_?
     def _add_(self, right):
         if isinstance(right, Symbolic_object):
             try:
@@ -233,6 +246,30 @@ class Symbolic_object(SymbolicExpression):
             except TypeError:
                 pass
         return SymbolicArithmetic(self, right, operator.add)
+
+    def _sub_(self, right):
+        if isinstnace(right, Symbolic_object):
+            try:
+                return Symbolic_object(self._obj - right._obj)
+            except TypeError:
+                pass
+        return SymbolicArithmetic(self, right, operator.sub)
+
+    def _mul_(self, right):
+        if isinstance(right, Symbolic_object):
+            try:
+                return Symbolic_object(self._obj * right._obj)
+            except TypeError:
+                pass
+        return SymbolicArithmetic(self, right, operator.mul)
+
+    def _div_(self, right):
+        if isinstance(right, Symbolic_object):
+            try:
+                return Symbolic_object(self._obj / right._obj)
+            except TypeError:
+                pass
+        return SymbolicArithmetic(self, right, operator.div)
 
     def str(self, bits=None):
         if bits is None:
@@ -316,35 +353,67 @@ class SymbolicArithmetic(SymbolicOperation):
             " SymbolicExpression objects."
 
         self._operator = op
+        if op is operator.add:
+            self._atomic = False
+        elif op is operator.sub:
+            self._atomic = False
+        elif op is operator.mul:
+            self._atomic = True
+        elif op is operator.div:
+            self._atomic = False
+        elif op is operator.pow:
+            self._atomic = True
+
         SymbolicOperation.__init__(self, (f, g))
 
     def _repr_(self):
         ops = self._operands
         s0 = str(ops[0])
-        s = symbols[self._operator]
-        if s in ['*', '/', '^']:
-            if '+' in s0 or '-' in s0:
-                s0 = '(%s)'%s0
         s1 = str(ops[1])
-        if s in ['*', '/', ' - ']:
+        return self.parenthesize(s0, s1, self._operator)
+
+    def _is_atomic(self):
+        return self._atomic
+
+    def parenthesize(self, s0, s1, op, op_symbols=symbols, paren_symbols=('(',')')):
+        '''
+        Properly add parentheses with correct operator precedence in a string
+        of ASCII math or latex.
+        '''
+        if op in [operator.mul, operator.div, operator.pow]:
+            if '+' in s0 or '-' in s0:
+                # avoid drawing parens if s0 is atomic, since they are redundant
+                if not self._operands[0]._is_atomic():
+                    s0 = '%s%s%s' % (paren_symbols[0],s0,paren_symbols[1])
+        if op in [operator.mul, operator.div, operator.sub]:
             if '+' in s1 or '-' in s1:
-                s1 = '(%s)'%s1
-        return "%s%s%s"% (s0, s, s1)
-        # TODO: Bobby -- make the latex below use logic as above to parenthesize!
+                # avoid drawing parens if s1 is atomic
+                if not self._operands[1]._is_atomic():
+                    s1 = '%s%s%s' % (paren_symbols[0],s1,paren_symbols[1])
+        return "%s%s%s" % (s0, op_symbols[op], s1)
 
     def _latex_(self):
+        parens = ('\\left(', '\\right)')
         ops = [x._latex_() for x in self._operands]
-        if self._operator == operator.add:
-            return '%s + %s' % (ops[0], ops[1])
-        elif self._operator == operator.sub:
-            return '%s - %s' % (ops[0], ops[1])
+        op_symbols = {operator.mul:' \\cdot ', operator.div:''}
+
+        if self._operator is operator.add:
+            return self.parenthesize(ops[0], ops[1], self._operator,
+                    paren_symbols=parens)
+        elif self._operator is operator.sub:
+            return self.parenthesize(ops[0], ops[1], self._operator,
+                    paren_symbols=parens)
         elif self._operator == operator.mul:
-            return '%s \\cdot %s' % (ops[0], ops[1])
+            return self.parenthesize('{%s}'%ops[0],'{%s}'%ops[1], self._operator,
+                    op_symbols, paren_symbols=parens)
         elif self._operator == operator.div:
-            return '\\frac{%s}{%s}' % (ops[0], ops[1])
+            return self.parenthesize('\\frac{%s}'%ops[0],'{%s}'%ops[1],
+                    self._operator, op_symbols=op_symbols, paren_symbols=parens)
         elif self._operator == operator.pow:
-            return '%s^{%s}' % (ops[0], ops[1])
+            return self.parenthesize(ops[0],'{%s}'%ops[1], self._operator,
+                    paren_symbols=parens)
         else: raise NotImplementedError, 'Operator %s unkown' % self._operator
+
 
     def _maxima_(self, maxima=maxima):
         try:
@@ -397,9 +466,34 @@ class SymbolicVariable(SymbolicExpression):
             self.__maxima = m
             return m
 
+common_varnames = ['alpha',
+                   'beta',
+                   'gamma',
+                   'delta',
+                   'epsilon',
+                   'zeta',
+                   'eta',
+                   'theta',
+                   'iota',
+                   'kappa',
+                   'lambda',
+                   'mu',
+                   'nu',
+                   'xi',
+                   'pi',
+                   'rho',
+                   'sigma',
+                   'tau',
+                   'upsilon',
+                   'phi',
+                   'chi',
+                   'psi',
+                   'omega']
+common_varnames.append([i.capitalize() for i in common_varnames])
+
 
 def tex_varify(a):
-    # todo: add more
+    # TODO: add more
     if a in ['theta', 'eta', 'alpha']:
         return "\\" + a
     else:

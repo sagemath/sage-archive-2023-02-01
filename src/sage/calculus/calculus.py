@@ -1,3 +1,5 @@
+"""nodoctest"""
+
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC)
@@ -79,13 +81,12 @@ class SymbolicExpressionRing_class(CommutativeRing):
 # ... and here it is:
 SymbolicExpressionRing = SymbolicExpressionRing_class()
 SER = SymbolicExpressionRing
+# conversions is the dict of the form system:command
 
 class SymbolicExpression(RingElement):
-    r"""
-    A Symbolic Expression in acoordance with SEP #1.
-
     """
-    # conversions is the dict of the form system:command
+    A Symbolic Expression.
+    """
     def __init__(self, conversions={}):
         RingElement.__init__(self, SymbolicExpressionRing)
 

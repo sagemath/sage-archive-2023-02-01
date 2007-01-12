@@ -1031,11 +1031,20 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: x, y = PolynomialRing(RationalField(), 2, ['x','y']).gens()
+            sage: x, y = QQ['x,y'].gens()
             sage: f = (x^3 + 2*y^2*x)^2
             sage: g = x^2*y^2
             sage: f.gcd(g)
             x^2
+
+        This also works correctly over ZZ:
+            sage: R.<x,y> = ZZ[]
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
+            3*x*y
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
             raise TypeError, "self and f must have the same parent"

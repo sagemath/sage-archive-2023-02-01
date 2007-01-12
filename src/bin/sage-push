@@ -1,4 +1,4 @@
 hg status
 hg diff
-hg commit
+hg commit -m "New version"
 hg push ssh://was@sage.math.washington.edu/www/sage/hg/scripts-main

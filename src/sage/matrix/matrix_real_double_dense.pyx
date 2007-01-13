@@ -41,6 +41,8 @@ cdef extern from "arrayobject.h":
         cdef int flags
 
     object PyArray_FromDims(int,int *,int)
+    object PyArray_SimpleNew(int,int*,int)
+#    object PyArray_SimpleNewFromData(int, int*, int, char *)
     void import_array()
 
 
@@ -279,12 +281,14 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         cdef ndarray _n
         dims[0] = _M._matrix.size1
         dims[1] = _M._matrix.size2
-        temp = PyArray_FromDims(2, dims, 12)#, char_pointer)
+#        temp = PyArray_SimpleNew(2, dims, 12)#, char_pointer)
+        temp = PyArray_FromDims(2,dims,12)
+        _n = temp
         _n.flags = _n.flags&(~NPY_OWNDATA) # this performas a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
-        _n = temp                           # this isn't quite working yet so we invalidate the pointer at the end
+# _n = temp                           # this isn't quite working yet so we invalidate the pointer at the end
         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
         result = numpy.linalg.eig(_n)
-        _n.data = <char *> NULL    #keep numpy from deallocating memory
+#       _n.data = <char *> NULL    #keep numpy from deallocating memory
         return result   #todo: make the result a real double matrix
 #        return [list(result[0]),Matrix(sage.rings.real_double.RDF,list(result[1]) )] #todo: don't go through python
 

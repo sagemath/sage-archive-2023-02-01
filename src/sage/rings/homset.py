@@ -47,7 +47,7 @@ class RingHomset_generic(HomsetWithBase):
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)
         except (NotImplementedError, ValueError), err:
-            raise TypeError, "images do not define a valid homomorphism"
+            raise TypeError, "%s\nimages do not define a valid homomorphism"%err
 
     def natural_map(self):
         return morphism.RingHomomorphism_coercion(self)

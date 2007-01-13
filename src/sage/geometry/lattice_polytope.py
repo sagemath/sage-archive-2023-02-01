@@ -1,38 +1,47 @@
 r"""
 Lattice and reflexive polytopes
 
-This module provides tools for work with lattice and reflexive polytopes. It
-uses a Package for Analyzing Lattice Polytopes (PALP), written in C by
-Maximilian Kreuzer and Harald Skarke, which is freely available under
-GNU licence terms at http://tph16.tuwien.ac.at/~kreuzer/CY/
-PALP is described in the paper  math.SC/0204356. Its distributive also
+This module provides tools for work with lattice and reflexive
+polytopes. A \emph{convex polytope} is the convex hull of finitely
+many points in $\RR^n$.  The dimension $n$ of a polytope is the
+smallest $n$ such that the polytope can be embedded in $\RR^n$. A
+\emph{lattice polytope} is a polytope whose vertices have integer
+coordiantes.  A \emph{reflexive polytope} is
+
+It uses Package for Analyzing Lattice Polytopes (PALP), which is a
+program written in C by Maximilian Kreuzer and Harald Skarke, which is
+freely available under the GNU licence terms at
+\url{http://tph16.tuwien.ac.at/~kreuzer/CY/}.  Moreover, PALP is
+included standard with SAGE.
+
+PALP is described in the paper math.SC/0204356. Its distributive also
 contains the application nef.x, which was created by Erwin Riegler and
-computes nef partitions and Hodge data for toric complete intersections.
+computes nef partitions and Hodge data for toric complete
+intersections.
 
-polytope.py module written by William Stein was used as an example of
-organizing an interface between an external program and SAGE.
-William Stein also helped me with debugging and tuning of this module.
+ACKNOWLEDGMENT: polytope.py module written by William Stein was used
+as an example of organizing an interface between an external program
+and SAGE.  William Stein also helped Andrey Novoseltsev with debugging
+and tuning of this module.
 
-IMPORTANT:
-PALP requires some parameters to be determined during compilation time, i.e.
-the maximum dimension of polytopes, the maximum number of points etc. These
-limitations may lead to errors during calls to different functions of these
-module. Currently, a ValueError exception will be raised if the output of
-poly.x or nef.x is empty or contains the exclamation mark. The error message
-will contain the exact command that caused an error, the description and
+IMPORTANT NOTE: PALP requires some parameters to be determined during
+compilation time, i.e., the maximum dimension of polytopes, the
+maximum number of points, etc.  These limitations may lead to errors
+during calls to different functions of these module. Currently, a
+ValueError exception will be raised if the output of poly.x or nef.x
+is empty or contains the exclamation mark. The error message will
+contain the exact command that caused an error, the description and
 vertices of the polytope, and the obtained output.
 
-Data obtained from PALP and some other are cached and most returned values are
-immutable. In particular, you cannot change the vertices of the polytope or
-their order after creation of the polytope.
+Data obtained from PALP and some other data is cached and most
+returned values are immutable. In particular, you cannot change the
+vertices of the polytope or their order after creation of the
+polytope.
 
 AUTHORS:
-    - Andrey Novoseltsev (2007-01-11): initial version of this module
-    - Maximilian Kreuzer and Harald Skarke: authors of PALP
-    - Erwin Riegler: the author of nef.x
-
-\section{Tutorial}
- ...
+    -- Andrey Novoseltsev (2007-01-11): initial version of this module
+    -- Maximilian Kreuzer and Harald Skarke: authors of PALP
+    -- Erwin Riegler: the author of nef.x
 
 """
 
@@ -52,15 +61,16 @@ from sage.structure.sage_object import SageObject
 from sage.sets.set import Set_generic
 from sage.modules.all import vector
 from sage.interfaces.all import maxima
+from sage.plot.tachyon import Tachyon
+from sage.plot.plot import hue
+import random
 
 import os
 import StringIO
 
-
 class SetOfAllLatticePolytopesClass(Set_generic):
-
     def _repr_(self):
-        return "The set of all lattice polytopes."
+        return "Set of all Lattice Polytopes"
 
     def __call__(self, x):
         if isinstance(x, LatticePolytopeClass):
@@ -73,9 +83,10 @@ SetOfAllLatticePolytopes = SetOfAllLatticePolytopesClass()
 
 def LatticePolytope(data, desc=None, compute_vertices=False,
                     copy_vertices=True, n=0):
-    r"""Construct a lattice polytope.
+    r"""
+    Construct a lattice polytope.
 
-    LatticePolytope(data, desc, compute_vertices, copy_vertices, n)
+    LatticePolytope(data, [desc], [compute_vertices], [copy_vertices], [n])
 
     INPUT:
         data -- a matrix, whose columns are vertices of the polytope;
@@ -91,15 +102,17 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
                 matrix of vertices, it will be made immutable.
         n -- (default: 0) if \code{data} is a name of a file, that contains
                 data blocks for several polytopes, the n-th block will be used.
-                NUMERATION STARTS WITH ZERO.
+                \emph{NUMERATION STARTS WITH ZERO}.
 
     OUTPUT:
         a lattice polytope
 
     EXAMPLES:
-    Here we construct a polytope from a matrix of vertices. In the first case a
-    copy of the given matrix is made during construction, in the second one the
+    Here we construct a polytope from a matrix whose columns are
+    vertices in 3-dimensional space. In the first case a copy of the
+    given matrix is made during construction, in the second one the
     matrix is made immutable and used as a matrix of vertices.
+
         sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0],
         ...                   [0, 1, 0,  0, -1,  0],
         ...                   [0, 0, 1,  0,  0, -1]])
@@ -116,6 +129,9 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
         False
         sage: m is p.vertices()
         True
+
+    We draw a pretty picture of the polytype in 3-dimensional space:
+        sage: p.show()
 
     Now we add an extra point to the matrix...
         sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
@@ -161,7 +177,9 @@ class LatticePolytopeClass(SageObject):
     """
 
     def __init__(self, data, desc, compute_vertices, copy_vertices=True, n=0):
-        r"""Construct a lattice polytope. See \code{LatticePolytope}."""
+        r"""
+        Construct a lattice polytope. See \code{LatticePolytope}.
+        """
         if is_Matrix(data):
             if desc == None:
                 self._desc = "A lattice polytope"
@@ -779,10 +797,71 @@ class LatticePolytopeClass(SageObject):
         return self._vertices.ncols()
 
     def parent(self):
+        """
+        Return the set of all lattice polytopes.
+
+        EXAMPLES:
+            sage:
+        """
         return SetOfAllLatticePolytopes
 
+    def plot(self, camera_center=None):
+        """
+        Draw a 3d picture of the polytope, which is assumed to be the
+        convex hole of its vertices.
+
+        INPUT:
+            self -- polytope of dimension 3.
+            camera_center -- (default: random) location of center of
+            the camera (i.e., viewer)
+
+        OUTPUT:
+            -- a tachyon 3d raytracer plot of the polytope
+
+        The face colors are random.
+
+        AUTHORS:
+            -- William Stein and Tom Boothby
+
+        EXAMPLES:
+            sage:
+        """
+        if self.dim() != 3:
+            raise ValueError, "polytope must have dimension 3"
+        m = self._vertices
+        r = random.random
+        if camera_center is None:
+            x = max(m.list())
+            camera_center = [(1+r())*x,(1+r())*x,(1+r())*x]
+            for i in range(3):
+                if r() > 0.5:
+                    camera_center[i] *= -1
+        t = Tachyon(camera_center=camera_center)
+        t.light(tuple([2*v for v in camera_center]), .1, (1,1,1))
+
+        cols = m.columns()
+        n = len(cols)
+        for i in range(n):
+            for j in range(i,n):
+                for k in range(j,n):
+                    s = "T%010d%010d%010d"%(i,j,k)
+                    t.texture(s, color=hue(r()))
+                    t.triangle(cols[i],cols[j],cols[k], s)
+        return t
+
+    def show(self, camera_center=None):
+        """
+        Draw a 3d picture of the polytope, which is assumed to be the
+        convex hole of its vertices.
+
+        See self.plot? for more details.
+        """
+
+        self.plot(camera_center=camera_center).show()
+
     def points(self):
-        r"""Return all lattice points of this polytope as columns of a matrix.
+        r"""
+        Return all lattice points of this polytope as columns of a matrix.
 
         EXAMPLES:
         The lattice points of the 3-dimensional octahedron and its polar cube:
@@ -805,7 +884,8 @@ class LatticePolytopeClass(SageObject):
             return self._points
 
     def polar(self):
-        r"""Return the polar polytope, if this polytope is reflexive.
+        r"""
+        Return the polar polytope, if this polytope is reflexive.
 
         EXAMPLES:
         The polar polytope to the 3-dimensional octahedron:
@@ -840,7 +920,8 @@ class LatticePolytopeClass(SageObject):
                                 + "Polytope: %s") % self
 
     def poly_x(self, keys):
-        r"""Run poly.x with given \code{keys} on vertices of this polytope.
+        r"""
+        Run poly.x with given \code{keys} on vertices of this polytope.
 
         INPUT:
             keys -- a string of options passed to poly.x. The key "f" is added
@@ -889,7 +970,8 @@ class LatticePolytopeClass(SageObject):
         return self._palp("poly.x -f" + keys)
 
     def vertices(self):
-        r"""Return vertices of this polytope as columns of a matrix.
+        r"""
+        Return vertices of this polytope as columns of a matrix.
 
         EXAMPLES:
         The lattice points of the 3-dimensional octahedron and its polar cube:
@@ -936,7 +1018,8 @@ class NEFPartition(Sequence):
         self.set_immutable()
 
     def nparts(self):
-        r"""Return the number of parts of this partitions.
+        r"""
+        Return the number of parts of this partitions.
 
         EXAMPLES:
             sage: nefp = NEFPartition([1, 1, 0, 0, 0, 1])
@@ -947,7 +1030,8 @@ class NEFPartition(Sequence):
         return self._n
 
     def part(self, i):
-        r"""Return the \code{i}-th part of the partition.
+        r"""
+        Return the \code{i}-th part of the partition.
 
         NUMERATON OF PARTS STARTS WITH ZERO.
 
@@ -962,7 +1046,8 @@ class NEFPartition(Sequence):
         return [j for j, el in enumerate(self) if el == i]
 
     def part_of_vertex(self, i):
-        r"""Return the index of the part containing the \code{i}-vertex.
+        r"""
+        Return the index of the part containing the \code{i}-vertex.
 
         EXAMPLES:
         \code{nefp.part_of_vertex(i)} is equivalent to \code{nefp[i]}.
@@ -1012,7 +1097,8 @@ class PolytopeFace(SageObject):
 
 
 def _create_octahedron(dim):
-    r"""Create an octahedron of the given dimension."""
+    r"""
+    Create an octahedron of the given dimension."""
     m = matrix(ZZ, dim, 2*dim)
     for i in range(dim):
         m[i,i] = 1
@@ -1024,7 +1110,8 @@ _octahedrons = dict()       # Dictionary for storing created octahedrons
 
 
 def _read_nef_x_partitions(data):
-    r"""Read all nef-partitions for one polytope from a string or an open file.
+    r"""
+    Read all nef-partitions for one polytope from a string or an open file.
 
     \code{data} should be an output of nef.x.
 
@@ -1330,7 +1417,8 @@ def read_all_polytopes(file_name, desc=None):
 
 
 def read_palp_matrix(data):
-    r"""Read and return an integer matrix from a string or an opened file.
+    r"""
+    Read and return an integer matrix from a string or an opened file.
 
     First input line must start with two integers m and n, the number of rows
     and columns of the matrix. The rest of the first line is ignored. The next
@@ -1377,7 +1465,8 @@ def sage_matrix_to_maxima(m):
 
 
 def skip_palp_matrix(data, n=1):
-    r"""Skip matrix data in a file.
+    r"""
+    Skip matrix data in a file.
 
     INPUT:
         data -- opened file with blocks of matrix data in the following format:

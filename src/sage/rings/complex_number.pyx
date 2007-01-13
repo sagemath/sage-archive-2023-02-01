@@ -17,7 +17,7 @@ AUTHOR:
 import math
 import operator
 
-from sage.structure.element cimport RingElement, Element, ModuleElement
+from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 
 import complex_field
 import real_field
@@ -39,7 +39,7 @@ def set_global_complex_round_mode(n):
 def is_ComplexNumber(x):
     return isinstance(x, ComplexNumber)
 
-cdef class ComplexNumber(sage.structure.element.RingElement):
+cdef class ComplexNumber(sage.structure.element.FieldElement):
     """
     A complex number.
 
@@ -65,7 +65,7 @@ cdef class ComplexNumber(sage.structure.element.RingElement):
 
     def __init__(self, parent, real, imag=None):
         cdef real_mpfr.RealNumber rr, ii
-        sage.rings.ring_element.RingElement.__init__(self, parent)
+        self._parent = parent
         self._prec = self._parent._prec
         self._multiplicative_order = None
 

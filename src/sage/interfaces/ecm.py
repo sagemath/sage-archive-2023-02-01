@@ -196,7 +196,7 @@ class ECM:
 
             except pexpect.EOF:
                 child.kill(0)
-                self.primality = [false]
+                self.primality = [False]
                 return [n]
         child.kill(0)
 

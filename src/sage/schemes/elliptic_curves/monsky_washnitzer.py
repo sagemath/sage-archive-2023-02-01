@@ -33,7 +33,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.all import Integers, Integer, PolynomialRing, Polynomial
+from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial
 from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
@@ -111,7 +111,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
         Q -- a polynomial of the form Q(x) = x^3 + ax + b, where a, b
              belong to a ring in which 2, 3 are invertible.
     """
-    if not isinstance(Q, Polynomial):
+    if is_Polynomial(Q):
       raise TypeError, "Q (=%s) must be a polynomial" % Q
 
     if Q.degree() != 3 or not Q[2].is_zero():

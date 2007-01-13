@@ -111,9 +111,7 @@ class Morphism(Element):
 class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
-        try:
-            self.codomain().has_coerce_map_from(self.domain())
-        except TypeError:
+        if not self.codomain().has_coerce_map_from(self.domain()):
             raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
 
     def _repr_type(self):

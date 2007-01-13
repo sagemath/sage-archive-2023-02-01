@@ -1026,6 +1026,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
 
+        Type "factor?" for more detailed documentation.
+
         INPUT:
             algorithm -- string
                  * 'pari' -- (default)  use the PARI c library

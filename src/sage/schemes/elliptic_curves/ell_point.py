@@ -2,8 +2,8 @@
 Points on elliptic curves
 
 EXAMPLES:
-    sage: sage: K = pAdicField(5)
-    sage: sage: E = EllipticCurve([K(1), K(1)])
+    sage: K = pAdicField(5)
+    sage: E = EllipticCurve([K(1), K(1)])
     sage: P = E([K(0), K(1), K(1)])
     sage: P
     (0 : 1 : 1)

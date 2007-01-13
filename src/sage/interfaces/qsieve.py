@@ -9,9 +9,21 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 import sage.rings.integer
 
 def qsieve(n, block=True, time=False, verbose=False):
-    """
+    r"""
     Run Hart's quadratic sieve and return the distinct proper factors
     of the integer n that it finds.
+
+    CONDITIONS:
+    The conditions for the quadratic sieve to work are as follows:
+
+    \begin{enumerate}
+       \item No small factors
+       \item Not a perfect power
+       \item Not prime
+    \end{enumerate}
+
+    If any of these fails, the sieve will also.
+
 
     INPUT:
         n -- an integer with at least 40 digits

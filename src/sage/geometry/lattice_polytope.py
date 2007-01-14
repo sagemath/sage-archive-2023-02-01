@@ -139,7 +139,7 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
         True
 
     We draw a pretty picture of the polytype in 3-dimensional space:
-        sage: p.show()
+        sage: p.plot().save('sage.png')       # or do p.show()
 
     Now we add an extra point to the matrix...
         sage: m = matrix(ZZ, [[1, 0, 0, -1,  0,  0, 0],
@@ -761,7 +761,8 @@ class LatticePolytopeClass(SageObject):
         EXAMPLES:
         This call is used internally for computing NEF-partitions:
             sage: o = lattice_polytope.octahedron(3)
-            sage: print o.nef_x("-N -Lv -p")    # output contains random time
+            sage: s = o.nef_x("-N -Lv -p")
+            sage.: print s                      # output contains random time
             M:27 8 N:7 6  #part=5
             3 6 Vertices in N-lattice:
                 0    0    0    1   -1    0
@@ -830,7 +831,9 @@ class LatticePolytopeClass(SageObject):
         Return the set of all lattice polytopes.
 
         EXAMPLES:
-            sage:
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.parent()
+            Set of all Lattice Polytopes
         """
         return SetOfAllLatticePolytopes
 
@@ -852,7 +855,8 @@ class LatticePolytopeClass(SageObject):
             -- William Stein and Tom Boothby
 
         EXAMPLES:
-            sage:
+            sage: o = lattice_polytope.octahedron(3)
+            sage: o.plot().save('sage.png')
         """
         if self.dim() != 3:
             raise ValueError, "polytope must have dimension 3"
@@ -883,7 +887,6 @@ class LatticePolytopeClass(SageObject):
 
         See self.plot? for more details.
         """
-
         self.plot(camera_center=camera_center).show()
 
     def points(self):
@@ -977,7 +980,7 @@ class LatticePolytopeClass(SageObject):
             sage: BIGO = lattice_polytope.octahedron(7)
             sage: BIGO
             An octahedron: 7-dimensional, 14 vertices.
-            sage: BIGO.poly_x("e")      # random output depending on your system
+            sage: BIGO.poly_x("e")      # possibly different output depending on your system
             Traceback (most recent call last):
             ...
             ValueError: Error executing "poly.x -fe" for the given polytope!
@@ -1237,7 +1240,7 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         [2, 3, 4]
 
     For long tests you can see the current progress:
-        sage: filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, print_numbers=True)
+        sage: lattice_polytope.filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, print_numbers=True)
         0
         1
         2
@@ -1279,7 +1282,7 @@ def octahedron(dim):
         [ 1  0  0 -1  0  0]
         [ 0  1  0  0 -1  0]
         [ 0  0  1  0  0 -1]
-        sage: o = octahedron(4)
+        sage: o = lattice_polytope.octahedron(4)
         sage: o
         An octahedron: 4-dimensional, 8 vertices.
         sage: o.vertices()
@@ -1289,7 +1292,7 @@ def octahedron(dim):
         [ 0  0  0  1  0  0  0 -1]
 
     There exists only one octahedron of each dimension:
-        sage: o is octahedron(4)
+        sage: o is lattice_polytope.octahedron(4)
         True
 
     """
@@ -1332,7 +1335,7 @@ def positive_integer_relations(points):
     However, the above relations may contain negative and rational numbers. This
     function transforms them in such a way, that all coefficients are
     non-negative integers:
-        sage: positive_integer_relations(p.points())
+        sage: lattice_polytope.positive_integer_relations(p.points())
         [1 0 0 1 1 0]
         [1 1 1 0 0 0]
         [0 0 0 0 0 1]

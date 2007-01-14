@@ -4,17 +4,25 @@ Lattice and reflexive polytopes
 This module provides tools for work with lattice and reflexive
 polytopes. A \emph{convex polytope} is the convex hull of finitely
 many points in $\RR^n$.  The dimension $n$ of a polytope is the
-smallest $n$ such that the polytope can be embedded in $\RR^n$. A
-\emph{lattice polytope} is a polytope whose vertices have integer
-coordiantes.  A \emph{reflexive polytope} is
+smallest $n$ such that the polytope can be embedded in $\RR^n$.
 
-It uses Package for Analyzing Lattice Polytopes (PALP), which is a
-program written in C by Maximilian Kreuzer and Harald Skarke, which is
-freely available under the GNU licence terms at
+A \emph{lattice polytope} is a polytope whose vertices all have
+integer coordinates.
+
+If $L$ is a lattice polytope, the dual polytope of $L$ is
+$$
+  \{y in \Z^n :   x\dot y \geq -1 \text{ all } x in L\}
+$$
+A \emph{reflexive polytope} is a lattice polytope that
+is equal to its own dual.
+
+This SAGE module uses Package for Analyzing Lattice Polytopes (PALP),
+which is a program written in C by Maximilian Kreuzer and Harald
+Skarke, which is freely available under the GNU licence terms at
 \url{http://tph16.tuwien.ac.at/~kreuzer/CY/}.  Moreover, PALP is
 included standard with SAGE.
 
-PALP is described in the paper math.SC/0204356. Its distributive also
+PALP is described in the paper math.SC/0204356. Its distribution also
 contains the application nef.x, which was created by Erwin Riegler and
 computes nef partitions and Hodge data for toric complete
 intersections.
@@ -170,10 +178,10 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
 
 class LatticePolytopeClass(SageObject):
 
-    r"""Class of lattice/reflexive polytopes.
+    r"""
+    Class of lattice/reflexive polytopes.
 
     Use \code{LatticePolytope} for constructing a polytope.
-
     """
 
     def __init__(self, data, desc, compute_vertices, copy_vertices=True, n=0):
@@ -210,7 +218,8 @@ class LatticePolytopeClass(SageObject):
                 "Cannot make a polytope from given data!\nData:\n%s" % data
 
     def _compute_faces(self):
-        r"""Compute and cache faces of this polytope.
+        r"""
+        Compute and cache faces of this polytope.
 
         If this polytope is reflexive and the polar polytope was already
         computed, computes faces of both in order to save time and preserve the
@@ -226,7 +235,7 @@ class LatticePolytopeClass(SageObject):
                 # we must run poly.x on the original polytope.
                 self._faces = Sequence([], cr=True)
                 for polar_d_faces in reversed(self._polar.faces()):
-                    self._faces.append([PolytopeFace(f._facets, f._vertices)
+                    self._faces.append([_PolytopeFace(f._facets, f._vertices)
                                                     for f in polar_d_faces])
                 self._faces.set_immutable()
                 return
@@ -238,12 +247,13 @@ class LatticePolytopeClass(SageObject):
         f = _read_poly_x_incidences(data[1+d:1+2*d])
         self._faces = Sequence([], cr=True)
         for i in range(len(v)):
-            self._faces.append([PolytopeFace(vertices, facets)
+            self._faces.append([_PolytopeFace(vertices, facets)
                                     for vertices, facets in zip(v[i], f[i])])
         self._faces.set_immutable()
 
     def _palp(self, command):
-        r"""Run \code{command} on vertices of this polytope.
+        r"""
+        Run \code{command} on vertices of this polytope.
 
         Returns the output of \code{command} as a string.
 
@@ -267,25 +277,28 @@ class LatticePolytopeClass(SageObject):
         return result
 
     def _repr_(self):
-        r"""Return a string representation of this polytope."""
+        r"""
+        Return a string representation of this polytope.
+        """
         s = str(self._desc)
         s += ": %d-dimensional, %d vertices." % (self.dim(), self.nvertices())
         return s
 
     def dim(self):
-        r"""Return the dimenstion of this polytope.
+        r"""
+        Return the dimension of this polytope.
 
         EXAMPLES:
         We create a 3-dimensional octahedron and check its dimension:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.dim()
             3
-
         """
         return self._vertices.nrows()
 
     def distances(self):
-        r"""Return the matrix of distances for this polytope.
+        r"""
+        Return the matrix of distances for this polytope.
 
         This matrix \code{m} gives distances \code{m[i,j]} between the
         \code{i}-th facet (which is also the \code{i}-th vertex of the polar
@@ -293,7 +306,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         The matrix of distances for a 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.distances()
             [0 0 2 2 2 0 1]
             [2 0 2 0 2 0 1]
@@ -323,11 +336,12 @@ class LatticePolytopeClass(SageObject):
             return self._distances
 
     def face_boundary_points(self, face):
-        r"""Return a sequence of indices of boundary lattice points of \code{face}.
+        r"""
+        Return a sequence of indices of boundary lattice points of \code{face}.
 
         EXAMPLES:
         Boundary lattice points of one of the facets of a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_boundary_points(face)
@@ -342,11 +356,12 @@ class LatticePolytopeClass(SageObject):
             return face._boundary_points
 
     def face_facets(self, face):
-        r"""Return a sequence of indices of facets containing \code{face}.
+        r"""
+        Return a sequence of indices of facets containing \code{face}.
 
         EXAMPLES:
         Facets containing one of the edges of a 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: edge = o.faces(dim=1)[0]
             sage: o.face_facets(edge)
             [0, 1]
@@ -367,7 +382,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         Interior lattice points of one of the facets of a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_interior_points(face)
@@ -392,12 +407,13 @@ class LatticePolytopeClass(SageObject):
             return face._interior_points
 
     def face_nboundary_points(self, face):
-        r"""Return the number of boundary lattice points of \code{face}.
+        r"""
+        Return the number of boundary lattice points of \code{face}.
 
         EXAMPLES:
         The number of boundary lattice points of one of the facets of
         a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_nboundary_points(face)
@@ -406,12 +422,13 @@ class LatticePolytopeClass(SageObject):
         return self.face_npoints(face) - self.face_ninterior_points(face)
 
     def face_nfacets(self, face):
-        r"""Return the number of facets containing \code{face}.
+        r"""
+        Return the number of facets containing \code{face}.
 
         EXAMPLES:
         The number of facets containing one of the edges of
         a 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: edge = o.faces(dim=1)[0]
             sage: o.face_nfacets(edge)
             2
@@ -420,12 +437,13 @@ class LatticePolytopeClass(SageObject):
         return len(face._facets)
 
     def face_ninterior_points(self, face):
-        r"""Return the number of interior lattice points of \code{face}.
+        r"""
+        Return the number of interior lattice points of \code{face}.
 
         EXAMPLES:
         The number of interior lattice points of one of the facets of
         a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_ninterior_points(face)
@@ -435,12 +453,13 @@ class LatticePolytopeClass(SageObject):
         return len(self.face_interior_points(face))
 
     def face_npoints(self, face):
-        r"""Return the number of lattice points of \code{face}.
+        r"""
+        Return the number of lattice points of \code{face}.
 
         EXAMPLES:
         The number of lattice points of one of the facets of
         a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_npoints(face)
@@ -450,12 +469,13 @@ class LatticePolytopeClass(SageObject):
         return len(self.face_points(face))
 
     def face_nvertices(self, face):
-        r"""Return the number of vertices generating \code{face}.
+        r"""
+        Return the number of vertices generating \code{face}.
 
         EXAMPLES:
         The number of vertices generating one of the facets of
         a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_nvertices(face)
@@ -465,11 +485,12 @@ class LatticePolytopeClass(SageObject):
         return len(face._vertices)
 
     def face_points(self, face):
-        r"""Return a sequence of indices of lattice points of \code{face}.
+        r"""
+        Return a sequence of indices of lattice points of \code{face}.
 
         EXAMPLES:
         The lattice points of one of the facets of a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_points(face)
@@ -485,11 +506,12 @@ class LatticePolytopeClass(SageObject):
             return face._points
 
     def face_vertices(self, face):
-        r"""Return a sequence of indices of vertices generating \code{face}.
+        r"""
+        Return a sequence of indices of vertices generating \code{face}.
 
         EXAMPLES:
         The vertices generating one of the facets of a 3-dimensional cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: face = cube.facets()[0]
             sage: cube.face_vertices(face)
@@ -499,18 +521,19 @@ class LatticePolytopeClass(SageObject):
         return face._vertices
 
     def faces(self, dim=None, codim=None):
-        r"""Return the sequence of faces of this polytope.
+        r"""
+        Return the sequence of faces of this polytope.
 
         If \code{dim} or \code{codim} are specified, returns a sequence of
         faces of the corresponding dimension or codimension. Otherwise returns
         the sequence of such sequences for all dimensions. Each face is
-        an instance of class \code{PolytopeFace} and must be used as
+        an instance of class \code{_PolytopeFace} and must be used as
         an argument of \code{face_xxx} functions of THE SAME polytope,
         otherwise results will be invalid.
 
         EXAMPLES:
         All faces of the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.faces()
             [
             [[5], [1], [0], [3], [4], [2]],
@@ -548,15 +571,16 @@ class LatticePolytopeClass(SageObject):
             return self.faces(dim, codim)
 
     def facets(self):
-        r"""Return the sequence of facets of this polytope.
+        r"""
+        Return the sequence of facets of this polytope.
 
-        Each facet is an instance of class \code{PolytopeFace} and must be used
+        Each facet is an instance of class \code{_PolytopeFace} and must be used
         as an argument of \code{face_xxx} functions of THE SAME polytope,
         otherwise results will be invalid.
 
         EXAMPLES:
         All facets of the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.facets()
             [[0, 1, 5], [1, 3, 5], [0, 4, 5], [3, 4, 5], [0, 1, 2], [1, 2, 3], [0, 2, 4], [2, 3, 4]]
 
@@ -568,11 +592,12 @@ class LatticePolytopeClass(SageObject):
         return self.faces(codim=1)
 
     def is_reflexive(self):
-        r"""Return True if this polytope is reflexive.
+        r"""
+        Return True if this polytope is reflexive.
 
         EXAMPLES:
         The 3-dimensional octahedron is reflexive (and 4318 other 3-polytopes):
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.is_reflexive()
             True
 
@@ -616,7 +641,8 @@ class LatticePolytopeClass(SageObject):
             return self._is_reflexive
 
     def mif(self, partition):
-        r"""Return all vectors $m_{i,f}$, grouped into matrices.
+        r"""
+        Return all vectors $m_{i,f}$, grouped into matrices.
 
         INPUT:
             partition -- NEF-partition (instance of class NEFPartition)
@@ -628,7 +654,7 @@ class LatticePolytopeClass(SageObject):
         EXAMPLES:
         We compute $m_{i,f}$ matrices for one of the nef-partitions of
         the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: nefp = o.nef_partitions()[0]
             sage: o.mif(nefp)
             [
@@ -671,11 +697,12 @@ class LatticePolytopeClass(SageObject):
         return result
 
     def nef_partitions(self):
-        r"""Return the sequence of NEF-partitions for this polytope.
+        r"""
+        Return the sequence of NEF-partitions for this polytope.
 
         EXAMPLES:
         NEF-partitions of the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.nef_partitions()
             [
             [1, 1, 0, 0, 0, 1],
@@ -694,7 +721,6 @@ class LatticePolytopeClass(SageObject):
             ...
             ValueError: The given polytope is not reflexive!
             Polytope: A lattice polytope: 3-dimensional, 6 vertices.
-
         """
         if not self.is_reflexive():
             raise ValueError, ("The given polytope is not reflexive!\n"
@@ -722,7 +748,8 @@ class LatticePolytopeClass(SageObject):
             return self._nef_partitions
 
     def nef_x(self, keys):
-        r"""Run nef.x wilth given \code{keys} on vertices of this polytope.
+        r"""
+        Run nef.x wilth given \code{keys} on vertices of this polytope.
 
         INPUT:
             keys -- a string of options passed to nef.x. The key "-f" is added
@@ -733,7 +760,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         This call is used internally for computing NEF-partitions:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: print o.nef_x("-N -Lv -p")    # output contains random time
             M:27 8 N:7 6  #part=5
             3 6 Vertices in N-lattice:
@@ -757,7 +784,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         The number of facets of the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.nfacets()
             8
 
@@ -765,12 +792,13 @@ class LatticePolytopeClass(SageObject):
         return len(self.facets())
 
     def npoints(self):
-        r"""Return the number of lattice points of this polytope.
+        r"""
+        Return the number of lattice points of this polytope.
 
         EXAMPLES:
         The number of lattice points of the 3-dimensional octahedron and its
         polar cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.npoints()
             7
             sage: cube = o.polar()
@@ -781,12 +809,13 @@ class LatticePolytopeClass(SageObject):
         return self.points().ncols()
 
     def nvertices(self):
-        r"""Return the number of vertices of this polytope.
+        r"""
+        Return the number of vertices of this polytope.
 
         EXAMPLES:
         The number of vertices of the 3-dimensional octahedron and its
         polar cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.nvertices()
             6
             sage: cube = o.polar()
@@ -807,8 +836,7 @@ class LatticePolytopeClass(SageObject):
 
     def plot(self, camera_center=None):
         """
-        Draw a 3d picture of the polytope, which is assumed to be the
-        convex hole of its vertices.
+        Draw a 3d picture of the polytope.
 
         INPUT:
             self -- polytope of dimension 3.
@@ -851,8 +879,7 @@ class LatticePolytopeClass(SageObject):
 
     def show(self, camera_center=None):
         """
-        Draw a 3d picture of the polytope, which is assumed to be the
-        convex hole of its vertices.
+        Draw a 3d picture of the polytope.
 
         See self.plot? for more details.
         """
@@ -865,7 +892,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         The lattice points of the 3-dimensional octahedron and its polar cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.points()
             [ 1  0  0 -1  0  0  0]
             [ 0  1  0  0 -1  0  0]
@@ -889,7 +916,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         The polar polytope to the 3-dimensional octahedron:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: cube = o.polar()
             sage: cube
             A polytope polar to An octahedron: 3-dimensional, 8 vertices.
@@ -932,7 +959,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         This call is used for determining if a polytope is reflexive or not:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: print o.poly_x("e")
             8 3  Vertices of P-dual <-> Equations of P
               -1  -1   1
@@ -947,7 +974,7 @@ class LatticePolytopeClass(SageObject):
         Since PALP has limits on different parameters determined during
         compilation, the following code is likely to fail, unless you change
         default settings of PALP:
-            sage: BIGO = octahedron(7)
+            sage: BIGO = lattice_polytope.octahedron(7)
             sage: BIGO
             An octahedron: 7-dimensional, 14 vertices.
             sage: BIGO.poly_x("e")      # random output depending on your system
@@ -975,7 +1002,7 @@ class LatticePolytopeClass(SageObject):
 
         EXAMPLES:
         The lattice points of the 3-dimensional octahedron and its polar cube:
-            sage: o = octahedron(3)
+            sage: o = lattice_polytope.octahedron(3)
             sage: o.vertices()
             [ 1  0  0 -1  0  0]
             [ 0  1  0  0 -1  0]
@@ -991,7 +1018,6 @@ class LatticePolytopeClass(SageObject):
 
 
 class NEFPartition(Sequence):
-
     r"""
     Construct a NEF-partition from the given list.
 
@@ -1004,9 +1030,9 @@ class NEFPartition(Sequence):
     EXAMPLES:
     All elements of the list will be coerced to integers, so it is OK to use
     either a list of numbers or a list of strings:
-        sage: NEFPartition([1, 1, 0, 0, 0, 1])
+        sage: lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
         [1, 1, 0, 0, 0, 1]
-        sage: NEFPartition(['1', '1', '0', '0', '0', '1'])
+        sage: lattice_polytope.NEFPartition(['1', '1', '0', '0', '0', '1'])
         [1, 1, 0, 0, 0, 1]
 
     """
@@ -1022,7 +1048,7 @@ class NEFPartition(Sequence):
         Return the number of parts of this partitions.
 
         EXAMPLES:
-            sage: nefp = NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
             sage: nefp.nparts()
             2
 
@@ -1036,12 +1062,11 @@ class NEFPartition(Sequence):
         NUMERATON OF PARTS STARTS WITH ZERO.
 
         EXAMPLES:
-            sage: nefp = NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
             sage: nefp.part(0)
             [2, 3, 4]
             sage: nefp.part(1)
             [0, 1, 5]
-
         """
         return [j for j, el in enumerate(self) if el == i]
 
@@ -1051,7 +1076,7 @@ class NEFPartition(Sequence):
 
         EXAMPLES:
         \code{nefp.part_of_vertex(i)} is equivalent to \code{nefp[i]}.
-            sage: nefp = NEFPartition([1, 1, 0, 0, 0, 1])
+            sage: nefp = lattice_polytope.NEFPartition([1, 1, 0, 0, 0, 1])
             sage: nefp.part_of_vertex(3)
             0
             sage: nefp.part_of_vertex(5)
@@ -1071,10 +1096,9 @@ class NEFPartition(Sequence):
         return self[i]
 
 
-class PolytopeFace(SageObject):
-
+class _PolytopeFace(SageObject):
     r"""
-    PolytopeFace(vertices, facets)
+    _PolytopeFace(vertices, facets)
 
     Construct a polytope face.
 
@@ -1083,9 +1107,7 @@ class PolytopeFace(SageObject):
     INPUT:
         vertices -- a sequence of indices of generating vertices.
         facets -- a sequence of indices of facets containing this face.
-
     """
-
     def __init__(self, vertices, facets):
         r"""Construct a face."""
         self._vertices = vertices
@@ -1105,9 +1127,7 @@ def _create_octahedron(dim):
         m[i,dim+i] = -1
     return LatticePolytope(m, "An octahedron", copy_vertices=False)
 
-
 _octahedrons = dict()       # Dictionary for storing created octahedrons
-
 
 def _read_nef_x_partitions(data):
     r"""
@@ -1120,7 +1140,6 @@ def _read_nef_x_partitions(data):
 
     If there are no NEF-partitions, returns the empty sequence.
     If the string is empty or EOF is reached, returns None.
-
     """
     if isinstance(data, str):
         f = StringIO.StringIO(data)
@@ -1156,7 +1175,8 @@ def _read_nef_x_partitions(data):
 
 
 def _read_poly_x_incidences(data):
-    r"""Convert incidence data from binary numbers to sequences.
+    r"""
+    Convert incidence data from binary numbers to sequences.
 
     INPUT:
         data -- list of lines. Each line contains incidence information for
@@ -1183,7 +1203,8 @@ def _read_poly_x_incidences(data):
 
 
 def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
-    r"""Use the function \code{f} to filter polytopes in a list.
+    r"""
+    Use the function \code{f} to filter polytopes in a list.
 
     INPUT:
         f -- filtering function, it must take one argument, a lattice polytope,
@@ -1201,7 +1222,7 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
 
     EXAMPLES:
     Consider a sequence of octahedrons:
-        sage: polytopes = Sequence([octahedron(n) for n in range(2, 7)], cr=True)
+        sage: polytopes = Sequence([lattice_polytope.octahedron(n) for n in range(2, 7)], cr=True)
         sage: polytopes
         [
         An octahedron: 2-dimensional, 4 vertices.,
@@ -1212,12 +1233,11 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         ]
 
     This filters octahedrons of dimension at least 4:
-        sage: filter_polytopes(lambda p: p.dim() >= 4, polytopes)
+        sage: lattice_polytope.filter_polytopes(lambda p: p.dim() >= 4, polytopes)
         [2, 3, 4]
 
     For long tests you can see the current progress:
-        sage: filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, \
-        sage: print_numbers=True)
+        sage: filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, print_numbers=True)
         0
         1
         2
@@ -1226,13 +1246,11 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
         [3, 4]
 
     Here we consider only some of the polytopes:
-        sage: filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, \
-        sage: [2, 3, 4], print_numbers=True)
+        sage: lattice_polytope.filter_polytopes(lambda p: p.nvertices() >= 10, polytopes, [2, 3, 4], print_numbers=True)
         2
         3
         4
         [3, 4]
-
     """
     if subseq == []:
         return []
@@ -1249,11 +1267,12 @@ def filter_polytopes(f, polytopes, subseq=None, print_numbers=False):
 
 
 def octahedron(dim):
-    r"""Return an octahedron of the given dimension.
+    r"""
+    Return an octahedron of the given dimension.
 
     EXAMPLES:
     Here are 3- and 4-dimensional octahedrons:
-        sage: o = octahedron(3)
+        sage: o = lattice_polytope.octahedron(3)
         sage: o
         An octahedron: 3-dimensional, 6 vertices.
         sage: o.vertices()
@@ -1282,7 +1301,8 @@ def octahedron(dim):
 
 
 def positive_integer_relations(points):
-    r"""Return relations between given points.
+    r"""
+    Return relations between given points.
 
     INPUT:
         points -- lattice points given as columns of a matrix
@@ -1360,18 +1380,19 @@ def positive_integer_relations(points):
 
 
 def projective_space(dim):
-    r"""Return a simplex of the given dimension, corresponding to $P_{dim}$.
+    r"""
+    Return a simplex of the given dimension, corresponding to $P_{dim}$.
 
     EXAMPLES:
     We construct 3- and 4-dimensional simplexes:
-        sage: p = projective_space(3)
+        sage: p = lattice_polytope.projective_space(3)
         sage: p
         A simplex: 3-dimensional, 4 vertices.
         sage: p.vertices()
         [ 1  0  0 -1]
         [ 0  1  0 -1]
         [ 0  0  1 -1]
-        sage: p = projective_space(4)
+        sage: p = lattice_polytope.projective_space(4)
         sage: p
         A simplex: 4-dimensional, 5 vertices.
         sage: p.vertices()
@@ -1389,7 +1410,8 @@ def projective_space(dim):
 
 
 def read_all_polytopes(file_name, desc=None):
-    r"""Read all polytopes from the given file.
+    r"""
+    Read all polytopes from the given file.
 
     INPUT:
         file_name -- the name of a file with vertices of polytopes
@@ -1429,10 +1451,10 @@ def read_palp_matrix(data):
     constructed by \code{matrix()}.
 
     EXAMPLES:
-        sage: read_palp_matrix("2 3 comment \n 1 2 3 \n 4 5 6")
+        sage: lattice_polytope.read_palp_matrix("2 3 comment \n 1 2 3 \n 4 5 6")
         [1 2 3]
         [4 5 6]
-        sage: read_palp_matrix("3 2 Will be transposed \n 1 2 \n 3 4 \n 5 6")
+        sage: lattice_polytope.read_palp_matrix("3 2 Will be transposed \n 1 2 \n 3 4 \n 5 6")
         [1 3 5]
         [2 4 6]
 
@@ -1487,7 +1509,8 @@ def skip_palp_matrix(data, n=1):
 
 
 def write_palp_matrix(m, ofile=os.sys.stdout, comment="", format=None):
-    r"""Write a matrix into a file.
+    r"""
+    Write a matrix into a file.
 
     INPUT:
         m -- a matrix over integers.
@@ -1502,13 +1525,13 @@ def write_palp_matrix(m, ofile=os.sys.stdout, comment="", format=None):
 
     EXAMPLES:
     This functions is used for writing polytope vertices in PALP format:
-        sage: o = octahedron(3)
-        sage: write_palp_matrix(o.vertices(), comment="3D Octahedron")
+        sage: o = lattice_polytope.octahedron(3)
+        sage: lattice_polytope.write_palp_matrix(o.vertices(), comment="3D Octahedron")
         3 6 3D Octahedron
          1  0  0 -1  0  0
          0  1  0  0 -1  0
          0  0  1  0  0 -1
-        sage: write_palp_matrix(o.vertices(), format="%4d")
+        sage: lattice_polytope.write_palp_matrix(o.vertices(), format="%4d")
         3 6
            1    0    0   -1    0    0
            0    1    0    0   -1    0

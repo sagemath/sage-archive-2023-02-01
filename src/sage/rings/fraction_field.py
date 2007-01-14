@@ -60,7 +60,7 @@ def FractionField(R, names=None):
         x^2
 
     The input must be an integral domain.
-        sage: Frac(Integer(4))
+        sage: Frac(Integers(4))
         Traceback (most recent call last):
         ...
         TypeError: R must be an integral domain.

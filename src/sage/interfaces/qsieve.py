@@ -128,11 +128,11 @@ class qsieve_nonblock:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: q = qsieve(n, block=False, time=True)           # optional -- requires time command
-        sage: q           # random output                     # optional
+        sage.: q           # random output                     # optional
         Proper factors so far: []
-        sage: q           # random output                     # optional
+        sage.: q           # random output                     # optional
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()    # random output                     # optional
+        sage.: q.list()    # random output                     # optional
         [10000000000000000051, 100000000000000000039]
         sage.: q.time()    # random output     (optional -- requires time command)
         '0.21'

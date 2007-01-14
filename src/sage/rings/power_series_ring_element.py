@@ -754,7 +754,8 @@ class PowerSeries_generic_dense(PowerSeries):
     def __call__(self, x):
         try:
             if x.parent() is self.parent():
-                x = x.add_bigoh(self.prec()*x.valuation())
+                if self.prec() != infinity:
+                    x = x.add_bigoh(self.prec()*x.valuation())
         except AttributeError:
             pass
         return self.__f(x)

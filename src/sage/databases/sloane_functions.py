@@ -155,7 +155,7 @@ class A000005(SloaneSequence):
 
 class A000010(SloaneSequence):
     r"""
-    A000010 is Euler's totient function.
+    The integer sequence A000010 is Euler's totient function.
 
     Number of positive integers $i < n$ that are relative prime to $n$.
     Number of totatives of $n$.
@@ -204,15 +204,12 @@ class A000010(SloaneSequence):
 
 class A000045(SloaneSequence):
     r"""
-    returns Fibonacci number with index $n \le 1001$, offset 0,4
+    Sequence of Fibonacci numbers, offset 0,4.
 
-    S. Plouffe, Project Gutenberg, The First 1001 Fibonacci Numbers
-    http://ibiblio.org/pub/docs/books/gutenberg/etext01/fbncc10.txt
-
+    REFERENCES: S. Plouffe, Project Gutenberg,
+    The First 1001 Fibonacci Numbers,
+    \url{http://ibiblio.org/pub/docs/books/gutenberg/etext01/fbncc10.txt}
     We have one more. Our first Fibonacci number is 0.
-
-
-
 
     INPUT:
         n -- non negative integer
@@ -220,12 +217,9 @@ class A000045(SloaneSequence):
     OUTPUT:
         integer -- function value
 
-
-
     EXAMPLES:
         sage: a = sloane.A000045; a
         Fibonacci number with index n >= 0
-
         sage: a(1)
         1
         sage: a(0)
@@ -249,11 +243,9 @@ class A000045(SloaneSequence):
             raise ValueError, "input n (=%s) must be a non negative integer"%n
         return self._eval(m)
 
-
     def fib():
         """
-            generates an "infinity" of Fibonacci numbers,
-            starting with 0
+        Returns a generator over all Fibanacci numbers, starting with 0.
         """
         x, y = 0, 1
         yield x
@@ -263,6 +255,7 @@ class A000045(SloaneSequence):
 
     offset = 0
 
+    # TODO -- bad
     f = fib()
     b = [f.next() for i in range(0,1002)]
 
@@ -277,9 +270,8 @@ class A000045(SloaneSequence):
 
 class A000203(SloaneSequence):
     r"""
-    This function returns $sigma(n)$
-
-    $\sigma(n)$ is the sum of the divisors of $n$. Also called $\sigma_1(n)$.
+    The sequence $\sigma(n)$, where $\sigma(n)$ is the sum of the
+    divisors of $n$.   Also called $\sigma_1(n)$.
 
     INPUT:
         n -- positive integer
@@ -317,51 +309,9 @@ class A000203(SloaneSequence):
     def _eval(self, n):
         return sum(arith.divisors(n))
 
-
     def list(self, n):
         return [self(i) for i in range(1,n+1)]
 
-
-def is_number_of_the_third_kind(n):
-    r""""
-    This function returns True iff $n$ is a number of the third kind.
-
-    A number of the third kind can be written as a sum of at least
-    three consecutive positive integers.
-    Odd primes can only be written as a sum of two consecutive integers.
-    Powers of 2 do not have a representation as a sum of $k$ consecutive
-    integers (other than the trivial $n = n$ for $k = 1$).
-
-    See: http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
-
-    INPUT:
-        n -- positive integer
-
-    OUTPUT:
-        True -- if n is not prime and not a power of 2
-        False --
-
-    EXAMPLES:
-        sage: is_number_of_the_third_kind(6)
-        True
-
-        sage: is_number_of_the_third_kind(100)
-        True
-
-        sage: is_number_of_the_third_kind(16)
-        False
-
-        sage: is_number_of_the_third_kind(97)
-        False
-
-    AUTHOR:
-        - Jaap Spies (2006-12-09)
-    """
-
-    if (not arith.is_prime(n)) and (not is_power_of_two(n)):
-        return True
-    else:
-        return False
 
 
 def is_power_of_two(n):
@@ -395,18 +345,16 @@ def is_power_of_two(n):
         - Jaap Spies (2006-12-09)
 
     """
-# modification of is2pow(n) from the Programming Guide
+    # modification of is2pow(n) from the Programming Guide
     while n > 0 and n%2 == 0:
         n = n >> 1
     return n == 1
 
 class A111774(SloaneSequence):
     r"""
-    Numbers that can be written as a sum of at least three consecutive positive integers.
+    Sequence of numbers of the third kind, i.e., numbers that can be
+    written as a sum of at least three consecutive positive integers.
 
-
-    Numbers of the third kind can be written as a sum of at least
-    three consecutive positive integers.
     Odd primes can only be written as a sum of two consecutive integers.
     Powers of 2 do not have a representation as a sum of $k$ consecutive
     integers (other than the trivial $n = n$ for $k = 1$).
@@ -446,14 +394,73 @@ class A111774(SloaneSequence):
 
     offset = 1
 
-    b = [i for i in range(1, 150) if is_number_of_the_third_kind(i)]
+    def _precompute(self, how_many=150):
+        try:
+            self._b
+            n = self._n
+        except AttributeError:
+            self._b = []
+            n = 1
+            self._n = n
+        self._b += [i for i in range(n, n+how_many) if self.is_number_of_the_third_kind(i)]
 
     def _eval(self, n):
-        return self.b[n-1]
-
+        try:
+            return self._b[n-1]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self._eval(n)
 
     def list(self, n):
-       return self.b[:n]
+        try:
+            if len(self._b) < n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self.list(n)
+
+    def is_number_of_the_third_kind(self, n):
+        r""""
+        This function returns True iff $n$ is a number of the third kind.
+
+        A number is of the third kind if it can be written as a sum of at
+        least three consecutive positive integers.  Odd primes can only be
+        written as a sum of two consecutive integers.  Powers of 2 do not
+        have a representation as a sum of $k$ consecutive integers (other
+        than the trivial $n = n$ for $k = 1$).
+
+        See: \url{http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf}
+
+        INPUT:
+            n -- positive integer
+
+        OUTPUT:
+            True -- if n is not prime and not a power of 2
+            False --
+
+        EXAMPLES:
+            sage: a = sloane.A111774
+            sage: a.is_number_of_the_third_kind(6)
+            True
+            sage: a.is_number_of_the_third_kind(100)
+            True
+            sage: a.is_number_of_the_third_kind(16)
+            False
+            sage: a.is_number_of_the_third_kind(97)
+            False
+
+        AUTHOR:
+            -- Jaap Spies (2006-12-09)
+        """
+        if (not arith.is_prime(n)) and (not is_power_of_two(n)):
+            return True
+        else:
+            return False
+
 
 class A111775(SloaneSequence):
     r"""
@@ -467,7 +474,7 @@ class A111775(SloaneSequence):
     Only one of the factors is odd. For each odd divisor of $n$
     there is a unique corresponding $k$, $k=1$ and $k=2$ must be excluded.
 
-    See: http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
+    See: \url{http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf}
 
     INPUT:
         n -- non negative integer
@@ -498,7 +505,6 @@ class A111775(SloaneSequence):
         AUTHOR:
             - Jaap Spies (2006-12-09)
     """
-
     def _repr_(self):
         return "Number of ways n can be written as a sum of at least three consecutive integers."
 
@@ -520,8 +526,6 @@ class A111775(SloaneSequence):
         else:
             return k-2
 
-
-
     def list(self, n):
        return [self(i) for i in range(0,n)]
 
@@ -536,14 +540,13 @@ class A111776(SloaneSequence):
     For each odd divisor $d$ of $n$ there is a unique corresponding
     $k = min(d,2n/d)$. $a(n)$ is the largest among those $k$
 .
-    See: http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf
+    See: \url{http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf}
 
     INPUT:
         n -- non negative integer
 
     OUTPUT:
         integer -- function value
-
 
     EXAMPLES:
 

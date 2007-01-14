@@ -811,8 +811,11 @@ class Worksheet:
         out = out.rstrip()
         if C.introspect():
             return out
+
+        # this isn't needed anymore !
         # the python error message for list indices is not good enough.
-        out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+        # out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+
         out = out.replace("NameError: name 'os' is not defined", "NameError: name 'os' is not defined\nTHERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  Try starting SAGE from the command line to see what the error is.")
 
         try:

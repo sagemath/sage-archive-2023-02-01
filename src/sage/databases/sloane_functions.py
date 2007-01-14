@@ -595,7 +595,7 @@ class A111774(SloaneSequence):
             n = self._n
         except AttributeError:
             self._b = []
-            n = 1
+            n = self.offset
             self._n = n
         self._b += [i for i in range(self._n, self._n+how_many) if self.is_number_of_the_third_kind(i)]
         self._n += how_many

@@ -952,6 +952,22 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             sage: f = x^0
             sage: f.factor()
             1
+
+        Factor over the real numbers:
+            sage: x = PolynomialRing(RealField(200),"x").gen()
+            sage: f = x^2-1
+            sage: factor(f)
+            (1.0000000000000000000000000000000000000000000000000000000000*x + 1.0000000000000000000000000000000000000000000000000000000000) * (1.0000000000000000000000000000000000000000000000000000000000*x - 1.0000000000000000000000000000000000000000000000000000000000)
+
+        Factor over the complex numbers:
+            sage: x = PolynomialRing(ComplexField(200),"x").gen()
+            sage: f = x^2+1
+            sage: factor(f)
+            (1.0000000000000000000000000000000000000000000000000000000000*x + -1.0000000000000000000000000000000000000000000000000000000000*I) * (1.0000000000000000000000000000000000000000000000000000000000*x + 1.0000000000000000000000000000000000000000000000000000000000*I)
+            sage: x = PolynomialRing(CC,"x").gen()
+            sage: f = (x^2+1)*CC.0
+            sage: factor(f)
+            (1.00000000000000*I) * (1.00000000000000*x + -1.00000000000000*I) * (1.00000000000000*x + 1.00000000000000*I)
         """
 
         # PERFORMANCE NOTE:
@@ -972,10 +988,13 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
         from sage.rings.number_field.all import is_NumberField
 
-        if integer_mod_ring.is_IntegerModRing(R) or \
+        if integer_mod_ring.is_IntegerModRing(R) or is_RealField(R) or \
                isinstance(R, (integer_ring.IntegerRing, rational_field.RationalField)):
 
             G = list(self._pari_('x').factor())
+
+        elif complex_field.is_ComplexField(R):
+            G = list((pari(R.gen())*self._pari_('x')).factor())
 
         elif is_NumberField(R) or finite_field.is_FiniteField(R):
 

@@ -145,10 +145,10 @@ class ode_solver(object):
 
          sage: T.algorithm="bsimp"
 
-         The user should supply initial conditions in y_0. For example if your initial conditions are
-         y_0=1,y_1=1, would do
+         The user should supply initial conditions in y_0. For example
+         if your initial conditions are y_0=1,y_1=1, do
 
-         sage: T.y_0=[1,0]
+         sage: T.y_0=[1,1]
 
          The actual solver is invoked by the method ode_solve.
          It has arguments t_span, y_0,num_points, params.

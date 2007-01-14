@@ -47,7 +47,7 @@ import random
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, Polynomial
+from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -353,7 +353,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: (f*sigma)*tau
             u^2 + z^2 - y^2 + 2*x^2
         """
-        if isinstance(left, Polynomial):
+        if is_Polynomial(left):
             if self != 1:
                 raise ValueError, "%s does not act on %s"%(self, left.parent())
             return left

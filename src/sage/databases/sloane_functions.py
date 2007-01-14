@@ -489,7 +489,7 @@ class A111775(SloaneSequence):
         sage: a(29)
         0
         sage: a.list(20)
-        [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0, 1]
+        [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0]
         sage: a(1/3)
         Traceback (most recent call last):
         ...

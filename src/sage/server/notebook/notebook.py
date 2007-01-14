@@ -579,10 +579,13 @@ class Notebook(SageObject):
         return self.__worksheet_dir
 
     def object_directory(self):
-        return self.__object_dir
+        O = self.__object_dir
+        if not os.path.exists(O):
+            os.makedirs(O)
+        return O
 
     def objects(self):
-        L = [x[:-5] for x in os.listdir(self.__object_dir)]
+        L = [x[:-5] for x in os.listdir(self.object_directory())]
         L.sort()
         return L
 

@@ -92,7 +92,7 @@ from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
 
 # Univariate Polynomial Rings
 from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
-from polynomial_element import Polynomial, is_Polynomial
+from polynomial_element import is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder

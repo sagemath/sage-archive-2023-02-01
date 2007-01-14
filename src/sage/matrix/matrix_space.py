@@ -518,7 +518,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                                    sparse=self.is_sparse())
             return self.__column_space
 
-    def random_element(self, X=[-2,-1,1,2], prob=1.0, coerce=True):
+    def random_element(self, X=[-2,-1,0,1,2], prob=1.0, coerce=True):
         """
         Returns a random element of self.
         """

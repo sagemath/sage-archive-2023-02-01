@@ -566,9 +566,28 @@ class GapElement(ExpectElement):
         return s
 
     def __len__(self):
-        if (self == "true"):
+        """
+        EXAMPLES:
+            sage: v = gap('[1,2,3]'); v
+            [ 1, 2, 3 ]
+            sage: len(v)
+            3
+
+        len is also called implicitly by if:
+            sage: if gap('1+1 = 2'):
+            ...    print "1 plus 1 does equal 2"
+            1 plus 1 does equal 2
+
+            sage: if gap('1+1 = 3'):
+            ...    print "it is true"
+            ... else:
+            ...    print "it is false"
+            it is false
+        """
+        P = self.parent()
+        if P.eval('%s = true'%self.name()) == 'true':
             return 1
-        elif (self == "false"):
+        elif P.eval('%s = false'%self.name()) == 'true':
             return 0
         else:
             return int(self.Length())

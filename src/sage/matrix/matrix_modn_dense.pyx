@@ -48,6 +48,19 @@ EXAMPLES:
     sage: b.echelonize(); b
     [ 1  0 36]
     [ 0  1  2]
+
+We create a matrix group and coerce it to GAP:
+    sage: M = MatrixSpace(GF(3),3,3)
+    sage: G = MatrixGroup([M([[0,1,0],[0,0,1],[1,0,0]]), M([[0,1,0],[1,0,0],[0,0,1]])])
+    sage: G
+    Matrix group over Finite Field of size 3 with 2 generators:
+     [[[0, 1, 0], [0, 0, 1], [1, 0, 0]], [[0, 1, 0], [1, 0, 0], [0, 0, 1]]]
+    sage: gap(G)
+    Group(
+    [ [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ 0*Z(3), 0*Z(3), Z(3)^0 ], [ Z(3)^0, 0*Z(3),
+               0*Z(3) ] ],
+      [ [ 0*Z(3), Z(3)^0, 0*Z(3) ], [ Z(3)^0, 0*Z(3), 0*Z(3) ],
+          [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 """
 
 include "../ext/interrupt.pxi"
@@ -419,8 +432,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                  t = h[i][m-1]
                  t_inv = ai.c_inverse_mod_int(t,p)
                  if i > m:
-                     self._swap_rows_c(i,m)
-                     self._swap_columns_c(i,m)
+                     self.swap_rows_c(i,m)
+                     self.swap_columns_c(i,m)
 
                  # Now the nonzero entry in position (m,m-1) is t.
                  # Use t to clear the entries in column m-1 below m.

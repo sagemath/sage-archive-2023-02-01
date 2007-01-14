@@ -234,38 +234,46 @@ class A000045(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2007-01-13)
     """
+    def __init__(self):
+        self._b = []
+
     def _repr_(self):
         return "Fibonacci number with index n >= 0"
 
     def __call__(self, n):
         m = Integer(n)
         if m < 0:
-            raise ValueError, "input n (=%s) must be a non negative integer"%n
+            raise ValueError, "input n (=%s) must be a non-negative integer"%n
         return self._eval(m)
 
-    def fib():
+    def _precompute(self, how_many=500):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.fib()
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def fib(self):
         """
         Returns a generator over all Fibanacci numbers, starting with 0.
         """
-        x, y = 0, 1
+        x, y = Integer(0), Integer(1)
         yield x
-        while 1:
+        while True:
             x, y = y, x+y
             yield x
 
     offset = 0
 
-    # TODO -- bad
-    f = fib()
-    b = [f.next() for i in range(0,1002)]
-
     def _eval(self, n):
-        if n < 1002:
-            return self.b[n]
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
 
     def list(self, n):
-        if n < 1002:
-            return self.b[:n]
+        self._eval(n)   # force computation
+        return self._b[:n]
 
 
 class A000203(SloaneSequence):
@@ -297,8 +305,8 @@ class A000203(SloaneSequence):
         ...
         TypeError: Unable to coerce rational (=1/3) to an Integer.
 
-        AUTHOR:
-            - Jaap Spies (2007-01-13)
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
     """
 
     def _repr_(self):
@@ -315,8 +323,8 @@ class A000203(SloaneSequence):
 
 
 def is_power_of_two(n):
-    r""""
-    This function returns True iff $n$ is a power of 2
+    r"""
+    This function returns True if and only if $n$ is a power of 2
 
     INPUT:
         n -- integer
@@ -326,6 +334,8 @@ def is_power_of_two(n):
         False -- if not
 
     EXAMPLES:
+        sage: from sage.databases.sloane_functions import is_power_of_two
+
         sage: is_power_of_two(1024)
         True
 
@@ -342,7 +352,7 @@ def is_power_of_two(n):
         False
 
     AUTHOR:
-        - Jaap Spies (2006-12-09)
+        -- Jaap Spies (2006-12-09)
 
     """
     # modification of is2pow(n) from the Programming Guide
@@ -386,8 +396,8 @@ class A111774(SloaneSequence):
         ...
         TypeError: Unable to coerce rational (=1/3) to an Integer.
 
-        AUTHOR:
-            - Jaap Spies (2007-01-13)
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
     """
     def _repr_(self):
         return "Numbers that can be written as a sum of at least three consecutive positive integers."
@@ -424,8 +434,8 @@ class A111774(SloaneSequence):
             return self.list(n)
 
     def is_number_of_the_third_kind(self, n):
-        r""""
-        This function returns True iff $n$ is a number of the third kind.
+        r"""
+        This function returns True if and only if $n$ is a number of the third kind.
 
         A number is of the third kind if it can be written as a sum of at
         least three consecutive positive integers.  Odd primes can only be
@@ -485,10 +495,16 @@ class A111775(SloaneSequence):
     EXAMPLES:
         sage: a = sloane.A111775; a
         Number of ways n can be written as a sum of at least three consecutive integers.
+
         sage: a(1)
         0
         sage: a(0)
         0
+
+    We have a(15)=2 because 15 = 4+5+6 and 15 = 1+2+3+4+5. The number of odd divisors of 15 is 4.
+        sage: a(15)
+        2
+
         sage: a(100)
         2
         sage: a(256)
@@ -496,14 +512,14 @@ class A111775(SloaneSequence):
         sage: a(29)
         0
         sage: a.list(20)
-        [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0, 1]
+        [0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 2, 0, 0, 2, 0]
         sage: a(1/3)
         Traceback (most recent call last):
         ...
         TypeError: Unable to coerce rational (=1/3) to an Integer.
 
-        AUTHOR:
-            - Jaap Spies (2006-12-09)
+    AUTHOR:
+        -- Jaap Spies (2006-12-09)
     """
     def _repr_(self):
         return "Number of ways n can be written as a sum of at least three consecutive integers."
@@ -532,7 +548,8 @@ class A111775(SloaneSequence):
 
 class A111776(SloaneSequence):
     r"""
-    $a(n)$ is the largest $k$ such that $n$ can be written as sum of $k$ consecutive integers.
+    The $n$th term of the sequence $a(n)$ is the largest $k$ such that
+    $n$ can be written as sum of $k$ consecutive integers.
 
     $n$ is the sum of at most $a(n)$ consecutive positive integers.
     Suppose $n$ is to be written as sum of $k$ consecutive integers starting
@@ -548,13 +565,9 @@ class A111776(SloaneSequence):
     OUTPUT:
         integer -- function value
 
-    EXAMPLES:
-
-        AUTHOR:
-            - Jaap Spies (2007-01-13)
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
     """
-
-
     def _repr_(self):
         return "a(n) is the largest k such that n can be written as sum of k consecutive integers."
 
@@ -566,7 +579,6 @@ class A111776(SloaneSequence):
             raise ValueError, "input n (=%s) must be a non negative integer"%n
         return self._eval(m)
 
-
     def _eval(self, n):
         if n == 1 or n == 0:
             return 1
@@ -577,20 +589,14 @@ class A111776(SloaneSequence):
                 m = k
         return m
 
-
     def list(self, n):
        return [self(i) for i in range(0,n)]
 
 
 
-
-
-
-
-
 #############################################################
-# III. Create the sloane object, off which all the sequence
-#      objects hang.
+# III. Create the Sloane object, off which all the sequence
+#      objects are members.
 #############################################################
 
 class Sloane(SageObject):

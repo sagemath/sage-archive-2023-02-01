@@ -356,7 +356,7 @@ ext_modules = [ \
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
 
-    Extension('sage.rings.polynomial_element_pyx',
+    Extension('sage.rings.polynomial_element',
               sources = ['sage/rings/polynomial_element.pyx']), \
 
     Extension('sage.rings.polynomial_pyx',

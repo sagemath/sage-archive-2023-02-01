@@ -26,8 +26,8 @@ import operator
 
 import copy
 
-#from sage.structure.element import Element, IntegralDomainElement, CommutativeAlgebraElement
-#from sage.structure.element cimport Element, IntegralDomainElement, CommutativeAlgebraElement
+from sage.structure.element import EuclideanDomainElement, PrincipalIdealDomainElement, RingElement
+
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
@@ -36,10 +36,10 @@ import finite_field
 import padic_field
 import sage.rings.polynomial_ring
 import arith
-import sage.rings.ring_element as ring_element
-import sage.rings.euclidean_domain_element as euclidean_domain_element
-import sage.rings.integral_domain_element as integral_domain_element
-import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
+#import sage.rings.ring_element as ring_element
+#import sage.rings.euclidean_domain_element as euclidean_domain_element
+#import sage.rings.integral_domain_element as integral_domain_element
+#import sage.rings.principal_ideal_domain_element as principal_ideal_domain_element
 import integer_ring
 import integer_mod_ring
 import polynomial_pyx
@@ -53,7 +53,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 import sage.misc.latex as latex
-import sage.structure.factorization as factorization
+from sage.structure.factorization import Factorization
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
@@ -83,7 +83,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     EXAMPLE:
         sage: R.<y> = QQ['y']
         sage: S.<x> = R['x']
-        sage: f = x*y; f
+        sage: #f = x*y; f
         y*x
         sage: type(f)
         <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
@@ -123,7 +123,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             x = list(right.list())
             y = self.list()
 
-        for i in xrange(len(y)):
+        cdef int i
+        for i from 0 <= i < len(y):
             x[i] = x[i] + y[i]
 
         return self.polynomial(x)
@@ -188,6 +189,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             -- William Stein, 2006-01-22; change so parent
                is determined by the arithmetic
         """
+        cdef Py_ssize_t i, d
         a = a[0]
         if isinstance(a, tuple):
             a = a[0]
@@ -217,10 +219,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R(-1) < R(0)
             False
         """
+        cdef Py_ssize_t i
         d1 = self.degree(); d2 = other.degree()
         c = cmp(d1, d2)
         if c: return c
-        for i in reversed(xrange(d1+1)):
+        for i from d1+1 > i >= 0:
             c = cmp(self[i], other[i])
             if c: return c
         return 0
@@ -275,6 +278,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(x^2 + 3)
             28
         """
+        cdef Py_ssize_t i, d
         a = im_gens[0]
         P = a.parent()
         d = self.degree()
@@ -377,7 +381,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return ~x * self
         except (TypeError, ValueError, ZeroDivisionError):
             pass
-        return ring_element.RingElement.__div__(self, right)
+        return RingElement.__div__(self, right)
 
 
     def _pow(self, right):
@@ -391,14 +395,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return arith.generic_power(self, right, self.parent()(1))
 
     def _repr(self, name=None):
+        cdef Py_ssize_t m, n
         s = " "
         m = self.degree() + 1
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         coeffs = self.list()
-        for n in reversed(xrange(m)):
+        for n from m > n >= 0:
             x = coeffs[n]
             if x != 0:
                 if n != m-1:
@@ -425,14 +429,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._repr()
 
     def _latex_(self, name=None):
+        cdef Py_ssize_t m, n
         s = " "
         m = self.degree() + 1
-        r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
         atomic_repr = self.parent().base_ring().is_atomic_repr()
         coeffs = self.list()
-        for n in reversed(xrange(m)):
+        for n from m > n >= 0:
             x = coeffs[n]
             if x != 0:
                 if n != m-1:
@@ -485,14 +489,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self.degree() == self.valuation()
 
     def _mul_generic(self, right):
+        cdef Py_ssize_t d1, d2, d, k
         d1 = self.degree()
         d2 = right.degree()
         d = d1 + d2
         zero = self.base_ring()(0)
         w = [zero]*(d+1)
-        for k in range(d+1):
+        for k from 0 <= k <= d:
             s = zero
-            for i in range(min(d1,k)+1):
+            for i from 0 <= i <= min(d1, k):
                 if i <= d1 and k-1 <= d2 and self[i] != 0 and right[k-1] != 0:
                     s = s + self[i]*right[k-i]
             w[k] = s
@@ -652,7 +657,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 coeffs[i] = -coeffs[i]
         return coeffs
 
-    def _mul_karatsuba(self, right):
+    def _mul_karatsuba(Polynomial self, right):
         r"""
         Returns the product of two polynomials using the Karatsuba
         divide and conquer multiplication algorithm.  This is only
@@ -714,9 +719,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
          * The MAGMA documentation appears to give no information about how
            polynomial multiplication is implemented.
         """
-        return self.parent()(do_karatsuba(self.list(), right.list()))
+        return self.parent()(self._do_karatsuba(self.list(), right.list()))
 
-    def _karatsuba_sum(v,w):
+    cdef _karatsuba_sum(self, v,w):
         if len(v)>=len(w):
             x = list(v)
             y = w
@@ -726,7 +731,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i in range(len(y)):
             x[i] = x[i] + y[i]
         return x
-    def _karatsuba_dif(v,w):
+    cdef _karatsuba_dif(self, v,w):
         if len(v)>=len(w):
             x = list(v)
             y = w
@@ -736,20 +741,17 @@ cdef class Polynomial(CommutativeAlgebraElement):
         for i in range(len(y)):
             x[i] = x[i] - y[i]
         return x
-    def do_karatsuba(left, right):
-        if len(left) == 0 or len(right) == 0:
+    cdef _do_karatsuba(self, left, right):
+        cdef int len_left, len_right, i
+        len_left = len(left)
+        len_right = len(right)
+        if len_left == 0 or len_right == 0:
             return []
-        if len(left) == 1:
-            prod = [None] * len(right)
-            for i in range(len(right)):
-                prod[i] = left[0]*right[i]
-#              return [left[0]*a for a in right]
-        if len(right) == 1:
-            prod = [None] * len(left)
-            for i in range(len(left)):
-                prod[i] = left[i]*right[0]
-#              return [right[0]*a for a in left]
-        if len(left) == 2 and len(right) == 2:
+        if len_left == 1:
+            return [left[0]*a for a in right]
+        if len_right == 1:
+            return [right[0]*a for a in left]
+        if len_left == 2 and len(right) == 2:
             b = left[0]
             a = left[1]
             d = right[0]
@@ -757,17 +759,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             ac = a*c
             bd = b*d
             return [bd,(a+b)*(c+d)-ac-bd,ac]
-        e = min(len(left), len(right))/2
+        e = min(len_left, len_right)/2
         assert e>=1, "bug in karatsuba"
         a, b = left[e:], left[:e]
         c, d = right[e:], right[:e]
-        ac = do_karatsuba(a,c)
-        bd = do_karatsuba(b,d)
+        ac = self._do_karatsuba(a,c)
+        bd = self._do_karatsuba(b,d)
         zeros = [0]*e
         t2 = zeros + zeros + ac
-        t1 = zeros + _karatsuba_dif(do_karatsuba(_karatsuba_sum(a,b),_karatsuba_sum(c,d)),_karatsuba_sum(ac,bd))
+        t1 = zeros + self._karatsuba_dif(self._do_karatsuba(self._karatsuba_sum(a,b),self._karatsuba_sum(c,d)),self._karatsuba_sum(ac,bd))
         t0 = bd
-        return _karatsuba_sum(t0,_karatsuba_sum(t1,t2))
+        return self._karatsuba_sum(t0,self._karatsuba_sum(t1,t2))
+
 
     def base_ring(self):
         """
@@ -780,7 +783,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: (2*x+3).base_ring()
             Integer Ring
         """
-        return self.parent().base_ring()
+        return self._parent._base
 
     def base_extend(self, R):
         """
@@ -883,16 +886,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return d
 
     def derivative(self):
+        cdef Py_ssize_t n
         D = [None] * self.degree()
-        for n in xrange(1, self.degree()+1):
+        for n from 1 <= n <= self.degree():
            D[n-1] = self[n]*n
         return self.polynomial(D)
 #        return self.polynomial([self[n]*n for n in xrange(1,self.degree()+1)])
 
     def integral(self):
+        cdef Py_ssize_t n
         try:
             I = [None] * self.degree()+1
-            for n in xrange(self.degree()+1):
+            for n from 0 <= n <= self.degree():
                 I[n] = self[n]/(n+1)
             return self.polynomial([0] + I)
         except TypeError:
@@ -900,9 +905,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
     def dict(self):
+        cdef Py_ssize_t i
         X = {}
         Y = self.list()
-        for i in xrange(len(Y)):
+        for i from 0 <= i < len(Y):
             X[i] = Y[i]
         return X
 
@@ -993,6 +999,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         #     PARI for smaller degree over other rings besides Z, and use
         #     NTL in general.
 
+        cdef Py_ssize_t i
+
         R = self.parent().base_ring()
         if self.degree() < 0:
             raise ValueError, "factorization of 0 not defined"
@@ -1008,7 +1016,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         elif is_NumberField(R) or finite_field.is_FiniteField(R):
             l = self.list()
             v = [None] * len(l)
-            for i in range(len(l)):
+            for i from 0 <= i < len(l):
                 v[i] = l[i]._pari_("a")
 #            v = [x._pari_("a") for x in self.list()]
             f = pari(v).Polrev()
@@ -1053,7 +1061,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     unit = c * unit
                     F[i] = (F[i][0].monic(), F[i][1])
 
-        return factorization.Factorization(F, unit)
+        return Factorization(F, unit)
 
     def _lcm(self, other):
         """
@@ -1156,7 +1164,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        return not self.is_zero() and self[self.degree()] == 1
+        return bool(not self.is_zero() and self[self.degree()] == 1)
 
     def is_unit(self):
         r"""
@@ -1216,7 +1224,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._is_gen
 
     def is_zero(self):
-        return self.degree() == -1
+        return bool(self.degree() == -1)
 
     def leading_coefficient(self):
         return self[self.degree()]
@@ -1699,6 +1707,7 @@ cdef class Polynomial_generic_dense(Polynomial):
         True
     """
     def __init__(self, parent, x=None, check=True, is_gen=False, construct=False):
+        cdef Py_ssize_t i
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if x is None:
             self.__coeffs = []
@@ -1711,7 +1720,7 @@ cdef class Polynomial_generic_dense(Polynomial):
                 x = [x]
             else:
                 x = x.list()
-                for i in range(len(x)):
+                for i from 0 <= i < len(x):
                     x[i] = R(x[i])
 #                x = [R(a) for a in x.list()]
                 check = False
@@ -1733,7 +1742,8 @@ cdef class Polynomial_generic_dense(Polynomial):
         elif not isinstance(x, list):
             x = [x]   # constant polynomials
         if check:
-            for i in range(len(x)):
+            self.__coeffs = [None] * len(x)
+            for i from 0 <= i < len(x):
                 self.__coeffs[i] = R(x[i])
 #            self.__coeffs = [R(z) for z in x]
         else:
@@ -1742,6 +1752,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             self.__normalize()
 
     def __normalize(self):
+        cdef Py_ssize_t n
         x = self.__coeffs
         n = len(x)-1
         while n>=0 and x[n] == 0:
@@ -2080,7 +2091,7 @@ class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
         return self[0].is_unit()
 
 class Polynomial_generic_field(Polynomial_generic_domain,
-                               euclidean_domain_element.EuclideanDomainElement,
+                               EuclideanDomainElement,
                                Polynomial_singular_repr):
     def quo_rem(self, other):
         """
@@ -2116,7 +2127,7 @@ class Polynomial_generic_field(Polynomial_generic_domain,
         """
         Return the GCD of self and other, as a monic polynomial.
         """
-        g = euclidean_domain_element.EuclideanDomainElement._gcd(self, other)
+        g = EuclideanDomainElement._gcd(self, other)
         c = g.leading_coefficient()
         if c.is_unit():
             return (1/c)*g
@@ -2389,7 +2400,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.complex_roots()[0]
-            0.713639173536900
+            0.7136391735369000000
         """
         R = self.__poly.polroots(flag)
         C = complex_field.CC
@@ -2565,7 +2576,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 #        return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
 class Polynomial_integer_dense(Polynomial_generic_domain,
-                               integral_domain_element.IntegralDomainElement):
+                               IntegralDomainElement):
     """
     A dense polynomial over the integers.
     """
@@ -2801,7 +2812,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: alpha = f.complex_roots()[0]; alpha
-            0.713639173536900
+            0.7136391735369000000
             sage: f(alpha)
             -0.000000000000000222044604925031
         """
@@ -2913,7 +2924,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f.list()
             [-17, 3, 0, 1]
         """
-        v = [None] * self.degree()+1
+        v = [None] * (self.degree()+1)
         for i in xrange(self.degree()+1):
             v[i] = ZZ(str(self.__poly[i]))
         return v
@@ -3045,7 +3056,7 @@ class Polynomial_dense_mod_n(Polynomial):
 
         if check:
             R = parent.base_ring()
-            x = x.list()
+            x = list(x)
             for i in xrange(len(x)):
                 x[i] = ZZ(R(x[i]))
 #            x = [ZZ(R(a)) for a in x]
@@ -3257,7 +3268,7 @@ class Polynomial_dense_mod_n(Polynomial):
 
 class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
                              Polynomial_singular_repr,
-                             principal_ideal_domain_element.PrincipalIdealDomainElement):
+                             PrincipalIdealDomainElement):
     """
     A dense polynomial over the integers modulo p, where p is prime.
     """
@@ -3323,5 +3334,6 @@ class Polynomial_dense_mod_p(Polynomial_dense_mod_n,
     #    self.parent()._ntl_set_modulus()
     #    F = [(self.parent()(f, construct=True), n) for f, n in M.ntl_ZZ_pX().factor(verbose)]
     #    return factorization.Factorization(F)
+
 
 

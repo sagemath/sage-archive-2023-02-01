@@ -23,6 +23,7 @@ AUTHOR: William Stein (with input from David Joyner, David Kohel, and
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import ring
 import integral_domain
 import field
 import fraction_field_element
@@ -64,7 +65,9 @@ def FractionField(R, names=None):
         ...
         TypeError: R must be an integral domain.
     """
-    if not isinstance(R, integral_domain.IntegralDomain):
+    if not ring.is_Ring(R):
+        raise TypeError, "R must be a ring"
+    if not R.is_integral_domain():
         raise TypeError, "R must be an integral domain."
     return R.fraction_field()
 

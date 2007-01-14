@@ -708,7 +708,7 @@ cdef class ModuleElement(Element):
             True
             sage: a^(-1) == 1/a
             True
-            a^200 * a^(-64) == a^136
+            sage: a^200 * a^(-64) == a^136
             True
         """
         cdef int cn

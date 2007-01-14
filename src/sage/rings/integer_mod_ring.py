@@ -235,13 +235,19 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_integral_domain(self):
         """
-        Return False since Z/NZ with N composite is never an integral domain.
+        Return True if and only if the order of self is prime.
+
+        EXAMPLES:
+            sage: Integers(389).is_integral_domain()
+            True
+            sage: Integers(389^2).is_integral_domain()
+            False
         """
-        return False
+        return arith.is_prime(self.order())
 
     def is_field(self):
         """
-        Return true precisely if the order is prime.
+        Return True precisely if the order is prime.
 
         EXAMPLES:
             sage: R = IntegerModRing(18)

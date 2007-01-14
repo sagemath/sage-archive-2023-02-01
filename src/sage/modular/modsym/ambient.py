@@ -754,20 +754,57 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         return self.__dual_star_involution_matrix
 
     def factorization(self):
-        """
+        r"""
         Returns a list of pairs $(S,e)$ where $S$ is simple spaces of
         modular symbols and self is isomorphic to the direct sum of
         the $S^e$ as a module over the \emph{anemic} Hecke algebra
         adjoin the star involution.
-
-        EXAMPLES:
-            sage: M = ModularSymbols(22,sign=1)
-            sage: M.factorization()
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 for Gamma_0(2) of weight 2 with sign 1 over Rational Field)^2 *
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2 *
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2 *
-            (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field)
         """
+
+##         EXAMPLES:
+##             sage: M = ModularSymbols(Gamma0(22), 2); M
+##             Modular Symbols space of dimension 7 for Gamma_0(22) of weight 2 with sign 0 over Rational Field
+##             sage: M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 11 2
+##             1 11 2
+##             1 11 2
+##             1 22 1
+
+##         An example with sign 1:
+##             sage: M = ModularSymbols(Gamma0(22), 2, sign=1); M
+##             Modular Symbols space of dimension 5 for Gamma_0(22) of weight 2 with sign 1 over Rational Field
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 11 2
+##             1 11 2
+##             1 22 1
+
+##         An example for Gamma1:
+##             sage: M = ModularSymbols(Gamma1(26), 2, sign=1); M
+##             Modular Symbols space of dimension 33 for Gamma_1(26) of weight 2 with sign 1 and over Rational Field
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             1 13 2
+##             1 13 2
+##             1 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             2 13 2
+##             1 26 1
+##             1 26 1
+##             1 26 1
+##             2 26 1
+##             2 26 1
+
+##         An example with level divisible by a square:
+##             sage: M = ModularSymbols(Gamma0(2*9),2); M
+##             ???
+##             sage: for b, e in M.factorization():
+##             ...    print b.dimension(), b.level(), e
+##             ???
         try:
             return self._factorization
         except AttributeError:
@@ -780,13 +817,42 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             pass
 
         D = []
+
+        # Treat the cuspidal and eisenstein parts separately.  The
+        # cuspidal part is very straightforward because of
+        # Atkin-Lehner-Li theory.  The eisenstein part is trickier,
+        # because of E2 and that the new and old Eisenstein subspaces
+        # can intersect (e.g., they do for M_2(Gamma_0(6))), even
+        # in a way that involves forms other than E_2 (i.e., twists
+        # of E2).
+
+        # 1. Cuspidal part -- compute the factors and their multiplicities
+        #                     using Atkin-Lehner-Li.
+
+        # 2. Eisenstein part:
+        #      (a) Compute the Eisenstein subspace.
+        #      (b) Decompose it using anemic Hecke operators
+        #      (c)
+
+
+        # In the special case of weight 2 we have to do a bunch of
+        # annoying extra work below to deal with the Eisenstein series E_2.
+        k = self.weight()
+        if k == 2:
+            have_e2 = False
+            G = self.group()
+            is_g0 = congroup.is_Gamma0(G)
+            e2_factor = None
+            P = [p for p in arith.prime_range(2, self.hecke_bound() + 1) if self.level() % p != 0]
+        # The above was all for dealing with e2 in the weight 2 case.
+
         for d in reversed(arith.divisors(self.level())):
             n = arith.number_of_divisors(self.level() // d)
             M = self.modular_symbols_of_level(d)
             N = M.new_submodule().decomposition()
-            if self.sign() == 0:
-                for A in N:
-                    if A.is_cuspidal():
+            for A in N:
+                if A.is_cuspidal():
+                    if self.sign() == 0:
                         V = A.plus_submodule()
                         V._is_simple = True
                         D.append((V,n))
@@ -795,12 +861,51 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                         D.append((V,n))
                     else:
                         A._is_simple = True
-                        D.append((A, n))
-            else:
-                for A in N:
-                    A._is_simple = True
-                    D.append((A,n))
+                        D.append((A,n))
+                else:
+                    # Eisenstein case
+                    if k == 2:
+                        # Determine whether or not this factor corresponds to E_2
+                        # This is the case if:
+                        #  (1) the factor has dimension 1
+                        #  (2) T_p acts as p+1 for all p coprime to the level
+                        #      up to the Hecke bound.
+                        if A.dimension() > 1:
+                            is_e2 = False
+
+                        is_e2 = True
+                        for p in P:
+                            if A.hecke_operator(p)[0,0] != p + 1:
+                                is_e2 = False
+                                break
+
+                        if is_e2:
+                            if e2_factor is None:
+                                e2_factor = A
+                            elif e2_factor.level() > A.level():
+                                e2_factor = A
+                            A = None
+                        else:
+                            # If it is not e2, it might be a twist
+                            # of e2, and we have to count those twists
+                            # once, so we make sure this faster isn't
+                            # isomorphic to any factor found before.
+                            pass
+
+
+                    if not A is None:
+                        A._is_simple = True
+                        D.append((A,n))
+
+        if k == 2 and not e2_factor is None:
+            n = len(arith.divisors(self.level())) - 1
+            D.append((e2_factor, n))
+
+        r = self.dimension()
+        s = sum([A.rank()*mult for A, mult in D])
         D = sage.structure.all.Factorization(D, cr=True)
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s\n%s"%(
+            r, s, D)
         self._factorization = D
         return self._factorization
 
@@ -1003,7 +1108,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         A = Z**self.dimension()  # free Z module of rank the dimension of self.
         self.__integral_structure = A.span(X)
         return self.__integral_structure
-
 
 
 class ModularSymbolsAmbient_wtk_g0(ModularSymbolsAmbient):

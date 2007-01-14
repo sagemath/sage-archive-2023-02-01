@@ -76,8 +76,11 @@ cdef class SageObject:
                 self.__custom_name = str(x)
             except AttributeError:
                 raise NotImplementedError, "object does not support renaming: %s"%self
+
     def reset_name(self):
-        del self.__custom_name
+        if hasattr(self, '__custom_name'):
+            del self.__custom_name
+
 
     def __repr__(self):
         if hasattr(self, '__custom_name'):

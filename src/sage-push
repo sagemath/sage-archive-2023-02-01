@@ -2,5 +2,5 @@
 
 hg status
 hg diff
-hg commit
+hg commit -m "Release"
 hg push -f ssh://was@sage.math.washington.edu/www/sage/hg/sage-main

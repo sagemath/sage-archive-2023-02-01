@@ -112,7 +112,6 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
               Defn: Natural quotient map
             sage: pi(5)
             2
-            sage:
             sage: l = pi.lift()
 
         EXAMPLES:

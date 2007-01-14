@@ -162,7 +162,6 @@ import operator
 from sage.structure.parent      cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 
-
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
 
@@ -297,6 +296,16 @@ cdef class Element(sage_object.SageObject):
             return "\\left(%s\\right)"%s
 
     def _is_atomic(self):
+        """
+        Return True if and only if parenthesis are not required when
+        *printing* out any of $x - s$, $x + s$, $x^s$ and $x/s$.
+
+        EXAMPLES:
+            sage: n = 5; n._is_atomic()
+            True
+            sage: n = x+1; n._is_atomic()
+            False
+        """
         if self._parent.is_atomic_repr():
             return True
         s = str(self)
@@ -553,32 +562,40 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _multiply_by_scalar(self, right):
         # self * right,  where right need not be a ring element in the base ring
         # This does type checking and canonical coercion then calls _lmul_c_impl.
-        if PY_TYPE_CHECK(right, Element) and (<Element>right)._parent is self._parent._base:
-            # No coercion needed
-            return self._lmul_c(right)
+        if PY_TYPE_CHECK(right, Element):
+            if (<Element>right)._parent is self._parent._base:
+                # No coercion needed
+                return self._lmul_c(right)
+            else:
+                # Otherwise we do an explicit canonical coercion.
+                try:
+                    return self._lmul_c( self._parent._base._coerce_c(right) )
+                except TypeError:
+                    # that failed -- try to base extend right then do the multiply:
+                    self = self.base_extend((<RingElement>right)._parent)
+                    return (<ModuleElement>self)._lmul_c(right)
         else:
-            # Otherwise we do an explicit canonical coercion.
-            try:
-                return self._lmul_c( self._parent._base._coerce_c(right) )
-            except TypeError:
-                # that failed -- try to base extend right then do the multiply:
-                self = self.base_extend((<RingElement>right)._parent)
-                return (<ModuleElement>self)._lmul_c(right)
+            # right is not an element at all
+            return (<ModuleElement>self)._lmul_c(self._parent._base._coerce_c(right))
 
     cdef ModuleElement _rmultiply_by_scalar(self, left):
         # left * self, where left need not be a ring element in the base ring
         # This does type checking and canonical coercion then calls _rmul_c_impl.
-        if PY_TYPE_CHECK(left, Element) and (<Element>self)._parent is self._parent._base:
-            # No coercion needed
-            return self._rmul_c(right)
+        if PY_TYPE_CHECK(left, Element):
+            if (<Element>self)._parent is self._parent._base:
+                # No coercion needed
+                return self._rmul_c(right)
+            else:
+                # Otherwise we do an explicit canonical coercion.
+                try:
+                    return self._rmul_c(self._parent._base._coerce_c(left))
+                except TypeError:
+                    # that failed -- try to base extend self then do the multiply:
+                    self = self.base_extend((<RingElement>left)._parent)
+                    return (<ModuleElement>self)._rmul_c(left)
         else:
-            # Otherwise we do an explicit canonical coercion.
-            try:
-                return self._rmul_c(self._parent._base._coerce_c(left))
-            except TypeError:
-                # that failed -- try to base extend self then do the multiply:
-                self = self.base_extend((<RingElement>left)._parent)
-                return (<ModuleElement>self)._rmul_c(left)
+            # now left is not an element at all.
+            return (<ModuleElement>self)._rmul_c(self._parent._base._coerce_c(left))
 
     cdef ModuleElement _lmul_nonscalar_c(left, right):
         # Compute the product left * right, where right is assumed to be a nonscalar (so no coercion)
@@ -665,78 +682,6 @@ cdef class ModuleElement(Element):
 
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
-
-
-    def __pow__(self, n, dummy):
-        """
-        Retern the (integral) power of self.
-
-        EXAMPLE:
-            sage: a = Integers(389)['x,y'](37)
-            sage: a^2
-            202
-            sage: a^388
-            1
-            sage: a^(2^120)
-            81
-            sage: a^0
-            1
-            sage: a^1 == a
-            True
-            sage: a^2 * a^3 == a^5
-            True
-            sage: (a^3)^2 == a^6
-            True
-            sage: a^57 * a^43 == a^100
-            True
-            sage: a^(-1) == 1/a
-            True
-            a^200 * a^(-64) == a^136
-            True
-        """
-        cdef int cn
-
-        from sage.rings.integer import Integer # do here to avoid ciruclar reference
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "The exponent must be an integer."
-
-        n = int(n)
-
-        if n < 0:
-            n = -n
-            a = ~self
-        else:
-            a = self
-
-        if n < 4:
-            # These cases will probably be called often
-            # and don't benifit from the code below
-            cn = n
-            if cn == 0:
-                return (<Element>a)._parent(1)
-            elif cn == 1:
-                return a
-            elif cn == 2:
-                return a*a
-            elif cn == 3:
-                return a*a*a
-
-        # One multiplication can be saved by starting with
-        # the smallest power needed rather than with 1
-        apow = a
-        while n&1 == 0:
-            apow = apow*apow
-            n = n >> 1
-        power = apow
-        n = n >> 1
-
-        while n != 0:
-            apow = apow*apow
-            if n&1 != 0: power = power*apow
-            n = n >> 1
-
-        return power
-
 
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
@@ -1106,6 +1051,76 @@ cdef class RingElement(ModuleElement):
         """
         return self._mul_c_impl(right)
 
+    def __pow__(self, n, dummy):
+        """
+        Retern the (integral) power of self.
+
+        EXAMPLE:
+            sage: a = Integers(389)['x,y'](37)
+            sage: a^2
+            202
+            sage: a^388
+            1
+            sage: a^(2^120)
+            81
+            sage: a^0
+            1
+            sage: a^1 == a
+            True
+            sage: a^2 * a^3 == a^5
+            True
+            sage: (a^3)^2 == a^6
+            True
+            sage: a^57 * a^43 == a^100
+            True
+            sage: a^(-1) == 1/a
+            True
+            a^200 * a^(-64) == a^136
+            True
+        """
+        cdef int cn
+
+        from sage.rings.integer import Integer # do here to avoid ciruclar reference
+        if not isinstance(n, (int, long, Integer)):
+            raise TypeError, "The exponent must be an integer."
+
+        n = int(n)
+
+        if n < 0:
+            n = -n
+            a = ~self
+        else:
+            a = self
+
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benifit from the code below
+            cn = n
+            if cn == 0:
+                return (<Element>a)._parent(1)
+            elif cn == 1:
+                return a
+            elif cn == 2:
+                return a*a
+            elif cn == 3:
+                return a*a*a
+
+        # One multiplication can be saved by starting with
+        # the smallest power needed rather than with 1
+        apow = a
+        while n&1 == 0:
+            apow = apow*apow
+            n = n >> 1
+        power = apow
+        n = n >> 1
+
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
+            n = n >> 1
+
+        return power
+
 
     ##################################
     # Division
@@ -1341,7 +1356,7 @@ cdef have_same_base(Element x, Element y):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(ModuleElement):
+cdef class Matrix(AlgebraElement):
     cdef int is_sparse_c(self):
         raise NotImplementedError
 

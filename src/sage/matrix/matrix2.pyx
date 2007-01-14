@@ -1183,8 +1183,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.column_space()
             Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
             Basis matrix:
-            [                                                     1.00000000000000 -0.000000000000000888178419700125 - 0.00000000000000177635683940025*I]
-            [                                                                    0                                                      1.00000000000000]
+            [                1.00000000000000 0.000000000000000444089209850062]
+            [                               0                0.999999999999999]
         """
         return self.column_module()
 

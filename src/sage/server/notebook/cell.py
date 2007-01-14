@@ -41,10 +41,27 @@ class TextCell(Cell_generic):
         self.__text = text
         self.__worksheet = worksheet
 
-    def html(self, ncols, do_print=False):
+    def set_worksheet(self, worksheet, id=None):
+        self.__worksheet = worksheet
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        if not id is None:
+            self.__id = id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def html(self, ncols, do_print=False, do_math_parse=True):
+        """
+            do_math_parse -- bool (default: True)
+                If True, call math_parse (defined in cell.py)
+                on the html.
+        """
         t = self.__text
-        return '<font size=+1>%s</font>'%t
-        #return self.__text
+        if do_math_parse:
+            # Do dollar sign math parsing
+            t = math_parse(t)
+        s = '<font size=+1>%s</font>'%t
+        return s
 
     def plain_text(self, prompts=False):
         return self.__text
@@ -90,6 +107,26 @@ class Cell(Cell_generic):
         if not id is None:
             self.set_id(id)
         self.__out_html = self.files_html()
+
+    def id(self):
+        return self.__id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def set_id(self, id):
+        self.__id = int(id)
+
+    def worksheet(self):
+        return self.__worksheet
+
+    def notebook(self):
+        return self.__worksheet.notebook()
+
+    def directory(self):
+        if not os.path.exists(self.__dir):
+            os.makedirs(self.__dir)
+        return self.__dir
 
     def __cmp__(self, right):
         return cmp(self.id(), right.id())
@@ -201,26 +238,6 @@ class Cell(Cell_generic):
     def computing(self):
         return self in self.__worksheet.queue()
 
-    def directory(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        return self.__dir
-
-    def id(self):
-        return self.__id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
-
-    def set_id(self, id):
-        self.__id = int(id)
-
-    def worksheet(self):
-        return self.__worksheet
-
-    def notebook(self):
-        return self.__worksheet.notebook()
-
     def set_input_text(self, input):
         self.__version = 1+self.version()
         self.__in = input
@@ -229,7 +246,7 @@ class Cell(Cell_generic):
         return self.__in
 
     def is_auto_cell(self):
-        return '%auto' in self.__in.split('\n')[0]
+        return '#auto' in self.__in
 
     def changed_input_text(self):
         try:
@@ -249,10 +266,14 @@ class Cell(Cell_generic):
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
+            if not self.computing():
+                file = "%s/full_output.txt"%self.directory()
+                open(file,"w").write(output)
+                html+="<br><a href='/%s' target='_new' class='file_link'>full_output.txt</a>"%file
             if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
-                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
             else:
-                output = output[:MAX_OUTPUT] + '\n(truncated)'
+                output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output
         self.__out_html = html
         self.__sage = sage
@@ -367,7 +388,10 @@ class Cell(Cell_generic):
             return self.__version
 
     def time(self):
-        return self.__time
+        try:
+            return self.__time
+        except AttributeError:
+            return "?"
 
     def do_time(self):
         self.__time = True
@@ -402,9 +426,11 @@ class Cell(Cell_generic):
         return s
 
     def html(self, wrap=None, div_wrap=True, do_print=False):
+        if self.__in.lstrip()[:8] == '%hideall':
+            return ''
+
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
-
         if self.worksheet().compute_process_has_been_started():
             evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
         else:
@@ -472,7 +498,7 @@ class Cell(Cell_generic):
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
             else:
-                files.append('<a target="_new" href="%s/%s">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s/%s" class="file_link">%s</a>'%(dir, F, F))
         if len(images) == 0:
             images = ''
         else:
@@ -552,3 +578,49 @@ def format_exception(s0, ncols):
     return t
 
 ComputeCell=Cell
+
+
+def math_parse(s):
+    r"""
+    Do the following:
+    \begin{verbatim}
+       * Replace all $ text $'s by
+          <span class='math'> text </span>
+       * Replace all $$ text $$'s by
+          <div class='math'> text </div>
+       * Replace all \$'s by $'.s  Note that in
+         the above two cases nothing is done if the $
+         is preceeded by a backslash.
+    \end{verbatim}
+    """
+    t = ''
+    while True:
+        i = s.find('$')
+        if i == -1:
+            return t + s
+        elif i > 0 and s[i-1] == '\\':
+            t += s[:i-1] + '$'
+            s = s[i+1:]
+        elif i-1 < len(s) and s[i+1] == '$':
+            typ = 'div'
+        else:
+            typ = 'span'
+        j = s[i+2:].find('$')
+        if j == -1:
+            j = len(s)
+            s += '$'
+            if typ == 'div':
+                s += '$$'
+        else:
+            j += i + 2
+        if typ == 'div':
+            txt = s[i+2:j]
+        else:
+            txt = s[i+1:j]
+        t += s[:i] + '<%s class="math">%s</%s>'%(typ, txt, typ)
+        s = s[j+1:]
+        if typ == 'div':
+            s = s[1:]
+    return t
+
+

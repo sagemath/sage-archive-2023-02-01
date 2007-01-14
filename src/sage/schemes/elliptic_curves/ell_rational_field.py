@@ -3967,7 +3967,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
             2 + O(5)
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-            0
+            O(5^1)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
             2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)

@@ -19,7 +19,7 @@ import  free_module_element
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
 from sage.rings.complex_double cimport ComplexDoubleElement
-from sage.rings.complex_double import CDF
+from sage.rings.complex_double import CDF, new_ComplexDoubleElement
 
 include '../ext/stdsage.pxi'
 
@@ -110,13 +110,27 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             gsl_vector_complex_set(self.v,i,z_temp)
 
     def __getitem__(self,size_t i):
-        cdef gsl_complex z_temp
-        if i < 0 or i >= self.v.size:
-            raise IndexError
-        else:
-            z_temp = <gsl_complex> gsl_vector_complex_get(self.v,i)
-            return CDF(GSL_REAL(z_temp),GSL_IMAG (z_temp))
+        """
+        Return the ith entry of self.
 
+        EXAMPLES:
+            sage: v = vector(CDF, [1,CDF(3,2), -1]); v
+            (1.0, 3.0 + 2.0*I, -1.0)
+            sage: v[1]
+            3.0 + 2.0*I
+            sage: v[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: index out of range
+        """
+        cdef gsl_complex z_temp
+        cdef ComplexDoubleElement x
+        if i < 0 or i >= self.v.size:
+            raise IndexError, 'index out of range'
+        else:
+            x = new_ComplexDoubleElement()
+            x._complex = <gsl_complex> gsl_vector_complex_get(self.v,i)
+            return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef gsl_vector_complex *v, *w
@@ -163,17 +177,15 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         cdef int err,err_1
         cdef ComplexDoubleVectorSpaceElement result
         cdef double* data
+        cdef gsl_vector_complex* v
+
         if inplace:
             data = self.v.data
         else:
-            # TODO -- this all needs to be fixed; it's broken.
-            raise NotImplementedError
-            result = <ComplexDoubleVectorSpaceElement>ComplexDoubleVectorSpaceElement.__new__(ComplexDoubleVectorSpaceElement)
-            (<ComplexDoubleVectorSpaceElement>result).v=<gsl_vector_complex *> gsl_vector_complex_alloc(self.v.size)# add error check for mem alloc
-            data = (<ComplexDoubleVectorSpaceElement>result).v.data
-            gsl_blas_zcopy(self.v,(<ComplexDoubleVectorSpaceElement>result).v)
-            (<ComplexDoubleVectorSpaceElement> result)._parent = self._parent
-
+            # not in place.
+            v = self.gsl_vector_complex_copy()
+            data = v.data
+            result = self._new_c(v)
 
         if direction == "forward":
             if ispow(self.v.size):
@@ -190,7 +202,6 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
                 pass
             else:
                 raise ValueError, "error with transform"
-
 
 
         elif direction == "backward":

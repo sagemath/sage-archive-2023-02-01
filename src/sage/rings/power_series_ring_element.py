@@ -4,6 +4,55 @@ Power Series
 AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
+
+EXAMPLE:
+    sage: R.<x> = PowerSeriesRing(ZZ)
+    sage: R([1,2,3])
+    1 + 2*x + 3*x^2
+    sage: R([1,2,3], 10)
+    1 + 2*x + 3*x^2 + O(x^10)
+    sage: f = 1 + 2*x - 3*x^3 + O(x^4); f
+    1 + 2*x - 3*x^3 + O(x^4)
+    sage: f^10
+    1 + 20*x + 180*x^2 + 930*x^3 + O(x^4)
+    sage: g = 1/f; g
+    1 - 2*x + 4*x^2 - 5*x^3 + O(x^4)
+    sage: g * f
+    1 + O(x^4)
+
+In Python (as opposted to SAGE) create the power series ring and its
+generator as follows:
+
+    sage: R, x = objgen(PowerSeriesRing(ZZ, 'x'))
+    sage: parent(x)
+    Power Series Ring in x over Integer Ring
+
+EXAMPLE: COERCION
+This example illustrates that coercion for power series rings
+is consistent with coercion for polynomial rings.
+
+    sage: poly_ring1.<gen1> = PolynomialRing(QQ)
+    sage: poly_ring2.<gen2> = PolynomialRing(QQ)
+    sage: huge_ring.<x> = PolynomialRing(poly_ring1)
+
+The generator of the first ring gets coerced in as itself,
+since it is the base ring.
+    sage: huge_ring(gen1)
+    gen1
+
+The generator of the second ring gets mapped via the
+natural map sending one generator to the other.
+    sage: huge_ring(gen2)
+    x
+
+With power series the behavior is the same.
+    sage: power_ring1.<gen1> = PowerSeriesRing(QQ)
+    sage: power_ring2.<gen2> = PowerSeriesRing(QQ)
+    sage: huge_power_ring.<x> = PowerSeriesRing(power_ring1)
+    sage: huge_power_ring(gen1)
+    gen1
+    sage: huge_power_ring(gen2)
+    x
 """
 
 #*****************************************************************************

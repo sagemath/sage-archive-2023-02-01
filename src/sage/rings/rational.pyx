@@ -170,7 +170,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                     exp = (len(xstr) - (xstr.index('.') +1))
                     p = base**exp
                     pstr = '1'+'0'*exp
-                    s = (x*p).str(base)+'/'+pstr
+                    s = xstr.replace('.','') +'/'+pstr
                     if mpq_set_str( self.value, s, base):
                         raise TypeError, "unable to convert %s to a rational"%x
                     mpq_canonicalize(self.value)

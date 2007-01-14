@@ -7,6 +7,7 @@ import laurent_series_ring_element
 import padic_field
 import power_series_ring_element
 import integer
+import rational
 
 def O(x):
     if isinstance(x, power_series_ring_element.PowerSeries):
@@ -16,8 +17,8 @@ def O(x):
         return laurent_series_ring_element.LaurentSeries(x.parent(), x.unit_part(),
                              x.valuation()).add_bigoh(x.degree())
 
-    elif isinstance(x, (int,long,integer.Integer)):  # p-adic number
-        if x <= 1:
+    elif isinstance(x, (int,long,integer.Integer,rational.Rational)):  # p-adic number
+        if x <= 0:
             raise ArithmeticError, "x must be a prime power >= 2"
         F = arith.factor(x)
         if len(F) != 1:

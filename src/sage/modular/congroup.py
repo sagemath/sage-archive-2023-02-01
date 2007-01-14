@@ -54,6 +54,9 @@ def get_inverse_mod(order):
     raise NotImplementedError
 
 
+def is_CongruenceSubgroup(x):
+    return isinstance(x, CongruenceSubgroup)
+
 class CongruenceSubgroup(Group):
     def __init__(self, level):
         level=int(level)
@@ -146,6 +149,9 @@ def lift_to_sl2z(c, d, N):
 
     return Mat2Z([z2, -z1, c, d])
 
+
+def is_Gamma0(x):
+    return isinstance(x, Gamma0)
 
 class Gamma0(CongruenceSubgroup):
     r"""
@@ -249,8 +255,8 @@ class Gamma0(CongruenceSubgroup):
         for r in self.coset_reps():
             c,d = (r[1,0], r[1,1])
 
-
-
+def is_SL2Z(x):
+    return isinstance(x, SL2Z)
 
 class SL2Z(Gamma0):
     r"""
@@ -310,6 +316,9 @@ class SL2Z(Gamma0):
             return x
         return CongruenceSubgroupElement(self, x, check=check)
 
+
+def is_Gamma1(x):
+    return isinstance(x, Gamma1)
 
 class Gamma1(CongruenceSubgroup):
     r"""

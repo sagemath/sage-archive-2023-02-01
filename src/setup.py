@@ -732,6 +732,7 @@ setup(name        = 'sage',
 
                      'sage.rings',
                      'sage.rings.number_field',
+                     'sage.rings.padics',
 
                      'sage.tests',
 

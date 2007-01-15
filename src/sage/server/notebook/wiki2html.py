@@ -1,9 +1,13 @@
-# -*- coding: iso-8859-1 -*-
 """
-    MoinMoin - MoinMoin Wiki Markup Parser
+ Wiki to HTML converter
 
-    @copyright: 2000, 2001, 2002 by Jürgen Hermann <jh@web.de>
+ Adopted from the Moin Moin Markup Parser (which is GPL'd) and
+    @copyright: 2000, 2001, 2002 by Jurgen Hermann <jh@web.de>
     @license: GNU GPL, see COPYING for details.
+
+AUTHOR:
+    -- Jurgen Hermann: Moin Moin version
+    -- William Stein: adoption for SAGE
 """
 
 import os, re
@@ -1129,4 +1133,38 @@ class Parser:
             except wikiutil.PluginMissingError:
                 self.processor = None
 
+
+
+class Request:
+    def __init__(self):
+        self._s = ''
+    def clock(self, *args, **kwds):
+        pass
+    def write(self, w):
+        print "writing ", w
+        self._s += w
+    def getText(self):
+        return ''
+
+class Page:
+    pass
+
+class Cfg:
+    pass
+
+
+def wiki2html(s):
+    """
+    INPUT:
+         s -- a string formatted using wiki markup
+    OUTPUT:
+         string -- formatted as HTML
+    """
+    request = Request()
+    request.form = ''
+    request.rootpage = Page()
+    request.cfg = Cfg()
+    request.cfg.siteid = ''
+    request.cfg.data_underlay_dir = ''
+    request._page_headings = ''
 

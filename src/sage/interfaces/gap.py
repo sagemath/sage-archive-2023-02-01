@@ -413,6 +413,16 @@ class Gap(Expect):
         os.killpg(self._expect.pid, 2)
         raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
+    def _eval_line_using_file(self, line, tmp):
+        i = line.find(':=')
+        if i != -1:
+            j = line.find('"')
+            if j >= 0 and j < i:
+                i = -1
+        if i == -1:
+            line = 'Print( %s );'%line.rstrip().rstrip(';')
+        return Expect._eval_line_using_file(self, line, tmp)
+
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"

@@ -264,8 +264,10 @@ def _single_variate(base_ring, name, sparse):
         n = base_ring.order()
         if n.is_prime():
             R = m.PolynomialRing_dense_mod_p(base_ring, name)
-        else:
+        elif n > 1:
             R = m.PolynomialRing_dense_mod_n(base_ring, name)
+        else:  # n == 1!
+            R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
 
     elif base_ring.is_field():
         R = m.PolynomialRing_field(base_ring, name, sparse)

@@ -220,9 +220,6 @@ class A000010(SloaneSequence):
 
     offset = 1
 
-#    def list(self, n):
-#        return [self(i) for i in range(self.offset,n+1)]
-
 class A000045(SloaneSequence):
     r"""
     Sequence of Fibonacci numbers, offset 0,4.
@@ -262,6 +259,7 @@ class A000045(SloaneSequence):
         return "Fibonacci number with index n >= 0"
 
     offset = 0
+
     def __call__(self, n):
         m = Integer(n)
         if m < 0:
@@ -338,8 +336,6 @@ class A000203(SloaneSequence):
     def _eval(self, n):
         return sum(arith.divisors(n))
 
-#    def list(self, n):
-#        return [self(i) for i in range(self.offset,n+1)]
 
 class A001227(SloaneSequence):
     r"""
@@ -389,11 +385,6 @@ class A001227(SloaneSequence):
 
     def _eval(self, n):
         return sum(i%2 for i in arith.divisors(n))
-
-
-
-#    def list(self, n):
-#       return [self(i) for i in range(self.offset,n+1)]
 
 
 class A001694(SloaneSequence):
@@ -728,9 +719,6 @@ class A111775(SloaneSequence):
         else:
             return k-2
 
-#    def list(self, n):
-#       return [self(i) for i in range(self.offset,n)]
-
 
 class A111776(SloaneSequence):
     r"""
@@ -775,8 +763,6 @@ class A111776(SloaneSequence):
                 m = k
         return Integer(m)
 
-#    def list(self, n):
-#       return [self(i) for i in range(self.offset,n)]
 
 class A111787(SloaneSequence):
     r"""
@@ -839,15 +825,6 @@ class A111787(SloaneSequence):
             for d in srange(3,n,2):
                 if n % d == 0:
                     return min(d, 2*n/d)
-
-
-
-#    def list(self, n):
-#       return [self(i) for i in range(self.offset,n+1)]
-
-
-
-
 
 
 

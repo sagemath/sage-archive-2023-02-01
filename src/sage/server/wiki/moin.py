@@ -21,8 +21,10 @@ def wiki_create_instance(directory='sage_wiki'):
         print "Directory '%s' already exists."%directory
         return
 
+    JSMATH='%s/extcode/notebook/javascript/jsmath'%os.environ['SAGE_DATA']
     os.makedirs(directory)
     os.system('cp -r %s/data %s/'%(share,directory))
+    os.system('cp -r %s %s/htdocs/'%(JSMATH,directory))
     os.system('cp -r %s/underlay %s/'%(share,directory))
     os.system('cp %s/config/wikiconfig.py %s/'%(share,directory))
     os.system('cp %s/server/moin.py %s/'%(share,directory))

@@ -177,7 +177,6 @@ def LatticePolytope(data, desc=None, compute_vertices=False,
 
 
 class LatticePolytopeClass(SageObject):
-
     r"""
     Class of lattice/reflexive polytopes.
 
@@ -533,9 +532,13 @@ class LatticePolytopeClass(SageObject):
             result.append(m)
         return result
 
-    def nef_partitions(self):
+    def nef_partitions(self, keep_symmetric=False):
         r"""
         Return the sequence of NEF-partitions for this polytope.
+
+        INPUT:
+            keep_symmetric -- (default: False) if True, "-s" option will be
+                    passed to nef.x in order to keep symmetric partitions.
 
         EXAMPLES:
         NEF-partitions of the 3-dimensional octahedron:
@@ -545,6 +548,34 @@ class LatticePolytopeClass(SageObject):
             [1, 1, 0, 0, 0, 1],
             [0, 1, 1, 0, 0, 1],
             [1, 1, 1, 0, 0, 1]
+            ]
+
+        Now we compute NEF-partitions for the same octahedron without taking
+        into account symmetries:
+            sage: o.nef_partitions(True)
+            [
+            [1, 1, 1, 0, 0, 1],
+            [1, 1, 0, 0, 1, 1],
+            [1, 1, 0, 1, 0, 1],
+            [1, 1, 0, 0, 0, 1],
+            [1, 1, 1, 0, 1, 0],
+            [1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 0, 0, 0],
+            [1, 1, 0, 0, 1, 0],
+            [1, 1, 0, 1, 0, 0],
+            [0, 0, 1, 1, 1, 1],
+            [1, 0, 1, 0, 1, 1],
+            [1, 0, 1, 0, 0, 1],
+            [1, 0, 0, 1, 1, 1],
+            [1, 0, 0, 0, 1, 1],
+            [1, 0, 0, 1, 0, 1],
+            [0, 1, 1, 1, 1, 0],
+            [1, 0, 1, 1, 1, 0],
+            [1, 0, 1, 0, 1, 0],
+            [1, 0, 1, 1, 0, 0],
+            [0, 1, 0, 1, 1, 1],
+            [1, 0, 0, 1, 1, 0],
+            [0, 1, 1, 1, 0, 1]
             ]
 
         NEF-partitions can be computed only for reflexive polytopes:
@@ -563,26 +594,32 @@ class LatticePolytopeClass(SageObject):
             raise ValueError, ("The given polytope is not reflexive!\n"
                                 + "Polytope: %s") % self
         try:
-            return self._nef_partitions
+            if self._nef_partitions_s == keep_symmetric:
+                return self._nef_partitions
         except AttributeError:
-            result = self.nef_x("-N -Lv -p")
-            partitions =_read_nef_x_partitions(result)
-            # It is possible that nef.x changed the order of vertices
-            nef_vertices = read_palp_matrix(result[result.find("\n")+1:])
-            if self.vertices() != nef_vertices:
-                trans = [self.vertices().columns().index(v)
-                            for v in nef_vertices.columns()]
-                for i, p in enumerate(partitions):
-                    partitions[i] = [trans[v] for v in p]
-            # Convert to the input format of nef_partition class
+            pass
+        keys = "-N -V -p"
+        if keep_symmetric:
+            keys += " -s"
+        result = self.nef_x(keys)
+        partitions =_read_nef_x_partitions(result)
+        self._nef_partitions_s = keep_symmetric
+        # It is possible that nef.x changed the order of vertices
+        nef_vertices = read_palp_matrix(result[result.find("\n")+1:])
+        if self.vertices() != nef_vertices:
+            trans = [self.vertices().columns().index(v)
+                        for v in nef_vertices.columns()]
             for i, p in enumerate(partitions):
-                new_p = [1]*self.nvertices()
-                for v in p:
-                    new_p[v] = 0
-                partitions[i] = new_p
-            self._nef_partitions = Sequence(partitions,NEFPartition,cr=True)
-            self._nef_partitions.set_immutable()
-            return self._nef_partitions
+                partitions[i] = [trans[v] for v in p]
+        # Convert to the input format of nef_partition class
+        for i, p in enumerate(partitions):
+            new_p = [1]*self.nvertices()
+            for v in p:
+                new_p[v] = 0
+            partitions[i] = new_p
+        self._nef_partitions = Sequence(partitions,NEFPartition,cr=True)
+        self._nef_partitions.set_immutable()
+        return self._nef_partitions
 
     def nef_x(self, keys):
         r"""

@@ -11,7 +11,7 @@ integer coordinates.
 
 If $L$ is a lattice polytope, the dual polytope of $L$ is
 $$
-  \{y in \Z^n :   x\dot y \geq -1 \text{ all } x in L\}
+  \{y \in \Z^n :   x\cdot y \geq -1 \text{ all } x \in L\}
 $$
 A \emph{reflexive polytope} is a lattice polytope that
 is equal to its own dual.
@@ -1025,7 +1025,7 @@ class NEFPartition(Sequence):
     Construct a NEF-partition from the given list.
 
     A NEF-partition with $k$ parts, $V = V_0 \cap V_1 \cap \dots \cap V_{k-1}$,
-    is represented by a single list of lenght $n = #V$, in which the $i$-th
+    is represented by a single list of lenght $n = \#V$, in which the $i$-th
     entry is the part number of the $i$-th vertex of a polytope.
 
     NOTE THAT NUMERATON OF PARTS STARTS WITH ZERO.

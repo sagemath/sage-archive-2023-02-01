@@ -1,5 +1,5 @@
 r"""
-Field $\CC$ of Complex Numbers
+Field of Arbitrary Precision Complex Numbers
 
 AUTHOR:
     -- William Stein (2006-01-26): complete rewrite

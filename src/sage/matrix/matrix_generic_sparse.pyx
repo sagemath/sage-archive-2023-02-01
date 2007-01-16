@@ -1,4 +1,4 @@
-"""
+r"""
 Sparse Matrices over a general ring
 
 EXAMPLES:

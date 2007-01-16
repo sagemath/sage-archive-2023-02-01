@@ -102,8 +102,9 @@ control-C.
     ...
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
 
-
-
+Symbolic constants:
+    sage: axiom(e + pi)                      # optional
+    %e + %pi
 """
 
 #\subsection{Tutorial}

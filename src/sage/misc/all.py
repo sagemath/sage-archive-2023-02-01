@@ -17,7 +17,7 @@ from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
 from dist import install_scripts
 
-from darcs import darcs_src, darcs_doc, darcs_scripts
+#from darcs import darcs_src, darcs_doc, darcs_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 

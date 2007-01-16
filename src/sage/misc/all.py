@@ -13,7 +13,7 @@ from profiler import Profiler
 
 from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
-from bug import bug
+#from bug import bug
 
 from dist import install_scripts
 

@@ -9,7 +9,7 @@ def wiki_create_instance(directory='sage_wiki'):
         from MoinMoin.server.standalone import StandaloneConfig, run
     except ImportError:
         print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.4.p0'),"
+        print "Try something like install_package('moin-1.5.6'),"
         print "but note that the package name may have a different"
         print "version.  Use optional_packages() to get a list"
         print "of current package names."
@@ -21,8 +21,9 @@ def wiki_create_instance(directory='sage_wiki'):
         print "Directory '%s' already exists."%directory
         return
 
+    os.makedirs(directory)
     os.system('cp -r %s/data %s/'%(share,directory))
-    os.system('cp -r %s/underlay %s/'%(share,directory))
+    os.system('cp -r %s/underlay %s'%(share,directory))
     os.system('cp %s/config/wikiconfig.py %s/'%(share,directory))
     os.system('cp %s/server/moin.py %s/'%(share,directory))
 

@@ -19,7 +19,7 @@ The input must be a positive integer:
     sage: d(0)
     Traceback (most recent call last):
     ...
-    ValueError: input n (=0) must be a positive integer
+    ValueError: input n (=0) must be an integer >= 1
     sage: d(1/3)
     Traceback (most recent call last):
     ...
@@ -77,26 +77,61 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 
 class SloaneSequence(SageObject):
+    r"""Base class for a Slone integer sequence.
+
+    EXAMPLES:
+    We create a dummy sequence:
+
+    """
+    def __init__(self, offset=1):
+        r"""
+        A sequence starting at offset (=1 by default).
+        """
+        self.offset = Integer(offset)
+
     def _repr_(self):
         raise NotImplementedError
 
-    def __getitem__(self, n):
-        return self(n)
-
     def __call__(self, n):
         m = Integer(n)
-        if m <= 0:
-            raise ValueError, "input n (=%s) must be a positive integer"%n
+        if m < self.offset:
+            raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
         return self._eval(m)
 
     def _eval(self, n):
         # this is what you implement in the derived class
-        # the input n is assumed to be a *SAGE* integer >= 1
+        # the input n is assumed to be a *SAGE* integer >= offset
         raise NotImplementedError
 
     def list(self, n):
-        return [self._eval(i) for i in srange(Integer(1),n+1)]
+        r"""Return sequence[offset], sequence[offset+1], ... , sequence[offset+n].
 
+        NOTE: this might not be n terms of the sequence!
+        """
+        return [self._eval(i) for i in range(self.offset, n+1)]
+
+    def __getitem__(self, n):
+        r"""Return sequence[n].
+
+        We interpret slices as best we can, but our sequences
+        are infinite so we want to prevent some mis-incantations.
+
+        Therefore, we abitrarily cap slices to be at most
+        LENGTH=100000 elements long.  Since many Sloane sequences
+        are costly to compute, this is probably not an unreasonable
+        decision, but just in case, list does not cap length.
+        """
+        if not isinstance(n, slice):
+            return self(n)
+
+        LENGTH = 100000
+        (start, stop, step) = n.indices(2*LENGTH)
+        if abs(stop - start) > LENGTH:
+            raise IndexError, "slice (=%s) too long"%n
+        # The dirty work of generating indices is left to a range list
+        # This could be slow but in practice seems fine
+        # NOTE: n is a SLICE, not an index
+        return [ self(i) for i in range(0, LENGTH)[n] if i >= self.offset ]
 
 ########################################################################
 # II. Actual implementations of Sloane sequences.
@@ -106,6 +141,37 @@ class SloaneSequence(SageObject):
 import sage.rings.arith as arith
 from sage.rings.integer import Integer
 
+class A000027(SloaneSequence):
+    r"""The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.
+
+    The following examples are tests of SloaneSequence more than A000027.
+
+    EXAMPLES:
+    sage: s = sloane.A000027; s
+    The natural numbers.
+    sage: s(10)
+    10
+
+    Index n is interpreted as _eval(n):
+    sage: s[10]
+    10
+
+    Slices are interpreted with absolute offsets, so the following returns the terms of the sequence up to but not including the third term:
+    sage: s[:3]
+    [1, 2]
+    sage: s[3:6]
+    [3, 4, 5]
+    sage: s.list(5)
+    [1, 2, 3, 4, 5]
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "The natural numbers."
+
+    def _eval(self, n):
+        return n
 
 class A000005(SloaneSequence):
     r"""
@@ -128,7 +194,7 @@ class A000005(SloaneSequence):
         sage: d(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be a positive integer
+        ValueError: input n (=0) must be an integer >= 1
         sage: d.list(10)
         [1, 2, 2, 3, 2, 4, 2, 4, 3, 4]
 
@@ -136,6 +202,9 @@ class A000005(SloaneSequence):
         -- Jaap Spies (2006-12-10)
         -- William Stein (2007-01-08)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
     def _repr_(self):
         return "The integer sequence tau(n), which is the number of divisors of n."
 
@@ -143,8 +212,8 @@ class A000005(SloaneSequence):
         return arith.number_of_divisors(n)
 
     def list(self, n):
-        return [self(i) for i in range(1,n+1)]
-
+        # No optimization at this time, so we delegate to the default
+        return SloaneSequence.list(self, n)
 
 #############################################################
 # Create the sloane object, off of which all the sequence
@@ -155,4 +224,4 @@ class Sloane(SageObject):
     pass
 sloane = Sloane()
 sloane.A000005 = A000005()
-
+sloane.A000027 = A000027()

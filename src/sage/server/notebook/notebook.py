@@ -812,8 +812,7 @@ class Notebook(SageObject):
         head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
 
         if JSMATH:
-            head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-            #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
+            head += '<script>jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"

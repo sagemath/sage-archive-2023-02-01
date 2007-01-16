@@ -58,7 +58,8 @@ Further examples:
 #                  http://www.gnu.org/licenses/
 ####################################################################################
 
-import random, weakref
+import random
+import weakref
 
 import arith
 import field
@@ -87,7 +88,6 @@ from sage.structure.parent_gens import normalize_names, ParentWithGens
 
 import sage.interfaces.gap
 
-import weakref
 
 cache = {}
 
@@ -103,7 +103,7 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
                    generator of the field will be a root of this
                    polynomial; if not specified the choice of
                    definining polynomials can be arbitrary.
-        elem_cache -- cache all elements to avoid creation time  (default:False)
+        elem_cache -- cache all elements to avoid creation time  (default: order<500)
 
     EXAMPLES:
         sage: k.<a> = FiniteField(9); k
@@ -118,6 +118,9 @@ def FiniteField(order, name=None, modulus=None, names=None, elem_cache=False):
     if not names is None: name = names
     order = int(order)
     name = normalize_names(1,name)
+
+    if elem_cache is None:
+        elem_cahce = order < 500
 
     key = (order, name, modulus)
     if cache.has_key(key):

@@ -1511,7 +1511,7 @@ def skip_palp_matrix(data, n=1):
                 raise ValueError, "There are not enough data to skip!"
 
 
-def write_palp_matrix(m, ofile=os.sys.stdout, comment="", format=None):
+def write_palp_matrix(m, ofile=None, comment="", format=None):
     r"""
     Write a matrix into a file.
 
@@ -1539,12 +1539,19 @@ def write_palp_matrix(m, ofile=os.sys.stdout, comment="", format=None):
            1    0    0   -1    0    0
            0    1    0    0   -1    0
            0    0    1    0    0   -1
-
     """
     if format == None:
         n = max(len(str(m[i,j]))
                 for i in range(m.nrows()) for j in range(m.ncols()))
         format = "%" + str(n) + "d"
-    ofile.write("%d %d %s\n" % (m.nrows(),m.ncols(),comment))
+    s = "%d %d %s\n" % (m.nrows(),m.ncols(),comment)
+    if ofile is None:
+        print s
+    else:
+        ofile.write(s)
     for i in range(m.nrows()):
-        ofile.write(" ".join(format % m[i,j] for j in range(m.ncols()))+"\n")
+        s = " ".join(format % m[i,j] for j in range(m.ncols()))+"\n"
+        if ofile is None:
+            print s
+        else:
+            ofile.write(s)

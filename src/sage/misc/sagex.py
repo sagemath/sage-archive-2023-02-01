@@ -78,6 +78,9 @@ def pyx_preparse(s):
     inc = [environ_parse(x.replace('"','').replace("'","")) for x in v] + include_dirs
     s = """
 include "cdefs.pxi"
+""" + s
+    if lang != "c++": # has issues with init_csage()
+        s = """
 include "interrupt.pxi"  # ctrl-c interrupt block support
 include "stdsage.pxi"  # ctrl-c interrupt block support
 """ + s

@@ -105,7 +105,7 @@ class MPolynomial(CommutativeRingElement):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] > 0])
+            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):

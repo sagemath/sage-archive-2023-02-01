@@ -145,7 +145,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         if K.characteristic() == 2:
             return True
         n = K.order() - 1
-        a = self**(n / 2)
+        a = self**(n // 2)
         return a == 1 or a == 0
 
     def square_root(self):

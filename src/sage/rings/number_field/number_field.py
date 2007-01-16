@@ -1197,7 +1197,7 @@ class NumberField_cyclotomic(NumberField_generic):
         n = K.zeta_order()
         m = self.zeta_order()
         if m % n == 0:   # easy case
-            e = m/n
+            e = m // n
             f = x.polynomial()
             X = f.parent().gen()
             g = f(X**e)

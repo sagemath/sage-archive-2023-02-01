@@ -23,6 +23,7 @@ AUTHOR: William Stein (with input from David Joyner, David Kohel, and
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import ring
 import integral_domain
 import field
 import fraction_field_element
@@ -59,12 +60,14 @@ def FractionField(R, names=None):
         x^2
 
     The input must be an integral domain.
-        sage: Frac(Integer(4))
+        sage: Frac(Integers(4))
         Traceback (most recent call last):
         ...
         TypeError: R must be an integral domain.
     """
-    if not isinstance(R, integral_domain.IntegralDomain):
+    if not ring.is_Ring(R):
+        raise TypeError, "R must be a ring"
+    if not R.is_integral_domain():
         raise TypeError, "R must be an integral domain."
     return R.fraction_field()
 

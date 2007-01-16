@@ -288,6 +288,28 @@ cdef class CommutativeRing(Ring):
     """
     Generic commutative ring.
     """
+    def fraction_field(self):
+        """
+        Return the fraction field of self.
+
+        EXAMPLES:
+            sage: R = Integers(389)['x,y']
+            sage: Frac(R)
+            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+            sage: R.fraction_field()
+            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+        """
+        if not self.is_integral_domain():
+            raise TypeError, "self must be an integral domain."
+        if self.__fraction_field is not None:
+            return self.__fraction_field
+        else:
+            import sage.rings.fraction_field
+            K = sage.rings.fraction_field.FractionField_generic(self)
+            self.__fraction_field = K
+            K._assign_names(self.variable_names())
+        return self.__fraction_field
+
     def __pow__(self, n, _):
         """
         Return the free module of rank $n$ over this ring.
@@ -398,19 +420,6 @@ cdef class IntegralDomain(CommutativeRing):
         Return True, since this ring is an integral domain.
         """
         return True
-
-    def fraction_field(self):
-        """
-        Return the fraction field of self.
-        """
-        if self.__fraction_field is not None:
-            return self.__fraction_field
-        else:
-            import sage.rings.fraction_field
-            K = sage.rings.fraction_field.FractionField_generic(self)
-            self.__fraction_field = K
-            K._assign_names(self.variable_names())
-        return self.__fraction_field
 
     def is_field(self):
         """

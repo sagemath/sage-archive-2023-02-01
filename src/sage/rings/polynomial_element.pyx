@@ -71,10 +71,7 @@ ZZ = sage.rings.integer_ring.IntegerRing()
 def is_Polynomial(f):
     return isinstance(f, Polynomial)
 
-cdef class TestClass(CommutativeAlgebraElement):
-    pass
-
-class Polynomial(CommutativeAlgebraElement):
+cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
 
@@ -112,7 +109,6 @@ class Polynomial(CommutativeAlgebraElement):
         """
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
-        print "yep"
 
     def _add_(self, right):
         if self.degree() >= right.degree():
@@ -2744,7 +2740,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f
             4*w^3 + 3*w^2 + 2*w + 1
         """
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise TypeError, "Cannot change the value of the generator."
         self.__poly = ZZX(v)
         try:
@@ -3004,7 +3000,7 @@ class Polynomial_dense_mod_n(Polynomial):
             sage: f
             4*x^3 + 3*x^2 + 98*x + 1
         """
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise TypeError, "Cannot change the value of the generator."
         self.parent()._ntl_set_modulus()
         self.__poly = ZZ_pX(v)

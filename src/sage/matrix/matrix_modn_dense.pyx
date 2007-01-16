@@ -95,6 +95,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self, parent)
 
+        cdef uint p
+        p = self._base_ring.characteristic()
+        self.p = p
+        if p >= 46340:
+            raise OverflowError, "p (=%s) must be < 46340"%p
+        self.gather = 2**32/(p*p)
+
         self._entries = <uint *> sage_malloc(sizeof(uint)*self._nrows*self._ncols)
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
@@ -118,12 +125,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         sage_free(self.matrix)
 
     def __init__(self, parent, entries, copy, coerce):
-        cdef uint p
-        self.p = self._base_ring.characteristic()
-        p = self.p
-        if p >= 46340:
-            raise OverflowError, "p (=%s) must be < 46340"%p
-        self.gather = 2**32/(p*p)
 
         cdef uint e
         cdef Py_ssize_t i, j, k

@@ -342,7 +342,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * cdef _sub_c_impl
     #   * __deepcopy__
     #   * __invert__
-    #   * _multiply_classical
     #   * Matrix windows -- only if you need strassen for that base
     #   * Other functions (list them here):
     # x * denom(self):

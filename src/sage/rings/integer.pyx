@@ -192,7 +192,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             3
 
         Integers also support the standard arithmetic operations, such
-        as +,-,*,/,^, \code{abs}, \code{mod}, \code{float}:
+        as \code{+, -, *, /, ^}, \code{abs}, \code{mod}, \code{float}:
             sage: 2^3
             8
         """

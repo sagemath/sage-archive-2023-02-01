@@ -5,15 +5,7 @@ import sage.misc.misc as misc
 from   sage.misc.viewer     import browser
 
 def wiki_create_instance(directory='sage_wiki'):
-    try:
-        from MoinMoin.server.standalone import StandaloneConfig, run
-    except ImportError:
-        print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.6'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return
+    from MoinMoin.server.standalone import StandaloneConfig, run
 
     share = '%s/share/moin'%misc.SAGE_LOCAL
 
@@ -38,20 +30,12 @@ def wiki(directory='sage_wiki',
     The wiki will be served on the given port.
 
     The moin package contains a modified version of moin moin, which
-    comes with jsmath latex typesetting preconfigured; use $'s and
-    $$'s to typeset.
+    comes with jsmath latex typesetting preconfigured; use dollar
+    signs to typeset.
     """
     sys.path.insert(0, os.path.abspath(directory))
 
-    try:
-        from MoinMoin.server.standalone import StandaloneConfig, run
-    except ImportError:
-        print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.4'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return False
+    from MoinMoin.server.standalone import StandaloneConfig, run
 
     if not os.path.exists(directory):
         wiki_create_instance(directory)

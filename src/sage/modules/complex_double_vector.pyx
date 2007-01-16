@@ -129,7 +129,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             raise IndexError, 'index out of range'
         else:
             x = new_ComplexDoubleElement()
-            x._complex = <gsl_complex> gsl_vector_complex_get(self.v,i)
+            # x._complex = <gsl_complex> gsl_vector_complex_get(self.v,i)
+            # x._complex = gsl_vector_complex_get(self.v,i)
             return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):

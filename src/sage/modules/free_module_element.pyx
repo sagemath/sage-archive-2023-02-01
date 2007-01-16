@@ -358,6 +358,47 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __setitem__(self, i, x):
         raise NotImplementedError
 
+    def __getslice__(self, Py_ssize_t i, Py_ssize_t j):
+        """
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1,2, 'x*y', 'x^2-y^2']); v
+            (1, 2, x*y, -1*y^2 + x^2)
+            sage: v[1:]
+            (2, x*y, -1*y^2 + x^2)
+            sage: v[:2]
+            (1, 2)
+            sage: type(v[1:])
+            <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+            sage: v = vector(CDF,[1,2,(3,4)]); v
+            (1.0, 2.0, 3.0 + 4.0*I)
+            sage: w = v[1:]; w
+            (2.0, 3.0 + 4.0*I)
+            sage: parent(w)
+            Vector space of dimension 2 over Complex Double Field
+        """
+        return vector(self.base_ring(), self.list()[i:j])
+
+    def __setslice__(self, i, j, value):
+        """
+        EXAMPLES:
+            sage: v = vector(CDF,[1,2,(3,4)]); v
+            (1.0, 2.0, 3.0 + 4.0*I)
+            sage: v[1:] = (1,3); v
+            (1.0, 1.0, 3.0)
+        """
+        cdef Py_ssize_t k, d, n
+        d = self.degree()
+        R = self.base_ring()
+        n = 0
+        for k from i <= k < j:
+            if k >= d:
+                return
+            if k >= 0:
+                self[k] = R(value[n])
+                n = n + 1
+
+
+
     def __richcmp__(left, right, int op):
         cdef int ld, rd
         if not isinstance(left, FreeModuleElement) or not isinstance(right, FreeModuleElement):
@@ -674,7 +715,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries, self._degree))
 
-    def __getitem__(self, i):
+    def __getitem__(self, Py_ssize_t i):
         """
         """
         if isinstance(i, slice):
@@ -687,7 +728,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                             self.degree()-1)
         return self._entries[i]
 
-    def __setitem__(self, i, value):
+    def __setitem__(self, Py_ssize_t i, value):
         """
         Set entry i of self to value.
         """
@@ -698,6 +739,32 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
             raise IndexError, "index (i=%s) must be between 0 and %s"%(i,
                             self.degree()-1)
         self._entries[i] = self.base_ring()(value)
+
+    def __setslice__(self, Py_ssize_t i, Py_ssize_t j, value):
+        """
+        EXAMPLES:
+            sage: v = vector(QQ['x,y'], [1,2, 'x*y'])
+            sage: v
+            (1, 2, x*y)
+            sage: v[1:]
+            (2, x*y)
+            sage: v[1:] = [4,5]; v
+            (1, 4, 5)
+            sage: v[:2] = [5,(6,2)]; v
+            (5, 3, 5)
+            sage: v[:2]
+            (5, 3)
+        """
+        cdef Py_ssize_t k, n, d
+        d = self.degree()
+        R = self.base_ring()
+        n = 0
+        for k from i <= k < j:
+            if k >= d:
+                return
+            if k >= 0:
+                self._entries[k] = R(value[n])
+                n = n + 1
 
     def list(self, copy=True):
         if copy:

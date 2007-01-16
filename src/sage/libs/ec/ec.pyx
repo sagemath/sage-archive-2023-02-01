@@ -66,11 +66,13 @@ def ec(ainvs):
 
     EXAMPLES:
         sage: import sage.libs.ec.all as ec
-        sage: ec.ec([1,2,3,4,5])
-        {'conductor': '10351', 'Modular degree': '464', 'Curve1': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'minimal equation': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0NUM': '1', 'lratio': '1.2653937917645377009', 'analytic rank': '1', 'X0CURVE': '[1, -1, 0, 4, 3, -3, 8, 12, -25, -183, -3429, -10351, 6128487/10351]', 'X0CURVE moddeg': '464'} # 32-bit
+        sage: v = ec.ec([1,2,3,4,5])
         Traceback (most recent call last):                       # 64-bit
         ...                                                      # 64-bit
         OSError: ec does not work on 64-bit platforms            # 64-bit
+        sage: print v['Modular degree'] if is_32_bit else "ec not supported on 64-bit"
+        464          # 32-bit
+        ec not supported on 64-bit                               # 64-bit
     """
     if not isinstance(ainvs, list) or len(ainvs) != 5:
         raise TypeError, "ainvs must be a list of length 5"

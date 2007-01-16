@@ -143,8 +143,10 @@ class RationalField(_uniq, field.Field):
             6530219459687219/281474976710656
             sage: 6530219459687219.0/281474976710656
             23.199999999999999
-            sage: QQ(23.2, 10)
-            116/5
+            sage: a = 23.2; a
+            23.1999999999999
+            sage: QQ(a, 10)
+            231999999999999/10000000000000
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
@@ -165,7 +167,7 @@ class RationalField(_uniq, field.Field):
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer)):
             return self(x)
-        raise TypeError
+        raise TypeError, 'no implicit coercion of element to the rational numbers'
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

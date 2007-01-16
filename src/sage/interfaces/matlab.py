@@ -265,8 +265,8 @@ class MatlabElement(ExpectElement):
             [3 4]
             sage: A = matlab('[1,2;3,4.5]')     # optional matlab package
             sage: matrix(RR, A)                 # optional
-            [1.0000000000000000 2.0000000000000000]
-            [3.0000000000000000 4.5000000000000000]
+            [1.00000000000000 2.00000000000000]
+            [3.00000000000000 4.50000000000000]
         """
         from sage.matrix.all import MatrixSpace
         s = str(self).strip()

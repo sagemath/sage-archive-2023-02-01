@@ -67,6 +67,33 @@ cdef class Matrix(matrix0.Matrix):
             v.append( '[%s]'%(','.join(tmp)) )
         return '[%s]'%(','.join(v))
 
+    def _maxima_init_(self):
+        """
+        Return string representation of this matrix in maxima.
+
+        EXAMPLES:
+            sage: m = matrix(3,range(9)); m
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: m._maxima_init_()
+            'matrix([0,1,2],[3,4,5],[6,7,8])'
+            sage: a = maxima(m); a
+            matrix([0,1,2],[3,4,5],[6,7,8])
+            sage: a.charpoly('x').expand()
+            -x^3 + 12*x^2 + 18*x
+            sage: m.charpoly()
+            x^3 - 12*x^2 - 18*x
+        """
+        cdef Py_ssize_t i, j
+        v = []
+        for i from 0 <= i < self._nrows:
+            tmp = []
+            for j from 0 <= j < self._ncols:
+                tmp.append(self.get_unsafe(i,j)._maxima_init_())
+            v.append( '[%s]'%(','.join(tmp)) )
+        return 'matrix(%s)'%(','.join(v))
+
     def _mathematica_init_(self):
        """
        EXAMPLES:

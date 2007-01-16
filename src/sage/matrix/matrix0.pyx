@@ -4,7 +4,9 @@ Base class for matrices
 NOTE: For design documentation see matrix/docs.py.
 
 EXAMPLES:
-
+    sage: matrix(2,[1,2,3,4])
+    [1 2]
+    [3 4]
 """
 
 ################################################################################
@@ -1642,9 +1644,6 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two matrices with the same parent.
-
-        EXAMPLES:
-            sage:
         """
         cdef Py_ssize_t i, j
         cdef Matrix A
@@ -1662,8 +1661,6 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = FreeAlgebra(QQ,2)
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
-
-
         """
         return self._add_c_impl(right._left_scalar_multiply(-1))
 
@@ -2094,22 +2091,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if not self.is_square():
             raise ArithmeticError, "self must be square"
-        n = int(sage.rings.integer.Integer(n))    # coerce to integer so fractions give error.
-        if n == 0:
-            return self.parent()(1)
-        if n < 0:
-            return (~self)**(-n)
-        ans = self.parent()(1)
-        apow = self
-        while n != 0:
-            if n%2 != 0:
-                ans = ans * apow
-            n = n/2
-            if n == 0:  # to not waste time doing an extra multiplication/increment
-                break
-            apow = apow * apow
-        return ans
 
+        return ModuleElement.__pow__(self, n, ignored)
 
     ###################################################
     # Comparison
@@ -2127,7 +2110,6 @@ cdef class Matrix(sage.structure.element.Matrix):
 
         EXAMPLES:
         EXAMPLE cmparing sparse and dense matrices:
-            sage:
             sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)
             True
             sage: matrix(QQ,2,range(4)) == matrix(QQ,2,range(4),sparse=True)

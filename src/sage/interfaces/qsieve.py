@@ -4,12 +4,26 @@ Interface to Bill Hart's Quadratic Sieve
 
 import os
 
+cygwin = os.uname()[0][:6]=="CYGWIN"
+
 import sage.rings.integer
 
 def qsieve(n, block=True, time=False, verbose=False):
-    """
+    r"""
     Run Hart's quadratic sieve and return the distinct proper factors
     of the integer n that it finds.
+
+    CONDITIONS:
+    The conditions for the quadratic sieve to work are as follows:
+
+    \begin{enumerate}
+       \item No small factors
+       \item Not a perfect power
+       \item Not prime
+    \end{enumerate}
+
+    If any of these fails, the sieve will also.
+
 
     INPUT:
         n -- an integer with at least 40 digits
@@ -34,10 +48,11 @@ def qsieve(n, block=True, time=False, verbose=False):
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
         sage: factor(n)  # (currently) uses PARI
         10000000000000000051 * 100000000000000000039
-        sage: v, t = qsieve(n, time=True)   # uses the sieve
-        sage: v
+        sage: v, t = qsieve(n, time=True)   # uses the sieve    (optional: time doesn't work on cygwin)
+        sage: v                                          # optional
         [10000000000000000051, 100000000000000000039]
-        sage: t   # random output
+        sage.: t
+        '0.36 real         0.19 user         0.00 sys'
     """
     Z = sage.rings.integer.Integer
     n = Z(n)
@@ -54,6 +69,8 @@ def qsieve_block(n, time, verbose=False):
     blocking until complete.
     """
     if time:
+        if cygwin:
+             raise ValueError, "qsieve time not supported on Cygwin"
         t = 'time '
     else:
         t = ''
@@ -110,19 +127,27 @@ class qsieve_nonblock:
     still use SAGE in parallel:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
-        sage: q = qsieve(n, block=False, time=True)
-        sage: q     # random output
+        sage: q = qsieve(n, block=False, time=True)           # optional -- requires time command
+        sage.: q           # random output                     # optional
         Proper factors so far: []
-        sage: q     # random output
+        sage.: q           # random output                     # optional
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()  # random output
+        sage.: q.list()    # random output                     # optional
         [10000000000000000051, 100000000000000000039]
-        sage: q.time()    # random output
+        sage.: q.time()    # random output     (optional -- requires time command)
         '0.21'
+
+        sage: q = qsieve(next_prime(10^20)*next_prime(10^21), block=False)
+        sage: q           # random output
+        Proper factors so far: [100000000000000000039, 1000000000000000000117]
+        sage: q           # random output
+        [100000000000000000039, 1000000000000000000117]
     """
     def __init__(self, n, time):
         self._n = n
         if time:
+            if cygwin:
+                raise ValueError, "qsieve time not supported on Cygwin"
             cmd = 'time QuadraticSieve'
         else:
             cmd = 'QuadraticSieve'

@@ -1682,13 +1682,13 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
     lines.  You can change this to change the defaults for all future
     lines.  Use line.reset() to reset to the default options.
 
-    OPTIONS:
+    INPUT:
+    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-
-    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)
@@ -1702,6 +1702,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the markter edge in points
+    \end{verbatim}
 
 
     EXAMPLES:
@@ -2046,12 +2047,13 @@ class PlotFactory(GraphicPrimitiveFactory):
     The following options affect the appearance of the line through the points
     on the graph of X (these are the same as for the line function):
 
+    INPUT:
+    \begin{verbatim}
         alpha -- How transparent the line is
         thickness -- How thick the line is
         rgbcolor -- The color as an rgb tuple
         hue -- The color given as a hue
-
-    Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
+        Any MATLAB/MATPLOTLIB line option may also be passed in.  E.g.,
         linestyle -- The style of the line, which is one of
                   '--' (dashed), '-.' (dash dot), '-' (solid),
                   'steps', ':' (dotted)
@@ -2065,6 +2067,7 @@ class PlotFactory(GraphicPrimitiveFactory):
        markersize -- the size of the marker in points
        markeredgecolor -- the markerfacecolor can be any color arg
        markeredgewidth -- the size of the marker edge in points
+    \end{verbatim}
 
     Note that this function does NOT simply sample equally spaced
     points between xmin and xmax.  Instead it computes equally spaced

@@ -1,7 +1,16 @@
-"""nodoctest"""
+##############################################################################
+#       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+##############################################################################
+
+
 include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include 'gsl.pxi'
+
+
 import sage.plot.plot
 import sage.gsl.interpolation
 
@@ -118,7 +127,7 @@ class ode_solver(object):
          [df_1/dt,...,df_n/dt] ]. There are examples below, if your jacobian was the function my_jacobian
          you would do.
 
-         sage: T.jacobian=my_jacobian
+         sage.: T.jacobian = my_jacobian
 
 
          There are a variety of algorithms available for different types of systems. Possible algorithms are
@@ -136,10 +145,10 @@ class ode_solver(object):
 
          sage: T.algorithm="bsimp"
 
-         The user should supply initial conditions in y_0. For example if your initial conditions are
-         y_0=1,y_1=1, would do
+         The user should supply initial conditions in y_0. For example
+         if your initial conditions are y_0=1,y_1=1, do
 
-         sage: T.y_0=[1,0]
+         sage: T.y_0=[1,1]
 
          The actual solver is invoked by the method ode_solve.
          It has arguments t_span, y_0,num_points, params.
@@ -172,7 +181,7 @@ class ode_solver(object):
 
          This data is stored in the variable solutions
 
-         sage:T.solution
+         sage.: T.solution
 
          Examples:
          Consider solving the Van der pol oscillator x''(t) + ux'(t)(x(t)^2-1)+x(t)=0 between t=0 and t= 100.
@@ -193,7 +202,7 @@ class ode_solver(object):
          sage: T.function=f_1
          sage: T.jacobian=j_1
          sage: T.ode_solve(y_0=[1,0],t_span=[0,100],params=[10],num_points=1000)
-         sage: T.plot_solution()
+         sage: T.plot_solution(filename='sage.png')
 
          The solver line is equivalent to
          sage: T.ode_solve(y_0=[1,0],t_span=[x/10.0 for x in range(1000)],params = [10])
@@ -215,23 +224,22 @@ class ode_solver(object):
          sage: T.ode_solve(t_span=[0,12],num_points=100)
 
          By default T.plot_solution() plots the y_0, to plot general y_i use
-         sage: T.plot_solution(i=0)
-         sage: T.plot_solution(i=1)
-         sage: T.plot_solution(i=2)
+         sage: T.plot_solution(i=0, filename='sage.png')
+         sage: T.plot_solution(i=1, filename='sage.png')
+         sage: T.plot_solution(i=2, filename='sage.png')
 
          The method interpolate_solution will return a spline interpolation through the points found by the solver. By default y_0 is interpolated.
          You can interpolate y_i through the keyword argument i.
 
          sage: f = T.interpolate_solution()
-         sage: plot(f,0,12).show()
+         sage: plot(f,0,12).save('sage.png')
          sage: f = T.interpolate_solution(i=1)
-         sage: plot(f,0,12).show()
+         sage: plot(f,0,12).save('sage2.png')
          sage: f = T.interpolate_solution(i=2)
-         sage: plot(f,0,12).show()
+         sage: plot(f,0,12).save('sage3.png')
          sage: f = T.interpolate_solution()
-         sage: f(pi)
-
-
+         sage: f(pi)                # slightly random precision
+         0.53794722843358245
 
          Unfortunately because python functions are used, this solver is slow on system that require many function evaluations.
          It is possible to pass a compiled function by deriving from the class ode_sysem and overloading c_f and c_j with C functions that
@@ -256,17 +264,16 @@ class ode_solver(object):
                  dfdt[1]=0
                  return GSL_SUCCESS
 
-         After executing the above block of code you can do
+         After executing the above block of code you can do the following (WARNING: this is
+         *not* automatically doctested):
 
-
-         sage: T=ode_solver()
-         sage: T.algorithm="bsimp"
-         sage: vander=van_der_pol()
-         sage: T.function=vander
-         sage: vander=van_der_pol()
-	 sage: T.ode_solve(y_0=[1,0],t_span=[0,2000],num_points=1000)
-
-	 sage: T.plot_solution(i=0)
+         sage.: T=ode_solver()
+         sage.: T.algorithm="bsimp"
+         sage.: vander = van_der_pol()
+         sage.: T.function=vander
+         sage.: vander = van_der_pol()
+	 sage.: T.ode_solve(y_0=[1,0],t_span=[0,2000],num_points=1000)
+	 sage.: T.plot_solution(i=0, filename='sage.png')
 
 
    """

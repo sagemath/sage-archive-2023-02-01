@@ -726,7 +726,7 @@ class PiecewisePolynomial:
 	    sage: f = lambda x:x^2
             sage: f = Piecewise([[(-pi,pi),f]])
             sage: float(f.fourier_series_cosine_coefficient(2,pi))
-            0.99999999976227982
+            1.0
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])

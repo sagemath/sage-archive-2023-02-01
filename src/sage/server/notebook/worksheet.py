@@ -614,6 +614,7 @@ class Worksheet:
 
         # Finished a computation.
         self.__comp_is_running = False
+        del self.__queue[0]
         out = self._process_output(out)
         if C.introspect():
             before_prompt, after_prompt = C.introspect()
@@ -635,7 +636,6 @@ class Worksheet:
                                     max_out=HISTORY_MAX_OUTPUT)
             self.notebook().add_to_history(history)
 
-        del self.__queue[0]
         return 'd', C
 
     def best_completion(self, s, word):
@@ -811,8 +811,11 @@ class Worksheet:
         out = out.rstrip()
         if C.introspect():
             return out
+
+        # this isn't needed anymore !
         # the python error message for list indices is not good enough.
-        out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+        # out = out.replace('indices must be integers', 'indices must be of type Python int.\n(Hint: Use int(n) to make n into a Python int.)')
+
         out = out.replace("NameError: name 'os' is not defined", "NameError: name 'os' is not defined\nTHERE WAS AN ERROR LOADING THE SAGE LIBRARIES.  Try starting SAGE from the command line to see what the error is.")
 
         try:
@@ -1102,6 +1105,10 @@ class Worksheet:
                 input = self.do_sage_extensions_preparsing(input)
                 input = input.split('\n')
 
+                # The following is all so the last line (or single lines)
+                # will implicitly print as they should, unless they are
+                # an assignment.   "display hook"  It's very complicated,
+                # but it has to be...
                 i = len(input)-1
                 if i >= 0:
                     while len(input[i]) > 0 and input[i][0] in ' \t':

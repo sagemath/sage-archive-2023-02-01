@@ -1,5 +1,5 @@
 r"""
-Interface to the Tachyon Ray Tracer
+Tachyon Ray Tracer
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com) -- wrote tachyon ray tracer
@@ -8,8 +8,10 @@ AUTHOR:
     -- Tom Boothby -- 3d function plotting n'stuff
 
 TODO:
-   -- currently only spheres, lights, and textures are wrapped.  need to add triangles, etc.
+   -- clean up trianglefactory stuff
 """
+
+from tri_plot import Triangle, SmoothTriangle, TriangleFactory, TrianglePlot
 
 from colorsys import hsv_to_rgb
 
@@ -83,7 +85,7 @@ class Tachyon(SageObject):
         sage: t.plane((0,0,-1), (0,0,1), 'white')
         sage: t.plane((0,-20,0), (0,1,0), 'white')
         sage: t.plane((-20,0,0), (1,0,0), 'white')
-        sage:
+
         sage: k=0
         sage: for i in srange(-1,1,0.05):
         ...    k += 1
@@ -301,14 +303,30 @@ class Tachyon(SageObject):
         self._objects.append(FCylinder(base, apex, radius, texture))
 
     def triangle(self, vertex_1, vertex_2, vertex_3, texture):
-	 self._objects.append(Triangle(vertex_1,vertex_2,vertex_3,texture))
+	 self._objects.append(TachyonTriangle(vertex_1,vertex_2,vertex_3,texture))
 
     def smooth_triangle(self, vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture):
-         self._objects.append(SmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
+         self._objects.append(TachyonSmoothTriangle(vertex_1, vertex_2, vertex_3, normal_1, normal_2, normal_3, texture))
 
     def plot(self,f,(xmin,xmax),(ymin,ymax),texture,grad_f=None,
-                  max_var=.1,max_depth=5,initial_depth=3, num_colors=None):
+                  max_bend=.7,max_depth=5,initial_depth=3, num_colors=None):
         r"""
+        Arguments:
+          f : Function of two variables, which returns a float (or coercable to a float)
+          (xmin,xmax)
+          (ymin,ymax) : defines the rectangle to plot over
+          texture: Name of texture to be used
+        Optional arguments:
+          grad_f : gradient function.  If specified, smooth triangles will be used.
+          max_bend: Cosine of the threshold angle between triangles used to determine
+                   whether or not to recurse after the minimum depth
+          max_depth: maximum recursion depth.  Maximum triangles plotted = $2^{2*max_depth}$
+          initial_depth: minimum recursion depth.  No error-tolerance checking is performed
+                   below this depth.  Minimum triangles plotted: $2^{2*min_depth}$
+          num_colors: Number of rainbow bands to color the plot with.  Texture supplied will
+                   be cloned (with different colors) using the texture_recolor method of the
+                   Tachyon object.
+
         Plots a function by constructing a mesh with nonstandard sampling density
         without gaps. At very high resolutions (depths > 10) it becomes very
         slow.  Pyrex may help.  Complexity is approx.
@@ -343,8 +361,11 @@ class Tachyon(SageObject):
             ...
             ValueError: Plot rectangle is really a line.  Make sure min_x != max_x and min_y != max_y.
         """
-        self._objects.append(TachyonPlot(self, f, (xmin, xmax), (ymin, ymax), texture, g = grad_f,
-                                               min_depth=initial_depth, max_depth=max_depth, e_rel = .01, e_abs = max_var, num_colors = num_colors))
+        factory = TachyonTriangleFactory(self,texture)
+        plot = TrianglePlot(factory, f, (xmin, xmax), (ymin, ymax), g = grad_f,
+                             min_depth=initial_depth, max_depth=max_depth, max_bend=max_bend, num_colors = num_colors)
+        self._objects.append(plot)
+
 
     def parametric_plot(self, f, t_0, t_f, tex, r=.1, cylinders = True, min_depth=4, max_depth=8, e_rel = .01, e_abs = .01):
         """
@@ -479,40 +500,43 @@ class FCylinder:
         """%(tostr(self._center), tostr(self._axis), float(self._radius), self._texture)
 
 
-class Triangle:
-      def __init__(self,vertex_1,vertex_2,vertex_3,texture):
-	  self._vertex_1 = vertex_1
-	  self._vertex_2 = vertex_2
-	  self._vertex_3 = vertex_3
-	  self._texture = texture
+class TachyonTriangle(Triangle):
+    def str(self):
+        return """
+        TRI V0 %s  V1 %s   V2 %s
+            %s
+        """%(tostr(self._a), tostr(self._b),tostr(self._c), self._color)
+
+class TachyonSmoothTriangle(SmoothTriangle):
+    def str(self):
+        return """
+        STRI V0 %s V1 %s  V2 %s
+             N0 %s N1 %s  N2 %s
+             %s
+        """%(tostr(self._a),  tostr(self._b),  tostr(self._c),
+             tostr(self._da), tostr(self._db), tostr(self._dc), self._color)
 
 
-      def str(self):
-	  return """
-	  TRI V0 %s  V1 %s   V2 %s
-	      %s
-	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3), self._texture)
 
+class TachyonTriangleFactory(TriangleFactory):
+    def __init__(self, tach, tex):
+        self._tachyon = tach
+        self._texture = tex
 
-class SmoothTriangle:
-      def __init__(self,vertex_1,vertex_2,vertex_3,normal_1,normal_2,normal_3,texture):
-	  self._vertex_1 = vertex_1
-	  self._vertex_2 = vertex_2
-	  self._vertex_3 = vertex_3
-	  self._normal_1 = normal_1
-	  self._normal_2 = normal_2
-	  self._normal_3 = normal_3
-	  self._texture = texture
+    def triangle(self,a,b,c,color=None):
+        if color is None:
+            return TachyonTriangle(a,b,c,self._texture)
+        else:
+            return TachyonTriangle(a,b,c,color)
 
+    def smooth_triangle(self,a,b,c,da,db,dc,color=None):
+        if color is None:
+            return TachyonSmoothTriangle(a,b,c,da,db,dc,self._texture)
+        else:
+            return TachyonSmoothTriangle(a,b,c,da,db,dc,color)
 
-      def str(self):
-	  return """
-	  STRI V0 %s V1 %s  V2 %s
-	       N0 %s N1 %s  N2 %s
-	       %s
-	  """%(tostr(self._vertex_1), tostr(self._vertex_2),tostr(self._vertex_3),
-               tostr(self._normal_1), tostr(self._normal_2),tostr(self._normal_3), self._texture)
-
+    def get_colors(self, list):
+        return self._tachyon.texture_recolor(self._texture, list)
 
 
 

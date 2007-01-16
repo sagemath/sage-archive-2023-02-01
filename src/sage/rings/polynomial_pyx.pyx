@@ -1,5 +1,7 @@
 """
-Polynomial rings.
+Polynomial over QQ
+
+NOTE -- this is no longer used ?!
 
 AUTHOR:
     -- William Stein (2004): first version
@@ -1075,9 +1077,6 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
 
     def __new__(self):
         PQ_init(&self.pq, -1)
-
-    def __init__(self):
-        pass
 
     def __dealloc__(self):
         PQ_clear(&self.pq)

@@ -1,5 +1,5 @@
 r"""
-Base class for parent objects with generators
+Base class for parent objects with generators.
 
 Many parent objects in SAGE are equipped with generators, which are
 special elements of the object.  For example, the polynomial ring

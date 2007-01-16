@@ -1,5 +1,8 @@
-"""
-Matrix over integers modulo n, for n <= 46340
+r"""
+Dense matrices over $\Z/n\Z$ for $n$ small.
+
+This is a compiled implementation of dense matrices over $\Z/n\Z$
+for $n$ small.
 
 EXAMPLES:
     sage: a = matrix(Integers(37),3,range(9),sparse=False); a

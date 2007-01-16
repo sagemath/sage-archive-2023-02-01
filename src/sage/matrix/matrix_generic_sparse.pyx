@@ -1,5 +1,5 @@
 """
-Sparse Matrices over a General Commutative Ring
+Sparse Matrices over a general ring
 
 EXAMPLES:
     sage: R.<x> = PolynomialRing(QQ)

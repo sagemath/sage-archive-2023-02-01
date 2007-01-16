@@ -4,10 +4,11 @@ PARI C-library interface
 AUTHORS:
     -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
              (this involved changing almost every doc strings, among other
-             things; the precision behavior of PARI changes
-             from any version to the next!).
+             things; the precision behavior of PARI seems to change
+             from any version to the next...).
     -- William Stein (2006-03-06): added newtonpoly
-
+    -- Justin Walker: contributed some of the function definitions
+    -- Gonzalo Tornari: improvements to conversions; much better error handling.
 """
 
 import math

@@ -352,7 +352,7 @@ class JSMath:
     '''
 
     def __call__(self, x):
-        return jsmath(x)
+        return self.eval(x)
 
     def eval(self, x, mode='display'):
         try:

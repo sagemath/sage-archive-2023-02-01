@@ -1,5 +1,5 @@
 r"""
-Tachyon Ray Tracer
+3D Ray Tracer
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com) -- wrote tachyon ray tracer

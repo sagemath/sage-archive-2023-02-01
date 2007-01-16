@@ -1,5 +1,5 @@
 """
-Constructor for making matrices
+Matrix Constructor.
 """
 
 

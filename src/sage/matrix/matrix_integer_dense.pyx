@@ -1,5 +1,5 @@
 """
-Dense matrices over the integers
+Dense matrices over the integer ring.
 """
 
 ######################################################################

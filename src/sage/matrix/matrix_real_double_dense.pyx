@@ -1,5 +1,7 @@
 """
-Dense matrices over the Real Double Field. Matrix operations use GSl and numpy.
+Dense matrices over the real double field.
+
+Matrix operations use GSl and numpy.
 """
 
 ##############################################################################

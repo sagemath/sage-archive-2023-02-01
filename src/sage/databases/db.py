@@ -113,14 +113,15 @@ Storage = sage.databases.compressed_storage.CompressedStorage(FileStorage.FileSt
 
 DB_HOME = "%s/data/"%sage.misc.misc.SAGE_ROOT
 
-_db = {}
 class _uniq(object):
-    def __new__(cls, name="", read_only=True):
-        global _db
-        if _db.has_key(cls):
-            return _db[cls]
+    _db = {} # Class variable, no globals!
+
+    def __new__(cls, name="", read_only=True, unique_key=None):
+        key = (cls, unique_key)
+        if _uniq._db.has_key(key):
+            return _uniq._db[key]
         X = object.__new__(cls)
-        _db[cls] = X
+        _uniq._db[key] = X
         return X
 
 class Database(_uniq):
@@ -130,7 +131,6 @@ class Database(_uniq):
             self.name = name
             self._thresh = thresh
             self._load_()
-
 
     def _load_(self):
         name = self.name

@@ -5,22 +5,22 @@ if [ -d $SAGE_ROOT/devel/doc ]; then
 
    echo "Testing SAGE tutorial"
    cd $SAGE_ROOT/devel/doc/tut
-   sage -t $* tut.tex
+   sage -t "$@" tut.tex
    echo "Testing SAGE programming guide"
    cd $SAGE_ROOT/devel/doc/prog
-   sage -t $* prog.tex
+   sage -t "$@" prog.tex
 fi
 
 if [ -d $SAGE_ROOT/devel/sage/sage ]; then
    echo "Testing SAGE source code"
    cd $SAGE_ROOT/devel/sage/sage
-   sage -t $* *
+   sage -t "$@" *
 fi
 
 if [ -d $SAGE_ROOT/devel/sage/sage_user/sage_user ]; then
    echo "Testing SAGE user source code"
    cd $SAGE_ROOT/devel/sage_user/sage_user
-   sage -t $* *
+   sage -t "$@" *
 fi
 
 if [ -d $SAGE_ROOT/examples ]; then

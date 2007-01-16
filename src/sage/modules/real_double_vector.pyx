@@ -1,5 +1,5 @@
 """
-Vectors with entries that are floating point doubles
+Real double vectors
 
 AUTHOR:
     -- Josh Kantor (2006-10)

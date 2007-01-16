@@ -11,7 +11,7 @@ integer coordinates.
 
 If $L$ is a lattice polytope, the dual polytope of $L$ is
 $$
-  \{y in \RR^n :   x\dot y \geq -1 \text{ for all } x in L\}
+  \{y \in \Z^n :   x\cdot y \geq -1 \text{ all } x \in L\}
 $$
 A \emph{reflexive polytope} is a lattice polytope, such that its polar
 is also a lattice polytope, i.e. has vertices with integer coordinates.
@@ -600,24 +600,23 @@ class LatticePolytopeClass(SageObject):
             sage: nefp = o.nef_partitions()[0]
             sage: o.mif(nefp)
             [
-            [ 0  0  0]
-            [-1 -1  1],
-            [ 1  0  0]
-            [ 0 -1  1],
-            [ 0  1  0]
-            [-1  0  1],
-            [1 1 0]
-            [0 0 1],
+            [ 0  0  1]
+            [-1 -1  0],
+            [ 0  0  1]
+            [ 1 -1  0],
+            [ 0  1  1]
+            [-1  0  0],
+            [0 1 1]
+            [1 0 0],
             [ 0  0 -1]
             [-1 -1  0],
-            [ 1  0 -1]
-            [ 0 -1  0],
+            [ 0  0 -1]
+            [ 1 -1  0],
             [ 0  1 -1]
             [-1  0  0],
-            [ 1  1 -1]
-            [ 0  0  0]
+            [ 0  1 -1]
+            [ 1  0  0]
             ]
-
         """
         if not isinstance(partition, NEFPartition):
             raise TypeError, "Expect a NEF-partition, got %s!" % type(partition)
@@ -650,9 +649,9 @@ class LatticePolytopeClass(SageObject):
             sage: o = lattice_polytope.octahedron(3)
             sage: o.nef_partitions()
             [
-            [1, 1, 0, 0, 0, 1],
-            [0, 1, 1, 0, 0, 1],
-            [1, 1, 1, 0, 0, 1]
+            [1, 1, 0, 1, 0, 0],
+            [1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0]
             ]
 
         Now we compute NEF-partitions for the same octahedron without taking
@@ -663,24 +662,24 @@ class LatticePolytopeClass(SageObject):
             [1, 1, 0, 0, 1, 1],
             [1, 1, 0, 1, 0, 1],
             [1, 1, 0, 0, 0, 1],
-            [1, 1, 1, 0, 1, 0],
-            [1, 1, 1, 1, 0, 0],
-            [1, 1, 1, 0, 0, 0],
-            [1, 1, 0, 0, 1, 0],
-            [1, 1, 0, 1, 0, 0],
-            [0, 0, 1, 1, 1, 1],
+            [0, 1, 1, 1, 0, 1],
+            [0, 1, 1, 0, 0, 1],
+            [0, 1, 0, 1, 1, 1],
+            [0, 1, 0, 0, 1, 1],
+            [0, 1, 0, 1, 0, 1],
+            [1, 0, 1, 1, 1, 0],
             [1, 0, 1, 0, 1, 1],
             [1, 0, 1, 0, 0, 1],
             [1, 0, 0, 1, 1, 1],
             [1, 0, 0, 0, 1, 1],
             [1, 0, 0, 1, 0, 1],
             [0, 1, 1, 1, 1, 0],
-            [1, 0, 1, 1, 1, 0],
-            [1, 0, 1, 0, 1, 0],
-            [1, 0, 1, 1, 0, 0],
-            [0, 1, 0, 1, 1, 1],
-            [1, 0, 0, 1, 1, 0],
-            [0, 1, 1, 1, 0, 1]
+            [0, 0, 1, 1, 1, 1],
+            [0, 0, 1, 0, 1, 1],
+            [0, 0, 1, 1, 0, 1],
+            [0, 0, 0, 1, 1, 1],
+            [1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 0, 1, 0]
             ]
 
         NEF-partitions can be computed only for reflexive polytopes:
@@ -982,7 +981,7 @@ class NEFPartition(Sequence):
     Construct a NEF-partition from the given list.
 
     A NEF-partition with $k$ parts, $V = V_0 \cap V_1 \cap \dots \cap V_{k-1}$,
-    is represented by a single list of lenght $n = #V$, in which the $i$-th
+    is represented by a single list of lenght $n = \#V$, in which the $i$-th
     entry is the part number of the $i$-th vertex of a polytope.
 
     \emph{NOTE THAT NUMERATON OF PARTS STARTS WITH ZERO.}
@@ -1479,9 +1478,9 @@ def all_nef_partitions(polytopes, keep_symmetric=False):
         sage: lattice_polytope.all_nef_partitions([o])
         sage: o.nef_partitions()
         [
-        [1, 1, 0, 0, 0, 1],
-        [0, 1, 1, 0, 0, 1],
-        [1, 1, 1, 0, 0, 1]
+        [1, 1, 0, 1, 0, 0],
+        [1, 1, 1, 0, 0, 0],
+        [1, 1, 1, 1, 0, 0]
         ]
 
     You cannot use this function for non-reflexive polytopes:

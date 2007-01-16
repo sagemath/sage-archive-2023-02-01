@@ -445,11 +445,6 @@ class Function_arith(Function):
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
     def _axiom_(self, axiom):
-        """
-        EXAMPLES:
-            sage: axiom(e + pi)                      # optional
-            %e + %pi
-        """
         return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
 
     def _octave_(self, octave):

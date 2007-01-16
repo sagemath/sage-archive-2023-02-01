@@ -19,7 +19,7 @@ The input must be a positive integer:
     sage: d(0)
     Traceback (most recent call last):
     ...
-    ValueError: input n (=0) must be a positive integer
+    ValueError: input n (=0) must be an integer >= 1
     sage: d(1/3)
     Traceback (most recent call last):
     ...
@@ -34,6 +34,11 @@ You can also change how a sequence prints:
     sage: d.reset_name()
     sage: d
     The integer sequence tau(n), which is the number of divisors of n.
+
+AUTHORS:
+    -- William Stein: framework
+    -- Jaap Spies: most sequences
+    -- Nick Alexander: updated framework
 """
 
 ########################################################################
@@ -44,11 +49,13 @@ You can also change how a sequence prints:
 #    do by copying an existing class and modifying it.
 #    Make sure to at least define _eval and _repr_.
 #    NOTES:  (a) define the _eval method only, which you may
-#                assume has as input a *positive* SAGE integer.
+#                assume has as input a *positive* SAGE integer (offset > 0).
+#                Each sequence in the OEIS has an offset >= 0, indicating the
+#                value of the first index. The default offset = 1.
 #            (b) define the list method if there is a faster
 #                way to compute the terms of the sequence than
 #                just calling _eval (which is the default definition
-#                of list).
+#                of list, note: the offset is counted for, it lists n numbers).
 #            (c) *AVOID* using gp.method if possible!  Use pari(obj).method()
 #            (d) In many cases the function that computes a given integer
 #                sequence belongs elsewhere in SAGE.  Put it there and make
@@ -56,6 +63,7 @@ You can also change how a sequence prints:
 #            (e) _eval should always return a SAGE integer.
 #
 # 2. Add an instance of your class in Section III below.
+
 #
 # 3. Type "sage -br" to rebuild SAGE, then fire up the notebook and
 #    try out your new sequence.  Click the text button to get a version
@@ -84,26 +92,59 @@ from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 
 class SloaneSequence(SageObject):
+    r"""Base class for a Slone integer sequence.
+
+    EXAMPLES:
+    We create a dummy sequence:
+
+    """
+    def __init__(self, offset=1):
+        r"""
+        A sequence starting at offset (=1 by default).
+        """
+        self.offset = Integer(offset)
+
     def _repr_(self):
         raise NotImplementedError
 
-    def __getitem__(self, n):
-        return self(n)
-
     def __call__(self, n):
         m = Integer(n)
-        if m <= 0:
-            raise ValueError, "input n (=%s) must be a positive integer"%n
+        if m < self.offset:
+            raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
         return self._eval(m)
 
     def _eval(self, n):
         # this is what you implement in the derived class
-        # the input n is assumed to be a *SAGE* integer >= 1
+        # the input n is assumed to be a *SAGE* integer >= offset
         raise NotImplementedError
 
     def list(self, n):
-        return [self._eval(i) for i in srange(Integer(1),n+1)]
+        r"""Return n terms of the sequence: sequence[offset], sequence[offset+1], ... , sequence[offset+n].
+        """
+        return [self._eval(i) for i in srange(self.offset, n+self.offset)]
 
+    def __getitem__(self, n):
+        r"""Return sequence[n].
+
+        We interpret slices as best we can, but our sequences
+        are infinite so we want to prevent some mis-incantations.
+
+        Therefore, we abitrarily cap slices to be at most
+        LENGTH=100000 elements long.  Since many Sloane sequences
+        are costly to compute, this is probably not an unreasonable
+        decision, but just in case, list does not cap length.
+        """
+        if not isinstance(n, slice):
+            return self(n)
+
+        LENGTH = 100000
+        (start, stop, step) = n.indices(2*LENGTH)
+        if abs(stop - start) > LENGTH:
+            raise IndexError, "slice (=%s) too long"%n
+        # The dirty work of generating indices is left to a range list
+        # This could be slow but in practice seems fine
+        # NOTE: n is a SLICE, not an index
+        return [ self(i) for i in range(0, LENGTH)[n] if i >= self.offset ]
 
 ########################################################################
 # II. Actual implementations of Sloane sequences.
@@ -113,6 +154,37 @@ class SloaneSequence(SageObject):
 import sage.rings.arith as arith
 from sage.rings.integer import Integer
 
+class A000027(SloaneSequence):
+    r"""The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.
+
+    The following examples are tests of SloaneSequence more than A000027.
+
+    EXAMPLES:
+    sage: s = sloane.A000027; s
+    The natural numbers.
+    sage: s(10)
+    10
+
+    Index n is interpreted as _eval(n):
+    sage: s[10]
+    10
+
+    Slices are interpreted with absolute offsets, so the following returns the terms of the sequence up to but not including the third term:
+    sage: s[:3]
+    [1, 2]
+    sage: s[3:6]
+    [3, 4, 5]
+    sage: s.list(5)
+    [1, 2, 3, 4, 5]
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "The natural numbers."
+
+    def _eval(self, n):
+        return n
 
 class A000005(SloaneSequence):
     r"""
@@ -135,7 +207,7 @@ class A000005(SloaneSequence):
         sage: d(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be a positive integer
+        ValueError: input n (=0) must be an integer >= 1
         sage: d.list(10)
         [1, 2, 2, 3, 2, 4, 2, 4, 3, 4]
 
@@ -143,15 +215,14 @@ class A000005(SloaneSequence):
         -- Jaap Spies (2006-12-10)
         -- William Stein (2007-01-08)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
     def _repr_(self):
         return "The integer sequence tau(n), which is the number of divisors of n."
 
     def _eval(self, n):
         return arith.number_of_divisors(n)
-
-    def list(self, n):
-        return [self(i) for i in range(1,n+1)]
-
 
 class A000010(SloaneSequence):
     r"""
@@ -178,7 +249,7 @@ class A000010(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be a positive integer
+        ValueError: input n (=0) must be an integer >= 1
         sage: a(11)
         10
         sage: a.list(12)
@@ -192,15 +263,14 @@ class A000010(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2007-01-12)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
     def _repr_(self):
         return "Euler's totient function"
 
     def _eval(self, n):
         return arith.euler_phi(n)
-
-
-    def list(self, n):
-        return [self(i) for i in range(1,n+1)]
 
 class A000045(SloaneSequence):
     r"""
@@ -235,16 +305,11 @@ class A000045(SloaneSequence):
         -- Jaap Spies (2007-01-13)
     """
     def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
         self._b = []
 
     def _repr_(self):
         return "Fibonacci number with index n >= 0"
-
-    def __call__(self, n):
-        m = Integer(n)
-        if m < 0:
-            raise ValueError, "input n (=%s) must be a non-negative integer"%n
-        return self._eval(m)
 
     def _precompute(self, how_many=500):
         try:
@@ -264,7 +329,6 @@ class A000045(SloaneSequence):
             x, y = y, x+y
             yield x
 
-    offset = 0
 
     def _eval(self, n):
         if len(self._b) < n:
@@ -274,7 +338,6 @@ class A000045(SloaneSequence):
     def list(self, n):
         self._eval(n)   # force computation
         return self._b[:n]
-
 
 class A000203(SloaneSequence):
     r"""
@@ -295,7 +358,7 @@ class A000203(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be a positive integer
+        ValueError: input n (=0) must be an integer >= 1
         sage: a(256)
         511
         sage: a.list(12)
@@ -308,17 +371,168 @@ class A000203(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2007-01-13)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
 
     def _repr_(self):
         return "sigma(n) = sum of divisors of n. Also called sigma_1(n)."
 
-    offset = 1
-
     def _eval(self, n):
         return sum(arith.divisors(n))
 
+class A001227(SloaneSequence):
+    r"""
+    Number of odd divisors of $n$.
+
+    This function returns the $n$-th number of Sloane's sequence A001227
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A001227; a
+        Number of odd divisors of n
+        sage: a.offset
+        1
+        sage: a(1)
+        1
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be an integer >= 1
+        sage: a(100)
+        3
+        sage: a(256)
+        1
+        sage: a(29)
+        2
+        sage: a.list(20)
+        [1, 1, 2, 1, 2, 2, 2, 1, 3, 2, 2, 2, 2, 2, 4, 1, 2, 3, 2, 2]
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be an integer >= 1
+
+        AUTHOR:
+            - Jaap Spies (2007-01-14)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of odd divisors of n"
+
+    def _eval(self, n):
+        return sum(i%2 for i in arith.divisors(n))
+
+class A001694(SloaneSequence):
+    r"""
+        This function returns the $n$-th Powerful Number:
+
+        A positive integer $n$ is powerful if for every prime $p$ dividing
+        $n$, $p^2$ also divides $n$.
+
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001694; a
+        Powerful Numbers (also called squarefull, square-full or 2-full numbers).
+        sage: a.offset
+        1
+        sage: a(1)
+        1
+        sage: a(4)
+        9
+        sage: a(100)
+        3136
+        sage: a(156)
+        7225
+        sage: a.list(19)
+        [1, 4, 8, 9, 16, 25, 27, 32, 36, 49, 64, 72, 81, 100, 108, 121, 125, 128, 144]
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be an integer >= 1
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-14)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Powerful Numbers (also called squarefull, square-full or 2-full numbers)."
+
+    def _precompute(self, how_many=150):
+        try:
+            self._b
+            n = self._n
+        except AttributeError:
+            self._b = []
+            n = 1
+            self._n = n
+        self._b += [i for i in range(self._n, self._n+how_many) if self.is_powerful(i)]
+        self._n += how_many
+
+    def _eval(self, n):
+        try:
+            return self._b[n-1]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self._eval(n)
+
     def list(self, n):
-        return [self(i) for i in range(1,n+1)]
+        try:
+            if len(self._b) < n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self.list(n)
+
+
+    def is_powerful(self,n):
+        r"""
+            This function returns True iff $n$ is a Powerful Number:
+
+            A positive integer $n$ is powerful if for every prime $p$ dividing
+            $n$, $p^2$ also divides $n$.
+            See Sloane's OEIS A001694.
+
+            INPUT:
+                n -- integer
+
+            OUTPUT:
+                True -- if $n$ is a Powerful number, else False
+
+            EXAMPLES:
+                sage: a = sloane.A001694
+                sage: a.is_powerful(2500)
+                True
+                sage: a.is_powerful(20)
+                False
+
+            AUTHOR:
+                - Jaap Spies (2006-12-07)
+        """
+        for p in arith.prime_divisors(n):
+            if n % p**2 > 0:
+                return False
+        return True
+
+
 
 
 
@@ -386,9 +600,13 @@ class A111774(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be a positive integer
+        ValueError: input n (=0) must be an integer >= 1
         sage: a(100)
         141
+        sage: a(156)
+        209
+        sage: a(302)
+        386
         sage: a.list(12)
         [6, 9, 10, 12, 14, 15, 18, 20, 21, 22, 24, 25]
         sage: a(1/3)
@@ -399,10 +617,11 @@ class A111774(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2007-01-13)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
     def _repr_(self):
         return "Numbers that can be written as a sum of at least three consecutive positive integers."
-
-    offset = 1
 
     def _precompute(self, how_many=150):
         try:
@@ -412,7 +631,8 @@ class A111774(SloaneSequence):
             self._b = []
             n = 1
             self._n = n
-        self._b += [i for i in range(n, n+how_many) if self.is_number_of_the_third_kind(i)]
+        self._b += [i for i in range(self._n, self._n+how_many) if self.is_number_of_the_third_kind(i)]
+        self._n += how_many
 
     def _eval(self, n):
         try:
@@ -501,7 +721,7 @@ class A111775(SloaneSequence):
         sage: a(0)
         0
 
-    We have a(15)=2 because 15 = 4+5+6 and 15 = 1+2+3+4+5. The number of odd divisors of 15 is 4.
+        We have a(15)=2 because 15 = 4+5+6 and 15 = 1+2+3+4+5. The number of odd divisors of 15 is 4.
         sage: a(15)
         2
 
@@ -521,17 +741,11 @@ class A111775(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2006-12-09)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
     def _repr_(self):
         return "Number of ways n can be written as a sum of at least three consecutive integers."
-
-    offset = 0
-
-    def __call__(self, n):
-        m = Integer(n)
-        if m < 0:
-            raise ValueError, "input n (=%s) must be a non negative integer"%n
-        return self._eval(m)
-
 
     def _eval(self, n):
         if n == 1 or n == 0:
@@ -541,10 +755,6 @@ class A111775(SloaneSequence):
             return k-1
         else:
             return k-2
-
-    def list(self, n):
-       return [self(i) for i in range(0,n)]
-
 
 class A111776(SloaneSequence):
     r"""
@@ -568,16 +778,11 @@ class A111776(SloaneSequence):
     AUTHOR:
         -- Jaap Spies (2007-01-13)
     """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
     def _repr_(self):
         return "a(n) is the largest k such that n can be written as sum of k consecutive integers."
-
-    offset = 0
-
-    def __call__(self, n):
-        m = Integer(n)
-        if m < 0:
-            raise ValueError, "input n (=%s) must be a non negative integer"%n
-        return self._eval(m)
 
     def _eval(self, n):
         if n == 1 or n == 0:
@@ -587,12 +792,70 @@ class A111776(SloaneSequence):
             k = min(d, 2*n/d)
             if k > m:
                 m = k
-        return m
+        return Integer(m)
 
-    def list(self, n):
-       return [self(i) for i in range(0,n)]
+class A111787(SloaneSequence):
+    r"""
+    This function returns the $n$-th number of Sloane's sequence A111787
 
 
+    $a(n)=0$ if $n$ is an odd prime or a power of 2. For numbers of the third
+    kind (see A111774) we proceed as follows: suppose $n$ is to be written as sum of $k$
+    consecutive integers starting with $m$, then $2n = k(2m + k - 1)$.
+    Let $p$ be the smallest odd prime divisor of $n$ then
+    $a(n) = min(p,2n/p)$.
+
+
+
+       See: \url{http://www.jaapspies.nl/mathfiles/problem2005-2C.pdf}
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A111787; a
+        a(n) is the least k >= 3 such that n can be written as sum of k consecutive integers. a(n)=0 if such a k does not exist.
+        sage: a.offset
+        1
+        sage: a(1)
+        0
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be an integer >= 1
+        sage: a(100)
+        5
+        sage: a(256)
+        0
+        sage: a(29)
+        0
+        sage: a.list(20)
+        [0, 0, 0, 0, 0, 3, 0, 0, 3, 4, 0, 3, 0, 4, 3, 0, 0, 3, 0, 5]
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be an integer >= 1
+
+        AUTHOR:
+            - Jaap Spies (2007-01-14)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "a(n) is the least k >= 3 such that n can be written as sum of k consecutive integers. a(n)=0 if such a k does not exist."
+
+    def _eval(self, n):
+        if arith.is_prime(n) or is_power_of_two(n):
+            return 0
+        else:
+            for d in srange(3,n,2):
+                if n % d == 0:
+                    return min(d, 2*n/d)
 
 #############################################################
 # III. Create the Sloane object, off which all the sequence
@@ -605,10 +868,12 @@ sloane = Sloane()
 
 sloane.A000005 = A000005()
 sloane.A000010 = A000010()
+sloane.A000027 = A000027()
 sloane.A000045 = A000045()
 sloane.A000203 = A000203()
+sloane.A001227 = A001227()
+sloane.A001694 = A001694()
 sloane.A111774 = A111774()
 sloane.A111775 = A111775()
 sloane.A111776 = A111776()
-
-
+sloane.A111787 = A111787()

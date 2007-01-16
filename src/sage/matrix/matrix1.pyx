@@ -1,5 +1,5 @@
 """
-Abstract base class for matrices.
+Base class for matrices, part 1
 
 For design documentation see matrix/docs.py.
 """

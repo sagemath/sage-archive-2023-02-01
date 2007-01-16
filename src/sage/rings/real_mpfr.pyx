@@ -1,5 +1,5 @@
 """
-Real Numbers
+Aribtrary Precision Real Numbers
 
 AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
          William Stein <wstein@gmail.com>: bug fixes, examples, maintenance

@@ -191,8 +191,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(Mod(3,7))
             3
 
-        Integers also support the standard arithmetic operations, such
-        as +,-,*,/,^, \code{abs}, \code{mod}, \code{float}:
+        Integers also support the standard arithmetic operations.
             sage: 2^3
             8
         """
@@ -1036,13 +1035,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return sage.rings.integer_ring.factor(self, algorithm=algorithm)
 
-    def coprime_integers(self, m):
+    def coprime_integers(self, m=None):
         """
         Return the positive integers $< m$ that are coprime to self.
 
+        INPUT:
+            m -- integer (default m=self)
+
         EXAMPLES:
             sage: n = 8
-            sage: n.coprime_integers(8)
+            sage: n.coprime_integers()
             [1, 3, 5, 7]
             sage: n.coprime_integers(11)
             [1, 3, 5, 7, 9]
@@ -1060,6 +1062,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         enough for you, please code something better and submit a
         patch.
         """
+        if m is None:
+            m = self
         # TODO -- make VASTLY faster
         v = []
         for n in range(1,m):

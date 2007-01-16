@@ -171,6 +171,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                 return ComplexDoubleElement(x.real, x.imag)
             elif isinstance(x, complex_number.ComplexNumber):
                 return ComplexDoubleElement(x.real(), x.imag())
+            elif isinstance(x, tuple):
+                return ComplexDoubleElement(x[0], x[1])
             elif isinstance(x, str):
                 t = eval(x.replace(' ',''), {"I":self.gen(),"i":self.gen(), 'RealNumber':float})
                 if isinstance(t, float):

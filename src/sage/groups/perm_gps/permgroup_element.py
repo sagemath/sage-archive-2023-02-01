@@ -31,6 +31,11 @@ This typically takes about 5 minutes (on a 2 Ghz machine) and outputs
 a word ('solving' the cube in the position move) with about 60 terms
 or so.
 
+OTHER EXAMPLES:
+We create element of a permutation group of large degree.
+    sage: G = SymmetricGroup(30)
+    sage: s = G(srange(30,0,-1)); s
+    (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
 ###########################################################################
@@ -69,7 +74,7 @@ def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
     """
-    x = str(x).replace(' ','')
+    x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
 class PermutationGroupElement(element.MultiplicativeGroupElement):

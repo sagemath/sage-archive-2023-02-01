@@ -1,5 +1,5 @@
 r"""
-Spaces of matrices over a ring or field
+Matrix Spaces.
 
 You can create any space $\text{Mat}_{n\times m}(R)$ of either dense
 or sparse matrices with given number of rows and columns over any

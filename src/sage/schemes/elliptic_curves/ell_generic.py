@@ -366,6 +366,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.b_invariants()
             (0, -8, 0, -16)
 
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b_invariants()
+            (9, 11, 29, 35)
+            sage: E.b2()
+            9
+            sage: E.b4()
+            11
+            sage: E.b6()
+            29
+            sage: E.b8()
+            35
+
         ALGORITHM: These are simple functions of the a invariants.
 
         AUTHOR: William Stein, 2005-04-25
@@ -379,6 +391,54 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                                   a3**2 + 4*a6, \
                                   a1**2 * a6 + 4*a2*a6 - a1*a3*a4 + a2*a3**2 - a4**2
             return self.__b_invariants
+
+    def b2(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b2()
+            9
+        """
+        try:
+            return self.__b_invariants[0]
+        except AttributeError:
+            return self.b_invariants()[0]
+
+    def b4(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b4()
+            11
+        """
+        try:
+            return self.__b_invariants[1]
+        except AttributeError:
+            return self.b_invariants()[1]
+
+    def b6(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b6()
+            29
+        """
+        try:
+            return self.__b_invariants[2]
+        except AttributeError:
+            return self.b_invariants()[2]
+
+    def b8(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b8()
+            35
+        """
+        try:
+            return self.__b_invariants[3]
+        except AttributeError:
+            return self.b_invariants()[3]
 
     def c_invariants(self):
         """
@@ -488,10 +548,6 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             6
         """
         return self.__ainvs[4]
-
-
-
-
 
     def gens(self):
         raise NotImplementedError

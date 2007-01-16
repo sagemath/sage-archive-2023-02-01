@@ -13,11 +13,13 @@ from profiler import Profiler
 
 from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
-from bug import bug
+# deprecated
+#from bug import bug
 
 from dist import install_scripts
 
-from darcs import darcs_src, darcs_doc, darcs_scripts
+# deprecated
+#from darcs import darcs_src, darcs_doc, darcs_scripts
 
 from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
 
@@ -49,7 +51,8 @@ from functional import *
 
 from latex import latex, view, lprint, jsmath
 
-from mathml import mathml
+# disabled -- nobody uses mathml
+#from mathml import mathml
 
 from trace import trace
 

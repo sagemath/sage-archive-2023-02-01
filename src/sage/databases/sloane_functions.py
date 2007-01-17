@@ -130,6 +130,8 @@ class SloaneSequence(SageObject):
 # You may have to import more here when defining new sequences
 import sage.rings.arith as arith
 from sage.rings.integer import Integer
+from sage.matrix.matrix_space import *
+from sage.rings.rational_field import *
 
 
 class A000005(SloaneSequence):
@@ -491,12 +493,176 @@ class A001694(SloaneSequence):
         return True
 
 
+class A079922(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+3$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079922; a
+        Solutions to the Dancing School problem with n girls and n+3 boys
+        sage: a.offset
+        1
+        sage: a.perm(3,3)
+        36
+        sage: a(1)
+        4
+        sage: a(8)
+        2227
+        sage: a.list(12)
+        [4, 13, 36, 90, 212, 478, 1044, 2227, 4664, 9627, 19640, 39684]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+3 boys: f(n,3).
+        [4, 13, 36, 90, 212, 478, 1044, 2227, 4664, 9627, 19640, 39684]
+
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be a positive integer
+
+        AUTHOR:
+            - Jaap Spies (2007-01-14)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+3 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return self.perm(n, 3)
+
+    def perm(self,m, h):
+        """
+
+        INPUT:
+            m -- positive integer
+            h -- non negative integer
+
+        OUTPUT:
+            permanent of the m x (m+h) matrix, etc.
+
+        EXAMPLE:
+        sage: a = sloane.A079922
+        sage: a.perm(3,3)
+        36
+
+        AUTHOR: Jaap Spies (2006)
+        """
+        n = m + h
+        M = MatrixSpace(QQ, m, n)
+        A = M([0 for i in range(m*n)])
+        for i in range(m):
+            for j in range(n):
+                if i <= j and j <= i + h:
+                    A[i,j] = 1
+        return A.permanent()
+
+
+class A079923(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+4$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079923; a
+        Solutions to the Dancing School problem with n girls and n+4 boys
+        sage: a.offset
+        1
+        sage: a(1)
+        5
+        sage: a(8)
+        15458
+        sage: a.list(9)
+        [5, 21, 76, 246, 738, 2108, 5794, 15458, 40296]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+4 boys: f(n,4).
+        [5, 21, 76, 246, 738, 2108, 5794, 15458, 40296]
+
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+
+    AUTHOR:
+        - Jaap Spies (2007-01-17)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+4 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return self.perm(n, 4)
+
+    def perm(self,m, h):
+        """
+
+        INPUT:
+            m -- positive integer
+            h -- non negative integer
+
+        OUTPUT:
+            permanent of the m x (m+h) matrix, etc.
+
+        EXAMPLE:
+        sage: a = sloane.A079923
+        sage: a.perm(3,4)
+        76
+
+        AUTHOR: Jaap Spies (2006)
+        """
+        n = m + h
+        M = MatrixSpace(QQ, m, n)
+        A = M([0 for i in range(m*n)])
+        for i in range(m):
+            for j in range(n):
+                if i <= j and j <= i + h:
+                    A[i,j] = 1
+        return A.permanent()
+
+
+
+
+
 
 
 
 def is_power_of_two(n):
     r"""
     This function returns True if and only if $n$ is a power of 2
+
+    This function could/should be in sage.rings.arith??
 
     INPUT:
         n -- integer
@@ -844,6 +1010,8 @@ sloane.A000045 = A000045()
 sloane.A000203 = A000203()
 sloane.A001227 = A001227()
 sloane.A001694 = A001694()
+sloane.A079922 = A079922()
+sloane.A079923 = A079923()
 sloane.A111774 = A111774()
 sloane.A111775 = A111775()
 sloane.A111776 = A111776()

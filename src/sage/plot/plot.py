@@ -695,7 +695,7 @@ class Graphics(SageObject):
 
         #The line below takes away the excessive whitespace around
         #images.  ('figsize' and  'dpi' still work as expected):
-        figure.subplots_adjust(left=0.05, bottom=0.05, right=0.95, top=0.95)
+        figure.subplots_adjust(left=0.04, bottom=0.04, right=0.96, top=0.96)
 
         #the incoming subplot instance
         subplot = sub
@@ -709,10 +709,11 @@ class Graphics(SageObject):
 
         ##################################################
         # The below is a work in progress ... trying to
-        # making add axes general ... more work needs to
-        # factor this all out into its own general function
+        # make adding axes general and convient.
+        # possibly more work needs to be done in factoring
+        # this all out into several general functions
         # but for now it will stay here until it is decided
-        # what is the best way for all this -Alex
+        # what is the best way to do this -Alex
         ###################################################
 
         #add all the primitives to the subplot
@@ -736,28 +737,31 @@ class Graphics(SageObject):
             axes = self.__show_axes
 
         self.axes_label(l=axes_label)
-        if axes:
-            #an axes instance
-            sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
-                            axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
-                            tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
+        #construct an Axes instance, see 'axes.py' for relevant code
+        sage_axes = Axes(color=self.__axes_color, fontsize=self.__fontsize, axes_label=self.__axes_label,
+                         axes_label_color=self.__axes_label_color, tick_color=self.__tick_color,
+                         tick_label_color=self.__tick_label_color, linewidth=self.__axes_width)
 
         #adjust the xy limits and draw the axes:
-        if not (contour or plotfield or matrixplot) and axes: #the plot is not a contour or field plot
-            if frame: #add the frame axes and the normal axes with no ticks
-                xmin, xmax = self.__xmin, self.__xmax
-                ymin, ymax = self.__ymin, self.__ymax
-                subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
-                subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
-                #add a frame to the plot
+        if not (contour or plotfield or matrixplot): #the plot is a 'regular' plot
+            if frame: #add the frame axes
+                xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+                axmin, axmax = xmin - 0.04*abs(xmax - xmin), xmax + 0.04*abs(xmax - xmin)
+                aymin, aymax = ymin - 0.04*abs(ymax - ymin), ymax + 0.04*abs(ymax - ymin)
+                subplot.set_xlim([axmin, axmax])
+                subplot.set_ylim([aymin, aymax])
+                #add a frame to the plot and possibly 'axes_with_no_ticks'
                 sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax,
-                                        axes_with_no_ticks=True, axes_label=axes_label)
-            else: #regular plot with regular axes
+                                        axes_with_no_ticks=axes, axes_label=axes_label)
+            elif not frame and axes: #regular plot with regular axes
                 xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
                 subplot.set_xlim(xmin, xmax)
                 subplot.set_ylim(ymin, ymax)
                 sage_axes.add_xy_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-
+            else: #regular plot with no axes
+                xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
+                subplot.set_xlim(xmin, xmax)
+                subplot.set_ylim(ymin, ymax)
         elif (contour or plotfield): #contour or field plot in self.__objects, so adjust axes accordingly
             xmin, xmax = self.__xmin, self.__xmax
             ymin, ymax = self.__ymin, self.__ymax
@@ -765,17 +769,13 @@ class Graphics(SageObject):
             subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
             if axes: #axes=True unless user specifies axes=False
                 sage_axes.add_xy_frame_axes(subplot, xmin, xmax, ymin, ymax, axes_label=axes_label)
-        elif matrixplot: #we have a matrix plot in self.__objects, so adjust axes accordingly
+        else: #we have a 'matrix_plot' in self.__objects, so adjust axes accordingly
             xmin, xmax = self.__xmin, self.__xmax
             ymin, ymax = self.__ymin, self.__ymax
             subplot.set_xlim([xmin - 0.05*abs(xmax - xmin), xmax + 0.05*abs(xmax - xmin)])
             subplot.set_ylim([ymin - 0.05*abs(ymax - ymin), ymax + 0.05*abs(ymax - ymin)])
             if axes: #axes=True unless user specifies axes=False
                 sage_axes.add_xy_matrix_frame_axes(subplot, xmin, xmax, ymin, ymax)
-        else: #regular plot with no axes
-            xmin,xmax,ymin,ymax = self._prepare_axes(xmin, xmax, ymin, ymax)
-            subplot.set_xlim(xmin, xmax)
-            subplot.set_ylim(ymin, ymax)
 
         # You can output in PNG, PS, EPS, PDF, or SVG format, depending on the file extension.
         # matplotlib looks at the file extension to see what the renderer should be.

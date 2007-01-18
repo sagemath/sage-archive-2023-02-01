@@ -201,7 +201,7 @@ class A000027(SloaneSequence):
 
 class A000004(SloaneSequence):
     r"""
-    The zero seuence.
+    The zero sequence.
 
     EXAMPLES:
         sage: a = sloane.A000004; a
@@ -336,7 +336,7 @@ class A000012(SloaneSequence):
 
 class A000015(SloaneSequence):
     r"""
-    Smallest prime power $>= n$.
+    Smallest prime power $\geq n$.
 
     EXAMPLES:
         sage: a = sloane.A000015; a

@@ -318,6 +318,13 @@ if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    exit $?
 fi
 
+if [ $1 = "-wiki"  -o $1 = '--wiki' ]; then
+   cd "$CUR"
+   shift
+   sage-wiki "$@"
+   exit $?
+fi
+
 if [ $1 = "-log" -o $1 = "--log" ]; then
    sage-log
    exit 0

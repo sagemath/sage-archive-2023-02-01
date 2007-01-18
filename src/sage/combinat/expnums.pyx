@@ -1,23 +1,8 @@
 r"""
 Compute Bell and Uppuluri-Carpenter numbers.
 
-ALGORITHM: We use the same integer addition algorithm as GAP.  This an extension of Bell's triangle to the general case of exponential numbers.  The recursion performs $O(n^2)$ additions, but the running time is dominated by the cost of the last integer addition, because the growth of the integer results of partial computations is exponential in $n$.  The algorithm stores $O(n)$ integers, but each is exponential in $n$.
-
-EXAMPLES:
-    sage: expnums(10, 1)
-    [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
-
-    sage: expnums(10, -1)
-    [1, -1, 0, 1, 1, -2, -9, -9, 50, 267]
-
-    sage: expnums(1, 1)
-    [1]
-    sage: expnums(0, 1)
-    []
-    sage: expnums(-1, 0)
-    []
-
-AUTHOR: Nick Alexander
+AUTHOR:
+    -- Nick Alexander
 """
 
 include "../ext/interrupt.pxi"
@@ -27,10 +12,44 @@ include "../ext/gmp.pxi"
 
 from sage.rings.integer cimport Integer
 
-def expnums(int n, int aa):
-    r"""Compute the first $n$ exponential numbers around $aa$, starting with the zero-th.
+from sage.rings.integer_ring import ZZ
 
-    Returns a list of length $n$.
+def expnums(int n, int aa):
+    r"""
+    Compute the first $n$ exponential numbers around $aa$, starting
+    with the zero-th.
+
+    INPUT:
+         n -- C machine int
+         aa -- C machine int
+
+    OUTPUT:
+         A list of length $n$.
+
+    ALGORITHM: We use the same integer addition algorithm as GAP.
+    This is an extension of Bell's triangle to the general case of
+    exponential numbers.  The recursion performs $O(n^2)$ additions,
+    but the running time is dominated by the cost of the last integer
+    addition, because the growth of the integer results of partial
+    computations is exponential in $n$.  The algorithm stores $O(n)$
+    integers, but each is exponential in $n$.
+
+    EXAMPLES:
+        sage: expnums(10, 1)
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+
+        sage: expnums(10, -1)
+        [1, -1, 0, 1, 1, -2, -9, -9, 50, 267]
+
+        sage: expnums(1, 1)
+        [1]
+        sage: expnums(0, 1)
+        []
+        sage: expnums(-1, 0)
+        []
+
+    AUTHOR:
+        -- Nick Alexander
     """
     if n < 1:
         return []
@@ -90,3 +109,25 @@ def expnums(int n, int aa):
 #     od;
 #     return bell[1];
 # end);
+
+
+
+def expnums2(n, aa):
+    if n < 1:
+        return []
+
+    if n == 1:
+        return [Integer(1)]
+
+    n = n - 1
+    r = [Integer(1), Integer(aa)]
+
+    bell = [Integer(0)] * (n+1)
+    a = aa
+    bell[1] = aa
+    for i in range(1, n):
+        bell[i+1] = a * bell[1]
+        for k in range(i):
+            bell[i-k] = bell[i-k] + bell[i-k+1]
+        r.append(bell[1])
+    return r

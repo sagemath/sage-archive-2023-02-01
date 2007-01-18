@@ -19,7 +19,7 @@ The input must be a positive integer:
     sage: d(0)
     Traceback (most recent call last):
     ...
-    ValueError: input n (=0) must be an integer >= 1
+    ValueError: input n (=0) must be a positive integer
     sage: d(1/3)
     Traceback (most recent call last):
     ...
@@ -110,7 +110,10 @@ class SloaneSequence(SageObject):
     def __call__(self, n):
         m = Integer(n)
         if m < self.offset:
-            raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
+            if self.offset == 1:
+                raise ValueError, "input n (=%s) must be a positive integer" % (n)
+            else:
+                raise ValueError, "input n (=%s) must be an integer >= %s" % (n, self.offset)
         return self._eval(m)
 
     def _eval(self, n):
@@ -159,9 +162,13 @@ class SloaneSequence(SageObject):
 # You may have to import more here when defining new sequences
 import sage.rings.arith as arith
 from sage.rings.integer import Integer
+from sage.matrix.matrix_space import MatrixSpace
+from sage.rings.rational_field import QQ
 
 class A000027(SloaneSequence):
-    r"""The natural numbers. Also called the whole numbers, the counting numbers or the positive integers.
+    r"""
+    The natural numbers. Also called the whole numbers, the counting
+    numbers or the positive integers.
 
     The following examples are tests of SloaneSequence more than A000027.
 
@@ -213,7 +220,7 @@ class A000005(SloaneSequence):
         sage: d(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: d.list(10)
         [1, 2, 2, 3, 2, 4, 2, 4, 3, 4]
 
@@ -255,7 +262,7 @@ class A000010(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: a(11)
         10
         sage: a.list(12)
@@ -364,7 +371,7 @@ class A000203(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: a(256)
         511
         sage: a.list(12)
@@ -409,7 +416,7 @@ class A001227(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: a(100)
         3
         sage: a(256)
@@ -421,7 +428,7 @@ class A001227(SloaneSequence):
         sage: a(-1)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=-1) must be an integer >= 1
+        ValueError: input n (=-1) must be a positive integer
 
         AUTHOR:
             - Jaap Spies (2007-01-14)
@@ -467,7 +474,7 @@ class A001694(SloaneSequence):
         sage: a(-1)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=-1) must be an integer >= 1
+        ValueError: input n (=-1) must be a positive integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-14)
@@ -554,7 +561,7 @@ def is_power_of_two(n):
         False -- if not
 
     EXAMPLES:
-        sage: from sage.databases.sloane_functions import is_power_of_two
+        sage: from sage.combinat.sloane_functions import is_power_of_two
 
         sage: is_power_of_two(1024)
         True
@@ -579,6 +586,140 @@ def is_power_of_two(n):
     while n > 0 and n%2 == 0:
         n = n >> 1
     return n == 1
+
+
+def perm_mh(m, h):
+    """
+    INPUT:
+        m -- positive integer
+        h -- non negative integer
+
+    OUTPUT:
+        permanent of the m x (m+h) matrix, etc.
+
+    EXAMPLE:
+        sage: from sage.combinat.sloane_functions import perm_mh
+        sage: perm_mh(3,3)
+        36
+        sage: perm_mh(3,4)
+        76
+
+    AUTHOR: Jaap Spies (2006)
+    """
+    n = m + h
+    M = MatrixSpace(QQ, m, n)
+    A = M(0)
+    for i in range(m):
+        for j in range(n):
+            if i <= j and j <= i + h:
+                A[i,j] = 1
+    return A.permanent()
+
+class A079922(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+3$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079922; a
+        Solutions to the Dancing School problem with n girls and n+3 boys
+        sage: a.offset
+        1
+        sage: a(1)
+        4
+        sage: a(8)
+        2227
+        sage: a.list(8)
+        [4, 13, 36, 90, 212, 478, 1044, 2227]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+3 boys: f(n,3).
+        [4, 13, 36, 90, 212, 478, 1044, 2227, 4664, 9627, 19640, 39684]
+
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be a positive integer
+
+        AUTHOR:
+            - Jaap Spies (2007-01-14)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+3 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return perm_mh(n, 3)
+
+
+
+class A079923(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+4$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079923; a
+        Solutions to the Dancing School problem with n girls and n+4 boys
+        sage: a.offset
+        1
+        sage: a(1)
+        5
+        sage: a(8)
+        15458
+        sage: a.list(8)
+        [5, 21, 76, 246, 738, 2108, 5794, 15458]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+4 boys: f(n,4).
+        [5, 21, 76, 246, 738, 2108, 5794, 15458, 40296]
+
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+
+    AUTHOR:
+        - Jaap Spies (2007-01-17)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+4 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return perm_mh(n, 4)
+
 
 class A111774(SloaneSequence):
     r"""
@@ -606,7 +747,7 @@ class A111774(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: a(100)
         141
         sage: a(156)
@@ -832,7 +973,7 @@ class A111787(SloaneSequence):
         sage: a(0)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=0) must be an integer >= 1
+        ValueError: input n (=0) must be a positive integer
         sage: a(100)
         5
         sage: a(256)
@@ -844,7 +985,7 @@ class A111787(SloaneSequence):
         sage: a(-1)
         Traceback (most recent call last):
         ...
-        ValueError: input n (=-1) must be an integer >= 1
+        ValueError: input n (=-1) must be a positive integer
 
     AUTHOR:
         - Jaap Spies (2007-01-14)
@@ -888,7 +1029,9 @@ class A000110(ExponentialNumbers):
     r"""
     The sequence of Bell numbers.
 
-    The Bell number $B_n$ counts the number of ways to put $n$ distinguishable things into indistinguishable boxes such that no box is empty.
+    The Bell number $B_n$ counts the number of ways to put $n$
+    distinguishable things into indistinguishable boxes such that no
+    box is empty.
 
     Let $S(n, k)$ denote the Stirling number of the second kind.  Then
     $$B_n = \sum{k=0}^{n} S(n, k) .$$
@@ -925,7 +1068,10 @@ class A000587(ExponentialNumbers):
     r"""
     The sequence of Uppuluri-Carpenter numbers.
 
-    The Uppuluri-Carpenter number $C_n$ counts the imbalance in the number of ways to put $n$ distinguishable things into an even number of indistinguishable boxes versus into an odd number of indistinguishable boxes, such that no box is empty.
+    The Uppuluri-Carpenter number $C_n$ counts the imbalance in the
+    number of ways to put $n$ distinguishable things into an even
+    number of indistinguishable boxes versus into an odd number of
+    indistinguishable boxes, such that no box is empty.
 
     Let $S(n, k)$ denote the Stirling number of the second kind.  Then
     $$C_n = \sum{k=0}^{n} (-1)^k S(n, k) .$$
@@ -975,6 +1121,8 @@ sloane.A000203 = A000203()
 sloane.A000587 = A000587()
 sloane.A001227 = A001227()
 sloane.A001694 = A001694()
+sloane.A079922 = A079922()
+sloane.A079923 = A079923()
 sloane.A111774 = A111774()
 sloane.A111775 = A111775()
 sloane.A111776 = A111776()

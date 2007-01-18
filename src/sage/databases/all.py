@@ -71,8 +71,6 @@ from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
-from sloane_functions import sloane
-
 from lincodes import linear_code_bound
 
 from odlyzko import zeta_zeros

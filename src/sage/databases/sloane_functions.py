@@ -492,6 +492,77 @@ class A001694(SloaneSequence):
                 return False
         return True
 
+class A001836(SloaneSequence):
+    r"""
+    Numbers $n$ such that $\phi(2n-1) < \phi(2n)$, where $\phi$ is Euler's totient function
+
+
+       INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001836; a
+        Numbers n such that phi(2n-1) < phi(2n), where phi is Euler's totient function
+        sage: a.offset
+        1
+        sage: a(1)
+        53
+        sage: a(200)
+        11828
+        sage: a.list(12)
+        [53, 83, 158, 263, 293, 368, 578, 683, 743, 788, 878, 893]
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+
+        Compare
+        Searching Sloane's online database...
+        Numbers n such that phi(2n-1) < phi(2n), where phi is Eler's totient function A000010.
+        [53, 83, 158, 263, 293, 368, 578, 683, 743, 788, 878, 893]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-17)
+    """
+    def _repr_(self):
+        return "Numbers n such that phi(2n-1) < phi(2n), where phi is Euler's totient function"
+
+    offset = 1
+
+    def _precompute(self, how_many=150):
+        try:
+            self._b
+            n = self._n
+        except AttributeError:
+            self._b = []
+            n = self.offset
+            self._n = n
+        self._b += [i for i in range(self._n, self._n+how_many) if arith.euler_phi(2*i-1) < arith.euler_phi(2*i)]
+        self._n += how_many
+
+    def _eval(self, n):
+        try:
+            return self._b[n-1]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self._eval(n)
+
+    def list(self, n):
+        try:
+            if len(self._b) < n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self.list(n)
+
+
 
 class A079922(SloaneSequence):
     r"""
@@ -549,6 +620,7 @@ class A079922(SloaneSequence):
 
     def perm(self,m, h):
         """
+        This function returs $f(g,h)$ from Sloan's A079908-A079928
 
         INPUT:
             m -- positive integer
@@ -627,6 +699,7 @@ class A079923(SloaneSequence):
 
     def perm(self,m, h):
         """
+        This function returs $f(g,h)$ from Sloan's A079908-A079928
 
         INPUT:
             m -- positive integer
@@ -1010,11 +1083,11 @@ sloane.A000045 = A000045()
 sloane.A000203 = A000203()
 sloane.A001227 = A001227()
 sloane.A001694 = A001694()
+sloane.A001836 = A001836()
 sloane.A079922 = A079922()
 sloane.A079923 = A079923()
 sloane.A111774 = A111774()
 sloane.A111775 = A111775()
 sloane.A111776 = A111776()
 sloane.A111787 = A111787()
-
 

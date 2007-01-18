@@ -123,6 +123,12 @@ class SloaneSequence(SageObject):
         """
         return [self._eval(i) for i in srange(self.offset, n+self.offset)]
 
+    # The Python default tries repeated __getitem__ calls, which will succeed,
+    # but is probably not what is wanted.
+    # This prevents list(sequence) from wandering off.
+    def __iter__(self):
+        raise NotImplementedError
+
     def __getitem__(self, n):
         r"""Return sequence[n].
 

@@ -5373,14 +5373,14 @@ cdef class PariInstance:
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-        cdef long k
-        k = (n+10)/math.log(n)
-        p = 2
-        while p <= n:
-            p = self.nth_prime(k)
-            k = 2
-        v = self.prime_list(k)
-        return v[:pari(n).primepi()]
+##         cdef long k
+##         k = (n+10)/math.log(n)
+##         p = 2
+##         while p <= n:
+##             p = self.nth_prime(k)
+##             k = 2
+##         v = self.prime_list(k)
+##         return v[:pari(n).primepi()]
 
     def __nth_prime(self, long n):
         """

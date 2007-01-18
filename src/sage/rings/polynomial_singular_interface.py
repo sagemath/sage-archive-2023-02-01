@@ -230,7 +230,7 @@ class Polynomial_singular_repr:
             force -- polynomials over ZZ may be coerced to Singular by
                      treating them as polynomials over RR. This is
                      inexact but works for some cases where the
-                     coeffients are not considered  (default: False).
+                     coeffients are not considered (default: False).
 
 
         EXAMPLES:
@@ -304,12 +304,12 @@ class Polynomial_singular_repr:
 
     def diff(self, variable, have_ring=False):
         """
-        Differentiats self with respect in the provided variable. This
+        Differentiates self with respect to the provided variable. This
         is completely symbolic so it is also defined over e.g. finite
         fields.
 
         INPUT:
-            variable -- the derivate is taken with respect to that variable
+            variable -- the derivative is taken with respect to variable
             have_ring -- see self._singular_() (default:False)
 
         EXAMPLES:

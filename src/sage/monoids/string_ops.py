@@ -70,7 +70,7 @@ def coincidence_discriminant(S):
 	sage: S = strip_encoding("The cat in the hat.")
 	sage: T = [ S[i:i+2] for i in range(len(S)-1) ]
 	sage: coincidence_discriminant(T)
-
+        0.0294457476979096
     """
     AZ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     AA = [ AZ[i] + AZ[j] for i in range(26) for j in range(26) ]
@@ -79,11 +79,11 @@ def coincidence_discriminant(S):
     F2 = {}
     RR = RealField()
     for XY in AA:
-        F2[AA] = RR(0)
+        F2[XY] = RR(0)
     eps = RR(1/len(S))
     for AB in S:
         F2[AB] += eps
-    return sum([ (F2[AZ[i]+AZ[j]]-X1[AZ[i]]*X2[AZ[j]])^2 for i in range(26) for j in range(26) ])
+    return sum([ (F2[AZ[i]+AZ[j]]-X1[AZ[i]]*X2[AZ[j]])**2 for i in range(26) for j in range(26) ])
 
 def translation_correlations(X1,X2):
      """
@@ -99,8 +99,8 @@ def translation_correlations(X1,X2):
      mu2 = sum(X2)/n
 
      # Compute the standard deviations of each sequence:
-     sig1 = sqrt(sum([ (S1[k]-mu1)^2 for k in range(n) ]))
-     sig2 = sqrt(sum([ (S2[k]-mu2)^2 for k in range(n) ]))
+     sig1 = sqrt(sum([ (S1[k]-mu1)**2 for k in range(n) ]))
+     sig2 = sqrt(sum([ (S2[k]-mu2)**2 for k in range(n) ]))
 
      sig = sig1*sig2
      corr_dict = { }

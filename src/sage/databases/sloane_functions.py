@@ -119,7 +119,7 @@ class SloaneSequence(SageObject):
         raise NotImplementedError
 
     def list(self, n):
-        r"""Return n terms of the sequence: sequence[offset], sequence[offset+1], ... , sequence[offset+n].
+        r"""Return n terms of the sequence: sequence[offset], sequence[offset+1], ... , sequence[offset+n-1].
         """
         return [self._eval(i) for i in srange(self.offset, n+self.offset)]
 

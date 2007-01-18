@@ -960,7 +960,7 @@ class GraphDatabase():
         EXAMPLES:
             # Construct and show a Tetrahedral graph
             sage: g = graphs.TetrahedralGraph()
-            sage.: g.show()
+            sage: g.save('sage.png')
 
             # The following example requires networkx:
             sage: import networkx as NX
@@ -975,13 +975,12 @@ class GraphDatabase():
             sage: g = [tetra_pos, tetra_spring, wheel, complete]
             sage: j = []
             sage: for i in range(2):
-            ... n = []
-            ... for m in range(2):
-            ...  n.append(g[i + m].plot(node_size=50, with_labels=False))
-            ... j.append(n)
-            ...
+            ...    n = []
+            ...    for m in range(2):
+            ...        n.append(g[i + m].plot(node_size=50, with_labels=False))
+            ...    j.append(n)
             sage: G = sage.plot.plot.GraphicsArray(j)
-            sage.: G.show()
+            sage: G.save('sage.png')
         """
         pos_dict = [[0,1],[-.71,-.71],[0,0],[1.3,0]]
         import networkx

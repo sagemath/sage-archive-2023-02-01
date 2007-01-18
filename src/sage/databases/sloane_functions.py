@@ -846,8 +846,8 @@ class A111787(SloaneSequence):
         ...
         ValueError: input n (=-1) must be an integer >= 1
 
-        AUTHOR:
-            - Jaap Spies (2007-01-14)
+    AUTHOR:
+        - Jaap Spies (2007-01-14)
     """
     def __init__(self):
         SloaneSequence.__init__(self, offset=1)
@@ -863,6 +863,100 @@ class A111787(SloaneSequence):
                 if n % d == 0:
                     return min(d, 2*n/d)
 
+
+class ExponentialNumbers(SloaneSequence):
+    r"""
+    A sequence of Exponential numbers.
+    """
+    def __init__(self, a):
+        SloaneSequence.__init__(self, offset=0)
+        self.a = a
+
+    def _repr_(self):
+        return "Sequence of Exponential numbers around %s" % self.a
+
+    def _eval(self, n):
+        if hasattr(self, '__n'):
+            if n < self.__n:
+                return self.__data[n]
+        from sage.combinat.expnums import expnums
+        self.__data = expnums(n+1, self.a)
+        self.__n = n+1
+        return self.__data[n]
+
+class A000110(ExponentialNumbers):
+    r"""
+    The sequence of Bell numbers.
+
+    The Bell number $B_n$ counts the number of ways to put $n$ distinguishable things into indistinguishable boxes such that no box is empty.
+
+    Let $S(n, k)$ denote the Stirling number of the second kind.  Then
+    $$B_n = \sum{k=0}^{n} S(n, k) .$$
+
+    INPUT:
+        n -- integer >= 0
+
+    OUTPUT:
+        integer -- $B_n$
+
+    EXAMPLES:
+        sage: a = sloane.A000110; a
+        Sequence of Bell numbers
+        sage: a.offset
+        0
+        sage: a(0)
+        1
+        sage: a(100)
+        47585391276764833658790768841387207826363669686825611466616334637559114497892442622672724044217756306953557882560751
+        sage: a.list(10)
+        [1, 1, 2, 5, 15, 52, 203, 877, 4140, 21147]
+
+    AUTHOR:
+        -- Nick Alexander
+    """
+    def __init__(self):
+        ExponentialNumbers.__init__(self, a=1)
+
+    def _repr_(self):
+        return "Sequence of Bell numbers"
+
+
+class A000587(ExponentialNumbers):
+    r"""
+    The sequence of Uppuluri-Carpenter numbers.
+
+    The Uppuluri-Carpenter number $C_n$ counts the imbalance in the number of ways to put $n$ distinguishable things into an even number of indistinguishable boxes versus into an odd number of indistinguishable boxes, such that no box is empty.
+
+    Let $S(n, k)$ denote the Stirling number of the second kind.  Then
+    $$C_n = \sum{k=0}^{n} (-1)^k S(n, k) .$$
+
+    INPUT:
+        n -- integer >= 0
+
+    OUTPUT:
+        integer -- $C_n$
+
+    EXAMPLES:
+        sage: a = sloane.A000587; a
+        Sequence of Uppuluri-Carpenter numbers
+        sage: a.offset
+        0
+        sage: a(0)
+        1
+        sage: a(100)
+        397577026456518507969762382254187048845620355238545130875069912944235105204434466095862371032124545552161
+        sage: a.list(10)
+        [1, -1, 0, 1, 1, -2, -9, -9, 50, 267]
+
+    AUTHOR:
+        -- Nick Alexander
+    """
+    def __init__(self):
+        ExponentialNumbers.__init__(self, a=-1)
+
+    def _repr_(self):
+        return "Sequence of Uppuluri-Carpenter numbers"
+
 #############################################################
 # III. Create the Sloane object, off which all the sequence
 #      objects are members.
@@ -876,7 +970,9 @@ sloane.A000005 = A000005()
 sloane.A000010 = A000010()
 sloane.A000027 = A000027()
 sloane.A000045 = A000045()
+sloane.A000110 = A000110()
 sloane.A000203 = A000203()
+sloane.A000587 = A000587()
 sloane.A001227 = A001227()
 sloane.A001694 = A001694()
 sloane.A111774 = A111774()

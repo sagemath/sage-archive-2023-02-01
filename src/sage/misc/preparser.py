@@ -385,7 +385,7 @@ def preparse_file(contents, attached={}, magic=True,
     loaded_files = []
 
     F = []
-    A = contents.split('\n')
+    A = contents.splitlines()
     i = 0
     while i < len(A):
         L = A[i].rstrip()

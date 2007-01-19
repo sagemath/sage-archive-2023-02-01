@@ -25,6 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 import ell_point
+import formal_group
 from ell_field import EllipticCurve_field
 
 import sage.groups.all
@@ -3823,11 +3824,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # in particular we reorganise things to skip the series reversions
         # and compositions (which are inherently asymptotically slower
         # than the other operations).
-
-        # todo: inefficient: the formal differential *includes*
-        # computation of formal_x
-        x = X.formal_x(N+1)               # x = t^{-2} + ...
-        f = X.formal_differential(N+1)    # f = 1 + ...
+        x = X.formal_group().x(N+1)               # x = t^{-2} + ...
+        f = X.formal_group().differential(N+1)    # f = 1 + ...
 
         # todo: I would like to write:
         #     A = -f * ((x + c) * f).integral()

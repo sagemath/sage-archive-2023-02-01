@@ -363,7 +363,7 @@ def process_file(name):
     name2 = "%s/%s.py"%(dir,name[:name.find('.')])
     os.chdir(dir)
     contents = open(name).read()
-    parsed = preparse_file(contents, attached)
+    parsed = preparse_file(contents, attached, do_time=True)
     os.chdir(cur)
     W = open(name2,'w')
     W.write('#'*70+'\n')

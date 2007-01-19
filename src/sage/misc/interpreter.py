@@ -152,7 +152,15 @@ def load_startup_file(file):
 def do_prefilter_paste(line, continuation):
     """
     Alternate prefilter for input.
+
+    INPUT:
+        line -- a single line; must *not* have any newlines in it
+        continuation -- whether the input line is really part
+                     of the previous line, because of open parens or backslash.
     """
+    if '\n' in line:
+        raise RuntimeError, "bug in function that calls do_prefilter_paste -- there can be no newlines in the input"
+
     global attached
 
     # This is so it's OK to have lots of blank space at the
@@ -366,23 +374,34 @@ def process_file(name):
     return name2
 
 
-def sage_prefilter(self, line, continuation):
+def sage_prefilter(self, block, continuation):
     """
-    Alternate prefilter for input.
+    SAGE's prefilter for input.  Given a string block (usually a
+    line), return the preparsed version of it.
+
+    INPUT:
+        block -- string (usually a single line, but not always)
+        continuation -- whether or not this line is a continuation.
     """
     try:
-        line2 = do_prefilter_paste(line, continuation)
+        block2 = ''
+        for L in block.split('\n'):
+            M = do_prefilter_paste(L, continuation)
+            # The L[:len(L)-len(L.lstrip())]  business here preserves
+            # the whitespace at the beginning of L.
+            if block2 != '':
+                block2 += '\n'
+            block2 += L[:len(L)-len(L.lstrip())] + M
 
     except None:
 
         print "WARNING: An error occured in the SAGE parser while"
-        print "parsing the following line:"
-        print line
+        print "parsing the following block:"
+        print block
         print "Please report this as a bug (include the output of typing '%hist')."
-        line2 = line
+        block2 = block
 
-    from IPython.iplib import InteractiveShell
-    return InteractiveShell._prefilter(self, line2, continuation)
+    return InteractiveShell._prefilter(self, block2, continuation)
 
 
 

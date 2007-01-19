@@ -391,7 +391,11 @@ def sage_prefilter(self, block, continuation):
             # the whitespace at the beginning of L.
             if block2 != '':
                 block2 += '\n'
-            block2 += L[:len(L)-len(L.lstrip())] + M
+            lstrip = L.lstrip()
+            if lstrip[:5] == 'sage:' or lstrip[:3] == '>>>':
+                block2 += M
+            else:
+                block2 += L[:len(L)-len(lstrip)] + M
 
     except None:
 

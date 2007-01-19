@@ -61,7 +61,7 @@ class Axes(SageObject):
 
         """
         minval, maxval = float(minval), float(maxval)
-        absmax, absmin = abs(minval), abs(maxval)
+        absmin, absmax = abs(minval), abs(maxval)
         # Initialize the domain flags:
         onlyneg, domneg, onlypos, dompos = False, False, False, False
 

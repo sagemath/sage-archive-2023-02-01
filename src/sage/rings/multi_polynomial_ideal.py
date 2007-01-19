@@ -506,7 +506,12 @@ class MPolynomialIdeal_singular_repr:
 
         f = self.ring()(f)
         g = singular(f)
-        h = g.reduce(self.__singular_groebner_basis)
+        try:
+            h = g.reduce(self.__singular_groebner_basis)
+        except TypeError:
+            # This is OK, since f is in the right ring -- type error
+            # just means it's a rational
+            return f
         return self.ring()(h)
 
     def _reduce_using_macaulay2(self, f):
@@ -514,7 +519,12 @@ class MPolynomialIdeal_singular_repr:
         M2 = I.parent()
         R = self.ring()
         g = M2(R(f))
-        k = M2('%s %% %s'%(g.name(), I.name()))
+        try:
+            k = M2('%s %% %s'%(g.name(), I.name()))
+        except TypeError:
+            # This is OK, since f is in the right ring -- type error
+            # just means it's in base ring (e.g., a constant)
+            return f
         return R(k)
 
     def syzygy_module(self):

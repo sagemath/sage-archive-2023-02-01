@@ -35,6 +35,20 @@ benchmark and test ideal.
     sage: B = I.groebner_basis()
     sage: len(B)
     45
+
+We compute in a quotient of a polynomial ring over Z/17*Z:
+    sage: R.<x,y> = PolynomialRing(ZZ, 2)
+    sage: S.<a,b> = R.quotient((x^2 + y^2, 17))                 # optional -- requires Macaulay2
+    sage: S                                                     # optional
+    Quotient of Polynomial Ring in x, y over Integer Ring by the ideal (17, y^2 + x^2)
+    sage: a^2 + b^2 == 0                                        # optional
+    True
+    sage: a^3 - b^2                                             # optional
+    -1*b^2 - a*b^2
+    sage: (a+b)^17                                              # optional
+    b^17 + a*b^16
+    sage: S(17) == 0                                            # optional
+    True
 """
 
 #*****************************************************************************
@@ -481,21 +495,27 @@ class MPolynomialIdeal_singular_repr:
             sage: (y^2 - x)^2
             y^4 - 2*x*y^2 + x^2
         """
+        if self.base_ring() == sage.rings.integer_ring.ZZ:
+            return self._reduce_using_macaulay2(f)
+
         try:
-            try:
-                S = self.__singular_groebner_basis.parent()
-            except AttributeError:
-                self.groebner_basis()
-                S = self.__singular_groebner_basis.parent()
+            singular = self.__singular_groebner_basis.parent()
+        except AttributeError:
+            self.groebner_basis()
+            singular = self.__singular_groebner_basis.parent()
 
-            f = self.ring()(f)
-            g = self.__singular_groebner_basis.parent()(f)
-            h = g.reduce(self.__singular_groebner_basis)
-            return self.ring()(h)
+        f = self.ring()(f)
+        g = singular(f)
+        h = g.reduce(self.__singular_groebner_basis)
+        return self.ring()(h)
 
-        except TypeError:
-
-            return f
+    def _reduce_using_macaulay2(self, f):
+        I = self._macaulay2_()
+        M2 = I.parent()
+        R = self.ring()
+        g = M2(R(f))
+        k = M2('%s %% %s'%(g.name(), I.name()))
+        return R(k)
 
     def syzygy_module(self):
         r"""
@@ -714,11 +734,6 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':
             return self._magma_groebner_basis()
-        elif algorithm == None:
-            if self.ring() == ZZ:
-                return self._macaulay2_groebner_basis()
-            else:
-                return self._singular_groebner_basis()
         else:
             raise TypeError, "algorithm '%s' unknown"%algorithm
 

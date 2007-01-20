@@ -380,7 +380,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          parent_S = self.matrix_space(self._ncols,self._ncols)
          _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
          for i from 0<=i<self._ncols:
-            _S[i,i] = gsl_vector_get(S,i)
+             (<Matrix_real_double_dense>_S).set_unsafe(i,i,gsl_vector_get(S,i))
+#            _S[i,i] = gsl_vector_get(S,i)
          gsl_vector_free(S)
          gsl_vector_free(work_space)
          return [A,_S,V]

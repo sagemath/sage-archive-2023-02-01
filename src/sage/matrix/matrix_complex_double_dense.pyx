@@ -15,6 +15,7 @@ include '../ext/python.pxi'
 #include '../gsl/gsl.pxi'
 from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
+import sage.rings.real_double
 import numpy
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
@@ -356,8 +357,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
     def log_determinant(self):
          """compute the log of the absolute value of the determinant using GSL(LU decomposition)
            useful if the determinant overlows"""
-         cdef gsl_complex z
+         cdef double z
          if(self._LU_valid !=1):
              self._c_compute_LU()
-         z=gsl_linalg_complex_LU_det(self._LU,signum)
-         return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
+         z=gsl_linalg_complex_LU_lndet(self._LU)
+         return sage.rings.real_double.RDF(z)

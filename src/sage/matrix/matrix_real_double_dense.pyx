@@ -349,7 +349,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
            useful if the determinant overlows"""
          if(self._LU_valid !=1):
              self._c_compute_LU()
-         return gsl_linalg_LU_det(self._LU,signum)
+         return gsl_linalg_LU_lndet(self._LU)
 
     def SVD(self):
          """Compute the singular value decomposition of a matrix. That is factors a matrix A as

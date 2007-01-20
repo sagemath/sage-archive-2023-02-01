@@ -376,7 +376,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          result_copy = gsl_matrix_memcpy(A._matrix,self._matrix)
          S = <gsl_vector *> gsl_vector_alloc(self._ncols)
          work_space = <gsl_vector *> gsl_vector_alloc(self._ncols)
+         _sig_on
          result_svd  = gsl_linalg_SV_decomp(A._matrix, V._matrix, S, work_space)
+         _sig_off
          parent_S = self.matrix_space(self._ncols,self._ncols)
          _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
          for i from 0<=i<self._ncols:

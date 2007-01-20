@@ -171,6 +171,11 @@ matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
 ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
 define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
+matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
+['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',CBLAS],
+define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+
+
 solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',CBLAS],define_macros =
 [('GSL_DISABLE_DEPRECATED','1')])
 
@@ -270,6 +275,7 @@ ext_modules = [ \
      matrix_integer_dense,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,
+     matrix_complex_double_dense,
      solve,
      matrix_modn_dense,
      matrix_modn_sparse,

@@ -3,13 +3,13 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def server(self, blocking=False):
+    def server(self, blocking=True):
         cmd = 'dsage_server.py'
         if not blocking:
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, blocking=False):
+    def worker(self, blocking=True):
         cmd = 'dsage_worker.py'
         if not blocking:
             cmd += '&'

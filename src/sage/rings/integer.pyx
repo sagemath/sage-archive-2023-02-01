@@ -191,7 +191,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(Mod(3,7))
             3
 
-        Integers also support the standard arithmetic operations.
+        Integers also support the standard arithmetic operations, such
+        as +,-,*,/,^, \code{abs}, \code{mod}, \code{float}:
             sage: 2^3
             8
         """
@@ -930,6 +931,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return q, r
 
+    def div(self, other):
+        """
+        Returns the quotient of self divided by other.
+
+        INPUT:
+            other -- the integer the divisor
+
+        OUTPUT:
+            q   -- the quotient of self/other
+
+        EXAMPLES:
+            sage: z = Integer(231)
+            sage: z.div(2)
+            115
+            sage: z.div(-2)
+            -115
+            sage: z.div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other (=0) must be nonzero
+        """
+        cdef Integer _other, _self
+        _other = integer(other)
+        if not _other:
+            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+        _self = integer(self)
+
+        cdef Integer q, r
+        q = Integer()
+        r = Integer()
+
+        _sig_on
+        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
+        _sig_off
+
+        return q
 
 
     def powermod(self, exp, mod):
@@ -1025,8 +1062,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
 
-        Type "factor?" for more detailed documentation.
-
         INPUT:
             algorithm -- string
                  * 'pari' -- (default)  use the PARI c library
@@ -1035,16 +1070,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return sage.rings.integer_ring.factor(self, algorithm=algorithm)
 
-    def coprime_integers(self, m=None):
+    def coprime_integers(self, m):
         """
         Return the positive integers $< m$ that are coprime to self.
 
-        INPUT:
-            m -- integer (default m=self)
-
         EXAMPLES:
             sage: n = 8
-            sage: n.coprime_integers()
+            sage: n.coprime_integers(8)
             [1, 3, 5, 7]
             sage: n.coprime_integers(11)
             [1, 3, 5, 7, 9]
@@ -1062,8 +1094,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         enough for you, please code something better and submit a
         patch.
         """
-        if m is None:
-            m = self
         # TODO -- make VASTLY faster
         v = []
         for n in range(1,m):

@@ -101,12 +101,14 @@ class StringMonoidElement(FreeMonoidElement):
     def _repr_(self):
         """
         The self-representation of a string monoid element. Unlike Python
-        strings we will print without the enclosing quotes.
+        strings we print without the enclosing quotes.
         """
-        alphabet = self.parent().alphabet()
-        s = ""
+	S = self.parent()
+	alphabet = S.alphabet()
+        s = ''
         for b in self._element_list:
-            s += '%s'%alphabet[b]
+            c = alphabet[b]
+            s += c
         return s
 
     def _latex_(self):
@@ -192,19 +194,11 @@ class StringMonoidElement(FreeMonoidElement):
         Return the n-th string character.
         """
         try:
-            c = [self._element_list[n]]
+            c = self._element_list[n]
         except:
             raise IndexError, "Argument n (= %s) is not a valid index." % n
-        return self.parent()(c)
-
-    def __getslice__(self,n,m):
-        """
-        Return the slice [n:m] of the string.
-        """
-        try:
-            c = self._element_list[n:m]
-        except:
-            raise IndexError, "Arguments [n:m] (= [%s:%s]) doe not define a valid slice." % (n,m)
+	if not isinstance(c,list):
+	    c = [c]
         return self.parent()(c)
 
     def decoding(self,padic=False):

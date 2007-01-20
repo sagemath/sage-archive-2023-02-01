@@ -261,7 +261,7 @@ class BinaryStringMonoid(StringMonoid_class):
     The free binary string monoid on generators $\{0,1\}$.
     """
     def __init__(self):
-        """
+        r"""
         Create free binary string monoid on generators $\{0,1\}$.
 
         INPUT: None
@@ -287,8 +287,8 @@ class BinaryStringMonoid(StringMonoid_class):
         r"""
         Return $x$ coerced into this free monoid.
 
-        One can create a free binary string monoid element from a Python string
-	of 0's and 1's or list integers
+        One can create a free binary string monoid element from a
+	Python string of 0's and 1's or list integers
 
 	NOTE: Due to the ambiguity of the second generator '1' with the that the
 	identity element '' of the monoid, the syntax S(1) is not permissible.
@@ -383,8 +383,8 @@ class OctalStringMonoid(StringMonoid_class):
         r"""
         Return $x$ coerced into this free monoid.
 
-        One can create a free octal string monoid element from a Python string
-	of 0's to 7's or list of integers.
+        One can create a free octal string monoid element from a
+	Python string of 0's to 7's or list of integers.
 
         EXAMPLES:
             sage: S = OctalStrings()
@@ -539,8 +539,9 @@ class Radix64StringMonoid(StringMonoid_class):
         r"""
         Return $x$ coerced into this free monoid.
 
-        One can create a free radix 64 string monoid element from a Python string
-        or a list of integers in $0,..,63$, as for generic FreeMonoids.
+        One can create a free radix 64 string monoid element from a
+        Python string or a list of integers in $0,..,63$, as for
+	generic FreeMonoids.
 
         EXAMPLES:
             sage: S = Radix64Strings()

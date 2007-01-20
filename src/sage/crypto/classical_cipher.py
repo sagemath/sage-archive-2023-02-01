@@ -93,13 +93,17 @@ class TranspositionCipher(SymmetricKeyCipher):
 	    raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
 	if not mode == "ECB":
 	    raise NotImplementedError, "Enciphering not implemented for mode (= %s) other than 'ECB'." % mode
-	g = self.key()
 	N = len(M)
 	m = self.parent().block_length()
 	if not N%m == 0:
 	    raise TypeError, "Argument M (= %s) must be a string of length k*%s." % (M, m)
 	Melt = M._element_list # this uses the internal structure of string monoids
-	return S([ Melt[g(i+1)-1+k*m] for i in range(m) for k in range(N//m) ])
+	g = self.key()
+	# Caution: this is parsed as an outer loop in k and an inner loop in i:
+	#     for k in range(N//m):
+	#         for i in range(m):
+	#             S([ Melt[g(i+1)-1+k*m]
+	return S([ Melt[g(i+1)-1+k*m] for k in range(N//m) for i in range(m) ])
 
     def inverse(self):
 	return self.parent().inverse_key(self.key())

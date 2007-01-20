@@ -24,19 +24,27 @@ def strip_encoding(S):
 	    X += S[i].upper()
     return X
 
-def frequency_distribution(S,length=1):
+def frequency_distribution(S,length=1,prec=0):
     """
     """
-    if length != 1:
+    if not length in (1,2):
         raise NotImplementedError, "Not implemented"
     X = {}
-    RR = RealField()
+    if prec == 0:
+        RR = RealField()
+    else:
+        RR = RealField(prec)
     AZ = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    for i in range(26):
-	X[AZ[i]] = RR(0)
-    n = len(S)
-    eps = RR(Integer(1)/n)
-    for i in range(n):
+    if length == 1:
+        for i in range(26):
+	    X[AZ[i]] = RR(0)
+    elif length == 2:
+        for i in range(26):
+	    for j in range(26):
+	        X[AZ[i]+AZ[j]] = RR(0)
+    N = len(S)
+    eps = RR(Integer(1)/(N-length))
+    for i in range(N-length):
         X[S[i:i+length]] += eps
     return X
 

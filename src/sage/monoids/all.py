@@ -10,7 +10,9 @@ from string_ops import \
     strip_encoding, \
     frequency_distribution, \
     coincidence_index, \
-    coincidence_discriminant
+    coincidence_discriminant, \
+    translation_correlations, \
+    translation_matches
 from string_monoid_element import \
     is_BinaryStringMonoidElement, \
     is_OctalStringMonoidElement, \

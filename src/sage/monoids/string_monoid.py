@@ -1,8 +1,7 @@
 r"""
 Free String Monoids
 
-AUTHOR:
-    -- David Kohel <kohel@maths.usyd.edu.au>, 2005-09
+AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2007-01
 
 SAGE supports a wide range of specific free string monoids.
 """
@@ -194,7 +193,7 @@ class StringMonoid_class(FreeMonoid_class):
     r"""
     A free string monoid on $n$ generators.
     """
-    def __init__(self,n,alphabet=""):
+    def __init__(self,n,alphabet=()):
         r"""
         Create free binary string monoid on $n$ generators$.
 
@@ -218,7 +217,7 @@ class StringMonoid_class(FreeMonoid_class):
         return isinstance(x, StringMonoidElement) and x.parent() == self
 
     def alphabet(self):
-        return self._alphabet
+        return tuple(self._alphabet)
 
     def gen(self,i=0):
         r"""
@@ -273,7 +272,7 @@ class BinaryStringMonoid(StringMonoid_class):
             sage: x[0]*x[1]**5 * (x[0]*x[1])
             01111101
         """
-	StringMonoid_class.__init__(self, 2,'01')
+	StringMonoid_class.__init__(self, 2, ['0','1'])
 
     def __cmp__(self, other):
         if not isinstance(other, BinaryStringMonoid):
@@ -369,7 +368,7 @@ class OctalStringMonoid(StringMonoid_class):
 	    sage: S([ i for i in range(8) ])
 	    01234567
         """
-	StringMonoid_class.__init__(self, 8,'01234567')
+	StringMonoid_class.__init__(self, 8, [ str(i) for i in range(8) ])
 
     def __cmp__(self, other):
         if not isinstance(other, OctalStringMonoid):
@@ -426,7 +425,8 @@ class HexadecimalStringMonoid(StringMonoid_class):
 	    sage: S([ i for i in range(16) ])
 	    0123456789abcdef
         """
-	StringMonoid_class.__init__(self, 16,'0123456789abcdef')
+	alph = '0123456789abcdef'
+	StringMonoid_class.__init__(self, 16, [ alph[i] for i in range(16) ])
 
     def __cmp__(self, other):
         if not isinstance(other, HexadecimalStringMonoid):
@@ -524,8 +524,9 @@ class Radix64StringMonoid(StringMonoid_class):
 	    sage: S([ i for i in range(64) ])
 	    ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/
         """
-	alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
-	StringMonoid_class.__init__(self, 64, alphabet)
+	alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+	StringMonoid_class.__init__(self, 64, [ alph[i] for i in range(64) ])
+
 
     def __cmp__(self, other):
         if not isinstance(other, Radix64StringMonoid):
@@ -586,8 +587,8 @@ class AlphabeticStringMonoid(StringMonoid_class):
 	    sage: S([ i for i in range(26) ])
 	    ABCDEFGHIJKLMNOPQRSTUVWXYZ
         """
-	alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-	StringMonoid_class.__init__(self, 26, alphabet)
+	alph = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+	StringMonoid_class.__init__(self, 26, [ alph[i] for i in range(26) ])
 
     def __cmp__(self, other):
         if not isinstance(other, AlphabeticStringMonoid):

@@ -274,6 +274,40 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         else:
             raise ValueError,"Error computing LU decomposition"
 
+    def LU(self):
+        """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+        P*A = L*U
+        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
+
+        sage: m=matrix(RDF,4,range(16))
+        sage: P,L,U = m.LU()
+        sage: P*m
+        sage: L*U
+        """
+
+
+        if self._ncols!=self._nrows:
+            raise TypeError,"LU decomposition only works for square matrix"
+        if self._LU_valid != 1:
+            self._c_compute_LU()
+        cdef Py_ssize_t i,j,k,l,copy_result
+        cdef Matrix_real_double_dense P, L,U
+        parent = self.matrix_space(self._nrows,self._ncols)
+        P=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        L = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        U = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        for i from 0<=i<self._ncols:
+            j = gsl_permutation_get(self._p,i)
+            P.set_unsafe(i,j,1)
+            L.set_unsafe(i,i,1)
+            U.set_unsafe(i,i,gsl_matrix_get(self._LU,i,i))
+            for l from 0<=l<i:
+                L.set_unsafe(i,l,gsl_matrix_get(self._LU,i,l))
+                U.set_unsafe(l,i,gsl_matrix_get(self._LU,l,i))
+
+
+        return [P,L,U]
+
 
     def eigen(self):
         """
@@ -350,6 +384,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          if(self._LU_valid !=1):
              self._c_compute_LU()
          return gsl_linalg_LU_lndet(self._LU)
+    def transpose(self):
+        cdef Matrix_real_double_dense trans
+        cdef int result_copy
+        parent  = self.matrix_space(self._ncols,self._nrows)
+        trans = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        result_copy = gsl_matrix_transpose_memcpy(trans._matrix,self._matrix)
+        if result_copy !=GSL_SUCCESS:
+            raise ValueError, "Error copy matrix"
+        return trans
 
     def SVD(self):
          """Compute the singular value decomposition of a matrix. That is factors a matrix A as
@@ -365,7 +408,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          [12.0              13.0              14.0              15.0]
 
          """
-         cdef Matrix_real_double_dense A,V,S_
+         if self._ncols > self._nrows:
+             m = self.transpose()
+             V_t,S_t,U_t=m.SVD()
+             return [U_t,S_t,V_t]
+         cdef Matrix_real_double_dense A,V,_S
          cdef gsl_vector* S
          cdef gsl_vector* work_space
          cdef int result_copy, result_svd, i
@@ -382,7 +429,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          parent_S = self.matrix_space(self._ncols,self._ncols)
          _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
          for i from 0<=i<self._ncols:
-             (<Matrix_real_double_dense>_S).set_unsafe(i,i,gsl_vector_get(S,i))
+             _S.set_unsafe(i,i,gsl_vector_get(S,i))
 #            _S[i,i] = gsl_vector_get(S,i)
          gsl_vector_free(S)
          gsl_vector_free(work_space)

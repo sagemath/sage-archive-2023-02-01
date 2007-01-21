@@ -362,3 +362,49 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
              self._c_compute_LU()
          z=gsl_linalg_complex_LU_lndet(self._LU)
          return sage.rings.real_double.RDF(z)
+
+    def transpose(self):
+        cdef Matrix_complex_double_dense trans
+        cdef int result_copy
+        parent  = self.matrix_space(self._ncols,self._nrows)
+        trans = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result_copy = gsl_matrix_complex_transpose_memcpy(trans._matrix,self._matrix)
+        if result_copy !=GSL_SUCCESS:
+            raise ValueError, "Error copy matrix"
+        return trans
+
+    def LU(self):
+        """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+        P*A = L*U
+        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
+
+        sage: m=matrix(CDF,4,range(16))
+        sage: P,L,U = m.LU()
+        sage: P*m
+        sage: L*U
+        """
+        if self._ncols!=self._nrows:
+            raise TypeError,"LU decomposition only works for square matrix"
+        if self._LU_valid != 1:
+            self._c_compute_LU()
+        cdef Py_ssize_t i,j,k,l,copy_result
+        cdef Matrix_complex_double_dense P, L,U
+        cdef gsl_complex z
+        parent = self.matrix_space(self._nrows,self._ncols)
+        P=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        L = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        U = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        for i from 0<=i<self._ncols:
+            j = gsl_permutation_get(self._p,i)
+            GSL_SET_COMPLEX(&z,1,0)
+            gsl_matrix_complex_set(P._matrix,i,j,z)
+            gsl_matrix_complex_set(L._matrix,i,i,z)
+            z = gsl_matrix_complex_get(self._LU,i,i)
+            gsl_matrix_complex_set(U._matrix,i,i,z)
+            for l from 0<=l<i:
+                z = gsl_matrix_complex_get(self._LU,i,l)
+                gsl_matrix_complex_set(L._matrix,i,l,z)
+                z = gsl_matrix_complex_get(self._LU,l,i)
+                gsl_matrix_complex_set(U._matrix,l,i,z)
+
+        return [P,L,U]

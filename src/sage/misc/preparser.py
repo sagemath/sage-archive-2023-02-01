@@ -128,9 +128,9 @@ def in_quote():
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     global in_single_quote, in_double_quote, in_triple_quote
-    line = line.split("\n")[0]   # xreadlines leaves the '\n' at end of line
+    line = line.rstrip()  # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
-    if len(L) > 0 and L[0] in ['#', '!', '%']:
+    if len(L) > 0 and L[0] in ['#', '!']:
         return line
 
     # Wrap integers with ZZ() and reals with RR().
@@ -179,6 +179,36 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     line = line.lstrip()
 
     while i < len(line):
+        # Update quote parsing
+        if line[i] == "'":
+            if not in_quote():
+                in_single_quote = True
+                i += 1
+                continue
+            elif in_single_quote:
+                in_single_quote = False
+                i += 1
+                continue
+        elif line[i:i+3] == '"""':
+            if not in_quote():
+                in_triple_quote = True
+                i += 3
+                continue
+            elif in_triple_quote:
+                in_triple_quote = False
+                i += 3
+                continue
+        elif line[i] == '"':
+            if not in_quote():
+                in_double_quote = True
+                i += 1
+                continue
+            elif in_double_quote:
+                in_double_quote = False
+                i += 1
+                continue
+
+
         # Decide if we should wrap a particular integer or real literal
         if in_number:
             if line[i] == ".":
@@ -302,37 +332,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 j += 1
             line = line[:i] + ".gen(" + line[i+1:j] + ")" + line[j:]
             i = j+4
-
-        # Update quote parsing
-        if line[i] == "'":
-            if not in_quote():
-                in_single_quote = True
-                i += 1
-                continue
-            elif in_single_quote:
-                in_single_quote = False
-                i += 1
-                continue
-
-        if line[i] == '"':
-            if not in_quote():
-                in_double_quote = True
-                i += 1
-                continue
-            elif in_double_quote:
-                in_double_quote = False
-                i += 1
-                continue
-
-        if line[i:i+3] == '"""':
-            if not in_quote():
-                in_triple_quote = True
-                i += 3
-                continue
-            elif in_triple_quote:
-                in_triple_quote = False
-                i += 3
-                continue
 
         if     not in_number and \
                not in_quote()and \

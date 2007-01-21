@@ -1020,26 +1020,43 @@ class A001694(SloaneSequence):
     """
     def __init__(self):
         SloaneSequence.__init__(self, offset=1)
-        self._b = [1]
-        self._n = 2
+        self._precompute(2)
 
     def _repr_(self):
         return "Powerful Numbers (also called squarefull, square-full or 2-full numbers)."
 
-    def _compute_at_least(self, k):
-        r"""Ensure that len(self._b) >= k"""
-        while len(self._b) <= k:
-            if self.is_powerful(self._n):
-                self._b.append(self._n)
-            self._n += 1
+    def _precompute(self, how_many=10000):
+        try:
+            self._b
+            n = self._n
+        except AttributeError:
+            self._b = []
+            n = 1
+            self._n = n
+        self._b += [i for i in range(self._n, self._n+how_many) if self.is_powerful(i)]
+        self._n += how_many
 
     def _eval(self, n):
-        self._compute_at_least(n)
-        return self._b[n-1]
+        try:
+            return self._b[n-1]
+        except (AttributeError, IndexError):
+            while len(self._b) < n:
+                self._precompute(10000)
+            return self._eval(n)
 
     def list(self, n):
-        self._compute_at_least(n)
-        return self._b[:n]
+        try:
+            if len(self._b) < n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            while len(self._b) < n:
+                self._precompute(10000)
+            self._precompute()
+            # try again
+            return self.list(n)
+
 
     def is_powerful(self,n):
         r"""
@@ -1069,6 +1086,7 @@ class A001694(SloaneSequence):
             if n % p**2 > 0:
                 return False
         return True
+
 
 class A001836(SloaneSequence):
     r"""

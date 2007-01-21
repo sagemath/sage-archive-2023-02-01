@@ -248,7 +248,7 @@ def do_prefilter_paste(line, continuation):
                     ipmagic(L)
                 L = ''
             else:
-                L = preparser_ipython.preparse_ipython(L)
+                L = preparser_ipython.preparse_ipython(L, not continuation)
             __IPYTHON__.input_hist.append(L)
             __IPYTHON__.push(L)
         log.offset += 1
@@ -343,7 +343,7 @@ def do_prefilter_paste(line, continuation):
         else:
             raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
     if len(line) > 0:
-        line = preparser_ipython.preparse_ipython(line)
+        line = preparser_ipython.preparse_ipython(line, not continuation)
     return line
 
 def load_sagex(name):

@@ -1042,6 +1042,7 @@ class A001694(SloaneSequence):
         except (AttributeError, IndexError):
             while len(self._b) < n:
                 self._precompute(10000)
+            # try again, but we could also return self._b[n-1]
             return self._eval(n)
 
     def list(self, n):
@@ -1082,8 +1083,16 @@ class A001694(SloaneSequence):
             AUTHOR:
                 - Jaap Spies (2006-12-07)
         """
-        for p in arith.prime_divisors(n):
-            if n % p**2 > 0:
+#        for p in arith.prime_divisors(n):
+#            if n % p**2 > 0:
+#                return False
+#        return True
+
+        if n <= 1:
+            return True
+        ex = [e for _,e in arith.factor(n)]
+        for e in ex:
+            if e < 2:
                 return False
         return True
 
@@ -1196,7 +1205,7 @@ class A051959(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
-        self._precompute()
+        self._precompute(2)
 
     def _repr_(self):
         return "Linear second order recurrence. A051959."
@@ -1274,7 +1283,7 @@ class A001906(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
-        self._precompute()  # force precomputation
+        self._precompute(2)  # force precomputation
 
     def _repr_(self):
         return "F(2n) = bisection of Fibonacci sequence: a(n)=3a(n-1)-a(n-2)."
@@ -1343,7 +1352,7 @@ class A015521(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
-        self._precompute()
+        self._precompute(2)
 
     def _repr_(self):
         return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 4 a(n-2)."
@@ -1395,7 +1404,7 @@ class A015523(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
-        self._precompute()
+        self._precompute(2)
 
     def _repr_(self):
         return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 5 a(n-2)."
@@ -1676,7 +1685,7 @@ class A083216(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
-        self._precompute()
+        self._precompute(2)
 
     def _repr_(self):
         return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."

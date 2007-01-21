@@ -21,7 +21,7 @@ from dist import install_scripts
 # deprecated
 #from darcs import darcs_src, darcs_doc, darcs_scripts
 
-from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
+from hg import hg_sage, hg_doc, hg_scripts, hg_extcode, hg_c_lib
 
 from package import install_package, optional_packages, upgrade
 

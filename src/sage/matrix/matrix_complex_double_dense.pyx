@@ -1,7 +1,5 @@
 """
-Dense matrices over the real double field.
-
-Matrix operations use GSl and numpy.
+Dense matrices over the Complex Double Field. Matrix operations use GSl and numpy.
 """
 
 ##############################################################################
@@ -14,7 +12,9 @@ include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
-from sage.rings.real_double cimport RealDoubleElement
+#include '../gsl/gsl.pxi'
+from sage.rings.complex_double cimport ComplexDoubleElement
+import sage.rings.complex_double
 import sage.rings.real_double
 import numpy
 from matrix cimport Matrix
@@ -46,21 +46,22 @@ cdef extern from "arrayobject.h":
     void import_array()
 
 
-cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
-    """Class that implements matrices over the real double field. These are
+cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
+    """Class that implements matrices over the complex double field. These are
     supposed to be fast matrix operations using C doubles. Most operations
     are implemented using GSl or numpy libraries which will call the underlying
     BLAS on the system.
 
     Examples:
 
-    sage: m = Matrix(RDF, [[1,2],[3,4]])
+    sage: m = Matrix(CDF, [[1,2*I],[3+I,4]])
     sage: m**2
-    [ 7.0 10.0]
-    [15.0 22.0]
+    [-1.0 + 6.0*I       10.0*I]
+    [15.0 + 5.0*I 14.0 + 6.0*I]
+
     sage: n= m^(-1); n
-    [-2.0  1.0]
-    [ 1.5 -0.5]
+    [  0.333333333333 + 0.333333343267*I   0.166666666667 - 0.166666671634*I]
+    [ -0.166666666667 - 0.333333343267*I   0.0833333333333 + 0.0833333358169*I]
 
     To compute eigenvalues the use the function eigen
 
@@ -69,13 +70,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     the result of eigen is a pair p,e . p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors.
 
-    To solve a linear system Ax = b
-    for A = [[1,2]  and b = [5,6]
-             [3,4]]
 
-    sage: b = vector(RDF,[5,6])
+
+    To solve a linear system Ax = b
+    for A = [[1.0,2*I]  and b = [1,I]
+             [3+I,4]]
+
+    sage: b = vector(CDF,[1,I])
     sage: m.solve_left(b)
-    (-4.0, 4.5)
+    (0.5 + 0.5*I, -0.25 - 0.25*I)
 
     """
 
@@ -92,17 +95,17 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self,parent)
-        self._matrix= <gsl_matrix *> gsl_matrix_calloc(self._nrows, self._ncols)
+        self._matrix= <gsl_matrix_complex*> gsl_matrix_complex_calloc(self._nrows, self._ncols)
         if self._matrix == NULL:
             raise MemoryError, "unable to allocate memory for matrix "
-        self._LU = <gsl_matrix *> NULL
+        self._LU = <gsl_matrix_complex *> NULL
         self._p = <gsl_permutation *> NULL
         self._LU_valid = 0
 
     def __dealloc__(self):
-        gsl_matrix_free(self._matrix)
+        gsl_matrix_complex_free(self._matrix)
         if self._LU != NULL:
-            gsl_matrix_free(self._LU)
+            gsl_matrix_complex_free(self._LU)
         if self._p !=NULL:
             gsl_permutation_free(self._p)
 
@@ -114,7 +117,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def __init__(self, parent, entries, copy, coerce):
-        cdef double z
+        cdef ComplexDoubleElement z
         cdef Py_ssize_t i,j
         if isinstance(entries,list):
             if len(entries)!=self._nrows*self._ncols:
@@ -124,33 +127,36 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
                 for i from 0<=i<self._nrows:
                     for j from 0<=j<self._ncols:
-                        z= float(entries[i*self._ncols+j])
-                        gsl_matrix_set(self._matrix, i,j,z)
+                        z= sage.rings.complex_double.CDF(entries[i*self._ncols+j]) #better way to do this?
+                        gsl_matrix_complex_set(self._matrix, i,j,z._complex)
 
-            else:
+            else: # Do I need to coerce here as well or assume CDF already.
 
                 for i from 0<=i<self._nrows:
                     for j from 0<=j<self._ncols:
-                        gsl_matrix_set(self._matrix, i,j,entries[i*self._ncols +j])
+                        z = sage.rings.complex_double.CDF(entries[i*self._ncols+j])
+                        gsl_matrix_complex_set(self._matrix, i,j,z._complex)
 
 
         else:
             try:
-                z=float(entries)
+                z=sage.rings.complex_double.CDF(entries)
             except TypeError:
-                raise TypeError, "entries must to coercible to list or real double "
-            if self._nrows != self._ncols and z !=0:
+                raise TypeError, "entries must to coercible to list or complex double "
+            if self._nrows != self._ncols and entries!=0:
                 raise TypeError, "scalar matrix must be square"
             for i from 0<=i<self._ncols:
-                gsl_matrix_set(self._matrix,i,i,z)
+                gsl_matrix_complex_set(self._matrix,i,i,z._complex)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        cdef double z
-        z = float(value)
-        gsl_matrix_set(self._matrix,i,j,z) #sig on here ?
+        cdef ComplexDoubleElement z
+        z = sage.rings.complex_double.CDF(value)   # do I assume value is already CDF
+        gsl_matrix_complex_set(self._matrix,i,j,z._complex) #sig on here ?
         self._LU_valid  = 0
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        return sage.rings.real_double.RDF(gsl_matrix_get(self._matrix,i,j)) #sig on here?
+        cdef gsl_complex z
+        z= gsl_matrix_complex_get(self._matrix,i,j)
+        return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
 
 
     ########################################################################
@@ -158,16 +164,16 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     #   * def _pickle
     #   * def _unpickle
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
-        cdef Matrix_real_double_dense M,_right,_left
+        cdef Matrix_complex_double_dense M,_right,_left
         _right = right
         _left = self
         cdef int result_add,result_copy
         if (self._matrix.size1 != _right._matrix.size1 and self._matrix.size2 != _right._matrix.size2):
             raise TypeError, "Cannot add matrices if they have different dimensions"
         parent = self.matrix_space(self._matrix.size1,self._matrix.size2)
-        M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        result_copy = gsl_matrix_memcpy(M._matrix,_left._matrix)
-        result_add = gsl_matrix_add(M._matrix,_right._matrix)
+        M=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result_copy = gsl_matrix_complex_memcpy(M._matrix,_left._matrix)
+        result_add = gsl_matrix_complex_add(M._matrix,_right._matrix)
         if result_copy!=GSL_SUCCESS or result_add !=GSL_SUCCESS:
             raise ValueError, "GSL routine had an error"
         # todo -- check error code
@@ -175,28 +181,30 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right): #matrix.Matrix right):
-        cdef Matrix_real_double_dense M,_right,_left
+        cdef Matrix_complex_double_dense M,_right,_left
         _right = right
         _left = self
         cdef int result_sub,result_copy
         if (self._matrix.size1 != _right._matrix.size1 and self._matrix.size2 != _right._matrix.size2):
             raise TypeError, "Cannot subtract matrices if they have different dimensions"
         parent = self.matrix_space(self._matrix.size1,self._matrix.size2)
-        M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        M=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
         # todo -- check error code
-        result_copy = gsl_matrix_memcpy(M._matrix,_left._matrix)
-        result_add = gsl_matrix_sub(M._matrix,_right._matrix)
+        result_copy = gsl_matrix_complex_memcpy(M._matrix,_left._matrix)
+        result_add = gsl_matrix_complex_sub(M._matrix,_right._matrix)
         if result_copy!=GSL_SUCCESS or result_sub !=GSL_SUCCESS:
             raise ValueError, "GSL routine had an error"
         return M
 
     def __neg__(self):
-        cdef Matrix_real_double_dense M
+        cdef Matrix_complex_double_dense M
         cdef int result_neg, result_copy
+        cdef gsl_complex z
+        GSL_SET_COMPLEX(&z,-1.0,0)
         parent = self.matrix_space(self._matrix.size1,self._matrix.size2)
-        M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        result_copy = gsl_matrix_memcpy(M._matrix,self._matrix)
-        result_neg = gsl_matrix_scale(M._matrix,-1.0)
+        M=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result_copy = gsl_matrix_complex_memcpy(M._matrix,self._matrix)
+        result_neg = gsl_matrix_complex_scale(M._matrix,z)
         if result_copy!=GSL_SUCCESS or result_neg !=GSL_SUCCESS:
             raise ValueError, "GSL routine had an error"
         return M
@@ -213,16 +221,18 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     ######################################################################
     def _multiply_classical(self, matrix.Matrix right):
         cdef int result
+        cdef gsl_complex a, b
         if self._ncols!=right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right"
 
         parent = self.matrix_space(self._nrows,right._ncols)
-        cdef Matrix_real_double_dense M,_right,_left
+        cdef Matrix_complex_double_dense M,_right,_left
         _right = right
         _left = self
-
-        M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        result  = gsl_blas_dgemm(CblasNoTrans,CblasNoTrans,1.0,_left._matrix,_right._matrix,0,M._matrix)
+        GSL_SET_COMPLEX(&a,1.0,0)
+        GSL_SET_COMPLEX(&b,0,0)
+        M=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result  = gsl_blas_zgemm(CblasNoTrans,CblasNoTrans,a,_left._matrix,_right._matrix,b,M._matrix)
         return M
 
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
@@ -230,11 +240,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         cdef int result_LU, result_invert
         if(self._LU_valid != 1):
             self._c_compute_LU()
-        cdef Matrix_real_double_dense M
+        cdef Matrix_complex_double_dense M
         parent = self.matrix_space(self._nrows,self._ncols)
-        M=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        result_invert = gsl_linalg_LU_invert(self._LU,self._p,M._matrix)
-        self._LU_valid = 1
+        M=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result_invert = gsl_linalg_complex_LU_invert(self._LU,self._p,M._matrix)
         return M
 
     # def __copy__(self):
@@ -257,66 +266,21 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     cdef _c_compute_LU(self):
         cdef int result_LU
         if self._LU == NULL:
-            self._LU = <gsl_matrix *> gsl_matrix_alloc(self._nrows,self._ncols)
+            self._LU = <gsl_matrix_complex *> gsl_matrix_complex_alloc(self._nrows,self._ncols)
         if self._LU == NULL:
             raise MemoryError, "allocation error"
         if self._p ==NULL:
             self._p =<gsl_permutation *> gsl_permutation_alloc(self._nrows)
         if self._p == NULL:
             raise MemoryError, "allocation error"
-        gsl_matrix_memcpy(self._LU,self._matrix)
+        gsl_matrix_complex_memcpy(self._LU,self._matrix)
         _sig_on
-        result_LU = gsl_linalg_LU_decomp(self._LU,self._p,&self._signum)
+        result_LU = gsl_linalg_complex_LU_decomp(self._LU,self._p,&self._signum)
         _sig_off
         if result_LU == GSL_SUCCESS:
             self._LU_valid = 1
         else:
             raise ValueError,"Error computing LU decomposition"
-
-    def LU(self):
-        """
-        Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
-
-        P*A = L*U
-
-        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
-
-        sage: m=matrix(RDF,4,range(16))
-        sage: P,L,U = m.LU()
-        sage: P*m
-        [12.0 13.0 14.0 15.0]
-        [ 0.0  1.0  2.0  3.0]
-        [ 8.0  9.0 10.0 11.0]
-        [ 4.0  5.0  6.0  7.0]
-        sage: L*U
-        [12.0 13.0 14.0 15.0]
-        [ 0.0  1.0  2.0  3.0]
-        [ 8.0  9.0 10.0 11.0]
-        [ 4.0  5.0  6.0  7.0]
-        """
-
-
-        if self._ncols!=self._nrows:
-            raise TypeError,"LU decomposition only works for square matrix"
-        if self._LU_valid != 1:
-            self._c_compute_LU()
-        cdef Py_ssize_t i,j,k,l,copy_result
-        cdef Matrix_real_double_dense P, L,U
-        parent = self.matrix_space(self._nrows,self._ncols)
-        P=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        L = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        U = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        for i from 0<=i<self._ncols:
-            j = gsl_permutation_get(self._p,i)
-            P.set_unsafe(i,j,1)
-            L.set_unsafe(i,i,1)
-            U.set_unsafe(i,i,gsl_matrix_get(self._LU,i,i))
-            for l from 0<=l<i:
-                L.set_unsafe(i,l,gsl_matrix_get(self._LU,i,l))
-                U.set_unsafe(l,i,gsl_matrix_get(self._LU,l,i))
-
-
-        return [P,L,U]
 
 
     def eigen(self):
@@ -325,122 +289,122 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as an RDF matrix whose columns are the eigenvectors.
+             corresponding eigenvectors -- as a list
 
-
+        These are still formated via numpy, but this will change.
 
         EXAMPLES:
-            sage: m = Matrix(RDF, 3, range(9))
+            sage: m = I*Matrix(CDF, 3, range(9))
             sage: m.eigen()           # random-ish platform-dependent output (low order digits)
-            ([13.3484692283, -1.34846922835, -6.43047746712e-16],
- 	     [-0.164763817282 -0.799699663112  0.408248290464]
-	     [-0.505774475901 -0.104205787719 -0.816496580928]
-	     [-0.846785134519  0.591288087674  0.408248290464])
+	    ([1.7763568394e-15 + 13.3484687805*I, 2.20293602535e-16 - 1.34846925735*I, 1.92354583789e-17 + 6.13973102367e-16*I],
+ 	     [0.164763817282 - 2.92873499974e-16*I     0.799699663112             -0.408248290464 + 9.71445146547e-17*I]
+  	     [0.505774475901 + 2.00967003978e-17*I     0.104205787719 - 5.06539254985e-16*I              0.816496580928]
+	     [0.846785134519 -0.591288087674 + 7.21644966006e-16*I -0.408248290464 - 2.22044604925e-16*I])
 
         IMPLEMENTATION:
             Uses numpy.
         """
         import_array() #This must be called before using the numpy C/api or you will get segfault
-        cdef Matrix_real_double_dense _M,_result_matrix
-        _M=self
+        cdef Matrix_complex_double_dense _M, _result_matrix
         cdef int dims[2]
-        cdef int i
-        cdef object temp
         cdef double *p
+        cdef object temp
         cdef ndarray _n,_m
+        parent = self.matrix_space(self._nrows,self._ncols)
+        _result_matrix = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        _M=self
         dims[0] = _M._matrix.size1
         dims[1] = _M._matrix.size2
-        temp = PyArray_FromDims(2, dims, 12)
+        temp = PyArray_FromDims(2, dims, 15)# 15 is a type code in ndarray.h here 15 is complex double
         _n = temp
-        _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
+        _n.flags = _n.flags&(~NPY_OWNDATA) # this performs a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
         v,_m = numpy.linalg.eig(_n)
-
-        parent = self.matrix_space(self._nrows,self._ncols)
-        _result_matrix = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        #It may be worthfile to check the flags that it is contiguous.
         p = <double *> _m.data
-        for i from 0<=i<_M._matrix.size1*_M._matrix.size2:
+        for i from 0<=i<2*_M._nrows*_M._ncols:
             _result_matrix._matrix.data[i] = p[i]
-        return ([sage.rings.real_double.RDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
+
+        return ( [sage.rings.complex_double.CDF(x) for x in v],_result_matrix)   #todo: make the result a complex double matrix
+
 
     def solve_left(self, vec):
         """
         Solve the equation A*x = b, where
 
         EXAMPLES:
-            sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
-            [ 1.0  2.0  5.0]
-            [ 7.6  2.3  1.0]
-            [ 1.0  2.0 -1.0]
-            sage: b = vector(RDF,[1,2,3])
+            sage: A =I*matrix(CDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
+            [1.0*I             2.0*I                5.0*I]
+	    [7.59999990463*I   2.29999995232*I      1.0*I]
+ 	    [1.0*I             2.0*I               -1.0*I]
+            sage: b = vector(CDF,[1,2,3])+I*vector(CDF,[1,2,3])
             sage: x = A.solve_left(b); x
-            (-0.113695090439, 1.39018087855, -0.333333333333)
+            (-0.113695090439 + 0.113695092499*I, 1.39018087855 - 1.39018082619*I, -0.333333333333 + 0.333333343267*I)
             sage: A*x
-            (1.0, 2.0, 3.0)
+            (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
         """
         import solve
-        return solve.solve_matrix_real_double_dense(self, vec)
-
+        return solve.solve_matrix_complex_double_dense(self, vec)
 
     def determinant(self):
          """compute the determinant using GSL (LU decompositon)"""
+         cdef gsl_complex z
          if(self._LU_valid !=1):
              self._c_compute_LU()
-         return gsl_linalg_LU_det(self._LU, self._signum)
+         z=gsl_linalg_complex_LU_det(self._LU, self._signum)
+         return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
 
     def log_determinant(self):
-         """compute the log of the determinant using GSL(LU decomposition)
+         """compute the log of the absolute value of the determinant using GSL(LU decomposition)
            useful if the determinant overlows"""
+         cdef double z
          if(self._LU_valid !=1):
              self._c_compute_LU()
-         return gsl_linalg_LU_lndet(self._LU)
+         z=gsl_linalg_complex_LU_lndet(self._LU)
+         return sage.rings.real_double.RDF(z)
+
     def transpose(self):
-        cdef Matrix_real_double_dense trans
+        cdef Matrix_complex_double_dense trans
         cdef int result_copy
         parent  = self.matrix_space(self._ncols,self._nrows)
-        trans = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
-        result_copy = gsl_matrix_transpose_memcpy(trans._matrix,self._matrix)
+        trans = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        result_copy = gsl_matrix_complex_transpose_memcpy(trans._matrix,self._matrix)
         if result_copy !=GSL_SUCCESS:
             raise ValueError, "Error copy matrix"
         return trans
 
-    def SVD(self):
-         """Compute the singular value decomposition of a matrix. That is factors a matrix A as
-         A = USV^T, for U, V orthogonal matrices and S diagonal. This function returns a tuple containing
-         the matrices U,S, and V.
+    def LU(self):
+        """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+        P*A = L*U
+        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
 
-         sage: m = matrix(RDF,4,range(16))
-         sage: U,S,V = m.SVD()
-         sage: U*S*V.transpose()
-         [3.45569519412e-16               1.0               2.0               3.0]
-         [4.0               5.0               6.0               7.0]
-         [8.0               9.0              10.0              11.0]
-         [12.0              13.0              14.0              15.0]
+        sage: m=matrix(CDF,4,range(16))
+        sage: P,L,U = m.LU()
+        sage: P*m
+        sage: L*U
+        """
+        if self._ncols!=self._nrows:
+            raise TypeError,"LU decomposition only works for square matrix"
+        if self._LU_valid != 1:
+            self._c_compute_LU()
+        cdef Py_ssize_t i,j,k,l,copy_result
+        cdef Matrix_complex_double_dense P, L,U
+        cdef gsl_complex z
+        parent = self.matrix_space(self._nrows,self._ncols)
+        P=Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        L = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        U = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
+        for i from 0<=i<self._ncols:
+            j = gsl_permutation_get(self._p,i)
+            GSL_SET_COMPLEX(&z,1,0)
+            gsl_matrix_complex_set(P._matrix,i,j,z)
+            gsl_matrix_complex_set(L._matrix,i,i,z)
+            z = gsl_matrix_complex_get(self._LU,i,i)
+            gsl_matrix_complex_set(U._matrix,i,i,z)
+            for l from 0<=l<i:
+                z = gsl_matrix_complex_get(self._LU,i,l)
+                gsl_matrix_complex_set(L._matrix,i,l,z)
+                z = gsl_matrix_complex_get(self._LU,l,i)
+                gsl_matrix_complex_set(U._matrix,l,i,z)
 
-         """
-         if self._ncols > self._nrows:
-             m = self.transpose()
-             V_t,S_t,U_t=m.SVD()
-             return [U_t,S_t,V_t]
-         cdef Matrix_real_double_dense A,V,_S
-         cdef gsl_vector* S
-         cdef gsl_vector* work_space
-         cdef int result_copy, result_svd, i
-         parent_A = self.matrix_space(self._nrows,self._ncols)
-         A=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_A,None,None,None)
-         parent_V = self.matrix_space(self._ncols,self._ncols)
-         V = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_V,None,None,None)
-         result_copy = gsl_matrix_memcpy(A._matrix,self._matrix)
-         S = <gsl_vector *> gsl_vector_alloc(self._ncols)
-         work_space = <gsl_vector *> gsl_vector_alloc(self._ncols)
-         _sig_on
-         result_svd  = gsl_linalg_SV_decomp(A._matrix, V._matrix, S, work_space)
-         _sig_off
-         parent_S = self.matrix_space(self._ncols,self._ncols)
-         _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
-         for i from 0<=i<self._ncols:
-             _S.set_unsafe(i,i,gsl_vector_get(S,i))
-#            _S[i,i] = gsl_vector_get(S,i)
-         gsl_vector_free(S)
-         gsl_vector_free(work_space)
-         return [A,_S,V]
+        return [P,L,U]

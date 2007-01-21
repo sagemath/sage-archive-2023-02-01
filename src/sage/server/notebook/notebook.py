@@ -16,9 +16,8 @@ beautiful antialised images.  To try it out immediately, do this:
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should fully work with Firefox (and Mozilla) and
- Safari. The notebook works somewhat in Internet Explorer and Opera,
- but not very well.
+The SAGE notebook should fully work with Firefox (and Mozilla),
+Safari, and Opera. The notebook works somewhat in Internet Explorer.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -769,7 +768,7 @@ class Notebook(SageObject):
         print '*' + ' '*j + s + ' '*j + '*'
         print '*'+ ' '*(n-2) + '*'
         print '*'*n
-        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla and Safari."
+        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla, Safari, and Opera."
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)

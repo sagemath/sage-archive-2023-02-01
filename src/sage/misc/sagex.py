@@ -106,7 +106,8 @@ def sagex(filename, verbose=False, compile_message=False,
     if filename[-5:] != '.spyx':
         print "File (=%s) must have extension .spyx"%filename
 
-    base = os.path.split(os.path.splitext(filename)[0])[1]
+    clean_filename = sanitize(filename)
+    base = os.path.split(os.path.splitext(clean_filename)[0])[1]
 
     build_dir = '%s/%s'%(SPYX_TMP, base)
     if os.path.exists(build_dir):
@@ -151,8 +152,8 @@ def sagex(filename, verbose=False, compile_message=False,
     # increment the sequence number so will use a different one next time.
     sequence_number[base] += 1
 
-    additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+filename+"'" \
-                                        for filename in additional_source_files])
+    additional_source_files = ",".join(["'"+os.path.abspath(os.curdir)+"/"+fname+"'" \
+                                        for fname in additional_source_files])
 
     pyx = '%s/%s.pyx'%(build_dir, name)
     open(pyx,'w').write(F)
@@ -333,4 +334,24 @@ def f(%s):
                                          use_cache=use_cache,
                                          create_local_c_file=False)
     return d['f']
+
+
+
+def sanitize(f):
+    """
+    Given a filename f, replace it by a filename that is a valid Python
+    module name.
+
+    This means that the characters are all alphanumeric or _'s and
+    doesn't begin with a numeral.
+    """
+    s = ''
+    if f[0].isdigit():
+        s += '_'
+    for a in f:
+        if a.isalnum():
+            s += a
+        else:
+            s += '_'
+    return s
 

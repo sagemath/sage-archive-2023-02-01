@@ -425,8 +425,20 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             [2, 1, 4, 3]
             sage: type(v[0])
             <type 'int'>
+            sage: x = G([2,1]); x
+            (1,2)
+            sage: x.list()
+            [2, 1, 3, 4]
         """
-        return eval(gap.eval('ListPerm(%s)'%self.__gap))
+        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
+        # the following is necessary, since if the
+        # permutation doesn't move some elements at
+        # the end, it is consider by gap as being in
+        # a smaller group.
+        d = self.parent().degree()
+        if len(v) < d:
+            v += range(len(v)+1,d+1)
+        return v
 
     def order(self):
         """

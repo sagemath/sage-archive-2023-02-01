@@ -594,7 +594,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-        print "path = '%s'"%path
         if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':

@@ -721,16 +721,22 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
+        print "-"*70
+
         if filename is None:
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
             except IOError:
                 pass
-            print "Saving notebook to %s"%self.__filename
-            SageObject.save(self, os.path.abspath(self.__filename), compress=False)
+            F = os.path.abspath(self.__filename)
         else:
-            SageObject.save(self, os.path.abspath(filename), compress=False)
+            F = os.path.abspath(filename)
+
+        print "Saving notebook to '%s'..."%F
+        SageObject.save(self, F, compress=False)
+        print "Press control-C twice to stop notebook server."
+        print "-"*70
 
     def start(self, port=8000, address='localhost',
                     max_tries=128, open_viewer=False,

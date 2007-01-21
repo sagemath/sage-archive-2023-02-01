@@ -159,8 +159,9 @@ var update_error_count = 0;
 var update_error_threshold = 30;
 
 // in milliseconds
-var update_error_delta = 1000;
-var update_normal_delta = 256;
+var update_error_delta = 1024;
+//var update_normal_delta = 256;
+var update_normal_delta = 512;
 var cell_output_delta = update_normal_delta;
 
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server

@@ -385,8 +385,10 @@ def sage_prefilter(self, block, continuation):
     """
     try:
         block2 = ''
+        first = True
         for L in block.split('\n'):
-            M = do_prefilter_paste(L, continuation)
+            M = do_prefilter_paste(L, continuation or (not first))
+            first = False
             # The L[:len(L)-len(L.lstrip())]  business here preserves
             # the whitespace at the beginning of L.
             if block2 != '':

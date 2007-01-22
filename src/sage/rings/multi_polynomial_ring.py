@@ -408,6 +408,13 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
         Coerce works and gets the right parent.
             sage: parent(S2._coerce_(S.0)) is S2
             True
+
+        Coercion to reduce modulo a prime between rings with different variable names:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = PolynomialRing(GF(7),2)
+            sage: f = x^2 + 2/3*y^3
+            sage: S(f)
+            3*b^3 + a^2
         """
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
@@ -415,13 +422,19 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 return x
             elif P == self:
                 return multi_polynomial_element.MPolynomial_polydict(self, x.element().dict())
-            elif P.variable_names() == self.variable_names():
+            elif len(P.variable_names()) == len(self.variable_names()):
+                # Map the variables in some crazy way (but in order,
+                # of course).  This is here since R(blah) is supposed
+                # to be "make an element of R if at all possible with
+                # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
                 for i, a in D.iteritems():
                     D[i] = K(a)
                 return multi_polynomial_element.MPolynomial_polydict(self, D)
-            raise TypeError
+            else:
+                raise TypeError
+
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_polydict(self, x)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:

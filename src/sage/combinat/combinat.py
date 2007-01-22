@@ -201,7 +201,7 @@ def bell_number(n):
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
-    If $n\leq 1$, returns $1$.
+    If $n \leq 0$, returns $1$.
 
     Wraps GAP's Bell.
 

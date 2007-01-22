@@ -802,9 +802,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
            sage: x = 3^100000
            sage: log(x, 3)
-           100000.000000000
+           99999.9999999999
            sage: log(x + 100000, 3)
-           100000.000000000
+           99999.9999999999
 
            sage: x.exact_log(3)
            100000

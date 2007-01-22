@@ -160,7 +160,7 @@ class NumberFieldElement(field_element.FieldElement):
         EXAMPLES:
             sage: z = CyclotomicField(7).gen()
             sage: abs(z)
-            0.999999999999999
+            1.00000000000000
             sage: abs(z^2 + 17*z - 3)
             16.0604426799930
             sage: K.<a> = NumberField(x^3+17)

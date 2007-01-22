@@ -766,6 +766,7 @@ setup(name        = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
+                     'sage.dsage'
                      ],
 
       ext_modules = ext_modules,

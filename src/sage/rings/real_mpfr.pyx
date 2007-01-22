@@ -1,11 +1,12 @@
 """
 Aribtrary Precision Real Numbers
 
-AUTHORS: Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
-         William Stein <wstein@gmail.com>: bug fixes, examples, maintenance
-         Didier Deshommes <dfdeshom@gmail.com> (2006-03-19): examples
-         David Harvey (2006-09-20): compatibility with Element._parent
-         William Stein (2006-10): default printing truncates to avoid base-2
+AUTHORS:
+   -- Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
+   -- William Stein <wstein@gmail.com>: bug fixes, examples, maintenance
+   -- Didier Deshommes <dfdeshom@gmail.com> (2006-03-19): examples
+   -- David Harvey (2006-09-20): compatibility with Element._parent
+   -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
 """
 
@@ -120,10 +121,10 @@ cdef class RealField(sage.rings.ring.Field):
                 using scientific notation
 
         rnd -- (string) the rounding mode
-                RNDD -- round towards minus infinity (default) -- Knuth says
-                        this is the best choice to prevent
-                        ``floating point drift''.
-                RNDN -- round to nearest
+                RNDN -- (default) round to nearest: Knuth says this is
+                        the best choice to prevent ``floating point
+                        drift''.
+                RNDD -- round towards minus infinity
                 RNDZ -- round towards zero
                 RNDU -- round towards plus infinity
 
@@ -143,7 +144,7 @@ cdef class RealField(sage.rings.ring.Field):
        implemented.'
     """
 
-    def __init__(self, int prec=53, int sci_not=0, rnd="RNDD"):
+    def __init__(self, int prec=53, int sci_not=0, rnd="RNDN"):
         if prec < MPFR_PREC_MIN or prec > MPFR_PREC_MAX:
             raise ValueError, "prec (=%s) must be >= %s and <= %s."%(
                 prec, MPFR_PREC_MIN, MPFR_PREC_MAX)
@@ -171,7 +172,7 @@ cdef class RealField(sage.rings.ring.Field):
 
     def _repr_(self):
         s = "Real Field with %s bits of precision"%self.__prec
-        if self.rnd != GMP_RNDD:
+        if self.rnd != GMP_RNDN:
             s = s + " and rounding %s"%(self.rnd_str)
         return s
 
@@ -335,7 +336,7 @@ cdef class RealField(sage.rings.ring.Field):
             sage: R.pi()
             3.1415926535897932384626433832
             sage: R.pi().sqrt()/2
-            0.88622692545275801364908374166
+            0.88622692545275801364908374167
             sage: R = RealField(150)
             sage: R.pi().sqrt()/2
             0.88622692545275801364908374167057259139877472
@@ -477,10 +478,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R('1.2456')
-            1.24559999999999
+            1.24560000000000
             sage: R = RealField(3)
             sage: R('1.2456')
-            1.0
+            1.2
 
         EXAMPLE: Rounding Modes
             sage: w = RealField(3)(5/2)
@@ -780,7 +781,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a
             393.39
             sage: b
-            393.39028340283449999999999999
+            393.39028340283450000000000000
             sage: a*b
             154750
             sage: b*a
@@ -806,7 +807,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: R = RealField()
             sage: R(-1.5) / R(2.5)
-            -0.600000000000000
+            -0.599999999999999
         """
         cdef RealNumber x
         x = self._new()
@@ -1087,9 +1088,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r.sqrt()
             65.9090282131363
             sage: r.sqrt()^2 == r
-            False
+            True
             sage: r.sqrt()^2 - r
-             -0.000000000000909494701772928
+             0.000000000000000
 
             sage: r = -2.0
             sage: r.sqrt()
@@ -1433,9 +1434,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: q = RR.pi()/5
             sage: i = q.sin()
             sage: i.asin() == q
-            False
+            True
             sage: i.asin() - q
-            -0.000000000000000111022302462515
+            0.000000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -1536,7 +1537,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: i = q.sinh() ; i
             0.464017630492990
             sage: i.asinh() - q
-            -0.0000000000000000555111512312578
+            0.000000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -1554,7 +1555,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: i = q.tanh() ; i
             0.420911241048534
             sage: i.atanh() - q
-            -0.0000000000000000555111512312578
+            0.000000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -1591,7 +1592,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
            sage: R = RealField()
            sage: R(6).erf()
-           0.999999999999999
+           1.00000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -1610,7 +1611,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
            sage: R(6).gamma()
            120.000000000000
            sage: R(1.5).gamma()
-           0.886226925452757
+           0.886226925452758
         """
         cdef RealNumber x
         x = self._new()

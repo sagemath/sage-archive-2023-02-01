@@ -2041,7 +2041,7 @@ def continued_fraction(x, partial_convergents=False):
         sage: continued_fraction(45/17)
         [2, 1, 1, 1, 5]
         sage: continued_fraction(sqrt(2))
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
@@ -2059,11 +2059,11 @@ def continued_fraction(x, partial_convergents=False):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction(e)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: continued_fraction(RR(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: print continued_fraction(RealField(200)(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 2]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
     if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
                       int, long)):
@@ -2385,7 +2385,7 @@ def rising_factorial(x, a):
         1320.00000000000
 
         sage: rising_factorial(10,RR('3.3'))
-        2826.38895824963
+        2826.38895824964
 
         sage: rising_factorial(1+I, I)
         0.266816390637832 + 0.122783354006371*I

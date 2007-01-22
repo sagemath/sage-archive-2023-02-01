@@ -340,6 +340,42 @@ def is_prime(n, flag=0):
     n = sage.rings.integer.Integer(n)
     return pari(n).isprime()
 
+def is_pseudoprime(n, flag=0):
+    r"""
+    Returns True if $x$ is a pseudo-prime, and False otherwise.  The result
+    is \em{NOT} proven correct -- {\em this is a pseudo-primality test!}.
+
+    INPUT:
+        flag -- int
+                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+
+    OUTPUT:
+        bool -- True or False
+
+    \note{We do not consider negatives of prime numbers as prime.}
+
+    EXAMPLES::
+        sage: is_pseudoprime(389)
+        True
+        sage: is_pseudoprime(2000)
+        False
+        sage: is_pseudoprime(2)
+        True
+        sage: is_pseudoprime(-1)
+        False
+        sage: factor(-6)
+        -1 * 2 * 3
+        sage: is_pseudoprime(1)
+        False
+        sage: is_pseudoprime(-2)
+        False
+
+    IMPLEMENTATION: Calls the PARI ispseudoprime function.
+    """
+    n = sage.rings.integer.Integer(n)
+    return pari(n).ispseudoprime()
+
 def is_prime_power(n, flag=0):
     r"""
     Returns True if $x$ is a prime power, and False otherwise.  The result

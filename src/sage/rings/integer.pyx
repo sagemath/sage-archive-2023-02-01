@@ -1296,6 +1296,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return bool(self._pari_().isprime())
 
+    def is_pseudoprime(self):
+        r"""
+        Retuns \code{True} if self is a pseudoprime
+
+        EXAMPLES:
+            sage: z = 2^31 - 1
+            sage: z.is_pseudoprime()
+            True
+            sage: z = 2^31
+            sage: z.is_pseudoprime()
+            False
+        """
+        return bool(self._pari_().ispseudoprime())
+
     def square_free_part(self):
         """
         Return the square free part of $x$, i.e., a divisor z such that $x = z y^2$,

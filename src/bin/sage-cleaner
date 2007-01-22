@@ -1,0 +1,96 @@
+#!/usr/bin/env python
+
+#########################################################
+# This is the sage monitor *daemon*, which cleans up after SAGE.
+# Some things that it cleans up:
+#   * $HOME/.sage/tmp/pid directories
+#   * Processes that SAGE spawns.  If a copy of SAGE isn't
+#     running, then any process it spawned should have its
+#     process group killed
+#
+# Triva Note: For the name "sage-cleaner", think of the
+# "The Cleaner" from Pulp Fiction:
+#      http://www.frankjankowski.de/quiz/illus/keitel.jpg
+#
+#########################################################
+#   SAGE: System for Algebra and Geometry Experimentation
+#       Copyright (C) 2005, 2006, 2007 William Stein <wstein@gmail.com>
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+#########################################################
+
+import os, shutil, sys, time
+
+DOT_SAGE = '%s/.sage'%os.environ['HOME']
+tmp = '%s/tmp'%DOT_SAGE
+if not os.path.exists(tmp):
+    os.makedirs(tmp)
+
+def is_running(pid):
+    """
+    Return True if and only if there is a process with id pid running.
+    """
+    try:
+        os.kill(int(pid),0)
+        return True
+    except (OSError, ValueError):
+        return False
+
+def cleanup():
+    D = '%s/.sage/tmp'%os.environ['HOME']
+    tmp_dirs = os.listdir(tmp)
+    for parent_pid in tmp_dirs:
+        if not is_running(parent_pid):
+            T = '%s/%s'%(D,parent_pid)
+            spawned_processes = '%s/spawned_processes'%T
+            e = os.path.exists(spawned_processes)
+            if not e or (e and kill_spawned_jobs(spawned_processes, parent_pid)):
+                try:
+                    d = '%s/%s'%(D,parent_pid)
+                    #print "SAGE Cleaner: deleting %s"%d
+                    shutil.rmtree(d)
+                except OSError, msg:
+                    pass
+
+    return len(tmp_dirs)
+
+def kill_spawned_jobs(file, parent_pid):
+    killed_them_all = True
+    for L in open(file).readlines():
+        i = L.find(' ')
+        pid = L[:i].strip()
+        cmd = L[i+1:].strip()
+        try:
+            #print "SAGE-Cleaner: trying to kill %s with parent %s"%(pid, parent_pid)
+            os.killpg(int(pid), 9)
+        except OSError, msg:
+            #print msg
+            pass
+        if is_running(pid):
+            # try again later
+            killed_them_all = False
+    return killed_them_all
+
+
+
+
+def setup_daemon():
+    D = '%s/tmp_cleaner.pid'%DOT_SAGE
+    if os.path.exists(D):
+        pid = open(D).read()
+        if is_running(pid):
+            sys.exit(0)
+    open(D,'w').write(str(os.getpid()))
+
+if __name__ == '__main__':
+    setup_daemon()
+
+    if len(sys.argv) > 1:
+        wait = int(sys.argv[1])
+    else:
+        wait = 3
+
+    time.sleep(wait + 3)
+    while cleanup() > 0:
+        time.sleep(wait)

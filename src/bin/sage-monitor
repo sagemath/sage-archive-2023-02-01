@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-# this goes in <SAGE_ROOT>/local/bin/sage-monitor
+# This file goes in <SAGE_ROOT>/local/bin/sage-monitor
 
-import os, time, sys
+import os, sys, time
 
 def check_usage():
     v = sys.argv
@@ -15,6 +15,8 @@ def check_usage():
         sys.exit(1)
 
 def process_is_running(pid):
+    print "determine if %s is running"%pid
+    sys.stdout.flush()
     try:
         os.kill(pid,0)
     except OSError:
@@ -30,20 +32,19 @@ def main():
 
     while True:
         time.sleep(interval)
-        if not process_is_running(subprocess):
-            sys.exit(0)
         if not process_is_running(pid):
-            # clean up house by killing subprocess
             try:
                 os.killpg(subprocess, 9)
             except OSError, msg:
-                pass
+                print msg
             try:
                 os.kill(subprocess, 9)
             except OSError, msg:
-                pass
+                print msg
             sys.exit(0)
         #end if
+        if not process_is_running(subprocess):
+            sys.exit(0)
 
 if __name__ == '__main__':
     check_usage()

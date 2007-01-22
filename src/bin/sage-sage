@@ -28,7 +28,6 @@ usage_advanced() {
     echo "  -br [branch]  -- switch to, build, and run SAGE branch in devel/sage-branch"
     echo "  -ba [branch]  -- switch to, rebuild all Sagex code, and run SAGE branch in devel/sage-branch"
     echo "  -bdist VER    -- build a binary distribution of SAGE"
-    echo "  -cleantmp     -- delete files in .sage/tmp not in use on current machine"
     echo "  -clisp [...]  -- run Common Lisp"
     echo "  -clone [new branch] -- clone and run a new branch of the SAGE library from current branch"
     echo "  -gap <..>     -- run SAGE's Gap with given arguments"
@@ -128,6 +127,7 @@ sage_setup() {
         cp -r "$SAGE_ROOT/ipython" "$DOT_SAGE/"
     fi
     matplotlib_setup
+    sage-cleaner &
 }
 
 
@@ -175,7 +175,7 @@ if [ $# -eq 0 ]; then
 fi
 
 if [ $1 = '-cleantmp' -o $1 = '--cleantmp' ]; then
-    sage-cleantmp
+    sage-cleaner
     exit $?
 fi
 
@@ -314,6 +314,7 @@ fi
 if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    cd "$CUR"
    shift
+   sage-cleaner &
    sage-notebook "$@"
    exit $?
 fi

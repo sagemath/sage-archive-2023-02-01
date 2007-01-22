@@ -265,8 +265,9 @@ else
 
    echo "sage: An error occured while installing $PKG_NAME"
    echo "Please email William Stein <wstein@gmail.com> explaining the"
-   echo "problem and send him $SAGE_ROOT/install.log"
-   echo "If you want to try to fix the problem, *don't* just cd to"
+   echo "problem and send him the relevant part of"
+   echo "of $SAGE_ROOT/install.log.  Don't send the whole thing."
+   echo "If you want to try to fix the problem, yourself *don't* just cd to"
    echo "`pwd` and type 'make'."
    echo "Instead (using bash) type \"source local/bin/sage-env\" from the directory"
    echo "$SAGE_ROOT"

@@ -6,7 +6,6 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
-
 import os, time
 
 PID = os.getpid()
@@ -15,11 +14,8 @@ import sage.misc.misc as misc
 F = '%s/spawn'%misc.SAGE_TMP
 
 def monitor(pid, interval, cmd):
-    open(F,'a').write('%s %s\n'%(pid, cmd))
-
-
-    #cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
-    #os.system(cmd)
+    cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
+    os.system(cmd)
 
     ##################################################################
     #

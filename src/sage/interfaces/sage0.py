@@ -102,7 +102,7 @@ class Sage(Expect):
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                        logfile=None,  preparse=True, server=None,
-                       do_monitor=False, python=True):
+                       do_cleaner=True, python=True):
         if python:
             command = "sage -python -u"
             prompt = ">>>"
@@ -122,7 +122,7 @@ class Sage(Expect):
                         restart_on_ctrlc = False,
                         logfile = logfile,
                         init_code = init_code,
-                        do_monitor = do_monitor,
+                        do_cleaner = do_cleaner,
                         )
         self._preparse = preparse
         self._is_local = (server is None)

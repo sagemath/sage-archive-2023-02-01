@@ -161,6 +161,7 @@ if not os.path.exists('%s/tmp'%SAGE_ROOT):
 
 if not os.path.exists('%s/gap/'%DOT_SAGE):
     os.makedirs('%s/gap/'%DOT_SAGE)
+    open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
 
 gap_cmd = "gap"
 

@@ -78,6 +78,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     sage: m.solve_left(b)
     (-4.0, 4.5)
 
+    See the commands QR,LU,SVD for QR, LU, and singular value
+    decomposition.
+
     """
 
 
@@ -277,7 +280,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     def LU(self):
         """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
         P*A = L*U
-        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
+        for P a permutation matrix, L lower triangular and U upper triangular. The routines returns P,L, and U as a tuple
 
         sage: m=matrix(RDF,4,range(16))
         sage: P,L,U = m.LU()
@@ -432,3 +435,53 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          gsl_vector_free(S)
          gsl_vector_free(work_space)
          return [A,_S,V]
+
+    def QR(self):
+         """Computes the Q,R factorization of a matrix A. That is, it finds matrices Q and R
+         s.t. A= Q*R.
+
+         sage: m = matrix(RDF,3,range(12)); m
+         [ 0.0  1.0  2.0  3.0]
+         [ 4.0  5.0  6.0  7.0]
+         [ 8.0  9.0 10.0 11.0]
+         sage: Q,R = m.QR()
+         sage: Q*R
+         [ 0.0  1.0  2.0  3.0]
+         [ 4.0  5.0  6.0  7.0]
+         [ 8.0  9.0 10.0 11.0]
+
+         Note that the columns of Q
+         will be an orthogonal
+
+         sage: Q*Q.transpose()
+         [1.0                   5.55111512313e-17 -1.11022302463e-16]
+         [ 5.55111512313e-17    1.0               -5.55111512313e-17]
+         [-1.11022302463e-16    -5.55111512313e-17               1.0]
+         """
+         cdef gsl_matrix* A
+         cdef gsl_vector* v
+         cdef Matrix_real_double_dense Q,R
+
+         A = <gsl_matrix *> gsl_matrix_alloc(self._nrows,self._ncols)
+         v = <gsl_vector *> gsl_vector_alloc(min(self._nrows,self._ncols))
+         cdef int result
+         result = gsl_matrix_memcpy(A, self._matrix)
+         if result !=GSL_SUCCESS:
+             gsl_matrix_free(A)
+             gsl_vector_free(v)
+             raise ValueError,"Error copying"
+         _sig_on
+         result = gsl_linalg_QR_decomp(A,v)
+         _sig_off
+         parent_Q = self.matrix_space(self._nrows,self._nrows)
+         parent_R = self.matrix_space(self._nrows,self._ncols)
+         Q = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_Q,None,None,None)
+         R = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_R,None,None,None)
+         _sig_on
+         result = gsl_linalg_QR_unpack(A,v,Q._matrix,R._matrix)
+         _sig_off
+         gsl_matrix_free(A)
+         gsl_vector_free(v)
+         if result!=GSL_SUCCESS:
+             raise ValueError,"Error computing QR factorization"
+         return [Q,R]

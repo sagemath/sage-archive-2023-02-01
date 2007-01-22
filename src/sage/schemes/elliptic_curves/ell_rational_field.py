@@ -1341,15 +1341,30 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def omega(self):
         """
-        Returns the real period.  This is the correct period in the BSD
-        conjecture, i.e., it is the least real period * 2 when the period
-        lattice is rectangular.
+        Returns the real period.
+
+        If self is given by a \emph{minimal Weierstrass equation} then
+        this is the correct period in the BSD conjecture, i.e., it is
+        the least real period * 2 when the period lattice is
+        rectangular.
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
             5.986917292463919259664019               # 32-bit
             5.986917292463919259664019958905016      # 64-bit
+
+
+        This is not a minimal model.
+            sage: E = EllipticCurve([0,-432*6^2])
+            sage: E.omega()
+            0.48610938571005642989723045
+
+        If you were to plug the above omega into the BSD conjecture, you
+        would get nonsense.   The following works though:
+            sage: F = E.minimal_model()
+            sage: F.omega()
+            0.97221877142011285979446091
         """
         return self.period_lattice()[0] * self.real_components()
 
@@ -2541,6 +2556,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.sha_an()
             4
 
+        In this case the input curve is not minimal, and if this function didn't
+        transform it to be minimal, it would give nonsense:
+            sage: E = EllipticCurve([0,-432*6^2])
+            sage: E.sha_an()
+            1
         """
 #            sage: e = EllipticCurve([1, 0, 0, -19491080, -33122512122])   # 15834T2
 #            sage: e.sha_an()                          # takes a long time (way too long!!)
@@ -2553,13 +2573,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 return self.__sha_an
             except RuntimeError, AttributeError:
                 pass
-        eps = self.root_number()
+
+        # it's critical to switch to the minimal model.
+        E = self.minimal_model()
+        eps = E.root_number()
         if eps == 1:
-            L1_over_omega = self.L_ratio()
+            L1_over_omega = E.L_ratio()
             if L1_over_omega == 0:
                 return 0
-            T = self.torsion_subgroup().order()
-            Sha = (L1_over_omega * T * T) / Q(self.tamagawa_product())
+            T = E.torsion_subgroup().order()
+            Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
             try:
                 Sha = Z(Sha)
             except ValueError:
@@ -2568,18 +2591,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if not arith.is_square(Sha):
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            E.__sha_an = Sha
             self.__sha_an = Sha
             return Sha
 
         else:  # rank > 0  (Not provably correct)
-            L1, error_bound = self.Lseries_deriv_at1(10*sqrt(self.conductor()) + 10)
+            L1, error_bound = E.Lseries_deriv_at1(10*sqrt(E.conductor()) + 10)
             if abs(L1) < error_bound:
+                E.__sha_an = 0
                 self.__sha_an = 0
                 return 0   # vanishes to order > 1, to computed precision
-            regulator = self.regulator()   # this could take a *long* time; and could fail...?
-            T = self.torsion_subgroup().order()
-            omega = self.omega()
-            Sha = int(round ( (L1 * T * T) / (self.tamagawa_product() * regulator * omega) ))
+            regulator = E.regulator()   # this could take a *long* time; and could fail...?
+            T = E.torsion_subgroup().order()
+            omega = E.omega()
+            Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
                 Sha = Z(Sha)
             except ValueError:
@@ -2588,6 +2613,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if not arith.is_square(Sha):
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            E.__sha_an = Sha
             self.__sha_an = Sha
             return Sha
 

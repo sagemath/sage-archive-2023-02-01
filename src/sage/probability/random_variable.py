@@ -119,6 +119,17 @@ class DiscreteRandomVariable(RandomVariable_generic):
             E += Omega(x) * self(x)
         return E
 
+    def translation_expectation(self, map):
+        r"""
+        The expectation of the discrete random variable, namely $\sum_{x \in S} p(x) X[e(x)]$,
+        where $X$ = self, $S$ is the probability space of $X$, and $e$ = map.
+        """
+        E = 0
+        Omega = self.probability_space()
+        for x in Omega._function.keys():
+            E += Omega(x) * self(map(x))
+        return E
+
     def variance(self):
         r"""
         The variance of the discrete random variable.
@@ -135,6 +146,25 @@ class DiscreteRandomVariable(RandomVariable_generic):
 	var = 0
         for x in self._function.keys():
             var += Omega(x) * (self(x) - mu)**2
+        return var
+
+    def translation_variance(self, map):
+        r"""
+        The variance of the discrete random variable $X \circ e$, where $X$ = self,
+        and $e$ = map.
+
+        Let $S$ be the probability space of $X$ = self, with probability function $p$,
+        and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
+        $$
+        \var(X) = E((X-E(x))^2) = \sum_{x \in S} p(x) (X(x) - E(x))^2
+        $$
+
+        """
+        Omega = self.probability_space()
+        mu = self.translation_expectation(map)
+	var = 0
+	for x in Omega._function.keys():
+            var += Omega(x) * (self(map(x)) - mu)**2
         return var
 
     def covariance(self, other):
@@ -176,9 +206,9 @@ class DiscreteRandomVariable(RandomVariable_generic):
 	    raise ValueError, \
 		 "Argument other (= %s) must be defined on the same probability space." % other
         muX = self.expectation()
-        muY = other.expectation()
+        muY = other.translation_expectation(map)
 	cov = 0
-	for x in self._function.keys():
+	for x in Omega._function.keys():
             cov += Omega(x)*(self(x) - muX)*(other(map(x)) - muY)
         return cov
 
@@ -195,6 +225,20 @@ class DiscreteRandomVariable(RandomVariable_generic):
 
         """
         return sqrt(self.variance())
+
+    def translation_standard_deviation(self, map):
+        r"""
+        The standard deviation of the translated discrete random variable $X \circ e$,
+	where $X$ = self and $e$ = map.
+
+        Let $S$ be the probability space of $X$ = self, with probability function $p$,
+        and $E(X)$ be the {\it expectation} of $X$. Then the standard deviation of $X$
+        is defined to be
+        $$
+        \sigma(X) = \sqrt{ \sum_{x \in S} p(x) (X(x) - E(x))**2}
+        $$
+        """
+        return sqrt(self.translation_variance(map))
 
     def correlation(self, other):
         """
@@ -214,7 +258,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         """
 	cov = self.translation_covariance(other, map)
 	sigX = self.standard_deviation()
-	sigY = other.standard_deviation()
+	sigY = other.translation_standard_deviation(map)
 	if sigX == 0 or sigY == 0:
 	    raise ValueError, \
 	        "Correlation not defined if standard deviations are not both nonzero."

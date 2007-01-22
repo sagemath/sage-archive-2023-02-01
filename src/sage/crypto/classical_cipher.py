@@ -45,7 +45,9 @@ class SubstitutionCipher(SymmetricKeyCipher):
 	return S([ I[A.index(Mstr[i])] for i in range(len(Mstr)) ])
 
     def inverse(self):
-	return self.parent().inverse_key(self.key())
+        E = self.parent()
+	K = E.inverse_key(self.key())
+	return E(K)
 
 class TranspositionCipher(SymmetricKeyCipher):
     """
@@ -106,7 +108,9 @@ class TranspositionCipher(SymmetricKeyCipher):
 	return S([ Melt[g(i+1)-1+k*m] for k in range(N//m) for i in range(m) ])
 
     def inverse(self):
-	return self.parent().inverse_key(self.key())
+        E = self.parent()
+	K = E.inverse_key(self.key())
+	return E(K)
 
 class VigenereCipher(SymmetricKeyCipher):
     """
@@ -141,7 +145,10 @@ class VigenereCipher(SymmetricKeyCipher):
 	return S([ (Melt[i+j*m]+Kelt[i])%n for j in range(N//m) for i in range(m) ])
 
     def inverse(self):
-	return self.parent().inverse_key(self.key())
+        E = self.parent()
+	K = E.inverse_key(self.key())
+	return E(K)
+
 
 
 

@@ -10,7 +10,7 @@ EXAMPLES:
     sage: f(pi)
     (5*sin(((1*pi) + 0)))
     sage: float(f(pi))
-    6.1232339957367643e-16
+    6.1232339957367663e-16
 """
 import weakref
 

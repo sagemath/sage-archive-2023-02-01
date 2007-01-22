@@ -151,7 +151,7 @@ class RationalField(_uniq, field.Field):
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.253841860855999
+            0.253841860856000
             sage: O = E.omega(); O
             1.269209304279553421688794              # 32-bit
             1.269209304279553421688794616754547     # 64-bit

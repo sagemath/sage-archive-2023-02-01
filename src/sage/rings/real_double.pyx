@@ -88,7 +88,7 @@ cdef class RealDoubleField_class(Field):
             sage: b = RDF(a); b
             1.41421356237
             sage: a.parent()(b)
-            1.4142135623699999999999999999999999999999999999999999999999
+            1.4142135623700000000000000000000000000000000000000000000000
         """
         return RealDoubleElement(x)
 
@@ -620,7 +620,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.sqrt()
             65.9090282131363
             sage: r.sqrt()^2 - r
-            -0.000000000000909494701772928
+            0.000000000000000
 
             sage: r = -2.0
             sage: r.sqrt()

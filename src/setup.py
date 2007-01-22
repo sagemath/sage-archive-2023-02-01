@@ -739,6 +739,8 @@ setup(name        = 'sage',
                      'sage.plot',
                      'sage.plot.mpl3d',
 
+                     'sage.probability',
+
                      'sage.quadratic_forms',
 
                      'sage.rings',
@@ -764,6 +766,7 @@ setup(name        = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
+                     'sage.dsage'
                      ],
 
       ext_modules = ext_modules,

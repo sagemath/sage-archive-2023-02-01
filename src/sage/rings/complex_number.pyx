@@ -508,7 +508,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         EXAMPLES:
             sage: (1+I).cotan()
-            0.217621561854402 - 0.868014142895925*I
+            0.217621561854402 - 0.868014142895924*I
             sage: i = ComplexField(200).0
             sage: (1+i).cotan()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
@@ -731,7 +731,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: gamma_inc(2, 1 + i)
             0.70709209 - 0.42035364*I
             sage: gamma_inc(2, 5)
-            0.0404276819945127
+            0.0404276819945128
         """
         return self._parent(self._pari_().incgam(t))
 

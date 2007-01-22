@@ -1,6 +1,3 @@
-
-
-
 """
 Dense matrices over the real double field.
 
@@ -278,14 +275,24 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             raise ValueError,"Error computing LU decomposition"
 
     def LU(self):
-        """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+        """
+        Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+
         P*A = L*U
         for P a permutation matrix, L lower triangular and U upper triangular. The routines returns P,L, and U as a tuple
-
-        sage: m=matrix(RDF,4,range(16))
-        sage: P,L,U = m.LU()
-        sage: P*m
-        sage: L*U
+        EXAMPLES:
+            sage: m = matrix(RDF,4,range(16))
+            sage: P,L,U = m.LU()
+            sage: P*m
+            [12.0 13.0 14.0 15.0]
+            [ 0.0  1.0  2.0  3.0]
+            [ 8.0  9.0 10.0 11.0]
+            [ 4.0  5.0  6.0  7.0]
+            sage: L*U
+            [12.0 13.0 14.0 15.0]
+            [ 0.0  1.0  2.0  3.0]
+            [ 8.0  9.0 10.0 11.0]
+            [ 4.0  5.0  6.0  7.0]
         """
 
 
@@ -400,13 +407,14 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          A = USV^T, for U, V orthogonal matrices and S diagonal. This function returns a tuple containing
          the matrices U,S, and V.
 
-         sage: m = matrix(RDF,4,range(16))
-         sage: U,S,V = m.SVD()
-         sage: U*S*V.transpose()
-         [3.45569519412e-16               1.0               2.0               3.0]
-         [4.0               5.0               6.0               7.0]
-         [8.0               9.0              10.0              11.0]
-         [12.0              13.0              14.0              15.0]
+         EXAMPLES:
+             sage: m = matrix(RDF,4,range(16))
+             sage: U,S,V = m.SVD()
+             sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
+             [3.45569519412e-16               1.0               2.0               3.0]
+             [4.0               5.0               6.0               7.0]
+             [8.0               9.0              10.0              11.0]
+             [12.0              13.0              14.0              15.0]
 
          """
          if self._ncols > self._nrows:

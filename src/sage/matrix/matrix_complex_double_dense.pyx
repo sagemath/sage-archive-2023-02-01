@@ -333,7 +333,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         Solve the equation A*x = b, where
 
         EXAMPLES:
-            sage: A =I*matrix(CDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
+            sage: A =I*matrix(CDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1])
+            sage: A   # slightly random output
             [1.0*I             2.0*I                5.0*I]
 	    [7.59999990463*I   2.29999995232*I      1.0*I]
  	    [1.0*I             2.0*I               -1.0*I]
@@ -378,10 +379,19 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         P*A = L*U
         for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
 
-        sage: m=matrix(CDF,4,range(16))
-        sage: P,L,U = m.LU()
-        sage: P*m
-        sage: L*U
+        EXAMPLES:
+            sage: m=matrix(CDF,4,range(16))
+            sage: P,L,U = m.LU()
+            sage: P*m
+            [12.0 13.0 14.0 15.0]
+            [   0  1.0  2.0  3.0]
+            [ 8.0  9.0 10.0 11.0]
+            [ 4.0  5.0  6.0  7.0]
+            sage: L*U
+            [12.0 13.0 14.0 15.0]
+            [   0  1.0  2.0  3.0]
+            [ 8.0  9.0 10.0 11.0]
+            [ 4.0  5.0  6.0  7.0]
         """
         if self._ncols!=self._nrows:
             raise TypeError,"LU decomposition only works for square matrix"

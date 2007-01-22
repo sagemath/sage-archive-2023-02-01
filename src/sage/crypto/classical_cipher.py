@@ -38,7 +38,7 @@ class SubstitutionCipher(SymmetricKeyCipher):
 	S = self.domain() # = plaintext_space = ciphertext_space
 	if not isinstance(M, StringMonoidElement) and M.parent() == S:
 	    raise TypeError, "Argument M (= %s) must be a string in the plaintext space." % M
-	A = S.alphabet()
+	A = list(S.alphabet())
 	K = str(self.key()) # K is a string, while we want the indices:
 	I = [ A.index(K[i]) for i in range(len(K)) ]
 	Mstr = str(M)
@@ -99,7 +99,11 @@ class TranspositionCipher(SymmetricKeyCipher):
 	if not N%m == 0:
 	    raise TypeError, "Argument M (= %s) must be a string of length k*%s." % (M, m)
 	Melt = M._element_list # this uses the internal structure of string monoids
-	return S([ Melt[g(i+1)-1+k*m] for i in range(m) for k in range(N//m) ])
+	# Caution: this is parsed as an outer loop in k and an inner loop in i:
+	#     for k in range(N//m):
+	#         for i in range(m):
+	#             S([ Melt[g(i+1)-1+k*m]
+	return S([ Melt[g(i+1)-1+k*m] for k in range(N//m) for i in range(m) ])
 
     def inverse(self):
 	return self.parent().inverse_key(self.key())

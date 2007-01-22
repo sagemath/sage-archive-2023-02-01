@@ -1,7 +1,7 @@
 """
 String Monoid Elements
 
-AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, January 2007
+AUTHOR: David Kohel <kohel@maths.usyd.edu.au>, 2007-01
 
 Elements of free string monoids, internal representation subject to change.
 
@@ -24,6 +24,7 @@ from Crypto.Util.number import long_to_bytes
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RealField
 from sage.structure.element import MonoidElement
+from sage.probability.random_variable import DiscreteProbabilitySpace
 from free_monoid_element import FreeMonoidElement
 import string_monoid
 
@@ -69,7 +70,7 @@ class StringMonoidElement(FreeMonoidElement):
                         raise TypeError, "x (= %s) must be a list of integers."%x
             self._element_list = list(x) # make copy
         elif isinstance(x, str):
-            alphabet = self.parent().alphabet()
+            alphabet = list(self.parent().alphabet())
             self._element_list = []
             for i in range(len(x)):
                 try:
@@ -101,12 +102,14 @@ class StringMonoidElement(FreeMonoidElement):
     def _repr_(self):
         """
         The self-representation of a string monoid element. Unlike Python
-        strings we will print without the enclosing quotes.
+        strings we print without the enclosing quotes.
         """
-        alphabet = self.parent().alphabet()
-        s = ""
+        S = self.parent()
+        alphabet = S.alphabet()
+        s = ''
         for b in self._element_list:
-            s += '%s'%alphabet[b]
+            c = alphabet[b]
+            s += c
         return s
 
     def _latex_(self):
@@ -192,79 +195,71 @@ class StringMonoidElement(FreeMonoidElement):
         Return the n-th string character.
         """
         try:
-            c = [self._element_list[n]]
+            c = self._element_list[n]
         except:
             raise IndexError, "Argument n (= %s) is not a valid index." % n
-        return self.parent()(c)
-
-    def __getslice__(self,n,m):
-        """
-        Return the slice [n:m] of the string.
-        """
-        try:
-            c = self._element_list[n:m]
-        except:
-            raise IndexError, "Arguments [n:m] (= [%s:%s]) doe not define a valid slice." % (n,m)
+        if not isinstance(c,list):
+            c = [c]
         return self.parent()(c)
 
     def decoding(self,padic=False):
         """
-	The byte string associated to a binary or hexadecimal string monoid element.
+        The byte string associated to a binary or hexadecimal string monoid element.
 
-	EXAMPLES:
-	    sage: S = HexadecimalStrings()
-   	    sage: s = S.encoding("A..Za..z"); s
+        EXAMPLES:
+            sage: S = HexadecimalStrings()
+            sage: s = S.encoding("A..Za..z"); s
             412e2e5a612e2e7a
-	    sage: s.decoding()
+            sage: s.decoding()
             'A..Za..z'
             sage: s = S.encoding("A..Za..z",padic=True); s
-	    14e2e2a516e2e2a7
-	    sage: s.decoding()
-	    '\x14\xe2\xe2\xa5\x16\xe2\xe2\xa7'
-	    sage: s.decoding(padic=True)
+            14e2e2a516e2e2a7
+            sage: s.decoding()
+            '\x14\xe2\xe2\xa5\x16\xe2\xe2\xa7'
+            sage: s.decoding(padic=True)
             'A..Za..z'
-	    sage: S = BinaryStrings()
-   	    sage: s = S.encoding("A..Za..z"); s
+            sage: S = BinaryStrings()
+            sage: s = S.encoding("A..Za..z"); s
             0100000100101110001011100101101001100001001011100010111001111010
-	    sage: s.decoding()
+            sage: s.decoding()
             'A..Za..z'
-	    sage: s = S.encoding("A..Za..z",padic=True); s
-	    1000001001110100011101000101101010000110011101000111010001011110
-	    sage: s.decoding()
-	    '\x82ttZ\x86tt^'
-	    sage: s.decoding(padic=True)
-	    'A..Za..z'
+            sage: s = S.encoding("A..Za..z",padic=True); s
+            1000001001110100011101000101101010000110011101000111010001011110
+            sage: s.decoding()
+            '\x82ttZ\x86tt^'
+            sage: s.decoding(padic=True)
+            'A..Za..z'
         """
-	S = self.parent()
-	if isinstance(S,string_monoid.AlphabeticStringMonoid):
-	    return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
+        S = self.parent()
+        if isinstance(S,string_monoid.AlphabeticStringMonoid):
+            return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
         n = self.__len__()
-	if isinstance(S,string_monoid.HexadecimalStringMonoid):
-	    if not n%2 == 0:
-	        "String %s must have even length to determine a byte character string." % str(self)
-	    s = []
-	    x = self._element_list
-	    for k in range(n//2):
-	        m = 2*k
-		if padic:
-		    c = long_to_bytes(x[m]+16*x[m+1])
-		else:
-		    c = long_to_bytes(16*x[m]+x[m+1])
-		s.append(c)
-            return ''.join(s)
-	if isinstance(S,string_monoid.BinaryStringMonoid):
-	    if not n%8 == 0:
-	        "String %s must have even length 0 mod 8 to determine a byte character string." % str(self)
-	    pows = [ 2**i for i in range(8) ]
-	    s = []
+        if isinstance(S,string_monoid.HexadecimalStringMonoid):
+            if not n%2 == 0:
+                "String %s must have even length to determine a byte character string." % str(self)
+            s = []
             x = self._element_list
-	    for k in range(n//8):
-	        m = 8*k
-		if padic:
-		    c = long_to_bytes(sum([ x[m+i]*pows[i] for i in range(8) ]))
-		else:
-		    c = long_to_bytes(sum([ x[m+7-i]*pows[i] for i in range(8) ]))
-		s.append(c)
+            for k in range(n//2):
+                m = 2*k
+                if padic:
+                    c = long_to_bytes(x[m]+16*x[m+1])
+                else:
+                    c = long_to_bytes(16*x[m]+x[m+1])
+                s.append(c)
+            return ''.join(s)
+        if isinstance(S,string_monoid.BinaryStringMonoid):
+            if not n%8 == 0:
+                "String %s must have even length 0 mod 8 to determine a byte character string." % str(self)
+            pows = [ 2**i for i in range(8) ]
+            s = []
+            x = self._element_list
+            for k in range(n//8):
+                m = 8*k
+                if padic:
+                    c = long_to_bytes(sum([ x[m+i]*pows[i] for i in range(8) ]))
+                else:
+                    c = long_to_bytes(sum([ x[m+7-i]*pows[i] for i in range(8) ]))
+                s.append(c)
             return ''.join(s)
         raise TypeError, "Argument %s must be an alphabetic, binary, or hexadecimal string."
 
@@ -290,6 +285,30 @@ class StringMonoidElement(FreeMonoidElement):
             ci_num += ni*(ni-1)
         ci_den = nn*(nn-1)
         return RR(ci_num)/ci_den
+
+    def frequency_distribution(self, length = 1, prec = 0):
+        """
+        Returns the probability space of character frequencies.
+        """
+        if not length in (1,2):
+            raise NotImplementedError, "Not implemented"
+	if prec == 0:
+            RR = RealField()
+        else:
+            RR = RealField(prec)
+	S = self.parent()
+        n = S.ngens()
+        Alph = S.alphabet()
+        X = {}
+        N = len(self)-length+1
+        eps = RR(Integer(1)/N)
+        for i in range(N):
+            c = self[i:i+length]
+	    if X.has_key(c):
+                X[c] += eps
+	    else:
+                X[c] = eps
+        return DiscreteProbabilitySpace(Alph,X,RR)
 
 
 #*****************************************************************************

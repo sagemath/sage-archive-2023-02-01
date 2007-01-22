@@ -57,7 +57,13 @@ function generic_callback(status, response_text) {
 }
 
 function asyncCallbackHandler(id) {
-    return eval("function() { async_callback("+id+"); }");
+    //this was a one-liner, but Opera doesn't like to eval
+    // "function() {bla}" -- it needs to be part of an assignment
+    //Also, some versions of firefox don't like to see "function()"
+    //you need a space between the parentheses.  WTF?
+    var f;
+    eval("f = function( ) { async_callback("+id+"); }");
+    return f;
 }
 
 function async_callback(id) {
@@ -153,8 +159,9 @@ var update_error_count = 0;
 var update_error_threshold = 30;
 
 // in milliseconds
-var update_error_delta = 1000;
-var update_normal_delta = 256;
+var update_error_delta = 1024;
+//var update_normal_delta = 256;
+var update_normal_delta = 512;
 var cell_output_delta = update_normal_delta;
 
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
@@ -460,21 +467,20 @@ function do_replacement(id, word,do_trim) {
         word = trim(word);
 
     cell_input.value = before_replacing_word + word + after_cursor;
-    jump_to_cell(id,0); //reset the cursor (for explorer)
 
-    try{ //firefox, et al.
-        var pos = before_replacing_word.length + word.length;
-        cell_input.selectionStart = pos;
-        cell_input.selectionEnd = pos;
-    } catch(e) {}
-    try{ //explorer; anybody else?
-        var range = document.selection.createRange();
-        range.moveStart('character', -after_cursor.length);
-        range.moveEnd('character', -after_cursor.length);
-    } catch(e) {}
+    var pos = before_replacing_word.length + word.length;
 
-    if(browser_op || browser_saf)
-        focus_delay(id);
+    //note for explorer:  may need to focus cell first.
+    if(cell_input.setSelectionRange) {
+        cell_input.setSelectionRange(pos,pos);
+    } else if (cell_input.createTextRange) {
+        var range = cell_input.createTextRange();
+        range.moveEnd('character', pos - cell_input.value.length);
+        range.collapse(false);
+        range.select();
+    } else {
+        //debug_append("crap");
+    }
 
     halt_introspection();
 }
@@ -784,7 +790,7 @@ function debug_blur() {
 //set and_delay to true if you want to refocus the browser in a keyevent
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
-//a little timeout.
+//a little timeout.  Safari also has this problem.
 function focus(id, bottom) {
     // make_cell_input_active(id);
     var cell = get_cell(id);
@@ -802,9 +808,11 @@ function move_cursor_to_top_of_cell(cell) {
     } catch(e) {}
 }
 
-
-function focus_delay(id) {
-    setTimeout('focus('+id+')', 10);
+function focus_delay(id,bottom) {
+    if(!bottom)
+         setTimeout('focus('+id+')', 10);
+    else
+         setTimeout('focus('+id+',true)', 10);
 }
 
 
@@ -980,7 +988,7 @@ function cell_input_key_event(id, e) {
 
     if((introspect_id == id) && introspection_loaded && replacing) {
         if(!handle_replacement_controls(cell_input, e)) {
-            if(browser_op) focus(id,true);
+            if(browser_op) focus_delay(id,true);
             return false; //otherwise, keep going
         }
         halt_introspection();
@@ -993,7 +1001,7 @@ function cell_input_key_event(id, e) {
         var before = text_cursor_split(cell_input)[0];
         var i = before.indexOf('\n');
         if (i == -1 || before == '') {
-            jump_to_cell(id,-1, 1);
+            jump_to_cell(id,-1, true);
             return false;
         } else {
             return true;
@@ -1017,6 +1025,7 @@ function cell_input_key_event(id, e) {
     } else if (key_request_introspections(e)) {
        // command introspection (tab completion, ?, ??)
        evaluate_cell(id, 2);
+       focus_delay(id,true);
        return false;
     } else if (key_interrupt(e)) {
        interrupt();
@@ -1066,7 +1075,7 @@ function id_of_cell_delta(id, delta) {
 function debug_clear() {
     output = get_element("debug_output");
     if(output == null) return;
-    output.value = "";
+    output.innerHTML = "";
 }
 
 function debug_append(txt) {
@@ -1204,7 +1213,7 @@ function evaluate_cell_introspection(id, before, after) {
         } else if(f != null) { //we're in an open function paren -- give info on the function
             before = f[1] + "?";
         } else { //just a tab
-            do_replacement(id, ' ',false);
+            do_replacement(id, '    ',false);
             return;
         }
     } else {

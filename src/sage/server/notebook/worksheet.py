@@ -849,7 +849,7 @@ class Worksheet:
         return t
 
     def preparse(self, s):
-        s = preparse_file(s, magic=False, do_time=False,
+        s = preparse_file(s, magic=False, do_time=True,
                           ignore_prompts=False)
         return s
 

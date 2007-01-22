@@ -594,7 +594,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-        print "path = '%s'"%path
         if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
@@ -749,7 +748,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
-            return self.get_file()
+            try:
+                return self.get_file()
+            except:
+                print "Cancelled getting %s"%self.path
+                return
         path = self.path.strip('/')
         i = path.find('/')
         if i == -1:

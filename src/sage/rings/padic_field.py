@@ -59,8 +59,22 @@ class pAdicField_generic(field.Field):
         p-adic field is truncated at $O(p^n)$.   Calling print_prec() with
         no arguments returns n.  This command only affects printing,
         and does not alter the actual values of elements of this field.
+
+        INPUT:
+            n -- integer
+                 infinity
+                 None
+
+        EXAMPLES:
+            sage: K = Qp(13, 6)
+            sage: K.print_prec(infinity)
+            sage: a = K(1/2); a
+            7 + 6*13 + 6*13^2 + 6*13^3 + 6*13^4 + 6*13^5 + O(13^6)
+            sage: K.print_prec(3)
+            sage: a
+            7 + 6*13 + 6*13^2 + ... + O(13^6)
         """
-        if n==None:
+        if n is None:
             return self.__print_prec
         self.__print_prec = n
 

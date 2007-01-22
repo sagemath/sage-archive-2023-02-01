@@ -406,9 +406,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return trans
 
     def SVD(self):
-         """Compute the singular value decomposition of a matrix. That is factors a matrix A as
-         A = USV^T, for U, V orthogonal matrices and S diagonal. This function returns a tuple containing
-         the matrices U,S, and V.
+         r"""
+         Compute the singular value decomposition of a matrix. That is
+         factors a matrix A as $A = USV^T$, for U, V orthogonal matrices
+         and S diagonal. This function returns a tuple containing the
+         matrices U,S, and V.
 
          EXAMPLES:
              sage: m = matrix(RDF,4,range(16))

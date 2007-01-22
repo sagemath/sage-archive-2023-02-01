@@ -10,10 +10,8 @@ from free_monoid_element import is_FreeMonoidElement
 from string_ops import (
     strip_encoding,
     frequency_distribution,
-    coincidence_index)
-    #coincidence_discriminant)
-    #translation_correlations,
-    #translation_matches)
+    coincidence_index,
+    coincidence_discriminant)
 
 from string_monoid_element import (
     is_BinaryStringMonoidElement,

@@ -29,7 +29,7 @@ def EllipticCurve(x, y=None):
       $$
 
         -- EllipticCurve([a1,a2,a3,a4,a6]): Elliptic curve with given
-           a-invariants.  The invariants are coerced into a the parent
+           a-invariants.  The invariants are coerced into the parent
            of the first element.  If all are integers, they are coerced
            into the rational numbers.
 

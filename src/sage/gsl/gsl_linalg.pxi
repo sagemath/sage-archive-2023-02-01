@@ -66,7 +66,8 @@ cdef extern from "gsl/gsl_linalg.h":
 
   int  gsl_linalg_complex_LU_refine(gsl_matrix_complex * A, gsl_matrix_complex * LU, gsl_permutation * p, gsl_vector_complex * b, gsl_vector_complex * x, gsl_vector_complex * residual)
 
-  int  gsl_complex_linalg_LU_invert(gsl_matrix_complex * LU, gsl_permutation * p, gsl_matrix_complex * inverse)
+#  int  gsl_complex_linalg_LU_invert(gsl_matrix_complex * LU, gsl_permutation * p, gsl_matrix_complex * inverse)
+  int  gsl_linalg_complex_LU_invert(gsl_matrix_complex * LU, gsl_permutation * p, gsl_matrix_complex * inverse)
 
   gsl_complex  gsl_linalg_complex_LU_det(gsl_matrix_complex * LU, int signum)
 

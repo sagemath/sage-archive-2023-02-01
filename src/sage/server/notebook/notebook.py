@@ -16,9 +16,8 @@ beautiful antialised images.  To try it out immediately, do this:
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should fully work with Firefox (and Mozilla) and
- Safari. The notebook works somewhat in Internet Explorer and Opera,
- but not very well.
+The SAGE notebook should fully work with Firefox (and Mozilla),
+Safari, and Opera. The notebook works somewhat in Internet Explorer.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -722,16 +721,22 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
+        print "-"*70
+
         if filename is None:
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
             except IOError:
                 pass
-            print "Saving notebook to %s"%self.__filename
-            SageObject.save(self, os.path.abspath(self.__filename), compress=False)
+            F = os.path.abspath(self.__filename)
         else:
-            SageObject.save(self, os.path.abspath(filename), compress=False)
+            F = os.path.abspath(filename)
+
+        print "Saving notebook to '%s'..."%F
+        SageObject.save(self, F, compress=False)
+        print "Press control-C twice to stop notebook server."
+        print "-"*70
 
     def start(self, port=8000, address='localhost',
                     max_tries=128, open_viewer=False,
@@ -769,7 +774,7 @@ class Notebook(SageObject):
         print '*' + ' '*j + s + ' '*j + '*'
         print '*'+ ' '*(n-2) + '*'
         print '*'*n
-        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla and Safari."
+        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla, Safari, and Opera."
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)

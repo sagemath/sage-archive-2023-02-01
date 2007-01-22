@@ -625,6 +625,410 @@ class A000045(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
+# Theme:  maximal permanent of an m x n (0,1)- matrix:
+# Seok-Zun Song et al.  Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+
+
+class A000153(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-2)*a(n-2)$, with $a(0) = 0$, $a(1) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=2$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000153; a
+        a(n) = n*a(n-1) + (n-2)*a(n-2), with a(0) = 0, a(1) = 1.
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        82508
+        sage: a(20)
+        10315043624498196944
+        sage: a.list(8)
+        [0, 1, 2, 7, 32, 181, 1214, 9403]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation, e.g. a(0) will fail when asked first
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-2)*a(n-2), with a(0) = 0, a(1) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,2)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A000255(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-1)*a(n-2)$, with $a(0) = 1$, $a(1) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=1$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000255; a
+        a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(8)
+        148329
+        sage: a(40)
+        12606655254667979119503794901295302068084359699721
+        sage: a.list(8)
+        [1, 1, 3, 11, 53, 309, 2119, 16687]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation, e.g. a(0) will fail when asked first
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(1,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+class A000261(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-3)*a(n-2)$, with $a(1) = 1$, $a(2) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=3$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000261; a
+        a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(8)
+        296967
+        sage: a(20)
+        78768746000235327495
+        sage: a.list(8)
+        [0, 1, 3, 13, 71, 465, 3539, 30637]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,3)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A001909(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-4)*a(n-2)$, with $a(2) = 0$, $a(3) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=4$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001909; a
+        a(n) = n*a(n-1) + (n-4)*a(n-2), a(2) = 0, a(3) = 1.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be an integer >= 2
+        sage: a(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=1) must be an integer >= 2
+        sage: a.offset
+        2
+        sage: a(2)
+        4
+        sage: a(8)
+        870274
+        sage: a(20)
+        470033715095287415734
+        sage: a.list(8)
+        [0, 1, 4, 21, 134, 1001, 8544, 81901]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=2)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-4)*a(n-2), a(2) = 0, a(3) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,4)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A001910(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-5)*a(n-2)$, with $a(3) = 0$, $a(4) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=5$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001910; a
+        a(n) = n*a(n-1) + (n-5)*a(n-2), a(3) = 0, a(4) = 1.
+        sage: a.offset
+        3
+        sage: a(8)
+        2203319
+        sage: a(20)
+        2334414826276390013171
+        sage: a.list(8)
+        [0, 1, 5, 31, 227, 1909, 18089, 190435]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=3)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-5)*a(n-2), a(3) = 0, a(4) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,5)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+# A090010  	 	 Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n zeros not on a line.
+#  a(n) = (n+5)*a(n-1) + (n-1)*a(n-2), a(1)=6, a(2)=43
+
+
+# %N A055790 a(n) = n*a(n-1) + (n-2)*a(n-2) [a(0) = 0, a(1) = 2].
+# %C A055790 With offset 1, permanent of (0,1)-matrix of size n X (n+d) with d=1 and n-1 zeros
+#               not on a line. This is a special case of Theorem 2.3 of Seok-Zun
+
+# %N A090012 Permanent of (0,1)-matrix of size n X (n+d) with d=2 and n-1 zeros not on a line.
+# %F A090012 a(n) = (n+1)*a(n-1) + (n-2)*a(n-2), a(1)=3, a(2)=9
+
+# % N A090013 Permanent of (0,1)-matrix of size n X (n+d) with d=3 and n-1 zeros not on a line.
+# %F A090013 a(n) = (n+2)*a(n-1) + (n-2)*a(n-2), a(1)=4, a(2)=16
+
+# %N A090014 Permanent of (0,1)-matrix of size n X (n+d) with d=4 and n-1 zeros not on a line.
+# %D A090014 Brualdi, Richard A., and Ryser, Herbert J., Combinatorial Matrix Theory, Cambridge
+               # NY (1991), Chapter 7.
+# %D A090014 Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and
+               # its Applic. 373 (2003), p. 197-210.
+# %F A090014 a(n) = (n+3)*a(n-1) + (n-2)*a(n-2), a(1)=5, a(2)=25
+
+# %N A090015 Permanent of (0,1)-matrix of size n X (n+d) with d=5 and n-1 zeros not on a line.
+# %F A090015 a(n) = (n+4)*a(n-1) + (n-2)*a(n-2), a(1)=6, a(2)=36
+
+# %N A090016 Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n-1 zeros not on a line.
+# %D A090016 Brualdi, Richard A., and Ryser, Herbert J., Combinatorial Matrix Theory, Cambridge
+               # NY (1991), Chapter 7.
+# %D A090016 Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and
+               # its Applic. 373 (2003), p. 197-210.
+# %F A090016 a(n) = (n+5)*a(n-1) + (n-2)*a(n-2), a(1)=7, a(2)=49
+# %F A090016 E.g.f.: 7*exp(-x)/(1-x)^8. - Vladeta Jovovic (vladeta(AT)Eunet.yu), Mar 19 2004
+# %F A090016 a(n) = (A000166(n-1)+7*A000166(n)+21*A000166(n+1)+35*A000166(n+2)+35*A000166(n+3)+21*A000166(n+4)+7*A000166(n+5)+A000166\
+               # (n+6))/6!. - Vladeta Jovovic (vladeta(AT)Eunet.yu), Mar 19 2004
+#  %Y A090016 a(n) = A090010(n-1) + A090010(n), a(1)=7
+
+
+
 class A000203(SloaneSequence):
     r"""
     The sequence $\sigma(n)$, where $\sigma(n)$ is the sum of the
@@ -2136,6 +2540,9 @@ sloane.A000045 = A000045()
 sloane.A000110 = A000110()
 sloane.A000203 = A000203()
 sloane.A000204 = A000204()
+sloane.A000153 = A000153()
+sloane.A000255 = A000255()
+sloane.A000261 = A000261()
 sloane.A000587 = A000587()
 sloane.A001110 = A001110()
 sloane.A001221 = A001221()
@@ -2144,6 +2551,8 @@ sloane.A001227 = A001227()
 sloane.A001694 = A001694()
 sloane.A001836 = A001836()
 sloane.A001906 = A001906()
+sloane.A001909 = A001909()
+sloane.A001910 = A001910()
 sloane.A015521 = A015521()
 sloane.A015523 = A015523()
 sloane.A046660 = A046660()

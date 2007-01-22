@@ -285,7 +285,7 @@ class Expect(ParentWithBase):
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
             if self._do_monitor() and not self.__is_remote:
-                monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
+                monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL, cmd)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None

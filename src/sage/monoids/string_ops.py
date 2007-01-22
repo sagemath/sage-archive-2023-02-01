@@ -88,3 +88,4 @@ def coincidence_discriminant(S):
     eps = RR(1/len(S))
     for AB in S:
         F2[AB] += eps
+    return sum([ (F2[AZ[i]+AZ[j]]-X1[AZ[i]]*X2[AZ[j]])**2 for i in range(26) for j in range(26) ])

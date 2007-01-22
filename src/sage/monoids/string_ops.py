@@ -64,13 +64,15 @@ def coincidence_index(S):
 
 def coincidence_discriminant(S):
     """
-    Input
-        A sequence of 2-character strings, e.g. produced as decimation
-        of transposition ciphertext, or of adjacent characters in some
-        sample plaintext.
-    Output
+
+    INPUT:
+        S -- A sequence of 2-character strings, e.g. produced as
+             decimation of transposition ciphertext, or of adjacent
+             characters in some sample plaintext.
+    OUTPUT:
         A measure of the difference of probability of association of
         two characters, relative to their independent probabilities.
+
     EXAMPLES:
 	sage: S = strip_encoding("The cat in the hat.")
 	sage: T = [ S[i:i+2] for i in range(len(S)-1) ]
@@ -88,3 +90,46 @@ def coincidence_discriminant(S):
     eps = RR(1/len(S))
     for AB in S:
         F2[AB] += eps
+
+def translation_correlations(X1,X2):
+     """
+     The sequence of correlations of the sequence X1 with the cyclic
+     translations of the sequence X2.
+     """
+     n = len(X1)
+     if n != len(X2):
+         raise ValueError, "Arguments must be of the same length."
+
+     # Compute the mean value of each sequence:
+     mu1 = sum(X1)/n
+     mu2 = sum(X2)/n
+
+     # Compute the standard deviations of each sequence:
+     sig1 = sqrt(sum([ (S1[k]-mu1)^2 for k in range(n) ]))
+     sig2 = sqrt(sum([ (S2[k]-mu2)^2 for k in range(n) ]))
+
+     sig = sig1*sig2
+     corr_dict = { }
+     for j in range(n):
+         corr_dict[j] = sum([
+             (S1[i] - mu1) * (S2[(i+j)%n] - mu2) / sig for i in range(n) ])
+     return corr_dict
+
+def translation_matches(S,X,r):
+    """
+    Input
+       S : Test string.
+       X : Sequence of standard frequencies for the language.
+       r : A real number between 0 and 1.
+    Output
+       A list of integers k such that affine translation of S by k
+       has correlation at least r with the standard frequencies
+       given by the real sequence X.
+    """
+    Y = S.frequency_distribution()
+    corr_dict = translation_correlations(X,Y)
+    I = []
+    for i in keys(X):
+        if x[2] > r:
+            I.append(x[1])
+    return I

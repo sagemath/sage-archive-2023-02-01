@@ -94,8 +94,10 @@ class DiscreteRandomVariable(RandomVariable_generic):
 	RR = self.field()
         try:
             return RR(self._function[x])
-        except:
-            raise IndexError, "Argument x (= %s) is not a valid domain element." % x
+        except KeyError:
+	    # Need some condition for x being a valid domain element:
+	    #    raise IndexError, "Argument x (= %s) is not a valid domain element." % x
+            return RR(0)
 
     def __repr__(self):
 	return "Discrete random variable defined by %s" % self._function

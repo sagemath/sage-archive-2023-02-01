@@ -347,7 +347,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: a = ~(5+I)
             sage: a * (5+I)
-            0.999999999999999 - 0.0000000000000000277555756156289*I
+            1.00000000000000
         """
         cdef ComplexNumber x
         x = self._new()
@@ -566,7 +566,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z = 1 + i; z.eta()
             0.742048775836564 + 0.198831370229910*I
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.742048775836563 + 0.198831370229910*I
+            0.742048775836565 + 0.198831370229910*I
 
         The optional argument allows us to omit the fractional part:
             sage: z = 1 + i
@@ -574,7 +574,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.998129069925958 - 0.000000000000000000000812769319000000*I  # 32-bit
             0.998129069925958 - 0.000000000000000000000812769318781739*I  # 64-bit
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.998129069925956 + 0.0000000000000000123489424448887*I      # 32-bit
+            0.998129069925958 + 0.0000000000000000123489424448887*I      # 32-bit
             0.998129069925956 + 0.0000000000000000123489424487183*I      # 64-bit
 
 

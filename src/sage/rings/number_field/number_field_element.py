@@ -162,7 +162,7 @@ class NumberFieldElement(field_element.FieldElement):
             sage: abs(z)
             1.00000000000000
             sage: abs(z^2 + 17*z - 3)
-            16.0604426799930
+            16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
             2.57128159065823

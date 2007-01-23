@@ -2715,7 +2715,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: alpha = f.complex_roots()[0]; alpha
             0.713639173536900
             sage: f(alpha)
-            -0.000000000000000222044604925031
+            0
         """
         QQ = sage.rings.rational_field.RationalField()
         R = sage.rings.polynomial_ring.PolynomialRing(QQ, 'x')

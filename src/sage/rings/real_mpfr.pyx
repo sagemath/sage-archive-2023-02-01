@@ -15,6 +15,7 @@ A difficult conversion:
 
     sage: RR(sys.maxint)
     9223372036854770000     # 64-bit
+    2147483647.00000        # 32-bit
 """
 
 #*****************************************************************************
@@ -62,7 +63,9 @@ import  sage.structure.element
 import sage.structure.coerce
 import operator
 
+from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
+from sage.rings.rational import Rational
 from sage.rings.rational cimport Rational
 
 import sage.rings.complex_field
@@ -207,6 +210,10 @@ cdef class RealField(sage.rings.ring.Field):
             '1.1001000000000000000'
         """
         if hasattr(x, '_mpfr_'):
+            # This design with the hasattr is very annoying.
+            # The only thing that uses it right now is symbolic constants
+            # and symbolic function evaluation.
+            # Getting rid of this would speed things up.
             return x._mpfr_(self)
         cdef RealNumber z
         z = self._new()
@@ -542,6 +549,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, (int, long)):
             _ix = Integer(x)
             mpfr_set_z(self.value, _ix.value, parent.rnd)
+        #elif hasattr(x, '_mpfr_'):
+        #    return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):

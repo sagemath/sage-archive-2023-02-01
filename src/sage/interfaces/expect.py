@@ -897,26 +897,40 @@ class ExpectElement(RingElement):
 
     def _add_(self, right):
         P = self._check_valid()
-        return P.new('%s + %s'%(self._name, right._name))
+        try:
+            return P.new('%s + %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
 
     def _sub_(self, right):
         P = self._check_valid()
-        return P.new('%s - %s'%(self._name, right._name))
+        try:
+            return P.new('%s - %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
+
 
     def _mul_(self, right):
         P = self._check_valid()
-        return P.new('%s * %s'%(self._name, right._name))
+        try:
+            return P.new('%s * %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError,msg
 
     def _div_(self, right):
         P = self._check_valid()
-        return P.new('%s / %s'%(self._name, right._name))
+        try:
+            return P.new('%s / %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
+
 
     def __pow__(self, n):
         P = self._check_valid()
         if isinstance(n, ExpectElement):
             return P.new('%s ^ %s'%(self._name,n._name))
         else:
-           return P.new('%s ^ %s'%(self._name,n))
+            return P.new('%s ^ %s'%(self._name,n))
 
 
 def reduce_load(parent, x):

@@ -306,9 +306,6 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mathml(abs(self.numer())), mathml(self.denom()))
             return t
 
-    def _mpfr_(self, R):
-        return R(self.numerator()) / R(self.denominator())
-
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
 
@@ -411,7 +408,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             return x.sqrt()
         else:
             R = sage.rings.real_mpfr.RealField(bits)
-            return self._mpfr_(R).sqrt()
+            return R(self).sqrt()
 
     def square_root(self):
         r"""

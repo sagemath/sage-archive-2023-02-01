@@ -1,7 +1,5 @@
 """
-Base class for all groups
-
-PYREX: sage.groups.group
+Base class for groups
 """
 
 #*****************************************************************************

@@ -160,7 +160,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b = CDF(a); b
             1.41421353817*I
             sage: a.parent()(b)
-            1.4142135623699999999999999999999999999999999999999999999999*I
+            1.4142135623700000000000000000000000000000000000000000000000*I
         """
         if im is None:
             if isinstance(x, ComplexDoubleElement):
@@ -171,6 +171,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                 return ComplexDoubleElement(x.real, x.imag)
             elif isinstance(x, complex_number.ComplexNumber):
                 return ComplexDoubleElement(x.real(), x.imag())
+            elif isinstance(x, tuple):
+                return ComplexDoubleElement(x[0], x[1])
             elif isinstance(x, str):
                 t = eval(x.replace(' ',''), {"I":self.gen(),"i":self.gen(), 'RealNumber':float})
                 if isinstance(t, float):

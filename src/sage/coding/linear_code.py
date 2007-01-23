@@ -7,7 +7,7 @@ Let $ F$ be a finite field (we denote the finite field with $q$ elements
 $GF(q)$ by $\FF_q$). A subspace of $ F^n$ (with the standard basis)
 is called a {\it linear code} of length $ n$. If its
 dimension is denoted $k$ then we typically store a basis
-of $C$ as a $k\\times  n$ matrix (the rows are the basis vectors)
+of $C$ as a $k\times  n$ matrix (the rows are the basis vectors)
 called the {\it generator matrix} of $C$.
 The rows of the {\it parity check matrix} of $C$ are a basis
 for the code,
@@ -55,7 +55,7 @@ the quadratic residue codes) are defined using properties of the
 zeros of $C$.
 
 The symmetric group $S_n$ acts on $F^n$ by permuting coordinates.
-If an element $p\\in S_n$ sends a code $C$ of length $n$ to itself
+If an element $p\in S_n$ sends a code $C$ of length $n$ to itself
 (in other words, every codeword of $C$ is sent to some other codeword
 of $C$) then $p$ is called a {\it permutation automorphism} of $C$.
 The (permutation) automorphism group is denoted $Aut(C)$.

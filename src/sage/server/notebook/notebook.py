@@ -4,14 +4,20 @@ SAGE Notebook Interface
 AUTHORS:
     -- William Stein (2006-05-06): initial version
     -- Alex Clemesha
-    -- Tom Boothby: * support for a wide range of web browsers
-                    * massive refactoring of javascript code
-                    * systematic keyboard controls
+    -- Tom Boothby: support for a wide range of web browsers; refactoring of javascript code; systematic keyboard controls
+
+The SAGE graphical user interface is unusual in that it operates via
+your web browser.  It provides you with SAGE worksheets that you can
+edit and evaluate, which contain scalable typeset mathematics and
+beautiful antialised images.  To try it out immediately, do this:
+
+    sage.: notebook(open_viewer=True)
+    the sage notebook starts...
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should work with Firefox (and Mozilla), Opera,
-Konqueror, and Safari. Internet Explorer is not supported (yet!).
+The SAGE notebook should fully work with Firefox (and Mozilla),
+Safari, and Opera. The notebook works somewhat in Internet Explorer.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -117,32 +123,13 @@ that work with a range of different systems.
 pulling in objects and evaluating code in SAGE by typing
 "sage(...)" inside the input block.  This is planned.)
 
-\subsubsection{Typesetting}
-If you have latex, gv, and the imagemagick programs (e.g., convert)
-installed on your system, you can do nice latex typesetting from
-within SAGE.
-\begin{enumerate}
-\item As usual the command \code{latex(obj)} outputs latex code
-to typeset obj.
-\item The command \code{view(obj)} creates an image representing
-the object, which you can copy and paste into other documents.
-\item If you preface a block with \code{\%latex} the rest of the
-block is typeset and the corresponding image appears.
-The input is also (mostly) hidden.  Use {\%latex_debug} to debug
-latex problems.
-\item If you preface a block with \code{\%slide} the rest of the
-block is typeset as a slide (bigger san serif font)
-and the corresponding image appears.  The input is again hidden.
-Use {\%slide_debug} for debugging.
-\end{enumerate}
-
-Make the first line of the input block \code{\%gap}
-\code{\%magma}, or \code{\%gp}, etc.  The rest of the block
-is fed directly to the corresponding interpreter.
-In this way you can make a single session that has input blocks
-that work with a range of different systems.   You can also
-pull in objects and evaluate code in SAGE by typing
-"sage(...)" inside the input block.
+\subsubsection{Typesetting Mathematics}
+SAGE \emph{includes} jsMath, which is an implementation of the TeX
+math layout engine in javascript.  If you use the show or view
+commands, they display a given SAGE object typeset using jsmath.
+Moreover, if you put \code{\%jsmath} at the beginning of an input
+cell, the whole cell will be typeset using jsmath.  Also, you can type
+\code{jsmath(obj)} to typeset a given object obj using jsmath.
 
 
 \subsubsection{Adding and Removing Cells}
@@ -190,12 +177,12 @@ control codes that appear in the output.  And this isn't annoying,
 since web browsers are very good for scrolling through long output.
 
 
-\subsubsection{Objects}
+\subsubsection{Saving and Loading Individual Objects}
 When you start a notebook you give a name argument
 to it, and it creates a directory.  Inside that directory there
 will be many worksheets (which you can use all at once and easily
 flip through -- not implemented yet), and an object store.
-You can save and load objects (using save and load), and they'll
+You can save and load individual objects (using save and load), and they'll
 be listed in the box on the bottom let, e.g., try
 
 a = 5
@@ -217,7 +204,7 @@ cells that contains non-evaluated plain text mixed with
 examples by starting the block with ">>>" or including an example.
 (NOTE: Lines beginning with ">>>" are still preparsed.)
 
-\subsubsection{Saving and Loading}
+\subsubsection{Saving and Loading Notebooks and Worksheets}
 
 The SAGE notebook is very persistent.  Every time you submit
 a cell for computation, the state of the notebook is saved (a
@@ -318,6 +305,30 @@ setup code, etc., Also, you can save variables as you go easily (via
 the "save" command), and get back to where you were quickly.
 
 """
+
+## This is commented out, since it's not recommended.  I really
+## don't like crap that is both potentially insecure and will
+## break on some setups.
+## \subsubsection{Typesetting with Latex}
+## If you have latex, gv, and the imagemagick programs (e.g., convert)
+## installed on your system, you can do nice latex typesetting from
+## within SAGE.
+## \begin{enumerate}
+## \item As usual the command \code{latex(obj)} outputs latex code
+## to typeset obj.
+## \item The command \code{view(obj)} creates an image representing
+## the object, which you can copy and paste into other documents.
+## \item If you preface a block with \code{\%latex} the rest of the
+## block is typeset and the corresponding image appears.
+## The input is also (mostly) hidden.  Use {\%latex_debug} to debug
+## latex problems.
+## \item If you preface a block with \code{\%slide} the rest of the
+## block is typeset as a slide (bigger san serif font)
+## and the corresponding image appears.  The input is again hidden.
+## Use {\%slide_debug} for debugging.
+## \end{enumerate}
+
+
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -579,10 +590,13 @@ class Notebook(SageObject):
         return self.__worksheet_dir
 
     def object_directory(self):
-        return self.__object_dir
+        O = self.__object_dir
+        if not os.path.exists(O):
+            os.makedirs(O)
+        return O
 
     def objects(self):
-        L = [x[:-5] for x in os.listdir(self.__object_dir)]
+        L = [x[:-5] for x in os.listdir(self.object_directory())]
         L.sort()
         return L
 
@@ -707,16 +721,22 @@ class Notebook(SageObject):
         return self.get_worksheet_with_id(worksheet_id)
 
     def save(self, filename=None):
+        print "-"*70
+
         if filename is None:
             F = os.path.abspath(self.__filename)
             try:
                 shutil.copy(F, F[:-5] + '-backup.sobj')
             except IOError:
                 pass
-            print "Saving notebook to %s"%self.__filename
-            SageObject.save(self, os.path.abspath(self.__filename), compress=False)
+            F = os.path.abspath(self.__filename)
         else:
-            SageObject.save(self, os.path.abspath(filename), compress=False)
+            F = os.path.abspath(filename)
+
+        print "Saving notebook to '%s'..."%F
+        SageObject.save(self, F, compress=False)
+        print "Press control-C twice to stop notebook server."
+        print "-"*70
 
     def start(self, port=8000, address='localhost',
                     max_tries=128, open_viewer=False,
@@ -754,7 +774,7 @@ class Notebook(SageObject):
         print '*' + ' '*j + s + ' '*j + '*'
         print '*'+ ' '*(n-2) + '*'
         print '*'*n
-        print "WARNING: The SAGE Notebook works with Opera, Firefox/Mozilla, and Safari."
+        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla, Safari, and Opera."
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
@@ -809,8 +829,7 @@ class Notebook(SageObject):
         head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
 
         if JSMATH:
-            head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-            #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
+            head += '<script>jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"

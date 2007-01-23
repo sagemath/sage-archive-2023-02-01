@@ -1,7 +1,24 @@
-"""
+r"""
 Complex double vectors
 
-AUTHOR:
+The SAGE \code{ComplexDoubleVector} class supports optimized
+computation with vectors whose entries are complex double precision
+numbers. The underlying arithmetic is implemented by the GSL library.
+
+EXAMPLES:
+    sage: v = vector(CDF,[(1,-1), (2,pi), (3,5)])
+    sage: v
+    (1.0 - 1.0*I, 2.0 + 3.14159274101*I, 3.0 + 5.0*I)
+    sage: type(v)
+    <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
+    sage: parent(v)
+    Vector space of dimension 3 over Complex Double Field
+    sage: v[0] = 5
+    sage: v
+    (5.0, 2.0 + 3.14159274101*I, 3.0 + 5.0*I)
+
+
+AUTHORS:
     -- Josh Kantor
     -- William Stein
 """
@@ -83,7 +100,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             _sig_on
             for i from 0 <=i <n:
                 z = CDF(x[i])
-                gsl_vector_complex_set(self.v,i, <gsl_complex>z._complex)
+                gsl_vector_complex_set(self.v, i, <gsl_complex>z._complex)
             _sig_off
 
         elif self.v is NULL:
@@ -129,7 +146,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             raise IndexError, 'index out of range'
         else:
             x = new_ComplexDoubleElement()
-            x._complex = <gsl_complex> gsl_vector_complex_get(self.v,i)
+            x._complex = gsl_vector_complex_get(self.v, i)
             return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):

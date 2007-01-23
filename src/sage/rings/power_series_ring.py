@@ -31,6 +31,12 @@ An iterated example:
     sage: S.base_ring()
     Power Series Ring in t over Integer Ring
 
+Elements are first coerced to constants in base_ring, then coerced into the
+PowerSeriesRing:
+    sage: R.<t> = PowerSeriesRing(ZZ)
+    sage: f = Mod(2, 3) * t; (f, f.parent())
+    (2*t, Power Series Ring in t over Ring of integers modulo 3)
+
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
@@ -289,11 +295,27 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
 
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
-        ## NOTE: There are no ring homomorphisms from the ring of
-        ## all formal power series to most rings, e.g, the p-adic
-        ## field, since you can always (mathematically!) construct
-        ## some power series that doesn't converge.
-        ## Note that 0 is not a *ring* homomorphism.
+        r"""
+        This gets called implicitly when one constructs a ring
+        homomorphism from a power series ring.
+
+        EXAMPLE:
+            sage: S = RationalField(); R.<t>=PowerSeriesRing(S)
+            sage: f = R.hom([0])
+            sage: f(3)
+            3
+            sage: g = R.hom([t^2])
+            sage: g(-1 + 3/5 * t)
+            -1 + 3/5*t^2
+
+        NOTE: There are no ring homomorphisms from the ring of all
+        formal power series to most rings, e.g, the p-adic field,
+        since you can always (mathematically!) construct some power
+        series that doesn't converge.  Note that 0 is not a
+        \emph{ring} homomorphism.
+        """
+        if im_gens[0] == 0:
+            return True   # this is allowed.
         from laurent_series_ring import is_LaurentSeriesRing
         if is_PowerSeriesRing(codomain) or is_LaurentSeriesRing(codomain):
             return im_gens[0].valuation() > 0

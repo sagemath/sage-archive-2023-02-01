@@ -127,7 +127,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         sage: a**(10^62)
         61
     """
-    def __init__(self, order):
+    def __init__(self, order, cache=None):
         """
         Create with the command
               IntegerModRing(order)
@@ -202,8 +202,12 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         self.__factored_order = None
         quotient_ring.QuotientRing_generic.__init__(self, ZZ, ZZ.ideal(order), names=None)
         ParentWithGens.__init__(self, self)
+        if cache is None:
+            cache = order < 500
+        if cache:
+            self._precompute_table()
 
-    def precompute_table(self):
+    def _precompute_table(self):
         self._pyx_order.precompute_table(self)
 
     def list_of_elements_of_multiplicative_group(self):
@@ -231,13 +235,19 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def is_integral_domain(self):
         """
-        Return False since Z/NZ with N composite is never an integral domain.
+        Return True if and only if the order of self is prime.
+
+        EXAMPLES:
+            sage: Integers(389).is_integral_domain()
+            True
+            sage: Integers(389^2).is_integral_domain()
+            False
         """
-        return False
+        return arith.is_prime(self.order())
 
     def is_field(self):
         """
-        Return true precisely if the order is prime.
+        Return True precisely if the order is prime.
 
         EXAMPLES:
             sage: R = IntegerModRing(18)
@@ -620,7 +630,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         """
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)
-        a = random.randrange(0,self.order()-1)
+        a = random.randint(0,self.order()-1)
         return self(a)
 
     #######################################################

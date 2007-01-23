@@ -173,6 +173,9 @@ class Ideal_generic(MonoidElement):
     def is_zero(self):
         return self.gens() == [self.ring()(0)]
 
+    def base_ring(self):
+        return self.ring().base_ring()
+
     def _latex_(self):
         return '\\left(%s\\right)%s'%(", ".join([latex.latex(g) for g in \
                                                  self.gens()]),

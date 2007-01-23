@@ -35,8 +35,9 @@ import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject
 
-import sage.rings.polynomial_pyx as poly
-X = poly.Polynomial_rational(); X[1]=1
+R = polynomial_ring.PolynomialRing(rings.QQ, 'X')
+
+X = R([0,1])
 
 def is_ManinSymbol(x):
     return isinstance(x, ManinSymbol)
@@ -717,9 +718,8 @@ def apply_to_monomial(i, j, a, b, c, d):
         sage: apply_to_monomial(6,12, 1,1,1,-1)
         [1, 0, -6, 0, 15, 0, -20, 0, 15, 0, -6, 0, 1]
     """
-
-    f = poly.Polynomial_rational(); f[0]=b; f[1]=a
-    g = poly.Polynomial_rational(); g[0]=d; g[1]=c
+    f = R([b,a])
+    g = R([d,c])
     if i < 0 or j-i < 0:
         raise ValueError, "i (=%s) and j-i (=%s) must both be nonnegative."%(i,j-i)
     h = (f**i)*(g**(j-i))

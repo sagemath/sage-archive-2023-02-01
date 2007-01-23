@@ -29,6 +29,7 @@ import finite_field
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_field import is_RealField
+from integer_ring import ZZ
 import sage.rings.arith
 
 class PolynomialRing_singular_repr:
@@ -39,13 +40,17 @@ class PolynomialRing_singular_repr:
     polynomial rings which support conversion from and to Singular
     rings.
     """
-    def _singular_(self, singular=singular_default):
+    def _singular_(self, singular=singular_default, force=False):
         """
         Returns a singular ring for this polynomial ring over a field.
         Currently QQ, GF(p), and GF(p^n), CC, and RR are supported.
 
         INPUT:
             singular -- Singular instance
+            force -- polynomials over ZZ may be coerced to Singular by
+                     treating them as polynomials over RR. This is
+                     inexact but works for some cases where the
+                     coeffients are not considered (default: False).
 
         OUTPUT:
             singular ring matching this ring
@@ -128,7 +133,7 @@ class PolynomialRing_singular_repr:
             if not (R.parent() is singular):
                 raise ValueError
             R._check_valid()
-            if self.base_ring().is_prime_field():
+            if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
             if self.base_ring().is_finite():
                 R.set_ring() #sorry for that, but needed for minpoly
@@ -136,13 +141,13 @@ class PolynomialRing_singular_repr:
                     singular.eval("minpoly=%s"%(self.__minpoly))
             return R
         except (AttributeError, ValueError):
-            return self._singular_init_(singular)
+            return self._singular_init_(singular, force)
 
-    def _singular_init_(self, singular=singular_default):
+    def _singular_init_(self, singular=singular_default, force=False):
         """
         Return a newly created Singular ring matching this ring.
         """
-        if not self._can_convert_to_singular():
+        if not self._can_convert_to_singular() and not force:
             raise TypeError, "no conversion of this ring to a Singular ring defined"
 
         if self.ngens()==1:
@@ -168,9 +173,8 @@ class PolynomialRing_singular_repr:
             digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
-        elif self.base_ring().is_prime_field():
+        elif self.base_ring().is_prime_field() or (self.base_ring() is ZZ and force):
             self.__singular = singular.ring(self.characteristic(), _vars, order=order)
-            return self.__singular
 
         elif self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
@@ -181,6 +185,7 @@ class PolynomialRing_singular_repr:
             self.__singular = r
         else:
             raise TypeError, "no conversion to a Singular ring defined"
+
         return self.__singular
 
     def _can_convert_to_singular(self):
@@ -195,7 +200,8 @@ class PolynomialRing_singular_repr:
         return ( finite_field.is_FiniteField(base_ring)
                  or base_ring.is_prime_field()
                  or is_RealField(base_ring)
-                 or is_ComplexField(base_ring) )
+                 or is_ComplexField(base_ring)
+                 or base_ring is ZZ )
 
 
 class Polynomial_singular_repr:
@@ -206,7 +212,7 @@ class Polynomial_singular_repr:
     polynomial classes which support conversion from and to
     Singular polynomials.
     """
-    def _singular_(self, singular=singular_default, have_ring=False):
+    def _singular_(self, singular=singular_default, have_ring=False, force=False):
         """
         Return Singular polynomial matching this polynomial.
 
@@ -220,6 +226,12 @@ class Polynomial_singular_repr:
                          as it might lead to wrong results if another
                          ring is singluar.current_ring().  (default:
                          False)
+
+            force -- polynomials over ZZ may be coerced to Singular by
+                     treating them as polynomials over RR. This is
+                     inexact but works for some cases where the
+                     coeffients are not considered (default: False).
+
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(GF(7))
@@ -242,7 +254,7 @@ class Polynomial_singular_repr:
             True
         """
         if not have_ring:
-            self.parent()._singular_(singular).set_ring() #this is expensive
+            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
 
         try:
             self.__singular._check_valid()
@@ -252,7 +264,7 @@ class Polynomial_singular_repr:
             pass
         return self._singular_init_(singular,have_ring=have_ring)
 
-    def _singular_init_(self, singular=singular_default, have_ring=False):
+    def _singular_init_(self, singular=singular_default, have_ring=False, force=False):
         """
         Return corresponding Singular polynomial but enforce that a new
         instance is created in the Singular interpreter.
@@ -260,7 +272,7 @@ class Polynomial_singular_repr:
         Use self._singular_() instead.
         """
         if not have_ring:
-            self.parent()._singular_(singular).set_ring() #this is expensive
+            self.parent()._singular_(singular,force=force).set_ring() #this is expensive
 
         self.__singular = singular(str(self))
 
@@ -292,12 +304,12 @@ class Polynomial_singular_repr:
 
     def diff(self, variable, have_ring=False):
         """
-        Differentiats self with respect in the provided variable. This
+        Differentiates self with respect to the provided variable. This
         is completely symbolic so it is also defined over e.g. finite
         fields.
 
         INPUT:
-            variable -- the derivate is taken with respect to that variable
+            variable -- the derivative is taken with respect to variable
             have_ring -- see self._singular_() (default:False)
 
         EXAMPLES:

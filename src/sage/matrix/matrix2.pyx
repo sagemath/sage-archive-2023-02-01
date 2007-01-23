@@ -1,5 +1,5 @@
 """
-Abstract base class for matrices.
+Base class for matrices, part 2
 
 For design documentation see matrix/docs.py.
 """
@@ -1183,8 +1183,8 @@ cdef class Matrix(matrix1.Matrix):
             sage: B.column_space()
             Vector space of degree 2 and dimension 2 over Complex Field with 53 bits of precision
             Basis matrix:
-            [                1.00000000000000 0.000000000000000444089209850062]
-            [                               0                0.999999999999999]
+            [1.00000000000000                0]
+            [               0 1.00000000000000]
         """
         return self.column_module()
 

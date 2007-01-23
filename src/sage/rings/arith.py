@@ -24,6 +24,7 @@ import sage.rings.complex_number
 import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
+from sage.interfaces.all import gp
 
 ##################################################################
 # Elementary Arithmetic
@@ -166,6 +167,49 @@ def bernoulli(n, algorithm='pari'):
     else:
         raise ValueError, "invalid choice of algorithm"
 
+def Li(x):
+    r"""
+    Return value of the function Li(x), which is by definition
+    $$
+       \int_2^{x} dt / \log(t).
+    $$
+
+    The function Li(x) is an approximation for the number
+    of primes up to $x$.  In fact, the famous Riemann
+    Hypothesis is equivalent to the statement that for
+    $x \geq 2.01$ we have
+    $$
+        |\pi(x) - Li(x)| \leq \sqrt{x} \log(x).
+    $$
+    For ``small'' $x$, $Li(x)$ is always slightly bigger than
+    $\pi(x)$.  However it is a theorem that there are (very large,
+    e.g., around $10^{316}$) values of $x$ so that $\pi(x) > Li(x)$.
+    See ``A new bound for the smallest x with $\pi(x) > li(x)$'',
+    Bays and Hudson, Mathematics of Computation, 69 (2000) 1285--1296.
+
+    ALGORITHM: Computed numerically using PARI.
+
+    INPUT:
+        x -- a real number >= 2.
+
+    OUTPUT:
+        x -- a real double
+
+    EXAMPLES:
+        sage: pari.init_primes(10^6)   # needed to compute prime_pi(10^6)
+        sage: for n in range(1,7):
+        ...    print '%-10s%-10s%-20s'%(10^n, prime_pi(10^n), Li(10^n))
+        10        4         5.12043572467
+        100       25        29.080977804
+        1000      168       176.56449421
+        10000     1229      1245.09205212
+        100000    9592      9628.76383727
+        1000000   78498     78626.5039957
+    """
+    from real_double import RDF
+    x = RDF(x)
+    return RDF(gp('intnum(t=2,%s,1/log(t))'%x))
+
 def prime_pi(x):
     """
     Return the number of primes $\leq x$.
@@ -296,6 +340,42 @@ def is_prime(n, flag=0):
     n = sage.rings.integer.Integer(n)
     return pari(n).isprime()
 
+def is_pseudoprime(n, flag=0):
+    r"""
+    Returns True if $x$ is a pseudo-prime, and False otherwise.  The result
+    is \em{NOT} proven correct -- {\em this is a pseudo-primality test!}.
+
+    INPUT:
+        flag -- int
+                0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+
+    OUTPUT:
+        bool -- True or False
+
+    \note{We do not consider negatives of prime numbers as prime.}
+
+    EXAMPLES::
+        sage: is_pseudoprime(389)
+        True
+        sage: is_pseudoprime(2000)
+        False
+        sage: is_pseudoprime(2)
+        True
+        sage: is_pseudoprime(-1)
+        False
+        sage: factor(-6)
+        -1 * 2 * 3
+        sage: is_pseudoprime(1)
+        False
+        sage: is_pseudoprime(-2)
+        False
+
+    IMPLEMENTATION: Calls the PARI ispseudoprime function.
+    """
+    n = sage.rings.integer.Integer(n)
+    return pari(n).ispseudoprime()
+
 def is_prime_power(n, flag=0):
     r"""
     Returns True if $x$ is a prime power, and False otherwise.  The result
@@ -393,7 +473,7 @@ def valuation(m, p):
 
 
 def prime_range(start, stop=None, leave_pari=False):
-    """
+    r"""
     List of all primes between start and stop-1, inclusive.  If the
     second argument is omitted, returns the primes up to the first
     argument.
@@ -413,8 +493,8 @@ def prime_range(start, stop=None, leave_pari=False):
                     are much different than SAGE integers.
                     If you use this option the lower bound must be 2.
 
-    You can also call this function with prime_range(bound) to get
-    all primes up to bound.
+    You can also call this function with \code{prime_range(bound)} to
+    get all primes up to bound.
 
     EXAMPLES:
         sage: prime_range(10)
@@ -443,13 +523,38 @@ def prime_range(start, stop=None, leave_pari=False):
     start = pari(start)
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
 
-##     if stop == None:
-##         start, stop = sage.rings.integer.Integer(2), start
-##     w = eratosthenes(stop-1)
-##     if start <= 2:
-##         return w
-##     _, i = sage.misc.search.search(w, start)
-##     return w[i:]
+def primes_first_n(n, leave_pari=False):
+    r"""
+    Return the first $n$ primes.
+
+    INPUT:
+        leave_pari -- bool (default: False) if True the returned list
+                    is a PARI list; this is *vastly* (10 times!)
+                    faster since the time of prime_range is dominated
+                    by conversion from PARI to SAGE integers.
+                    However, PARI integers are much different than
+                    SAGE integers.  If you use this option the lower
+                    bound must be 2.
+    OUTPUT:
+        a list of the first $n$ prime numbers.
+
+    EXAMPLES:
+        sage: primes_first_n(10)
+        [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+        sage: len(primes_first_n(1000))
+        1000
+
+    This is very fast, because we leave the output as a PARI object:
+        sage: v = primes_first_n(10^6, leave_pari=True)
+        sage: len(v)
+        1000000
+    """
+    v = pari.prime_list(n)
+    Z = sage.rings.integer.Integer
+    if leave_pari:
+        return v
+    return [Z(p) for p in v]     # this dominates runtime!
+
 
 #
 # This is from
@@ -460,9 +565,7 @@ def eratosthenes(n):
     r"""
     Return a list of the primes $\leq n$.
 
-    This is extremely slow and is for educational purposes only.  Use
-    \code{prime_list(..., leave_pari=True)} for an extremely efficient
-    implementation.
+    This is extremely slow and is for educational purposes only.
     """
     n = int(n)
     if n == 2:
@@ -1318,6 +1421,15 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
     OUTPUT:
         factorization of n
 
+    NOTES:
+        The qsieve and ecm commands give access to highly optimized
+        implementations of algorithms for doing certain integer
+        factorization problems.  These implementation are not used by
+        the generic factor command, which currently just calls PARI
+        (note that PARI also implements sieve and ecm algorithms, but
+        they aren't as optimized).  Thus you might consider using them
+        instead for certain numbers.
+
     EXAMPLES:
         sage: factor(500)
         2^2 * 5^3
@@ -1965,7 +2077,7 @@ def continued_fraction(x, partial_convergents=False):
         sage: continued_fraction(45/17)
         [2, 1, 1, 1, 5]
         sage: continued_fraction(sqrt(2))
-        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3]
+        [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
@@ -1983,11 +2095,11 @@ def continued_fraction(x, partial_convergents=False):
           (80143857, 25510582),
           (245850922, 78256779)])
         sage: continued_fraction(e)
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: continued_fraction(RR(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 12]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
         sage: print continued_fraction(RealField(200)(e))
-        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 2]
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
     if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
                       int, long)):
@@ -2309,7 +2421,7 @@ def rising_factorial(x, a):
         1320.00000000000
 
         sage: rising_factorial(10,RR('3.3'))
-        2826.38895824963
+        2826.38895824964
 
         sage: rising_factorial(1+I, I)
         0.266816390637832 + 0.122783354006371*I

@@ -25,6 +25,7 @@ from sage0 import sage0 as sage0, sage0_console, sage0_version, Sage
 from tachyon import tachyon_rt
 from psage import PSage
 from ecm import ECM, ecm
+from povray import povray
 
 # signal handling
 from get_sigs import *
@@ -33,6 +34,3 @@ interfaces = ['gap', 'gp', 'mathematica', 'gnuplot', \
               'kash', 'magma', 'macaulay2', 'maple', 'maxima', \
               'mathematica', 'mwrank', 'octave', \
               'singular', 'sage0', 'sage']
-
-
-

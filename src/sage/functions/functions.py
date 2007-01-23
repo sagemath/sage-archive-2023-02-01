@@ -10,7 +10,7 @@ EXAMPLES:
     sage: f(pi)
     (5*sin(((1*pi) + 0)))
     sage: float(f(pi))
-    6.1232339957367643e-16
+    6.1232339957367663e-16
 """
 import weakref
 
@@ -445,11 +445,6 @@ class Function_arith(Function):
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
     def _axiom_(self, axiom):
-        """
-        EXAMPLES:
-            sage: axiom(e + pi)                      # optional
-            %e + %pi
-        """
         return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
 
     def _octave_(self, octave):

@@ -1,6 +1,7 @@
 cdef extern from "gsl/gsl_matrix_complex_double.h":
 
   ctypedef struct gsl_matrix_complex:
+    size_t size1
     size_t size2
     size_t tda
     double * data

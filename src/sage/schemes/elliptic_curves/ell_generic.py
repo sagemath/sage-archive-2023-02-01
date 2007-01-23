@@ -38,7 +38,7 @@ import sage.schemes.generic.projective_space as projective_space
 
 import ell_point
 import constructor
-
+import formal_group
 
 factor = arith.factor
 sqrt = math.sqrt
@@ -366,6 +366,18 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E.b_invariants()
             (0, -8, 0, -16)
 
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b_invariants()
+            (9, 11, 29, 35)
+            sage: E.b2()
+            9
+            sage: E.b4()
+            11
+            sage: E.b6()
+            29
+            sage: E.b8()
+            35
+
         ALGORITHM: These are simple functions of the a invariants.
 
         AUTHOR: William Stein, 2005-04-25
@@ -379,6 +391,54 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                                   a3**2 + 4*a6, \
                                   a1**2 * a6 + 4*a2*a6 - a1*a3*a4 + a2*a3**2 - a4**2
             return self.__b_invariants
+
+    def b2(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b2()
+            9
+        """
+        try:
+            return self.__b_invariants[0]
+        except AttributeError:
+            return self.b_invariants()[0]
+
+    def b4(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b4()
+            11
+        """
+        try:
+            return self.__b_invariants[1]
+        except AttributeError:
+            return self.b_invariants()[1]
+
+    def b6(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b6()
+            29
+        """
+        try:
+            return self.__b_invariants[2]
+        except AttributeError:
+            return self.b_invariants()[2]
+
+    def b8(self):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve([1,2,3,4,5])
+            sage: E.b8()
+            35
+        """
+        try:
+            return self.__b_invariants[3]
+        except AttributeError:
+            return self.b_invariants()[3]
 
     def c_invariants(self):
         """
@@ -489,22 +549,29 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         """
         return self.__ainvs[4]
 
-
-
-
-
     def gens(self):
         raise NotImplementedError
 
     def quadratic_twist(self, D):
         """
         Return the quadratic twist of this curve by D.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([GF(1103)(1), 0, 0, 107, 340]); E
+            Elliptic Curve defined by y^2 + x*y  = x^3 + 107*x + 340 over Finite Field of size 1103
+            sage: E.quadratic_twist(-1)
+            Elliptic Curve defined by y^2  = x^3 + 770*x + 437 over Finite Field of size 1103
         """
         a = self.ainvs()
+        ap = [0, 0, 0]
+        ap.append(-27*D**2*a[0]**4 - 216*D**2*a[0]**2*a[1] + 648*D**2*a[0]*a[2] - 432*D**2*a[1]**2 + 1296*D**2*a[3])
+        ap.append(54*D**3*a[0]**6 + 648*D**3*a[0]**4*a[1]
+                  - 1944*D**3*a[0]**3*a[2] + 2592*D**3*a[0]**2*a[1]**2
+                  - 3888*D**3*a[0]**2*a[3] - 7776*D**3*a[0]*a[1]*a[2]
+                  + 3456*D**3*a[1]**3 - 15552*D**3*a[1]*a[3]
+                  + 11664*D**3*a[2]**2 + 46656*D**3*a[4])
         import constructor
-        return constructor.EllipticCurve([0, 0, 0, \
-                              -27*D**2*a[0]**4 - 216*D**2*a[0]**2*a[1] + 648*D**2*a[0]*a[2] - 432*D**2*a[1]**2 + 1296*D**2*a[3], \
-                              54*D**3*a[0]**6 + 648*D**3*a[0]**4*a[1] - 1944*D**3*a[0]**3*a[2] + 2592*D**3*a[0]**2*a[1]**2 - 3888*D**3*a[0]**2*a[3] - 7776*D**3*a[0]*a[1]*a[2] + 3456*D**3*a[1]**3 - 15552*D**3*a[1]*a[3] + 11664*D**3*a[2]**2 + 46656*D**3*a[4]])
+        return constructor.EllipticCurve(self.base_ring(), ap)
 
     def discriminant(self):
         """
@@ -1067,364 +1134,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
                 g += plot.line(list(reversed(v)) + w, **args)
         return g
 
-
-    ##############################################################################
-    # Formal Groups
-    ##############################################################################
-
-    def formal_w(self, prec=20):
-        """
-        The formal group power series w.
-
-        INPUT:
-            prec -- integer
-
-        OUTPUT:
-            a power series with given precision
-
-        DETAILS:
-            Return the formal power series
-            $$
-                   w(t) = t^3 + ...
-            $$
-            to precision $O(t^prec)$ of Proposition IV.1.1 of [Silverman
-            AEC1].  This is the formal expansion of $w = -1/y$ about the
-            formal parameter $t = -x/y$ at $\\infty$.
-
-            The result is cached, and a cached version is returned if
-            possible.
-
-        WARNING:
-            The resulting power series will have precision prec, but its
-            parent PowerSeriesRing will have default precision 20 (or whatever
-            the default default is).
-
-        ALGORITHM:
-            Uses Newton's method to solve the elliptic curve equation
-            at the origin. Complexity is roughly $O(M(n) \log n)$ where
-            $n$ is the precision and $M(n)$ is the time required to multiply
-            polynomials of length $n$ over the coefficient ring of $E$.
-
-        AUTHOR:
-            -- David Harvey (2006-09-09): modified to use Newton's method
-            instead of a recurrence formula.
-
-        EXAMPLES:
-            sage: e = EllipticCurve([0, 0, 1, -1, 0])
-            sage: e.formal_w(10)
-             t^3 + t^6 - t^7 + 2*t^9 + O(t^10)
-
-          Check that caching works:
-            sage: e = EllipticCurve([3, 2, -4, -2, 5])
-            sage: e.formal_w(20)
-             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + 101*t^7 + 237*t^8 + 312*t^9 - 949*t^10 - 10389*t^11 - 57087*t^12 - 244092*t^13 - 865333*t^14 - 2455206*t^15 - 4366196*t^16 + 6136610*t^17 + 109938783*t^18 + 688672497*t^19 + O(t^20)
-            sage: e.formal_w(7)
-             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + O(t^7)
-            sage: e.formal_w(35)
-             t^3 + 3*t^4 + 11*t^5 + 35*t^6 + 101*t^7 + 237*t^8 + 312*t^9 - 949*t^10 - 10389*t^11 - 57087*t^12 - 244092*t^13 - 865333*t^14 - 2455206*t^15 - 4366196*t^16 + 6136610*t^17 + 109938783*t^18 + 688672497*t^19 + 3219525807*t^20 + 12337076504*t^21 + 38106669615*t^22 + 79452618700*t^23 - 33430470002*t^24 - 1522228110356*t^25 - 10561222329021*t^26 - 52449326572178*t^27 - 211701726058446*t^28 - 693522772940043*t^29 - 1613471639599050*t^30 - 421817906421378*t^31 + 23651687753515182*t^32 + 181817896829144595*t^33 + 950887648021211163*t^34 + O(t^35)
-        """
-
-        k = self.base_ring()
-
+    def formal_group(self):
+        r"""The formal group associated to this elliptic curve."""
         try:
-            # Try cached version
-            w = self.__formal_w
-            cached_prec = w.prec()
-            R = w.parent()
+            return self.__formal_group
         except AttributeError:
-            # No cached version available
-            R = rings.PowerSeriesRing(k, "t")
-            w = R([k(0), k(0), k(0), k(1)], 4)
-            cached_prec = 4
-            self.__formal_w = w
+            self.__formal_group = formal_group.EllipticCurveFormalGroup(self)
+            return self.__formal_group
 
-        if prec < cached_prec:
-            return R(w, prec)
-
-        # We use the following iteration, which doubles the precision
-        # at each step:
-        #
-        #              z^3 - a_3 w^2 - a_4 z w^2 - 2 a_6 w^3
-        # w' = -----------------------------------------------------
-        #      1 - a_1 z - a_2 z^2 - 2 a_3 w - 2 a_4 z w - 3 a_6 w^2
-
-        a1, a2, a3, a4, a6 = self.ainvs()
-        current_prec = cached_prec
-        w = w.truncate()   # work with polynomials instead of power series
-
-        numerator_const = w.parent()([0, 0, 0, 1])      # z^3
-        denominator_const = w.parent()([1, -a1, -a2])   # 1 - a_1 z - a_2 z^2
-
-        last_prec = 0
-        for next_prec in misc.newton_method_sizes(prec):
-            if next_prec > current_prec:
-                if w.degree() - 1 > last_prec:
-                    # Here it's best to throw away some precision to get us
-                    # in sync with the sizes recommended by
-                    # newton_method_sizes(). This is especially counter-
-                    # intuitive when we throw away almost half of our
-                    # cached data!
-
-                    # todo: this might not actually be true, depending on
-                    # the overhead of truncate(), which is currently very
-                    # high e.g. for NTL based polynomials (but this is
-                    # slated to be fixed...)
-
-                    w = w.truncate(last_prec)
-
-                w_squared = w.square()
-                w_cubed = (w_squared * w).truncate(next_prec)
-
-                numerator = numerator_const                \
-                            -  a3 * w_squared              \
-                            -  a4 * w_squared.shift(1)     \
-                            -  (2*a6) * w_cubed
-
-                denominator = denominator_const           \
-                              - (2*a3) * w                \
-                              - (2*a4) * w.shift(1)       \
-                              - (3*a6) * w_squared
-
-                # todo: this is quite inefficient, because it gets
-                # converted to a power series, then the power series
-                # inversion works with polynomials again, and then
-                # it gets converted *back* to a power series, and
-                # then we convert it to a polynomial again! That's four
-                # useless conversions!!!
-
-                inverse = ~R(denominator, prec=next_prec)
-                inverse = inverse.truncate(next_prec)
-
-                w = (numerator * inverse).truncate(next_prec)
-
-            last_prec = next_prec
-
-        # convert back to power series
-        w = R(w, prec)
-        self.__formal_w = w
-        return w
-
-
-        # This is the old version that uses a recurrence, it requires
-        # O(n^3) scalar operations. According to the original docstring:
-        #
-        #    We compute w using the recursive procedure (4.1) on page 18
-        #    of Bluher's ``A leisurely introduction to formal groups and
-        #    elliptic curves'', which I downloaded from
-        #        http://www.math.uiuc.edu/Algebraic-Number-Theory/0076/
-
-        #k = self.base_ring()
-        #try:
-        #    w = self.__formal_w
-        #    pr = len(w)
-        #except AttributeError:
-        #    pr = 4
-        #    w = [k(0), k(0), k(0), k(1)]
-        #    self.__formal_w = w
-        #
-        #R = rings.PowerSeriesRing(k, "t")
-        #if prec <= pr:
-        #    return R(w, prec)
-        #a1, a2, a3, a4, a6 = self.ainvs()
-        #t0 = misc.cputime()
-        #
-        #for n in range(pr,prec):
-        #    w.append(a1*w[n-1] + \
-        #             a2*w[n-2] + \
-        #             a3*sum([w[i]*w[n-i] for i in range(3,n-2)]) + \
-        #             a4*sum([w[i]*w[n-1-i] for i in range(3,n-3)])  + \
-        #             a6*sum([w[i]*w[j]*w[n-i-j] for i in range(3,n-2) \
-        #                     for j in range(3,n-i-2)]))
-        #
-        #return R(w, prec)
-
-
-
-    def formal_x(self, prec=20):
-        """
-        Return the formal power series x(t) in terms of the local
-        parameter t = -x/y at infinity.
-        """
-        prec = max(prec,0)
-        try:
-            pr, x = self.__formal_x
-        except AttributeError:
-            pr = -1
-        if prec <= pr:
-            t = x.parent().gen()
-            return x + O(t**prec)
-        w = self.formal_w(prec+5)
-        t = w.parent().gen()
-        x = t/w
-        self.__formal_x = (prec, x)
-        return x
-
-    def formal_y(self, prec=20):
-        """
-        Return the formal power series y(t) in terms of the local
-        parameter t = -x/y at infinity.
-        """
-        prec = max(prec,0)
-        try:
-            pr, y = self.__formal_y
-        except AttributeError:
-            pr = -1
-        if prec <= pr:
-            t = y.parent().gen()
-            return y + O(t**prec)
-        w = self.formal_w(prec+6)
-        t = w.parent().gen()
-        y = -1/w
-        self.__formal_y = (prec, y)
-        return y
-
-    def formal_differential(self, prec=20):
-        """
-        Returns the power series $f(t) = 1 + \cdots$ such that $f(t) dt$ is
-        the usual invariant differential $dx/(2y + a_1 x + a_3)$.
-
-        INPUT:
-           prec -- nonnegative integer, answer will be returned O(t^prec)
-
-        EXAMPLES:
-           sage: EllipticCurve([-1, 1/4]).formal_differential(15)
-            1 - 2*t^4 + 3/4*t^6 + 6*t^8 - 5*t^10 - 305/16*t^12 + 105/4*t^14 + O(t^15)
-           sage: EllipticCurve(Integers(53), [-1, 1/4]).formal_differential(15)
-            1 + 51*t^4 + 14*t^6 + 6*t^8 + 48*t^10 + 24*t^12 + 13*t^14 + O(t^15)
-
-        AUTHOR:
-           -- David Harvey (2006-09-10): factored out of formal_log
-
-        """
-        a = self.ainvs()
-        x = self.formal_x(prec+1)
-        y = self.formal_y(prec+1)
-        xprime = x.derivative()
-        g = xprime / (2*y + a[0]*x + a[2])
-        return g.power_series().add_bigoh(prec)
-
-    def formal_log(self, prec=20):
-        """
-        Returns the power series $f(t) = t + \cdots$ which is an isomorphism
-        to the additive formal group.
-
-        Generally this only makes sense in characteristic zero, although the
-        terms before $t^p$ may work in characteristic $p$.
-
-        INPUT:
-           prec -- nonnegative integer, answer will be returned O(t^prec)
-
-        EXAMPLES:
-           sage: EllipticCurve([-1, 1/4]).formal_log(15)
-            t - 2/5*t^5 + 3/28*t^7 + 2/3*t^9 - 5/11*t^11 - 305/208*t^13 + O(t^15)
-
-        AUTHOR:
-           -- David Harvey (2006-09-10): rewrote to use formal_differential
-
-        """
-        return self.formal_differential(prec-1).integral()
-
-    def formal_inverse(self, prec=20):
-        prec = max(prec,0)
-        try:
-            pr, inv = self.__formal_inverse
-        except AttributeError:
-            pr = -1
-        if prec <= pr:
-            t = inv.parent().gen()
-            return inv + O(t**prec)
-        x = self.formal_x(prec)
-        y = self.formal_y(prec)
-        a1, _, a3, _, _ = self.ainvs()
-        inv = x / ( y + a1*x + a3)          # page 114 of Silverman, AEC I
-        self.__formal_inverse = (prec, inv)
-        return inv
-
-    def formal_n_isogeny(self, n, prec=20):
-        prec = max(prec,0)
-        try:
-            pr, phi = self.__formal_n_isogeny[n]
-        except AttributeError:
-            pr = -1
-        if prec <= pr:
-            t = phi.parent().gen()
-            return phi + O(t**prec)
-        try:
-            _ = self.__formal_n_isogeny
-        except AttributeError:
-            self.__formal_n_isogeny = {}
-        misc.todo()
-
-    def formal_group(self, prec=10):
-        prec = max(prec,0)
-        try:
-            pr, F = self.__formal_group
-        except AttributeError:
-            pr = -1
-        if prec <= pr:
-            return F
-        R1 = rings.PowerSeriesRing(self.base_ring(),"t1")
-        R2 = rings.PowerSeriesRing(R1,"t2")
-        t1 = R1.gen().add_bigoh(prec)
-        t2 = R2.gen().add_bigoh(prec)
-        w = self.formal_w(prec)
-        def tsum(n):
-            return sum([t2**m * t1**(n-m-1) for m in range(n)])
-        lam = sum([tsum(n)*w[n] for n in range(3,prec)])
-        w1 = R1(w.coeffs()).add_bigoh(prec)
-        nu = w1 - lam*t1
-        a1, a2, a3, a4, a6 = self.ainvs()
-        lam2 = lam*lam
-        lam3 = lam2*lam
-        t3 = -t1 - t2 - \
-             (a1*lam + a3*lam2 + a2*nu + 2*a4*lam*nu + 3*a6*lam2*nu)/  \
-             (1 + a2*lam + a4*lam2 + a6*lam3)
-        inv = self.formal_inverse(prec)
-        F = inv(t3)
-        self.__formal_group = (prec, F)
-        return F
-
-    def formal_mult(self, n, prec=10):
-        R = rings.PowerSeriesRing(self.base_ring(),"t")
-        t = R._0
-        if n == 1:
-            return t +O(t**prec)
-        if n == -1:
-            return self.formal_inverse(prec)
-        if n < 0:
-            return self.formal_inverse(prec)(self.formal_mult(-n,prec))
-        F = self.formal_group(prec)
-        g = F.parent().base_ring().gen()
-        for m in range(2,n+1):
-            g = F(g)
-        return R(g.coeffs())
-
-    def formal_sigma(self, prec=10):
-        a1,a2,a3,a4,a6 = self.ainvs()
-
-        k = self.base_ring()
-        fl = self.formal_log(prec)
-        R = rings.PolynomialRing(k,'c'); c = R.gen()
-        F = fl.reversion()
-
-        S = rings.LaurentSeriesRing(R,'z')
-        c = S(c)
-        z = S.gen()
-        F = F(z + O(z**prec))
-        wp = self.formal_x()(F)
-        e2 = 12*c - a1**2 - 4*a2
-        g = (1/z**2 - wp + e2/12).power_series()
-        h = g.integral().integral()
-        sigma_of_z = z.power_series() * h.exp()
-
-        T = rings.PowerSeriesRing(R,'t')
-        fl = fl(T.gen()+O(T.gen()**prec))
-        sigma_of_t = sigma_of_z(fl)
-        return sigma_of_t
-
-
-    ##############################################################################
-    # End Formal Groups
-    ##############################################################################
-
-
+    formal = formal_group

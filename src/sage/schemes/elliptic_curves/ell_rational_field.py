@@ -25,6 +25,7 @@ AUTHORS:
 #*****************************************************************************
 
 import ell_point
+import formal_group
 from ell_field import EllipticCurve_field
 
 import sage.groups.all
@@ -1340,15 +1341,30 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def omega(self):
         """
-        Returns the real period.  This is the correct period in the BSD
-        conjecture, i.e., it is the least real period * 2 when the period
-        lattice is rectangular.
+        Returns the real period.
+
+        If self is given by a \emph{minimal Weierstrass equation} then
+        this is the correct period in the BSD conjecture, i.e., it is
+        the least real period * 2 when the period lattice is
+        rectangular.
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
             5.986917292463919259664019               # 32-bit
             5.986917292463919259664019958905016      # 64-bit
+
+
+        This is not a minimal model.
+            sage: E = EllipticCurve([0,-432*6^2])
+            sage: E.omega()
+            0.48610938571005642989723045
+
+        If you were to plug the above omega into the BSD conjecture, you
+        would get nonsense.   The following works though:
+            sage: F = E.minimal_model()
+            sage: F.omega()
+            0.97221877142011285979446091
         """
         return self.period_lattice()[0] * self.real_components()
 
@@ -1651,7 +1667,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37b')
             sage: E.Lseries_at1(100)
-            (0.725681061935999, 0.00000000000000000000000000000000000000000000152437502288999)
+            (0.725681061936000, 0.00000000000000000000000000000000000000000000152437502288999)
         """
         if self.root_number() == -1:
             return 0
@@ -1777,7 +1793,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.354172680515557 + 0.874518681718910*I
+            -0.354172680515554 + 0.874518681718912*I
         """
         s = C(s)
         N = self.conductor()
@@ -1808,9 +1824,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.638409959098257 + 0.715495262191409*I
+            -0.638409959098255 + 0.715495262191407*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.00761216538769283 + 0.000434885704642064*I
+            -0.00761216538769246 + 0.000434885704642074*I
 
         NOTE: You might also want to use Tim Dokchitser's
         L-function calculator, which is available by typing
@@ -2540,6 +2556,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.sha_an()
             4
 
+        In this case the input curve is not minimal, and if this function didn't
+        transform it to be minimal, it would give nonsense:
+            sage: E = EllipticCurve([0,-432*6^2])
+            sage: E.sha_an()
+            1
         """
 #            sage: e = EllipticCurve([1, 0, 0, -19491080, -33122512122])   # 15834T2
 #            sage: e.sha_an()                          # takes a long time (way too long!!)
@@ -2552,13 +2573,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 return self.__sha_an
             except RuntimeError, AttributeError:
                 pass
-        eps = self.root_number()
+
+        # it's critical to switch to the minimal model.
+        E = self.minimal_model()
+        eps = E.root_number()
         if eps == 1:
-            L1_over_omega = self.L_ratio()
+            L1_over_omega = E.L_ratio()
             if L1_over_omega == 0:
                 return 0
-            T = self.torsion_subgroup().order()
-            Sha = (L1_over_omega * T * T) / Q(self.tamagawa_product())
+            T = E.torsion_subgroup().order()
+            Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
             try:
                 Sha = Z(Sha)
             except ValueError:
@@ -2567,18 +2591,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if not arith.is_square(Sha):
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            E.__sha_an = Sha
             self.__sha_an = Sha
             return Sha
 
         else:  # rank > 0  (Not provably correct)
-            L1, error_bound = self.Lseries_deriv_at1(10*sqrt(self.conductor()) + 10)
+            L1, error_bound = E.Lseries_deriv_at1(10*sqrt(E.conductor()) + 10)
             if abs(L1) < error_bound:
+                E.__sha_an = 0
                 self.__sha_an = 0
                 return 0   # vanishes to order > 1, to computed precision
-            regulator = self.regulator()   # this could take a *long* time; and could fail...?
-            T = self.torsion_subgroup().order()
-            omega = self.omega()
-            Sha = int(round ( (L1 * T * T) / (self.tamagawa_product() * regulator * omega) ))
+            regulator = E.regulator()   # this could take a *long* time; and could fail...?
+            T = E.torsion_subgroup().order()
+            omega = E.omega()
+            Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
                 Sha = Z(Sha)
             except ValueError:
@@ -2587,6 +2613,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if not arith.is_square(Sha):
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not a square."%Sha
+            E.__sha_an = Sha
             self.__sha_an = Sha
             return Sha
 
@@ -3727,7 +3754,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
             sage: t = f.parent().gen()
             sage: f(2*t)/2
-             (1 + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
+             (1 + ... + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
             sage: g
              t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 
@@ -3823,11 +3850,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # in particular we reorganise things to skip the series reversions
         # and compositions (which are inherently asymptotically slower
         # than the other operations).
-
-        # todo: inefficient: the formal differential *includes*
-        # computation of formal_x
-        x = X.formal_x(N+1)               # x = t^{-2} + ...
-        f = X.formal_differential(N+1)    # f = 1 + ...
+        x = X.formal_group().x(N+1)               # x = t^{-2} + ...
+        f = X.formal_group().differential(N+1)    # f = 1 + ...
 
         # todo: I would like to write:
         #     A = -f * ((x + c) * f).integral()

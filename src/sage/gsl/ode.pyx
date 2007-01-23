@@ -145,10 +145,10 @@ class ode_solver(object):
 
          sage: T.algorithm="bsimp"
 
-         The user should supply initial conditions in y_0. For example if your initial conditions are
-         y_0=1,y_1=1, would do
+         The user should supply initial conditions in y_0. For example
+         if your initial conditions are y_0=1,y_1=1, do
 
-         sage: T.y_0=[1,0]
+         sage: T.y_0=[1,1]
 
          The actual solver is invoked by the method ode_solve.
          It has arguments t_span, y_0,num_points, params.
@@ -238,7 +238,7 @@ class ode_solver(object):
          sage: f = T.interpolate_solution(i=2)
          sage: plot(f,0,12).save('sage3.png')
          sage: f = T.interpolate_solution()
-         sage: f(pi)
+         sage: f(pi)                # slightly random precision
          0.53794722843358245
 
          Unfortunately because python functions are used, this solver is slow on system that require many function evaluations.

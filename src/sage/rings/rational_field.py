@@ -143,13 +143,15 @@ class RationalField(_uniq, field.Field):
             6530219459687219/281474976710656
             sage: 6530219459687219.0/281474976710656
             23.199999999999999
-            sage: QQ(23.2, 10)
-            116/5
+            sage: a = 23.2; a
+            23.1999999999999
+            sage: QQ(a, 10)
+            231999999999999/10000000000000
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.253841860855999
+            0.253841860856000
             sage: O = E.omega(); O
             1.269209304279553421688794              # 32-bit
             1.269209304279553421688794616754547     # 64-bit

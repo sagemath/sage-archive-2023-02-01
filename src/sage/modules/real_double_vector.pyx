@@ -1,5 +1,5 @@
 """
-Vectors with entries that are floating point doubles
+Real double vectors
 
 AUTHOR:
     -- Josh Kantor (2006-10)
@@ -162,16 +162,39 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         gsl_vector_scale(v, (<RealDoubleElement>right)._value)
         return self._new_c(v)
 
-    def fft(self):
+    def change_ring(self, R):
+        """
+        EXAMPLES:
+
+        """
+        if isinstance(R, sage.rings.complex_double.ComplexDoubleField_class):
+            return self.complex_vector()
+        else:
+            return free_module_element.FreeModuleElement.change_ring(self, R)
+
+    def complex_vector(self):
+        """
+        Return the associated complex vector, i.e., this vector but with
+        coefficients viewed as complex numbers.
+        """
         cdef complex_double_vector.ComplexDoubleVectorSpaceElement result
-        cdef int i
+        cdef gsl_vector_complex* v
+        v = <gsl_vector_complex*> gsl_vector_complex_calloc(self.v.size)
+        cdef Py_ssize_t i
         P = self.parent().change_ring( sage.rings.complex_double.CDF )
         result = complex_double_vector.ComplexDoubleVectorSpaceElement.__new__(
-            complex_double_vector.ComplexDoubleVectorSpaceElement, P, None)
+            complex_double_vector.ComplexDoubleVectorSpaceElement, None, None)
+        result._parent = P
+        result._degree = self._degree
+        result.v = v
         for i from 0 <=i< self.v.size:
             (result.v).data[2*i]= self.v.data[i]
-        result.fft(inplace=True)
         return result
+
+    def fft(self):
+        v = self.complex_vector()
+        v.fft(inplace=True)
+        return v
 
 
 

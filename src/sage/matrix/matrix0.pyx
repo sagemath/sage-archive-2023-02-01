@@ -1,5 +1,5 @@
 """
-Base class for matrices
+Base class for matrices, part 0
 
 NOTE: For design documentation see matrix/docs.py.
 
@@ -64,7 +64,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         [1.0 2.0 3.0]
         [4.0 5.0 6.0]
         sage: type(a)
-        <type 'sage.matrix.matrix_generic_dense.Matrix_generic_dense'>
+        <type 'sage.matrix.matrix_complex_double_dense.Matrix_complex_double_dense'>
         sage: parent(a)
         Full MatrixSpace of 2 by 3 dense matrices over Complex Double Field
 
@@ -2091,27 +2091,8 @@ cdef class Matrix(sage.structure.element.Matrix):
         """
         if not self.is_square():
             raise ArithmeticError, "self must be square"
-        n = int(sage.rings.integer.Integer(n))    # coerce to integer so fractions give error.
-        if n == 0:
-            return self.parent()(1)
-        if n < 0:
-            return (~self)**(-n)
-        if n == 1:
-            return self
-        ans = None
-        apow = self
-        while n != 0:
-            if n%2 != 0:
-                if ans is None:
-                    ans = apow
-                else:
-                    ans = ans * apow
-            n = n/2
-            if n == 0:  # to not waste time doing an extra multiplication/increment
-                break
-            apow = apow * apow
-        return ans
 
+        return ModuleElement.__pow__(self, n, ignored)
 
     ###################################################
     # Comparison

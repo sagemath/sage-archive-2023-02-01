@@ -1,3 +1,11 @@
+#*****************************************************************************
+# Headers.  When you past things in here from mpfr, be sure
+# to remove const's, since those aren't allowed in pyrex.  Also, it can be
+# challenging figuring out how to modify things from mpfr.h to be valid pyrex
+# code.    Note that what is here is only used for generating the C code.
+# The C compiler doesn't see any of this -- it only sees mpfr.h and stdlib.h
+#*****************************************************************************
+
 cdef extern from "mpfr.h":
     ctypedef struct __mpfr_struct:
         pass

@@ -356,6 +356,10 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
 
+    Extension('sage.rings.real_mpfi',
+              sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],

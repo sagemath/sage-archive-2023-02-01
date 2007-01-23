@@ -83,6 +83,9 @@ Reals = RealField
 
 from real_double import RealDoubleField, RDF, RealDoubleElement
 
+# Intervals
+from real_interval_field import RealIntervalField, is_RealIntervalField, is_RealIntervalFieldElement, RealIntervalFieldElement
+
 # Complex numbers
 from complex_field import ComplexField, is_ComplexField, CC
 from complex_number import ComplexNumber, is_ComplexNumber

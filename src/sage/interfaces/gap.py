@@ -421,7 +421,13 @@ class Gap(Expect):
             if j >= 0 and j < i:
                 i = -1
         if i == -1:
-            line = 'Print( %s );'%line.rstrip().rstrip(';')
+            line0 = 'Print( %s );'%line.rstrip().rstrip(';')
+            try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
+                return Expect._eval_line_using_file(self, line0, tmp)
+            except RuntimeError, msg:
+                #if not ("Function call: <func> must return a value" in msg):
+                #    raise RuntimeError, msg
+                return ''
         return Expect._eval_line_using_file(self, line, tmp)
 
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):

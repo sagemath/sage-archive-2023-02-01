@@ -29,7 +29,7 @@ import infinity
 include "../ext/stdsage.pxi"
 
 cdef mp_rnd_t rnd
-rnd = GMP_RNDD
+rnd = GMP_RNDN
 
 def set_global_complex_round_mode(n):
     global rnd

@@ -575,7 +575,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.998129069925958 - 0.000000000000000000000812769318781739*I  # 64-bit
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.998129069925958 + 0.0000000000000000123489424448887*I      # 32-bit
-            0.998129069925956 + 0.0000000000000000123489424487183*I      # 64-bit
+            0.998129069925958 + 0.0000000000000000123489424487183*I      # 64-bit
 
 
         We illustrate what happens when $z$ is not in the

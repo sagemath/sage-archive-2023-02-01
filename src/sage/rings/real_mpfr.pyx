@@ -1170,7 +1170,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b = R(-1)
             sage: b^(1/2)
             1.0000000*I                   # 32-bit
-            -0.00000000000000000010842021 + 0.99999999*I   # 64-bit
+            -0.00000000000000000010842021 + 1.0000000*I   # 64-bit
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):

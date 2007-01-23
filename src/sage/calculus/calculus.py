@@ -366,7 +366,7 @@ class SymbolicExpression(RingElement):
             return self
         elif isinstance(self, SymbolicArithmetic):
             new_ops = [op._recursive_sub(kwds) for op in ops]
-            return SymbolicArithmetic([new_ops[0], new_ops[1]], self._operator)
+            return SymbolicArithmetic(new_ops, self._operator)
         elif isinstance(self, SymbolicComposition):
             return SymbolicComposition(ops[0], ops[1]._recursive_sub(kwds))
 

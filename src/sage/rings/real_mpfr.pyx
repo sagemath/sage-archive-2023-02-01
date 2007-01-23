@@ -8,6 +8,13 @@ AUTHORS:
    -- David Harvey (2006-09-20): compatibility with Element._parent
    -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
+
+EXAMPLES:
+
+A difficult conversion:
+
+    sage: RR(sys.maxint)
+    9223372036854770000     # 64-bit
 """
 
 #*****************************************************************************
@@ -201,7 +208,10 @@ cdef class RealField(sage.rings.ring.Field):
         """
         if hasattr(x, '_mpfr_'):
             return x._mpfr_(self)
-        return RealNumber(self, x, base)
+        cdef RealNumber z
+        z = self._new()
+        z._set(x, base)
+        return z
 
     cdef _coerce_c_impl(self, x):
         """
@@ -470,7 +480,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x.init = 1
         return x
 
-    def __init__(self, RealField parent, x=0, int base=10, special=None):
+    def __init__(self, RealField parent, x=0, int base=10):
         """
         Create a real number.  Should be called by first creating
         a RealField, as illustrated in the examples.
@@ -513,18 +523,25 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_init2(self.value, parent.__prec)
         self.init = 1
         if x is None: return
+        self._set(x, base)
+
+    cdef _set(self, x, int base):
+        # This should not be called except when the number is being created.
+        # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
-        cdef int _ix
+        cdef Integer _ix
+        cdef RealField parent
+        parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
             mpfr_set(self.value, _x.value, parent.rnd)
-        elif PY_TYPE_CHECK(x, sage.rings.rational.Rational):
-            n = parent(x.numerator())
-            d = parent(x.denominator())
-            mpfr_div(self.value, n.value, d.value, parent.rnd)
-        elif PY_TYPE_CHECK(x, int):
-            _ix = x
-            mpfr_set_si(self.value, _ix, parent.rnd)
+        elif PY_TYPE_CHECK(x, Integer):
+            mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
+        elif PY_TYPE_CHECK(x, Rational):
+            mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
+        elif isinstance(x, (int, long)):
+            _ix = Integer(x)
+            mpfr_set_z(self.value, _ix.value, parent.rnd)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):

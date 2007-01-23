@@ -18,6 +18,7 @@ from sage.rings.real_double cimport RealDoubleElement
 import sage.rings.real_double
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
+
 cdef extern from "arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is

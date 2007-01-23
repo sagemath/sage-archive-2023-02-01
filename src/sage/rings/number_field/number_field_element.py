@@ -160,9 +160,9 @@ class NumberFieldElement(field_element.FieldElement):
         EXAMPLES:
             sage: z = CyclotomicField(7).gen()
             sage: abs(z)
-            0.999999999999999
+            1.00000000000000
             sage: abs(z^2 + 17*z - 3)
-            16.0604426799930
+            16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
             2.57128159065823
@@ -411,14 +411,28 @@ class NumberFieldElement(field_element.FieldElement):
 ##             return R(nf.rnfcharpoly(prp, elt))
 ##         # return self.matrix().charpoly('x')
 
-    def minpoly(self):
+    def minpoly(self, var):
+        """
+        Return the minimal polynomial of this number field element.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2+3)
+            sage: a.minpoly('x')
+            x^2 + 3
+            sage: R.<X> = K['X']
+            sage: L.<b> = K.extension(X^2-(22 + a))
+            sage: b.minpoly('t')
+            t^4 - 44*t^2 + 487
+            sage: b^2 - (22+a)
+            0
+        """
         # The minimal polynomial is square-free and
         # divisible by same irreducible factors as
         # the characteristic polynomial.
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
-        f = polynomial_ring.PolynomialRing(QQ)(1)
-        for g, _ in self.charpoly('x').factor():
+        f = polynomial_ring.PolynomialRing(QQ, var)(1)
+        for g, _ in self.charpoly(var).factor():
             f *= g
         return f
 

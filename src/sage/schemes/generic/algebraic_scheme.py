@@ -78,6 +78,16 @@ class AlgebraicScheme(scheme.Scheme):
         self.__A = A
         self.__divisor_groups = {}
 
+    def coordinate_ring(self):
+        try:
+            return self._coordinate_ring
+        except AttributeError:
+            R = self.__A.coordinate_ring()
+            I = self.defining_ideal()
+            Q = R.quotient(I)
+            self._coordinate_ring = Q
+            return Q
+
     def ambient_space(self):
         return self.__A
 
@@ -235,19 +245,6 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             polys = '(no equations)'
         return "Closed subscheme of %s defined by:\n  %s"%(self.ambient_space(),
                                                            polys)
-
-    def coordinate_ring(self):
-        try:
-            return self._coordinate_ring
-        except AttributeError:
-            R = self.__A.coordinate_ring()
-            if len(self.__X) == 0:
-                Q = R
-            else:
-                I = self.defining_ideal()
-                Q = R/I
-            self._coordinate_ring = Q
-            return Q
 
     def defining_polynomials(self):
         return self.__G

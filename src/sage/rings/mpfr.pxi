@@ -1,4 +1,6 @@
 cdef extern from "mpfr.h":
+    ctypedef void* mpq_t
+    ctypedef void* mpz_t
     ctypedef struct __mpfr_struct:
         pass
     #ctypedef __mpfr_struct mpfr_t[1]
@@ -31,6 +33,8 @@ cdef extern from "mpfr.h":
     int mpfr_set_str (mpfr_t rop, char *s, int base, mp_rnd_t rnd)
     void mpfr_set_inf (mpfr_t x, int sign)
     void mpfr_set_nan (mpfr_t x)
+    int mpfr_set_z (mpfr_t rop, mpz_t op, mp_rnd_t rnd)
+    int mpfr_set_q (mpfr_t rop, mpq_t op, mp_rnd_t rnd)
 
     char * mpfr_get_str (char *str, mp_exp_t *expptr, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
     size_t mpfr_out_str (int *stream, int base, size_t n, mpfr_t op, mp_rnd_t rnd)

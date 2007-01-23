@@ -15,7 +15,10 @@ pull
 ~$
 #(^|/)\.[^/]
 (^|/)_darcs($|/)
+\.tmp$
 \.hg$
+\.rej$
+\.sobj$
 \.bak$
 \.BAK$
 \.fig$
@@ -39,6 +42,7 @@ pull
 \.cvsignore$
 (^|/)Thumbs\.db$
 # sage files to ignore:
+(^|/).doctest*
 ^dist($|/)
 ^notes($|/)
 (^|/).old($|/)
@@ -86,5 +90,3 @@ pull
 ^sage/libs/linbox/finite_field_givaro.cpp
 ^sage/rings/finite_field_givaro.cpp
 version.py
-a
-

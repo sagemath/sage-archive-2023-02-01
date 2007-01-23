@@ -25,11 +25,12 @@ AUTHORS: Initial version -- William Stein
 
 import math
 
-import sage.rings.all
-import sage.categories.all
 import sage.misc.latex
 import sage.server.support
 import sage.interfaces.expect
+
+from sage.rings.complex_double import CDF
+from sage.rings.real_double import RDF
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -52,10 +53,10 @@ def arg(x):
         sage: cos(theta)*abs(z)   # slightly random output on cygwin
         1.00000000000000
         sage: sin(theta)*abs(z)
-        1.99999999999999
+        2.00000000000000
     """
     try: return x.arg()
-    except AttributeError: return sage.rings.all.CC(x).arg()
+    except AttributeError: return CDF(x).arg()
 
 def base_ring(x):
     """
@@ -101,6 +102,7 @@ def category(x):
     try:
         return x.category()
     except AttributeError:
+        import sage.categories.all
         return sage.categories.all.Objects()
 
 def ceil(x):
@@ -147,7 +149,7 @@ def acos(x):
         0.904556894302381 - 1.06127506190503*I
     """
     try: return x.acos()
-    except AttributeError: return sage.rings.all.RR(x).acos()
+    except AttributeError: return RDF(x).acos()
 
 def asin(x):
     """
@@ -160,7 +162,7 @@ def asin(x):
         0.666239432492515 + 1.06127506190503*I
     """
     try: return x.asin()
-    except AttributeError: return sage.rings.all.RR(x).asin()
+    except AttributeError: return RDF(x).asin()
 
 def atan(x):
     """
@@ -168,12 +170,12 @@ def atan(x):
 
     EXAMPLES:
         sage: atan(1/2)
-        0.463647609000806
+        0.463647609001
         sage: atan(1 + I)
         1.01722196789785 + 0.402359478108525*I
     """
     try: return x.atan()
-    except AttributeError: return sage.rings.all.RR(x).atan()
+    except AttributeError: return RDF(x).atan()
 
 ## def cuspidal_submodule(x):
 ##     return x.cuspidal_submodule()
@@ -298,14 +300,14 @@ def eta(x):
         0.742048775836564 + 0.198831370229910*I
     """
     try: return x.eta()
-    except AttributeError: return sage.rings.all.CC(x).eta()
+    except AttributeError: return CDF(x).eta()
 
 def exp(x):
     """
     Return the value of the exponentation function at x.
     """
     try: return x.exp()
-    except AttributeError: return sage.rings.all.RR(x).exp()
+    except AttributeError: return RDF(x).exp()
 
 def factor(x, *args, **kwds):
     """
@@ -408,7 +410,7 @@ def imag(x):
     Return the imaginary part of x.
     """
     try: return x.imag()
-    except AttributeError: return sage.rings.all.CC(x).imag()
+    except AttributeError: return CDF(x).imag()
 
 def imaginary(x):
     """
@@ -589,6 +591,7 @@ def log(x,b=None):
     INPUT:
         x -- number
         b -- base (default: None, which means natural log)
+
     OUTPUT:
         number
 
@@ -599,22 +602,22 @@ def log(x,b=None):
 
     EXAMPLES:
         sage: log(10,2)
-        3.32192809488736
+        3.32192809489
         sage: log(8,2)
-        2.99999999999999
+        3.0
         sage: log(10)
-        2.30258509299404
+        2.30258509299
         sage: log(2.718)
         0.999896315728951
     """
     if b is None:
-        try: return x.log()
-        except AttributeError:
-            return sage.rings.all.RR(x).log()
+        if hasattr(x, 'log'):
+            return x.log()
+        return RDF(x)._log_base(1)
     else:
-        try: return x.log(b)
-        except AttributeError:
-            return log(x) / log(b)
+        if hasattr(x, 'log'):
+            return x.log(b)
+        return RDF(x).log(b)
 
 def minimal_polynomial(x):
     """
@@ -748,7 +751,7 @@ def real(x):
         1.00000000000000
     """
     try: return x.real()
-    except AttributeError: return sage.rings.all.CC(x).real()
+    except AttributeError: return CDF(x).real()
 
 def regulator(x):
     """
@@ -793,7 +796,7 @@ def sqrt(x):
         3
     """
     try: return x.sqrt()
-    except (AttributeError, ValueError): return sage.rings.all.CC(x).sqrt()
+    except (AttributeError, ValueError): return CDF(x).sqrt()
 
 def isqrt(x):
     """
@@ -874,7 +877,7 @@ def tan(x):
         0.999953674278156
     """
     try: return x.tan()
-    except AttributeError: return sage.rings.all.RR(x).tan()
+    except AttributeError: return RDF(x).tan()
 
 def transpose(x):
     """

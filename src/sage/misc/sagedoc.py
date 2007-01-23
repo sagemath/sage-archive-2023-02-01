@@ -157,7 +157,9 @@ def search_sage(s, extra=''):
     and you must have grep installed.
     """
     from sage.misc.all import pager
-    pager()(os.popen('sage -grep "%s" | grep "%s"'%(s,extra)).read())
+    cmd = 'sage -grep "%s" | grep "%s"'%(s,extra)
+    print cmd
+    pager()(os.popen(cmd).read())
 
 
 

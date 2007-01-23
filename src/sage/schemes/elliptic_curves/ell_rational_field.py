@@ -3583,7 +3583,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Find an integer B such that A*B*P reduces to the identity mod p.
         # This is necessary to be able to evaluate sigma(A*B*P) by substituting
         # into the series for sigma.
-        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) / A
+        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) // A
 
         # Later, we will be computing $h(P) = h(AB*P)/(AB)^2$. But if $AB$ is
         # divisible by a power of $p$, then this will affect the resulting

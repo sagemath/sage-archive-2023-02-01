@@ -334,7 +334,7 @@ fi
 if [ $1 = '-grep' -o $1 = "--grep" ]; then
    sage_setup
    shift
-   sage-grep "$@"
+   sage-grep "$*"
    exit 0
 fi
 

@@ -386,7 +386,9 @@ def sage_prefilter(self, block, continuation):
     try:
         block2 = ''
         first = True
-        for L in block.split('\n'):
+        B = block.split('\n')
+        for i in range(len(B)):
+            L = B[i]
             M = do_prefilter_paste(L, continuation or (not first))
             first = False
             # The L[:len(L)-len(L.lstrip())]  business here preserves
@@ -394,7 +396,7 @@ def sage_prefilter(self, block, continuation):
             if block2 != '':
                 block2 += '\n'
             lstrip = L.lstrip()
-            if lstrip[:5] == 'sage:' or lstrip[:3] == '>>>':
+            if lstrip[:5] == 'sage:' or lstrip[:3] == '>>>' or i==0:
                 block2 += M
             else:
                 block2 += L[:len(L)-len(lstrip)] + M

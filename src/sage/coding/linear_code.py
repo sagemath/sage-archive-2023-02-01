@@ -849,8 +849,8 @@ class LinearCode(module.Module):
             sage: C  = LinearCode(G)
             sage: C
             Linear code of length 8, dimension 4 over Finite Field of size 2
-            sage: G = C.permutation_automorphism_group()
-            sage: G.order()
+            sage: G = C.permutation_automorphism_group()   # long time
+            sage: G.order()                                # long time
             144
 
         A less easy example involves showing that the permutation automorphism
@@ -858,8 +858,8 @@ class LinearCode(module.Module):
 
             sage: C = ExtendedTernaryGolayCode()
             sage: M11 = MathieuGroup(11)
-            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds
-            sage: G.is_isomorphic(M11)
+            sage: G = C.permutation_automorphism_group()  ## this should take < 15 seconds                                    # long time
+            sage: G.is_isomorphic(M11)        # long time
             True
 
         """

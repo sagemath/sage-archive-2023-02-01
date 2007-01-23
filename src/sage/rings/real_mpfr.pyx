@@ -704,11 +704,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: copy(a) is  a
             True
         """
-        return self
-        #cdef RealNumber z
-        #z = RealNumber(self._parent)
-        #mpfr_set(z.value, self.value, (<RealField>self._parent).rnd)
-        #return z
+        return self    # since object is immutable.
 
     def integer_part(self):
         """
@@ -1232,7 +1228,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = 16.0; r.log10()
             1.20411998265592
             sage: r.log() / log(10)
-            1.20411998265592
+            1.20411998266
 
             sage: r = 39.9; r.log10()
             1.60097289568674

@@ -657,7 +657,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293737358
+            0.0994254293726
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))

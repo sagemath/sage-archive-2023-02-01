@@ -434,7 +434,10 @@ class CallableFunction(SageObject):
             # the weird TeX is to workaround an apparent JsMath bug
             return "\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
 
-    def derivative(self, dt):
+    def derivative(self, ):
+        """
+        Returns the derivative of this symbolic
+        """
         return CallableFunction(self._expr.derivative(dt), self._varlist)
 
     def integral(self, dx):
@@ -448,6 +451,8 @@ class CallableFunction(SageObject):
 
     def trig_simplify(self):
         return CallableFunction(self._expr.trig_simplify(), self._varlist)
+
+    def expand
 
     #TODO: Arithmetic, expand, trig_expand, etc...
 

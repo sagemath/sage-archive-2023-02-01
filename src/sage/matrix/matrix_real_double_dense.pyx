@@ -16,7 +16,6 @@ include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
 from sage.rings.real_double cimport RealDoubleElement
 import sage.rings.real_double
-import numpy
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
 cdef extern from "arrayobject.h":
@@ -355,6 +354,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         _n = temp
         _n.flags = _n.flags&(~NPY_OWNDATA) # this perform as a logical AND on NOT(NPY_OWNDATA), which sets that bit to 0
         _n.data = <char *> _M._matrix.data #numpy arrays store their data as char *
+        import numpy
         v,_m = numpy.linalg.eig(_n)
 
         parent = self.matrix_space(self._nrows,self._ncols)

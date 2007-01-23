@@ -19,31 +19,6 @@ from sage.misc.sage_eval import sage_eval
 from sage.functions.constants import Constant
 import sage.functions.constants as c
 
-import pdb
-
-class PrimitiveFunction(SageObject):
-    def __init__(self):
-        # nothing so far
-        pass
-
-    def __call__(self, x):
-        # if we're calling with a symbolic expression, do function composition
-        if isinstance(x, SymbolicExpression) and not isinstance(x, Constant):
-            return SymbolicComposition(self, x)
-
-        # if x is a polynomial object, first turn it into a function and
-        # compose self with x
-        elif is_Polynomial(x):
-            return Function_composition(self, SymbolicPolynomial(x))
-
-        # if we can't figure out what x is, return a symbolic version of x
-        elif isinstance(x, (Integer, Rational,
-                            int, long, float, complex)):
-            return self(Constant_object(x))
-
-        else:
-            return self(Symbolic_object(x))
-
 # There will only ever be one instance of this class
 class SymbolicExpressionRing_class(CommutativeRing):
     '''
@@ -57,7 +32,9 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
-        if isinstance(x, SymbolicExpression):
+        if isinstance(x, CallableFunction):
+            return x._expr
+        elif isinstance(x, SymbolicExpression):
             return x
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
@@ -101,26 +78,130 @@ class SymbolicExpression(RingElement):
             return m
 
     def _neg_(self):
-        return -1*self
+        return SymbolicArithmetic([self], operator.neg)
 
     def __cmp__(self, right):
         return cmp(maxima(self), maxima(right))
 
     def _add_(self, right):
-        return SymbolicArithmetic(self, right, operator.add)
+        # if we are adding a negation, instead subtract the operand of negation
+        #if isinstance(right, SymbolicArithmetic):
+        #    if right._operator is operator.neg:
+        #        return SymbolicArithmetic([self, right._operands[0]], operator.sub)
+        #elif isinstance(right, Symbolic_object) and right < 0:
+        #    return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
+        #else:
+            return SymbolicArithmetic([self, right], operator.add)
 
     def _sub_(self, right):
-        return SymbolicArithmetic(self, right, operator.sub)
+        return SymbolicArithmetic([self, right], operator.sub)
 
     def _mul_(self, right):
-        return SymbolicArithmetic(self, right, operator.mul)
+        # do some simplification... pull out negatives from the operands and put it
+        # in front of this multiplication
+        #if isinstance(self, SymbolicArithmetic) and isinstance(right, SymbolicArithmetic):
+        #    if self._operator is operator.neg and right._operator is operator.neg:
+        #        s_unneg = self._operands[0]
+        #        r_unneg = right._operands[0]
+        #        return SymbolicArithmetic([s_unneg, r_unneg], operator.mul)
+        #if isinstance(self, SymbolicArithmetic):
+        #    if self._operator is operator.neg and (not isinstance(right, SymbolicArithmetic) \
+        #    or not (right._operator is operator.neg)):
+        #        s_unneg = self._operands[0]
+        #        return -SymbolicArithmetic([s_unneg, right], operator.mul)
+        #if isinstance(right, SymbolicArithmetic):
+        #    if not isinstance(self, SymbolicArithmetic) or (not (self._operator is operator.neg)) \
+        #    and right._operator is operator.neg:
+        #        r_unneg = right._operands[0]
+        #        return -SymbolicArithmetic([self, r_unneg], operator.mul)
+
+        return SymbolicArithmetic([self, right], operator.mul)
 
     def _div_(self, right):
-        return SymbolicArithmetic(self, right, operator.div)
+        # do some simplification... pull out negatives from the operands and put it
+        # in front of this division
+        #if isinstance(self, SymbolicArithmetic) and isinstance(right, SymbolicArithmetic):
+        #    if self._operator is operator.neg and right._operator is operator.neg:
+        #        s_unneg = self._operands[0]
+        #        r_unneg = right._operands[0]
+        #        return SymbolicArithmetic([s_unneg, r_unneg], operator.div)
+        #elif isinstance(self, SymbolicArithmetic):
+        #    if self._operator is operator.neg and (not isinstance(right, SymbolicArithmetic) \
+        #    or not (right._operator is operator.neg)):
+        #        s_unneg = self._operands[0]
+        #        return -SymbolicArithmetic([s_unneg, right], operator.div)
+        #elif isinstance(right, SymbolicArithmetic):
+        #    if not isinstance(self, SymbolicArithmetic) or (not (self._operator is operator.neg)) \
+        #    and right._operator is operator.neg:
+        #        r_unneg = right._operands[0]
+        #        return -SymbolicArithmetic([self, r_unneg], operator.div)
+
+        return SymbolicArithmetic([self, right], operator.div)
 
     def __pow__(self, right):
         right = self.parent()(right)
-        return SymbolicArithmetic(self, right, operator.pow)
+        return SymbolicArithmetic([self, right], operator.pow)
+
+    def _has_op(self, operator):
+        """
+        Recursively searches for the given operator in a SymbolicExpression
+        object.
+
+        INPUT:
+            operator: the operator to search for
+
+        OUTPUT:
+            True or False
+
+        EXAMPLES:
+            sage: f = 4*(x^2 - 3)
+            sage: f._has_op(operator.sub)
+            True
+            sage: f._has_op(operator.div)
+            False
+        """
+
+        # if we *are* the operator, then return true right away
+        try:
+            if operator is self._operator:
+                return True
+        except AttributeError:
+            pass
+
+        # now try to look at this guy's operands
+        try:
+            ops = self._operands
+        # if we don't have an operands, then we can return false
+        except AttributeError:
+            return False
+        for oprnd in ops:
+            if oprnd._has_op(operator): return True
+            else: pass
+        # if we get to this point, neither of the operands have the required
+        # operator
+        return False
+
+
+    def __call__(self, **kwds):
+        return self.substitute(**kwds)
+
+    def function(self, *args):
+        """
+        Return a CallableFunction, fixing a variable order to be the order of
+        args.
+
+        EXAMPLES:
+           sage: u = sin(x) + x*cos(y)
+           sage: g = u.function(x,y)
+           sage: g(x,y)
+           sin(x) + x*cos(y)
+           sage: g(t,z)
+           sin(t) + t*cos(z)
+           sage: g(x^2, log(y))
+           sin(x^2) + x^2*cos(log(y))
+        """
+        return CallableFunction(self, args)
+
 
     ###################################################################
     # derivative
@@ -155,10 +236,10 @@ class SymbolicExpression(RingElement):
                 if args[i] == 0:
                     return self
                 if args[i] < 0:
-                    raise ValueError, "can not take negative derivative"
+                    raise ValueError, "cannot take negative derivative"
             else:
-                raise TypeError, "arguments must be integers or \
-                SymbolicVariable objects"
+                raise TypeError, "arguments must be integers or " +\
+                                 "SymbolicVariable objects"
 
         try:
             if s[-2] == ',':
@@ -178,7 +259,6 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: h = sin(x)/cos(x)
             sage: h.integral(x)
-
         """
         if not isinstance(v, SymbolicVariable):
             raise TypeError, "second argument to diff must be a variable"
@@ -196,6 +276,8 @@ class SymbolicExpression(RingElement):
         Employs the identities $\sin(x)^2 + \cos(x)^2 = 1$ and
         $\cosh(x)^2 - \sin(x)^2 = 1$ to simplify expressions
         containing tan, sec, etc., to sin, cos, sinh, cosh.
+
+        trig_simplify() and simplify_trig() are the same method.
 
         EXAMPLES:
             sage: f = sin(x)^2 + cos(x)^2; f
@@ -235,6 +317,139 @@ class SymbolicExpression(RingElement):
 
 
 
+    ###################################################################
+    # substitute
+    ###################################################################
+    def substitute(self, dict=None, **kwds):
+        """
+        Takes the symbolic variables given as dict keys or as keywords and
+        replaces them with the symbolic expressions given as dict values or as
+        keyword values. Also run when you call a SymbolicExpression.
+
+        EXAMPLES:
+            sage: u = (x^3 - 3*y + 4*t)
+            sage: u.substitute(x=y, y=t)
+            y^3 - 3*t + 4*t
+
+            sage: f = sin(x)^2 + 32*x^(y/2)
+            sage: f.substitute(x=2, y = 10)
+            sin(2)^2 + 32*2^(10/2)
+
+            sage: f(x=pi, y=t)
+            sin(pi)^2 + 32*pi^(t/2)
+
+            sage: f(x=pi, y=t).simplify()
+
+
+        AUTHORS:
+            -- Bobby Moretti: Initial version
+        """
+        if dict is not None:
+            for k, v in dict.iteritems():
+               kwds[str(k)] = v
+        # find the keys from the keywords
+        return self._recursive_sub(kwds)
+
+    def _recursive_sub(self, kwds):
+        # if we have operands, call ourself on each operand
+        try:
+            ops = self._operands
+        except AttributeError:
+            pass
+        if isinstance(self, SymbolicVariable):
+            s = str(self)
+            if s in kwds:
+                return kwds[s]
+            else:
+                return self
+        elif isinstance(self, SymbolicConstant):
+            return self
+        elif isinstance(self, SymbolicArithmetic):
+            new_ops = [op._recursive_sub(kwds) for op in ops]
+            return SymbolicArithmetic([new_ops[0], new_ops[1]], self._operator)
+        elif isinstance(self, SymbolicComposition):
+            return SymbolicComposition(ops[0], ops[1]._recursive_sub(kwds))
+
+class PrimitiveFunction(SymbolicExpression):
+    def __init__(self):
+        pass
+
+    def __call__(self, x):
+        # if we're calling with a symbolic expression, do function composition
+        if isinstance(x, SymbolicExpression) and not isinstance(x, Constant):
+            return SymbolicComposition(self, x)
+
+        # if x is a polynomial object, first turn it into a function and
+        # compose self with x
+        elif is_Polynomial(x):
+            return Function_composition(self, SymbolicPolynomial(x))
+
+        # if we can't figure out what x is, return a symbolic version of x
+        elif isinstance(x, (Integer, Rational,
+                            int, long, float, complex)):
+            return self(Constant_object(x))
+
+        else:
+            return self(Symbolic_object(x))
+
+
+class CallableFunction(SageObject):
+    r'''
+    A callable, symbolic function that knows the variables on which it depends.
+    '''
+    def __init__(self, expr, args):
+        if args == [] or args == () or args is None:
+            raise ValueError, "A CallableFunction must know at least one of \
+                                its variables."
+        for arg in args:
+            if not isinstance(arg, SymbolicExpression):
+                raise TypeError, "Must construct a function with a list of \
+                                  SymbolicVariables."
+
+            self._varlist = args
+            self._expr = expr
+
+
+    def __call__(self, *args):
+        vars = self._varlist
+        dct = {}
+        for i in range(len(args)):
+            dct[vars[i]] = args[i]
+
+        return self._expr.substitute(dct)
+
+    def _repr_(self):
+        if len(self._varlist) == 1:
+            return "%s |--> %s" % (self._varlist[0], self._expr._repr_())
+        else:
+            vars = ", ".join(map(str, self._varlist))
+            return "(%s) |--> %s" % (vars, self._expr._repr_())
+
+    def _latex_(self):
+        if len(self._varlist) == 1:
+            return "%s \\ {\mapsto}\\ %s" % (self._varlist[0],
+                    self._expr._latex_())
+        else:
+            vars = ", ".join(map(latex, self._varlist))
+            # the weird TeX is to workaround an apparent JsMath bug
+            return "\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
+
+    def derivative(self, dt):
+        return CallableFunction(self._expr.derivative(dt), self._varlist)
+
+    def integral(self, dx):
+        return CallableFunction(self._expr.integral(dx), self._varlist)
+
+    def substitute(self, dict=None, **kwds):
+        return CallableFunction(self._expr.substitute(dict, kwds), self._varlist)
+
+    def simplify(self):
+        return CallableFunction(self._expr.simplify(), self._varlist)
+
+    def trig_simplify(self):
+        return CallableFunction(self._expr.trig_simplify(), self._varlist)
+
+    #TODO: Arithmetic, expand, trig_expand, etc...
 
 class Symbolic_object(SymbolicExpression):
     r'''
@@ -254,22 +469,29 @@ class Symbolic_object(SymbolicExpression):
     def _latex_(self):
         return latex(self._obj)
 
-    # TODO: do _pow_?
+    def __pow__(self, right):
+        if isinstance(right, Symbolic_object):
+            try:
+                return Symbolic_object(self._obj + right._obj)
+            except TypeError:
+                pass
+        return SymbolicExpression.__pow__(self, right)
+
     def _add_(self, right):
         if isinstance(right, Symbolic_object):
             try:
                 return Symbolic_object(self._obj + right._obj)
             except TypeError:
                 pass
-        return SymbolicArithmetic(self, right, operator.add)
+        return SymbolicExpression._add_(self, right)
 
     def _sub_(self, right):
-        if isinstnace(right, Symbolic_object):
+        if isinstance(right, Symbolic_object):
             try:
                 return Symbolic_object(self._obj - right._obj)
             except TypeError:
                 pass
-        return SymbolicArithmetic(self, right, operator.sub)
+        return SymbolicExpression._sub_(self, right)
 
     def _mul_(self, right):
         if isinstance(right, Symbolic_object):
@@ -277,7 +499,7 @@ class Symbolic_object(SymbolicExpression):
                 return Symbolic_object(self._obj * right._obj)
             except TypeError:
                 pass
-        return SymbolicArithmetic(self, right, operator.mul)
+        return SymbolicExpression._mul_(self, right)
 
     def _div_(self, right):
         if isinstance(right, Symbolic_object):
@@ -285,7 +507,7 @@ class Symbolic_object(SymbolicExpression):
                 return Symbolic_object(self._obj / right._obj)
             except TypeError:
                 pass
-        return SymbolicArithmetic(self, right, operator.div)
+        return SymbolicExpression._div_(self, right)
 
     def str(self, bits=None):
         if bits is None:
@@ -325,14 +547,17 @@ class SymbolicOperation(SymbolicExpression):
     """
     def __init__(self, operands):
         SymbolicExpression.__init__(self)
-        self._operands = operands
+        self._operands = [SER(op) for op in operands]
 
 class SymbolicComposition(SymbolicOperation):
     r'''
     Represents the symbolic composition of $f \circ g$.
     '''
     def __init__(self, f, g):
-        SymbolicOperation.__init__(self, (f,g))
+        SymbolicOperation.__init__(self, [f,g])
+
+    def _is_atomic(self):
+        return True
 
     def _repr_(self):
         ops = self._operands
@@ -362,13 +587,9 @@ class SymbolicArithmetic(SymbolicOperation):
     $f$ and $g$.
     '''
 
-    def __init__(self, f, g, op):
-        if not isinstance(f, SymbolicExpression) or not isinstance(g,
-                SymbolicExpression):
-            raise TypeError, "Symbolic Arithmetic is only defined on"+\
-            " SymbolicExpression objects."
+    def __init__(self, operands, op):
+        SymbolicOperation.__init__(self, operands)
 
-        self._operator = op
         if op is operator.add:
             self._atomic = False
         elif op is operator.sub:
@@ -379,68 +600,92 @@ class SymbolicArithmetic(SymbolicOperation):
             self._atomic = False
         elif op is operator.pow:
             self._atomic = True
+        elif op is operator.neg:
+            self._atomic = False
 
-        SymbolicOperation.__init__(self, (f, g))
-
-    def _repr_(self):
-        ops = self._operands
-        s0 = str(ops[0])
-        s1 = str(ops[1])
-        return self.parenthesize(s0, s1, self._operator)
+        self._operator = op
 
     def _is_atomic(self):
         return self._atomic
 
-    def parenthesize(self, s0, s1, op, op_symbols=symbols, paren_symbols=('(',')')):
-        '''
-        Properly add parentheses with correct operator precedence in a string
-        of ASCII math or latex.
-        '''
+    def _repr_(self):
+
+        ops = self._operands
+        op = self._operator
+
+        s = [str(o) for o in ops]
+        # for the left operand, we need to surround it in parens when the
+        # operator is mul/div/pow, and when the left operand contains an
+        # operation of lower precedence
         if op in [operator.mul, operator.div, operator.pow]:
-            if '+' in s0 or '-' in s0:
-                # avoid drawing parens if s0 is atomic, since they are redundant
-                if not self._operands[0]._is_atomic():
-                    s0 = '%s%s%s' % (paren_symbols[0],s0,paren_symbols[1])
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+                if not ops[0]._is_atomic():
+                    s[0] = '(%s)' % s[0]
+        # for the right operand, we need to surround it in parens when the
+        # operation is mul/div/sub and the, and when the right operand contains
+        # a + or -.
         if op in [operator.mul, operator.div, operator.sub]:
-            if '+' in s1 or '-' in s1:
-                # avoid drawing parens if s1 is atomic
-                if not self._operands[1]._is_atomic():
-                    s1 = '%s%s%s' % (paren_symbols[0],s1,paren_symbols[1])
-        return "%s%s%s" % (s0, op_symbols[op], s1)
+            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
+                # avoid drawing parens if s1 an atomic operation
+                if not ops[1]._is_atomic():
+                    s[1] = '(%s)' % s[1]
+        # if we have a compound expression on the right, then we need parens on
+        # the right... but in TeX, this is expressed by font size and position
+        elif op is operator.pow:
+            if ops[1]._has_op(operator.add) or  \
+            ops[1]._has_op(operator.sub) or  \
+            ops[1]._has_op(operator.mul) or  \
+            ops[1]._has_op(operator.div) or  \
+            ops[1]._has_op(operator.pow):
+                s[1] = '(%s)' % s[1]
+        if op is operator.neg:
+            return '-%s' % s[0]
+        else:
+            return '%s%s%s' % (s[0], symbols[op], s[1])
 
     def _latex_(self):
-        parens = ('\\left(', '\\right)')
-        ops = [x._latex_() for x in self._operands]
-        op_symbols = {operator.mul:' \\cdot ', operator.div:''}
+        op = self._operator
+        ops = self._operands
+        ops_tex = [x._latex_() for x in self._operands]
 
-        if self._operator is operator.add:
-            return self.parenthesize(ops[0], ops[1], self._operator,
-                    paren_symbols=parens)
-        elif self._operator is operator.sub:
-            return self.parenthesize(ops[0], ops[1], self._operator,
-                    paren_symbols=parens)
-        elif self._operator == operator.mul:
-            return self.parenthesize('{%s}'%ops[0],'{%s}'%ops[1], self._operator,
-                    op_symbols, paren_symbols=parens)
-        elif self._operator == operator.div:
-            return self.parenthesize('\\frac{%s}'%ops[0],'{%s}'%ops[1],
-                    self._operator, op_symbols=op_symbols, paren_symbols=parens)
-        elif self._operator == operator.pow:
-            return self.parenthesize(ops[0],'{%s}'%ops[1], self._operator,
-                    paren_symbols=parens)
-        else: raise NotImplementedError, 'Operator %s unkown' % self._operator
+        s = [o._latex_() for o in ops]
 
+        # follow a very similar logic to _repr_, but we don't parenthesize
+        # exponents
+        if op in [operator.mul, operator.div, operator.pow]:
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+                if not ops[0]._is_atomic():
+                    s[0] = '\\left( %s \\right)' % s[0]
+        if op in [operator.mul, operator.div, operator.sub]:
+            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
+                if not ops[1]._is_atomic():
+                    s[1] = '\\left( %s \\right)' % s[1]
+
+        if op is operator.add:
+            return '%s + %s' % (s[0], s[1])
+        elif op is operator.sub:
+            return '%s - %s' % (s[0], s[1])
+        elif op is operator.mul:
+            return '{%s \\cdot %s}' % (s[0], s[1])
+        elif op is operator.div:
+            return '\\frac{%s}{%s}' % (s[0], s[1])
+        elif op is operator.pow:
+            return '{%s}^{%s} ' % (s[0], s[1])
+        elif op is operator.neg:
+            return '-%s' % s[0]
 
     def _maxima_(self, maxima=maxima):
         try:
             return self.__maxima
         except AttributeError:
             ops = self._operands
-            m = self._operator(ops[0]._maxima_(maxima),
-                                  ops[1]._maxima_(maxima))
+            if self._operator is operator.neg:
+                m = self._operator(ops[0]._maxima_(maxima))
+            else:
+                m = self._operator(ops[0]._maxima_(maxima),
+                                      ops[1]._maxima_(maxima))
             self.__maxima = m
             return m
-
 
 import re
 
@@ -485,38 +730,46 @@ class SymbolicVariable(SymbolicExpression):
 common_varnames = ['alpha',
                    'beta',
                    'gamma',
+                   'Gamma',
                    'delta',
+                   'Delta',
                    'epsilon',
                    'zeta',
                    'eta',
                    'theta',
+                   'Theta'
                    'iota',
                    'kappa',
                    'lambda',
+                   'Lambda',
                    'mu',
                    'nu',
                    'xi',
+                   'Xi'
                    'pi',
+                   'Pi'
                    'rho',
                    'sigma',
+                   'Sigma'
                    'tau',
                    'upsilon',
-                   'phi',
+                   'varphi',
                    'chi',
                    'psi',
-                   'omega']
-common_varnames.append([i.capitalize() for i in common_varnames])
+                   'Psi'
+                   'omega',
+                   'Omega']
 
 
 def tex_varify(a):
-    # TODO: add more
-    if a in ['theta', 'eta', 'alpha']:
+    if a in common_varnames:
         return "\\" + a
     else:
         return '\\mbox{%s}'%a
 
 _vars = {}
 def var(s):
+    r''' Create a symbolic variable with the name \emph{s}'''
     try:
         return _vars[s]
     except KeyError:
@@ -542,6 +795,9 @@ class Function_sin(PrimitiveFunction):
     def _latex_(self):
         return "\\sin"
 
+    def _is_atomic(self):
+        return True
+
 sin = Function_sin()
 _syms['sin'] = sin
 
@@ -554,6 +810,9 @@ class Function_cos(PrimitiveFunction):
 
     def _latex_(self):
         return "\\cos"
+
+    def _is_atomic(self):
+        return True
 
 cos = Function_cos()
 _syms['cos'] = cos

@@ -52,7 +52,7 @@ def arg(x):
         sage: cos(theta)*abs(z)   # slightly random output on cygwin
         1.00000000000000
         sage: sin(theta)*abs(z)
-        1.99999999999999
+        2.00000000000000
     """
     try: return x.arg()
     except AttributeError: return sage.rings.all.CC(x).arg()
@@ -601,7 +601,7 @@ def log(x,b=None):
         sage: log(10,2)
         3.32192809488736
         sage: log(8,2)
-        2.99999999999999
+        3.00000000000000
         sage: log(10)
         2.30258509299404
         sage: log(2.718)

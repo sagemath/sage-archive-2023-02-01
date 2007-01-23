@@ -555,12 +555,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def quadratic_twist(self, D):
         """
         Return the quadratic twist of this curve by D.
+
+        EXAMPLES:
+            sage: E = EllipticCurve([GF(1103)(1), 0, 0, 107, 340]); E
+            Elliptic Curve defined by y^2 + x*y  = x^3 + 107*x + 340 over Finite Field of size 1103
+            sage: E.quadratic_twist(-1)
+            Elliptic Curve defined by y^2  = x^3 + 770*x + 437 over Finite Field of size 1103
         """
         a = self.ainvs()
+        ap = [0, 0, 0]
+        ap.append(-27*D**2*a[0]**4 - 216*D**2*a[0]**2*a[1] + 648*D**2*a[0]*a[2] - 432*D**2*a[1]**2 + 1296*D**2*a[3])
+        ap.append(54*D**3*a[0]**6 + 648*D**3*a[0]**4*a[1]
+                  - 1944*D**3*a[0]**3*a[2] + 2592*D**3*a[0]**2*a[1]**2
+                  - 3888*D**3*a[0]**2*a[3] - 7776*D**3*a[0]*a[1]*a[2]
+                  + 3456*D**3*a[1]**3 - 15552*D**3*a[1]*a[3]
+                  + 11664*D**3*a[2]**2 + 46656*D**3*a[4])
         import constructor
-        return constructor.EllipticCurve([0, 0, 0, \
-                              -27*D**2*a[0]**4 - 216*D**2*a[0]**2*a[1] + 648*D**2*a[0]*a[2] - 432*D**2*a[1]**2 + 1296*D**2*a[3], \
-                              54*D**3*a[0]**6 + 648*D**3*a[0]**4*a[1] - 1944*D**3*a[0]**3*a[2] + 2592*D**3*a[0]**2*a[1]**2 - 3888*D**3*a[0]**2*a[3] - 7776*D**3*a[0]*a[1]*a[2] + 3456*D**3*a[1]**3 - 15552*D**3*a[1]*a[3] + 11664*D**3*a[2]**2 + 46656*D**3*a[4]])
+        return constructor.EllipticCurve(self.base_ring(), ap)
 
     def discriminant(self):
         """

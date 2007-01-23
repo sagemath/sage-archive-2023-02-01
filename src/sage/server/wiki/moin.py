@@ -42,7 +42,7 @@ def wiki(directory='sage_wiki',
     os.chdir(directory)
 
     moin = '%s/share/moin/'%misc.SAGE_LOCAL
-    the_port = port
+    the_port = int(port)
 
     class Config(StandaloneConfig):
         # Server name

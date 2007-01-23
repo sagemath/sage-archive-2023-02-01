@@ -29,7 +29,7 @@ import infinity
 include "../ext/stdsage.pxi"
 
 cdef mp_rnd_t rnd
-rnd = GMP_RNDD
+rnd = GMP_RNDN
 
 def set_global_complex_round_mode(n):
     global rnd
@@ -347,7 +347,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: a = ~(5+I)
             sage: a * (5+I)
-            0.999999999999999 - 0.0000000000000000277555756156289*I
+            1.00000000000000
         """
         cdef ComplexNumber x
         x = self._new()
@@ -508,7 +508,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         EXAMPLES:
             sage: (1+I).cotan()
-            0.217621561854402 - 0.868014142895925*I
+            0.217621561854402 - 0.868014142895924*I
             sage: i = ComplexField(200).0
             sage: (1+i).cotan()
             0.21762156185440268136513424360523807352075436916785404091068 - 0.86801414289592494863584920891627388827343874994609327121115*I
@@ -566,7 +566,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z = 1 + i; z.eta()
             0.742048775836564 + 0.198831370229910*I
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.742048775836563 + 0.198831370229910*I
+            0.742048775836565 + 0.198831370229910*I
 
         The optional argument allows us to omit the fractional part:
             sage: z = 1 + i
@@ -574,8 +574,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.998129069925958 - 0.000000000000000000000812769319000000*I  # 32-bit
             0.998129069925958 - 0.000000000000000000000812769318781739*I  # 64-bit
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
-            0.998129069925956 + 0.0000000000000000123489424448887*I      # 32-bit
-            0.998129069925956 + 0.0000000000000000123489424487183*I      # 64-bit
+            0.998129069925958 + 0.0000000000000000123489424448887*I      # 32-bit
+            0.998129069925958 + 0.0000000000000000123489424487183*I      # 64-bit
 
 
         We illustrate what happens when $z$ is not in the
@@ -731,7 +731,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: gamma_inc(2, 1 + i)
             0.70709209 - 0.42035364*I
             sage: gamma_inc(2, 5)
-            0.0404276819945127
+            0.0404276819945128
         """
         return self._parent(self._pari_().incgam(t))
 

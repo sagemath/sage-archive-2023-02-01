@@ -464,7 +464,7 @@ def jacobi_P(n,a,b,x):
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
         sage: jacobi_P(2,1,2,1.2)
-        5.009999999999887
+        5.009999999999998
     """
     _init()
     n0 = ZZ(n) # n must be an integer

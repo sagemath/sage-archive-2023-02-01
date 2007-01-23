@@ -118,7 +118,7 @@ def data_to_list(out, n, time):
 
 
 import pexpect
-import monitor
+import cleaner
 class qsieve_nonblock:
     """
     A non-blocking version of Hart's quadratic sieve.
@@ -152,7 +152,7 @@ class qsieve_nonblock:
         else:
             cmd = 'QuadraticSieve'
         self._p = pexpect.spawn(cmd)
-        monitor.monitor(self._p.pid)
+        cleaner.cleaner(self._p.pid, 'QuadraticSieve')
         self._p.sendline(str(self._n)+'\n\n\n')
         self._done = False
         self._out = ''

@@ -248,7 +248,7 @@ def do_prefilter_paste(line, continuation):
                     ipmagic(L)
                 L = ''
             else:
-                L = preparser_ipython.preparse_ipython(L)
+                L = preparser_ipython.preparse_ipython(L, not continuation)
             __IPYTHON__.input_hist.append(L)
             __IPYTHON__.push(L)
         log.offset += 1
@@ -343,7 +343,7 @@ def do_prefilter_paste(line, continuation):
         else:
             raise ImportError, "Attaching of '%s' not implemented (load .py, .spyx, and .sage files)"%name
     if len(line) > 0:
-        line = preparser_ipython.preparse_ipython(line)
+        line = preparser_ipython.preparse_ipython(line, not continuation)
     return line
 
 def load_sagex(name):
@@ -385,14 +385,18 @@ def sage_prefilter(self, block, continuation):
     """
     try:
         block2 = ''
-        for L in block.split('\n'):
-            M = do_prefilter_paste(L, continuation)
+        first = True
+        B = block.split('\n')
+        for i in range(len(B)):
+            L = B[i]
+            M = do_prefilter_paste(L, continuation or (not first))
+            first = False
             # The L[:len(L)-len(L.lstrip())]  business here preserves
             # the whitespace at the beginning of L.
             if block2 != '':
                 block2 += '\n'
             lstrip = L.lstrip()
-            if lstrip[:5] == 'sage:' or lstrip[:3] == '>>>':
+            if lstrip[:5] == 'sage:' or lstrip[:3] == '>>>' or i==0:
                 block2 += M
             else:
                 block2 += L[:len(L)-len(lstrip)] + M

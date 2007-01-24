@@ -1,5 +1,8 @@
 """
-Dense matrices over the Complex Double Field. Matrix operations use GSl and numpy.
+Dense matrices over the Complex Double Field.
+
+IMPLEMENTATION:
+   Specialized matrix operations use GSL and numpy.
 """
 
 ##############################################################################
@@ -16,7 +19,6 @@ include '../ext/python.pxi'
 from sage.rings.complex_double cimport ComplexDoubleElement
 import sage.rings.complex_double
 import sage.rings.real_double
-import numpy
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
 cdef extern from "arrayobject.h":
@@ -304,6 +306,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         IMPLEMENTATION:
             Uses numpy.
         """
+        import numpy
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef Matrix_complex_double_dense _M, _result_matrix
         cdef int dims[2]

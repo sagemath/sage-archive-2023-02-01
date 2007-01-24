@@ -512,7 +512,10 @@ def prime_range(start, stop=None, leave_pari=False):
     """
     if stop is None:
         start, stop = 2, start
-    v = pari.primes_up_to_n(stop-1)
+    try:
+        v = pari.primes_up_to_n(stop-1)
+    except OverflowError:
+        return list(primes(start, stop))  # lame but works.
     Z = sage.rings.integer.Integer
     if leave_pari:
         if start != 2:

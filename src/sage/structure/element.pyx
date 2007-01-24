@@ -974,24 +974,42 @@ cdef class AdditiveGroupElement(ModuleElement):
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         cdef int m
-        m = int(right)  # a little worrisome.
-        if m<0:
-            return (-self)*(-m)
-        if m==1:
-            return self
-        P = self.scheme()(0)
-        if m==0:
-            return P
-        power = P
-        i = 0
-        apow2 = self
-        while ((m>>i) > 0):
-            if((m>>i) & 1):
-                power = power + apow2
-            apow2 = apow2 + apow2
-            i = i + 1
-        return power
-
+        try:
+            m = int(right)  # a little worrisome.
+            if m<0:
+                return (-self)*(-m)
+            if m==1:
+                return self
+            P = self.scheme()(0)
+            if m==0:
+                return P
+            power = P
+            i = 0
+            apow2 = self
+            while ((m>>i) > 0):
+                if((m>>i) & 1):
+                    power = power + apow2
+                apow2 = apow2 + apow2
+                i = i + 1
+            return power
+        except OverflowError:
+            m0 = int(right)
+            if m0<0:
+                return (-self)*(-m0)
+            if m0==1:
+                return self
+            P = self.scheme()(0)
+            if m0==0:
+                return P
+            power = P
+            i = 0
+            apow2 = self
+            while ((m0>>i) > 0):
+                if((m0>>i) & 1):
+                    power = power + apow2
+                apow2 = apow2 + apow2
+                i = i + 1
+            return power
 
 def is_MultiplicativeGroupElement(x):
     """

@@ -190,6 +190,15 @@ class RationalField(_uniq, field.Field):
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
 
+    def base_extend(self, R):
+        if not ring.is_Ring(R):
+            raise TypeError, "R must be a ring."
+        if R.characteristic() != 0:
+            raise TypeError, "no base extension defined"
+        if not field.is_Field(R) and not R.base_ring() == self:
+            raise TypeError, "R must be a field or obviously contain QQ."
+        return R
+
     def gens(self):
         return (self(1), )
 

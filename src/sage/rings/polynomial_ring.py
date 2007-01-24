@@ -282,6 +282,12 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             self.__polynomial_class = polynomial.Polynomial_generic_dense
 
     def base_extend(self, R):
+        if R.has_coerce_map_from(self.base_ring()):
+            return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
+        else:
+            raise TypeError, "no such base extension"
+
+    def change_ring(self, R):
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):

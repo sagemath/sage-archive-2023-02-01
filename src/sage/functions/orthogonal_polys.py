@@ -463,7 +463,7 @@ def jacobi_P(n,a,b,x):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
-        sage: jacobi_P(2,1,2,1.2)
+        sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
         5.009999999999998
     """
     _init()

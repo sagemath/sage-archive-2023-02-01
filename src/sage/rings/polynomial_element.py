@@ -609,8 +609,8 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             Multiply 2 polynomials
             """
 
-            f=f.base_extend(QQ)
-            g=g.base_extend(QQ)
+            f=f.change_ring(QQ)
+            g=g.change_ring(QQ)
 
             f_list = f.list()
             g_list = g.list()
@@ -625,8 +625,8 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
             ggcd = gcd(g_list)
 
             # Need to change ring to ZZ
-            z_poly_f=(f*fgcd.denominator()).base_extend(ZZ)
-            z_poly_g=(g*ggcd.denominator()).base_extend(ZZ)
+            z_poly_f=(f*fgcd.denominator()).change_ring(ZZ)
+            z_poly_g=(g*ggcd.denominator()).change_ring(ZZ)
 
             div = 1/(fgcd.denominator()*ggcd.denominator())
 
@@ -772,8 +772,20 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
         """
         Return a copy of this polynomial but with coefficients in R.
         """
-        S = sage.rings.polynomial_ring.PolynomialRing(R,
-                                      names = self.parent().variable_name())
+        S = self.parent().base_extend(R)
+        return S(self)
+
+    def change_ring(self, R):
+        """
+        Return a copy of this polynomial but with coefficients in R.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(3)
+            sage: f = K.defining_polynomial()
+            sage: f.change_ring(GF(7))
+            x^2 + x + 1
+        """
+        S = self.parent().change_ring(R)
         return S(self)
 
     def __copy__(self):
@@ -1501,7 +1513,7 @@ class Polynomial(commutative_algebra_element.CommutativeAlgebraElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: f = K.defining_polynomial()
-            sage: g = f.base_extend(GF(7))
+            sage: g = f.change_ring(GF(7))
             sage: g.roots()
             [(4, 1), (2, 1)]
             sage: g.roots(multiplicities=False)

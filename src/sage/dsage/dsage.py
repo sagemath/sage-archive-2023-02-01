@@ -42,6 +42,11 @@ class DistributedSage(object):
 
         To do something simple, type:
 
+        sage: P = DSage()
+
+        This creates a connection to the remote server.  To do a simple
+        evaluation, type:
+
         sage: job1 = P.eval('print 2+2', 'testjob')
 
         This sends the job 'print 2+2' to a worker and you can view the

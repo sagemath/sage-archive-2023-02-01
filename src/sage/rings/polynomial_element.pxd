@@ -3,8 +3,8 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
 
-from sage.structure.element import Element, IntegralDomainElement, CommutativeAlgebraElement
-from sage.structure.element cimport Element, IntegralDomainElement, CommutativeAlgebraElement
+from sage.structure.element import Element, CommutativeAlgebraElement
+from sage.structure.element cimport Element, CommutativeAlgebraElement
 
 cdef class Polynomial(CommutativeAlgebraElement):
     cdef Py_ssize_t degree

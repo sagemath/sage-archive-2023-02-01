@@ -1554,7 +1554,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <class 'sage.rings.polynomial_element.Polynomial_dense_mod_p'>
+            <class 'sage.rings.polynomial_element_generic.Polynomial_dense_mod_p'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """

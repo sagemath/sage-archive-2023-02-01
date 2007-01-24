@@ -74,7 +74,7 @@ import operator
 
 from infinity import infinity, is_Infinity
 from polynomial_ring import PolynomialRing
-import polynomial_element as polynomial
+import polynomial_element_generic as polynomial
 import power_series_ring
 import sage.misc.misc as misc
 import ring_element

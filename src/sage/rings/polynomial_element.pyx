@@ -1,38 +1,27 @@
 """
-Univariate Polynomials
+Univariate Polynomial Base Class
 
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
 """
 
-#*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+################################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
-#  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+################################################################################
 
 import operator
 
 import copy
 
-#from sage.structure.element import Element, IntegralDomainElement, CommutativeAlgebraElement
-from sage.structure.element import EuclideanDomainElement, PrincipalIdealDomainElement, RingElement
 import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.rational
 import integer
-import finite_field
-import padic_field
 import sage.rings.polynomial_ring
 import arith
 import sage.rings.ring_element as ring_element
@@ -41,35 +30,27 @@ import integer_mod_ring
 import polynomial_pyx
 import rational_field
 import complex_field
-import fraction_field_element
-import fraction_field
 from infinity import infinity
 import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
-from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
-import sage.misc.latex as latex
+from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
-
-from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+from sage.libs.all import pari, pari_gen
 
 from real_field import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
-# Faster than SAGE's
-from math import log as pylog
-from math import ceil as pyceil
-from math import floor as pyfloor
-from arith import gcd
+from sage.structure.element import RingElement
 
-QQ = sage.rings.rational_field.RationalField()
+from rational_field import QQ
+from integer_ring import ZZ
 
-ZZ = sage.rings.integer_ring.IntegerRing()
+import polynomial_fateman
 
 def is_Polynomial(f):
-    return isinstance(f, Polynomial)
+    return PY_TYPE_CHECK(f, Polynomial)
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -81,7 +62,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: f = x*y; f
         y*x
         sage: type(f)
-        <class 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+        <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
     """
     def __init__(self, parent, is_gen = False, construct=False):
         """
@@ -420,6 +401,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._repr()
 
     def _latex_(self, name=None):
+        """
+        EXAMPLES:
+
+        """
         s = " "
         m = self.degree() + 1
         r = reversed(xrange(m))
@@ -432,7 +417,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = latex.latex(x)
+                x = latex(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
@@ -459,6 +444,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def __floordiv__(self,right):
         """
         Quotient of division of self by other.  This is denoted //.
+        """
+        Q, _ = self.quo_rem(right)
+        return Q
+
+    def div(self,right):
+        """
+        Quotient of division of self by other.
         """
         Q, _ = self.quo_rem(right)
         return Q
@@ -525,9 +517,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<y> = PolynomialRing(RR)
             sage: f = y^10 - 1.393493*y + 0.3
             sage: f._mul_karatsuba(f)
-            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 - 0.000000000000000222044604925031*y^8 + 0.000000000000000222044604925031*y^6 + 0.000000000000000222044604925031*y^3 + 1.94182274104900*y^2 - 0.836095799999999*y + 0.0899999999999999
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 0.000000000000000111022302462515*y^8 - 0.000000000000000111022302462515*y^6 - 0.000000000000000111022302462515*y^3 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0899999999999999
             sage: f._mul_fateman(f)
-            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 + 1.94182274104899*y^2 - 0.836095800000000*y + 0.0899999999999999
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 + 1.94182274104900*y^2 - 0.836095799999999*y + 0.0899999999999999
 
         Advantages:
 
@@ -555,7 +547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHOR:
            -- Didier Deshommes (2006-05-25)
         """
-        return self.parent()(_mul_fateman_mul(self,right))
+        return self.parent()(polynomial_fateman._mul_fateman_mul(self,right))
 
     def _mul_karatsuba(self, right):
         r"""
@@ -636,10 +628,34 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
     def base_extend(self, R):
         """
-        Return a copy of this polynomial but with coefficients in R.
+        Return a copy of this polynomial but with coefficients in R, if there
+        is a natural map from coefficient ring of self to R.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^3 - 17*x + 3
+            sage: f.base_extend(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no such base extension
+            sage: f.change_ring(GF(7))
+            x^3 + 4*x + 3
         """
-        S = sage.rings.polynomial_ring.PolynomialRing(R,
-                                      names = self.parent().variable_name())
+        S = self.parent().base_extend(R)
+        return S(self)
+
+    def change_ring(self, R):
+        """
+        Return a copy of this polynomial but with coefficients in R, if at
+        all possible.
+
+        EXAMPLES:
+            sage: K.<z> = CyclotomicField(3)
+            sage: f = K.defining_polynomial()
+            sage: f.change_ring(GF(7))
+            x^2 + x + 1
+        """
+        S = self.parent().change_ring(R)
         return S(self)
 
     def __copy__(self):
@@ -825,6 +841,29 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f = x^0
             sage: f.factor()
             1
+
+        Arbitrary precision real and complex factorization:
+            sage: R.<x> = RealField(100)[]
+            sage: F = factor(x^2-3); F
+            (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
+            sage: F.mul()
+            1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
+            sage: factor(x^2 + 1)
+            1.0000000000000000000000000000*x^2 + 1.0000000000000000000000000000
+            sage: C = ComplexField(100)
+            sage: R.<x> = C[]
+            sage: F = factor(x^2+3); F
+            (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
+            sage: F.mul()
+            1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
+            sage: factor(x^2+1)
+            (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
+            sage: f = C.0 * (x^2 + 1) ; f
+            1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
+            sage: F=factor(f); F
+            (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
+            sage: F.mul()
+            1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
         """
 
         # PERFORMANCE NOTE:
@@ -848,6 +887,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.rational_field import RationalField
         from sage.rings.finite_field import is_FiniteField
 
+        n = None
         if integer_mod_ring.is_IntegerModRing(R) or \
                isinstance(R, (IntegerRing, RationalField)):
 
@@ -859,13 +899,24 @@ cdef class Polynomial(CommutativeAlgebraElement):
             f = pari(v).Polrev()
             G = list(f.factor())
 
+        elif is_RealField(R):
+            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
+            G = list(self._pari_('x').factor())
 
+        elif complex_field.is_ComplexField(R):
+            # This is a hack to make the polynomial have complex coefficients, since
+            # otherwise PARI will factor over RR.
+            n = pari.set_real_precision(int(3.5*R.prec()) + 1)
+            if self.leading_coefficient() != R.gen():
+                G = list((pari(R.gen())*self._pari_('x')).factor())
+            else:
+                G = self._pari_('x').factor()
         if G is None:
             raise NotImplementedError
 
-        return self._factor_pari_helper(G)
+        return self._factor_pari_helper(G, n)
 
-    def _factor_pari_helper(self, G, unit=None):
+    def _factor_pari_helper(self, G, n=None, unit=None):
         pols = G[0]
         exps = G[1]
         F = []
@@ -898,6 +949,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     unit *= c
                     F[i] = (F[i][0].monic(), F[i][1])
 
+        if not n is None:
+            pari.set_real_precision(n)  # restore precision
         return Factorization(F, unit)
 
     def _lcm(self, other):
@@ -1368,7 +1421,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
             sage: K.<z> = CyclotomicField(3)
             sage: f = K.defining_polynomial()
-            sage: g = f.base_extend(GF(7))
+            sage: g = f.change_ring(GF(7))
             sage: g.roots()
             [(4, 1), (2, 1)]
             sage: g.roots(multiplicities=False)
@@ -1523,85 +1576,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
 # ----------------- inner functions -------------
-# Pyrex can't handle function definitions inside other function
-
-def _mul_fateman_to_int2(f_list,g_list):
-    """
-    Convert an polynomial to an integer by evaluating it
-    INPUT: p, a list of integers
-    OUTPUT: padding
-    """
-    max_coeff_f = max([abs(i) for i in f_list])
-    max_coeff_g = max([abs(i) for i in g_list])
-    b = (1+min(len(f_list),len(g_list)))*max_coeff_f*max_coeff_g
-    return int(pyceil(pylog(b,2)))
-
-def _mul_fateman_to_poly(number,padding):
-    """
-    Converts a number to a polynomial, according
-    to a padding
-    OUTPUT: a list containing the coefficient of
-    a polynomial of degree len(list)
-
-    """
-    coeffs = []
-    flag=0
-    append = coeffs.append
-    if number < 0:
-        number = -number
-        flag=1
-
-    while number > 0:
-        r =  number%(1<<padding)
-        number = (number-r) >> padding
-        if r > (1<<(padding-1)):
-            r -= 1<<padding
-            number+=1
-        append(r)
-
-    if flag==1:
-        return [-c for c in coeffs]
-    return coeffs
-
-def _mul_fateman_mul(f,g):
-    """
-    Multiply 2 polynomials
-    """
-
-    f=f.base_extend(QQ)
-    g=g.base_extend(QQ)
-
-    f_list = f.list()
-    g_list = g.list()
-
-    # If these polynomials have real
-    # coefficients, convert them to
-    # rational coeficients.
-    # Note: no precision is lost in this
-    # direction
-
-    fgcd = gcd(f_list)
-    ggcd = gcd(g_list)
-
-    # Need to change ring to ZZ
-    z_poly_f=(f*fgcd.denominator()).base_extend(ZZ)
-    z_poly_g=(g*ggcd.denominator()).base_extend(ZZ)
-
-    div = 1/(fgcd.denominator()*ggcd.denominator())
-
-    z_poly_f_list = z_poly_f.coeffs()
-    z_poly_g_list = z_poly_g.coeffs()
-    padding = _mul_fateman_to_int2(z_poly_f_list,z_poly_g_list)
-
-    n_f = z_poly_f(1<<padding)
-    n_g = z_poly_g(1<<padding)
-
-    if div == 1: return _mul_fateman_to_poly(n_f*n_g,padding)
-    #return to_poly(n_f*n_g,padding)
-    else:
-        l=_mul_fateman_to_poly(n_f*n_g,padding)
-        return [QQ(i*div) for i in l]
-
+# Sagex can't handle function definitions inside other function
 
 
 def _karatsuba_sum(v,w):

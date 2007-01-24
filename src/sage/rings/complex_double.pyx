@@ -160,7 +160,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b = CDF(a); b
             1.41421353817*I
             sage: a.parent()(b)
-            1.4142135623699999999999999999999999999999999999999999999999*I
+            1.4142135623700000000000000000000000000000000000000000000000*I
         """
         if im is None:
             if isinstance(x, ComplexDoubleElement):
@@ -657,7 +657,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293737358
+            0.0994254293726
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))

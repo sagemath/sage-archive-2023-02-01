@@ -802,6 +802,7 @@ cdef class gen:
                     2: certify primality using the APRCL test.
         OUTPUT:
             bool -- True or False
+
         EXAMPLES:
             sage: pari(9).isprime()
             False
@@ -817,6 +818,35 @@ cdef class gen:
         """
         _sig_on
         t = bool(gisprime(self.g, flag) != stoi(0))
+        _sig_off
+        return t
+
+    def ispseudoprime(gen self, flag=0):
+        """
+        ispseudoprime(x, flag=0): Returns True if x is a pseudo-prime
+        number, and False otherwise.
+
+        INPUT:
+            flag -- int
+                    0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                    > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+
+        OUTPUT:
+            bool -- True or False
+
+        EXAMPLES:
+            sage: pari(9).ispseudoprime()
+            False
+            sage: pari(17).ispseudoprime()
+            True
+            sage: n = pari(561)     # smallest Carmichael number
+            sage: n.ispseudoprime() # not just any old pseudo-primality test!
+            False
+            sage: n.ispseudoprime(1)
+            False
+        """
+        _sig_on
+        t = bool(gispseudoprime(self.g, flag) != stoi(0))
         _sig_off
         return t
 
@@ -4061,14 +4091,6 @@ cdef class gen:
         t0GEN(x)
         _sig_on
         return self.new_gen(rnfidealabstorel(self.g, t0))
-
-    def rnfidealadd(self, nf, x, y):
-        # Note the extra nf parameter, which should be the pari_nf
-        # corresponding to self.
-        a = self.rnfidealreltoabs(x)
-        b = self.rnfidealreltoabs(y)
-        sum = nf.idealadd(a, b)
-        return self.rnfidealabstorel(sum)
 
     def rnfidealhnf(self, x):
         t0GEN(x)

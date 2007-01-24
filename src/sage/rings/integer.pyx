@@ -54,6 +54,16 @@ Multiplication:
 
     sage: 'sage'*Integer(3)
     'sagesagesage'
+
+Coercions:
+    Returns version of this integer in the multi-precision floating
+    real field R.
+
+        sage: n = 9390823
+        sage: RR = RealField(200)
+        sage: RR(n)
+        9390823.0000000000000000000000000000000000000000000000000000
+
 """
 
 #*****************************************************************************
@@ -190,8 +200,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             495949209809328523
             sage: Integer(Mod(3,7))
             3
-
-        Integers also support the standard arithmetic operations.
             sage: 2^3
             8
         """
@@ -800,10 +808,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
            sage: x = 3^100000
-           sage: log(x, 3)
-           100000.000000000
-           sage: log(x + 100000, 3)
-           100000.000000000
+           sage: log(RR(x), 3)
+           99999.9999999999
+           sage: log(RR(x + 100000), 3)
+           99999.9999999999
 
            sage: x.exact_log(3)
            100000
@@ -817,7 +825,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if m < 2:
             raise ValueError, "m must be at least 2"
         R = real_mpfr.RealField(53)
-        guess = self._mpfr_(R).log(base = m).floor()
+        guess = R(self).log(base = m).floor()
         power = m ** guess
 
         while power > self:
@@ -930,6 +938,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return q, r
 
+    def div(self, other):
+        """
+        Returns the quotient of self divided by other.
+
+        INPUT:
+            other -- the integer the divisor
+
+        OUTPUT:
+            q   -- the quotient of self/other
+
+        EXAMPLES:
+            sage: z = Integer(231)
+            sage: z.div(2)
+            115
+            sage: z.div(-2)
+            -115
+            sage: z.div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other (=0) must be nonzero
+        """
+        cdef Integer _other, _self
+        _other = integer(other)
+        if not _other:
+            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+        _self = integer(self)
+
+        cdef Integer q, r
+        q = Integer()
+        r = Integer()
+
+        _sig_on
+        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
+        _sig_off
+
+        return q
 
 
     def powermod(self, exp, mod):
@@ -1025,8 +1069,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the prime factorization of the integer as a list of
         pairs $(p,e)$, where $p$ is prime and $e$ is a positive integer.
 
-        Type "factor?" for more detailed documentation.
-
         INPUT:
             algorithm -- string
                  * 'pari' -- (default)  use the PARI c library
@@ -1035,16 +1077,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return sage.rings.integer_ring.factor(self, algorithm=algorithm)
 
-    def coprime_integers(self, m=None):
+    def coprime_integers(self, m):
         """
         Return the positive integers $< m$ that are coprime to self.
 
-        INPUT:
-            m -- integer (default m=self)
-
         EXAMPLES:
             sage: n = 8
-            sage: n.coprime_integers()
+            sage: n.coprime_integers(8)
             [1, 3, 5, 7]
             sage: n.coprime_integers(11)
             [1, 3, 5, 7, 9]
@@ -1062,8 +1101,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         enough for you, please code something better and submit a
         patch.
         """
-        if m is None:
-            m = self
         # TODO -- make VASTLY faster
         v = []
         for n in range(1,m):
@@ -1296,6 +1333,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return bool(self._pari_().isprime())
 
+    def is_pseudoprime(self):
+        r"""
+        Retuns \code{True} if self is a pseudoprime
+
+        EXAMPLES:
+            sage: z = 2^31 - 1
+            sage: z.is_pseudoprime()
+            True
+            sage: z = 2^31
+            sage: z.is_pseudoprime()
+            False
+        """
+        return bool(self._pari_().ispseudoprime())
+
     def square_free_part(self):
         """
         Return the square free part of $x$, i.e., a divisor z such that $x = z y^2$,
@@ -1459,25 +1510,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return x
 
-    def _mpfr_(self, R):
-        """
-        Returns version of this integer in the multi-precision floating
-        real field R.
-
-        EXAMPLES:
-            sage: n = 9390823
-            sage: RR = RealField(200)
-            sage: n._mpfr_(RR)
-            9390823.0000000000000000000000000000000000000000000000000000
-            sage: RR(n)
-            9390823.0000000000000000000000000000000000000000000000000000
-
-        ALGORITHM: Use a string in *base 32*.
-        TODO: This could be easily optimized by directly using the
-        underlying GMP library.
-        """
-        return R(self.str(32), 32)
-
 
     def sqrt(self, bits=None):
         r"""
@@ -1532,7 +1564,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return x.sqrt()
         else:
             R = real_mpfr.RealField(bits)
-            return self._mpfr_(R).sqrt()
+            return R(self).sqrt()
 
     def square_root(self):
         """

@@ -76,7 +76,7 @@ EXAMPLE: Inclusion map from the reals to the complexes:
       To:   Complex Field with 53 bits of precision
       Defn: 1.00000000000000 |--> 1.00000000000000
     sage: i(RR('3.1'))
-    3.09999999999999
+    3.10000000000000
 
 EXAMPLE: A map from a multivariate polynomial ring to itself:
     sage: R.<x,y,z> = PolynomialRing(QQ,3)
@@ -170,7 +170,7 @@ EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
     sage: phi.codomain()
     3-adic Field
     sage: phi(394)
-    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + O(3^Infinity)
+    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + ... + O(3^Infinity)
 
 EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
     sage: R.<x> = PolynomialRing(QQ)

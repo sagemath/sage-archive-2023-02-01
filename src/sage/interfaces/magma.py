@@ -118,6 +118,27 @@ We coerce some polynomial rings into MAGMA:
     sage: S.1
     y
 
+This example illustrates that SAGE doesn't magically extend how MAGMA
+implicit coercion (what there is, at least) works:
+    sage: R.<x> = ZZ[]
+    sage: x * 5
+    5*x
+    sage: x * 1.0
+    1.00000000000000*x
+    sage: x * (2/3)
+    2/3*x
+    sage: y = magma(x)
+    sage: y * 5
+    5*x
+    sage: y * 1.0
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+    sage: y * (2/3)
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+
 
 AUTHOR:
     -- William Stein (2005): initial version

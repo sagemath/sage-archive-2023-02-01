@@ -164,6 +164,7 @@ import sage.rings.arith as arith
 from sage.rings.integer import Integer
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
+from sage.libs.pari.gen import pari
 
 class A000027(SloaneSequence):
     r"""
@@ -192,6 +193,9 @@ class A000027(SloaneSequence):
     """
     def __init__(self):
         SloaneSequence.__init__(self, offset=1)
+
+# is this a good idea to have a link for all sequences? Jaap
+    link = "http://www.research.att.com/~njas/sequences/A000027"
 
     def _repr_(self):
         return "The natural numbers."
@@ -570,11 +574,11 @@ class A000045(SloaneSequence):
 
     EXAMPLES:
         sage: a = sloane.A000045; a
-        Fibonacci number with index n >= 0
-        sage: a(1)
-        1
+        Fibonacci numbers with index n >= 0
         sage: a(0)
         0
+        sage: a(1)
+        1
         sage: a.list(12)
         [0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89]
         sage: a(1/3)
@@ -588,9 +592,10 @@ class A000045(SloaneSequence):
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
         self._b = []
+        self._precompute()  # force precomputation, e.g. a(0) will fail when asked first
 
     def _repr_(self):
-        return "Fibonacci number with index n >= 0"
+        return "Fibonacci numbers with index n >= 0"
 
     def _precompute(self, how_many=500):
         try:
@@ -619,6 +624,921 @@ class A000045(SloaneSequence):
     def list(self, n):
         self._eval(n)   # force computation
         return self._b[:n]
+
+
+
+
+
+# Theme:  maximal permanent of an m x n (0,1)- matrix:
+# Seok-Zun Song et al.  Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+class A000153(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-2)*a(n-2)$, with $a(0) = 0$, $a(1) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=2$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000153; a
+        a(n) = n*a(n-1) + (n-2)*a(n-2), with a(0) = 0, a(1) = 1.
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        82508
+        sage: a(20)
+        10315043624498196944
+        sage: a.list(8)
+        [0, 1, 2, 7, 32, 181, 1214, 9403]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation, e.g. a(0) will fail when asked first
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-2)*a(n-2), with a(0) = 0, a(1) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,2)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A000255(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-1)*a(n-2)$, with $a(0) = 1$, $a(1) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=1$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000255;a
+        a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a.offset
+        0
+        sage: a(8)
+        148329
+        sage: a(22)
+        9923922230666898717143
+        sage: a.list(9)
+        [1, 1, 3, 11, 53, 309, 2119, 16687, 148329]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation, e.g. a(0) will fail when asked first
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-1)*a(n-2), a(0) = 1, a(1) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(1,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+class A000261(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-3)*a(n-2)$, with $a(1) = 1$, $a(2) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=3$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000261;a
+        a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        0
+        sage: a.offset
+        1
+        sage: a(8)
+        30637
+        sage: a(22)
+        1801366114380914335441
+        sage: a.list(9)
+        [0, 1, 3, 13, 71, 465, 3539, 30637, 296967]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-3)*a(n-2), a(1) = 0, a(2) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,3)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n - 1]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A001909(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-4)*a(n-2)$, with $a(2) = 0$, $a(3) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=4$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001909;a
+        a(n) = n*a(n-1) + (n-4)*a(n-2), a(2) = 0, a(3) = 1.
+        sage: a(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=1) must be an integer >= 2
+        sage: a.offset
+        2
+        sage: a(2)
+        0
+        sage: a(8)
+        8544
+        sage: a(22)
+        470033715095287415734
+        sage: a.list(9)
+        [0, 1, 4, 21, 134, 1001, 8544, 81901, 870274]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=2)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-4)*a(n-2), a(2) = 0, a(3) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,4)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n-self.offset]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A001910(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-5)*a(n-2)$, with $a(3) = 0$, $a(4) = 1$.
+
+    With offset 1, permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=5$ and $n$ zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001910;a
+        a(n) = n*a(n-1) + (n-5)*a(n-2), a(3) = 0, a(4) = 1.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be an integer >= 3
+        sage: a(3)
+        0
+        sage: a.offset
+        3
+        sage: a(8)
+        1909
+        sage: a(22)
+        98125321641110663023
+        sage: a.list(9)
+        [0, 1, 5, 31, 227, 1909, 18089, 190435, 2203319]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=3)
+        self._b = []
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-5)*a(n-2), a(3) = 0, a(4) = 1."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,1,5)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*y+(k-d)*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n-self.offset]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A090010(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n$ \times (n+d)$ with $d=6$ and $n$ zeros not on a line.
+
+    $ a(n) = (n+5)*a(n-1) + (n-1)*a(n-2), a(1)=6, a(2)=43$.
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090010;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        6
+        sage: a(2)
+        43
+        sage: a.offset
+        1
+        sage: a(8)
+        67741129
+        sage: a(22)
+        192416593029158989003270143
+        sage: a.list(9)
+        [6, 43, 356, 3333, 34754, 398959, 4996032, 67741129, 988344062]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+        self._b = []
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n zeros not on a line."
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(6,43,6)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, (k-1)*x+(k+d-1)*y
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n-self.offset]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A055790(SloaneSequence):
+    r"""
+    $a(n) = n*a(n-1) + (n-2)*a(n-2) [a(0) = 0, a(1) = 2]$.
+
+    With offset 1, permanent of (0,1)-matrix of size n X (n+d) with d=1 and n-1 zeros not on a line.
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A055790;a
+        a(n) = n*a(n-1) + (n-2)*a(n-2) [a(0) = 0, a(1) = 2].
+        sage: a(0)
+        0
+        sage: a(1)
+        2
+        sage: a(2)
+        4
+        sage: a.offset
+        0
+        sage: a(8)
+        165016
+        sage: a(22)
+        10356214297533070441564
+        sage: a.list(9)
+        [0, 2, 4, 14, 64, 362, 2428, 18806, 165016]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "a(n) = n*a(n-1) + (n-2)*a(n-2) [a(0) = 0, a(1) = 2]."
+
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.gen(0,2,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def gen(self,a0,a1,d):
+        """
+
+        """
+        x, y = Integer(a0), Integer(a1)
+        k = self.offset + 1
+        yield x
+        while True:
+            k = k+1
+            x, y = y, (k-2)*x+(k+d-1)*y
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n-self.offset]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A090012(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=2$ and $n-1$ zeros not on a line.
+
+    $a(n) = (n+1)*a(n-1) + (n-2)*a(n-2)$, $a(1)=3$ and $a(2)=9$
+
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices, Lin. Algebra and its Applic. 373 (2003),
+    p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090012;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=2 and n-1 zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        3
+        sage: a(2)
+        9
+        sage: a.offset
+        1
+        sage: a(8)
+        890901
+        sage: a(22)
+        129020386652297208795129
+        sage: a.list(9)
+        [3, 9, 39, 213, 1395, 10617, 91911, 890901, 9552387]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=2 and n-1 zeros not on a line."
+
+    def _eval(self, n):
+        if n == 1:
+            return Integer(3)
+        else:
+            return  sloane.A000153(n+1) + sloane.A000153(n)
+
+# Just discovered this relation, so the following code is obsolete!
+# Same goes for A090013-A090016
+#
+#    def _precompute(self, how_many=20):
+#        try:
+#            f = self._f
+#        except AttributeError:
+#            self._f = self.gen(3,9,2)
+#            f = self._f
+#        self._b += [f.next() for i in range(how_many)]
+#
+#    def gen(self,a0,a1,d):
+#        """
+#
+#        """
+#        x, y = Integer(a0), Integer(a1)
+#        k = self.offset + 1
+#        yield x
+#        while True:
+#            k = k+1
+#            x, y = y, (k-2)*x+(k+d-1)*y
+#            yield x
+#
+#
+#    def _eval(self, n):
+#        if len(self._b) < n:
+#            self._precompute(n - len(self._b) + 1)
+#        return self._b[n-self.offset]
+#
+#    def list(self, n):
+#        self._eval(n)   # force computation
+#        return self._b[:n]
+
+class A090013(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=3$ and $n-1$ zeros not on a line.
+
+    $a(n) = (n+1)*a(n-1) + (n-2)*a(n-2) [a(1)=4, a(2)=16]$
+
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices,
+    Lin. Algebra and its Applic. 373 (2003), p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090013;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=3 and n-1 zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        4
+        sage: a(2)
+        16
+        sage: a.offset
+        1
+        sage: a(8)
+        3481096
+        sage: a(22)
+        1112998577171142607670336
+        sage: a.list(9)
+        [4, 16, 84, 536, 4004, 34176, 327604, 3481096, 40585284]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=3 and n-1 zeros not on a line."
+
+    def _eval(self, n):
+        if n == 1:
+            return Integer(4)
+        else:
+            return  sloane.A000261(n+2) + sloane.A000261(n+1)
+
+class A090014(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=4$ and $n-1$ zeros not on a line.
+
+    $a(n) = (n+1)*a(n-1) + (n-2)*a(n-2) [a(1)=5, a(2)=25]$
+
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices,
+    Lin. Algebra and its Applic. 373 (2003), p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090014;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=4 and n-1 zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        5
+        sage: a(2)
+        25
+        sage: a.offset
+        1
+        sage: a(8)
+        11016595
+        sage: a(22)
+        7469733600354446865509725
+        sage: a.list(9)
+        [5, 25, 155, 1135, 9545, 90445, 952175, 11016595, 138864365]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=4 and n-1 zeros not on a line."
+
+    def _eval(self, n):
+        if n == 1:
+            return Integer(5)
+        else:
+            return  sloane.A001909(n+3) + sloane.A001909(n+2)
+
+
+class A090015(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=5$ and $n-1$ zeros not on a line.
+
+    $a(n) = (n+1)*a(n-1) + (n-2)*a(n-2) [a(1)=6, a(2)=36]$
+
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices,
+    Lin. Algebra and its Applic. 373 (2003), p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090015;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=3 and n-1 zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        6
+        sage: a(2)
+        36
+        sage: a.offset
+        1
+        sage: a(8)
+        29976192
+        sage: a(22)
+        41552258517692116794936876
+        sage: a.list(9)
+        [6, 36, 258, 2136, 19998, 208524, 2393754, 29976192, 406446774]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=3 and n-1 zeros not on a line."
+
+    def _eval(self, n):
+        if n == 1:
+            return Integer(6)
+        else:
+            return  sloane.A001910(n+4) + sloane.A001910(n+3)
+
+class A090016(SloaneSequence):
+    r"""
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=6$ and $n-1$ zeros not on a line.
+
+    $a(n) = (n+1)*a(n-1) + (n-2)*a(n-2) [a(1)=7, a(2)=49]$
+
+    $A090016 a(n) = A090010(n-1) + A090010(n), a(1)=7$
+
+    This is a special case of Theorem 2.3 of Seok-Zun Song et al.
+    Extremes of permanents of (0,1)-matrices, p. 201-202.
+
+    REFERENCES:
+    Seok-Zun Song et al., Extremes of permanents of (0,1)-matrices,
+    Lin. Algebra and its Applic. 373 (2003), p. 197-210.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A090016;a
+        Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n-1 zeros not on a line.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        7
+        sage: a(2)
+        49
+        sage: a.offset
+        1
+        sage: a(8)
+        72737161
+        sage: a(22)
+        199341969448774341802426289
+        sage: a.list(9)
+        [7, 49, 399, 3689, 38087, 433713, 5394991, 72737161, 1056085191]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Permanent of (0,1)-matrix of size n X (n+d) with d=6 and n-1 zeros not on a line."
+
+
+    def _eval(self, n):
+        if n == 1:
+            return Integer(7)
+        else:
+            return  sloane.A090010(n-1) + sloane.A090010(n)
+
+# this function should be in arith
+#def subfactorial(n):
+#    r"""
+#    Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
+#
+#    INPUT:
+#        n -- non negative integer
+#
+#    OUTPUT:
+#        integer -- function value
+#
+#    EXAMPLES:
+#        sage: subfactorial(0)
+#        1
+#        sage: subfactorial(1)
+#        0
+#        sage: subfactorial(8)
+#        14833
+#
+#    AUTHOR:
+#        -- Jaap Spies (2007-01-23)
+#
+#
+#    """
+#    n = Integer(n)
+#    return arith.factorial(n)*sum(((-1)**k)/arith.factorial(k) for k in range(n+1))
+##    return arith.floor((arith.factorial(n)+1)/???.exp(1))
+#
+
+class A000166(SloaneSequence):
+    r"""
+    Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
+
+    With offset 1 also the permanent of a (0,1)-matrix of order $n$ with $n$ 0's not on a line.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000166;a
+        Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
+        sage: a(0)
+        1
+        sage: a(1)
+        0
+        sage: a(2)
+        1
+        sage: a.offset
+        0
+        sage: a(8)
+        14833
+        sage: a(20)
+        895014631192902121
+        sage: a.list(9)
+        [1, 0, 1, 2, 9, 44, 265, 1854, 14833]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-13)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points."
+
+    def _eval(self, n):
+#        return subfactorial(n) see above
+        return arith.factorial(n)*sum(((-1)**k)/arith.factorial(k) for k in range(n+1))
+
 
 class A000203(SloaneSequence):
     r"""
@@ -704,13 +1624,231 @@ class A000204(SloaneSequence):
         else:
             return sloane.A000045(n+1) + sloane.A000045(n-1)
 
+def recur_gen2b(a0,a1,a2,a3,b):
+    r"""
+        inhomogenaus second-order linear recurrence generator with fixed coefficients
+        and $b = f(n)$
+
+        $a(0) = a0$, $a(1) = a1$, $a(n) = a2*a(n-1) + a3*a(n-2) +f(n)$.
+    """
+    x, y = Integer(a0), Integer(a1)
+    n = 1
+    yield x
+    while 1:
+        n = n+1
+        x, y = y, a3*x+a2*y + b(n)
+        yield x
+
+    # def f(n):
+    #     if n > 1:
+    #         return 7*n+1
+    #     else:
+    #         return 0
+    # A051959 = recur_gen2b(1,10,2,1,f)
+
+
+class A001110(SloaneSequence):
+    r"""
+    Numbers that are both triangular and square: $a(n) = 34a(n-1) - a(n-2) + 2$.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001110; a
+        Numbers that are both triangular and square: a(n) = 34a(n-1) - a(n-2) + 2.
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        55420693056
+        sage: a(21)
+        4446390382511295358038307980025
+        sage: a.list(8)
+        [0, 1, 36, 1225, 41616, 1413721, 48024900, 1631432881]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute()
+
+    link = "http://www.research.att.com/~njas/sequences/A001110"
+
+    def _repr_(self):
+        return "Numbers that are both triangular and square: a(n) = 34a(n-1) - a(n-2) + 2."
+
+    def g(self,k):
+        if k > 1:
+            return 2
+        else:
+            return 0
+
+    def _precompute(self, how_many=20):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2b(0,1,34,-1,self.g)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+class A001221(SloaneSequence):
+    r"""
+    Number of different prime divisors of $n$
+
+    Also called omega(n) or $\omega(n)$.
+    Maximal number of terms in any factorization of $n$.
+    Number of prime powers that divide $n$.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A001221; a
+        Number of distinct primes dividing n (also called omega(n)).
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        0
+        sage: a(8)
+        1
+        sage: a(41)
+        1
+        sage: a(84792)
+        3
+        sage: a.list(12)
+        [0, 1, 1, 1, 1, 2, 1, 1, 1, 2, 1, 2]
+
+    AUTHOR:
+        - Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of distinct primes dividing n (also called omega(n))."
+
+    def _eval(self, n):
+        return len(arith.prime_divisors(n)) # there is a PARI function omega
+
+
+
+class A001222(SloaneSequence):
+    r"""
+    Number of prime divisors of $n$ (counted with multiplicity).
+
+    Also called bigomega(n) or $\Omega(n)$.
+    Maximal number of terms in any factorization of $n$.
+    Number of prime powers that divide $n$.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A001222; a
+        Number of prime divisors of n (counted with multiplicity).
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        0
+        sage: a(8)
+        3
+        sage: a(41)
+        1
+        sage: a(84792)
+        5
+        sage: a.list(12)
+        [0, 1, 1, 2, 1, 2, 1, 3, 2, 2, 1, 3]
+
+    AUTHOR:
+        - Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of prime divisors of n (counted with multiplicity)."
+
+    def _eval(self, n):
+        return sum([e for i,e in arith.factor(n)])
+
+# A046660() = A001222(n) - A001221(n)
+class A046660(SloaneSequence):
+    r"""
+    Excess of $n$ = number of prime divisors (with multiplicity) - number of prime divisors (without multiplicity).
+
+    $\Omega(n) - \omega(n)$.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A046660; a
+        Excess of n = Bigomega (with multiplicity) - omega (without multiplicity).
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        0
+        sage: a(8)
+        2
+        sage: a(41)
+        0
+        sage: a(84792)
+        2
+        sage: a.list(12)
+        [0, 0, 0, 1, 0, 0, 0, 2, 1, 0, 0, 1]
+
+    AUTHOR:
+        - Jaap Spies (2007-01-19)
+    """
+    def _repr_(self):
+        return "Excess of n = Bigomega (with multiplicity) - omega (without multiplicity)."
+
+    def _eval(self, n):
+        return sloane.A001222(n) - sloane.A001221(n)
+
+
 
 
 class A001227(SloaneSequence):
     r"""
     Number of odd divisors of $n$.
-
-    This function returns the $n$-th number of Sloane's sequence A001227
 
     INPUT:
         n -- positive integer
@@ -755,13 +1893,14 @@ class A001227(SloaneSequence):
     def _eval(self, n):
         return sum(i%2 for i in arith.divisors(n))
 
+
+
 class A001694(SloaneSequence):
     r"""
         This function returns the $n$-th Powerful Number:
 
         A positive integer $n$ is powerful if for every prime $p$ dividing
         $n$, $p^2$ also divides $n$.
-
 
     INPUT:
         n -- positive integer
@@ -798,24 +1937,48 @@ class A001694(SloaneSequence):
     def _repr_(self):
         return "Powerful Numbers (also called squarefull, square-full or 2-full numbers)."
 
-    def _precompute(self, how_many=150):
+    def _precompute(self, how_many=10000):
         try:
             self._b
             n = self._n
         except AttributeError:
-            self._b = []
+            self._b = [1]
             n = 1
             self._n = n
-        self._b += [i for i in range(self._n, self._n+how_many) if self.is_powerful(i)]
+        self._b += self._powerful_numbers_in_range(self._n, self._n+how_many)
         self._n += how_many
+
+    def _powerful_numbers_in_range(self, n, m):
+
+        # This is naive -- too slow; too much overhead
+        #  return [i for i in range(self._n, self._n+how_many) if self.is_powerful(i)]
+
+        if n < 4:
+            n = 4
+        # Use PARI directly -- much faster.
+        pari("is_powerful(n)=vecmin(mattranspose(factor(n)[,2]))>1;")
+        s = str(pari('v=listcreate(%s); for(n=%s,%s,if(is_powerful(n),listput(v,n))); v'%(m,n,m)))
+        s = s[5:-1]
+
+        ## GP version -- it's slower, but for completeness we leave it.
+        ## from sage.interfaces.gp import gp
+        ## gp.eval("is_powerful(n)=vecmin(mattranspose(factor(n)[,2]))>1;")
+        ## s = '[' + gp.eval('for(n=%s,%s,if(is_powerful(n),print1(n,",")))'%(n,m)).strip()[1:-1] + ']'
+
+        v = eval(s)
+        return [Integer(x) for x in v]  # not very many, so not much overhead
 
     def _eval(self, n):
         try:
             return self._b[n-1]
-        except (AttributeError, IndexError):
-            self._precompute()
-            # try again
-            return self._eval(n)
+        except AttributeError:
+            self._b = [1]
+        except IndexError:
+            pass
+        while len(self._b) < n:
+            self._precompute(10000)
+        # try again, but we could also return self._b[n-1]
+        return self._eval(n)
 
     def list(self, n):
         try:
@@ -823,40 +1986,51 @@ class A001694(SloaneSequence):
                 raise IndexError
             else:
                 return self._b[:n]
-        except (AttributeError, IndexError):
-            self._precompute()
-            # try again
-            return self.list(n)
-
+        except AttributeError:
+            self._b = [1]
+        except IndexError:
+            pass
+        while len(self._b) < n:
+            self._precompute(10000)
+        return self._b[:n]
 
     def is_powerful(self,n):
         r"""
-            This function returns True iff $n$ is a Powerful Number:
+        This function returns True if and only if $n$ is a Powerful Number:
 
-            A positive integer $n$ is powerful if for every prime $p$ dividing
-            $n$, $p^2$ also divides $n$.
-            See Sloane's OEIS A001694.
+        A positive integer $n$ is powerful if for every prime $p$ dividing
+        $n$, $p^2$ also divides $n$.
+        See Sloane's OEIS A001694.
 
-            INPUT:
-                n -- integer
+        INPUT:
+            n -- integer
 
-            OUTPUT:
-                True -- if $n$ is a Powerful number, else False
+        OUTPUT:
+            True -- if $n$ is a Powerful number, else False
 
-            EXAMPLES:
-                sage: a = sloane.A001694
-                sage: a.is_powerful(2500)
-                True
-                sage: a.is_powerful(20)
-                False
+        EXAMPLES:
+            sage: a = sloane.A001694
+            sage: a.is_powerful(2500)
+            True
+            sage: a.is_powerful(20)
+            False
 
-            AUTHOR:
-                - Jaap Spies (2006-12-07)
+        AUTHOR:
+            - Jaap Spies (2006-12-07)
         """
-        for p in arith.prime_divisors(n):
-            if n % p**2 > 0:
+#        for p in arith.prime_divisors(n):
+#            if n % p**2 > 0:
+#                return False
+#        return True
+
+        if n <= 1:
+            return True
+        ex = [e for _,e in arith.factor(n)]
+        for e in ex:
+            if e < 2:
                 return False
         return True
+
 
 class A001836(SloaneSequence):
     r"""
@@ -933,6 +2107,259 @@ class A001836(SloaneSequence):
             self._precompute()
             # try again
             return self.list(n)
+
+
+
+class A051959(SloaneSequence):
+    r"""
+    Linear second order recurrence. A051959.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A051959; a
+        Linear second order recurrence. A051959.
+        sage: a(0)
+        1
+        sage: a(1)
+        10
+        sage: a(8)
+        9969
+        sage: a(41)
+        42834431872413650
+        sage: a.list(12)
+        [1, 10, 36, 104, 273, 686, 1688, 4112, 9969, 24114, 58268, 140728]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear second order recurrence. A051959."
+
+    def g(self,k):
+        if k > 1:
+            return 7*k+1
+        else:
+            return 0
+
+    def _precompute(self, how_many=30):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2b(1,10,2,1,self.g)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+def recur_gen2(a0,a1,a2,a3):
+    """
+        homogenous general second-order linear recurrence generator with fixed coefficients
+
+        a(0) = a0, a(1) = a1, a(n) = a2*a(n-1) + a3*a(n-2)
+    """
+    x, y = Integer(a0), Integer(a1)
+    n = 0
+    yield x
+    while 1:
+        n = n+1
+        x, y = y, a3*x+a2*y
+        yield x
+
+
+# A001906 = recur_gen2(0,1,3,-1)
+# This can be done much more simple: return sloane.A000045(2*n).
+# but this is a proof of technology!
+class A001906(SloaneSequence):
+    r"""
+    $F(2n) =$ bisection of Fibonacci sequence: $a(n)=3a(n-1)-a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001906; a
+        F(2n) = bisection of Fibonacci sequence: a(n)=3a(n-1)-a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        987
+        sage: a(22)
+        701408733
+        sage: a.list(12)
+        [0, 1, 3, 8, 21, 55, 144, 377, 987, 2584, 6765, 17711]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation
+
+    def _repr_(self):
+        return "F(2n) = bisection of Fibonacci sequence: a(n)=3a(n-1)-a(n-2)."
+
+    def _precompute(self, how_many=150):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,3,-1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+# todo jsp
+# A001109 a(n)^2 is a triangular number: a(n) = 6*a(n-1) - a(n-2) with a(0)=0, a(1)=1.
+#
+# A015523= recur_gen2(0,1,3,5)
+#
+# A015530= recur_gen2(0,1,4,3)
+#
+# A015531= recur_gen2(0,1,4,5)
+#
+# A015553 = recur_gen2(0,1,6,11)
+#
+# A015565 = recur_gen2(0,1,7,8)
+#
+# A015585= recur_gen2(0,1,9,10)
+#
+# and more!
+
+class A015521(SloaneSequence):
+    r"""
+    Linear 2nd order recurrence, $a(0)=0$, $a(1)=1$ and $a(n) = 3 a(n-1) + 4 a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A015521; a
+        Linear 2nd order recurrence, a(n) = 3 a(n-1) + 4 a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        13107
+        sage: a(41)
+        967140655691703339764941
+        sage: a.list(12)
+        [0, 1, 3, 13, 51, 205, 819, 3277, 13107, 52429, 209715, 838861]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 4 a(n-2)."
+
+    def _precompute(self, how_many=150):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,3,4)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A015523(SloaneSequence):
+    r"""
+    Linear 2nd order recurrence, $a(0)=0$, $a(1)=1$ and $a(n) = 3 a(n-1) + 5 a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A015523; a
+        Linear 2nd order recurrence, a(n) = 3 a(n-1) + 5 a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        17727
+        sage: a(41)
+        6173719566474529739091481
+        sage: a.list(12)
+        [0, 1, 3, 14, 57, 241, 1008, 4229, 17727, 74326, 311613, 1306469]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear 2nd order recurrence, a(n) = 3 a(n-1) + 5 a(n-2)."
+
+    def _precompute(self, how_many=150):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,3,5)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
 
 
 
@@ -1036,7 +2463,7 @@ def perm_mh(m, h):
     AUTHOR: Jaap Spies (2006)
     """
     n = m + h
-    M = MatrixSpace(QQ, m, n)
+    M = MatrixSpace(QQ, m, n) # shouldn't this be 'ZZ' because A is (0,1) matrix?
     A = M(0)
     for i in range(m):
         for j in range(n):
@@ -1150,6 +2577,305 @@ class A079923(SloaneSequence):
 
     def _eval(self, n):
         return perm_mh(n, 4)
+
+# Wilf_A083216 = recur_gen2(20615674205555510, 3794765361567513,1,1)  family
+class A082411(SloaneSequence):
+    r"""
+    Second-order linear recurrence sequence with $a(n) = a(n-1) + a(n-2)$.
+
+    $a(0) = 407389224418$,
+    $a(1) = 76343678551$. This is the second-order linear
+    recurrence sequence with $a(0)$ and $a(1)$ co- prime, that R. L. Graham in 1964
+    stated did not contain any primes.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A082411;a
+        Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).
+        sage: a(1)
+        76343678551
+        sage: a(2)
+        483732902969
+        sage: a(3)
+        560076581520
+        sage: a(20)
+        2219759332689173
+        sage: a.list(4)
+        [407389224418, 76343678551, 483732902969, 560076581520]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(407389224418,76343678551,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+class A083103(SloaneSequence):
+    r"""
+    Second-order linear recurrence sequence with $a(n) = a(n-1) + a(n-2)$.
+
+    $a(0) = 1786772701928802632268715130455793$,
+    $a(1) = 1059683225053915111058165141686995$. This is the second-order linear
+    recurrence sequence with $a(0)$ and $a(1)$ co- prime, that R. L. Graham in 1964
+    stated did not contain any primes. It has not been verified.
+    Graham made a mistake in the calculation that was corrected by D. E. Knuth in 1990.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A083103;a
+        Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).
+        sage: a(1)
+        1059683225053915111058165141686995
+        sage: a(2)
+        2846455926982717743326880272142788
+        sage: a(3)
+        3906139152036632854385045413829783
+        sage: a.offset
+        0
+        sage: a(8)
+        45481392851206651551714764671352204
+        sage: a(20)
+        14639253684254059531823985143948191708
+        sage: a.list(4)
+        [1786772701928802632268715130455793, 1059683225053915111058165141686995, 2846455926982717743326880272142788, 3906139152036632854385045413829783]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(1786772701928802632268715130455793,1059683225053915111058165141686995,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A083104(SloaneSequence):
+    r"""
+    Second-order linear recurrence sequence with $a(n) = a(n-1) + a(n-2)$.
+
+    $a(0) = 331635635998274737472200656430763$,
+    $a(1) = 1510028911088401971189590305498785$. This is the second-order linear
+    recurrence sequence with $a(0)$ and $a(1)$ co-prime.
+    It was found by Ronald Graham in 1990.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A083104;a
+        Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).
+        sage: a(3)
+        3351693458175078679851381267428333
+        sage: a.offset
+        0
+        sage: a(8)
+        36021870400834012982120004949074404
+        sage: a(20)
+        11601914177621826012468849361236300628
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(331635635998274737472200656430763,1510028911088401971189590305498785,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A083105(SloaneSequence):
+    r"""
+    Second-order linear recurrence sequence with $a(n) = a(n-1) + a(n-2)$.
+
+    $a(0) = 62638280004239857$,
+    $a(1) = 49463435743205655$. This is the second-order linear
+    recurrence sequence with $a(0)$ and $a(1)$ co-prime.
+    It was found by Donald Knuth in 1990.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A083105;a
+        Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).
+        sage: a(1)
+        49463435743205655
+        sage: a(2)
+        112101715747445512
+        sage: a(3)
+        161565151490651167
+        sage: a.offset
+        0
+        sage: a(8)
+        1853029790662436896
+        sage: a(20)
+        596510791500513098192
+        sage: a.list(4)
+        [62638280004239857, 49463435743205655, 112101715747445512, 161565151490651167]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(62638280004239857,49463435743205655,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
+
+class A083216(SloaneSequence):
+    r"""
+    Second-order linear recurrence sequence with $a(n) = a(n-1) + a(n-2)$.
+
+    $a(0) = 20615674205555510$, $a(1) = 3794765361567513$. This is a
+    second-order linear recurrence sequence with $a(0)$ and $a(1)$
+    co-prime that does not contain any primes. It was found by Herbert Wilf in 1990.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A083216; a
+        Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2).
+        sage: a(0)
+        20615674205555510
+        sage: a(1)
+        3794765361567513
+        sage: a(8)
+        347693837265139403
+        sage: a(41)
+        2738025383211084205003383
+        sage: a.list(4)
+        [20615674205555510, 3794765361567513, 24410439567123023, 28205204928690536]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Second-order linear recurrence sequence with a(n) = a(n-1) + a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(20615674205555510, 3794765361567513,1,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
 
 
 class A111774(SloaneSequence):
@@ -1555,15 +3281,41 @@ sloane.A000032 = A000032()
 sloane.A000040 = A000040()
 sloane.A000045 = A000045()
 sloane.A000110 = A000110()
+sloane.A000166 = A000166()
 sloane.A000203 = A000203()
 sloane.A000204 = A000204()
+sloane.A000153 = A000153()
+sloane.A000255 = A000255()
+sloane.A000261 = A000261()
 sloane.A000587 = A000587()
+sloane.A001110 = A001110()
+sloane.A001221 = A001221()
+sloane.A001222 = A001222()
 sloane.A001227 = A001227()
 sloane.A001694 = A001694()
 sloane.A001836 = A001836()
+sloane.A001906 = A001906()
+sloane.A001909 = A001909()
+sloane.A001910 = A001910()
+sloane.A015521 = A015521()
+sloane.A015523 = A015523()
+sloane.A046660 = A046660()
+sloane.A051959 = A051959()
+sloane.A055790 = A055790()
 sloane.A061084 = A061084()
 sloane.A079922 = A079922()
 sloane.A079923 = A079923()
+sloane.A082411 = A082411()
+sloane.A083103 = A083103()
+sloane.A083104 = A083104()
+sloane.A083105 = A083105()
+sloane.A083216 = A083216()
+sloane.A090010 = A090010()
+sloane.A090012 = A090012()
+sloane.A090013 = A090013()
+sloane.A090014 = A090014()
+sloane.A090015 = A090015()
+sloane.A090016 = A090016()
 sloane.A111774 = A111774()
 sloane.A111775 = A111775()
 sloane.A111776 = A111776()

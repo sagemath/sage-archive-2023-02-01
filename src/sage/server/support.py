@@ -9,7 +9,6 @@ import inspect
 import os
 import string
 
-import sage.plot.plot
 import sage.structure.sage_object
 import sage.misc.latex
 import sage.misc.pager
@@ -39,6 +38,8 @@ def init(object_directory=None, globs={}):
     globals_at_init = globs.values()
     global_names_at_init = set(globs.keys())
     EMBEDDED_MODE = True
+
+    import sage.plot.plot
     sage.plot.plot.EMBEDDED_MODE = True
     # Set this to true and plots are shown by default.
     #sage.plot.plot.SHOW_DEFAULT = True

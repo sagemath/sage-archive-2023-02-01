@@ -2,6 +2,8 @@
 Set of homomorphisms between two schemes
 """
 
+import sage.rings.integer_ring
+
 # Some naive point enumeration routines for default.
 # AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>
 
@@ -159,8 +161,8 @@ def SchemeHomset(R, S, cat=None, check=True):
         return SchemeHomset_generic(R, S, cat=cat, check=check)
 
 class SchemeHomset_generic(HomsetWithBase):
-    def __init__(self, X, Y, cat=None, check=True):
-        HomsetWithBase.__init__(self, X, Y, cat=cat, check=check)
+    def __init__(self, X, Y, cat=None, check=True, base=None):
+        HomsetWithBase.__init__(self, X, Y, cat=cat, check=check, base=None)
 
     def has_coerce_map_from_impl(self, S):
         if self == S:   # an obvious case
@@ -304,4 +306,21 @@ class SchemeHomset_projective_coordinates_ring(SchemeHomset_coordinates):
             return enum_projective_rational_field(self,B)
         else:
             raise TypeError, "Unable to enumerate points over %s."%R
+
+class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projective_coordinates_field):
+    def __init__(self, X, S, cat=None, check=True):
+        R = X.base_ring()
+        Y = spec.Spec(S, R)
+        HomsetWithBase.__init__(self, Y, X, cat=cat,
+                                check = check,
+                                base = sage.rings.integer_ring.ZZ)
+
+    def _repr_(self):
+        return "Abelian group of points on %s"%self.codomain()
+
+    def base_extend(self, R):
+        if R != sage.rings.integer_ring.ZZ:
+            raise NotImplementedError, "elliptic curve point sets viewed as modules over rings other than ZZ not implemented"
+
+        return self
 

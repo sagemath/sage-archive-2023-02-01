@@ -21,6 +21,7 @@ fi
 
 CUR=`pwd`
 rm -rf */.doctest */*/.doctest */*/*/.doctest */*/*/*/.doctest */*/*/*/*/.doctest  */*/*/*/*/*/.doctest
+rm -rf */.doctest* */*/.doctest* */*/*/.doctest* */*/*/*/.doctest* */*/*/*/*/.doctest*  */*/*/*/*/*/.doctest*
 
 cp -prv MANIFEST.in README* install sage sage-push pull setup.py spkg-* .hg .hgignore tmp/
 

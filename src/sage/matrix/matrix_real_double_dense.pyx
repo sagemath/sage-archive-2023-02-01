@@ -47,23 +47,25 @@ cdef extern from "arrayobject.h":
 
 
 cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
-    """Class that implements matrices over the real double field. These are
-    supposed to be fast matrix operations using C doubles. Most operations
-    are implemented using GSl or numpy libraries which will call the underlying
-    BLAS on the system.
+    """
+    Class that implements matrices over the real double field. These
+    are supposed to be fast matrix operations using C doubles. Most
+    operations are implemented using GSl or numpy libraries which will
+    call the underlying BLAS on the system.
 
-    Examples:
+    EXAMPLES:
+        sage: m = Matrix(RDF, [[1,2],[3,4]])
+        sage: m**2
+        [ 7.0 10.0]
+        [15.0 22.0]
+        sage: n= m^(-1); n
+        [-2.0  1.0]
+        [ 1.5 -0.5]
 
-    sage: m = Matrix(RDF, [[1,2],[3,4]])
-    sage: m**2
-    [ 7.0 10.0]
-    [15.0 22.0]
-    sage: n= m^(-1); n
-    [-2.0  1.0]
-    [ 1.5 -0.5]
     To compute eigenvalues the use the function eigen
 
-    sage: p,e = m.eigen()
+        sage: p,e = m.eigen()
+
     the result of eigen is a pair p,e . p is a list
     of eigenvalues and the e is a matrix whose columns are the eigenvectors
 
@@ -71,13 +73,12 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     for A = [[1,2]  and b = [5,6]
              [3,4]]
 
-    sage: b = vector(RDF,[5,6])
-    sage: m.solve_left(b)
-    (-4.0, 4.5)
+        sage: b = vector(RDF,[5,6])
+        sage: m.solve_left(b)
+        (-4.0, 4.5)
 
     See the commands QR,LU,SVD for QR, LU, and singular value
     decomposition.
-
     """
 
 
@@ -464,7 +465,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          Note that the columns of Q
          will be an orthogonal
 
-         sage: Q*Q.transpose()
+         sage: Q*Q.transpose()           # slightly random output.
          [1.0                   5.55111512313e-17 -1.11022302463e-16]
          [ 5.55111512313e-17    1.0               -5.55111512313e-17]
          [-1.11022302463e-16    -5.55111512313e-17               1.0]

@@ -165,6 +165,7 @@ from sage.rings.integer import Integer
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.libs.pari.gen import pari
+from sage.combinat import combinat
 
 class A000027(SloaneSequence):
     r"""
@@ -625,6 +626,219 @@ class A000045(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
+class A000108(SloaneSequence):
+    r"""
+    Catalan numbers: $C_n = \frac {2n \choose n} {n+1} = \frac {(2n)!}  {n!(n+1)!}. Also called Segner numbers.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000108;a
+        Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers.
+        sage: a(0)
+        1
+        sage: a.offset
+        0
+        sage: a(8)
+        1430
+        sage: a(40)
+        2622127042276492108820
+        sage: a.list(9)
+        [1, 1, 2, 5, 14, 42, 132, 429, 1430]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-12)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Catalan numbers: C(n) = binomial(2n,n)/(n+1) = (2n)!/(n!(n+1)!). Also called Segner numbers."
+
+    def _eval(self, n):
+        return combinat.catalan_number(n)
+
+class A000142(SloaneSequence):
+    r"""
+    Factorial numbers: $n! = 1 \cdot 2 \cdot 3 \cdots n$
+
+    Order of symmetric group $S_n$, number of permutations of $n$ letters.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000142;a
+        Factorial numbers: n! = 1*2*3*4*...*n (order of symmetric group S_n, number of permutations of n letters).
+        sage: a(0)
+        1
+        sage: a(8)
+        40320
+        sage: a(40)
+        815915283247897734345611269596115894272000000000
+        sage: a.list(9)
+        [1, 1, 2, 6, 24, 120, 720, 5040, 40320]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-12)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Factorial numbers: n! = 1*2*3*4*...*n (order of symmetric group S_n, number of permutations of n letters)."
+
+    def _eval(self, n):
+        return arith.factorial(n)
+
+class A000165(SloaneSequence):
+    r"""
+    Double factorial numbers: $(2n)!! = 2^n*n!$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000165;a
+        Double factorial numbers: (2n)!! = 2^n*n!.
+        sage: a(0)
+        1
+        sage: a.offset
+        0
+        sage: a(8)
+        10321920
+        sage: a(20)
+        2551082656125828464640000
+        sage: a.list(9)
+        [1, 2, 8, 48, 384, 3840, 46080, 645120, 10321920]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-24)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Double factorial numbers: (2n)!! = 2^n*n!."
+
+    def _eval(self, n):
+        return (2**n)*arith.factorial(n)
+
+
+
+class A001147(SloaneSequence):
+    r"""
+    Double factorial numbers: $(2n-1)!! = 1 \cdot 3 \cdot 5 \cdots (2n-1)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001147;a
+        Double factorial numbers: (2n-1)!! = 1.3.5....(2n-1).
+        sage: a(0)
+        1
+        sage: a.offset
+        0
+        sage: a(8)
+        2027025
+        sage: a(20)
+        319830986772877770815625
+        sage: a.list(9)
+        [1, 1, 3, 15, 105, 945, 10395, 135135, 2027025]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-24)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Double factorial numbers: (2n-1)!! = 1.3.5....(2n-1)."
+
+    def _eval(self, n):
+        return arith.factorial(2*n)/(arith.factorial(n)*2**n)
+
+class A006882(SloaneSequence):
+    r"""
+    Double factorials $n!!$: $a(n)=n \cdot a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A006882;a
+        Double factorials n!!: a(n)=n*a(n-2).
+        sage: a(0)
+        1
+        sage: a(2)
+        2
+        sage: a(8)
+        384
+        sage: a(20)
+        3715891200
+        sage: a.list(9)
+        [1, 1, 2, 3, 8, 15, 48, 105, 384]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-24)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation, e.g. a(0) will fail when asked first
+
+    def _repr_(self):
+        return "Double factorials n!!: a(n)=n*a(n-2)."
+
+    def _precompute(self, how_many=10):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.df()
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def df(self):
+        """
+        Double factorials n!!: a(n)=n*a(n-2).
+        """
+        x = Integer(1)
+        k = 1
+        y = x
+        yield x
+        while True:
+            k = k+1
+            x, y = y, k*x
+            yield x
+
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
 
 
 
@@ -1467,35 +1681,6 @@ class A090016(SloaneSequence):
         else:
             return  sloane.A090010(n-1) + sloane.A090010(n)
 
-# this function should be in arith
-#def subfactorial(n):
-#    r"""
-#    Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
-#
-#    INPUT:
-#        n -- non negative integer
-#
-#    OUTPUT:
-#        integer -- function value
-#
-#    EXAMPLES:
-#        sage: subfactorial(0)
-#        1
-#        sage: subfactorial(1)
-#        0
-#        sage: subfactorial(8)
-#        14833
-#
-#    AUTHOR:
-#        -- Jaap Spies (2007-01-23)
-#
-#
-#    """
-#    n = Integer(n)
-#    return arith.factorial(n)*sum(((-1)**k)/arith.factorial(k) for k in range(n+1))
-##    return arith.floor((arith.factorial(n)+1)/???.exp(1))
-#
-
 class A000166(SloaneSequence):
     r"""
     Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
@@ -1503,7 +1688,7 @@ class A000166(SloaneSequence):
     With offset 1 also the permanent of a (0,1)-matrix of order $n$ with $n$ 0's not on a line.
 
     INPUT:
-        n -- positive integer
+        n -- non negative integer
 
     OUTPUT:
         integer -- function value
@@ -1536,8 +1721,7 @@ class A000166(SloaneSequence):
         return "Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points."
 
     def _eval(self, n):
-#        return subfactorial(n) see above
-        return arith.factorial(n)*sum(((-1)**k)/arith.factorial(k) for k in range(n+1))
+        return arith.subfactorial(n)
 
 
 class A000203(SloaneSequence):
@@ -1624,9 +1808,10 @@ class A000204(SloaneSequence):
         else:
             return sloane.A000045(n+1) + sloane.A000045(n-1)
 
+# inhomogenous second order recurrences
 def recur_gen2b(a0,a1,a2,a3,b):
     r"""
-        inhomogenaus second-order linear recurrence generator with fixed coefficients
+        inhomogenous second-order linear recurrence generator with fixed coefficients
         and $b = f(n)$
 
         $a(0) = a0$, $a(1) = a1$, $a(n) = a2*a(n-1) + a3*a(n-2) +f(n)$.
@@ -1696,6 +1881,64 @@ class A001110(SloaneSequence):
             f = self._f
         except AttributeError:
             self._f = recur_gen2b(0,1,34,-1,self.g)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) < n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A051959(SloaneSequence):
+    r"""
+    Linear second order recurrence. A051959.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A051959; a
+        Linear second order recurrence. A051959.
+        sage: a(0)
+        1
+        sage: a(1)
+        10
+        sage: a(8)
+        9969
+        sage: a(41)
+        42834431872413650
+        sage: a.list(12)
+        [1, 10, 36, 104, 273, 686, 1688, 4112, 9969, 24114, 58268, 140728]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear second order recurrence. A051959."
+
+    def g(self,k):
+        if k > 1:
+            return 7*k+1
+        else:
+            return 0
+
+    def _precompute(self, how_many=30):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2b(1,10,2,1,self.g)
             f = self._f
         self._b += [f.next() for i in range(how_many)]
 
@@ -2110,66 +2353,8 @@ class A001836(SloaneSequence):
 
 
 
-class A051959(SloaneSequence):
-    r"""
-    Linear second order recurrence. A051959.
 
-    INPUT:
-        n -- non negative integer
-
-    OUTPUT:
-        integer -- function value
-
-    EXAMPLES:
-        sage: a = sloane.A051959; a
-        Linear second order recurrence. A051959.
-        sage: a(0)
-        1
-        sage: a(1)
-        10
-        sage: a(8)
-        9969
-        sage: a(41)
-        42834431872413650
-        sage: a.list(12)
-        [1, 10, 36, 104, 273, 686, 1688, 4112, 9969, 24114, 58268, 140728]
-
-    AUTHOR:
-        -- Jaap Spies (2007-01-19)
-    """
-    def __init__(self):
-        SloaneSequence.__init__(self, offset=0)
-        self._b = []
-        self._precompute(2)
-
-    def _repr_(self):
-        return "Linear second order recurrence. A051959."
-
-    def g(self,k):
-        if k > 1:
-            return 7*k+1
-        else:
-            return 0
-
-    def _precompute(self, how_many=30):
-        try:
-            f = self._f
-        except AttributeError:
-            self._f = recur_gen2b(1,10,2,1,self.g)
-            f = self._f
-        self._b += [f.next() for i in range(how_many)]
-
-    def _eval(self, n):
-        if len(self._b) < n:
-            self._precompute(n - len(self._b) + 1)
-        return self._b[n]
-
-    def list(self, n):
-        self._eval(n)   # force computation
-        return self._b[:n]
-
-
-
+# a group of sequences uses this function:
 def recur_gen2(a0,a1,a2,a3):
     """
         homogenous general second-order linear recurrence generator with fixed coefficients
@@ -2232,7 +2417,7 @@ class A001906(SloaneSequence):
         self._b += [f.next() for i in range(how_many)]
 
     def _eval(self, n):
-        if len(self._b) < n:
+        if len(self._b) <= n:
             self._precompute(n - len(self._b) + 1)
         return self._b[n]
 
@@ -2240,22 +2425,63 @@ class A001906(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
-# todo jsp
-# A001109 a(n)^2 is a triangular number: a(n) = 6*a(n-1) - a(n-2) with a(0)=0, a(1)=1.
-#
-# A015523= recur_gen2(0,1,3,5)
-#
-# A015530= recur_gen2(0,1,4,3)
-#
-# A015531= recur_gen2(0,1,4,5)
-#
-# A015553 = recur_gen2(0,1,6,11)
-#
-# A015565 = recur_gen2(0,1,7,8)
-#
-# A015585= recur_gen2(0,1,9,10)
-#
-# and more!
+class A001109(SloaneSequence):
+    r"""
+    $a(n)^2$ is a triangular number: $a(n) = 6*a(n-1) - a(n-2)$ with $a(0)=0$, $a(1)=1$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001109;a
+        a(n)^2 is a triangular number: a(n) = 6*a(n-1) - a(n-2) with a(0)=0, a(1)=1
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        6
+        sage: a.offset
+        0
+        sage: a(8)
+        235416
+        sage: a(60)
+        1515330104844857898115857393785728383101709300
+        sage: a.list(9)
+        [0, 1, 6, 35, 204, 1189, 6930, 40391, 235416]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-24)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation
+
+    def _repr_(self):
+        return "a(n)^2 is a triangular number: a(n) = 6*a(n-1) - a(n-2) with a(0)=0, a(1)=1"
+
+    def _precompute(self, how_many=50):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,6,-1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
 
 class A015521(SloaneSequence):
     r"""
@@ -2301,7 +2527,7 @@ class A015521(SloaneSequence):
         self._b += [f.next() for i in range(how_many)]
 
     def _eval(self, n):
-        if len(self._b) < n:
+        if len(self._b) <= n:
             self._precompute(n - len(self._b) + 1)
         return self._b[n]
 
@@ -2353,7 +2579,174 @@ class A015523(SloaneSequence):
         self._b += [f.next() for i in range(how_many)]
 
     def _eval(self, n):
-        if len(self._b) < n:
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A015530(SloaneSequence):
+    r"""
+    Linear 2nd order recurrence, $a(0)=0$, $a(1)=1$ and $a(n) = 4 a(n-1) + 3 a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A015530;a
+        Linear 2nd order recurrence, a(n) = 4 a(n-1) + 3 a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        4
+        sage: a.offset
+        0
+        sage: a(8)
+        41008
+        sage: a.list(9)
+        [0, 1, 4, 19, 88, 409, 1900, 8827, 41008]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear 2nd order recurrence, a(n) = 4 a(n-1) + 3 a(n-2)."
+
+    def _precompute(self, how_many=50):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,4,3)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+class A015531(SloaneSequence):
+    r"""
+    Linear 2nd order recurrence, $a(0)=0$, $a(1)=1$ and $a(n) = 4 a(n-1) + 5 a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A015531;a
+        Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        4
+        sage: a.offset
+        0
+        sage: a(8)
+        65104
+        sage: a(60)
+        144560289664733924534327040115992228190104
+        sage: a.list(9)
+        [0, 1, 4, 21, 104, 521, 2604, 13021, 65104]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2)."
+
+    def _precompute(self, how_many=50):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,4,5)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A015551(SloaneSequence):
+    r"""
+    Linear 2nd order recurrence, $a(0)=0$, $a(1)=1$ and $a(n) = 4 a(n-1) + 5 a(n-2)$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A015531;a
+        Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        4
+        sage: a.offset
+        0
+        sage: a(8)
+        65104
+        sage: a(60)
+        144560289664733924534327040115992228190104
+        sage: a.list(9)
+        [0, 1, 4, 21, 104, 521, 2604, 13021, 65104]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-19)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Linear 2nd order recurrence, a(n) = 4 a(n-1) + 5 a(n-2)."
+
+    def _precompute(self, how_many=50):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(0,1,4,5)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
             self._precompute(n - len(self._b) + 1)
         return self._b[n]
 
@@ -2364,219 +2757,28 @@ class A015523(SloaneSequence):
 
 
 
-def is_power_of_two(n):
-    r"""
-    This function returns True if and only if $n$ is a power of 2
-
-    INPUT:
-        n -- integer
-
-    OUTPUT:
-        True -- if n is a power of 2
-        False -- if not
-
-    EXAMPLES:
-        sage: from sage.combinat.sloane_functions import is_power_of_two
-
-        sage: is_power_of_two(1024)
-        True
-
-        sage: is_power_of_two(1)
-        True
-
-        sage: is_power_of_two(24)
-        False
-
-        sage: is_power_of_two(0)
-        False
-
-        sage: is_power_of_two(-4)
-        False
-
-    AUTHOR:
-        -- Jaap Spies (2006-12-09)
-
-    """
-    # modification of is2pow(n) from the Programming Guide
-    while n > 0 and n%2 == 0:
-        n = n >> 1
-    return n == 1
-
-
-class A061084(SloaneSequence):
-    r"""
-    Fibonacci-type sequence based on subtraction: $a(0) = 1$, $a(1) = 2$ and $a(n) = a(n-2)-a(n-1)$.
-
-    EXAMPLES:
-        sage: a = sloane.A061084; a
-        Fibonacci-type sequence based on subtraction: a(0) = 1, a(1) = 2 and a(n) = a(n-2)-a(n-1).
-        sage: a(0)
-        1
-        sage: a(1)
-        2
-        sage: a(8)
-        -29
-        sage: a(22)
-        -24476
-        sage: a.list(12)
-        [1, 2, -1, 3, -4, 7, -11, 18, -29, 47, -76, 123]
-        sage: a.keyword
-        ['sign', 'easy', 'nice']
-
-    AUTHOR:
-        -- Jaap Spies (2007-01-18)
-    """
-    def __init__(self):
-        SloaneSequence.__init__(self, offset=0)
-
-    keyword = ["sign", "easy","nice"]
-
-    def _repr_(self):
-        return "Fibonacci-type sequence based on subtraction: a(0) = 1, a(1) = 2 and a(n) = a(n-2)-a(n-1)."
-
-    def _eval(self, n):
-        if n == 0:
-            return 1
-        elif n == 1:
-            return 2
-        else:
-            return (-1)**(n-1)*sloane.A000204(n-1)
-
-def perm_mh(m, h):
-    """
-    This functions calculates $f(g,h)$ from Sloane's sequences A079908-A079928
-
-    INPUT:
-        m -- positive integer
-        h -- non negative integer
-
-    OUTPUT:
-        permanent of the m x (m+h) matrix, etc.
-
-    EXAMPLE:
-        sage: from sage.combinat.sloane_functions import perm_mh
-        sage: perm_mh(3,3)
-        36
-        sage: perm_mh(3,4)
-        76
-
-    AUTHOR: Jaap Spies (2006)
-    """
-    n = m + h
-    M = MatrixSpace(QQ, m, n) # shouldn't this be 'ZZ' because A is (0,1) matrix?
-    A = M(0)
-    for i in range(m):
-        for j in range(n):
-            if i <= j and j <= i + h:
-                A[i,j] = 1
-    return A.permanent()
-
-
-
-class A079922(SloaneSequence):
-    r"""
-    function returns solutions to the Dancing School problem with $n$ girls and $n+3$ boys.
-
-    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
-    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
-
-    REFERENCES:
-        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
-
-
-    INPUT:
-        n -- positive integer
-
-    OUTPUT:
-        integer -- function value
-
-
-    EXAMPLES:
-        sage: a = sloane.A079922; a
-        Solutions to the Dancing School problem with n girls and n+3 boys
-        sage: a.offset
-        1
-        sage: a(1)
-        4
-        sage: a(8)
-        2227
-        sage: a.list(8)
-        [4, 13, 36, 90, 212, 478, 1044, 2227]
-
-        Compare:
-        Searching Sloane's online database...
-        Solution to the Dancing School Problem with n girls and n+3 boys: f(n,3).
-        [4, 13, 36, 90, 212, 478, 1044, 2227]
-
-        sage: a(-1)
-        Traceback (most recent call last):
-        ...
-        ValueError: input n (=-1) must be a positive integer
-
-        AUTHOR:
-            - Jaap Spies (2007-01-14)
-    """
-
-    def _repr_(self):
-        return "Solutions to the Dancing School problem with n girls and n+3 boys"
-
-    offset = 1
-
-    def _eval(self, n):
-        return perm_mh(n, 3)
-
-
-
-class A079923(SloaneSequence):
-    r"""
-    function returns solutions to the Dancing School problem with $n$ girls and $n+4$ boys.
-
-    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
-    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
-
-    REFERENCES:
-        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
-
-    INPUT:
-        n -- positive integer
-
-    OUTPUT:
-        integer -- function value
-
-
-    EXAMPLES:
-        sage: a = sloane.A079923; a
-        Solutions to the Dancing School problem with n girls and n+4 boys
-        sage: a.offset
-        1
-        sage: a(1)
-        5
-        sage: a(8)
-        15458
-        sage: a.list(8)
-        [5, 21, 76, 246, 738, 2108, 5794, 15458]
-
-        Compare:
-        Searching Sloane's online database...
-        Solution to the Dancing School Problem with n girls and n+4 boys: f(n,4).
-        [5, 21, 76, 246, 738, 2108, 5794, 15458]
-
-        sage: a(0)
-        Traceback (most recent call last):
-        ...
-        ValueError: input n (=0) must be a positive integer
-
-    AUTHOR:
-        - Jaap Spies (2007-01-17)
-    """
-
-    def _repr_(self):
-        return "Solutions to the Dancing School problem with n girls and n+4 boys"
-
-    offset = 1
-
-    def _eval(self, n):
-        return perm_mh(n, 4)
+# todo jsp
+#
+#
+# A015551 = recur_gen2(0,1,6,5)
+# A015552 = recur_gen2(0,1,6,7)
+# A015553 = recur_gen2(0,1,6,11)
+# A015555 = recur_gen2(0,1,7,2)
+#
+# A015565 = recur_gen2(0,1,7,8)
+#
+# A015585 = recur_gen2(0,1,9,10)
+#
+# A053404 = recur_gen2(1,1,1,12)
+#
+# A053428 = recur_gen2(1,1,1,20)
+#
+# A053430 = recur_gen2(1,1,1,30)
+#
+# A065874 = recur_gen2(1,1,1,42)
+#
+# A083858 = recur_gen2(0,1,3,6)
+# and more!
 
 # Wilf_A083216 = recur_gen2(20615674205555510, 3794765361567513,1,1)  family
 class A082411(SloaneSequence):
@@ -2878,6 +3080,184 @@ class A083216(SloaneSequence):
 
 
 
+
+
+class A061084(SloaneSequence):
+    r"""
+    Fibonacci-type sequence based on subtraction: $a(0) = 1$, $a(1) = 2$ and $a(n) = a(n-2)-a(n-1)$.
+
+    EXAMPLES:
+        sage: a = sloane.A061084; a
+        Fibonacci-type sequence based on subtraction: a(0) = 1, a(1) = 2 and a(n) = a(n-2)-a(n-1).
+        sage: a(0)
+        1
+        sage: a(1)
+        2
+        sage: a(8)
+        -29
+        sage: a(22)
+        -24476
+        sage: a.list(12)
+        [1, 2, -1, 3, -4, 7, -11, 18, -29, 47, -76, 123]
+        sage: a.keyword
+        ['sign', 'easy', 'nice']
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-18)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    keyword = ["sign", "easy","nice"]
+
+    def _repr_(self):
+        return "Fibonacci-type sequence based on subtraction: a(0) = 1, a(1) = 2 and a(n) = a(n-2)-a(n-1)."
+
+    def _eval(self, n):
+        if n == 0:
+            return 1
+        elif n == 1:
+            return 2
+        else:
+            return (-1)**(n-1)*sloane.A000204(n-1)
+
+def perm_mh(m, h):
+    """
+    This functions calculates $f(g,h)$ from Sloane's sequences A079908-A079928
+
+    INPUT:
+        m -- positive integer
+        h -- non negative integer
+
+    OUTPUT:
+        permanent of the m x (m+h) matrix, etc.
+
+    EXAMPLES:
+        sage: from sage.combinat.sloane_functions import perm_mh
+        sage: perm_mh(3,3)
+        36
+        sage: perm_mh(3,4)
+        76
+
+    AUTHOR: Jaap Spies (2006)
+    """
+    n = m + h
+    M = MatrixSpace(QQ, m, n) # shouldn't this be 'ZZ' because A is (0,1) matrix?
+    A = M(0)
+    for i in range(m):
+        for j in range(n):
+            if i <= j and j <= i + h:
+                A[i,j] = 1
+    return A.permanent()
+
+
+
+class A079922(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+3$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079922; a
+        Solutions to the Dancing School problem with n girls and n+3 boys
+        sage: a.offset
+        1
+        sage: a(1)
+        4
+        sage: a(8)
+        2227
+        sage: a.list(8)
+        [4, 13, 36, 90, 212, 478, 1044, 2227]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+3 boys: f(n,3).
+        [4, 13, 36, 90, 212, 478, 1044, 2227]
+
+        sage: a(-1)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-1) must be a positive integer
+
+        AUTHOR:
+            - Jaap Spies (2007-01-14)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+3 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return perm_mh(n, 3)
+
+
+
+class A079923(SloaneSequence):
+    r"""
+    function returns solutions to the Dancing School problem with $n$ girls and $n+4$ boys.
+
+    The value is $per(B)$, the permanent of the (0,1)-matrix $B$
+    of size $n \times n+3$ with $b(i,j)=1$ if and only if $i \le j \le i+n$.
+
+    REFERENCES:
+        Jaap Spies, Nieuw Archief voor Wiskunde, 5/7 nr 4, December 2006
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+
+    EXAMPLES:
+        sage: a = sloane.A079923; a
+        Solutions to the Dancing School problem with n girls and n+4 boys
+        sage: a.offset
+        1
+        sage: a(1)
+        5
+        sage: a(8)
+        15458
+        sage: a.list(8)
+        [5, 21, 76, 246, 738, 2108, 5794, 15458]
+
+        Compare:
+        Searching Sloane's online database...
+        Solution to the Dancing School Problem with n girls and n+4 boys: f(n,4).
+        [5, 21, 76, 246, 738, 2108, 5794, 15458]
+
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+
+    AUTHOR:
+        - Jaap Spies (2007-01-17)
+    """
+
+    def _repr_(self):
+        return "Solutions to the Dancing School problem with n girls and n+4 boys"
+
+    offset = 1
+
+    def _eval(self, n):
+        return perm_mh(n, 4)
+
+
 class A111774(SloaneSequence):
     r"""
     Sequence of numbers of the third kind, i.e., numbers that can be
@@ -2990,7 +3370,7 @@ class A111774(SloaneSequence):
         AUTHOR:
             -- Jaap Spies (2006-12-09)
         """
-        if (not arith.is_prime(n)) and (not is_power_of_two(n)):
+        if (not arith.is_prime(n)) and (not arith.is_power_of_two(n)):
             return True
         else:
             return False
@@ -3154,7 +3534,7 @@ class A111787(SloaneSequence):
         return "a(n) is the least k >= 3 such that n can be written as sum of k consecutive integers. a(n)=0 if such a k does not exist."
 
     def _eval(self, n):
-        if arith.is_prime(n) or is_power_of_two(n):
+        if arith.is_prime(n) or arith.is_power_of_two(n):
             return 0
         else:
             for d in srange(3,n,2):
@@ -3280,15 +3660,20 @@ sloane.A000030 = A000030()
 sloane.A000032 = A000032()
 sloane.A000040 = A000040()
 sloane.A000045 = A000045()
+sloane.A000108 = A000108()
 sloane.A000110 = A000110()
+sloane.A000142 = A000142()
+sloane.A000153 = A000153()
+sloane.A000165 = A000165()
 sloane.A000166 = A000166()
 sloane.A000203 = A000203()
 sloane.A000204 = A000204()
-sloane.A000153 = A000153()
 sloane.A000255 = A000255()
 sloane.A000261 = A000261()
 sloane.A000587 = A000587()
+sloane.A001109 = A001109()
 sloane.A001110 = A001110()
+sloane.A001147 = A001147()
 sloane.A001221 = A001221()
 sloane.A001222 = A001222()
 sloane.A001227 = A001227()
@@ -3297,8 +3682,11 @@ sloane.A001836 = A001836()
 sloane.A001906 = A001906()
 sloane.A001909 = A001909()
 sloane.A001910 = A001910()
+sloane.A006882 = A006882()
 sloane.A015521 = A015521()
 sloane.A015523 = A015523()
+sloane.A015530 = A015530()
+sloane.A015531 = A015531()
 sloane.A046660 = A046660()
 sloane.A051959 = A051959()
 sloane.A055790 = A055790()

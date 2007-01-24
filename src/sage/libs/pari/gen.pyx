@@ -4092,14 +4092,6 @@ cdef class gen:
         _sig_on
         return self.new_gen(rnfidealabstorel(self.g, t0))
 
-    def rnfidealadd(self, nf, x, y):
-        # Note the extra nf parameter, which should be the pari_nf
-        # corresponding to self.
-        a = self.rnfidealreltoabs(x)
-        b = self.rnfidealreltoabs(y)
-        sum = nf.idealadd(a, b)
-        return self.rnfidealabstorel(sum)
-
     def rnfidealhnf(self, x):
         t0GEN(x)
         _sig_on

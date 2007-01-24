@@ -132,9 +132,18 @@ class NumberFieldElement(field_element.FieldElement):
         except AttributeError:
             if var == None:
                 var = self.parent().variable_name()
-            f = self.__element._pari_().subst("x",var)
-            g = self.parent().polynomial()._pari_().subst("x",var)
-            return f.Mod(g)
+            if isinstance(self.parent(), number_field.NumberField_extension):
+                f = self.__element._pari_()
+                g = str(self.parent().pari_relative_polynomial())
+                base = self.parent().base_ring()
+                gsub = base.gen()._pari_()
+                gsub = str(gsub).replace(base.variable_name(), "y")
+                g = g.replace("y", gsub)
+            else:
+                f = self.__element._pari_().subst("x",var)
+                g = self.parent().polynomial()._pari_().subst("x",var)
+            self.__pari = f.Mod(g)
+            return self.__pari
 
     def _pari_init_(self, var=None):
         """
@@ -142,8 +151,16 @@ class NumberFieldElement(field_element.FieldElement):
         """
         if var == None:
             var = self.parent().variable_name()
-        f = self.__element._pari_().subst("x",var)
-        g = self.parent().polynomial()._pari_().subst("x",var)
+        if isinstance(self.parent(), number_field.NumberField_extension):
+            f = self.__element._pari_()
+            g = str(self.parent().pari_relative_polynomial())
+            base = self.parent().base_ring()
+            gsub = base.gen()._pari_()
+            gsub = str(gsub).replace(base.variable_name(), "y")
+            g = g.replace("y", gsub)
+        else:
+            f = self.__element._pari_().subst("x",var)
+            g = self.parent().polynomial()._pari_().subst("x",var)
         return 'Mod(%s, %s)'%(f,g)
 
     def __getitem__(self, n):
@@ -229,10 +246,12 @@ class NumberFieldElement(field_element.FieldElement):
     def __invert__(self):
         if self.__element.is_zero():
             raise ZeroDivisionError
-        g, _, a = self.parent().polynomial().xgcd(self.__element)
-        assert g.degree() == 0
-        c = g[0]
-        return NumberFieldElement(self.parent(), (1/c)*a)
+        K = self.parent()
+        quotient = K(1)._pari_() / self._pari_()
+        if isinstance(K, number_field.NumberField_extension):
+            return K(K.pari_rnf().rnfeltreltoabs(quotient))
+        else:
+            return K(quotient)
 
     def _integer_(self):
         return integer_ring.IntegerRing()(int(self))
@@ -359,12 +378,12 @@ class NumberFieldElement(field_element.FieldElement):
         return self.__multiplicative_order
 
     def trace(self):
-        return QQ(self._pari_().trace())
-        # return self.matrix().trace()
+        K = self.parent().base_ring()
+        return K(self._pari_().trace())
 
     def norm(self):
-        return QQ(self._pari_().norm())
-        #return self.matrix().determinant()
+        K = self.parent().base_ring()
+        return K(self._pari_().norm())
 
     def charpoly(self, var):
         r"""

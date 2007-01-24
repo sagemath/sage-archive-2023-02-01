@@ -282,6 +282,10 @@ class NumberField_generic(field.Field):
         return NumberFields()
 
 
+    def category(self):
+        from sage.categories.all import NumberFields
+        return NumberFields()
+
     def __cmp__(self, other):
         if not isinstance(other, NumberField_generic):
             return -1
@@ -374,7 +378,7 @@ class NumberField_generic(field.Field):
             return self.__class_group
         except AttributeError:
             k = self.pari_bnf(certify)
-            s = str(k[7][0])  # it's the [8][1] entry in pari, but the python interface is 0 based.
+            s = str(k.getattr('clgp'))
             s = s.replace(";",",")
             s = eval(s)
             self.__class_group = \
@@ -643,7 +647,7 @@ class NumberField_generic(field.Field):
             return self.__regulator
         except AttributeError:
             k = self.pari_bnf(certify)
-            s = str(k[7][1])  # it's the [8][2] entry in pari, but the python interface is 0 based.
+            s = str(k.getattr('reg'))
             self.__regulator = eval(s)
         return self.__regulator
 
@@ -677,7 +681,7 @@ class NumberField_generic(field.Field):
             [ 0 -6]
         """
         import sage.matrix.matrix_space
-        A = sage.matrix.matrix_space.MatrixSpace(QQ, len(v))(0)
+        A = sage.matrix.matrix_space.MatrixSpace(self.base_ring(), len(v))(0)
         for i in range(len(v)):
             for j in range(i,len(v)):
                 t = (self(v[i]*v[j])).trace()
@@ -996,6 +1000,9 @@ class NumberField_extension(NumberField_generic):
     def base_field(self):
         return self.__base_field
 
+    def base_ring(self):
+        return self.base_field()
+
     def discriminant(self, certify=True):
         """
         Return the relative discriminant of this extension $L/K$ as
@@ -1023,6 +1030,13 @@ class NumberField_extension(NumberField_generic):
         return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, D) ])
 
     disc = discriminant
+
+    def extension(self, poly, name='b'):
+        """
+        Raise a NotImplemented error, since relative extensions of relative
+        extensions are not yet supported.
+        """
+        raise NotImplementedError, "relative extensions of relative extensions are not supported"
 
     def galois_group(self, pari_group = False, use_kash=False):
         r"""
@@ -1080,9 +1094,8 @@ class NumberField_extension(NumberField_generic):
             ...
             ValueError: The element b is not in the base field
         """
-        element_x = str(element).replace(self.variable_name(), 'x')
-        poly_xy = str(self.pari_rnf().rnfeltabstorel(element_x)).replace('^','**')
-        if poly_xy.find('x') >= 0:
+        poly_xy = self.pari_rnf().rnfeltabstorel( self(element)._pari_() )
+        if str(poly_xy).find('x') >= 0:
             raise ValueError, "The element %s is not in the base field"%element
         return self.base_field()( QQ['y'](poly_xy) )
 

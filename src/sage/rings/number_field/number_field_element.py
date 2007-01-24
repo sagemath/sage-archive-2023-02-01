@@ -38,6 +38,7 @@ import sage.misc.misc as misc
 import number_field
 
 from sage.libs.all import pari_gen
+from sage.libs.pari.gen import PariError
 
 QQ = rational_field.RationalField()
 
@@ -125,25 +126,58 @@ class NumberFieldElement(field_element.FieldElement):
 
     def _pari_(self, var=None):
         """
-        Return PARI C-library object representation of self.
+        Return PARI C-library object corresponding to self.
+
+        NOTE: This is not the actual underlying object that represents
+        this element, since that is a polynomial in x (as PARI
+        polynomials are rather constrained in their possible variable
+        names, e.g., I cannot be the name of a variable).
+
+        EXAMPLES:
+            sage: k.<j> = QuadraticField(-1)
+            sage: j._pari_()
+            Mod(j, j^2 + 1)
+            sage: pari(j)
+            Mod(j, j^2 + 1)
+
+        If you try do coerce a generator called I to PARI, hell may
+        break loose:
+            sage: k.<I> = QuadraticField(-1)
+            sage: pari(I)
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden (45)
+
+        Instead, request the variable be named different for the coercion:
+            sage: I._pari_('i')
+            Mod(i, i^2 + 1)
+            sage: I._pari_('II')
+            Mod(II, II^2 + 1)
         """
         try:
-            return self.__pari
+            return self.__pari[var]
+        except KeyError:
+            pass
         except AttributeError:
-            if var == None:
-                var = self.parent().variable_name()
-            if isinstance(self.parent(), number_field.NumberField_extension):
-                f = self.__element._pari_()
-                g = str(self.parent().pari_relative_polynomial())
-                base = self.parent().base_ring()
-                gsub = base.gen()._pari_()
-                gsub = str(gsub).replace(base.variable_name(), "y")
-                g = g.replace("y", gsub)
-            else:
-                f = self.__element._pari_().subst("x",var)
-                g = self.parent().polynomial()._pari_().subst("x",var)
-            self.__pari = f.Mod(g)
-            return self.__pari
+            self.__pari = {}
+        if var is None:
+            var = self.parent().variable_name()
+        if isinstance(self.parent(), number_field.NumberField_extension):
+            f = self.__element._pari_()
+            g = str(self.parent().pari_relative_polynomial())
+            base = self.parent().base_ring()
+            gsub = base.gen()._pari_()
+            gsub = str(gsub).replace(base.variable_name(), "y")
+            g = g.replace("y", gsub)
+        else:
+            f = self.__element._pari_()
+            g = self.parent().polynomial()._pari_()
+            if var != 'x':
+                f = f.subst("x",var)
+                g = g.subst("x",var)
+        h = f.Mod(g)
+        self.__pari[var] = h
+        return h
 
     def _pari_init_(self, var=None):
         """
@@ -247,7 +281,7 @@ class NumberFieldElement(field_element.FieldElement):
         if self.__element.is_zero():
             raise ZeroDivisionError
         K = self.parent()
-        quotient = K(1)._pari_() / self._pari_()
+        quotient = K(1)._pari_('x') / self._pari_('x')
         if isinstance(K, number_field.NumberField_extension):
             return K(K.pari_rnf().rnfeltreltoabs(quotient))
         else:
@@ -269,7 +303,7 @@ class NumberFieldElement(field_element.FieldElement):
         a conjugate would be easy to compute.
 
         EXAMPLES:
-            sage: I=QuadraticField(-1,'I').gen(0)
+            sage: k.<I> = QuadraticField(-1)
             sage: I.conjugate()
             -I
             sage: (I/(1+I)).conjugate()
@@ -379,11 +413,11 @@ class NumberFieldElement(field_element.FieldElement):
 
     def trace(self):
         K = self.parent().base_ring()
-        return K(self._pari_().trace())
+        return K(self._pari_('x').trace())
 
     def norm(self):
         K = self.parent().base_ring()
-        return K(self._pari_().norm())
+        return K(self._pari_('x').norm())
 
     def charpoly(self, var):
         r"""
@@ -414,11 +448,11 @@ class NumberFieldElement(field_element.FieldElement):
         """
         R = self.parent().base_ring()[var]
         if not isinstance(self.parent(), number_field.NumberField_extension):
-            return R(self._pari_().charpoly())
+            return R(self._pari_('x').charpoly())
         else:
             g = self.polynomial()  # in QQ[x]
             f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            return R( (g._pari_().Mod(f)).charpoly() )
+            return R( (g._pari_('x').Mod(f)).charpoly() )
 
 ## This might be useful for computing relative charpoly.
 ## BUT -- currently I don't even know how to view elements
@@ -441,7 +475,7 @@ class NumberFieldElement(field_element.FieldElement):
             sage: R.<X> = K['X']
             sage: L.<b> = K.extension(X^2-(22 + a))
             sage: b.minpoly('t')
-            t^4 - 44*t^2 + 487
+            t^4 + (-44)*t^2 + 487
             sage: b^2 - (22+a)
             0
         """

@@ -287,6 +287,9 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         else:
             raise TypeError, "no such base extension"
 
+    def change_ring(self, R):
+        return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
+
     def characteristic(self):
         return self.base_ring().characteristic()
 

@@ -63,10 +63,12 @@ import  sage.structure.element
 import sage.structure.coerce
 import operator
 
-from sage.rings.integer import Integer
-from sage.rings.integer cimport Integer
-from sage.rings.rational import Rational
-from sage.rings.rational cimport Rational
+from integer import Integer
+from integer cimport Integer
+from rational import Rational
+from rational cimport Rational
+
+from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
 
@@ -236,7 +238,9 @@ cdef class RealField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational)):
+        elif isinstance(x, (Integer, Rational)):
+            return self(x)
+        elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
         import sage.functions.constants
         return self._coerce_try(x, [sage.functions.constants.ConstantRing])

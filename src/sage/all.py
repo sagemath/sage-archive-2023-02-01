@@ -77,6 +77,7 @@ from sage.interfaces.all import *
 from sage.functions.all  import *
 #from sage.calculus.all   import *
 from sage.server.all     import *
+from sage.dsage.all      import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *

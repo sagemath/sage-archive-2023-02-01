@@ -35,6 +35,7 @@ import sage.functions.transcendental as transcendental
 
 # Schemes
 import sage.schemes.generic.projective_space as projective_space
+import sage.schemes.generic.homset as homset
 
 import ell_point
 import constructor
@@ -299,6 +300,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args)
+
+    def _homset_class(self, *args, **kwds):
+        return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
 
     def __getitem__(self, n):
         """

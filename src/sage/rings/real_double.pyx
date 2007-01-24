@@ -24,13 +24,9 @@ include '../ext/stdsage.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
-import operator
+import math, operator
 
 from sage.misc.sage_eval import sage_eval
-
-import sage.misc.functional
-
-import sage.modules.free_module
 
 import sage.rings.complex_double
 import sage.rings.complex_field
@@ -52,6 +48,9 @@ cdef class RealDoubleField_class(Field):
     def is_exact(self):
         return False
 
+    def _latex_(self):
+        return "\\R"
+
     def __repr__(self):
         """
         Print out this real double field.
@@ -63,6 +62,18 @@ cdef class RealDoubleField_class(Field):
             Real Double Field
         """
         return "Real Double Field"
+
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: RDF == 5
+            False
+            sage: loads(dumps(RDF)) == RDF
+            True
+        """
+        if PY_TYPE_CHECK(x, RealDoubleField_class):
+            return 0
+        return cmp(type(self), type(x))
 
     def __call__(self, x):
         """
@@ -88,7 +99,7 @@ cdef class RealDoubleField_class(Field):
             sage: b = RDF(a); b
             1.41421356237
             sage: a.parent()(b)
-            1.4142135623699999999999999999999999999999999999999999999999
+            1.4142135623700000000000000000000000000000000000000000000000
         """
         return RealDoubleElement(x)
 
@@ -260,6 +271,15 @@ cdef class RealDoubleElement(FieldElement):
         global _RDF
         (<Element>self)._parent = _RDF
 
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(-2.7)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return RealDoubleElement, (self._value, )
+
     cdef _new_c(self, double value):
         global _RDF
         cdef RealDoubleElement x
@@ -326,16 +346,32 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self.str()
 
-    def _latex_(self):
+    def _latex_(self):  # todo -- this is terrible if sci not.
         return self.str()
 
     def __hash__(self):
-        return hash(self.str())
+        return 1455926870
+        #return hash(self.str())
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
 
-    def str(self, no_sci=None):
+    def str(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: a = RDF('4.5'); a.str()
+            '4.5'
+            sage: a = RDF('49203480923840.2923904823048'); a.str()
+            '4.92034809238e+13'
+            sage: a = RDF(1)/RDF(0); a.str()
+            'inf'
+            sage: a = -RDF(1)/RDF(0); a.str()
+            '-inf'
+            sage: a = RDF(0)/RDF(0); a.str()
+            'nan'
+        """
         if gsl_isnan(self._value):
             return "nan"
         else:
@@ -344,21 +380,34 @@ cdef class RealDoubleElement(FieldElement):
                 return "inf"
             elif v == -1:
                 return "-inf"
-        if no_sci is not None and not no_sci:
-            return "%e"%self._value
-        else:
-            return str(self._value)
+        return str(self._value)
 
-    def copy(self):
-        cdef RealDoubleElement z
-        z = RealDoubleElement(self._value)
-        return z
+    def __copy__(self):
+        """
+        Return copy of self, which since self is immutable, is just self.
+
+        EXAMPLES:
+            sage: r = RDF('-1.6')
+            sage: r.__copy__() is r
+            True
+        """
+        return self
+        #cdef RealDoubleElement z
+        #z = RealDoubleElement(self._value)
+        #return z
 
     def integer_part(self):
         """
         If in decimal this number is written n.defg, returns n.
+
+        EXAMPLES:
+            sage: r = RDF('-1.6')
+            sage: a = r.integer_part(); a
+            -1
+            sage: type(a)
+            <type 'sage.rings.integer.Integer'>
         """
-        return sage.rings.all.integer.Integer(int(self._value))
+        return sage.rings.integer.Integer(int(self._value))
 
 
     ########################
@@ -497,7 +546,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-5/2).floor()
             -3
         """
-        return sage.misc.functional.floor(self._value)
+        return sage.rings.integer.Integer(int(math.floor(self._value)))
 
     def ceil(self):
         """
@@ -514,7 +563,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-5/2).ceil()
             -2
         """
-        return sage.misc.functional.ceil(self._value)
+        return sage.rings.integer.Integer(int(math.ceil(self._value)))
 
     def ceiling(self):
         return self.ceil()
@@ -585,6 +634,12 @@ cdef class RealDoubleElement(FieldElement):
     def is_NaN(self):
         return bool(gsl_isnan(self._value))
 
+    def is_positive_infinity(self):
+        return bool(gsl_isinf(self._value) > 0)
+
+    def is_negative_infinity(self):
+        return bool(gsl_isinf(self._value) < 0)
+
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
@@ -620,7 +675,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.sqrt()
             65.9090282131363
             sage: r.sqrt()^2 - r
-            -0.000000000000909494701772928
+            0.000000000000000
 
             sage: r = -2.0
             sage: r.sqrt()
@@ -730,7 +785,7 @@ cdef class RealDoubleElement(FieldElement):
         return self.__pow(x)
 
 
-    def __log_(self, double log_of_base):
+    def _log_base(self, double log_of_base):
         if self._value < 2:
             if self._value == 0:
                 return -1./0
@@ -739,7 +794,7 @@ cdef class RealDoubleElement(FieldElement):
             return self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
         return self._new_c(gsl_sf_log(self._value) / log_of_base)
 
-    def log(self, base='e'):
+    def log(self, base=None):
         """
         EXAMPLES:
             sage: RDF(2).log()
@@ -757,19 +812,13 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(-1).log()
             nan
         """
-        if base == 'e':
-            return self.__log_(1)
-        elif base == 'pi':
-            return self.logpi()
-        elif base == 2:
-            return self.log2()
-        elif base == 10:
-            return self.log10()
+        if base is None:
+            return self._log_base(1)
         else:
             if isinstance(base, RealDoubleElement):
-                return self.__log_(base.__log_(1))
+                return self._log_base(base._log_base(1))
             else:
-                return self.__log_(gsl_sf_log(float(base)))
+                return self._log_base(gsl_sf_log(float(base)))
 
     def log2(self):
         """
@@ -1134,8 +1183,5 @@ RDF = _RDF   # external interface
 def RealDoubleField():
     global _RDF
     return _RDF
-
-
-
 
 

@@ -76,7 +76,7 @@ def coincidence_discriminant(S,n=2):
     EXAMPLES:
 	sage: S = strip_encoding("The cat in the hat.")
 	sage: coincidence_discriminant(S)
-        0.0827001855677320
+        0.0827001855677322
     """
     if n != 2:
         raise ValueError, "Argument n (= %s) is only implemented for n = 2" % n

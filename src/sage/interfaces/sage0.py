@@ -102,7 +102,7 @@ class Sage(Expect):
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                        logfile=None,  preparse=True, server=None,
-                       do_monitor=False, python=True):
+                       do_cleaner=True, python=True):
         if python:
             command = "sage -python -u"
             prompt = ">>>"
@@ -122,7 +122,7 @@ class Sage(Expect):
                         restart_on_ctrlc = False,
                         logfile = logfile,
                         init_code = init_code,
-                        do_monitor = do_monitor,
+                        do_cleaner = do_cleaner,
                         )
         self._preparse = preparse
         self._is_local = (server is None)
@@ -134,28 +134,38 @@ class Sage(Expect):
         return eval(self.eval('globals().keys()'))
 
     def quit(self, verbose=False):
+        import signal
         if not self._expect is None:
+            pid = self._expect.pid
             if verbose:
-                print "Exiting spawned %s process."%self
+                print "Exiting spawned %s process (pid=%s)."%(self, pid)
             try:
                 for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
                     self._expect.sendline(chr(3))  # send ctrl-c
                     self._expect.sendline('quit_sage(verbose=%s)'%verbose)
                     self._so_far(wait=0.2)
-                os.killpg(self._expect.pid, 9)
-                os.kill(self._expect.pid, 9)
-            except (RuntimeError, OSError):
+
+                os.killpg(pid, 9)
+                os.kill(pid, 9)
+
+            except (RuntimeError, OSError), msg:
                 pass
+
             try:
-                os.killpg(self._expect.pid, 9)
-                os.kill(self._expect.pid, 9)
+                os.killpg(pid, 9)
+                os.kill(pid, 9)
             except OSError:
                 pass
+
             try:
-                self._expect.close(9)
+                self._expect.close(signal.SIGQUIT)
             except Exception:
                 pass
             self._expect = None
+
+            F = '%s/tmp/%s'%(os.environ['SAGE_ROOT'], pid)
+            if os.path.exists(F):
+                O = open(F).read()
 
     def _remote_tmpfile(self):
         try:

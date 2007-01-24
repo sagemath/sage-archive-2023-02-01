@@ -45,8 +45,7 @@ import sage.misc.sage_eval
 
 import quit
 
-import monitor
-EXPECT_MONITOR_INTERVAL=5  # kill any slave processes at most 5 seconds after parent dies.
+import cleaner
 
 from sage.misc.misc import SAGE_ROOT, verbose, SAGE_TMP_INTERFACE
 from sage.structure.element import RingElement
@@ -82,7 +81,7 @@ class Expect(ParentWithBase):
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_monitor = True):
+                 do_cleaner = True):
 
         self.__is_remote = False
         if command == None:
@@ -93,7 +92,7 @@ class Expect(ParentWithBase):
             eval_using_file_cutoff = 0  # don't allow this!
             #print command
             self._server = server
-        self.__do_monitor = do_monitor
+        self.__do_cleaner = do_cleaner
         self.__maxread = maxread
         self._eval_using_file_cutoff = eval_using_file_cutoff
         self.__script_subdirectory = script_subdirectory
@@ -248,9 +247,9 @@ class Expect(ParentWithBase):
         """
         return ''
 
-    def _do_monitor(self):
+    def _do_cleaner(self):
         try:
-            return self.__do_monitor
+            return self.__do_cleaner
         except AttributeError:
             return False
 
@@ -284,8 +283,8 @@ class Expect(ParentWithBase):
 
         try:
             self._expect = pexpect.spawn(cmd, logfile=self.__logfile)
-            if self._do_monitor() and not self.__is_remote:
-                monitor.monitor(self._expect.pid, EXPECT_MONITOR_INTERVAL)
+            if self._do_cleaner() and not self.__is_remote:
+                cleaner.cleaner(self._expect.pid, cmd)
 
         except (pexpect.ExceptionPexpect, pexpect.EOF, IndexError):
             self._expect = None
@@ -362,10 +361,10 @@ class Expect(ParentWithBase):
             os.kill(self._expect.pid, 9)
         except OSError, msg:
             pass
-        try:
-            self._expect.close(9)
-        except Exception:
-            pass
+        #try:
+        #    self._expect.close(9)
+        #except Exception:
+        #    pass
         self._expect = None
 
     def _quit_string(self):
@@ -898,26 +897,40 @@ class ExpectElement(RingElement):
 
     def _add_(self, right):
         P = self._check_valid()
-        return P.new('%s + %s'%(self._name, right._name))
+        try:
+            return P.new('%s + %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
 
     def _sub_(self, right):
         P = self._check_valid()
-        return P.new('%s - %s'%(self._name, right._name))
+        try:
+            return P.new('%s - %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
+
 
     def _mul_(self, right):
         P = self._check_valid()
-        return P.new('%s * %s'%(self._name, right._name))
+        try:
+            return P.new('%s * %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError,msg
 
     def _div_(self, right):
         P = self._check_valid()
-        return P.new('%s / %s'%(self._name, right._name))
+        try:
+            return P.new('%s / %s'%(self._name, right._name))
+        except Exception, msg:
+            raise TypeError, msg
+
 
     def __pow__(self, n):
         P = self._check_valid()
         if isinstance(n, ExpectElement):
             return P.new('%s ^ %s'%(self._name,n._name))
         else:
-           return P.new('%s ^ %s'%(self._name,n))
+            return P.new('%s ^ %s'%(self._name,n))
 
 
 def reduce_load(parent, x):

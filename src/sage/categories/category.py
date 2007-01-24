@@ -1331,7 +1331,7 @@ category_hierarchy = {\
     CommutativeRings       : [Rings, Sets],\
     Fields                 : [CommutativeRings, Rings, Sets],\
     FiniteFields           : [Fields, CommutativeRings, Rings, Sets],\
-    NumberFields           : [CommutativeRings, Rings, Sets],\
+    NumberFields           : [CommutativeRings, Rings, Sets, Fields],\
     Algebras               : [Rings, RingModules, Sets],\
     CommutativeAlgebras    : [Algebras, CommutativeRings, Rings, Sets],\
     MonoidAlgebras         : [Algebras, Sets],\

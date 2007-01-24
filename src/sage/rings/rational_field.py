@@ -151,7 +151,7 @@ class RationalField(_uniq, field.Field):
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.253841860855999
+            0.253841860856000
             sage: O = E.omega(); O
             1.269209304279553421688794              # 32-bit
             1.269209304279553421688794616754547     # 64-bit
@@ -189,6 +189,15 @@ class RationalField(_uniq, field.Field):
     def complex_embedding(self, prec=53):
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
+
+    def base_extend(self, R):
+        if not ring.is_Ring(R):
+            raise TypeError, "R must be a ring."
+        if R.characteristic() != 0:
+            raise TypeError, "no base extension defined"
+        if not field.is_Field(R) and not R.base_ring() == self:
+            raise TypeError, "R must be a field or obviously contain QQ."
+        return R
 
     def gens(self):
         return (self(1), )

@@ -110,6 +110,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def __hash__(self):
         return 561162115
+        #return hash(self.str())
 
     def characteristic(self):
         return integer.Integer(0)
@@ -125,6 +126,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Double Field
         """
         return "Complex Double Field"
+
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: CDF == 5
+            False
+            sage: loads(dumps(CDF)) == CDF
+            True
+        """
+        if PY_TYPE_CHECK(x, ComplexDoubleField_class):
+            return 0
+        return cmp(type(self), type(x))
 
     def __call__(self, x, im=None):
         """
@@ -160,7 +173,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: b = CDF(a); b
             1.41421353817*I
             sage: a.parent()(b)
-            1.4142135623699999999999999999999999999999999999999999999999*I
+            1.4142135623700000000000000000000000000000000000000000000000*I
         """
         if im is None:
             if isinstance(x, ComplexDoubleElement):
@@ -277,6 +290,16 @@ cdef class ComplexDoubleElement(FieldElement):
         self._complex = gsl_complex_rect(real, imag)
         global _CDF
         self._parent = _CDF
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = CDF(-2.7, -3)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return (ComplexDoubleElement,
+                (self._complex.dat[0], self._complex.dat[1]))
 
     cdef ComplexDoubleElement _new_c(self, gsl_complex x):
         """
@@ -657,7 +680,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293737358
+            0.0994254293726
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))

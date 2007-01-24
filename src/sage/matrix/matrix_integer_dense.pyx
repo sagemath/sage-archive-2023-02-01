@@ -17,17 +17,26 @@ include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 
+ctypedef unsigned int uint
+
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement
 
+from matrix_modn_dense import Matrix_modn_dense
+from matrix_modn_dense cimport Matrix_modn_dense
+
 import sage.modules.free_module
 
 from matrix cimport Matrix
 
 import matrix_space
+
+# for multi-modular methods
+# TODO: make this a const, adjust for machine word size, put somewhere more reasonable
+start_prime = 32771
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -470,6 +479,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 0  2  4]
             [ 6  8 10]
             [12 14 16]
+            sage: b = MatrixSpace(ZZ,3)(range(9))
+            sage: b.swap_rows(1,2)
+            sage: a+b
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
         """
         cdef Py_ssize_t i
 
@@ -524,7 +539,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * cdef _sub_c_impl
     #    * __deepcopy__
     #    * __invert__
-    #    * _multiply_classical
     #    * Matrix windows -- only if you need strassen for that base
     #    * Other functions (list them here):
     #    * Specialized echelon form
@@ -588,6 +602,37 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_clear(x)
 
         return 0   # no error occured.
+
+    def _multiply_multi_modular(left, Matrix_integer_dense right):
+        h = left.height() * right.height()
+        product = start_prime
+#        moduli = [ start_prime ]
+        residues = [ left._mod_int(start_prime) * right._mod_int(start_prime) ]
+        cur_prime = start_prime
+        while product < height:
+            cur_prime = next_prime(cur_prime)
+            product *= cur_prime
+#            moduli.append(cur_prime)
+            res.append(left._mod_int(cur_prime) * right_res._mod_int(cur_prime))
+        return left._lift_crt(residues)
+
+    def _mod_int(self, modulus):
+        cdef int p
+        cdef Py_ssize_t i, j
+        p = modulus
+        cdef Matrix_modn_dense res
+        cdef mpz_t* self_row
+        cdef uint* res_row
+        res = Matrix_modn_dense.__new__(matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False), None, None, None)
+        for i from 0 <= i < self._nrows:
+            self_row = self._matrix[i]
+            res_row = res.matrix[i]
+            for j from 0 <= j < self._ncols:
+                res_row[j] = mpz_fdiv_ui(self_row[j], p)
+        return res
+
+    def _lift_crt(residues):
+        raise NotImplementedError
 
     def _echelon_in_place_classical(self):
         cdef Matrix_integer_dense E

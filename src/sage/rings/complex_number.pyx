@@ -117,6 +117,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __reduce__( self ):
         """
         Pickling support
+
+        EXAMPLES:
+            sage: a = 1+I
+            sage: loads(dumps(a)) == a
+            True
         """
         # TODO: This is potentially very slow -- make a 1 version that
         # is native and much faster -- doesn't use .real()/.imag()

@@ -69,7 +69,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
     """
     def __init__(self, X, f, codomain = None, check = False):
         r"""
-        Create free binary string monoid on $n$ generators$.
+        Create free binary string monoid on $n$ generators.
 
         INPUT:
             x: A probability space
@@ -174,7 +174,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         Let $S$ be the probability space of $X$ = self, with probability function $p$,
         and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
         $$
-        \cov(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         $$
 
         """
@@ -197,7 +197,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         Let $S$ be the probability space of $X$ = self, with probability function $p$,
         and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
         $$
-        \cov(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         $$
 
         """

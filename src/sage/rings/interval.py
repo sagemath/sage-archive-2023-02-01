@@ -1,5 +1,11 @@
-"""
-Interval arithmetic
+"""nodoctest
+Interval Arithmetic Ring
+
+(Deprecated -- use RealIntervalField instead.)
+
+This is very basic.  Use the \code{RealIntervalField()} object from
+\code{real_mpfi} instead for much more sophisticated optimized
+functionality.
 """
 
 #*****************************************************************************

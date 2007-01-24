@@ -111,20 +111,17 @@ class LatexExpr(str):
         return str(self)
 
 def latex(x):
-    try:
-
+    if hasattr(x, '_latex_'):
         return LatexExpr(x._latex_())
 
-    except (AttributeError, TypeError):
+    for k, f in latex_table.iteritems():
+        if isinstance(x, k):
+            return LatexExpr(f(x))
 
-        for k, f in latex_table.iteritems():
-            if isinstance(x, k):
-                return LatexExpr(f(x))
+    if x is None:
+        return LatexExpr("\\mbox{\\rm None}")
 
-        if x is None:
-            return LatexExpr("\\mbox{\\rm None}")
-
-        return LatexExpr(str_function(str(x)))
+    return LatexExpr(str_function(str(x)))
 
 
 ##############################################################

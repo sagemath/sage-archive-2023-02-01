@@ -63,6 +63,18 @@ cdef class RealDoubleField_class(Field):
         """
         return "Real Double Field"
 
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: RDF == 5
+            False
+            sage: loads(dumps(RDF)) == RDF
+            True
+        """
+        if PY_TYPE_CHECK(x, RealDoubleField_class):
+            return 0
+        return cmp(type(self), type(x))
+
     def __call__(self, x):
         """
         Create a real double using x.
@@ -259,6 +271,15 @@ cdef class RealDoubleElement(FieldElement):
         global _RDF
         (<Element>self)._parent = _RDF
 
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(-2.7)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return RealDoubleElement, (self._value, )
+
     cdef _new_c(self, double value):
         global _RDF
         cdef RealDoubleElement x
@@ -329,7 +350,8 @@ cdef class RealDoubleElement(FieldElement):
         return self.str()
 
     def __hash__(self):
-        return hash(self.str())
+        return 1455926870
+        #return hash(self.str())
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -1163,6 +1185,6 @@ def RealDoubleField():
     return _RDF
 
 
-
-
+def is_RealDoubleElement(x):
+    return PY_TYPE_CHECK(x, RealDoubleElement)
 

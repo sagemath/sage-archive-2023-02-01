@@ -356,6 +356,10 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
 
+    Extension('sage.rings.real_mpfi',
+              sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
@@ -365,6 +369,9 @@ ext_modules = [ \
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
+
+    Extension('sage.rings.polynomial_element',
+              sources = ['sage/rings/polynomial_element.pyx']), \
 
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',

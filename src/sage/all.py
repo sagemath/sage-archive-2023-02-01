@@ -72,6 +72,7 @@ from sage.databases.all  import *
 from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
+from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
 #from sage.calculus.all   import *

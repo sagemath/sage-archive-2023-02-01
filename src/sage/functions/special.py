@@ -419,9 +419,12 @@ def bessel_I(nu,z,alg = "pari",prec=53):
 
 def bessel_J(nu,z,alg="pari",prec=53):
     r"""
-    Implements the "J-Bessel function", or
+    Return value of the "J-Bessel function", or
     "Bessel function, 1st kind", with
     index (or "order") nu and argument z.
+
+    WARNING: The pari and maxima definitions of ``the'' J-Bessel
+    function are different (see below).
 
     \begin{verbatim}
     Defn:
@@ -459,6 +462,12 @@ def bessel_J(nu,z,alg="pari",prec=53):
         0.719622018527510801
         sage: bessel_J(0,1)    # last few digits are random
         0.765197686557966605
+
+    We illustrate that the pari and maxima definitions differ:
+        sage: bessel_J(3,10,"maxima")   # last few digits are random
+        0.0583793793051869
+        sage: bessel_J(3,10,"pari")     # last few digits are random
+        0.0000129283516457158
 
     """
     if alg=="pari":

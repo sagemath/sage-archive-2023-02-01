@@ -871,6 +871,9 @@ class ExpectElement(RingElement):
         cmd = '%s %s %s'%(self._name, P._equality_symbol(), t)
         return P.eval(cmd) == t
 
+    def __bool__(self):
+        return self.bool()
+
 
     def __long__(self):
         return long(str(self))

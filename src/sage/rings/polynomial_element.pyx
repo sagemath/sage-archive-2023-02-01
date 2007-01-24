@@ -1584,7 +1584,7 @@ class Polynomial_generic_dense(Polynomial):
         return self.__coeffs[i:j]
 
     def _unsafe_mutate(self, n, value):
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
         value = self.base_ring()(value)
@@ -1755,7 +1755,7 @@ class Polynomial_generic_sparse(Polynomial):
         return v
 
     def _unsafe_mutate(self, n, value):
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
         value = self.base_ring()(value)
@@ -2169,7 +2169,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             del self.__list
         except AttributeError:
             pass
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
         if n < 0:
@@ -2556,7 +2556,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         return self.parent()([c // d for c in self.list()], construct=True)
 
     def _unsafe_mutate(self, n, value):
-        if self._is_gen:
+        if (<Polynomial>self)._is_gen:
             raise ValueError, "the generator cannot be changed"
         n = int(n)
         if n < 0:

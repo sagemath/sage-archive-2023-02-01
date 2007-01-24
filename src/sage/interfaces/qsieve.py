@@ -9,9 +9,21 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 import sage.rings.integer
 
 def qsieve(n, block=True, time=False, verbose=False):
-    """
+    r"""
     Run Hart's quadratic sieve and return the distinct proper factors
     of the integer n that it finds.
+
+    CONDITIONS:
+    The conditions for the quadratic sieve to work are as follows:
+
+    \begin{enumerate}
+       \item No small factors
+       \item Not a perfect power
+       \item Not prime
+    \end{enumerate}
+
+    If any of these fails, the sieve will also.
+
 
     INPUT:
         n -- an integer with at least 40 digits
@@ -115,14 +127,14 @@ class qsieve_nonblock:
     still use SAGE in parallel:
 
         sage: k = 19; n = next_prime(10^k)*next_prime(10^(k+1))
-        sage: q = qsieve(n, block=False, time=True)
-        sage: q           # random output
+        sage: q = qsieve(n, block=False, time=True)           # optional -- requires time command
+        sage.: q           # random output                     # optional
         Proper factors so far: []
-        sage: q           # random output
+        sage.: q           # random output                     # optional
         ([10000000000000000051, 100000000000000000039], '0.21')
-        sage: q.list()    # random output
+        sage.: q.list()    # random output                     # optional
         [10000000000000000051, 100000000000000000039]
-        sage.: q.time()    # random output     (optional -- no time support on Cygwin)
+        sage.: q.time()    # random output     (optional -- requires time command)
         '0.21'
 
         sage: q = qsieve(next_prime(10^20)*next_prime(10^21), block=False)

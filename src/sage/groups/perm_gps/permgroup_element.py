@@ -31,6 +31,11 @@ This typically takes about 5 minutes (on a 2 Ghz machine) and outputs
 a word ('solving' the cube in the position move) with about 60 terms
 or so.
 
+OTHER EXAMPLES:
+We create element of a permutation group of large degree.
+    sage: G = SymmetricGroup(30)
+    sage: s = G(srange(30,0,-1)); s
+    (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
 ###########################################################################
@@ -47,7 +52,7 @@ import random
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, Polynomial
+from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -69,7 +74,7 @@ def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
     """
-    x = str(x).replace(' ','')
+    x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
 class PermutationGroupElement(element.MultiplicativeGroupElement):
@@ -353,7 +358,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: (f*sigma)*tau
             u^2 + z^2 - y^2 + 2*x^2
         """
-        if isinstance(left, Polynomial):
+        if is_Polynomial(left):
             if self != 1:
                 raise ValueError, "%s does not act on %s"%(self, left.parent())
             return left
@@ -420,8 +425,20 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             [2, 1, 4, 3]
             sage: type(v[0])
             <type 'int'>
+            sage: x = G([2,1]); x
+            (1,2)
+            sage: x.list()
+            [2, 1, 3, 4]
         """
-        return eval(gap.eval('ListPerm(%s)'%self.__gap))
+        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
+        # the following is necessary, since if the
+        # permutation doesn't move some elements at
+        # the end, it is consider by gap as being in
+        # a smaller group.
+        d = self.parent().degree()
+        if len(v) < d:
+            v += range(len(v)+1,d+1)
+        return v
 
     def order(self):
         """

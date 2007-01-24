@@ -1,4 +1,5 @@
-r""" Interface to the Tachyon Ray Tracer
+r"""
+3D Ray Tracer
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com) -- wrote tachyon ray tracer

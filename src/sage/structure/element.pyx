@@ -1056,7 +1056,7 @@ cdef class RingElement(ModuleElement):
         Retern the (integral) power of self.
 
         EXAMPLE:
-            sage: a = Integers(389)['x,y'](37)
+            sage: a = Integers(389)['x']['y'](37)
             sage: a^2
             202
             sage: a^388
@@ -1082,7 +1082,8 @@ cdef class RingElement(ModuleElement):
 
         from sage.rings.integer import Integer # do here to avoid ciruclar reference
         if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "The exponent must be an integer."
+            from sage.rings.integer_ring import IntegerRing # do here to avoid ciruclar reference
+            n = IntegerRing()(n)
 
         n = int(n)
 

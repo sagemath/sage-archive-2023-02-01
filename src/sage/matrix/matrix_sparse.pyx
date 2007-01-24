@@ -1,3 +1,7 @@
+r"""
+Base class for sparse matrices
+"""
+
 cimport matrix
 cimport matrix0
 from   sage.structure.element    cimport Element

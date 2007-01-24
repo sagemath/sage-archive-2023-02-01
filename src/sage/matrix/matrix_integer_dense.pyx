@@ -1,5 +1,5 @@
 """
-Dense matrices over the integers
+Dense matrices over the integer ring.
 """
 
 ######################################################################
@@ -16,6 +16,8 @@ from sage.misc.misc import verbose, get_verbose
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
+
+ctypedef unsigned int uint
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
@@ -618,6 +620,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int p
         cdef Py_ssize_t i, j
         p = modulus
+        cdef Matrix_modn_dense res
+        cdef mpz_t* self_row
+        cdef uint* res_row
         res = Matrix_modn_dense.__new__(matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=False), None, None, None)
         for i from 0 <= i < self._nrows:
             self_row = self._matrix[i]

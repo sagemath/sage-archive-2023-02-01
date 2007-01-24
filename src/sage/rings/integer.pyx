@@ -931,6 +931,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return q, r
 
+    def div(self, other):
+        """
+        Returns the quotient of self divided by other.
+
+        INPUT:
+            other -- the integer the divisor
+
+        OUTPUT:
+            q   -- the quotient of self/other
+
+        EXAMPLES:
+            sage: z = Integer(231)
+            sage: z.div(2)
+            115
+            sage: z.div(-2)
+            -115
+            sage: z.div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other (=0) must be nonzero
+        """
+        cdef Integer _other, _self
+        _other = integer(other)
+        if not _other:
+            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+        _self = integer(self)
+
+        cdef Integer q, r
+        q = Integer()
+        r = Integer()
+
+        _sig_on
+        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
+        _sig_off
+
+        return q
 
 
     def powermod(self, exp, mod):

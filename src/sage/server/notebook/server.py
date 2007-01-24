@@ -589,7 +589,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 
         This function could be cleaned up?
         """
-        path = self.path
+        path = self.path.replace('%20',' ')
         if path[-5:] == '.sobj':
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
@@ -748,7 +748,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
                self.path[-5:] in ['.sobj', '.html'] or \
                self.path[-3:] in ['.ps', '.js'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
-            return self.get_file()
+            try:
+                return self.get_file()
+            except:
+                print "Cancelled getting %s"%self.path
+                return
         path = self.path.strip('/')
         i = path.find('/')
         if i == -1:

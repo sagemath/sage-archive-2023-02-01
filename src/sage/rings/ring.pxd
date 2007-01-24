@@ -4,10 +4,10 @@ cdef class Ring(ParentWithGens):
     pass
 
 cdef class CommutativeRing(Ring):
+    cdef public object __fraction_field
     cdef public object __ideal_monoid
 
 cdef class IntegralDomain(CommutativeRing):
-    cdef public object __fraction_field
     pass
 
 cdef class DedekindDomain(IntegralDomain):

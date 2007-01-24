@@ -1,8 +1,16 @@
+"""
+Attach a file to a running instance of SAGE.
+"""
+
 class Attach:
     r"""
     Attach a file to a running instance of SAGE.
 
-    attach is *not* a function and is not part of the Python language.
+    \note{\code{attach} is *not* a function and is not part of the Python language.}
+
+    \code{load} is exactly the same as attach, but doesn't
+    automatically reload a file when it changes.
+
     You attach a file, e.g., foo.sage or foo.py or foo.spyx, to a
     running SAGE session by typing
 
@@ -21,10 +29,12 @@ class Attach:
     EFFECT:
         -- Each file is read in and added to an internal list of watched files.
            The meaning of reading a file in depends on the file type:
-               .py   -- read in with no preparsing (so, e.g., 2^3 is 2 bit-or 3),
-               .sage -- preparsed then the result is read in
-               .spyx -- *not* preparsed.  Compiled to a module m then "from m import *"
+           \begin{itemize}
+           \item    .py   -- read in with no preparsing (so, e.g., \code{2\^3} is 2 bit-or 3),
+           \item    .sage -- preparsed then the result is read in
+           \item    .spyx -- *not* preparsed.  Compiled to a module m then "from m import *"
                         is executed.
+           \end{itemize}
 
     Type \code{attached_files()} for a list of all currently attached files.
     You can remove files from this list to stop them from being watched.

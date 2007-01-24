@@ -125,7 +125,8 @@ directory are named
 
 See the files \code{matrix_template.pxd} and \code{matrix_template.pyx}.
 
-New matrices types can only be implemented in Pyrex.
+\begin{verbatim}
+New matrices types can only be implemented in SageX.
 
 *********** LEVEL 1  **********
 NON-OPTIONAL
@@ -184,5 +185,5 @@ NOTES:
    * For caching, use self.fetch and self.cache.
    * Any method that can change the matrix should call check_mutability() first.
      There are also many fast cdef'd bounds checking methods.
-
+\end{verbatim}
 """

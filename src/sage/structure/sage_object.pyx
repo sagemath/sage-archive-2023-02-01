@@ -1,7 +1,5 @@
 r"""
-Abstract base class for \sage objects
-
-PYREX: sage.structure.sage_object
+Abstract base class for SAGE objects
 """
 
 import cPickle

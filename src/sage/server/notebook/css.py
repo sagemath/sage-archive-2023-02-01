@@ -941,6 +941,9 @@ textarea.cell_input_hide {
   background-color: white;
   color:#cccccc;
   border: 0px solid white;
+/*  border-top: 1px solid #aaaaff;
+  border-bottom: 1px solid #aaaaff;
+  */
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;

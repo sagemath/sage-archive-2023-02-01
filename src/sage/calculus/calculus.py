@@ -338,9 +338,6 @@ class SymbolicExpression(RingElement):
             sage: f(x=pi, y=t)
             sin(pi)^2 + 32*pi^(t/2)
 
-            sage: f(x=pi, y=t).simplify()
-
-
         AUTHORS:
             -- Bobby Moretti: Initial version
         """
@@ -366,7 +363,7 @@ class SymbolicExpression(RingElement):
             return self
         elif isinstance(self, SymbolicArithmetic):
             new_ops = [op._recursive_sub(kwds) for op in ops]
-            return SymbolicArithmetic([new_ops[0], new_ops[1]], self._operator)
+            return SymbolicArithmetic(new_ops, self._operator)
         elif isinstance(self, SymbolicComposition):
             return SymbolicComposition(ops[0], ops[1]._recursive_sub(kwds))
 
@@ -432,10 +429,25 @@ class CallableFunction(SageObject):
         else:
             vars = ", ".join(map(latex, self._varlist))
             # the weird TeX is to workaround an apparent JsMath bug
-            return "\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
+            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
 
-    def derivative(self, dt):
-        return CallableFunction(self._expr.derivative(dt), self._varlist)
+    def derivative(self, *args):
+        """
+        Returns the derivative of this symbolic function with respect to the
+        given variables. If the function has only one variable, it returns the
+        derivative with respect to that variable.
+        """
+        # if there are no args and only one var, differentiate wrt that var
+        if args == () and len(self._varlist) == 1:
+            return CallableFunction(self._expr.derivative(self._varlist[0]), self._varlist)
+        # if there's only one var and the arg is an integer n, diff. n times wrt
+        # that var
+        elif isinstance(args[0], Integer) and len(self._varlist) == 1:
+            f = self._expr.derivative(self._varlist[0], args[0])
+            return CallableFunction(f, self._varlist)
+        # else just take the derivative
+        else:
+            return CallableFunction(self._expr.derivative(args), self._varlist)
 
     def integral(self, dx):
         return CallableFunction(self._expr.integral(dx), self._varlist)
@@ -449,7 +461,38 @@ class CallableFunction(SageObject):
     def trig_simplify(self):
         return CallableFunction(self._expr.trig_simplify(), self._varlist)
 
-    #TODO: Arithmetic, expand, trig_expand, etc...
+    def expand(self):
+        return CallableFunction(self._expr.expand(), self._varlist)
+
+    def trig_expand(self):
+        return CallableFunction(self._expr.trig_expand(), self._varlist)
+
+    def _neg_(self):
+        result = SymbolicArithmetic([self._expr], operator.neg)
+        return CallableFunction(result, self._varlist)
+
+    def _add_(self, right):
+        result = SymbolicArithmetic([self._expr, right._expr], operator.add)
+        return CallableFunction(result, self._varlist)
+
+    def _sub_(self, right):
+        result = SymbolicArithmetic([self._expr, right._expr], operator.sub)
+        return CallableFunction(result, self._varlist)
+
+    def _mul_(self, right):
+        result = SymbolicArithmetic([self._expr, right._expr], operator.mul)
+        return CallableFunction(result, self._varlist)
+
+    def _div_(self, right):
+        result = SymbolicArithmetic([self._expr, right._expr], operator.div)
+        return CallableFunction(result, self._varlist)
+
+    def __pow__(self, right):
+        result = SymbolicArithmetic([self._expr, right._expr], operator.pow)
+        return CallableFunction(result, self._varlist)
+
+    #TODO: think about coercion for callable functions
+
 
 class Symbolic_object(SymbolicExpression):
     r'''

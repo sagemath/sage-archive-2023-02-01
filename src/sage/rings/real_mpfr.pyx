@@ -1,5 +1,5 @@
 """
-Aribtrary Precision Real Numbers
+Field of Arbitrary Precision Real Numbers
 
 AUTHORS:
    -- Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
@@ -271,8 +271,7 @@ cdef class RealField(sage.rings.ring.Field):
             sage: loads(dumps(R)) == R
             True
         """
-        return sage.rings.real_field.__reduce__RealField, \
-                (self.__prec, self.sci_not, self.rnd_str)
+        return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
 
     def gen(self, i=0):
         if i == 0:
@@ -584,7 +583,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         s = self.str(32, no_sci=False, e='@')
-        return (sage.rings.real_field.__reduce__RealNumber, (self._parent, s, 32))
+        return (__create__RealNumber_version0, (self._parent, s, 32))
 
     def  __dealloc__(self):
         if self.init:
@@ -1754,3 +1753,16 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
+
+
+def is_RealField(x):
+    return PY_TYPE_CHECK(x, RealField)
+
+def is_RealNumber(x):
+    return PY_TYPE_CHECK(x, RealNumber)
+
+def __create__RealField_version0(prec, sci_not, rnd):
+    return RealField(prec, sci_not, rnd)
+
+def __create__RealNumber_version0(parent, x, base=10):
+    return RealNumber(parent, x, base=base)

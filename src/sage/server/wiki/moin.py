@@ -1,3 +1,15 @@
+r"""
+Wiki Interactive Web Page.
+
+SAGE includes the Moin Moin Wiki interactive web page system standard.
+To start your own math-typesetting-aware wiki server immediately, just
+type \code{wiki()} at the command line.
+
+The Moin Moin Wiki ``is an advanced, easy to use and extensible
+WikiEngine with a large community of users. Said in a few words, it is
+about collaboration on easily editable web pages.''
+"""
+
 import os, sys
 
 import sage.misc.misc as misc

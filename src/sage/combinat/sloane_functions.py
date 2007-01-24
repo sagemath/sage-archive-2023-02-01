@@ -1001,7 +1001,8 @@ class A001910(SloaneSequence):
 
 class A090010(SloaneSequence):
     r"""
-    Permanent of (0,1)-matrix of size $n$ \times (n+d)$ with $d=6$ and $n$ zeros not on a line.
+    Permanent of (0,1)-matrix of size $n \times (n+d)$ with $d=6$ and
+    $n$ zeros not on a line.
 
     $ a(n) = (n+5)*a(n-1) + (n-1)*a(n-2), a(1)=6, a(2)=43$.
 
@@ -1545,7 +1546,7 @@ class A000203(SloaneSequence):
     The sequence $\sigma(n)$, where $\sigma(n)$ is the sum of the
     divisors of $n$.   Also called $\sigma_1(n)$.
 
-    The function sigma(n, k) implements $\sigma_k* in SAGE.
+    The function \code{sigma(n, k)} implements $\sigma_k(n)$ in SAGE.
 
     INPUT:
         n -- positive integer
@@ -2034,7 +2035,8 @@ class A001694(SloaneSequence):
 
 class A001836(SloaneSequence):
     r"""
-    Numbers $n% such that $\phi(2n-1) < \phi(2n)$, where $\phi$ is Euler's totient function.
+    Numbers $n$ such that $\phi(2n-1) < \phi(2n)$, where $\phi$ is
+    Euler's totient function.
 
     Eulers totient function is also known as euler_phi,
     euler_phi is a standard SAGE function.

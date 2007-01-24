@@ -1,5 +1,6 @@
 r"""
 Rubik's cube group functions
+\label{sec:rubik}
 
 NOTE: ``Rubik's cube'' is trademarked.
 

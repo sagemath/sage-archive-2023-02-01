@@ -1,3 +1,7 @@
+r"""
+Base class for dense matrices
+"""
+
 cimport matrix
 
 from   sage.structure.element    cimport Element

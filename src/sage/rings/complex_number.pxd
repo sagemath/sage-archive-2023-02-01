@@ -2,10 +2,9 @@ include '../ext/cdefs.pxi'
 include 'mpfr.pxi'
 
 cimport sage.structure.element
-cimport sage.libs.pari.gen
 cimport real_mpfr
 
-cdef class ComplexNumber(sage.structure.element.RingElement):
+cdef class ComplexNumber(sage.structure.element.FieldElement):
     cdef mpfr_t __re
     cdef mpfr_t __im
     #cdef sage.rings.real_mpfr.RealNumber __re

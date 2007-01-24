@@ -684,6 +684,77 @@ cdef class ModuleElement(Element):
         return self._lmul_c_impl(right)
 
 
+    def __pow__(self, n, dummy):
+        """
+        Retern the (integral) power of self.
+
+        EXAMPLE:
+            sage: a = Integers(389)['x,y'](37)
+            sage: a^2
+            202
+            sage: a^388
+            1
+            sage: a^(2^120)
+            81
+            sage: a^0
+            1
+            sage: a^1 == a
+            True
+            sage: a^2 * a^3 == a^5
+            True
+            sage: (a^3)^2 == a^6
+            True
+            sage: a^57 * a^43 == a^100
+            True
+            sage: a^(-1) == 1/a
+            True
+            sage: a^200 * a^(-64) == a^136
+            True
+        """
+        cdef int cn
+
+        from sage.rings.integer import Integer # do here to avoid ciruclar reference
+        if not isinstance(n, (int, long, Integer)):
+            raise TypeError, "The exponent must be an integer."
+
+        n = int(n)
+
+        if n < 0:
+            n = -n
+            a = ~self
+        else:
+            a = self
+
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benifit from the code below
+            cn = n
+            if cn == 0:
+                return (<Element>a)._parent(1)
+            elif cn == 1:
+                return a
+            elif cn == 2:
+                return a*a
+            elif cn == 3:
+                return a*a*a
+
+        # One multiplication can be saved by starting with
+        # the smallest power needed rather than with 1
+        apow = a
+        while n&1 == 0:
+            apow = apow*apow
+            n = n >> 1
+        power = apow
+        n = n >> 1
+
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
+            n = n >> 1
+
+        return power
+
+
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
@@ -832,7 +903,10 @@ cdef class MonoidElement(Element):
         raise NotImplementedError
 
     def __pow__(self, n, dummy):
-        cdef int i
+        """
+        Retern the (integral) power of self.
+        """
+        cdef int cn
 
         if PyFloat_Check(n):
             raise TypeError, "raising %s to the power of the float %s not defined"%(self, n)
@@ -840,26 +914,38 @@ cdef class MonoidElement(Element):
         n = int(n)
 
         a = self
-        power = None
         if n < 0:
             n = -n
             a = ~self
         elif n == 0:
             return self.parent()(1)
 
-        power = (<Element>self)._parent(1)
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benifit from the code below
+            cn = n
+            if cn == 0:
+                return (<Element>a)._parent(1)
+            elif cn == 1:
+                return a
+            elif cn == 2:
+                return a*a
+            elif cn == 3:
+                return a*a*a
+
+        # One multiplication can be saved by starting with
+        # the smallest power needed rather than with 1
         apow = a
-        while True:
-            if n&1 > 0:
-                if power is None:
-                    power = apow
-                else:
-                    power = power*apow
+        while n&1 == 0:
+            apow = apow*apow
             n = n >> 1
-            if n != 0:
-                apow = apow*apow
-            else:
-                break
+        power = apow
+        n = n >> 1
+
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
+            n = n >> 1
 
         return power
 
@@ -1133,34 +1219,6 @@ cdef class RingElement(ModuleElement):
         if self.is_zero():
             return True
         raise NotImplementedError
-
-    def __pow__(self, n, dummy):
-        cdef int i
-        if PyFloat_Check(n):
-            raise TypeError, "raising %s to the power of the float %s not defined"%(self, n)
-
-        n = int(n)
-        try:
-            return self._pow(n)
-        except AttributeError:
-            pass
-
-        a = self
-        power = self.parent()(1)
-        if n < 0:
-            n = -n
-            a = ~self
-        elif n == 0:
-            return power
-        i = 0
-        apow2 = a
-        while (n>>i) > 0:
-            if (n>>i) & 1:
-                power = power * apow2
-            if n == 0: break   # to not waste time doing an extra multiplication/increment
-            apow2 = apow2 * apow2
-            i = i+1
-        return power
 
 
 

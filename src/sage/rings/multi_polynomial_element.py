@@ -53,6 +53,8 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 import multi_polynomial_ring
 import polynomial_ring
 
+from integer_ring import ZZ
+
 def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
@@ -103,7 +105,7 @@ class MPolynomial(CommutativeRingElement):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) ])
+            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
     def __cmp__(self, right):
@@ -1029,14 +1031,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: x, y = PolynomialRing(RationalField(), 2, ['x','y']).gens()
+            sage: x, y = QQ['x,y'].gens()
             sage: f = (x^3 + 2*y^2*x)^2
             sage: g = x^2*y^2
             sage: f.gcd(g)
             x^2
+
+        This also works correctly over ZZ:
+            sage: R.<x,y> = ZZ[]
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
+            3*x*y
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
             raise TypeError, "self and f must have the same parent"
+
+
+        # Singular ignores coefficents anyway, thus it is okay to work over Z here
+        # PARI uses the coefficents btw.
+        # TODO: This is slow
+
+        if self.parent().base_ring() is ZZ:
+            res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+            coef = arith.gcd(self.element().dict().values() + f.element().dict().values(),True)
+            return coef*res
+
         return self.parent()(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):

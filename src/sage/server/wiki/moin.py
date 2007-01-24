@@ -5,15 +5,7 @@ import sage.misc.misc as misc
 from   sage.misc.viewer     import browser
 
 def wiki_create_instance(directory='sage_wiki'):
-    try:
-        from MoinMoin.server.standalone import StandaloneConfig, run
-    except ImportError:
-        print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.4.p0'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return
+    from MoinMoin.server.standalone import StandaloneConfig, run
 
     share = '%s/share/moin'%misc.SAGE_LOCAL
 
@@ -23,7 +15,7 @@ def wiki_create_instance(directory='sage_wiki'):
 
     os.makedirs(directory)
     os.system('cp -r %s/data %s/'%(share,directory))
-    os.system('cp -r %s/underlay %s/'%(share,directory))
+    os.system('cp -r %s/underlay %s'%(share,directory))
     os.system('cp %s/config/wikiconfig.py %s/'%(share,directory))
     os.system('cp %s/server/moin.py %s/'%(share,directory))
 
@@ -37,42 +29,20 @@ def wiki(directory='sage_wiki',
 
     The wiki will be served on the given port.
 
-    You must install the optional SAGE moin package. (Use
-    optional_packages() for the exact name.)  You must also have latex
-    (with UTF-8 support) and dvipng installed for the latex formating
-    to work.  On Debian these packages are
-       tetex-bin    latex-ucs     dvipng
-
-
-    The moin package contains a modified version of moin moin,
-    which comes with latex typesetting preconfigured.  See
-    \url{http://johannes.sipsolutions.net/Projects/new-moinmoin-latex}
-    for information about how touse the latex formating.  Basically,
-    just use $'s like in normal latex.  But you can also include
-    preambles in a block, e.g.,
-    \begin{verbatim}
-       [[latex(\usepackage{dsfont} % $$\mathds{C}$$)]]
-    \end{verbatim}
-
+    The moin package contains a modified version of moin moin, which
+    comes with jsmath latex typesetting preconfigured; use dollar
+    signs to typeset.
     """
     sys.path.insert(0, os.path.abspath(directory))
 
-    try:
-        from MoinMoin.server.standalone import StandaloneConfig, run
-    except ImportError:
-        print "You must install the optional moin package."
-        print "Try something like install_package('moin-1.5.4'),"
-        print "but note that the package name may have a different"
-        print "version.  Use optional_packages() to get a list"
-        print "of current package names."
-        return False
+    from MoinMoin.server.standalone import StandaloneConfig, run
 
     if not os.path.exists(directory):
         wiki_create_instance(directory)
     os.chdir(directory)
 
     moin = '%s/share/moin/'%misc.SAGE_LOCAL
-    the_port = port
+    the_port = int(port)
 
     class Config(StandaloneConfig):
         # Server name

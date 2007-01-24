@@ -1,5 +1,5 @@
 """
-Field of Double-Precision Real Numbers
+Double Precision Real Numbers
 
 EXAMPLES:
 

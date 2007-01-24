@@ -150,7 +150,7 @@ class Cell(Cell_generic):
         pr = 'sage: '
 
         if prompts:
-            input_lines = input_lines.split('\n')
+            input_lines = input_lines.splitlines()
             has_prompt = False
             if pr == 'sage: ':
                 for v in input_lines:
@@ -170,9 +170,12 @@ class Cell(Cell_generic):
                     if len(v) == 0:
                         pass
                     #    s += '<BLANKLINE>\n'
-                    elif v[0] == ' ':
+                    elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
                         s += '...' + v + '\n'
+                    elif v[:5] == 'else:':
+                        in_loop = True
+                        s += '... ' + v + '\n'
                     else:
                         if in_loop:
                             s += '...\n'
@@ -184,7 +187,7 @@ class Cell(Cell_generic):
         if prompts:
             msg = 'Traceback (most recent call last):'
             if self.__out.strip()[:len(msg)] == msg:
-                v = self.__out.strip().split('\n')
+                v = self.__out.strip().splitlines()
                 w = [msg, '...']
                 for i in range(1,len(v)):
                     if not (len(v[i]) > 0 and v[i][0] == ' '):
@@ -469,7 +472,7 @@ class Cell(Cell_generic):
                  </div>
               """%(id, id)
 
-        r = len(t.split('\n'))
+        r = len(t.splitlines())
 
         s += """
            <textarea class="%s" rows=%s cols=100000 columns=100000
@@ -569,7 +572,7 @@ def format_exception(s0, ncols):
     if ncols > 0:
         s = s.strip()
         s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
-        w = s.split('\n')
+        w = s.splitlines()
         s = w[0] + '\n...\n' + w[-1]
     else:
         s = s.replace("exec compile(ur'","")

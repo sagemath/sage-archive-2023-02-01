@@ -4,10 +4,11 @@ PARI C-library interface
 AUTHORS:
     -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
              (this involved changing almost every doc strings, among other
-             things; the precision behavior of PARI changes
-             from any version to the next!).
+             things; the precision behavior of PARI seems to change
+             from any version to the next...).
     -- William Stein (2006-03-06): added newtonpoly
-
+    -- Justin Walker: contributed some of the function definitions
+    -- Gonzalo Tornari: improvements to conversions; much better error handling.
 """
 
 import math
@@ -5372,14 +5373,14 @@ cdef class PariInstance:
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-        cdef long k
-        k = (n+10)/math.log(n)
-        p = 2
-        while p <= n:
-            p = self.nth_prime(k)
-            k = 2
-        v = self.prime_list(k)
-        return v[:pari(n).primepi()]
+##         cdef long k
+##         k = (n+10)/math.log(n)
+##         p = 2
+##         while p <= n:
+##             p = self.nth_prime(k)
+##             k = 2
+##         v = self.prime_list(k)
+##         return v[:pari(n).primepi()]
 
     def __nth_prime(self, long n):
         """

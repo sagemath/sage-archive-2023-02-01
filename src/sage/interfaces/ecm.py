@@ -175,7 +175,7 @@ class ECM:
                                          'sigma' : child.match.groups()[4] }
                 elif info[7] != None:
                     child.kill(0)
-                    self.primality = [false]
+                    self.primality = [False]
                     return [n]
                 else:
                     p = Integer(info[6])
@@ -196,7 +196,7 @@ class ECM:
 
             except pexpect.EOF:
                 child.kill(0)
-                self.primality = [false]
+                self.primality = [False]
                 return [n]
         child.kill(0)
 

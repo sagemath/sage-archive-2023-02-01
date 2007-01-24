@@ -152,6 +152,10 @@ matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
                                   libraries = ['gmp'])
 
+matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
+                                 ['sage/matrix/matrix_integer_2x2.pyx'],
+                                 libraries = ['gmp'])
+
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'])
 
@@ -170,6 +174,11 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
 ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
 define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+
+matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
+['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',CBLAS],
+define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+
 
 solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',CBLAS],define_macros =
 [('GSL_DISABLE_DEPRECATED','1')])
@@ -268,8 +277,10 @@ ext_modules = [ \
 ##     matrix_field_sparse,
 
      matrix_integer_dense,
+     matrix_integer_2x2,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,
+     matrix_complex_double_dense,
      solve,
      matrix_modn_dense,
      matrix_modn_sparse,
@@ -422,6 +433,11 @@ ext_modules = [ \
 
     Extension('sage.rings.integer_mod',
               ['sage/rings/integer_mod.pyx'],
+              libraries = ['gmp']
+              ), \
+
+    Extension('sage.combinat.expnums',
+              ['sage/combinat/expnums.pyx'],
               libraries = ['gmp']
               ), \
 
@@ -723,10 +739,13 @@ setup(name        = 'sage',
                      'sage.plot',
                      'sage.plot.mpl3d',
 
+                     'sage.probability',
+
                      'sage.quadratic_forms',
 
                      'sage.rings',
                      'sage.rings.number_field',
+                     'sage.rings.padics',
 
                      'sage.tests',
 

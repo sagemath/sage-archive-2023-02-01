@@ -1,5 +1,5 @@
 r"""
-Spaces of matrices over a ring or field
+Matrix Spaces.
 
 You can create any space $\text{Mat}_{n\times m}(R)$ of either dense
 or sparse matrices with given number of rows and columns over any
@@ -44,6 +44,7 @@ import matrix_rational_dense
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
 import matrix_real_double_dense
+import matrix_complex_double_dense
 import sage.groups.matrix_gps.matrix_group_element
 
 
@@ -352,6 +353,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 #            elif is_instance(R, real_double.RealDoubleField_class):
             elif R==sage.rings.real_double.RDF:
                 return matrix_real_double_dense.Matrix_real_double_dense
+            elif R==sage.rings.complex_double.CDF:
+                return matrix_complex_double_dense.Matrix_complex_double_dense
             elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
                 return matrix_modn_dense.Matrix_modn_dense
             # the default
@@ -518,7 +521,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                                    sparse=self.is_sparse())
             return self.__column_space
 
-    def random_element(self, X=[-2,-1,1,2], prob=1.0, coerce=True):
+    def random_element(self, X=[-2,-1,0,1,2], prob=1.0, coerce=True):
         """
         Returns a random element of self.
         """

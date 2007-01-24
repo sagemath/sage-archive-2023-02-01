@@ -18,24 +18,24 @@ TUTORIAL:
         In fact, any graph can produce its underlying NetworkX graph as
         follows:
 
-        sage.: G = graphs.PetersenGraph()
-        sage.: N = G.networkx_graph()
-        sage.: N
-        <networkx.graph.Graph object at 0xa6bf1d0>
+            sage: G = graphs.PetersenGraph()
+            sage: N = G.networkx_graph()
+            sage: N  # random output
+            <networkx.graph.Graph object at 0xa6bf1d0>
 
         The NetworkX graph is essentially a dictionary of dictionaries:
 
-        sage.: N.adj
-        {0: {1: None, 4: None, 5: None},
-         1: {0: None, 2: None, 6: None},
-         2: {1: None, 3: None, 7: None},
-         3: {2: None, 4: None, 8: None},
-         4: {0: None, 3: None, 9: None},
-         5: {0: None, 7: None, 8: None},
-         6: {1: None, 8: None, 9: None},
-         7: {2: None, 5: None, 9: None},
-         8: {3: None, 5: None, 6: None},
-         9: {4: None, 6: None, 7: None}}
+            sage: N.adj
+            {0: {1: None, 4: None, 5: None},
+             1: {0: None, 2: None, 6: None},
+             2: {1: None, 3: None, 7: None},
+             3: {2: None, 4: None, 8: None},
+             4: {0: None, 3: None, 9: None},
+             5: {0: None, 7: None, 8: None},
+             6: {1: None, 8: None, 9: None},
+             7: {2: None, 5: None, 9: None},
+             8: {3: None, 5: None, 6: None},
+             9: {4: None, 6: None, 7: None}}
 
         Each dictionary key is a vertex label, and each key in the following
         dictionary is a neighbor of that vertex. In undirected graphs, there
@@ -54,26 +54,26 @@ TUTORIAL:
         to include a database of known graphs that can be searched by certain
         parameters.
 
-        sage.: G = graphs.PetersenGraph()
-        sage.: G.show()
-        sage.: G.degree_histogram()
-        [0, 0, 0, 10]
-        sage.: sage: G.adjacency_matrix()
+            sage: G = graphs.PetersenGraph()
+            sage: G.plot().save('sage.png')    # or G.show()
+            sage: G.degree_histogram()
+            [0, 0, 0, 10]
+            sage: G.adjacency_matrix()
+            [0 1 0 0 1 1 0 0 0 0]
+            [1 0 1 0 0 0 1 0 0 0]
+            [0 1 0 1 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 0 1 0]
+            [1 0 0 1 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 1 1 0]
+            [0 1 0 0 0 0 0 0 1 1]
+            [0 0 1 0 0 1 0 0 0 1]
+            [0 0 0 1 0 1 1 0 0 0]
+            [0 0 0 0 1 0 1 1 0 0]
 
-        [0 1 0 0 1 1 0 0 0 0]
-        [1 0 1 0 0 0 1 0 0 0]
-        [0 1 0 1 0 0 0 1 0 0]
-        [0 0 1 0 1 0 0 0 1 0]
-        [1 0 0 1 0 0 0 0 0 1]
-        [1 0 0 0 0 0 0 1 1 0]
-        [0 1 0 0 0 0 0 0 1 1]
-        [0 0 1 0 0 1 0 0 0 1]
-        [0 0 0 1 0 1 1 0 0 0]
-        [0 0 0 0 1 0 1 1 0 0]
-
-        sage.: S = G.random_subgraph(.7)
-        sage.: S.show()
-        sage.: S.density()
+            sage: S = G.random_subgraph(.7)
+            sage: S.plot().save('sage.png')    # or S.show()
+            sage: S.density()
+            ???
 
         3. Labels
 
@@ -118,7 +118,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices
+            Simple graph on 5 vertices (no loops, no multiple edges)
             sage: 2 in g
             True
             sage: 10 in g
@@ -245,11 +245,11 @@ class Graph(GenericGraph):
 
     EXAMPLES:
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
-        Simple graph on 5 vertices
+        Simple graph on 5 vertices (no loops, no multiple edges)
         sage: g.vertices()
         [0, 1, 2, 3, 5]
         sage: g.edges()
-        [(0, 1), (0, 2), (0, 3), (2, 5)]
+        [(0, 1, None), (0, 2, None), (0, 3, None), (2, 5, None)]
         sage: g.plot().save('sage.png')
     """
 
@@ -290,11 +290,11 @@ class Graph(GenericGraph):
             sage: import networkx
             sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
             sage: Graph(g)
-            Simple graph on 5 vertices
+            Simple graph on 5 vertices (no loops, no multiple edges)
 
         2. A dictionary of dictionaries:
             sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
-            Simple graph on 5 vertices
+            Simple graph on 5 vertices (no loops, no multiple edges)
 
         The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
         the label for the edge on 2 and 5. Labels can be used as weights, if all the
@@ -302,7 +302,7 @@ class Graph(GenericGraph):
 
         3. A dictionary of lists:
             sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices
+            Simple graph on 5 vertices (no loops, no multiple edges)
 
         4. A numpy matrix or ndarray:
             TODO
@@ -310,11 +310,10 @@ class Graph(GenericGraph):
         Other examples:
             sage: G = Graph(name="Null graph")
             sage: G
-            Null graph: a simple graph on 0 vertices
-            sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]},name="Petersen graph")
+            Null graph: a simple graph on 0 vertices (no loops, no multiple edges)
+            sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]}, name="Petersen graph")
             sage: P
             Petersen graph: a simple graph on 10 vertices
-
         """
         import networkx
         if isinstance(data, Graph):
@@ -328,7 +327,7 @@ class Graph(GenericGraph):
         self.__pos = pos
 
     def _repr_(self):
-        if self._nxg.name != "No Name":
+        if not self._nxg.name is None and not self._nxg.name == "":
             name = self._nxg.name
             name = name + ": a s"
         else:
@@ -770,8 +769,8 @@ class Graph(GenericGraph):
 
         EXAMPLES:
             sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices
-            sage.: g.plot().show(dpi=50)
+            Simple graph on 5 vertices (no loops, no multiple edges)
+            sage: g.plot().save('sage.png')
         """
         self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size).show(**kwds)
 
@@ -818,7 +817,7 @@ class DiGraph(GenericGraph):
         self.__pos = pos
 
     def _repr_(self):
-        if self._nxg.name != "No Name":
+        if not self._nxg.name is None and not self._nxg.name == "":
             name = self._nxg.name
             name = name + ": a s"
         else: name = "S"

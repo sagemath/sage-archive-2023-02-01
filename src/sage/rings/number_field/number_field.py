@@ -277,6 +277,11 @@ class NumberField_generic(field.Field):
             return number_field_element.NumberFieldElement(self, x)
         raise TypeError
 
+    def category(self):
+        from sage.categories.all import NumberFields
+        return NumberFields()
+
+
     def __cmp__(self, other):
         if not isinstance(other, NumberField_generic):
             return -1

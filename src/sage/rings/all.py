@@ -82,7 +82,7 @@ from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 
-from real_double import RealDoubleField, RDF, RealDoubleElement
+from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
@@ -94,7 +94,7 @@ from complex_field import ComplexField, is_ComplexField, CC
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
-from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
+from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
 
 # Univariate Polynomial Rings
 from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing

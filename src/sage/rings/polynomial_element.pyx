@@ -267,14 +267,47 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return integer.Integer(self[0])
 
     def __invert__(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x - 90283
+            sage: f.__invert__()
+            1/(x - 90283)
+            sage: ~f
+            1/(x - 90283)
+        """
         return self.parent()(1)/self
 
     def inverse_of_unit(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x - 90283
+            sage: f.inverse_of_unit()
+            Traceback (most recent call last):
+            ...
+            ValueError: self is not a unit.
+            sage: f = R(-90283); g = f.inverse_of_unit(); g
+            -1/90283
+            sage: parent(g)
+            Univariate Polynomial Ring in x over Rational Field
+        """
         if self.degree() > 0:
             raise ValueError, "self is not a unit."
         return self.parent()(~(self[0]))
 
     def __long__(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x - 902384
+            sage: long(f)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial to long
+            sage: long(R(939392920202))
+            939392920202L
+        """
         if self.degree() > 0:
             raise TypeError, "cannot coerce nonconstant polynomial to long"
         return long(self[0])
@@ -357,6 +390,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
 
     def _pow(self, right):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = x - 1
+            sage: f._pow(3)
+            x^3 - 3*x^2 + 3*x - 1
+            sage: f^3
+            x^3 - 3*x^2 + 3*x - 1
+        """
         if self.degree() <= 0:
             return self.parent()(self[0]**right)
         if right < 0:
@@ -398,12 +440,22 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return s[1:]
 
     def _repr_(self):
+        """
+        EXAMPLES:
+            sage: f = x^3+2/3*x^2 - 5/3
+            sage: f._repr_()
+            'x^3 + 2/3*x^2 - 5/3'
+            sage: f.rename('vaughn')
+            sage: f
+            vaughn
+        """
         return self._repr()
 
     def _latex_(self, name=None):
         """
         EXAMPLES:
-
+            sage: latex(x^3+2/3*x^2 - 5/3)
+             x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """
         s = " "
         m = self.degree() + 1
@@ -469,7 +521,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return R
 
     def _is_atomic(self):
-        return self.degree() == self.valuation()
+        return PyBool_FromLong(self.degree() == self.valuation())
 
     def _mul_generic(self, right):
         d1 = self.degree()

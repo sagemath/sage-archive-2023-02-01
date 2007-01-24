@@ -282,6 +282,9 @@ def new_ComplexDoubleElement():
     z._parent = _CDF
     return z
 
+def is_ComplexDoubleElement(x):
+    return PY_TYPE_CHECK(x, ComplexDoubleElement)
+
 cdef class ComplexDoubleElement(FieldElement):
     """
     An element of a complex double field.

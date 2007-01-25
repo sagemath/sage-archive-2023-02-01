@@ -39,7 +39,7 @@ from sage.structure.factorization import Factorization
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen
 
-from real_field import RealField, is_RealNumber, is_RealField
+from real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
 from sage.structure.element import RingElement

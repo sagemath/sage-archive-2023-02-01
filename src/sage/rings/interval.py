@@ -29,7 +29,7 @@ import operator
 import sage.rings.ring as ring
 import integer
 import rational
-import real_field
+import real_mpfr
 import ring_element
 
 _obj = {}
@@ -60,7 +60,7 @@ class IntervalRing(ring.Ring, _uniq):
                 elif x.parent() == self:
                     return Interval(x.min(), x.max(), self)
             if isinstance(x, (int, long, float, integer.Integer,
-                              rational.Rational, real_field.RealNumberClass)):
+                              rational.Rational, real_mpfr.RealNumberClass)):
                 return Interval(x)
             raise TypeError, "cannot construct interval from x"
         else:
@@ -68,7 +68,7 @@ class IntervalRing(ring.Ring, _uniq):
 
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, float, Interval, integer.Integer,
-                          rational.Rational, real_field.RealNumberClass)):
+                          rational.Rational, real_mpfr.RealNumberClass)):
             return self(x)
         raise TypeError
 

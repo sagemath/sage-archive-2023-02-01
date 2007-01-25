@@ -21,7 +21,6 @@ import operator
 from sage.structure.element cimport FieldElement, RingElement, Element, ModuleElement
 
 import complex_field
-import real_field
 import sage.misc.misc
 import integer
 import infinity

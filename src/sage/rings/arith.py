@@ -18,7 +18,6 @@ import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.integer
 import sage.rings.rational
-import sage.rings.real_field
 import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
@@ -85,7 +84,7 @@ def algdep(z, n):
         return z.denominator()*x   -   z.numerator()
 
     if isinstance(z, float):
-        z = sage.rings.real_field.RealField()(z)
+        z = sage.rings.real_mpfr.RealField()(z)
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 

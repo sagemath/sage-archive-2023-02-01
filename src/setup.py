@@ -549,7 +549,7 @@ def need_to_pyrex(filename, outfile):
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
         if os.path.exists(A) and is_older(A, outfile):
-            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            print "\nRegenerating %s because it depends on %s."%(outfile, A)
             return True # yep we must rebuild
 
     # OK, next we move on to include pxi files.

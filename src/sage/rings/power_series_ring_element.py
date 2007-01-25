@@ -92,7 +92,13 @@ def is_PowerSeries(x):
     return isinstance(x, PowerSeries)
 
 class PowerSeries(ring_element.RingElement):
+    """
+    A power series.
+    """
     def __init__(self, parent, prec, is_gen=False):
+        """
+        Initialize a power series.
+        """
         ring_element.RingElement.__init__(self, parent)
         self.__is_gen = is_gen
         if not (prec is infinity):
@@ -100,6 +106,12 @@ class PowerSeries(ring_element.RingElement):
         self._prec = prec
 
     def is_gen(self):
+        """
+        Returns True if this the generator (the variable) of the power series ring.
+        EXAMPLES:
+
+
+        """
         return self.__is_gen
 
     def _im_gens_(self, codomain, im_gens):
@@ -913,10 +925,10 @@ class PowerSeries_generic_dense(PowerSeries):
         This function is known as serlaplace in GP/PARI.
 
         EXAMPLES:
-        sage: R.<t> = PowerSeriesRing(QQ)
-        sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
-        sage: f.ogf()
-        t + t^2 + 2*t^3
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2/factorial(2) + 2*t^3/factorial(3)
+            sage: f.ogf()
+            t + t^2 + 2*t^3
         """
         return self.parent()([self[i] * arith.factorial(i) for i in range(self.degree()+1)])
 
@@ -927,10 +939,10 @@ class PowerSeries_generic_dense(PowerSeries):
         This function is known as serlaplace in GP/PARI.
 
         EXAMPLES:
-        sage: R.<t> = PowerSeriesRing(QQ)
-        sage: f = t + t^2 + 2*t^3
-        sage: f.egf()
-        t + 1/2*t^2 + 1/3*t^3
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: f = t + t^2 + 2*t^3
+            sage: f.egf()
+            t + 1/2*t^2 + 1/3*t^3
         """
         return self.parent()([self[i] / arith.factorial(i) for i in range(self.degree()+1)])
 

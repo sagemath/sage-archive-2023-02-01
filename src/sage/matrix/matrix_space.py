@@ -43,8 +43,14 @@ import matrix_rational_dense
 
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
-import matrix_real_double_dense
-import matrix_complex_double_dense
+
+
+# IMPORTANT - these two guys get imported below only later
+# since they currently force numpy to import, which takes
+# a *long* time.
+#import matrix_real_double_dense
+#import matrix_complex_double_dense
+
 import sage.groups.matrix_gps.matrix_group_element
 
 
@@ -350,10 +356,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 return matrix_integer_dense.Matrix_integer_dense
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_dense.Matrix_rational_dense
-#            elif is_instance(R, real_double.RealDoubleField_class):
             elif R==sage.rings.real_double.RDF:
+                import matrix_real_double_dense
                 return matrix_real_double_dense.Matrix_real_double_dense
             elif R==sage.rings.complex_double.CDF:
+                import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
             elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
                 return matrix_modn_dense.Matrix_modn_dense

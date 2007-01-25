@@ -1,5 +1,5 @@
 """
-Aribtrary Precision Real Numbers
+Field of Arbitrary Precision Real Numbers
 
 AUTHORS:
    -- Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
@@ -8,6 +8,14 @@ AUTHORS:
    -- David Harvey (2006-09-20): compatibility with Element._parent
    -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
+
+EXAMPLES:
+
+A difficult conversion:
+
+    sage: RR(sys.maxint)
+    9223372036854770000     # 64-bit
+    2147483647.00000        # 32-bit
 """
 
 #*****************************************************************************
@@ -55,8 +63,12 @@ import  sage.structure.element
 import sage.structure.coerce
 import operator
 
-from sage.rings.integer cimport Integer
-from sage.rings.rational cimport Rational
+from integer import Integer
+from integer cimport Integer
+from rational import Rational
+from rational cimport Rational
+
+from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
 
@@ -200,8 +212,15 @@ cdef class RealField(sage.rings.ring.Field):
             '1.1001000000000000000'
         """
         if hasattr(x, '_mpfr_'):
+            # This design with the hasattr is very annoying.
+            # The only thing that uses it right now is symbolic constants
+            # and symbolic function evaluation.
+            # Getting rid of this would speed things up.
             return x._mpfr_(self)
-        return RealNumber(self, x, base)
+        cdef RealNumber z
+        z = self._new()
+        z._set(x, base)
+        return z
 
     cdef _coerce_c_impl(self, x):
         """
@@ -219,7 +238,9 @@ cdef class RealField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational)):
+        elif isinstance(x, (Integer, Rational)):
+            return self(x)
+        elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
         import sage.functions.constants
         return self._coerce_try(x, [sage.functions.constants.ConstantRing])
@@ -254,8 +275,7 @@ cdef class RealField(sage.rings.ring.Field):
             sage: loads(dumps(R)) == R
             True
         """
-        return sage.rings.real_field.__reduce__RealField, \
-                (self.__prec, self.sci_not, self.rnd_str)
+        return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
 
     def gen(self, i=0):
         if i == 0:
@@ -470,7 +490,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         x.init = 1
         return x
 
-    def __init__(self, RealField parent, x=0, int base=10, special=None):
+    def __init__(self, RealField parent, x=0, int base=10):
         """
         Create a real number.  Should be called by first creating
         a RealField, as illustrated in the examples.
@@ -513,18 +533,27 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_init2(self.value, parent.__prec)
         self.init = 1
         if x is None: return
+        self._set(x, base)
+
+    cdef _set(self, x, int base):
+        # This should not be called except when the number is being created.
+        # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
-        cdef int _ix
+        cdef Integer _ix
+        cdef RealField parent
+        parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
             mpfr_set(self.value, _x.value, parent.rnd)
-        elif PY_TYPE_CHECK(x, sage.rings.rational.Rational):
-            n = parent(x.numerator())
-            d = parent(x.denominator())
-            mpfr_div(self.value, n.value, d.value, parent.rnd)
-        elif PY_TYPE_CHECK(x, int):
-            _ix = x
-            mpfr_set_si(self.value, _ix, parent.rnd)
+        elif PY_TYPE_CHECK(x, Integer):
+            mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
+        elif PY_TYPE_CHECK(x, Rational):
+            mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
+        elif isinstance(x, (int, long)):
+            _ix = Integer(x)
+            mpfr_set_z(self.value, _ix.value, parent.rnd)
+        #elif hasattr(x, '_mpfr_'):
+        #    return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -558,7 +587,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         s = self.str(32, no_sci=False, e='@')
-        return (sage.rings.real_field.__reduce__RealNumber, (self._parent, s, 32))
+        return (__create__RealNumber_version0, (self._parent, s, 32))
 
     def  __dealloc__(self):
         if self.init:
@@ -704,11 +733,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: copy(a) is  a
             True
         """
-        return self
-        #cdef RealNumber z
-        #z = RealNumber(self._parent)
-        #mpfr_set(z.value, self.value, (<RealField>self._parent).rnd)
-        #return z
+        return self    # since object is immutable.
 
     def integer_part(self):
         """
@@ -1232,7 +1257,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = 16.0; r.log10()
             1.20411998265592
             sage: r.log() / log(10)
-            1.20411998265592
+            1.20411998265804
 
             sage: r = 39.9; r.log10()
             1.60097289568674
@@ -1732,3 +1757,16 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
+
+
+def is_RealField(x):
+    return PY_TYPE_CHECK(x, RealField)
+
+def is_RealNumber(x):
+    return PY_TYPE_CHECK(x, RealNumber)
+
+def __create__RealField_version0(prec, sci_not, rnd):
+    return RealField(prec, sci_not, rnd)
+
+def __create__RealNumber_version0(parent, x, base=10):
+    return RealNumber(parent, x, base=base)

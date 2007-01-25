@@ -683,78 +683,6 @@ cdef class ModuleElement(Element):
     def _lmul_(self, right):
         return self._lmul_c_impl(right)
 
-
-    def __pow__(self, n, dummy):
-        """
-        Retern the (integral) power of self.
-
-        EXAMPLE:
-            sage: a = Integers(389)['x,y'](37)
-            sage: a^2
-            202
-            sage: a^388
-            1
-            sage: a^(2^120)
-            81
-            sage: a^0
-            1
-            sage: a^1 == a
-            True
-            sage: a^2 * a^3 == a^5
-            True
-            sage: (a^3)^2 == a^6
-            True
-            sage: a^57 * a^43 == a^100
-            True
-            sage: a^(-1) == 1/a
-            True
-            sage: a^200 * a^(-64) == a^136
-            True
-        """
-        cdef int cn
-
-        from sage.rings.integer import Integer # do here to avoid ciruclar reference
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "The exponent must be an integer."
-
-        n = int(n)
-
-        if n < 0:
-            n = -n
-            a = ~self
-        else:
-            a = self
-
-        if n < 4:
-            # These cases will probably be called often
-            # and don't benifit from the code below
-            cn = n
-            if cn == 0:
-                return (<Element>a)._parent(1)
-            elif cn == 1:
-                return a
-            elif cn == 2:
-                return a*a
-            elif cn == 3:
-                return a*a*a
-
-        # One multiplication can be saved by starting with
-        # the smallest power needed rather than with 1
-        apow = a
-        while n&1 == 0:
-            apow = apow*apow
-            n = n >> 1
-        power = apow
-        n = n >> 1
-
-        while n != 0:
-            apow = apow*apow
-            if n&1 != 0: power = power*apow
-            n = n >> 1
-
-        return power
-
-
     cdef RingElement coerce_to_base_ring(self, x):
         if PY_TYPE_CHECK(x, Element) and (<Element>x)._parent is self._parent._base:
             return x
@@ -917,8 +845,6 @@ cdef class MonoidElement(Element):
         if n < 0:
             n = -n
             a = ~self
-        elif n == 0:
-            return self.parent()(1)
 
         if n < 4:
             # These cases will probably be called often
@@ -974,24 +900,42 @@ cdef class AdditiveGroupElement(ModuleElement):
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         cdef int m
-        m = int(right)  # a little worrisome.
-        if m<0:
-            return (-self)*(-m)
-        if m==1:
-            return self
-        P = self.scheme()(0)
-        if m==0:
-            return P
-        power = P
-        i = 0
-        apow2 = self
-        while ((m>>i) > 0):
-            if((m>>i) & 1):
-                power = power + apow2
-            apow2 = apow2 + apow2
-            i = i + 1
-        return power
-
+        try:
+            m = int(right)  # a little worrisome.
+            if m<0:
+                return (-self)*(-m)
+            if m==1:
+                return self
+            P = self.scheme()(0)
+            if m==0:
+                return P
+            power = P
+            i = 0
+            apow2 = self
+            while ((m>>i) > 0):
+                if((m>>i) & 1):
+                    power = power + apow2
+                apow2 = apow2 + apow2
+                i = i + 1
+            return power
+        except OverflowError:
+            m0 = int(right)
+            if m0<0:
+                return (-self)*(-m0)
+            if m0==1:
+                return self
+            P = self.scheme()(0)
+            if m0==0:
+                return P
+            power = P
+            i = 0
+            apow2 = self
+            while ((m0>>i) > 0):
+                if((m0>>i) & 1):
+                    power = power + apow2
+                apow2 = apow2 + apow2
+                i = i + 1
+            return power
 
 def is_MultiplicativeGroupElement(x):
     """
@@ -1124,6 +1068,77 @@ cdef class RingElement(ModuleElement):
         See extensive documentation at the top of element.pyx.
         """
         return self._mul_c_impl(right)
+
+    def __pow__(self, n, dummy):
+        """
+        Retern the (integral) power of self.
+
+        EXAMPLE:
+            sage: a = Integers(389)['x']['y'](37)
+            sage: a^2
+            202
+            sage: a^388
+            1
+            sage: a^(2^120)
+            81
+            sage: a^0
+            1
+            sage: a^1 == a
+            True
+            sage: a^2 * a^3 == a^5
+            True
+            sage: (a^3)^2 == a^6
+            True
+            sage: a^57 * a^43 == a^100
+            True
+            sage: a^(-1) == 1/a
+            True
+            sage: a^200 * a^(-64) == a^136
+            True
+        """
+        cdef int cn
+
+        from sage.rings.integer import Integer # do here to avoid ciruclar reference
+        if not isinstance(n, (int, long, Integer)):
+            from sage.rings.integer_ring import IntegerRing # do here to avoid ciruclar reference
+            n = IntegerRing()(n)
+
+        n = int(n)
+
+        if n < 0:
+            n = -n
+            a = ~self
+        else:
+            a = self
+
+        if n < 4:
+            # These cases will probably be called often
+            # and don't benifit from the code below
+            cn = n
+            if cn == 0:
+                return (<Element>a)._parent(1)
+            elif cn == 1:
+                return a
+            elif cn == 2:
+                return a*a
+            elif cn == 3:
+                return a*a*a
+
+        # One multiplication can be saved by starting with
+        # the smallest power needed rather than with 1
+        apow = a
+        while n&1 == 0:
+            apow = apow*apow
+            n = n >> 1
+        power = apow
+        n = n >> 1
+
+        while n != 0:
+            apow = apow*apow
+            if n&1 != 0: power = power*apow
+            n = n >> 1
+
+        return power
 
 
     ##################################
@@ -1360,7 +1375,7 @@ cdef have_same_base(Element x, Element y):
 def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
-cdef class Matrix(ModuleElement):
+cdef class Matrix(AlgebraElement):
     cdef int is_sparse_c(self):
         raise NotImplementedError
 

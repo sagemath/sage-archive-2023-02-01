@@ -9,6 +9,18 @@ EXAMPLES:
     (0 : 1 : 1)
     sage: P + P
     (4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
+
+Arithmetic with a point over an extension of a finite field:
+    sage: k.<a> = GF(5^2)
+    sage: E = EllipticCurve(k,[1,0]); E
+    Elliptic Curve defined by y^2  = x^3 + x over Finite Field in a of size 5^2
+    sage: P = E([a,2*a+4])
+    sage: 5*P
+    (2*a + 3 : 2*a : 1)
+    sage: P*5
+    (2*a + 3 : 2*a : 1)
+    sage: P + P + P + P + P
+    (2*a + 3 : 2*a : 1)
 """
 
 #*****************************************************************************
@@ -74,8 +86,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
         sage: E = EllipticCurve([0,0,1,-1,0])
         sage: S = E(QQ); S
-        Set of Rational Points of Elliptic Curve defined by y^2 + y = x^3 - x
-        over Rational Field
+        Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
         sage: loads(S.dumps()) == S
         True

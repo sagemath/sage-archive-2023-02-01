@@ -1265,7 +1265,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 2: [ 1.125     ,-0.12867615,],
                 3: [ 0.12743933,-1.125     ,],
                 4: [-1.125     ,-0.50118505,]   }
-        with_labels -- determines whether labels for nodes are plotted
+        vertex_labels -- determines whether labels for nodes are plotted
         node_size -- node size
 
     EXAMPLE:
@@ -1278,12 +1278,12 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.axes(False)
         sage: g.save('sage.png')
     """
-    def __init__(self, graph, pos=None, with_labels=True, node_size=300):
+    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300):
         self.__nxg = graph
         if len(self.__nxg) != 0:
             import networkx as NX
             self.__node_size = node_size
-            self.__with_labels = with_labels
+            self.__vertex_labels = vertex_labels
             if pos is None:
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
@@ -1316,7 +1316,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             node_size = float(self.__node_size)
             NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
-            if self.__with_labels:
+            if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
                     labels[v] = str(v)

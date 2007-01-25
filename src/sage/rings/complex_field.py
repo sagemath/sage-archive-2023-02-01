@@ -16,9 +16,9 @@ AUTHOR:
 import complex_number
 import complex_double
 import field
-import real_field
 import integer_ring
 import integer
+import real_mpfr
 import weakref
 import ring
 from sage.misc.sage_eval import sage_eval
@@ -135,7 +135,7 @@ class ComplexField_class(field.Field):
         try:
             return self.__real_field
         except AttributeError:
-            self.__real_field = real_field.RealField(self._prec)
+            self.__real_field = real_mpfr.RealField(self._prec)
             return self.__real_field
 
     def __cmp__(self, other):

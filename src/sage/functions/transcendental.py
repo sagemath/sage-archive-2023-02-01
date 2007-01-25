@@ -20,7 +20,7 @@ Transcendental Functions
 import  sage.libs.pari.all
 pari = sage.libs.pari.all.pari
 import sage.rings.complex_field as complex_field
-import sage.rings.real_field as real_field
+import sage.rings.real_mpfr as real_field
 import sage.rings.complex_number
 
 from sage.rings.all import is_RealNumber, RealField, is_ComplexNumber, ComplexField

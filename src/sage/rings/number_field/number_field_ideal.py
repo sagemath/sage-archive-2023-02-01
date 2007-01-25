@@ -68,7 +68,7 @@ class NumberFieldIdeal(Ideal_fractional):
 
     def _coerce_impl(self, x):
         if isinstance(x, NumberFieldIdeal):
-            if x.parent() == self:
+            if x.parent() == self.parent():
                 return x
         if isinstance(x, (rational.Rational, integer.Integer, int, long)):
             return self.number_field().ideal(x)
@@ -193,21 +193,24 @@ class NumberFieldIdeal(Ideal_fractional):
         Factorization of this ideal in terms of prime ideals.
         Output is of the form [ (ideal, exponent), (ideal, exponent), ... ].
         """
-        if self.is_zero():
-            return []
-        K = self.number_field()
-        F = list(K.pari_nf().idealfactor(self.pari_hnf()))
-        P, exps = F[0], F[1]
-        A = []
-        zk_basis = K.pari_nf().getattr('zk')
-        for i, p in enumerate(P):
-            prime, alpha = p.getattr('gen')
-            I = K.ideal([ZZ(prime), K(zk_basis * alpha)])
-            I.__pari_prime = p
-            A.append((I,exps[i]))
-
-        return A
-
+        try:
+            return self.__factorization
+        except AttributeError:
+            if self.is_zero():
+                self.__factorization = []
+                return self.__factorization
+            K = self.number_field()
+            F = list(K.pari_nf().idealfactor(self.pari_hnf()))
+            P, exps = F[0], F[1]
+            A = []
+            zk_basis = K.pari_nf().getattr('zk')
+            for i, p in enumerate(P):
+                prime, alpha = p.getattr('gen')
+                I = K.ideal([ZZ(prime), K(zk_basis * alpha)])
+                I.__pari_prime = p
+                A.append((I,ZZ(exps[i])))
+            self.__factorization = A
+            return self.__factorization
 
     def gens_reduced(self, certify=True):
         """
@@ -287,23 +290,18 @@ class NumberFieldIdeal(Ideal_fractional):
             return self.__integral_split
         except AttributeError:
             if self.is_integral():
-                self.__integral_split = (self, 1)
+                self.__integral_split = (self, ZZ(1))
             else:
                 factors = self.factor()
                 denom_list = filter(lambda (p,e): e < 0 , factors)
                 denominator = prod([ p.smallest_integer()**(-e)
                                      for (p,e) in denom_list ])
                 ## Get a list of the primes dividing the denominator
-                plist = map(lambda (p,e): p.smallest_integer(),
-                            denom_list)
-                plist.sort()
-                unique_indices = filter(lambda(i): i==0 or plist[i] != plist[i-1],
-                                        range(0,len(plist)))
-                plist = [ ZZ(plist[i]) for i in unique_indices ]
+                plist = [ p.smallest_integer() for (p,e) in denom_list ]
                 for p in plist:
                     while denominator % p == 0 and (self*(denominator/p)).is_integral():
-                        denominator /= p
-                self.__integral_split = (self*denominator, ZZ(denominator))
+                        denominator //= p
+                self.__integral_split = (self*denominator, denominator)
             return self.__integral_split
 
     def is_integral(self):
@@ -421,25 +419,29 @@ class NumberFieldIdeal(Ideal_fractional):
         """
         if self.is_zero():
             raise ValueError, "ideal (= %s) must be nonzero"%self
-        if self.is_prime():
-            return ZZ(self.__pari_prime.getattr('p'))
-        if self.is_integral():
-            factors = self.factor()
-            bound = prod([ p.smallest_integer()**e for (p,e) in factors ])
-            plist = map(lambda(p,e): p.smallest_integer(), factors)
-            plist.sort()
-            indices = filter(lambda(i): i==0 or plist[i] != plist[i-1],
-                             range(0,len(plist)))
-            plist = [ plist[i] for i in indices ] ## unique list of primes
-            for p in plist:
-                while bound % p == 0 and (self/(bound/p)).is_integral():
-                    bound /= p
-            return ZZ(bound)
-        I,d = self.integral_split() ## self = I/d
-        n = I.smallest_integer()    ## n/d in self
-        return n / arith.gcd(ZZ(n),ZZ(d))
-
-        raise NotImplementedError, "not implemented for non-integral ideals"
+        try:
+            return self.__smallest_integer
+        except AttributeError:
+            if self.is_prime():
+                self.__smallest_integer = ZZ(self.__pari_prime.getattr('p'))
+                return self.__smallest_integer
+            if self.is_integral():
+                factors = self.factor()
+                bound = prod([ p.smallest_integer()**e for (p,e) in factors ])
+                plist = [ p.smallest_integer() for (p,e) in factors ]
+                plist.sort()
+                indices = filter(lambda(i): i==0 or plist[i] != plist[i-1],
+                                 range(0,len(plist)))
+                plist = [ plist[i] for i in indices ] ## unique list of primes
+                for p in plist:
+                    while bound % p == 0 and (self/(bound/p)).is_integral():
+                        bound /= p
+                self.smallest_integer = ZZ(bound)
+                return self.__smallest_integer
+            I,d = self.integral_split() ## self = I/d
+            n = I.smallest_integer()    ## n/d in self
+            self.__smallest_integer =  n / arith.gcd(ZZ(n),ZZ(d))
+            return self.__smallest_integer
 
     def valuation(self, p):
         r"""
@@ -467,20 +469,27 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         try:
             return self.__pari_rhnf
         except AttributeError:
-            nf = self.number_field().pari_nf()
+            nf = self.number_field().absolute_field().pari_nf()
             rnf = self.number_field().pari_rnf()
-            genlist = list(self.gens())
-            self.__pari_rhnf = rnf.rnfidealhnf(genlist.pop().polynomial())
-            rhnflist = [ rnf.rnfidealhnf(x.polynomial()) for x in genlist ]
-            for ideal in rhnflist: ## __pari_rhnf += ideal
-                if ideal != rnf.rnfidealhnf(0):
-                    if self.__pari_rhnf == rnf.rnfidealhnf(0):
-                        self.__pari_rhnf = ideal
-                    elif ideal != rnf.rnfidealhnf(0):
-                        self.__pari_rhnf = rnf.rnfidealadd(nf,
-                                                           self.__pari_rhnf,
-                                                           ideal)
+            L_hnf = self.absolute_ideal().pari_hnf()
+            self.__pari_rhnf = rnf.rnfidealabstorel(nf.getattr('zk')*L_hnf)
             return self.__pari_rhnf
+
+    def absolute_ideal(self):
+        """
+        If this is an ideal in the extension L/K, return the ideal with
+        the same generators in the absolute field L/Q.
+        """
+        try:
+            return self.__absolute_ideal
+        except AttributeError:
+            rnf = self.number_field().pari_rnf()
+            L = self.number_field().absolute_field()
+            R = L['x']
+            nf = L.pari_nf()
+            genlist = [L(R(x.polynomial())) for x in list(self.gens())]
+            self.__absolute_ideal = L.ideal(genlist)
+            return self.__absolute_ideal
 
     def gens_reduced(self):
         try:
@@ -503,6 +512,23 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
             self.__reduced_generators = tuple(gens)
             return self.__reduced_generators
 
+    def __invert__(self):
+        """
+        Return the multiplicative inverse of self.  Call with ~self.
+        """
+        if self.is_zero():
+            raise ZeroDivisionError
+        L = self.number_field()
+        R = QQ['x']
+        rnf = L.pari_rnf()
+        inverse = self.absolute_ideal().__invert__()
+        nf_zk = inverse.number_field().pari_nf().getattr('zk')
+        genlist = [L(R(x)) for x in nf_zk * inverse.pari_hnf()]
+        return L.ideal(genlist)
+
+    def is_principal(self):
+        return self.absolute_ideal().is_principal()
+
     def is_zero(self):
         zero = self.number_field().pari_rnf().rnfidealhnf(0)
         return self.pari_rhnf() == zero
@@ -524,8 +550,6 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         hnf = L.pari_rnf().rnfidealnormrel(self.pari_rhnf())
         return K.ideal([ K(R(x)) for x in convert_from_zk_basis(K, hnf) ])
 
-    def divides(self):
-        raise NotImplementedError
     def factor(self):
         raise NotImplementedError
     def integral_basis(self):
@@ -533,8 +557,6 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
     def integral_split(self):
         raise NotImplementedError
     def is_maximal(self):
-        raise NotImplementedError
-    def is_principal(self):
         raise NotImplementedError
     def is_prime(self):
         raise NotImplementedError

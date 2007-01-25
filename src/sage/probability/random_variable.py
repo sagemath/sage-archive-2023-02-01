@@ -69,7 +69,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
     """
     def __init__(self, X, f, codomain = None, check = False):
         r"""
-        Create free binary string monoid on $n$ generators$.
+        Create free binary string monoid on $n$ generators.
 
         INPUT:
             x: A probability space
@@ -174,7 +174,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         Let $S$ be the probability space of $X$ = self, with probability function $p$,
         and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
         $$
-        \cov(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         $$
 
         """
@@ -197,7 +197,7 @@ class DiscreteRandomVariable(RandomVariable_generic):
         Let $S$ be the probability space of $X$ = self, with probability function $p$,
         and $E(X)$ be the {\it expectation} of $X$. Then the variance of $X$ is:
         $$
-        \cov(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
+        \text{cov}(X,Y) = E((X-E(X)*(Y-E(Y)) = \sum_{x \in S} p(x) (X(x) - E(X))(Y(x) - E(Y))
         $$
 
         """
@@ -307,7 +307,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	    sage: X.set()
 	    {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 	    sage: X.entropy()
-	    1.99972534179687
+            1.9997253418
 
 	A probability space can be defined on any list of elements.
 
@@ -319,7 +319,7 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	    sage: X
 	    Discrete probability space defined by {'A': 1/2, 'C': 1/4, 'B': 1/4}
 	    sage: X.entropy()
-	    1.50000000000000
+            1.5
 	"""
         if codomain is None:
 	    codomain = RealField()
@@ -357,3 +357,4 @@ class DiscreteProbabilitySpace(ProbabilitySpace_generic,DiscreteRandomVariable):
 	        return -p*log(p,2)
 	p = self.function()
 	return sum([ neg_xlog2x(p[x]) for x in p.keys() ])
+

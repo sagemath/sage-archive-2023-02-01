@@ -299,7 +299,7 @@ def gv_info_rate(n,delta,q):
 
     EXAMPLES:
         sage: gv_info_rate(100,1/4,3)
-        0.367049926082618
+        0.367049926083
 
     """
     q = ZZ(q)
@@ -373,7 +373,6 @@ def elias_bound_asymp(delta,q):
     EXAMPLES:
         sage: elias_bound_asymp(1/4,2)
         0.399123963307143
-
     """
     r = 1-1/q
     return (1-entropy(r-sqrt(r*(r-delta)), q))

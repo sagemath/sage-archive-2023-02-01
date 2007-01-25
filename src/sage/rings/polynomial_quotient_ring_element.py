@@ -1,14 +1,36 @@
-"""
+r"""
 Elements of Quotients of Univariate Polynomial Rings
+
+EXAMPLES:
+We create a quotient of a univariate polynomial ring over $\ZZ$.
+    sage: R.<x> = ZZ[]
+    sage: S.<a> = R.quotient(x^3 + 3*x -1)
+    sage: 2 * a^3
+    -6*a + 2
+
+Next we make a univeriate polynomial ring over $$\Z[x]/(x^3+3x-1)$.
+    sage: S.<y> = S[]
+
+And, we quotient out that by $y^2 + a$.
+    sage: T.<z> = S.quotient(y^2+a)
+
+In the quotient $z^2$ is $-a$.
+    sage: z^2
+    -a
+
+And since $a^3 = -3x + 1$, we have:
+    sage: z^6
+    3*a - 1
+
+AUTHOR:
+    -- William Stein
 """
 
-#*****************************************************************************
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
-#
+####################################################################################
+#       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+####################################################################################
 
 import operator
 import sage.structure.element as element
@@ -70,6 +92,15 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         return self.__polynomial._im_gens_(codomain, im_gens)
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: S.<a> = R.quotient(2*x^3 + 3/2*x -1/3)
+            sage: 2 * a^3
+            -3/2*a + 1/3
+            sage: loads(dumps(2*a^3)) == 2*a^3
+            True
+        """
         return PolynomialQuotientRingElement, (self.parent(), self.__polynomial, False)
 
     def _repr_(self):

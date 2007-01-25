@@ -9,7 +9,7 @@
 # "The Cleaner" from Pulp Fiction:
 #      http://www.frankjankowski.de/quiz/illus/keitel.jpg
 ###############################################################################
-
+import os
 
 import sage.misc.misc as misc
 F = '%s/spawned_processes'%misc.SAGE_TMP
@@ -20,6 +20,18 @@ def cleaner(pid, cmd):
     o = open(F,'a')
     o.write('%s %s\n'%(pid, cmd))
     o.close()
-    os.system('sage-cleaner &')   # just in case it had died before.
+    start_cleaner_if_not_running()
+
+################
+
+def start_cleaner_if_not_running():
+    D = '%s/tmp_cleaner.pid'%misc.DOT_SAGE
+    pid = int(open(D).read())
+    try:
+        os.kill(pid,0)
+        return
+    except (OSError, ValueError):
+        os.system('sage-cleaner &')   # it has died
+
 
 

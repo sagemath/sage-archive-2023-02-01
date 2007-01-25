@@ -440,7 +440,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return s[1:]
 
     def _repr_(self):
-        """
+        r"""
         EXAMPLES:
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
@@ -452,7 +452,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return self._repr()
 
     def _latex_(self, name=None):
-        """
+        r"""
         EXAMPLES:
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}

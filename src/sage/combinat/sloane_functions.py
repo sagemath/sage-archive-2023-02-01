@@ -628,7 +628,8 @@ class A000045(SloaneSequence):
 
 class A000108(SloaneSequence):
     r"""
-    Catalan numbers: $C_n = \frac {2n \choose n} {n+1} = \frac {(2n)!}  {n!(n+1)!}. Also called Segner numbers.
+    Catalan numbers: $C_n = \frac{{2n \choose n}}{n+1} = \frac {(2n)!}{n!(n+1)!}$.
+    Also called Segner numbers.
 
 
     INPUT:

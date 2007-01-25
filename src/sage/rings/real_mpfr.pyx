@@ -1257,7 +1257,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = 16.0; r.log10()
             1.20411998265592
             sage: r.log() / log(10)
-            1.20411998266
+            1.20411998265804
 
             sage: r = 39.9; r.log10()
             1.60097289568674

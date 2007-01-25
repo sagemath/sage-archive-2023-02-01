@@ -538,7 +538,7 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         Compute the relative norm of this extension L/K as an ideal of K.
 
         EXAMPLE:
-            sage: R.<x> = PolynomialRing(QQ)
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
             sage: L.ideal(b).norm()

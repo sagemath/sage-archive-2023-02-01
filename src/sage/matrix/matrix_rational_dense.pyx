@@ -435,7 +435,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Integer D
         cdef mpz_t* AB_row,
         cdef mpq_t* res_row
-        A_denom, B_denom
         A, A_denom = left._clear_denom()
         B, B_denom = right._clear_denom()
         AB = A._multiply_multi_modular(B)

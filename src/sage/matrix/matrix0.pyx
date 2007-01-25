@@ -2092,7 +2092,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         if not self.is_square():
             raise ArithmeticError, "self must be square"
 
-        return ModuleElement.__pow__(self, n, ignored)
+        return RingElement.__pow__(self, n, ignored)
 
     ###################################################
     # Comparison

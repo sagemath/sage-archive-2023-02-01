@@ -16,7 +16,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement)  # forwa
 
 cdef class RealIntervalField(sage.rings.ring.Field):
     cdef int __prec, sci_not
-    # Cache RealField instances for the lower and upper bounds.
+    # Cache RealField instances for the lower, upper, and middle bounds.
     # These have the same precision as the interval field;
     # __lower_field rounds down, __upper_field rounds up.
     # These fields with their roundings are not used for computation
@@ -31,6 +31,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     # equal, even though they really are).  Neither of these is very
     # satisfying, but I have chosen the latter for now.
     cdef real_mpfr.RealField __lower_field
+    cdef real_mpfr.RealField __middle_field
     cdef real_mpfr.RealField __upper_field
     cdef RealIntervalFieldElement _new(self)
 

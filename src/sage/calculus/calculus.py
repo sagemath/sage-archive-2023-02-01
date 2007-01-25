@@ -57,6 +57,9 @@ class SymbolicExpressionRing_class(CommutativeRing):
     def _an_element_impl(self):
         return zero_constant
 
+    def is_field(self):
+        return True
+
 # ... and here it is:
 SymbolicExpressionRing = SymbolicExpressionRing_class()
 SER = SymbolicExpressionRing
@@ -709,7 +712,7 @@ class SymbolicVariable(SymbolicExpression):
             pass
         a = self._name
         if len(a) > 1:
-            m = re.search('\d+$',a)
+            m = re.search('(\d|[.,])+$',a)
             if m is None:
                 a = tex_varify(a)
             else:

@@ -225,6 +225,12 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
             return self(x)
         raise TypeError, "no canonical coercion to an integer"
 
+
+    def base_extend(self, R):
+        if not ring.is_Ring(R):
+            raise TypeError, "R must be a ring."
+        return R
+
     def is_subring(self, other):
         """
         Return True if ZZ is a subring of other in a natural way.

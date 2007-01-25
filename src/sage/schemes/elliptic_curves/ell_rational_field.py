@@ -38,6 +38,11 @@ import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
 
+# Use some interval arithmetic to guaranty correctness.  We assume
+# that alpha is computed to the precision of a float.
+IR = rings.RIF
+#from sage.rings.interval import IntervalRing; IR = IntervalRing()
+
 import sage.matrix.all as matrix
 import sage.databases.cremona
 from   sage.libs.pari.all import pari
@@ -2841,11 +2846,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLE:
             sage: E = EllipticCurve('11a')
             sage: E.heegner_point_height(-7)
-            [0.222270926217, 0.222273662409]
+            [0.22226977 ... 0.22227479]
         """
-        # Use interval arithmetic to guaranty correctness.  We assume
-        # that alpha is computed to the precision of a float.
-        IR = rings.IntervalRing()
 
         if not self.satisfies_heegner_hypothesis(D):
             raise ArithmeticError, "Discriminant (=%s) must be a fundamental discriminant that satisfies the Heegner hypothesis."%D
@@ -2861,6 +2863,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         k_E = prec*sqrt(E.conductor()) + 20
         k_F = prec*sqrt(F.conductor()) + 20
 
+        IR = rings.RealIntervalField(20)
         MIN_ERR = R('1e-6')   # we assume that regulator and
                             # discriminant, etc., computed to this accuracy.
                             # this should be made more intelligent / rigorous relative
@@ -2882,18 +2885,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def heegner_index(self, D,  min_p=3, prec=5, verbose=False):
         """
-        Returns the index of the Heegner point on the quadratic twist
-        by D, as computed using the Gross-Zagier formula and/or
-        a point search.
-
-        Return (an interval that contains) the square of the index of
+        Return an interval that contains the SQUARE of the index of
         the Heegner point in the group of K-rational points *modulo
-        torsion* on the twist of the elliptic curve by D.
+        torsion* on the twist of the elliptic curve by D, computed
+        using the Gross-Zagier formula and/or a point search.
 
         WARNING: This function uses the Gross-Zagier formula.
         When E is 681b and D=-8 for some reason the returned index
         is 9/4 which is off by a factor of 4.   Evidently the
-        GZ formula must be modified in this case.
+        GZ formula must be modified when D=-8.
 
         If 0 is in the interval of the height of the Heegner point
         computed to the given prec, then this function returns 0.
@@ -2916,13 +2916,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.heegner_discriminants(50)
             [-7, -8, -19, -24, -35, -39, -40, -43]
             sage: E.heegner_index(-7)
-            [0.999993856229, 1.00000616632]
+            [0.99998760 ... 1.0000134]
 
             sage: E = EllipticCurve('37b')
             sage: E.heegner_discriminants(100)
             [-3, -4, -7, -11, -40, -47, -67, -71, -83, -84, -95]
             sage: E.heegner_index(-95)          # long time (1 second)
-            [3.99999236227, 4.00000791569]
+            [3.9999771 ... 4.0000229]
 
         Current discriminants -3 and -4 are not supported:
             sage: E.heegner_index(-3)
@@ -2939,8 +2939,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         ht = h0/2
         misc.verbose('Height of heegner point = %s'%ht, tm)
-
-        IR = rings.IntervalRing()
 
         if self.root_number() == 1:
             F = self.quadratic_twist(D)
@@ -3040,7 +3038,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return -1, D
 
         misc.verbose("Searching up to height = %s"%c)
-        IR = rings.IntervalRing()
         eps = 10e-5
 
         def _bound(P):
@@ -3161,10 +3158,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         k_F = 2*sqrt(F.conductor()) + 10
         #k_E = 2
         #k_F = 2
-
-        # Use interval arithmetic to guaranty correctness.  We assume
-        # that alpha is computed to the precision of a float.
-        IR = rings.IntervalRing()
 
         MIN_ERR = 1e-10   # we assume that regulator and
                           # discriminant, etc., computed to this accuracy.
@@ -3583,7 +3576,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Find an integer B such that A*B*P reduces to the identity mod p.
         # This is necessary to be able to evaluate sigma(A*B*P) by substituting
         # into the series for sigma.
-        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) / A
+        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) // A
 
         # Later, we will be computing $h(P) = h(AB*P)/(AB)^2$. But if $AB$ is
         # divisible by a power of $p$, then this will affect the resulting

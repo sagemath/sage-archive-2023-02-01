@@ -28,7 +28,7 @@ import finite_field
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
-from real_field import is_RealField
+from real_mpfr import is_RealField
 from integer_ring import ZZ
 import sage.rings.arith
 

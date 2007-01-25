@@ -52,7 +52,7 @@ import ring_element
 import field
 import integral_domain
 import principal_ideal_domain
-import polynomial_element as polynomial
+import polynomial_element_generic
 import multi_polynomial_element
 import rational_field
 import integer_ring
@@ -268,20 +268,26 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             self.__polynomial_class = cls
             return
         if isinstance(self.base_ring(), rational_field.RationalField) and not self.is_sparse():
-            self.__polynomial_class = polynomial.Polynomial_rational_dense
+            self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif isinstance(self.base_ring(), integer_ring.IntegerRing) and not self.is_sparse():
-            self.__polynomial_class = polynomial.Polynomial_integer_dense
+            self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
         elif isinstance(self.base_ring(), field.Field):
             if self.__is_sparse:
-                self.__polynomial_class = polynomial.Polynomial_generic_sparse_field
+                self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field
             else:
-                self.__polynomial_class = polynomial.Polynomial_generic_dense_field
+                self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense_field
         elif self.__is_sparse:
-            self.__polynomial_class = polynomial.Polynomial_generic_sparse
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse
         else:
-            self.__polynomial_class = polynomial.Polynomial_generic_dense
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense
 
     def base_extend(self, R):
+        if R.has_coerce_map_from(self.base_ring()):
+            return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
+        else:
+            raise TypeError, "no such base extension"
+
+    def change_ring(self, R):
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):
@@ -305,10 +311,10 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             raise ArithmeticError, "n=%s must be positive"%n
         f = pari.polcyclo(n)
         C = self.__polynomial_class
-        if C == polynomial.Polynomial_rational_dense:
+        if C == polynomial_element_generic.Polynomial_rational_dense:
             return self(f, construct=True)
         coeffs = str(f.Vec())
-        if C == polynomial.Polynomial_integer_dense:
+        if C == polynomial_element_generic.Polynomial_integer_dense:
             return self(coeffs, construct=True)
 
         coeffs = eval(coeffs)
@@ -510,7 +516,7 @@ class PolynomialRing_dense_mod_n(PolynomialRing_generic):
 
     def __call__(self, x=None, check=True, is_gen = False, construct=False):
         set_modulus(self.__modulus)
-        return polynomial.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
+        return polynomial_element_generic.Polynomial_dense_mod_n(self, x, check, is_gen, construct=construct)
 
 class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                                  PolynomialRing_singular_repr,
@@ -534,7 +540,7 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        return polynomial.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
+        return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 
 def polygen(ring_or_element, name="x"):

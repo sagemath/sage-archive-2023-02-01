@@ -78,20 +78,23 @@ from padic_field import pAdicField, Qp, is_pAdicField
 from padic import pAdic
 
 # Real numbers
-from real_field import RealField, is_RealField, is_RealNumber, RR, RealNumber
+from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
+                       create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 
-from real_double import RealDoubleField, RDF, RealDoubleElement
+from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Intervals
-from real_interval_field import RealIntervalField, is_RealIntervalField, is_RealIntervalFieldElement, RealIntervalFieldElement
+from real_mpfi import (RealIntervalField, is_RealIntervalField,
+                       is_RealIntervalFieldElement, RIF,
+                       RealInterval)
 
 # Complex numbers
 from complex_field import ComplexField, is_ComplexField, CC
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
-from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
+from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
 
 # Univariate Polynomial Rings
 from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
@@ -110,7 +113,8 @@ from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
 from laurent_series_ring_element import LaurentSeries
 
 # Float interval arithmetic
-from interval import IntervalRing, Interval
+# (deprecated)
+# from interval import IntervalRing, Interval
 
 # Pseudo-ring of PARI objects.
 from pari_ring import PariRing, Pari

@@ -1,5 +1,8 @@
 """
-Dense matrices over the Complex Double Field. Matrix operations use GSl and numpy.
+Dense matrices over the Complex Double Field.
+
+IMPLEMENTATION:
+   Specialized matrix operations use GSL and numpy.
 """
 
 ##############################################################################

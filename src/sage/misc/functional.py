@@ -779,6 +779,11 @@ def round(x, ndigits=0):
 
     IMPLEMENTATION:  Calls Python's builtin round function, and converts
     the result to a real double field element.
+
+    NOTE: This is currently slower than the builtin round function,
+    since it does more work -- i.e., allocating an RDF element and
+    initializing it.  To access the builtin version do
+    \code{import __builtin__; __builtin__.round}.
     """
     return RealDoubleElement(__builtin__.round(x, ndigits))
 

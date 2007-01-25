@@ -111,23 +111,23 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self, parent)
 
-        cdef uint p
+        cdef mod_int p
         p = self._base_ring.characteristic()
         self.p = p
-        if p >= 46340:
-            raise OverflowError, "p (=%s) must be < 46340"%p
-        self.gather = 2**32/(p*p)
+        if p >= MOD_INT_MAX:
+            raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
+        self.gather = MOD_INT_MAX/(p*p)
 
-        self._entries = <uint *> sage_malloc(sizeof(uint)*self._nrows*self._ncols)
+        self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
 
-        self.matrix = <uint **> sage_malloc(sizeof(uint*)*self._nrows)
+        self.matrix = <mod_int **> sage_malloc(sizeof(mod_int*)*self._nrows)
         if self.matrix == NULL:
             sage_free(self._entries)
             raise MemoryError, "Error allocating memory"
 
-        cdef uint k
+        cdef mod_int k
         cdef Py_ssize_t i
         k = 0
         for i from 0 <= i < self._nrows:
@@ -142,9 +142,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def __init__(self, parent, entries, copy, coerce):
 
-        cdef uint e
+        cdef mod_int e
         cdef Py_ssize_t i, j, k
-        cdef uint *v
+        cdef mod_int *v
 
         # scalar?
         if not isinstance(entries, list):
@@ -163,7 +163,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise IndexError, "The vector of entries has the wrong length."
 
         k = 0
-        cdef uint n
+        cdef mod_int n
         R = self.base_ring()
 
         cdef PyObject** w
@@ -228,7 +228,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Matrix_modn_dense A
         A = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,
                                       0, 0, 0)
-        memcpy(A._entries, self._entries, sizeof(uint)*self._nrows*self._ncols)
+        memcpy(A._entries, self._entries, sizeof(mod_int)*self._nrows*self._ncols)
         A.p = self.p
         A.gather = self.gather
         return A
@@ -256,8 +256,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.check_mutability()
 
         cdef Py_ssize_t start_row, c, r, nr, nc, i
-        cdef uint p, a, a_inverse, b
-        cdef uint **m
+        cdef mod_int p, a, a_inverse, b
+        cdef mod_int **m
 
         start_row = 0
         p = self.p
@@ -294,9 +294,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
         self._rescale_row_c(row, multiple, start_col)
 
-    cdef _rescale_row_c(self, Py_ssize_t row, uint multiple, Py_ssize_t start_col):
-        cdef uint r, p
-        cdef uint* v
+    cdef _rescale_row_c(self, Py_ssize_t row, mod_int multiple, Py_ssize_t start_col):
+        cdef mod_int r, p
+        cdef mod_int* v
         cdef Py_ssize_t i
         p = self.p
         v = self.matrix[row]
@@ -306,7 +306,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef rescale_col_c(self, Py_ssize_t col, multiple, Py_ssize_t start_row):
         self._rescale_col_c(col, multiple, start_row)
 
-    cdef _rescale_col_c(self, Py_ssize_t col, uint multiple, Py_ssize_t start_row):
+    cdef _rescale_col_c(self, Py_ssize_t col, mod_int multiple, Py_ssize_t start_row):
         """
         EXAMPLES:
             sage: n=3; b = MatrixSpace(Integers(37),n,n,sparse=False)([1]*n*n)
@@ -338,8 +338,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [ 2  5 34]
             [ 2  5 34]
         """
-        cdef uint r, p
-        cdef uint* v
+        cdef mod_int r, p
+        cdef mod_int* v
         cdef Py_ssize_t i
         p = self.p
         for i from start_row <= i < self._nrows:
@@ -349,10 +349,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                                Py_ssize_t start_col):
         self._add_multiple_of_row_c(row_to, row_from, multiple, start_col)
 
-    cdef _add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, uint multiple,
+    cdef _add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, mod_int multiple,
                                Py_ssize_t start_col):
-        cdef uint p
-        cdef uint *v_from, *v_to
+        cdef mod_int p
+        cdef mod_int *v_from, *v_to
 
         p = self.p
         v_from = self.matrix[row_from]
@@ -367,10 +367,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                                    Py_ssize_t start_row):
         self._add_multiple_of_column_c(col_to, col_from, s, start_row)
 
-    cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from, uint multiple,
+    cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from, mod_int multiple,
                                    Py_ssize_t start_row):
-        cdef uint  p
-        cdef uint **m
+        cdef mod_int  p
+        cdef mod_int **m
 
         m = self.matrix
         p = self.p
@@ -381,15 +381,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             m[i][col_to] = (m[i][col_to] + multiple * m[i][col_from]) %p
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
-        cdef uint* temp
+        cdef mod_int* temp
         temp = self.matrix[row1]
         self.matrix[row1] = self.matrix[row2]
         self.matrix[row2] = temp
 
     cdef swap_columns_c(self, Py_ssize_t col1, Py_ssize_t col2):
         cdef Py_ssize_t i, nr
-        cdef uint t
-        cdef uint **m
+        cdef mod_int t
+        cdef mod_int **m
         m = self.matrix
         nr = self._nrows
         for i from 0 <= i < self._nrows:
@@ -411,10 +411,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t n
         n = self._nrows
 
-        cdef uint **h
+        cdef mod_int **h
         h = self.matrix
 
-        cdef uint p, r, t, t_inv, u
+        cdef mod_int p, r, t, t_inv, u
         cdef Py_ssize_t i, j, m
         p = self.p
 
@@ -476,7 +476,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i, m, n,
         n = self._nrows
 
-        cdef uint p, t
+        cdef mod_int p, t
         p = self.p
 
         # Replace self by its Hessenberg form, and set H to this form

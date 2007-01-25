@@ -1,15 +1,25 @@
+include "../ext/interrupt.pxi"
+include "../ext/stdsage.pxi"
+include "../ext/gmp.pxi"
+
+
 from sage.rings.integer_ring import ZZ
-from sage.rings.arith import previous_prime
+from sage.rings.arith import next_prime
 
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
 
+# should I have mod_int versions of these functions?
+# c_inverse_mod_longlong modular inverse used exactly once in _extend_moduli_list
+from sage.ext.arith cimport arith_llong
+cdef arith_llong ai
+ai = arith_llong()
 
 cdef class MultiModularBasis:
 
-    def __init__(self):
+    def __init__(self, start_prime=START_PRIME_MAX):
         cdef mod_int p
-        p = previous_prime(START_PRIME_MAX)
+        p = next_prime(start_prime-1)
 
         self.moduli_count = 1
 
@@ -24,6 +34,11 @@ cdef class MultiModularBasis:
         mpz_init_set_ui(self.moduli_partial_product[0], p)
         self.C[0] = 1
 
+    def __dealloc__(self):
+        sage_free(self.moduli)
+        sage_free(self.moduli_partial_product)
+        sage_free(self.C)
+
 
     cdef int _extend_moduli_list(self, mpz_t height) except -1:
         if mpz_cmp(height, self.moduli_partial_product[self.moduli_count-1]) <= 0: return self.moduli_count
@@ -37,9 +52,10 @@ cdef class MultiModularBasis:
         M = PY_NEW(Integer)
         mpz_set(M.value, self.moduli_partial_product[self.moduli_count-1])
         while mpz_cmp(height, M.value) > 0:
-            p = previous_prime(p)
+            p = next_prime(p)
             new_moduli.append(p)
-            new_C.append((mod(M, p)**(-1)).lift())
+            new_C.append(ai.c_inverse_mod_longlong(mpz_fdiv_ui(M.value, p), p))
+#            new_C.append((mod(M, p)**(-1)).lift())
             M *= p
             new_partial_products.append(M)
 
@@ -76,7 +92,7 @@ cdef class MultiModularBasis:
         memcpy(moduli[0], self.moduli, sizeof(mod_int)*count)
         return count
 
-    cdef int mpz_crt(self, mpz_t* z, mod_int* b, int n) except -1:
+    cdef int mpz_crt(self, mpz_t z, mod_int* b, int n) except -1:
         # Garner's Algorithm
         # z is not yet initalized
         cdef int i
@@ -89,16 +105,16 @@ cdef class MultiModularBasis:
             mpz_add(z, z, u)
         return 0
 
-    cdef int mpz_crt_vec(self, mpz_t** z, mod_int** b, int n, int vn) except -1:
+    cdef int mpz_crt_vec(self, mpz_t* z, mod_int** b, int n, int vc) except -1:
         # Garner's Algorithm
         # z allocated but not initalized
         cdef int i, j
         cdef mpz_t u
         mpz_init(u)
-        for j from 0 <= j < vn:
+        for j from 0 <= j < vc:
             mpz_init_set_ui(z[j], b[0][j])
             for i from 1 <= i < n:
-                mpz_set_ui(u, ((b[i][j] + self.moduli[i] - mpz_fdiv_ui(z, self.moduli[i])) * self.C[i]) % self.moduli[i])
+                mpz_set_ui(u, ((b[i][j] + self.moduli[i] - mpz_fdiv_ui(z[j], self.moduli[i])) * self.C[i]) % self.moduli[i]) # u = ((b_i - z) * C_i) % m_i
                 mpz_mul(u, u, self.moduli_partial_product[i-1])
                 mpz_add(z[j], z[j], u)
         return 0
@@ -126,10 +142,18 @@ cdef class MultiModularBasis:
             bs[i] = b[i]
         cdef Integer z
         z = PY_NEW(Integer)
-        self.mpz_crt(&(z.value), bs, n)
+        self.mpz_crt(z.value, bs, n)
         sage_free(bs)
         return z
 
-    def precomputation(self):
+    def precomputations(self):
         cdef int i
         return [ZZ(self.C[i]) for i from 0 <= i < self.moduli_count]
+
+    def partial_product(self, n):
+        if n > self.moduli_count:
+            raise IndexError, "beyond bound for multi-modular prime list"
+        cdef Integer z
+        z = PY_NEW(Integer)
+        mpz_init_set(z.value, self.moduli_partial_product[self.moduli_count-1])
+        return z

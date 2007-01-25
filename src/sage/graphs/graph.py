@@ -680,6 +680,7 @@ class Graph(GenericGraph):
         """
         Returns the graph6 representation of the graph as an ASCII string.
         """
+        from sage.rings.integer_ring import ZZ
         n = self.order()
         if n > 262143:
             raise ValueError, 'graph6 format supports graphs on 0 to 262143 vertices only.'
@@ -1279,26 +1280,55 @@ class DiGraph(GenericGraph):
     def show(self, pos=None, vertex_labels=True, node_size=200):
         self.plot(pos, vertex_labels, node_size).show()
 
-class Network(GenericGraph):
+def graph(data, format=None):
     """
-    Weighted multigraph: directed or undirected, allowing loops (non-hyper).
+    Converts several data types into Graph objects.
+
+    INPUT:
+    data -- the data to be converted to a Graph or DiGraph class instance.
+    format -- the format of data: can be
+        'graph6' -- if format = 'graph6', then data is assumed to be a graph6 string
     """
-    pass
+    # TODO: format = 'matrix'
+    if format == 'graph6' or (format is None and isinstance(data, str)):
+        if not isinstance(data, str):
+            raise ValueError, 'If input format is graph6, then data must be a string'
+        from sage.rings.integer import Integer
+        data = data.split('\n')
+        Glist = []
+        for s in data:
+            if s[0] == chr(126): # first four bytes are N
+                n = ZZ(Integer(ord(s[1])-63).binary() + Integer(ord(s[2])-63).binary() + Integer(ord(s[3])-63).binary(),base=2)
+                s = s[4:]
+            else: # only first byte is N
+                n = ord(s[0]) - 63
+                s = s[1:]
+            l = [Integer(ord(i)-63).binary() for i in s]
+            for i in range(len(l)):
+                l[i] = '0'* (6-len(l[i])) + l[i]
+            m = ''
+            for i in l:
+                m += i
+            m = m[:(n*(n-1)/2)]
+            G = Graph()
+            k = 0
+            for i in range(n):
+                for j in range(i):
+                    if m[k] == '1':
+                        G.add_edge(j,i)
+                    k += 1
+            Glist.append(G)
+        if len(Glist) == 1:
+            return Glist[0]
+        else:
+            return Glist
 
-### Hypergraphs and Complexes
 
-class HyperGraph(SageObject):
-    """
-    Edges are simply subsets of the vertex set.
-    """
-    pass
 
-class GenericComplex(SageObject):
-    pass
 
-class SimplicialComplex(GenericComplex):
-    pass
 
-class CubicalComplex(GenericComplex):
-    pass
+
+
+
+
 

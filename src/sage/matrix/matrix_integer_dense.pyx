@@ -613,7 +613,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         h = left.height() * right.height()
         n = mm.moduli_list_c(&moduli, h.value)
-        print mm.moduli_list(h)
         res = []
         for i from 0 <= i < n:
             res.append(left._mod_int_c(moduli[i]) * right._mod_int_c(moduli[i]))

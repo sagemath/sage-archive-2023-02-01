@@ -438,7 +438,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         A_denom, B_denom
         A, A_denom = left._clear_denom()
         B, B_denom = right._clear_denom()
-        AB = A*B # A._multiply_multi_modular(B)
+        AB = A._multiply_multi_modular(B)
         D = A_denom * B_denom
         res = Matrix_rational_dense.__new__(Matrix_rational_dense, left.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:

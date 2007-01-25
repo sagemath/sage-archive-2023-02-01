@@ -20,5 +20,6 @@ def cleaner(pid, cmd):
     o = open(F,'a')
     o.write('%s %s\n'%(pid, cmd))
     o.close()
+    os.system('sage-cleaner &')   # just in case it had died before.
 
 

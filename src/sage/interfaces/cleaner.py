@@ -22,4 +22,3 @@ def cleaner(pid, cmd):
     o.close()
 
 
-

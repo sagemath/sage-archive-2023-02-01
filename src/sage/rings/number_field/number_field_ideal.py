@@ -363,7 +363,7 @@ class NumberFieldIdeal(Ideal_fractional):
                 return self.__is_principal
             bnf = self.number_field().pari_bnf(certify)
             v = bnf.bnfisprincipal(self.pari_hnf())
-            self.__is_principal = (v[0] == 0) ## i.e., v[0] is the zero vector
+            self.__is_principal = (len(v[0]) == 0) ## i.e., v[0] is the zero vector
             if self.__is_principal:
                 K = self.number_field()
                 R = K.polynomial().parent()
@@ -538,11 +538,11 @@ class NumberFieldIdeal_rel(NumberFieldIdeal):
         Compute the relative norm of this extension L/K as an ideal of K.
 
         EXAMPLE:
-            sage: R.<x> = PolynomialRing(QQ)
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^2+6)
             sage: L.<b> = K.extension(K['x'].gen()^4 + a)
             sage: L.ideal(b).norm()
-            Fractional ideal (-a) of Number Field in a with defining polynomial x^2 + 6
+            Fractional ideal (a) of Number Field in a with defining polynomial x^2 + 6
         """
         L = self.number_field()
         K = L.base_field()

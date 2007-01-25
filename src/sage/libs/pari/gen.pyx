@@ -9,6 +9,25 @@ AUTHORS:
     -- William Stein (2006-03-06): added newtonpoly
     -- Justin Walker: contributed some of the function definitions
     -- Gonzalo Tornari: improvements to conversions; much better error handling.
+
+EXAMPLES:
+    sage: pari('5! + 10/x')
+    (120*x + 10)/x
+    sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
+    85.18856819515268446242866615
+    sage: f = pari('x^3-1')
+    sage: v = f.factor(); v
+    [x - 1, 1; x^2 + x + 1, 1]
+    sage: v[0]   # indexing is 0-based unlike in GP.
+    [x - 1, x^2 + x + 1]~
+    sage: v[1]
+    [1, 1]~
+
+Arithmetic obeys the usual coercion rules.
+    sage: type(pari(1) + 1)
+    <type 'sage.libs.pari.gen.gen'>
+    sage: type(1 + pari(1))
+    <type 'sage.libs.pari.gen.gen'>
 """
 
 import math
@@ -16,7 +35,10 @@ import types
 from sage.misc.misc import xsrange
 import sage.structure.coerce
 import operator
+from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.structure.parent cimport Parent
 
+#include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
 include '../../ext/stdsage.pxi'
@@ -32,6 +54,8 @@ P = pari_instance   # shorthand notation
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
+
+cdef pari_sp mytop
 
 # keep track of the stack
 cdef pari_sp stack_avma
@@ -66,13 +90,13 @@ cdef t4GEN(x):
     global t4
     t4 = P.toGEN(x)
 
-cdef class gen:
+cdef class gen(sage.structure.element.RingElement):
     """
     Python extension class that models the PARI GEN type.
     """
     def __init__(self):
         self.b = 0
-        self.refers_to = {}
+        self._parent = P
 
     def parent(self):
         return pari_instance
@@ -86,6 +110,7 @@ cdef class gen:
         """
         self.g = g
         self.b = b
+        self._parent = P
 
     def __dealloc__(self):
         if self.b:
@@ -117,49 +142,129 @@ cdef class gen:
         return list(self.Vec())
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: f = pari('x^3 - 3')
+            sage: loads(dumps(f)) == f
+            True
+        """
         s = str(self)
         import sage.libs.pari.gen_py
         return sage.libs.pari.gen_py.pari, (s,)
 
-    def _add(gen self, gen other):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         _sig_on
-        return P.new_gen(gadd(self.g, other.g))
+        return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    def _sub(gen self, gen other):
-        _sig_on
-        return P.new_gen(gsub(self.g, other.g))
+    def _add_unsafe(gen self, gen right):
+        """
+        VERY FAST addition of self and right on stack (and leave on
+        stack) without any type checking.
 
-    def _mul(gen self, gen other):
+        Basically, this is often about 10 times faster than just typing "self + right".
+        The drawback is that (1) if self + right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._add_unsafe(pari(3))
+            5
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gadd(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z,0)
+        mytop = avma
+        return w
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         _sig_on
-        return P.new_gen(gmul(self.g, other.g))
+        return P.new_gen(gsub(self.g, (<gen> right).g))
+
+    def _sub_unsafe(gen self, gen right):
+        """
+        VERY FAST subtraction of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self - right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._sub_unsafe(pari(3))
+            -1
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gsub(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    cdef RingElement _mul_c_impl(self, RingElement right):
+        _sig_on
+        return P.new_gen(gmul(self.g, (<gen>right).g))
+
+    def _mul_unsafe(gen self, gen right):
+        """
+        VERY FAST multiplication of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self * right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._mul_unsafe(pari(3))
+            6
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gmul(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    cdef RingElement _div_c_impl(self, RingElement right):
+        _sig_on
+        return P.new_gen(gdiv(self.g, (<gen>right).g))
+
+    def _div_unsafe(gen self, gen right):
+        """
+        VERY FAST division of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self / right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._div_unsafe(pari(3))
+            2/3
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gdiv(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    #################################################################
 
     def _mod(gen self, gen other):
         _sig_on
         return P.new_gen(gmod(self.g, other.g))
-
-    def _div(gen self, gen other):
-        _sig_on
-        return P.new_gen(gdiv(self.g, other.g))
-
-    def __add__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._add(other)
-        return sage.structure.coerce.bin_op(self, other, operator.add)
-
-    def __sub__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._sub(other)
-        return sage.structure.coerce.bin_op(self, other, operator.sub)
-
-    def __mul__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._mul(other)
-        return sage.structure.coerce.bin_op(self, other, operator.mul)
-
-    def __div__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._div(other)
-        return sage.structure.coerce.bin_op(self, other, operator.div)
 
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
@@ -424,7 +529,10 @@ cdef class gen:
         _sig_on
         x = pari(y)
         if isinstance(n, tuple):
-            self.refers_to[n] = x
+            try:
+                self.refers_to[n] = x
+            except TypeError:
+                self.refers_to = {n:x}
             i = n[0]
             j = n[1]
             if i < 0 or i >= self.nrows():
@@ -437,9 +545,13 @@ cdef class gen:
         if n < 0 or n >= glength(self.g):
             raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
 
-        self.refers_to[n] = x       # so python memory manager will work correctly
-                                    # and not free x if PARI part of self is the
-                                    # only thing pointing to it.
+        # so python memory manager will work correctly
+        # and not free x if PARI part of self is the
+        # only thing pointing to it.
+        try:
+            self.refers_to[n] = x
+        except TypeError:
+            self.refers_to = {n:x}
 
         if typ(self.g) == t_POL:
             n = n + 1
@@ -451,32 +563,33 @@ cdef class gen:
 
 
     ###########################################
-    # ?
+    # comparisions
+    # I had to put the call to gcmp in another
+    # function since otherwise I can't trap
+    # the PariError it will sometimes raise.
+    # (This might be a bug/shortcoming to SageX.)
+    # Annoyingly the _cmp method always has
+    # to be not cdef'd.
     ###########################################
 
-    def __cmp__(gen self, gen other):
+    def _cmp(gen self, gen other):
+        cdef int result
+        _sig_on
+        result = gcmp(self.g, other.g)
+        _sig_off
+        return result
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Comparisons
 
-        Compares the underlying strings unless the inputs
-        are integer, real, or fraction (quotient of integers).
-        """
-        if gegal(self.g, other.g):
-            return 0
-        cdef int tg, to, a
-        tg = typ(self.g)
-        to = typ(other.g)
+        First uses PARI's cmp routine; if it decides the objects are
+        not comparable, it then compares the underlying strings (since
+        in Python all objects are supposed to be comparable).
 
-        cdef int t_g, t_o
-        t_g = typ(self.g); t_o = typ(other.g)
-        if (t_g == t_INT or t_g == t_REAL or t_g == t_FRAC) and \
-           (t_o == t_INT or t_g == t_REAL or t_g == t_FRAC):
-            return gcmp(self.g, other.g)
-
-        return cmp(str(self),str(other))
-
-    def __richcmp__(gen self, other, int op):
-        """
         EXAMPLES:
             sage: a = pari(5)
             sage: b = 10
@@ -496,23 +609,21 @@ cdef class gen:
             True
             sage: a is 5
             False
+
+            sage: pari(2.5) > None
+            False
+            sage: pari(3) == pari(3)
+            True
+            sage: pari('x^2 + 1') == pari('I-1')
+            False
+            sage: pari(I) == pari(I)
+            True
         """
-        cdef int n
-        cdef gen x
-        x = P.adapt(other)
-        n = self.__cmp__(x)
-        if op == 0:
-            return bool(n < 0)
-        elif op == 1:
-            return bool(n <= 0)
-        elif op == 2:
-            return bool(n == 0)
-        elif op == 3:
-            return bool(n != 0)
-        elif op == 4:
-            return bool(n > 0)
-        elif op == 5:
-            return bool(n >= 0)
+        try:
+            return left._cmp(right)
+        except PariError:
+            pass
+        return cmp(str(left),str(right))
 
     def copy(gen self):
         return P.new_gen(forcecopy(self.g))
@@ -5003,7 +5114,7 @@ cdef class gen:
 
 cdef unsigned long num_primes
 
-cdef class PariInstance:
+cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __init__(self, long size=16000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
@@ -5070,6 +5181,24 @@ cdef class PariInstance:
 
     def __repr__(self):
         return "Interface to the PARI C library"
+
+    def __hash__(self):
+        return 907629390   # hash('pari')
+
+    cdef has_coerce_map_from_c_impl(self, x):
+        return True
+
+    def __richcmp__(left, right, int op):
+        """
+        EXAMPLES:
+            sage: pari == pari
+            True
+            sage: pari == gp
+            False
+            sage: pari == 5
+            False
+        """
+        return (<Parent>left)._richcmp(right, op)
 
     def default(self, variable, value=None):
         if not value is None:
@@ -5145,8 +5274,8 @@ cdef class PariInstance:
         cdef gen g
         g = _new_gen(x)
 
-        global top, avma
-        avma = top
+        global mytop, avma
+        avma = mytop
         _sig_off
         return g
 
@@ -5165,8 +5294,11 @@ cdef class PariInstance:
         cdef gen p
         p = gen()
         p.init(x, 0)
-        p.refers_to[-1] = g  # so underlying memory won't get deleted
-                             # out from under us.
+        try:
+            p.refers_to[-1] = g  # so underlying memory won't get deleted
+                                 # out from under us.
+        except TypeError:
+            p.refers_to = {-1:g}
         return p
 
     cdef gen adapt(self, s):
@@ -5207,7 +5339,7 @@ cdef class PariInstance:
         _sig_off
         return self.new_gen(g)
 
-    def _coerce_(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Implicit canonical coercion into a PARI object.
         """
@@ -5218,6 +5350,9 @@ cdef class PariInstance:
         if isinstance(x, gen):
             return x
         raise TypeError, "x must be a PARI object"
+
+    cdef _an_element_c_impl(self):  # override this in SageX
+        return self.ZERO
 
     def new_with_prec(self, s, long precision=0):
         r"""
@@ -5612,7 +5747,7 @@ cdef class PariInstance:
 cdef int init_stack(size_t size) except -1:
     cdef size_t s
 
-    global top, bot, avma, stack_avma
+    global top, bot, avma, stack_avma, mytop
 
     # delete this if get core dumps and change the 2* to a 1* below.
     if bot:
@@ -5640,8 +5775,8 @@ cdef int init_stack(size_t size) except -1:
         if not bot:
             raise MemoryError, "Unable to allocate %s bytes memory for PARI."%(<long>size)
     #endif
-
     top = bot + s
+    mytop = top
     avma = top
     stack_avma = avma
 
@@ -5660,7 +5795,7 @@ cdef size_t fix_size(size_t a):
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     cdef size_t s
     cdef pari_sp tmp_bot, tmp_top, tmp_avma
-    global avma, bot, top
+    global avma, bot, top, mytop
     cdef GEN h
 
     tmp_top = top
@@ -5683,14 +5818,23 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     avma = tmp_avma
     return h
 
+# The first one makes a separate copy on the heap, so the stack
+# won't overflow -- but this costs more time...
 cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
     _sig_on
     h = deepcopy_to_python_heap(x, &address)
-    y = gen()
+    y = PY_NEW(gen)
     y.init(h, address)
+    _sig_off
+    return y
+
+cdef gen xxx_new_gen(GEN x):
+    cdef gen y
+    y = PY_NEW(gen)
+    y.init(x, 0)
     _sig_off
     return y
 
@@ -5717,8 +5861,8 @@ cdef int _read_script(char* s) except -1:
 
     # We set top to avma, so the script's affects won't be undone
     # when we call new_gen again.
-    global top, avma
-    top = avma
+    global mytop, top, avma
+    mytop = avma
     return 0
 
 

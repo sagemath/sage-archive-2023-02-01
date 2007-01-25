@@ -73,9 +73,16 @@ def optional_packages():
         upgrade -- upgrade to latest version of core packages
                    (optional packages are not automatically upgraded).
     """
-    X = os.popen('sage -optional').read().split('\n')
-    i = X.index('INSTALLED:')
-    j = X.index('NOT INSTALLED:')
+    R = os.popen('sage -optional').read()
+    X = R.split('\n')
+    try:
+        i = X.index('INSTALLED:')
+        j = X.index('NOT INSTALLED:')
+    except ValueError, msg:
+        print R
+        print "Optional package list (shown above) appears to be currently not available or corrupted (network error?)."
+        return [], []
+
     installed = []
     for k in X[i+1:]:
         if k == '':

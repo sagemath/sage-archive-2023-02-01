@@ -289,7 +289,7 @@ import sage.plot.plot
 import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
-from sage.rings.real_field import RealField
+from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, ZZ
 import sage.rings.commutative_ring as commutative_ring
@@ -463,7 +463,7 @@ def jacobi_P(n,a,b,x):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
-        sage: jacobi_P(2,1,2,1.2)
+        sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
         5.009999999999998
     """
     _init()

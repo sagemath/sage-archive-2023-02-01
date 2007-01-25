@@ -18,7 +18,6 @@ import sage.rings.rational_field
 import sage.rings.integer_ring
 import sage.rings.integer
 import sage.rings.rational
-import sage.rings.real_field
 import sage.rings.complex_field
 import sage.rings.complex_number
 import sage.rings.real_mpfr
@@ -85,7 +84,7 @@ def algdep(z, n):
         return z.denominator()*x   -   z.numerator()
 
     if isinstance(z, float):
-        z = sage.rings.real_field.RealField()(z)
+        z = sage.rings.real_mpfr.RealField()(z)
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 
@@ -2529,3 +2528,66 @@ def two_squares(n, algorithm='gap'):
         return Integer(x), Integer(y)
     else:
         raise RuntimeError, "unknown algorithm '%s'"%algorithm
+
+def subfactorial(n):
+    r"""
+    Subfactorial or rencontres numbers, or derangements: number of permutations of $n$ elements with no fixed points.
+
+   INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: subfactorial(0)
+        1
+        sage: subfactorial(1)
+        0
+        sage: subfactorial(8)
+        14833
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-23)
+
+
+    """
+    return factorial(n)*sum(((-1)**k)/factorial(k) for k in range(n+1))
+
+
+def is_power_of_two(n):
+    r"""
+    This function returns True if and only if $n$ is a power of 2
+
+    INPUT:
+        n -- integer
+
+    OUTPUT:
+        True -- if n is a power of 2
+        False -- if not
+
+    EXAMPLES:
+        sage: is_power_of_two(1024)
+        True
+
+        sage: is_power_of_two(1)
+        True
+
+        sage: is_power_of_two(24)
+        False
+
+        sage: is_power_of_two(0)
+        False
+
+        sage: is_power_of_two(-4)
+        False
+
+    AUTHOR:
+        -- Jaap Spies (2006-12-09)
+
+    """
+    # modification of is2pow(n) from the Programming Guide
+    while n > 0 and n%2 == 0:
+        n = n >> 1
+    return n == 1
+

@@ -1,6 +1,8 @@
 include 'decl.pxi'
 
-cdef class gen:
+cimport sage.structure.element
+
+cdef class gen(sage.structure.element.RingElement):
     cdef GEN g
     cdef object refers_to
     cdef pari_sp b
@@ -12,8 +14,9 @@ cdef class gen:
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef int get_var(self, v)
 
+cimport sage.structure.parent_base
 
-cdef class PariInstance:
+cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen ZERO, ONE, TWO
     cdef gen new_gen(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)

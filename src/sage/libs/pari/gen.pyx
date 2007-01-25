@@ -451,28 +451,44 @@ cdef class gen:
 
 
     ###########################################
-    # ?
+    # comparisions
+    # I had to put the call to gcmp in another
+    # function since otherwise I can't trap
+    # the PariError it will sometimes raise.
+    # (This might be a bug/shortcoming to SageX.)
+    # Annoyingly the _cmp method always has
+    # to be not cdef'd.
     ###########################################
+
+    def _cmp(gen self, gen other):
+        cdef int result
+        _sig_on
+        result = gcmp(self.g, other.g)
+        _sig_off
+        return result
 
     def __cmp__(gen self, gen other):
         """
         Comparisons
 
-        Compares the underlying strings unless the inputs
-        are integer, real, or fraction (quotient of integers).
+        First uses PARI's cmp routine; if it decides the objects are
+        not comparable, it then compares the underlying strings (since
+        in Python all objects are supposed to be comparable).
+
+        EXAMPLES:
+            sage: pari(2.5) > None
+            False
+            sage: pari(3) == pari(3)
+            True
+            sage: pari('x^2 + 1') == pari('I-1')
+            False
+            sage: pari(I) == pari(I)
+            True
         """
-        if gegal(self.g, other.g):
-            return 0
-        cdef int tg, to, a
-        tg = typ(self.g)
-        to = typ(other.g)
-
-        cdef int t_g, t_o
-        t_g = typ(self.g); t_o = typ(other.g)
-        if (t_g == t_INT or t_g == t_REAL or t_g == t_FRAC) and \
-           (t_o == t_INT or t_g == t_REAL or t_g == t_FRAC):
-            return gcmp(self.g, other.g)
-
+        try:
+            return self._cmp(other)
+        except PariError:
+            pass
         return cmp(str(self),str(other))
 
     def __richcmp__(gen self, other, int op):

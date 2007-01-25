@@ -12,7 +12,6 @@ cdef class gen:
     cdef GEN _deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef int get_var(self, v)
 
-
 cdef class PariInstance:
     cdef gen ZERO, ONE, TWO
     cdef gen new_gen(self, GEN x)

@@ -746,10 +746,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = 119.41212
             sage: a.integer_part()
             119
+
+        A big number with no decimal point:
+            sage: a = RR(10^17); a
+            100000000000000000
+            sage: a.integer_part()
+            100000000000000000
         """
         s = self.str(base=32, no_sci=True)
         i = s.find(".")
-        return Integer(s[:i], base=32)
+        if i != -1:
+            return Integer(s[:i], base=32)
+        else:
+            return Integer(s, base=32)
 
     ########################
     #   Basic Arithmetic
@@ -981,6 +990,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2
             sage: (2.01).ceil()
             3
+
+            sage: ceil(10^16 * 1.0)
+            10000000000000000
+            sage: ceil(10^17 * 1.0)
+            100000000000000000
         """
         cdef RealNumber x
         x = self._new()

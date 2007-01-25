@@ -64,8 +64,8 @@ usage_advanced() {
     echo "  -tnew ...     -- like -t above, but only tests files modified since last commit"
     echo "  -tsage        -- test latex document via sage (pexpect) interface"
     echo "  -testall      -- test all source, docs, and examples in your SAGE distro."
-    echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
-    echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
+    #echo "  -update       -- download latest non-optional SAGE packages (do not build them)"
+    #echo "  -update-build -- build and install all downloaded non-optional SAGE packages"
     echo "  -upgrade      -- download, build and install latest non-optional SAGE packages"
     echo ""
     echo "You can also use -- before a long option, e.g., 'sage --optional'."
@@ -520,16 +520,16 @@ if [ $1 = '-bdist' -o $1 = "--bdist" ]; then
    exit $?
 fi
 
-if [ $1 = '-update' ]; then
-    sage-update
-    exit $?
-fi
+#if [ $1 = '-update' ]; then
+#    sage-update
+#    exit $?
+#fi
 
-if [ $1 = '-update-build' -o $1 = "--update-build" ]; then
-    sage-update-build
-    sage-update-build
-    exit $?
-fi
+#if [ $1 = '-update-build' -o $1 = "--update-build" ]; then
+#    sage-update-build
+#    sage-update-build
+#    exit $?
+#fi
 
 if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
     # Do it twice since when installing sage-scripts and a running

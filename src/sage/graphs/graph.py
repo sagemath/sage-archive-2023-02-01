@@ -676,6 +676,43 @@ class Graph(GenericGraph):
         M = matrix(IntegerModRing(2), n, n, D, sparse=sparse)
         return M
 
+    def graph6_string(self): # needs testing after build works again
+        """
+        Returns the graph6 representation of the graph as an ASCII string.
+        """
+        n = self.order()
+        if n > 262143:
+            raise ValueError, 'graph6 format supports graphs on 0 to 262143 vertices only.'
+        elif self.loops() or self.multiple_edges():
+            raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
+        else:
+            M = self.am()
+            bit_vector = ''
+            for i in range(n): # encode the upper triangle as a bit vector
+                for j in range(i):
+                    bit_vector += str(M[j][i])
+            # pad on the right to make a multiple of 6
+            bit_vector = bit_vector + ( '0' * ((6 - len(bit_vector))%6) )
+
+            # split into groups of 6, and convert numbers to decimal, adding 63
+            six_bits = ''
+            for i in range(len(bit_vector)/6):
+                six_bits += chr( ZZ( bit_vector[6*i:6*(i+1)], base=2) + 63 )
+            if n in range(63):
+                N = chr(n + 63)
+            else:
+                # get 18-bit rep of n
+                n = Integer(n).binary()
+                n = '0'*(18-len(n)) + n
+                N = chr(126)# + R(n)
+                # pad on the right to make a multiple of 6
+                n = n + ( '0' * ((6 - len(n))%6) )
+                # split into groups of 6, and convert numbers to decimal, adding 63
+                for i in range(len(n)/6):
+                    N += chr( ZZ( n[6*i:6*(i+1)], base=2) + 63 )
+
+            return N + six_bits
+
     ### Construction
 
     def add_cycle(self, vertices):

@@ -90,16 +90,51 @@ class Polynomial_generic_dense(Polynomial):
             n -= 1
 
     def __getitem__(self,n):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = (1+2*x)^5; f
+            32*x^5 + 80*x^4 + 80*x^3 + 40*x^2 + 10*x + 1
+            sage: f[-1]
+            0
+            sage: f[2]
+            40
+            sage: f[6]
+            0
+        """
         if n < 0 or n >= len(self.__coeffs):
             return self.base_ring()(0)
         return self.__coeffs[n]
 
     def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = (1+2*x)^5; f
+            32*x^5 + 80*x^4 + 80*x^3 + 40*x^2 + 10*x + 1
+            sage: f[:3]
+            [1, 10, 40]
+        """
         if i < 0:
             i = 0
         return self.__coeffs[i:j]
 
     def _unsafe_mutate(self, n, value):
+        """
+        Never use this unless you really know what you are doing.
+
+        WARNING: This could easily introduce subtle bugs, since SAGE
+        assumes everywhere that polynomials are immutable.  It's OK to
+        use this if you really know what you're doing.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = (1+2*x)^2; f
+            4*x^2 + 4*x + 1
+            sage: f._unsafe_mutate(1, -5)
+            sage: f
+            4*x^2 - 5*x + 1
+        """
         n = int(n)
         value = self.base_ring()(value)
         if n >= 0 and n < len(self.__coeffs):
@@ -115,6 +150,20 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs.append(value)
 
     def __floordiv__(self, right):
+        """
+        Return the quotient upon division (no remainder).
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = (1+2*x)^3 + 3*x; f
+            8*x^3 + 12*x^2 + 9*x + 1
+            sage: g = f // (1+2*x); g
+            4*x^2 + 4*x + 5/2
+            sage: f - g * (1+2*x)
+            -3/2
+            sage: f.quo_rem(1+2*x)
+            (4*x^2 + 4*x + 5/2, -3/2)
+        """
         if right.parent() == self.parent():
             return Polynomial.__floordiv__(self, right)
         d = self.parent().base_ring()(right)
@@ -124,16 +173,31 @@ class Polynomial_generic_dense(Polynomial):
         """
         Return a new copy of the list of the underlying
         elements of self.
+
+        EXAMPLES:
+            sage: R.<x> = GF(17)[]
+            sage: f = (1+2*x)^3 + 3*x; f
+            8*x^3 + 12*x^2 + 9*x + 1
+            sage: f.list()
+            [1, 9, 12, 8]
         """
         return list(self.__coeffs)
 
     def degree(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = RDF[]
+            sage: f = (1+2*x^7)^5
+            sage: f.degree()
+            35
+        """
         return len(self.__coeffs) - 1
 
     def shift(self, n):
         r"""
-        Returns this polynomial multiplied by the power $x^n$. If $n$ is negative,
-        terms below $x^n$ will be discarded. Does not change this polynomial.
+        Returns this polynomial multiplied by the power $x^n$. If $n$
+        is negative, terms below $x^n$ will be discarded. Does not
+        change this polynomial.
 
         EXAMPLES:
             sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'), 'x')

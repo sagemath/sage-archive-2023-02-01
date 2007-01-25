@@ -16,17 +16,24 @@ import ell_generic
 
 class EllipticCurveFormalGroup(SageObject):
     r"""
-    A formal group associated to an elliptic curve.
+    The formal group associated to an elliptic curve.
     """
-
     def __init__(self, E):
         self.__E = E
 
-    def __repr__(self):
-        return "The formal group associated to the " + self.__E
+    def _repr_(self):
+        return "Formal Group associated to the %s"%self.__E
 
     def curve(self):
-        r"""The elliptic curve this formal group is associated to."""
+        r"""
+        The elliptic curve this formal group is associated to.
+
+        EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: F = E.formal_group()
+            sage: F.curve()
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        """
         return self.__E
 
     def w(self, prec=20):

@@ -1139,7 +1139,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         return g
 
     def formal_group(self):
-        r"""The formal group associated to this elliptic curve."""
+        r"""
+        The formal group associated to this elliptic curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve("37a")
+            sage: E.formal_group()
+            Formal Group associated to the Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+        """
         try:
             return self.__formal_group
         except AttributeError:

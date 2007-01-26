@@ -1810,6 +1810,23 @@ def primitive_root(n):
     except RuntimeError:
         raise ArithmeticError, "There is no primitive root modulo n"
 
+def nth_prime(n):
+    """
+    EXAMPLES:
+        sage: nth_prime(0)
+        Traceback (most recent call last):
+        ...
+        ValueError
+        sage: nth_prime(3)
+        5
+        sage: nth_prime(10)
+        29
+    """
+    n = int(n)
+    if n <= 0:
+        raise ValueError
+    return integer_ring.ZZ(pari('prime(%s)'%int(n)))
+
 def discrete_log_generic(b, a, ord=None):
     """
     Return an integer $n$ such that $b^n = a$, assuming that ord is a

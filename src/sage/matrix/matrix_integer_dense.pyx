@@ -616,7 +616,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         res_right = right._reduce(mm)
         for i in range(len(mm)):  # yes, I could do this with zip, but to conserve memory...
             res[i] *= res_right[i]
-        return left._lift_crt(res, mm)
+        return _lift_crt(res, mm)
 
     def _mod_int(self, modulus):
         return self._mod_int_c(modulus)
@@ -672,49 +672,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         sage_free(row_list)
         return res
-
-    def _lift_crt(self, residues, moduli=None):
-
-        cdef size_t n, i, j, k
-        cdef Py_ssize_t nr, nc
-
-        n = len(residues)
-        nr = residues[0].nrows()
-        nc = residues[0].ncols()
-
-        if moduli is None:
-            moduli = MultiModularBasis([m.base_ring().order() for m in residues])
-        else:
-            if len(residues) != len(moduli):
-                raise IndexError, "Number of residues (%s) does not match number of moduli (%s)"%(len(residues), len(moduli))
-
-        cdef MultiModularBasis mm
-        mm = moduli
-
-        for b in residues:
-            if not PY_TYPE_CHECK(b, Matrix_modn_dense):
-                raise TypeError, "Can only perform CRT on list of type Matrix_modn_dense."
-        cdef PyObject** res
-        res = FAST_SEQ_UNSAFE(residues)
-
-        cdef mod_int **row_list
-        row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
-        if row_list == NULL:
-            raise MemoryError, "out of memory allocating multi-modular coefficent list"
-
-        cdef Matrix_integer_dense M
-        M = Matrix_integer_dense.__new__(Matrix_integer_dense, self.matrix_space(nr, nc), None, None, None)
-
-        _sig_on
-        for i from 0 <= i < nr:
-            for k from 0 <= k < n:
-                row_list[k] = (<Matrix_modn_dense>res[k]).matrix[i]
-            mm.mpz_crt_vec(M._matrix[i], row_list, nc)
-        _sig_off
-
-        sage_free(row_list)
-        return M
-
 
     def _echelon_in_place_classical(self):
         cdef Matrix_integer_dense E
@@ -1162,4 +1119,47 @@ def convert_parimatrix(z):
     z = z.vecextract(r)
     return _parimatrix_to_strlist(z)
 
+
+
+def _lift_crt(residues, moduli=None):
+
+    cdef size_t n, i, j, k
+    cdef Py_ssize_t nr, nc
+
+    n = len(residues)
+    nr = residues[0].nrows()
+    nc = residues[0].ncols()
+
+    if moduli is None:
+        moduli = MultiModularBasis([m.base_ring().order() for m in residues])
+    else:
+        if len(residues) != len(moduli):
+            raise IndexError, "Number of residues (%s) does not match number of moduli (%s)"%(len(residues), len(moduli))
+
+    cdef MultiModularBasis mm
+    mm = moduli
+
+    for b in residues:
+        if not PY_TYPE_CHECK(b, Matrix_modn_dense):
+            raise TypeError, "Can only perform CRT on list of type Matrix_modn_dense."
+    cdef PyObject** res
+    res = FAST_SEQ_UNSAFE(residues)
+
+    cdef mod_int **row_list
+    row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
+    if row_list == NULL:
+        raise MemoryError, "out of memory allocating multi-modular coefficent list"
+
+    cdef Matrix_integer_dense M
+    M = Matrix_integer_dense.__new__(Matrix_integer_dense, residues[0].matrix_space(nr, nc), None, None, None)
+
+    _sig_on
+    for i from 0 <= i < nr:
+        for k from 0 <= k < n:
+            row_list[k] = (<Matrix_modn_dense>res[k]).matrix[i]
+        mm.mpz_crt_vec(M._matrix[i], row_list, nc)
+    _sig_off
+
+    sage_free(row_list)
+    return M
 

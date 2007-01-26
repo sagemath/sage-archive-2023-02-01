@@ -1144,6 +1144,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
             sage: n.valuation(7)
             0
+            sage: n.valuation(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: You can only compute the valuation with respect to a integer larger than 1.
         """
         if self == 0:
             return sage.rings.infinity.infinity
@@ -1153,9 +1157,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         cdef int k
         k = 0
-        while self % p == 0:
+        while self % _p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self = self.__floordiv__(_p)
         return Integer(k)
 
     def _lcm(self, Integer n):

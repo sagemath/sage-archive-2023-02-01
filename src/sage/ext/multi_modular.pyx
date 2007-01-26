@@ -1,3 +1,17 @@
+"""
+Utility classes for multi-modular algorithms.
+"""
+
+######################################################################
+#       Copyright (C) 2006 William Stein
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#  The full text of the GPL is available at:
+#                  http://www.gnu.org/licenses/
+######################################################################
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
@@ -7,14 +21,28 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.arith import next_prime
 
 # should I have mod_int versions of these functions?
-# c_inverse_mod_longlong modular inverse used exactly once in _extend_moduli_to_height
+# c_inverse_mod_longlong modular inverse used exactly once in _refresh_precomputations
 from sage.ext.arith cimport arith_llong
 cdef arith_llong ai
 ai = arith_llong()
 
 cdef class MultiModularBasis_base:
+    r"""
+    This class stores a list of machine-sized prime numbers,
+    and can do reduction and Chinese Remainder Theorem lifting
+    modulo these primes.
+
+    Lifting implemented via Garner's algorithm, which has the advantage
+    that all reductions are word-sized. For each $i$ precompute
+
+       $\prod_j=1^{i-1} m_j$ and $\prod_j=1^{i-1} m_j^{-1} (mod m_i)$
+    """
 
     def __new__(self, height):
+        r"""
+        Allocate the space for the moduli and precomputation lists
+        and initalize the first element of that list.
+        """
         cdef mod_int p
         p = next_prime(START_PRIME_MAX-1)
 
@@ -36,9 +64,29 @@ cdef class MultiModularBasis_base:
         sage_free(self.partial_products)
         sage_free(self.C)
 
+    def __init__(self, height):
+        r"""
+        Initialize a multi-modular basis and perform precomputations.
+
+        INPUT:
+            height -- determines how many primes are computed
+                      (their product must be at least height)
+        """
+        cdef Integer h
+        h = ZZ(height)
+        self._extend_moduli_to_height(h.value)
+
 
     cdef int _extend_moduli_to_height(self, mpz_t height) except -1:
-        if mpz_cmp(height, self.partial_products[self.n-1]) <= 0: return self.n
+        r"""
+        Expand the list of primes and perform precomputations.
+
+        INPUT:
+            height -- determines how many primes are computed
+                      (their product must be at least height)
+        """
+        if mpz_cmp(height, self.partial_products[self.n-1]) <= 0:
+            return self.n
         cdef int i
         new_moduli = []
         new_partial_products = []
@@ -71,6 +119,14 @@ cdef class MultiModularBasis_base:
         return new_count
 
     cdef int _extend_moduli_to_count(self, int count) except -1:
+        r"""
+        Expand the list of primes and perform precomputations.
+
+        INPUT:
+            count -- the minimum number of moduli in the resulting list
+        """
+        if count <= self.n:
+            return self.n
         self.moduli = <mod_int*>sage_realloc(self.moduli, sizeof(mod_int) * count)
         self.partial_products = <mpz_t*>sage_realloc(self.partial_products, sizeof(mpz_t) * count)
         self.C = <mod_int*>sage_realloc(self.C, sizeof(mod_int) * count)
@@ -91,6 +147,9 @@ cdef class MultiModularBasis_base:
         return count
 
     cdef void _refresh_products(self, int start):
+        r"""
+        Compute and store $\prod_j=1^{i-1} m_j$ of i > start.
+        """
         cdef mpz_t z
         mpz_init(z)
         if start == 0:
@@ -103,12 +162,19 @@ cdef class MultiModularBasis_base:
 
 
     cdef void _refresh_precomputations(self, int start):
+        r"""
+        Compute and store $\prod_j=1^{i-1} m_j^{-1} (mod m_i)$ of i >= start.
+        """
         if start == 0:
             start = 1 # first one is trivial, never used
         for i from start <= i < self.n:
             self.C[i] = ai.c_inverse_mod_longlong(mpz_fdiv_ui(self.partial_products[i-1], self.moduli[i]), self.moduli[i])
 
     cdef int min_moduli_count(self, mpz_t height) except -1:
+        r"""
+        Compute the minimum number of primes needed to uniquely determin
+        an integer mod height.
+        """
         self._extend_moduli_to_height(height)
 
         cdef int count
@@ -129,6 +195,18 @@ cdef class MultiModularBasis_base:
         return self.moduli[self.n-1]
 
     cdef int mpz_reduce_tail(self, mpz_t z, mod_int* b, int offset, int len) except -1:
+        r"""
+        Performs reduction mod $m_i$ for offset <= i < len
+
+        b[i] = z mod $m_{i+offset}$ for 0 <= i < len
+
+        INPUT:
+            z -- the integer being reduced
+            b -- array to hold the reductions mod each m_i.
+                 It MUST be allocated and have length at least len
+            offset -- first prime in list to reduce against
+            len    -- number of primes in list to reduce against
+        """
         cdef int i
         cdef mod_int* m
         m = self.moduli + offset
@@ -137,6 +215,20 @@ cdef class MultiModularBasis_base:
         return 0
 
     cdef int mpz_reduce_vec_tail(self, mpz_t* z, mod_int** b, int vn, int offset, int len) except -1:
+        r"""
+        Performs reduction mod $m_i$ for offset <= i < len
+
+        b[i][j] = z[j] mod $m_{i+offset}$ for 0 <= i < len
+
+        INPUT:
+            z  -- an array of integers being reduced
+            b  -- array to hold the reductions mod each m_i.
+                 It MUST be fully allocated and each
+                 have length at least len
+            vn -- length of z and each b[i]
+            offset -- first prime in list to reduce against
+            len    -- number of primes in list to reduce against
+        """
         cdef int i, j
         cdef mod_int* m
         m = self.moduli + offset
@@ -147,8 +239,22 @@ cdef class MultiModularBasis_base:
         return 0
 
     cdef int mpz_crt_tail(self, mpz_t z, mod_int* b, int offset, int len) except -1:
-        # Garner's Algorithm
-        # z is not yet initalized
+        r"""
+        Calculate lift mod $\prod_{i=0}^{offset+len-1} m_i$.
+
+        z = b[i] mod $m_{i+offset}$ for 0 <= i < len
+
+        In the case that offset > 0,
+        z remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+
+        INPUT:
+            z  -- a placeholder for the constructed integer
+                  z MUST be initalized IF and ONLY IF offset > 0
+            b  -- array holding the reductions mod each m_i.
+                  It MUST have length at least len
+            offset -- first prime in list to reduce against
+            len    -- number of primes in list to reduce against
+        """
         cdef int i, s
         cdef mpz_t u
         cdef mod_int* m
@@ -157,6 +263,9 @@ cdef class MultiModularBasis_base:
         if offset == 0:
             s = 1
             mpz_init_set_ui(z, b[0])
+            if b[0] == 0:
+                while s < len and b[s] == 0: # fast forward to first non-zero
+                    s += 1
         else:
             s = 0
         for i from s <= i < len:
@@ -167,8 +276,24 @@ cdef class MultiModularBasis_base:
         return 0
 
     cdef int mpz_crt_vec_tail(self, mpz_t* z, mod_int** b, int vc, int offset, int len) except -1:
-        # Garner's Algorithm
-        # z allocated but not initalized
+        r"""
+        Calculate lift mod $\prod_{i=0}^{offset+len-1} m_i$.
+
+        z[j] = b[i][j] mod $m_{i+offset}$ for 0 <= i < len
+
+        In the case that offset > 0,
+        z[j] remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+
+        INPUT:
+            z  -- a placeholder for the constructed integers
+                  z MUST be allocated and have length at least vc
+                  z[j] MUST be initalized IF and ONLY IF offset > 0
+            b  -- array holding the reductions mod each m_i.
+                  MUST have length at least len
+            vn -- length of z and each b[i]
+            offset -- first prime in list to reduce against
+            len    -- number of primes in list to reduce against
+        """
         cdef int i, j
         cdef mpz_t u
         cdef mod_int* m
@@ -179,15 +304,31 @@ cdef class MultiModularBasis_base:
         else:
             s = 0
         for j from 0 <= j < vc:
+            i = s
             if offset == 0:
                 mpz_init_set_ui(z[j], b[0][j])
-            for i from s <= i < len:
+                if b[0][j] == 0:
+                    while i < len and b[i][j] == 0: # fast forward to first non-zero
+                        i += 1
+            while i < len:
                 mpz_set_ui(u, ((b[i][j] + m[i] - mpz_fdiv_ui(z[j], m[i])) * self.C[i]) % m[i]) # u = ((b_i - z) * C_i) % m_i
                 mpz_mul(u, u, self.partial_products[i-1])
                 mpz_add(z[j], z[j], u)
+                i += 1
         return 0
 
     def crt(self, b):
+        r"""
+        Calculate lift mod $\prod_{i=0}^{len(b)-1} m_i$.
+
+        In the case that offset > 0,
+        z[j] remains unchanged mod $\prod_{i=0}^{offset-1} m_i$
+
+        INPUT:
+            b  -- a list of length at most self.n
+        OUTPUT:
+            Integer z where z = b[i] mod $m_i$ for 0 <= i < len(b)
+        """
         cdef int i, n
         n = len(b)
         if n > self.n:
@@ -243,29 +384,75 @@ cdef class MultiModularBasis_base:
 
 
 cdef class MultiModularBasis(MultiModularBasis_base):
+    """
+    Class used for storing a MultiModular bases of a fixed length.
+    """
 
-    def __init__(self, height):
-        cdef Integer h
-        h = ZZ(height)
-        self._extend_moduli_to_height(h.value)
 
     cdef int mpz_reduce(self, mpz_t z, mod_int* b) except -1:
+        r"""
+        Performs reduction mod $m_i$ for each modulus $m_i$
+
+        b[i] = z mod $m_i$ for 0 <= i < len(self)
+
+        INPUT:
+            z -- the integer being reduced
+            b -- array to hold the reductions mod each m_i.
+                 It MUST be allocated and have length at least len
+        """
         self.mpz_reduce_tail(z, b, 0, self.n)
 
     cdef int mpz_reduce_vec(self, mpz_t* z, mod_int** b, int vn) except -1:
+        r"""
+        Performs reduction mod $m_i$ for each modulus $m_i$
+
+        b[i][j] = z[j] mod $m_i$ for 0 <= i < len(self)
+
+        INPUT:
+            z  -- an array of integers being reduced
+            b  -- array to hold the reductions mod each m_i.
+                 It MUST be fully allocated and each
+                 have length at least len
+            vn -- length of z and each b[i]
+        """
         self.mpz_reduce_vec_tail(z, b, vn, 0, self.n)
 
     cdef int mpz_crt(self, mpz_t z, mod_int* b) except -1:
+        r"""
+        Calculate lift mod $\prod m_i$.
+
+        z = b[i] mod $m_{i+offset}$ for 0 <= i < len(self)
+
+        INPUT:
+            z  -- a placeholder for the constructed integer
+                  z MUST NOT be initalized
+            b  -- array holding the reductions mod each $m_i$.
+                  It MUST have length at least len(self)
+        """
         self.mpz_crt_tail(z, b, 0, self.n)
 
     cdef int mpz_crt_vec(self, mpz_t* z, mod_int** b, int vn) except -1:
+        r"""
+        Calculate lift mod $\prod m_i$.
+
+        z[j] = b[i][j] mod $m_i$ for 0 <= i < len(self)
+
+        INPUT:
+            z  -- a placeholder for the constructed integers
+                  z MUST be allocated and have length at least vn,
+                  but each z[j] MUST NOT be initalized
+            b  -- array holding the reductions mod each $m_i$.
+                  It MUST have length at least len(self)
+            vn -- length of z and each b[i]
+        """
         self.mpz_crt_vec_tail(z, b, vn, 0, self.n)
 
 
 cdef class MutableMultiModularBasis(MultiModularBasis):
-
-    def __init__(self, height):
-        MultiModularBasis.__init__(self, height)
+    """
+    Class used for performing multi-modular methods,
+    with the possiblity of removing bad primes.
+    """
 
     cdef mod_int last_prime(self):
         if self.moduli[self.n-1] > self.__last_prime:
@@ -283,27 +470,26 @@ cdef class MutableMultiModularBasis(MultiModularBasis):
         return self.replace_prime_c(ix)
 
     cdef mod_int replace_prime_c(self, int ix) except -1:
+        r"""
+        Replace $m_{ix} in the list of moduli with a new
+        prime number greater than all others in the list,
+        and recompute all precomputations.
+
+        INPUT:
+            ix -- index into list of moduli
+
+        OUTPUT:
+            p -- the new prime modulus
+        """
         cdef int i
-        cdef Integer z
-        cdef mod_int bad_p, new_p
+        cdef mod_int new_p
 
         if ix < 0 or ix >= self.n:
             raise IndexError, "index out of range"
 
-        bad_b = self.moduli[ix]
-        z = next_prime(self.last_prime())
-        new_p = z
+        new_p = next_prime(self.last_prime())
         self.__last_prime = new_p
         self.moduli[ix] = new_p
-
-        if ix > 0:
-            mpz_mul(self.partial_products[ix], self.partial_products[ix-1], z.value)
-        else:
-            mpz_set(self.partial_products[ix], z.value)
-
-        for i from ix < i < self.n:
-            mpz_set_ui(z.value, self.moduli[i])
-            mpz_mul(self.partial_products[i], self.partial_products[i-1], z.value)
 
         self._refresh_products(ix)
         self._refresh_precomputations(ix)

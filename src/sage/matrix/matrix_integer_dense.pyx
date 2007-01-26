@@ -614,7 +614,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mm = MultiModularBasis(h)
         res = left._reduce(mm)
         res_right = right._reduce(mm)
-        print "here", mm
         for i in range(len(mm)):  # yes, I could do this with zip, but to conserve memory...
             res[i] *= res_right[i]
         return left._lift_crt(res, mm)

@@ -337,7 +337,7 @@ class ECM:
             child.sendeof()
         except:
             pass
-        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65', timeout=None)
+        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65')
         if verbose:
             print child.before,
             print child.after,

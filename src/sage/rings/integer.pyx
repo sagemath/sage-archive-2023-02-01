@@ -1147,6 +1147,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if self == 0:
             return sage.rings.infinity.infinity
+        cdef Integer _p
+        _p = Integer(p)
+        if mpz_cmp_ui(_p.value,2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         cdef int k
         k = 0
         while self % p == 0:

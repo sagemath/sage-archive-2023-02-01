@@ -370,7 +370,8 @@ ext_modules = [ \
               libraries=['gmp']), \
 
     Extension('sage.rings.integer_ring',
-              sources = ['sage/rings/integer_ring.pyx']), \
+              sources = ['sage/rings/integer_ring.pyx'],
+              libraries=['gmp']), \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \

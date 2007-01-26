@@ -72,9 +72,10 @@ import ring
 from random import randint
 cdef extern from "stdlib.h":
     long random()
-    void srandomdev()
+    void srandom(unsigned int seed)
+
 # seed it when module is loaded.
-srandomdev()
+srandom(randint(0,2**32))
 ###########
 
 def is_IntegerRing(x):

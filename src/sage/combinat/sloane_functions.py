@@ -23,7 +23,7 @@ The input must be a positive integer:
     sage: d(1/3)
     Traceback (most recent call last):
     ...
-    TypeError: Unable to coerce rational (=1/3) to an Integer.
+    TypeError: no coercion of this rational to integer
 
 You can also change how a sequence prints:
     sage: d = sloane.A000005; d
@@ -102,13 +102,13 @@ class SloaneSequence(SageObject):
         r"""
         A sequence starting at offset (=1 by default).
         """
-        self.offset = Integer(offset)
+        self.offset = ZZ(offset)
 
     def _repr_(self):
         raise NotImplementedError
 
     def __call__(self, n):
-        m = Integer(n)
+        m = ZZ(n)
         if m < self.offset:
             if self.offset == 1:
                 raise ValueError, "input n (=%s) must be a positive integer" % (n)
@@ -161,7 +161,7 @@ class SloaneSequence(SageObject):
 
 # You may have to import more here when defining new sequences
 import sage.rings.arith as arith
-from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
 from sage.libs.pari.gen import pari
@@ -300,7 +300,7 @@ class A000010(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
 
     AUTHOR:
@@ -412,7 +412,7 @@ class A000016(SloaneSequence):
     def _eval(self, n):
         if n == 0:
             return 1
-        return sum( (i%2)*arith.euler_phi(i)*2**(Integer(n/i))/(2*n) for i in arith.divisors(n) )
+        return sum( (i%2)*arith.euler_phi(i)*2**(ZZ(n/i))/(2*n) for i in arith.divisors(n) )
 
 class A000030(SloaneSequence):
     r"""
@@ -585,7 +585,7 @@ class A000045(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -610,7 +610,7 @@ class A000045(SloaneSequence):
         """
         Returns a generator over all Fibanacci numbers, starting with 0.
         """
-        x, y = Integer(0), Integer(1)
+        x, y = ZZ(0), ZZ(1)
         yield x
         while True:
             x, y = y, x+y
@@ -822,7 +822,7 @@ class A006882(SloaneSequence):
         """
         Double factorials n!!: a(n)=n*a(n-2).
         """
-        x = Integer(1)
+        x = ZZ(1)
         k = 1
         y = x
         yield x
@@ -898,7 +898,7 @@ class A000153(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = 1
         yield x
         while True:
@@ -969,7 +969,7 @@ class A000255(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = 1
         yield x
         while True:
@@ -1046,7 +1046,7 @@ class A000261(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = self.offset + 1
         yield x
         while True:
@@ -1121,7 +1121,7 @@ class A001909(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = self.offset + 1
         yield x
         while True:
@@ -1196,7 +1196,7 @@ class A001910(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = self.offset + 1
         yield x
         while True:
@@ -1276,7 +1276,7 @@ class A090010(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = self.offset + 1
         yield x
         while True:
@@ -1354,7 +1354,7 @@ class A055790(SloaneSequence):
         """
 
         """
-        x, y = Integer(a0), Integer(a1)
+        x, y = ZZ(a0), ZZ(a1)
         k = self.offset + 1
         yield x
         while True:
@@ -1423,7 +1423,7 @@ class A090012(SloaneSequence):
 
     def _eval(self, n):
         if n == 1:
-            return Integer(3)
+            return ZZ(3)
         else:
             return  sloane.A000153(n+1) + sloane.A000153(n)
 
@@ -1442,7 +1442,7 @@ class A090012(SloaneSequence):
 #        """
 #
 #        """
-#        x, y = Integer(a0), Integer(a1)
+#        x, y = ZZ(a0), ZZ(a1)
 #        k = self.offset + 1
 #        yield x
 #        while True:
@@ -1511,7 +1511,7 @@ class A090013(SloaneSequence):
 
     def _eval(self, n):
         if n == 1:
-            return Integer(4)
+            return ZZ(4)
         else:
             return  sloane.A000261(n+2) + sloane.A000261(n+1)
 
@@ -1566,7 +1566,7 @@ class A090014(SloaneSequence):
 
     def _eval(self, n):
         if n == 1:
-            return Integer(5)
+            return ZZ(5)
         else:
             return  sloane.A001909(n+3) + sloane.A001909(n+2)
 
@@ -1622,7 +1622,7 @@ class A090015(SloaneSequence):
 
     def _eval(self, n):
         if n == 1:
-            return Integer(6)
+            return ZZ(6)
         else:
             return  sloane.A001910(n+4) + sloane.A001910(n+3)
 
@@ -1679,7 +1679,7 @@ class A090016(SloaneSequence):
 
     def _eval(self, n):
         if n == 1:
-            return Integer(7)
+            return ZZ(7)
         else:
             return  sloane.A090010(n-1) + sloane.A090010(n)
 
@@ -1755,7 +1755,7 @@ class A000203(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -1818,7 +1818,7 @@ def recur_gen2b(a0,a1,a2,a3,b):
 
         $a(0) = a0$, $a(1) = a1$, $a(n) = a2*a(n-1) + a3*a(n-2) +f(n)$.
     """
-    x, y = Integer(a0), Integer(a1)
+    x, y = ZZ(a0), ZZ(a1)
     n = 1
     yield x
     while 1:
@@ -2211,7 +2211,7 @@ class A001694(SloaneSequence):
         ## s = '[' + gp.eval('for(n=%s,%s,if(is_powerful(n),print1(n,",")))'%(n,m)).strip()[1:-1] + ']'
 
         v = eval(s)
-        return [Integer(x) for x in v]  # not very many, so not much overhead
+        return [ZZ(x) for x in v]  # not very many, so not much overhead
 
     def _eval(self, n):
         try:
@@ -2364,7 +2364,7 @@ def recur_gen2(a0,a1,a2,a3):
 
         a(0) = a0, a(1) = a1, a(n) = a2*a(n-1) + a3*a(n-2)
     """
-    x, y = Integer(a0), Integer(a1)
+    x, y = ZZ(a0), ZZ(a1)
     n = 0
     yield x
     while 1:
@@ -3299,7 +3299,7 @@ class A111774(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     AUTHOR:
         -- Jaap Spies (2007-01-13)
@@ -3423,7 +3423,7 @@ class A111775(SloaneSequence):
         sage: a(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     AUTHOR:
         -- Jaap Spies (2006-12-09)
@@ -3479,7 +3479,7 @@ class A111776(SloaneSequence):
             k = min(d, 2*n/d)
             if k > m:
                 m = k
-        return Integer(m)
+        return ZZ(m)
 
 class A111787(SloaneSequence):
     r"""

@@ -1,6 +1,10 @@
 """
 Univariate Polynomial Rings
 
+SAGE implements sparse and dense polynomials over commutative and
+non-commutative rings.  In the non-commutative case, the polynomial
+variable commutes with the elements of the base ring.
+
 AUTHOR:
    -- William Stein
    -- Kiran Kedlaya (2006-02-13): added macaulay2 option
@@ -27,11 +31,24 @@ canonically isomorphic:
     sage: PolynomialRing(ZZ,'y', sparse=True) == PolynomialRing(ZZ,'y')
     True
 
-
     sage: QQ['y'] < QQ['x']
     False
     sage: QQ['y'] < QQ['z']
     True
+
+We create a polynomial ring over a quaternion algebra:
+    sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
+    sage: R.<w> = PolynomialRing(A,sparse=True)
+    sage: f = w^3 + (i+j)*w + 1
+    sage: f
+    w^3 + (i + j)*w + 1
+    sage: f^2
+    w^6 + (2*i + 2*j)*w^4 + 2*w^3 + (-2)*w^2 + (2*i + 2*j)*w + 1
+    sage: f = w + i ; g = w + j
+    sage: f * g
+    w^2 + (i + j)*w + k
+    sage: g * f
+    w^2 + (i + j)*w + -k
 """
 
 
@@ -44,7 +61,7 @@ canonically isomorphic:
 #*****************************************************************************
 
 import random
-
+import sage.algebras.algebra
 import commutative_ring
 import commutative_algebra
 import ring
@@ -55,7 +72,7 @@ import principal_ideal_domain
 import polynomial_element_generic
 import multi_polynomial_element
 import rational_field
-import integer_ring
+from integer_ring import is_IntegerRing
 import integer
 import integer_mod_ring
 from sage.libs.all import pari
@@ -100,15 +117,15 @@ def is_PolynomialRing(x):
         sage: type(R)
         <class 'sage.rings.multi_polynomial_ring.MPolynomialRing_polydict_domain'>
     """
-    return isinstance(x, PolynomialRing_generic)
+    return isinstance(x, PolynomialRing_general)
 
 from polynomial_ring_constructor import PolynomialRing
 
 #########################################################################################
 
-class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
+class PolynomialRing_general(sage.algebras.algebra.Algebra):
     """
-    Univariate polynomial ring over a commutative ring.
+    Univariate polynomial ring over a ring.
     """
     def __init__(self, base_ring, name=None, sparse=False):
         """
@@ -119,9 +136,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             sage: (x - 2/3)*(x^2 - 8*x + 16)
             x^3 - 26/3*x^2 + 64/3*x - 32/3
         """
-        if not isinstance(base_ring, commutative_ring.CommutativeRing):
-            raise TypeError, "Base ring must be a commutative ring."
-        commutative_algebra.CommutativeAlgebra.__init__(self, base_ring, names=name, normalize=True)
+        sage.algebras.algebra.Algebra.__init__(self, base_ring, names=name, normalize=True)
         self.__is_sparse = sparse
         self.__set_polynomial_class()
         self.__generator = self([0,1], is_gen=True)
@@ -267,11 +282,12 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         if not (cls is None):
             self.__polynomial_class = cls
             return
-        if isinstance(self.base_ring(), rational_field.RationalField) and not self.is_sparse():
+        R = self.base_ring()
+        if isinstance(R, rational_field.RationalField) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
-        elif isinstance(self.base_ring(), integer_ring.IntegerRing) and not self.is_sparse():
+        elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
-        elif isinstance(self.base_ring(), field.Field):
+        elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field
             else:
@@ -282,20 +298,58 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense
 
     def base_extend(self, R):
+        """
+        Return the base extension of this polynomial ring to R.
+
+        EXAMPLES:
+            sage: R.<x> = RR[]; R
+            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            sage: R.base_extend(CC)
+            Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            sage: R.base_extend(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no such base extension
+            sage: R.change_ring(QQ)
+            Univariate Polynomial Ring in x over Rational Field
+        """
         if R.has_coerce_map_from(self.base_ring()):
             return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
         else:
             raise TypeError, "no such base extension"
 
     def change_ring(self, R):
+        """
+        Return the polynomial ring in the same variable as self over R.
+
+        EXAMPLES:
+            sage: R.<ZZZ> = RealIntervalField() []; R
+            Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
+            sage: R.change_ring(GF(19^2,'b'))
+            Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
+        """
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
     def characteristic(self):
+        """
+        Return the characteristic of this polynomial ring, which is the same
+        as that of its base ring.
+
+        EXAMPLES:
+            sage: R.<ZZZ> = RealIntervalField() []; R
+            Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
+            sage: R.characteristic()
+            0
+            sage: S = R.change_ring(GF(19^2,'b')); S
+            Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
+            sage: S.characteristic()
+            19
+        """
         return self.base_ring().characteristic()
 
     def cyclotomic_polynomial(self, n):
         """
-        The nth cyclotomic polynomial.
+        Return the nth cyclotomic polynomial as a polynomial in this polynomial ring.
 
         EXAMPLES:
             sage: R = QQ['x']
@@ -322,39 +376,95 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
 
     def gen(self, n=0):
         """
-        If this is R[x], return x.
+        Return the indeterminate generator of this polynomial ring.
+
+        EXAMPLES:
+            sage: R.<abc> = Integers(8)[]; R
+            Univariate Polynomial Ring in abc over Ring of integers modulo 8
+            sage: t = R.gen(); t
+            abc
+            sage: t.is_gen()
+            True
+
+        An identical generator is always returned.
+            sage: t is R.gen()
+            True
         """
         if n != 0:
             raise IndexError, "generator n not defined"
         return self.__generator
 
     def parameter(self):
+        """
+        Return the generator of this polynomial ring.
+
+        This is the same as \code{self.gen()}.
+        """
         return self.gen()
 
     def is_field(self):
+        """
+        Return False, since polynomial rings are never fields.
+
+        EXAMPLES:
+            sage: R.<z> = Integers(2)[]; R
+            Univariate Polynomial Ring in z over Ring of integers modulo 2
+            sage: R.is_field()
+            False
+        """
         return False
 
     def is_sparse(self):
+        """
+        Return true if elements of this polynomial ring have a sparse representation.
+
+        EXAMPLES:
+            sage: R.<z> = Integers(8)[]; R
+            Univariate Polynomial Ring in z over Ring of integers modulo 8
+            sage: R.is_sparse()
+            False
+            sage: R.<W> = PolynomialRing(QQ, sparse=True); R
+            Sparse Univariate Polynomial Ring in W over Rational Field
+            sage: R.is_sparse()
+            True
+        """
         return self.__is_sparse
 
     def krull_dimension(self):
+        """
+        Return the Krull dimension of this polynomial ring, which is one more than
+        the Krull dimension of the base ring.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: R.krull_dimension()
+            1
+            sage: R.<z> = GF(9,'a')[]; R
+            Univariate Polynomial Ring in z over Finite Field in a of size 3^2
+            sage: R.krull_dimension()
+            1
+            sage: S.<t> = R[]
+            sage: S.krull_dimension()
+            2
+            sage: for n in range(10):
+            ...    S = PolynomialRing(S,'w')
+            sage: S.krull_dimension()
+            12
+        """
         return self.base_ring().krull_dimension() + 1
 
     def ngens(self):
+        """
+        Return the number of generators of this polynomial ring, which is 1 since
+        it is a univariate polynomial ring.
+
+        EXAMPLES:
+            sage: R.<z> = Integers(8)[]; R
+            Univariate Polynomial Ring in z over Ring of integers modulo 8
+            sage: R.ngens()
+            1
+        """
         return 1
-
-    def quotient_by_principal_ideal(self, f, names=None):
-        """
-        Return the quotient of this polynomial ring by the principal
-        ideal generated by $f$.
-        """
-        import polynomial_quotient_ring
-        return polynomial_quotient_ring.PolynomialQuotientRing(self, f, names)
-
-    #def quotient(self, I, name=None):
-    #    Q = commutative_ring.CommutativeRing.quotient(self, I)
-    #Q._assign_names([name])
-    #    return Q
 
     def random_element(self, degree, bound=0):
         """
@@ -363,7 +473,7 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
         INPUT:
             degree -- an integer
             bound -- an integer (default: 0, which tries to spread choice
-            across ring, if implemented)
+                      across ring, if implemented)
 
         OUTPUT:
             Polynomial -- A polynomial such that the coefficient of x^i,
@@ -436,16 +546,38 @@ class PolynomialRing_generic(commutative_algebra.CommutativeAlgebra):
             return self._monics_max( max_degree )
         raise ValueError # You should pass exactly one of of_degree and max_degree
 
-class PolynomialRing_integral_domain(PolynomialRing_generic, integral_domain.IntegralDomain):
+class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.CommutativeAlgebra):
+    """
+    Univariate polynomial ring over a commutative ring.
+    """
+    def __init__(self, base_ring, name=None, sparse=False):
+        if not isinstance(base_ring, commutative_ring.CommutativeRing):
+            raise TypeError, "Base ring must be a commutative ring."
+        PolynomialRing_general.__init__(self, base_ring, name=name, sparse=sparse)
+
+    def quotient_by_principal_ideal(self, f, names=None):
+        """
+        Return the quotient of this polynomial ring by the principal
+        ideal generated by $f$.
+
+        EXAMPLES:
+        """
+        import polynomial_quotient_ring
+        return polynomial_quotient_ring.PolynomialQuotientRing(self, f, names)
+
+
+
+
+class PolynomialRing_integral_domain(PolynomialRing_commutative, integral_domain.IntegralDomain):
     def __init__(self, base_ring, name="x", sparse=False):
-        PolynomialRing_generic.__init__(self, base_ring, name, sparse)
+        PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
 
 class PolynomialRing_field(PolynomialRing_integral_domain,
                            PolynomialRing_singular_repr,
                            principal_ideal_domain.PrincipalIdealDomain,
                            ):
     def __init__(self, base_ring, name="x", sparse=False):
-        PolynomialRing_generic.__init__(self, base_ring, name, sparse)
+        PolynomialRing_commutative.__init__(self, base_ring, name, sparse)
         self._has_singular = self._can_convert_to_singular()
 
     def lagrange_polynomial(self, points):
@@ -506,10 +638,10 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
         return P
 
 
-class PolynomialRing_dense_mod_n(PolynomialRing_generic):
+class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name="x"):
         self.__modulus = ntl_ZZ(base_ring.order())
-        PolynomialRing_generic.__init__(self, base_ring, name)
+        PolynomialRing_commutative.__init__(self, base_ring, name)
 
     def _ntl_set_modulus(self):
         set_modulus(self.__modulus)

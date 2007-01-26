@@ -369,6 +369,13 @@ ext_modules = [ \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
+    Extension('sage.rings.integer_ring',
+              sources = ['sage/rings/integer_ring.pyx']), \
+
+    Extension('sage.rings.memory', \
+              sources = ['sage/rings/memory.pyx'], \
+              libraries=['gmp']), \
+
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],

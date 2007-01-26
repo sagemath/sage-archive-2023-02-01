@@ -3917,10 +3917,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             # convert x and f to have coefficients over p-adics, so that
             # SAGE keeps track of precision for us (this code is so damn
             # ugly... todo: get some decent coercions written...)
-            x_coeffs = x.unit_part().list()
+            x_coeffs = x.valuation_zero_part().list()
             f_coeffs = f.list()
             xK = S([K(r.lift()) for r in x_coeffs], N+1 - x.valuation())
-            xK = xK * S.gen()**(x.valuation())
+            f = S.gen()**(x.valuation())
+            xK = xK * f
             xK = xK.add_bigoh(N+1)
             fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(N+1)
 

@@ -440,7 +440,6 @@ class DirichletCharacter(MultiplicativeGroupElement):
 
         # h(n) = g(t)*e^{nt}
         h = [0] + [g * ((n*t).exp(prec)) for n in range(1,N+1)]
-
         ber = sum([self(a)*h[a][k] for a in range(1,N+1)]) * arith.factorial(k)
 
         self.__bernoulli[k] = ber

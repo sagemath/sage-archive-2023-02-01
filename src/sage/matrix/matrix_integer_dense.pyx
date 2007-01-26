@@ -205,7 +205,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             except TypeError:
                 try:
                     # Try to coerce entries to a scalar (an integer)
-                    x = Integer(entries)
+                    x = ZZ(entries)
                     is_list = 0
                 except TypeError:
                     raise TypeError, "entries must be coercible to a list or integer"
@@ -220,7 +220,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
-                    x = Integer(entries[i])
+                    x = ZZ(entries[i])
                     # todo -- see integer.pyx and the TODO there; perhaps this could be
                     # sped up by creating a mpz_init_set_sage function.
                     mpz_init_set(self._entries[i], x.value)

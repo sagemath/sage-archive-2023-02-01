@@ -1,6 +1,9 @@
 """
 Power Series
 
+SAGE provides an implementation of dense and sparse power series over
+any SAGE base ring.
+
 AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
@@ -105,45 +108,112 @@ class PowerSeries(ring_element.RingElement):
             prec = int(prec)
         self._prec = prec
 
+    def is_sparse(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: t.is_sparse()
+            False
+            sage: R.<t> = PowerSeriesRing(ZZ, sparse=True)
+            sage: t.is_sparse()
+            True
+        """
+        return self.parent().is_sparse()
+
+    def is_dense(self):
+        """
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: t.is_dense()
+            True
+            sage: R.<t> = PowerSeriesRing(ZZ, sparse=True)
+            sage: t.is_dense()
+            False
+        """
+        return self.parent().is_dense()
+
     def is_gen(self):
         """
         Returns True if this the generator (the variable) of the power series ring.
+
         EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: t.is_gen()
+            True
+            sage: (1 + 2*t).is_gen()
+            False
 
-
+        Note that this only returns true on the actual generator, not on
+        something that happens to be equal to it.
+            sage: (1*t).is_gen()
+            False
+            sage: 1*t == t
+            True
         """
         return self.__is_gen
 
     def _im_gens_(self, codomain, im_gens):
+        """
+        Returns the image of this series under the map that sends the generators
+        to im_gens.   This is used internally for computing homomorphisms.
+
+        EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: f = 1 + t + t^2
+            sage: f._im_gens_(ZZ, [3])
+            13
+        """
         return codomain(self(im_gens[0]))
 
     def base_extend(self, R):
         """
         Return a copy of this power series but with coefficients in R.
 
-        EXAMPLES:
-        We can only base extend if there is a __call__ coercion defined.
-        This succeeds because ZZ(K(4)) is defined.
-            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
-            sage: R.<t> = K[['t']]
-            sage: (4*t).base_extend(ZZ)
-            4*t
-
-        This does not succeed because ZZ(K(a+1)) is not defined.
-            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
-            sage: R.<t> = K[['t']]
-            sage: ((a+1)*t).base_extend(ZZ)
-            Traceback (most recent call last):
-            ...
-            TypeError: cannot coerce nonconstant polynomial to int
-
         The following coercion uses base_extend implicitly:
             sage: R.<t> = ZZ[['t']]
             sage: (t - t^2) * Mod(1, 3)
             t + 2*t^2
         """
-        S = sage.rings.power_series_ring.PowerSeriesRing(R,
-                                      name = self.parent().variable_name())
+        S = self.parent().base_extend(R)
+        return S(self)
+
+    def change_ring(self, R):
+        """
+        Change if possible the coefficients of self to lie in R.
+
+        EXAMPLES:
+            sage: R.<T> = QQ[[]]; R
+            Power Series Ring in T over Rational Field
+            sage: f = 1 - 1/2*T + 1/3*T^2 + O(T^3)
+            sage: f.base_extend(GF(5))
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+            sage: f.change_ring(GF(5))
+            1 + 2*T + 2*T^2 + O(T^3)
+            sage: f.change_ring(GF(3))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Inverse does not exist.
+
+        We can only change irng if there is a __call__ coercion defined.
+        The following succeeds because ZZ(K(4)) is defined.
+
+            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
+            sage: R.<t> = K[['t']]
+            sage: (4*t).change_ring(ZZ)
+            4*t
+
+        This does not succeed because ZZ(K(a+1)) is not defined.
+            sage: K.<a> = NumberField(cyclotomic_polynomial(3), 'a')
+            sage: R.<t> = K[['t']]
+            sage: ((a+1)*t).change_ring(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot coerce nonconstant polynomial to int
+
+        """
+        S = self.parent().change_ring(R)
         return S(self)
 
     def __cmp__(self, right):
@@ -158,6 +228,19 @@ class PowerSeries(ring_element.RingElement):
         unequal.)  I side with PARI, because even if $g=1+q+O(q^2)$,
         we don't really know whether f equals g, since we don't know
         the coefficients of $q^2$.
+
+        Comparison is done in dictionary order from lowest degree to
+        highest degree coefficients (this is different than
+        polynomials).
+
+        EXAMPLES:
+            sage: R.<q> = ZZ[[ ]]; R
+            Power Series Ring in q over Integer Ring
+            sage: f=1+q+O(q^2); g = 1+O(q)
+            sage: f == g
+            True
+            sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
+            False
         """
         prec = self.common_prec(right)
         x = self.list()
@@ -165,16 +248,44 @@ class PowerSeries(ring_element.RingElement):
         if prec != infinity:
             x = x[:prec]
             y = y[:prec]
-        return misc.generic_cmp(x,y)
+        return cmp(x,y)
 
-    def __call__(self, x):
+    def __call__(self, x):   # you *MUST* overrride this in the derived class
         raise NotImplementedError
+
+    def list(self):          # you *MUST* overrride this in the derived class
+        raise NotImplementedError
+
+    def polynomial(self):          # you *MUST* overrride this in the derived class
+        raise NotImplementedError
+
+    def __setitem__(self, n, value):   # you *MUST* overrride this in the derived class
+        raise NotImplementedError
+
+    def __copy__(self):
+        """
+        Return this power series.  Power series are immutable so copy
+        can safely just return the same polynomial.
+
+        EXAMPLES:
+            sage: R.<q> = ZZ[[ ]]; R
+            Power Series Ring in q over Integer Ring
+            sage: f = 1 + 3*q + O(q^10)
+            sage: copy(f) is f       # !!! ok since power series are immutable.
+            True
+        """
+        return self
 
     def base_ring(self):
-        return self.parent().base_ring()
+        """
+        Return the base ring that this power series is defined over.
 
-    def list(self):
-        raise NotImplementedError
+        EXAMPLES:
+            sage: R.<t> = GF(49,'alpha')[[]]
+            sage: (t^2 + O(t^3)).base_ring()
+            Finite Field in alpha of size 7^2
+        """
+        return self.parent().base_ring()
 
     def padded_list(self, n):
         """
@@ -205,37 +316,87 @@ class PowerSeries(ring_element.RingElement):
     def prec(self):
         """
         The precision of $...+O(x^r)$ is by definition $r$.
+
+        EXAMPLES:
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3)).prec()
+            3
+            sage: (1 - t^2 + O(t^100)).prec()
+            100
         """
         return self._prec
 
     def _repr_(self):
+        """
+        Return string represenation of this power series.
+
+        EXAMPLES:
+            sage: R.<t> = ZZ[[]]
+            sage: (t^2 + O(t^3))._repr_()
+            't^2 + O(t^3)'
+
+            sage: R.<t> = QQ[[]]
+            sage: 1 / (1+2*t +O(t^5))
+            1 - 2*t + 4*t^2 - 8*t^3 + 16*t^4 + O(t^5)
+
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: 1 / (1+2*t +O(t^5))
+            1 - 2*t + 4*t^2 - 8*t^3 + 16*t^4 + O(t^5)
+            sage: -13/2 * t^3  + 5*t^5 + O(t^10)
+            -13/2*t^3 + 5*t^5 + O(t^10)
+
+        """
         if self.is_zero():
             if self.prec() == infinity:
                 return "0"
             else:
                 return "O(%s^%s)"%(self.parent().variable_name(),self.prec())
-        s = " "
-        v = self.list()
-        m = len(v)
-        X = self.parent().variable_name()
+
         atomic_repr = self.parent().base_ring().is_atomic_repr()
-        first = True
-        for n in xrange(m):
-            x = v[n]
-            if x != 0:
-                if not first:
-                    s += " + "
-                x = str(x)
-                if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
-                    x = "(%s)"%x
-                if n > 1:
-                    var = "*%s^%s"%(X,n)
-                elif n==1:
-                    var = "*%s"%X
-                else:
-                    var = ""
-                s += "%s%s"%(x,var)
-                first = False
+        X = self.parent().variable_name()
+
+        s = " "
+        if self.is_sparse():
+            f = self.polynomial()
+            m = f.degree() + 1
+            d = f._dict_unsafe()
+            coeffs = list(d.iteritems())
+            coeffs.sort()
+            for (n, x) in coeffs:
+                if x != 0:
+                    if s != ' ':
+                        s += " + "
+                    x = str(x)
+                    if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                        x = "(%s)"%x
+                    if n > 1:
+                        var = "*%s^%s"%(X,n)
+                    elif n==1:
+                        var = "*%s"%X
+                    else:
+                        var = ""
+                    s += "%s%s"%(x,var)
+        else:
+            v = self.list()
+            m = len(v)
+            first = True
+            for n in xrange(m):
+                x = v[n]
+                if x != 0:
+                    if not first:
+                        s += " + "
+                    x = str(x)
+                    if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
+                        x = "(%s)"%x
+                    if n > 1:
+                        var = "*%s^%s"%(X,n)
+                    elif n==1:
+                        var = "*%s"%X
+                    else:
+                        var = ""
+                    s += "%s%s"%(x,var)
+                    first = False
+        # end
 
         if atomic_repr:
             s = s.replace(" + -", " - ")
@@ -254,6 +415,16 @@ class PowerSeries(ring_element.RingElement):
         return s[1:]
 
     def _latex_(self):
+        r"""
+        Return latex representation of this power series.
+
+        EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: f = -1/2 * t + 2/3*t^2 + -9/7 * t^15 + O(t^20); f
+            -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
+            sage: latex(f)
+            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + \cdots
+        """
         if self.is_zero():
             if self.prec() == infinity:
                 return "0"
@@ -300,6 +471,13 @@ class PowerSeries(ring_element.RingElement):
     def truncate(self, prec=infinity):
         """
         The polynomial obtained from power series by truncation.
+
+        EXAMPLES:
+            sage: R.<I> = GF(2)[[]]
+            sage: f = 1/(1+I+O(I^8)); f
+            1 + I + I^2 + I^3 + I^4 + I^5 + I^6 + I^7 + O(I^8)
+            sage: f.truncate(5)
+            I^4 + I^3 + I^2 + I + 1
         """
         if prec == infinity:
             prec = self._prec
@@ -311,6 +489,13 @@ class PowerSeries(ring_element.RingElement):
         r"""
         Returns the power series of precision at most prec got by
         adding $O(q^\text{prec})$ to f, where q is the variable.
+
+        EXAMPLES:
+            sage: R.<A> = RDF[[]]
+            sage: f = (1+A+O(A^5))^5; f
+            1.0 + 5.0*A + 10.0*A^2 + 10.0*A^3 + 5.0*A^4 + O(A^5)
+            sage: f.add_bigoh(3)
+            1.0 + 5.0*A + 10.0*A^2 + O(A^3)
         """
         if prec == infinity or prec >= self.prec():
             return self
@@ -319,6 +504,34 @@ class PowerSeries(ring_element.RingElement):
         return self.parent()(v, prec)
 
     def __getitem__(self,n):
+        r"""
+        Return the coefficient of $t^n$ in this power series, where
+        $t$ is the indeterminate of the power series ring.
+
+        If n is negative returns 0.  If n is beyond the precision,
+        raises an IndexError.
+
+        EXAMPLES:
+            sage: R.<m> = CDF[[]]
+            sage: f = pi^2 + m^3 + e*m^4 + O(m^10); f
+            9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
+            sage: f[-5]
+            0
+            sage: f[0]
+            9.86960440109
+            sage: f[4]
+            2.71828182846
+            sage: f[9]
+            0
+            sage: f[10]
+            Traceback (most recent call last):
+            ...
+            IndexError: coefficient not known
+            sage: f[1000]
+            Traceback (most recent call last):
+            ...
+            IndexError: coefficient not known
+        """
         if n<0:
             return self.base_ring()(0)
         c = self.list()
@@ -328,14 +541,6 @@ class PowerSeries(ring_element.RingElement):
             else:
                 raise IndexError, "coefficient not known"
         return c[n]
-
-    def __getslice__(self, i, j):
-        if j>self.prec():
-            j = self.prec()
-        return self.list()[int(i):int(j)]
-
-    def __setitem__(self, n, value):
-        raise NotImplementedError
 
     def common_prec(self, f):
         if self.prec() == infinity:
@@ -363,6 +568,25 @@ class PowerSeries(ring_element.RingElement):
                 prec = min(rp + self.valuation(), sp + right.valuation())
         # endif
         return self._mul_(right, prec)
+
+    def is_zero(self):
+        """
+        Return True if this power series equals 0.
+
+        EXAMPLES:
+            sage: R.<q> = ZZ[[ ]]; R
+            Power Series Ring in q over Integer Ring
+            sage: f = 1 + 3*q + O(q^10)
+            sage: f.is_zero()
+            False
+            sage: (0 + O(q^2)).is_zero()
+            True
+            sage: R(0).is_zero()
+            True
+            sage: (0 + O(q^1000)).is_zero()
+            True
+        """
+        return self.polynomial().is_zero()
 
     def is_unit(self):
         """
@@ -393,8 +617,7 @@ class PowerSeries(ring_element.RingElement):
             multiply polynomials of length $n$.
 
         EXAMPLES:
-            sage: R = PowerSeriesRing(RationalField(), 'q')
-            sage: q = R.gen()
+            sage: R.<q> = QQ[[]]
             sage: 1/(1+q + O(q**2))
             1 - q + O(q^2)
             sage: 1/(1+q)
@@ -428,8 +651,15 @@ class PowerSeries(ring_element.RingElement):
             sage: f/(10+q)
             1/10 + 9/100*q + 91/1000*q^2 - 91/10000*q^3 + 91/100000*q^4 + O(q^5)
 
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: u = 17 + 3*t^2 + 19*t^10 + O(t^12)
+            sage: v = ~u; v
+            1/17 - 3/289*t^2 + 9/4913*t^4 - 27/83521*t^6 + 81/1419857*t^8 - 1587142/24137569*t^10 + O(t^12)
+            sage: u*v
+            1 + O(t^12)
+
         AUTHORS:
-            -- David Harvey (2006-09-09): changed to use newton method
+            -- David Harvey (2006-09-09): changed to use Newton's method
 
         """
         if self == 1:
@@ -438,7 +668,7 @@ class PowerSeries(ring_element.RingElement):
         if prec is infinity and self.degree() > 0:
             prec = self.parent().default_prec()
         if self.valuation() > 0:
-            u = 1/self.unit_part()    # inverse of unit part
+            u = ~self.valuation_zero_part()    # inverse of unit part
             R = self.parent().laurent_series_ring()
             return R(u, -self.valuation())
 
@@ -492,21 +722,53 @@ class PowerSeries(ring_element.RingElement):
         #        b.append(-b[0]*sum([b[n-i]*a[i] for i in range(1,n+1) if i < len(a)]))
         #return self.parent()(b, prec=prec)
 
-    def unit_part(self):
+    def valuation_zero_part(self):
+        r"""
+        Factor self as as $q^n\cdot (a_0 + a_1 q + \cdots)$ with $a_0$
+        nonzero.  Then this function returns $a_0 + a_1 q + \cdots $.
+
+        NOTE: this valuation zero part need not be a unit if, e.g.,
+        $a_0$ is not invertible in the base ring.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+            sage: ((1/3)*t^5*(17-2/3*t^3)).valuation_zero_part()
+            17/3 - 2/9*t^3
+
+        In this example the valuation 0 part is not a unit:
+            sage: R.<t> = PowerSeriesRing(ZZ, sparse=True)
+            sage: u = (-2*t^5*(17-t^3)).valuation_zero_part(); u
+            -34 + 2*t^3
+            sage: u.is_unit()
+            False
+            sage: u.valuation()
+            0
         """
-        Suppose self factors as $q^n\cdot (a_0 + a_1 q + \cdots)$
-        with $a_0$ nonzero.  Then this function returns $a_0 + a_1 q +
-        \cdots $.
-        """
-        #assert not self.is_zero(), "Argument must be nonzero to have a unit part."
         if self.is_zero():
-            return self.parent()(0, self.prec())
+            raise ValueError, "power series has no valuation 0 part"
         n = self.valuation()
-        v = self[int(n):]
+        if self.is_dense():
+            v = self.list()[int(n):]
+        else:
+            n = int(n)
+            v = {}
+            for k, x in self.dict().iteritems():
+                if k >= n:
+                    v[k-n] = x
         return self.parent()(v, self.prec()-n)
 
     def _div_(self, denom):
-        u = denom.unit_part()
+        """
+        EXAMPLES:
+            sage: k.<t> = QQ[[]]
+            sage: t/t
+            1
+            sage: (t/(t^3 + 1)) * (t^3 + 1)
+            t + O(t^21)
+            sage: (t^5/(t^2 - 2)) * (t^2 -2 )
+            t^5 + O(t^25)
+        """
+        u = denom.valuation_zero_part()
         inv = ~u  # inverse
 
         v = denom.valuation()
@@ -519,27 +781,11 @@ class PowerSeries(ring_element.RingElement):
         # because we can only invert a unit (and remain in the ring
         # of power series).
 
-        u = denom.unit_part()
         if v > 0:
-            coeffs = self[int(v):]
-            num = self.parent()(coeffs, self.prec()-v)
+            num = self.parent()(self.valuation_zero_part().polynomial(), self.prec()-v)
         else:
             num = self
         return num*inv
-
-    def __pow__(self, right):
-        right=int(right)
-        if right < 0:
-            return (~self)**(-right)
-        if right == 0:
-            return self.parent()(1)
-        if self.is_zero():
-            return self
-        if self.valuation() == 1 and self.degree() == 1:   # alpha*q
-            v = [0 for _ in range(right)]
-            v.append(self[1]**right)
-            return self.parent()(v, prec=self.prec()+right-1)
-        return arith.generic_power(self, right, self.parent()(1))
 
     def __mod__(self, other):
         if isinstance(other,(int,Integer,long)):
@@ -714,9 +960,6 @@ class PowerSeries(ring_element.RingElement):
         return self.derivative().solve_linear_de(prec)
 
 
-    def copy(self):
-        raise NotImplementedError
-
     def V(self, n):
         """
         If $f = \sum a_m x^m$, then this function returns $\sum a_m x^{nm}$.
@@ -734,31 +977,55 @@ class PowerSeries(ring_element.RingElement):
         return self.parent()(w, self.prec()*n)
 
     def valuation(self):
-        prec = self.prec()
-        v = self.list()
-        if prec == infinity:
-            if len(v) == 0:
-                return infinity
-        n = 0
-        while n < len(v) and v[n] == 0:
-            n += 1
-        return n
+        """
+        Return the valuation of this power series.
+
+        This is equal to the valuation of the underlying polynomial.
+
+        EXAMPLES:
+        Sparse examples:
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: f = t^100000 + O(t^10000000)
+            sage: f.valuation()
+            100000
+            sage: R(0).valuation()
+            Infinity
+
+        Dense examples:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: f = 17*t^100 +O(t^110)
+            sage: f.valuation()
+            100
+            sage: t.valuation()
+            1
+        """
+        return self.polynomial().valuation()
 
     def variable(self):
         """
         EXAMPLES:
-        sage: R.<x> = PowerSeriesRing(Rationals())
-        sage: f = x^2 + 3*x^4 + O(x^7)
-        sage: f.variable()
-         'x'
+            sage: R.<x> = PowerSeriesRing(Rationals())
+            sage: f = x^2 + 3*x^4 + O(x^7)
+            sage: f.variable()
+            'x'
 
         AUTHOR:
-            -- David Harvey (2006-08-08); copied from LaurentSeriesRingElement
+            -- David Harvey (2006-08-08)
         """
         return self.parent().variable_name()
 
     def degree(self):
-        return len(self.list())-1
+        """
+        Return the degree of this power series, which is by definition
+        the degree of the underlying polynomial.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: f = t^100000 + O(t^10000000)
+            sage: f.degree()
+            100000
+        """
+        return self.polynomial().degree()
 
     def derivative(self):
         raise NotImplementedError
@@ -769,7 +1036,7 @@ class PowerSeries(ring_element.RingElement):
 #        del v[n]
 #        n -= 1
 
-class PowerSeries_generic_dense(PowerSeries):
+class PowerSeries_poly(PowerSeries):
     def __init__(self, parent, f=0, prec=infinity, check=True, is_gen=False):
         """
         EXAMPLES:
@@ -786,7 +1053,7 @@ class PowerSeries_generic_dense(PowerSeries):
         except AttributeError:
             pass
         if not (isinstance(f, polynomial.Polynomial) and f.parent() is R):
-            if isinstance(f, PowerSeries_generic_dense):
+            if isinstance(f, PowerSeries_poly):
                 prec = f.prec()
                 f = R(f.__f)
             else:
@@ -797,7 +1064,36 @@ class PowerSeries_generic_dense(PowerSeries):
             self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
+    def __pow__(self, right):
+        right = int(right)
+        if right < 0:
+            return (~self)**(-right)
+        if right == 0:
+            return self.parent()(1)
+        if self.is_gen():
+            return PowerSeries_poly(self.parent(), self.__f**right, check=False)
+        if self.is_zero():
+            return self
+        return arith.generic_power(self, right, self.parent()(1))
+
+    def polynomial(self):
+        """
+        EXAMPLE:
+            sage: R.<t> = GF(7)[[]]
+            sage: f = 3 - t^3 + O(t^5)
+            sage: f.polynomial()
+            6*t^3 + 3
+        """
+        return self.__f
+
     def __call__(self, x):
+        """
+        EXAMPLE:
+            sage: R.<t> = GF(7)[[]]
+            sage: f = 3 - t^3 + O(t^5)
+            sage: f(1)
+            2
+        """
         try:
             if x.parent() is self.parent():
                 if self.prec() != infinity:
@@ -807,7 +1103,32 @@ class PowerSeries_generic_dense(PowerSeries):
         return self.__f(x)
 
     def __setitem__(self, n, value):
+        """
+        EXAMPLES:
+            sage: R.<t> = ZZ[[]]
+            sage: f = 3 - t^3 + O(t^5)
+            sage: f[1] = 5
+            Traceback (most recent call last):
+            ...
+            IndexError: power series are immutable
+        """
         raise IndexError, "power series are immutable"
+
+    def __getslice__(self, i, j):
+        r"""
+        Return slice of coefficient of this power series.
+
+        This calls slice on the underlying polynomial, and makes a power
+        series out of the result, with precision the precision of self.
+
+        EXAMPLES:
+            sage: R.<t> = ZZ[[]]
+            sage: f = (2-t)^5 + O(t^7); f
+            32 - 80*t + 80*t^2 - 40*t^3 + 10*t^4 - t^5 + O(t^7)
+            sage: f[2:4]
+            80*t^2 - 40*t^3 + O(t^7)
+        """
+        return PowerSeries_poly(self.parent(), self.__f[i:j], prec=self.prec(), check=False)
 
     def _unsafe_mutate(self, i, value):
         """
@@ -816,35 +1137,83 @@ class PowerSeries_generic_dense(PowerSeries):
         a power series and you really know what you're doing.  That's
         when this function is for you.
 
-        EXAMPLES:
+        ** DO NOT USE THIS ** unless you know what you're doing.
 
+        EXAMPLES:
+            sage: R.<t> = GF(7)[[]]
+            sage: f = 3 + 6*t^3 + O(t^5)
+            sage: f._unsafe_mutate(0, 5)
+            sage: f
+            5 + 6*t^3 + O(t^5)
+
+        Mutating can even bump up the precision.
+            sage: f._unsafe_mutate(7,2)
+            sage: f
+            5 + 6*t^3 + 2*t^7 + O(t^8)
         """
         self.__f._unsafe_mutate(i, value)
         self._prec = max(self._prec, i+1)
 
     def __getitem__(self, n):
+        """
+        Return the n-th coefficient.
+
+        Returns 0 for negative coefficients.  Raises an IndexError if
+        try to access beyond known coefficients.
+
+        EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: f = 3/2 - 17/5*t^3 + O(t^5)
+            sage: f[3]
+            -17/5
+            sage: f[-2]
+            0
+            sage: f[4]
+            0
+            sage: f[5]
+            Traceback (most recent call last):
+            ...
+            IndexError: coefficient not known
+            sage: f[1:4]
+            -17/5*t^3 + O(t^5)
+        """
         if n<0:
             return self.base_ring()(0)
         if n > self.__f.degree():
             if self._prec > n:
                 return self.base_ring()(0)
-            elif isinstance(n, slice):
+            #elif isinstance(n, slice):
                 # It makes no sense that this is needed and that
                 # __getslice__ isn't just called by default...
-                return self.__getslice__(slice[0],slice[1])
+            #    return self.__getslice__(slice[0],slice[1])
             else:
                 raise IndexError, "coefficient not known"
         return self.__f[n]
 
-    def __getslice__(self, i, j):
-        return self.__f[i:j]
-
     def __iter__(self):
+        """
+        Return an interator over the coefficients of this power series.
+
+        EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: f = t + 17/5*t^3 + 2*t^4 + O(t^5)
+            sage: for a in f: print a,
+            0 1 0 17/5 2
+        """
         for i in range(self.__f.degree()+1):
             yield self.__f[i]
 
     def __neg__(self):
-        return PowerSeries_generic_dense(self.parent(), -self.__f,
+        """
+        Return the negative of this power series.
+
+        EXAMPLES:
+            sage: R.<t> = QQ[[]]
+            sage: f = t + 17/5*t^3 + 2*t^4 + O(t^5)
+            sage: -f
+            -t - 17/5*t^3 - 2*t^4 + O(t^5)
+        """
+        return PowerSeries_poly(self.parent(), -self.__f,
                                          self._prec, check=False)
 
     def _add_(self, right):
@@ -858,14 +1227,31 @@ class PowerSeries_generic_dense(PowerSeries):
             sage: f+g
             x^2 + O(x^3)
         """
-        return PowerSeries_generic_dense(self.parent(), self.__f + right.__f, \
+        return PowerSeries_poly(self.parent(), self.__f + right.__f, \
                                          self.common_prec(right), check=True)
 
     def _sub_(self, right):
-        return PowerSeries_generic_dense(self.parent(), self.__f - right.__f, \
+        """
+        Return difference of two power series.
+
+        EXAMPLES:
+            sage: k.<w> = ZZ[]
+            sage: R.<t> = k[[]]
+            sage: w*t^2 -w*t +13 - (w*t^2 + w*t)
+            13 + -2*w*t
+        """
+        return PowerSeries_poly(self.parent(), self.__f - right.__f, \
                                          self.common_prec(right), check=True)
 
     def _mul_(self, right):
+        """
+        Return the product of two power series.
+
+        EXAMPLES:
+            sage: k.<w> = ZZ[[]]
+            sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
+            19*w^10 + 323*w^11 + O(w^12)
+        """
         sp = self.prec()
         rp = right.prec()
         if is_Infinity(sp):
@@ -878,7 +1264,7 @@ class PowerSeries_generic_dense(PowerSeries):
                 prec = sp + right.valuation()
             else:
                 prec = min(rp + self.valuation(), sp + right.valuation())
-        return PowerSeries_generic_dense(self.parent(),
+        return PowerSeries_poly(self.parent(),
                                          self.__f * right.__f,
                                          prec,
                                          check=True)  # check, since truncation may be needed
@@ -892,30 +1278,60 @@ class PowerSeries_generic_dense(PowerSeries):
                 denom = denom[0]
             elif not denom in self.parent().base_ring():
                 raise ZeroDivisionError, e
-            return PowerSeries_generic_dense(self.parent(),
+            return PowerSeries_poly(self.parent(),
                                              self.__f // denom, self._prec)
 
 
 
     def copy(self):
-        return PowerSeries_generic_dense(self.parent(), self.__f, self.prec(),
+        return PowerSeries_poly(self.parent(), self.__f, self.prec(),
                                          check=False)
 
     def list(self):
         return self.__f.list()
 
+    def dict(self):
+        return self.__f.dict()
+
     def derivative(self):
-        return PowerSeries_generic_dense(self.parent(), self.__f.derivative(),
+        """
+        Return the derivative of this power series.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+            sage: f = 2 + 3*t^2 + t^100000 + O(t^10000000); f
+            2 + 3*t^2 + t^100000 + O(t^10000000)
+            sage: f.derivative()
+            6*t + 100000*t^99999 + O(t^9999999)
+        """
+        return PowerSeries_poly(self.parent(), self.__f.derivative(),
                                          self.prec()-1, check=False)
 
     def integral(self):
         """
         The integral of this power series with 0 constant term.
+
+        EXAMPLES:
+            sage: k.<w> = QQ[[]]
+            sage: (1+17*w+15*w^3+O(w^5)).integral()
+            w + 17/2*w^2 + 15/4*w^4 + O(w^6)
         """
-        return PowerSeries_generic_dense(self.parent(), self.__f.integral(),
+        return PowerSeries_poly(self.parent(), self.__f.integral(),
                                          self.prec()+1, check=False)
 
     def laurent_series(self):
+        """
+        Return the Laurent series associated to this power series, i.e., this
+        series considered as a Laurent series.
+
+        EXAMPLES:
+            sage: k.<w> = QQ[[]]
+            sage: f = 1+17*w+15*w^3+O(w^5)
+            sage: parent(f)
+            Power Series Ring in w over Rational Field
+            sage: g = f.laurent_series(); g
+            1 + 17*w + 15*w^3 + O(w^5)
+        """
         return self.parent().laurent_series_ring()(self)
 
     def ogf(self):
@@ -968,9 +1384,24 @@ class PowerSeries_generic_dense(PowerSeries):
             raise RuntimeError, "series must have finite precision for reversion."
         f = self._pari_()
         g = f.serreverse()
-        return PowerSeries_generic_dense(self.parent(),g.Vecrev(),self.prec())
+        return PowerSeries_poly(self.parent(),g.Vecrev(),self.prec())
 
     def _pari_(self):
+        """
+        Return PARI power series corresponding to this series.
+
+        This is currently only implemented over QQ and ZZ.
+
+        EXAMPLES:
+            sage: k.<w> = QQ[[]]
+            sage: f = 1+17*w+15*w^3+O(w^5)
+            sage: pari(f)
+            1 + 17*w + 15*w^3 + O(w^5)
+            sage: pari(1 - 19*w + w^5)
+            Traceback (most recent call last):
+            ...
+            RuntimeError: series precision must be finite for conversion to pari object.
+        """
         if not isinstance(self.parent().base_ring(),
                           (rational_field.RationalField, integer_ring.IntegerRing)):
             raise NotImplementedError

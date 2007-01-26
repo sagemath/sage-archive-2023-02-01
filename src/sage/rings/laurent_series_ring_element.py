@@ -76,8 +76,12 @@ class LaurentSeries(ring_element.RingElement):
             f = parent.power_series_ring()(f)
 
         # self is that t^n * u:
-        self.__n = n + f.valuation()    # power of the variable
-        self.__u = f.unit_part()        # unit part
+        if f.is_zero():
+            self.__n = n
+            self.__u = f
+        else:
+            self.__n = n + f.valuation()    # power of the variable
+            self.__u = f.valuation_zero_part()        # unit part
 
     def is_unit(self):
         """
@@ -135,7 +139,7 @@ class LaurentSeries(ring_element.RingElement):
         if v == 0:
             return
         self.__n += v
-        self.__u = self.__u.unit_part()
+        self.__u = self.__u.valuation_zero_part()
 
     def _repr_(self):
         """
@@ -261,12 +265,15 @@ class LaurentSeries(ring_element.RingElement):
         """
         EXAMPLES:
             sage: R.<t> = LaurentSeriesRing(QQ)
-            sage: f = -5/t^(10) + t + t^2 - 10/3*t^3; f
-            -5*t^-10 + t + t^2 - 10/3*t^3
-            sage: f[-10:3]
-            [-5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+            sage: f = -5/t^(10) + 1/3 + t + t^2 - 10/3*t^3 + O(t^5); f
+            -5*t^-10 + 1/3 + t + t^2 - 10/3*t^3 + O(t^5)
+            sage: f[-10:2]
+            -5*t^-10 + 1/3 + t + O(t^5)
+            sage: f[0:]
+            1/3 + t + t^2 - 10/3*t^3 + O(t^5)
         """
-        return self.__u[i-self.__n:j-self.__n]
+        f = self.__u[i-self.__n:j-self.__n]
+        return LaurentSeries(self.parent(), f, self.__n)
 
     def __iter__(self):
         """
@@ -498,17 +505,17 @@ class LaurentSeries(ring_element.RingElement):
         if c: return c
         return cmp(self.__u, right.__u)
 
-    def unit_part(self):
+    def valuation_zero_part(self):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
             sage: f = x + x^2 + 3*x^4 + O(x^7)
             sage: f/x
             1 + x + 3*x^3 + O(x^6)
-            sage: f.unit_part()
+            sage: f.valuation_zero_part()
             1 + x + 3*x^3 + O(x^6)
             sage: g = 1/x^7 - x + x^2 - x^4 + O(x^8)
-            sage: g.unit_part()
+            sage: g.valuation_zero_part()
             1 - x^8 + x^9 - x^11 + O(x^15)
         """
         return self.__u

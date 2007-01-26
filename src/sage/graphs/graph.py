@@ -140,8 +140,25 @@ class GenericGraph(SageObject):
     def _latex_(self):
         return repr(self)
 
-    def _matrix_(self):
-        return self.am()
+    def _matrix_(self, R=None):
+        """
+        EXAMPLES:
+            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: m = matrix(G); m.parent()
+            Full MatrixSpace of 5 by 5 sparse matrices over Integer Ring
+            sage: m
+            [0 0 1 1 1]
+            [0 0 1 1 1]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            sage: factor(m.charpoly())
+            (x^2 - 6) * x^3
+        """
+        if R is None:
+            return self.am()
+        else:
+            return self.am().change_ring(R)
 
     def networkx_graph(self):
         """

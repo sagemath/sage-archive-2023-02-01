@@ -15,8 +15,6 @@ import sage.misc.misc as misc
 import sage.misc.search
 from sage.libs.pari.all import pari
 import sage.rings.rational_field
-import sage.rings.integer_ring
-import sage.rings.integer
 import sage.rings.rational
 import sage.rings.complex_field
 import sage.rings.complex_number
@@ -24,6 +22,9 @@ import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
+
+import integer_ring
+import integer
 
 ##################################################################
 # Elementary Arithmetic
@@ -73,12 +74,12 @@ def algdep(z, n):
     # TODO -- change to use PARI C library???
     import sage.rings.polynomial_ring
     x = sage.rings.polynomial_ring.PolynomialRing(
-        sage.rings.integer_ring.IntegerRing(), 'x').gen()
+        integer_ring.IntegerRing(), 'x').gen()
 
-    if isinstance(z, (int, long, sage.rings.integer.Integer)):
-        return x - sage.rings.integer.Integer(z)
+    if isinstance(z, (int, long, integer.Integer)):
+        return x - integer_ring.ZZ(z)
 
-    n = sage.rings.integer.Integer(n)
+    n = integer_ring.ZZ(n)
 
     if isinstance(z, (sage.rings.rational.Rational)):
         return z.denominator()*x   -   z.numerator()
@@ -228,8 +229,8 @@ def prime_pi(x):
         0
     """
     if x < 2:
-        return sage.rings.integer.Integer(0)
-    return sage.rings.integer.Integer(pari(x).primepi())
+        return integer_ring.ZZ(0)
+    return integer_ring.ZZ(pari(x).primepi())
 
 number_of_primes = prime_pi
 
@@ -295,7 +296,7 @@ def factorial(n, algorithm='gmp'):
     """
     if n < 0:
         raise ValueError, "factorial -- must be nonnegative"
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     if algorithm == 'gmp':
         return Z(n).factorial()
     elif algorithm == 'pari':
@@ -336,7 +337,7 @@ def is_prime(n, flag=0):
 
     IMPLEMENTATION: Calls the PARI isprime function.
     """
-    n = sage.rings.integer.Integer(n)
+    n = integer_ring.ZZ(n)
     return pari(n).isprime()
 
 def is_pseudoprime(n, flag=0):
@@ -372,7 +373,7 @@ def is_pseudoprime(n, flag=0):
 
     IMPLEMENTATION: Calls the PARI ispseudoprime function.
     """
-    n = sage.rings.integer.Integer(n)
+    n = integer_ring.ZZ(n)
     return pari(n).ispseudoprime()
 
 def is_prime_power(n, flag=0):
@@ -408,7 +409,7 @@ def is_prime_power(n, flag=0):
         sage: is_prime_power(997^100)
         True
     """
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     n = Z(n)
     if n == 1:
         return True
@@ -515,7 +516,7 @@ def prime_range(start, stop=None, leave_pari=False):
         v = pari.primes_up_to_n(stop-1)
     except OverflowError:
         return list(primes(start, stop))  # lame but works.
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     if leave_pari:
         if start != 2:
             raise ValueError, "lower bound must be 2 if leave_pari is True"
@@ -552,7 +553,7 @@ def primes_first_n(n, leave_pari=False):
         1000000
     """
     v = pari.prime_list(n)
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     if leave_pari:
         return v
     return [Z(p) for p in v]     # this dominates runtime!
@@ -588,7 +589,7 @@ def eratosthenes(n):
                 j += m
         i = i+1
         m = 2*i+3
-    return [sage.rings.integer.Integer(2)] + [sage.rings.integer.Integer(x) for x in s if x and x <= n]
+    return [integer_ring.ZZ(2)] + [integer_ring.ZZ(x) for x in s if x and x <= n]
 
 # My old versions; not as fast as the above.
 ## def eratosthenes(n):
@@ -641,12 +642,12 @@ def primes(start, stop=None):
         [10000000019, 10000000033, 10000000061, 10000000069, 10000000097]
     """
 
-    start = sage.rings.integer.Integer(start)
+    start = integer_ring.ZZ(start)
     if stop == None:
         stop = start
-        start = sage.rings.integer.Integer(2)
+        start = integer_ring.ZZ(2)
     else:
-        stop = sage.rings.integer.Integer(stop)
+        stop = integer_ring.ZZ(stop)
     n = start - 1
     while True:
         n = next_prime(n)
@@ -680,10 +681,10 @@ def next_prime_power(n):
         101
     """
     if n < 0:   # negatives are not prime.
-        return sage.rings.integer.Integer(1)
+        return integer_ring.ZZ(1)
     if n == 2:
-        return sage.rings.integer.Integer(3)
-    n = sage.rings.integer.Integer(n) + 1
+        return integer_ring.ZZ(3)
+    n = integer_ring.ZZ(n) + 1
     while not is_prime_power(n):  # pari isprime is provably correct
         n += 1
     return n
@@ -711,11 +712,11 @@ def next_prime(n, proof=True):
         2011
     """
     if n < 2:   # negatives are not prime.
-        return sage.rings.integer.Integer(2)
+        return integer_ring.ZZ(2)
     if n == 2:
-        return sage.rings.integer.Integer(3)
+        return integer_ring.ZZ(3)
     if not proof:  # pari nextprime is probabilistic (according to their docs)
-        return sage.rings.integer.Integer((eval(str(pari(n+1).nextprime()))))
+        return integer_ring.ZZ((eval(str(pari(n+1).nextprime()))))
 
     if n % 2 == 0:
         n += 1
@@ -723,7 +724,7 @@ def next_prime(n, proof=True):
         n += 2
     while not is_prime(n):  # pari isprime is provably correct
         n += 2
-    return sage.rings.integer.Integer(n)
+    return integer_ring.ZZ(n)
 
 def previous_prime(n):
     """
@@ -756,16 +757,16 @@ def previous_prime(n):
         ...
         ValueError: no previous prime
     """
-    n = sage.rings.integer.Integer(n)-1
+    n = integer_ring.ZZ(n)-1
     if n <= 1:
         raise ValueError, "no previous prime"
     if n <= 3:
-        return sage.rings.integer.Integer(n)
+        return integer_ring.ZZ(n)
     if n%2 == 0:
         n -= 1
     while not is_prime(n):
         n -= 2
-    return sage.rings.integer.Integer(n)
+    return integer_ring.ZZ(n)
 
 def previous_prime_power(n):
     r"""
@@ -799,7 +800,7 @@ def previous_prime_power(n):
         sage: factor(n)
         251^2
     """
-    n = sage.rings.integer.Integer(n)-1
+    n = integer_ring.ZZ(n)-1
     if n <= 0:
         raise ValueError, "no previous prime power"
     while not is_prime_power(n):
@@ -825,11 +826,11 @@ def random_prime(n):
     """
     import random    # since we don't want random to get
                      # pulled when you say "from sage.arith import *".
-    n = sage.rings.integer.Integer(n)
+    n = integer_ring.ZZ(n)
     if n < 2:
         raise ValueError, "n must be >= 2."
     elif n == 2:
-        return sage.rings.integer.Integer(n)
+        return integer_ring.ZZ(n)
     else:
         previous_prime(random.randint(3,n))
 
@@ -872,7 +873,7 @@ def divisors(n):
     ans = []
     x = 1
     while r != e:
-        ans.append(sage.rings.integer.Integer(x))
+        ans.append(integer_ring.ZZ(x))
         r[0] += 1
         if r[0] <= e[0]:
             x *= F[0][0]
@@ -888,7 +889,7 @@ def divisors(n):
                         x *= F[i][0]
         #endif
     #endwhile
-    ans.append(sage.rings.integer.Integer(n))
+    ans.append(integer_ring.ZZ(n))
     ans.sort()
     return ans
 
@@ -909,8 +910,8 @@ def sigma(n, k=1):
         sage: sigma(5,2)
         26
     """
-    n = sage.rings.integer.Integer(n)
-    k = sage.rings.integer.Integer(k)
+    n = integer_ring.ZZ(n)
+    k = integer_ring.ZZ(k)
     return sum([d**k for d in divisors(n)])
 
 def gcd(a, b=0, integer=False):
@@ -942,12 +943,12 @@ def gcd(a, b=0, integer=False):
         if isinstance(a,list):
             return sage.rings.integer.GCD_list(a)
         else:
-            return sage.rings.integer.Integer(a).gcd(\
-                sage.rings.integer.Integer(b))
+            return integer_ring.ZZ(a).gcd(\
+                integer_ring.ZZ(b))
     if isinstance(a,list):
         return __GCD_list(a)
     if not isinstance(a, RingElement):
-        a = sage.rings.integer.Integer(a)
+        a = integer_ring.ZZ(a)
     return a.gcd(b)
 
 GCD = gcd
@@ -986,12 +987,12 @@ def lcm(a, b=None, integer=False):
         if isinstance(a,list):
             return sage.rings.integer.LCM_list(a)
         else:
-            return sage.rings.integer.Integer(a).lcm(\
-                sage.rings.integer.Integer(b))
+            return integer_ring.ZZ(a).lcm(\
+                integer_ring.ZZ(b))
     if isinstance(a, list):
         return __LCM_list(a)
     if not isinstance(a, RingElement):
-        a = sage.rings.integer.Integer(a)
+        a = integer_ring.ZZ(a)
     return a.lcm(b)
 
 LCM = lcm
@@ -1044,7 +1045,7 @@ def xgcd(a, b):
         4
     """
     if not isinstance(a, RingElement):
-        a = sage.rings.integer.Integer(a)
+        a = integer_ring.ZZ(a)
     return a.xgcd(b)
 
 XGCD = xgcd
@@ -1094,7 +1095,7 @@ def inverse_mod(a, m):
         m *= -1
     if m==1:
         return 0
-    return sage.rings.integer.Integer((~(pari(a).Mod(m))).lift())
+    return integer_ring.ZZ((~(pari(a).Mod(m))).lift())
 
 # def sqrt_mod(a, m):
 #     """A square root of a modulo m."""
@@ -1246,7 +1247,7 @@ def rational_reconstruction(a, m, algorithm='fast'):
         ValueError: Rational reconstruction of 655 (mod 292393) does not exist.
     """
     if algorithm == 'fast':
-        return sage.rings.integer.Integer(a).rational_reconstruction(m)
+        return integer_ring.ZZ(a).rational_reconstruction(m)
     elif algorithm == 'python':
         return _rational_reconstruction_python(a,m)
     else:
@@ -1256,13 +1257,13 @@ def _rational_reconstruction_python(a,m):
     a = int(a); m = int(m)
     a %= m
     if a == 0 or m==0:
-        return sage.rings.integer.Integer(0)/sage.rings.integer.Integer(1)
+        return integer_ring.ZZ(0)/integer_ring.ZZ(1)
     if m < 0:
         m = -m
     if a < 0:
         a = m-a
     if a == 1:
-        return sage.rings.integer.Integer(1)/sage.rings.integer.Integer(1)
+        return integer_ring.ZZ(1)/integer_ring.ZZ(1)
     u = m
     v = a
     bnd = math.sqrt(m/2)
@@ -1278,7 +1279,7 @@ def _rational_reconstruction_python(a,m):
     if V[1] < 0:
         y *= -1
     if x <= bnd and GCD(x,y) == 1:
-        return sage.rings.integer.Integer(y) / sage.rings.integer.Integer(x)
+        return integer_ring.ZZ(y) / integer_ring.ZZ(x)
     raise ValueError, "Rational reconstruction of %s (mod %s) does not exist."%(a,m)
 
 def mqrr_rational_reconstruction(u, m, T):
@@ -1389,8 +1390,8 @@ def __factor_using_pari(n, int_=False, debug_level=0):
     if int_:
         Z = int
     else:
-        import sage.rings.integer_ring
-        Z = sage.rings.integer_ring.IntegerRing()
+        import integer_ring
+        Z = integer_ring.IntegerRing()
     prev = pari.get_debug_level()
     pari.set_debug_level(debug_level)
     F = pari(n).factor()
@@ -1455,8 +1456,8 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
         sage: factor(2^197 + 1)       # takes a long time
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
     """
-    Z = sage.rings.integer.Integer
-    if not isinstance(n, (int,long, Z)):
+    Z = integer_ring.ZZ
+    if not isinstance(n, (int,long, integer.Integer)):
         try:
             return n.factor()
         except AttributeError:
@@ -1517,7 +1518,7 @@ def odd_part(n):
     The odd part of the integer $n$.  This is $n / 2^v$,
     where $v =$ \code{valuation(n,2)}.
     """
-    n = sage.rings.integer.Integer(n)
+    n = integer_ring.ZZ(n)
     v = valuation(n,2)
     return n / (2**v)
 
@@ -1536,8 +1537,8 @@ def prime_to_m_part(n,m):
     if n == 0:
         raise ValueError, "n must be nonzero."
     if m == 0:
-        return sage.rings.integer.Integer(1)
-    n = sage.rings.integer.Integer(n); m = sage.rings.integer.Integer(m)
+        return integer_ring.ZZ(1)
+    n = integer_ring.ZZ(n); m = integer_ring.ZZ(m)
     while True:
         g = gcd(n,m)
         if g == 1:
@@ -1634,7 +1635,7 @@ def euler_phi(n):
         return 0
     if n<=2:
         return 1
-    return sage.rings.integer.Integer(pari(n).phi())
+    return integer_ring.ZZ(pari(n).phi())
     #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 
 def crt(a,b=0,m=1,n=1):
@@ -1734,10 +1735,10 @@ def binomial(x,m):
         sage: binomial(RealField()('2.5'), 2)
         1.87500000000000
     """
-    if not isinstance(m, (int, long, sage.rings.integer.Integer)):
+    if not isinstance(m, (int, long, integer.Integer)):
         raise TypeError, 'm must be an integer'
-    if isinstance(x, (int, long, sage.rings.integer.Integer)):
-        return sage.rings.integer.Integer(pari(x).binomial(m))
+    if isinstance(x, (int, long, integer.Integer)):
+        return integer_ring.ZZ(pari(x).binomial(m))
     try:
         P = x.parent()
     except AttributeError:
@@ -1760,8 +1761,8 @@ def gaussian_binomial(n,k,q):
 
     AUTHOR: David Joyner and William Stein
     """
-    n = sage.rings.integer.Integer(misc.prod([1 - q**i for i in range((n-k+1),n+1)]))
-    d = sage.rings.integer.Integer(misc.prod([1 - q**i for i in range(1,k+1)]))
+    n = integer_ring.ZZ(misc.prod([1 - q**i for i in range((n-k+1),n+1)]))
+    d = integer_ring.ZZ(misc.prod([1 - q**i for i in range(1,k+1)]))
     return n / d
 
 def kronecker_symbol(x,y):
@@ -1784,7 +1785,7 @@ def kronecker_symbol(x,y):
 
     IMPLEMENTATION: Using Pari.
     """
-    return sage.rings.integer.Integer(pari(x).kronecker(y).python())
+    return integer_ring.ZZ(pari(x).kronecker(y).python())
 
 def kronecker(x,y):
     r"""
@@ -1803,7 +1804,7 @@ def primitive_root(n):
         sage: print [primitive_root(p) for p in primes(100)]
         [1, 2, 2, 3, 2, 2, 3, 2, 5, 2, 3, 2, 6, 3, 5, 2, 2, 2, 2, 7, 5, 3, 2, 3, 5]
     """
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     try:
         return Z(pari(Z(n)).znprimroot())
     except RuntimeError:
@@ -1849,7 +1850,7 @@ def discrete_log_generic(b, a, ord=None):
 
     AUTHOR: William Stein and David Joyner (2005-01-05)
     """
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
 
     if b == 0:
         if a == 0:
@@ -1910,7 +1911,7 @@ def quadratic_residues(n):
         159
     """
     n = abs(int(n))
-    Z = sage.rings.integer.Integer
+    Z = integer_ring.ZZ
     X = list(set([Z((a*a)%n) for a in range(n/2+1)]))
     X.sort()
     return X
@@ -2035,7 +2036,7 @@ def number_of_partitions(n):
         sage: number_of_partitions(0)
         1
     """
-    ZZ = sage.rings.integer.Integer
+    ZZ = integer_ring.ZZ
     return ZZ(pari(ZZ(n)).numbpart())
 
 def partitions(n):
@@ -2056,7 +2057,7 @@ def partitions(n):
 
     AUTHOR: David Eppstein, Jan Van lent, George Yoshida; Python Cookbook 2, Recipe 19.16.
     """
-    n == sage.rings.integer.Integer(n)
+    n == integer_ring.ZZ(n)
     # base case of the recursion: zero is the sum of the empty tuple
     if n == 0:
         yield ( )
@@ -2105,7 +2106,7 @@ def continued_fraction(x, partial_convergents=False):
         sage: print continued_fraction(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
-    if isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational,
+    if isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()
     x_in = x
@@ -2116,7 +2117,7 @@ def continued_fraction(x, partial_convergents=False):
     try:
         while True:
             i += 1
-            a = sage.rings.integer.Integer(int(x.floor()))
+            a = integer_ring.ZZ(int(x.floor()))
             v.append(a)
             n = len(v)-1
             pn = v[n]*w[n+1][0] + w[n][0]
@@ -2225,10 +2226,10 @@ def number_of_divisors(n):
     """
     Return the number of divisors of the integer n.
     """
-    m = sage.rings.integer.Integer(n)
+    m = integer_ring.ZZ(n)
     if m.is_zero():
         raise ValueError, "input must be nonzero"
-    return sage.rings.integer.Integer(pari(m).numdiv())
+    return integer_ring.ZZ(pari(m).numdiv())
 
 
 
@@ -2267,7 +2268,7 @@ def hilbert_symbol(a, b, p, algorithm="pari"):
     AUTHORS:
        -- William Stein and David Kohel (2006-01-05)
     """
-    Integer = sage.rings.integer.Integer
+    Integer = integer_ring.ZZ
 
     p = Integer(p)
     if p != -1 and not p.is_prime():
@@ -2388,7 +2389,7 @@ def falling_factorial(x, a):
     AUTHOR:
         -- Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (sage.rings.integer.Integer, int, long)) and a >= 0:
+    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x - i) for i in range(a)])
     from sage.functions.transcendental import gamma
     return gamma(x+1) / gamma(x-a+1)
@@ -2442,7 +2443,7 @@ def rising_factorial(x, a):
     AUTHOR:
         -- Jaap Spies (2006-03-05)
     """
-    if isinstance(a, (sage.rings.integer.Integer, int, long)) and a >= 0:
+    if isinstance(a, (integer.Integer, int, long)) and a >= 0:
         return misc.prod([(x + i) for i in range(a)])
     from sage.functions.transcendental import gamma
     return gamma(x+a) / gamma(x)

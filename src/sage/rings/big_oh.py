@@ -14,7 +14,7 @@ def O(x):
         return x.parent()(0, x.degree())
 
     elif isinstance(x, laurent_series_ring_element.LaurentSeries):
-        return laurent_series_ring_element.LaurentSeries(x.parent(), x.unit_part(),
+        return laurent_series_ring_element.LaurentSeries(x.parent(), x.valuation_zero_part(),
                              x.valuation()).add_bigoh(x.degree())
 
     elif isinstance(x, (int,long,integer.Integer,rational.Rational)):  # p-adic number

@@ -703,6 +703,17 @@ span.pane a.worksheet_other_computing {
    color:black;
 }
 
+/*********** DOC-BROWSER************************/
+
+
+.verbatim {
+    background-color: #fafad2;
+    border-style: solid;
+    border-width: 1px 1px;
+    border-color: black;
+}
+
+
 /************ OBJECTS **************************/
 
 span.pane div.objects_topbar {

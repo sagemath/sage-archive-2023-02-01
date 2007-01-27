@@ -315,6 +315,10 @@ ext_modules = [ \
               sources = ['sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
 
+    Extension('sage.ext.multi_modular',
+              sources = ['sage/ext/multi_modular.pyx'],
+              libraries=['gmp']), \
+
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
 
@@ -356,15 +360,30 @@ ext_modules = [ \
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
               libraries = ['mpfr', 'gmp']), \
 
+    Extension('sage.rings.real_mpfi',
+              sources = ['sage/rings/real_mpfi.pyx'],
+              libraries = ['mpfi', 'mpfr', 'gmp']), \
+
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
+              libraries=['gmp']), \
+
+    Extension('sage.rings.integer_ring',
+              sources = ['sage/rings/integer_ring.pyx'],
+              libraries=['gmp']), \
+
+    Extension('sage.rings.memory', \
+              sources = ['sage/rings/memory.pyx'], \
               libraries=['gmp']), \
 
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
+
+    Extension('sage.rings.polynomial_element',
+              sources = ['sage/rings/polynomial_element.pyx']), \
 
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',
@@ -542,7 +561,7 @@ def need_to_pyrex(filename, outfile):
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
         if os.path.exists(A) and is_older(A, outfile):
-            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            print "\nRegenerating %s because it depends on %s."%(outfile, A)
             return True # yep we must rebuild
 
     # OK, next we move on to include pxi files.

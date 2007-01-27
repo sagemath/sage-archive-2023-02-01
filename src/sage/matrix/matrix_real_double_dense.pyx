@@ -2,6 +2,12 @@
 Dense matrices over the real double field.
 
 Matrix operations use GSl and numpy.
+
+EXAMPLES:
+    sage: b=Mat(RDF,2,3).basis()
+    sage: b[0]
+    [1.0 0.0 0.0]
+    [0.0 0.0 0.0]
 """
 
 ##############################################################################
@@ -141,10 +147,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
                 z=float(entries)
             except TypeError:
                 raise TypeError, "entries must to coercible to list or real double "
-            if self._nrows != self._ncols and z !=0:
-                raise TypeError, "scalar matrix must be square"
-            for i from 0<=i<self._ncols:
-                gsl_matrix_set(self._matrix,i,i,z)
+            if z != 0:
+                if self._nrows != self._ncols:
+                    raise TypeError, "scalar matrix must be square"
+                for i from 0<=i<self._ncols:
+                    gsl_matrix_set(self._matrix,i,i,z)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         cdef double z

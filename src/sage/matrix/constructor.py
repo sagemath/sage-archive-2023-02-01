@@ -203,6 +203,11 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         [ 0  0 10  0  0]
         [ 0  0  0  0  0] True
     """
+    if hasattr(arg0, '_matrix_'):
+        if arg1 is None:
+            arg1 = rings.ZZ
+        return arg0._matrix_(arg1)
+
     if hasattr(arg1, '_matrix_'):
         return arg1._matrix_(arg0)
 

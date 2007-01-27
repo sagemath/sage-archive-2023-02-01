@@ -1,4 +1,4 @@
-from sage.rings.integer import pmem_malloc
+from sage.rings.memory import pmem_malloc
 
 import sage.libs.ntl.all  as ntl
 

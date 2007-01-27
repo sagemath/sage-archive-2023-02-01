@@ -72,7 +72,7 @@ from sage.interfaces.macaulay2 import is_Macaulay2Element
 
 from sage.structure.sage_object import SageObject
 
-from sage.rings.integer_ring import IntegerRing
+from sage.rings.integer_ring import is_IntegerRing
 from sage.rings.integer import Integer
 
 from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
@@ -105,7 +105,7 @@ class MPolynomialRing_macaulay2_repr:
                     base_str = "QQ"
                 else:
                     base_str = "ZZ/" + str(self.characteristic())
-            elif isinstance(self.base_ring(), IntegerRing):
+            elif is_IntegerRing(self.base_ring()):
                 base_str = "ZZ"
             else:
                 raise TypeError, "no conversion of to a Macaulay2 ring defined"

@@ -954,7 +954,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n = pari(561)     # smallest Carmichael number
             sage: n.ispseudoprime() # not just any old pseudo-primality test!
             False
-            sage: n.ispseudoprime(1)
+            sage: n.ispseudoprime(2)
             False
         """
         _sig_on

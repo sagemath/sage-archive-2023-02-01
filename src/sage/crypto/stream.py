@@ -10,7 +10,7 @@ from sage.monoids.string_monoid import BinaryStrings
 from sage.rings.finite_field import FiniteField
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.polynomial_element import is_Polynomial
-from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
+#from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 
 from cryptosystem import SymmetricKeyCryptosystem
 
@@ -30,7 +30,7 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
         EXAMPLES:
             sage: E = LFSRCryptosystem(FiniteField(2))
 	    sage: E
-	    LFSR cryptostem over Finite Field of size 2
+            LFSR cryptosystem over Finite Field of size 2
 
 	TODO: Implement LFSR cryptosytem for arbitrary rings. The current
 	implementation if limitated to the finite field of 2 elements only

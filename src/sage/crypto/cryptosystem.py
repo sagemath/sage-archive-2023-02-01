@@ -35,11 +35,12 @@ class Cryptosystem(Set_generic):
       of public key.  In that case, $K_1$ is called the public key and $K_2$
       is called the private key.
       """
-      def __init__(self, plaintext_space, ciphertext_space, key_space, block_length = 1):
+      def __init__(self, plaintext_space, ciphertext_space, key_space, block_length = 1, period = None):
 	  self._cipher_domain = plaintext_space
 	  self._cipher_codomain = ciphertext_space
 	  self._key_space = key_space
 	  self._block_length = block_length
+	  self._period = period
 
       def plaintext_space(self):
 	  return self._cipher_domain
@@ -58,6 +59,11 @@ class Cryptosystem(Set_generic):
 
       def block_length(self):
           return self._block_length
+
+      def period(self):
+	  if self._period is None:
+	      raise TypeError, "Argument has no associated period."
+	  return self._period
 
 class SymmetricKeyCryptosystem(Cryptosystem):
       """

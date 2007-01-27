@@ -25,6 +25,7 @@ include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
 import math, operator
+from random import random
 
 from sage.misc.sage_eval import sage_eval
 
@@ -62,6 +63,18 @@ cdef class RealDoubleField_class(Field):
             Real Double Field
         """
         return "Real Double Field"
+
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: RDF == 5
+            False
+            sage: loads(dumps(RDF)) == RDF
+            True
+        """
+        if PY_TYPE_CHECK(x, RealDoubleField_class):
+            return 0
+        return cmp(type(self), type(x))
 
     def __call__(self, x):
         """
@@ -170,6 +183,20 @@ cdef class RealDoubleField_class(Field):
         """
         return 0
 
+    cdef _new_c(self, double value):
+        cdef RealDoubleElement x
+        x = PY_NEW(RealDoubleElement)
+        x._value = value
+        return x
+
+    def random_element(self, float min=-1, float max=1):
+        """
+        Return a random element of this real double field in the interval [min, max].
+
+        EXAMPLES:
+        """
+        return self._new_c((max-min)*random() + min)
+
     def name(self):
         return "RealDoubleField"
 
@@ -247,24 +274,30 @@ cdef class RealDoubleField_class(Field):
 
 
 def new_RealDoubleElement():
-    global _RDF
     cdef RealDoubleElement x
     x = PY_NEW(RealDoubleElement)
-    (<Element>x)._parent = _RDF
     return x
 
 cdef class RealDoubleElement(FieldElement):
-    def __init__(self, x):
-        self._value = float(x)
-        global _RDF
+    def __new__(self, x=None):
         (<Element>self)._parent = _RDF
 
+    def __init__(self, x):
+        self._value = float(x)
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = RDF(-2.7)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return RealDoubleElement, (self._value, )
+
     cdef _new_c(self, double value):
-        global _RDF
         cdef RealDoubleElement x
         x = PY_NEW(RealDoubleElement)
         x._value = value
-        (<Element>x)._parent = _RDF
         return x
 
     def real(self):
@@ -329,7 +362,8 @@ cdef class RealDoubleElement(FieldElement):
         return self.str()
 
     def __hash__(self):
-        return hash(self.str())
+        return 1455926870
+        #return hash(self.str())
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -1163,6 +1197,6 @@ def RealDoubleField():
     return _RDF
 
 
-
-
+def is_RealDoubleElement(x):
+    return PY_TYPE_CHECK(x, RealDoubleElement)
 

@@ -529,7 +529,7 @@ class NumberFieldElement(field_element.FieldElement):
             [3, 0]
         """
         n = self.parent().degree()
-        v = self.__element[:n]
+        v = self.__element.list()[:n]
         z = rational.Rational(0)
         return v + [z]*(n - len(v))
 

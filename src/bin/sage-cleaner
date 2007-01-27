@@ -22,7 +22,7 @@
 
 import os, shutil, sys, time
 
-DOT_SAGE = '%s/.sage'%os.environ['HOME']
+DOT_SAGE = os.environ['DOT_SAGE']
 tmp = '%s/tmp'%DOT_SAGE
 if not os.path.exists(tmp):
     os.makedirs(tmp)

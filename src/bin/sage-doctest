@@ -67,7 +67,13 @@ def comment_modifier(s):
     elif 'todo: not implemented' in L:
         return NOT_IMPLEMENTED
     elif 'random' in L:
-        return RANDOM
+        i = L.rfind('#')
+        j = L.rfind('random')
+        if j > i:
+            return RANDOM
+        if L.find("=") == -1 and L.find("print") == -1:
+            return RANDOM
+        print 3
     return NONE
 
 def preparse_line_with_prompt(L):
@@ -103,8 +109,7 @@ def doc_preparse(s):
                 else:
                     line = '\n'  # extra line so output ignored
             elif c == RANDOM:
-                if L.find("=") == -1 and L.find("print") == -1:
-                    L = L.replace('sage:', 'sage: _=')
+                L = L.replace('sage:', 'sage: _=')
                 line = preparse_line_with_prompt(L) + '\n'   # extra line so output ignored
             elif c == NOT_IMPLEMENTED:
                 line = '\n'   # not tested

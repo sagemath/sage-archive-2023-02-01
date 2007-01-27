@@ -458,6 +458,9 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     #######################################################################
     #  Doc-browser functionality
     #######################################################################
+    # TODO: this will not work right on a multi-user system, since if
+    # multiple people viewer the browser at the same time and eval cells,
+    # this will conflict.
 
     def doc_browser(self, path):
         """
@@ -506,8 +509,10 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_head()
         W = worksheet
         Wid = W.id()
-        s = notebook.doc_html(Wid, css_href)
-        self.wfile.write(s)
+        #s = notebook.doc_html(Wid, css_href)
+        #self.wfile.write(s)
+        self.show_page(Wid)
+        #s = notebook.html(Wid)
 
     #######################################################################
     #  End doc-browser functionality

@@ -805,6 +805,7 @@ class Notebook(SageObject):
         names = self.worksheet_names()
         m = max([len(x) for x in names] + [30])
         for n in names:
+            if n == 'doc_browser': continue
             W = self.__worksheets[n]
             if W == current_worksheet:
                 cls = 'worksheet_current'
@@ -981,7 +982,8 @@ class Notebook(SageObject):
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
         #body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
-        body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
+        #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
+        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
@@ -1207,8 +1209,8 @@ Output
                  'Put ?? after the object and press tab.'),
                 ('Hide Cell Input',
                  'Put %hide at the beginning of the cell.  This can be followed by %gap, %latex, %maxima, etc.  Note that %hide must be first.  From the edit screen, use %hideall to hide a complete cell.'),
-                ('Detailed Help',
-                 'Type "help(object)" and press shift-return.'),
+                ('Documentation',
+                 'Click on <a href="/doc_browser?/?index.html">Documentation</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
                 ('Insert New Cell',
                  'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it.'),
                 ('Delete Cell',
@@ -1226,7 +1228,7 @@ Output
                 ('Loading SAGE/Python Scripts', 'Use "load filename.sage" and "load filename.py".  Load is relative to the path you started the notebook in.  The .sage files are preparsed and .py files are not.   You may omit the .sage or .py extension.  Files may load other files.'),
                 ('Attaching Scripts', 'Use "attach filename.sage" or "attach filename.py".  Attached files are automatically reloaded when the file changes.  The file $HOME/.sage/init.sage is attached on startup if it exists.'),
                 ('Downloading and Uploading Worksheets',
-                 'Click <u>Download</u> in the upper right to download a complete worksheet to a local .sws file, and click <u>Upload</u> to upload a saved worksheet to the notebook.  Note that <i>everything</i> that has been submitted is automatically saved to disk when you quit the notebook server (or type "%save_server" into a cell).'),
+                 'Click <u>Download</u> in the upper right to download a complete worksheet to a local .sws file, and click <a href="__upload__.html">Upload</a> to upload a saved worksheet to the notebook.  Note that <i>everything</i> that has been submitted is automatically saved to disk when you quit the notebook server (or type "%save_server" into a cell).'),
                 ('Restart', 'Type "restart" to restart the SAGE interpreter for a given worksheet.  (You have to interrupt first.)'),
                 ('Input Rules', "Code is evaluated by exec'ing (after preparsing).  Only the output of the last line of the cell is implicitly printed.  If any line starts with \"sage:\" or \">>>\" the entire block is assumed to contain text and examples, so only lines that begin with a prompt are executed.   Thus you can paste in complete examples from the docs without any editing, and you can write input cells that contains non-evaluated plain text mixed with examples by starting the block with \">>>\" or including an example."),
                 ('Working Directory', 'Each block of code is run from its own directory.  The variable DIR contains the directory from which you started the SAGE notebook.  For example, to open a file in that directory, do "open(DIR+\'filename\')".'),
@@ -1268,6 +1270,7 @@ Output
             width:70%;
         }
         </style>
+        <h1 align=center><font color='darkred'>SAGE</font> Notebook Quickstart</h1>
         <div class="help_window">
 
         A <i>worksheet</i> is an ordered list of SAGE calculations with output.
@@ -1328,7 +1331,7 @@ Output
         head = self._doc_html_head(worksheet_id, css_href)
         body = self._doc_html_body(worksheet_id)
         if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
+           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
 
         return """
         <html>

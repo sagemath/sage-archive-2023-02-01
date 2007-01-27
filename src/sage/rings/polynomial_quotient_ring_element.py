@@ -8,7 +8,7 @@ We create a quotient of a univariate polynomial ring over $\ZZ$.
     sage: 2 * a^3
     -6*a + 2
 
-Next we make a univeriate polynomial ring over $$\Z[x]/(x^3+3x-1)$.
+Next we make a univeriate polynomial ring over $\Z[x]/(x^3+3x-1)$.
     sage: S.<y> = S[]
 
 And, we quotient out that by $y^2 + a$.

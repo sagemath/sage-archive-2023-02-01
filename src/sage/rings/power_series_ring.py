@@ -1,4 +1,4 @@
-"""
+r"""
 Univariate Power Series Rings
 
 EXAMPLES:

@@ -383,15 +383,6 @@ cdef class SageObject:
 ##################################################################
 
 
-cur = 0
-def report_hook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()
-
 
 
 def load(filename, compress=True, verbose=True):
@@ -422,27 +413,9 @@ def load(filename, compress=True, verbose=True):
 
     ## Check if filename starts with "http://" or "https://"
     if filename.startswith("http://") or filename.startswith("https://"):
-        if verbose:
-            print "Attempting to load remote file: " + filename
-        import sage.misc.misc
-        temp_name = sage.misc.misc.tmp_filename()
-        try:
-            # IMPORTANT -- urllib takes a long time to load,
-            # so do not import it in the module scope.
-            import urllib
-            global cur
-            cur = 0
-            if verbose:
-                sys.stdout.write("Loading: [")
-                sys.stdout.flush()
-                urllib.urlretrieve(filename, temp_name, report_hook)
-                print "]"
-            else:
-                urllib.urlretrieve(filename, temp_name)
-            filename = temp_name
-            tmpfile_flag = True
-        except:
-            raise BadURLError, "Could not load URL: " + filename
+        from sage.misc.remote_file import get_remote_file
+        filename = get_remote_file(filename, verbose=verbose)
+        tmpfile_flag = True
     else:
         tmpfile_flag = False
         filename = process(filename)
@@ -456,7 +429,7 @@ def load(filename, compress=True, verbose=True):
 
     ## Delete the tempfile, if it exists
     if tmpfile_flag == True:
-        os.unlink(temp_name)
+        os.unlink(filename)
 
     return X
 

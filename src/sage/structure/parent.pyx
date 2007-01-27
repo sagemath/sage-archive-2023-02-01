@@ -138,7 +138,14 @@ cdef class Parent(sage_object.SageObject):
         """
         if not isinstance(v, list):
             v = [v]
-        for R in v:
+
+        # TODO: We use an explicit for loop instead
+        # of "for R in v" below to program around
+        # a bug in SageX reference counting.
+        ##for R in v:
+        cdef Py_ssize_t i
+        for i from 0 <= i < len(v):
+            R = v[i]
             try:
                 y = R._coerce_(x)
                 return self(y)

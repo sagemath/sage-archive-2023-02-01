@@ -234,6 +234,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [1 1]
             [0 1]
         """
+        if entries == 0 and hasattr(self, '__zero_matrix'):
+            return self.zero_matrix()
+
         if isinstance(entries, list) and len(entries) > 0 and \
            sage.modules.free_module_element.is_FreeModuleElement(entries[0]):
             if self.__is_sparse:
@@ -258,12 +261,44 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return self(entries.matrix(), copy=False)
         return self.matrix(entries, copy=copy, coerce=coerce)
 
-    def base_extend(self, R):
+    def change_ring(self, R):
         """
+        Return matrix space over R with otherwise same parameters as self.
+
         INPUT:
             R -- ring
+
+        OUTPUT:
+            a matrix space
+
+        EXAMPLES:
+            sage: Mat(QQ,3,5).change_ring(GF(7))
+            Full MatrixSpace of 3 by 5 dense matrices over Finite Field of size 7
         """
         return MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
+
+    def base_extend(self, R):
+        """
+        Return base extension of this matrix space to R.
+
+
+        INPUT:
+            R -- ring
+
+        OUTPUT:
+            a matrix space
+
+        EXAMPLES:
+            sage: Mat(ZZ,3,5).base_extend(QQ)
+            Full MatrixSpace of 3 by 5 dense matrices over Rational Field
+            sage: Mat(QQ,3,5).base_extend(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return self.change_ring(R)
+        raise TypeError, "no base extension defined"
 
     def _coerce_impl(self, x):
         """
@@ -293,14 +328,21 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def __cmp__(self, other):
         """
-        Compare this matrix space with other.
+        Compare this matrix space with other.  Sparse and dense matrix
+        spaces with otherwise the same parameters are considered
+        equal.
 
         If other is not a matrix space, return something arbitrary but
         deterministic.  Otherwise, compare based on base ring, then on
         number of rows and columns.
 
         EXAMPLES:
-
+            sage: Mat(ZZ,1000) == Mat(QQ,1000)
+            False
+            sage: Mat(ZZ,10) == Mat(ZZ,10)
+            True
+            sage: Mat(ZZ,10, sparse=False) == Mat(ZZ,10, sparse=True)
+            True
         """
         if isinstance(other, MatrixSpace_generic):
             return cmp((self.base_ring(), self.__nrows, self.__ncols),
@@ -312,12 +354,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Returns the string representation of a MatrixSpace
 
         EXAMPLES:
-    	sage: MS = MatrixSpace(ZZ,2,4,true)
-    	sage: repr(MS)
-    	'Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring'
-    	sage: MS
-    	Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring
-
+            sage: MS = MatrixSpace(ZZ,2,4,true)
+            sage: repr(MS)
+            'Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring'
+            sage: MS
+            Full MatrixSpace of 2 by 4 sparse matrices over Integer Ring
         """
         if self.is_sparse():
             s = "sparse"
@@ -331,9 +372,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Returns the latex representation of a MatrixSpace
 
         EXAMPLES:
-    	sage: MS3 = MatrixSpace(QQ,6,6,true)
-    	sage: latex(MS3)
-        \mbox{\rm Mat}_{6\times 6}(\mathbf{Q})
+            sage: MS3 = MatrixSpace(QQ,6,6,true)
+            sage: latex(MS3)
+            \mbox{\rm Mat}_{6\times 6}(\mathbf{Q})
         """
         return "\\mbox{\\rm Mat}_{%s\\times %s}(%s)"%(self.nrows(), self.ncols(),
                                                       latex.latex(self.base_ring()))
@@ -375,10 +416,32 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
 
     def basis(self):
+        """
+        Returns a basis for this matrix space.
+
+        WARNING: This will of course compute every generator of this
+        matrix space.  So for large matrices, this could take a long
+        time, waste a massive amount of memory (for dense matrices),
+        and is likely not very useful.  Don't use this on large matrix
+        spaces.
+
+        EXAMPLES:
+            sage: Mat(ZZ,2,2).basis()
+            [
+            [1 0]
+            [0 0],
+            [0 1]
+            [0 0],
+            [0 0]
+            [1 0],
+            [0 0]
+            [0 1]
+            ]
+        """
         try:
             return self.__basis
         except AttributeError:
-            v = [self() for _ in range(self.dimension())]
+            v = [self.zero_matrix() for _ in range(self.dimension())]
             one = self.base_ring()(1)
             i = 0
             for r in range(self.__nrows):
@@ -395,10 +458,10 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Returns (m rows) * (n cols) of self as Integer
 
         EXAMPLES:
-     	sage: MS = MatrixSpace(ZZ,4,6)
-    	sage: u = MS.dimension()
-    	sage: u - 24 == 0
-    	True
+            sage: MS = MatrixSpace(ZZ,4,6)
+            sage: u = MS.dimension()
+            sage: u - 24 == 0
+            True
         """
         return self.__nrows * self.__ncols
 
@@ -407,9 +470,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Returns (m row, n col) representation of self dimension
 
         EXAMPLES:
-    	sage: MS = MatrixSpace(ZZ,4,6)
-    	sage: MS.dims()
-    	(4, 6)
+            sage: MS = MatrixSpace(ZZ,4,6)
+            sage: MS.dims()
+            (4, 6)
         """
         return (self.__nrows, self.__ncols)
 
@@ -418,20 +481,19 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         Create an identity matrix in self.  (Must be a space of square matrices).
 
         EXAMPLES:
-    	sage: MS1 = MatrixSpace(ZZ,4)
-    	sage: MS2 = MatrixSpace(QQ,3,4)
-    	sage: I = MS1.identity_matrix()
-    	sage: I
-    	[1 0 0 0]
-    	[0 1 0 0]
-    	[0 0 1 0]
-    	[0 0 0 1]
-    	sage: Er = MS2.identity_matrix()
-        Traceback (most recent call last):
-        ...
-    	TypeError: self must be a space of square matrices
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,3,4)
+            sage: I = MS1.identity_matrix()
+            sage: I
+            [1 0 0 0]
+            [0 1 0 0]
+            [0 0 1 0]
+            [0 0 0 1]
+            sage: Er = MS2.identity_matrix()
+            Traceback (most recent call last):
+            ...
+            TypeError: self must be a space of square matrices
         """
-
         if self.__nrows != self.__ncols:
             raise TypeError, "self must be a space of square matrices"
         A = self(0)
@@ -441,22 +503,72 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
 
     def is_dense(self):
         """
-        Returns true if self is dense
-        Returns false if self is sparse
+        Returns True if matrices in self are dense and False otherwise.
+
+        EXAMPLES:
+            sage: Mat(RDF,2,3).is_sparse()
+            False
+            sage: Mat(RR,123456,22,sparse=True).is_sparse()
+            True
         """
         return not self.__is_sparse
 
     def is_sparse(self):
         """
-        Returns True if self is sparse
-        Returns False if self is dense
+        Returns True if matrices in self are sparse and False otherwise.
+
+        EXAMPLES:
+            sage: Mat(GF(2011),10000).is_sparse()
+            False
+            sage: Mat(GF(2011),10000,sparse=True).is_sparse()
+            True
         """
         return self.__is_sparse
 
     def gen(self, n):
-        return self.basis()[n]
+        """
+        Return the n-th generator of this matrix space.
+
+        This doesn't compute all basis matrices, so it is reasonably intelligent.
+
+        EXAMPLES:
+            sage: M = Mat(GF(7),10000,5); M.ngens()
+            50000
+            sage: a = M.10
+            sage: a[:4]
+            [0 0 0 0 0]
+            [0 0 0 0 0]
+            [1 0 0 0 0]
+            [0 0 0 0 0]
+        """
+        if hasattr(self, '__basis'):
+            return self.__basis[n]
+        r = n // self.__ncols
+        c = n - (r * self.__ncols)
+        z = self.zero_matrix()
+        z[r,c] = 1
+        return z
+
+    def zero_matrix(self):
+        """
+        Return the zero matrix.
+        """
+        try:
+            z = self.__zero_matrix
+        except AttributeError:
+            z = self(0)
+            self.__zero_matrix = z
+        return z.__copy__()
 
     def ngens(self):
+        """
+        Return the number of generators of this matrix space, which is the number
+        of entries in the matrices in this space.
+
+        EXAMPLES:
+            sage: M = Mat(GF(7),100,200); M.ngens()
+            20000
+        """
         return self.dimension()
 
     def matrix(self, x=0, coerce=True, copy=True):
@@ -498,7 +610,21 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 x = list(sum(x,()))
         return self.__matrix_class(self, entries=x, copy=copy, coerce=coerce)
 
-    def matrix_space(self, nrows, ncols, sparse=False):
+    def matrix_space(self, nrows=None, ncols=None, sparse=False):
+        """
+        Return the matrix space with given number of rows, columns and
+        sparcity over the same base ring as self, and defaults the
+        same as self.
+
+        EXAMPLES:
+            sage: M = Mat(GF(7),100,200)
+            sage: M.matrix_space(5000)
+            Full MatrixSpace of 5000 by 200 dense matrices over Finite Field of size 7
+            sage: M.matrix_space(ncols=5000)
+            Full MatrixSpace of 100 by 5000 dense matrices over Finite Field of size 7
+            sage: M.matrix_space(sparse=True)
+            Full MatrixSpace of 100 by 200 sparse matrices over Finite Field of size 7
+        """
         if nrows is None:
             nrows = self.__nrows
         if ncols is None:
@@ -507,12 +633,37 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                         sparse=sparse)
 
     def ncols(self):
+        """
+        Return the number of columns of matrices in this space.
+
+        EXAMPLES:
+            sage: M = Mat(ZZ['x'],200000,500000,sparse=True)
+            sage: M.ncols()
+            500000
+        """
         return self.__ncols
 
     def nrows(self):
+        """
+        Return the number of rows of matrices in this space.
+
+        EXAMPLES:
+            sage: M = Mat(ZZ,200000,500000)
+            sage: M.nrows()
+            200000
+        """
         return self.__nrows
 
     def row_space(self):
+        """
+        Return the module spanned by all rows of matrices in this matrix space.
+        This is a free module of rank the number of rows.  It will be sparse
+        or dense as this matrix space is sparse or dense.
+
+        EXAMPLES:
+            sage: M = Mat(ZZ,20,5,sparse=False); M.row_space()
+            Ambient free module of rank 5 over the principal ideal domain Integer Ring
+        """
         try:
             return self.__row_space
         except AttributeError:
@@ -521,6 +672,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return self.__row_space
 
     def column_space(self):
+        """
+        Return the module spanned by all columns of matrices in this matrix space.
+        This is a free module of rank the number of columns.  It will be sparse
+        or dense as this matrix space is sparse or dense.
+
+        EXAMPLES:
+            sage: M = Mat(GF(9,'a'),20,5,sparse=True); M.column_space()
+            Sparse vector space of dimension 20 over Finite Field in a of size 3^2
+        """
         try:
             return self.__column_space
         except AttributeError:
@@ -528,18 +688,35 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                                    sparse=self.is_sparse())
             return self.__column_space
 
-    def random_element(self, X=[-2,-1,0,1,2], prob=1.0, coerce=True):
+    def random_element(self, prob=1, *args, **kwds):
         """
         Returns a random element of self.
+
+        INPUT:
+            prob -- a number between 0 and 1 (default: 1); probability that entry is not
+                   just set to 0 (though entry could also be 0 because of random
+                   choice of element using random_element method of base ring).
+            *args, **kwds -- rest of parameters are passed to the random_lement function
+                   of the base ring.
+
+        EXAMPLES:
+            sage: Mat(ZZ,2,5).random_element()                # random output
+            [-1 -1  0 -2  0]
+            [ 0 -1  2 -1 -1]
+            sage: Mat(QQ,2,5).random_element(prob=0.5)        # random output
+            [ 0  0  0  0  0]
+            [ 0 -2  0  0  0]
+            sage: Mat(QQ,3,sparse=True).random_element()      # random output
+            [  1   2   1]
+            [  0   1  -3]
+            [1/2  -1   0]
+            sage: Mat(GF(9,'a'),3,sparse=True).random_element()   # random output
+            [      a   a + 1       0]
+            [    2*a 2*a + 1   a + 2]
+            [      1       0       1]
         """
         prob=float(prob)
-        if not isinstance(X, list):
-            raise TypeError, "X must be a list"
-        if not isinstance(coerce, bool):
-            raise TypeError, "coerce must be a bool"
         R = self.base_ring()
-        if coerce:
-            X = [R(a) for a in X]
         zero = R(0)
 
         if self.is_sparse():
@@ -549,14 +726,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             v = {}
             for i in xrange(self.nrows()):
                 for k in z:
-                    v[(i,random.randint(0,nc-1))] = random.choice(X)
+                    v[(i,random.randint(0,nc-1))] = R.random_element(*args, **kwds)
         else:
-            def f():
-                if random.random() < prob:
-                    return random.choice(X)
-                else:
-                    return zero
-            v = [f() for _ in xrange(self.nrows()*self.ncols())]
+            if prob == 1:
+                v = [R.random_element(*args, **kwds) for _ in xrange(self.nrows()*self.ncols())]
+            else:
+                v = [R.random_element(*args, **kwds) if random.random() < prob else zero \
+                              for _ in xrange(self.nrows()*self.ncols())]
         return self(v, coerce=False, copy=False)
 
 _random = 1

@@ -121,7 +121,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
     """
-    if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
+    if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
         raise TypeError, "ring must be a polynomial ring"
     if not isinstance(polynomial, polynomial_element.Polynomial):
         raise TypeError, "must be a polynomial"
@@ -180,7 +180,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         4
     """
     def __init__(self, ring, polynomial, name=None):
-        if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
+        if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
             raise TypeError, "R must be a univariate polynomial ring."
 
         if not isinstance(polynomial, polynomial_element.Polynomial):

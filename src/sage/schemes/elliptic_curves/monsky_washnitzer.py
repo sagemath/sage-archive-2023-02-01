@@ -1,10 +1,12 @@
-r""" Computation of frobenius matrix on Monsky-Washnitzer cohomology.
+r"""
+Computation of Frobenius matrix on Monsky-Washnitzer cohomology.
 
 The most interesting functions to be exported here are matrix_of_frobenius()
 and adjusted_prec().
 
-Currently this code is limited to the case p >= 5 (no GF(p^n) for n > 1), and
-only handles the elliptic curve case (not more general hyperelliptic curves).
+Currently this code is limited to the case $p \geq 5$ (no $GF(p^n)$
+for $n > 1$), and only handles the elliptic curve case (not more
+general hyperelliptic curves).
 
 REFERENCES:
   -- Kedlaya, K., ``Counting points on hyperelliptic curves using
@@ -58,7 +60,7 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
 
   TODO:
     -- Eventually we will want to run this in characteristic 3, so we need to:
-       (a) Allow Q(x) to contain an x^2 term, and
+       (a) Allow Q(x) to contain an $x^2$ term, and
        (b) Remove the requirement that 3 be invertible. Currently this is used
            in the Toom-Cook algorithm to speed multiplication.
 
@@ -279,7 +281,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
 
 
   def shift(self, n):
-    """ Returns this element multiplied by T^n. """
+    """ Returns this element multiplied by $T^n$. """
     return SpecialCubicQuotientRingElement(self.parent(),
                     self._triple[0].shift(n),
                     self._triple[1].shift(n),
@@ -659,23 +661,28 @@ def reduce_all(Q, p, coeffs, offset):
 
 
 def frobenius_expansion_by_newton(Q, p, M):
-  """
-  Computes the action of Frobenius on dx/y and on x dx/y, using
+  r"""
+  Computes the action of Frobenius on $dx/y$ and on $x dx/y$, using
   Newton's method (as suggested in Kedlaya's paper).
 
   (This function does *not* yet use the cohomology relations
   -- that happens afterwards in the "reduction" step.)
 
-  More specifically, it finds F0 and F1 in the quotient ring
-  R[x, T]/(T - Q(x)), such that
-     F(  dx/y) = T^{-r} F0 dx/y,   and
+  More specifically, it finds $F_0$ and $F_1$ in the quotient ring
+  $R[x, T]/(T - Q(x))$, such that
+  $$
+     F(  dx/y) = T^{-r} F0 dx/y,   \text{ and }
      F(x dx/y) = T^{-r} F1 dx/y
+  $$
   where
+  $$
      r = ( (2M-3)p - 1 )/2.
-  (Here T is y^2 = z^{-2}, and R is the coefficient ring of Q.)
+  $$
+  (Here $T$ is $y^2 = z^{-2}$, and $R$ is the coefficient ring of $Q$.)
 
-  F0 and F1 are computed in the SpecialCubicQuotientRing associated
-  to Q, so all powers of x^j for j >= 3 are reduced to powers of T.
+  $F_0$ and $F_1$ are computed in the SpecialCubicQuotientRing
+  associated to $Q$, so all powers of $x^j$ for $j \geq 3$ are reduced
+  to powers of $T$.
 
   INPUT:
       Q -- cubic polynomial of the form Q(x) = x^3 + ax + b,
@@ -832,8 +839,8 @@ def frobenius_expansion_by_series(Q, p, M):
      $r = ( (2M-3)p - 1 )/2$.
   (Here T is $y^2 = z^{-2}$, and R is the coefficient ring of Q.)
 
-  F0 and F1 are computed in the SpecialCubicQuotientRing associated
-  to Q, so all powers of x^j for j >= 3 are reduced to powers of T.
+  $F_0$ and $F_1$ are computed in the SpecialCubicQuotientRing associated
+  to $Q$, so all powers of $x^j$ for $j \geq 3$ are reduced to powers of $T$.
 
   It uses the sum
      $$ F0 = \sum_{k=0}^{M-2} {-1/2 \choose k} p x^{p-1} E^k T^{(M-2-k)p}$$
@@ -1002,9 +1009,10 @@ def matrix_of_frobenius(Q, p, M, trace=None):
        [2715  187]
        [1445  408]
 
-    Hmmm... it looks different, but that's because the trace of our first
-    answer was only -2 modulo 5^3, not -2 modulo 5^5. So the right answer is:
-      sage: A.change_ring(Integers(p**prec))
+    Hmmm... it looks different, but that's because the trace of our
+    first answer was only -2 modulo $5^3$, not -2 modulo $5^5$. So the
+    right answer is:
+    sage: A.change_ring(Integers(p**prec))
        [90 62]
        [70 33]
 
@@ -1029,19 +1037,23 @@ def matrix_of_frobenius(Q, p, M, trace=None):
        [1144  176]
        [ 847  185]
 
-    The problem here is that the top-right entry is divisible by 11, and
-    the bottom-left entry is divisible by 11^2. So when you apply the
-    trace trick, neither F(dx/y) nor F(x dx/y) is enough to compute the
-    whole matrix to the desired precision, even if you try increasing the
-    target precision by one. Nevertheless, matrix_of_frobenius knows how to
-    get the right answer by evaluating F((x+1) dx/y) instead:
+    The problem here is that the top-right entry is divisible by 11,
+    and the bottom-left entry is divisible by $11^2$. So when you
+    apply the trace trick, neither $F(dx/y)$ nor $F(x dx/y)$ is enough
+    to compute the whole matrix to the desired precision, even if you
+    try increasing the target precision by one. Nevertheless,
+    \code{matrix_of_frobenius} knows how to get the right answer by
+    evaluating $F((x+1) dx/y)$ instead:
+
       sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 + 7*x + 8, p, M, -2)
       sage: A.change_ring(Integers(p**prec))
        [1144  176]
        [ 847  185]
 
-    The running time is about O(p * prec^2) (times some logarithmic factors),
-    so it's feasible to run on fairly large primes, or precision (or both?!?!):
+    The running time is about \code{O(p * prec**2)} (times some
+    logarithmic factors), so it's feasible to run on fairly large
+    primes, or precision (or both?!?!):
+
       sage: p = 10007
       sage: prec = 2
       sage: M = monsky_washnitzer.adjusted_prec(p, prec)

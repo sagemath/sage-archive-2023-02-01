@@ -187,6 +187,8 @@ class Worksheet:
             C.set_input_text(input)
             C.set_output_text(output, '')
             cells.append(C)
+        if len(cells) == 0:   # there must be at least one cell.
+            cells = [self._new_cell()]
         self.__cells = cells
 
 ##         lines = text.split('\n')
@@ -406,7 +408,15 @@ class Worksheet:
         return len(self.__cells)
 
     def __getitem__(self, n):
-        return self.__cells[n]
+        try:
+            return self.__cells[n]
+        except IndexError:
+            if n >= 0:  # this should never happen -- but for robustness we cover this case.
+                for k in range(len(self.__cells),n+1):
+                    self.__cells.append(self._new_cell())
+                return self.__cells[n]
+            raise IndexError
+
 
     def get_cell_with_id(self, id):
         for c in self.__cells:

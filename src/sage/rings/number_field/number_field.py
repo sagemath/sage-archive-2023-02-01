@@ -489,7 +489,7 @@ class NumberField_generic(field.Field):
 
         Here are the factors:
 
-	    sage: fi, fj = K.factor_integer(13);fi,fj
+	    sage: fi, fj = K.factor_integer(13); fi,fj
             ((Fractional ideal (3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1),
             (Fractional ideal (-3*I - 2) of Number Field in I with defining polynomial x^2 + 1, 1))
 

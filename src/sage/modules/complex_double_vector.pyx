@@ -35,8 +35,8 @@ import  free_module_element
 
 from sage.structure.element cimport Element, ModuleElement, RingElement
 
-from sage.rings.complex_double cimport ComplexDoubleElement
 from sage.rings.complex_double import CDF, new_ComplexDoubleElement
+from sage.rings.complex_double cimport ComplexDoubleElement
 
 include '../ext/stdsage.pxi'
 

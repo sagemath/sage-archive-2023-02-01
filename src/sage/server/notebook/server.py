@@ -477,7 +477,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #  full_path is the path from the top doc folder to the requested
         #  file
         # file_name is the name of the file requested
-        doc_path = os.readlink('doc')
+        doc_path = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
+        print doc_path
         file = open(doc_path + full_path + file_name,'r')
         doc_page_html = file.read()
         file.close()
@@ -570,10 +571,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
-        #if do_print:
-        #    s += '<script language=javascript>window.print()</script>\n'
         if do_print:
-            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+            s += '<script language=javascript>jsMath.Process();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 

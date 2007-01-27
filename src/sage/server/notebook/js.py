@@ -636,7 +636,7 @@ function hide_add_new_worksheet_menu() {
 }
 
 function show_upload_worksheet_menu() {
-    w = window.open("__upload__.html", "upload", "width=500, height=200");
+    window.open("__upload__.html","","location=1,menubar=1,scrollbars=0,width=800,height=700,toolbar=1,resizable=1");
     if(w.focus)
       w.focus();
 }
@@ -1822,7 +1822,7 @@ function hide_help_window() {
 ////////////////////////////////////////////
 
 function show_doc_browser() {
-    window.open("/doc_browser?/?index.html","","location=1,menubar=1,scrollbars=1,width=850,height=1000,toolbar=1");
+    window.open("/doc_browser?/?index.html","","location=1,menubar=1,scrollbars=0,width=700,height=600,toolbar=1,resizable=1");
 }
 
 ////////////////////////////////////////////
@@ -1955,8 +1955,8 @@ function show_help_window(worksheet) {
 
 function jsmath_init() {
     try {
-    /* jsMath.Process(); */
-        jsMath.ProcessBeforeShowing();
+    jsMath.Process();
+    /*   jsMath.ProcessBeforeShowing(); */
     } catch(e) {
         font_warning();
     }

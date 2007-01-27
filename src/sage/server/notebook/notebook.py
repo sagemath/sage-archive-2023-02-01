@@ -510,7 +510,10 @@ class Notebook(SageObject):
         cmd = 'cd %s; tar -jxf %s'%(tmp, os.path.abspath(filename))
         print cmd
         os.system(cmd)
-        D = os.listdir(tmp)[0]
+        try:
+            D = os.listdir(tmp)[0]
+        except IndexError:
+            raise ValueError, "invalid worksheet"
         worksheet = load('%s/%s/%s.sobj'%(tmp,D,D), compress=False)
         names = self.worksheet_names()
         if D in names:
@@ -977,10 +980,9 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Open</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
+        #body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
+        body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
-        body += '    <a class="doc_browser" onClick="show_doc_browser()">Doc-Browser</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
@@ -1298,10 +1300,19 @@ Output
             </head>
             <body onLoad="if(window.focus) window.focus()">
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
-              <form method="POST" action="upload_worksheet" target="_new"
+              <h1><font size=+3 color="darkred">SAGE</font>&nbsp;&nbsp;&nbsp;&nbsp;<font size=+1>Upload your Worksheet</font></h1>
+              <hr>
+              <form method="POST" action="upload_worksheet"
                     name="upload" enctype="multipart/form-data">
-              <input class="upload_worksheet_menu" type="file" name="fileField" id="upload_worksheet_filename"></input><br>
-              <input type="button" class="upload_worksheet_menu" value="upload" onClick="form.submit(); window.close();">
+              <table><tr>
+              <td>
+              Worksheet file:&nbsp&nbsp&nbsp </td>
+              <td><input class="upload_worksheet_menu" size="40" type="file" name="fileField" id="upload_worksheet_filename"></input></td>
+              </tr>
+              <tr><td></td><td></td></tr>
+              <tr>
+              <td></td><td><input type="button" class="upload_worksheet_menu" value="Upload Worksheet" onClick="form.submit(); window.close();"></td>
+              </tr>
               </form><br>
               </div>
             </body>

@@ -2,14 +2,14 @@
 Processes SAGE documentation into notebook worksheet format with
 evaluatable examples.
 
-This takes in any HTML document, i.e. sage documentation, and returns it in
-the editable format (like the notebook edit window). It also returns a
-string representing the css link for the document.
-The SGML parser is setup to return only the body of the html documentation
-page and to re-format sage examples and type-setting.
+This takes in any HTML document, i.e. sage documentation, and returns
+it in the editable format (like the notebook edit window). It also
+returns a string representing the css link for the document.  The SGML
+parser is setup to return only the body of the html documentation page
+and to re-format SAGE examples and type-setting.
 
-Note:
-This extension of sgmllib.SGMLParser was partly inspired by Mark Pilgrim's 'Dive Into Python' examples.
+Note: This extension of sgmllib.SGMLParser was partly inspired by Mark
+Pilgrim's 'Dive Into Python' examples.
 
 Author:
     -- Dorian Raymer (2006)
@@ -24,7 +24,8 @@ from htmlentitydefs import entitydefs
 class DocHTMLProcessor(SGMLParser):
 
     def reset(self):
-        """ This function is called by SGMLParser.__init__ so all necessary things
+        """
+        This function is called by SGMLParser.__init__ so all necessary things
         are initiallized here.
         """
         # flags
@@ -46,11 +47,14 @@ class DocHTMLProcessor(SGMLParser):
         SGMLParser.reset(self)
 
     def process_doc_html(self, doc_path, full_path, doc_in):
-        """process_doc_html is the only function that needs to be called externally.
-        docin should be a properly marked up html file.
-        doc_folder tells what part of the documentation (''=main index, ref = reference, tut=tutorial, etc.)
-        self.feed() is a SGMLParser method and starts everything off; Most of the functions here
-        are extensions to SGMLParser, and may never actually be visibly called here.
+        """
+        process_doc_html is the only function that needs to be called
+        externally.  docin should be a properly marked up html file.
+        doc_folder tells what part of the documentation (''=main
+        index, ref = reference, tut=tutorial, etc.)  self.feed() is a
+        SGMLParser method and starts everything off; Most of the
+        functions here are extensions to SGMLParser, and may never
+        actually be visibly called here.
         """
         self.doc_path = doc_path
         self.full_path = full_path
@@ -62,8 +66,11 @@ class DocHTMLProcessor(SGMLParser):
 
 
     def hand_off_temp_pieces(self, piece_type):
-        """ To seperate documentation content from sage examples, everything is split into one of two cell types.
-        This function is called to put the current self.temp_pieces into self.all_pieces.
+        """
+        To seperate documentation content from sage examples,
+        everything is split into one of two cell types.  This function
+        is called to put the current self.temp_pieces into
+        self.all_pieces.
         """
         pieces = "".join(self.temp_pieces)
         pieces = pieces.lstrip()
@@ -286,6 +293,8 @@ class DocHTMLProcessor(SGMLParser):
                         # tex = '\\text{' + value + '}'
                         self.temp_pieces.append(tex)
                         return
+            else:  # not in math
+                return
             count = 0
             for name, value in attrs:
                 if name.lower()=='src':
@@ -298,8 +307,8 @@ class DocHTMLProcessor(SGMLParser):
 
 
     def end_img(self):
-        if self.in_math_span == 1:
-            return
+        #if self.in_math_span == 1:
+        #    return
         self.unknown_endtag('img')
 
 

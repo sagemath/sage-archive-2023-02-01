@@ -125,6 +125,7 @@ def isalphadigit_(s):
 in_single_quote = False
 in_double_quote = False
 in_triple_quote = False
+
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
@@ -163,6 +164,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     num_start = -1
     in_number = False
     is_real = False
+
+    in_args = False
+
     if reset:
         in_single_quote = False
         in_double_quote = False
@@ -215,6 +219,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 in_double_quote = False
                 i += 1
                 continue
+
+        # decide if
 
 
         # Decide if we should wrap a particular integer or real literal
@@ -690,16 +696,18 @@ def mpreparse(line, reset=True, do_time=False, ignore_prompts=False):
         ##### CALCULUS #######
         elif (line[i] == "(") and not in_quote():
             # we need to make sure that nothing is being assigned to a tuple
+            # TODO: make sure that keyword assignment is not confused here
             line_before = line[:i].strip()
-            print "%s, %s" %(line[i-1], line_before)
+            print "%s, %s" %(line[i-1:i+1], line_before)
             if not line_before == "":
-                print "ASAD"
+                print "oparen is at %s" % i
                 oparen_index = i
             else: print "bleh"
             i += 1
             continue
 
         elif (line[i] == ")") and oparen_index != -1 and not in_quote():
+            print "cparen is at %s" % i
             cparen_index = i
             i += 1
             continue
@@ -714,6 +722,11 @@ def mpreparse(line, reset=True, do_time=False, ignore_prompts=False):
             if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
                 i += 1
                 continue
+
+            print "Detected."
+
+            cparen_index = -1
+            oparen_index = -1
 
             vars_begin = oparen_index+1
             vars_end = cparen_index

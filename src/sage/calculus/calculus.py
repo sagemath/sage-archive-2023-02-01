@@ -182,8 +182,8 @@ class SymbolicExpression(RingElement):
         return False
 
 
-    def __call__(self, **kwds):
-        return self.substitute(**kwds)
+    def __call__(self, dict=None, **kwds):
+        return self.substitute(dict, **kwds)
 
     def function(self, *args):
         """
@@ -389,12 +389,20 @@ class PrimitiveFunction(SymbolicExpression):
         else:
             return self(Symbolic_object(x))
 
+class CallableFunctionRing_class(CommutativeRing):
+    def __init__(self):
+        self._default_precision = 53 # default precision bits
+        ParentWithBase.__init__(self, RR)
 
-class CallableFunction(SageObject):
+CallableFunctionRing = CallableFunctionRing_class()
+CFR = CallableFunctionRing
+
+class CallableFunction(RingElement):
     r'''
     A callable, symbolic function that knows the variables on which it depends.
     '''
     def __init__(self, expr, args):
+        RingElement.__init__(self, CallableFunctionRing)
         if args == [] or args == () or args is None:
             raise ValueError, "A CallableFunction must know at least one of \
                                 its variables."

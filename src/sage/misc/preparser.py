@@ -7,6 +7,8 @@ AUTHOR:
                                    * precision of real literals now determined
                                      by digits of input (like mathematica).
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
+    -- Bobby Moretti (2007-01-25): * added preliminary function assignment
+                                     notation
 
 EXAMPLES:
 
@@ -113,7 +115,7 @@ implemented using the GMP C library.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-
+import pdb
 import os
 
 def isalphadigit_(s):
@@ -127,6 +129,12 @@ def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
+
+    found_valid_paren = True # for function assignment syntax
+    # find where the parens are for function assignment notation
+    oparen_index = -1
+    cparen_index = -1
+
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.rstrip()  # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
@@ -317,6 +325,54 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
             continue
 
+        ##### CALCULUS #######
+        #elif (line[i] == "(") and not in_quote():
+        #    oparen_index = i
+        #    i += 1
+        #    continue
+
+        #elif (line[i] == ")") and oparen_index != -1 and not in_quote():
+        #    cparen_index = i
+        #    i += 1
+        #    continue
+
+        #elif (line[i] == "=") and cparen_index != -1 and not in_quote():
+        #    eq = i
+
+        #    hash_index = line.find('#')
+
+        #    # make sure the '=' sign is on its own, reprsenting assignment
+        #    eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+        #    if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
+        #        i += 1
+        #        continue
+
+        #    vars_begin = oparen_index+1
+        #    vars_end = cparen_index
+
+        #    vars = line[vars_begin:vars_end].split(",")
+        #    vars = [v.strip() for v in vars]
+        #    b = []
+        #
+        #    # construct the parsed line
+        #    b.append(line[:vars_begin-1])
+        #    b.append('=')
+        #    b.append('(')
+        #    b.append(line[eq+1:])
+        #    b.append(').function(')
+        #    b.append(','.join(vars))
+        #    b.append(')')
+
+        #    line =  ''.join(b)
+
+        #    i += 1
+
+        #    continue
+
+
+        ####### END CALCULUS #######
+
+
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():
             line = line[:i] + "**" + line[i+1:]
@@ -433,4 +489,305 @@ def preparse_file(contents, attached={}, magic=True,
     # end while
 
     return '\n'.join(F)
+
+def mpreparse(line, reset=True, do_time=False, ignore_prompts=False):
+
+    found_valid_paren = True # for function assignment syntax
+    # find where the parens are for function assignment notation
+    oparen_index = -1
+    cparen_index = -1
+
+    global in_single_quote, in_double_quote, in_triple_quote
+    line = line.rstrip()  # xreadlines leaves the '\n' at end of line
+    L = line.lstrip()
+    if len(L) > 0 and L[0] in ['#', '!']:
+        return line
+
+    # Wrap integers with ZZ() and reals with RR().
+    def wrap_num(i, line, is_real, num_start):
+        zz = line[num_start:i]
+        if is_real or '.' in zz:
+            if zz[-1] == '.' and i < len(line) and line[i].isalpha():
+                # by popular demand -- this allows, e.g., 173.sqrt().
+                if '.' in zz[:-1]:
+                    O = "RealNumber('"; C="')."
+                else:
+                    O = "Integer("; C = ")."
+                zz = zz[:-1]
+            else:
+                O = "RealNumber('"; C="')"
+        else:
+            O = "Integer("; C = ")"
+        line = line[:num_start] + O + zz + C + line[i:]
+        return line, len(O+C)
+
+    i = 0
+    num_start = -1
+    in_number = False
+    is_real = False
+    if reset:
+        in_single_quote = False
+        in_double_quote = False
+        in_triple_quote = False
+
+
+    if ignore_prompts:
+        # Get rid of leading sage: so that pasting of examples from
+        # the documentation works.
+        for prompt in ['sage:', '>>>']:
+            while True:
+                strip = False
+                if line[:3] == prompt:
+                    line = line[3:].lstrip()
+                    strip = True
+                elif line[:5] == prompt:
+                    line = line[5:].lstrip()
+                    strip = True
+                if not strip:
+                    break
+                else:
+                    line = line.lstrip()
+
+    while i < len(line):
+        # Update quote parsing
+        if line[i] == "'":
+            if not in_quote():
+                in_single_quote = True
+                i += 1
+                continue
+            elif in_single_quote:
+                in_single_quote = False
+                i += 1
+                continue
+        elif line[i:i+3] == '"""':
+            if not in_quote():
+                in_triple_quote = True
+                i += 3
+                continue
+            elif in_triple_quote:
+                in_triple_quote = False
+                i += 3
+                continue
+        elif line[i] == '"':
+            if not in_quote():
+                in_double_quote = True
+                i += 1
+                continue
+            elif in_double_quote:
+                in_double_quote = False
+                i += 1
+                continue
+
+
+        # Decide if we should wrap a particular integer or real literal
+        if in_number:
+            if line[i] == ".":
+                is_real = True
+            elif not line[i].isdigit():
+                # end of a number
+                # Do we wrap?
+                if in_quote():
+                    # do not wrap
+                    pass
+                elif i < len(line) and line[i] in 'eE':
+                    # Yes, in scientific notation, so will wrap later
+                    is_real = True
+                    i += 1
+                    if i < len(line) and line[i] == '-':
+                        i += 2
+                    continue
+                elif i < len(line) and line[i] in 'rR':
+                    # Raw number so do not wrap; but have to get rid of the "r".
+                    line = line[:i] + line[i+1:]
+                else:
+                    line, n = wrap_num(i, line, is_real, num_start)
+                    i += n
+                in_number = False
+                is_real = False
+                continue
+
+        # Support for generator construction syntax:
+        # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
+        # is converted into
+        # "obj = objConstructor(..., names=("gen0", "gen1", ..., "genN")); \
+        #  (gen0, gen1, ..., genN,) = obj.gens()"
+        #
+        # Also, obj.<gen0,gen1,...,genN> = R[...] is converted into
+        # "obj = R['gen0,gen1,..., genN']; (gen0, gen1, ..., genN,) = obj.gens()"
+        #
+        # LIMITATIONS:
+        #    - The entire constructor *must* be on one line.
+        #
+        # AUTHORS:
+        #     -- 2006-04-14: Joe Wetherell (jlwether@alum.mit.edu)
+        #     -- 2006-04-17: William Stein - improvements to allow multiple statements.
+        #     -- 2006-05-01: William -- fix bug that Joe found
+        #     -- 2006-10-31: William -- fix so obj doesn't have to be mutated
+        elif (line[i:i+2] == ".<") and not in_quote():
+            try:
+                gen_end = line.index(">", i+2)
+            except ValueError:
+                # Syntax Error -- let Python notice and raise the error
+                i += 2
+                continue
+
+            gen_begin = i
+            while gen_begin > 0 and line[gen_begin-1] != ';':
+                gen_begin -= 1
+
+            # parse out the object name and the list of generator names
+            gen_obj = line[gen_begin:i].strip()
+            gen_list = [s.strip() for s in line[i+2:gen_end].split(',')]
+            for g in gen_list:
+                if not g.isalnum() or len(g) == 0 or not g[0].isalpha():
+                    raise SyntaxError, "variable name (='%s') must be alpha-numeric and begin with a letter"%g
+
+            # format names as a list of strings and a list of variables
+            gen_names = tuple(gen_list)
+            gen_vars  = ", ".join(gen_list)
+
+            # find end of constructor:
+            #    either end of line, next semicolon, or next #.
+            line_after = line[gen_end:]
+            c = line_after.find('#')
+            if c==-1: c = len(line_after)
+            s = line_after.find(';')
+            if s==-1: s = len(line_after)
+            c = min(c,s) + gen_end
+
+            # Find where the parenthesis of the constructor ends
+            if line[:c].rstrip()[-1] == ']':
+                # brackets constructor
+                c0 = line[:c].find(']')
+                d0 = line[:c0].rfind('[')
+                if c0 == -1:
+                    raise SyntaxError, 'constructor must end with ) or ]'
+                line_new = '%s"%s"%s; (%s,) = %s.gens()'%(
+                    line[:i] + line[gen_end+1:d0+1], gen_vars,
+                    line[c0:c], gen_vars, gen_obj)
+            else:
+                c0 = line[:c].rfind(')')
+                # General constructor -- rewrite the input line as two commands
+                # We have to determine whether or not to put a comma before
+                # the list of names.  We do this only if there are already
+                # arguments to the constructor.  Some constructors have no
+                # arguments, e.g., "K.<a> = f.root_field(  )"
+                c1 = line[:c0].rfind('(')
+                if len(line[c1+1:c0].strip()) > 0:
+                    sep = ','
+                else:
+                    sep = ''
+                line_new = '%s%snames=%s); (%s,) = %s.gens()'%(
+                    line[:i] + line[gen_end+1:c0], sep, gen_names,
+                    gen_vars, gen_obj)
+
+            line = line_new + line[c:]
+            #i = len(line_new)
+            i += 1
+
+            continue
+
+        ##### CALCULUS #######
+        elif (line[i] == "(") and not in_quote():
+            # we need to make sure that nothing is being assigned to a tuple
+            line_before = line[:i].strip()
+            print "%s, %s" %(line[i-1], line_before)
+            if not line_before == "":
+                print "ASAD"
+                oparen_index = i
+            else: print "bleh"
+            i += 1
+            continue
+
+        elif (line[i] == ")") and oparen_index != -1 and not in_quote():
+            cparen_index = i
+            i += 1
+            continue
+
+        elif (line[i] == "=") and cparen_index != -1 and not in_quote():
+            eq = i
+
+            hash_index = line.find('#')
+
+            # make sure the '=' sign is on its own, reprsenting assignment
+            eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+            if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
+                i += 1
+                continue
+
+            vars_begin = oparen_index+1
+            vars_end = cparen_index
+
+            vars = line[vars_begin:vars_end].split(",")
+            vars = [v.strip() for v in vars]
+            b = []
+
+            # construct the parsed line
+            b.append(line[:vars_begin-1])
+            b.append('=')
+            b.append('(')
+            b.append(line[eq+1:])
+            b.append(').function(')
+            b.append(','.join(vars))
+            b.append(')')
+
+            line =  ''.join(b)
+
+            i += 1
+
+            continue
+
+
+        ####### END CALCULUS #######
+
+
+        # exponents can be either ^ or **
+        elif line[i] == "^" and not in_quote():
+            line = line[:i] + "**" + line[i+1:]
+            i += 2
+            continue
+
+        elif line[i] == "." and i > 0 and i < len(line)-1 and not in_quote() and \
+                 (isalphadigit_(line[i-1]) or line[i-1] == ")" or line[i-1] == ']') and line[i+1].isdigit():
+            # Generators: replace all ".<number>" by ".gen(<number>)"
+            # If . is preceeded by \, then replace "\." by ".".
+            j = i+1
+            while j < len(line) and line[j].isdigit():
+                j += 1
+            line = line[:i] + ".gen(" + line[i+1:j] + ")" + line[j:]
+            i = j+4
+
+        if     not in_number and \
+               not in_quote()and \
+               (line[i].isdigit() or \
+                   (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \
+               (i == 0 or (i > 0 and not (isalphadigit_(line[i-1]) \
+                                          or line[i-1] == ')'))):
+            in_number = True
+            num_start = i
+
+        # Decide if we hit a comment, so we're done.
+        if line[i] == '#' and not (in_single_quote or in_double_quote or in_triple_quote):
+            i = len(line)
+            break
+
+        i += 1
+
+    if in_number:
+        line, _ = wrap_num(i, line, is_real, num_start)
+
+    # Time command like in MAGMA: (commented out, since it's standard in IPython now)
+    L = line.lstrip()
+
+    if do_time:
+        if L[:5] == "time ":
+            # strip semicolon from end of line
+             if line[-1:] == ";":
+                 line = line[:-1]
+             indent = ' '*(len(line) - len(L))
+             line = indent + '__time__=misc.cputime(); __wall__=misc.walltime(); %s; print \
+        "Time: CPU %%.2f s, Wall: %%.2f s"%%(misc.cputime(__time__), misc.walltime(__wall__))'%L[4:]
+
+    return line
+
 

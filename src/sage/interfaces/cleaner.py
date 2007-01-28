@@ -17,7 +17,10 @@ F = '%s/spawned_processes'%misc.SAGE_TMP
 def cleaner(pid, cmd):
     cmd = cmd.strip().split()[0]
     # This is safe, since only this process writes to this file.
-    o = open(F,'a')
+    if os.path.exists(F):
+        o = open(F,'a')
+    else:
+        o = open(F,'w')
     o.write('%s %s\n'%(pid, cmd))
     o.close()
     start_cleaner_if_not_running()
@@ -26,11 +29,11 @@ def cleaner(pid, cmd):
 
 def start_cleaner_if_not_running():
     D = '%s/tmp_cleaner.pid'%misc.DOT_SAGE
-    pid = int(open(D).read())
     try:
+        pid = int(open(D).read())
         os.kill(pid,0)
         return
-    except (OSError, ValueError):
+    except (IOError, OSError, ValueError):
         os.system('sage-cleaner &')   # it has died
 
 

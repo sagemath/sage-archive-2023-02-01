@@ -307,14 +307,14 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: a.log(b)
             Traceback (most recent call last):
             ...
-            ValueError: base for discrete log must generate multiplicative group
+            ValueError: base (=3) for discrete log must generate multiplicative group
             sage: discrete_log_generic(b^2,b)
             2
             sage: a = Mod(16, 100); b = Mod(4,100)
             sage: a.log(b)
             Traceback (most recent call last):
             ...
-            ValueError: base must be a unit that generates the multiplicative group
+            ValueError: base (=4) must be a unit that generates the multiplicative group
             sage: discrete_log_generic(a,b)
             Traceback (most recent call last):
             ...

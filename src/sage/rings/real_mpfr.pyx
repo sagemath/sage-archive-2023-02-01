@@ -1,5 +1,5 @@
 """
-Aribtrary Precision Real Numbers
+Field of Arbitrary Precision Real Numbers
 
 AUTHORS:
    -- Kyle Schalm <kschalm@math.utexas.edu> (2005-09)
@@ -63,10 +63,12 @@ import  sage.structure.element
 import sage.structure.coerce
 import operator
 
-from sage.rings.integer import Integer
-from sage.rings.integer cimport Integer
-from sage.rings.rational import Rational
-from sage.rings.rational cimport Rational
+from integer import Integer
+from integer cimport Integer
+from rational import Rational
+from rational cimport Rational
+
+from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
 
@@ -236,7 +238,9 @@ cdef class RealField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational)):
+        elif isinstance(x, (Integer, Rational)):
+            return self(x)
+        elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
         import sage.functions.constants
         return self._coerce_try(x, [sage.functions.constants.ConstantRing])
@@ -271,8 +275,7 @@ cdef class RealField(sage.rings.ring.Field):
             sage: loads(dumps(R)) == R
             True
         """
-        return sage.rings.real_field.__reduce__RealField, \
-                (self.__prec, self.sci_not, self.rnd_str)
+        return __create__RealField_version0, (self.__prec, self.sci_not, self.rnd_str)
 
     def gen(self, i=0):
         if i == 0:
@@ -518,7 +521,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         of an invalid operation (like 0 divided by 0), or a value that
         cannot be determined (like +Infinity minus
         +Infinity). Moreover, like in the IEEE 754-1985 standard, zero
-        is signed, i.e. there are both +0 and ?0; the behavior is the
+        is signed, i.e. there are both +0 and -0; the behavior is the
         same as in the IEEE 754-1985 standard and it is generalized to
         the other functions supported by MPFR.
 
@@ -584,7 +587,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
         """
         s = self.str(32, no_sci=False, e='@')
-        return (sage.rings.real_field.__reduce__RealNumber, (self._parent, s, 32))
+        return (__create__RealNumber_version0, (self._parent, s, 32))
 
     def  __dealloc__(self):
         if self.init:
@@ -743,10 +746,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = 119.41212
             sage: a.integer_part()
             119
+
+        A big number with no decimal point:
+            sage: a = RR(10^17); a
+            100000000000000000
+            sage: a.integer_part()
+            100000000000000000
         """
         s = self.str(base=32, no_sci=True)
         i = s.find(".")
-        return Integer(s[:i], base=32)
+        if i != -1:
+            return Integer(s[:i], base=32)
+        else:
+            return Integer(s, base=32)
 
     ########################
     #   Basic Arithmetic
@@ -978,6 +990,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2
             sage: (2.01).ceil()
             3
+
+            sage: ceil(10^16 * 1.0)
+            10000000000000000
+            sage: ceil(10^17 * 1.0)
+            100000000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -1254,7 +1271,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = 16.0; r.log10()
             1.20411998265592
             sage: r.log() / log(10)
-            1.20411998266
+            1.20411998265804
 
             sage: r = 39.9; r.log10()
             1.60097289568674
@@ -1754,3 +1771,16 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
     R = RealField(prec=max(bits+pad, min_prec), rnd=rnd)
     return RealNumber(R, s, base)
 
+
+
+def is_RealField(x):
+    return PY_TYPE_CHECK(x, RealField)
+
+def is_RealNumber(x):
+    return PY_TYPE_CHECK(x, RealNumber)
+
+def __create__RealField_version0(prec, sci_not, rnd):
+    return RealField(prec, sci_not, rnd)
+
+def __create__RealNumber_version0(parent, x, base=10):
+    return RealNumber(parent, x, base=base)

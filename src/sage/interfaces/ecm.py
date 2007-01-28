@@ -159,6 +159,7 @@ class ECM:
         kwds['one'] = ''
         kwds['cofdec'] = ''
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
+        self.last_params = { 'B1' : B1 }
         child = pexpect.spawn(self.__cmd)
 	child.__del__ = nothing   # program around studid exception ignored error
         child.sendline(str(n))
@@ -336,7 +337,7 @@ class ECM:
             child.sendeof()
         except:
             pass
-        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65', timeout=None)
+        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65')
         if verbose:
             print child.before,
             print child.after,

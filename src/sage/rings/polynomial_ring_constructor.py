@@ -3,7 +3,7 @@
 #########################################################################################
 
 from sage.structure.parent_gens import normalize_names
-
+import ring
 import weakref
 
 _cache = {}
@@ -260,22 +260,25 @@ def _single_variate(base_ring, name, sparse):
     R = _get_from_cache(key)
     if not R is None: return R
 
-    if m.integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
-        n = base_ring.order()
-        if n.is_prime():
-            R = m.PolynomialRing_dense_mod_p(base_ring, name)
-        elif n > 1:
-            R = m.PolynomialRing_dense_mod_n(base_ring, name)
-        else:  # n == 1!
-            R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
+    if isinstance(base_ring, ring.CommutativeRing):
+        if m.integer_mod_ring.is_IntegerModRing(base_ring) and not sparse:
+            n = base_ring.order()
+            if n.is_prime():
+                R = m.PolynomialRing_dense_mod_p(base_ring, name)
+            elif n > 1:
+                R = m.PolynomialRing_dense_mod_n(base_ring, name)
+            else:  # n == 1!
+                R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
 
-    elif base_ring.is_field():
-        R = m.PolynomialRing_field(base_ring, name, sparse)
+        elif base_ring.is_field():
+            R = m.PolynomialRing_field(base_ring, name, sparse)
 
-    elif base_ring.is_integral_domain():
-        R = m.PolynomialRing_integral_domain(base_ring, name, sparse)
+        elif base_ring.is_integral_domain():
+            R = m.PolynomialRing_integral_domain(base_ring, name, sparse)
+        else:
+            R = m.PolynomialRing_commutative(base_ring, name, sparse)
     else:
-        R = m.PolynomialRing_generic(base_ring, name, sparse)
+        R = m.PolynomialRing_general(base_ring, name, sparse)
 
     _save_in_cache(key, R)
     return R

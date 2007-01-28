@@ -30,7 +30,10 @@ import sage.server.support
 import sage.interfaces.expect
 
 from sage.rings.complex_double import CDF
-from sage.rings.real_double import RDF
+from sage.rings.real_double import RDF, RealDoubleElement
+import sage.rings.real_mpfr
+
+import __builtin__
 
 ##############################################################################
 # There are many functions on elements of a ring, which mathematicians
@@ -758,6 +761,31 @@ def regulator(x):
     Return the regulator of x.
     """
     return x.regulator()
+
+def round(x, ndigits=0):
+    """
+    round(number[, ndigits]) -> mpfr real number
+
+    Round a number to a given precision in decimal digits (default 0
+    digits).  This always returns a real double field element.
+
+    EXAMPLES:
+        sage: round(sqrt(2),2)
+        1.41
+        sage: round(sqrt(2),5)
+        1.41421
+        sage: round(pi)
+        3.0
+
+    IMPLEMENTATION:  Calls Python's builtin round function, and converts
+    the result to a real double field element.
+
+    NOTE: This is currently slower than the builtin round function,
+    since it does more work -- i.e., allocating an RDF element and
+    initializing it.  To access the builtin version do
+    \code{import __builtin__; __builtin__.round}.
+    """
+    return RealDoubleElement(__builtin__.round(x, ndigits))
 
 def quotient(x, y, *args, **kwds):
     """

@@ -225,7 +225,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,14)
             sage: E
-            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
             sage: K = S('ABCDEFGHIJKLMN')
             sage: K
             ABCDEFGHIJKLMN
@@ -237,7 +237,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
-        SymmetricKeyCryptosystem.__init__(self, S, S, S, block_length = n)
+        SymmetricKeyCryptosystem.__init__(self, S, S, S, block_length = 1, period = n)
 
     def __call__(self, K):
         """
@@ -250,7 +250,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,14)
             sage: E
-            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
             sage: K = S('ABCDEFGHIJKLMN')
             sage: K
             ABCDEFGHIJKLMN
@@ -261,7 +261,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             TIGFEYOUBQOSMG
         """
         S = self.key_space()
-	m = self.block_length()
+	m = self.period()
         if isinstance(K, list):
             try:
                 K = S(K)
@@ -272,13 +272,13 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
         return VigenereCipher(self, K)
 
     def __repr__(self):
-        return "Vigenere cryptosystem on %s of block length %s" % (
-            self.cipher_domain(), self.block_length())
+        return "Vigenere cryptosystem on %s of period %s" % (
+            self.cipher_domain(), self.period())
 
     def random_key(self):
 	S = self.key_space()
 	n = S.ngens()
-	m = self.block_length()
+	m = self.period()
 	return S([ randint(0,n-1) for i in range(m) ])
 
     def inverse_key(self,K):

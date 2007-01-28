@@ -2,6 +2,8 @@ include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
+cimport sage.structure.element
+
 cimport free_module_element
 import  free_module_element
 

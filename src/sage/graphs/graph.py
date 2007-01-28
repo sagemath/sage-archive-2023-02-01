@@ -149,8 +149,25 @@ class GenericGraph(SageObject):
     def _latex_(self):
         return repr(self)
 
-    def _matrix_(self):
-        return self.am()
+    def _matrix_(self, R=None):
+        """
+        EXAMPLES:
+            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: m = matrix(G); m.parent()
+            Full MatrixSpace of 5 by 5 sparse matrices over Integer Ring
+            sage: m
+            [0 0 1 1 1]
+            [0 0 1 1 1]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            sage: factor(m.charpoly())
+            (x^2 - 6) * x^3
+        """
+        if R is None:
+            return self.am()
+        else:
+            return self.am().change_ring(R)
 
     def networkx_graph(self):
         """
@@ -276,7 +293,7 @@ class Graph(GenericGraph):
              3: [ 0.12743933,-1.125     ],
              4: [-1.125     ,-0.50118505]}
             name -- (must be an explicitly named parameter, i.e.,
-            name="complete") gives the graph a name
+                     name="complete") gives the graph a name
             loops -- boolean, whether to allow loops (ignored if data is an instance of
             the Graph class)
             multiedges -- boolean, whether to allow multiple edges (ignored if data is
@@ -324,6 +341,8 @@ class Graph(GenericGraph):
             self._nxg = data
         else:
             self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
+            if kwds.has_key('name'):
+                self._nxg.name = kwds['name']
         self.__pos = pos
 
     def _repr_(self):
@@ -938,7 +957,7 @@ class DiGraph(GenericGraph):
         The following intuitive input results in nonintuitive output:
         sage: G = DiGraph()
         sage: G.add_arc((1,2),'label')
-        sage: G.networkx_graph().adj
+        sage: G.networkx_graph().adj           # random output order
         {'label': {}, (1, 2): {'label': None}}
 
         Use one of these instead:

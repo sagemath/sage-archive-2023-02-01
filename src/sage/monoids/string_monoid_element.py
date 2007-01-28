@@ -120,9 +120,9 @@ class StringMonoidElement(FreeMonoidElement):
             sage: S = BinaryStrings()
             sage: s = S('101111000')
             sage: latex(s)
-            \text{101111000}
+            101111000
         """
-        return self.__rep__()
+        return self._repr_()
 
     def __mul__(self, y):
         """

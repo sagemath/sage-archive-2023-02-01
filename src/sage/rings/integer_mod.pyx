@@ -266,35 +266,98 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return '%s!%s'%(self.parent()._magma_init_(), self)
 
-    def log(self, a):
-        """
-        Return $x$ such that $b^x = a$, where $b$ is self.
+    def log(self, b=None):
+        r"""
+        Return integer $x$ such that $b^x = a$, where $a$ is self.
 
         INPUT:
-            self, a are units in the integers modulo $N$.
+            self -- unit modulo N
+            b -- a *generator* of the multiplicative group modulo N.
+            If b is not given, R.multiplicative_generator() is used,
+            where R is the parent of self.
 
         OUTPUT:
-            Integer $x$ such that $a^x = b$, if it exists.
-            Raises a ValueError exception if no such $x$ exists.
+            Integer $x$ such that $b^x = a$.
 
         EXAMPLES:
-            sage: R = Integers(500)
-            sage: b = R(17); a = b^19
-            sage: b.log(a)
-            19
+            sage: r = Integers(125)
+            sage: b = r.multiplicative_generator()^3
+            sage: a = b^17
+            sage: a.log(b)
+            17
+            sage: a.log()
+            63
 
-        AUTHOR: David Joyner and William Stein (2005-11)
+        A bigger example.
+            sage: FF = FiniteField(2^32+61)
+            sage: c = FF(4294967356)
+            sage: x = FF(2)
+            sage: a = c.log(x)
+            sage: a
+            2147483678
+            sage: x^a
+            4294967356
+
+        Things that can go wrong.  E.g., if the base is not a
+        generator for the multiplicative group, or not even a unit.
+        You can sometimes use the function \code{discrete_log_generic}
+        in general, but don't expect it to be very fast.
+
+            sage: a = Mod(9, 100); b = Mod(3,100)
+            sage: a.log(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: base for discrete log must generate multiplicative group
+            sage: discrete_log_generic(b^2,b)
+            2
+            sage: a = Mod(16, 100); b = Mod(4,100)
+            sage: a.log(b)
+            Traceback (most recent call last):
+            ...
+            ValueError: base must be a unit that generates the multiplicative group
+            sage: discrete_log_generic(a,b)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: multiplicative order of 4 not defined since it is not a unit modulo 100
+
+        AUTHOR:
+            -- David Joyner and William Stein (2005-11)
+            -- William Stein (2007-01-27): update to use PARI as requested by
+               David Kohel.
         """
-        n = self._parent.unit_group_order()
-        return arith.discrete_log_generic(self, a, n) # TODO update this function
+        if b is None:
+            b = self._parent.multiplicative_generator()
+        else:
+            b = self._parent(b)
+        cmd = 'b=Mod(%s,%s); if(znorder(b)!=eulerphi(%s),-1,znlog(%s,b))'%(b, self.__modulus.sageInteger,
+                                                                           self.__modulus.sageInteger, self)
+        try:
+            n = Integer(pari(cmd))
+            if n == -1:
+                raise ValueError, "base for discrete log must generate multiplicative group"
+            return n
+        except PariError:
+            raise ValueError, "base must be a unit that generates the multiplicative group"
 
 
     def modulus(IntegerMod_abstract self):
+        """
+        EXAMPLES:
+            sage: Mod(3,17).modulus()
+            17
+        """
         return self.__modulus.sageInteger
 
 
     def is_square(self):
-        return bool(self.pari().issquare()) # TODO implement directly
+        """
+        EXAMPLES:
+            sage: Mod(3,17).is_square()
+            False
+            sage: Mod(9,17).is_square()
+            True
+        """
+        return bool(self.pari().issquare())
 
     def charpoly(self, var):
         """
@@ -441,11 +504,23 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
     def multiplicative_order(self):
         """
-        Returns the additive order of self.
+        Returns the multiplicative order of self.
+
+        EXAMPLES:
+            sage: Mod(-1,5).multiplicative_order()
+            2
+            sage: Mod(1,5).multiplicative_order()
+            1
+            sage: Mod(0,5).multiplicative_order()
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: multiplicative order of 0 not defined since it is not a unit modulo 5
         """
-        if not self.is_unit():
-            raise ArithmeticError, "self must be a unit"
-        return sage.rings.integer.Integer(self.pari().order())  # pari's "order" is by default multiplicative  # TODO: implement this directly
+        try:
+            return sage.rings.integer.Integer(self.pari().order())  # pari's "order" is by default multiplicative
+        except PariError:
+            raise ArithmeticError, "multiplicative order of %s not defined since it is not a unit modulo %s"%(
+                self, self.__modulus.sageInteger)
 
     def _repr_(self):
         return str(self.lift())

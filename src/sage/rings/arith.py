@@ -1827,11 +1827,20 @@ def nth_prime(n):
         raise ValueError
     return integer_ring.ZZ(pari('prime(%s)'%int(n)))
 
-def discrete_log_generic(b, a, ord=None):
-    """
-    Return an integer $n$ such that $b^n = a$, assuming that ord is a
-    multiple of the multiplicative order of $a$.  If ord is not
-    specified an attempt is made to compute it.
+def discrete_log_generic(x, base, ord=None):
+    r"""
+    Return an integer $n$ such that $b^n = x$, assuming that ord is a
+    multiple of the multiplicative order of $a$ and $b$ is the base.
+    If ord is not specified an attempt is made to compute it.
+
+    WARNING: If x has a log method, it is likely to be vastly faster
+    than using this function.  E.g., if x is an integer modulo n, use
+    its log method instead!
+
+    INPUT:
+        x -- number
+        base -- number (base of log)
+        ord -- integer (multiple of order of base).
 
     The elements a and b must support exponentiation to a negative
     power.
@@ -1842,43 +1851,45 @@ def discrete_log_generic(b, a, ord=None):
 
     EXAMPLES:
         sage: b = Mod(2,37);  a = b^20
-        sage: discrete_log_generic(b, a)
+        sage: discrete_log_generic(a, b)
         20
         sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log_generic(b, a)
+        sage: discrete_log_generic(a, b)
         20
 
         sage: K = GF(3^6,'b')
         sage: b = K.gen()
         sage: a = b^210
-        sage: discrete_log_generic(b, a, K.order()-1)
+        sage: discrete_log_generic(a, b, K.order()-1)
         210
 
-        sage: b = Mod(1,37);  a = Mod(2,37)
-        sage: discrete_log_generic(b, a)
+        sage: b = Mod(1,37);  x = Mod(2,37)
+        sage: discrete_log_generic(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: Log of a to the base b does not exist.
-        sage: b = Mod(1,997);  a = Mod(2,997)
-        sage: discrete_log_generic(b, a)
+        ValueError: Log of 2 to the base 1 does not exist.
+        sage: b = Mod(1,997);  x = Mod(2,997)
+        sage: discrete_log_generic(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: Log of a to the base b does not exist.
+        ValueError: Log of 2 to the base 1 does not exist.
 
-    AUTHOR: William Stein and David Joyner (2005-01-05)
+    AUTHOR:
+        -- William Stein and David Joyner (2005-01-05)
     """
     Z = integer_ring.ZZ
+    b = base; a = x
 
     if b == 0:
         if a == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of a to the base b does not exist."
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
     elif a == 0:
         if b == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of a to the base b does not exist."
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
     if ord is None:
         ord = b.multiplicative_order()
@@ -1889,7 +1900,7 @@ def discrete_log_generic(b, a, ord=None):
             if c == a:        # is b^i
                 return Z(i)
             c *= b
-        raise ValueError, "Log of a to the base b does not exist."
+        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
     m = ord.isqrt()
     g = [a]
@@ -1904,7 +1915,7 @@ def discrete_log_generic(b, a, ord=None):
             x = S2.index(y)
             return Z(m*(g.index(y)) + x)
 
-    raise ValueError, "Log does not exist."
+    raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
 
 

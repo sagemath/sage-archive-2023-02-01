@@ -54,6 +54,11 @@ from docHTMLProcessor import DocHTMLProcessor
 # SAGE libraries
 import sage.interfaces.sage0
 
+# doc browser sequence number
+doc_browser_seq = 0
+MAX_DOC_BROWSER_SEQ = 48  # cycle around after this many worksheets -- max number
+                          # of truly simult doc requests.
+
 from sage.misc.misc import (alarm, cancel_alarm,
                             verbose, word_wrap, SAGE_EXTCODE)
 
@@ -495,10 +500,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             css_href = doc_path + full_path + css_href
 
         wnames = notebook.worksheet_names()
-        if 'doc_browser' not in wnames:
-            W = notebook.create_new_worksheet(name='doc_browser', passcode='')
+        global doc_browser_seq
+        worksheet_name = 'doc_browser_%s'%doc_browser_seq
+        doc_browser_seq += 1
+        if doc_browser_seq >= MAX_DOC_BROWSER_SEQ:
+            doc_brower_seq = 0
+        if worksheet_name not in wnames:
+            W = notebook.create_new_worksheet(name=worksheet_name, passcode='')
         else:
-            W = notebook.get_worksheet_with_name('doc_browser')
+            W = notebook.get_worksheet_with_name(worksheet_name)
+            W.interrupt()
         W.edit_save(doc_page)
         saveTime = time.time()
         saveTime = saveTime - docProcessEnd

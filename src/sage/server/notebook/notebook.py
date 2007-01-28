@@ -800,12 +800,18 @@ class Notebook(SageObject):
         for W in self.__worksheets.itervalues():
             W.quit()
 
+    def delete_doc_browser_worksheets(self):
+        names = self.worksheet_names()
+        for n in self.__worksheets.keys():
+            if n.startswith('doc_browser'):
+                self.delete_worksheet(n)
+
     def worksheet_list_html(self, current_worksheet=None):
         s = []
         names = self.worksheet_names()
         m = max([len(x) for x in names] + [30])
         for n in names:
-            if n == 'doc_browser': continue
+            if n.startswith('doc_browser'): continue
             W = self.__worksheets[n]
             if W == current_worksheet:
                 cls = 'worksheet_current'
@@ -1276,6 +1282,10 @@ Output
         A <i>worksheet</i> is an ordered list of SAGE calculations with output.
         A <i>session</i> is a worksheet and a set of variables in some state.
         A <i>notebook</i> is a collection of worksheets and saved objects.
+        <br>
+        <br>
+        To get started with SAGE, <a href="doc_browser?/tut/?tut.html">view the tutorial</a>.
+        <br><br>
 
         <table class="help_window">
         """
@@ -1609,6 +1619,7 @@ def notebook(dir         ='sage_notebook',
                 print "Trying save from last startup."
                 nb = load('%s/nb-older-backup.sobj'%dir, compress=False)
 
+        nb.delete_doc_browser_worksheets()
         nb.set_directory(dir)
         if not (username is None):
             nb.set_auth(username=username, password=password)

@@ -652,7 +652,7 @@ class A002378(SloaneSequence):
 
 class A002620(SloaneSequence):
     r"""
-    Quarter-squares: floor(n/2)*ceiling(n/2). Equivalently, floor(n^2/4).
+    Quarter-squares: floor(n/2)*ceiling(n/2). Equivalently, $\lfloor n^2/4 \rfloor$.
 
     INPUT:
         n -- non negative integer
@@ -1434,7 +1434,7 @@ class A005101(SloaneSequence):
 
 class A002110(SloaneSequence):
     r"""
-    Primorial numbers (first definition): product of first $n$ primes. Sometimes written $p#$.
+    Primorial numbers (first definition): product of first $n$ primes. Sometimes written $p\#$.
 
     INPUT:
         n -- non negative integer
@@ -1780,7 +1780,7 @@ class A000045(SloaneSequence):
 
 class A000108(SloaneSequence):
     r"""
-    Catalan numbers: $C_n = \frac {2n \choose n} {n+1} = \frac {(2n)!}  {n!(n+1)!}. Also called Segner numbers.
+    Catalan numbers: $C_n = \frac{{{2n}\choose{n}}}{n+1} = \frac {(2n)!}{n!(n+1)!}$. Also called Segner numbers.
 
 
     INPUT:
@@ -2181,7 +2181,7 @@ class A000984(SloaneSequence):
 
 class A001405(SloaneSequence):
     r"""
-    Central binomial coefficients: $n \choose \lfloor \frac n 2 \rfloor$.
+    Central binomial coefficients: $n \choose \lfloor \frac {n}{ 2} \rfloor$.
 
     INPUT:
         n -- non negative integer
@@ -3217,7 +3217,7 @@ class A001157(SloaneSequence):
     r"""
     The sequence $\sigma_2(n)$, sum of squares of divisors of $n$.
 
-    The function sigma(n, k) implements $\sigma_k* in SAGE.
+    The function sigma(n, k) implements $\sigma_k*$ in SAGE.
 
     INPUT:
         n -- positive integer
@@ -3368,7 +3368,7 @@ class A000217(SloaneSequence):
 
 class A002275(SloaneSequence):
     r"""
-    Repunits: $\frac (10^n - 1) 9$. Often denoted by $R_n$.
+    Repunits: $\frac {(10^n - 1)}{9}$. Often denoted by $R_n$.
 
     INPUT:
         n -- non negative integer
@@ -4147,7 +4147,7 @@ class A001045(SloaneSequence):
 
 class A000129(SloaneSequence):
     r"""
-    Pell numbers: $a(0) = 04, $a(1) = 1$; for $n > 1$, $a(n) = 2a(n-1) + a(n-2)$.
+    Pell numbers: $a(0) = 0$, $a(1) = 1$; for $n > 1$, $a(n) = 2a(n-1) + a(n-2)$.
 
     INPUT:
         n -- non negative integer

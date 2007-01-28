@@ -3,7 +3,8 @@ from classical import (
      TranspositionCryptosystem,
      VigenereCryptosystem)
 
-from stream import LFSRCryptosystem
+from stream import (LFSRCryptosystem,
+                    ShrinkingGeneratorCryptosystem)
 
 from lfsr import (lfsr_sequence,
                   lfsr_autocorrelation,

@@ -25,13 +25,14 @@ class LFSRCipher(SymmetricKeyCipher):
 	    sage: P.<x> = PolynomialRing(FF)
             sage: E = LFSRCryptosystem(FF)
 	    sage: E
-            LFSR cryptosystem on Finite Field of 2 elements
+            LFSR cryptosystem over Finite Field of size 2
 	    sage: IS = [ FF.random_element() for i in range(7) ]
 	    sage: g = x^7 + x + 1
             sage: e = E((g,IS))
 	    sage: B = BinaryStrings()
 	    sage: m = B.encoding("THECATINTHEHAT")
-	    sage: e(m)
+	    sage: e(m)   # random output
+            1001100011100011101111010101001100100000000100111101100000101001000001111010000000110100011011101001011110100010
 	    sage: FF = FiniteField(2)
 	    sage: P.<x> = PolynomialRing(FF)
 	    sage: LFSR = LFSRCryptosystem(FF)
@@ -87,12 +88,12 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
             sage: e1 = LFSR((x^7 + x + 1,IS_1))
 	    sage: IS_2 = [ FF.random_element() for i in range(9) ]
             sage: e2 = LFSR((x^9 + x^3 + 1,IS_2))
-	    sage: E = ShrinkingGeneratorCryptosystem(FF)
-	    sage: e = E((e1,e2))
-	    sage: B = BinaryStrings()
-	    sage: m = B.encoding("THECATINTHEHAT")
-	    sage: e(m)
         """
+## 	    sage: E = ShrinkingGeneratorCryptosystem()
+## 	    sage: e = E((e1,e2))
+## 	    sage: B = BinaryStrings()
+## 	    sage: m = B.encoding("THECATINTHEHAT")
+## 	    sage: e(m)
 	if not isinstance(e1, LFSRCipher):
 	    raise TypeError, "Argument e1 (= %s) must be a LFSR cipher." % e1
 	if not isinstance(e2, LFSRCipher):

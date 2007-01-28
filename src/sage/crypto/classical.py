@@ -225,7 +225,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,14)
             sage: E
-            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
             sage: K = S('ABCDEFGHIJKLMN')
             sage: K
             ABCDEFGHIJKLMN
@@ -250,7 +250,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,14)
             sage: E
-            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
             sage: K = S('ABCDEFGHIJKLMN')
             sage: K
             ABCDEFGHIJKLMN

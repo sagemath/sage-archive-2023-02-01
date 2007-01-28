@@ -506,7 +506,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.load_doc_page(W, css_href)
 
     def load_doc_page(self, worksheet, css_href):
-        self.send_head()
         W = worksheet
         Wid = W.id()
         #s = notebook.doc_html(Wid, css_href)

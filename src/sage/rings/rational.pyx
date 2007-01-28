@@ -784,6 +784,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
+    def _integer_(self):
+        return self._integer_c()
+
     def numer(self):
         """
         Return the numerator of this rational number.

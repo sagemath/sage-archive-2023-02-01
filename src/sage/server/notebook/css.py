@@ -917,7 +917,7 @@ div.cellbox {
 
 pre.cell_input_pre {
   background-color: white;
-  border: 0px solid #ffffff;
+  border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -926,12 +926,12 @@ pre.cell_input_pre {
   padding-bottom:0px;
   margin:0px;
   display:inline;
-  width: 400%;
+  width: 100%;
 }
 
 textarea.cell_input {
-  background-color: white;
-  background-color: #fefee8;
+  color:#000000;
+  background-color: #e8e8e8;
   border: 0px solid white;
   /* border-left: 2px solid green; */
   font-family: courier, monospace;
@@ -942,34 +942,14 @@ textarea.cell_input {
   padding-top:3px;
   padding-bottom:0px;
 /*  margin:0px; */
-  width: 400%;
+  width: 100%;
   margin-bottom:0px;
   margin-top:0px;
 }
 
-/*
-textarea.cell_input_hide {
-  background-color: white;
-  color:#cccccc;
-  border: 0px solid white;
-/*  border-top: 1px solid #aaaaff;
-  border-bottom: 1px solid #aaaaff;
-  */
-  font-family: courier, monospace;
-  font-size:12pt;
-  overflow:hidden;
-  padding-left:3px;
-  padding-top:0px;
-  padding-bottom:0px;
-  width: 100%;
-  height:1.5em;
-  margin:0px;
-}
-*/
 
 textarea.cell_input_hide {
   background-color: white;
-  color:#ffffff;
   border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
@@ -984,8 +964,7 @@ textarea.cell_input_hide {
 
 
 textarea.cell_input_active {
-/*  background-color: white; */
-  background-color: #fdfde8;
+  background-color: white;
   border: 2px solid  #8888fe;
   font-family: courier, monospace;
   font-size:12pt;
@@ -995,7 +974,7 @@ textarea.cell_input_active {
   padding-bottom:0px;
   margin-top:0px;
   margin-bottom:0px;
-  width: 400%;
+  width: 100%;
 }
 
 

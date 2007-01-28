@@ -44,6 +44,7 @@ We construct a plot involving several graphics objects:
 
     sage: G = plot(cos, -5, 5, thickness=5, rgbcolor=(0.5,1,0.5))
     sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
+    sage: P.save()
 
 Next we construct the reflection of the above polygon about the
 $y$-axis by iterating over the qlist of first-coordinates of the first
@@ -51,6 +52,7 @@ graphic element of $P$ (which is the actual Polygon; note that $P$ is
 a Graphics object, which consists of a single polygon):
 
     sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
+    sage: Q.save()
 
 We combine together different graphics objects using "+":
 
@@ -63,6 +65,7 @@ We combine together different graphics objects using "+":
     Polygon defined by 3 points
     sage: list(H[1])
     [(1.0, 2.0), (5.0, 6.0), (5.0, 0.0)]
+    sage: H.save()
 
 We can put text in a graph:
 
@@ -81,6 +84,7 @@ see the first few zeros:
     sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
     sage: p1+p2
     Graphics object consisting of 2 graphics primitives
+    sage: (p1+p2).save()
 
 Here is a pretty graph:
     sage: g = Graphics()
@@ -89,7 +93,7 @@ Here is a pretty graph:
     ...                rgbcolor=hue(i/40+0.4), alpha=0.2)
     ...    g = g + p
     ...
-    sage.: g.show(dpi=200, axes=False)
+    sage: g.save(dpi=200, axes=False)
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version

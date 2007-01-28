@@ -123,7 +123,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef Rational x
-        x = Rational.__new__(Rational)
+        x = PY_NEW(Rational)
         mpq_set(x.value, self._matrix[i][j])
         return x
 
@@ -364,7 +364,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             293
         """
         cdef Integer z
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         self.mpz_denom(z.value)
         return z
 
@@ -395,7 +395,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Matrix_integer_dense A
         cdef mpq_t *self_row
         cdef mpz_t *A_row
-        D = <Integer>Integer.__new__(Integer)
+        D = <Integer>PY_NEW(Integer)
         self.mpz_denom(D.value)
         MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=self.is_sparse())
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, MZ, 0, 0, 0)
@@ -491,7 +491,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             5007
         """
         cdef Integer z
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         self.mpz_height(z.value)
         return z
 
@@ -510,6 +510,31 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Assumes self is a square matrix (checked in adjoint).
         """
         return self.parent()(self._pari_().matadjoint().python())
+
+    def prod_of_row_sums(self, cols):
+        cdef Py_ssize_t c, row
+        cdef mpq_t s, pr
+        mpq_init(s)
+        mpq_init(pr)
+
+        mpq_set_si(pr, 1, 1)
+        for row from 0 <= row < self._nrows:
+            tmp = []
+            mpq_set_si(s, 0, 1)
+            for c in cols:
+                if c<0 or c >= self._ncols:
+                    raise IndexError, "matrix column index out of range"
+                mpq_add(s, s, self._matrix[row][c])
+            mpq_mul(pr, pr, s)
+        cdef Rational _pr
+        _pr = PY_NEW(Rational)
+        mpq_set(_pr.value, pr)
+        mpq_clear(s)
+        mpq_clear(pr)
+        return _pr
+
+
+
 
 ###########################
 

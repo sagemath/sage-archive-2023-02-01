@@ -14,6 +14,8 @@ from math import ceil, floor
 from sage.rings.integer import Integer
 from sage.misc.misc import verbose, get_verbose, tmp_filename
 
+import cleaner
+
 import sage.misc.package
 
 def nothing():
@@ -161,6 +163,8 @@ class ECM:
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
         self.last_params = { 'B1' : B1 }
         child = pexpect.spawn(self.__cmd)
+        cleaner.cleaner(child.pid, self.__cmd)
+        child.timeout = None
 	child.__del__ = nothing   # program around studid exception ignored error
         child.sendline(str(n))
         child.sendline("bad") # child.sendeof()
@@ -332,6 +336,8 @@ class ECM:
         B1 = self.recommended_B1(factor_digits)
         self.__cmd = self._ECM__startup_cmd(B1, None, {'v': ' '})
         child = pexpect.spawn(self.__cmd)
+        cleaner.cleaner(child.pid, self.__cmd)
+        child.timeout = None
         child.sendline(str(n))
         try:
             child.sendeof()

@@ -8,7 +8,7 @@ AUTHORS:
              from any version to the next...).
     -- William Stein (2006-03-06): added newtonpoly
     -- Justin Walker: contributed some of the function definitions
-    -- Gonzalo Tornari: improvements to conversions; much better error handling.
+    -- Gonzalo Tornaria: improvements to conversions; much better error handling.
 
 EXAMPLES:
     sage: pari('5! + 10/x')
@@ -956,10 +956,11 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n.ispseudoprime(1)
             False
         """
+        cdef GEN z
         _sig_on
-        t = bool(gispseudoprime(self.g, flag) != stoi(0))
+        z = gispseudoprime(self.g, flag)
         _sig_off
-        return t
+        return bool(gcmp(z, stoi(0)))
 
     def ispower(gen self, k=None):
         r"""

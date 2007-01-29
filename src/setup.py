@@ -4,6 +4,9 @@ DEVEL = False
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
+
+## Choose cblas library -- note -- make sure to update sage/misc/sagex.py
+## if you change this!!
 if os.environ.has_key('SAGE_CBLAS'):
     CBLAS=os.environ['SAGE_CBLAS']
 elif os.path.exists('/usr/lib/libcblas.dylib') or \

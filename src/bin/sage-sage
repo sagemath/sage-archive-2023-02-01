@@ -101,7 +101,6 @@ fi
 
 LOGFILE="$SAGE_ROOT/sage.log"
 LOGOPT=""
-SAGE_EXE=sage.bin
 
 matplotlib_setup() {
     MATPLOTLIBRC="$DOT_SAGE/" && export MATPLOTLIBRC

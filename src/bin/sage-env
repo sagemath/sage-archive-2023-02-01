@@ -259,7 +259,6 @@ export UNAME
 export CC
 export CFLAGS
 
-
 if [ 1 = 2 ]; then
 echo "AR=$AR"
 echo "AS=$AS"

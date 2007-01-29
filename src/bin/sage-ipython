@@ -1,4 +1,4 @@
-#!sage.bin -O
+#!sage.bin
 # -*- coding: utf-8 -*-
 """
 SAGE IPython startup script.

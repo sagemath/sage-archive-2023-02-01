@@ -4,11 +4,16 @@ DEVEL = False
 import distutils.sysconfig, os, sys
 from distutils.core import setup, Extension
 
-
 if os.environ.has_key('SAGE_CBLAS'):
     CBLAS=os.environ['SAGE_CBLAS']
+elif os.path.exists('/usr/lib/libcblas.dylib') or \
+     os.path.exists('/usr/lib/libcblas.so'):
+    CBLAS='cblas'
+elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
+    CBLAS='blas'
 else:
-    CBLAS='gslcblas'  # possibly (?) slow but *guaranteed* to be available
+    # This is very slow  (?), but *guaranteed* to be available.
+    CBLAS='gslcblas'
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True

@@ -309,14 +309,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         cdef integer.Integer x
         cdef int _min, _max, r
-        try:
+        if max < 2147483648:
             _min = min
             _max = max
             x = PY_NEW(integer.Integer)
             r = random() % (_max - _min + 1) + _min
             mpz_set_si(x.value, r)
             return x
-        except OverflowError:
+        else:
             return integer.Integer(randint(min,max))
 
     def _is_valid_homomorphism_(self, codomain, im_gens):

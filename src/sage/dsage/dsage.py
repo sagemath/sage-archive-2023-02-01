@@ -96,18 +96,28 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, blocking=True):
+    def worker(self, hostname=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
         Typing sage.worker() will launch a worker which by default connects to
         localhost on port 8082 to fetch jobs.
 
+        Parameters:
+        hostname -- the server you want to connect to
+        port -- the port that the server listens on for workers.
+
         """
 
         cmd = 'dsage_worker.py'
+        if isinstance(hostname, str):
+            cmd += ' %s' % hostname
+        if isinstance(port, int):
+            cmd += ' %s' % port
+
         if not blocking:
             cmd += '&'
+
         os.system(cmd)
 
     def console(self):

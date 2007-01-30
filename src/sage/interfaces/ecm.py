@@ -338,6 +338,7 @@ class ECM:
         child = pexpect.spawn(self.__cmd)
         cleaner.cleaner(child.pid, self.__cmd)
         child.timeout = None
+        child.expect('[ECM]')
         child.sendline(str(n))
         try:
             child.sendeof()

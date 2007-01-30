@@ -1341,7 +1341,7 @@ Output
         head = self._doc_html_head(worksheet_id, css_href)
         body = self._doc_html_body(worksheet_id)
         if worksheet_id is not None:
-           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
+           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
 
         return """
         <html>
@@ -1372,7 +1372,7 @@ Output
             body = self._html_authorize()
 
         if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>;'%(worksheet_id, W.filename(), W.name())
+            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
         return """

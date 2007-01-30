@@ -315,6 +315,10 @@ ext_modules = [ \
               sources = ['sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
 
+    Extension('sage.ext.multi_modular',
+              sources = ['sage/ext/multi_modular.pyx'],
+              libraries=['gmp']), \
+
     Extension('sage.structure.coerce',
               sources = ['sage/structure/coerce.pyx']), \
 

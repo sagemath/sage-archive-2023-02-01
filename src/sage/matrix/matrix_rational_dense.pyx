@@ -22,6 +22,13 @@ from sage.structure.element cimport ModuleElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
+cdef int num_threads
+num_threads = 1
+
+def set_num_threads(int n):
+    global num_threads
+    num_threads = n
+
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     ########################################################################
@@ -227,33 +234,22 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Add two dense matrices over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)(range(9))
-        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: a+b
-        [   1  3/2  7/3]
-        [13/4 21/5 31/6]
-        [43/7 57/8 73/9]
-        sage: b.swap_rows(1,2)
-        sage: #a+b
-
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a+b
+            [   1  3/2  7/3]
+            [13/4 21/5 31/6]
+            [43/7 57/8 73/9]
         """
+        if num_threads > 1:
+            return self._add_threaded(right)
+
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
-
-        cdef mpq_t *M_row
-        cdef mpq_t *self_row
-        cdef mpq_t *right_row
         _sig_on
-        for i from 0 <= i < self._nrows:
-            M_row = M._matrix[i]
-            self_row = self._matrix[i]
-            right_row = (<Matrix_rational_dense>right)._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpq_add(M_row[0], self_row[0], right_row[0])
-                M_row = M_row + 1
-                self_row = self_row + 1
-                right_row = right_row + 1
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_add(M._entries[i], self._entries[i], (<Matrix_rational_dense>right)._entries[i])
         _sig_off
         return M
 
@@ -319,32 +315,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def __copy__(self):
         """
-        Negate a matrix over QQ.
-
-        EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: -a
-        [  -1 -1/2 -1/3]
-        [-1/4 -1/5 -1/6]
-        [-1/7 -1/8 -1/9]
+        Return a copy of a matrix.
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
-
-        cdef mpq_t *M_row
-        cdef mpq_t *self_row
         _sig_on
         for i from 0 <= i < self._nrows:
-            M_row = M._matrix[i]
-            self_row = self._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpq_set(M_row[0], self_row[0])
-                M_row = M_row + 1
-                self_row = self_row + 1
+            mpq_set(M._entries[i], self._entries[i])
         _sig_off
         return M
-
 
 
     # cdef _mul_c_impl(self, Matrix right):
@@ -551,13 +531,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
-    def _add_inplace(self, ModuleElement right, thread=False, int num_threads=0):
+    def _add_inplace(self, ModuleElement right):
         self.check_mutability()
-        if thread:
-            if num_threads == 0:
-                # do a heuristic
-                num_threads = 2
-            self.__add_inplace_threaded(right, num_threads)
+        if num_threads > 1:
+            self.__add_inplace_threaded(right)
         else:
             self.__add_inplace(right)
 
@@ -568,30 +545,25 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t *right_row
 
         _sig_on
-        for i from 0 <= i < self._nrows:
-            self_row = self._matrix[i]
-            right_row = (<Matrix_rational_dense>right)._matrix[i]
-            for j from 0 <= j < self._ncols:
-                mpq_add(self_row[0], self_row[0], right_row[0])
-                self_row += 1
-                right_row += 1
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_add(self._entries[i], self._entries[i], (<Matrix_rational_dense>right)._entries[i])
         _sig_off
 
-    def __add_inplace_threaded(self, Matrix_rational_dense right, int num_spawn=2):
+
+    def __add_inplace_threaded(self, Matrix_rational_dense right):
         if self._nrows != right._nrows or self._ncols != right._ncols:
             raise TypeError, "matrix dimensions do not agree"
-
         add_using_pthreads(self._entries, self._entries, right._entries,
-                           self._nrows * self._ncols, num_spawn)
+                           self._nrows * self._ncols)
         return
 
-    def _add_threaded(self, Matrix_rational_dense right, int num_spawn=2):
+    def _add_threaded(self, Matrix_rational_dense right):
         if self._nrows != right._nrows or self._ncols != right._ncols:
             raise TypeError, "matrix dimensions do not agree"
 
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
-        add_using_pthreads(M._entries, self._entries, right._entries, self._nrows * self._ncols, num_spawn)
+        add_using_pthreads(M._entries, self._entries, right._entries, self._nrows * self._ncols)
         return M
 
 
@@ -611,35 +583,35 @@ cdef void* thread_add(void* args):
     for i from 0 <= i < _args.n:
         mpq_add(_args.r[i], _args.a[i], _args.b[i])
 
-cdef add_using_pthreads(mpq_t* r, mpq_t* a, mpq_t* b, Py_ssize_t n, int num_spawn):
-    if n % num_spawn != 0:
-        raise ValueError, 'product of nrows and ncols must be divisible by num_spawn'
+cdef add_using_pthreads(mpq_t* r, mpq_t* a, mpq_t* b, Py_ssize_t n):
+    if n % num_threads != 0:
+        raise ValueError, 'product of nrows and ncols must be divisible by num_threads'
 
     cdef Py_ssize_t chunk_size
-    chunk_size = n / num_spawn
+    chunk_size = n / num_threads
 
-    # allocate three arrays of pointers to num_spawn mpq_t*'s
+    # allocate three arrays of pointers to num_threads mpq_t*'s
     cdef mpq_t **a_i
     cdef mpq_t **b_i
     cdef mpq_t **r_i
-    a_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_spawn)
-    b_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_spawn)
-    r_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_spawn)
+    a_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
+    b_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
+    r_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
 
     # allocate structure into which to put the pointer arrays
     cdef ThreeMatrices* args
-    args = <ThreeMatrices*> sage_malloc(sizeof(ThreeMatrices) * num_spawn)
+    args = <ThreeMatrices*> sage_malloc(sizeof(ThreeMatrices) * num_threads)
 
     # allocate thread structures
     cdef pthread_attr_t attr
     pthread_attr_init(&attr)
     pthread_attr_setdetachstate(&attr,0)
     cdef pthread_t* threads
-    threads = <pthread_t *> malloc(sizeof(pthread_t)*num_spawn)
+    threads = <pthread_t *> malloc(sizeof(pthread_t)*num_threads)
 
     # do it!
     cdef int i
-    for i from 0 <= i < num_spawn:
+    for i from 0 <= i < num_threads:
         a_i[i] = a + (chunk_size * i)
         b_i[i] = b + (chunk_size * i)
         r_i[i] = r + (chunk_size * i)
@@ -649,7 +621,7 @@ cdef add_using_pthreads(mpq_t* r, mpq_t* a, mpq_t* b, Py_ssize_t n, int num_spaw
         args[i].n = chunk_size
         pthread_create( &(threads[i]), &attr, thread_add, <void *>(&args[i]) )
 
-    for i from 0 <= i < num_spawn:
+    for i from 0 <= i < num_threads:
         pthread_join(threads[i], NULL)
 
 

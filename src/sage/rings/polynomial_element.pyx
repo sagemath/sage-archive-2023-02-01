@@ -18,14 +18,13 @@ import operator
 
 import copy
 
-import sage.rings.rational_field
-import sage.rings.integer_ring
 import sage.rings.rational
 import integer
 import sage.rings.polynomial_ring
 import arith
 import sage.rings.ring_element as ring_element
 import integer_ring
+import rational_field
 import integer_mod_ring
 import polynomial_pyx
 import rational_field
@@ -43,9 +42,12 @@ from real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
 from sage.structure.element import RingElement
+from sage.structure.element cimport Element
 
 from rational_field import QQ
 from integer_ring import ZZ
+
+from integral_domain import is_IntegralDomain
 
 import polynomial_fateman
 
@@ -159,6 +161,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: f(2/3)
             -1/243
 
+        We evaluate a polynomial over a quaternion algebra:
+            sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
+            sage: R.<w> = PolynomialRing(A,sparse=True)
+            sage: f = i*j*w^5 - 13*i*w^2 * (i+j)*w + i
+            sage: f(i+j+1)
+            -65 + 38*i - 11*j + 66*k
+            sage: w = i+j+1; i*j*w^5 - 13*i*w^2 * (i+j)*w + i
+            -65 + 38*i - 11*j + 66*k
+
         AUTHORS:
             -- David Joyner, 2005-04-10
             -- William Stein, 2006-01-22; change so parent
@@ -175,7 +186,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             i -= 1
         return result
 
-    def __cmp__(self, other):
+    cdef int _cmp_c_impl(self, Element other) except -2:
         """
         Compare the two polynomials self and other.
 
@@ -190,8 +201,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             True
             sage: x^2 - 2*x - 1 > x^2 - 1
             False
-            sage: R(-1) < R(0)
+            sage: R(-1) < 0
             False
+            sage: x^3 - 3 > 393939393
+            True
         """
         d1 = self.degree(); d2 = other.degree()
         c = cmp(d1, d2)
@@ -200,6 +213,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             c = cmp(self[i], other[i])
             if c: return c
         return 0
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
 
     def __nonzero__(self):
         """
@@ -935,13 +951,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         G = None
 
         from sage.rings.number_field.all import is_NumberField
-        from sage.rings.integer_ring import IntegerRing
-        from sage.rings.rational_field import RationalField
         from sage.rings.finite_field import is_FiniteField
 
         n = None
         if integer_mod_ring.is_IntegerModRing(R) or \
-               isinstance(R, (IntegerRing, RationalField)):
+              integer_ring.is_IntegerRing(R) or \
+              rational_field.is_RationalField(R):
 
             G = list(self._pari_('x').factor())
 
@@ -1057,8 +1072,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: alpha^3 + alpha^2
             1
         """
-        from integral_domain import is_IntegralDomain
-        from rational_field import is_RationalField
         from sage.rings.number_field.number_field import is_NumberField, NumberField
 
         R = self.base_ring()
@@ -1068,11 +1081,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() <= 1:
             return R.fraction_field()
 
-        if isinstance(R, sage.rings.integer_ring.IntegerRing):
+        if integer_ring.is_IntegerRing(R):
             return NumberField(self, names)
 
 
-        if is_RationalField(R) or is_NumberField(R):
+        if rational_field.is_RationalField(R) or is_NumberField(R):
             return NumberField(self, names)
 
         if not self.is_irreducible():
@@ -1512,12 +1525,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         If $f = a_r x^r + a_{r+1}x^{r+1} + \cdots$, with $a_r$ nonzero,
         then the valuation of $f$ is $r$.  The valuation of the zero
         polynomial is $\infty$.
+
+        EXAMPLES:
+
         """
         if self.is_zero():
             return infinity
         for i in xrange(self.degree()+1):
             if self[i] != 0:
-                return i
+                return ZZ(i)
         raise RuntimeError, "bug in computing valuation of polynomial"
 
     def name(self):

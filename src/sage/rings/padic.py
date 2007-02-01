@@ -171,7 +171,7 @@ class pAdic(field_element.FieldElement):
                 ordp = x.valuation(p)
                 unit = int(x/(p**ordp))
             else:
-                raise TypeError, "unable to compute ordp"
+                raise TypeError, "unable to compute ordp of element of type %s"%type(x)
         self.__unit = unit
         self.__ordp = ordp
         if big_oh is infinity and ordp is infinity:

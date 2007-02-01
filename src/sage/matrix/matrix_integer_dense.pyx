@@ -205,7 +205,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             except TypeError:
                 try:
                     # Try to coerce entries to a scalar (an integer)
-                    x = Integer(entries)
+                    x = ZZ(entries)
                     is_list = 0
                 except TypeError:
                     raise TypeError, "entries must be coercible to a list or integer"
@@ -220,7 +220,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
-                    x = Integer(entries[i])
+                    x = ZZ(entries[i])
                     # todo -- see integer.pyx and the TODO there; perhaps this could be
                     # sped up by creating a mpz_init_set_sage function.
                     mpz_init_set(self._entries[i], x.value)
@@ -297,7 +297,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             IndexError: matrix index out of range
         """
         cdef Integer z
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         mpz_set(z.value, self._matrix[i][j])
         return z
 
@@ -1075,6 +1075,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i in range(n):
                 U[i,n-1] = - U[i,n-1]
         return U
+
+    def prod_of_row_sums(self, cols):
+        cdef Py_ssize_t c, row
+        cdef mpz_t s, pr
+        mpz_init(s)
+        mpz_init(pr)
+
+        mpz_set_si(pr, 1)
+        for row from 0 <= row < self._nrows:
+            tmp = []
+            mpz_set_si(s, 0)
+            for c in cols:
+                if c<0 or c >= self._ncols:
+                    raise IndexError, "matrix column index out of range"
+                mpz_add(s, s, self._matrix[row][c])
+            mpz_mul(pr, pr, s)
+        cdef Integer z
+        z = PY_NEW(Integer)
+        mpz_set(z.value, pr)
+        mpz_clear(s)
+        mpz_clear(pr)
+        return z
 
 
 

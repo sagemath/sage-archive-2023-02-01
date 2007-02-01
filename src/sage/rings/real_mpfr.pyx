@@ -521,7 +521,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         of an invalid operation (like 0 divided by 0), or a value that
         cannot be determined (like +Infinity minus
         +Infinity). Moreover, like in the IEEE 754-1985 standard, zero
-        is signed, i.e. there are both +0 and ?0; the behavior is the
+        is signed, i.e. there are both +0 and -0; the behavior is the
         same as in the IEEE 754-1985 standard and it is generalized to
         the other functions supported by MPFR.
 
@@ -746,10 +746,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = 119.41212
             sage: a.integer_part()
             119
+
+        A big number with no decimal point:
+            sage: a = RR(10^17); a
+            100000000000000000
+            sage: a.integer_part()
+            100000000000000000
         """
         s = self.str(base=32, no_sci=True)
         i = s.find(".")
-        return Integer(s[:i], base=32)
+        if i != -1:
+            return Integer(s[:i], base=32)
+        else:
+            return Integer(s, base=32)
 
     ########################
     #   Basic Arithmetic
@@ -981,6 +990,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             2
             sage: (2.01).ceil()
             3
+
+            sage: ceil(10^16 * 1.0)
+            10000000000000000
+            sage: ceil(10^17 * 1.0)
+            100000000000000000
         """
         cdef RealNumber x
         x = self._new()

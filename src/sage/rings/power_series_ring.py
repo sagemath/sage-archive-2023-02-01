@@ -1,4 +1,4 @@
-"""
+r"""
 Univariate Power Series Rings
 
 EXAMPLES:
@@ -37,6 +37,21 @@ PowerSeriesRing:
     sage: f = Mod(2, 3) * t; (f, f.parent())
     (2*t, Power Series Ring in t over Ring of integers modulo 3)
 
+We make a sparse power series.
+    sage: R.<x> = PowerSeriesRing(QQ, sparse=True); R
+    Sparse Power Series Ring in x over Rational Field
+    sage: f = 1 + x^1000000
+    sage: g = f*f
+    sage: g.degree()
+    2000000
+
+We make a sparse Laurent series from a power series generator:
+    sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+    sage: latex(-2/3*(1/t^3) + 1/t + 3/5*t^2 + O(t^5))
+    \frac{-\frac{2}{3}}{t^{3}} + \frac{1}{t} + \frac{3}{5}t^{2} + O(\text{t}^{5})
+    sage: S = parent(1/t); S
+    Sparse Laurent Series Ring in t over Rational Field
+
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
@@ -62,22 +77,24 @@ from sage.structure.parent_gens import ParentWithGens
 
 _cache = {}
 
-def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None):
+def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None, sparse=False):
     """
     Create a power series ring.
 
     INPUT:
         base_ring -- a commutative ring
         name -- name of the indeterminate
-        default_prec -- the default precision used if an exact object
+        default_prec -- (efault: 20) the default precision used if an exact object
             must be changed to an approximate object in order to do an
             arithmetic operation.
+        sparse -- (default: False) whether power series are represented as sparse objects.
 
     There is a unique power series ring over each base ring with given
-    variable name.
+    variable name.  Two power series over the same base ring with
+    different variable names are not equal or isomorphic.
 
     EXAMPLES:
-        sage: R = PowerSeriesRing(QQ,'x'); R
+        sage: R = PowerSeriesRing(QQ, 'x'); R
         Power Series Ring in x over Rational Field
 
         sage: S = PowerSeriesRing(QQ, 'y'); S
@@ -103,7 +120,7 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None):
     if name is None:
         raise TypeError, "You must specify the name of the indeterminate of the Power series ring."
 
-    key = (base_ring, name, default_prec)
+    key = (base_ring, name, default_prec, sparse)
     if _cache.has_key(key):
         R = _cache[key]()
         if not R is None:
@@ -118,11 +135,11 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None):
 
 
     if isinstance(base_ring, field.Field):
-        R = PowerSeriesRing_over_field(base_ring, name, default_prec)
+        R = PowerSeriesRing_over_field(base_ring, name, default_prec, sparse=sparse)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = PowerSeriesRing_domain(base_ring, name, default_prec)
+        R = PowerSeriesRing_domain(base_ring, name, default_prec, sparse=sparse)
     elif isinstance(base_ring, commutative_ring.CommutativeRing):
-        R = PowerSeriesRing_generic(base_ring, name, default_prec)
+        R = PowerSeriesRing_generic(base_ring, name, default_prec, sparse=sparse)
     else:
         raise TypeError, "base_ring must be a commutative ring"
     _cache[key] = weakref.ref(R)
@@ -144,7 +161,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
     """
     A power series ring.
     """
-    def __init__(self, base_ring, name=None, default_prec=20):
+    def __init__(self, base_ring, name=None, default_prec=20, sparse=False):
         """
         Initializes a power series ring.
 
@@ -152,12 +169,14 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             base_ring -- a commutative ring
             name -- name of the indeterminate
             default_prec -- the default precision
+            sparse -- whether or not power series are sparse
         """
         ParentWithGens.__init__(self, base_ring, name)
         Nonexact.__init__(self, default_prec)
-        self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name)
-        self.__power_series_class = power_series_ring_element.PowerSeries_generic_dense
+        self.__poly_ring = polynomial_ring.PolynomialRing(base_ring, name, sparse=sparse)
+        self.__power_series_class = power_series_ring_element.PowerSeries_poly
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
+        self.__is_sparse = sparse
 
     def _repr_(self):
         """
@@ -173,7 +192,16 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R
             my power series ring
         """
-        return "Power Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        s = "Power Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        if self.is_sparse():
+            s = 'Sparse ' + s
+        return s
+
+    def is_sparse(self):
+        return self.__is_sparse
+
+    def is_dense(self):
+        return not self.__is_sparse
 
     def _latex_(self):
         r"""
@@ -210,7 +238,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R(2/3)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce rational (=2/3) to an Integer.
+            TypeError: no coercion of this rational to integer
             sage: R([1,2,3])
             1 + 2*t + 3*t^2
             sage: S.<w> = PowerSeriesRing(QQ)
@@ -331,6 +359,46 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             Univariate Polynomial Ring in t over Integer Ring
         """
         return self.__poly_ring
+
+    def base_extend(self, R):
+        """
+        Returns the power series ring over R in the same variable as
+        self, assuming there is a canonical coerce map from the base
+        ring of self to R.
+
+        EXAMPLES:
+            sage: R.<T> = GF(7)[[]]; R
+            Power Series Ring in T over Finite Field of size 7
+            sage: R.change_ring(ZZ)
+            Power Series Ring in T over Integer Ring
+            sage: R.base_extend(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return self.change_ring(R)
+        else:
+            raise TypeError, "no base extension defined"
+
+    def change_ring(self, R):
+        """
+        Returns the power series ring over R in the same variable as
+        self.
+
+        EXAMPLES:
+            sage: R.<T> = QQ[[]]; R
+            Power Series Ring in T over Rational Field
+            sage: R.change_ring(GF(7))
+            Power Series Ring in T over Finite Field of size 7
+            sage: R.base_extend(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+            sage: R.base_extend(QuadraticField(3,'a'))
+            Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
+        """
+        return PowerSeriesRing(R, name = self.variable_name())
 
     def is_exact(self):
         return False
@@ -506,18 +574,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
         except AttributeError:
             self.__laurent_series_ring = laurent_series_ring.LaurentSeriesRing(
-                                                 self.base_ring(), self.variable_name())
+                                                 self.base_ring(), self.variable_name(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None, default_prec=20):
-        PowerSeriesRing_generic.__init__(self, base_ring, name, default_prec)
-
+    pass
 
 class PowerSeriesRing_over_field(PowerSeriesRing_domain):
-    def __init__(self, base_ring, name=None, default_prec=20):
-        PowerSeriesRing_generic.__init__(self, base_ring, name, default_prec)
-
     def fraction_field(self):
         """
         Return the fraction field of this power series ring, which is defined since

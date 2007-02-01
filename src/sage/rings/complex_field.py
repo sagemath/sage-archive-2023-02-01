@@ -257,5 +257,4 @@ class ComplexField_class(field.Field):
     def scientific_notation(self, status=None):
         return self._real_field().scientific_notation(status)
 
-CC = ComplexField()
 

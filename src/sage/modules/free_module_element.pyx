@@ -76,6 +76,7 @@ from sage.matrix.matrix cimport Matrix
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
+import sage.rings.integer_ring
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -137,7 +138,19 @@ def vector(arg0, arg1=None, sparse=None):
     You can also use \code{free_module_element}, which is the same as \code{vector}.
         sage: free_module_element([1/3, -4/5])
         (1/3, -4/5)
+
+    Make a vector mod 3 out of a vector over ZZ:
+        sage: vector(vector([1,2,3]), GF(3))
+        (1, 2, 0)
     """
+    if hasattr(arg0, '_vector_'):
+        if arg1 is None:
+            arg1 = sage.rings.integer_ring.ZZ
+        return arg0._vector_(arg1)
+
+    if hasattr(arg1, '_vector_'):
+        return arg1._vector_(arg0)
+
     if is_Ring(arg0):
         R = arg0
         v = arg1

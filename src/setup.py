@@ -8,7 +8,8 @@ from distutils.core import setup, Extension
 if os.environ.has_key('SAGE_CBLAS'):
     CBLAS=os.environ['SAGE_CBLAS']
 else:
-    CBLAS='gslcblas'  # possibly (?) slow but *guaranteed* to be available
+    # TODO: CHANGE BACK!
+    CBLAS='cblas'  # possibly (?) slow but *guaranteed* to be available
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
@@ -369,6 +370,14 @@ ext_modules = [ \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
               libraries=['gmp']), \
 
+    Extension('sage.rings.integer_ring',
+              sources = ['sage/rings/integer_ring.pyx'],
+              libraries=['gmp']), \
+
+    Extension('sage.rings.memory', \
+              sources = ['sage/rings/memory.pyx'], \
+              libraries=['gmp']), \
+
     Extension('sage.rings.bernoulli_mod_p',
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
@@ -553,7 +562,7 @@ def need_to_pyrex(filename, outfile):
         # Check to see if a/b/c/d.pxd exists and is newer than filename.
         # If so, we have to regenerate outfile.  If not, we're safe.
         if os.path.exists(A) and is_older(A, outfile):
-            print "\nBuilding %s because it depends on %s."%(outfile, A)
+            print "\nRegenerating %s because it depends on %s."%(outfile, A)
             return True # yep we must rebuild
 
     # OK, next we move on to include pxi files.

@@ -116,7 +116,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self.p = p
         if p >= MOD_INT_MAX:
             raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
-        self.gather = MOD_INT_OVERFLOW / (p*p)
+        self.gather = MOD_INT_OVERFLOW / (p*p) - 1
 
         self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
         if self._entries == NULL:
@@ -550,9 +550,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: type(a)
             <type 'sage.matrix.matrix_modn_dense.Matrix_modn_dense'>
         """
-        print "making matrix window"
         if nrows == -1:
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
+
+    def matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
+                        Py_ssize_t nrows, Py_ssize_t ncols):
+        if nrows == -1:
+            nrows = self._nrows - row
+            ncols = self._ncols - col
+        return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)

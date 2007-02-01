@@ -123,7 +123,7 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
             raise ArithmeticError, "incompatible dimensions"
         B_matrix_off = ( <Matrix_modn_dense> B._matrix ).matrix + B._row
         p = ( <Matrix_modn_dense> self._matrix ).p
-        gather = ( <Matrix_modn_dense> self._matrix ).gather
+        gather = 1 #( <Matrix_modn_dense> self._matrix ).gather
         A_ncols = A._ncols
 
         if gather <= 1:
@@ -153,33 +153,32 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
     cdef add_prod(self, MatrixWindow A, MatrixWindow B):
         # TODO: gather
-        cdef Py_ssize_t i, j, k, A_ncols
+        cdef Py_ssize_t i, j, k, gather, top, A_ncols
         cdef mod_int p, s
         cdef mod_int* self_row
         cdef mod_int* A_row
-        cdef mod_int* B_row
+        cdef mod_int** B_matrix_off
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
+        B_matrix_off = ( <Matrix_modn_dense> B._matrix ).matrix + B._row
         p = ( <Matrix_modn_dense> self._matrix ).p
-        gather = ( <Matrix_modn_dense> self._matrix ).gather
+        gather = 1 #( <Matrix_modn_dense> self._matrix ).gather
         A_ncols = A._ncols
 
         if gather <= 1:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix ).matrix[i+self._row] + self._col
-                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+B._row] + B._col
-                B_row = ( <Matrix_modn_dense> B._matrix ).matrix[i+A._row] + A._col
+                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+A._row] + A._col
                 for j from 0 <= j < B._ncols:
                     s = self_row[j]
                     for k from 0 <= k < A._ncols:
-                        s = ( s + A_row[k] * B_row[j] ) % p
+                        s = ( s + A_row[k] * B_matrix_off[k][j+B._col] ) % p
                     self_row[j] = s
 
         else:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix ).matrix[i+self._row] + self._col
-                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+B._row] + B._col
-                B_row = ( <Matrix_modn_dense> B._matrix ).matrix[i+A._row] + A._col
+                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+A._row] + A._col
                 for j from 0 <= j < B._ncols:
                     s = self_row[j]
                     k = 0
@@ -195,34 +194,35 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
 
     cdef subtract_prod(self, MatrixWindow A, MatrixWindow B):
         # TODO: gather
-        cdef Py_ssize_t i, j, k, A_ncols
-        cdef mod_int p, s
+        cdef Py_ssize_t i, j, k, gather, top, A_ncols
+        cdef mod_int p, s, p2
         cdef mod_int* self_row
         cdef mod_int* A_row
-        cdef mod_int* B_row
+        cdef mod_int** B_matrix_off
         if A._ncols != B._nrows or self._nrows != A._nrows or self._ncols != B._ncols:
             raise ArithmeticError, "incompatible dimensions"
+        B_matrix_off = ( <Matrix_modn_dense> B._matrix ).matrix + B._row
         p = ( <Matrix_modn_dense> self._matrix ).p
+        gather = ( <Matrix_modn_dense> self._matrix ).gather
         A_ncols = A._ncols
+        p2 = p*p
 
+        print "gather", gather
         if gather <= 1:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix ).matrix[i+self._row] + self._col
-                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+B._row] + B._col
-                B_row = ( <Matrix_modn_dense> B._matrix ).matrix[i+A._row] + A._col
+                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+A._row] + A._col
                 for j from 0 <= j < B._ncols:
                     s = self_row[j]
                     for k from 0 <= k < A._ncols:
-                        s = s + p - ( A_row[k] * B_row[j] ) % p
+                        s = ( s + p2 - A_row[k] * B_matrix_off[k][j+B._col] ) % p
                     self_row[j] = s
-
         else:
             for i from 0 <= i < A._nrows:
                 self_row = ( <Matrix_modn_dense> self._matrix ).matrix[i+self._row] + self._col
-                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+B._row] + B._col
-                B_row = ( <Matrix_modn_dense> B._matrix ).matrix[i+A._row] + A._col
+                A_row = ( <Matrix_modn_dense> A._matrix ).matrix[i+A._row] + A._col
                 for j from 0 <= j < B._ncols:
-                    s = self_row[j] + p * gather # because they're unsigned
+                    s = self_row[j] + gather * p2 # using unsigned ints
                     k = 0
                     while k < A_ncols:
                         top = k + gather
@@ -230,8 +230,9 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
                             top = A_ncols
                         for k from k <= k < top: # = min(k+gather, A._ncols)
                             s -= A_row[k] * B_matrix_off[k][j+B._col]
-                        s = s % p  +  p * gather # because they're unsigne
+                        s = s % p + gather * p2 # using unsigned ints
                     self_row[j] = s % p
+
 
     cdef int element_is_zero(self, Py_ssize_t i, Py_ssize_t j):
         return (<Matrix_modn_dense>self._matrix).matrix[i+self._row][j+self._col] == 0

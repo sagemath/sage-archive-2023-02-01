@@ -55,7 +55,7 @@ from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from abelian_group import AbelianGroup
 from sage.misc.functional import exp
 from sage.functions.constants import pi
-from sage.rings.complex_field import CC,ComplexField
+from sage.rings.complex_field import is_ComplexField
 
 
 def add_strings(x, z=0):
@@ -267,8 +267,8 @@ class DualAbelianGroupElement(MonoidElement):
         expsg = list(g.list())
         invs = self.parent().invariants()
         N = LCM(invs)
-        if F==CC:
-            I = CC.gen()
+        if is_ComplexField(F):
+            I = F.gen()
             ans = prod([exp(2*pi*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])
             return ans
         ans = F(1)  ## assumes F is the cyclotomic field

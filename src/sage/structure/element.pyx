@@ -581,10 +581,17 @@ cdef class ModuleElement(Element):
     cdef ModuleElement _rmultiply_by_scalar(self, left):
         # left * self, where left need not be a ring element in the base ring
         # This does type checking and canonical coercion then calls _rmul_c_impl.
+        #
+        # INPUT:
+        #    self -- a module element
+        #    left -- a scalar
+        # OUTPUT:
+        #    left * self
+        #
         if PY_TYPE_CHECK(left, Element):
             if (<Element>self)._parent is self._parent._base:
                 # No coercion needed
-                return self._rmul_c(right)
+                return self._rmul_c(left)
             else:
                 # Otherwise we do an explicit canonical coercion.
                 try:
@@ -1025,20 +1032,25 @@ cdef class RingElement(ModuleElement):
         # (ring element) * (module element that is not a ring element)
         # We don't have to do the other direction, since it is
         # done in module element __mul__.
-        if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
-            # Now self must be a ring element:
-            # If the parent is the same as the base ring, good
-            if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
-                return (<ModuleElement>right)._rmul_c(self)
-            else:
-                # Otherwise we have to do an explicit canonical coercion.
-                try:
-                    return (<ModuleElement>right)._rmul_c(
-                        (<Parent>(<ModuleElement>right)._parent._base)._coerce_c(self))
-                except TypeError:
-                    # that failed -- try to base extend right then do the multiply:
-                    right = right.base_extend((<RingElement>self)._parent)
+        if PY_TYPE_CHECK(right, ModuleElement):
+            if not PY_TYPE_CHECK(right, RingElement):
+                # Now self must be a ring element:
+                # If the parent is the same as the base ring, good
+                if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
                     return (<ModuleElement>right)._rmul_c(self)
+                elif PY_TYPE_CHECK(right, Matrix):
+                    return (<Matrix>right)._rmultiply_by_scalar(left)
+                else:
+                    # Otherwise we have to do an explicit canonical coercion.
+                    try:
+                        return (<ModuleElement>right)._rmul_c(
+                            (<Parent>(<ModuleElement>right)._parent._base)._coerce_c(self))
+                    except TypeError:
+                        # that failed -- try to base extend right then do the multiply:
+                        right = right.base_extend((<RingElement>self)._parent)
+                        return (<ModuleElement>right)._rmul_c(self)
+            elif PY_TYPE_CHECK(right, Matrix):  # matrix is a ring element
+                return (<Matrix>right)._rmultiply_by_scalar(self)
 
         # General case.
         return bin_op_c(self, right, operator.mul)

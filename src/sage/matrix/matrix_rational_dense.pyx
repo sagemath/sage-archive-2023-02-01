@@ -17,7 +17,7 @@ from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
 import sage.structure.coerce
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 
@@ -204,19 +204,36 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: a = matrix(QQ,2,range(6))
+            sage: (3/4) * a
+            [   0  3/4  3/2]
+            [ 9/4    3 15/4]
+        """
+        cdef Py_ssize_t i
+        cdef Rational _x
+        _x = Rational(right)
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_mul(M._entries[i], self._entries[i], _x.value)
+        return M
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two dense matrices over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)(range(9))
-        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: a+b
-        [   1  3/2  7/3]
-        [13/4 21/5 31/6]
-        [43/7 57/8 73/9]
-        sage: b.swap_rows(1,2)
-        sage: #a+b
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a+b
+            [   1  3/2  7/3]
+            [13/4 21/5 31/6]
+            [43/7 57/8 73/9]
+            sage: b.swap_rows(1,2)
+            sage: #a+b
 
         """
         cdef Py_ssize_t i, j
@@ -241,15 +258,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
-        Add two dense matrices over QQ.
+        Subtract two dense matrices over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)(range(9))
-        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: a-b
-        [  -1  1/2  5/3]
-        [11/4 19/5 29/6]
-        [41/7 55/8 71/9]
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a-b
+            [  -1  1/2  5/3]
+            [11/4 19/5 29/6]
+            [41/7 55/8 71/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
@@ -276,11 +293,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Negate a matrix over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: -a
-        [  -1 -1/2 -1/3]
-        [-1/4 -1/5 -1/6]
-        [-1/7 -1/8 -1/9]
+            sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: -a
+            [  -1 -1/2 -1/3]
+            [-1/4 -1/5 -1/6]
+            [-1/7 -1/8 -1/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
@@ -301,14 +318,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def __copy__(self):
         """
-        Negate a matrix over QQ.
+        Copy a matrix over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: -a
-        [  -1 -1/2 -1/3]
-        [-1/4 -1/5 -1/6]
-        [-1/7 -1/8 -1/9]
+            sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: -a
+            [  -1 -1/2 -1/3]
+            [-1/4 -1/5 -1/6]
+            [-1/7 -1/8 -1/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M

@@ -200,11 +200,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             raise TypeError, "base_ring must be a ring"
         if ncols == None: ncols = nrows
         nrows = int(nrows)
-        #if not isinstance(nrows, int):
-        #    raise TypeError, "nrows must be an int"
         ncols = int(ncols)
-        #if not isinstance(ncols, int):
-        #    raise TypeError, "ncols must be an int"
         if nrows < 0:
             raise ArithmeticError, "nrows must be nonnegative"
         if ncols < 0:
@@ -224,6 +220,17 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         else:
             self.__ncols = ncols
         self.__matrix_class = self._get_matrix_class()
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: A = Mat(ZZ,5,7,sparse=True)
+            sage: A
+            Full MatrixSpace of 5 by 7 sparse matrices over Integer Ring
+            sage: loads(dumps(A)) == A
+            True
+        """
+        return MatrixSpace, (self.base_ring(), self.__nrows, self.__ncols, self.__is_sparse)
 
     def __call__(self, entries=0, coerce=True, copy=True):
         """
@@ -438,20 +445,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [0 1]
             ]
         """
-        try:
-            return self.__basis
-        except AttributeError:
-            v = [self.zero_matrix() for _ in range(self.dimension())]
-            one = self.base_ring()(1)
-            i = 0
-            for r in range(self.__nrows):
-                for c in range(self.__ncols):
-                    v[i][r,c] = one
-                    v[i].set_immutable()
-                    i += 1
-            B = Sequence(v, universe=self, check=False, immutable=True, cr=True)
-            self.__basis = B
-            return B
+        v = [self.zero_matrix() for _ in range(self.dimension())]
+        one = self.base_ring()(1)
+        i = 0
+        for r in range(self.__nrows):
+            for c in range(self.__ncols):
+                v[i][r,c] = one
+                v[i].set_immutable()
+                i += 1
+        return Sequence(v, universe=self, check=False, immutable=True, cr=True)
 
     def dimension(self):
         """

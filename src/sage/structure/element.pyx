@@ -1081,7 +1081,7 @@ cdef class RingElement(ModuleElement):
         """
         return self._mul_c_impl(right)
 
-    def __pow__(self, n, dummy):
+    def __pow__(self, m, dummy):
         """
         Retern the (integral) power of self.
 
@@ -1110,12 +1110,9 @@ cdef class RingElement(ModuleElement):
         """
         cdef int cn
 
-        from sage.rings.integer import Integer # do here to avoid ciruclar reference
-        if not isinstance(n, (int, long, Integer)):
-            from sage.rings.integer_ring import IntegerRing # do here to avoid ciruclar reference
-            n = IntegerRing()(n)
-
-        n = int(n)
+        n = int(m)
+        if n != m:
+            raise ValueError, "n must be an integer"
 
         if n < 0:
             n = -n
@@ -1938,4 +1935,54 @@ def gcd(x,y):
 def xgcd(x,y):
     from sage.rings.arith import xgcd
     return xgcd(x,y)
+
+
+
+
+######################
+
+def generic_power(m, dummy):
+    return generic_power_c(m, dummy)
+
+cdef generic_power_c(m, dummy):
+    cdef int cn
+
+    n = int(m)
+    if n != m:
+        raise ValueError, "n must be an integer"
+
+    if n < 0:
+        n = -n
+        a = ~self
+    else:
+        a = self
+
+    if n < 4:
+        # These cases will probably be called often
+        # and don't benifit from the code below
+        cn = n
+        if cn == 0:
+            return (<Element>a)._parent(1)
+        elif cn == 1:
+            return a
+        elif cn == 2:
+            return a*a
+        elif cn == 3:
+            return a*a*a
+
+    # One multiplication can be saved by starting with
+    # the smallest power needed rather than with 1
+    apow = a
+    while n&1 == 0:
+        apow = apow*apow
+        n = n >> 1
+    power = apow
+    n = n >> 1
+
+    while n != 0:
+        apow = apow*apow
+        if n&1 != 0: power = power*apow
+        n = n >> 1
+
+    return power
 

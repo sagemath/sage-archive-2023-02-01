@@ -12,6 +12,7 @@ Dense matrices over the rational field.
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+include '../ext/pthread.pxi'
 
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
@@ -20,6 +21,15 @@ import sage.structure.coerce
 from sage.structure.element cimport ModuleElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
+
+
+cdef int num_threads
+num_threads = 1
+
+def set_num_threads(int n):
+    global num_threads
+    num_threads = n
+
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -203,6 +213,24 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
+
+    def _scalar_multiply(self, x):
+        """
+        EXAMPLES:
+            sage: a = matrix(QQ,2,range(6))
+            sage: a._scalar_multiply(3/4)
+            [   0  3/4  3/2]
+            [ 9/4    3 15/4]
+        """
+        cdef Py_ssize_t i
+        cdef Rational _x
+        _x = Rational(x)
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_mul(M._entries[i], self._entries[i], _x.value)
+        return M
+
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
@@ -534,7 +562,97 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return _pr
 
 
+    def _add_inplace(self, ModuleElement right):
+        self.check_mutability()
+        if num_threads > 1:
+            self.__add_inplace_threaded(right)
+        else:
+            self.__add_inplace(right)
+
+    def __add_inplace(self, ModuleElement right):
+        cdef Py_ssize_t i, j
+
+        cdef mpq_t *self_row
+        cdef mpq_t *right_row
+
+        _sig_on
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpq_add(self._entries[i], self._entries[i], (<Matrix_rational_dense>right)._entries[i])
+        _sig_off
+
+
+    def __add_inplace_threaded(self, Matrix_rational_dense right):
+        if self._nrows != right._nrows or self._ncols != right._ncols:
+            raise TypeError, "matrix dimensions do not agree"
+        add_using_pthreads(self._entries, self._entries, right._entries,
+                           self._nrows * self._ncols)
+        return
+
+    def _add_threaded(self, Matrix_rational_dense right):
+        if self._nrows != right._nrows or self._ncols != right._ncols:
+            raise TypeError, "matrix dimensions do not agree"
+
+        cdef Matrix_rational_dense M
+        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
+        add_using_pthreads(M._entries, self._entries, right._entries, self._nrows * self._ncols)
+        return M
+
 
 
 ###########################
+ctypedef struct ThreeMatrices:
+    mpq_t* r
+    mpq_t* a
+    mpq_t* b
+    Py_ssize_t n
+
+cdef void* thread_add(void* args):
+    cdef ThreeMatrices* _args
+    _args = <ThreeMatrices*> args
+    cdef Py_ssize_t i
+    for i from 0 <= i < _args.n:
+        mpq_add(_args.r[i], _args.a[i], _args.b[i])
+
+cdef add_using_pthreads(mpq_t* r, mpq_t* a, mpq_t* b, Py_ssize_t n):
+    if n % num_threads != 0:
+        raise ValueError, 'product of nrows and ncols must be divisible by num_threads'
+
+    cdef Py_ssize_t chunk_size
+    chunk_size = n / num_threads
+
+    # allocate three arrays of pointers to num_threads mpq_t*'s
+    cdef mpq_t **a_i
+    cdef mpq_t **b_i
+    cdef mpq_t **r_i
+    a_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
+    b_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
+    r_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
+
+    # allocate structure into which to put the pointer arrays
+    cdef ThreeMatrices* args
+    args = <ThreeMatrices*> sage_malloc(sizeof(ThreeMatrices) * num_threads)
+
+    # allocate thread structures
+    cdef pthread_attr_t attr
+    pthread_attr_init(&attr)
+    pthread_attr_setdetachstate(&attr,0)
+    cdef pthread_t* threads
+    threads = <pthread_t *> malloc(sizeof(pthread_t)*num_threads)
+
+    # do it!
+    cdef int i
+    for i from 0 <= i < num_threads:
+        a_i[i] = a + (chunk_size * i)
+        b_i[i] = b + (chunk_size * i)
+        r_i[i] = r + (chunk_size * i)
+        args[i].a = a_i[i]
+        args[i].b = b_i[i]
+        args[i].r = r_i[i]
+        args[i].n = chunk_size
+        pthread_create( &(threads[i]), &attr, thread_add, <void *>(&args[i]) )
+
+    for i from 0 <= i < num_threads:
+        pthread_join(threads[i], NULL)
+
+
 

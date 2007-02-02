@@ -199,7 +199,7 @@ class LaurentSeries(ring_element.RingElement):
             sage: x = Frac(QQ[['x']]).0
             sage: f = (17/2)*x^-2 + x + x^2 + 3*x^4 + O(x^7)
             sage: latex(f)
-            \frac{\frac{17}{2}}{x^{-2}} + x + x^{2} + 3x^{4} + \cdots
+            \frac{\frac{17}{2}}{x^{2}} + x + x^{2} + 3x^{4} + O(\text{x}^{7})
         """
         if self.is_zero():
             if self.prec() == infinity:
@@ -231,17 +231,27 @@ class LaurentSeries(ring_element.RingElement):
                 if e >= 0:
                     s += "%s%s"%(x,var)
                 else: # negative e
-                    s += "\\frac{%s}{%s^{%s}}"%(x, X,e)
+                    if e == -1:
+                        s += "\\frac{%s}{%s}"%(x, X)
+                    else:
+                        s += "\\frac{%s}{%s^{%s}}"%(x, X,-e)
                 first = False
         if atomic_repr:
             s = s.replace(" + -", " - ")
         s = s.replace(" 1|"," ")
         s = s.replace(" -1|", " -")
         s = s.replace("|","")
-        if self.prec() != infinity:
+        pr = self.prec()
+        if pr != infinity:
+            if pr == 0:
+                bigoh = "O(1)"
+            elif pr == 1:
+                bigoh = "O(%s)"%latex.latex(self.parent().variable_name())
+            else:
+                bigoh = "O(%s^{%s})"%(latex.latex(self.parent().variable_name()),pr)
             if s == " ":
-                return "0 + \\cdots"
-            s += " + \\cdots"
+                return bigoh
+            s += " + %s"%bigoh
         return s[1:]
 
     def __getitem__(self, i):

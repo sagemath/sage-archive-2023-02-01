@@ -1,4 +1,4 @@
-"""
+r"""
 Univariate Power Series Rings
 
 EXAMPLES:
@@ -44,6 +44,13 @@ We make a sparse power series.
     sage: g = f*f
     sage: g.degree()
     2000000
+
+We make a sparse Laurent series from a power series generator:
+    sage: R.<t> = PowerSeriesRing(QQ, sparse=True)
+    sage: latex(-2/3*(1/t^3) + 1/t + 3/5*t^2 + O(t^5))
+    \frac{-\frac{2}{3}}{t^{3}} + \frac{1}{t} + \frac{3}{5}t^{2} + O(\text{t}^{5})
+    sage: S = parent(1/t); S
+    Sparse Laurent Series Ring in t over Rational Field
 
 AUTHOR:
     -- William Stein: the code
@@ -567,7 +574,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             return self.__laurent_series_ring
         except AttributeError:
             self.__laurent_series_ring = laurent_series_ring.LaurentSeriesRing(
-                                                 self.base_ring(), self.variable_name())
+                                                 self.base_ring(), self.variable_name(), sparse=self.is_sparse())
             return self.__laurent_series_ring
 
 class PowerSeriesRing_domain(PowerSeriesRing_generic, integral_domain.IntegralDomain):

@@ -521,7 +521,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         of an invalid operation (like 0 divided by 0), or a value that
         cannot be determined (like +Infinity minus
         +Infinity). Moreover, like in the IEEE 754-1985 standard, zero
-        is signed, i.e. there are both +0 and ?0; the behavior is the
+        is signed, i.e. there are both +0 and -0; the behavior is the
         same as in the IEEE 754-1985 standard and it is generalized to
         the other functions supported by MPFR.
 

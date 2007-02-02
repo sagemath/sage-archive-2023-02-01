@@ -297,7 +297,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             IndexError: matrix index out of range
         """
         cdef Integer z
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         mpz_set(z.value, self._matrix[i][j])
         return z
 
@@ -1075,6 +1075,28 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i in range(n):
                 U[i,n-1] = - U[i,n-1]
         return U
+
+    def prod_of_row_sums(self, cols):
+        cdef Py_ssize_t c, row
+        cdef mpz_t s, pr
+        mpz_init(s)
+        mpz_init(pr)
+
+        mpz_set_si(pr, 1)
+        for row from 0 <= row < self._nrows:
+            tmp = []
+            mpz_set_si(s, 0)
+            for c in cols:
+                if c<0 or c >= self._ncols:
+                    raise IndexError, "matrix column index out of range"
+                mpz_add(s, s, self._matrix[row][c])
+            mpz_mul(pr, pr, s)
+        cdef Integer z
+        z = PY_NEW(Integer)
+        mpz_set(z.value, pr)
+        mpz_clear(s)
+        mpz_clear(pr)
+        return z
 
 
 

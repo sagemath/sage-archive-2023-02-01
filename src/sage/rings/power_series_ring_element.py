@@ -402,13 +402,13 @@ class PowerSeries(ring_element.RingElement):
             s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
-        if self._prec == 0:
-            bigoh = "O(1)"
-        elif self._prec == 1:
-            bigoh = "O(%s)"%self.parent().variable_name()
-        else:
-            bigoh = "O(%s^%s)"%(self.parent().variable_name(),self._prec)
         if self._prec != infinity:
+            if self._prec == 0:
+                bigoh = "O(1)"
+            elif self._prec == 1:
+                bigoh = "O(%s)"%self.parent().variable_name()
+            else:
+                bigoh = "O(%s^%s)"%(self.parent().variable_name(),self._prec)
             if s==" ":
                 return bigoh
             s += " + %s"%bigoh
@@ -423,7 +423,7 @@ class PowerSeries(ring_element.RingElement):
             sage: f = -1/2 * t + 2/3*t^2 + -9/7 * t^15 + O(t^20); f
             -1/2*t + 2/3*t^2 - 9/7*t^15 + O(t^20)
             sage: latex(f)
-            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + \cdots
+            -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(\text{t}^{20})
         """
         if self.is_zero():
             if self.prec() == infinity:
@@ -462,9 +462,15 @@ class PowerSeries(ring_element.RingElement):
         s = s.replace(" 1|"," ")
         s = s.replace("|","")
         if self._prec != infinity:
-            if s==" ":
-                return "0 + \\cdots"
-            s += " + \\cdots"
+            if self._prec == 0:
+                bigoh = "O(1)"
+            elif self._prec == 1:
+                bigoh = "O(%s)"%latex.latex(self.parent().variable_name())
+            else:
+                bigoh = "O(%s^{%s})"%(latex.latex(self.parent().variable_name()),self._prec)
+            if s == " ":
+                return bigoh
+            s += " + %s"%bigoh
         return s[1:]
 
 

@@ -29,10 +29,10 @@ from sage.rings.arith import (factor, euler_phi as phi, divisors, is_prime,
                               valuation, kronecker_symbol, gcd, euler_phi, lcm)
 import sage.modular.congroup as congroup
 from sage.misc.misc import mul
-from sage.rings.all import Mod, Integer, IntegerModRing
+from sage.rings.all import Mod, Integer, IntegerRing, IntegerModRing, ZZ
 from sage.rings.rational_field import frac
 import dirichlet
-Z = Integer  # useful abbreviation.
+Z = ZZ  # useful abbreviation.
 
 def mu0(n):
     return mul([(p+1)*(p**(r-1)) for p, r in factor(n)])

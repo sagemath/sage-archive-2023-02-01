@@ -1096,6 +1096,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         Return the p-adic valuation of self.
 
+        INPUT:
+            p -- an integer at least 2.
+
         EXAMPLE:
             sage: n = 60
             sage: n.valuation(2)
@@ -1104,14 +1107,26 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1
             sage: n.valuation(7)
             0
+            sage: n.valuation(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: You can only compute the valuation with respect to a integer larger than 1.
+
+        We do not require that p is a prime:
+            sage: (2^11).valuation(4)
+            5
         """
         if self == 0:
             return sage.rings.infinity.infinity
+        cdef Integer _p
+        _p = Integer(p)
+        if mpz_cmp_ui(_p.value,2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         cdef int k
         k = 0
-        while self % p == 0:
+        while self % _p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self = self.__floordiv__(_p)
         return Integer(k)
 
     def _lcm(self, Integer n):

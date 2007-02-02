@@ -1222,6 +1222,8 @@ class Worksheet:
             menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
             menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
+            #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
+            menu += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>' + vbar
             menu += '    <a class="download_sws" href="%s.sws">Download</a>'%self.filename()
             menu += '  </span>'
 
@@ -1248,11 +1250,17 @@ class Worksheet:
 
     def show_all(self):
         for C in self.__cells:
-            C.set_cell_output_type('wrap')
+            try:
+                C.set_cell_output_type('wrap')
+            except AttributeError:   # for backwards compatibility
+                pass
 
     def hide_all(self):
         for C in self.__cells:
-            C.set_cell_output_type('hidden')
+            try:
+                C.set_cell_output_type('hidden')
+            except AttributeError:
+                pass
 
 
 def ignore_prompts_and_output(s):

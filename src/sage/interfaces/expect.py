@@ -470,6 +470,7 @@ class Expect(ParentWithBase):
     def execute(self, *args, **kwds):
         return self.eval(*args, **kwds)
 
+    #def __call__(self, x, globals=None):
     def __call__(self, x):
         r"""
         Create a new object in self from x.
@@ -480,6 +481,9 @@ class Expect(ParentWithBase):
                       X.foo(y,z,...)
         calls foo(X, y, z, ...) and returns the corresponding object.
         """
+        #if not globals is None:
+        #    for k, x in globals.iteritems():
+        #        self.set(k,x)
         cls = self._object_class()
 
         if isinstance(x, cls) and x.parent() is self:

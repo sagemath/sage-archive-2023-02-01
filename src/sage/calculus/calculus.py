@@ -407,12 +407,12 @@ class CallableFunction(RingElement):
     def __init__(self, expr, args):
         RingElement.__init__(self, CallableFunctionRing)
         if args == [] or args == () or args is None:
-            raise ValueError, "A CallableFunction must know at least one of \
-                                its variables."
+            raise ValueError, "A CallableFunction must know at least one of" \
+                               +" its variables."
         for arg in args:
             if not isinstance(arg, SymbolicExpression):
-                raise TypeError, "Must construct a function with a list of \
-                                  SymbolicVariables."
+                raise TypeError, "Must construct a function with a list of" \
+                                +" SymbolicVariables."
 
             self._varlist = args
             self._expr = expr

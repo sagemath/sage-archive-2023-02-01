@@ -465,7 +465,6 @@ class Maxima(Expect):
             #print "in = '%s'"%line
             E.sendline(line)
             self._expect.expect(end)
-            self._expect.expect(self._prompt)
             # We have timeouts below, since getting the end above
             # means the computation completed, but on some systems
             # (Cygwin) the expect interface can sometimes hang getting
@@ -478,6 +477,8 @@ class Maxima(Expect):
             except pexpect.TIMEOUT:
                 out = self._expect.before
             #print "out = '%s'"%out
+            if not '(%o' in out:
+                self._expect.expect(self._prompt)
 
         except EOF:
             if self._quit_string() in line:

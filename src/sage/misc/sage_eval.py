@@ -129,6 +129,7 @@ def sageobj(x, vars=None):
         sage: k = sageobj('Z(8^3/1)', {'Z':ZZ}); k
         512
         sage: type(k)
+        <type 'sage.rings.integer.Integer'>
     """
     try:
        return x._sage_()

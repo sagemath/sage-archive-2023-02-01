@@ -1129,6 +1129,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             self = self.__floordiv__(_p)
         return Integer(k)
 
+    def ord(self, p=None):
+        """Synonym for valuation
+
+        EXAMPLES:
+        sage: n=12
+        sage: n.ord(3)
+        1
+        """
+        return self.valuation(p)
+
     def _lcm(self, Integer n):
         """
         Returns the least common multiple of self and $n$.

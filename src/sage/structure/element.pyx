@@ -837,16 +837,15 @@ cdef class MonoidElement(Element):
         """
         raise NotImplementedError
 
-    def __pow__(self, n, dummy):
+    def __pow__(self, nn, dummy):
         """
         Retern the (integral) power of self.
         """
         cdef int cn
 
-        if PyFloat_Check(n):
-            raise TypeError, "raising %s to the power of the float %s not defined"%(self, n)
-
-        n = int(n)
+        n = int(nn)
+        if n != nn:
+            raise NotImplementedError, "non-integral exponents not supported"
 
         a = self
         if n < 0:

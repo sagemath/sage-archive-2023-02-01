@@ -930,11 +930,18 @@ class ExpectElement(RingElement):
 
 
     def __pow__(self, n):
+        """
+        EXAMPLES:
+            sage: a = maxima('2')
+            sage: a^(3/4)
+            2^(3/4)
+        """
         P = self._check_valid()
         if isinstance(n, ExpectElement):
             return P.new('%s ^ %s'%(self._name,n._name))
         else:
-            return P.new('%s ^ %s'%(self._name,n))
+            z = P(n)
+            return P.new('%s ^ %s'%(self._name,z._name))
 
 
 def reduce_load(parent, x):

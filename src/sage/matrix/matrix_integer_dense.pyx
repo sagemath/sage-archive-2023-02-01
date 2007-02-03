@@ -371,7 +371,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # LEVEL 1 helpers:
     #   These function support the implementation of the level 1 functionality.
     ########################################################################
-    cdef void _zero_out_matrix(self):
+    cdef _zero_out_matrix(self):
         """
         Set this matrix to be the zero matrix.
         This is only for internal use.

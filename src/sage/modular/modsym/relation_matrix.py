@@ -306,11 +306,11 @@ def compute_presentation(syms, sign, field, weight):
 
     """
     R, mod = relation_matrix_wtk_g0(syms, sign, field, weight)
-    if weight==2:
+    #if weight==2:
         # heuristically the hecke operators are quite dense for weight > 2
-        sparse = True
-    else:
-        sparse = False
+    #    sparse = True
+    #else:
+    sparse = False
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 

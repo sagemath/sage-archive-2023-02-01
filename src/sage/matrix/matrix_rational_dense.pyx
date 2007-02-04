@@ -13,6 +13,7 @@ include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
+cimport sage.structure.element
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
@@ -429,10 +430,84 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
         return A, D
 
-    def _multiply_multi_modular(left, Matrix_rational_dense right):
+    def charpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the characteristic polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.charpoly(); f
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: f(a)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        if algorithm == 'linbox':
+            A, A_denom = self._clear_denom()
+            f = A.charpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * A_denom) * (1 / (A_denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.charpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    def minpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the minimal polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.minpoly(); f
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: a = Mat(ZZ,4)(range(16))
+            sage: f = a.minpoly(); f.factor()
+            using default method...
+            x * (x^2 - 30*x - 80)
+            sage: f(a) == 0
+            True
+        """
+        if algorithm == 'linbox':
+            A, A_denom = self._clear_denom()
+            f = A.minpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * A_denom) * (1 / (A_denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.minpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('minpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+        return self._multiply_over_integers(right)
+
+    def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
         """
         Multiply this matrix by right using a multimodular algorithm
         and return the result.
+
+        INPUT:
+
 
         EXAMPLES:
             sage: a = MatrixSpace(QQ,3)(range(9))
@@ -452,11 +527,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Integer D
         cdef mpz_t* AB_row,
         cdef mpq_t* res_row
-        A, A_denom = left._clear_denom()
+        A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
-        AB = A._multiply_multi_modular(B)
+        if algorithm == 'default':
+            AB = A*B
+        elif algorithm == 'multimodular':
+            AB = A._multiply_multi_modular(B)
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
         D = A_denom * B_denom
-        res = Matrix_rational_dense.__new__(Matrix_rational_dense, left.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
+        res = Matrix_rational_dense.__new__(Matrix_rational_dense,
+                                            self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
             AB_row = AB._matrix[i]
             res_row = res._matrix[i]

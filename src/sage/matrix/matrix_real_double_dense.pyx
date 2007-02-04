@@ -25,6 +25,8 @@ import sage.rings.real_double
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
 
+cimport sage.structure.element
+
 cdef extern from "arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is
@@ -220,7 +222,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     # def _pickle(self):                        #unsure how to implement
     # def _unpickle(self, data, int version):   # use version >= 0 #unsure how to implement
     ######################################################################
-    def _multiply_classical(self, matrix.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         cdef int result
         if self._ncols!=right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right"

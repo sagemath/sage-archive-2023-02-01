@@ -203,7 +203,8 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     if not isinstance(mod, list):
         raise TypeError, "mod must be a list"
 
-    tm = misc.verbose()
+    misc.verbose(str(relation_matrix.parent()))
+    tm = misc.verbose("putting relation matrix in echelon form")
     A = relation_matrix.echelon_form()
     A.set_immutable()
 

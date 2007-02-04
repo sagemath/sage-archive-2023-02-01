@@ -9,6 +9,8 @@ Dense matrices over the rational field.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
@@ -21,6 +23,9 @@ import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
+
+cdef extern from "matrix_rational_dense_linbox.h":
+    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -631,6 +636,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
+    ################################################
+    # Echelon form
+    ################################################
+    def _echelonize_linbox(self):
+        linbox_rational_dense_echelon_form(self._matrix, self._nrows, self._ncols)
 
 
 

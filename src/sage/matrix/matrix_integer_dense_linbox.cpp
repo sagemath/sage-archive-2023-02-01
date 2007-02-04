@@ -19,7 +19,6 @@
 using namespace LinBox;
 using namespace std;
 
-
 template <class Field, class Polynomial>
 void printPolynomial (const Field &F, const Polynomial &v)
 {
@@ -155,4 +154,38 @@ int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **
     set_matrix(ans, CC, A_nr, B_nc);
 
     return 0;
+}
+
+
+
+
+
+#include "linbox/field/gmp-rational.h"
+#include "linbox/algorithms/echelon-form.h"
+
+GMPRationalField QQ;
+//SpyInteger spy;
+
+DenseMatrix<GMPRationalField> new_gmp_matrix(DenseMatrix<GMPRationalField>& A, mpq_t** matrix, size_t nrows, size_t ncols) {
+
+    size_t i, j, k;
+    for (i=0; i < nrows; i++) {
+	for (j=0; j < ncols; j++) {
+	    GMPRationalField::Element t;
+	    t = A.getEntry(i, j);
+	    integer x;
+	    mpz_set(spy.get_mpz(QQ.get_num(x, t)), mpq_numref(matrix[i][j]));
+	    mpz_set(spy.get_mpz(QQ.get_den(x, t)), mpq_denref(matrix[i][j]));
+	    A.setEntry(i, j, t);
+	}
+    }
+    return A;
+}
+
+void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
+{
+    EchelonFormDomain<GMPRationalField> EF(QQ);
+    DenseMatrix<GMPRationalField> AA(QQ,nr, nc);
+    new_gmp_matrix(AA, matrix, nr, nc);
+//    EF.columnReducedEchelon(AA);
 }

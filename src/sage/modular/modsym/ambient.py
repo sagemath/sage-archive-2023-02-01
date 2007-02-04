@@ -1344,6 +1344,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             # The following step is where most of the time is spent.
             c,d = P1[i]
             v = H.apply(c,d, N)
+
             # v is now a list of pairs ((c,d),m), where m is the
             # number of times that (c,d) appears in the image of x
             # under the matrices in H.  Also, the pairs (c,d) are

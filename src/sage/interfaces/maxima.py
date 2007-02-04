@@ -476,7 +476,6 @@ class Maxima(Expect):
                 out += self._expect.before
             except pexpect.TIMEOUT:
                 out = self._expect.before
-            #print "out = '%s'"%out
             if not '(%o' in out:
                 self._expect.expect(self._prompt)
 

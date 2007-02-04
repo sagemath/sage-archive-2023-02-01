@@ -39,7 +39,7 @@ import matrix_integer_dense
 ## import matrix_integer_sparse
 
 import matrix_rational_dense
-## import matrix_rational_sparse
+##import matrix_rational_sparse
 
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse

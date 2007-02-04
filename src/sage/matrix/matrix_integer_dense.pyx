@@ -17,8 +17,9 @@ include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 
-cdef extern from "linbox_wrap.h":
-    mpz_t* linbox_minpoly(size_t n, mpz_t** matrix)
+cdef extern from "matrix_integer_dense_linbox.h":
+    void linbox_minpoly(mpz_t* *minpoly, size_t* degree, size_t n, mpz_t** matrix)
+    void linbox_delete_array(mpz_t* f)
 
 ctypedef unsigned int uint
 
@@ -550,24 +551,27 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * Specialized echelon form
     ########################################################################
 
-    def minimal_polynomial(self, algorithm='linbox'):
+    def minimal_polynomial(self, var='x'):
         if self._nrows != self._ncols:
             raise ValueError, "matrix must be square"
+        if self._nrows == 0:
+            return self.characteristic_polynomial(var)
         cdef mpz_t* minpoly
         cdef size_t n
+        cdef size_t degree
         _sig_on
-        minpoly = linbox_minpoly(self._nrows, self._matrix)
+        linbox_minpoly(&minpoly, &degree, self._nrows, self._matrix)
         _sig_off
-        if minpoly == <mpz_t*>0: return
         v = []
         cdef Integer k
-        for n from 0 <= n <= self._nrows:
+        for n from 0 <= n <= degree:
             k = PY_NEW(Integer)
             mpz_set(k.value, minpoly[n])
             mpz_clear(minpoly[n])
             v.append(k)
-        sage_free(minpoly)
-        return v
+        linbox_delete_array(minpoly)
+        R = self._base_ring[var]
+        return R(v)
 
 
     def height(self):

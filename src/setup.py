@@ -152,11 +152,6 @@ matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
 matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
                        ['sage/matrix/matrix_pid_sparse.pyx'])
 
-linbox = Extension('sage.matrix.linbox', ['sage/matrix/linbox.pyx', 'sage/matrix/linbox_cpp.cpp'],
-                   libraries = ['givaro', 'gmpxx', 'gmp', 'ntl', 'linbox', 'stdc++' ],
-                   language='c++'
-                   )
-
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx',
                                   'sage/matrix/matrix_integer_dense_linbox.cpp'],

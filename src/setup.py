@@ -155,7 +155,7 @@ matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx',
                                   'sage/matrix/matrix_integer_dense_linbox.cpp'],
-                                 libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++'])
+                                 libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++', 'givaro', CBLAS])
 
 matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],

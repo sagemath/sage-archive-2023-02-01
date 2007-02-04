@@ -20,6 +20,8 @@ include "../ext/gmp.pxi"
 cdef extern from "matrix_integer_dense_linbox.h":
     void linbox_minpoly(mpz_t* *minpoly, size_t* degree, size_t n, mpz_t** matrix)
     void linbox_delete_array(mpz_t* f)
+    int linbox_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B,
+                                      size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 
 ctypedef unsigned int uint
 
@@ -301,8 +303,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             IndexError: matrix index out of range
         """
         cdef Integer z
-        #z = PY_NEW(Integer)
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         mpz_set(z.value, self._matrix[i][j])
         return z
 
@@ -423,6 +424,35 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
     # def _dict(self):
+
+    def _multiply_linbox(self, Matrix right):
+        """
+        Multiply matrices over ZZ using linbox.
+
+        WARNING: This is very slow right now, i.e., linbox is very slow.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ,2,3,range(6))
+            sage: A*A.transpose()
+            [ 5 14]
+            [14 50]
+            sage: A._multiply_linbox(A.transpose())
+            [ 5 14]
+            [14 50]
+        """
+        cdef int e
+        cdef Matrix_integer_dense ans, B
+        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+        B = right
+        _sig_on
+        e = linbox_matrix_matrix_multiply(ans._matrix, self._matrix, B._matrix,
+                                          self._nrows, self._ncols,
+                                          right._nrows, right._ncols)
+        _sig_off
+        if e:
+            raise RuntimeError
+        return ans
+
 
     def _multiply_classical(self, Matrix right):
         """
@@ -551,7 +581,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #    * Specialized echelon form
     ########################################################################
 
-    def minimal_polynomial(self, var='x'):
+    def minpoly(self, var='x'):
+        """
+        EXAMPLES:
+            sage: A = matrix(ZZ,6, range(36))
+            sage: A.minpoly()
+            x^3 - 105*x^2 - 630*x
+        """
         if self._nrows != self._ncols:
             raise ValueError, "matrix must be square"
         if self._nrows == 0:
@@ -1120,8 +1156,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mpz_add(s, s, self._matrix[row][c])
             mpz_mul(pr, pr, s)
         cdef Integer z
-        #z = PY_NEW(Integer)
-        z = Integer.__new__(Integer)
+        z = PY_NEW(Integer)
         mpz_set(z.value, pr)
         mpz_clear(s)
         mpz_clear(pr)

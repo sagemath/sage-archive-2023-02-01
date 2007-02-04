@@ -441,6 +441,12 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.charpoly(*args, **kwds)
 
+    def minimal_polynomial(self, var='x'):
+        return self.minpoly(var)
+
+    def minpoly(self, var='x'):
+        raise NotImplementedError
+
     def charpoly(self, var='x', algorithm="hessenberg"):
         r"""
         Return the characteristic polynomial of self, as a polynomial

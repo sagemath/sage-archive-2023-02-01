@@ -3,36 +3,36 @@ Functions that compute some of the sequences in Sloane's tables
 
 EXAMPLES:
    Type sloane.[tab] to see a list of the sequences that are defined.
-   sage: d = sloane.A000005; d
+   sage: a = sloane.A000005; a
     The integer sequence tau(n), which is the number of divisors of n.
-    sage: d(1)
+    sage: a(1)
     1
-    sage: d(6)
+    sage: a(6)
     4
-    sage: d(100)
+    sage: a(100)
     9
 
 Type \code{d._eval??} to see how the function that computes an individual
 term of the sequence is implemented.
 
 The input must be a positive integer:
-    sage: d(0)
+    sage: a(0)
     Traceback (most recent call last):
     ...
     ValueError: input n (=0) must be a positive integer
-    sage: d(1/3)
+    sage: a(1/3)
     Traceback (most recent call last):
     ...
     TypeError: no coercion of this rational to integer
 
 You can also change how a sequence prints:
-    sage: d = sloane.A000005; d
+    sage: a = sloane.A000005; a
     The integer sequence tau(n), which is the number of divisors of n.
-    sage: d.rename('(..., tau(n), ...)')
-    sage: d
+    sage: a.rename('(..., tau(n), ...)')
+    sage: a
     (..., tau(n), ...)
-    sage: d.reset_name()
-    sage: d
+    sage: a.reset_name()
+    sage: a
     The integer sequence tau(n), which is the number of divisors of n.
 
 AUTHORS:
@@ -163,12 +163,62 @@ class SloaneSequence(SageObject):
 
 # You may have to import more here when defining new sequences
 import sage.rings.arith as arith
-from sage.rings.integer_ring import ZZ
 from sage.matrix.matrix_space import MatrixSpace
 from sage.rings.rational_field import QQ
+from sage.rings.real_mpfr import RealField
+from sage.functions.constants import e
 from sage.libs.pari.gen import pari
 from sage.combinat import combinat
 from sage.misc.misc import prod
+import sage.interfaces.gap as gap
+
+# This one should be here!
+class A000001(SloaneSequence):
+    r"""
+    Number of groups of order $n$.
+
+    Note: The database_gap-4.4.9 must be installed!
+
+    run \code{sage -i database_gap-4.4.9} or higher first.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer
+
+    EXAMPLES:
+        sage: a = sloane.A000001;a
+        Number of groups of order n.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        1
+        sage: a(9)
+        2
+        sage: a.list(16)
+        [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-04)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of groups of order n."
+
+    def _eval(self, n):
+        try:
+            return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
+        except:  # help, don't know what to do here? Jaap
+            print "Install database_gap first. See optional packages"
+
+
 
 class A000027(SloaneSequence):
     r"""
@@ -207,6 +257,7 @@ class A000027(SloaneSequence):
     def _eval(self, n):
         return n
 
+
 class A000004(SloaneSequence):
     r"""
     The zero sequence.
@@ -226,6 +277,8 @@ class A000004(SloaneSequence):
         sage: a.list(12)
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
+    AUTHOR:
+        -- Jaap Spies (2006-12-10)
     """
     def __init__(self):
         SloaneSequence.__init__(self, offset=0)
@@ -280,6 +333,390 @@ class A000005(SloaneSequence):
     def _eval(self, n):
         return arith.number_of_divisors(n)
 
+class A000009(SloaneSequence):
+    r"""
+    Number of partitions of $n$ into odd parts.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000009;a
+        Number of partitions of n into odd parts.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(13)
+        18
+        sage: a.list(14)
+        [1, 1, 1, 2, 2, 3, 4, 5, 6, 8, 10, 12, 15, 18]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-30)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b=[]
+        self._precompute(2)
+
+    def _repr_(self):
+        return "Number of partitions of n into odd parts."
+
+    def cf(self):
+        R, x = QQ['x'].objgen()
+        k = 0
+        yield ZZ(1)
+        p = 1
+        while 1:
+            k += 1
+            p *= (1+x**k)
+            yield ZZ(p.coeffs()[k])
+
+    def _precompute(self, how_many=50):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.cf()
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+class A000796(SloaneSequence):
+    r"""
+    Decimal expansion of \pi.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000796;a
+        Decimal expansion of Pi.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        3
+        sage: a(13)
+        9
+        sage: a.list(14)
+        [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7]
+        sage: a(100)
+        7
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-30)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+        self._b=[]
+
+    def _repr_(self):
+        return "Decimal expansion of Pi."
+
+    def pi(self):
+        """
+        Based on a algorithm of Lambert Meertens
+        The ABC-programming language!!!
+        """
+        k, a, b, a1, b1 = ZZ(2), ZZ(4), ZZ(1), ZZ(12), ZZ(4)
+        while 1:
+            p, q, k = k*k, 2*k+1, k+1
+            a, b, a1, b1 = a1, b1, p*a+q*a1, p*b+q*b1
+            d, d1 = a//b, a1//b1
+            while d == d1:
+                yield d
+                a, a1 = 10*(a%b), 10*(a1%b1)
+                d, d1 = a//b, a1//b1
+
+
+    def _precompute(self, how_many=1000):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = self.pi()
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+
+    def _eval(self, n):
+        while len(self._b) <= n:
+            self._precompute()
+        return self._b[n-1]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+class A003418(SloaneSequence):
+    r"""
+    Least common multiple (or lcm) of $\{1, 2, \cdots, n\}$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A003418;a
+        Least common multiple (or lcm) of {1, 2, ..., n}.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(13)
+        360360
+        sage: a.list(14)
+        [1, 1, 2, 6, 12, 60, 60, 420, 840, 2520, 2520, 27720, 27720, 360360]
+        sage: a(20.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce element to an integer
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-31)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+
+    def _repr_(self):
+        return "Least common multiple (or lcm) of {1, 2, ..., n}."
+
+
+    def _eval(self, n):
+        return arith.lcm([i for i in range(1,n+1)],integer=True)
+
+
+
+class A007318(SloaneSequence):
+    r"""
+    Pascal's triangle read by rows: $C(n,k) = n \choose k = \frac {n!} {(k!(n-k)!)}$ , $0 \le k \le n$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A007318;a
+        Pascal's triangle read by rows: C(n,k) = binomial(n,k) = n!/(k!*(n-k)!), 0<=k<=n.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(13)
+        4
+        sage: a.list(15)
+        [1, 1, 1, 1, 2, 1, 1, 3, 3, 1, 1, 4, 6, 4, 1]
+        sage: a(100)
+        715
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-31)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    keyword = ["nonn", "tabl", "nice", "easy", "core", "triangle"]
+
+    def _repr_(self):
+        return "Pascal's triangle read by rows: C(n,k) = binomial(n,k) = n!/(k!*(n-k)!), 0<=k<=n."
+
+
+
+    def _eval(self, n):
+        m = 0
+        while m*(m+1)//2 <= n:
+            m += 1
+        m -= 1
+        k = n - m*(m+1)//2
+        return arith.binomial(m,k)
+
+class A008275(SloaneSequence):
+    r"""
+    Triangle of Stirling numbers of first kind, $s(n,k)$, $n \ge 1$, $1 \le k \le n.
+
+    The unsigned numbers are also called Stirling cycle numbers:
+
+    $|s(n,k)|$ = number of permutations of $n$ objects with exactly $k$ cycles.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A008275;a
+        Triangle of Stirling numbers of first kind, s(n,k), n >= 1, 1<=k<=n.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        -1
+        sage: a(3)
+        1
+        sage: a(11)
+        24
+        sage: a.list(12)
+        [1, -1, 1, 2, -3, 1, -6, 11, -6, 1, 24, -50]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    keyword = ["sign", "tabl", "nice", "core", "triangle"]
+
+    def _repr_(self):
+        return "Triangle of Stirling numbers of first kind, s(n,k), n >= 1, 1<=k<=n."
+
+    def s(self, n, k):
+        return (-1)**(n-k) * combinat.stirling_number1(n,k)
+
+    def _eval(self, n):
+        m = 0
+        while m*(m+1)//2 < n:
+            m += 1
+        k = n - m*(m-1)//2
+        return self.s(m, k)  # (-1)**(m-k) * combinat.stirling_number1(m,k)
+
+
+
+class A008277(SloaneSequence):
+    r"""
+    Triangle of Stirling numbers of 2nd kind, $S2(n,k)$, $n \ge 1$, $1 \le k \le n.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A008277;a
+        Triangle of Stirling numbers of 2nd kind, S2(n,k), n >= 1, 1<=k<=n.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        1
+        sage: a(3)
+        1
+        sage: a(4.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce element to an integer
+        sage: a.list(15)
+        [1, 1, 1, 1, 3, 1, 1, 7, 6, 1, 1, 15, 25, 10, 1]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-31)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    keyword = ["nonn", "tabl", "nice", "core", "triangle"]
+
+    def _repr_(self):
+        return "Triangle of Stirling numbers of 2nd kind, S2(n,k), n >= 1, 1<=k<=n."
+
+
+    def s2(self, n, k):
+        return combinat.stirling_number2(n,k)
+
+    def _eval(self, n):
+        m = 0
+        while m*(m+1)//2 < n:
+            m += 1
+        k = n - m*(m-1)//2
+        return self.s2(m, k)  # combinat.stirling_number2(m,k)
+
+
+
+
+
+class A049310(SloaneSequence):
+    r"""
+    Triangle of coefficients of Chebyshev's $S(n,x)$: $U(n, \frac x 2)$ polynomials (exponents in increasing order).
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A049310;a
+        Triangle of coefficients of Chebyshev's S(n,x) := U(n,x/2) polynomials (exponents in increasing order).
+        sage: a(0)
+        1
+        sage: a(1)
+        0
+        sage: a(13)
+        0
+        sage: a.list(15)
+        [1, 0, 1, -1, 0, 1, 0, -2, 0, 1, 1, 0, -3, 0, 1]
+        sage: a(200)
+        0
+        sage: a.keyword
+        ['sign', 'tabl', 'nice', 'easy', 'core', 'triangle']
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-31)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    keyword = ["sign", "tabl", "nice", "easy", "core", "triangle"]
+
+    def _repr_(self):
+        return "Triangle of coefficients of Chebyshev's S(n,x) := U(n,x/2) polynomials (exponents in increasing order)."
+
+
+
+    def _eval(self, n):
+        m = 0
+        while m*(m+1)//2 <= n:
+            m += 1
+        m -= 1
+        k = n - m*(m+1)//2
+        if (m+k)%2:
+            return ZZ(0)
+        sign = (-1)**((m+k)//2 + k)
+        return sign * arith.binomial((m+k)//2,k)
+
+
+
+
+
 class A000010(SloaneSequence):
     r"""
     The integer sequence A000010 is Euler's totient function.
@@ -328,7 +765,7 @@ class A000010(SloaneSequence):
     def _eval(self, n):
         return arith.euler_phi(n)
 
-# Theme: elementary functions
+# Theme: simple functions
 
 class A000007(SloaneSequence):
     r"""
@@ -365,12 +802,94 @@ class A000007(SloaneSequence):
     def _eval(self, n):
         return Integer(0**n)
 
+class A005843(SloaneSequence):
+    r"""
+    The even numbers: $a(n) = 2n$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A005843;a
+        The even numbers: a(n) = 2n.
+        sage: a(0.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce element to an integer
+        sage: a(1)
+        2
+        sage: a(2)
+        4
+        sage: a(9)
+        18
+        sage: a.list(10)
+        [0, 2, 4, 6, 8, 10, 12, 14, 16, 18]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-03)
+
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "The even numbers: a(n) = 2n."
+
+    def _eval(self, n):
+        return Integer(2*n)
+
+
+
+class A000035(SloaneSequence):
+    r"""
+    A simple periodic sequence.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000035;a
+        A simple periodic sequence.
+        sage: a(0.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce element to an integer
+        sage: a(1)
+        1
+        sage: a(2)
+        0
+        sage: a(9)
+        1
+        sage: a.list(10)
+        [0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "A simple periodic sequence."
+
+    def _eval(self, n):
+        return Integer(n%2)
+
+
+
 class A000169(SloaneSequence):
     r"""
     Number of labeled rooted trees with $n$ nodes: $n^{(n-1)}$.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -409,7 +928,7 @@ class A000272(SloaneSequence):
     Number of labeled rooted trees on $n$ nodes: $n^{(n-2)}$.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -805,6 +1324,109 @@ class A000120(SloaneSequence):
     def _eval(self, n):
         return self.f(n)
 
+class A010060(SloaneSequence):
+    r"""
+    Thue-Morse sequence.
+
+    Let $A_k$ denote the first $2^k$ terms; then $A_0 = 0$, and for $k \ge 0$, $A_{k+1} = A_k B_k$,
+    where $B_k$ is obtained from $A_k$ by interchanging 0's and 1's.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A010060;a
+        Thue-Morse sequence.
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        1
+        sage: a(12)
+        0
+        sage: a.list(13)
+        [0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Thue-Morse sequence."
+
+    def _eval(self, n):
+        return sloane.A000120(n) % 2
+
+class A000069(SloaneSequence):
+    r"""
+    Odious numbers: odd number of 1's in binary expansion.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Odious numbers: odd number of 1's in binary expansion."
+
+    def _eval(self, n):
+        return Integer(2*n + 1) - sloane.A010060(n)
+
+class A001969(SloaneSequence):
+    r"""
+    Evil numbers: even number of 1's in binary expansion.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001969;a
+        Evil numbers: even number of 1's in binary expansion.
+        sage: a(0)
+        0
+        sage: a(1)
+        3
+        sage: a(2)
+        5
+        sage: a(12)
+        24
+        sage: a.list(13)
+        [0, 3, 5, 6, 9, 10, 12, 15, 17, 18, 20, 23, 24]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Evil numbers: even number of 1's in binary expansion."
+
+    def _eval(self, n):
+        return Integer(2*n) + sloane.A010060(n)
+
 
 
 class A000290(SloaneSequence):
@@ -935,7 +1557,7 @@ class A000016(SloaneSequence):
     Sloane's A000016
 
     INPUT:
-        n -- positive integer
+        n -- non negative integer
 
     OUTPUT:
         integer -- function value
@@ -971,49 +1593,6 @@ class A000016(SloaneSequence):
         if n == 0:
             return 1
         return sum( (i%2)*arith.euler_phi(i)*2**(Integer(n/i))/(2*n) for i in arith.divisors(n) )
-
-class A000030(SloaneSequence):
-    r"""
-    Initial digit of $n$.
-
-    INPUT:
-        n -- non negative integer
-
-    OUTPUT:
-        integer -- function value
-
-    EXAMPLES:
-        sage: a = sloane.A000030; a
-        Initial digit of n
-        sage: a(0)
-        0
-        sage: a(1)
-        1
-        sage: a(8)
-        8
-        sage: a(454)
-        4
-        sage: a(-4)
-        Traceback (most recent call last):
-        ...
-        ValueError: input n (=-4) must be an integer >= 0
-        sage: a.list(12)
-        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 1]
-
-    AUTHOR:
-        -- Jaap Spies (2007-01-18)
-    """
-    def __init__(self):
-        SloaneSequence.__init__(self, offset=0)
-
-    def _repr_(self):
-        return "Initial digit of n"
-
-    def _eval(self, n):
-        if n < 10:
-            return n
-        else:
-            return self(n//10)
 
 class A000032(SloaneSequence):
     r"""
@@ -1060,7 +1639,161 @@ class A000032(SloaneSequence):
         else:
             return sloane.A000045(n+1) + sloane.A000045(n-1)
 
-# Theme: prime numbers
+
+# Theme numbers as strings of digits
+
+class A004086(SloaneSequence):
+    r"""
+    Read n backwards (referred to as $R(n)$ in many sequences).
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A004086;a
+        Read n backwards (referred to as R(n) in many sequences).
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        2
+        sage: a(3333)
+        3333
+        sage: a(12345)
+        54321
+        sage: a.list(13)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 11, 21]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Read n backwards (referred to as R(n) in many sequences)."
+
+    def _eval(self, n):
+        a = list(str(n))
+        a.reverse()
+        a = ''.join(a)
+        return ZZ(int(a))
+
+class A002113(SloaneSequence):
+    r"""
+    Palindromes in base 10.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A002113;a
+        Palindromes in base 10.
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(2)
+        2
+        sage: a(12)
+        33
+        sage: a.list(13)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 22, 33]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Palindromes in base 10."
+
+    def _precompute(self, how_many=150):
+        try:
+            self._b
+            n = self._n
+        except AttributeError:
+            self._b = []
+            n = self.offset
+            self._n = n
+        self._b += [i for i in range(self._n, self._n+how_many) if sloane.A004086(i) == i]
+        self._n += how_many
+
+    def _eval(self, n):
+        try:
+            return self._b[n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self._eval(n)
+
+    def list(self, n):
+        try:
+            if len(self._b) <= n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self.list(n)
+
+
+
+class A000030(SloaneSequence):
+    r"""
+    Initial digit of $n$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000030; a
+        Initial digit of n
+        sage: a(0)
+        0
+        sage: a(1)
+        1
+        sage: a(8)
+        8
+        sage: a(454)
+        4
+        sage: a(-4)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=-4) must be an integer >= 0
+        sage: a.list(12)
+        [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 1, 1]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-18)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Initial digit of n"
+
+    def _eval(self, n):
+        if n < 10:
+            return n
+        else:
+            return self(n//10)
+
+
+
+# Theme: primes and factoring
 class A000040(SloaneSequence):
     r"""
     The prime numbers.
@@ -1096,35 +1829,38 @@ class A000040(SloaneSequence):
     def _repr_(self):
         return "The prime numbers."
 
-    def _precompute(self, so_far=1000):
-        try:
-            self._b
-            n = self._n
-        except AttributeError:
-            self._b = []
-            n = self.offset
-            self._n = n
-        self._b += arith.prime_range(self._n, self._n+so_far)
-        self._n += so_far
-
     def _eval(self, n):
-        try:
-            return self._b[n-1]
-        except (AttributeError, IndexError):
-            self._precompute()
-            # try again
-            return self._eval(n)
+        return arith.nth_prime(n)
 
-    def list(self, n):
-        try:
-            if len(self._b) < n:
-                raise IndexError
-            else:
-                return self._b[:n]
-        except (AttributeError, IndexError):
-            self._precompute()
-            # try again
-            return self.list(n)
+#    def _precompute(self, so_far=1000):
+#        try:
+#            self._b
+#            n = self._n
+#        except AttributeError:
+#            self._b = []
+#            n = self.offset
+#            self._n = n
+#        self._b += arith.prime_range(self._n, self._n+so_far)
+#        self._n += so_far
+#
+#    def _eval(self, n):
+#        try:
+#            return self._b[n-1]
+#        except (AttributeError, IndexError):
+#            self._precompute()
+#            # try again
+#            return self._eval(n)
+#
+#    def list(self, n):
+#        try:
+#            if len(self._b) < n:
+#                raise IndexError
+#            else:
+#                return self._b[:n]
+#        except (AttributeError, IndexError):
+#            self._precompute()
+#            # try again
+#            return self.list(n)
 
 class A002808(SloaneSequence):
     r"""
@@ -1183,6 +1919,49 @@ class A002808(SloaneSequence):
             self._precompute()
             # try again
             return self.list(n)
+
+class A018252(SloaneSequence):
+    r"""
+    The nonprime numbers, starting with 1.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A018252;a
+        The nonprime numbers.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        4
+        sage: a(9)
+        15
+        sage: a.list(10)
+        [1, 4, 6, 8, 9, 10, 12, 14, 15, 16]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-04)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "The nonprime numbers."
+
+    def _eval(self, n):
+        if n == 1:
+             return Integer(1)
+        return sloane.A002808(n-1)
+
+
+
 
 class A000043(SloaneSequence):
     r"""
@@ -1473,7 +2252,7 @@ class A000720(SloaneSequence):
     $pi(n)$, the number of primes $\le n$. Sometimes called $PrimePi(n)$.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -1506,12 +2285,108 @@ class A000720(SloaneSequence):
     def _eval(self, n):
         return arith.prime_pi(n)
 
+class A064553(SloaneSequence):
+    r"""
+    $a(1) = 1$, $a(prime(i)) = i + 1$ for $i > 0$ and $a(u \cdot v) = a(u) \cdot a(v)$ for $u, v > 0$.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A064553;a
+        a(1) = 1, a(prime(i)) = i+1 for i > 0 and a(u*v) = a(u)*a(v) for u,v > 0
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        2
+        sage: a(9)
+        9
+        sage: a.list(16)
+        [1, 2, 3, 4, 4, 6, 5, 8, 9, 8, 6, 12, 7, 10, 12, 16]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-04)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "a(1) = 1, a(prime(i)) = i+1 for i > 0 and a(u*v) = a(u)*a(v) for u,v > 0"
+
+    def _eval(self, n):
+        return prod([(arith.prime_pi(p)+1)**e for p,e in arith.factor(n)])
+
+
+
+class A001055(SloaneSequence):
+    r"""
+    Number of ways of factoring $n$ with all factors > 1.
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001055;a
+        Number of ways of factoring n with all factors >1.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(2)
+        1
+        sage: a(9)
+        2
+        sage: a.list(16)
+        [1, 1, 1, 2, 1, 2, 1, 3, 2, 2, 1, 4, 1, 2, 2, 5]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-04)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of ways of factoring n with all factors >1."
+
+    def nwf(self, n, m):
+        if n == 1:
+            return ZZ(1)
+        if arith.is_prime(n):
+            if m < n:
+                return ZZ(0)
+            else:
+                return ZZ(1)
+        s = ZZ(0)
+        for d in arith.divisors(n):
+            if d > 1 and d <= m and d < n:
+                 s += self.nwf(n//d, d)
+        if n <= m:
+             s += 1
+        return s
+
+    def _eval(self, n):
+        return self.nwf(n, n)
+
+
+
 class A006530(SloaneSequence):
     r"""
     Largest prime dividing $n$ (with $a(1)=1$).
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -1613,7 +2488,7 @@ class A005117(SloaneSequence):
     Square-free numbers
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -1667,9 +2542,66 @@ class A005117(SloaneSequence):
             return self.list(n)
 
 
+class A020639(SloaneSequence):
+    r"""
+    Least prime dividing $n$ with $a(1)=1$.
 
-# todo
-# A020639  	 	 Lpf(n): least prime dividing n (a(1)=1).
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A020639;a
+        Least prime dividing n (a(1)=1).
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        1
+        sage: a(13)
+        13
+        sage: a.list(14)
+        [1, 2, 3, 2, 5, 2, 7, 2, 3, 2, 11, 2, 13, 2]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-25)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+        self._b = [1]
+        self._n = 2
+
+    def _repr_(self):
+        return "Least prime dividing n (a(1)=1)."
+
+    def _precompute(self, how_many=50):
+        self._b += [min(p for p,_ in arith.factor(i)) for i in range(self._n, self._n+how_many)]
+        self._n += how_many
+
+    def _eval(self, n):
+        try:
+            return self._b[n-self.offset]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self._eval(n)
+
+    def list(self, n):
+        try:
+            if len(self._b) <= n:
+                raise IndexError
+            else:
+                return self._b[:n]
+        except (AttributeError, IndexError):
+            self._precompute()
+            # try again
+            return self.list(n)
+
+
+
 
 class A000041(SloaneSequence):
     r"""
@@ -1814,6 +2746,45 @@ class A000108(SloaneSequence):
 
     def _eval(self, n):
         return combinat.catalan_number(n)
+
+
+class A001006(SloaneSequence):
+    r"""
+    Motzkin numbers: number of ways of drawing any number of nonintersecting chords among $n$ points on a circle.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001006;a
+        Motzkin numbers: number of ways of drawing any number of nonintersecting chords among n points on a circle.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(2)
+        2
+        sage: a(12)
+        15511
+        sage: a.list(13)
+        [1, 1, 2, 4, 9, 21, 51, 127, 323, 835, 2188, 5798, 15511]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-02)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Motzkin numbers: number of ways of drawing any number of nonintersecting chords among n points on a circle."
+
+    def _eval(self, n):
+        return sum((-1)**(n-k)*arith.binomial(n, k)*sloane.A000108(k+1) for k in range(n+1))
+
+
 
 class A000079(SloaneSequence):
     r"""
@@ -1965,6 +2936,43 @@ class A000302(SloaneSequence):
     def _eval(self, n):
         return Integer(4**n)
 
+class A000583(SloaneSequence):
+    r"""
+    Fourth powers: $a(n) = n^4$.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000583;a
+        Fourth powers: n^4.
+        sage: a(0.0)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to coerce element to an integer
+        sage: a(1)
+        1
+        sage: a(2)
+        16
+        sage: a(9)
+        6561
+        sage: a.list(10)
+        [0, 1, 16, 81, 256, 625, 1296, 2401, 4096, 6561]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-04)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Fourth powers: n^4."
+
+    def _eval(self, n):
+        return Integer(n**4)
 
 
 
@@ -2004,6 +3012,165 @@ class A000142(SloaneSequence):
 
     def _eval(self, n):
         return arith.factorial(n)
+
+class A000085(SloaneSequence):
+    r"""
+    Number of self-inverse permutations on $n$ letters, also known as involutions; number of Young tableaux with $n$ cells.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000085;a
+        Number of self-inverse permutations on n letters.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(2)
+        2
+        sage: a(12)
+        140152
+        sage: a.list(13)
+        [1, 1, 2, 4, 10, 26, 76, 232, 764, 2620, 9496, 35696, 140152]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-03)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Number of self-inverse permutations on n letters."
+
+    def _eval(self, n):
+        return sum([arith.factorial(n)//(arith.factorial(n-2*k)*(2**k)*arith.factorial(k)) for k in range(n//2+1)])
+
+class A001189(SloaneSequence):
+    r"""
+    Number of degree-n permutations of order exactly 2.
+
+
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001189;a
+        Number of degree-n permutations of order exactly 2.
+        sage: a(0)
+        Traceback (most recent call last):
+        ...
+        ValueError: input n (=0) must be a positive integer
+        sage: a(1)
+        0
+        sage: a(2)
+        1
+        sage: a(12)
+        140151
+        sage: a.list(13)
+        [0, 1, 3, 9, 25, 75, 231, 763, 2619, 9495, 35695, 140151, 568503]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-03)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=1)
+
+    def _repr_(self):
+        return "Number of degree-n permutations of order exactly 2."
+
+    def _eval(self, n):
+        return sloane.A000085(n) - 1
+
+class A000670(SloaneSequence):
+    r"""
+    Number of preferential arrangements of $n$ labeled elements; or number of weak orders on $n$ labeled elements.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000670;a
+        Number of preferential arrangements of n labeled elements.
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(2)
+        3
+        sage: a(9)
+        7087261
+        sage: a.list(10)
+        [1, 1, 3, 13, 75, 541, 4683, 47293, 545835, 7087261]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-03)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Number of preferential arrangements of n labeled elements."
+
+    def _eval(self, n):
+        # a(n) = Sum from k=1 to n of k! StirlingS2(n, k)
+        if n == 0:
+            return Integer(1)
+        return sum([arith.factorial(k)*combinat.stirling_number2(n,k) for k in range(1,n+1)])
+
+
+
+class A006318(SloaneSequence):
+    r"""
+    Large Schroeder numbers.
+
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A006318;a
+        Large Schroeder numbers.
+        sage: a(0)
+        1
+        sage: a(1)
+        2
+        sage: a(2)
+        6
+        sage: a(9)
+        206098
+        sage: a.list(10)
+        [1, 2, 6, 22, 90, 394, 1806, 8558, 41586, 206098]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-03)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Large Schroeder numbers."
+
+    def _eval(self, n):
+        if n == 0:
+            return Integer(1)
+#  (PARI) a(n)=if(n<1, 1, sum(k=0, n, 2^k*binomial(n, k)*binomial(n, k-1))/n)
+        return sum([2**k * arith.binomial(n, k) * arith.binomial(n, k-1) for k in range(n+1)]) // n
+
 
 class A000165(SloaneSequence):
     r"""
@@ -2445,7 +3612,7 @@ class A000261(SloaneSequence):
     p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -2520,7 +3687,7 @@ class A001909(SloaneSequence):
     p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer >= 2
 
     OUTPUT:
         integer -- function value
@@ -2595,7 +3762,7 @@ class A001910(SloaneSequence):
     p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer >= 3
 
     OUTPUT:
         integer -- function value
@@ -2673,7 +3840,7 @@ class A090010(SloaneSequence):
     p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -2831,7 +3998,7 @@ class A090012(SloaneSequence):
     p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -2919,7 +4086,7 @@ class A090013(SloaneSequence):
     Lin. Algebra and its Applic. 373 (2003), p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -2974,7 +4141,7 @@ class A090014(SloaneSequence):
     Lin. Algebra and its Applic. 373 (2003), p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -3030,7 +4197,7 @@ class A090015(SloaneSequence):
     Lin. Algebra and its Applic. 373 (2003), p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -3086,7 +4253,7 @@ class A090016(SloaneSequence):
     Lin. Algebra and its Applic. 373 (2003), p. 197-210.
 
     INPUT:
-        n -- non negative integer
+        n -- positive integer
 
     OUTPUT:
         integer -- function value
@@ -3293,6 +4460,12 @@ class A000204(SloaneSequence):
     r"""
      Lucas numbers (beginning with 1): $L(n) = L(n-1) + L(n-2)$ with $L(1) = 1$, $L(2) = 3$.
 
+    INPUT:
+        n -- positive integer
+
+    OUTPUT:
+        integer -- function value
+
     EXAMPLES:
         sage: a = sloane.A000204; a
         Lucas numbers (beginning at 1): L(n) = L(n-1) + L(n-2), L(2) = 3.
@@ -3365,6 +4538,47 @@ class A000217(SloaneSequence):
 
     def _eval(self, n):
         return Integer(n*(n+1)//2)
+
+class A000124(SloaneSequence):
+    r"""
+    Central polygonal numbers (the Lazy Caterer's sequence): $n(n+1)/2 + 1$.
+
+    Or, maximal number of pieces formed when slicing a pancake with $n$ cuts.
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A000124;a
+        Central polygonal numbers (the Lazy Caterer's sequence): n(n+1)/2 + 1.
+        sage: a(0)
+        1
+        sage: a(1)
+        2
+        sage: a(2)
+        4
+        sage: a(9)
+        46
+        sage: a.list(10)
+        [1, 2, 4, 7, 11, 16, 22, 29, 37, 46]
+
+    AUTHOR:
+        -- Jaap Spies (2007-01-25)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+
+    def _repr_(self):
+        return "Central polygonal numbers (the Lazy Caterer's sequence): n(n+1)/2 + 1."
+
+    def _eval(self, n):
+        return Integer(n*(n+1)//2 + 1)
+
+
+
 
 class A002275(SloaneSequence):
     r"""
@@ -4091,6 +5305,70 @@ class A001906(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
+
+class A001333(SloaneSequence):
+    r"""
+    Numerators of continued fraction convergents to $\sqrt 2$.
+
+    See also A000129
+
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
+    EXAMPLES:
+        sage: a = sloane.A001333;a
+        Numerators of continued fraction convergents to sqrt(2).
+        sage: a(0)
+        1
+        sage: a(1)
+        1
+        sage: a(2)
+        3
+        sage: a(3)
+        7
+        sage: a(11)
+        8119
+        sage: a.list(12)
+        [1, 1, 3, 7, 17, 41, 99, 239, 577, 1393, 3363, 8119]
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-01)
+    """
+    def __init__(self):
+        SloaneSequence.__init__(self, offset=0)
+        self._b = []
+        self._precompute(2)  # force precomputation
+
+    def _repr_(self):
+        return "Numerators of continued fraction convergents to sqrt(2)."
+
+
+    def _precompute(self, how_many=150):
+        try:
+            f = self._f
+        except AttributeError:
+            self._f = recur_gen2(1,1,2,1)
+            f = self._f
+        self._b += [f.next() for i in range(how_many)]
+
+    def _eval(self, n):
+        if len(self._b) <= n:
+            self._precompute(n - len(self._b) + 1)
+        # Alternatively:
+        # precompute:
+        # self._b = arith.continued_fraction(RealField(400)(sqrt(2)), partial_convergents=True)
+        # return self._b[1][n][0]
+        return self._b[n]
+
+    def list(self, n):
+        self._eval(n)   # force computation
+        return self._b[:n]
+
+
+
 class A001045(SloaneSequence):
     r"""
     Jacobsthal sequence: $a(n) = a(n-1) + 2a(n-2)$, $a(0) = 0$ and $a(1) = 1$.
@@ -4149,6 +5427,10 @@ class A000129(SloaneSequence):
     r"""
     Pell numbers: $a(0) = 0$, $a(1) = 1$; for $n > 1$, $a(n) = 2a(n-1) + a(n-2)$.
 
+    Denominators of continued fraction convergents to $\sqrt 2$.
+
+    See also A001333
+
     INPUT:
         n -- non negative integer
 
@@ -4189,6 +5471,10 @@ class A000129(SloaneSequence):
     def _eval(self, n):
         if len(self._b) <= n:
             self._precompute(n - len(self._b) + 1)
+        # Alternatively:
+        # precompute:
+        # self._b = arith.continued_fraction(RealField(400)(sqrt(2)), partial_convergents=True)
+        # return self._b[1][n][1]
         return self._b[n]
 
     def list(self, n):
@@ -4857,6 +6143,12 @@ class A061084(SloaneSequence):
     r"""
     Fibonacci-type sequence based on subtraction: $a(0) = 1$, $a(1) = 2$ and $a(n) = a(n-2)-a(n-1)$.
 
+    INPUT:
+        n -- non negative integer
+
+    OUTPUT:
+        integer -- function value
+
     EXAMPLES:
         sage: a = sloane.A061084; a
         Fibonacci-type sequence based on subtraction: a(0) = 1, a(1) = 2 and a(n) = a(n-2)-a(n-1).
@@ -4896,7 +6188,7 @@ class A061084(SloaneSequence):
 # a group of sequences uses this function:
 def recur_gen3(a0,a1,a2,a3,a4,a5):
     """
-        homogenous general second-order linear recurrence generator with fixed coefficients
+        homogenous general third-order linear recurrence generator with fixed coefficients
 
         a(0) = a0, a(1) = a1, a(2) = a2, a(n) = a3*a(n-1) + a4*a(n-2) + a5*a(n-3)
     """
@@ -4961,7 +6253,6 @@ class A000213(SloaneSequence):
         self._eval(n)   # force computation
         return self._b[:n]
 
-# Tribonacci numbers: a(n) = a(n-1) + a(n-2) + a(n-3). Starting with 0, 0, 1.
 class A000073(SloaneSequence):
     r"""
     Tribonacci numbers: a(n) = a(n-1) + a(n-2) + a(n-3). Starting with 0, 0, 1, ...
@@ -5039,7 +6330,7 @@ def perm_mh(m, h):
     AUTHOR: Jaap Spies (2006)
     """
     n = m + h
-    M = MatrixSpace(QQ, m, n) # shouldn't this be 'ZZ' because A is (0,1) matrix?
+    M = MatrixSpace(ZZ, m, n)
     A = M(0)
     for i in range(m):
         for j in range(n):
@@ -5096,7 +6387,6 @@ class A079922(SloaneSequence):
     def _repr_(self):
         return "Solutions to the Dancing School problem with n girls and n+3 boys"
 
-    offset = 1
 
     def _eval(self, n):
         return perm_mh(n, 3)
@@ -5148,8 +6438,6 @@ class A079923(SloaneSequence):
 
     def _repr_(self):
         return "Solutions to the Dancing School problem with n girls and n+4 boys"
-
-    offset = 1
 
     def _eval(self, n):
         return perm_mh(n, 4)
@@ -5596,9 +6884,11 @@ class Sloane(SageObject):
     pass
 sloane = Sloane()
 
+sloane.A000001 = A000001()
 sloane.A000004 = A000004()
 sloane.A000005 = A000005()
 sloane.A000007 = A000007()
+sloane.A000009 = A000009()
 sloane.A000010 = A000010()
 sloane.A000012 = A000012()
 sloane.A000015 = A000015()
@@ -5606,16 +6896,20 @@ sloane.A000016 = A000016()
 sloane.A000027 = A000027()
 sloane.A000030 = A000030()
 sloane.A000032 = A000032()
+sloane.A000035 = A000035()
 sloane.A000040 = A000040()
 sloane.A000043 = A000043()
 sloane.A000041 = A000041()
 sloane.A000045 = A000045()
+sloane.A000069 = A000069()
 sloane.A000073 = A000073()
 sloane.A000079 = A000079()
+sloane.A000085 = A000085()
 sloane.A000100 = A000100()
 sloane.A000108 = A000108()
 sloane.A000110 = A000110()
 sloane.A000120 = A000120()
+sloane.A000124 = A000124()
 sloane.A000129 = A000129()
 sloane.A000142 = A000142()
 sloane.A000153 = A000153()
@@ -5638,20 +6932,27 @@ sloane.A000312 = A000312()
 sloane.A000326 = A000326()
 sloane.A000330 = A000330()
 sloane.A000396 = A000396()
-sloane.A000587 = A000587()
 sloane.A000578 = A000578()
+sloane.A000583 = A000583()
+sloane.A000587 = A000587()
 sloane.A000668 = A000668()
+sloane.A000670 = A000670()
 sloane.A000720 = A000720()
+sloane.A000796 = A000796()
 sloane.A000961 = A000961()
 sloane.A000984 = A000984()
+sloane.A001006 = A001006()
+sloane.A001055 = A001055()
 sloane.A001045 = A001045()
 sloane.A001109 = A001109()
 sloane.A001110 = A001110()
 sloane.A001147 = A001147()
 sloane.A001157 = A001157()
+sloane.A001189 = A001189()
 sloane.A001221 = A001221()
 sloane.A001222 = A001222()
 sloane.A001227 = A001227()
+sloane.A001333 = A001333()
 sloane.A001358 = A001358()
 sloane.A001405 = A001405()
 sloane.A001477 = A001477()
@@ -5660,27 +6961,41 @@ sloane.A001836 = A001836()
 sloane.A001906 = A001906()
 sloane.A001909 = A001909()
 sloane.A001910 = A001910()
+sloane.A001969 = A001969()
 sloane.A002110 = A002110()
+sloane.A002113 = A002113()
 sloane.A002378 = A002378()
 sloane.A002275 = A002275()
 sloane.A002620 = A002620()
 sloane.A002808 = A002808()
+sloane.A003418 = A003418()
+sloane.A004086 = A004086()
 sloane.A004526 = A004526()
 sloane.A005100 = A005100()
 sloane.A005101 = A005101()
 sloane.A005117 = A005117()
 sloane.A005408 = A005408()
+sloane.A005843 = A005843()
+sloane.A006318 = A006318()
 sloane.A006882 = A006882()
 sloane.A006530 = A006530()
+sloane.A007318 = A007318()
+sloane.A008275 = A008275()
+sloane.A008277 = A008277()
 sloane.A008683 = A008683()
+sloane.A010060 = A010060()
 sloane.A015521 = A015521()
 sloane.A015523 = A015523()
 sloane.A015530 = A015530()
 sloane.A015531 = A015531()
+sloane.A018252 = A018252()
+sloane.A020639 = A020639()
 sloane.A046660 = A046660()
+sloane.A049310 = A049310()
 sloane.A051959 = A051959()
 sloane.A055790 = A055790()
 sloane.A061084 = A061084()
+sloane.A064553 = A064553()
 sloane.A079922 = A079922()
 sloane.A079923 = A079923()
 sloane.A082411 = A082411()

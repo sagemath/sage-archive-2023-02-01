@@ -39,7 +39,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement, RingElement
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
@@ -411,7 +411,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # LEVEL 2 functionality
     # x * cdef _add_c_impl
     # x * cdef _sub_c_impl
-    #   * cdef _mul_c_impl
+    # x * cdef _mul_c_impl
     #   * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
@@ -509,6 +509,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         mpz_clear(s)
         mpz_clear(z)
+        return M
+
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        """
+        EXAMPLES:
+            sage: a = matrix(QQ,2,range(6))
+            sage: (3/4) * a
+            [   0  3/4  3/2]
+            [ 9/4    3 15/4]
+        """
+        cdef Py_ssize_t i
+        cdef Integer _x
+        _x = Integer(right)
+        cdef Matrix_integer_dense M
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
+        for i from 0 <= i < self._nrows * self._ncols:
+            mpz_init(M._entries[i])
+            mpz_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
@@ -1258,6 +1276,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     s += ' %s'%self.get_unsafe(i,j)
         return s
 
+    def rational_reconstruction(self, N):
+        """
+        Use rational reconstruction to lift self to a matrix over the
+        rational numbers (if possible), where we view self as a matrix
+        modulo N.
+        """
+        import misc
+        return misc.matrix_integer_dense_rational_reconstruction(self, N)
 
 ###########################################
 # Helper code for Echelon form algorithm.

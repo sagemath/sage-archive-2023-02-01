@@ -19,7 +19,7 @@ Relation matrices for ambient modular symbols spaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__doc_exclude = ['RationalField', 'search', 'Rational']
+SPARSE = True
 
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
@@ -175,6 +175,8 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight):
     MAT = matrix_space.MatrixSpace(field, row,
                                 len(syms), sparse=True)
     R = MAT(entries)
+    if not SPARSE:
+        R = R.dense_matrix()
     misc.verbose("finished (number of rows=%s)"%row, tm)
     return R
 
@@ -525,7 +527,9 @@ def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
 
     M = matrix_space.MatrixSpace(RationalField(), row,
                     len(list), sparse=True)
-    #return M(entries, coerce_entries=False, copy=False)
+    if not SPARSE:
+        M = M.dense_matrix()
+
     return M(entries)
 
 def sparse_relation_matrix_wtk_g0n(M, field, sign=0):

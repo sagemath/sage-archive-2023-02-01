@@ -70,6 +70,7 @@ include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
+MAX_MODULUS = 46340
 
 import matrix_window_modn_dense
 
@@ -86,6 +87,7 @@ cdef extern from "matrix_modn_dense_linbox.h":
 from sage.structure.element import ModuleElement
 
 from sage.misc.misc import verbose, get_verbose
+
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -624,4 +626,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
+
+    def lift(self):
+        import misc
+        return misc.matrix_modn_dense_lift(self)
 

@@ -282,7 +282,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: Mat(QQ,3,5).change_ring(GF(7))
             Full MatrixSpace of 3 by 5 dense matrices over Finite Field of size 7
         """
-        return MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
+        try:
+            return self.__change_ring[R]
+        except AttributeError:
+            self.__change_ring = {}
+        except KeyError:
+            pass
+        M = MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
+        self.__change_ring[R] = M
+        return M
 
     def base_extend(self, R):
         """
@@ -410,13 +418,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             elif R==sage.rings.complex_double.CDF:
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+            elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_dense.Matrix_modn_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
             # the default
             return matrix_generic_sparse.Matrix_generic_sparse

@@ -1793,14 +1793,14 @@ cdef class Matrix(matrix1.Matrix):
             command.  Use A.echelonize() to change A in place.
 
         EXAMPLES:
-           sage: MS = MatrixSpace(QQ,2,3)
+           sage: MS = MatrixSpace(GF(19),2,3)
            sage: C = MS.matrix([1,2,3,4,5,6])
            sage: C.rank()
            2
            sage: C.nullity()
            1
            sage: C.echelon_form()
-           [ 1  0 -1]
+           [ 1  0 18]
            [ 0  1  2]
         """
         x = self.fetch('echelon_form')
@@ -1842,6 +1842,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
         """
+        tm = verbose('generic in-place Gauss elimination on %s x %s matrix'%(self._nrows, self._ncols))
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
             return
@@ -1885,6 +1886,7 @@ cdef class Matrix(matrix1.Matrix):
                     break
         self.cache('pivots', pivots)
         self.cache('in_echelon_form', True)
+        verbose('done with gauss', tm)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -1948,6 +1950,8 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0  0]
             [ 0  0  0  0]
         """
+        tm = verbose('strassen echelon of %s x %s matrix'%(self._nrows, self._ncols))
+
         self.check_mutability()
 
         if not self._base_ring.is_field():
@@ -1965,7 +1969,7 @@ cdef class Matrix(matrix1.Matrix):
 
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
-
+        verbose('done with strassen', tm)
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):

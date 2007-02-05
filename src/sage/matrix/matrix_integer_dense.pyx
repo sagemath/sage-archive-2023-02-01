@@ -593,8 +593,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLES:
             sage: A = matrix(ZZ,6, range(36))
-            sage: A.charpoly()
-            x^3 - 105*x^2 - 630*x
+            sage: f = A.charpoly(); f
+            x^6 - 105*x^5 - 630*x^4
+            sage: f(A) == 0
+            True
             sage: n=20; A = Mat(ZZ,n)(range(n^2))
             sage: A.charpoly()
             x^20 - 3990*x^19 - 266000*x^18

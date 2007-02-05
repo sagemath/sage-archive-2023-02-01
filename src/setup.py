@@ -152,10 +152,6 @@ matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
 matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
                        ['sage/matrix/matrix_pid_sparse.pyx'])
 
-matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
-                                 ['sage/matrix/matrix_integer_dense.pyx',
-                                  'sage/matrix/matrix_integer_dense_linbox.cpp'],
-                                 libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++', 'givaro', CBLAS])
 
 matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -166,7 +162,9 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  libraries = ['gmp'])
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx'])
+                              ['sage/matrix/matrix_modn_dense.pyx',
+                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
+                              libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++', 'givaro', CBLAS])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -179,9 +177,13 @@ matrix_field_sparse = Extension('sage.matrix.matrix_field_sparse',
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx',
-                                   'sage/matrix/matrix_integer_dense_linbox.cpp'],
-                                   #'sage/matrix/matrix_rational_dense_linbox.cpp'],
+                                   'sage/matrix/matrix_rational_dense_linbox.cpp'],
                                   libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++', 'givaro', CBLAS])
+
+matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
+                                 ['sage/matrix/matrix_integer_dense.pyx',
+                                  'sage/matrix/matrix_integer_dense_linbox.cpp'],
+                                 libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++', 'givaro', CBLAS])
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
@@ -290,6 +292,7 @@ ext_modules = [ \
 ##     matrix_field_sparse,
 
      matrix_integer_dense,
+     matrix_rational_dense,
      matrix_integer_2x2,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,
@@ -297,9 +300,8 @@ ext_modules = [ \
      solve,
      matrix_modn_dense,
      matrix_modn_sparse,
-    givaro_gfq, \
+     givaro_gfq, \
 
-     matrix_rational_dense,
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,

@@ -70,6 +70,7 @@ include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
+
 import matrix_window_modn_dense
 
 cimport matrix_dense
@@ -77,8 +78,10 @@ cimport matrix
 cimport matrix0
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
-cdef extern from "stdint.h":
-    ctypedef int int_fast32_t
+
+cdef extern from "matrix_modn_dense_linbox.h":
+    int linbox_matrix_modn_dense_echelonize(unsigned long modulus,
+                                            unsigned long** matrix, size_t nrows, size_t ncols)
 
 from sage.structure.element import ModuleElement
 
@@ -246,13 +249,81 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x      - echelon form in place
     #        - Hessenberg forms of matrices
     ########################################################################
+    def echelonize(self, algorithm="linbox", **kwds):
+        """
+        INPUT:
+            self -- a mutable matrix
+            algorithm -- 'linbox' -- uses the C++ linbox library
+                         'gauss'  -- uses a custom slower O(n^3) Gauss
+                                     elimination implemented in SAGE.
+            **kwds -- these are all ignored
 
-    # TODO TODO: fix all type conversion and Py_ssize_t's below
+        OUTPUT:
+            -- self is put in reduced row echelon form.
+            -- the rank of self is computed and cached
+            -- the pivot columns of self are computed and cached.
+            -- the fact that self is now in echelon form is recorded
+               and cached so future calls to echelonize return
+               immediately.
 
-    def _echelon_in_place_classical(self):
+        EXAMPLES:
+            sage: a = matrix(GF(97),3,4,range(12))
+            sage: a.echelonize(); a
+            [ 1  0 96 95]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            sage: a.pivots()
+            [0, 1]
+
+        """
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
+        if not self.base_ring().is_field():
+            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
+        self.check_mutability()
+        if algorithm == 'linbox':
+            self._echelonize_linbox()
+        elif algorithm == 'gauss':
+            self._echelon_in_place_classical()
+        else:
+            raise ValueError, "algorithm '%s' not known"%algorithm
+
+    def _echelonize_linbox(self):
+        self.check_mutability()
+
+        t = verbose('calling linbox echelonize mod %s'%self.p)
+        _sig_on
+        r = linbox_matrix_modn_dense_echelonize(self.p,
+                                                self.matrix,
+                                                self._nrows, self._ncols)
+        _sig_off
+        verbose('done with echelonize',t)
+
+        self.cache('in_echelon_form',True)
+        self.cache('rank', r)
+        self.cache('pivots', self._pivots())
+
+    def _pivots(self):
+        if not self.fetch('in_echelon_form'):
+            raise RuntimeError, "self must be in reduced row echelon form first."
+        pivots = []
+        cdef Py_ssize_t i, j, nc
+        nc = self._ncols
+        cdef mod_int* row
+        i = 0
+        while i < self._nrows:
+            row = self.matrix[i]
+            for j from i <= j < nc:
+                if row[j] != 0:
+                    pivots.append(j)
+                    i += 1
+                    break
+            if j == nc:
+                break
+        return pivots
+
+    def _echelon_in_place_classical(self):
         self.check_mutability()
 
         cdef Py_ssize_t start_row, c, r, nr, nc, i

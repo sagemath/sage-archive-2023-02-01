@@ -1363,7 +1363,8 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
                         W[j,f] = W[j,f] + s*m
             j += 1
         tm = misc.verbose("done making non-reduced matrix",tm)
-        misc.verbose("start matrix-matrix multiply to get Tp")
+        misc.verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
+                                                                                         R.nrows(), R.ncols()))
         Tp = W * R
         misc.verbose("done multiplying",tm)
         self._hecke_matrices[p] = Tp

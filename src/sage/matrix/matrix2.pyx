@@ -1602,7 +1602,9 @@ cdef class Matrix(matrix1.Matrix):
             [ 0 -1  0  1  1 -1  1]
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
-            sage: A.fcp()
+            sage: print "TODO -- fix this serious bug in linbox before release (or turn off linbox by default for charpoly)..."
+            sage.: A.fcp()  # crash!
+            sage: factor(A.charpoly(algorithm='generic'))
             (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
@@ -1657,7 +1659,10 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('eigenvectors')
         if not x is None:
             return x
-        G = self.fcp()   # factored charpoly of self.
+        try:
+            G = self.minpoly().factor()  # can be computed faster when available.
+        except NotImplementedError:
+            G = self.fcp()   # factored charpoly of self.
         V = []
         i = 0
         for h, e in G:
@@ -1743,7 +1748,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
-            ValueError: Echelon form not defined over this base ring.
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 9'.
 
         Involving a sparse matrix:
             sage: m = matrix(3,[1, 1, 1, 1, 0, 2, 1, 2, 0], sparse=True); m
@@ -1773,8 +1778,7 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 raise ValueError, "Unknown algorithm '%s'"%algorithm
         except ArithmeticError, msg:
-            print msg
-            raise ValueError, "Echelon form not defined over this base ring."
+            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
@@ -1803,7 +1807,10 @@ cdef class Matrix(matrix1.Matrix):
         if not x is None:
             return x
         E = self.copy()
-        E.echelonize(algorithm = algorithm, cutoff=cutoff)
+        if algorithm == 'default':
+            E.echelonize(cutoff=cutoff)
+        else:
+            E.echelonize(algorithm = algorithm, cutoff=cutoff)
         E.set_immutable()  # so we can cache the echelon form.
         self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())

@@ -9,6 +9,9 @@ Dense matrices over the rational field.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+cdef extern from "matrix_rational_dense_linbox.h":
+    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
+
 
 
 include "../ext/interrupt.pxi"
@@ -23,9 +26,6 @@ import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
-
-cdef extern from "matrix_rational_dense_linbox.h":
-    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -486,7 +486,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             x^3 - 7/12*x^2 - 149/40*x + 97/30
             sage: a = Mat(ZZ,4)(range(16))
             sage: f = a.minpoly(); f.factor()
-            using default method...
             x * (x^2 - 30*x - 80)
             sage: f(a) == 0
             True
@@ -512,19 +511,23 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         and return the result.
 
         INPUT:
-
+            self -- matrix over QQ
+            right -- matrix over QQ
+            algorithm -- 'default': use whatever is the defalt for A*B when A, B are over ZZ.
+                         'multimodular': use a multimodular algorithm
 
         EXAMPLES:
+            sage: a = MatrixSpace(QQ,10,5)(range(50))
+            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
+            sage: a._multiply_over_integers(b) == a._multiply_over_integers(b, algorithm='multimodular')
+            True
+
             sage: a = MatrixSpace(QQ,3)(range(9))
             sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-            sage: a._multiply_multi_modular(b)
+            sage: a._multiply_over_integers(b, algorithm = 'multimodular')
             [ 15/28   9/20   7/18]
             [  33/7 117/40   20/9]
             [249/28   27/5  73/18]
-            sage: a = MatrixSpace(QQ,10,5)(range(50))
-            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
-            sage: a._multiply_multi_modular(b) == a._multiply_classical(b)
-            True
 
         """
         cdef Matrix_integer_dense A, B, AB

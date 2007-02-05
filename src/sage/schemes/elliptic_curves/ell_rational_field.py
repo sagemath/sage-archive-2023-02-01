@@ -52,6 +52,8 @@ import sage.libs.mwrank.all as mwrank
 import constructor
 from sage.interfaces.all import gp
 
+import ell_modular_symbols
+
 import mod5family
 
 from sage.rings.all import (
@@ -522,6 +524,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return the cuspidal modular form associated to this elliptic curve.
 
         EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: f = E.modular_form()
+            sage: f
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -533,6 +539,59 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
             self.__modular_form = f
             return f
+
+    def modular_symbol_space(self, sign=1, base_ring=Q):
+        r"""
+        Return the space of cuspidal modular symbols associated to
+        this elliptic curve, with given sign and base ring.
+
+        INPUT:
+            sign -- 0, -1, or 1
+            base_ring -- a ring
+
+        EXAMPLES:
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol_space[typ]
+        except AttributeError:
+            self.__modular_symbol_space = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring)
+        self.__modular_symbol_space[typ] = M
+        return M
+
+    def modular_symbol(self, sign=1, base_ring=Q):
+        r"""
+        Return the modular symbol associated to this elliptic curve,
+        with given sign and base ring.  This is the map that sends r/s
+        to a fixed multiple of 2*pi*I*f(z)dz from oo to r/s,
+        normalized so that all values of this map take values in QQ.
+
+        NOTE: Currently there is no guarantee about how this map is
+        normalized.  This will be added.
+
+        INPUT:
+            sign -- -1, or 1
+            base_ring -- a ring
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol[typ]
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.ModularSymbol(self, sign, base_ring)
+        self.__modular_symbol[typ] = M
+        return M
 
     def newform(self):
         """
@@ -1190,7 +1249,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         The n-th Fourier coefficient of the modular form corresponding
         to this elliptic curve, where n is a positive integer.
         """
-        return int(self.pari_mincurve().ellak(n))
+        return Integer(self.pari_mincurve().ellak(n))
 
     def ap(self, p):
         """
@@ -1199,7 +1258,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        return int(self.pari_mincurve().ellap(p))
+        return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
         return EllipticCurve_field.quadratic_twist(self, D).minimal_model()

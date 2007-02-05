@@ -458,6 +458,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [0 0 0]
             [0 0 0]
         """
+        key = 'charpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
         if algorithm == 'linbox':
             A, denom = self._clear_denom()
             f = A.charpoly(var, algorithm='linbox')
@@ -467,7 +471,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             g = matrix_dense.Matrix_dense.charpoly(self, var)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+
+        self.cache(key, g)
         return g
 
     def minpoly(self, var='x', algorithm='linbox'):
@@ -492,6 +497,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: f(a) == 0
             True
         """
+        key = 'minpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
         if algorithm == 'linbox':
             A, denom = self._clear_denom()
             f = A.minpoly(var, algorithm='linbox')
@@ -501,7 +510,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             g = matrix_dense.Matrix_dense.minpoly(self, var)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('minpoly_%s_%s'%(algorithm, var), g)
+
+        self.cache(key, g)
         return g
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):

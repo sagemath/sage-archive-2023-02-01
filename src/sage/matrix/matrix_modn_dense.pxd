@@ -1,4 +1,5 @@
 cimport matrix_dense
+from sage.structure.element cimport Matrix
 
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
@@ -20,7 +21,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from,
                                    mod_int multiple, Py_ssize_t start_row)
 
-
+    cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)
 
 
 #cdef class MatrixWindow:

@@ -4,7 +4,7 @@
 #define EXTERN
 #endif
 
-#include <stdlib.h>
+#include <stddef.h>
 
 typedef unsigned long mod_int;
 

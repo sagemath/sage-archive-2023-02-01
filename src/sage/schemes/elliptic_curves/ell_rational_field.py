@@ -53,6 +53,7 @@ import constructor
 from sage.interfaces.all import gp
 
 import ell_modular_symbols
+import padic_lseries
 
 import mod5family
 
@@ -592,6 +593,35 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         M = ell_modular_symbols.ModularSymbol(self, sign, base_ring)
         self.__modular_symbol[typ] = M
         return M
+
+    def padic_lseries(self, p, prec=20):
+        """
+        Return the p-adic Lseries of self at p with given p-adic precision.
+
+        INPUT:
+            p -- prime
+            prec -- precision of p-adic computations
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: L = E.padic_lseries(5); L
+            5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: type(L)
+            <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
+        """
+        key = (p,prec)
+        try:
+            return self._padic_lseries[key]
+        except AttributeError:
+            self._padic_lseries = {}
+        except KeyError:
+            pass
+        if self.ap(p) % p != 0:
+            Lp = padic_lseries.pAdicLseriesOrdinary(self, p, prec)
+        else:
+            Lp = padic_lseries.pAdicLseriesSupersingular(self, p, prec)
+        self._padic_lseries[key] = Lp
+        return Lp
 
     def newform(self):
         """

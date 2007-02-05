@@ -128,7 +128,8 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
 
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
 
-matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'])
+matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
+                        libraries=['gmp'])
 
 matrix_dense = Extension('sage.matrix.matrix_dense',
                          ['sage/matrix/matrix_dense.pyx'])

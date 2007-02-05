@@ -661,8 +661,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             _sig_off
         else:
             _sig_on
-            linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix, 0)
-            #linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
+            linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
             _sig_off
 
         v = []

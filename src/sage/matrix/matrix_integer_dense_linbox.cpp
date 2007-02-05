@@ -1,20 +1,15 @@
 #include "gmp.h"
 
-#include<iostream>
-
 #include "matrix_integer_dense_linbox.h"
 
+#include<iostream>
+
 #include <linbox/integer.h>
-#include "linbox/matrix/blas-matrix.h"
 #include <linbox/matrix/matrix-domain.h>
-
-#include "linbox/field/modular-double.h"
 #include "linbox/field/gmp-integers.h"
-
-#include "linbox/blackbox/dense.h"
-#include "linbox/solutions/charpoly.h"
-#include "linbox/solutions/minpoly.h"
 #include "linbox/solutions/rank.h"
+#include "linbox/solutions/minpoly.h"
+#include "linbox/solutions/charpoly.h"
 
 using namespace LinBox;
 using namespace std;
@@ -32,6 +27,7 @@ void printPolynomial (const Field &F, const Polynomial &v)
 
 GMP_Integers ZZ;
 SpyInteger spy;
+typedef GivPolynomialRing<GMP_Integers,Dense> IntPolRing;
 
 DenseMatrix<GMP_Integers> new_matrix(mpz_t** matrix, size_t nrows, size_t ncols) {
     DenseMatrix<GMP_Integers> A (ZZ, nrows, ncols);
@@ -78,7 +74,8 @@ void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** 
 	}
     }
 
-    vector<GMP_Integers::Element> m_A;
+//    vector<GMP_Integers::Element> m_A;
+    IntPolRing::Element m_A;
 
     if (do_minpoly)
 	minpoly(m_A, A);
@@ -119,10 +116,12 @@ void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** 
 
 }
 
-/* broken when n % 4 == 0 */
 void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix) {
+    /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
+    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0);
+/*
     DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
-    vector<GMP_Integers::Element> m_A;
+    IntPolRing::Element m_A;
     charpoly(m_A, A);
 
     (*mp) = new mpz_t[m_A.size()];
@@ -131,7 +130,7 @@ void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t**
 	mpz_init((*mp)[i]);
 	mpz_set((*mp)[i], spy.get_mpz(m_A[i]));
     }
-
+*/
 }
 
 void linbox_integer_dense_delete_array(mpz_t* f) {

@@ -1602,9 +1602,9 @@ cdef class Matrix(matrix1.Matrix):
             [ 0 -1  0  1  1 -1  1]
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
-            sage: print "TODO -- fix this serious bug in linbox before release (or turn off linbox by default for charpoly)..."
-            sage.: A.fcp()  # crash!
-            sage: factor(A.charpoly(algorithm='generic'))
+            sage: f = A.charpoly(); f
+            x^7 + x^6 - 12*x^5 - 16*x^4 + 36*x^3 + 52*x^2 - 32*x - 48
+            sage: factor(f)
             (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [

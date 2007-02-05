@@ -1343,7 +1343,8 @@ cdef class Matrix(matrix1.Matrix):
 
         # 1. Restrict
         B = self.restrict(M)
-        time0 = verbose("restrict -- ", time)
+
+        time0 = verbose("decompose restriction -- ", time)
 
         # 2. Decompose restriction
         D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)

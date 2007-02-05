@@ -668,14 +668,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             var -- 'x'
             typ -- 'minpoly' or 'charpoly'
         """
+        time = verbose('computing %s of %s x %s matrix using linbox'%(typ, self._nrows, self._ncols))
         if self._nrows != self._ncols:
             raise ValueError, "matrix must be square"
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
         cdef mpz_t* poly
-        cdef size_t n
         cdef size_t degree
-        if UNAME == "Darwin":
+        if self._nrows % 4 == 0 and UNAME == "Darwin":
+            verbose("using hack to get around bug in linbox on OS X since n is divisible by 4")
             if typ == 'minpoly':
                 _sig_on
                 linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
@@ -696,6 +697,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         v = []
         cdef Integer k
+        cdef size_t n
         for n from 0 <= n <= degree:
             k = PY_NEW(Integer)
             mpz_set(k.value, poly[n])
@@ -703,6 +705,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             v.append(k)
         linbox_integer_dense_delete_array(poly)
         R = self._base_ring[var]
+        verbose('finished computing %s'%typ, time)
         return R(v)
 
 

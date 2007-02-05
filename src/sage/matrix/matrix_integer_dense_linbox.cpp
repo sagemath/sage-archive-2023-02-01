@@ -79,11 +79,18 @@ void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** 
     }
 
     vector<GMP_Integers::Element> m_A;
+    // typedef GivPolynomialRing<GMP_Integers,Dense> IntPolRing;
+    // IntPolRing::Element c_A;
 
+    cout << "1\n";
+    minpoly(m_A, A);
+/*
     if (do_minpoly)
 	minpoly(m_A, A);
     else
-	charpoly(m_A, A);
+	charpoly(c_A, A);
+*/
+    cout << "2\n";
 
     if (n%4 == 0 || !do_minpoly) {
         /* Program around the bug.
@@ -120,6 +127,7 @@ void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** 
 }
 
 /* broken when n % 4 == 0 */
+/*
 void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix) {
     DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
     vector<GMP_Integers::Element> m_A;
@@ -133,6 +141,7 @@ void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t**
     }
 
 }
+*/
 
 void linbox_integer_dense_delete_array(mpz_t* f) {
     delete[] f;

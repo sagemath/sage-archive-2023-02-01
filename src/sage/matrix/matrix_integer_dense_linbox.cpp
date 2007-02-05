@@ -10,9 +10,12 @@
 #include "linbox/solutions/rank.h"
 #include "linbox/solutions/minpoly.h"
 #include "linbox/solutions/charpoly.h"
+#include "linbox/ring/givaro-polynomial.h"
+#include "linbox/element/givaro-polynomial.h"
 
 using namespace LinBox;
 using namespace std;
+
 
 template <class Field, class Polynomial>
 void printPolynomial (const Field &F, const Polynomial &v)

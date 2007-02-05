@@ -13,7 +13,6 @@
 using namespace LinBox;
 using namespace std;
 
-#include "linbox/field/givaro-rational.h"
 #include "linbox/field/modular.h"
 
 /* NOTE: There are many echelon form functions, possible base rings, etc.  Strangely,

@@ -2,12 +2,15 @@
 
 #include "gmp.h"
 #include "matrix_rational_dense_linbox.h"
-#include <linbox/integer.h>
+#include "linbox/integer.h"
 #include "linbox/matrix/blas-matrix.h"
-#include <linbox/matrix/matrix-domain.h>
+#include "linbox/matrix/matrix-domain.h"
 #include "linbox/field/gmp-rational.h"
 #include "linbox/blackbox/dense.h"
 #include "linbox/algorithms/echelon-form.h"
+//#include "linbox/field/givaro-rational.h"
+#include "linbox/field/modular.h"
+
 
 using namespace LinBox;
 using namespace std;
@@ -38,9 +41,6 @@ void linbox_rational_dense_echelon_form_2(mpq_t** matrix, size_t nr, size_t nc)
     cout << "made matrix\n";
     EF.rowEchelon(E, A); */
 }
-
-#include "linbox/field/givaro-rational.h"
-#include "linbox/field/modular.h"
 
 typedef Modular<int> ModInt;
 ModInt F(32771);

@@ -2,7 +2,7 @@ from sage.rings.memory import pmem_malloc
 
 import sage.libs.ntl.all  as ntl
 
-#import sage.libs.cf.cf as cf
+import sage.libs.cf.cf as cf
 
 pmem_malloc()
 

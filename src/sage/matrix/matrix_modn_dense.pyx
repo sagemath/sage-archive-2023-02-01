@@ -77,8 +77,18 @@ cimport matrix
 cimport matrix0
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
+
+from sage.rings.arith import is_prime
+
 cdef extern from "stdint.h":
     ctypedef int int_fast32_t
+
+cdef extern from "matrix_modn_dense_linbox.h":
+    int linbox_modp_dense_rank(int p, int nrows, int ncols, mod_int **matrix)
+    mod_int linbox_modp_dense_det(int p, int nrows, mod_int **matrix)
+    void linbox_modp_dense_poly(int p, mod_int **mp, size_t* degree, size_t n, mod_int **matrix, int flag)
+    void linbox_delete_array (void *f)
+    void linbox_modp_dense_echelonize(int p, int nrows, int ncols, mod_int **matrix)
 
 from sage.structure.element import ModuleElement
 
@@ -554,3 +564,187 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
+    def rank(self, algorithm="linbox"):
+        """
+
+        INPUT:
+            algorithm -- 'linbox' (default if base ring is prime field)
+                         'generic' use pivots
+
+        Computes the rank of self. If the base ring of self is a prime
+        field this done using the LinBox library.
+
+        ALGORITHM: Uses LinBox or generic algorithm of superclass.
+
+        """
+        x = self.fetch('rank')
+        if not x is None: return x
+        if is_prime(self.p) and algorithm=="linbox":
+            r = self._rank_linbox()
+        else:
+            r =  len(self.pivots())
+        self.cache('rank', r)
+        return r
+
+    def _rank_linbox(self):
+        """
+        Calculates the rank by calling LinBox. No checks are performed
+        whether the base ring is a prime field.
+        """
+        cdef int r
+        r = 0
+        _sig_on
+        r = linbox_modp_dense_rank(self.p, self._nrows, self._ncols, self.matrix);
+        _sig_off
+        return r
+
+
+    def minpoly(self, var='x'):
+        """
+
+        Computes and returns the minimal polynomial fo self in the variable var.
+
+        INPUT:
+            var -- variable of minimial polynomial (default: 'x')
+
+        ALGORITHM: Uses LinBox
+
+        """
+        if self._nrows != self._ncols:
+            raise ValueError, "matrix must be square"
+        if self._nrows == 0:
+            return self.characteristic_polynomial(var)
+        if is_prime(self.p):
+            return self._minpoly_linbox(var)
+        else:
+            raise NotImplemented
+
+    def _minpoly_linbox(self, var='x'):
+        """
+        """
+        cdef mod_int* minpoly
+        cdef size_t n
+        cdef size_t degree
+        _sig_on
+        linbox_modp_dense_poly(self.p, &minpoly, &degree, self._nrows, self.matrix, 0)
+        _sig_off
+        v = []
+
+        for n from 0 <= n <= degree:
+            v.append(minpoly[n])
+        linbox_delete_array(minpoly)
+        R = self._base_ring[var]
+
+        return R(v)
+
+
+#### GET LINK ERROR WITH THIS
+##     def charpoly(self, var='x', algorithm="linbox"):
+##         """
+##         """
+##         D = self.fetch('charpoly')
+##         if not D is None:
+##             if D.has_key(var):
+##                 return D[var]
+##         else:
+##             D = {}
+##             self.cache('charpoly',D)
+
+##         if is_prime(self.p) and algorithm=="linbox":
+##             f = self._charpoly_linbox(var)
+##         else:
+##             f = self._charpoly_hessenberg(var)
+##         D[var] = f   # this caches it.
+##         return f
+
+##     def _charpoly_linbox(self, var='x'):
+##         """
+##         """
+##         cdef mod_int* charpoly
+##         cdef size_t n
+##         cdef size_t degree
+
+##         raise NotImplementedError
+
+##         _sig_on
+##         linbox_modp_dense_poly(self.p, &charpoly, &degree, self._nrows, self.matrix, 1)
+##         _sig_off
+##         v = []
+
+##         for n from 0 <= n <= degree:
+##             v.append(charpoly[n])
+##         linbox_delete_array(charpoly)
+##         R = self._base_ring[var]
+
+##         return R(v)
+
+
+    def determinant(self, algorithm="linbox"):
+        """
+        See self.det
+        """
+        return self.det(algorithm)
+
+    def det(self, algorithm="linbox"):
+        """
+
+        Computes the determinant of self.
+
+        INPUT:
+            algorithm -- 'linbox' (default if base ring is prime field)
+                         'generic' use pivots
+
+        EXAMPLE:
+            sage: A = Matrix(GF(127),2,2,[1,2,3,4])
+            sage: A.det()
+            125
+            sage: A = Mat(GF(127),1000,1000).random_element() # long time, random
+            sage: A.det() # long time, random
+            106
+
+        ALGORITHM: Uses LinBox or generic algorithm of superclass.
+
+        """
+        if self._nrows != self._ncols:
+            raise ValueError, "self must be square"
+
+        d = self.fetch('det')
+        if not d is None: return d
+
+        # if charpoly known, then det is easy.
+        D = self.fetch('charpoly')
+        if not D is None:
+            c = D[D.keys()[0]][0]
+            if self._nrows % 2 != 0:
+                c = -c
+            d = self._coerce_element(c)
+            self.cache('det', d)
+            return d
+
+        #now try something else
+
+        if is_prime(self.p) and algorithm=="linbox":
+            d = linbox_modp_dense_det(self.p, self._nrows, self.matrix)
+        else:
+            d = matrix_dense.Matrix_dense.determinant(self)
+
+        d = self._coerce_element(d)
+        self.cache('det', d)
+        return d
+
+    def _det_linbox(self):
+        """
+        Computes the determinant using LinBox. No checks are performed
+        if the characteristic of the base ring is prime.
+
+        """
+        cdef mod_int d
+        d = 0
+        _sig_on
+        d = linbox_modp_dense_det(self.p, self._nrows, self.matrix)
+        _sig_off
+        return d
+
+
+## def linbox_echelonize(Matrix_modn_dense self):
+##     linbox_modp_dense_echelonize(self.p, self._nrows, self._ncols, self.matrix)

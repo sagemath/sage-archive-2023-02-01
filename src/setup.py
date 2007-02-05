@@ -160,7 +160,7 @@ linbox = Extension('sage.matrix.linbox', ['sage/matrix/linbox.pyx', 'sage/matrix
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx',
                                   'sage/matrix/matrix_integer_dense_linbox.cpp'],
-                                 libraries = ['gmp', 'gmpxx', 'ntl', 'linbox', 'stdc++'])
+                                 libraries = ['gmp', 'gmpxx', 'ntl', 'givaro', 'linbox', 'stdc++', CBLAS])
 
 matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -171,7 +171,10 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  libraries = ['gmp'])
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx'])
+                              ['sage/matrix/matrix_modn_dense.pyx',
+                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
+                              libraries = ['gmp', 'gmpxx', 'ntl', 'givaro', 'linbox', 'stdc++', CBLAS])
+
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])

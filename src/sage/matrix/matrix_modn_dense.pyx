@@ -75,8 +75,11 @@ include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
+MAX_MODULUS = 46340
 
 import matrix_window_modn_dense
+
+from sage.rings.arith import is_prime
 
 cimport matrix_dense
 cimport matrix
@@ -252,7 +255,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return A
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
-        if self.base_ring().is_field():
+        if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
             return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
         else:
             if self._will_use_strassen(right):
@@ -320,8 +323,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         ALGORITHM: Uses LinBox if self.base_ring() is a field
 
+        NOTE: Right now, LinBox is disabled until some bugs there (in
+        our wrapper?) are fixed. If you are desparate, call
+        self._charpoly_linbox() directly.
+
         """
-        if algorithm == 'linbox' and not self.base_ring().is_field():
+        # disabling LinBox for now until a fix is available
+
+        if algorithm == 'linbox': # and not self.base_ring().is_field():
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 
         if algorithm == 'linbox':
@@ -342,18 +351,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             algorithm -- 'linbox' (default if self.base_ring() is a field)
                          'generic'
 
-        EXAMPLES:
-            sage: A = Mat(GF(7),3,3)(range(3)*3)
-            sage: A.minpoly()
-            x^2 + 4*x
-            sage: A.charpoly()/A.minpoly()
-            x
+        NOTE: Right now, LinBox is disabled until some bugs there (in
+        our wrapper?) are fixed. If you are desparate, call
+        self._charpoly_linbox() directly.
 
-            sage: A = Mat(Integers(6),3,3)(range(9))
-            sage: A.minpoly()
-            <type 'exceptions.NotImplementedError'>: minimal polynomials are not implemented for Z/nZ
+
         """
-        if algorithm=='linbox' and not self.base_ring().is_field():
+
+
+        #Disabling LinBox for now
+        if algorithm=='linbox':# and not self.base_ring().is_field():
             algorithm='generic' #LinBox only supports fields
 
         if algorithm == 'linbox':

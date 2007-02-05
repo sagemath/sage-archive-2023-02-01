@@ -26,7 +26,7 @@ typedef Modular<double> ModInt;
 typedef GivPolynomialRing<ModInt::Element,Dense> ModIntPolRing;
 
 
-static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int** matrix, size_t nrows, size_t ncols);
+static DenseMatrix<ModInt> linbox_new_modn_matrix(unsigned long moddulus, mod_int** matrix, size_t nrows, size_t ncols);
 static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, size_t nrows, size_t ncols);
 
 
@@ -81,7 +81,7 @@ void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degr
 // 	m = n;
 //     }
 
-    DenseMatrix<ModInt> A(linbox_new_modn_matrix(modulus, matrix, m, m);
+    DenseMatrix<ModInt> A(linbox_new_modn_matrix( modulus, matrix, m, m));
 
     GivPolynomial<ModInt::Element> m_A;
 
@@ -118,7 +118,7 @@ void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degr
     (*mp) = new mod_int[m_A.size()];
     *degree = m_A.size() - 1;
     for (size_t i=0; i <= *degree; i++) {
-	(*mp)[i] = m_A[i];
+	(*mp)[i] = (mod_int)m_A[i];
     }
 
 }
@@ -136,7 +136,7 @@ static DenseMatrix<ModInt> linbox_new_modn_matrix(unsigned long modulus, mod_int
     size_t i, j, k;
     for (i=0; i < nrows; i++) {
 	for (j=0; j < ncols; j++) {
-	    A.setEntry(i, j, matrix[i][j]);
+	    A.setEntry(i, j, (double)matrix[i][j]);
 	}
     }
     return A;
@@ -146,7 +146,7 @@ static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, siz
     size_t i, j, k;
     for (i=0; i < nrows; i++) {
 	for (j=0; j < ncols; j++) {
-	    matrix[i][j] = A.getEntry(i,j);
+	    matrix[i][j] = (mod_int)A.getEntry(i,j);
 	}
     }
 };

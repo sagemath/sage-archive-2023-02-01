@@ -660,11 +660,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if UNAME == "Darwin":
             if typ == 'minpoly':
                 _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,0)
+                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
                 _sig_off
             else:
                 _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
+                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,0)
                 _sig_off
         else:
             if typ == 'minpoly':

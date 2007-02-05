@@ -77,6 +77,8 @@ cimport matrix_dense
 cimport matrix
 cimport matrix0
 
+from sage.structure.element cimport Matrix
+
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 cdef extern from "matrix_modn_dense_linbox.h":
@@ -108,6 +110,11 @@ ai = arith_int()
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
+
+#
+# TODO: Charpoly and Minpoly oddities
+# TODO: echelonize doesn't work over GF(2)
+#
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -244,15 +251,27 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A.gather = self.gather
         return A
 
-    def _multiply_linbox(self, Matrix_modn_dense right):
+    cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if self.base_ring().is_field():
+            return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
+        else:
+            if self._will_use_strassen(right):
+                return self._multiply_strassen(right)
+            else:
+                return self._multiply_classical(right)
+
+    def _multiply_linbox(Matrix_modn_dense self, Matrix_modn_dense right):
         """
-        Multiply matrices using linbox.
+        Multiply matrices using LinBox.
+
+        INPUT:
+            right -- Matrix
 
         """
         cdef int e
         cdef Matrix_modn_dense ans, B
 
-        if not self.base_ring().is_field() and right.base_ring().is_field():
+        if not self.base_ring().is_field():
             raise ArithmeticError, "LinBox only supports fields"
 
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
@@ -283,14 +302,32 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def charpoly(self, var='x', algorithm='linbox'):
         """
+        Returns the characteristic polynomial of self.
+
        INPUT:
             var -- a variable name
-            algorithm -- 'linbox' (default)
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
                          'generic'
 
         EXAMPLES:
+            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A.charpoly()
+            x^3 + 4*x^2
+
+            sage: A = Mat(Integers(6),3,3)(range(9))
+            sage: A.charpoly()
+            x^3
+
+        ALGORITHM: Uses LinBox if self.base_ring() is a field
 
         """
+
+        if algorithm == 'linbox' and not self.base_ring().is_field():
+            algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
+
+        #x = self.fetch('charpoly_%s_%s'%(algorithm, var))
+        #if x is not None: return x
+
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
         elif algorithm == 'generic':
@@ -302,35 +339,57 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def minpoly(self, var='x', algorithm='linbox'):
         """
+        Returns the minimal polynomial of self.
+
         INPUT:
             var -- a variable name
-            algorithm -- 'linbox' (default)
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
                          'generic'
 
         EXAMPLES:
+            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A.minpoly()
+            x^2 + 4*x
+            sage: A.charpoly()/A.minpoly()
+            x
 
         """
+
         if algorithm=='linbox' and not self.base_ring().is_field():
-            #linbox only supports fields
-            algorithm='generic'
+            algorithm='generic' #LinBox only supports fields
+
+        x = self.fetch('minpoly_%s_%s'%(algorithm, var))
+        if x is not None: return x
 
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
         elif algorithm == 'generic':
-            g = self._minpoly_generic(var)
+            #g = self._minpoly_generic(var)
+            raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
         self.cache('minpoly_%s_%s'%(algorithm, var), g)
         return g
 
     def _minpoly_linbox(self, var='x'):
+        """
+        Computes the minimal polynomial using LinBox. No checks are
+        performed.
+        """
         return self._poly_linbox(var=var, typ='minpoly')
 
     def _charpoly_linbox(self, var='x'):
+        """
+        Computes the characteristic polynomial using LinBox. No checks
+        are performed.
+        """
         return self._poly_linbox(var=var, typ='charpoly')
 
     def _poly_linbox(self, var='x', typ='minpoly'):
         """
+        Computes either the minimal or the characteristic polynomial
+        using LinBox. No checks are performed.
+
         INPUT:
             var -- 'x'
             typ -- 'minpoly' or 'charpoly'
@@ -360,6 +419,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def echelonize(self, algorithm="linbox", **kwds):
         """
+        Puts self in row echelon form.
+
         INPUT:
             self -- a mutable matrix
             algorithm -- 'linbox' -- uses the C++ linbox library
@@ -399,6 +460,10 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise ValueError, "algorithm '%s' not known"%algorithm
 
     def _echelonize_linbox(self):
+        """
+        Puts self in row echelon form using LinBox.
+
+        """
         self.check_mutability()
 
         t = verbose('calling linbox echelonize mod %s'%self.p)
@@ -733,4 +798,19 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
+
+    def randomize(self,prob=1.0):
+        """
+        Fills self with random values in self.base_ring()
+        """
+
+        cdef int i,j
+
+        self.check_mutability()
+        self._cache = {} # clear cache
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if prandom() <= prob:
+                    self.matrix[i][j] = random() % self.p
 

@@ -11,6 +11,8 @@
 #include <linbox/algorithms/echelon-form.h>
 #include <linbox/solutions/minpoly.h>
 #include <linbox/solutions/charpoly.h>
+#include <linbox/ring/givaro-polynomial.h>
+
 
 using namespace LinBox;
 using namespace std;
@@ -18,7 +20,11 @@ using namespace std;
 #include <linbox/field/modular.h>
 
 /** local header **/
-typedef Modular<int> ModInt;
+
+//we are using Modular<double> here as it seems to be best supported
+typedef Modular<double> ModInt;
+typedef GivPolynomialRing<ModInt::Element,Dense> ModIntPolRing;
+
 static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int** matrix, size_t nrows, size_t ncols);
 static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, size_t nrows, size_t ncols);
 
@@ -39,7 +45,7 @@ int linbox_matrix_modn_dense_echelonize(unsigned long modulus,
     //     BlasMatrix<Field::Element> E(A.rowdim(),A.coldim());
     //     EchelonFormDomain<Modular<double> > EF (F);
 
-    ModInt F(modulus);
+    ModInt F((double)modulus);
     EchelonFormDomain< ModInt > EF(F);
     DenseMatrix<ModInt> A(F, nrows, ncols);
     DenseMatrix<ModInt> E(F, nrows, ncols);
@@ -48,13 +54,13 @@ int linbox_matrix_modn_dense_echelonize(unsigned long modulus,
     for (size_t i=0; i < nrows; i++) {
 	row = matrix[i];
 	for (size_t j=0; j < ncols; j++)
-	    A.setEntry(i, j, row[j]);
+	    A.setEntry(i, j, (double)row[j]);
 	}
     int rank = EF.rowReducedEchelon(E, A);
     for (size_t i=0; i < nrows; i++) {
 	row = matrix[i];
 	for (size_t j=0; j < ncols; j++)
-	    row[j] = E.getEntry(i, j);
+	    row[j] = (mod_int)E.getEntry(i, j);
 	}
     return rank;
 }
@@ -65,7 +71,7 @@ void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degr
        on matrices that are n x n with n divisible by 4!
     */
 
-    ModInt F(modulus);
+    ModInt F((double)modulus);
 
     size_t m;
     if (n % 4 == 0 || !do_minpoly) {
@@ -83,12 +89,12 @@ void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degr
 	}
     }
 
-    vector<ModInt::Element> m_A;
+    GivPolynomial<ModInt::Element> m_A;
 
     if (do_minpoly)
 	minpoly(m_A, A);
     else
-        //charpoly(m_A, A);
+        charpoly(m_A, A);
 
 
     if (n%4 == 0 || !do_minpoly) {
@@ -129,7 +135,7 @@ void linbox_modn_dense_delete_array(mod_int *f) {
 
 static DenseMatrix<ModInt> linbox_new_modn_matrix(unsigned long modulus, mod_int** matrix, size_t nrows, size_t ncols) {
 
-    ModInt F(modulus);
+    ModInt F((double)modulus);
 
     DenseMatrix<ModInt> A (F, nrows, ncols);
 
@@ -156,7 +162,7 @@ int linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **an
 					     size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 {
 
-    ModInt F(modulus);
+    ModInt F((double)modulus);
 
     DenseMatrix<ModInt> AA(linbox_new_modn_matrix(modulus, A, A_nr, A_nc));
     DenseMatrix<ModInt> BB(linbox_new_modn_matrix(modulus, B, B_nr, B_nc));

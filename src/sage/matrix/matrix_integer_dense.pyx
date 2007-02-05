@@ -11,7 +11,7 @@ Dense matrices over the integer ring.
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.misc import verbose, get_verbose, UNAME
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -657,14 +657,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mpz_t* poly
         cdef size_t n
         cdef size_t degree
-        if typ == 'minpoly':
-            _sig_on
-            linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix)
-            _sig_off
+        if UNAME == "Darwin":
+            if typ == 'minpoly':
+                _sig_on
+                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,0)
+                _sig_off
+            else:
+                _sig_on
+                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
+                _sig_off
         else:
-            _sig_on
-            linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
-            _sig_off
+            if typ == 'minpoly':
+                _sig_on
+                linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix)
+                _sig_off
+            else:
+                _sig_on
+                linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
+                _sig_off
 
         v = []
         cdef Integer k

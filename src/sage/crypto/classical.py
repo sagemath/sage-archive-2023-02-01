@@ -190,7 +190,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
 	if check:
 	    if not K in self.key_space():
 	        raise TypeError, "Argument K (= %s) is not in the key space." % K
-        return K^-1
+        return K**-1
 
     def encoding(self,M):
 	S = self.cipher_domain()

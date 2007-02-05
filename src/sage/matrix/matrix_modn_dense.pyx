@@ -66,11 +66,15 @@ We create a matrix group and coerce it to GAP:
           [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 """
 
+#
+# LinBox bugs to address:
+#  * echelon form over GF(2) -> crash, worked around by using native 'gauss' in that case
+#  * charpoly and minpoly don't work randomly
+
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 
-MAX_MODULUS = 46340
 
 import matrix_window_modn_dense
 
@@ -83,13 +87,13 @@ from sage.structure.element cimport Matrix
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 cdef extern from "matrix_modn_dense_linbox.h":
-    int linbox_matrix_modn_dense_echelonize(unsigned long modulus,
-                                            mod_int **matrix, size_t nrows, size_t ncols)
+    int linbox_modn_dense_echelonize(unsigned long modulus,
+                                     mod_int **matrix, size_t nrows, size_t ncols)
     void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degree, size_t n,
                                    mod_int **matrix, int do_minpoly)
     void linbox_modn_dense_delete_array(mod_int *f)
 
-    int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulusr, mod_int **ans, mod_int **A, mod_int **B,
+    int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans, mod_int **A, mod_int **B,
                                                   size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 
 
@@ -97,7 +101,6 @@ cdef extern from "matrix_modn_dense_linbox.h":
 from sage.structure.element import ModuleElement
 
 from sage.misc.misc import verbose, get_verbose
-
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -112,11 +115,6 @@ ai = arith_int()
 #  The full text of the GPL is available at:
 #                  http://www.gnu.org/licenses/
 ##############################################################################
-
-#
-# TODO: Charpoly and Minpoly oddities
-# TODO: echelonize doesn't work over GF(2)
-#
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
@@ -323,12 +321,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         ALGORITHM: Uses LinBox if self.base_ring() is a field
 
         """
-
         if algorithm == 'linbox' and not self.base_ring().is_field():
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
-
-        #x = self.fetch('charpoly_%s_%s'%(algorithm, var))
-        #if x is not None: return x
 
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
@@ -355,13 +349,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: A.charpoly()/A.minpoly()
             x
 
+            sage: A = Mat(Integers(6),3,3)(range(9))
+            sage: A.minpoly()
+            <type 'exceptions.NotImplementedError'>: minimal polynomials are not implemented for Z/nZ
         """
-
         if algorithm=='linbox' and not self.base_ring().is_field():
             algorithm='generic' #LinBox only supports fields
-
-        x = self.fetch('minpoly_%s_%s'%(algorithm, var))
-        if x is not None: return x
 
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
@@ -448,6 +441,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [0, 1]
 
         """
+
+        if self.p == 2 and algorithm=='linbox':
+            # TODO: LinBox crashes if working over GF(2)
+            algorithm ='gauss'
+
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         if not self.base_ring().is_field():
@@ -470,9 +468,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         t = verbose('calling linbox echelonize mod %s'%self.p)
         _sig_on
-        r = linbox_matrix_modn_dense_echelonize(self.p,
-                                                self.matrix,
-                                                self._nrows, self._ncols)
+        r = linbox_modn_dense_echelonize(self.p,
+                                         self.matrix,
+                                         self._nrows, self._ncols)
         _sig_off
         verbose('done with echelonize',t)
 
@@ -800,23 +798,4 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
-
-    def randomize(self,prob=1.0):
-        """
-        Fills self with random values in self.base_ring()
-        """
-
-        cdef int i,j
-
-        self.check_mutability()
-        self._cache = {} # clear cache
-
-        for i from 0 <= i < self._nrows:
-            for j from 0 <= j < self._ncols:
-                if prandom() <= prob:
-                    self.matrix[i][j] = random() % self.p
-
-    def lift(self):
-        import misc
-        return misc.matrix_modn_dense_lift(self)
 

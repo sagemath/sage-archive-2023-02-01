@@ -44,13 +44,20 @@ import shutil
 import Cookie
 import cPickle
 import base64
+from urllib import splittag
 
 #SAGE notebook libraries
 import css, js
 import keyboards
+from docHTMLProcessor import DocHTMLProcessor
 
 # SAGE libraries
 import sage.interfaces.sage0
+
+# doc browser sequence number
+doc_browser_seq = 0
+MAX_DOC_BROWSER_SEQ = 48  # cycle around after this many worksheets -- max number
+                          # of truly simult doc requests.
 
 from sage.misc.misc import (alarm, cancel_alarm,
                             verbose, word_wrap, SAGE_EXTCODE)
@@ -454,6 +461,74 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
     #######################################################################
+    #  Doc-browser functionality
+    #######################################################################
+    # TODO: this will not work right on a multi-user system, since if
+    # multiple people viewer the browser at the same time and eval cells,
+    # this will conflict.
+
+    def doc_browser(self, path):
+        """
+        This is the first handler function for a doc-browser request.
+        If no doc-browser has been opened/created, one is started.
+        The doc-browser is an instance of a special worksheet; each
+        page of documentation requested is formated into a worksheet
+        which replaces the doc-browsers previous worksheet.
+        """
+        path_split = path.split('?')
+        full_path = path_split[1]
+        file_name = path_split[2]
+        file_name, href_tag = splittag(file_name)
+
+        # Get the documentation path from the symlink in <SAGE_ROOT>
+        # doc_path is the path from <SAGE_ROOT> to the top doc folder
+        #  full_path is the path from the top doc folder to the requested
+        #  file
+        # file_name is the name of the file requested
+        doc_path = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
+        print doc_path
+        file = open(doc_path + full_path + file_name,'r')
+        doc_page_html = file.read()
+        file.close()
+        docProcessStart = time.time()
+        doc_page,css_href = DocHTMLProcessor().process_doc_html(doc_path,full_path,doc_page_html)
+        docProcessEnd = time.time()
+        docProcessTime = docProcessEnd-docProcessStart
+        verbose(file_name)
+        verbose(docProcessTime)
+        if css_href:
+            css_href = doc_path + full_path + css_href
+
+        wnames = notebook.worksheet_names()
+        global doc_browser_seq
+        worksheet_name = 'doc_browser_%s'%doc_browser_seq
+        doc_browser_seq += 1
+        if doc_browser_seq >= MAX_DOC_BROWSER_SEQ:
+            doc_brower_seq = 0
+        if worksheet_name not in wnames:
+            W = notebook.create_new_worksheet(name=worksheet_name, passcode='')
+        else:
+            W = notebook.get_worksheet_with_name(worksheet_name)
+            W.interrupt()
+        W.edit_save(doc_page)
+        saveTime = time.time()
+        saveTime = saveTime - docProcessEnd
+        verbose(saveTime)
+        self.load_doc_page(W, css_href)
+
+    def load_doc_page(self, worksheet, css_href):
+        W = worksheet
+        Wid = W.id()
+        #s = notebook.doc_html(Wid, css_href)
+        #self.wfile.write(s)
+        self.show_page(Wid)
+        #s = notebook.html(Wid)
+
+    #######################################################################
+    #  End doc-browser functionality
+    #######################################################################
+
+    #######################################################################
     #  SAGE plain text editing functionality
     #######################################################################
 
@@ -511,10 +586,8 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
-        #if do_print:
-        #    s += '<script language=javascript>window.print()</script>\n'
         if do_print:
-            s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+            s += '<script language=javascript>jsMath.Process();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 
@@ -725,6 +798,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if notebook.log_server():
             notebook.server_log().append(["GET", self.path])
         self.get_cookie()
+
+        # Catch any doc_browser requests here
+        if self.path[1:12] == 'doc_browser':
+            if self.path[-5:] == '.html':
+                return self.doc_browser(self.path)
+
         # The question mark trick here is so that images will be reloaded when
         # the async request requests the output text for a computation.
         # This is inspired by http://www.irt.org/script/416.htm/.

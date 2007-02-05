@@ -57,8 +57,6 @@ import operator
 
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
-#include '../gsl/gsl_complex.pxi'
-#include '../libs/pari/decl.pxi'
 
 cdef extern from "math.h":
     double modf (double value, double *integer_part)
@@ -77,12 +75,12 @@ from sage.structure.parent  cimport Parent
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
-import integer
-import  integer_ring
 
 import infinity
 import  complex_number
 
+import complex_field
+CC = complex_field.ComplexField()
 
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
 # are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
@@ -93,6 +91,8 @@ import  complex_number
 # can be questionable -- it varies from version to version, so...
 cdef int PREC
 PREC = 28
+
+from random import random
 
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
@@ -110,9 +110,37 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 
     def __hash__(self):
         return 561162115
+        #return hash(self.str())
 
     def characteristic(self):
+        """
+        Return the characteristic of this complex double field, which is 0.
+
+        EXAMPLES:
+            sage: CDF.characteristic()
+            0
+        """
+        import integer
         return integer.Integer(0)
+
+    def random_element(self, float xmin=-1, float xmax=1, float ymin=-1, float ymax=1):
+        """
+        Return a random element this complex double field with real
+        and imaginary part bounded by xmin, xmax, ymin, ymax.
+
+        EXAMPLES:
+            sage: CDF.random_element()
+            0.209449195154 + 0.358283042908*I
+            sage: CDF.random_element(-10,10,-10,10)
+            -8.95410163615 + 8.72241592407*I
+            sage: CDF.random_element(-10^20,10^20,-2,2)
+            2.60705696501e+19 - 1.3642168045*I
+        """
+        global _CDF
+        cdef ComplexDoubleElement z
+        z = PY_NEW(ComplexDoubleElement)
+        z._complex = gsl_complex_rect( (xmax-xmin)*random() + xmin, (ymax-ymin)*random() + ymin)
+        return z
 
     def __repr__(self):
         """
@@ -125,6 +153,18 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Double Field
         """
         return "Complex Double Field"
+
+    def __cmp__(self, x):
+        """
+        EXAMPLES:
+            sage: CDF == 5
+            False
+            sage: loads(dumps(CDF)) == CDF
+            True
+        """
+        if PY_TYPE_CHECK(x, ComplexDoubleField_class):
+            return 0
+        return cmp(type(self), type(x))
 
     def __call__(self, x, im=None):
         """
@@ -221,10 +261,9 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             Complex Double Field
         """
         import sage.functions.constants
-        import complex_field
         return self._coerce_try(x, [self.real_double_field(),
                                     sage.functions.constants.ConstantRing,
-                                    complex_field.CC])
+                                    CC])
 
 
     def gen(self, n=0):
@@ -266,27 +305,38 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
 def new_ComplexDoubleElement():
     cdef ComplexDoubleElement z
     z = PY_NEW(ComplexDoubleElement)
-    z._parent = _CDF
     return z
+
+def is_ComplexDoubleElement(x):
+    return PY_TYPE_CHECK(x, ComplexDoubleElement)
 
 cdef class ComplexDoubleElement(FieldElement):
     """
     An element of a complex double field.
     """
+    def __new__(self, real=None, imag=None):
+        self._parent = _CDF
+
     def __init__(self, real, imag):
         self._complex = gsl_complex_rect(real, imag)
-        global _CDF
-        self._parent = _CDF
+
+    def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: a = CDF(-2.7, -3)
+            sage: loads(dumps(a)) == a
+            True
+        """
+        return (ComplexDoubleElement,
+                (self._complex.dat[0], self._complex.dat[1]))
 
     cdef ComplexDoubleElement _new_c(self, gsl_complex x):
         """
         C-level code for creating a ComplexDoubleElement from a gsl_complex.
         """
-        global _CDF
         cdef ComplexDoubleElement z
         z = PY_NEW(ComplexDoubleElement)
         z._complex = x
-        z._parent = _CDF
         return z
 
     cdef _new_from_gen_c(self, GEN g, pari_sp sp):
@@ -1384,8 +1434,9 @@ cdef class ComplexDoubleElement(FieldElement):
         P = sage.libs.pari.gen.pari
         _sig_on
         f = P.new_gen(algdep0(self._gen(), n, 0, PREC))
-        import  polynomial_ring
-        R = polynomial_ring.PolynomialRing(integer_ring.IntegerRing(),'x')
+        import polynomial_ring
+        import integer_ring
+        R = polynomial_ring.PolynomialRing(integer_ring.ZZ ,'x')
         return R(list(reversed(eval(str(f.Vec())))))
 
 

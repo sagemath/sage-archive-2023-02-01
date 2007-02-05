@@ -776,6 +776,17 @@ cdef class Rational(sage.structure.element.FieldElement):
         QQ = self.parent()
         return QQ['x']([-self,1])
 
+    cdef integer.Integer _integer_c(self):
+        if not mpz_cmp_si(mpq_denref(self.value), 1) == 0:
+            raise TypeError, "no coercion of this rational to integer"
+        cdef integer.Integer n
+        n = PY_NEW(integer.Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        return n
+
+    def _integer_(self):
+        return self._integer_c()
+
     def numer(self):
         """
         Return the numerator of this rational number.
@@ -786,7 +797,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             -5
         """
         cdef integer.Integer n
-        n = integer.Integer()
+        n = PY_NEW(integer.Integer)
         n.set_from_mpz(mpq_numref(self.value))
         return n
 
@@ -803,7 +814,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.numerator()
             3
         """
-        return self.numer()
+        cdef integer.Integer n
+        n = PY_NEW(integer.Integer)
+        n.set_from_mpz(mpq_numref(self.value))
+        return n
+
 
     def __int__(self):
         """
@@ -856,7 +871,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             1
         """
         cdef integer.Integer n
-        n = integer.Integer()
+        n = PY_NEW(integer.Integer)
         n.set_from_mpz(mpq_denref(self.value))
         return n
 
@@ -872,7 +887,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x.denominator()
             1
         """
-        return self.denom()
+        cdef integer.Integer n
+        n = PY_NEW(integer.Integer)
+        n.set_from_mpz(mpq_denref(self.value))
+        return n
 
     def factor(self):
         return sage.rings.rational_field.factor(self)

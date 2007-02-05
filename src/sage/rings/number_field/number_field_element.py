@@ -235,8 +235,10 @@ class NumberFieldElement(field_element.FieldElement):
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
 
-    def __pow__(self, right):
-        right = int(right)
+    def __pow__(self, r):
+        right = int(r)
+        if right != r:
+            raise NotImplementedError, "number field element to non-integral power not implemented"
         if right < 0:
             x = self.__invert__()
             right *= -1
@@ -529,7 +531,7 @@ class NumberFieldElement(field_element.FieldElement):
             [3, 0]
         """
         n = self.parent().degree()
-        v = self.__element[:n]
+        v = self.__element.list()[:n]
         z = rational.Rational(0)
         return v + [z]*(n - len(v))
 

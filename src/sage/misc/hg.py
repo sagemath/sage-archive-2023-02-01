@@ -33,6 +33,7 @@ import os, shutil
 import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
+from   remote_file import get_remote_file
 
 def embedded():
     return sage.server.support.EMBEDDED_MODE
@@ -186,6 +187,8 @@ class HG:
              bundle -- an hg bundle (created with the bundle command)
              update -- if True (the default), update the working directory after unbundling.
         """
+        if bundle.startswith("http://") or bundle.startswith("https://"):
+            bundle = get_remote_file(bundle, verbose=True)
         if bundle[-6:] == '.patch':
             self.import_patch(bundle, options)
             return
@@ -288,6 +291,8 @@ class HG:
 
         ALIASES: patch
         """
+        if filename.startswith("http://") or filename.startswith("https://"):
+            filename = get_remote_file(filename, verbose=True)
         self._ensure_safe()
         self('import "%s" %s'%(os.path.abspath(filename),options))
 
@@ -323,6 +328,8 @@ class HG:
                          -e --ssh           specify ssh command to use
                             --remotecmd     specify hg command to run on the remote side
         """
+        if source.startswith("http://") or source.startswith("https://"):
+            source = get_remote_file(source, verbose=True)
         if os.path.exists(source):
             source = os.path.abspath(source)
         if os.path.splitext(source)[1] in ['.hg', '.bundle']:

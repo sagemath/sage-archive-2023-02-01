@@ -2145,6 +2145,13 @@ class FreeModule_ambient(FreeModule_generic):
 
         EXAMPLES:
         We compare rank three free modules over the integers and rationals:
+            sage: QQ^3 < CC^3
+            True
+            sage: CC^3 < QQ^3
+            False
+            sage: CC^3 > QQ^3
+            True
+
             sage: Q = QQ; Z = ZZ
             sage: Q^3 > Z^3
             True
@@ -2179,8 +2186,16 @@ class FreeModule_ambient(FreeModule_generic):
             c = cmp(self.rank(), other.rank())
             if c: return c
             c = cmp(self.base_ring(), other.base_ring())
-            if c: return c
-            return 0
+            if not c:
+                return c
+            try:
+                if self.base_ring().is_subring(other.base_ring()):
+                    return -1
+                elif other.base_ring().is_subring(self.base_ring()):
+                    return 1
+            except NotImplementedError:
+                pass
+            return c
         else:  # now other is not ambient; it knows how to do the comparison.
             return -other.__cmp__(self)
 

@@ -26,16 +26,7 @@ TUTORIAL:
         The NetworkX graph is essentially a dictionary of dictionaries:
 
             sage: N.adj
-            {0: {1: None, 4: None, 5: None},
-             1: {0: None, 2: None, 6: None},
-             2: {1: None, 3: None, 7: None},
-             3: {2: None, 4: None, 8: None},
-             4: {0: None, 3: None, 9: None},
-             5: {0: None, 7: None, 8: None},
-             6: {1: None, 8: None, 9: None},
-             7: {2: None, 5: None, 9: None},
-             8: {3: None, 5: None, 6: None},
-             9: {4: None, 6: None, 7: None}}
+            {0: {1: None, 4: None, 5: None}, 1: {0: None, 2: None, 6: None}, 2: {1: None, 3: None, 7: None}, 3: {8: None, 2: None, 4: None}, 4: {0: None, 9: None, 3: None}, 5: {0: None, 8: None, 7: None}, 6: {8: None, 1: None, 9: None}, 7: {9: None, 2: None, 5: None}, 8: {3: None, 5: None, 6: None}, 9: {4: None, 6: None, 7: None}}
 
         Each dictionary key is a vertex label, and each key in the following
         dictionary is a neighbor of that vertex. In undirected graphs, there
@@ -72,8 +63,8 @@ TUTORIAL:
 
             sage: S = G.random_subgraph(.7)
             sage: S.plot().save('sage.png')    # or S.show()
-            sage: S.density()
-            ???
+            sage: S.density()         # random output (depends on choice of random graph)
+            0.33333333333333331
 
         3. Labels
 
@@ -149,8 +140,25 @@ class GenericGraph(SageObject):
     def _latex_(self):
         return repr(self)
 
-    def _matrix_(self):
-        return self.am()
+    def _matrix_(self, R=None):
+        """
+        EXAMPLES:
+            sage: G = graphs.CompleteBipartiteGraph(2,3)
+            sage: m = matrix(G); m.parent()
+            Full MatrixSpace of 5 by 5 sparse matrices over Integer Ring
+            sage: m
+            [0 0 1 1 1]
+            [0 0 1 1 1]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            [1 1 0 0 0]
+            sage: factor(m.charpoly())
+            (x^2 - 6) * x^3
+        """
+        if R is None:
+            return self.am()
+        else:
+            return self.am().change_ring(R)
 
     def networkx_graph(self):
         """
@@ -276,7 +284,7 @@ class Graph(GenericGraph):
              3: [ 0.12743933,-1.125     ],
              4: [-1.125     ,-0.50118505]}
             name -- (must be an explicitly named parameter, i.e.,
-            name="complete") gives the graph a name
+                     name="complete") gives the graph a name
             loops -- boolean, whether to allow loops (ignored if data is an instance of
             the Graph class)
             multiedges -- boolean, whether to allow multiple edges (ignored if data is
@@ -313,7 +321,7 @@ class Graph(GenericGraph):
             Null graph: a simple graph on 0 vertices (no loops, no multiple edges)
             sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]}, name="Petersen graph")
             sage: P
-            Petersen graph: a simple graph on 10 vertices
+            Petersen graph: a simple graph on 10 vertices (no loops, no multiple edges)
         """
         import networkx
         if isinstance(data, Graph):
@@ -324,6 +332,8 @@ class Graph(GenericGraph):
             self._nxg = data
         else:
             self._nxg = networkx.XGraph(data, selfloops=loops, **kwds)
+            if kwds.has_key('name'):
+                self._nxg.name = kwds['name']
         self.__pos = pos
 
     def _repr_(self):
@@ -938,7 +948,7 @@ class DiGraph(GenericGraph):
         The following intuitive input results in nonintuitive output:
         sage: G = DiGraph()
         sage: G.add_arc((1,2),'label')
-        sage: G.networkx_graph().adj
+        sage: G.networkx_graph().adj           # random output order
         {'label': {}, (1, 2): {'label': None}}
 
         Use one of these instead:

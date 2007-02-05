@@ -22,7 +22,7 @@ Mathematica, Maple, Octave, and Singular:
     sage: khinchin      # Khinchin's constant
     khinchin
 
-Suppose for coercion into the various systems means that if, e.g.,
+Support for coercion into the various systems means that if, e.g.,
 you want to create $\pi$ in Maxima and Singular, you don't have
 to figure out the special notation for each system.  You just
 type the following:
@@ -176,7 +176,7 @@ class ConstantRing_class(FunctionRing_class):
 
     def _coerce_impl(self, x):
         if isinstance(x, (sage.rings.integer.Integer,
-                          sage.rings.rational.Rational)):
+                          sage.rings.rational.Rational, int, long)):
             return Constant_gen(x)
         raise TypeError, 'no canonical coercion of element into self.'
 

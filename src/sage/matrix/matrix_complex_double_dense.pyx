@@ -3,6 +3,13 @@ Dense matrices over the Complex Double Field.
 
 IMPLEMENTATION:
    Specialized matrix operations use GSL and numpy.
+
+
+EXAMPLES:
+    sage: b = Mat(CDF,2,3).basis()
+    sage: b[0]
+    [1.0   0   0]
+    [  0   0   0]
 """
 
 ##############################################################################
@@ -142,13 +149,14 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
         else:
             try:
-                z=sage.rings.complex_double.CDF(entries)
+                z = sage.rings.complex_double.CDF(entries)
             except TypeError:
                 raise TypeError, "entries must to coercible to list or complex double "
-            if self._nrows != self._ncols and entries!=0:
-                raise TypeError, "scalar matrix must be square"
-            for i from 0<=i<self._ncols:
-                gsl_matrix_complex_set(self._matrix,i,i,z._complex)
+            if z != 0:
+                if self._nrows != self._ncols:
+                    raise TypeError, "scalar matrix must be square"
+                for i from 0<=i<self._ncols:
+                    gsl_matrix_complex_set(self._matrix,i,i,z._complex)
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         cdef ComplexDoubleElement z

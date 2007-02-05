@@ -138,6 +138,7 @@ cdef class Parent(sage_object.SageObject):
         """
         if not isinstance(v, list):
             v = [v]
+
         for R in v:
             try:
                 y = R._coerce_(x)

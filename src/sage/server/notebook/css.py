@@ -703,6 +703,17 @@ span.pane a.worksheet_other_computing {
    color:black;
 }
 
+/*********** DOC-BROWSER************************/
+
+
+.verbatim {
+    background-color: #fafad2;
+    border-style: solid;
+    border-width: 1px 1px;
+    border-color: black;
+}
+
+
 /************ OBJECTS **************************/
 
 span.pane div.objects_topbar {
@@ -854,8 +865,7 @@ div.cell_evaluated {
 }
 
 div.cell_not_evaluated {
-/*    border-left: 2px dotted green; */
-    border-left: 2px solid black;
+    border-left: 2px dotted #ff8888;
     padding-left:3px;
 }
 
@@ -907,7 +917,7 @@ div.cellbox {
 
 pre.cell_input_pre {
   background-color: white;
-  border: 0px solid #ffffff;
+  border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -920,9 +930,10 @@ pre.cell_input_pre {
 }
 
 textarea.cell_input {
-  background-color: white;
+  color:#000000;
+  background-color: #e8e8e8;
   border: 0px solid white;
-  border-left: 2px solid green;
+  /* border-left: 2px solid green; */
   font-family: courier, monospace;
   font-size:12pt;
 /*  overflow:hidden; */
@@ -936,29 +947,9 @@ textarea.cell_input {
   margin-top:0px;
 }
 
-/*
-textarea.cell_input_hide {
-  background-color: white;
-  color:#cccccc;
-  border: 0px solid white;
-/*  border-top: 1px solid #aaaaff;
-  border-bottom: 1px solid #aaaaff;
-  */
-  font-family: courier, monospace;
-  font-size:12pt;
-  overflow:hidden;
-  padding-left:3px;
-  padding-top:0px;
-  padding-bottom:0px;
-  width: 100%;
-  height:1.5em;
-  margin:0px;
-}
-*/
 
 textarea.cell_input_hide {
   background-color: white;
-  color:#ffffff;
   border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
@@ -975,12 +966,6 @@ textarea.cell_input_hide {
 textarea.cell_input_active {
   background-color: white;
   border: 2px solid  #8888fe;
-  /*
-  border-top: 2px solid #8888fe;
-  border-left: 2px solid #8888fe;
-  border-bottom: 0px solid white;
-  border-right: 0px solid white;
-  */
   font-family: courier, monospace;
   font-size:12pt;
   overflow:auto;
@@ -992,18 +977,6 @@ textarea.cell_input_active {
   width: 100%;
 }
 
-/*textarea.cell_input_active {
-  background-color: white;
-  border: 3px solid #8888fe;
-  font-family: courier, monospace;
-  font-size:12pt;
-  overflow:auto;
-  padding-left:5px;
-  padding-top:3px;
-  padding-bottom:3px;
-  width: 100%;
-}
-*/
 
 span.cell_evaluate {
   position: relative;

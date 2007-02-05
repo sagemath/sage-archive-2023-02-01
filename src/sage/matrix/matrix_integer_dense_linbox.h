@@ -6,8 +6,10 @@
 
 /* linbox_minpoly allocates space for minpoly, so you have to call linbox_delete_array
    to free it up afterwards. */
-EXTERN void linbox_integer_dense_minpoly(mpz_t** minpoly, size_t* degree,
+EXTERN void linbox_integer_dense_minpoly_hacked(mpz_t** minpoly, size_t* degree,
                   size_t n, mpz_t** matrix, int do_minpoly);
+EXTERN void linbox_integer_dense_minpoly(mpz_t** minpoly, size_t* degree,
+                  size_t n, mpz_t** matrix);
 EXTERN void linbox_integer_dense_charpoly(mpz_t** charpoly, size_t* degree,
                   size_t n, mpz_t** matrix);
 EXTERN void linbox_integer_dense_delete_array(mpz_t* f);

@@ -18,8 +18,10 @@ include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
 
 cdef extern from "matrix_integer_dense_linbox.h":
-    void linbox_integer_dense_minpoly(mpz_t* *minpoly, size_t* degree,
+    void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
                                       size_t n, mpz_t** matrix, int do_minpoly)
+    void linbox_integer_dense_minpoly(mpz_t* *minpoly, size_t* degree,
+                                      size_t n, mpz_t** matrix)
     void linbox_integer_dense_charpoly(mpz_t* *charpoly, size_t* degree,
                                        size_t n, mpz_t** matrix)
     void linbox_integer_dense_delete_array(mpz_t* f)
@@ -657,7 +659,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef size_t degree
         if typ == 'minpoly':
             _sig_on
-            linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix, 1)
+            linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix)
             _sig_off
         else:
             _sig_on

@@ -55,7 +55,7 @@ void set_matrix(mpz_t** matrix, DenseMatrix<GMP_Integers>& A, size_t nrows, size
     }
 }
 
-void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix, int do_minpoly) {
+void linbox_integer_dense_minpoly_hacked(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix, int do_minpoly) {
     /* We program around a bizarre bug in linbox, where minpoly doesn't work
        on matrices that are n x n with n divisible by 4!
     */
@@ -121,8 +121,8 @@ void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** 
 
 void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix) {
     /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
-    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0);
-/*
+  /*    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0); */
+
     DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
     IntPolRing::Element m_A;
     charpoly(m_A, A);
@@ -133,7 +133,24 @@ void linbox_integer_dense_charpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t**
 	mpz_init((*mp)[i]);
 	mpz_set((*mp)[i], spy.get_mpz(m_A[i]));
     }
-*/
+
+}
+
+void linbox_integer_dense_minpoly(mpz_t* *mp, size_t* degree, size_t n, mpz_t** matrix) {
+    /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
+  /*    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0); */
+
+    DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
+    IntPolRing::Element m_A;
+    minpoly(m_A, A);
+
+    (*mp) = new mpz_t[m_A.size()];
+    *degree = m_A.size() - 1;
+    for (size_t i=0; i <= *degree; i++) {
+	mpz_init((*mp)[i]);
+	mpz_set((*mp)[i], spy.get_mpz(m_A[i]));
+    }
+
 }
 
 void linbox_integer_dense_delete_array(mpz_t* f) {

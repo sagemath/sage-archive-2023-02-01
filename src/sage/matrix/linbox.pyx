@@ -1,4 +1,8 @@
 
+## NOTE: The _sig_on/_sig_off stuff can't go in here -- it has to be in the
+## code that calls these functions.  Otherwise strangely objects get left
+## in an incorrect state.
+
 include "../ext/interrupt.pxi"
 
 cdef extern from "matrix_modn_dense_linbox.h":
@@ -18,17 +22,24 @@ cdef extern from "matrix_modn_dense_linbox.h":
                                mod_int** matrix, size_t nrows, size_t ncols)
 
 
-cdef class Linbox:
-    cdef int modn_dense_echelonize(self, mod_int modulus, mod_int** matrix,
-                                   size_t nrows, size_t ncols):
+##########################################################################
+## Dense matrices modulo p
+##########################################################################
+cdef class Linbox_modn_dense:
+    cdef set(self, mod_int n, mod_int** matrix,
+             size_t nrows, size_t ncols):
+        self.n = n
+        self.nrows = nrows
+        self.ncols = ncols
+        self.matrix = matrix
+
+    cdef int echelonize(self):
         cdef int r
-        _sig_on
-        r = linbox_modn_dense_echelonize(modulus, matrix, nrows, ncols)
-        _sig_off
+        r = linbox_modn_dense_echelonize(self.n, self.matrix,
+                                         self.nrows, self.ncols)
         return r
 
-    cdef modn_dense_poly(self, unsigned long modulus, size_t n,
-                         mod_int **matrix, minpoly):
+    cdef poly(self, minpoly):
         """
         INPUT:
             as given
@@ -38,11 +49,9 @@ cdef class Linbox:
         """
         cdef mod_int *f
         cdef size_t degree
-        _sig_on
-        linbox_modn_dense_minpoly(modulus, &f,
-                                  &degree,
-                                  n, matrix, minpoly)
-        _sig_off
+        linbox_modn_dense_minpoly(self.n, &f, &degree,
+                                  self.nrows, self.matrix,
+                                  minpoly)
         v = []
         cdef Py_ssize_t i
         for i from 0 <= i <= degree:
@@ -50,13 +59,38 @@ cdef class Linbox:
         linbox_modn_dense_delete_array(f)
         return v
 
+    cdef matrix_matrix_multiply(self,
+                                mod_int **ans,
+                                mod_int **B,
+                                size_t B_nr, size_t B_nc):
+        cdef int e
+        e = linbox_modn_dense_matrix_matrix_multiply(self.n, ans,
+                                                     self.matrix,  B,
+                                                     self.nrows, self.ncols,
+                                                     B_nr, B_nc)
+        if e:
+            raise RuntimError, "error doing matrix matrix multiply modn using linbox"
 
-##     int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans,
-##                                                   mod_int **A, mod_int **B,
-##                                                   size_t A_nr, size_t A_nc,
-##                                                   size_t B_nr, size_t B_nc)
+
+    cdef unsigned long rank(self) except -1:
+        cdef unsigned long r
+        r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
+        return r
 
 
-##     int linbox_modn_dense_rank(unsigned long modulus,
-##                                mod_int** matrix, size_t nrows, size_t ncols)
+##########################################################################
+## Sparse matices modulo p.
+##########################################################################
+cdef class Linbox_modn_sparse:
+    pass
+
+
+##########################################################################
+## Sparse matrices over ZZ
+##########################################################################
+
+
+##########################################################################
+## Dense matrices over ZZ
+##########################################################################
 

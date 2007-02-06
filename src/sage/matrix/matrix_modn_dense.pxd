@@ -21,4 +21,4 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from,
                                    mod_int multiple, Py_ssize_t start_row)
 
-
+    cdef _init_linbox(self)

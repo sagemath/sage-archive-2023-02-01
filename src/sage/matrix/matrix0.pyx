@@ -307,6 +307,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             self._cache = {}
         self._cache[key] = x
 
+    def _get_cache(self):
+        return self._cache
+
     ###########################################################
     # Mutability and bounds checking
     ###########################################################
@@ -1845,7 +1848,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b*c; d
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 7' and 'Rational Field'
+            TypeError: Base rings must be the same.
             sage: d = b*c.change_ring(GF(7)); d
             [2 3]
             [6 4]

@@ -80,7 +80,7 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
     def random_key(self):
 	S = self.cipher_domain()
 	n = S.ngens()
-	I = SymmetricGroup(n).random().list()
+	I = SymmetricGroup(n).random_element().list()
         return S([ i-1 for i in I ])
 
     def inverse_key(self,K):
@@ -182,7 +182,7 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
 
     def random_key(self):
 	n = self.block_length()
-        return SymmetricGroup(n).random()
+        return SymmetricGroup(n).random_element()
 
     def inverse_key(self,K,check = True):
         """

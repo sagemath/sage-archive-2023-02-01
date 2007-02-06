@@ -78,45 +78,45 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
         return "Substitution cryptosystem on %s" % self.cipher_domain()
 
     def random_key(self):
-	S = self.cipher_domain()
-	n = S.ngens()
-	I = SymmetricGroup(n).random_element().list()
+        S = self.cipher_domain()
+        n = S.ngens()
+        I = SymmetricGroup(n).random_element().list()
         return S([ i-1 for i in I ])
 
     def inverse_key(self,K):
         """
-	EXAMPLES:
-	    sage: S = AlphabeticStrings()
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
             sage: E = SubstitutionCryptosystem(S)
             sage: K = E.random_key()
             sage: L = E.inverse_key(K)
-	    sage: M = S("THECATINTHEHAT")
-	    sage: e = E(K)
-	    sage: c = E(L)
-	    sage: c(e(M))
-	    THECATINTHEHAT
+            sage: M = S("THECATINTHEHAT")
+            sage: e = E(K)
+            sage: c = E(L)
+            sage: c(e(M))
+            THECATINTHEHAT
         """
-	I = K._element_list
-	S = self.cipher_domain()
-	n = S.ngens()
+        I = K._element_list
+        S = self.cipher_domain()
+        n = S.ngens()
         return S([ I.index(i) for i in range(n) ])
 
     def encoding(self,M):
-	S = self.cipher_domain()
-	if isinstance(S,AlphabeticStringMonoid):
-	    return S(strip_encoding(M))
-	try:
-	    return S.encoding(M)
-	except:
-	    raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
 
     def deciphering(self,K,C):
-	i = self(self.inverse_key(K))
-	return i(C)
+        i = self(self.inverse_key(K))
+        return i(C)
 
     def enciphering(self,K,M):
-	e = self(K)
-	return e(M)
+        e = self(K)
+        return e(M)
 
 class TranspositionCryptosystem(SymmetricKeyCryptosystem):
     """
@@ -181,33 +181,33 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             self.cipher_domain(), self.block_length())
 
     def random_key(self):
-	n = self.block_length()
+        n = self.block_length()
         return SymmetricGroup(n).random_element()
 
     def inverse_key(self,K,check = True):
         """
-	"""
-	if check:
-	    if not K in self.key_space():
-	        raise TypeError, "Argument K (= %s) is not in the key space." % K
+        """
+        if check:
+            if not K in self.key_space():
+                raise TypeError, "Argument K (= %s) is not in the key space." % K
         return K**-1
 
     def encoding(self,M):
-	S = self.cipher_domain()
-	if isinstance(S,AlphabeticStringMonoid):
-	    return S(strip_encoding(M))
-	try:
-	    return S.encoding(M)
-	except:
-	    raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
 
     def deciphering(self,K,C):
-	i = self(self.inverse_key(K))
-	return i(C)
+        i = self(self.inverse_key(K))
+        return i(C)
 
     def enciphering(self,K,M):
-	e = self(K)
-	return e(M)
+        e = self(K)
+        return e(M)
 
 class VigenereCryptosystem(SymmetricKeyCryptosystem):
     """
@@ -261,7 +261,7 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             TIGFEYOUBQOSMG
         """
         S = self.key_space()
-	m = self.period()
+        m = self.period()
         if isinstance(K, list):
             try:
                 K = S(K)
@@ -276,42 +276,42 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             self.cipher_domain(), self.period())
 
     def random_key(self):
-	S = self.key_space()
-	n = S.ngens()
-	m = self.period()
-	return S([ randint(0,n-1) for i in range(m) ])
+        S = self.key_space()
+        n = S.ngens()
+        m = self.period()
+        return S([ randint(0,n-1) for i in range(m) ])
 
     def inverse_key(self,K):
         """
-	EXAMPLES:
-	    sage: S = AlphabeticStrings()
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
             sage: E = VigenereCryptosystem(S,14)
             sage: K = E.random_key()
             sage: L = E.inverse_key(K)
-	    sage: M = S("THECATINTHEHAT")
-	    sage: e = E(K)
-	    sage: c = E(L)
-	    sage: c(e(M))
-	    THECATINTHEHAT
+            sage: M = S("THECATINTHEHAT")
+            sage: e = E(K)
+            sage: c = E(L)
+            sage: c(e(M))
+            THECATINTHEHAT
         """
-	S = self.key_space()
-	n = S.ngens()
+        S = self.key_space()
+        n = S.ngens()
         return S([ (-i)%(n) for i in K._element_list ])
 
     def encoding(self,M):
-	S = self.cipher_domain()
-	if isinstance(S,AlphabeticStringMonoid):
-	    return S(strip_encoding(M))
-	try:
-	    return S.encoding(M)
-	except:
-	    raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
 
     def deciphering(self,K,C):
-	i = self(self.inverse_key(K))
-	return i(C)
+        i = self(self.inverse_key(K))
+        return i(C)
 
     def enciphering(self,K,M):
-	e = self(K)
-	return e(M)
+        e = self(K)
+        return e(M)
 

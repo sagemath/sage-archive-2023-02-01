@@ -2255,6 +2255,85 @@ def convergents(v):
     return [Q(x) for x in w[2:]]
 
 
+
+## def continuant(v, n=None):
+##     """
+##     Naive implementation with recursion.
+##
+##     See Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants
+##     """
+##     m = len(v)
+##     if n == None or m < n:
+##         n = m
+##     if n == 0:
+##         return 1
+##     if n == 1:
+##         return v[0]
+##     return continuant(v[:n-1])*v[n-1] + continuant(v[:n-2])
+
+def continuant(v, n=None):
+    r"""
+    Function returns the continuant of the sequence $v$ (list or tuple).
+
+    Definition: see Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants:
+
+    $K_0() = 1$
+
+    $K_1(x_1) = x_1$
+
+    $K_n(x_1, \cdots, x_n) = K_{n-1}(x_n, \cdots x_{n-1})x_n + K_{n-2}(x_1,  \cdots, x_{n-2})$
+
+    If $n = None$ or $n > len(v)$ the default $n = len(v)$ is used.
+
+    INPUT:
+        v -- list or tuple of elements of a ring
+        n -- optional integer
+
+    OUTPUT:
+        element of ring (integer, polynomial, etcetera).
+
+    EXAMPLES:
+        sage: continuant([1,2,3])
+        10
+        sage: p = continuant([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: q = continuant([1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: p/q
+        517656/190435
+        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
+        517656/190435
+        sage: x = MPolynomialRing(RationalField(),'x',5).gens()
+        sage: continuant(x)
+        x4 + x2 + x2*x3*x4 + x0 + x0*x3*x4 + x0*x1*x4 + x0*x1*x2 + x0*x1*x2*x3*x4
+        sage: continuant(x, 3)
+        x2 + x0 + x0*x1*x2
+        sage: continuant(x,2)
+        1 + x0*x1
+
+        $K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}$:
+
+        sage: z = QQ['z'].0
+        sage: continuant((z,z,z,z,z,z,z,z,z,z,z,z,z,z,z),6)
+        z^6 + 5*z^4 + 6*z^2 + 1
+        sage: continuant(9)
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'sage.rings.integer.Integer' has no len()
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-06)
+    """
+    m = len(v)
+    if n == None or m < n:
+        n = m
+    if n == 0:
+        return 1
+    if n == 1:
+        return v[0]
+    a, b = 1, v[0]
+    for k in range(1,n):
+        a, b = b, a + b*v[k]
+    return b
+
 def number_of_divisors(n):
     """
     Return the number of divisors of the integer n.

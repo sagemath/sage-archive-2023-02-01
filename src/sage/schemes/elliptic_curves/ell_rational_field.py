@@ -3517,7 +3517,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         can do about this, but at least one can say that the sign for $b'$
         will match the sign for $d'$.
 
-        Complexity is $O(\log R \log^2 m)$.
+        Complexity is soft $O(\log R \log^2 m)$.
 
         AUTHOR:
             -- David Harvey (2007-02)
@@ -3726,6 +3726,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             addressed some thorny precision questions
             -- David Harvey (2006-09-30): rewrote to use division polynomials
             for computing denominator of $nP$.
+            -- David Harvey (2007-02): cleaned up according to algorithms
+            in "Efficient Computation of p-adic Heights"
 
         TODO:
             -- Probably this code is broken when P is a torsion point.
@@ -3764,118 +3766,57 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec < 1:
             raise ValueError, "prec (=%s) must be at least 1" % prec
 
-        # Find an integer A such that for any point P, the multiple A*P
-        # is in the connected component of the Neron model modulo all primes.
-        # This is one of the conditions in Mazur/Stein/Tate; additionally,
-        # it is required to apply Proposition IV.2 from Christian Wuthrich's
-        # thesis.
-        A = arith.LCM(self.tamagawa_numbers())
+        # For notation and definitions, see "Efficient Computation of
+        # p-adic Heights", David Harvey (unpublished)
 
-        # Find an integer B such that A*B*P reduces to the identity mod p.
-        # This is necessary to be able to evaluate sigma(A*B*P) by substituting
-        # into the series for sigma.
-        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) // A
+        n1 = self.change_ring(rings.GF(p)).cardinality()
+        n2 = arith.LCM(self.tamagawa_numbers())
+        n = arith.LCM(n1, n2)
+        m = int(n / n2)
 
-        # Later, we will be computing $h(P) = h(AB*P)/(AB)^2$. But if $AB$ is
-        # divisible by a power of $p$, then this will affect the resulting
-        # p-adic precision. Also, we'll be dividing by p once at the end.
-        # So we take all of this into account right from the beginning.
-        extra_prec = 2 * arith.valuation(A*B, p) + 1
+        adjusted_prec = prec + 2 * arith.valuation(n, p) + 1
+        R = rings.Integers(p ** adjusted_prec)
 
         if sigma is None:
-            sigma = self.padic_sigma(p, prec + extra_prec,
-                                     check_hypotheses=False)
+            sigma = self.padic_sigma(p, adjusted_prec, check_hypotheses=False)
 
         # K is the field for the final result
         K = rings.pAdicField(p, prec)
         E = self
+
 
         def height(P, check=True):
             if check:
                 assert P.curve() == E, "the point P must lie on the curve " \
                        "from which the height function was created"
 
-            # Adjust P to satisfy conditions for Wuthrich's Proposition IV.2
-            Q = A * P
+            Q = n2 * P
+            C = E._DivPolyContext(E, R, Q)
 
-            # In this next section we compute R = B * Q (which will reduce to
-            # zero in E(GF(p))), working to some finite p-adic precision.
-            # This avoids the coefficients spiralling out of control.
+            alpha, beta, d = C.triple(m)
 
-            # The precision will generally *drop* during the computation of
-            # B*Q, so we need to start with somewhat higher precision than
-            # our target precision. Unfortunately, I am unable to prove any
-            # a priori bound on how much precision will be lost. Some simple
-            # heuristics suggest that the precision loss is usually very
-            # small, so small in fact that the runtime is about
-            # $O((\log p)^3)$. But I can't rule out the possibility that the
-            # precision loss will be very large, implying a runtime as high
-            # as $O(p^2)$. (This happens for example when the denominator
-            # of the x-coordinate of $B*Q$ is almost purely a power of $p$.
-            # I've never seen this happen, but I don't know how to rule it
-            # out.)
+            assert beta.lift() % p != 0, "beta should be a unit!"
+            assert d.lift() % p == 0, "d should not be a unit!"
 
-            # So the strategy is as follows. Start with fairly low precision
-            # and see what happens. If the answer doesn't have enough
-            # precision, try again with twice the initial precision. Repeat
-            # until we get enough precision in the result.
+            t = -d * alpha / beta
 
-            # todo: some bug in SAGE (trac #86) prevents me from creating
-            # points on an elliptic curve over a p-adic field. So in order to
-            # use the generic point-multiplication routine, I have to resort
-            # to extremely ugly and nasty trickery. See below.
-
-            start_prec = prec + extra_prec + 1   # todo: too optimistic?
-            enough = False
-            while not enough:
-                M = rings.pAdicField(p, start_prec)
-                R = E(Q[0], Q[1], Q[2])
-                R._coords = [M(a, M.prec()) for a in R._coords]
-                # arrrggghhh!!!! gross....
-                # So now R is Q "coerced" to the p-adic field....
-
-                BR = B * R
-                t = -BR[0]/BR[1]
-                if t.prec() >= prec + extra_prec:
-                    enough = True
-                else:
-                    start_prec = 2 * start_prec
-
-            # Let d = denominator of x coordinate of B*R. We know (from the
-            # equation of the curve) that v_p(d^2) = 2 v_p(t), so we can read
-            # off the valuation of d. This tells us how much extra precision
-            # we need to actually compute d.
-            M = rings.pAdicField(p, prec + extra_prec + 2*t.ordp())
-
-            # Compute the denominator of the x-coordinate of B*R, using
-            # Wuthrich's equation IV.3. (Actually we're computing d^2.)
-            d_sqr = E.multiple_x_denominator(B, M(Q[0], M.prec())) * \
-                    M(Q[0].denominator(), M.prec()) ** (B**2)
-
-            if check:
-                assert d_sqr.prec() >= prec + extra_prec
-
-            # Evaluate sigma.
-            # (todo: we can't just use "sigma(t)" because SAGE seems to have
-            # a bug where it only uses the lowest precision of the coefficients
-            # of sigma, which is not good enough; although I haven't looked
-            # into this carefully yet)
+            total = R(1)
             t_power = t
-            L = rings.pAdicField(p, prec + extra_prec)
-            total = L(0)
-            for n in range(1, sigma.prec()):
-                total = total + t_power * sigma[n]
+            for k in range(2, adjusted_prec + 1):
+                # yuck... should just be able to multiply without the lift here
+                total = total + t_power * R(sigma[k].lift())
                 t_power = t_power * t
 
-            if check:
-                assert total.prec() >= prec + extra_prec
+            L = rings.pAdicField(p, adjusted_prec)
+            total = (-alpha / beta) * total
+            total = L(total.lift())   # yuck... get rid of this lift!
+            answer = total.log() / n**2 / p
 
-            # Normalise and return
-            answer = (total**2 / d_sqr).log() / (2 * (A*B)**2 * p)
             if check:
                 assert answer.big_oh() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
             return K(answer.lift(), prec)
+
 
         # (man... I love python's local function definitions...)
         return height

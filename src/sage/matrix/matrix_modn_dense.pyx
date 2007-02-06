@@ -66,6 +66,11 @@ We create a matrix group and coerce it to GAP:
           [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 """
 
+#
+# LinBox bugs to address:
+#  * echelon form over GF(2) -> crash, worked around by using native 'gauss' in that case
+#  * charpoly and minpoly don't work randomly
+
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
@@ -74,20 +79,31 @@ MAX_MODULUS = 46340
 
 import matrix_window_modn_dense
 
+from sage.rings.arith import is_prime
+
 cimport matrix_dense
 cimport matrix
 cimport matrix0
 
+from sage.structure.element cimport Matrix
+
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 cdef extern from "matrix_modn_dense_linbox.h":
-    int linbox_matrix_modn_dense_echelonize(unsigned long modulus,
-                                            unsigned long** matrix, size_t nrows, size_t ncols)
+    int linbox_modn_dense_echelonize(unsigned long modulus,
+                                     mod_int **matrix, size_t nrows, size_t ncols)
+    void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degree, size_t n,
+                                   mod_int **matrix, int do_minpoly)
+    void linbox_modn_dense_delete_array(mod_int *f)
+
+    int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans, mod_int **A, mod_int **B,
+                                                  size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
+
+
 
 from sage.structure.element import ModuleElement
 
 from sage.misc.misc import verbose, get_verbose
-
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -210,6 +226,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #   * cdef _unpickle
     #   * cdef _add_c_impl
     #   * cdef _mul_c_impl
+    #   * cdef _matrix_times_matrix_c_impl
     #   * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
@@ -238,6 +255,40 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A.gather = self.gather
         return A
 
+    cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
+            return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
+        else:
+            if self._will_use_strassen(right):
+                return self._multiply_strassen(right)
+            else:
+                return self._multiply_classical(right)
+
+    def _multiply_linbox(Matrix_modn_dense self, Matrix_modn_dense right):
+        """
+        Multiply matrices using LinBox.
+
+        INPUT:
+            right -- Matrix
+
+        """
+        cdef int e
+        cdef Matrix_modn_dense ans, B
+
+        if not self.base_ring().is_field():
+            raise ArithmeticError, "LinBox only supports fields"
+
+        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+
+        B = right
+        _sig_on
+        e = linbox_modn_dense_matrix_matrix_multiply(self.p, ans.matrix, self.matrix, B.matrix,
+                                          self._nrows, self._ncols,
+                                          right._nrows, right._ncols)
+        _sig_off
+        if e:
+            raise RuntimeError
+        return ans
 
 
     ########################################################################
@@ -251,8 +302,128 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x      - echelon form in place
     #        - Hessenberg forms of matrices
     ########################################################################
+
+
+    def charpoly(self, var='x', algorithm='linbox'):
+        """
+        Returns the characteristic polynomial of self.
+
+       INPUT:
+            var -- a variable name
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
+                         'generic'
+
+        EXAMPLES:
+            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A.charpoly()
+            x^3 + 4*x^2
+
+            sage: A = Mat(Integers(6),3,3)(range(9))
+            sage: A.charpoly()
+            x^3
+
+        ALGORITHM: Uses LinBox if self.base_ring() is a field
+
+        NOTE: Right now, LinBox is disabled until some bugs there (in
+        our wrapper?) are fixed. If you are desparate, call
+        self._charpoly_linbox() directly.
+
+        """
+        # disabling LinBox for now until a fix is available
+
+        if algorithm == 'linbox': # and not self.base_ring().is_field():
+            algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
+
+        if algorithm == 'linbox':
+            g = self._charpoly_linbox(var)
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.charpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    def minpoly(self, var='x', algorithm='linbox'):
+        """
+        Returns the minimal polynomial of self.
+
+        INPUT:
+            var -- a variable name
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
+                         'generic'
+
+        NOTE: Right now, LinBox is disabled until some bugs there (in
+        our wrapper?) are fixed. If you are desparate, call
+        self._charpoly_linbox() directly.
+
+
+        """
+
+
+        #Disabling LinBox for now
+        if algorithm=='linbox':# and not self.base_ring().is_field():
+            algorithm='generic' #LinBox only supports fields
+
+        if algorithm == 'linbox':
+            g = self._minpoly_linbox(var)
+        elif algorithm == 'generic':
+            #g = self._minpoly_generic(var)
+            raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('minpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    def _minpoly_linbox(self, var='x'):
+        """
+        Computes the minimal polynomial using LinBox. No checks are
+        performed.
+        """
+        return self._poly_linbox(var=var, typ='minpoly')
+
+    def _charpoly_linbox(self, var='x'):
+        """
+        Computes the characteristic polynomial using LinBox. No checks
+        are performed.
+        """
+        return self._poly_linbox(var=var, typ='charpoly')
+
+    def _poly_linbox(self, var='x', typ='minpoly'):
+        """
+        Computes either the minimal or the characteristic polynomial
+        using LinBox. No checks are performed.
+
+        INPUT:
+            var -- 'x'
+            typ -- 'minpoly' or 'charpoly'
+        """
+        if self._nrows != self._ncols:
+            raise ValueError, "matrix must be square"
+        if self._nrows <= 1:
+            return matrix_dense.Matrix_dense.charpoly(self, var)
+        cdef mod_int* poly
+        cdef size_t n
+        cdef size_t degree
+        if typ == 'minpoly':
+            _sig_on
+            linbox_modn_dense_minpoly(self.p, &poly, &degree, self._nrows, self.matrix, 1)
+            _sig_off
+        else:
+            _sig_on
+            linbox_modn_dense_minpoly(self.p, &poly, &degree, self._nrows, self.matrix, 0)
+            _sig_off
+
+        v = []
+        for n from 0 <= n <= degree:
+            v.append(poly[n])
+        linbox_modn_dense_delete_array(poly)
+        R = self._base_ring[var]
+        return R(v)
+
     def echelonize(self, algorithm="linbox", **kwds):
         """
+        Puts self in row echelon form.
+
         INPUT:
             self -- a mutable matrix
             algorithm -- 'linbox' -- uses the C++ linbox library
@@ -278,6 +449,11 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             [0, 1]
 
         """
+
+        if self.p == 2 and algorithm=='linbox':
+            # TODO: LinBox crashes if working over GF(2)
+            algorithm ='gauss'
+
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         if not self.base_ring().is_field():
@@ -292,13 +468,17 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise ValueError, "algorithm '%s' not known"%algorithm
 
     def _echelonize_linbox(self):
+        """
+        Puts self in row echelon form using LinBox.
+
+        """
         self.check_mutability()
 
         t = verbose('calling linbox echelonize mod %s'%self.p)
         _sig_on
-        r = linbox_matrix_modn_dense_echelonize(self.p,
-                                                self.matrix,
-                                                self._nrows, self._ncols)
+        r = linbox_modn_dense_echelonize(self.p,
+                                         self.matrix,
+                                         self._nrows, self._ncols)
         _sig_off
         verbose('done with echelonize',t)
 
@@ -626,8 +806,4 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
-
-    def lift(self):
-        import misc
-        return misc.matrix_modn_dense_lift(self)
 

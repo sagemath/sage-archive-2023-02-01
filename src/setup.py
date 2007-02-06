@@ -126,6 +126,13 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        language='c++'
                        )
 
+
+qd = Extension('sage.rings.real_qdrf',
+                       sources = ["sage/rings/real_qdrf.pyx"],
+                       libraries = ['qd', 'm', 'stdc++', ],
+                       language='c++'
+                       )
+
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
 
 matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
@@ -322,6 +329,7 @@ ext_modules = [ \
 
     real_double,
     complex_double,
+    qd,
 
     complex_number,
 

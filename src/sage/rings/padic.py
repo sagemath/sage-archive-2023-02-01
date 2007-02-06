@@ -46,12 +46,6 @@ class pAdic(field_element.FieldElement):
     A $p$-adic numbers of either finite or infinite precision.
 
     EXAMPLES:
-        sage: a = 1 + 17 + 3*17^2 + O(17^3)
-        sage: a
-        1 + 17 + 3*17^2 + O(17^3)
-        sage: loads(a.dumps()) == a
-        True
-
       Coercion from rational field using the default precision of the
       p-adic field:
         sage: K = pAdicField(5, 4)
@@ -81,6 +75,15 @@ class pAdic(field_element.FieldElement):
         sage: K(1/15, 8)
           2*5^-1 + 3 + 5 + 3*5^2 + 5^3 + 3*5^4 + 5^5 + 3*5^6 + 5^7 + O(5^8)
 
+    Saving and loading p-adics:
+        sage: a = 1 + 17 + 3*17^2 + O(17^3)
+        sage: a
+        1 + 17 + 3*17^2 + O(17^3)
+        sage: b = loads(a.dumps())
+        sage: b == a
+        True
+        sage: b
+        1 + 17 + 3*17^2 + O(17^3)
     """
     def __init__(self, parent, x, big_oh=infinity, ordp=None, construct=False):
         r"""
@@ -182,6 +185,9 @@ class pAdic(field_element.FieldElement):
             else:
                 self.__prec = big_oh
         self.__order = None
+
+    def __reduce__(self):
+        return reduce_version0, (self.__ordp, self.__parent, self.__p, self.__unit, self.__prec)
 
     def prec(self):
         """
@@ -374,7 +380,10 @@ class pAdic(field_element.FieldElement):
         u     = self.__unit
         exp   = self.__ordp
         p     = self.__p
-        prec  = min(self.__prec, self.parent().print_prec() - self.__ordp)
+        if self.__ordp == infinity:
+            prec = self.__prec
+        else:
+            prec  = min(self.__prec, self.parent().print_prec() - self.__ordp)
         if prec == infinity:
             prec = self.parent().prec()
         u   %= self.__p ** prec
@@ -914,3 +923,5 @@ class pAdic(field_element.FieldElement):
 pAdic.algebraic_dependency = pAdic.algdep
 
 
+def reduce_version0(ordp, parent, p, unit, prec):
+    return pAdic(parent, (p, unit, ordp, prec), construct=True)

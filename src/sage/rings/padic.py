@@ -71,9 +71,9 @@ class pAdic(field_element.FieldElement):
         sage: K(3, infinity)
           3 + ... + O(5^Infinity)
         sage: K(3, 8)
-          3 + ... + O(5^8)
+          3 + O(5^8)
         sage: K(3/5, 8)
-          3*5^-1 + ... + O(5^8)
+          3*5^-1 + O(5^8)
         sage: K(1/3, 8)
           2 + 3*5 + 5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + 3*5^7 + O(5^8)
         sage: K(5/3, 8)
@@ -184,13 +184,22 @@ class pAdic(field_element.FieldElement):
         self.__order = None
 
     def prec(self):
+        """
+        Return the precision to which this p-adic number is known.
+        """
         return self.__prec
 
     def _pari_init_(self):
         """
         PARI representation of a p-adic is the same as in SAGE.
         """
-        return str(self)
+        if self.__prec == infinity:
+            if self.__ordp == infinity:
+                return '0'
+            else:
+                return str(self.__unit * (self.__p**self.__ordp))
+        else:
+            return str(self)
 
     def sqrt(self):
         """
@@ -390,7 +399,7 @@ class pAdic(field_element.FieldElement):
                         s += "%s + "%var
             exp += 1
             u = (u-coeff)/p
-        if exp < self.big_oh()-1:
+        if self.big_oh() == infinity and exp != infinity:
             s += '... + '
         s += "O(%s"%(p)
         if self.big_oh() == 1:
@@ -410,7 +419,7 @@ class pAdic(field_element.FieldElement):
         EXAMPLES:
             sage: K = Qp(11, 10); K.print_prec(5)
             sage: a = K(-1); a
-            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + ... + O(11^10)
+            10 + 10*11 + 10*11^2 + 10*11^3 + 10*11^4 + O(11^10)
             sage: b = K(1); b
             1
             sage: a+b
@@ -481,17 +490,33 @@ class pAdic(field_element.FieldElement):
         return self * right.__invert__(self.__prec + max(self.__ordp,0))
 
     def __mod__(self, right):
-        if self.__ordp < 0:
-            raise ZeroDivisionError, "Reduction of not defined (there is a denominator)."
-        if self.__ordp >= 0 and isinstance(right,(int,long)):
-            n = arith.valuation(right,self.__p)
-            if self.__p**n == right:  # i.e., right is a p-power
-                if n > self.__prec + self.__ordp:
-                    raise ArithmeticError, "number not known to large enough precision to reduce"
-                p = Mod(self.__p,right)
-                u = Mod(self.__unit, right)
-                return p**self.__ordp * u
-        raise ZeroDivisionError, "Reduction not defined."
+        """
+        EXAMPLES:
+            sage: a = 2 + 13*17 + 15*17^2 + O(17^3)
+            sage: a % 17^2
+            2 + 13*17 + O(17^2)
+
+            sage: a % 17
+            2 + O(17)
+
+        We reduce a 16-th
+            sage: zeta = pAdicField(17,8).zeta(16); zeta
+            14 + 3*17 + 14*17^2 + 13*17^3 + 16*17^4 + 5*17^5 + 12*17^6 + 16*17^7 + O(17^8)
+            sage: zeta^16
+            1 + O(17^8)
+            sage: zeta % 17
+            14 + O(17)
+            sage: zeta % 17^3
+            14 + 3*17 + 14*17^2 + O(17^3)
+        """
+        n = int(right)
+        if n != right:
+            raise TypeError, "modulus must be an integer"
+        p = self.__p
+        v = arith.valuation(n, p)
+        if p**v != n:
+            raise ValueError, "modulus must be a power of p (=%s)"%p
+        return self + self.__parent(0, v)
 
     def __pow__(self, right):
         """
@@ -500,7 +525,7 @@ class pAdic(field_element.FieldElement):
             sage: a = K(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a^2
-            1 + ... + O(19^5)
+            1 + O(19^5)
             sage: a^3
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: K(5)^30
@@ -555,7 +580,7 @@ class pAdic(field_element.FieldElement):
             sage: b
             1 + 18*19 + 18*19^3 + O(19^5)
             sage: a*b
-            1 + ... + O(19^5)
+            1 + O(19^5)
 
         One can pass an optional argument to __invert__ to
         affect the precision, which is especially useful when
@@ -608,19 +633,31 @@ class pAdic(field_element.FieldElement):
             sage: a = K(-1); a
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a.lift()
-            -1
+            2476098
 
             sage: a = 4596/18 + O(7^4); a
             1 + 6*7 + 2*7^2 + 5*7^3 + O(7^4)
             sage: a.lift()
-            40747250655980528766
+            1856
+
+            sage: z = 7 + 4*17 + 2*17^2 + 16*17^3 + 17^4 + 15*17^5 + O(17^6)
+            sage: lift(z)
+            21460637
+            sage: lift(z%17)
+            7
+            sage: w = z/17^2; w
+            7*17^-2 + 4*17^-1 + 2 + 16*17 + 17^2 + 15*17^3 + O(17^4)
+            sage: lift(w%17)
+            653/289
+            sage: 7*17^-2 + 4*17^-1 + 2
+            653/289
         """
         if self.is_zero():
             return frac(0,1)
         p = self.__p
         if self.__prec == infinity:
             return frac(p,1)**self.__ordp * frac(self.__unit,1)
-        return frac(p,1)**self.__ordp * self.__unit
+        return frac(p,1)**self.__ordp * (self.__unit % (p**self.__prec))
 
     def _integer_(self):
         return self.lift()
@@ -675,12 +712,12 @@ class pAdic(field_element.FieldElement):
         EXAMPLES:
             sage: x = 9*(2+3+O(3**7))
             sage: x.unit_part()
-            2 + 3 + ... + O(3^7)
+            2 + 3 + O(3^7)
             sage: K = Qp(19, 5)
             sage: a = K(2)/19; a
-            2*19^-1 + ... + O(19^4)
+            2*19^-1 + O(19^4)
             sage: a.unit_part()
-            2 + ... + O(19^5)
+            2 + O(19^5)
         """
         return pAdic(self.__parent, self.__unit, self.__prec, 0)
 

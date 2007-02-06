@@ -623,13 +623,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()
             x^3 - 3990*x^2 - 266000*x
         """
+        key = 'charpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
         elif algorithm == 'generic':
             g = matrix_dense.Matrix_dense.charpoly(self, var)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+
+        self.cache(key, g)
         return g
 
     def minpoly(self, var='x', algorithm='linbox'):
@@ -647,13 +652,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
         """
+        key = 'minpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
         elif algorithm == 'generic':
             g = self._minpoly_generic(var)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
-        self.cache('minpoly_%s_%s'%(algorithm, var), g)
+
+        self.cache(key, g)
         return g
 
     def _minpoly_linbox(self, var='x'):

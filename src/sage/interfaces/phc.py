@@ -1,6 +1,8 @@
 r"""
 Interface to PHC.
 
+WARNING -- currently totally broken!!
+
 PHC computes numerical information about systems of polynomials over
 the complex numbers.
 

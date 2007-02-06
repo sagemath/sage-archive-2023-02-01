@@ -85,7 +85,7 @@ Reals = RealField
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Quad double
-from real_qdrf import QuadDoubleRealField, QuadDoubleElement, QDRF
+#from real_qdrf import QuadDoubleRealField, QuadDoubleElement, QDRF
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,

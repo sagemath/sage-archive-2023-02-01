@@ -169,9 +169,9 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             a = CRT_basis([w[i].base_ring().order() for w in Y])
             # take the linear combination of the lifts of the elements
             # of Y times coefficients in a
-            L = a[0]*(Y[0].lift())
+            L = a[0]*matrix_modn_dense_lift(Y[0])
             for j in range(1,len(Y)):
-                L += a[j]*(Y[j].lift())
+                L += a[j]*matrix_modn_dense_lift(Y[j])
             verbose("crt and rr time is",t, level=2)
             E = L.rational_reconstruction(prod)
         except ValueError, msg:

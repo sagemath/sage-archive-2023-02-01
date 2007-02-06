@@ -106,6 +106,7 @@ fi
 # NEW SAGE C LIBRARY CODE PACKAGE
 if [ -d "$SAGE_ROOT"/devel/c_lib ]; then
    cd "$SAGE_ROOT"/devel/c_lib
+   rm -f configure~
    chmod +x configure
    hg diff
    hg status

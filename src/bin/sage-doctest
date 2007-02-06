@@ -300,10 +300,11 @@ def test_file(file):
         try:
             if verbose:
                 e = os.system(cmd)
+                out = ''; err = ''
             else:
                 e = os.system("%s 1>.doctest/out 2>.doctest/err"%cmd)
-            out = open('.doctest/out').read()
-            err = open('.doctest/err').read()
+                out = open('.doctest/out').read()
+                err = open('.doctest/err').read()
         except KeyboardInterrupt:
             err += "\n Error -- interrupted after %s seconds!"%tm
             print "Error!!!"

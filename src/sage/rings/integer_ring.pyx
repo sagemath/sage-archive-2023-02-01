@@ -69,13 +69,13 @@ cimport rational
 import ring
 
 ###########
-from random import randint
+from random import randrange
 cdef extern from "stdlib.h":
     long random()
     void srandom(unsigned int seed)
 
 # seed it when module is loaded.
-srandom(randint(0,2**32))
+srandom(randrange(0,2**32))
 ###########
 
 def is_IntegerRing(x):
@@ -292,32 +292,50 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             return False
 
-    def random_element(self, min=-2, max=2):
+    def random_element(self, x=None, y=None):
         """
-        Return a random integer between min and max,
-        including both endpoints.
+        Return a random integer.
 
-        INPUT:
-            min -- integer
-            max -- integer
+            ZZ.random_element() -- random integer in {-2,-1,0,1,2}.
+            ZZ.random_element(n) -- return an integer between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer between min and max-1, inclusive.
 
         EXAMPLES:
             sage: ZZ.random_element(-10,10)
+            -6
+            sage: ZZ.random_element(10)
             6
-            sage: ZZ.random_element(0,10^50)
+            sage: ZZ.random_element(10^50)
             46451269108731711203254579547654565878787536081836
+            sage: [ZZ.random_element(5) for _ in range(10)]
+            [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
+
+        Notice that the right endpoint is not included:
+            sage: [ZZ.random_element(-2,2) for _ in range(10)]
+            [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
         """
-        cdef integer.Integer x
+        cdef integer.Integer z
         cdef int _min, _max, r
+        if y is None:
+            if x is None:
+                min = -2
+                max = 3
+            else:
+                min = 0
+                max = x
+        else:
+            min = x
+            max = y
+
         if max < 2147483648:
             _min = min
             _max = max
-            x = PY_NEW(integer.Integer)
-            r = random() % (_max - _min + 1) + _min
-            mpz_set_si(x.value, r)
-            return x
+            z = PY_NEW(integer.Integer)
+            r = random() % (_max - _min) + _min
+            mpz_set_si(z.value, r)
+            return z
         else:
-            return integer.Integer(randint(min,max))
+            return integer.Integer(randrange(min,max))
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

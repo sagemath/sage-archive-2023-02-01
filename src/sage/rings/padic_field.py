@@ -142,6 +142,51 @@ class pAdicField_generic(field.Field):
         return cmp((self.__p, self.__prec), (other.__p, other.__prec))
 
 
+    def teichmuller(self, a):
+        """
+        INPUT:
+            a -- an integer between 1 and p-1 inclusive
+
+        OUTPUT:
+            the Teichmuller lift of a as an element of
+            this p-adic field, computed to the default
+            precision of this field.
+
+        EXAMPLES:
+            sage: K = pAdicField(13,prec=6)
+            sage: a = K.teichmuller(2); a
+            2 + 6*13 + 2*13^2 + 2*13^3 + 4*13^4 + 2*13^5 + O(13^6)
+            sage: a^12
+            1 + O(13^6)
+            sage: a = K.teichmuller(0); a
+            Traceback (most recent call last):
+            ...
+            ValueError: a must be nonzero modulo p
+        """
+        _a = int(a)
+        if _a != a:
+            raise TypeError, "a must be coercible to an integer"
+        p = self.prime()
+        if _a <= 0 or _a >= p:
+            _a %= p
+        if _a == 0:
+            raise ValueError, "a must be nonzero modulo p"
+        try:
+            return self.__teich[_a]
+        except AttributeError:
+            pass
+        v = [0]*p
+        # compute a (p-1)st root of unity in Z_p.
+        zeta = self.zeta(p-1)
+        z = zeta
+        for i in range(p-1):
+            j = (z % p).lift()
+            v[j] = z
+            z *= zeta
+        self.__teich = v
+        return v[_a]
+
+
 
 
 

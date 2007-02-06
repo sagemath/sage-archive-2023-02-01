@@ -32,10 +32,11 @@ class pAdicLseries(SageObject):
         self._p = ZZ(p)
         if not self._p.is_prime():
             raise ValueError, "p (=%s) must be a prime"%p
-        if E.conductor() % self._p == 0:
-            raise NotImplementedError, "p (=%s) must be a prime of good reduction"%p
+        #if E.conductor() % self._p == 0:
+        #    raise NotImplementedError, "p (=%s) must be a prime of good reduction"%p
         self._prec = prec
         self._modular_symbol = E.modular_symbol()
+        self._Qp = pAdicField(p, self._prec)
 
     def _repr_(self):
         return "%s-adic L-series of %s"%(self._p, self._E)
@@ -99,49 +100,92 @@ class pAdicLseries(SageObject):
             self._alpha = a
             return a
 
-    def approx(self, n, var='T'):
+    def approx(self, n):
         """
-        Return the n-th polynomial approximation to the p-adic L-series
-        as a power series in the given variable.
+        Return the n-th approximation to the p-adic L-series as a
+        power series in T.
 
         INPUT:
             n -- an integer
-            var -- a string (default: 'T')
+
+        EXAMPLES:
+        We compute some $p$-adic $L$-functions associated to the elliptic curve 11a.
+            sage: E = EllipticCurve('11a')
+            sage: p = 3
+            sage: E.is_ordinary(p)
+            True
+            sage: L = E.padic_lseries(p, prec=10)
+            sage: L.approx(4)
+            1 + 2*3 + 3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 3^6 + 3^8 + 3^9 + O(3^10) + (2 + 3^3 + 3^5 + 2*3^7 + 3^9 + O(3^10))*T + (2 + 2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + 2*3^7 + 3^8 + O(3^10))*T^2 + (2*3 + 3^2 + 3^5 + 2*3^6 + 3^8 + 2*3^9 + O(3^10))*T^3 + (3 + 2*3^2 + 3^5 + 2*3^6 + 2*3^7 + 3^8 + O(3^10))*T^4 + O(T^5)
+            CPU time: 0.55 s,  Wall time: 0.56 s
+            sage: L.approx(5)
+            1 + 2*3 + 3^2 + 2*3^4 + 3^5 + 2*3^6 + O(3^10) + (2 + 3^5 + 3^6 + 2*3^7 + 3^9 + O(3^10))*T + (2 + 2*3 + 2*3^3 + 2*3^4 + 2*3^6 + 3^7 + 3^9 + O(3^10))*T^2 + (2*3 + 2*3^2 + 2*3^3 + 2*3^5 + 3^6 + 2*3^8 + 2*3^9 + O(3^10))*T^3 + (3 + 2*3^2 + 2*3^5 + 2*3^6 + 3^8 + 2*3^9 + O(3^10))*T^4 + (1 + 3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^7 + 3^8 + O(3^10))*T^5 + O(T^6)
+
+        Another example at a prime of bad reduction, where the
+        $p$-adic $L$-function has an extra 0 (compared to the non
+        $p$-adic $L$-function).
+
+            sage: E = EllipticCurve('11a')
+            sage: p = 11
+            sage: E.is_ordinary(p)
+            True
+            sage: L = E.padic_lseries(p, prec=10)
+            sage: time L.approx(2)
+            10*11^2 + 7*11^3 + 9*11^5 + 6*11^8 + 10*11^9 + O(11^10) + (6 + 8*11 + 9*11^2 + 11^3 + 11^4 + 5*11^5 + 5*11^6 + 5*11^7 + 4*11^8 + 3*11^9 + O(11^10))*T + (8 + 9*11 + 3*11^2 + 7*11^3 + 9*11^4 + 8*11^6 + 4*11^7 + 6*11^8 + 10*11^9 + O(11^10))*T^2 + O(T^3)
+
+        We compute a $p$-adic $L$-function that vanishes to order $2$.
+            sage: E = EllipticCurve('389a')
+            sage: p = 3
+            sage: E.is_ordinary(p)
+            True
+            sage: L = E.padic_lseries(p,prec=10)
+            sage: L.approx(1)
+            0
+            sage: L.approx(2)
+            (3 + 3^2 + 2*3^3 + 3^4 + 3^5 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))*T + (2 + 2*3 + 3^2 + 3^5 + 3^6 + 2*3^7 + 2*3^8 + O(3^10))*T^2 + O(T^3)
+            sage: L.approx(3)
+            (2*3^2 + 3^5 + 3^6 + 2*3^7 + 2*3^8 + O(3^10))*T + (2 + 2*3 + 2*3^4 + 2*3^5 + 3^6 + 3^7 + 2*3^8 + O(3^10))*T^2 + (2 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 3^5 + O(3^10))*T^3 + O(T^4)
+            sage: L.approx(4)
+            (2*3^3 + 3^6 + 3^7 + 2*3^8 + 2*3^9 + O(3^10))*T + (2 + 2*3 + 2*3^2 + 3^3 + 3^4 + 2*3^5 + 2*3^6 + 2*3^7 + O(3^10))*T^2 + (2 + 2*3^2 + 3^6 + 3^8 + O(3^10))*T^3 + (1 + 2*3 + 3^3 + 2*3^4 + 2*3^5 + 3^7 + 3^8 + O(3^10))*T^4 + O(T^5)
+
         """
+        try:
+            return self.__approx[n]
+        except AttributeError:
+            self.__approx = {}
+        except KeyError:
+            pass
+
         p = self._p
         gamma = 1 + p
-        R = pAdicField(p, self._prec)[var]
-        T = R.gen()
+        R = self._Qp[['T']]
+        T = R(R.gen(), n+1)
         L = R(0)
         one_plus_T_factor = R(1)
         gamma_power = 1
-        for j in range(p**(n-1)-1):
+        teich = self.teichmuller(n)
+        for j in range(p**(n-1)):
             s = 0
             for a in range(1,p):
-                b = self._teich(a) * gamma_power
+                b = teich[a] * gamma_power
                 s += self.measure(b, n)
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
+        self.__approx[n] = L
         return L
 
-    def _teich(self, a):
+    def teichmuller(self, n):
         """
         INPUT:
-            a -- an integer between 1 and p-1, inclusive
-        OUTPUT:
-            the Teichmuller lift of a.
-        """
-        try:
-            return self.__teich[a]
-        except AttributeError:
-            pass
-        v = [0]
-        # compute a (p-1)st root of unity in Z_p.
-        K = pAdicField(p, self._prec)
-        zeta = K.zeta(p-1)
+            n -- a positive integer.
 
-        self.__teich = v
+        OUTPUT:
+            the Teichmuller lifts to precision p^n as integers.
+        """
+        K = self._Qp
+        pn = self._p ** n
+        return [0] + [(K.teichmuller(a)%pn).lift() for a in range(1,self._p)]
 
 class pAdicLseriesOrdinary(pAdicLseries):
     pass

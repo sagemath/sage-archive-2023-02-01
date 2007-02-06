@@ -52,6 +52,9 @@ import sage.libs.mwrank.all as mwrank
 import constructor
 from sage.interfaces.all import gp
 
+import ell_modular_symbols
+import padic_lseries
+
 import mod5family
 
 from sage.rings.all import (
@@ -522,6 +525,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return the cuspidal modular form associated to this elliptic curve.
 
         EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: f = E.modular_form()
+            sage: f
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -533,6 +540,88 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
             self.__modular_form = f
             return f
+
+    def modular_symbol_space(self, sign=1, base_ring=Q):
+        r"""
+        Return the space of cuspidal modular symbols associated to
+        this elliptic curve, with given sign and base ring.
+
+        INPUT:
+            sign -- 0, -1, or 1
+            base_ring -- a ring
+
+        EXAMPLES:
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol_space[typ]
+        except AttributeError:
+            self.__modular_symbol_space = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring)
+        self.__modular_symbol_space[typ] = M
+        return M
+
+    def modular_symbol(self, sign=1, base_ring=Q):
+        r"""
+        Return the modular symbol associated to this elliptic curve,
+        with given sign and base ring.  This is the map that sends r/s
+        to a fixed multiple of 2*pi*I*f(z)dz from oo to r/s,
+        normalized so that all values of this map take values in QQ.
+
+        NOTE: Currently there is no guarantee about how this map is
+        normalized.  This will be added.
+
+        INPUT:
+            sign -- -1, or 1
+            base_ring -- a ring
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol[typ]
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.ModularSymbol(self, sign, base_ring)
+        self.__modular_symbol[typ] = M
+        return M
+
+    def padic_lseries(self, p, prec=20):
+        """
+        Return the p-adic Lseries of self at p with given p-adic precision.
+
+        INPUT:
+            p -- prime
+            prec -- precision of p-adic computations
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: L = E.padic_lseries(5); L
+            5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: type(L)
+            <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
+        """
+        key = (p,prec)
+        try:
+            return self._padic_lseries[key]
+        except AttributeError:
+            self._padic_lseries = {}
+        except KeyError:
+            pass
+        if self.ap(p) % p != 0:
+            Lp = padic_lseries.pAdicLseriesOrdinary(self, p, prec)
+        else:
+            Lp = padic_lseries.pAdicLseriesSupersingular(self, p, prec)
+        self._padic_lseries[key] = Lp
+        return Lp
 
     def newform(self):
         """
@@ -582,9 +671,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.analytic_rank(algorithm='cremona')
-            2
             sage: E.analytic_rank(algorithm='ec')
+            2
+            sage: E.analytic_rank(algorithm='cremona')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
             2
@@ -1190,7 +1279,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         The n-th Fourier coefficient of the modular form corresponding
         to this elliptic curve, where n is a positive integer.
         """
-        return int(self.pari_mincurve().ellak(n))
+        return Integer(self.pari_mincurve().ellak(n))
 
     def ap(self, p):
         """
@@ -1199,7 +1288,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        return int(self.pari_mincurve().ellap(p))
+        return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
         return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
@@ -3749,7 +3838,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
             sage: t = f.parent().gen()
             sage: f(2*t)/2
-            (1 + ... + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
+            (1 + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
             sage: g
             t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 

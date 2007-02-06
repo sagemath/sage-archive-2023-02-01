@@ -12,7 +12,6 @@ components.
 AUTHOR:
    -- PHC was written by J. Verschelde, R. Cools, and many others (?)
    -- William Stein and Kelly ?? -- first version of interface to PHC
-
 """
 
 ########################################################################
@@ -132,6 +131,11 @@ class PHC:
         if not isinstance(polys, (list, tuple)):
             raise TypeError, 'polys must be a list or tuple'
         s = '%s\n'%len(polys)
+        if len(polys) == 0:
+            ngens = 1
+        else:
+            ngens = polys[0].parent().ngens()
+        s += '%s\n'%ngens
 
         # TODO: actually implement the variable mapping (copy code from gfan?)
         # For now, we'll assume all variables satisfy the restrictive

@@ -501,8 +501,10 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     # out crazy warnings when the exponent is LARGE -- this
     # is even a problem in gp!!!
     # (Commenting out causes this to use a generic algorithm)
-    #def __pow__(self, right):
-    #    right = int(right)
+    #def __pow__(self, _right):
+    #    right = int(_right)
+    #    if right != _right:
+    #         raise ValueError
     #    return FiniteField_ext_pariElement(self.__parent, self.__value**right)
 
     def __neg__(self):

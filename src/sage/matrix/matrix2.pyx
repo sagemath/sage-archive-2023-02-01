@@ -29,6 +29,8 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
+from random import randint
+
 cdef class Matrix(matrix1.Matrix):
     def prod_of_row_sums(self, cols):
         r"""
@@ -1989,6 +1991,39 @@ cdef class Matrix(matrix1.Matrix):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def randomize(self, density=1, *args, **kwds):
+        """
+        Returns a random element of self.
+
+        INPUT:
+            density -- integer (default: 1) rough measure of the proportion of nonzero
+                       entries in the random matrix
+            *args, **kwds -- rest of parameters may be passed to the random_element function
+                   of the base ring.
+        """
+        self.check_mutability()
+        self.clear_cache()
+
+        density = float(density)
+        R = self.base_ring()
+        zero = R(0)
+
+        cdef Py_ssize_t i, j, nc, num_per_row
+
+        if density == 1:
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    self.set_unsafe(i, j, R.random_element(*args, **kwds))
+        else:
+            nc = self._ncols
+            num_per_row = int(density * nc) + 1
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < num_per_row:
+                    self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+
+
+
 
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)

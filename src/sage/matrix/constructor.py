@@ -362,3 +362,16 @@ def ncols_from_dict(d):
 Matrix = matrix
 
 
+def random_matrix(R, nrows, ncols=None):
+    """
+    Return a random matrix with entries in the ring R.
+
+    INPUT:
+        R -- a ring
+        nrows -- integer; number of rows
+        ncols -- (default: None); number of columns; if None defaults to nrows
+    """
+    A = matrix(R, nrows, ncols)
+    A.randomize()
+    return A
+

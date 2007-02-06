@@ -1298,6 +1298,62 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import misc
         return misc.matrix_integer_dense_rational_reconstruction(self, N)
 
+    def randomize(self, density=1, x=None, y=None):
+        """
+        Returns a random element of self.
+        """
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef int _min, _max
+        if y is None:
+            if x is None:
+                min = -2
+                max = 3
+            else:
+                min = 0
+                max = x
+        else:
+            min = x
+            max = y
+
+        density = float(density)
+        R = self.base_ring()
+        zero = R(0)
+
+        cdef int min_is_zero
+        min_is_nonzero = (min != 0)
+
+        cdef Integer n_max, n_min, n_width
+        n_max = Integer(max)
+        n_min = Integer(min)
+        n_width = n_max - n_min
+
+        cdef Py_ssize_t i, j, k, nc, num_per_row
+        global state
+
+        if density == 1:
+            for i from 0 <= i < self._nrows*self._ncols:
+                mpz_urandomm(self._entries[i], state, n_width.value)
+                if min_is_nonzero:
+                    mpz_add(self._entries[i], self._entries[i], n_min.value)
+        else:
+            from random import randrange
+            nc = self._ncols
+            num_per_row = int(density * nc) + 1
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < num_per_row:
+                    k = randrange(0,nc)
+                    mpz_urandomm(self._matrix[i][k], state, n_width.value)
+                    if min_is_nonzero:
+                        mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
+
+
+###############################################################
+
+cdef gmp_randstate_t state
+gmp_randinit_mt(state)
+
 ###########################################
 # Helper code for Echelon form algorithm.
 ###########################################

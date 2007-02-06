@@ -658,6 +658,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         self.check_mutability()
+        self.clear_cache()
         cdef Matrix_rational_dense E
         E = self._echelon_form_multimodular(height_guess, proof=proof)
         cdef Py_ssize_t i, j

@@ -327,7 +327,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             min = x
             max = y
 
-        if max < 2147483648:
+        if min > -2147483648 and max < 2147483648:
             _min = min
             _max = max
             z = PY_NEW(integer.Integer)

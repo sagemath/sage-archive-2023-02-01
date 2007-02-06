@@ -1,3 +1,26 @@
+"""
+p-adic L-functions of elliptic curves
+
+AUTHORS:
+   -- William Stein (2007-01-01): first version
+"""
+
+######################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#    This code is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#    General Public License for more details.
+#
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+######################################################################
+
+
 from sage.rings.integer_ring import ZZ
 from sage.rings.padic_field import pAdicField
 
@@ -76,14 +99,18 @@ class pAdicLseries(SageObject):
             self._alpha = a
             return a
 
-    def approx(self, n):
+    def approx(self, n, var='T'):
         """
         Return the n-th polynomial approximation to the p-adic L-series
-        as a power series in T.
+        as a power series in the given variable.
+
+        INPUT:
+            n -- an integer
+            var -- a string (default: 'T')
         """
         p = self._p
         gamma = 1 + p
-        R = pAdicField(p, self._prec)
+        R = pAdicField(p, self._prec)[var]
         T = R.gen()
         L = R(0)
         one_plus_T_factor = R(1)
@@ -98,9 +125,23 @@ class pAdicLseries(SageObject):
             gamma_power *= gamma
         return L
 
-    def _tiech(self, a):
-        return a
-        raise NotImplementedError
+    def _teich(self, a):
+        """
+        INPUT:
+            a -- an integer between 1 and p-1, inclusive
+        OUTPUT:
+            the Teichmuller lift of a.
+        """
+        try:
+            return self.__teich[a]
+        except AttributeError:
+            pass
+        v = [0]
+        # compute a (p-1)st root of unity in Z_p.
+        K = pAdicField(p, self._prec)
+        zeta = K.zeta(p-1)
+
+        self.__teich = v
 
 class pAdicLseriesOrdinary(pAdicLseries):
     pass

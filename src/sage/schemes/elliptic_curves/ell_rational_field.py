@@ -2714,6 +2714,46 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__sha_an = Sha
             return Sha
 
+    def sha_an_padic(self, p):
+        """
+        Return the power of p that divides Sha(E)(p), according to the
+        p-adic analogue of the BSD conjecture.
+
+        INPUT:
+            p -- a prime
+
+        OUTPUT:
+            integer -- power of p that conjecturally equals #Sha(E)(p)
+
+        Note that in many cases this conjecture has been proved.
+        """
+        try:
+            return self.__sha_an_padic[p]
+        except AttributeError:
+            self.__sha_an_padic = {}
+        except KeyError:
+            pass
+
+        if self.is_ordinary(p) and self.is_good(p):
+            S = self._sha_an_padic_good_ordinary(p)
+        else:
+            raise NotImplementedError, "only the good ordinary case is implemented."
+        self.__sha_an_padic[p] = S
+        return S
+
+    def _sha_an_padic_good_ordinary(self, p):
+        """
+        Return the power of p that divides Sha(E)(p), according to the
+        p-adic analogue of the BSD conjecture.
+
+        INPUT:
+            p -- a prime of good ordinary reduction for E
+
+        OUTPUT:
+            integer -- power of p that conjecturally equals #Sha(E)(p)
+        """
+
+
 
     def L_ratio(self):
         r"""

@@ -34,6 +34,8 @@ cimport sage.structure.element
 from   sage.structure.element    cimport ModuleElement, Element, RingElement, Vector
 from   sage.structure.mutability cimport Mutability
 
+from sage.rings.ring cimport CommutativeRing
+
 import sage.modules.free_module
 
 import matrix_misc
@@ -1662,23 +1664,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(2,2, [1,2,x*y,y*x])
             sage: b = matrix(2,2, [1,2,y*x,y*x])
         """
-        return self._add_c_impl(right._left_scalar_multiply(-1))
-
-##         cdef Py_ssize_t i, j
-##         cdef Matrix A
-##         A = self.new_matrix()
-##         for i from 0 <= i < self._nrows:
-##             for j from 0 <= j < self._ncols:
-##                 A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
-##         return A
-
-##     def _div_(self, right):
-##         """
-##         EXAMPLES:
-##             sage: ???
-##         """
-##         # TODO TODO
-##         raise NotImplementedError
+        cdef Py_ssize_t i, j
+        cdef Matrix A
+        A = self.new_matrix()
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                A.set_unsafe(i,j, self.get_unsafe(i,j) - (<Matrix>right).get_unsafe(i,j))
+        return A
 
 
     def __mod__(self, p):
@@ -1718,30 +1710,50 @@ cdef class Matrix(sage.structure.element.Matrix):
         return self.change_ring(self._base_ring.quotient_ring(p))
 
 
-    def _scalar_multiply(self, x):
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        # derived classes over a commutative base *just* overload _lmul_c_impl (!!)
         """
         EXAMPLES:
-            sage: a = matrix(QQ,2,range(6))
-            sage: a._scalar_multiply(3/4)
+            sage: a = matrix(QQ['x'],2,range(6))
+            sage: (3/4) * a
             [   0  3/4  3/2]
             [ 9/4    3 15/4]
+
+            sage: R.<x,y> = QQ[]
+            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
+            [       1        x        y]
+            [  -1*x*y    y + x -1*y + x]
+            sage: (x*y) * a
+            [             x*y            x^2*y            x*y^2]
+            [      -1*x^2*y^2    x*y^2 + x^2*y -1*x*y^2 + x^2*y]
+
+            sage: R.<x,y> = FreeAlgebra(ZZ,2)
+            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
+            [    1     x     y]
+            [ -x*y x + y x - y]
+            sage: (x*y) * a
+            [          x*y         x*y*x         x*y^2]
+            [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
         """
-        cdef Py_ssize_t i
+        if PY_TYPE_CHECK(self._base_ring, CommutativeRing):
+            return self._lmul_c_impl(left)
+        cdef Py_ssize_t r,c
+        cdef RingElement x
+        x = self._base_ring(left)
+        cdef Matrix ans
+        ans = self._parent.zero_matrix()
+        for r from 0 <= r < self._nrows:
+            for c from 0 <= c < self._ncols:
+                ans.set_unsafe(r, c, x._mul_c(<RingElement>self.get_unsafe(r, c)))
+        return ans
 
-        if not x in self._base_ring:
-            x = self._base_ring(x)
-
-        v = self.list()
-        for i from 0 <= i < len(v):
-            v[i] = x * v[i]
-        return self.new_matrix(entries = v, copy=False, coerce=False)
-
-    def _right_scalar_multiply(self, x):
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        # derived classes over a commutative base *just* overload this and not _rmul_c_impl
         """
         EXAMPLES:
         A simple example in which the base ring is commutative:
-            sage: a = matrix(QQ,2,range(6))
-            sage: a._right_scalar_multiply(3/4)
+            sage: a = matrix(QQ['x'],2,range(6))
+            sage: a*(3/4)
             [   0  3/4  3/2]
             [ 9/4    3 15/4]
 
@@ -1750,48 +1762,30 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(2,[x,y,x^2,y^2]); a
             [  x   y]
             [x^2 y^2]
-            sage: a._scalar_multiply(x)
+            sage: x * a
             [  x^2   x*y]
             [  x^3 x*y^2]
-            sage: a._right_scalar_multiply(x)
-            [  x^2   y*x]
-            [  x^3 y^2*x]
-            sage: a._right_scalar_multiply(y)
+            sage: a * y
             [  x*y   y^2]
             [x^2*y   y^3]
-        """
-        cdef Py_ssize_t i
 
-        if not x in self._base_ring:
-            x = self._base_ring(x)
-
-        v = self.list()
-        for i from 0 <= i < len(v):
-            v[i] = v[i]*x
-        return self.new_matrix(entries = v, copy=False, coerce=False)
-
-    def _left_scalar_multiply(self, x):
-        """
-        EXAMPLES:
-            sage: R.<x,y> = QQ[]
-            sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
-            [       1        x        y]
-            [  -1*x*y    y + x -1*y + x]
-            sage: a._left_scalar_multiply(x*y)
-            [             x*y            x^2*y            x*y^2]
-            [      -1*x^2*y^2    x*y^2 + x^2*y -1*x*y^2 + x^2*y]
             sage: R.<x,y> = FreeAlgebra(ZZ,2)
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
             [    1     x     y]
             [ -x*y x + y x - y]
-            sage: a._left_scalar_multiply(x*y)
-            [          x*y         x*y*x         x*y^2]
-            [     -x*y*x*y x*y*x + x*y^2 x*y*x - x*y^2]
-            sage: a._right_scalar_multiply(x*y)
+            sage: a * (x*y)
             [          x*y         x^2*y         y*x*y]
             [     -x*y*x*y x^2*y + y*x*y x^2*y - y*x*y]
         """
-        return self._scalar_multiply(x)
+        cdef Py_ssize_t r,c
+        cdef RingElement x
+        x = self._base_ring(right)
+        cdef Matrix ans
+        ans = self._parent.zero_matrix()
+        for r from 0 <= r < self._nrows:
+            for c from 0 <= c < self._ncols:
+                ans.set_unsafe(r, c, (<RingElement>self.get_unsafe(r, c))._mul_c(x))
+        return ans
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         r"""
@@ -1954,20 +1948,6 @@ cdef class Matrix(sage.structure.element.Matrix):
         else:
             return self._multiply_classical(right)
 
-    cdef ModuleElement _rmul_c_impl(right, RingElement left):
-        """
-        The product left * right, where right is a matrix and left is
-        guaranteed to be in the base ring.
-        """
-        return right._scalar_multiply(left)
-
-    cdef ModuleElement _lmul_c_impl(left, RingElement right):
-        """
-        The product left * right, where left is a matrix and right is
-        guaranteed to be in the base ring.
-        """
-        return left._right_scalar_multiply(right)
-
     cdef int _will_use_strassen(self, Matrix right) except -2:
         """
         Whether or not matrix multiplication of self by right should
@@ -2013,7 +1993,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0 -1]
             [-2 -3]
         """
-        return self._left_scalar_multiply(self._base_ring(-1))
+        return self._lmul_c_impl(self._base_ring(-1))
 
     def __invert__(self):
         r"""

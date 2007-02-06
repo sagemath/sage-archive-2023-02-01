@@ -18,13 +18,28 @@ import os, sys
 
 from misc import SPYX_TMP, SAGE_ROOT
 
+def cblas():
+    if os.environ.has_key('SAGE_CBLAS'):
+        return os.environ['SAGE_CBLAS']
+    elif os.path.exists('/usr/lib/libcblas.dylib') or \
+         os.path.exists('/usr/lib/libcblas.so'):
+        return 'cblas'
+    elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
+        return 'blas'
+    else:
+        # This is very slow  (?), but *guaranteed* to be available.
+        return 'gslcblas'
+
+
 include_dirs = ['%s/local/include'%SAGE_ROOT,  \
                 '%s/local/include/python%s'%(SAGE_ROOT, sys.version[:3]), \
                 '%s/devel/sage/sage/ext'%SAGE_ROOT, \
                 '%s/devel/sage/'%SAGE_ROOT, \
                 '%s/devel/sage/sage/gsl'%SAGE_ROOT]
 
-standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', 'mwrank', 'gsl', 'gslcblas', 'ntl', 'csage']
+
+standard_libs = ['mpfr', 'gmp', 'gmpxx', 'stdc++', 'pari', 'm', \
+                 'mwrank', 'gsl', cblas(), 'ntl', 'csage']
 
 offset = 0
 
@@ -354,4 +369,6 @@ def sanitize(f):
         else:
             s += '_'
     return s
+
+
 

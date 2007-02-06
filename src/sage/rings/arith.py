@@ -1159,6 +1159,11 @@ def generic_power(a, m, one=1):
         m = -m
     if m == 0:
         return one
+    _m = int(m)
+    if _m != m:
+        raise ValueError, "exponent must be an integer"
+    else:
+        m = _m
     power = None
     i = 0
     apow2 = a

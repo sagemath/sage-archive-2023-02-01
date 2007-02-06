@@ -818,7 +818,8 @@ class pAdic(field_element.FieldElement):
         TODO:
             -- Surely there must exist an $O(N^{1+\epsilon})$ time algorithm
             for this? The current one is pretty much quadratic in the
-            precision.
+            precision. (Yes: Kiran pointed out the paper by Bernstein:
+            http://cr.yp.to/lineartime/multapps-20041007.pdf -- David)
 
         """
 
@@ -838,7 +839,7 @@ class pAdic(field_element.FieldElement):
             # log(x) is well-defined mod p^n !) Specifically:
             # we are only guaranteed that $x^j/j$ is zero mod $p^n$ if
             # j >= floor(log_p(j)) + n.
-            extra_prec = 0
+            extra_prec = integer.Integer(0)
             while extra_prec < (prec + extra_prec).exact_log(self.__p):
                 extra_prec += 1
 

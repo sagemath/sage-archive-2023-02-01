@@ -33,6 +33,8 @@ import integral_domain
 
 import polynomial_quotient_ring_element
 
+from sage.structure.parent_gens import ParentWithGens
+
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
     Create a quotient of a polynomial ring.
@@ -189,9 +191,9 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         if polynomial.parent() != ring:
             raise TypeError, "f must have parent R"
 
+        ParentWithGens.__init__(self, ring, names=name)
         self.__ring = ring
         self.__polynomial = polynomial
-        self._assign_names(name)
 
     def __reduce__(self):
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())

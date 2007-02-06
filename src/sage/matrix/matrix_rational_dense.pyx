@@ -9,10 +9,15 @@ Dense matrices over the rational field.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+cdef extern from "matrix_rational_dense_linbox.h":
+    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
 
+cimport sage.structure.element
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
@@ -20,6 +25,9 @@ import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.finite_field import GF
+
+from sage.misc.misc import verbose, get_verbose
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -429,22 +437,109 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
         return A, D
 
-    def _multiply_multi_modular(left, Matrix_rational_dense right):
+    def charpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the characteristic polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.charpoly(); f
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: f(a)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        key = 'charpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
+        if algorithm == 'linbox':
+            A, denom = self._clear_denom()
+            f = A.charpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * denom) * (1 / (denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.charpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+        self.cache(key, g)
+        return g
+
+    def minpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the minimal polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.minpoly(); f
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: a = Mat(ZZ,4)(range(16))
+            sage: f = a.minpoly(); f.factor()
+            x * (x^2 - 30*x - 80)
+            sage: f(a) == 0
+            True
+        """
+        key = 'minpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
+        if algorithm == 'linbox':
+            A, denom = self._clear_denom()
+            f = A.minpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * denom) * (1 / (denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.minpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+        self.cache(key, g)
+        return g
+
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+        return self._multiply_over_integers(right)
+
+    def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
         """
         Multiply this matrix by right using a multimodular algorithm
         and return the result.
 
+        INPUT:
+            self -- matrix over QQ
+            right -- matrix over QQ
+            algorithm -- 'default': use whatever is the defalt for A*B when A, B are over ZZ.
+                         'multimodular': use a multimodular algorithm
+
         EXAMPLES:
+            sage: a = MatrixSpace(QQ,10,5)(range(50))
+            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
+            sage: a._multiply_over_integers(b) == a._multiply_over_integers(b, algorithm='multimodular')
+            True
+
             sage: a = MatrixSpace(QQ,3)(range(9))
             sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-            sage: a._multiply_multi_modular(b)
+            sage: a._multiply_over_integers(b, algorithm = 'multimodular')
             [ 15/28   9/20   7/18]
             [  33/7 117/40   20/9]
             [249/28   27/5  73/18]
-            sage: a = MatrixSpace(QQ,10,5)(range(50))
-            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
-            sage: a._multiply_multi_modular(b) == a._multiply_classical(b)
-            True
 
         """
         cdef Matrix_integer_dense A, B, AB
@@ -452,11 +547,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Integer D
         cdef mpz_t* AB_row,
         cdef mpq_t* res_row
-        A, A_denom = left._clear_denom()
+        A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
-        AB = A._multiply_multi_modular(B)
+        if algorithm == 'default':
+            AB = A*B
+        elif algorithm == 'multimodular':
+            AB = A._multiply_multi_modular(B)
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
         D = A_denom * B_denom
-        res = Matrix_rational_dense.__new__(Matrix_rational_dense, left.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
+        res = Matrix_rational_dense.__new__(Matrix_rational_dense,
+                                            self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
             AB_row = AB._matrix[i]
             res_row = res._matrix[i]
@@ -550,8 +651,50 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
+    ################################################
+    # Echelon form
+    ################################################
+    def echelonize(self, height_guess=None, proof=True, **kwds):
+        x = self.fetch('in_echelon_form')
+        if not x is None: return  # already known to be in echelon form
+        self.check_mutability()
+        cdef Matrix_rational_dense E
+        E = self._echelon_form_multimodular(height_guess, proof=proof)
+        cdef Py_ssize_t i, j
+        cdef mpq_t *row0, *row1
+        for i from 0 <= i < self._nrows:
+            row0 = self._matrix[i]
+            row1 = E._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_set(row0[j], row1[j])
+        self.cache('in_echelon_form', True)
+        self.cache('pivots', E.pivots())
 
+    def echelon_form(self, height_guess=None, proof=True, **kwds):
+        x = self.fetch('echelon_form')
+        if not x is None:
+            return x
+        cdef Matrix_rational_dense E
+        E = self._echelon_form_multimodular(height_guess, proof=proof)
+        self.cache('echelon_form', E)
+        self.cache('pivots', E.pivots())
+        return E
 
+    def _echelonize_linbox(self):
+        raise NotImplementedError
+        linbox_rational_dense_echelon_form(self._matrix, self._nrows, self._ncols)
 
-###########################
+    def _echelon_form_multimodular(self, height_guess=None, proof=True):
+        """
+        Returns reduced row-echelon form using a multi-modular
+        algorithm.  Does not change self.
 
+        REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
+
+        INPUT:
+            height_guess -- integer or None
+            proof -- boolean (default: True)
+        """
+        import misc
+        return misc.matrix_rational_echelon_form_multimodular(self,
+                                 height_guess=height_guess, proof=proof)

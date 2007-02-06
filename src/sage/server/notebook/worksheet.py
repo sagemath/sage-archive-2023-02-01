@@ -1039,7 +1039,7 @@ class Worksheet:
 
     def check_for_system_switching(self, s, C):
         r"""
-        Check for input cells that start with \code{%foo},
+        Check for input cells that start with \code{\%foo},
         where foo is an object with an eval method.
         """
         z = s

@@ -44,7 +44,7 @@ not well defined.
     sage: oo/0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '/': 'The Infinity Ring' and 'Integer Ring'
+    ArithmeticError: quotient of oo by number < oo not defined
 
 What happened above is that 0 is canonically coerced to
 "a number less than infinity" in the infinity ring, and the quotient
@@ -55,11 +55,21 @@ is then not well defined.
     sage: oo * 0
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '*': 'The Infinity Ring' and 'The Infinity Ring'
+    ArithmeticError: oo times smaller number not defined
+
     sage: oo/oo
     Traceback (most recent call last):
     ...
-    TypeError: unsupported operand parent(s) for '/': 'The Infinity Ring' and 'The Infinity Ring'
+    ArithmeticError: oo / oo not defined
+
+
+Saving and loading:
+    sage: R = loads(dumps(InfinityRing)); R
+    The Infinity Ring
+    sage: R == InfinityRing
+    True
+    sage: R is InfinityRing
+    False
 """
 
 from ring_element import RingElement
@@ -116,7 +126,7 @@ class InfinityRing_class(Ring):
             x._set_parent(self)
             return x
         elif isinstance(x, RingElement):
-            return less_than_infinity
+            return self.less_than_infinity()
         else:
             raise TypeError
 
@@ -144,13 +154,13 @@ class LessThanInfinity(RingElement):
 
     def _mul_(self, other):
         if isinstance(other, Infinity):
-            raise TypeError, "oo times number < oo not defined"
+            raise ArithmeticError, "oo times number < oo not defined"
         return self
 
     def _div_(self, other):
         if isinstance(other, Infinity):
             return self
-        raise TypeError, "quotient of oo by number < oo not defined"
+        raise ArithmeticError, "quotient of numbers < oo not defined"
 
     def __cmp__(self, other):
         if isinstance(other, Infinity):
@@ -192,12 +202,17 @@ class Infinity(InfinityElement):
     def _sub_(self, other):
         if not isinstance(other, Infinity):
             return self
-        raise TypeError, "oo - oo not defined"
+        raise ArithmeticError, "oo - oo not defined"
 
     def _mul_(self, other):
         if isinstance(other, Infinity):
             return self
-        raise TypeError, "oo times smaller number not defined"
+        raise ArithmeticError, "oo times smaller number not defined"
+
+    def _div_(self, other):
+        if isinstance(other, Infinity):
+            raise ArithmeticError, "oo / oo not defined"
+        raise ArithmeticError, "quotient of oo by number < oo not defined"
 
     def __cmp__(self, other):
         if isinstance(other, Infinity):

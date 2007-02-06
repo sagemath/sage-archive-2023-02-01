@@ -329,7 +329,7 @@ ext_modules = [ \
 
     real_double,
     complex_double,
-    #qd,   # not worth it, since it is slower than mpfr!
+    qd,   # not worth it, since it is slower than mpfr!
 
     complex_number,
 

@@ -2930,7 +2930,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns a bound on the dimension of Sha(E)[2], computed using
         a 2-descent.
         """
-        S = self.two_selmer_rank()
+        S = self.selmer_rank_bound()
         r = self.rank()
         t = self.two_torsion_rank()
         b = S - r - t
@@ -3537,16 +3537,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5, 10)
             1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)
 
-          An anomalous case:
+        A rank zero example:
+            sage: EllipticCurve('11a').padic_regulator(3)
+            1
+
+        An anomalous case:
             sage: E.padic_regulator(53, 10)
             26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
 
-          An anomalous case where the precision drops some:
+        An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)
             5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
 
-          Check that answers agree over a range of precisions:
+        Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
             sage: full = E.padic_regulator(5, max_prec)           # long time
             sage: for prec in range(1, max_prec):                 # long time
@@ -3617,10 +3621,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         K = rings.pAdicField(p, prec=prec)
 
         rank = self.rank()
+        M = matrix.matrix(K, rank, rank, 0)
         if rank == 0:
-
-
-            return K(1)
+            return M
 
         basis = self.gens()
 
@@ -3630,7 +3633,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Use <P, Q> = h(P) + h(Q) - h(P + Q)
 
         point_height = [height(P) for P in basis]
-        M = matrix.matrix(K, rank, rank, 0)
         for i in range(rank):
             for j in range(i, rank):
                 M[i, j] = M[j, i] = point_height[i] + point_height[j] \

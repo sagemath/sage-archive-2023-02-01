@@ -690,8 +690,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     def __repr__(self):
         if self._nrows < max_rows and self._ncols < max_cols:
             return self.str()
-        return "%s x %s matrix over %s (use 'print object.str()' to print matrix)"%(self._nrows, self._ncols,
-                                                               self.base_ring())
+        return "%s x %s matrix over %s"%(self._nrows, self._ncols, self.base_ring())
 
     def str(self):
         r"""
@@ -701,7 +700,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a.__repr__()
             '[z0 z1 z2]\n[z3 z4 z5]'
         """
-        #x = self.fetch('repr')
+        #x = self.fetch('repr')  # too confusing!!
         #if not x is None: return x
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows

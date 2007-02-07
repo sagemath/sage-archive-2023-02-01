@@ -365,7 +365,7 @@ def ncols_from_dict(d):
 Matrix = matrix
 
 
-def random_matrix(R, nrows, ncols=None, density=1, *args, **kwds):
+def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
     """
     Return a random matrix with entries in the ring R.
 
@@ -376,7 +376,9 @@ def random_matrix(R, nrows, ncols=None, density=1, *args, **kwds):
         density -- integer (default: 1)
         *args, **kwds -- passed on to randomize function
     """
-    A = matrix(R, nrows, ncols)
+    if ncols is None:
+        ncols = nrows
+    A = matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix()
     A.randomize(density=density, *args, **kwds)
     return A
 

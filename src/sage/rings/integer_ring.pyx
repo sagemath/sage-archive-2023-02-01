@@ -330,8 +330,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 n_max = self(x)
                 mpz_urandomm(z.value, state, n_max.value)
         else:
-            n_min = self(min)
-            n_width = self(max) - n_min
+            n_min = self(x)
+            n_width = self(y) - n_min
             mpz_urandomm(z.value, state, n_width.value)
             mpz_add(z.value, z.value, n_min.value)
         #end if

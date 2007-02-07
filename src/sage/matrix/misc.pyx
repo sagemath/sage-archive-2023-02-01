@@ -127,12 +127,13 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     else:
         M = height_guess + 1
 
-    p = previous_prime(matrix_modn_dense.MAX_MODULUS + 1)
+    p = matrix_modn_dense.MAX_MODULUS + 1
     X = []
     best_pivots = []
     prod = 1
     problem = 0
     while True:
+        p = previous_prime(p)
         while prod < M:
             problem = problem + 1
             if problem > 50:
@@ -168,26 +169,27 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 # do not save A since it is bad.
                 if LEVEL > 1:
                     verbose("Excluding this prime (bad pivots).")
-            p = previous_prime(p)
             t = verbose("time for pivot compare", t, level=2)
+            p = previous_prime(p)
         # Find set of best matrices.
         Y = []
         # recompute product, since may drop bad matrices
         prod = 1
         for i in range(len(X)):
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
-                Y.append(X[i])
+                Y.append((matrix_modn_dense_lift(X[i]), X[i].base_ring().order()))
                 prod = prod * X[i].base_ring().order()
         try:
-            t = verbose("start crt", level=2)
-            a = CRT_basis([w[i].base_ring().order() for w in Y])
+            t = verbose("start crt linear combination", level=2)
+            a = CRT_basis([w[1] for w in Y])
             # take the linear combination of the lifts of the elements
             # of Y times coefficients in a
-            L = a[0]*(Y[0].lift())
+            L = a[0]*(Y[0][0])
             for j in range(1,len(Y)):
-                L += a[j]*(Y[j].lift())
+                L += a[j]*(Y[j][0])
             t = verbose("crt time is",t, level=2)
             E = L.rational_reconstruction(prod)
+            L =0  # free memory
             verbose('rational reconstruction time is', t, level=2)
         except ValueError, msg:
             verbose("Redoing with several more primes", level=2)

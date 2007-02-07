@@ -527,6 +527,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(M._entries[i])
             mpz_mul(M._entries[i], self._entries[i], _x.value)
+        M._initialized = 1
         return M
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):

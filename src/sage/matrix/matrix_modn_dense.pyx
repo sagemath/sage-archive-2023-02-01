@@ -74,6 +74,7 @@ We create a matrix group and coerce it to GAP:
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
+include '../ext/random.pxi'
 
 MAX_MODULUS = 46340
 
@@ -790,7 +791,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             return r
         else:
             # linbox is very buggy for p=2
-            matrix_dense.Matrix_dense.rank(self)
+            return matrix_dense.Matrix_dense.rank(self)
 
     def randomize(self, density=1):
         """
@@ -853,8 +854,3 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
 
-from random import randrange
-cdef extern from "stdlib.h":
-    long random()
-    void srandom(unsigned int seed)
-srandom(randrange(0,2**32))

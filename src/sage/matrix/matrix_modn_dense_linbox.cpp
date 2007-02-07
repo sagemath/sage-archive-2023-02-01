@@ -169,24 +169,53 @@ static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, siz
     }
 };
 
+/*************************************************************************
+    Modular<int> versions of everything: much faster for this.
+**********************************************************************/
+
+typedef Modular<int> Mod_int;
+
+static DenseMatrix<Mod_int> linbox_new_modn_matrix2(unsigned long modulus, mod_int** matrix, size_t nrows, size_t ncols) {
+
+    Mod_int F((double)modulus);
+
+    DenseMatrix<Mod_int> A (F, nrows, ncols);
+
+    size_t i, j, k;
+    for (i=0; i < nrows; i++) {
+	for (j=0; j < ncols; j++) {
+	    A.setEntry(i, j, matrix[i][j]);
+	}
+    }
+    return A;
+};
+
+static void linbox_set_modn_matrix2(mod_int** matrix, DenseMatrix<Mod_int>& A, size_t nrows, size_t ncols) {
+    size_t i, j, k;
+    for (i=0; i < nrows; i++) {
+	for (j=0; j < ncols; j++) {
+	    matrix[i][j] = (mod_int)A.getEntry(i,j);
+	}
+    }
+};
 
 int linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans, mod_int **A, mod_int **B,
 					     size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 {
 
-    ModInt F((double)modulus);
+    Mod_int F(modulus);
 
-    DenseMatrix<ModInt> AA(linbox_new_modn_matrix(modulus, A, A_nr, A_nc));
-    DenseMatrix<ModInt> BB(linbox_new_modn_matrix(modulus, B, B_nr, B_nc));
+    DenseMatrix<Mod_int> AA(linbox_new_modn_matrix2(modulus, A, A_nr, A_nc));
+    DenseMatrix<Mod_int> BB(linbox_new_modn_matrix2(modulus, B, B_nr, B_nc));
     if (A_nc != B_nr)
 	return -1;   // error
-    DenseMatrix<ModInt> CC(F, A_nr, B_nc);
+    DenseMatrix<Mod_int> CC(F, A_nr, B_nc);
 
-    MatrixDomain<ModInt> MD(F);
+    MatrixDomain<Mod_int> MD(F);
 
     MD.mul(CC, AA, BB);
 
-    linbox_set_modn_matrix(ans, CC, A_nr, B_nc);
+    linbox_set_modn_matrix2(ans, CC, A_nr, B_nc);
 
     return 0;
 }

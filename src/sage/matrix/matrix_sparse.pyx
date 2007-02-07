@@ -91,9 +91,11 @@ cdef class Matrix_sparse(matrix.Matrix):
         return self._hash()
 
     cdef long _hash(self) except -1:
+        x = self.fetch('hash')
+        if not x is None: return x
+
         if not self._mutability._is_immutable:
-            x = self.fetch('hash')
-            if not x is None: return x
+            raise TypeError, "mutable matrices are unhashable"
 
         v = self._dict()
         cdef long i, h

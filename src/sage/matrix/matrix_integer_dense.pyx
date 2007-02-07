@@ -105,7 +105,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self._pivots = None
 
         # Allocate an array where all the entries of the matrix are stored.
+        _sig_on
         self._entries = <mpz_t *>sage_malloc(sizeof(mpz_t) * (self._nrows * self._ncols))
+        _sig_off
         if self._entries == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
@@ -130,8 +132,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent,
                                          0, 0, 0)
         cdef Py_ssize_t i
+        _sig_on
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init_set(A._entries[i], self._entries[i])
+        _sig_off
         return A
 
     def  __dealloc__(self):
@@ -1335,6 +1339,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Py_ssize_t i, j, k, nc, num_per_row
         global state
 
+        _sig_on
         if density == 1:
             for i from 0 <= i < self._nrows*self._ncols:
                 mpz_urandomm(self._entries[i], state, n_width.value)
@@ -1349,6 +1354,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     mpz_urandomm(self._matrix[i][k], state, n_width.value)
                     if min_is_nonzero:
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
+        _sig_off
 
 
 ###############################################################

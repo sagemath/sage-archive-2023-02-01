@@ -140,7 +140,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
         self.gather = MOD_INT_MAX/(p*p)
 
+        _sig_on
         self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
+        _sig_off
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
 
@@ -806,10 +808,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             density = float(density)
             nc = self._ncols
             num_per_row = int(density * nc)
+            _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
                     k = random()%nc
                     self._matrix[i][k] = random() % self.p
+            _sig_off
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:
         # TODO: lots of testing

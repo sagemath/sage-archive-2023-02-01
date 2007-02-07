@@ -47,11 +47,9 @@ cdef class Matrix_dense(matrix.Matrix):
         return self._hash()
 
     cdef long _hash(self) except -1:
-        x = self.fetch('hash')
-        if not x is None: return x
-
-        if not self._mutability._is_immutable:
-            raise TypeError, "mutable matrices are unhashable"
+        if self._mutability._is_immutable:
+            x = self.fetch('hash')
+            if not x is None: return x
 
         v = self._list()
         cdef Py_ssize_t i

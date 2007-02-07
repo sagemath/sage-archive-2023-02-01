@@ -20,6 +20,7 @@ Relation matrices for ambient modular symbols spaces.
 #*****************************************************************************
 
 SPARSE = True
+#SPARSE = False
 
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all

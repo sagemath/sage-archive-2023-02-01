@@ -2542,7 +2542,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ell = p
         return self.ap(ell) % p != 0
 
-    def is_good(self, p):
+    def is_good(self, p, check=True):
         """
         Return True if $p$ is a prime of good reduction for $E$.
 
@@ -2551,7 +2551,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         OUTPUT:
             bool
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.is_good(-8)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime
+            sage: e.is_good(-8, check=False)
+            True
         """
+        if check:
+            if not arith.is_prime(p):
+                raise ValueError, "p must be prime"
         return self.conductor() % p != 0
 
 

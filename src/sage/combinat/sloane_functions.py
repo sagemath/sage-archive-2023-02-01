@@ -396,7 +396,7 @@ class A000009(SloaneSequence):
 
 class A000796(SloaneSequence):
     r"""
-    Decimal expansion of \pi.
+    Decimal expansion of $\pi$.
 
     INPUT:
         n -- positive integer
@@ -509,7 +509,8 @@ class A003418(SloaneSequence):
 
 class A007318(SloaneSequence):
     r"""
-    Pascal's triangle read by rows: $C(n,k) = n \choose k = \frac {n!} {(k!(n-k)!)}$ , $0 \le k \le n$.
+    Pascal's triangle read by rows:
+    $C(n,k) = {n \choose k} = \frac {n!} {(k!(n-k)!)}$, $0 \le k \le n$.
 
     INPUT:
         n -- non negative integer
@@ -518,8 +519,7 @@ class A007318(SloaneSequence):
         integer -- function value
 
     EXAMPLES:
-        sage: a = sloane.A007318;a
-        Pascal's triangle read by rows: C(n,k) = binomial(n,k) = n!/(k!*(n-k)!), 0<=k<=n.
+        sage: a = sloane.A007318
         sage: a(0)
         1
         sage: a(1)
@@ -554,7 +554,7 @@ class A007318(SloaneSequence):
 
 class A008275(SloaneSequence):
     r"""
-    Triangle of Stirling numbers of first kind, $s(n,k)$, $n \ge 1$, $1 \le k \le n.
+    Triangle of Stirling numbers of first kind, $s(n,k)$, $n \ge 1$, $1 \le k \le n$.
 
     The unsigned numbers are also called Stirling cycle numbers:
 
@@ -609,7 +609,7 @@ class A008275(SloaneSequence):
 
 class A008277(SloaneSequence):
     r"""
-    Triangle of Stirling numbers of 2nd kind, $S2(n,k)$, $n \ge 1$, $1 \le k \le n.
+    Triangle of Stirling numbers of 2nd kind, $S2(n,k)$, $n \ge 1$, $1 \le k \le n$.
 
     INPUT:
         n -- positive integer

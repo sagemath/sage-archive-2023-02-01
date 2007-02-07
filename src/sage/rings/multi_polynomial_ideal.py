@@ -49,6 +49,17 @@ We compute in a quotient of a polynomial ring over Z/17*Z:
     b^17 + a*b^16
     sage: S(17) == 0                                            # optional
     True
+
+Working with a polynomial ring over ZZ:
+    sage: R.<x,y,z,w> = ZZ['x,y,z,w']
+    sage: i = ideal(x^2 + y^2 - z^2 - w^2, x-y)
+    sage: j = i^2
+    sage: j.groebner_basis()                                    # optional
+    [y^2 - 2*x*y + x^2, y*w^2 + y*z^2 - 2*y^3 - x*w^2 - x*z^2 + 2*x*y^2, w^4 + 2*z^2*w^2 + z^4 - 4*y^2*w^2 - 4*y^2*z^2 + 4*y^4]
+    sage: y^2 - 2*x*y + x^2 in j                                # optional
+    True
+    sage: 0 in j                                                # optional
+    True
 """
 
 #*****************************************************************************

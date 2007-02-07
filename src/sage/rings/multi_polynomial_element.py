@@ -495,12 +495,18 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = y - x^9*y - 7*x + 5*x*y
             sage: f.coefficient(y)
             1 + 5*x - x^9
+
+        The coefficient of 1 is also an element of the multivariate
+        polynomial ring:
+            sage: R.<x,y> = GF(389)[]
+            sage: parent(R(x*y+5).coefficient(1))
+            Polynomial Ring in x, y over Finite Field of size 389
         """
+        R = self.parent()
         if mon == 1:
-            return self.constant_coefficient()
+            return R(self.constant_coefficient())
         if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
             raise TypeError, "mon must be a monomial in the parent of self."
-        R = self.parent()
         return R(self.element().coefficient(mon.element().dict()))
 
     def exponents(self):

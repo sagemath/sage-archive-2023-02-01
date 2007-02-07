@@ -436,6 +436,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 A_row = A_row + 1
                 self_row = self_row + 1
         _sig_off
+        A._initialized = 1
         return A, D
 
     def charpoly(self, var='x', algorithm='linbox'):

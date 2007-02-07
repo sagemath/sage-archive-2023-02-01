@@ -42,7 +42,7 @@ def matrix_modn_dense_lift(Matrix_modn_dense A):
         A_row = A._matrix[i]
         for j from 0 <= j < A._ncols:
             mpz_init_set_si(L_row[j], A_row[j])
-
+    L._initialized = 1
     return L
 
 

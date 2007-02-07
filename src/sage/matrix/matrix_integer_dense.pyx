@@ -803,7 +803,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         res = Matrix_modn_dense.__new__(Matrix_modn_dense, matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
         for i from 0 <= i < self._nrows:
             self_row = self._matrix[i]
-            res_row = res.matrix[i]
+            res_row = res._matrix[i]
             for j from 0 <= j < self._ncols:
                 res_row[j] = mpz_fdiv_ui(self_row[j], p)
         return res
@@ -834,7 +834,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_on
         for i from 0 <= i < nr:
             for k from 0 <= k < n:
-                row_list[k] = (<Matrix_modn_dense>res[k]).matrix[i]
+                row_list[k] = (<Matrix_modn_dense>res[k])._matrix[i]
             mm.mpz_crt_vec(M._matrix[i], row_list, n, nc)
         _sig_off
 
@@ -1300,7 +1300,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def randomize(self, density=1, x=None, y=None):
         """
-        Returns a random element of self.
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        The randomized entries of this matrix to be between x and y
+        and have density 1.
         """
         self.check_mutability()
         self.clear_cache()
@@ -1318,8 +1322,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             max = y
 
         density = float(density)
-        R = self.base_ring()
-        zero = R(0)
 
         cdef int min_is_zero
         min_is_nonzero = (min != 0)
@@ -1338,21 +1340,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 if min_is_nonzero:
                     mpz_add(self._entries[i], self._entries[i], n_min.value)
         else:
-            from random import randrange
             nc = self._ncols
-            num_per_row = int(density * nc) + 1
+            num_per_row = int(density * nc)
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = randrange(0,nc)
+                    k = random()%nc
                     mpz_urandomm(self._matrix[i][k], state, n_width.value)
                     if min_is_nonzero:
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
 
 
 ###############################################################
-
-cdef gmp_randstate_t state
-gmp_randinit_mt(state)
 
 ###########################################
 # Helper code for Echelon form algorithm.
@@ -1391,4 +1389,18 @@ def convert_parimatrix(z):
     z = z.vecextract(r)
     return _parimatrix_to_strlist(z)
 
+
+##########################################################
+# Setup the c-library and GMP random number generators.
+# seed it when module is loaded.
+from random import randrange
+cdef extern from "stdlib.h":
+    long random()
+    void srandom(unsigned int seed)
+k = randrange(0,2**32)
+srandom(k)
+
+cdef gmp_randstate_t state
+gmp_randinit_mt(state)
+gmp_randseed_ui(state,k)
 

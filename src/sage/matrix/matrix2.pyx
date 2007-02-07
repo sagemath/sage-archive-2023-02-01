@@ -1994,7 +1994,8 @@ cdef class Matrix(matrix1.Matrix):
 
     def randomize(self, density=1, *args, **kwds):
         """
-        Returns a random element of self.
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
 
         INPUT:
             density -- integer (default: 1) rough measure of the proportion of nonzero
@@ -2002,10 +2003,12 @@ cdef class Matrix(matrix1.Matrix):
             *args, **kwds -- rest of parameters may be passed to the random_element function
                    of the base ring.
         """
+        density = float(density)
+        if density == 0:
+            return
         self.check_mutability()
         self.clear_cache()
 
-        density = float(density)
         R = self.base_ring()
         zero = R(0)
 

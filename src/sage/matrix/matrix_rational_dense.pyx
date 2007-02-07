@@ -16,6 +16,7 @@ cdef extern from "matrix_rational_dense_linbox.h":
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
+include "../ext/random.pxi"
 
 cimport sage.structure.element
 from sage.rings.rational cimport Rational
@@ -699,3 +700,54 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         import misc
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
+
+
+    def randomize(self, density=1, num_bound=2, den_bound=1):
+        """
+        Randomize density proportion of the entries of this matrix to
+        be rationals with numerators and denominators at most the
+        given bounds.
+        """
+        density = float(density)
+        if density == 0:
+            return
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef Integer B, C
+        B = Integer(num_bound+1)
+        C = Integer(den_bound+1)
+
+        cdef Py_ssize_t i, j, k, nc, num_per_row
+        global state
+
+        cdef double total
+        total = self._nrows * self._ncols
+        cdef int r, s
+        r = self._nrows * self._ncols
+
+        if density == 1:
+            if mpz_cmp_si(C.value, 2):   # denom is > 1
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry(self._entries[i], B.value, C.value)
+            else:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry_as_int(self._entries[i], B.value)
+        else:
+            nc = self._ncols
+            num_per_row = int(density * nc)
+            if mpz_cmp_si(C.value, 2):   # denom is > 1
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
+            else:
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
+
+
+
+
+

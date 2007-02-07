@@ -687,8 +687,13 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     # Representation -- string, latex, etc.
     ###########################################################
-
     def __repr__(self):
+        if self._nrows < max_rows and self._ncols < max_cols:
+            return self.str()
+        return "%s x %s matrix over %s (use 'print object.str()' to print matrix)"%(self._nrows, self._ncols,
+                                                               self.base_ring())
+
+    def str(self):
         r"""
         EXAMPLES:
             sage: R = PolynomialRing(QQ,6,'z')
@@ -2172,3 +2177,13 @@ def unpickle(cls, parent, mutability, cache, data, version):
     return A
 
 
+max_rows = 20
+max_cols = 50
+
+def set_max_rows(n):
+    global max_rows
+    max_rows = n
+
+def set_max_cols(n):
+    global max_cols
+    max_cols = n

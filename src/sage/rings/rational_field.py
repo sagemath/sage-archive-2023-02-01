@@ -254,6 +254,7 @@ class RationalField(_uniq, field.Field):
             sage: QQ.random_element(10,10)
             -5/3
         """
+
         return self("%s/%s"%(random.randrange(-num_bound, num_bound+1), \
                              random.randrange(1,den_bound+1)))
 

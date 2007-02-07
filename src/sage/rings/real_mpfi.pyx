@@ -1793,6 +1793,36 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def is_int(self):
+        """
+        OUTPUT:
+            bool -- True or False
+            n -- an integer
+
+        EXAMPLES:
+            sage: a = RIF(0.8,1.5)
+            sage: a.is_int()
+            (True, 1)
+            sage: a = RIF(1.1,1.5)
+            sage: a.is_int()
+            (False, None)
+            sage: a = RIF(1,2)
+            sage: a.is_int()
+            (False, None)
+            sage: a = RIF(-1.1, -0.9)
+            sage: a.is_int()
+            (True, -1)
+        """
+        if self.diameter() >= 1:
+            return False, None
+        a = (self.lower()+1).floor()
+        b = (self.upper()).floor()
+        if a == b:
+
+            return True, a
+        else:
+            return False, None
+
 # MPFI does not have exp10.  (Could easily be synthesized if anybody cares.)
 #     def exp10(self):
 #         r"""

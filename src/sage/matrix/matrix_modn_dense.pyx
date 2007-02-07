@@ -98,6 +98,7 @@ ai = arith_int()
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
@@ -109,13 +110,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x * __richcmp__    -- always the same
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
+
         matrix_dense.Matrix_dense.__init__(self, parent)
 
         cdef mod_int p
         p = self._base_ring.characteristic()
-        self.p = p
         if p >= MOD_INT_MAX:
             raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
+        self.p = p
         self.gather = MOD_INT_OVERFLOW / (p*p) - 1
 
         self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
@@ -233,6 +235,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A.gather = self.gather
         return A
 
+    def _multiply_classical(left, right):
+        return left._multiply_strassen(right, left._ncols + left._nrows)
 
 
     ########################################################################
@@ -523,7 +527,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:
         # TODO: lots of testing
-        return 100
+        return 64
 
     # TODO: TEMPORARILY DISABLED due to bug on 64-bit sage.math:
     #  A = matrix(Integers(389),4,range(16)); A._echelon_strassen(4)

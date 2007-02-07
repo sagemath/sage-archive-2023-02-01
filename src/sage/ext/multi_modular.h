@@ -11,4 +11,4 @@
 /* Don't want to be up against the limit so
  * we have room to gather.
  */
-#define START_PRIME_MAX (MOD_INT_MAX/5)
+#define START_PRIME_MAX (MOD_INT_MAX/15)

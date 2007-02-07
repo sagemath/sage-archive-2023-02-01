@@ -22,8 +22,3 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                                    mod_int multiple, Py_ssize_t start_row)
 
 
-
-
-#cdef class MatrixWindow:
-#    cdef Matrix_modn_dense _matrix
-#    cdef int _row, _col, _nrows, _ncols

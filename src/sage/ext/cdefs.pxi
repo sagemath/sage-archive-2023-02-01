@@ -36,6 +36,7 @@ cdef extern from "gmp.h":
 
     void gmp_randinit_default(gmp_randstate_t state)
     size_t mpz_sizeinbase(mpz_t op, int base)
+    size_t mpz_size(mpz_t op)
 
     # The mpz type
     void mpz_abs (mpz_t rop, mpz_t op)

@@ -177,7 +177,7 @@ class A000001(SloaneSequence):
     r"""
     Number of groups of order $n$.
 
-    Note: The database_gap-4.4.9 must be installed!
+    Note: The database_gap-4.4.9 must be installed for $n > 50$.
 
     run \code{sage -i database_gap-4.4.9} or higher first.
 
@@ -202,17 +202,21 @@ class A000001(SloaneSequence):
         2
         sage: a.list(16)
         [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
-
+        sage: a(60)     # optional
+        13
     AUTHOR:
         -- Jaap Spies (2007-02-04)
     """
     def __init__(self):
+        self._small = [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14, 1, 5, 1, 5, 2, 2, 1, 15, 2, 2, 5, 4, 1, 4, 1, 51, 1, 2, 1, 14, 1, 2, 2, 14, 1, 6, 1, 4, 2, 2, 1, 52, 2, 5]
         SloaneSequence.__init__(self, offset=1)
 
     def _repr_(self):
         return "Number of groups of order n."
 
     def _eval(self, n):
+        if n <= 50:
+            return self._small[n-1]
         try:
             return Integer(gap.gap.eval('NumberSmallGroups(%s)'%n))
         except:  # help, don't know what to do here? Jaap

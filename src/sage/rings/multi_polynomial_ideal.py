@@ -189,10 +189,14 @@ class MPolynomialIdeal_singular_repr:
             sage: x^3 + 2*y in I
             True
         """
-        S = singular_default
-        f = S(f)
-        I = self._singular_(S).groebner()
-        g = f.reduce(I, 1)  # 1 avoids tail reduction (page 67 of singular book)
+
+        if self.base_ring() == sage.rings.integer_ring.ZZ:
+            g = self._reduce_using_macaulay2(f)
+        else:
+            S = singular_default
+            f = S(f)
+            I = self._singular_(S).groebner()
+            g = f.reduce(I, 1)  # 1 avoids tail reduction (page 67 of singular book)
         return g.is_zero()
 
     def plot(self):
@@ -514,18 +518,6 @@ class MPolynomialIdeal_singular_repr:
             return f
         return self.ring()(h)
 
-    def _reduce_using_macaulay2(self, f):
-        I = self._macaulay2_()
-        M2 = I.parent()
-        R = self.ring()
-        g = M2(R(f))
-        try:
-            k = M2('%s %% %s'%(g.name(), I.name()))
-        except TypeError:
-            # This is OK, since f is in the right ring -- type error
-            # just means it's in base ring (e.g., a constant)
-            return f
-        return R(k)
 
     def syzygy_module(self):
         r"""
@@ -742,6 +734,18 @@ class MPolynomialIdeal_macaulay2_repr:
             self.__groebner_basis = B
             return B
 
+    def _reduce_using_macaulay2(self, f):
+        I = self._macaulay2_()
+        M2 = I.parent()
+        R = self.ring()
+        g = M2(R(f))
+        try:
+            k = M2('%s %% %s'%(g.name(), I.name()))
+        except TypeError:
+            # This is OK, since f is in the right ring -- type error
+            # just means it's in base ring (e.g., a constant)
+            return f
+        return R(k)
 
 
 class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \

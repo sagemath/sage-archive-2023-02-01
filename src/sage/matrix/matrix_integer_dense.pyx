@@ -1272,22 +1272,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_clear(pr)
         return z
 
-##     def _linbox(self):
-##         cdef Py_ssize_t i, j
-##         s = '%s %s M\n'%(self._nrows, self._ncols)
-##         for i from 0 <= i < self._nrows:
-##             for j from 0 <= j < self._ncols:
-##                 if mpz_cmp_si(self._matrix[i][j], 0):
-##                     s += '%s %s %s\n'%(i+1,j+1,self.get_unsafe(i,j))
-##         return s
+    def _linbox_sparse(self):
+        cdef Py_ssize_t i, j
+        s = '%s %s M\n'%(self._nrows, self._ncols)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if mpz_cmp_si(self._matrix[i][j], 0):
+                    s += '%s %s %s\n'%(i+1,j+1,self.get_unsafe(i,j))
+        s += '0 0 0\n'
+        return s
 
-    def _linbox(self):
+    def _linbox_dense(self):
         cdef Py_ssize_t i, j
         s = '%s %s x'%(self._nrows, self._ncols)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                if mpz_cmp_si(self._matrix[i][j], 0):
-                    s += ' %s'%self.get_unsafe(i,j)
+                s += ' %s'%self.get_unsafe(i,j)
         return s
 
     def rational_reconstruction(self, N):

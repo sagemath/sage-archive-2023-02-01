@@ -690,7 +690,11 @@ cdef class Matrix(sage.structure.element.Matrix):
     def __repr__(self):
         if self._nrows < max_rows and self._ncols < max_cols:
             return self.str()
-        return "%s x %s matrix over %s"%(self._nrows, self._ncols, self.base_ring())
+        if self.is_sparse():
+            s = 'sparse'
+        else:
+            s = 'dense'
+        return "%s x %s %s matrix over %s"%(self._nrows, self._ncols, s, self.base_ring())
 
     def str(self):
         r"""

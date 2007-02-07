@@ -33,7 +33,6 @@ static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, siz
 /* NOTE: There are many echelon form functions, possible base rings, etc.  Strangely,
    most don't build.  This combination below does though.
 */
-
 int linbox_modn_dense_echelonize(unsigned long modulus,
 				 mod_int** matrix, size_t nrows, size_t ncols) {
 
@@ -64,6 +63,25 @@ int linbox_modn_dense_echelonize(unsigned long modulus,
 	    row[j] = (mod_int)E.getEntry(i, j);
 	}
     return rank;
+}
+
+int linbox_modn_dense_rank(unsigned long modulus,
+			   mod_int** matrix, size_t nrows, size_t ncols) {
+
+    ModInt F((double)modulus);
+    EchelonFormDomain< ModInt > EF(F);
+    DenseMatrix<ModInt> A(F, nrows, ncols);
+
+    unsigned long* row;
+    for (size_t i=0; i < nrows; i++) {
+	row = matrix[i];
+	for (size_t j=0; j < ncols; j++)
+	    A.setEntry(i, j, (double)row[j]);
+	}
+
+    unsigned long r;
+    rank(r, A);
+    return r;
 }
 
 

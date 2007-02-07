@@ -50,6 +50,8 @@ from sage.structure.factorization import Factorization
 
 from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 
+from sage.structure.sequence import Sequence
+
 import multi_polynomial_ring
 import polynomial_ring
 
@@ -1023,6 +1025,32 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         F = Factorization(v)
         F.sort()
         return F
+
+    def lift(self,I):
+        """
+        given an ideal I = (f_1,...,f_r) and some g (== self) in I,
+        find s_1,...,s_r such that g = s_1 f_1 + ... + s_r f_r
+
+        ALGORITHM: Use Singular.
+
+        EXAMPLE:
+            sage: A.<x,y> = PolynomialRing(QQ,2,order='degrevlex')
+            sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
+            sage: f = x*y^13 + y^12
+            sage: M = f.lift(I)
+            sage: M
+            [y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8, y^7]
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
+        """
+        fs = self._singular_()
+        Is = I._singular_()
+        P = I.ring()
+        try:
+            M = Is.lift(fs)._sage_(P)
+        except TypeError:
+            raise ArithmeticError, "f is not in I"
+        return Sequence(M.list(), P, check=False, immutable=True)
 
     def gcd(self, f):
         """

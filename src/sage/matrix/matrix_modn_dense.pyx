@@ -781,12 +781,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return R(v)
 
     def rank(self):
-        x = self.fetch('rank')
-        if not x is None:
-            return x
-        r = linbox_modn_dense_rank(self.p, self._matrix, self._nrows, self._ncols)
-        self.cache('rank', r)
-        return r
+        if self.p > 2:
+            x = self.fetch('rank')
+            if not x is None:
+                return x
+            r = linbox_modn_dense_rank(self.p, self._matrix, self._nrows, self._ncols)
+            self.cache('rank', r)
+            return r
+        else:
+            # linbox is very buggy for p=2
+            matrix_dense.Matrix_dense.rank(self)
 
     def randomize(self, density=1):
         """

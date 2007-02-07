@@ -574,6 +574,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef IntegerMod_gmp _new_c(self):
         cdef IntegerMod_gmp x
         x = PY_NEW(IntegerMod_gmp)
+        mpz_init(x.value)
         x.__modulus = self.__modulus
         x._parent = self._parent
         return x
@@ -681,7 +682,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
     def __copy__(IntegerMod_gmp self):
         cdef IntegerMod_gmp x
         x = self._new_c()
-        mpz_init_set(x.value, self.value)
+        mpz_set(x.value, self.value)
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """

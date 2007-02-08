@@ -2311,6 +2311,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     ##########################################################
     # Galois Representations
     ##########################################################
+
+    def is_reducible(self, p):
+        """
+        Return True if the mod-p representation attached
+        to E is reducible.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('121a'); E
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 30*x - 76 over Rational Field
+            sage: E.is_reducible(7)
+            False
+            sage: E.is_reducible(11)
+            True
+            sage: EllipticCurve('11a').is_reducible(5)
+            True
+            sage: e = EllipticCurve('11a2')
+            sage: e.is_reducible(5)
+            True
+            sage: e.torsion_order()
+            1
+        """
+        # we do is_surjective first, since this is
+        # much easier than computing isogeny_class
+        t, why = self.is_surjective(p)
+        if t == True:
+            return False  # definitely not reducible
+        isogeny_matrix = self.isogeny_class()[ 1 ]
+        v = isogeny_matrix[0]  # first row
+        for a in v:
+            if a != 0 and a % p == 0:
+                return True
+        return False
+
+    def is_irreducible(self, p):
+        """
+        Return True if the mod p represenation is irreducible.
+        """
+        return not self.is_reducible()
+
     def is_surjective(self, p, A=1000):
         """
         Return True if the mod-p representation attached to E
@@ -3389,9 +3428,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def shabound_kato(self):
         """
-        Returns a list p of primes such tha theorems of Kato's and
-        others (e.g., as explained in a paper/thesis of Grigor Grigorov)
-        imply that if p divides $\\#Sha(E)$ then $p$ is in the list.
+        Returns a list p of primes such that the theorems of Kato's
+        and others (e.g., as explained in a paper/thesis of Grigor
+        Grigorov) imply that if p divides $\\#Sha(E)$ then $p$ is in
+        the list.
 
         If L(E,1) = 0, then Kato's theorem gives no information, so
         this function returns False.

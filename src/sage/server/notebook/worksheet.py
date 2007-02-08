@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 50
+INTERRUPT_TRIES = 150
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90

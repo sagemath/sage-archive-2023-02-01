@@ -117,6 +117,8 @@ implemented using the GMP C library.
 ###########################################################################
 import os
 
+import pdb
+
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
 
@@ -136,7 +138,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     # for caclulus function notation:
     paren_level = 0
-    max_paren_level = 0
 
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.rstrip()  # xreadlines leaves the '\n' at end of line
@@ -249,6 +250,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 is_real = False
                 continue
 
+        elif line[i] == ";" and not in_quote():
+            line = line[:i+1] + preparse(line[i+1:])
+            i = len(line)
+            continue
+
+
         # Support for generator construction syntax:
         # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
         # is converted into
@@ -330,7 +337,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
             continue
 
-        ##### CALCULUS #######
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
@@ -338,9 +344,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
         elif (line[i] == "(") and not in_quote():
             paren_level += 1
-            max_paren_level += 1
+            # we need to make sure that this is the first open paren we find
+            if oparen_index == -1:
+                oparen_index = i
             i += 1
-            oparen_index = i
             continue
 
         elif (line[i] == ")") and not in_quote():
@@ -349,10 +356,14 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             i += 1
             continue
 
-        elif (line[i] == "=") and max_paren_level == 1 and paren_level == 0 and not in_quote():
+        elif (line[i] == "=") and paren_level == 0 and not in_quote():
+
             eq = i
 
-            hash_index = line.find('#')
+
+            if cparen_index == -1:
+                i += 1
+                continue
 
             # make sure the '=' sign is on its own, reprsenting assignment
             eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
@@ -360,26 +371,43 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 1
                 continue
 
-            line_before = line[:oparen_index-1].strip()
+            line_before = line[:oparen_index].strip()
             if line_before == "":
                 i += 1
                 continue
-            vars_begin = oparen_index
-            vars_end = cparen_index
 
+            vars_end = cparen_index
+            vars_begin = oparen_index+1
+
+            # figure out where the line ends
+            #pdb.set_trace()
+            line_after = line[vars_end+1:]
+            try:
+                a = line.index("#")
+            except ValueError:
+                a = len(line)
+
+            try:
+                b = line.index(";")
+            except ValueError:
+                b = len(line)
+
+            a =  min(a,b)
 
             vars = line[vars_begin:vars_end].split(",")
             vars = [v.strip() for v in vars]
             b = []
 
+
             # construct the parsed line
             b.append(line[:vars_begin-1])
             b.append('=')
             b.append('(')
-            b.append(line[eq+1:])
+            b.append(line[eq+1:a].strip())
             b.append(').function(')
             b.append(','.join(vars))
             b.append(')')
+            b.append(line[a:])
 
 
             line =  ''.join(b)

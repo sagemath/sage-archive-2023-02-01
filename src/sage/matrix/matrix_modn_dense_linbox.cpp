@@ -26,14 +26,14 @@ typedef Modular<double> ModInt;
 typedef GivPolynomialRing<ModInt::Element,Dense> ModIntPolRing;
 
 
-static DenseMatrix<ModInt> linbox_new_modn_matrix(unsigned long moddulus, mod_int** matrix, size_t nrows, size_t ncols);
+static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols);
 static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, size_t nrows, size_t ncols);
 
 
 /* NOTE: There are many echelon form functions, possible base rings, etc.  Strangely,
    most don't build.  This combination below does though.
 */
-int linbox_modn_dense_echelonize(unsigned long modulus,
+int linbox_modn_dense_echelonize(mod_int modulus,
 				 mod_int** matrix, size_t nrows, size_t ncols) {
 
 
@@ -50,7 +50,7 @@ int linbox_modn_dense_echelonize(unsigned long modulus,
     DenseMatrix<ModInt> A(F, nrows, ncols);
     DenseMatrix<ModInt> E(F, nrows, ncols);
 
-    unsigned long* row;
+    mod_int* row;
     for (size_t i=0; i < nrows; i++) {
 	row = matrix[i];
 	for (size_t j=0; j < ncols; j++)
@@ -65,14 +65,14 @@ int linbox_modn_dense_echelonize(unsigned long modulus,
     return rank;
 }
 
-int linbox_modn_dense_rank(unsigned long modulus,
+int linbox_modn_dense_rank(mod_int modulus,
 			   mod_int** matrix, size_t nrows, size_t ncols) {
 
     ModInt F((double)modulus);
     EchelonFormDomain< ModInt > EF(F);
     DenseMatrix<ModInt> A(F, nrows, ncols);
 
-    unsigned long* row;
+    mod_int* row;
     for (size_t i=0; i < nrows; i++) {
 	row = matrix[i];
 	for (size_t j=0; j < ncols; j++)
@@ -85,7 +85,7 @@ int linbox_modn_dense_rank(unsigned long modulus,
 }
 
 
-void linbox_modn_dense_minpoly(unsigned long modulus, mod_int **mp, size_t* degree, size_t n, mod_int **matrix, int do_minpoly) {
+void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* degree, size_t n, mod_int **matrix, int do_minpoly) {
     /* We program around a bizarre bug in linbox, where minpoly doesn't work
        on matrices that are n x n with n divisible by 4!
     */
@@ -145,7 +145,7 @@ void linbox_modn_dense_delete_array(mod_int *f) {
     delete[] f;
 }
 
-static DenseMatrix<ModInt> linbox_new_modn_matrix(unsigned long modulus, mod_int** matrix, size_t nrows, size_t ncols) {
+static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols) {
 
     ModInt F((double)modulus);
 
@@ -175,7 +175,7 @@ static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, siz
 
 typedef Modular<int> Mod_int;
 
-static DenseMatrix<Mod_int> linbox_new_modn_matrix2(unsigned long modulus, mod_int** matrix, size_t nrows, size_t ncols) {
+static DenseMatrix<Mod_int> linbox_new_modn_matrix2(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols) {
 
     Mod_int F((double)modulus);
 
@@ -199,7 +199,7 @@ static void linbox_set_modn_matrix2(mod_int** matrix, DenseMatrix<Mod_int>& A, s
     }
 };
 
-int linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans, mod_int **A, mod_int **B,
+int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod_int **A, mod_int **B,
 					     size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 {
 

@@ -627,7 +627,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: n=20; A = Mat(ZZ,n)(range(n^2))
             sage: A.charpoly()
             x^20 - 3990*x^19 - 266000*x^18
-            sage: A.minpoly()
+            sage: A.minpoly()                # optional -- os x only right now
             x^3 - 3990*x^2 - 266000*x
         """
         key = 'charpoly_%s_%s'%(algorithm, var)
@@ -658,10 +658,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         EXAMPLES:
             sage: A = matrix(ZZ,6, range(36))
-            sage: A.minpoly()
+            sage: A.minpoly()           # optional -- os x only right now
             x^3 - 105*x^2 - 630*x
             sage: n=6; A = Mat(ZZ,n)([k^2 for k in range(n^2)])
-            sage: A.minpoly()
+            sage: A.minpoly()           # optional -- os x only right now
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
         """
         key = 'minpoly_%s_%s'%(algorithm, var)
@@ -674,7 +674,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
         elif algorithm == 'generic':
-            g = self._minpoly_generic(var)
+            g = matrix_dense.Matrix_dense.minpoly(self, var)
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
 

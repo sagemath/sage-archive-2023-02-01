@@ -495,12 +495,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         EXAMPLES:
             sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
-            sage: f = a.minpoly(); f
+            sage: f = a.minpoly(); f           # optional -- os x only right now
             x^3 - 7/12*x^2 - 149/40*x + 97/30
             sage: a = Mat(ZZ,4)(range(16))
-            sage: f = a.minpoly(); f.factor()
+            sage: f = a.minpoly(); f.factor()  # optional -- os x only right now
             x * (x^2 - 30*x - 80)
-            sage: f(a) == 0
+            sage: f(a) == 0                    # optional -- os x only right now
             True
         """
         key = 'minpoly_%s_%s'%(algorithm, var)

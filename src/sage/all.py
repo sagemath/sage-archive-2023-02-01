@@ -61,6 +61,9 @@ from sage.misc.all       import *         # takes a while
 from sage.libs.all       import *
 from sage.rings.all      import *
 from sage.matrix.all     import *
+
+pmem_malloc()
+
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *

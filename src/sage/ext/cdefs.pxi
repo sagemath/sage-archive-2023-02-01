@@ -35,6 +35,7 @@ cdef extern from "gmp.h":
     ctypedef void* gmp_randstate_t
 
     void gmp_randinit_default(gmp_randstate_t state)
+    int gmp_randinit_mt (gmp_randstate_t state)
     size_t mpz_sizeinbase(mpz_t op, int base)
     size_t mpz_size(mpz_t op)
 
@@ -61,6 +62,7 @@ cdef extern from "gmp.h":
     double mpz_get_d (mpz_t op)
     unsigned long int mpz_fdiv_ui (mpz_t n, unsigned long int d)
     unsigned long int mpz_fdiv_q_ui(mpz_t q, mpz_t n, unsigned long int d)
+    void mpz_fdiv_q_2exp(mpz_t q, mpz_t n, unsigned long int b)
     void mpz_gcd(mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_gcdext(mpz_t g, mpz_t s, mpz_t t, mpz_t a, mpz_t b)
     signed long int mpz_get_si(mpz_t op)
@@ -92,7 +94,13 @@ cdef extern from "gmp.h":
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
+
+    void mpz_urandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void mpz_urandomm(mpz_t rop, gmp_randstate_t state, mpz_t n)
+    void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
+    void gmp_randseed (gmp_randstate_t state, mpz_t seed)
+    void gmp_randseed_ui (gmp_randstate_t state, unsigned long int seed)
+
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)

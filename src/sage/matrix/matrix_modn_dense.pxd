@@ -6,7 +6,7 @@ cdef extern from "../ext/multi_modular.h":
     mod_int MOD_INT_OVERFLOW
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
-    cdef mod_int **matrix
+    cdef mod_int **_matrix
     cdef mod_int *_entries
     cdef mod_int p
     cdef mod_int gather

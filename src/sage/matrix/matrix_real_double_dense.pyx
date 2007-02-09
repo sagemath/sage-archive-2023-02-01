@@ -25,6 +25,8 @@ import sage.rings.real_double
 from matrix cimport Matrix
 from sage.structure.element cimport ModuleElement
 
+cimport sage.structure.element
+
 cdef extern from "arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is
@@ -100,7 +102,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self,parent)
-        self._matrix= <gsl_matrix *> gsl_matrix_alloc(self._nrows, self._ncols)
+        _sig_on
+        self._matrix= <gsl_matrix *> gsl_matrix_calloc(self._nrows, self._ncols)
+        _sig_off
         if self._matrix == NULL:
             raise MemoryError, "unable to allocate memory for matrix "
         self._LU = <gsl_matrix *> NULL
@@ -128,10 +132,19 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             if len(entries)!=self._nrows*self._ncols:
                     raise TypeError, "entries has wrong length"
 
-            for i from 0<=i<self._nrows:
-                for j from 0<=j<self._ncols:
-                    z = float(entries[i*self._ncols+j])
-                    gsl_matrix_set(self._matrix, i,j,z)
+            if coerce:
+
+                for i from 0<=i<self._nrows:
+                    for j from 0<=j<self._ncols:
+                        z= float(entries[i*self._ncols+j])
+                        gsl_matrix_set(self._matrix, i,j,z)
+
+            else:
+
+                for i from 0<=i<self._nrows:
+                    for j from 0<=j<self._ncols:
+                        gsl_matrix_set(self._matrix, i,j,entries[i*self._ncols +j])
+
 
         else:
             try:
@@ -212,7 +225,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     # def _pickle(self):                        #unsure how to implement
     # def _unpickle(self, data, int version):   # use version >= 0 #unsure how to implement
     ######################################################################
-    def _multiply_classical(self, matrix.Matrix right):
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         cdef int result
         if self._ncols!=right._nrows:
             raise IndexError, "Number of columns of self must equal number of rows of right"

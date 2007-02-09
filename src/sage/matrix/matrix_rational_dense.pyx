@@ -9,33 +9,31 @@ Dense matrices over the rational field.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+cdef extern from "matrix_rational_dense_linbox.h":
+    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
+
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
-include '../ext/pthread.pxi'
-
 include "../ext/gmp.pxi"
+include "../ext/random.pxi"
 
+cimport sage.structure.element
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_integer_dense import _lift_crt
 import sage.structure.coerce
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement, RingElement
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
+from sage.rings.finite_field import GF
 
-
-cdef int num_threads
-num_threads = 1
-
-def set_num_threads(int n):
-    global num_threads
-    num_threads = n
-
-
+import sage.ext.multi_modular
 from matrix2 import cmp_pivots
-from sage.ext.multi_modular import MutableMultiModularBasis
+
+from sage.misc.misc import verbose, get_verbose
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -70,7 +68,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         cdef Py_ssize_t i, k
 
+        _sig_on
         self._entries = <mpq_t *> sage_malloc(sizeof(mpq_t)*(self._nrows * self._ncols))
+        _sig_off
         if self._entries == NULL:
             raise MemoryError, "out of memory allocating a matrix"
 
@@ -79,6 +79,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             raise MemoryError, "out of memory allocating a matrix"
 
         # store pointers to the starts of the rows
+        _sig_on
         k = 0
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
@@ -86,6 +87,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_init(self._entries[i])
+        _sig_off
 
     def  __dealloc__(self):
         cdef Py_ssize_t i
@@ -220,37 +222,36 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
 
-    def _scalar_multiply(self, x):
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: a = matrix(QQ,2,range(6))
-            sage: a._scalar_multiply(3/4)
+            sage: (3/4) * a
             [   0  3/4  3/2]
             [ 9/4    3 15/4]
         """
         cdef Py_ssize_t i
         cdef Rational _x
-        _x = Rational(x)
+        _x = Rational(right)
         cdef Matrix_rational_dense M
         M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_mul(M._entries[i], self._entries[i], _x.value)
         return M
 
-
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
         Add two dense matrices over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)(range(9))
-        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: a+b
-        [   1  3/2  7/3]
-        [13/4 21/5 31/6]
-        [43/7 57/8 73/9]
-        sage: b.swap_rows(1,2)
-        sage: #a+b
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a+b
+            [   1  3/2  7/3]
+            [13/4 21/5 31/6]
+            [43/7 57/8 73/9]
+            sage: b.swap_rows(1,2)
+            sage: #a+b
 
         """
         cdef Py_ssize_t i, j
@@ -275,15 +276,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
-        Add two dense matrices over QQ.
+        Subtract two dense matrices over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)(range(9))
-        sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: a-b
-        [  -1  1/2  5/3]
-        [11/4 19/5 29/6]
-        [41/7 55/8 71/9]
+            sage: a = MatrixSpace(QQ,3)(range(9))
+            sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: a-b
+            [  -1  1/2  5/3]
+            [11/4 19/5 29/6]
+            [41/7 55/8 71/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
@@ -310,11 +311,11 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         Negate a matrix over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: -a
-        [  -1 -1/2 -1/3]
-        [-1/4 -1/5 -1/6]
-        [-1/7 -1/8 -1/9]
+            sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: -a
+            [  -1 -1/2 -1/3]
+            [-1/4 -1/5 -1/6]
+            [-1/7 -1/8 -1/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
@@ -335,14 +336,14 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def __copy__(self):
         """
-        Negate a matrix over QQ.
+        Copy a matrix over QQ.
 
         EXAMPLES:
-        sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-        sage: -a
-        [  -1 -1/2 -1/3]
-        [-1/4 -1/5 -1/6]
-        [-1/7 -1/8 -1/9]
+            sage: a = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
+            sage: -a
+            [  -1 -1/2 -1/3]
+            [-1/4 -1/5 -1/6]
+            [-1/7 -1/8 -1/9]
         """
         cdef Py_ssize_t i, j
         cdef Matrix_rational_dense M
@@ -445,24 +446,112 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 A_row = A_row + 1
                 self_row = self_row + 1
         _sig_off
+        A._initialized = 1
         return A, D
 
-    def _multiply_multi_modular(left, Matrix_rational_dense right):
+    def charpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the characteristic polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.charpoly(); f
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: f(a)
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+        """
+        key = 'charpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
+        if algorithm == 'linbox':
+            A, denom = self._clear_denom()
+            f = A.charpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * denom) * (1 / (denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.charpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+        self.cache(key, g)
+        return g
+
+    def minpoly(self, var='x', algorithm='linbox'):
+        """
+        Return the minimal polynomial of this matrix.
+
+        INPUT:
+            var -- 'x' (string)
+            algorithm -- 'linbox' (default)
+                         'generic'
+
+        OUTPUT:
+            a polynomial over the rational numbers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 3, [4/3, 2/5, 1/5, 4, -3/2, 0, 0, -2/3, 3/4])
+            sage: f = a.minpoly(); f           # optional -- os x only right now
+            x^3 - 7/12*x^2 - 149/40*x + 97/30
+            sage: a = Mat(ZZ,4)(range(16))
+            sage: f = a.minpoly(); f.factor()  # optional -- os x only right now
+            x * (x^2 - 30*x - 80)
+            sage: f(a) == 0                    # optional -- os x only right now
+            True
+        """
+        key = 'minpoly_%s_%s'%(algorithm, var)
+        x = self.fetch(key)
+        if x: return x
+
+        if algorithm == 'linbox':
+            A, denom = self._clear_denom()
+            f = A.minpoly(var, algorithm='linbox')
+            x = f.parent().gen()
+            g = f(x * denom) * (1 / (denom**f.degree()))
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.minpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+        self.cache(key, g)
+        return g
+
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+        return self._multiply_over_integers(right)
+
+    def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
         """
         Multiply this matrix by right using a multimodular algorithm
         and return the result.
 
+        INPUT:
+            self -- matrix over QQ
+            right -- matrix over QQ
+            algorithm -- 'default': use whatever is the defalt for A*B when A, B are over ZZ.
+                         'multimodular': use a multimodular algorithm
+
         EXAMPLES:
+            sage: a = MatrixSpace(QQ,10,5)(range(50))
+            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
+            sage: a._multiply_over_integers(b) == a._multiply_over_integers(b, algorithm='multimodular')
+            True
+
             sage: a = MatrixSpace(QQ,3)(range(9))
             sage: b = MatrixSpace(QQ,3)([1/n for n in range(1,10)])
-            sage: a._multiply_multi_modular(b)
+            sage: a._multiply_over_integers(b, algorithm = 'multimodular')
             [ 15/28   9/20   7/18]
             [  33/7 117/40   20/9]
             [249/28   27/5  73/18]
-            sage: a = MatrixSpace(QQ,10,5)(range(50))
-            sage: b = MatrixSpace(QQ,5,12)([1/n for n in range(1,61)])
-            sage: a._multiply_multi_modular(b) == a._multiply_classical(b)
-            True
 
         """
         cdef Matrix_integer_dense A, B, AB
@@ -470,11 +559,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef Integer D
         cdef mpz_t* AB_row,
         cdef mpq_t* res_row
-        A, A_denom = left._clear_denom()
+        A, A_denom = self._clear_denom()
         B, B_denom = right._clear_denom()
-        AB = A._multiply_multi_modular(B)
+        if algorithm == 'default':
+            AB = A*B
+        elif algorithm == 'multimodular':
+            AB = A._multiply_multi_modular(B)
+        else:
+            raise ValueError, "unknown algorithm '%s'"%algorithm
         D = A_denom * B_denom
-        res = Matrix_rational_dense.__new__(Matrix_rational_dense, left.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
+        res = Matrix_rational_dense.__new__(Matrix_rational_dense,
+                                            self.matrix_space(AB._nrows, AB._ncols), 0, 0, 0)
         for i from 0 <= i < res._nrows:
             AB_row = AB._matrix[i]
             res_row = res._matrix[i]
@@ -486,113 +581,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 res_row = res_row + 1
         _sig_off
         return res
-
-    def _echelon_modular(self, height_guess=None):
-        """
-        echelon_modular(self, height_guess=None):
-
-        Returns echelon form of self, without modifying self.  Uses a
-        multi-modular method.
-
-        ALGORITHM:
-        The following is a modular algorithm for computing the echelon
-        form.  Define the height of a matrix to be the max of the
-        absolute values of the entries.
-
-        Input: Matrix A with n columns (this).
-
-        0. Rescale input matrix A to have integer entries.  This does
-           not change echelon form and makes reduction modulo many
-           primes significantly easier if there were denominators.
-           Henceforth we assume A has integer entries.
-
-        1. Let c be a guess for the height of the echelon form.  E.g.,
-           c=1000, since matrix is sparse and application is modular
-           symbols.
-
-        2. Let M = n * c * H(A) + 1,
-           where n is the number of columns of A.
-
-        3. List primes p_1, p_2, ..., such that the product of
-           the p_i is at least M.
-
-        4. Try to compute the rational reconstruction CRT echelon form
-           of A mod the product of the p_i.  Throw away those A mod p_i
-           whose pivot sequence is not >= all other pivot sequences of
-           A mod p_j.
-           If rational reconstruction fails, compute 1 more echelon
-           forms mod the next prime, and attempt again.  Let E be this
-           matrix.
-
-        5. Compute the denominator d of E.
-           Try to prove that result is correct by checking that
-
-                 H(d*E) < (prod of reduction primes)/(ncols*H(A)),
-
-           where H denotes the height.   If this fails, do step 4 with
-           a few more primes.
-
-           (TODO: Possible idea for optimization: When doing the rational_recon lift,
-            keep track of the lcm d of denominators found so far, and given
-                             a (mod m)
-            first check to see if a*d lifts to an integer with abs <= m/2.
-            If so, no nded to do rational recon.  This should be the case
-            for most a after a while, and should save substantial time!!!!)
-        """
-        cdef Matrix_integer_dense A
-        cdef Integer d
-        A, d = self._clear_denom()
-        hA = A.height()
-        if height_guess is None:
-            height_guess = (2*hA)**(self._ncols/2+1)
-        verbose("height_guess=%s"%height_guess)
-        best_pivots = []
-        M = self._ncols * height_guess * hA  +  1
-        mm = MutableMultiModularBasis(M)
-        res = []
-        new_res = A._reduce(mm) # TODO: can I recognize special forms (e.g. identity) before calculating all of these?
-
-        _sig_on
-        while True:
-            # calculate the new echelon forms
-            for B in new_res:
-                B.echelonize()
-            i = len(res)
-            res += new_res
-            new_res = []
-            # make sure they all have the same pivots
-            while i < len(res):
-                c = cmp_pivots(best_pivots, res[i].pivots())
-                if c == 0:
-                    i += 1
-                elif c < 0:
-                    best_pivots = res[i].pivots()
-                    i = 0
-                else:
-                    p = mm.replace_prime(i)
-                    res[i] = A._mod_int(p)
-                    res[i].echelonize()
-            # now try and lift
-            try:
-                t = verbose("start rr")
-                E = _lift_crt_rr(res, mm)
-                verbose("done",t)
-            except ValueError:
-                mm._extend_moduli(1)
-                new_res = A._reduce(mm[-1:])
-                verbose("(Failed to compute rational reconstruction -- redoing with several more primes", level=2)
-                continue
-            # see if we have enough clearance for the height
-            dE, d = E._clear_denom()
-            hE = dE.height()
-            if hE * hA * self._ncols < mm.prod():
-                self.cache('pivots', best_pivots)
-                (<Matrix_rational_dense>E).cache('pivots', best_pivots)
-                _sig_off
-                return E
-            # try a few more primes
-            mm._extend_moduli(3)
-            new_res = A._reduce(mm[-3:])
 
 
     def height(self):
@@ -676,120 +664,339 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         mpq_clear(pr)
         return _pr
 
-
-    def _add_inplace(self, ModuleElement right):
+    ################################################
+    # Echelon form
+    ################################################
+    def echelonize(self, height_guess=None, proof=True, **kwds):
+        x = self.fetch('in_echelon_form')
+        if not x is None: return  # already known to be in echelon form
         self.check_mutability()
-        if num_threads > 1:
-            self.__add_inplace_threaded(right)
-        else:
-            self.__add_inplace(right)
-
-    def __add_inplace(self, ModuleElement right):
+        self.clear_cache()
+        cdef Matrix_rational_dense E
+        E = self._echelon_form_multimodular(height_guess, proof=proof)
         cdef Py_ssize_t i, j
+        cdef mpq_t *row0, *row1
+        for i from 0 <= i < self._nrows:
+            row0 = self._matrix[i]
+            row1 = E._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_set(row0[j], row1[j])
+        self.cache('in_echelon_form', True)
+        self.cache('pivots', E.pivots())
 
-        cdef mpq_t *self_row
-        cdef mpq_t *right_row
+    def echelon_form(self, height_guess=None, proof=True, **kwds):
+        x = self.fetch('echelon_form')
+        if not x is None:
+            return x
+        cdef Matrix_rational_dense E
+        E = self._echelon_form_multimodular(height_guess, proof=proof)
+        self.cache('echelon_form', E)
+        self.cache('pivots', E.pivots())
+        return E
+
+    def _echelonize_linbox(self):
+        raise NotImplementedError
+        linbox_rational_dense_echelon_form(self._matrix, self._nrows, self._ncols)
+
+    def _echelon_form_multimodular(self, height_guess=None, proof=True):
+        """
+        Returns reduced row-echelon form using a multi-modular
+        algorithm.  Does not change self.
+
+        REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
+
+        INPUT:
+            height_guess -- integer or None
+            proof -- boolean (default: True)
+        """
+        import misc
+        return misc.matrix_rational_echelon_form_multimodular(self,
+                                 height_guess=height_guess, proof=proof)
+
+
+
+    # second implementation of the above, usually over twice as fast
+    # even without denominator lcm trick
+    # TODO: merge with the above
+    def _echelon_multimodular(self, height_guess=None, proof=True):
+        """
+        _echelon_multimodular(self, height_guess=None):
+
+        Returns echelon form of self, without modifying self.  Uses a
+        multi-modular method.
+
+        REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
+
+        INPUT:
+            self -- matrix with n columns (this).
+            height_guess -- integer or None
+            proof -- boolean (default: True)
+
+        ALGORITHM:
+        The following is a modular algorithm for computing the echelon
+        form.  Define the height of a matrix to be the max of the
+        absolute values of the entries.
+
+        0. Rescale input matrix A to have integer entries.  This does
+           not change echelon form and makes reduction modulo many
+           primes significantly easier if there were denominators.
+           Henceforth we assume A has integer entries.
+
+        1. Let c be a guess for the height of the echelon form.  E.g.,
+           c=1000, since matrix is sparse and application is modular
+           symbols.
+
+        2. Let M = n * c * H(A) + 1,
+           where n is the number of columns of A.
+
+        3. List primes p_1, p_2, ..., such that the product of
+           the p_i is at least M.
+
+        4. Try to compute the rational reconstruction CRT echelon form
+           of A mod the product of the p_i.  Throw away those A mod p_i
+           whose pivot sequence is not >= all other pivot sequences of
+           A mod p_j.
+           If rational reconstruction fails, compute 1 more echelon
+           forms mod the next prime, and attempt again.  Let E be this
+           matrix.
+
+        5. Compute the denominator d of E.
+           Try to prove that result is correct by checking that
+
+                 H(d*E) < (prod of reduction primes)/(ncols*H(A)),
+
+           where H denotes the height.   If this fails, do step 4 with
+           a few more primes.
+
+        AUTHORS:
+            -- William Stein
+            -- Robert Bradshaw
+        """
+        cdef Matrix_integer_dense A
+        cdef Matrix_rational_dense E
+        cdef Integer d
+        cdef int problem
+        A, d = self._clear_denom()
+        hA = A.height()
+        if height_guess is None:
+            height_guess = (2*hA)**(self._ncols/2+1)
+        tm = verbose("height_guess = %s"%height_guess, level=2)
+        best_pivots = []
+
+        if proof:
+            M = self._ncols * height_guess * hA  +  1
+        else:
+            M = height_guess + 1
+        mm = sage.ext.multi_modular.MutableMultiModularBasis(M)
+
+        res = []
+        # reduction via several primes can be made more efficient than reduction via each prime one at a time
+        t = verbose("Reducing mod %s:"%mm, level=2)
+        new_res = A._reduce(mm) # TODO: can I recognize special forms (e.g. identity) before calculating all of these?
+        t = verbose("time to reduce matrix mod p:",t, level=2)
+        problem = 0
 
         _sig_on
-        for i from 0 <= i < self._nrows * self._ncols:
-            mpq_add(self._entries[i], self._entries[i], (<Matrix_rational_dense>right)._entries[i])
+        while True:
+            # calculate the new echelon forms
+            for B in new_res:
+                B.echelonize()
+                t = verbose("time to put reduced matrix in echelon form:",t, level=2)
+            i = len(res)
+            res += new_res
+            new_res = []
+            # make sure they all have the same pivots
+            while i < len(res):
+                c = cmp_pivots(best_pivots, res[i].pivots())
+                if c == 0:
+                    i += 1
+                elif c < 0:
+                    best_pivots = res[i].pivots()
+                    i = 0
+                else:
+                    p = mm.replace_prime(i)
+                    res[i] = A._mod_int(p)
+                    res[i].echelonize()
+                    verbose("Excluding this prime (bad pivots).")
+            t = verbose("time for pivot compare", t, level=2)
+            # now try and lift
+            try:
+                t = verbose("start crt/rr", level=1)
+                E = self._lift_crt_rr_with_lcm(res, mm)
+                verbose("done crt/rr", t, level=1)
+            except ValueError:
+                mm._extend_moduli(3)
+                new_res = A._reduce(mm[-3:])
+                verbose("Failed to compute rational reconstruction -- redoing with several more primes", level=2)
+                continue
+
+            # see if we have enough clearance for the height
+            if not proof:
+                verbose("Not checking validity of result (since proof=False).", level=2)
+                break
+
+            dE, d = E._clear_denom()
+            hE = dE.height()
+            if hE * hA * self._ncols < mm.prod():
+                self.cache('pivots', best_pivots)
+                (<Matrix_rational_dense>E).cache('pivots', best_pivots)
+                break
+
+            # try a few more primes
+            mm._extend_moduli(3)
+            new_res = A._reduce(mm[-3:])
+            problem += 1
+            if problem > 50:
+                verbose("sparse_matrix multi-modular reduce not converging?")
+
+        #end while
+        _sig_off
+        verbose("total time", tm, level=2)
+        self.cache('pivots', best_pivots)
+        E.cache('pivots', best_pivots)
+        return E
+
+
+    def _lift_crt_rr(self, res, mm):
+        cdef Integer m
+        cdef Matrix_integer_dense ZA
+        cdef Matrix_rational_dense QA
+        cdef Py_ssize_t i, j, nr, nc
+        cdef mpz_t* Z_row
+        cdef mpq_t* Q_row
+
+        ZA = _lift_crt(res, mm)
+        nr = ZA._nrows
+        nc = ZA._ncols
+        QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
+        m = mm.prod()
+        for i from 0 <= i < nr:
+            Z_row = ZA._matrix[i]
+            Q_row = QA._matrix[i]
+            for j from 0 <= j < nc:
+                mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
+        return QA
+
+    def _lift_crt_rr_with_lcm(self, res, mm):
+        """
+            Optimizations: When doing the rational_recon lift of a (mod m)
+            first see if |a| < sqrt(m/2) in which case it lifts to
+            an integer (often a=0 or 1).
+
+            If that fails, keep track of the lcm d of denominators found so far,
+            and check to see if z = a*d lifts to an integer with |z| <= sqrt(m/2).
+            If so, no need to do rational recon.  This should be the case
+            for most a after a while, and should saves substantial time!
+        """
+        cdef Integer m
+        cdef Matrix_integer_dense ZA
+        cdef Matrix_rational_dense QA
+        cdef Py_ssize_t i, j, nr, nc
+        cdef mpz_t* Z_row
+        cdef mpq_t* Q_row
+        cdef mpz_t lcm_denom, sqrt_m, neg_sqrt_m, z
+
+        mpz_init(z)
+        mpz_init(sqrt_m)
+        mpz_init(neg_sqrt_m)
+        mpz_init_set_ui(lcm_denom, 1)
+
+        m = mm.prod()
+        mpz_fdiv_q_2exp(sqrt_m, m.value, 1)
+        mpz_sqrt(sqrt_m, sqrt_m)
+        mpz_sub(neg_sqrt_m, m.value, sqrt_m)
+
+        t = verbose("Starting crt", level=2)
+        ZA = _lift_crt(res, mm)
+        t = verbose("crt finished", t, level=2)
+        nr = ZA._nrows
+        nc = ZA._ncols
+        QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
+
+        cdef int is_integral, lcm_trick
+        is_integral = 0
+        lcm_trick = 0
+
+        t = verbose("Starting rational reconstruction", level=2)
+        for i from 0 <= i < nr:
+            Z_row = ZA._matrix[i]
+            Q_row = QA._matrix[i]
+            for j from 0 <= j < nc:
+                if mpz_cmp(Z_row[j], sqrt_m) < 0:
+                    mpz_set(mpq_numref(Q_row[j]), Z_row[j])
+                    is_integral += 1
+                elif mpz_cmp(Z_row[j], neg_sqrt_m) > 0:
+                    mpz_sub(mpq_numref(Q_row[j]), Z_row[j], m.value)
+                    is_integral += 1
+                else:
+                    mpz_mul(z, Z_row[j], lcm_denom)
+                    mpz_fdiv_r(z, z, m.value)
+                    if mpz_cmp(z, sqrt_m) < 0:
+                        mpz_set(mpq_numref(Q_row[j]), z)
+                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
+                        mpq_canonicalize(Q_row[j])
+                        lcm_trick += 1
+                    elif mpz_cmp(z, neg_sqrt_m) > 0:
+                        mpz_sub(mpq_numref(Q_row[j]), z, m.value)
+                        mpz_set(mpq_denref(Q_row[j]), lcm_denom)
+                        mpq_canonicalize(Q_row[j])
+                        lcm_trick += 1
+                    else:
+                        mpq_rational_reconstruction(Q_row[j], Z_row[j], m.value)
+                        mpz_lcm(lcm_denom, lcm_denom, mpq_denref(Q_row[j]))
+        mpz_clear(z)
+        mpz_clear(sqrt_m)
+        mpz_clear(neg_sqrt_m)
+        mpz_clear(lcm_denom)
+        t = verbose("rr finished. integral entries: %s, lcm trick: %s, other: %s"%(is_integral, lcm_trick, nr*nc - is_integral - lcm_trick), t, level=2)
+        return QA
+
+
+    def randomize(self, density=1, num_bound=2, den_bound=1):
+        """
+        Randomize density proportion of the entries of this matrix to
+        be rationals with numerators and denominators at most the
+        given bounds.
+        """
+        density = float(density)
+        if density == 0:
+            return
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef Integer B, C
+        B = Integer(num_bound+1)
+        C = Integer(den_bound+1)
+
+        cdef Py_ssize_t i, j, k, nc, num_per_row
+        global state
+
+        cdef double total
+        total = self._nrows * self._ncols
+        cdef int r, s
+        r = self._nrows * self._ncols
+
+        _sig_on
+        if density == 1:
+            if mpz_cmp_si(C.value, 2):   # denom is > 1
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry(self._entries[i], B.value, C.value)
+            else:
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry_as_int(self._entries[i], B.value)
+        else:
+            nc = self._ncols
+            num_per_row = int(density * nc)
+            if mpz_cmp_si(C.value, 2):   # denom is > 1
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry(self._matrix[i][k], B.value, C.value)
+            else:
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry_as_int(self._matrix[i][k], B.value)
         _sig_off
 
-
-    def __add_inplace_threaded(self, Matrix_rational_dense right):
-        if self._nrows != right._nrows or self._ncols != right._ncols:
-            raise TypeError, "matrix dimensions do not agree"
-        add_using_pthreads(self._entries, self._entries, right._entries,
-                           self._nrows * self._ncols)
-        return
-
-    def _add_threaded(self, Matrix_rational_dense right):
-        if self._nrows != right._nrows or self._ncols != right._ncols:
-            raise TypeError, "matrix dimensions do not agree"
-
-        cdef Matrix_rational_dense M
-        M = Matrix_rational_dense.__new__(Matrix_rational_dense, self._parent, None, None, None)
-        add_using_pthreads(M._entries, self._entries, right._entries, self._nrows * self._ncols)
-        return M
-
-
-
-###########################
-ctypedef struct ThreeMatrices:
-    mpq_t* r
-    mpq_t* a
-    mpq_t* b
-    Py_ssize_t n
-
-cdef void* thread_add(void* args):
-    cdef ThreeMatrices* _args
-    _args = <ThreeMatrices*> args
-    cdef Py_ssize_t i
-    for i from 0 <= i < _args.n:
-        mpq_add(_args.r[i], _args.a[i], _args.b[i])
-
-cdef add_using_pthreads(mpq_t* r, mpq_t* a, mpq_t* b, Py_ssize_t n):
-    if n % num_threads != 0:
-        raise ValueError, 'product of nrows and ncols must be divisible by num_threads'
-
-    cdef Py_ssize_t chunk_size
-    chunk_size = n / num_threads
-
-    # allocate three arrays of pointers to num_threads mpq_t*'s
-    cdef mpq_t **a_i
-    cdef mpq_t **b_i
-    cdef mpq_t **r_i
-    a_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
-    b_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
-    r_i = <mpq_t**> sage_malloc(sizeof(mpq_t*) * num_threads)
-
-    # allocate structure into which to put the pointer arrays
-    cdef ThreeMatrices* args
-    args = <ThreeMatrices*> sage_malloc(sizeof(ThreeMatrices) * num_threads)
-
-    # allocate thread structures
-    cdef pthread_attr_t attr
-    pthread_attr_init(&attr)
-    pthread_attr_setdetachstate(&attr,0)
-    cdef pthread_t* threads
-    threads = <pthread_t *> malloc(sizeof(pthread_t)*num_threads)
-
-    # do it!
-    cdef int i
-    for i from 0 <= i < num_threads:
-        a_i[i] = a + (chunk_size * i)
-        b_i[i] = b + (chunk_size * i)
-        r_i[i] = r + (chunk_size * i)
-        args[i].a = a_i[i]
-        args[i].b = b_i[i]
-        args[i].r = r_i[i]
-        args[i].n = chunk_size
-        pthread_create( &(threads[i]), &attr, thread_add, <void *>(&args[i]) )
-
-    for i from 0 <= i < num_threads:
-        pthread_join(threads[i], NULL)
-
-
-
-###########################
-
-
-def _lift_crt_rr(res, mm):
-    # TODO: be clever about common denominators
-
-    cdef Integer m
-    cdef Matrix_integer_dense ZA
-    cdef Matrix_rational_dense QA
-    cdef Py_ssize_t i, j, nr, nc
-
-    ZA = _lift_crt(res, mm)
-    print ZA
-    nr = ZA._nrows
-    nc = ZA._ncols
-    QA = Matrix_rational_dense.__new__(Matrix_rational_dense, ZA.matrix_space(nr, nc), None, None, None)
-    m = mm.prod()
-    for i from 0 <= i < nr:
-        for j from 0 <= j < nc:
-                mpq_rational_reconstruction(QA._matrix[i][j], ZA._matrix[i][j], m.value)
-    return QA
 

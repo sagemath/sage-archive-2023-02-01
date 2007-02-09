@@ -16,7 +16,6 @@
 using namespace LinBox;
 using namespace std;
 
-
 template <class Field, class Polynomial>
 void printPolynomial (const Field &F, const Polynomial &v)
 {

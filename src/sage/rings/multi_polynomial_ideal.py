@@ -476,6 +476,40 @@ class MPolynomialIdeal_singular_repr:
         r = I.radical()
         return S.ideal(r)
 
+    def integral_closure(self, p=0, r=True):
+        """
+        Let I == self.
+
+        Returns the integral closure of I, ..., I^p, where sI
+        is an ideal in the polynomial ring R=k[x(1),...x(n)]. If p is
+        not given, or p==0, compute the closure of all powers up to
+        the maximum degree in t occurring in the closure of R[It] (so
+        this is the last power whose closure is not just the
+        sum/product of the smaller). If r is given and r is True,
+        I.integral_closure() starts with a check whether I is already a
+        radical ideal.
+
+        INPUT:
+            p -- powers of I (default: 0)
+            r -- check whether self is a radical ideal first (default: True)
+
+        EXAMPLE:
+            sage: R.<x,y> = QQ[]
+            sage: I = ideal([x^2,x*y^4,y^5])
+            sage: I.integral_closure()
+            [x^2, y^5, x*y^3]
+
+        ALGORITHM: Use Singular
+
+        """
+        Is = self._singular_()
+        R = self.ring()
+        singular =Is .parent()
+        singular.load('reesclos.lib')
+        ret = Sequence([ R(f) for f in Is.normalI(p,int(r))[1] ], R,
+                       check=False, immutable=True)
+        return ret
+
     def reduce(self, f):
         """
         Reduce an element modulo a standard basis for this ideal.

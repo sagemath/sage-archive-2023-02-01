@@ -8,7 +8,7 @@ We create a quotient of a univariate polynomial ring over $\ZZ$.
     sage: 2 * a^3
     -6*a + 2
 
-Next we make a univeriate polynomial ring over $$\Z[x]/(x^3+3x-1)$.
+Next we make a univeriate polynomial ring over $\Z[x]/(x^3+3x-1)$.
     sage: S.<y> = S[]
 
 And, we quotient out that by $y^2 + a$.
@@ -169,7 +169,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
     def __neg__(self):
         return PolynomialQuotientRingElement(self.parent(), -self.__polynomial)
 
-    def __pow__(self, n):
+    def __pow__(self, nn):
         """
         Return a power of a polynomial ring quotient element.
 
@@ -179,7 +179,9 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
             sage: a^100
             7*a^3 + 8*a + 7
         """
-        n = int(n)
+        n = int(nn)
+        if n != nn:
+            raise ValueError, "exponent must be an integer"
         if n < 0:
             x = self.__invert__()
             n *= -1

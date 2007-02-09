@@ -63,6 +63,10 @@ rm -f */*/interrupt.h */*/*/interrupt.h */*/*/*/interrupt.h
 # touch and build everything
 sage -b main
 
+# repeat -- this copies over all the pyx files, so they appear when
+# you use inspect.
+sage -b main
+
 if [ $? -ne 0 ]; then
     echo "ERROR installing SAGE"
     exit 1

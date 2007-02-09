@@ -54,6 +54,7 @@ cdef class Matrix_ring_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #   * __invert__
     #   * __copy__
     #   * _multiply_classical
+    #   * _matrix_times_matrix_c_impl
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################

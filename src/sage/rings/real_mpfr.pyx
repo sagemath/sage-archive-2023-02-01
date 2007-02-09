@@ -521,7 +521,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         of an invalid operation (like 0 divided by 0), or a value that
         cannot be determined (like +Infinity minus
         +Infinity). Moreover, like in the IEEE 754-1985 standard, zero
-        is signed, i.e. there are both +0 and ?0; the behavior is the
+        is signed, i.e. there are both +0 and -0; the behavior is the
         same as in the IEEE 754-1985 standard and it is generalized to
         the other functions supported by MPFR.
 
@@ -1079,6 +1079,54 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def is_NaN(self):
         return bool(mpfr_nan_p(self.value))
+
+    def is_positive_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RR('1.494') / RR(0); a
+            +infinity
+            sage: a.is_positive_infinity()
+            True
+            sage: a = -RR('1.494') / RR(0); a
+            -infinity
+            sage: RR(1.5).is_positive_infinity()
+            False
+            sage: a.is_positive_infinity()
+            False
+        """
+        return bool(mpfr_inf_p(self.value) and mpfr_sgn(self.value) > 0)
+
+    def is_negative_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RR('1.494') / RR(0); a
+            +infinity
+            sage: a.is_negative_infinity()
+            False
+            sage: a = -RR('1.494') / RR(0); a
+            -infinity
+            sage: RR(1.5).is_negative_infinity()
+            False
+            sage: a.is_negative_infinity()
+            True
+        """
+        return bool(mpfr_inf_p(self.value) and mpfr_sgn(self.value) < 0)
+
+    def is_infinity(self):
+        """
+        EXAMPLES:
+            sage: a = RR('1.494') / RR(0); a
+            +infinity
+            sage: a.is_infinity()
+            True
+            sage: a = -RR('1.494') / RR(0); a
+            -infinity
+            sage: a.is_infinity()
+            True
+            sage: RR(1.5).is_infinity()
+            False
+        """
+        return bool(mpfr_inf_p(self.value))
 
     def __richcmp__(left, right, int op):
         return (<RingElement>left)._richcmp(right, op)

@@ -80,6 +80,8 @@ AUTHOR:
     - Bobby Moretti (2006)-10): Added KleinFourGroup, fixed bug in DihedralGroup
     - David Joyner (2006-10): added is_subgroup (fixing a bug found by Kiran Kedlaya),
                               is_solvable, normalizer, is_normal_subgroup, Suzuki
+    - David Kohel (2007-02): fixed __contains__ to not enumerate group elements,
+                              following the convention for __call__
 
 REFERENCES:
     Cameron, P., Permutation Groups. New York: Cambridge University Press, 1999.
@@ -320,10 +322,46 @@ class PermutationGroup_generic(group.FiniteGroup):
         Returns boolean value of "item in self"
 
         EXAMPLES:
-
+            sage: G = SymmetricGroup(16)
+	    sage: g = G.gen(0)
+	    sage: h = G.gen(1)
+	    sage: g^7*h*g*h in G
+	    True
+	    sage: G = SymmetricGroup(4)
+	    sage: g = G((1,2,3,4))
+	    sage: h = G((1,2))
+            sage: H = PermutationGroup([[(1,2,3,4)], [(1,2),(3,4)]])
+	    sage: g in H
+	    True
+	    sage: h in H
+	    False
         """
-        L = self.list()
-        return (item in L)
+        if isinstance(item, PermutationGroupElement):
+            if not item.parent() is self:
+                try:
+		    item = PermutationGroupElement(item._gap_(), self, check = True)
+		except:
+		    return False
+ 	    return True
+        elif isinstance(item, (list, str)):
+            if isinstance(item, list) and len(item) > 0 and not isinstance(item[0], tuple):
+                item = gap.eval('PermList(%s)'%item)
+            try:
+	        item = PermutationGroupElement(item, self, check = True)
+	    except:
+	        return False
+            return True
+        elif isinstance(item, tuple):
+            if isinstance(item, list) and len(item) > 0 and not isinstance(item[0], tuple):
+                item = gap.eval('PermList(%s)'%item)
+            try:
+	        item = PermutationGroupElement(item, self, check = True)
+	    except:
+	        return False
+            return True
+        elif isinstance(item, (int, long, Integer)) and item == 1:
+            return True
+        return False
 
     def has_element(self,item):
         """
@@ -476,13 +514,13 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         return Integer(self._gap_().Size())
 
-    def random(self):
+    def random_element(self):
         """
         Return a random element of this group.
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2,3),(4,5)], [(1,2)]])
-            sage: G.random()         ## random output
+            sage: G.random_element()         ## random output
             (1, 3)(4, 5)
         """
         return PermutationGroupElement(self._gap_().Random(),
@@ -858,7 +896,7 @@ class PermutationGroup_generic(group.FiniteGroup):
 
         EXAMPLES:
             sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4)]])
-            sage: g = G.random()
+            sage: g = G.random_element()
             sage: G.normalizer(g)  ## random output
             Group([ (2,4), (1,3) ])
             sage: g = G([(1,2,3,4)])

@@ -1159,6 +1159,11 @@ def generic_power(a, m, one=1):
         m = -m
     if m == 0:
         return one
+    _m = int(m)
+    if _m != m:
+        raise ValueError, "exponent must be an integer"
+    else:
+        m = _m
     power = None
     i = 0
     apow2 = a
@@ -1810,11 +1815,37 @@ def primitive_root(n):
     except RuntimeError:
         raise ArithmeticError, "There is no primitive root modulo n"
 
-def discrete_log_generic(b, a, ord=None):
+def nth_prime(n):
     """
-    Return an integer $n$ such that $b^n = a$, assuming that ord is a
-    multiple of the multiplicative order of $a$.  If ord is not
-    specified an attempt is made to compute it.
+    EXAMPLES:
+        sage: nth_prime(0)
+        Traceback (most recent call last):
+        ...
+        ValueError
+        sage: nth_prime(3)
+        5
+        sage: nth_prime(10)
+        29
+    """
+    n = int(n)
+    if n <= 0:
+        raise ValueError
+    return integer_ring.ZZ(pari('prime(%s)'%int(n)))
+
+def discrete_log_generic(x, base, ord=None):
+    r"""
+    Return an integer $n$ such that $b^n = x$, assuming that ord is a
+    multiple of the multiplicative order of $a$ and $b$ is the base.
+    If ord is not specified an attempt is made to compute it.
+
+    WARNING: If x has a log method, it is likely to be vastly faster
+    than using this function.  E.g., if x is an integer modulo n, use
+    its log method instead!
+
+    INPUT:
+        x -- number
+        base -- number (base of log)
+        ord -- integer (multiple of order of base).
 
     The elements a and b must support exponentiation to a negative
     power.
@@ -1825,43 +1856,45 @@ def discrete_log_generic(b, a, ord=None):
 
     EXAMPLES:
         sage: b = Mod(2,37);  a = b^20
-        sage: discrete_log_generic(b, a)
+        sage: discrete_log_generic(a, b)
         20
         sage: b = Mod(2,997);  a = b^20
-        sage: discrete_log_generic(b, a)
+        sage: discrete_log_generic(a, b)
         20
 
         sage: K = GF(3^6,'b')
         sage: b = K.gen()
         sage: a = b^210
-        sage: discrete_log_generic(b, a, K.order()-1)
+        sage: discrete_log_generic(a, b, K.order()-1)
         210
 
-        sage: b = Mod(1,37);  a = Mod(2,37)
-        sage: discrete_log_generic(b, a)
+        sage: b = Mod(1,37);  x = Mod(2,37)
+        sage: discrete_log_generic(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: Log of a to the base b does not exist.
-        sage: b = Mod(1,997);  a = Mod(2,997)
-        sage: discrete_log_generic(b, a)
+        ValueError: Log of 2 to the base 1 does not exist.
+        sage: b = Mod(1,997);  x = Mod(2,997)
+        sage: discrete_log_generic(x, b)
         Traceback (most recent call last):
         ...
-        ValueError: Log of a to the base b does not exist.
+        ValueError: Log of 2 to the base 1 does not exist.
 
-    AUTHOR: William Stein and David Joyner (2005-01-05)
+    AUTHOR:
+        -- William Stein and David Joyner (2005-01-05)
     """
     Z = integer_ring.ZZ
+    b = base; a = x
 
     if b == 0:
         if a == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of a to the base b does not exist."
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
     elif a == 0:
         if b == 0:
             return Integer(1)
         else:
-            raise ValueError, "Log of a to the base b does not exist."
+            raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
     if ord is None:
         ord = b.multiplicative_order()
@@ -1872,7 +1905,7 @@ def discrete_log_generic(b, a, ord=None):
             if c == a:        # is b^i
                 return Z(i)
             c *= b
-        raise ValueError, "Log of a to the base b does not exist."
+        raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
     m = ord.isqrt()
     g = [a]
@@ -1887,7 +1920,7 @@ def discrete_log_generic(b, a, ord=None):
             x = S2.index(y)
             return Z(m*(g.index(y)) + x)
 
-    raise ValueError, "Log does not exist."
+    raise ValueError, "Log of %s to the base %s does not exist."%(a,b)
 
 
 
@@ -2221,6 +2254,85 @@ def convergents(v):
         w.append((pn, qn))
     return [Q(x) for x in w[2:]]
 
+
+
+## def continuant(v, n=None):
+##     """
+##     Naive implementation with recursion.
+##
+##     See Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants
+##     """
+##     m = len(v)
+##     if n == None or m < n:
+##         n = m
+##     if n == 0:
+##         return 1
+##     if n == 1:
+##         return v[0]
+##     return continuant(v[:n-1])*v[n-1] + continuant(v[:n-2])
+
+def continuant(v, n=None):
+    r"""
+    Function returns the continuant of the sequence $v$ (list or tuple).
+
+    Definition: see Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants:
+
+    $K_0() = 1$
+
+    $K_1(x_1) = x_1$
+
+    $K_n(x_1, \cdots, x_n) = K_{n-1}(x_n, \cdots x_{n-1})x_n + K_{n-2}(x_1,  \cdots, x_{n-2})$
+
+    If $n = None$ or $n > len(v)$ the default $n = len(v)$ is used.
+
+    INPUT:
+        v -- list or tuple of elements of a ring
+        n -- optional integer
+
+    OUTPUT:
+        element of ring (integer, polynomial, etcetera).
+
+    EXAMPLES:
+        sage: continuant([1,2,3])
+        10
+        sage: p = continuant([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: q = continuant([1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: p/q
+        517656/190435
+        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
+        517656/190435
+        sage: x = MPolynomialRing(RationalField(),'x',5).gens()
+        sage: continuant(x)
+        x4 + x2 + x2*x3*x4 + x0 + x0*x3*x4 + x0*x1*x4 + x0*x1*x2 + x0*x1*x2*x3*x4
+        sage: continuant(x, 3)
+        x2 + x0 + x0*x1*x2
+        sage: continuant(x,2)
+        1 + x0*x1
+
+        $K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}$:
+
+        sage: z = QQ['z'].0
+        sage: continuant((z,z,z,z,z,z,z,z,z,z,z,z,z,z,z),6)
+        z^6 + 5*z^4 + 6*z^2 + 1
+        sage: continuant(9)
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'sage.rings.integer.Integer' has no len()
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-06)
+    """
+    m = len(v)
+    if n == None or m < n:
+        n = m
+    if n == 0:
+        return 1
+    if n == 1:
+        return v[0]
+    a, b = 1, v[0]
+    for k in range(1,n):
+        a, b = b, a + b*v[k]
+    return b
 
 def number_of_divisors(n):
     """

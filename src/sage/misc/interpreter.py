@@ -99,8 +99,6 @@ so the w = [5] above would work right.
 
 __author__ = 'William Stein <wstein@gmail.com> et al.'
 __license__ = 'GPL'
-#__version__= '1.3.7'
-#__date__   = 'July 2006'
 
 import os
 import log

@@ -652,6 +652,9 @@ cdef class RealDoubleElement(FieldElement):
     def is_negative_infinity(self):
         return bool(gsl_isinf(self._value) < 0)
 
+    def is_infinity(self):
+        return bool(gsl_isinf(self._value))
+
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 

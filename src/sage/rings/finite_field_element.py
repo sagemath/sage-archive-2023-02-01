@@ -335,7 +335,7 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
             return '0*Z(%s)'%F.order()
         assert F.degree() > 1
         g = F.multiplicative_generator()
-        n = g.log(self)
+        n = self.log(g)
         return 'Z(%s)^%s'%(F.order(), n)
 
     def charpoly(self, var):
@@ -397,12 +397,14 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         else:
             return n
 
-    def log(self, a):
+    def log(self, base):
         """
-        Return $x$ such that $b^x = a$, where $b$ is self.
+        Return $x$ such that $b^x = a$, where $x$ is $a$ and $b$
+        is the base.
 
         INPUT:
-            self, a are elements of a finite field.
+            self -- finite field element
+            b -- finite field element that generates the multiplicative group.
 
         OUTPUT:
             Integer $x$ such that $a^x = b$, if it exists.
@@ -411,19 +413,19 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         EXAMPLES:
             sage: from sage.rings.finite_field import FiniteField_ext_pari
             sage: F = GF(17)
-            sage: F(2).log(F(8))
-            3
+            sage: F(3^11).log(F(3))
+            11
             sage: F = GF(113)
-            sage: F(2).log(F(81))
+            sage: F(3^19).log(F(3))
             19
             sage: F = GF(next_prime(10000))
-            sage: F(23).log(F(8111))
-            8393
+            sage: F(23^997).log(F(23))
+            997
 
             sage: F = FiniteField_ext_pari(2^10, 'a')
             sage: g = F.gen()
             sage: b = g; a = g^37
-            sage: b.log(a)
+            sage: a.log(b)
             37
             sage: b^37; a
             a^8 + a^7 + a^4 + a + 1
@@ -432,7 +434,9 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
         AUTHOR: David Joyner and William Stein (2005-11)
         """
         q = (self.parent()).order() - 1
-        return arith.discrete_log_generic(self, a, q)
+        b = self.parent()(base)
+        # TODO: This function is TERRIBLE!  PARI?
+        return arith.discrete_log_generic(self, b, q)
 
     def order(self):
         """
@@ -497,8 +501,10 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     # out crazy warnings when the exponent is LARGE -- this
     # is even a problem in gp!!!
     # (Commenting out causes this to use a generic algorithm)
-    #def __pow__(self, right):
-    #    right = int(right)
+    #def __pow__(self, _right):
+    #    right = int(_right)
+    #    if right != _right:
+    #         raise ValueError
     #    return FiniteField_ext_pariElement(self.__parent, self.__value**right)
 
     def __neg__(self):

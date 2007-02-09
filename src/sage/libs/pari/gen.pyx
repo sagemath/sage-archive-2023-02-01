@@ -14,7 +14,8 @@ EXAMPLES:
     sage: pari('5! + 10/x')
     (120*x + 10)/x
     sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
-    85.18856819515268446242866615
+    85.18856819515268446242866615                # 32-bit
+    85.188568195152684462428666150825866897      # 64-bit
     sage: f = pari('x^3-1')
     sage: v = f.factor(); v
     [x - 1, 1; x^2 + x + 1, 1]
@@ -953,7 +954,7 @@ cdef class gen(sage.structure.element.RingElement):
             sage: n = pari(561)     # smallest Carmichael number
             sage: n.ispseudoprime() # not just any old pseudo-primality test!
             False
-            sage: n.ispseudoprime(1)
+            sage: n.ispseudoprime(2)
             False
         """
         cdef GEN z

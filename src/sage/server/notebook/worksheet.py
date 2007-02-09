@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 50
+INTERRUPT_TRIES = 200
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -944,16 +944,19 @@ class Worksheet:
             return '%s = load("%s");'%(name, filename)
 
         if filename in files_seen_so_far:
-            return "print 'WARNING: Not loading %s -- would create recursive load'"%filename
+            t = "print 'WARNING: Not loading %s -- would create recursive load'"%filename
         try:
             F = open(filename).read()
         except IOError:
-            t = "print 'Error loading %s -- file not found'"%filename
+            return "print 'Error loading %s -- file not found'"%filename
         else:
             if filename[-3:] == '.py':
                 t = F
             elif filename[-5:] == '.sage':
                 t = self.preparse(F)
+            else:
+                t = "print 'Loading of file \"%s\" has type not implemented.'"%filename
+
         t = self.do_sage_extensions_preparsing(t,
                           files_seen_so_far + [this_file], filename)
         return t
@@ -1035,6 +1038,10 @@ class Worksheet:
         return s
 
     def check_for_system_switching(self, s, C):
+        r"""
+        Check for input cells that start with \code{\%foo},
+        where foo is an object with an eval method.
+        """
         z = s
         s = s.lstrip()
         S = self.system()
@@ -1138,6 +1145,7 @@ class Worksheet:
 
             input += '\n'
 
+        print input
         return input
 
     def notebook(self):
@@ -1222,6 +1230,8 @@ class Worksheet:
             menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
             menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
+            #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
+            menu += '     <a href="__upload__.html" class="upload_worksheet">Upload</a>' + vbar
             menu += '    <a class="download_sws" href="%s.sws">Download</a>'%self.filename()
             menu += '  </span>'
 
@@ -1248,11 +1258,17 @@ class Worksheet:
 
     def show_all(self):
         for C in self.__cells:
-            C.set_cell_output_type('wrap')
+            try:
+                C.set_cell_output_type('wrap')
+            except AttributeError:   # for backwards compatibility
+                pass
 
     def hide_all(self):
         for C in self.__cells:
-            C.set_cell_output_type('hidden')
+            try:
+                C.set_cell_output_type('hidden')
+            except AttributeError:
+                pass
 
 
 def ignore_prompts_and_output(s):

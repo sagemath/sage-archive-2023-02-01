@@ -341,6 +341,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
         # "f = (sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # AUTHORS:
+        #   - Bobby Moretti: initial version - 02/2007
 
         elif (line[i] == "(") and not in_quote():
             paren_level += 1
@@ -357,9 +359,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             continue
 
         elif (line[i] == "=") and paren_level == 0 and not in_quote():
-
             eq = i
-
 
             if cparen_index == -1:
                 i += 1
@@ -380,7 +380,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             vars_begin = oparen_index+1
 
             # figure out where the line ends
-            #pdb.set_trace()
             line_after = line[vars_end+1:]
             try:
                 a = line.index("#")

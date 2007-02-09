@@ -1288,7 +1288,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _linbox_sparse(self):
         cdef Py_ssize_t i, j
-        s = '%s %s M\n'%(self._nrows, self._ncols)
+        s = '%s %s +\n'%(self._nrows, self._ncols)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if mpz_cmp_si(self._matrix[i][j], 0):

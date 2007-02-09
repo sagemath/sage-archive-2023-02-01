@@ -12,12 +12,12 @@
 #include <linbox/solutions/minpoly.h>
 #include <linbox/solutions/charpoly.h>
 #include <linbox/ring/givaro-polynomial.h>
+#include <linbox/field/modular.h>
 
 
 using namespace LinBox;
 using namespace std;
 
-#include <linbox/field/modular.h>
 
 /** local header **/
 

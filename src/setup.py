@@ -226,7 +226,7 @@ free_module_element = Extension('sage.modules.free_module_element',
 
 ################ GSL wrapping ######################
 gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',CBLAS])
 
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 

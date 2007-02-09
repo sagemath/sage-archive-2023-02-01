@@ -39,7 +39,7 @@ import matrix_integer_dense
 ## import matrix_integer_sparse
 
 import matrix_rational_dense
-## import matrix_rational_sparse
+##import matrix_rational_sparse
 
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
@@ -282,7 +282,15 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: Mat(QQ,3,5).change_ring(GF(7))
             Full MatrixSpace of 3 by 5 dense matrices over Finite Field of size 7
         """
-        return MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
+        try:
+            return self.__change_ring[R]
+        except AttributeError:
+            self.__change_ring = {}
+        except KeyError:
+            pass
+        M = MatrixSpace(R, self.__nrows, self.__ncols, self.__is_sparse)
+        self.__change_ring[R] = M
+        return M
 
     def base_extend(self, R):
         """
@@ -410,13 +418,13 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             elif R==sage.rings.complex_double.CDF:
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
-            elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+            elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_dense.Matrix_modn_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340:
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
             # the default
             return matrix_generic_sparse.Matrix_generic_sparse
@@ -690,24 +698,23 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                                                                    sparse=self.is_sparse())
             return self.__column_space
 
-    def random_element(self, prob=1, *args, **kwds):
+    def random_element(self, density=1, *args, **kwds):
         """
-        Returns a random element of self.
-
         INPUT:
-            prob -- a number between 0 and 1 (default: 1); probability that entry is not
-                   just set to 0 (though entry could also be 0 because of random
-                   choice of element using random_element method of base ring).
-            *args, **kwds -- rest of parameters are passed to the random_lement function
-                   of the base ring.
+            density -- integer (default: 1) rough measure of the proportion of nonzero
+                       entries in the random matrix
+            *args, **kwds -- rest of parameters may be passed to the random_element function
+                   of the base ring. ("may be", since this function calls the randomize
+                   function on the zero matrix, which need not call the random_element function
+                   of the base ring at all in general.)
 
         EXAMPLES:
             sage: Mat(ZZ,2,5).random_element()                # random output
             [-1 -1  0 -2  0]
             [ 0 -1  2 -1 -1]
-            sage: Mat(QQ,2,5).random_element(prob=0.5)        # random output
-            [ 0  0  0  0  0]
-            [ 0 -2  0  0  0]
+            sage: Mat(QQ,2,5).random_element(density=0.5)        # random output
+            [-1/2    0 -1/2  1/2    0]
+            [   0    0   -1    0    0]
             sage: Mat(QQ,3,sparse=True).random_element()      # random output
             [  1   2   1]
             [  0   1  -3]
@@ -717,25 +724,9 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             [    2*a 2*a + 1   a + 2]
             [      1       0       1]
         """
-        prob=float(prob)
-        R = self.base_ring()
-        zero = R(0)
-
-        if self.is_sparse():
-            nc = self.ncols()
-            num_per_row = int(prob * nc) + 1
-            z = range(num_per_row)
-            v = {}
-            for i in xrange(self.nrows()):
-                for k in z:
-                    v[(i,random.randint(0,nc-1))] = R.random_element(*args, **kwds)
-        else:
-            if prob == 1:
-                v = [R.random_element(*args, **kwds) for _ in xrange(self.nrows()*self.ncols())]
-            else:
-                v = [R.random_element(*args, **kwds) if random.random() < prob else zero \
-                              for _ in xrange(self.nrows()*self.ncols())]
-        return self(v, coerce=False, copy=False)
+        Z = self.zero_matrix()
+        Z.randomize(density, *args, **kwds)
+        return Z
 
 _random = 1
 

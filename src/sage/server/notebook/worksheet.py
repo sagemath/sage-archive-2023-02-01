@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 50
+INTERRUPT_TRIES = 200
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -1039,7 +1039,7 @@ class Worksheet:
 
     def check_for_system_switching(self, s, C):
         r"""
-        Check for input cells that start with \code{%foo},
+        Check for input cells that start with \code{\%foo},
         where foo is an object with an eval method.
         """
         z = s

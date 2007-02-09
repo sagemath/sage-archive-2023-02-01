@@ -629,289 +629,289 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__j_invariant
 
 
-    def pseudo_torsion_polynomial(self, n, x=None, cache=None):
-        r"""
-        Returns the n-th torsion polynomial (division polynomial), without
-        the 2-torsion factor if n is even, as a polynomial in $x$.
+##     def pseudo_torsion_polynomial(self, n, x=None, cache=None):
+##         r"""
+##         Returns the n-th torsion polynomial (division polynomial), without
+##         the 2-torsion factor if n is even, as a polynomial in $x$.
 
-        These are the polynomials $g_n$ defined in Mazur/Tate (``The p-adic
-        sigma function''), but with the sign flipped for even $n$, so that
-        the leading coefficient is always positive.
+##         These are the polynomials $g_n$ defined in Mazur/Tate (``The p-adic
+##         sigma function''), but with the sign flipped for even $n$, so that
+##         the leading coefficient is always positive.
 
-        The full torsion polynomials may be recovered as follows:
-        \begin{itemize}
-        \item $\psi_n = g_n$ for odd $n$.
-        \item $\psi_n = (2y + a_1 x + a_3) g_n$ for even $n$.
-        \end{itemize}
+##         The full torsion polynomials may be recovered as follows:
+##         \begin{itemize}
+##         \item $\psi_n = g_n$ for odd $n$.
+##         \item $\psi_n = (2y + a_1 x + a_3) g_n$ for even $n$.
+##         \end{itemize}
 
-        Note that the $g_n$'s are always polynomials in $x$, whereas the
-        $\psi_n$'s require the appearance of a $y$.
+##         Note that the $g_n$'s are always polynomials in $x$, whereas the
+##         $\psi_n$'s require the appearance of a $y$.
 
-        SEE ALSO:
-            -- torsion_polynomial()
-            -- multiple_x_numerator()
-            -- multiple_x_denominator()
+##         SEE ALSO:
+##             -- torsion_polynomial()
+##             -- multiple_x_numerator()
+##             -- multiple_x_denominator()
 
-        INPUT:
-            n -- positive integer, or the special values -1 and -2 which
-                 mean $B_6 = (2y + a_1 x + a_3)^2$ and $B_6^2$ respectively
-                 (in the notation of Mazur/Tate).
-            x -- optional ring element to use as the "x" variable. If x
-                 is None, then a new polynomial ring will be constructed over
-                 the base ring of the elliptic curve, and its generator will
-                 be used as x. Note that x does not need to be a generator of
-                 a polynomial ring; any ring element is ok. This permits fast
-                 calculation of the torsion polynomial *evaluated* on any
-                 element of a ring.
-            cache -- optional dictionary, with integer keys. If the key m
-                 is in cache, then cache[m] is assumed to be the value of
-                 pseudo_torsion_polynomial(m) for the supplied x. New entries
-                 will be added to the cache as they are computed.
+##         INPUT:
+##             n -- positive integer, or the special values -1 and -2 which
+##                  mean $B_6 = (2y + a_1 x + a_3)^2$ and $B_6^2$ respectively
+##                  (in the notation of Mazur/Tate).
+##             x -- optional ring element to use as the "x" variable. If x
+##                  is None, then a new polynomial ring will be constructed over
+##                  the base ring of the elliptic curve, and its generator will
+##                  be used as x. Note that x does not need to be a generator of
+##                  a polynomial ring; any ring element is ok. This permits fast
+##                  calculation of the torsion polynomial *evaluated* on any
+##                  element of a ring.
+##             cache -- optional dictionary, with integer keys. If the key m
+##                  is in cache, then cache[m] is assumed to be the value of
+##                  pseudo_torsion_polynomial(m) for the supplied x. New entries
+##                  will be added to the cache as they are computed.
 
-        ALGORITHM:
-            -- Recursion described in Mazur/Tate. The recursive formulae are
-            evaluated $O((log n)^2)$ times.
+##         ALGORITHM:
+##             -- Recursion described in Mazur/Tate. The recursive formulae are
+##             evaluated $O((log n)^2)$ times.
 
-        TODO:
-            -- for better unity of code, it might be good to make the regular
-            torsion_polynomial() function use this as a subroutine.
+##         TODO:
+##             -- for better unity of code, it might be good to make the regular
+##             torsion_polynomial() function use this as a subroutine.
 
-        AUTHORS:
-            -- David Harvey (2006-09-24)
+##         AUTHORS:
+##             -- David Harvey (2006-09-24)
 
-        EXAMPLES:
-           sage: E = EllipticCurve("37a")
-           sage: E.pseudo_torsion_polynomial(1)
-           1
-           sage: E.pseudo_torsion_polynomial(2)
-           1
-           sage: E.pseudo_torsion_polynomial(3)
-           3*x^4 - 6*x^2 + 3*x - 1
-           sage: E.pseudo_torsion_polynomial(4)
-           2*x^6 - 10*x^4 + 10*x^3 - 10*x^2 + 2*x + 1
-           sage: E.pseudo_torsion_polynomial(5)
-           5*x^12 - 62*x^10 + 95*x^9 - 105*x^8 - 60*x^7 + 285*x^6 - 174*x^5 - 5*x^4 - 5*x^3 + 35*x^2 - 15*x + 2
-           sage: E.pseudo_torsion_polynomial(6)
-           3*x^16 - 72*x^14 + 168*x^13 - 364*x^12 + 1120*x^10 - 1144*x^9 + 300*x^8 - 540*x^7 + 1120*x^6 - 588*x^5 - 133*x^4 + 252*x^3 - 114*x^2 + 22*x - 1
-           sage: E.pseudo_torsion_polynomial(7)
-           7*x^24 - 308*x^22 + 986*x^21 - 2954*x^20 + 28*x^19 + 17171*x^18 - 23142*x^17 + 511*x^16 - 5012*x^15 + 43804*x^14 - 7140*x^13 - 96950*x^12 + 111356*x^11 - 19516*x^10 - 49707*x^9 + 40054*x^8 - 124*x^7 - 18382*x^6 + 13342*x^5 - 4816*x^4 + 1099*x^3 - 210*x^2 + 35*x - 3
-           sage: E.pseudo_torsion_polynomial(8)
-           4*x^30 - 292*x^28 + 1252*x^27 - 5436*x^26 + 2340*x^25 + 39834*x^24 - 79560*x^23 + 51432*x^22 - 142896*x^21 + 451596*x^20 - 212040*x^19 - 1005316*x^18 + 1726416*x^17 - 671160*x^16 - 954924*x^15 + 1119552*x^14 + 313308*x^13 - 1502818*x^12 + 1189908*x^11 - 160152*x^10 - 399176*x^9 + 386142*x^8 - 220128*x^7 + 99558*x^6 - 33528*x^5 + 6042*x^4 + 310*x^3 - 406*x^2 + 78*x - 5
+##         EXAMPLES:
+##            sage: E = EllipticCurve("37a")
+##            sage: E.pseudo_torsion_polynomial(1)
+##            1
+##            sage: E.pseudo_torsion_polynomial(2)
+##            1
+##            sage: E.pseudo_torsion_polynomial(3)
+##            3*x^4 - 6*x^2 + 3*x - 1
+##            sage: E.pseudo_torsion_polynomial(4)
+##            2*x^6 - 10*x^4 + 10*x^3 - 10*x^2 + 2*x + 1
+##            sage: E.pseudo_torsion_polynomial(5)
+##            5*x^12 - 62*x^10 + 95*x^9 - 105*x^8 - 60*x^7 + 285*x^6 - 174*x^5 - 5*x^4 - 5*x^3 + 35*x^2 - 15*x + 2
+##            sage: E.pseudo_torsion_polynomial(6)
+##            3*x^16 - 72*x^14 + 168*x^13 - 364*x^12 + 1120*x^10 - 1144*x^9 + 300*x^8 - 540*x^7 + 1120*x^6 - 588*x^5 - 133*x^4 + 252*x^3 - 114*x^2 + 22*x - 1
+##            sage: E.pseudo_torsion_polynomial(7)
+##            7*x^24 - 308*x^22 + 986*x^21 - 2954*x^20 + 28*x^19 + 17171*x^18 - 23142*x^17 + 511*x^16 - 5012*x^15 + 43804*x^14 - 7140*x^13 - 96950*x^12 + 111356*x^11 - 19516*x^10 - 49707*x^9 + 40054*x^8 - 124*x^7 - 18382*x^6 + 13342*x^5 - 4816*x^4 + 1099*x^3 - 210*x^2 + 35*x - 3
+##            sage: E.pseudo_torsion_polynomial(8)
+##            4*x^30 - 292*x^28 + 1252*x^27 - 5436*x^26 + 2340*x^25 + 39834*x^24 - 79560*x^23 + 51432*x^22 - 142896*x^21 + 451596*x^20 - 212040*x^19 - 1005316*x^18 + 1726416*x^17 - 671160*x^16 - 954924*x^15 + 1119552*x^14 + 313308*x^13 - 1502818*x^12 + 1189908*x^11 - 160152*x^10 - 399176*x^9 + 386142*x^8 - 220128*x^7 + 99558*x^6 - 33528*x^5 + 6042*x^4 + 310*x^3 - 406*x^2 + 78*x - 5
 
-           sage: E.pseudo_torsion_polynomial(18) % E.pseudo_torsion_polynomial(6) == 0
-           True
+##            sage: E.pseudo_torsion_polynomial(18) % E.pseudo_torsion_polynomial(6) == 0
+##            True
 
-          An example to illustrate the relationship with torsion points.
-           sage: F = GF(11)
-           sage: E = EllipticCurve(F, [0, 2]); E
-           Elliptic Curve defined by y^2  = x^3 + 2 over Finite Field of size 11
-           sage: f = E.pseudo_torsion_polynomial(5); f
-           5*x^12 + x^9 + 8*x^6 + 4*x^3 + 7
-           sage: f.factor()
-           (5) * (x^2 + 5) * (x^2 + 2*x + 5) * (x^2 + 5*x + 7) * (x^2 + 7*x + 7) * (x^2 + 9*x + 5) * (x^2 + 10*x + 7)
+##           An example to illustrate the relationship with torsion points.
+##            sage: F = GF(11)
+##            sage: E = EllipticCurve(F, [0, 2]); E
+##            Elliptic Curve defined by y^2  = x^3 + 2 over Finite Field of size 11
+##            sage: f = E.pseudo_torsion_polynomial(5); f
+##            5*x^12 + x^9 + 8*x^6 + 4*x^3 + 7
+##            sage: f.factor()
+##            (5) * (x^2 + 5) * (x^2 + 2*x + 5) * (x^2 + 5*x + 7) * (x^2 + 7*x + 7) * (x^2 + 9*x + 5) * (x^2 + 10*x + 7)
 
-          This indicates that the x-coordinates of all the 5-torsion points
-          of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
-          $GF(11^4)$.
+##           This indicates that the x-coordinates of all the 5-torsion points
+##           of $E$ are in $GF(11^2)$, and therefore the y-coordinates are in
+##           $GF(11^4)$.
 
-           sage: K = GF(11^4, 'a')
-           sage: X = E.change_ring(K)
-           sage: f = X.pseudo_torsion_polynomial(5)
-           sage: x_coords = [root for (root, _) in f.roots()]; x_coords
-           [10*a^3 + 4*a^2 + 5*a + 6,
-            9*a^3 + 8*a^2 + 10*a + 8,
-            8*a^3 + a^2 + 4*a + 10,
-            8*a^3 + a^2 + 4*a + 8,
-            8*a^3 + a^2 + 4*a + 4,
-            6*a^3 + 9*a^2 + 3*a + 4,
-            5*a^3 + 2*a^2 + 8*a + 7,
-            3*a^3 + 10*a^2 + 7*a + 8,
-            3*a^3 + 10*a^2 + 7*a + 3,
-            3*a^3 + 10*a^2 + 7*a + 1,
-            2*a^3 + 3*a^2 + a + 7,
-            a^3 + 7*a^2 + 6*a]
+##            sage: K = GF(11^4, 'a')
+##            sage: X = E.change_ring(K)
+##            sage: f = X.pseudo_torsion_polynomial(5)
+##            sage: x_coords = [root for (root, _) in f.roots()]; x_coords
+##            [10*a^3 + 4*a^2 + 5*a + 6,
+##             9*a^3 + 8*a^2 + 10*a + 8,
+##             8*a^3 + a^2 + 4*a + 10,
+##             8*a^3 + a^2 + 4*a + 8,
+##             8*a^3 + a^2 + 4*a + 4,
+##             6*a^3 + 9*a^2 + 3*a + 4,
+##             5*a^3 + 2*a^2 + 8*a + 7,
+##             3*a^3 + 10*a^2 + 7*a + 8,
+##             3*a^3 + 10*a^2 + 7*a + 3,
+##             3*a^3 + 10*a^2 + 7*a + 1,
+##             2*a^3 + 3*a^2 + a + 7,
+##             a^3 + 7*a^2 + 6*a]
 
-          Now we check that these are exactly the x coordinates of the
-          5-torsion points of E.
-           sage: for x in x_coords:
-           ...       y = (x**3 + 2).square_root()
-           ...       P = X([x, y])
-           ...       assert P.order(disable_warning=True) == 5
+##           Now we check that these are exactly the x coordinates of the
+##           5-torsion points of E.
+##            sage: for x in x_coords:
+##            ...       y = (x**3 + 2).square_root()
+##            ...       P = X([x, y])
+##            ...       assert P.order(disable_warning=True) == 5
 
-          todo: need to show an example where the 2-torsion is missing
+##           todo: need to show an example where the 2-torsion is missing
 
-        """
-        if cache is None:
-            cache = {}
-        else:
-            try:
-                return cache[n]
-            except KeyError:
-                pass
+##         """
+##         if cache is None:
+##             cache = {}
+##         else:
+##             try:
+##                 return cache[n]
+##             except KeyError:
+##                 pass
 
-        if x is None:
-            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+##         if x is None:
+##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
 
-        b2, b4, b6, b8 = self.b_invariants()
+##         b2, b4, b6, b8 = self.b_invariants()
 
-        n = int(n)
-        if n <= 4:
-            if n == -1:
-                answer = 4*x**3 + b2*x**2 + 2*b4*x + b6
-            elif n == -2:
-                answer = self.pseudo_torsion_polynomial(-1, x, cache) ** 2
-            elif n == 1 or n == 2:
-                answer = x.parent()(1)
-            elif n == 3:
-                answer = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
-            elif n == 4:
-                answer = -self.pseudo_torsion_polynomial(-2, x, cache) + \
-                         (6*x**2 + b2*x + b4) * \
-                         self.pseudo_torsion_polynomial(3, x, cache)
-            else:
-                raise ValueError, "n must be a positive integer (or -1 or -2)"
-        else:
-            if n % 2 == 0:
-                m = (n-2) // 2
-                g_mplus3 = self.pseudo_torsion_polynomial(m+3, x, cache)
-                g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
-                g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
-                g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
-                g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
-                answer = g_mplus1 * \
-                         (g_mplus3 * g_m**2 - g_mless1 * g_mplus2**2)
-            else:
-                m = (n-1) // 2
-                g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
-                g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
-                g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
-                g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
-                B6_sqr   = self.pseudo_torsion_polynomial(-2, x, cache)
-                if m % 2 == 0:
-                    answer = B6_sqr * g_mplus2 * g_m**3 - \
-                             g_mless1 * g_mplus1**3
-                else:
-                    answer = g_mplus2 * g_m**3 - \
-                             B6_sqr * g_mless1 * g_mplus1**3
+##         n = int(n)
+##         if n <= 4:
+##             if n == -1:
+##                 answer = 4*x**3 + b2*x**2 + 2*b4*x + b6
+##             elif n == -2:
+##                 answer = self.pseudo_torsion_polynomial(-1, x, cache) ** 2
+##             elif n == 1 or n == 2:
+##                 answer = x.parent()(1)
+##             elif n == 3:
+##                 answer = 3*x**4 + b2*x**3 + 3*b4*x**2 + 3*b6*x + b8
+##             elif n == 4:
+##                 answer = -self.pseudo_torsion_polynomial(-2, x, cache) + \
+##                          (6*x**2 + b2*x + b4) * \
+##                          self.pseudo_torsion_polynomial(3, x, cache)
+##             else:
+##                 raise ValueError, "n must be a positive integer (or -1 or -2)"
+##         else:
+##             if n % 2 == 0:
+##                 m = (n-2) // 2
+##                 g_mplus3 = self.pseudo_torsion_polynomial(m+3, x, cache)
+##                 g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
+##                 g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
+##                 g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
+##                 g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
+##                 answer = g_mplus1 * \
+##                          (g_mplus3 * g_m**2 - g_mless1 * g_mplus2**2)
+##             else:
+##                 m = (n-1) // 2
+##                 g_mplus2 = self.pseudo_torsion_polynomial(m+2, x, cache)
+##                 g_mplus1 = self.pseudo_torsion_polynomial(m+1, x, cache)
+##                 g_m      = self.pseudo_torsion_polynomial(m,   x, cache)
+##                 g_mless1 = self.pseudo_torsion_polynomial(m-1, x, cache)
+##                 B6_sqr   = self.pseudo_torsion_polynomial(-2, x, cache)
+##                 if m % 2 == 0:
+##                     answer = B6_sqr * g_mplus2 * g_m**3 - \
+##                              g_mless1 * g_mplus1**3
+##                 else:
+##                     answer = g_mplus2 * g_m**3 - \
+##                              B6_sqr * g_mless1 * g_mplus1**3
 
-        cache[n] = answer
-        return answer
-
-
-    def multiple_x_numerator(self, n, x=None, cache=None):
-        r"""
-        Returns the numerator of the x-coordinate of the nth multiple of
-        a point, using torsion polynomials (division polynomials).
-
-        The inputs n, x, cache are as described in pseudo_torsion_polynomial().
-
-        The result is adjusted to be correct for both even and odd n.
-
-        WARNING:
-          -- There may of course be cancellation between the numerator and
-          the denominator (multiple_x_denominator()). Be careful. For more
-          information on how to avoid cancellation, see Christopher Wuthrich's
-          thesis.
-
-        SEE ALSO:
-          -- multiple_x_denominator()
-
-        AUTHORS:
-           -- David Harvey (2006-09-24)
-
-        EXAMPLES:
-          sage: E = EllipticCurve("37a")
-          sage: P = E.gens()[0]
-          sage: x = P[0]
-
-          sage: (35*P)[0]
-          -804287518035141565236193151/1063198259901027900600665796
-          sage: E.multiple_x_numerator(35, x)
-          -804287518035141565236193151
-          sage: E.multiple_x_denominator(35, x)
-          1063198259901027900600665796
-
-          sage: (36*P)[0]
-          54202648602164057575419038802/15402543997324146892198790401
-          sage: E.multiple_x_numerator(36, x)
-          54202648602164057575419038802
-          sage: E.multiple_x_denominator(36, x)
-          15402543997324146892198790401
-
-        An example where cancellation occurs:
-          sage: E = EllipticCurve("88a1")
-          sage: P = E([2,2])   # fixed choice of generator
-          sage: n = E.multiple_x_numerator(11, P[0]); n
-          442446784738847563128068650529343492278651453440
-          sage: d = E.multiple_x_denominator(11, P[0]); d
-          1427247692705959881058285969449495136382746624
-          sage: n/d
-          310
-          sage: 11*P
-          (310 : -5458 : 1)
-
-        """
-        if cache is None:
-            cache = {}
-
-        if x is None:
-            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
-
-        n = int(n)
-        if n < 2:
-            print "n must be at least 2"
-
-        self.pseudo_torsion_polynomial( -2, x, cache)
-        self.pseudo_torsion_polynomial(n-1, x, cache)
-        self.pseudo_torsion_polynomial(n  , x, cache)
-        self.pseudo_torsion_polynomial(n+1, x, cache)
-
-        if n % 2 == 0:
-            return x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
-        else:
-            return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+##         cache[n] = answer
+##         return answer
 
 
-    def multiple_x_denominator(self, n, x=None, cache=None):
-        r"""
-        Returns the denominator of the x-coordinate of the nth multiple of
-        a point, using torsion polynomials (division polynomials).
+##     def multiple_x_numerator(self, n, x=None, cache=None):
+##         r"""
+##         Returns the numerator of the x-coordinate of the nth multiple of
+##         a point, using torsion polynomials (division polynomials).
 
-        The inputs n, x, cache are as described in pseudo_torsion_polynomial().
+##         The inputs n, x, cache are as described in pseudo_torsion_polynomial().
 
-        The result is adjusted to be correct for both even and odd n.
+##         The result is adjusted to be correct for both even and odd n.
 
-        SEE ALSO:
-          -- multiple_x_numerator()
+##         WARNING:
+##           -- There may of course be cancellation between the numerator and
+##           the denominator (multiple_x_denominator()). Be careful. For more
+##           information on how to avoid cancellation, see Christopher Wuthrich's
+##           thesis.
 
-        TODO: the numerator and denominator versions share a calculation,
-        namely squaring $\psi_n$. Maybe would be good to offer a combined
-        version to make this more efficient.
+##         SEE ALSO:
+##           -- multiple_x_denominator()
 
-        EXAMPLES:
-           -- see multiple_x_numerator()
+##         AUTHORS:
+##            -- David Harvey (2006-09-24)
 
-        AUTHORS:
-           -- David Harvey (2006-09-24)
+##         EXAMPLES:
+##           sage: E = EllipticCurve("37a")
+##           sage: P = E.gens()[0]
+##           sage: x = P[0]
 
-        """
-        if cache is None:
-            cache = {}
+##           sage: (35*P)[0]
+##           -804287518035141565236193151/1063198259901027900600665796
+##           sage: E.multiple_x_numerator(35, x)
+##           -804287518035141565236193151
+##           sage: E.multiple_x_denominator(35, x)
+##           1063198259901027900600665796
 
-        if x is None:
-            x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+##           sage: (36*P)[0]
+##           54202648602164057575419038802/15402543997324146892198790401
+##           sage: E.multiple_x_numerator(36, x)
+##           54202648602164057575419038802
+##           sage: E.multiple_x_denominator(36, x)
+##           15402543997324146892198790401
 
-        n = int(n)
-        if n < 2:
-            print "n must be at least 2"
+##         An example where cancellation occurs:
+##           sage: E = EllipticCurve("88a1")
+##           sage: P = E([2,2])   # fixed choice of generator
+##           sage: n = E.multiple_x_numerator(11, P[0]); n
+##           442446784738847563128068650529343492278651453440
+##           sage: d = E.multiple_x_denominator(11, P[0]); d
+##           1427247692705959881058285969449495136382746624
+##           sage: n/d
+##           310
+##           sage: 11*P
+##           (310 : -5458 : 1)
 
-        self.pseudo_torsion_polynomial(-2, x, cache)
-        self.pseudo_torsion_polynomial(n , x, cache)
+##         """
+##         if cache is None:
+##             cache = {}
 
-        if n % 2 == 0:
-            return cache[-1] * cache[n]**2
-        else:
-            return cache[n]**2
+##         if x is None:
+##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
+##         n = int(n)
+##         if n < 2:
+##             print "n must be at least 2"
+
+##         self.pseudo_torsion_polynomial( -2, x, cache)
+##         self.pseudo_torsion_polynomial(n-1, x, cache)
+##         self.pseudo_torsion_polynomial(n  , x, cache)
+##         self.pseudo_torsion_polynomial(n+1, x, cache)
+
+##         if n % 2 == 0:
+##             return x * cache[-1] * cache[n]**2 - cache[n-1] * cache[n+1]
+##         else:
+##             return x * cache[n]**2 - cache[-1] * cache[n-1] * cache[n+1]
+
+
+##     def multiple_x_denominator(self, n, x=None, cache=None):
+##         r"""
+##         Returns the denominator of the x-coordinate of the nth multiple of
+##         a point, using torsion polynomials (division polynomials).
+
+##         The inputs n, x, cache are as described in pseudo_torsion_polynomial().
+
+##         The result is adjusted to be correct for both even and odd n.
+
+##         SEE ALSO:
+##           -- multiple_x_numerator()
+
+##         TODO: the numerator and denominator versions share a calculation,
+##         namely squaring $\psi_n$. Maybe would be good to offer a combined
+##         version to make this more efficient.
+
+##         EXAMPLES:
+##            -- see multiple_x_numerator()
+
+##         AUTHORS:
+##            -- David Harvey (2006-09-24)
+
+##         """
+##         if cache is None:
+##             cache = {}
+
+##         if x is None:
+##             x = rings.PolynomialRing(self.base_ring(), 'x').gen()
+
+##         n = int(n)
+##         if n < 2:
+##             print "n must be at least 2"
+
+##         self.pseudo_torsion_polynomial(-2, x, cache)
+##         self.pseudo_torsion_polynomial(n , x, cache)
+
+##         if n % 2 == 0:
+##             return cache[-1] * cache[n]**2
+##         else:
+##             return cache[n]**2
 
 
     def torsion_polynomial(self, n, var='x', i=0):

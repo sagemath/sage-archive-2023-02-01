@@ -126,7 +126,17 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        language='c++'
                        )
 
+
+qd = Extension('sage.rings.real_qdrf',
+                       sources = ["sage/rings/real_qdrf.pyx"],
+                       libraries = ['qd', 'm', 'stdc++', ],
+                       language='c++'
+                       )
+
 matrix = Extension('sage.matrix.matrix', ['sage/matrix/matrix.pyx'])
+
+matrix_misc = Extension('sage.matrix.misc', ['sage/matrix/misc.pyx'],
+                        libraries=['gmp'])
 
 matrix_dense = Extension('sage.matrix.matrix_dense',
                          ['sage/matrix/matrix_dense.pyx'])
@@ -152,9 +162,6 @@ matrix_pid_dense = Extension('sage.matrix.matrix_pid_dense',
 matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
                        ['sage/matrix/matrix_pid_sparse.pyx'])
 
-matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
-                                 ['sage/matrix/matrix_integer_dense.pyx'],
-                                 libraries = ['gmp'])
 
 matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
                                   ['sage/matrix/matrix_integer_sparse.pyx'],
@@ -165,7 +172,9 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  libraries = ['gmp'])
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx'])
+                              ['sage/matrix/matrix_modn_dense.pyx',
+                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
+                              libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -177,19 +186,26 @@ matrix_field_sparse = Extension('sage.matrix.matrix_field_sparse',
                        ['sage/matrix/matrix_field_sparse.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx'],
-                                  libraries = ['gmp'])
+                                  ['sage/matrix/matrix_rational_dense.pyx',
+                                   'sage/matrix/matrix_rational_dense_linbox.cpp'],
+                                 libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+
+matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
+                                 ['sage/matrix/matrix_integer_dense.pyx',
+                                  'sage/matrix/matrix_integer_dense_linbox.cpp'],
+                                  libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
-['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
-define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
+   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
-['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',CBLAS],
-define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',CBLAS],
+   define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',CBLAS],define_macros =
-[('GSL_DISABLE_DEPRECATED','1')])
+   [('GSL_DISABLE_DEPRECATED','1')])
 
 matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
                                ['sage/matrix/matrix_cyclo_dense.pyx'])
@@ -197,6 +213,7 @@ matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                    ['sage/matrix/matrix_rational_sparse.pyx'],
                                    libraries = ['gmp'])
+
 matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
                                    ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
@@ -208,6 +225,9 @@ free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
+gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',CBLAS])
+
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_fft = Extension('sage.gsl.fft',
@@ -267,7 +287,9 @@ ext_modules = [ \
 
     matrix,
 
-    cf,
+    matrix_misc,
+
+    #cf,
 
     matrix_dense,
     matrix_generic_dense,
@@ -285,6 +307,7 @@ ext_modules = [ \
 ##     matrix_field_sparse,
 
      matrix_integer_dense,
+     matrix_rational_dense,
      matrix_integer_2x2,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,
@@ -292,9 +315,8 @@ ext_modules = [ \
      solve,
      matrix_modn_dense,
      matrix_modn_sparse,
-    givaro_gfq, \
+     givaro_gfq, \
 
-     matrix_rational_dense,
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,
@@ -307,9 +329,11 @@ ext_modules = [ \
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
-
+    #gsl_probability,
+    gsl_integration,
     real_double,
     complex_double,
+    qd,   # not worth it, since it is slower than mpfr!
 
     complex_number,
 

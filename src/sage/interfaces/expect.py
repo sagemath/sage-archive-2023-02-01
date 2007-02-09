@@ -938,6 +938,8 @@ class ExpectElement(RingElement):
         """
         P = self._check_valid()
         if isinstance(n, ExpectElement):
+            if not P is n.parent():
+                n = P(n)
             return P.new('%s ^ %s'%(self._name,n._name))
         else:
             z = P(n)

@@ -333,7 +333,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    qd,   # not worth it, since it is slower than mpfr!
+    #qd,
 
     complex_number,
 

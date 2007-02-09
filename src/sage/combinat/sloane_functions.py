@@ -204,6 +204,7 @@ class A000001(SloaneSequence):
         [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
         sage: a(60)     # optional
         13
+
     AUTHOR:
         -- Jaap Spies (2007-02-04)
     """

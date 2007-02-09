@@ -793,8 +793,22 @@ setup(name        = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
-                     'sage.dsage'
+
+                     'sage.dsage',
+                     'sage.dsage.database',
+                     'sage.dsage.server',
+                     'sage.dsage.errors',
+                     'sage.dsage.tests',
+                     'sage.dsage.pb',
+                     'sage.dsage.dist_functions',
+                     'sage.dsage.misc',
+                     'sage.dsage.interface'
                      ],
+
+      scripts = ['sage/dsage/scripts/dsage_server.py',
+                 'sage/dsage/scripts/dsage_worker.py',
+                 'sage/dsage/scripts/dsage_setup.py'
+                ],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

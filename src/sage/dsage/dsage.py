@@ -2,10 +2,11 @@
 Distributed SAGE
 
 AUTHORS:
-   -- Yi Qiang
+    Yi Qiang (yqiang@gmail.com)
 """
 
 import os
+
 class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
@@ -55,7 +56,7 @@ class DistributedSage(object):
         sage: print job1.result
 
         This is the most basic way of interacting with dsage. To do more
-        complicated tasks, you should look at the DistributedFunctions class.
+        complicated tasks, you should look at the DistributedFunction class.
         For example, to do distributed integer factorization with ECM, type
         this:
 

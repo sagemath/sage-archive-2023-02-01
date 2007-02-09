@@ -1,3 +1,12 @@
+"""nodoctest
+Probability Distributions
+
+AUTHORS:
+    -- Josh Kantor (2007-02): first version
+    -- William Stein (2007-02): rewrite of docs, conventions, etc.
+"""
+
+
 ##############################################################################
 #       Copyright (C) 2004,2005,2006 Joshua Kantor <kantor.jm@gmail.com>
 #  Distributed under the terms of the GNU General Public License (GPL)
@@ -32,125 +41,135 @@ cdef enum:
    weibull
    beta
 
-cdef class probability_distribution:
+cdef class ProbabilityDistribution:
    def __init__(self):
       pass
+
    def get_random_element(self):
       raise NotImplementedError,"implement in derived class"
 
 
 
-cdef class real_distribution(probability_distribution):
-   """
-   This class provides a number of routines for sampling from and analyzing probability distributions.
-   For precise definitions of the distributions and their parameters see the gsl reference manuals
-   chapter on random number generators and probability distributions for precise definitions.
-   The probability distributions available currently are
-   uniform>
-   To create a uniform distribution on the interval [a,b]
-   sage: a=0
-   sage: b=2
-   sage: T=real_distribution('uniform',[a,b])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
-   gaussian>
+cdef class RealDistribution(ProbabilityDistribution):
+   r"""
+   The RealDistribution provides a number of routines for sampling
+   from and analyzing and visualizing probability distributions.  For
+   precise definitions of the distributions and their parameters see
+   the gsl reference manuals chapter on random number generators and
+   probability distributions for precise definitions.  The probability
+   distributions available currently are uniform.
+
+   EXAMPLES:
+   To create a uniform distribution on the interval [a,b]:
+      sage: a=0
+      sage: b=2
+      sage: T=RealDistribution('uniform',[a,b])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
+   gaussian:
    The gaussian distribuiton takes 1 parameters sigma, sigma =1 gives the standard
    gaussian distribution
-   sage: sigma=1
-   sage: T=real_distribution('gaussian',sigma)
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+
+      sage: sigma=1
+      sage: T=RealDistribution('gaussian',sigma)
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    rayleigh>
    The rayleigh distribution has 1 parameter sigma.
-   sage: sigma=3
-   sage: T=real_distribution('rayleigh',sigma)
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+
+      sage: sigma=3
+      sage: T=RealDistribution('rayleigh',sigma)
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    lognormal>
-   The lognormal distribution has two parameters sigma and zeta
-   sage: zeta=0
-   sage: sigma=1
-   sage: T=real_distribution('lognormal',[zeta,sigma])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+   The lognormal distribution has two parameters sigma and zeta:
+      sage: zeta=0
+      sage: sigma=1
+      sage: T=RealDistribution('lognormal',[zeta,sigma])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    pareto>
-   The pareto distribution has two parameters a, and b
-   sage: a=1
-   sage: b=1
-   sage: T=real_distribution('pareto',[a,b])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+   The pareto distribution has two parameters a, and b:
+      sage: a=1
+      sage: b=1
+      sage: T=RealDistribution('pareto',[a,b])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    student's t>
    The student's t distribution has one parameter nu.
-   sage: nu=1
-   sage: T=real_distribution('t',nu)
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+      sage: nu=1
+      sage: T=RealDistribution('t',nu)
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    chi squared>
-   The chi squared distribution has one parameter nu
-   sage: nu=1
-   sage: T=real_distribution('chisquared',nu)
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+      The chi squared distribution has one parameter nu
+      sage: nu=1
+      sage: T=RealDistribution('chisquared',nu)
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    exponential power>
-   The exponential power distribution has two parameters a and b
-   sage: a=1
-   sage: b=2.5
-   sage: T=real_distribution('exppow',[a,b])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+      The exponential power distribution has two parameters a and b
+      sage: a=1
+      sage: b=2.5
+      sage: T=RealDistribution('exppow',[a,b])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
+
    beta>
-   sage: a=2
-   sage: b=2
-   sage: T=real_distribution('beta',[a,b])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
+      sage: a=2
+      sage: b=2
+      sage: T=RealDistribution('beta',[a,b])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
 
    weibull>
-   sage: a=1
-   sage: b=1
-   sage: T=real_distribution('weibull',[a,b])
-   sage: T.get_random_element()
-   sage: T.distribution_function(0)
-   sage: T.cum_distribution_function(1)
-   sage: T.cum_distribution_function_inv(.5)
+      sage: a=1
+      sage: b=1
+      sage: T=RealDistribution('weibull',[a,b])
+      sage: T.get_random_element()
+      sage: T.distribution_function(0)
+      sage: T.cum_distribution_function(1)
+      sage: T.cum_distribution_function_inv(.5)
 
+   It is possible to select which random number generator drives the
+   sampling as well as the seed.  The default is the Mersenne
+   twister. Also available are the RANDLXS algorithm and the
+   Tausworthe generator (see the GSL reference manual for more
+   details). These are all supposed to be simulation quality
+   generators.   For RANDLXS us rng='luxury' for tausworth rng='taus'
 
-   It is possible to select which random number generator drives the sampling as well as the seed.
-   The default is the Mersenne twister. Also available are the RANDLXS algorithm and the Tausworthe generator
-   (see the GSL reference manual for more details). These are all supposed to be simulation quality
-   generators.
+       sage: T = RealDistribution('gaussian',1,rng='luxury',seed=10)
 
-   for RANDLXS us rng='luxury' for tausworth rng='taus'
-
-   sage: T=real_distribution('gaussian',1,rng='luxury',seed=10)
-
-   To change the seed at a later time use set_seed
-   sage: T.set_seed(100)
-
-
-
+   To change the seed at a later time use \code{set_seed}:
+       sage: T.set_seed(100)
    """
    def __init__(self,type='uniform',parameters=[],rng='default',seed=None):
       gsl_rng_env_setup()
-      self.parameters=NULL
+      self.parameters = Nne
       self.set_random_number_generator(rng)
       self.r=gsl_rng_alloc(self.T)
       if seed==None:
@@ -186,7 +205,7 @@ cdef class real_distribution(probability_distribution):
    def get_random_element(self):
       """
       This method generates a random sample from the current probability distribution
-      sage: T=real_distribution('gaussian',1)
+      sage: T=RealDistribution('gaussian',1)
       sage: T.get_random_element()
       """
       cdef double result
@@ -215,10 +234,13 @@ cdef class real_distribution(probability_distribution):
 
       return sage.rings.real_double.RDF(result)
    def set_distribution(self,name='uniform',parameters = []):
-      """This method can be called to change the current probability distribtuion
-      sage: T=real_distribution('gaussian', 1)
-      sage: T.set_distribution('gaussian', 1)
-      sage: T.set_distribution('pareto', [0,1])
+      """
+      This method can be called to change the current probability distribution.
+
+      EXAMPLES:
+         sage: T=RealDistribution('gaussian', 1)
+         sage: T.set_distribution('gaussian', 1)
+         sage: T.set_distribution('pareto', [0,1])
       """
       if self.parameters!=NULL:
          free(self.parameters)
@@ -342,10 +364,12 @@ cdef class real_distribution(probability_distribution):
    def reset_distribution(self):
       """
       This method resets the distribution.
-      sage: T=real_distribution('gaussian',1,seed=10)
-      sage: v=[T.get_random_element() for _ in range(10)]
-      sage: T.reset_distribution()
-      sage: w=[T.get_random_element() for _ in range(10)]
+
+      EXAMPLES:
+         sage: T = RealDistribution('gaussian',1,seed=10)
+         sage: v = [T.get_random_element() for _ in range(10)]
+         sage: T.reset_distribution()
+         sage: w = [T.get_random_element() for _ in range(10)]
       """
       if self.r!=NULL:
          gsl_rng_free(self.r)
@@ -355,10 +379,9 @@ cdef class real_distribution(probability_distribution):
 
    def distribution_function(self,x):
       """
-      This methods evaluates the distribution function of the probability distribution at x
+      This methods evaluates the distribution function of the
+      probability distribution at $x$.
       """
-
-
       if self.distribution_type ==uniform:
          return sage.rings.real_double.RDF(gsl_ran_flat_pdf(x,self.parameters[0],self.parameters[1]))
       elif self.distribution_type==gaussian:
@@ -383,7 +406,8 @@ cdef class real_distribution(probability_distribution):
 
    def cum_distribution_function(self,x):
       """
-      This method evaluates the cumulative distribution function of the probability distribution at x
+      This method evaluates the cumulative distribution function of
+      the probability distribution at $x$.
       """
       if self.distribution_type ==uniform:
          return sage.rings.real_double.RDF(gsl_cdf_flat_P(x,self.parameters[0],self.parameters[1]))
@@ -409,8 +433,8 @@ cdef class real_distribution(probability_distribution):
 
    def cum_distribution_function_inv(self,x):
       """
-      This method evaluates the inverse of the cumulative distribution distribution function of the
-      probability distribution at x
+      This method evaluates the inverse of the cumulative distribution
+      distribution function of the probability distribution at $x$.
       """
       if self.distribution_type ==uniform:
          return sage.rings.real_double.RDF(gsl_cdf_flat_Pinv(x,self.parameters[0],self.parameters[1]))
@@ -434,8 +458,8 @@ cdef class real_distribution(probability_distribution):
       elif self.distribution_type==beta:
          return sage.rings.real_double.RDF(gsl_cdf_beta_Pinv(x,self.parameters[0],self.parameters[1]))
 
-   def plot_distribution_function(self,xmin,xmax):
-      sage.plot.plot.plot(self.distribution_function,xmin,xmax).show()
+   def plot(self, *args, **kwds):
+      return sage.plot.plot.plot(self.distribution_function, *args, **kwds)
 
    def generate_histogram_data(self,num_samples=1000,bins=50):
       import pylab

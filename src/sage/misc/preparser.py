@@ -251,7 +251,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 continue
 
         elif line[i] == ";" and not in_quote():
-            line = line[:i+1] + preparse(line[i+1:])
+            line = line[:i+1] + preparse(line[i+1:], reset, ignore_prompts,
+                                        dotime)
             i = len(line)
             continue
 

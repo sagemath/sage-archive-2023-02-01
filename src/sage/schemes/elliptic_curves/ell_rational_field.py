@@ -2311,6 +2311,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     ##########################################################
     # Galois Representations
     ##########################################################
+
+    def is_reducible(self, p):
+        """
+        Return True if the mod-p representation attached
+        to E is reducible.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('121a'); E
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 30*x - 76 over Rational Field
+            sage: E.is_reducible(7)
+            False
+            sage: E.is_reducible(11)
+            True
+            sage: EllipticCurve('11a').is_reducible(5)
+            True
+            sage: e = EllipticCurve('11a2')
+            sage: e.is_reducible(5)
+            True
+            sage: e.torsion_order()
+            1
+        """
+        # we do is_surjective first, since this is
+        # much easier than computing isogeny_class
+        t, why = self.is_surjective(p)
+        if t == True:
+            return False  # definitely not reducible
+        isogeny_matrix = self.isogeny_class()[ 1 ]
+        v = isogeny_matrix[0]  # first row
+        for a in v:
+            if a != 0 and a % p == 0:
+                return True
+        return False
+
+    def is_irreducible(self, p):
+        """
+        Return True if the mod p represenation is irreducible.
+        """
+        return not self.is_reducible()
+
     def is_surjective(self, p, A=1000):
         """
         Return True if the mod-p representation attached to E
@@ -3196,7 +3235,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ind = ind2.sqrt()
             misc.verbose("index = %s"%ind)
             # Compute upper bound on square root of index.
-            if ind.length() < 1:
+            if ind.absolute_diameter() < 1:
                 t, i = ind.is_int()
                 if t:   # unique integer in interval, so we've found exact index squared.
                     return arith.prime_divisors(i), D
@@ -3223,7 +3262,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def shabound_kolyvagin(self, D=0, regulator=None,
                            ignore_nonsurj_hypothesis=False):
         """
-        Given a fundamental discriminant D (=-3,-4) that satisfies the
+        Given a fundamental discriminant D (!= -3,-4) that satisfies the
         Heegner hypothesis, return a list of primes so that
         Kolyvagin's theorem (as in Gross's paper) implies that any
         prime divisor of $\#Sha$ is in this list.
@@ -3276,6 +3315,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 computed to precision at least $10^{-10}$, i.e., they are
                 correct up to addition or a real number with absolute
                 value less than $10^{-10}$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.shabound_kolyvagin()
+            ([2], 1)
+            sage: E = EllipticCurve('141a')
+            sage: E.sha_an()
+            1
+            sage: E.shabound_kolyvagin()
+            ([2, 7], 49)
+
+        We get no information the curve has rank $2$.
+            sage: E = EllipticCurve('389a')
+            sage: E.shabound_kolyvagin()
+            (0, 0)
+            sage: E = EllipticCurve('681b')
+            sage: E.sha_an()
+            9
+            sage: E.shabound_kolyvagin()
+            ([2, 3], 9)
+
         """
         if self.has_cm():
             return 0, 0
@@ -3340,7 +3400,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             t, n = I.is_int()
             if t:
                 break
-            elif I.length() < 1:
+            elif I.absolute_diameter() < 1:
                 raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not an integer -- D=%s, I=%s."%(D,I)
             misc.verbose("Doubling bounds")
             k_E *= 2
@@ -3368,9 +3428,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def shabound_kato(self):
         """
-        Returns a list p of primes such tha theorems of Kato's and
-        others (e.g., as explained in a paper/thesis of Grigor Grigorov)
-        imply that if p divides $\\#Sha(E)$ then $p$ is in the list.
+        Returns a list p of primes such that the theorems of Kato's
+        and others (e.g., as explained in a paper/thesis of Grigor
+        Grigorov) imply that if p divides $\\#Sha(E)$ then $p$ is in
+        the list.
 
         If L(E,1) = 0, then Kato's theorem gives no information, so
         this function returns False.

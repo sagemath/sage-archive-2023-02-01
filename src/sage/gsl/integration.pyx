@@ -46,18 +46,25 @@ cdef double c_f(double t,void *params):
 
 
 
-def NumericalIntegration(func,interval=[0,1],algorithm='qag',max_points=87,params=[],eps_abs=1e-6,eps_rel=1e-6,rule=6):
+def NumericalIntegration(func, interval=[0,1], algorithm='qag',
+                         max_points=87, params=[], eps_abs=1e-6,
+                         eps_rel=1e-6, rule=6):
    """
-   This uses GSL to numerically interate a function. The keyword options are
+   Numerically integrates a function.
 
-   interval: The interval of integration, specified as tuple/list with the first element the lower bound and the second element the upper bound.
+   INPUT:
+   interval: (default: [0,1]) The interval of integration,
+            specified as tuple/list with the first element the lower bound
+            and the second element the upper bound.
 
    algorithm: valid choices are
        1.'qag' for an adaptive integration
        2. 'qng' for a non-adaptive gauss kronrod (samples at a maximum of 87pts)
 
    max_points: Sets the maximum number of sample points
+
    params: used to pass parameters to your function
+
    eps_abs, eps_rel:Absolute and relative error tolerances
 
    rule: This controls the Gauss-Kronrod rule used in the adaptive integration
@@ -68,30 +75,35 @@ def NumericalIntegration(func,interval=[0,1],algorithm='qag',max_points=87,param
    rule=5: 51 pt rule
    rule=6: 61 pt sule
 
-   Higher key values are more accurate for smooth functions but lower key values deal better with discontinuities.
+   Higher key values are more accurate for smooth functions but lower
+   key values deal better with discontinuities.
 
-   NumericalIntegration returns a tuple whose first component is the answer and whose second component is an error estimate.
+   NumericalIntegration returns a tuple whose first component is the
+   answer and whose second component is an error estimate.
 
    For example to integrate the function x^2 from 0 to 1, we can do
-   sage: f= lambda x:x**2
-   sage: NumericalIntegration(f,interval=[0,1],max_points=100)
+   EXAMPLES:
+       sage: f = lambda x:x**2
+       sage: NumericalIntegration(f,interval=[0,1],max_points=100)
 
    If we want to change the error tolerances and gauss rule used
-   sage:NumericalIntegration(f,interval=[0,1],max_points=200,err_abs=1e-7,arr_rel=1e-7,key=4)
+       sage: NumericalIntegration(f,interval=[0,1],max_points=200,err_abs=1e-7,arr_rel=1e-7,key=4)
 
    For a function with parameters
-   sage: f=lambda x,a:1.0/(a[0]+x**2)
-   sage: [NumericalIntegration(f,[1,2],max_points=100,params=[n]) for n in range(10)]
-   Note the parameters are always a tuple everen if they have one component
+       sage: f=lambda x,a:1.0/(a[0]+x**2)
+       sage: [NumericalIntegration(f,[1,2],max_points=100,params=[n]) for n in range(10)]
+
+   Note the parameters are always a tuple even if they have one component
 
    It is possible to perform on infinite intervals as well by using 'inf' or
    '-inf' in the interval argument. For example
-   sage:f=lambda x: float(exp(RR(-x)))
-   sage:NumericalIntegration(f,interval=[0,'inf'])
-   Note the RR, this prevents underflow which can
+       sage: f = lambda x: float(exp(RR(-x)))
+       sage: NumericalIntegration(f,interval=[0,'inf'])
 
-   sage:f=lambda x:float(exp(RR(-x**2)))
-   sage:NumericalIntegration(f,interval=['-inf','inf'])
+   Note the RR, this prevents underflow.
+
+       sage: f = lambda x:float(exp(RR(-x**2)))
+       sage: NumericalIntegration(f,interval=['-inf','inf'])
 
    """
    import inspect

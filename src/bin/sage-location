@@ -18,7 +18,7 @@ def install_moved():
     O.close()
     if os.path.abspath(R) != os.path.abspath(SAGE_ROOT):  # really different
         return True, R  # it moved
-    return False
+    return False, ''
 
 def update_library_files(R):
     LIB = '%s/local/lib/'%os.path.abspath(SAGE_ROOT)

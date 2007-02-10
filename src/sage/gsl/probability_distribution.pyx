@@ -169,7 +169,7 @@ cdef class RealDistribution(ProbabilityDistribution):
    """
    def __init__(self,type='uniform',parameters=[],rng='default',seed=None):
       gsl_rng_env_setup()
-      self.parameters = Nne
+      self.parameters = NULL
       self.set_random_number_generator(rng)
       self.r=gsl_rng_alloc(self.T)
       if seed==None:

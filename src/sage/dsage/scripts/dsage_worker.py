@@ -194,6 +194,60 @@ class Worker(object):
 
         return tmp_job_dir
 
+    def extractJobData(self, job):
+        r"""
+        Extracts all the data that is in a job object.
+
+        """
+        if isinstance(job.data, list):
+            for var, data, kind in job.data:
+                # Uncompress data
+                try:
+                    data = zlib.decompress(data)
+                except Exception, msg:
+                    log.msg(msg)
+                    continue
+                if kind == 'file':
+                    # Write out files to current dir
+                    f = open(var, 'wb')
+                    f.write(data)
+                    if LOG_LEVEL > 2:
+                        log.msg('[Worker: %s] Extracted %s. ' % (self.id, f))
+                if kind == 'object':
+                    # Load object into the SAGE worker
+                    fname = var + '.sobj'
+                    if LOG_LEVEL > 3:
+                        log.msg('Object to be loaded: %s' % fname)
+                    f = open(fname, 'wb')
+                    f.write(data)
+                    f.close()
+                    self.sage.eval("%s = load('%s')" % (var, fname))
+                    if LOG_LEVEL > 2:
+                        log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
+
+    def writeJobFile(self, job):
+        r"""
+        Writes out the job file to be executed to disk.
+
+        """
+        parsed_file = preparse_file(job.file, magic=False,
+                                    do_time=False, ignore_prompts=False)
+
+        job_filename = str(job.name) + '.py'
+        job_file = open(job_filename, 'w')
+        BEGIN = "print '%s'\n\n" % (START_MARKER)
+        END = "print '%s'\n\n" % (END_MARKER)
+        job_file.write(BEGIN)
+        job_file.write(parsed_file)
+        job_file.write("\n\n")
+        job_file.write(END)
+        job_file.close()
+
+        if LOG_LEVEL > 2:
+            log.msg('[Worker: %s] Wrote job file. ' % (self.id))
+
+        return job_filename
+
     def doJob(self, job):
         r"""
         doJob is the method that drives the execution of a job.
@@ -203,50 +257,15 @@ class Worker(object):
 
         """
 
-        # TODO: FACTORIZE THIS CODE!!!
         self.free = False
         d = defer.Deferred()
 
         tmp_job_dir = self.setupTempDir(job)
+        self.extractJobData(job)
 
-        parsed_file = preparse_file(job.file, magic=False,
-                                    do_time=False, ignore_prompts=False)
-        if isinstance(job.data, list):
-            for var, data, type in job.data:
-                # Uncompress data
-                try:
-                    data = zlib.decompress(data)
-                except Exception, msg:
-                    log.msg(msg)
-                    continue
-                if type == 'file':
-                    # Write out files to current dir
-                    f = open(var, 'wb')
-                    f.write(data)
-                if type == 'object':
-                    # Load object into the SAGE worker
-                    fname = var + '.sobj'
-                    if LOG_LEVEL > 3:
-                        log.msg('Object to be loaded: %s' % fname)
-                    f = open(fname, 'wb')
-                    f.write(data)
-                    f.close()
-                    self.sage.eval("%s = load('%s')" % (var, fname))
-            log.msg('[Worker: %s] Extracted all job data. ' % (self.id))
+        job_filename = self.writeJobFile(job)
 
-        tmp_job_prefix = '%s' % (job.name)
-        tmp_filename = tmp_job_prefix + '.py'
-        tmp_file = open(tmp_filename, 'w')
-        BEGIN = "print '%s'\n\n" % (START_MARKER)
-        END = "print '%s'\n\n" % (END_MARKER)
-        tmp_file.write(BEGIN)
-        tmp_file.write(parsed_file)
-        tmp_file.write("\n\n")
-        tmp_file.write(END)
-        tmp_file.close()
-        if LOG_LEVEL > 2:
-            log.msg('[Worker: %s] Wrote job file. ' % (self.id))
-        f = os.path.join(tmp_job_dir, tmp_filename)
+        f = os.path.join(tmp_job_dir, job_filename)
         self.sage._send("execfile('%s')" % (f))
         if LOG_LEVEL > 2:
             log.msg('[Worker: %s] File to execute: %s' % (self.id, f))

@@ -22,23 +22,21 @@ import os
 import ConfigParser
 import uuid
 import cPickle
-import cStringIO
-import tarfile
 import zlib
 
 from twisted.spread import pb
-from twisted.internet import reactor, defer
-from twisted.internet import task, error
+from twisted.internet import reactor, defer, error, task
+# from twisted.internet import error
 from twisted.python import log
 
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
-from dsage.database.job import Job
-from dsage.misc.hostinfo import HostInfo
-from dsage.errors.exceptions import NoJobException
+from sage.dsage.misc.hostinfo import HostInfo
+from sage.dsage.errors.exceptions import NoJobException
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
+# pb.setUnjellyableForClass(Job, Job)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
@@ -84,7 +82,7 @@ class Worker(object):
         self.job = None
 
         if LOG_LEVEL > 3:
-            self.sage = Sage(logfile=DSAGE_DI + '/%s-pexpect.log'\
+            self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.log'\
                              % self.id)
         else:
             self.sage = Sage()
@@ -98,9 +96,11 @@ class Worker(object):
         self.getJob()
 
     def getJob(self):
+        # print 'Ok so far.'
         try:
             d = self.remoteobj.callRemote('getJob')
         except Exception, msg:
+            print 'Error getting job.'
             print msg
             log.msg('[Worker: %s, getJob] Disconnected from remote server.'\
                     % self.id)
@@ -182,6 +182,20 @@ class Worker(object):
         if failure.check(NoJobException):
             reactor.callLater(5.0, self.getJob)
 
+    def setupTempDir(self, job):
+        # change to a temporary directory
+        cur_dir = os.getcwd() # keep a reference to the current directory
+        tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
+        tmp_job_dir = os.path.join(tmp_dir, job.id)
+        self.tmp_job_dir = tmp_job_dir
+        if not os.path.isdir(tmp_dir):
+            os.mkdir(tmp_dir)
+        os.mkdir(tmp_job_dir)
+        os.chdir(tmp_job_dir)
+        self.sage.eval("os.chdir('%s')" % tmp_job_dir)
+
+        return tmp_job_dir
+
     def doJob(self, job):
         r"""
         doJob is the method that drives the execution of a job.
@@ -195,16 +209,8 @@ class Worker(object):
         self.free = False
         d = defer.Deferred()
 
-        # change to a temporary directory
-        cur_dir = os.getcwd() # keep a reference to the current directory
-        tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
-        tmp_job_dir = os.path.join(tmp_dir, job.id)
-        self.tmp_job_dir = tmp_job_dir
-        if not os.path.isdir(tmp_dir):
-            os.mkdir(tmp_dir)
-        os.mkdir(tmp_job_dir)
-        os.chdir(tmp_job_dir)
-        self.sage.eval("os.chdir('%s')" % tmp_job_dir)
+        tmp_job_dir = self.setupTempDir(job)
+
         parsed_file = preparse_file(job.file, magic=False,
                                     do_time=False, ignore_prompts=False)
         if isinstance(job.data, list):
@@ -244,7 +250,10 @@ class Worker(object):
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
         f = os.path.join(tmp_job_dir, tmp_filename)
         self.sage._send("execfile('%s')" % (f))
-        job.set_status('processing')
+        if LOG_LEVEL > 2:
+            log.msg('[Worker: %s] File to execute: %s' % (self.id, f))
+        if LOG_LEVEL > 3:
+            log.msg('[Worker: %s] Called sage._send()' % (self.id))
 
         d.callback(True)
 

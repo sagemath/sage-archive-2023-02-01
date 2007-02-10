@@ -31,14 +31,13 @@ from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
 from twisted.internet import defer
 
-from dsage.interface.dsage_interface import *
-from dsage.dist_functions.all import *
-from dsage.database.job import Job
-from dsage.misc.hostinfo import HostInfo
-import dsage.server.client_tracker as client_tracker
-import dsage.server.worker_tracker as worker_tracker
-from dsage.server.hostinfo_tracker import hostinfo_list
-from dsage.errors.exceptions import BadJobError, BadTypeError
+from sage.dsage.interface.dsage_interface import *
+from sage.dsage.database.job import Job
+from sage.dsage.misc.hostinfo import HostInfo
+import sage.dsage.server.client_tracker as client_tracker
+import sage.dsage.server.worker_tracker as worker_tracker
+from sage.dsage.server.hostinfo_tracker import hostinfo_list
+from sage.dsage.errors.exceptions import BadJobError, BadTypeError
 
 try:
     from IPython.Shell import MTInteractiveShell

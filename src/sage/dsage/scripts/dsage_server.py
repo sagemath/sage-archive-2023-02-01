@@ -28,13 +28,15 @@ from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
-from dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
-from dsage.database.job import Job
-from dsage.pb.dsage_pb import Realm
-from dsage.pb.dsage_pb import DSage, DSageForWorkers
-from dsage.pb.dsage_pb import WorkerPBServerFactory
-from dsage.pb.dsage_pb import _SSHKeyPortalRoot
-from dsage.pb.pubkeyauth import PublicKeyCredentialsChecker
+from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.job import Job
+from sage.dsage.pb.dsage_pb import Realm
+from sage.dsage.pb.dsage_pb import DSage, DSageForWorkers
+from sage.dsage.pb.dsage_pb import WorkerPBServerFactory
+from sage.dsage.pb.dsage_pb import _SSHKeyPortalRoot
+from sage.dsage.pb.pubkeyauth import PublicKeyCredentialsChecker
+
+pb.setUnjellyableForClass(Job, Job)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration

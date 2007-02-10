@@ -30,7 +30,7 @@ import transaction
 
 import sqlite3 as sqlite
 
-from dsage.database.job import Job
+from sage.dsage.database.job import Job
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration

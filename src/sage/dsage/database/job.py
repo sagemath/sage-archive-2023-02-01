@@ -25,7 +25,7 @@ from twisted.spread import pb
 
 from persistent import Persistent
 
-class Job(Persistent):
+class Job(Persistent, pb.RemoteCopy):
     """Defines a Job that gets distributed to clients.
     """
 
@@ -109,7 +109,7 @@ class Job(Persistent):
         return int(self.id[s:])
     def set_num(self):
         pass
-    num = property(fget=get_num, fset=None, fdel=None, doc='Job Number')
+    num = property(fget=get_num, fset=set_num, fdel=None, doc='Job Number')
 
     def get_status(self):
         return self.jdict['status']

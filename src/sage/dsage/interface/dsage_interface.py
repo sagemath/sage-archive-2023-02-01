@@ -33,9 +33,9 @@ from twisted.internet import reactor, defer, error, task
 from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
-from dsage.database.job import Job
-from dsage.pb.dsage_pb import ClientPBClientFactory
-from dsage.errors.exceptions import NoJobException, NotConnectedException
+from sage.dsage.database.job import Job
+from sage.dsage.pb.dsage_pb import ClientPBClientFactory
+from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
 # This is a randomly generated string we will use to as the signature to
 # sign

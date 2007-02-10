@@ -337,15 +337,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: A.charpoly()
             x^3
 
-        ALGORITHM: Uses LinBox if self.base_ring() is a field
-
-        NOTE: Right now, LinBox is disabled until some bugs there (in
-        our wrapper?) are fixed. If you are desparate, call
-        self._charpoly_linbox() directly.
-
+        ALGORITHM: Uses LinBox if self.base_ring() is a field,
+        otherwise use Hessenberg form algorithm.
         """
-        # disabling LinBox for now until a fix is available
-
         if algorithm == 'linbox': # and not self.base_ring().is_field():
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 

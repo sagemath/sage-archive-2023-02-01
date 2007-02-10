@@ -51,10 +51,17 @@ cdef class Linbox:
         return v
 
 
-##     int  linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus, mod_int **ans,
-##                                                   mod_int **A, mod_int **B,
-##                                                   size_t A_nr, size_t A_nc,
-##                                                   size_t B_nr, size_t B_nc)
+    cdef linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus,
+                                                  mod_int **ans,
+                                                  mod_int **A, mod_int **B,
+                                                  size_t A_nr, size_t A_nc,
+                                                  size_t B_nr, size_t B_nc):
+        cdef int e
+        e = linbox_modn_dense_matrix_matrix_multiply(self.p, ans._matrix, self._matrix, B._matrix,
+                                                     self._nrows, self._ncols,
+                                                     right._nrows, right._ncols)
+        if e:
+            raise RuntimError, "error doing matrix matrix multiply."
 
 
 ##     int linbox_modn_dense_rank(unsigned long modulus,

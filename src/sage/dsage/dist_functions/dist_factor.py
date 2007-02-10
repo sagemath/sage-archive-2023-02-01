@@ -1,7 +1,7 @@
-from sage.dsage.database.job import Job
-from sage.dsage.dist_functions.dist_function import DistributedFunction
+from dsage.database.job import Job
+from dsage.dist_functions.dist_function import DistributedFunction
 
-from sage.misc.all import *
+from sage.all import *
 
 class DistributedFactor(DistributedFunction):
     r"""
@@ -29,8 +29,9 @@ class DistributedFactor(DistributedFunction):
             name, verbosity  -- obvious
 
         """
+
         DistributedFunction.__init__(self, DSage)
-        self.id = "ecm_factor(%s)" % (n)
+        # self.id = "ecm_factor(%s)" % (n)
         self.n = n
         self.prime_factors = []
         self.cur_B1 = 2000
@@ -69,7 +70,7 @@ else:
     save(result, 'result')
     DSAGE_RESULT = 'result.sobj'
 """ % n, name='qsieve')
-        job.n = str(n) # otherwise get some weird twisted class
+        job.n = int(n) # otherwise get some weird twisted class
         job.algorithm = 'qsieve'
         return job
 
@@ -91,11 +92,9 @@ save(result, 'result')
 DSAGE_RESULT = 'result.sobj'
 
 """ % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
-        job.n = n
+        job.n = int(n)
         job.algorithm = 'ecm'
         return job
-
-
 
     def process_result(self, job):
         r"""

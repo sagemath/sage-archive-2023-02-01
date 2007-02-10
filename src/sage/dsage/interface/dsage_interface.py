@@ -63,33 +63,9 @@ except:
     sys.exit(-1)
 # End reading configuration
 
-
 class DSageThread(threading.Thread):
     def run(self):
         reactor.run(installSignalHandlers=False)
-
-        import threading, sys
-        from twisted.internet import defer, reactor
-        from twisted.python.failure import Failure
-
-def blockingCallFromThread(func, *args, **kwargs):
-    e = threading.Event()
-    l = []
-    def _got_result(result):
-        l.append(result)
-        e.set()
-        return None
-    def wrapped_func():
-        d = defer.maybeDeferred(func, *args, **kwargs)
-        d.addBoth(_got_result)
-    reactor.callFromThread(wrapped_func)
-    e.wait()
-    result = l[0]
-    if isinstance(result, Failure):
-        # Whee!  Cross-thread exceptions!
-        result.raiseException()
-    else:
-        return result
 
 class DSage(object):
     r"""
@@ -103,7 +79,6 @@ class DSage(object):
        privkey_file -- file that stores the users private key
 
     """
-
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
 
@@ -140,10 +115,6 @@ class DSage(object):
                                                self.signature)
 
         self.jobs = []
-
-        # Start a twisted reactor thread
-        self.reactor_thread = DSageThread()
-        self.reactor_thread.start()
 
         self.connect()
 
@@ -214,22 +185,16 @@ class DSage(object):
         if SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
-            reactor.callFromThread(reactor.connectSSL,
-                                   self.server,
-                                   self.port,
-                                   factory,
-                                   contextFactory)
+            reactor.connectSSL(self.server,
+                               self.port,
+                               factory,
+                               contextFactory)
         else:
-            reactor.callFromThread(reactor.connectTCP,
-                                   self.server,
-                                   self.port,
-                                   factory)
+            reactor.connectTCP(self.server, self.port, factory)
 
-        d = factory.login(self.creds, None)
-        d.addCallback(self._connected)
-        d.addErrback(self._catchFailure)
-
-        return d
+        return factory.login(self.creds, None).addCallback(
+                            self._connected).addErrback(
+                            self._catchFailure)
 
     def disconnect(self):
         print 'Disconnecting from server.'
@@ -367,8 +332,7 @@ class DSage(object):
 
         self.check_connected()
 
-        return reactor.callFromThread(self.remoteobj.callRemote,
-                                      'getClusterSpeed')
+        return self.remoteobj.callRemote('getClusterSpeed')
 
     def check_connected(self):
         if self.remoteobj == None:
@@ -396,8 +360,7 @@ class JobWrapper(object):
         self._update_job(job)
         self.worker_info = self._job.worker_info
 
-        d = reactor.callFromThread(self.remoteobj.callRemote,
-                                   'getNextJobID')
+        d = self.remoteobj.callRemote('getNextJobID')
         d.addCallback(self._gotID)
         d.addErrback(self._catchFailure)
 
@@ -432,9 +395,9 @@ class JobWrapper(object):
         return cPickle.loads(zlib.decompress(pickled_job))
 
     def wait(self):
-        timeout = 1
+        timeout = 0.1
         while self._job.result is None:
-            reactor.callFromThread(reactor.iterate, timeout)
+            reactor.iterate(timeout)
 
     def save(self, filename=None):
         if filename is None:
@@ -466,8 +429,7 @@ class JobWrapper(object):
     def getJob(self):
         if self.remoteobj == None:
             raise NotConnectedException
-        d = reactor.callFromThread(self.remoteobj.callRemote,
-                                   'getJobByID', self._job.id)
+        d = self.remoteobj.callRemote('getJobByID', self._job.id)
         d.addCallback(self._gotJob)
         d.addErrback(self._catchFailure)
         return d
@@ -475,8 +437,7 @@ class JobWrapper(object):
     def getJobOutput(self):
         if self.remoteobj == None:
             return
-        d = reactor.callFromThread(self.remoteobj.callRemote,
-                                   'getJobOutputByID', self._job.id)
+        d = self.remoteobj.callRemote('getJobOutputByID', self._job.id)
         d.addCallback(self._gotJobOutput)
         d.addErrback(self._catchFailure)
         return d
@@ -488,8 +449,7 @@ class JobWrapper(object):
     def getJobResult(self):
         if self.remoteobj == None:
             return
-        d = reactor.callFromThread(self.remoteobj.callRemote,
-                                   'getJobResultByID', self._job.id)
+        d = self.remoteobj.callRemote('getJobResultByID', self._job.id)
         d.addCallback(self._gotJobResult)
         d.addErrback(self._catchFailure)
         return d
@@ -512,8 +472,7 @@ class JobWrapper(object):
             return
 
         try:
-            d = reactor.callFromThread(self.remoteobj.callRemote,
-                                       'syncJob', self._job.id)
+            d = self.remoteobj.callRemote('syncJob', self._job.id)
         except pb.DeadReferenceError:
             if self.syncJob_task:
                 if self.syncJob_task.running:
@@ -538,8 +497,7 @@ class JobWrapper(object):
 
         """
 
-        d = reactor.callFromThread(self.remoteobj.callRemote,
-                                   'killJob', self._job.id)
+        d = self.remoteobj.callRemote('killJob', self._job.id)
         d.addCallback(self._killedJob)
         d.addErrback(self._catchFailure)
         return d

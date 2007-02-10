@@ -1,7 +1,7 @@
 import os
 
-from sage.dsage.database.job import Job
-from sage.dsage.dist_functions.dist_function import DistributedFunction
+from dsage.database.job import Job
+from dsage.dist_functions.dist_function import DistributedFunction
 
 class DistributedPOVRay(DistributedFunction):
     r"""
@@ -76,6 +76,7 @@ class DistributedPOVRay(DistributedFunction):
         self.job_files.append(job_file)
 
         job = Job(file=job_file, name='%s_%04d.ppm' % (self.name, self.n))
+
         for file in self.files:
             job.attach_file(file)
         self.n += 1

@@ -22,7 +22,7 @@ import cPickle
 import zlib
 
 from twisted.internet import task
-from sage.dsage.database.job import Job
+from dsage.database.job import Job
 
 class DistributedFunction(object):
     r"""
@@ -120,7 +120,7 @@ class DistributedFunction(object):
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
             wrapped_job.syncJob()
-            # job.job refers to the remove job
+            # wrapped_job._job refers to the actual Job object
             if wrapped_job._job.status == 'completed':
                 self.waiting_jobs.remove(wrapped_job)
                 self.process_result(wrapped_job._job)

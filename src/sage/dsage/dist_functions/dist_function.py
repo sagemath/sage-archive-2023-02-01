@@ -22,7 +22,7 @@ import cPickle
 import zlib
 
 from twisted.internet import task
-from dsage.database.job import Job
+from sage.dsage.database.job import Job
 
 class DistributedFunction(object):
     r"""

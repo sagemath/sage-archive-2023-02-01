@@ -31,7 +31,8 @@ from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
 from twisted.internet import defer
 
-from sage.dsage.interface.dsage_interface import *
+from sage.dsage.interface.dsage_interface import DSage
+from sage.dsage.dist_functions.all import *
 from sage.dsage.database.job import Job
 from sage.dsage.misc.hostinfo import HostInfo
 import sage.dsage.server.client_tracker as client_tracker

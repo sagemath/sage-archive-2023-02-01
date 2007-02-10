@@ -1,7 +1,7 @@
 import os
 
-from dsage.database.job import Job
-from dsage.dist_functions.dist_function import DistributedFunction
+from sage.dsage.database.job import Job
+from sage.dsage.dist_functions.dist_function import DistributedFunction
 
 class DistributedPOVRay(DistributedFunction):
     r"""

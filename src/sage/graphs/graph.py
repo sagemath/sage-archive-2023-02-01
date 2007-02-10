@@ -676,43 +676,97 @@ class Graph(GenericGraph):
         M = matrix(IntegerModRing(2), n, n, D, sparse=sparse)
         return M
 
-    def graph6_string(self): # needs testing after build works again
+    def __bit_vector(self):
+        vertices = self.vertices()
+        n = len(vertices)
+        nc = n*(n - 1)/2
+        bit_vector = '0'*int(nc)
+        for e in self.edge_iterator():
+            a,b = min(vertices.index(e[0]), vertices.index(e[1])), max(vertices.index(e[0]), vertices.index(e[1]))
+            p = b*(b - 1)/2 + a
+            bit_vector = bit_vector[:p] + '1' + bit_vector[p+1:]
+        return bit_vector
+
+    def graph6_string(self):
         """
-        Returns the graph6 representation of the graph as an ASCII string.
+        Returns the graph6 representation of the graph as an ASCII string. Only valid
+        for simple (no loops, multiple edges) graphs on 0 to 262143 vertices.
         """
-        from sage.rings.integer_ring import ZZ
         n = self.order()
         if n > 262143:
             raise ValueError, 'graph6 format supports graphs on 0 to 262143 vertices only.'
         elif self.loops() or self.multiple_edges():
             raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
         else:
-            M = self.am()
-            bit_vector = ''
-            for i in range(n): # encode the upper triangle as a bit vector
-                for j in range(i):
-                    bit_vector += str(M[j][i])
+            return N(n) + R(self.__bit_vector())
+
+    def sparse6_string(self):
+        """
+        Returns the sparse6 representation of the graph as an ASCII string. Only valid
+        for undirected graphs on 0 to 262143 vertices, but loops and multiple edges are
+        permitted.
+        """
+        n = self.order()
+        if n > 262143:
+            raise ValueError, 'sparse6 format supports graphs on 0 to 262143 vertices only.'
+        else:
+            vertices = self.vertices()
+            n = len(vertices)
+            edges = self.edges(labels=False)
+            for e in edges: # replace edge labels with natural numbers (by index in vertices)
+                e = (vertices.index(e[0]),vertices.index(e[1]))
+            # order edges
+            def cmp(x, y):
+                if x[1] < y[1]:
+                    return -1
+                elif x[1] > y[1]:
+                    return 1
+                elif x[1] == y[1]:
+                    if x[0] < y[0]:
+                        return -1
+                    if x[0] > y[0]:
+                        return 1
+                    else:
+                        return 0
+            edges.sort(cmp)
+
+            # encode bit vector
+            from sage.rings.integer import Integer
+            from sage.rings.arith import ceil
+            from sage.misc.functional import log
+            from sage.rings.integer_ring import ZZ
+            k = ceil(log(n,2))
+            v = 0
+            i = 0
+            m = 0
+            s = ''
+            while m < len(edges):
+                if edges[m][1] > v + 1:
+                    sp = Integer(edges[m][1]).binary()
+                    sp = '0'*(k-len(sp)) + sp
+                    s += '1' + sp
+                    v = edges[m][1]
+                elif edges[m][1] == v + 1:
+                    sp = Integer(edges[m][0]).binary()
+                    sp = '0'*(k-len(sp)) + sp
+                    s += '1' + sp
+                    v += 1
+                    m += 1
+                else:
+                    sp = Integer(edges[m][0]).binary()
+                    sp = '0'*(k-len(sp)) + sp
+                    s += '0' + sp
+                    m += 1
+
+            # encode s as a 6-string, as in R(x), but padding with 1's
             # pad on the right to make a multiple of 6
-            bit_vector = bit_vector + ( '0' * ((6 - len(bit_vector))%6) )
+            s = s + ( '1' * ((6 - len(s))%6) )
 
             # split into groups of 6, and convert numbers to decimal, adding 63
             six_bits = ''
-            for i in range(len(bit_vector)/6):
-                six_bits += chr( ZZ( bit_vector[6*i:6*(i+1)], base=2) + 63 )
-            if n in range(63):
-                N = chr(n + 63)
-            else:
-                # get 18-bit rep of n
-                n = Integer(n).binary()
-                n = '0'*(18-len(n)) + n
-                N = chr(126)# + R(n)
-                # pad on the right to make a multiple of 6
-                n = n + ( '0' * ((6 - len(n))%6) )
-                # split into groups of 6, and convert numbers to decimal, adding 63
-                for i in range(len(n)/6):
-                    N += chr( ZZ( n[6*i:6*(i+1)], base=2) + 63 )
-
-            return N + six_bits
+            for i in range(len(s)/6):
+                six_bits += chr( ZZ( s[6*i:6*(i+1)], base=2) + 63 )
+            return ':' + N(n) + six_bits
 
     ### Construction
 
@@ -1287,29 +1341,24 @@ def graph(data, format=None):
     INPUT:
     data -- the data to be converted to a Graph or DiGraph class instance.
     format -- the format of data: can be
-        'graph6' -- if format = 'graph6', then data is assumed to be a graph6 string
+        'graph6' -- if format == 'graph6', then data is assumed to be a graph6 string
     """
     # TODO: format = 'matrix'
-    if format == 'graph6' or (format is None and isinstance(data, str)):
+    if format is None:
+        if isinstance(data, str):
+            if data[0] == ':':
+                format = 'sparse6'
+            else:
+                format = 'graph6'
+    if format == 'graph6':
         if not isinstance(data, str):
             raise ValueError, 'If input format is graph6, then data must be a string'
         from sage.rings.integer import Integer
         data = data.split('\n')
         Glist = []
         for s in data:
-            if s[0] == chr(126): # first four bytes are N
-                n = ZZ(Integer(ord(s[1])-63).binary() + Integer(ord(s[2])-63).binary() + Integer(ord(s[3])-63).binary(),base=2)
-                s = s[4:]
-            else: # only first byte is N
-                n = ord(s[0]) - 63
-                s = s[1:]
-            l = [Integer(ord(i)-63).binary() for i in s]
-            for i in range(len(l)):
-                l[i] = '0'* (6-len(l[i])) + l[i]
-            m = ''
-            for i in l:
-                m += i
-            m = m[:(n*(n-1)/2)]
+            n, s = N_inverse(s)
+            m = R_inverse(s, n)
             G = Graph()
             k = 0
             for i in range(n):
@@ -1322,6 +1371,88 @@ def graph(data, format=None):
             return Glist[0]
         else:
             return Glist
+    elif format == 'sparse6':
+        from sage.rings.integer import Integer
+        from sage.rings.arith import ceil, floor
+        from sage.misc.functional import log
+        from sage.rings.integer_ring import ZZ
+        data = data.split('\n')
+        Glist = []
+        for s in data:
+            n, s = N_inverse(s[1:])
+            k = ceil(log(n,2))
+            l = [Integer(ord(i)-63).binary() for i in s]
+            for i in range(len(l)):
+                l[i] = '0'* (6-len(l[i])) + l[i]
+            bits = ''.join(l)
+            b = []
+            x = []
+            for i in range(floor(len(bits)/(k+1))):
+                b.append(ZZ(bits[(k+1)*i:(k+1)*i+1],base=2))
+                x.append(ZZ(bits[(k+1)*i+1:(k+1)*i+k+1],base=2))
+            v = 0
+            edges = []
+            for i in range(len(b)):
+                if b[i] == 1:
+                    v += 1
+                if x[i] > v:
+                    v = x[i]
+                else:
+                    if v < n:
+                        edges.append((x[i],v))
+            G = Graph(loops=True, multiedges=True)
+            G.add_vertices([i for i in range(n)])
+            for e in edges:
+                G.add_edge(e)
+            Glist.append(G)
+        if len(Glist) == 1:
+            return Glist[0]
+        else:
+           return Glist
+
+def R(x): # Helper function for graph6
+    from sage.rings.integer_ring import ZZ
+    # pad on the right to make a multiple of 6
+    x = x + ( '0' * ((6 - len(x))%6) )
+
+    # split into groups of 6, and convert numbers to decimal, adding 63
+    six_bits = ''
+    for i in range(len(x)/6):
+        six_bits += chr( ZZ( x[6*i:6*(i+1)], base=2) + 63 )
+    return six_bits
+
+def N(n): # Helper function for graph6
+    if n in range(63):
+        return chr(n + 63)
+    else:
+        from sage.rings.integer import Integer
+        # get 18-bit rep of n
+        n = Integer(n).binary()
+        n = '0'*(18-len(n)) + n
+        return chr(126) + R(n)
+
+def N_inverse(s): # Helper function for graph6
+    from sage.rings.integer_ring import ZZ
+    from sage.rings.integer import Integer
+    if s[0] == chr(126): # first four bytes are N
+        n = ZZ(Integer(ord(s[1])-63).binary() + Integer(ord(s[2])-63).binary() + Integer(ord(s[3])-63).binary(),base=2)
+        s = s[4:]
+    else: # only first byte is N
+        n = ord(s[0]) - 63
+        s = s[1:]
+    return n, s
+
+def R_inverse(s, n): # Helper function for graph6
+    from sage.rings.integer import Integer
+
+    l = [Integer(ord(i)-63).binary() for i in s]
+    for i in range(len(l)):
+        l[i] = '0'* (6-len(l[i])) + l[i]
+    m = ''
+    for i in l:
+        m += i
+    m = m[:(n*(n-1)/2)]
+    return m
 
 
 

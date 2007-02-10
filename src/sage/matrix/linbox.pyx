@@ -18,17 +18,26 @@ cdef extern from "matrix_modn_dense_linbox.h":
                                mod_int** matrix, size_t nrows, size_t ncols)
 
 
-cdef class Linbox:
-    cdef int modn_dense_echelonize(self, mod_int modulus, mod_int** matrix,
-                                   size_t nrows, size_t ncols):
+##########################################################################
+## Dense matrices modulo p
+##########################################################################
+cdef class Linbox_modn_dense:
+    cdef set(self, mod_int n, mod_int** matrix,
+             size_t nrows, size_t ncols):
+        self.n = n
+        self.nrows = nrows
+        self.ncols = ncols
+        self.matrix = matrix
+
+    cdef int echelonize(self):
         cdef int r
         _sig_on
-        r = linbox_modn_dense_echelonize(modulus, matrix, nrows, ncols)
+        r = linbox_modn_dense_echelonize(self.n, self.matrix,
+                                         self.nrows, self.ncols)
         _sig_off
         return r
 
-    cdef modn_dense_poly(self, unsigned long modulus, size_t n,
-                         mod_int **matrix, minpoly):
+    cdef poly(self, minpoly):
         """
         INPUT:
             as given
@@ -39,9 +48,9 @@ cdef class Linbox:
         cdef mod_int *f
         cdef size_t degree
         _sig_on
-        linbox_modn_dense_minpoly(modulus, &f,
-                                  &degree,
-                                  n, matrix, minpoly)
+        linbox_modn_dense_minpoly(self.n, &f, &degree,
+                                  self.nrows, self.matrix,
+                                  minpoly)
         _sig_off
         v = []
         cdef Py_ssize_t i
@@ -50,20 +59,42 @@ cdef class Linbox:
         linbox_modn_dense_delete_array(f)
         return v
 
-
-    cdef linbox_modn_dense_matrix_matrix_multiply(unsigned long modulus,
-                                                  mod_int **ans,
-                                                  mod_int **A, mod_int **B,
-                                                  size_t A_nr, size_t A_nc,
-                                                  size_t B_nr, size_t B_nc):
+    cdef matrix_matrix_multiply(self,
+                                mod_int **ans,
+                                mod_int **B,
+                                size_t B_nr, size_t B_nc):
         cdef int e
-        e = linbox_modn_dense_matrix_matrix_multiply(self.p, ans._matrix, self._matrix, B._matrix,
-                                                     self._nrows, self._ncols,
-                                                     right._nrows, right._ncols)
+        _sig_on
+        e = linbox_modn_dense_matrix_matrix_multiply(self.n, ans,
+                                                     self.matrix,  B,
+                                                     self.nrows, self.ncols,
+                                                     B_nr, B_nc)
+        _sig_off
         if e:
-            raise RuntimError, "error doing matrix matrix multiply."
+            raise RuntimError, "error doing matrix matrix multiply modn using linbox"
 
 
-##     int linbox_modn_dense_rank(unsigned long modulus,
-##                                mod_int** matrix, size_t nrows, size_t ncols)
+    cdef unsigned long rank(self) except -1:
+        cdef unsigned long r
+        _sig_on
+        r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
+        _sig_off
+        return r
+
+
+##########################################################################
+## Sparse matices modulo p.
+##########################################################################
+cdef class Linbox_modn_sparse:
+    pass
+
+
+##########################################################################
+## Sparse matrices over ZZ
+##########################################################################
+
+
+##########################################################################
+## Dense matrices over ZZ
+##########################################################################
 

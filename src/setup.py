@@ -177,9 +177,7 @@ linbox = Extension('sage.matrix.linbox',
                    libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx',
-                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
-                              libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+                              ['sage/matrix/matrix_modn_dense.pyx'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])

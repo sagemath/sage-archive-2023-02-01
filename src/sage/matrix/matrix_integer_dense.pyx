@@ -11,8 +11,7 @@ Dense matrices over the integer ring.
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-from sage.misc.misc import verbose, get_verbose, cputime
-from sage.misc.misc import verbose, get_verbose, UNAME
+from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -47,6 +46,8 @@ from matrix_modn_dense cimport Matrix_modn_dense
 import sage.modules.free_module
 
 from matrix cimport Matrix
+
+cimport sage.structure.element
 
 import matrix_space
 
@@ -515,6 +516,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         mpz_clear(z)
         return M
 
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+        # see the tune_multiplication function below.
+        n = max(self._nrows, self._ncols, right._nrows, right._ncols)
+        if n <= 20:
+            return self._multiply_classical(right)
+        a = self.height(); b = right.height()
+        if float(max(a,b)) / float(n) >= 0.70:
+            return self._multiply_classical(right)
+        else:
+            return self._multiply_multi_modular(right)
+
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
         EXAMPLES:
@@ -797,15 +809,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Integer h
         cdef mod_int *moduli
-        cdef int i, n
+        cdef int i, n, k
 
         h = left.height() * right.height()
         mm = MultiModularBasis(h)
         res = left._reduce(mm)
         res_right = right._reduce(mm)
-        for i in range(len(mm)):  # yes, I could do this with zip, but to conserve memory...
+        k = len(mm)
+        for i in range(k):  # yes, I could do this with zip, but to conserve memory...
             t = cputime()
             res[i] *= res_right[i]
+            verbose('multiplied matrices modulo a prime (%s/%s)'%(i+1,k), t)
         result = _lift_crt(res, mm)
         return result
 
@@ -1470,4 +1484,32 @@ srandom(k)
 cdef gmp_randstate_t state
 gmp_randinit_mt(state)
 gmp_randseed_ui(state,k)
+
+#######################################################
+
+# Conclusions:
+#  On OS X Intel, at least:
+#    - if log_2(height) >= 0.70 * nrows, use classical
+
+def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
+    from constructor import random_matrix
+    from sage.rings.integer_ring import ZZ
+    for n in range(nmin,nmax,10):
+        for i in range(bitmin, bitmax, 4):
+            A = random_matrix(ZZ, n, n, x = 2**i)
+            B = random_matrix(ZZ, n, n, x = 2**i)
+            t0 = cputime()
+            for j in range(k//n + 1):
+                C = A._multiply_classical(B)
+            t0 = cputime(t0)
+            t1 = cputime()
+            for j in range(k//n+1):
+                C = A._multiply_multi_modular(B)
+            t1 = cputime(t1)
+            print n, i, float(i)/float(n)
+            if t0 < t1:
+                print 'classical'
+            else:
+                print 'multimod'
+
 

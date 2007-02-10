@@ -86,6 +86,10 @@ cimport matrix_dense
 cimport matrix
 cimport matrix0
 
+from linbox cimport Linbox
+cdef Linbox linbox
+linbox = Linbox()
+
 from sage.structure.element cimport Matrix
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
@@ -278,6 +282,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             right -- Matrix
 
         """
+        if get_verbose() >= 2:
+            verbose('inbox multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
         cdef int e
         cdef Matrix_modn_dense ans, B
 
@@ -359,17 +366,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             var -- a variable name
             algorithm -- 'linbox' (default if self.base_ring() is a field)
                          'generic'
-
-        NOTE: Right now, LinBox is disabled until some bugs there (in
-        our wrapper?) are fixed. If you are desparate, call
-        self._charpoly_linbox() directly.
-
-
         """
-
-
         #Disabling LinBox for now
-        if algorithm=='linbox':# and not self.base_ring().is_field():
+        if algorithm=='linbox' and not self.base_ring().is_field():
             algorithm='generic' #LinBox only supports fields
 
         if algorithm == 'linbox':
@@ -409,22 +408,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise ValueError, "matrix must be square"
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
-        cdef mod_int* poly
-        cdef size_t n
-        cdef size_t degree
-        if typ == 'minpoly':
-            _sig_on
-            linbox_modn_dense_minpoly(self.p, &poly, &degree, self._nrows, self._matrix, 1)
-            _sig_off
-        else:
-            _sig_on
-            linbox_modn_dense_minpoly(self.p, &poly, &degree, self._nrows, self._matrix, 0)
-            _sig_off
-
-        v = []
-        for n from 0 <= n <= degree:
-            v.append(poly[n])
-        linbox_modn_dense_delete_array(poly)
+        v = linbox.modn_dense_poly(self.p, self._nrows, self._matrix, typ == 'minpoly')
         R = self._base_ring[var]
         return R(v)
 
@@ -479,19 +463,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     def _echelonize_linbox(self):
         """
         Puts self in row echelon form using LinBox.
-
         """
         self.check_mutability()
         self.clear_cache()
 
         t = verbose('calling linbox echelonize mod %s'%self.p)
-        _sig_on
-        r = linbox_modn_dense_echelonize(self.p,
-                                         self._matrix,
-                                         self._nrows, self._ncols)
-        _sig_off
-        verbose('done with echelonize',t)
-
+        r = linbox.modn_dense_echelonize(self.p,
+                                    self._matrix,
+                                    self._nrows, self._ncols)
+        verbose('done with linbox mod-p echelonize',t)
         self.cache('in_echelon_form',True)
         self.cache('rank', r)
         self.cache('pivots', self._pivots())
@@ -857,3 +837,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
+
+
+

@@ -1,6 +1,6 @@
-############################################################################
+##############################################################################
 #
-#   DSAGE: Distributed SAGE
+#  DSAGE: Distributed SAGE
 #
 #       Copyright (C) 2006, 2007 Yi Qiang <yqiang@gmail.com>
 #
@@ -14,31 +14,22 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-############################################################################
+##############################################################################
 
-
-import datetime
 import zlib
 import cPickle
 
 from twisted.spread import pb
-from zope.interface import implements
-from twisted.cred import portal, credentials
-from twisted.spread.interfaces import IJellyable
-from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
-from twisted.internet import defer
 
-from sage.dsage.database.job import Job
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.client_tracker as client_tracker
 import sage.dsage.server.worker_tracker as worker_tracker
 from sage.dsage.server.hostinfo_tracker import hostinfo_list
-from sage.dsage.errors.exceptions import BadJobError, BadTypeError
+from sage.dsage.errors.exceptions import BadTypeError
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
-class DSage(pb.Root):
+class DSageServer(pb.Root):
     r"""
     This class represents Distributed Sage server which does all the
     coordination of distributing jobs, creating new jobs and accepting job
@@ -339,240 +330,32 @@ class DSage(pb.Root):
                 if h['uuid'] not in h.values():
                     hostinfo_list.append(h)
 
-class DSageForWorkers(DSage):
+class DSageWorkerServer(DSageServer):
     r"""
     Exposes methods to workers.
     """
 
     def remote_getJob(self):
-        return DSage.getJob(self)
+        return DSageServer.getJob(self)
 
     def remote_jobDone(self, jobID, output, result, completed, worker_info):
         if not (isinstance(jobID, str) or isinstance(completed, bool)):
             raise BadTypeError()
 
-        return DSage.jobDone(self, jobID, output, result,
+        return DSageServer.jobDone(self, jobID, output, result,
                              completed, worker_info)
 
     def remote_jobFailed(self, jobID):
         if not isinstance(jobID, str):
             raise BadTypeError()
 
-        return DSage.jobFailed(self, jobID)
+        return DSageServer.jobFailed(self, jobID)
 
     def remote_getKilledJobsList(self):
-        return DSage.getKilledJobsList(self)
+        return DSageServer.getKilledJobsList(self)
 
     def remote_submitHostInfo(self, hostinfo):
         if not isinstance(hostinfo, dict):
             raise BadTypeError()
-        return DSage.submitHostInfo(self, hostinfo)
+        return DSageServer.submitHostInfo(self, hostinfo)
 
-class WorkerPBServerFactory(pb.PBServerFactory):
-    def __init__(self, root):
-        pb.PBServerFactory.__init__(self, root)
-
-    def clientConnectionMade(self, broker):
-        """Keeps a 3-tuple of connected workers.
-        tuple[0] - the broker
-        tuple[1] - the worker ip
-        tuple[2] - the worker port
-
-        """
-        # self.clients.append((broker.transport.protocol,
-        #                      broker.transport.getPeer().host,
-        #                      broker.transport.getPeer().port))
-
-        worker_tracker.add((broker,
-                            broker.transport.getPeer().host,
-                            broker.transport.getPeer().port))
-
-
-class ClientPBClientFactory(pb.PBClientFactory):
-    def login(self, creds, client=None):
-        if not isinstance(creds, credentials.SSHPrivateKey):
-            return defer.fail(TypeError())
-
-        d = self.getRootObject()
-        d.addCallback(self._cbSendUsername,
-                      creds.username,
-                      creds.algName,
-                      creds.blob,
-                      creds.sigData,
-                      creds.signature,
-                      client)
-
-        return d
-
-    def _cbSendUsername(self, root, username, alg_name, blob, sig_data,
-                        signature, client):
-
-        d = root.callRemote("login", username, alg_name, blob, sig_data,
-                                signature, client)
-        return d
-
-class _SSHKeyPortalRoot(pb._PortalRoot):
-    def rootObject(self, broker):
-        return _SSHKeyPortalWrapper(self.portal, broker)
-
-class _SSHKeyPortalWrapper(pb._PortalWrapper):
-    def remote_login(self, username, alg_name, blob, data, signature, mind):
-        pubkey_cred = credentials.SSHPrivateKey(username,
-                                                alg_name,
-                                                blob,
-                                                data,
-                                                signature)
-
-        d = self.portal.login(pubkey_cred, mind, IPerspective)
-        d.addCallback(self._loggedIn)
-
-        return d
-
-    def _loggedIn(self, (interface, perspective, logout)):
-        if not IJellyable.providedBy(perspective):
-            perspective = AsReferenceable(perspective, "perspective")
-        self.broker.notifyOnDisconnect(logout)
-
-        return perspective
-
-class DefaultPerspective(pb.Avatar):
-    r"""
-    Custom implementation of pb.Avatar so we can keep track of the broker.
-
-    """
-
-    current_connections = 0
-
-    def perspectiveMessageReceived(self, broker, message, args, kw):
-        self.broker = broker
-
-        return pb.Avatar.perspectiveMessageReceived(self, broker,
-                                                    message, args, kw)
-
-    def attached(self, avatar, mind):
-        self.current_connections += 1
-        client_tracker.add((avatar, mind))
-
-    def detached(self, avatar, mind):
-        self.current_connections -= 1
-        client_tracker.remove((avatar, mind))
-
-
-class UserPerspective(DefaultPerspective):
-    r"""
-    Defines the perspective of a regular user to the server.
-
-    """
-
-    def __init__(self, DSage):
-        self.DSage = DSage
-
-    def perspective_getJob(self):
-        return self.DSage.getJob()
-
-    def perspective_getNextJobID(self):
-        job_id = self.DSage.getNextJobID()
-
-        return job_id
-
-    def perspective_getJobByID(self, jobID):
-        if not isinstance(jobID, str):
-            raise BadTypeError()
-
-        job = self.DSage.getJobByID(jobID)
-
-        return job
-
-    def perspective_getJobsByAuthor(self, author, job_name, is_active):
-        if not (isinstance(author, str) or
-                isinstance(is_active, bool) or
-                isinstance(job_name, str)):
-            raise BadTypeError()
-
-        jobs = self.DSage.getJobsByAuthor(author, job_name, is_active)
-
-        return jobs
-
-    def perspective_getJobResultByID(self, jobID):
-        if not isinstance(jobID, str):
-            raise BadTypeError()
-
-        return self.DSage.getJobResultByID(jobID)
-
-    def perspective_getJobOutputByID(self, jobID):
-        if not isinstance(jobID, str):
-            raise BadTypeError()
-
-        return self.DSage.getJobOutputByID(jobID)
-
-    def perspective_syncJob(self, jobID):
-        if not isinstance(jobID, str):
-            return None
-
-        return self.DSage.syncJob(jobID)
-
-    def perspective_submitJob(self, pickled_job):
-        return self.DSage.submitJob(pickled_job)
-
-    def perspective_jobDone(self, jobID, output, result,
-                            completed, worker_info):
-        if not (isinstance(jobID, str) or isinstance(completed, bool)):
-            raise BadTypeError()
-
-        return self.DSage.jobDone(jobID, output, result,
-                                  completed, worker_info)
-
-    def perspective_jobFailed(self, jobID):
-        if not isinstance(jobID, str):
-            raise BadTypeError()
-
-        return self.DSage.jobFailed(jobID)
-
-    def perspective_killJob(self, jobID, reason=None):
-        if not isinstance(jobID, str):
-            raise BadTypeError()
-
-        return self.DSage.killJob(jobID, reason)
-
-    def perspective_getClusterSpeed(self):
-        return self.DSage.getClusterSpeed()
-
-class AdminPerspective(UserPerspective):
-    r"""
-    Defines the perspective of the admin.
-
-    """
-
-    def __init__(self, DSage):
-        UserPerspective.__init__(self, DSage)
-        log.msg('[Realm]' + " admin connected")
-
-    def perspective_getClientList(self):
-        return client_tracker.client_list
-
-    def perspective_getWorkerList(self):
-        r"""
-        Returns a list of 2-tuples of connected workers.
-
-        """
-
-        return [x[1:] for x in self.DSage.getWorkersList()]
-
-
-class Realm(object):
-    implements(portal.IRealm)
-
-    def __init__(self, DSage):
-        self.DSage = DSage
-
-    def requestAvatar(self, avatarId, mind, *interfaces):
-        if not pb.IPerspective in interfaces:
-            raise NotImplementedError, "No supported avatar interface."
-        else:
-            if avatarId == 'admin':
-                avatar = AdminPerspective(self.DSage)
-            else:
-                avatar = UserPerspective(self.DSage)
-        avatar.attached(avatar, mind)
-        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
-                                                                   mind)

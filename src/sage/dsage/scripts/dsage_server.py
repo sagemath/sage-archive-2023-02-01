@@ -29,12 +29,11 @@ from twisted.python import log
 from twisted.cred import portal
 
 from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
-from sage.dsage.database.job import Job
-from sage.dsage.pb.dsage_pb import Realm
-from sage.dsage.pb.dsage_pb import DSage, DSageForWorkers
-from sage.dsage.pb.dsage_pb import WorkerPBServerFactory
-from sage.dsage.pb.dsage_pb import _SSHKeyPortalRoot
-from sage.dsage.pb.pubkeyauth import PublicKeyCredentialsChecker
+from sage.dsage.twisted.pb import Realm
+from sage.dsage.twisted.pb import WorkerPBServerFactory
+from sage.dsage.twisted.pb import _SSHKeyPortalRoot
+from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
+from sage.dsage.server.server import DSageServer, DSageWorkerServer
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
@@ -101,8 +100,8 @@ def main():
     prune_db.start(60*60*24.0, now=True) # start now, interval is one day
 
     # Create the main DSage object
-    dsage = DSage(jobdb, log_level=LOG_LEVEL)
-    p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage)))
+    dsage_server = DSageServer(jobdb, log_level=LOG_LEVEL)
+    p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Get authorized keys
     p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
@@ -111,7 +110,7 @@ def main():
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
 
     # Create the PBServerFactory for workers
-    dsage_worker = DSageForWorkers(jobdb, log_level=LOG_LEVEL)
+    dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
     worker_factory = WorkerPBServerFactory(dsage_worker)
 
     # We will listen on 2 ports
@@ -134,8 +133,8 @@ def main():
         reactor.listenTCP(CLIENT_PORT, client_factory)
         reactor.listenTCP(WORKER_PORT, worker_factory)
 
-    dsage.client_factory = client_factory
-    dsage.worker_factory = worker_factory
+    dsage_server.client_factory = client_factory
+    dsage_server.worker_factory = worker_factory
 
     # start logging
     startLogging(LOG_FILE)

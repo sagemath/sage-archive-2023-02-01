@@ -799,7 +799,7 @@ setup(name        = 'sage',
                      'sage.dsage.server',
                      'sage.dsage.errors',
                      'sage.dsage.tests',
-                     'sage.dsage.pb',
+                     'sage.dsage.twisted',
                      'sage.dsage.dist_functions',
                      'sage.dsage.misc',
                      'sage.dsage.interface'

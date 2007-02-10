@@ -34,7 +34,7 @@ from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
 from sage.dsage.database.job import Job
-from sage.dsage.pb.dsage_pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import ClientPBClientFactory
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
 # This is a randomly generated string we will use to as the signature to

@@ -36,8 +36,6 @@ from sage.dsage.pb.dsage_pb import WorkerPBServerFactory
 from sage.dsage.pb.dsage_pb import _SSHKeyPortalRoot
 from sage.dsage.pb.pubkeyauth import PublicKeyCredentialsChecker
 
-pb.setUnjellyableForClass(Job, Job)
-
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
 try:

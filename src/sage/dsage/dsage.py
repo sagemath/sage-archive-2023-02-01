@@ -77,7 +77,6 @@ class DistributedSage(object):
         file should be self explanatory.
 
     TODO:
-        Allow you to pass options to the worker, server and console.
 
     """
     def __init__(self):

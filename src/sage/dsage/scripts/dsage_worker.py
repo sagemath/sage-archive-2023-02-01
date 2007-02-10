@@ -26,7 +26,6 @@ import zlib
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
-# from twisted.internet import error
 from twisted.python import log
 
 from sage.interfaces.sage0 import Sage
@@ -36,7 +35,6 @@ from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.errors.exceptions import NoJobException
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
-# pb.setUnjellyableForClass(Job, Job)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 

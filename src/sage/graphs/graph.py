@@ -957,11 +957,14 @@ class Graph(GenericGraph):
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
             else:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+        else:
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
         GG.append(NGP)
-        xmin = min([NGP._GraphicPrimitive_NetworkXGraph__pos[i][0] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        xmax = max([NGP._GraphicPrimitive_NetworkXGraph__pos[i][0] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        ymin = min([NGP._GraphicPrimitive_NetworkXGraph__pos[i][1] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        ymax = max([NGP._GraphicPrimitive_NetworkXGraph__pos[i][1] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
+        pos = NGP._GraphicPrimitive_NetworkXGraph__pos
+        xmin = min([pos[i][0] for i in pos])
+        xmax = max([pos[i][0] for i in pos])
+        ymin = min([pos[i][1] for i in pos])
+        ymax = max([pos[i][1] for i in pos])
         GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         GG.axes(False)
         return GG

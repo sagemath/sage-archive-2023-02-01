@@ -227,7 +227,7 @@ class GraphGenerators():
             sage: g = graphs.BullGraph()
             sage.: g.show()
         """
-        pos_dict = [[0,0],[-1,1],[1,1],[-2,2],[2,2]]
+        pos_dict = {0:[0,0],1:[-1,1],2:[1,1],3:[-2,2],4:[2,2]}
         import networkx
         G = networkx.bull_graph()
         return graph.Graph(G, pos=pos_dict, name="Bull Graph")
@@ -399,7 +399,7 @@ class GraphGenerators():
             sage: g = graphs.DiamondGraph()
             sage.: g.show()
         """
-        pos_dict = [[0,1],[-1,0],[1,0],[0,-1]]
+        pos_dict = {0:[0,1],1:[-1,0],2:[1,0],3:[0,-1]}
         import networkx
         G = networkx.diamond_graph()
         return graph.Graph(G, pos=pos_dict, name="Diamond Graph")
@@ -534,7 +534,7 @@ class GraphGenerators():
             sage: g = graphs.HouseGraph()
             sage.: g.show()
         """
-        pos_dict = [[-1,0],[1,0],[-1,1],[1,1],[0,2]]
+        pos_dict = {0:[-1,0],1:[1,0],2:[-1,1],3:[1,1],4:[0,2]}
         import networkx
         G = networkx.house_graph()
         return graph.Graph(G, pos=pos_dict, name="House Graph")
@@ -564,7 +564,7 @@ class GraphGenerators():
             sage: g = graphs.HouseXGraph()
             sage.: g.show()
         """
-        pos_dict = [[-1,0],[1,0],[-1,1],[1,1],[0,2]]
+        pos_dict = {0:[-1,0],1:[1,0],2:[-1,1],3:[1,1],4:[0,2]}
         import networkx
         G = networkx.house_x_graph()
         return graph.Graph(G, pos=pos_dict, name="House Graph")
@@ -605,7 +605,7 @@ class GraphGenerators():
             sage: g = graphs.KrackhardtKiteGraph()
             sage.: g.show()
         """
-        pos_dict = [[-1,4],[1,4],[-2,3],[0,3],[2,3],[-1,2],[1,2],[0,1],[0,0],[0,-1]]
+        pos_dict = {0:[-1,4],1:[1,4],2:[-2,3],3:[0,3],4:[2,3],5:[-1,2],6:[1,2],7:[0,1],8:[0,0],9:[0,-1]}
         import networkx
         G = networkx.krackhardt_kite_graph()
         return graph.Graph(G, pos=pos_dict, name="Krackhardt Kite Graph")
@@ -982,7 +982,7 @@ class GraphGenerators():
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage: G.save('sage.png')
         """
-        pos_dict = [[0,1],[-.71,-.71],[0,0],[1.3,0]]
+        pos_dict = {0:[0,1],1:[-.71,-.71],2:[0,0],3:[1.3,0]}
         import networkx
         G = networkx.tetrahedral_graph()
         return graph.Graph(G, pos=pos_dict, name="Tetrahedral")

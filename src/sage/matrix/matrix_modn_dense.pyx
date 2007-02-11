@@ -284,7 +284,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         B = right
         self._init_linbox()
+        _sig_on
         linbox.matrix_matrix_multiply(ans._matrix, B._matrix, B._nrows, B._ncols)
+        _sig_off
         return ans
 
     def _multiply_classical(left, right):
@@ -325,7 +327,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         ALGORITHM: Uses LinBox if self.base_ring() is a field,
         otherwise use Hessenberg form algorithm.
         """
-        if algorithm == 'linbox': # and not self.base_ring().is_field():
+        if algorithm == 'linbox' and not self.base_ring().is_field():
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 
         if algorithm == 'linbox':
@@ -391,7 +393,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             return matrix_dense.Matrix_dense.charpoly(self, var)
 
         self._init_linbox()
+        _sig_on
         v = linbox.poly(typ == 'minpoly')
+        _sig_off
         R = self._base_ring[var]
         return R(v)
 
@@ -444,7 +448,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             raise ValueError, "algorithm '%s' not known"%algorithm
 
     cdef _init_linbox(self):
+        _sig_on
         linbox.set(self.p, self._matrix, self._nrows, self._ncols)
+        _sig_off
 
     def _echelonize_linbox(self):
         """
@@ -455,7 +461,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         t = verbose('calling linbox echelonize mod %s'%self.p)
         self._init_linbox()
+        _sig_on
         r = linbox.echelonize()
+        _sig_off
         verbose('done with linbox echelonize',t)
         self.cache('in_echelon_form',True)
         self.cache('rank', r)
@@ -756,7 +764,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             if not x is None:
                 return x
             self._init_linbox()
+            _sig_on
             r = Integer(linbox.rank())
+            _sig_off
             self.cache('rank', r)
             return r
         else:

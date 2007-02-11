@@ -1,4 +1,8 @@
 
+## NOTE: The _sig_on/_sig_off stuff can't go in here -- it has to be in the
+## code that calls these functions.  Otherwise strangely objects get left
+## in an incorrect state.
+
 include "../ext/interrupt.pxi"
 
 cdef extern from "matrix_modn_dense_linbox.h":
@@ -31,10 +35,8 @@ cdef class Linbox_modn_dense:
 
     cdef int echelonize(self):
         cdef int r
-        _sig_on
         r = linbox_modn_dense_echelonize(self.n, self.matrix,
                                          self.nrows, self.ncols)
-        _sig_off
         return r
 
     cdef poly(self, minpoly):
@@ -47,11 +49,9 @@ cdef class Linbox_modn_dense:
         """
         cdef mod_int *f
         cdef size_t degree
-        _sig_on
         linbox_modn_dense_minpoly(self.n, &f, &degree,
                                   self.nrows, self.matrix,
                                   minpoly)
-        _sig_off
         v = []
         cdef Py_ssize_t i
         for i from 0 <= i <= degree:
@@ -64,21 +64,17 @@ cdef class Linbox_modn_dense:
                                 mod_int **B,
                                 size_t B_nr, size_t B_nc):
         cdef int e
-        _sig_on
         e = linbox_modn_dense_matrix_matrix_multiply(self.n, ans,
                                                      self.matrix,  B,
                                                      self.nrows, self.ncols,
                                                      B_nr, B_nc)
-        _sig_off
         if e:
             raise RuntimError, "error doing matrix matrix multiply modn using linbox"
 
 
     cdef unsigned long rank(self) except -1:
         cdef unsigned long r
-        _sig_on
         r = linbox_modn_dense_rank(self.n,   self.matrix, self.nrows, self.ncols)
-        _sig_off
         return r
 
 

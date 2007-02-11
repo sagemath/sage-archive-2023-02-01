@@ -203,6 +203,11 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         [ 0  0 10  0  0]
         [ 0  0  0  0  0] True
     """
+    if hasattr(arg0, '_matrix_'):
+        if arg1 is None:
+            arg1 = rings.ZZ
+        return arg0._matrix_(arg1)
+
     if hasattr(arg1, '_matrix_'):
         return arg1._matrix_(arg0)
 
@@ -316,7 +321,10 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         #       matrix over the given ring with given number of rows and columns and entries.
         ring = arg0
         nrows = int(arg1)
-        ncols = int(arg2)
+        if arg2 is None:
+            ncols = nrows
+        else:
+            ncols = int(arg2)
         entries = arg3
         if isinstance(entries, dict):
             if sparse is None: sparse = True
@@ -356,4 +364,21 @@ def ncols_from_dict(d):
 
 Matrix = matrix
 
+
+def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
+    """
+    Return a random matrix with entries in the ring R.
+
+    INPUT:
+        R -- a ring
+        nrows -- integer; number of rows
+        ncols -- (default: None); number of columns; if None defaults to nrows
+        density -- integer (default: 1)
+        *args, **kwds -- passed on to randomize function
+    """
+    if ncols is None:
+        ncols = nrows
+    A = matrix_space.MatrixSpace(R, nrows, ncols, sparse=sparse).zero_matrix()
+    A.randomize(density=density, *args, **kwds)
+    return A
 

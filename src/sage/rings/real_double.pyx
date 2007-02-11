@@ -25,6 +25,7 @@ include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
 import math, operator
+from random import random
 
 from sage.misc.sage_eval import sage_eval
 
@@ -182,6 +183,20 @@ cdef class RealDoubleField_class(Field):
         """
         return 0
 
+    cdef _new_c(self, double value):
+        cdef RealDoubleElement x
+        x = PY_NEW(RealDoubleElement)
+        x._value = value
+        return x
+
+    def random_element(self, float min=-1, float max=1):
+        """
+        Return a random element of this real double field in the interval [min, max].
+
+        EXAMPLES:
+        """
+        return self._new_c((max-min)*random() + min)
+
     def name(self):
         return "RealDoubleField"
 
@@ -259,17 +274,16 @@ cdef class RealDoubleField_class(Field):
 
 
 def new_RealDoubleElement():
-    global _RDF
     cdef RealDoubleElement x
     x = PY_NEW(RealDoubleElement)
-    (<Element>x)._parent = _RDF
     return x
 
 cdef class RealDoubleElement(FieldElement):
+    def __new__(self, x=None):
+        (<Element>self)._parent = _RDF
+
     def __init__(self, x):
         self._value = float(x)
-        global _RDF
-        (<Element>self)._parent = _RDF
 
     def __reduce__(self):
         """
@@ -281,11 +295,9 @@ cdef class RealDoubleElement(FieldElement):
         return RealDoubleElement, (self._value, )
 
     cdef _new_c(self, double value):
-        global _RDF
         cdef RealDoubleElement x
         x = PY_NEW(RealDoubleElement)
         x._value = value
-        (<Element>x)._parent = _RDF
         return x
 
     def real(self):
@@ -639,6 +651,9 @@ cdef class RealDoubleElement(FieldElement):
 
     def is_negative_infinity(self):
         return bool(gsl_isinf(self._value) < 0)
+
+    def is_infinity(self):
+        return bool(gsl_isinf(self._value))
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

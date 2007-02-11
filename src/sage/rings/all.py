@@ -84,13 +84,16 @@ Reals = RealField
 
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
+# Quad double
+#from real_qdrf import RealQuadDoubleField, RQDF
+
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
                        is_RealIntervalFieldElement, RIF,
                        RealInterval)
 
 # Complex numbers
-from complex_field import ComplexField, is_ComplexField, CC
+from complex_field import ComplexField, is_ComplexField
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
@@ -136,3 +139,5 @@ from morphism import is_RingHomomorphism
 
 from homset import is_RingHomset
 
+CC = ComplexField()
+I = CC.gen()

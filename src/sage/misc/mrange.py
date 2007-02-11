@@ -84,6 +84,8 @@ class xmrange_iter:
     Return the multirange iterate derived from the given iterators
     and type.
 
+    NOTE: This basically gives you the cartesian product of sets.
+
     More precisely, return the iterator over all objects of type typ
     of n-tuples of Python ints with entries between 0 and the integers
     in the sizes list.  The iterator is empty if sizes is empty or

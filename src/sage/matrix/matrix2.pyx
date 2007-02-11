@@ -29,6 +29,8 @@ import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
 
+from random import randint
+
 cdef class Matrix(matrix1.Matrix):
     def prod_of_row_sums(self, cols):
         r"""
@@ -440,6 +442,12 @@ cdef class Matrix(matrix1.Matrix):
             T^2 - 5*T - 2
         """
         return self.charpoly(*args, **kwds)
+
+    def minimal_polynomial(self, var='x'):
+        return self.minpoly(var)
+
+    def minpoly(self, var='x'):
+        raise NotImplementedError
 
     def charpoly(self, var='x', algorithm="hessenberg"):
         r"""
@@ -1337,7 +1345,8 @@ cdef class Matrix(matrix1.Matrix):
 
         # 1. Restrict
         B = self.restrict(M)
-        time0 = verbose("restrict -- ", time)
+
+        time0 = verbose("decompose restriction -- ", time)
 
         # 2. Decompose restriction
         D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
@@ -1596,7 +1605,9 @@ cdef class Matrix(matrix1.Matrix):
             [ 0 -1  0  1  1 -1  1]
             [ 0  0 -2  0  2 -2  1]
             [ 0  0 -1  0  1  0 -1]
-            sage: A.fcp()
+            sage: f = A.charpoly(); f
+            x^7 + x^6 - 12*x^5 - 16*x^4 + 36*x^3 + 52*x^2 - 32*x - 48
+            sage: factor(f)
             (x - 3) * (x + 2)^2 * (x^2 - 2)^2
             sage: A.eigenspaces()
             [
@@ -1651,7 +1662,10 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('eigenvectors')
         if not x is None:
             return x
-        G = self.fcp()   # factored charpoly of self.
+        try:
+            G = self.minpoly().factor()  # can be computed faster when available.
+        except NotImplementedError:
+            G = self.fcp()   # factored charpoly of self.
         V = []
         i = 0
         for h, e in G:
@@ -1737,7 +1751,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: a.echelon_form()
             Traceback (most recent call last):
             ...
-            ValueError: Echelon form not defined over this base ring.
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 9'.
 
         Involving a sparse matrix:
             sage: m = matrix(3,[1, 1, 1, 1, 0, 2, 1, 2, 0], sparse=True); m
@@ -1767,8 +1781,7 @@ cdef class Matrix(matrix1.Matrix):
             else:
                 raise ValueError, "Unknown algorithm '%s'"%algorithm
         except ArithmeticError, msg:
-            print msg
-            raise ValueError, "Echelon form not defined over this base ring."
+            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
     def echelon_form(self, algorithm="default", cutoff=0, **kwds):
         """
@@ -1783,21 +1796,24 @@ cdef class Matrix(matrix1.Matrix):
             command.  Use A.echelonize() to change A in place.
 
         EXAMPLES:
-           sage: MS = MatrixSpace(QQ,2,3)
+           sage: MS = MatrixSpace(GF(19),2,3)
            sage: C = MS.matrix([1,2,3,4,5,6])
            sage: C.rank()
            2
            sage: C.nullity()
            1
            sage: C.echelon_form()
-           [ 1  0 -1]
+           [ 1  0 18]
            [ 0  1  2]
         """
         x = self.fetch('echelon_form')
         if not x is None:
             return x
         E = self.copy()
-        E.echelonize(algorithm = algorithm, cutoff=cutoff)
+        if algorithm == 'default':
+            E.echelonize(cutoff=cutoff)
+        else:
+            E.echelonize(algorithm = algorithm, cutoff=cutoff)
         E.set_immutable()  # so we can cache the echelon form.
         self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())
@@ -1829,6 +1845,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  1  2]
             [ 0  0  0]
         """
+        tm = verbose('generic in-place Gauss elimination on %s x %s matrix'%(self._nrows, self._ncols))
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         if self.fetch('in_echelon_form'):
             return
@@ -1872,6 +1889,7 @@ cdef class Matrix(matrix1.Matrix):
                     break
         self.cache('pivots', pivots)
         self.cache('in_echelon_form', True)
+        verbose('done with gauss', tm)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -1935,6 +1953,8 @@ cdef class Matrix(matrix1.Matrix):
             [ 0  0  0  0]
             [ 0  0  0  0]
         """
+        tm = verbose('strassen echelon of %s x %s matrix'%(self._nrows, self._ncols))
+
         self.check_mutability()
 
         if not self._base_ring.is_field():
@@ -1952,7 +1972,7 @@ cdef class Matrix(matrix1.Matrix):
 
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
-
+        verbose('done with strassen', tm)
 
     def matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
                       Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
@@ -1971,6 +1991,42 @@ cdef class Matrix(matrix1.Matrix):
             nrows = self._nrows - row
             ncols = self._ncols - col
         return matrix_window.MatrixWindow(self, row, col, nrows, ncols)
+
+    def randomize(self, density=1, *args, **kwds):
+        """
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        INPUT:
+            density -- integer (default: 1) rough measure of the proportion of nonzero
+                       entries in the random matrix
+            *args, **kwds -- rest of parameters may be passed to the random_element function
+                   of the base ring.
+        """
+        density = float(density)
+        if density == 0:
+            return
+        self.check_mutability()
+        self.clear_cache()
+
+        R = self.base_ring()
+        zero = R(0)
+
+        cdef Py_ssize_t i, j, nc, num_per_row
+
+        if density == 1:
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < self._ncols:
+                    self.set_unsafe(i, j, R.random_element(*args, **kwds))
+        else:
+            nc = self._ncols
+            num_per_row = int(density * nc) + 1
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < num_per_row:
+                    self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+
+
+
 
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)

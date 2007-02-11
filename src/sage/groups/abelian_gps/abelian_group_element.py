@@ -147,12 +147,12 @@ class AbelianGroupElement(MultiplicativeGroupElement):
             z.__element_vector = L1+L2
         return z
 
-    def __pow__(self, n):
+    def __pow__(self, _n):
         """
         requires that len(invs) = n
         """
-        n = int(n)
-        if not isinstance(n, (int, long, Integer)):
+        n = int(_n)
+        if n != _n:
             raise TypeError, "Argument n (= %s) must be an integer."%n
         M = self.parent()
         N = M.ngens()
@@ -160,10 +160,6 @@ class AbelianGroupElement(MultiplicativeGroupElement):
         if n < 0:
             L =[n*self.list()[i]%M.gen(i).order() for i in range(M.ngens())]
             return prod([M.gen(i)**L[i] for i in range(M.ngens())], M(1))
-            #m = LCM(invs)  ## Not very efficient.
-            #pw = (n)%m
-            #x = self**pw
-            #return x
         elif n == 0:
             return self.parent()(1)
         elif n == 1:

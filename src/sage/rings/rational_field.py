@@ -11,7 +11,6 @@ import field
 import ring
 import sage.rings.rational
 import sage.structure.factorization
-import complex_field
 import infinity
 
 from sage.structure.parent_gens import ParentWithGens
@@ -187,17 +186,9 @@ class RationalField(_uniq, field.Field):
                 yield d/n
 
     def complex_embedding(self, prec=53):
+        import complex_field
         CC = complex_field.ComplexField(prec)
         return self.hom([CC(1)])
-
-    def base_extend(self, R):
-        if not ring.is_Ring(R):
-            raise TypeError, "R must be a ring."
-        if R.characteristic() != 0:
-            raise TypeError, "no base extension defined"
-        if not field.is_Field(R) and not R.base_ring() == self:
-            raise TypeError, "R must be a field or obviously contain QQ."
-        return R
 
     def gens(self):
         return (self(1), )
@@ -257,13 +248,14 @@ class RationalField(_uniq, field.Field):
         """
         return infinity.infinity
 
-    def random_element(self, num_bound=1, den_bound=1):
+    def random_element(self, num_bound=2, den_bound=2):
         """
         EXAMPLES:
             sage: QQ.random_element(10,10)
             -5/3
         """
-        return self("%s/%s"%(random.randrange(-num_bound-1, num_bound+1), \
+
+        return self("%s/%s"%(random.randrange(-num_bound, num_bound+1), \
                              random.randrange(1,den_bound+1)))
 
     def zeta(self, n=2):

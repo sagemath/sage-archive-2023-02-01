@@ -33,6 +33,8 @@ import integral_domain
 
 import polynomial_quotient_ring_element
 
+from sage.structure.parent_gens import ParentWithGens
+
 def PolynomialQuotientRing(ring, polynomial, names=None):
     r"""
     Create a quotient of a polynomial ring.
@@ -121,7 +123,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
         sage: R.quotient(f)
         Univariate Quotient Polynomial Ring in xbar over Integer Ring with modulus x^2 + 1
     """
-    if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
+    if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
         raise TypeError, "ring must be a polynomial ring"
     if not isinstance(polynomial, polynomial_element.Polynomial):
         raise TypeError, "must be a polynomial"
@@ -180,7 +182,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         4
     """
     def __init__(self, ring, polynomial, name=None):
-        if not isinstance(ring, polynomial_ring.PolynomialRing_generic):
+        if not isinstance(ring, polynomial_ring.PolynomialRing_commutative):
             raise TypeError, "R must be a univariate polynomial ring."
 
         if not isinstance(polynomial, polynomial_element.Polynomial):
@@ -189,9 +191,9 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         if polynomial.parent() != ring:
             raise TypeError, "f must have parent R"
 
+        ParentWithGens.__init__(self, ring, names=name)
         self.__ring = ring
         self.__polynomial = polynomial
-        self._assign_names(name)
 
     def __reduce__(self):
         return PolynomialQuotientRing_generic, (self.__ring, self.__polynomial, self.variable_names())

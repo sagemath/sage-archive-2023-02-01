@@ -23,6 +23,7 @@ pull
 \.BAK$
 \.fig$
 \.png$
+\.cpp$
 \.c$
 \.orig$
 (^|/)vssver\.scc$

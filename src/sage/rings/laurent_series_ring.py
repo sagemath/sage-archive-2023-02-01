@@ -25,7 +25,7 @@ from sage.structure.parent_gens import ParentWithGens
 
 
 laurent_series = {}
-def LaurentSeriesRing(base_ring, name=None, names=None):
+def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
     """
     EXAMPLES:
         sage: R = LaurentSeriesRing(QQ, 'x'); R
@@ -67,17 +67,17 @@ def LaurentSeriesRing(base_ring, name=None, names=None):
         raise TypeError, "You must specify the name of the indeterminate of the Laurent series ring."
 
     global laurent_series
-    key = (base_ring, name)
+    key = (base_ring, name, sparse)
     if laurent_series.has_key(key):
         x = laurent_series[key]()
         if x != None: return x
 
     if isinstance(base_ring, field.Field):
-        R = LaurentSeriesRing_field(base_ring, name)
+        R = LaurentSeriesRing_field(base_ring, name, sparse)
     elif isinstance(base_ring, integral_domain.IntegralDomain):
-        R = LaurentSeriesRing_domain(base_ring, name)
+        R = LaurentSeriesRing_domain(base_ring, name, sparse)
     elif isinstance(base_ring, commutative_ring.CommutativeRing):
-        R = LaurentSeriesRing_generic(base_ring, name)
+        R = LaurentSeriesRing_generic(base_ring, name, sparse)
     else:
         raise TypeError, "base_ring must be a commutative ring"
     laurent_series[key] = weakref.ref(R)
@@ -96,14 +96,24 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         True
     """
 
-    def __init__(self, base_ring, name=None):
+    def __init__(self, base_ring, name=None, sparse=False):
         ParentWithGens.__init__(self, base_ring, name)
+        self.__sparse = sparse
+
+    def is_sparse(self):
+        return self.__sparse
+
+    def is_dense(self):
+        return not self.__sparse
 
     def __reduce__(self):
         return self.__class__, (self.base_ring(), self.variable_name())
 
     def __repr__(self):
-        return "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        s = "Laurent Series Ring in %s over %s"%(self.variable_name(), self.base_ring())
+        if self.is_sparse():
+            s = 'Sparse ' + s
+        return s
 
     def __call__(self, x, n=0):
         """
@@ -131,8 +141,6 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
            * R itself
            * Any ring that canonically coerces to the power series ring over the base ring of R.
            * Any ring that canonically coerces to the base ring of R
-
-        EXAMPLES:
         """
         return self._coerce_try(x, [self.power_series_ring(), self.base_ring()])
 
@@ -195,12 +203,12 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
             return self.__power_series_ring
         except AttributeError:
             self.__power_series_ring = power_series_ring.PowerSeriesRing(
-                                         self.base_ring(), self.variable_name())
+                                         self.base_ring(), self.variable_name(), sparse=self.is_sparse())
             return self.__power_series_ring
 
 class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.IntegralDomain):
-    def __init__(self, base_ring, name=None):
-        LaurentSeriesRing_generic.__init__(self, base_ring, name)
+    def __init__(self, base_ring, name=None, sparse=False):
+        LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)
 
     def fraction_field(self):
         try:
@@ -210,6 +218,6 @@ class LaurentSeriesRing_domain(LaurentSeriesRing_generic, integral_domain.Integr
             return self.__fraction_field
 
 class LaurentSeriesRing_field(LaurentSeriesRing_generic, field.Field):
-    def __init__(self, base_ring, name=None):
-        LaurentSeriesRing_generic.__init__(self, base_ring, name)
+    def __init__(self, base_ring, name=None, sparse=False):
+        LaurentSeriesRing_generic.__init__(self, base_ring, name, sparse)
 

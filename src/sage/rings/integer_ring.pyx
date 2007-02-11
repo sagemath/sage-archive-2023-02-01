@@ -47,11 +47,12 @@ sense.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
+##########################################################################################
 
-import sage.misc.misc as misc
-import principal_ideal_domain
-import sage.rings.integer
+include "../ext/cdefs.pxi"
+include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
+
 import sage.rings.infinity
 import sage.rings.rational
 import sage.rings.rational_field
@@ -59,22 +60,33 @@ import sage.rings.ideal
 import sage.structure.factorization as factorization
 import sage.libs.pari.all
 import sage.rings.ideal
+from sage.structure.parent_gens import ParentWithGens
+from sage.structure.parent cimport Parent
+
+cimport integer
+cimport rational
+
 import ring
 
-from sage.structure.parent_gens import ParentWithGens
+###########
+from random import randrange
+cdef extern from "stdlib.h":
+    long random()
+    void srandom(unsigned int seed)
+k = randrange(0,2**32)
+srandom(k)
 
-_obj = None
-class _uniq_int(object):
-    def __new__(cls):
-        global _obj
-        if _obj is None:
-            _obj = principal_ideal_domain.PrincipalIdealDomain.__new__(cls)
-        return _obj
+cdef gmp_randstate_t state
+gmp_randinit_mt(state)
+gmp_randseed_ui(state,k)
+###########
 
 def is_IntegerRing(x):
-    return isinstance(x, IntegerRing)
+    return PY_TYPE_CHECK(x, IntegerRing_class)
 
-class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
+import integer_ring_python
+
+cdef class IntegerRing_class(PrincipalIdealDomain):
     r"""
     The ring of integers.
 
@@ -149,12 +161,18 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
     def __init__(self):
         ParentWithGens.__init__(self, self, ('x',), normalize=False)
 
-    def __cmp__(self, other):
-        if isinstance(other,IntegerRing):
+    def __hash__(self):
+        return 554590422
+
+    def __richcmp__(left, right, int op):
+        return (<Parent>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Parent right) except -2:
+        if isinstance(right,IntegerRing_class):
             return 0
-        if isinstance(other, sage.rings.rational_field.RationalField):
+        if isinstance(right, sage.rings.rational_field.RationalField):
             return -1
-        return cmp(type(self), type(other))
+        return cmp(type(left), type(right))
 
     def _repr_(self):
         return "Integer Ring"
@@ -165,13 +183,42 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
     def __len__(self):
         raise TypeError, 'len() of unsized object'
 
+    def _div(self, integer.Integer left, integer.Integer right):
+        cdef rational.Rational x
+        x = PY_NEW(rational.Rational)
+        if mpz_cmp_si(right.value, 0) == 0:
+            raise ZeroDivisionError, 'Rational division by zero'
+        mpq_set_num(x.value, left.value)
+        mpq_set_den(x.value, right.value)
+        mpq_canonicalize(x.value)
+        return x
+
     def __call__(self, x, base=0):
+        """
+        EXAMPLES:
+            sage: ZZ(17/1)
+            17
+            sage: ZZ(Mod(19,23))
+            19
+            sage: ZZ(2 + 3*5 + O(5^3))
+            17
+        """
+        if PY_TYPE_CHECK(x, integer.Integer):
+            return x
+        elif PY_TYPE_CHECK(x, rational.Rational):
+            return (<rational.Rational>x)._integer_c()
+
+        cdef integer.Integer y
+        y = PY_NEW(integer.Integer)
         try:
-            return sage.rings.integer.Integer(x, base)
+            y.__init__(x, base)
+            return y
         except TypeError, msg:
             try:
                 x = x.lift()
-                return sage.rings.integer.Integer(x, base)
+                if PY_TYPE_CHECK(x, rational.Rational):
+                    return (<rational.Rational>x)._integer_c()
+                y.__init__(x, base)
             except AttributeError:
                 pass
         raise TypeError, msg
@@ -180,15 +227,20 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         """
         Iterate over all integers.
            0 1 -1 2 -2 3 -3 ...
-        """
-        yield self(0)
-        n = self(1)
-        while True:
-            yield n
-            yield -n
-            n += 1
 
-    def _coerce_impl(self, x):
+        EXAMPLES:
+            sage: for n in ZZ:
+            ...    if n < 3: print n
+            ...    else: break
+            0
+            1
+            -1
+            2
+            -2
+        """
+        return integer_ring_python.iterator(self)
+
+    cdef _coerce_c_impl(self, x):
         """
         Return canonical coercion of x into the integers ZZ.
 
@@ -226,16 +278,15 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         raise TypeError, "no canonical coercion to an integer"
 
 
-    def base_extend(self, R):
-        if not ring.is_Ring(R):
-            raise TypeError, "R must be a ring."
-        return R
-
     def is_subring(self, other):
         """
         Return True if ZZ is a subring of other in a natural way.
 
         Every ring of characteristic 0 contains ZZ as a subring.
+
+        EXAMPLES:
+            sage: ZZ.is_subring(QQ)
+            True
         """
         if not ring.is_Ring(other):
             raise TypeError, "other must be a ring"
@@ -243,6 +294,48 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
             return True
         else:
             return False
+
+    def random_element(self, x=None, y=None):
+        """
+        Return a random integer.
+
+            ZZ.random_element() -- random integer [-2,-1,0,1,2].
+            ZZ.random_element(n) -- return an integer between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer between min and max-1, inclusive.
+
+        EXAMPLES:
+        The default is integers between -2 and 2 inclusive:
+            sage: [ZZ.random_element() for _ in range(10)]
+            [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
+
+            sage: ZZ.random_element(-10,10)
+            -6
+            sage: ZZ.random_element(10)
+            6
+            sage: ZZ.random_element(10^50)
+            46451269108731711203254579547654565878787536081836
+            sage: [ZZ.random_element(5) for _ in range(10)]
+            [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
+
+        Notice that the right endpoint is not included:
+            sage: [ZZ.random_element(-2,2) for _ in range(10)]
+            [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
+        """
+        cdef integer.Integer z, n_max, n_min, n_width
+        z = integer.Integer()
+        if y is None:
+            if x is None:
+                mpz_set_si(z.value, random()%5 - 2)
+            else:
+                n_max = self(x)
+                mpz_urandomm(z.value, state, n_max.value)
+        else:
+            n_min = self(x)
+            n_width = self(y) - n_min
+            mpz_urandomm(z.value, state, n_width.value)
+            mpz_add(z.value, z.value, n_min.value)
+        #end if
+        return z
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:
@@ -322,13 +415,6 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         """
         return 1
 
-    def random(self, bound=5):
-        """
-        Return a random integer between -bound and bound,
-        including both endpoints.
-        """
-        return self(random.randint(-bound,bound))
-
     def order(self):
         return sage.rings.infinity.Infinity()
 
@@ -360,9 +446,11 @@ class IntegerRing(_uniq_int, principal_ideal_domain.PrincipalIdealDomain):
         """
         return 'IntegerRing()'
 
-
-ZZ = IntegerRing()
+ZZ = IntegerRing_class()
 Z = ZZ
+
+def IntegerRing():
+    return ZZ
 
 def factor(n, algorithm='pari'):
     """
@@ -372,6 +460,7 @@ def factor(n, algorithm='pari'):
     import sage.rings.arith
     return sage.rings.arith.factor(n, algorithm=algorithm)
 
+import sage.misc.misc
 def crt_basis(X, xgcd=None):
     """
     Compute and return a Chinese Remainder Theorem basis for the list
@@ -428,7 +517,7 @@ def crt_basis(X, xgcd=None):
     if len(X) == 0:
         return []
 
-    P = misc.mul(X)
+    P = sage.misc.misc.prod(X)
 
     Y = []
     # 2. Compute extended GCD's
@@ -441,5 +530,3 @@ def crt_basis(X, xgcd=None):
             raise ArithmeticError, "The elements of the list X must be coprime in pairs."
         Y.append(t*prod)
     return Y
-
-

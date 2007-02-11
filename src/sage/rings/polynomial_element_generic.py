@@ -25,6 +25,7 @@ from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 
+from infinity import infinity
 from rational_field import QQ
 from integer_ring import ZZ
 import integer
@@ -109,15 +110,20 @@ class Polynomial_generic_dense(Polynomial):
     def __getslice__(self, i, j):
         """
         EXAMPLES:
-            sage: R.<x> = ZZ[]
+            sage: R.<x> = RDF[]
             sage: f = (1+2*x)^5; f
-            32*x^5 + 80*x^4 + 80*x^3 + 40*x^2 + 10*x + 1
+            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2 + 10.0*x + 1.0
             sage: f[:3]
-            [1, 10, 40]
+            40.0*x^2 + 10.0*x + 1.0
+            sage: f[2:5]
+            80.0*x^4 + 80.0*x^3 + 40.0*x^2
+            sage: f[2:]
+            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2
         """
         if i < 0:
             i = 0
-        return self.__coeffs[i:j]
+        P = self.parent()
+        return P([0]*int(i) + self.__coeffs[i:j])
 
     def _unsafe_mutate(self, n, value):
         """
@@ -275,9 +281,83 @@ class Polynomial_generic_sparse(Polynomial):
         if check:
             self.__normalize()
 
+    def dict(self):
+        """
+        Return a new copy of the dict of the underlying
+        elements of self.
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Integers(8), sparse=True)
+            sage: f = 5 + w^1997 - w^10000; f
+            7*w^10000 + w^1997 + 5
+            sage: d = f.dict(); d
+            {0: 5, 10000: 7, 1997: 1}
+            sage: d[0] = 10
+            sage: f.dict()
+            {0: 5, 10000: 7, 1997: 1}
+        """
+        return dict(self.__coeffs)
+
+    def valuation(self):
+        """
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(GF(9,'a'), sparse=True)
+            sage: f = w^1997 - w^10000
+            sage: f.valuation()
+            1997
+            sage: R(19).valuation()
+            0
+            sage: R(0).valuation()
+            Infinity
+        """
+        c = self.__coeffs.keys()
+        if len(c) == 0:
+            return infinity
+        return ZZ(min(self.__coeffs.keys()))
+
+    def derivative(self):
+        """
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(ZZ, sparse=True)
+            sage: f = R(range(9)); f
+            8*w^8 + 7*w^7 + 6*w^6 + 5*w^5 + 4*w^4 + 3*w^3 + 2*w^2 + w
+            sage: f.derivative()
+            64*w^7 + 49*w^6 + 36*w^5 + 25*w^4 + 16*w^3 + 9*w^2 + 4*w + 1
+        """
+        d = {}
+        for n, c in self.__coeffs.iteritems():
+            d[n-1] = n*c
+        if d.has_key(-1):
+            del d[-1]
+        return self.polynomial(d)
+
+    def _dict_unsafe(self):
+        """
+        Return unsafe access to the underlying dictionary of coefficients.
+
+        ** DO NOT use this, unless you really really know what you are doing. **
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(ZZ, sparse=True)
+            sage: f = w^15 - w*3; f
+            w^15 - 3*w
+            sage: d = f._dict_unsafe(); d
+            {1: -3, 15: 1}
+            sage: d[1] = 10; f
+            w^15 + 10*w
+        """
+        return self.__coeffs
 
     def _repr(self, name=None):
         r"""
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(CDF, sparse=True)
+            sage: f = CDF(1,2) + w^5 - pi*w + e
+            sage: f._repr()
+            '1.0*w^5 + (-3.14159265359)*w + 3.71828182846 + 2.0*I'
+            sage: f._repr(name='z')
+            '1.0*z^5 + (-3.14159265359)*z + 3.71828182846 + 2.0*I'
+
         AUTHOR:
             -- David Harvey (2006-08-05), based on Polynomial._repr()
         """
@@ -318,21 +398,69 @@ class Polynomial_generic_sparse(Polynomial):
             del x[n]
 
     def __getitem__(self,n):
+        """
+        Return the n-th coefficient of this polynomial.
+
+        Negative indexes are allowed and always return 0 (so you can
+        view the polynomial as embedding Laurent series).
+
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(RDF, sparse=True)
+            sage: f = sum(e^n*w^n for n in range(4)); f
+            20.0855369232*w^3 + 7.38905609893*w^2 + 2.71828182846*w + 1.0
+            sage: f[1]
+            2.71828182846
+            sage: f[5]
+            0.0
+            sage: f[-1]
+            0.0
+        """
         if not self.__coeffs.has_key(n):
             return self.base_ring()(0)
         return self.__coeffs[n]
 
     def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(RealField(19), sparse=True)
+            sage: f = (2-3.5*x)^3; f
+            -42.875*x^3 + 73.500*x^2 - 42.000*x + 8.0000
+            sage: f[1:3]
+            73.500*x^2 - 42.000*x
+            sage: f[:2]
+            -42.000*x + 8.0000
+            sage: f[2:]
+            -42.875*x^3 + 73.500*x^2
+        """
         if i < 0:
             i = 0
-        zero = self.base_ring()(0)
-        v = [zero for _ in xrange(i,j)]
+        v = {}
         x = self.__coeffs
-        for k in set(x.keys()).intersection(set(xrange(i,j))):
-            v[k] = x[k]
-        return v
+        for k in x.keys():
+            if i <= k and k < j:
+                v[k] = x[k]
+        P = self.parent()
+        return P(v)
 
     def _unsafe_mutate(self, n, value):
+        r"""
+        Change the coefficient of $x^n$ to value.
+
+        ** NEVER USE THIS ** -- unless you really know what you are doing.
+
+        EXAMPLES:
+            sage: R.<z> = PolynomialRing(CC, sparse=True)
+            sage: f = z^2 + CC.0; f
+            1.00000000000000*z^2 + 1.00000000000000*I
+            sage: f._unsafe_mutate(0, 10)
+            sage: f
+            1.00000000000000*z^2 + 10.0000000000000
+
+        Much more nasty:
+            sage: z._unsafe_mutate(1, 0)
+            sage: z
+            0
+        """
         n = int(n)
         value = self.base_ring()(value)
         x = self.__coeffs
@@ -348,6 +476,12 @@ class Polynomial_generic_sparse(Polynomial):
         """
         Return a new copy of the list of the underlying
         elements of self.
+
+        EXAMPLES:
+            sage: R.<z> = PolynomialRing(Integers(100), sparse=True)
+            sage: f = 13*z^5 + 15*z^2 + 17*z
+            sage: f.list()
+            [0, 17, 15, 0, 0, 13]
         """
         zero = self.base_ring()(0)
         v = [zero for _ in xrange(self.degree()+1)]
@@ -362,6 +496,15 @@ class Polynomial_generic_sparse(Polynomial):
     #        return self.__pari.subst('x',variable)
 
     def degree(self):
+        """
+        Return the degree of this sparse polynomial.
+
+        EXAMPLES:
+            sage: R.<z> = PolynomialRing(ZZ, sparse=True)
+            sage: f = 13*z^50000 + 15*z^2 + 17*z
+            sage: f.degree()
+            50000
+        """
         v = self.__coeffs.keys()
         if len(v) == 0:
             return -1
@@ -372,12 +515,12 @@ class Polynomial_generic_sparse(Polynomial):
         EXAMPLES:
             sage: R.<x> = PolynomialRing(Integers(), sparse=True)
             sage: (x^100000 + 2*x^50000) + (4*x^75000 - 2*x^50000 + 3*x)
-             x^100000 + 4*x^75000 + 3*x
+            x^100000 + 4*x^75000 + 3*x
 
         AUTHOR:
             -- David Harvey (2006-08-05)
         """
-        output = copy.copy(self.__coeffs)
+        output = dict(self.__coeffs)
 
         for (index, coeff) in right.__coeffs.iteritems():
             if index in output:
@@ -468,6 +611,19 @@ class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
         nilpotent.
 
         EXAMPLES:
+            sage: R.<z> = PolynomialRing(ZZ, sparse=True)
+            sage: (2 + z^3).is_unit()
+            False
+            sage: f = -1 + 3*z^3; f
+            3*z^3 - 1
+            sage: f.is_unit()
+            False
+            sage: R(-3).is_unit()
+            False
+            sage: R(-1).is_unit()
+            True
+            sage: R(0).is_unit()
+            False
         """
         if self.degree() > 0:
             return False
@@ -612,7 +768,11 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         return QQ(self.__poly[n])
 
     def __getslice__(self, i, j):
-        return [QQ(x) for x in self.__poly[i:j]]
+        if i < 0:
+            i = 0
+        v = [QQ(x) for x in self.__poly[i:j]]
+        P = self.parent()
+        return P([0]*int(i) + v)
 
     def _pow(self, n):
         if self.degree() <= 0:
@@ -626,6 +786,14 @@ class Polynomial_rational_dense(Polynomial_generic_field):
                                          self.__poly + right.__poly, construct=True)
 
     def is_irreducible(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x^2 + 2).is_irreducible()
+            True
+            sage: (x^2 - 1).is_irreducible()
+            False
+        """
         try:
             return self.__poly.polisirreducible()
         except NotImplementedError:
@@ -717,7 +885,15 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def quo_rem(self, right):
         """
         Returns a tuple (quotient, remainder) where
-            self = quotient*other + remainder.
+            self = quotient*right + remainder.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = x^5 + 17*x + 3
+            sage: g = x^3 - 19
+            sage: q,r = f.quo_rem(g)
+            sage: q*g + r
+            x^5 + 17*x + 3
         """
         if not isinstance(right, Polynomial_rational_dense):
             right = self.parent()(right)
@@ -731,13 +907,19 @@ class Polynomial_rational_dense(Polynomial_generic_field):
     def _mul_(self, right):
         """
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(QQ)
+            sage: R.<x> = QQ[]
             sage: (x - QQ('2/3'))*(x^2 - 8*x + 16)
             x^3 - 26/3*x^2 + 64/3*x - 32/3
         """
         return self.parent()(self.__poly * right.__poly, construct=True)
 
     def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: x^5 + 17*x^3 + x+ 3 - (x^3 - 19)
+            x^5 + 16*x^3 + x + 22
+        """
         return self.parent()(self.__poly - right.__poly, construct=True)
 
     def _unsafe_mutate(self, n, value):
@@ -775,10 +957,13 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             0.713639173536900
         """
         R = self.__poly.polroots(flag)
-        C = complex_field.CC
+        C = complex_field.ComplexField()
         return [C(a) for a in R]
 
     def copy(self):
+        """
+        Return a copy of this polynomial.
+        """
         f = Polynomial_rational_dense(self.parent())
         f.__poly = self.__poly.copy()
         return f
@@ -787,8 +972,17 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         """
         Return the degree of this polynomial.  The zero polynomial
         has degree -1.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x^5 + 17*x^3 + x+ 3).degree()
+            5
+            sage: R(0).degree()
+            -1
+            sage: type(x.degree())
+            <type 'sage.rings.integer.Integer'>
         """
-        return max(self.__poly.poldegree(), -1)
+        return ZZ(max(self.__poly.poldegree(), -1))
 
     def discriminant(self):
         """
@@ -815,6 +1009,13 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
         OUTPUT:
             factorization of self reduced modulo p.
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: (x^5 + 17*x^3 + x+ 3).factor_mod(3)
+            x * (x^2 + 1)^2
+            sage: (x^5 + 2).factor_mod(5)
+            (x + 2)^5
         """
         p = integer.Integer(p)
         if not p.is_prime():
@@ -839,11 +1040,11 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: R.<x> = QQ[]
             sage: f = x^3 - 2
             sage: f.factor_padic(2)
-            (1 + ... + O(2^10))*x^3 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10)
+            (1 + O(2^10))*x^3 + 2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10)
             sage: f.factor_padic(3)
-            (1 + ... + O(3^10))*x^3 + 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
+            (1 + O(3^10))*x^3 + 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
             sage: f.factor_padic(5)
-            ((1 + ... + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + ... + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
+            ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
         """
         p = integer.Integer(p)
         if not p.is_prime():
@@ -1026,7 +1227,9 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
     def __getslice__(self, i, j):
         i = max(0,i)
         j = min(j, self.__poly.degree()+1)
-        return [ZZ(self.__poly[k]) for k in range(i,j)]
+        v = [ZZ(self.__poly[k]) for k in range(i,j)]
+        P = self.parent()
+        return P([0] * int(i) + v)
 
     def _pow(self, n):
         if self.degree() <= 0:
@@ -1459,7 +1662,8 @@ class Polynomial_dense_mod_n(Polynomial):
             i = 0
         if j > self.__poly.degree()+1:
             j = self.__poly.degree()+1
-        return [R(self.__poly[k]) for k in range(i,j)]
+        v = [R(self.__poly[k]) for k in range(i,j)]
+        return self.parent()([0]*int(i) + v)
 
     def _unsafe_mutate(self, n, value):
         n = int(n)

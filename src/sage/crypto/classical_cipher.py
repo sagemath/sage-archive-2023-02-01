@@ -123,7 +123,13 @@ class VigenereCipher(SymmetricKeyCipher):
         INPUT: Parent and key
 
         EXAMPLES:
-	    ???
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,11)
+            sage: K = S("SHAKESPEARE")
+            sage: e = E(K)
+            sage: m = S("THECATINTHEHAT")
+            sage: e(m)
+            LOEMELXRTYIZHT
         """
 	SymmetricKeyCipher.__init__(self, parent, key)
 
@@ -134,15 +140,12 @@ class VigenereCipher(SymmetricKeyCipher):
 	if not mode == "ECB":
 	    raise NotImplementedError, "Enciphering not implemented for mode (= %s) other than 'ECB'." % mode
 	K = self.key()
-	N = len(M)
-	m = self.parent().block_length()
-	if not N%m == 0:
-	    raise TypeError, "Argument M (= %s) must be a string of length k*%s." % (M, m)
+	m = self.parent().period()
+	n = S.ngens()
 	# This uses the internal structure of string monoids
 	Melt = M._element_list
 	Kelt = K._element_list
-	n = S.ngens()
-	return S([ (Melt[i+j*m]+Kelt[i])%n for j in range(N//m) for i in range(m) ])
+	return S([ (Melt[i]+Kelt[i%m])%n for i in range(len(M)) ])
 
     def inverse(self):
         E = self.parent()

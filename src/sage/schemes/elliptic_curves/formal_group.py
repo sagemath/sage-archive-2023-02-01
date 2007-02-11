@@ -2,7 +2,8 @@ r"""
 Formal groups of elliptic curves.
 
 AUTHORS:
-    -- David Harvey: original implementations
+    -- William Stein: original implementations
+    -- David Harvey: improved asymptotics of some methods
     -- Nick Alexander: seperation from ell_generic.py, bugfixes and docstrings
 """
 
@@ -49,7 +50,7 @@ class EllipticCurveFormalGroup(SageObject):
         DETAILS:
             Return the formal power series
             $$
-                   w(t) = t^3 + \cdots
+                   w(t) = t^3 + a_1 t^4 + (a_2 + a_1^2) t^5 + \cdots
             $$
             to precision $O(t^prec)$ of Proposition IV.1.1 of [Silverman
             AEC1].  This is the formal expansion of $w = -1/y$ about the
@@ -65,7 +66,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         ALGORITHM:
             Uses Newton's method to solve the elliptic curve equation
-            at the origin. Complexity is roughly $O(M(n) \log n)$ where
+            at the origin. Complexity is roughly $O(M(n))$ where
             $n$ is the precision and $M(n)$ is the time required to multiply
             polynomials of length $n$ over the coefficient ring of $E$.
 
@@ -323,7 +324,7 @@ class EllipticCurveFormalGroup(SageObject):
 
     def inverse(self, prec=20):
         r"""
-        The formal group power series w.
+        The formal group inverse law i(t), which satisfies F(t, i(t)) = 0.
 
         INPUT:
             prec -- integer
@@ -334,7 +335,7 @@ class EllipticCurveFormalGroup(SageObject):
         DETAILS:
             Return the formal power series
             $$
-                   w(t) = - t + \cdots
+                   i(t) = - t + a_1 t^2 + \cdots
             $$
             to precision $O(t^prec)$ of page 114 of [Silverman AEC1].
 
@@ -395,7 +396,6 @@ class EllipticCurveFormalGroup(SageObject):
             the default default is).
 
         AUTHOR:
-            -- David Harvey: original code
             -- Nick Alexander: minor fixes, docstring
 
         EXAMPLES:
@@ -469,7 +469,6 @@ class EllipticCurveFormalGroup(SageObject):
             the default default is).
 
         AUTHOR:
-            -- David Harvey: original code
             -- Nick Alexander: minor fixes, docstring
 
         EXAMPLES:

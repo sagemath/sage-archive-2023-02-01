@@ -84,8 +84,6 @@ START_PRIME = 20011  # used for multi-modular algorithms
 
 ################# Dupe with matrix_modn_sparse ################
 
-
-
 cdef int allocate_c_vector_modint(c_vector_modint* v, int num_nonzero) except -1:
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
@@ -913,7 +911,7 @@ cdef class Vector_mpq:
 #    Sparse Matrix over mpq_t (the GMP rationals)
 #
 #############################################################
-cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
+cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
     def __new__(self, int nrows, int ncols, object entries=[], init=True, coerce=False):
         # allocate memory

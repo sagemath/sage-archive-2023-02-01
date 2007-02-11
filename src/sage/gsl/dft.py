@@ -65,8 +65,7 @@ from sage.rings.integer import Integer
 from sage.rings.arith import factor
 from sage.rings.rational_field import QQ
 from sage.rings.real_mpfr import RR
-from sage.rings.complex_field import CC
-I = CC.gen()
+from sage.rings.all import CC, I
 from math import sin
 from math import cos
 from sage.functions.constants import Pi

@@ -23,3 +23,4 @@ cdef class Integer(EuclideanDomainElement):
 
 
 cdef extern int set_mpz(Integer self, mpz_t value)
+

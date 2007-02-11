@@ -7,6 +7,7 @@ AUTHORS:
             because of changes elsewhere in SAGE.
    -- David Harvey (2006-09): Added padic_E2, padic_sigma, padic_height,
             padic_regulator methods.
+   -- David Harvey (2007-02): reworked padic-height related code
 """
 
 #*****************************************************************************
@@ -51,6 +52,9 @@ import math
 import sage.libs.mwrank.all as mwrank
 import constructor
 from sage.interfaces.all import gp
+
+import ell_modular_symbols
+import padic_lseries
 
 import mod5family
 
@@ -522,6 +526,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return the cuspidal modular form associated to this elliptic curve.
 
         EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: f = E.modular_form()
+            sage: f
+            q - 2*q^2 - 3*q^3 + 2*q^4 - 2*q^5 + O(q^6)
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -533,6 +541,88 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             f = sage.modular.modform.element.ModularFormElement_elliptic_curve(M, self, None)
             self.__modular_form = f
             return f
+
+    def modular_symbol_space(self, sign=1, base_ring=Q):
+        r"""
+        Return the space of cuspidal modular symbols associated to
+        this elliptic curve, with given sign and base ring.
+
+        INPUT:
+            sign -- 0, -1, or 1
+            base_ring -- a ring
+
+        EXAMPLES:
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol_space[typ]
+        except AttributeError:
+            self.__modular_symbol_space = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring)
+        self.__modular_symbol_space[typ] = M
+        return M
+
+    def modular_symbol(self, sign=1, base_ring=Q):
+        r"""
+        Return the modular symbol associated to this elliptic curve,
+        with given sign and base ring.  This is the map that sends r/s
+        to a fixed multiple of 2*pi*I*f(z)dz from oo to r/s,
+        normalized so that all values of this map take values in QQ.
+
+        NOTE: Currently there is no guarantee about how this map is
+        normalized.  This will be added.
+
+        INPUT:
+            sign -- -1, or 1
+            base_ring -- a ring
+
+        NOTE: If you just want the $q$-expansion, use
+        \code{self.q_expansion(prec)}.
+        """
+        typ = (sign, base_ring)
+        try:
+            return self.__modular_symbol[typ]
+        except AttributeError:
+            self.__modular_symbol = {}
+        except KeyError:
+            pass
+        M = ell_modular_symbols.ModularSymbol(self, sign, base_ring)
+        self.__modular_symbol[typ] = M
+        return M
+
+    def padic_lseries(self, p, prec=20):
+        """
+        Return the p-adic Lseries of self at p with given p-adic precision.
+
+        INPUT:
+            p -- prime
+            prec -- precision of p-adic computations
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: L = E.padic_lseries(5); L
+            5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: type(L)
+            <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
+        """
+        key = (p,prec)
+        try:
+            return self._padic_lseries[key]
+        except AttributeError:
+            self._padic_lseries = {}
+        except KeyError:
+            pass
+        if self.ap(p) % p != 0:
+            Lp = padic_lseries.pAdicLseriesOrdinary(self, p, prec)
+        else:
+            Lp = padic_lseries.pAdicLseriesSupersingular(self, p, prec)
+        self._padic_lseries[key] = Lp
+        return Lp
 
     def newform(self):
         """
@@ -582,9 +672,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.analytic_rank(algorithm='cremona')
-            2
             sage: E.analytic_rank(algorithm='ec')
+            2
+            sage: E.analytic_rank(algorithm='cremona')
             2
             sage: E.analytic_rank(algorithm='rubinstein')
             2
@@ -1190,7 +1280,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         The n-th Fourier coefficient of the modular form corresponding
         to this elliptic curve, where n is a positive integer.
         """
-        return int(self.pari_mincurve().ellak(n))
+        return Integer(self.pari_mincurve().ellak(n))
 
     def ap(self, p):
         """
@@ -1199,7 +1289,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if not arith.is_prime(p):
             raise ArithmeticError, "p must be prime"
-        return int(self.pari_mincurve().ellap(p))
+        return Integer(self.pari_mincurve().ellap(p))
 
     def quadratic_twist(self, D):
         return EllipticCurve_field.quadratic_twist(self, D).minimal_model()
@@ -2221,6 +2311,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     ##########################################################
     # Galois Representations
     ##########################################################
+
+    def is_reducible(self, p):
+        """
+        Return True if the mod-p representation attached
+        to E is reducible.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('121a'); E
+            Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 30*x - 76 over Rational Field
+            sage: E.is_reducible(7)
+            False
+            sage: E.is_reducible(11)
+            True
+            sage: EllipticCurve('11a').is_reducible(5)
+            True
+            sage: e = EllipticCurve('11a2')
+            sage: e.is_reducible(5)
+            True
+            sage: e.torsion_order()
+            1
+        """
+        # we do is_surjective first, since this is
+        # much easier than computing isogeny_class
+        t, why = self.is_surjective(p)
+        if t == True:
+            return False  # definitely not reducible
+        isogeny_matrix = self.isogeny_class()[ 1 ]
+        v = isogeny_matrix[0]  # first row
+        for a in v:
+            if a != 0 and a % p == 0:
+                return True
+        return False
+
+    def is_irreducible(self, p):
+        """
+        Return True if the mod p represenation is irreducible.
+        """
+        return not self.is_reducible()
+
     def is_surjective(self, p, A=1000):
         """
         Return True if the mod-p representation attached to E
@@ -2452,7 +2581,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ell = p
         return self.ap(ell) % p != 0
 
-    def is_good(self, p):
+    def is_good(self, p, check=True):
         """
         Return True if $p$ is a prime of good reduction for $E$.
 
@@ -2461,7 +2590,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         OUTPUT:
             bool
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.is_good(-8)
+            Traceback (most recent call last):
+            ...
+            ValueError: p must be prime
+            sage: e.is_good(-8, check=False)
+            True
         """
+        if check:
+            if not arith.is_prime(p):
+                raise ValueError, "p must be prime"
         return self.conductor() % p != 0
 
 
@@ -2623,6 +2764,46 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             E.__sha_an = Sha
             self.__sha_an = Sha
             return Sha
+
+    def sha_an_padic(self, p):
+        """
+        Return the power of p that divides Sha(E)(p), according to the
+        p-adic analogue of the BSD conjecture.
+
+        INPUT:
+            p -- a prime
+
+        OUTPUT:
+            integer -- power of p that conjecturally equals #Sha(E)(p)
+
+        Note that in many cases this conjecture has been proved.
+        """
+        try:
+            return self.__sha_an_padic[p]
+        except AttributeError:
+            self.__sha_an_padic = {}
+        except KeyError:
+            pass
+
+        if self.is_ordinary(p) and self.is_good(p):
+            S = self._sha_an_padic_good_ordinary(p)
+        else:
+            raise NotImplementedError, "only the good ordinary case is implemented."
+        self.__sha_an_padic[p] = S
+        return S
+
+    def _sha_an_padic_good_ordinary(self, p):
+        """
+        Return the power of p that divides Sha(E)(p), according to the
+        p-adic analogue of the BSD conjecture.
+
+        INPUT:
+            p -- a prime of good ordinary reduction for E
+
+        OUTPUT:
+            integer -- power of p that conjecturally equals #Sha(E)(p)
+        """
+
 
 
     def L_ratio(self):
@@ -2788,7 +2969,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Returns a bound on the dimension of Sha(E)[2], computed using
         a 2-descent.
         """
-        S = self.two_selmer_rank()
+        S = self.selmer_rank_bound()
         r = self.rank()
         t = self.two_torsion_rank()
         b = S - r - t
@@ -3054,7 +3235,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ind = ind2.sqrt()
             misc.verbose("index = %s"%ind)
             # Compute upper bound on square root of index.
-            if ind.length() < 1:
+            if ind.absolute_diameter() < 1:
                 t, i = ind.is_int()
                 if t:   # unique integer in interval, so we've found exact index squared.
                     return arith.prime_divisors(i), D
@@ -3081,7 +3262,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     def shabound_kolyvagin(self, D=0, regulator=None,
                            ignore_nonsurj_hypothesis=False):
         """
-        Given a fundamental discriminant D (=-3,-4) that satisfies the
+        Given a fundamental discriminant D (!= -3,-4) that satisfies the
         Heegner hypothesis, return a list of primes so that
         Kolyvagin's theorem (as in Gross's paper) implies that any
         prime divisor of $\#Sha$ is in this list.
@@ -3134,6 +3315,27 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 computed to precision at least $10^{-10}$, i.e., they are
                 correct up to addition or a real number with absolute
                 value less than $10^{-10}$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: E.shabound_kolyvagin()
+            ([2], 1)
+            sage: E = EllipticCurve('141a')
+            sage: E.sha_an()
+            1
+            sage: E.shabound_kolyvagin()
+            ([2, 7], 49)
+
+        We get no information the curve has rank $2$.
+            sage: E = EllipticCurve('389a')
+            sage: E.shabound_kolyvagin()
+            (0, 0)
+            sage: E = EllipticCurve('681b')
+            sage: E.sha_an()
+            9
+            sage: E.shabound_kolyvagin()
+            ([2, 3], 9)
+
         """
         if self.has_cm():
             return 0, 0
@@ -3198,7 +3400,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             t, n = I.is_int()
             if t:
                 break
-            elif I.length() < 1:
+            elif I.absolute_diameter() < 1:
                 raise RuntimeError, "Problem in shabound_kolyvagin; square of index is not an integer -- D=%s, I=%s."%(D,I)
             misc.verbose("Doubling bounds")
             k_E *= 2
@@ -3226,9 +3428,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def shabound_kato(self):
         """
-        Returns a list p of primes such tha theorems of Kato's and
-        others (e.g., as explained in a paper/thesis of Grigor Grigorov)
-        imply that if p divides $\\#Sha(E)$ then $p$ is in the list.
+        Returns a list p of primes such that the theorems of Kato's
+        and others (e.g., as explained in a paper/thesis of Grigor
+        Grigorov) imply that if p divides $\\#Sha(E)$ then $p$ is in
+        the list.
 
         If L(E,1) = 0, then Kato's theorem gives no information, so
         this function returns False.
@@ -3395,16 +3598,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5, 10)
             1 + 5 + 5^2 + 3*5^5 + 4*5^6 + 5^8 + 5^9 + O(5^10)
 
-          An anomalous case:
+        A rank zero example:
+            sage: EllipticCurve('11a').padic_regulator(3)
+            1
+
+        An anomalous case:
             sage: E.padic_regulator(53, 10)
             26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
 
-          An anomalous case where the precision drops some:
+        An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)
             5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
 
-          Check that answers agree over a range of precisions:
+        Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
             sage: full = E.padic_regulator(5, max_prec)           # long time
             sage: for prec in range(1, max_prec):                 # long time
@@ -3475,10 +3682,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         K = rings.pAdicField(p, prec=prec)
 
         rank = self.rank()
+        M = matrix.matrix(K, rank, rank, 0)
         if rank == 0:
-
-
-            return K(1)
+            return M
 
         basis = self.gens()
 
@@ -3488,12 +3694,208 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # Use <P, Q> = h(P) + h(Q) - h(P + Q)
 
         point_height = [height(P) for P in basis]
-        M = matrix.matrix(K, rank, rank, 0)
         for i in range(rank):
             for j in range(i, rank):
                 M[i, j] = M[j, i] = point_height[i] + point_height[j] \
                                     - height(basis[i] + basis[j])
         return M
+
+
+
+    class _DivPolyContext:
+        r"""
+        This class implements the algorithm in Section 3 of "Efficient
+        Computation of p-adic Heights" (David Harvey, still in draft form).
+
+        The constructor takes as input an elliptic curve $E/\QQ$ with integer
+        coefficients, a rational point $P$ that reduces to a non-singular
+        point at all primes, and a ring $R$ in which $2$ is invertible.
+        Typically $R$ will be $\ZZ/R\ZZ$ for some positive integer $R$.
+
+        One then calls triple(m) for an integer $m \geq 1$; it returns a
+        triple $(a', b', d')$ such that if the point $mQ$ has coordinates
+        $(a/d^2, b/d^3)$, then we have $a' \equiv a$, $b' \equiv \pm b$,
+        $d' \equiv \pm d$ all modulo $R$.
+
+        Note the ambiguity of signs for $b'$ and $d'$. There's not much one
+        can do about this, but at least one can say that the sign for $b'$
+        will match the sign for $d'$.
+
+        Complexity is soft $O(\log R \log^2 m)$.
+
+        AUTHOR:
+            -- David Harvey (2007-02)
+
+        EXAMPLES:
+
+        37a has trivial tamagawa numbers so all points have nonsingular
+        reduction at all primes:
+            sage: E = EllipticCurve("37a")
+            sage: P = E.gens()[0]; P
+             (0 : 0 : 1)
+            sage: 19*P
+             (-59997896/67387681 : -641260644409/553185473329 : 1)
+            sage: R = Integers(625)
+            sage: C = E._DivPolyContext(E, R, P)
+            sage: C.triple(19)
+             (229, 34, 541)
+            sage: -59997896 % 625
+             229
+            sage: 67387681.sqrt()
+             8209
+            sage: -8209 % 625          # note sign is flipped
+             541
+            sage: 641260644409 % 625   # sign flipped here too
+             34
+
+        Test over a range of $n$ for a single curve with fairly random
+        coefficients:
+            sage: R = Integers(625)
+            sage: E = EllipticCurve([4, -11, 17, -8, -10])
+            sage: P = E.gens()[0] * LCM(E.tamagawa_numbers())
+            sage: C = E._DivPolyContext(E, R, P)
+            sage: Q = E(0)
+            sage: for n in range(1, 25):
+            ...      Q = Q + P
+            ...      naive = R(Q[0].numerator()),  \
+            ...              R(Q[1].numerator()),  \
+            ...              R(Q[0].denominator().sqrt())
+            ...      triple = C.triple(n)
+            ...      assert (triple[0] == naive[0]) and ( \
+            ...        (triple[1] == naive[1] and triple[2] == naive[2]) or \
+            ...        (triple[1] == -naive[1] and triple[2] == -naive[2])), \
+            ...           "_DivPolyContext.triple() gave an incorrect answer"
+
+        """
+        def __init__(self, E, R, P):
+            alpha = R(P[0].numerator())
+            beta = R(P[1].numerator())
+            d = R(P[0].denominator().sqrt())
+
+            a1 = R(E.a1()) * d
+            a3 = R(E.a3()) * d**3
+
+            b2 = R(E.b2()) * d**2
+            b4 = R(E.b4()) * d**4
+            b6 = R(E.b6()) * d**6
+            b8 = R(E.b8()) * d**8
+
+            B4 = 6*alpha**2 + b2*alpha + b4
+            B6 = 4*alpha**3 + b2*alpha**2 + 2*b4*alpha + b6
+            B8 = 3*alpha**4 + b2*alpha**3 + 3*b4*alpha**2 + 3*b6*alpha + b8
+
+            self.E = E
+            self.R = R
+            self.alpha = alpha
+            self.beta = beta
+            self.d = d
+            self.a1 = a1
+            self.a3 = a3
+            self.b2 = b2
+            self.b4 = b4
+            self.b6 = b6
+            self.b8 = b8
+            self.B4 = B4
+            self.B6 = B6
+            self.B6_sqr = B6*B6
+            self.B8 = B8
+            self.T = 2*beta + a1*alpha + a3
+
+            self.g_cache = \
+                  {0 : R(0), 1 : R(1), 2 : R(-1), 3 : B8, 4 : B6**2 - B4*B8}
+            self.psi_cache = {}
+            self.theta_cache = {}
+            self.omega_cache = {1 : beta}
+
+
+        def g(self, n):
+            r"""
+            Returns $\hat g_n(P)$ as defined in the paper mentioned above.
+            """
+            # try to get cached value
+            try:
+                return self.g_cache[n]
+            except KeyError:
+                pass
+
+            # didn't work, have to compute it
+            g = self.g
+            m = n // 2
+            if n & 1:
+                prod1 = g(m+2) * g(m)**3
+                prod2 = g(m-1) * g(m+1)**3
+
+                if m & 1:
+                    X = prod1 - self.B6_sqr * prod2
+                else:
+                    X = self.B6_sqr * prod1 - prod2
+            else:
+                X = g(m) * (g(m-2) * g(m+1)**2 - g(m+2) * g(m-1)**2)
+
+            self.g_cache[n] = X
+            return X
+
+
+        def psi(self, n):
+            r"""
+            Returns $\hat \psi_n(P)$ as defined in the paper mentioned above.
+            """
+            # try to get cached value
+            try:
+                return self.psi_cache[n]
+            except KeyError:
+                assert n >= 0
+
+            # didn't work, have to compute it
+            X = self.g(n)
+            if n & 1 == 0:
+                X = X * self.T
+
+            self.psi_cache[n] = X
+            return X
+
+
+        def theta(self, n):
+            r"""
+            Returns $\hat \theta g_n(P)$ as defined in the paper mentioned above.
+            """
+            # try to get cached value
+            try:
+                return self.theta_cache[n]
+            except KeyError:
+                assert n >= 1
+
+            # didn't work, have to compute it
+            X = self.alpha * self.psi(n)**2 - self.psi(n-1) * self.psi(n+1)
+            self.theta_cache[n] = X
+            return X
+
+
+        def omega(self, n):
+            r"""
+            Returns $\hat \omega g_n(P)$ as defined in the paper mentioned above.
+            """
+            # try to get cached value
+            try:
+                return self.omega_cache[n]
+            except KeyError:
+                assert n >= 2
+
+            # didn't work, have to compute it
+            X = self.g(n-2) * self.g(n+1)**2 - self.g(n+2) * self.g(n-1)**2
+            if n & 1 == 1:
+                X = X * self.T
+            X = (X + (self.a1 * self.theta(n) + self.a3 * self.psi(n)**2) \
+                                                          * self.psi(n)) / -2
+
+            self.omega_cache[n] = X
+            return X
+
+
+        def triple(self, n):
+            assert n >= 1
+            return self.theta(n), self.omega(n), self.psi(n) * self.d
+
 
 
     def padic_height(self, p, prec=20, sigma=None, check_hypotheses=True):
@@ -3528,6 +3930,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             addressed some thorny precision questions
             -- David Harvey (2006-09-30): rewrote to use division polynomials
             for computing denominator of $nP$.
+            -- David Harvey (2007-02): cleaned up according to algorithms
+            in "Efficient Computation of p-adic Heights"
 
         TODO:
             -- Probably this code is broken when P is a torsion point.
@@ -3566,118 +3970,57 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec < 1:
             raise ValueError, "prec (=%s) must be at least 1" % prec
 
-        # Find an integer A such that for any point P, the multiple A*P
-        # is in the connected component of the Neron model modulo all primes.
-        # This is one of the conditions in Mazur/Stein/Tate; additionally,
-        # it is required to apply Proposition IV.2 from Christian Wuthrich's
-        # thesis.
-        A = arith.LCM(self.tamagawa_numbers())
+        # For notation and definitions, see "Efficient Computation of
+        # p-adic Heights", David Harvey (unpublished)
 
-        # Find an integer B such that A*B*P reduces to the identity mod p.
-        # This is necessary to be able to evaluate sigma(A*B*P) by substituting
-        # into the series for sigma.
-        B = arith.LCM(A, self.change_ring(rings.GF(p)).cardinality()) // A
+        n1 = self.change_ring(rings.GF(p)).cardinality()
+        n2 = arith.LCM(self.tamagawa_numbers())
+        n = arith.LCM(n1, n2)
+        m = int(n / n2)
 
-        # Later, we will be computing $h(P) = h(AB*P)/(AB)^2$. But if $AB$ is
-        # divisible by a power of $p$, then this will affect the resulting
-        # p-adic precision. Also, we'll be dividing by p once at the end.
-        # So we take all of this into account right from the beginning.
-        extra_prec = 2 * arith.valuation(A*B, p) + 1
+        adjusted_prec = prec + 2 * arith.valuation(n, p) + 1
+        R = rings.Integers(p ** adjusted_prec)
 
         if sigma is None:
-            sigma = self.padic_sigma(p, prec + extra_prec,
-                                     check_hypotheses=False)
+            sigma = self.padic_sigma(p, adjusted_prec, check_hypotheses=False)
 
         # K is the field for the final result
         K = rings.pAdicField(p, prec)
         E = self
+
 
         def height(P, check=True):
             if check:
                 assert P.curve() == E, "the point P must lie on the curve " \
                        "from which the height function was created"
 
-            # Adjust P to satisfy conditions for Wuthrich's Proposition IV.2
-            Q = A * P
+            Q = n2 * P
+            C = E._DivPolyContext(E, R, Q)
 
-            # In this next section we compute R = B * Q (which will reduce to
-            # zero in E(GF(p))), working to some finite p-adic precision.
-            # This avoids the coefficients spiralling out of control.
+            alpha, beta, d = C.triple(m)
 
-            # The precision will generally *drop* during the computation of
-            # B*Q, so we need to start with somewhat higher precision than
-            # our target precision. Unfortunately, I am unable to prove any
-            # a priori bound on how much precision will be lost. Some simple
-            # heuristics suggest that the precision loss is usually very
-            # small, so small in fact that the runtime is about
-            # $O((\log p)^3)$. But I can't rule out the possibility that the
-            # precision loss will be very large, implying a runtime as high
-            # as $O(p^2)$. (This happens for example when the denominator
-            # of the x-coordinate of $B*Q$ is almost purely a power of $p$.
-            # I've never seen this happen, but I don't know how to rule it
-            # out.)
+            assert beta.lift() % p != 0, "beta should be a unit!"
+            assert d.lift() % p == 0, "d should not be a unit!"
 
-            # So the strategy is as follows. Start with fairly low precision
-            # and see what happens. If the answer doesn't have enough
-            # precision, try again with twice the initial precision. Repeat
-            # until we get enough precision in the result.
+            t = -d * alpha / beta
 
-            # todo: some bug in SAGE (trac #86) prevents me from creating
-            # points on an elliptic curve over a p-adic field. So in order to
-            # use the generic point-multiplication routine, I have to resort
-            # to extremely ugly and nasty trickery. See below.
-
-            start_prec = prec + extra_prec + 1   # todo: too optimistic?
-            enough = False
-            while not enough:
-                M = rings.pAdicField(p, start_prec)
-                R = E(Q[0], Q[1], Q[2])
-                R._coords = [M(a, M.prec()) for a in R._coords]
-                # arrrggghhh!!!! gross....
-                # So now R is Q "coerced" to the p-adic field....
-
-                BR = B * R
-                t = -BR[0]/BR[1]
-                if t.prec() >= prec + extra_prec:
-                    enough = True
-                else:
-                    start_prec = 2 * start_prec
-
-            # Let d = denominator of x coordinate of B*R. We know (from the
-            # equation of the curve) that v_p(d^2) = 2 v_p(t), so we can read
-            # off the valuation of d. This tells us how much extra precision
-            # we need to actually compute d.
-            M = rings.pAdicField(p, prec + extra_prec + 2*t.ordp())
-
-            # Compute the denominator of the x-coordinate of B*R, using
-            # Wuthrich's equation IV.3. (Actually we're computing d^2.)
-            d_sqr = E.multiple_x_denominator(B, M(Q[0], M.prec())) * \
-                    M(Q[0].denominator(), M.prec()) ** (B**2)
-
-            if check:
-                assert d_sqr.prec() >= prec + extra_prec
-
-            # Evaluate sigma.
-            # (todo: we can't just use "sigma(t)" because SAGE seems to have
-            # a bug where it only uses the lowest precision of the coefficients
-            # of sigma, which is not good enough; although I haven't looked
-            # into this carefully yet)
+            total = R(1)
             t_power = t
-            L = rings.pAdicField(p, prec + extra_prec)
-            total = L(0)
-            for n in range(1, sigma.prec()):
-                total = total + t_power * sigma[n]
+            for k in range(2, adjusted_prec + 1):
+                # yuck... should just be able to multiply without the lift here
+                total = total + t_power * R(sigma[k].lift())
                 t_power = t_power * t
 
-            if check:
-                assert total.prec() >= prec + extra_prec
+            L = rings.pAdicField(p, adjusted_prec)
+            total = (-alpha / beta) * total
+            total = L(total.lift())   # yuck... get rid of this lift!
+            answer = total.log() / n**2 / p
 
-            # Normalise and return
-            answer = (total**2 / d_sqr).log() / (2 * (A*B)**2 * p)
             if check:
                 assert answer.big_oh() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
             return K(answer.lift(), prec)
+
 
         # (man... I love python's local function definitions...)
         return height
@@ -3749,7 +4092,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
             sage: t = f.parent().gen()
             sage: f(2*t)/2
-            (1 + ... + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
+            (1 + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
             sage: g
             t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 
@@ -3917,10 +4260,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             # convert x and f to have coefficients over p-adics, so that
             # SAGE keeps track of precision for us (this code is so damn
             # ugly... todo: get some decent coercions written...)
-            x_coeffs = x.unit_part().list()
+            x_coeffs = x.valuation_zero_part().list()
             f_coeffs = f.list()
             xK = S([K(r.lift()) for r in x_coeffs], N+1 - x.valuation())
-            xK = xK * S.gen()**(x.valuation())
+            f = S.gen()**(x.valuation())
+            xK = xK * f
             xK = xK.add_bigoh(N+1)
             fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(N+1)
 

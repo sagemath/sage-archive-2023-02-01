@@ -1280,10 +1280,10 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
     """
     def __init__(self, graph, pos=None, vertex_labels=True, node_size=300):
         self.__nxg = graph
+        self.__node_size = node_size
+        self.__vertex_labels = vertex_labels
         if len(self.__nxg) != 0:
             import networkx as NX
-            self.__node_size = node_size
-            self.__vertex_labels = vertex_labels
             if pos is None:
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:

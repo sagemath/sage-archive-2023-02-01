@@ -1295,6 +1295,10 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
                 self.__pos = pos
+                for v in self.__nxg.nodes():
+                    if not v in self.__pos:
+                        from random import random
+                        self.__pos[v] = [random(),random()]
 
             # adjust the plot
             # TODO: right now, the bounds are assumed to be +-1

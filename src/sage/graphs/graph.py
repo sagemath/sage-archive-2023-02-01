@@ -666,7 +666,6 @@ class Graph(GenericGraph):
             self._nxg.add_node(i)
         else:
             self._nxg.add_node(name)
-        self.__pos = None
 
     def delete_vertex(self, vertex):
         """
@@ -1127,7 +1126,22 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
+    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
+        """
+        Returns a graphics object representing the graph.
+
+        INPUT:
+            pos -- an optional positioning dictionary
+            layout -- what kind of layout to use, takes precedence over pos
+                'circular' -- plots the graph with vertices evenly distributed on a circle
+                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+            vertex_labels -- whether to print vertex labels
+            node_size -- size of vertices displayed
+            graph_border -- whether to include a box around the graph
+            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
+                it looks invisible on the resulting plot (it doesn't get drawn).
+        """
         GG = Graphics()
         if color_dict is None and self.__with_boundary:
             v = self.vertices()
@@ -1135,20 +1149,23 @@ class Graph(GenericGraph):
             for i in b:
                 v.pop(v.index(i))
             color_dict = {'r':v,'b':b}
-        if pos is None:
+        if pos is None and layout is None:
             if self.__pos is None:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
             else:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
-        elif pos is 'database':
+                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+        elif layout == 'circular':
             from math import sin, cos, pi
             n = self.order()
+            verts = self.vertices()
             pos_dict = {}
             for i in range(n):
                 x = float(cos((pi/2) + ((2*pi)/n)*i))
                 y = float(sin((pi/2) + ((2*pi)/n)*i))
-                pos_dict[i] = [x,y]
+                pos_dict[verts[i]] = [x,y]
             NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
+        elif layout == 'spring':
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         else:
             NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         GG.append(NGP)
@@ -1173,7 +1190,7 @@ class Graph(GenericGraph):
     def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """
         INPUT:
-            pos -- ??
+            pos -- an optional positioning dictionary
             with_labels -- bool (default: True)
             node_size -- how big the nodes are
             graph_border -- bool (default: False)
@@ -1359,7 +1376,6 @@ class DiGraph(GenericGraph):
             self._nxg.add_node(i)
         else:
             self._nxg.add_node(name)
-        self.__pos = None
 
     def delete_vertex(self, vertex):
         """

@@ -517,19 +517,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
-        return self._multiply_classical(right)
         # see the tune_multiplication function below.
         n = max(self._nrows, self._ncols, right._nrows, right._ncols)
         if n <= 20:
             return self._multiply_classical(right)
-        a = self.height(); b = right.height()
-        return self._multiply_classical(right)
-        # waiting for multiply_multi_modular to get fixed, and not assume all matrix entries
-        # are between 0 and prod - 1.
-        if float(max(a,b)) / float(n) >= 0.70:
-            return self._multiply_classical(right)
-        else:
-            return self._multiply_multi_modular(right)
+        return self._multiply_multi_modular(right)
+##         a = self.height(); b = right.height()
+##         # waiting for multiply_multi_modular to get fixed, and not assume all matrix entries
+##         # are between 0 and prod - 1.
+##         if float(max(a,b)) / float(n) >= 0.70:
+##             return self._multiply_classical(right)
+##         else:
+##             return self._multiply_multi_modular(right)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """

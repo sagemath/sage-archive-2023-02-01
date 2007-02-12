@@ -96,7 +96,7 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
 from sage.structure.element import ModuleElement
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.integer import Integer
 
@@ -255,13 +255,18 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return A
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
-        if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
-            return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
+        if self._will_use_strassen(right):
+            return self._multiply_strassen(right)
         else:
-            if self._will_use_strassen(right):
-                return self._multiply_strassen(right)
-            else:
-                return self._multiply_classical(right)
+            return self._multiply_classical(right)
+
+##         if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
+##             return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
+##         else:
+##             if self._will_use_strassen(right):
+##                 return self._multiply_strassen(right)
+##             else:
+##                 return self._multiply_classical(right)
 
     def _multiply_linbox(Matrix_modn_dense self, Matrix_modn_dense right):
         """
@@ -272,7 +277,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         """
         if get_verbose() >= 2:
-            verbose('inbox multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+            verbose('linbox multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
                 self._nrows, self._ncols, right._nrows, right._ncols, self.p))
         cdef int e
         cdef Matrix_modn_dense ans, B

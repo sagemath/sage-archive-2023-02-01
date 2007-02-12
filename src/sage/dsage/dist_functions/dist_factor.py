@@ -70,7 +70,7 @@ else:
     save(result, 'result')
     DSAGE_RESULT = 'result.sobj'
 """ % n, name='qsieve')
-        job.n = int(n) # otherwise get some weird twisted class
+        job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
         return job
 

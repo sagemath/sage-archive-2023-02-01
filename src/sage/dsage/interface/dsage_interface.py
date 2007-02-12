@@ -124,13 +124,13 @@ class DSage(object):
                     + self.server + ':' + str(self.port)
         return self.info_str + '\r'
 
-    def __call__(self, cmd, job_name=None):
+    def __call__(self, cmd, globals=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n'
                "save(ans, 'ans')\n"
                "DSAGE_RESULT = 'ans.sobj'\n"]
 
-        return self.eval(''.join(cmd), job_name)
+        return self.eval(''.join(cmd), globals, job_name)
 
     def __getstate__(self):
         d = copy.copy(self.__dict__)

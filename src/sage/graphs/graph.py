@@ -282,10 +282,10 @@ class Graph(GenericGraph):
                 2. A dictionary of dictionaries
                 3. A dictionary of lists
                 4. A numpy matrix or ndarray
-                5. A pygraphviz agraph
-                6. A scipy sparse matrix
-                7. A graph6 or sparse6 string
-                8. A SAGE adjacency matrix
+                5. A graph6 or sparse6 string
+                6. A SAGE adjacency matrix or incidence matrix
+                7. A pygraphviz agraph
+                8. A scipy sparse matrix
 
             pos -- a positioning dictionary: for example, the
             spring layout from NetworkX for the 5-cycle is
@@ -308,7 +308,7 @@ class Graph(GenericGraph):
                 TODO: format = 'matrix'
 
         EXAMPLES:
-        We illustrate the first four input formats (the other two
+        We illustrate the first six input formats (the other two
         involve packages that are currently not standard in SAGE):
 
         1. A networkx graph:
@@ -331,6 +331,51 @@ class Graph(GenericGraph):
 
         4. A numpy matrix or ndarray:
             TODO
+
+        5. A graph6 or sparse6 string:
+        SAGE automatically recognizes whether a string is in graph6 or sage6 format:
+
+            sage: s = ':I`AKGsaOs`cI]Gb~'
+            sage: Graph(s)
+            Simple graph on 10 vertices (with loops, with multiple edges)
+
+        There are also list functions to take care of lists of graphs:
+
+            sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
+            sage: graphs_list.from_sparse6(s)
+            [Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges)]
+
+        6. A SAGE matrix:
+        Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
+        matrix, and a nonsquare matrix is an incidence matrix.
+
+            A. an adjacency matrix:
+
+            sage: M = graphs.PetersenGraph().am(); M
+            [0 1 0 0 1 1 0 0 0 0]
+            [1 0 1 0 0 0 1 0 0 0]
+            [0 1 0 1 0 0 0 1 0 0]
+            [0 0 1 0 1 0 0 0 1 0]
+            [1 0 0 1 0 0 0 0 0 1]
+            [1 0 0 0 0 0 0 1 1 0]
+            [0 1 0 0 0 0 0 0 1 1]
+            [0 0 1 0 0 1 0 0 0 1]
+            [0 0 0 1 0 1 1 0 0 0]
+            [0 0 0 0 1 0 1 1 0 0]
+            sage: Graph(M)
+            Simple graph on 10 vertices (no loops, no multiple edges)
+
+            B. an incidence matrix:
+
+            sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
+            [-1  0  0  0  1]
+            [ 1 -1  0  0  0]
+            [ 0  1 -1  0  0]
+            [ 0  0  1 -1  0]
+            [ 0  0  0  1 -1]
+            [ 0  0  0  0  0]
+            sage: Graph(M)
+            Simple graph on 6 vertices (no loops, no multiple edges)
 
         Other examples:
             sage: G = Graph(name="Null graph")
@@ -439,8 +484,27 @@ class Graph(GenericGraph):
                     d[i] = {j : None}
             self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
         elif format == 'incidence_matrix':
-            # TODO not implemented
-            pass
+            b = True
+            for c in data.columns():
+                d = c.dict()
+                if not len(d) == 2:
+                    b = False
+                else:
+                    k = d.keys()
+                    if not d[k[0]] == -1 * d[k[1]]:
+                        b = False
+            if not b:
+                raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
+            else:
+                d = {}
+                for i in range(data.nrows()):
+                    d[i] = {}
+                self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
+                e = []
+                for c in data.columns():
+                    k = c.dict().keys()
+                    e.append((k[0],k[1]))
+                self._nxg.add_edges_from(e)
         # TODO weighted matrices
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
@@ -975,11 +1039,14 @@ class Graph(GenericGraph):
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
             else:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+        else:
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
         GG.append(NGP)
-        xmin = min([NGP._GraphicPrimitive_NetworkXGraph__pos[i][0] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        xmax = max([NGP._GraphicPrimitive_NetworkXGraph__pos[i][0] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        ymin = min([NGP._GraphicPrimitive_NetworkXGraph__pos[i][1] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
-        ymax = max([NGP._GraphicPrimitive_NetworkXGraph__pos[i][1] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
+        pos = NGP._GraphicPrimitive_NetworkXGraph__pos
+        xmin = NGP._xmin
+        xmax = NGP._xmax
+        ymin = NGP._ymin
+        ymax = NGP._ymax
         GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         GG.axes(False)
         if ( graph_border ):
@@ -987,6 +1054,7 @@ class Graph(GenericGraph):
             dx = (xmax - xmin)/10
             dy = (ymax - ymin)/10
             border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+            border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
             BGG = GG + border
             BGG.axes(False)
             return BGG
@@ -1477,7 +1545,15 @@ class DiGraph(GenericGraph):
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
             else:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+        else:
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
         GG.append(NGP)
+        pos = NGP._GraphicPrimitive_NetworkXGraph__pos
+        xmin = min([pos[i][0] for i in pos])
+        xmax = max([pos[i][0] for i in pos])
+        ymin = min([pos[i][1] for i in pos])
+        ymax = max([pos[i][1] for i in pos])
+        GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         GG.axes(False)
         return GG
 

@@ -81,7 +81,8 @@ def from_sparse6(data):
         data = data.split('\n')
         l = []
         for d in data:
-            l.append(Graph(d, format = 'sparse6'))
+            if not d == '':
+                l.append(Graph(d, format = 'sparse6'))
         return l
     elif isinstance(data,list):
         l = []

@@ -51,6 +51,7 @@ cimport sage.structure.element
 
 import matrix_space
 
+from linbox import USE_LINBOX
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -645,6 +646,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()                # optional -- os x only right now
             x^3 - 3990*x^2 - 266000*x
         """
+        if algorithm == 'linbox' and not USE_LINBOX:
+            algorithm = 'generic'
+
         key = 'charpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x
@@ -679,6 +683,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()           # optional -- os x only right now
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
         """
+        if algorithm == 'linbox' and not USE_LINBOX:
+            algorithm = 'generic'
+
         key = 'minpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x

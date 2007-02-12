@@ -86,6 +86,7 @@ cimport matrix_dense
 cimport matrix
 cimport matrix0
 
+from linbox import USE_LINBOX
 from linbox cimport Linbox_modn_dense
 cdef Linbox_modn_dense linbox
 linbox = Linbox_modn_dense()
@@ -332,6 +333,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         ALGORITHM: Uses LinBox if self.base_ring() is a field,
         otherwise use Hessenberg form algorithm.
         """
+        if not USE_LINBOX:
+            algorithm = 'generic'
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 
@@ -353,7 +356,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             algorithm -- 'linbox' (default if self.base_ring() is a field)
                          'generic'
         """
-        #Disabling LinBox for now
+        if not USE_LINBOX:
+            algorithm = 'generic'
+
         if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm='generic' #LinBox only supports fields
 
@@ -432,6 +437,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: a.pivots()
             [0, 1]
         """
+        if not USE_LINBOX:
+            algorithm = 'gauss'
 
         if self.p == 2 and algorithm=='linbox':
             # TODO: LinBox crashes if working over GF(2)
@@ -764,7 +771,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return R(v)
 
     def rank(self):
-        if self.p > 2:
+        if self.p > 2 and USE_LINBOX:
             x = self.fetch('rank')
             if not x is None:
                 return x

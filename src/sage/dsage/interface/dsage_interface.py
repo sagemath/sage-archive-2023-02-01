@@ -24,7 +24,6 @@ import ConfigParser
 import copy
 import cPickle
 import zlib
-import time
 import threading
 
 from twisted.python import threadable
@@ -79,6 +78,7 @@ class DSage(object):
        privkey_file -- file that stores the users private key
 
     """
+
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
 
@@ -99,15 +99,17 @@ class DSage(object):
         self.remoteobj = None
         self.result = None
 
+        passphrase = self._getpassphrase()
+
         # public key authentication information
-        self.public_key_string = keys.getPublicKeyString(
-                                                    filename=self.pubkey_file)
-        self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
-        self.public_key = keys.getPublicKeyObject(self.public_key_string)
+        self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
+        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
+                                                 passphrase=passphrase)
+        self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.public_key)
+        self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.data = DATA
-        self.signature = keys.signData(self.private_key, self.data)
+        self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
                                                self.blob,
@@ -136,6 +138,12 @@ class DSage(object):
         d = copy.copy(self.__dict__)
         d['remoteobj'] = None
         return d
+
+    def _getpassphrase(self):
+        import getpass
+        passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
+
+        return passphrase
 
     def _catchFailure(self, failure):
         if failure.check(error.ConnectionRefusedError):

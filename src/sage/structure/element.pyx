@@ -1042,7 +1042,8 @@ cdef class RingElement(ModuleElement):
         # Now we can assume both self and right are of a class that derives
         # from Element (so they have a parent).  If one is a ModuleElement,
         # do some special code.
-        if PY_TYPE_CHECK(self, ModuleElement) or PY_TYPE_CHECK(right, ModuleElement):
+        if PY_TYPE_CHECK(self, ModuleElement) and PY_TYPE_CHECK(right, ModuleElement):
+            # We may assume both are module elements.
             if (<Element>self)._parent is (<Element>right)._parent._base:
                 return (<ModuleElement>right)._rmul_c(self)
             elif (<Element>self)._parent._base is (<Element>right)._parent:

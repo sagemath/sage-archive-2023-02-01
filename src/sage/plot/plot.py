@@ -1311,8 +1311,8 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 ymax += 1
                 ymin -= 1
             for v in nodelist:
-                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
-                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
+                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(pos[v][0] - xmax) + st + 1
+                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(pos[v][1] - ymax) + st + 1
 
     def _render_on_subplot(self, subplot):
         if len(self.__nxg) != 0:

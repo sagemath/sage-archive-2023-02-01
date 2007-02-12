@@ -80,7 +80,7 @@ AUTHORS:
 
 ################################################################################
 #           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
-#                              and Emily A. Kirkman <eakirkman@gmail.com>
+#                              and Emily A. Kirkman
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/

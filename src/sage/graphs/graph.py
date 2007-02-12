@@ -4,11 +4,12 @@ Graph Theory
 AUTHOR:
     -- Robert L. Miller (2006-10-22): initial version
     -- William Stein (2006-12-05): Editing
-    -- Robert L. Miller (2006-01-13): refactoring, adjusting for
+    -- Robert L. Miller (2007-01-13): refactoring, adjusting for
         NetworkX-0.33, fixed plotting bugs
-                        (2006-01-23): basic tutorial, edge labels, loops,
+                        (2007-01-23): basic tutorial, edge labels, loops,
         multiple edges & arcs
                         (2007-02-07): graph6 and sparse6 formats, matrix input
+    -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
 
 TUTORIAL:
 
@@ -967,7 +968,7 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, vertex_labels=True, node_size=200):
+    def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False):
         GG = Graphics()
         if pos is None:
             if self.__pos is None:
@@ -981,14 +982,23 @@ class Graph(GenericGraph):
         ymax = max([NGP._GraphicPrimitive_NetworkXGraph__pos[i][1] for i in range(len(NGP._GraphicPrimitive_NetworkXGraph__pos))])
         GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         GG.axes(False)
+        if ( graph_border ):
+            from sage.plot.plot import line
+            dx = (xmax - xmin)/10
+            dy = (ymax - ymin)/10
+            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+            BGG = GG + border
+            BGG.axes(False)
+            return BGG
         return GG
 
-    def show(self, pos=None, vertex_labels=True, node_size=200, **kwds):
+    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, **kwds):
         """
         INPUT:
             pos -- ??
             with_labels -- bool (default: True)
             node_size -- how big the nodes are
+            graph_border -- bool (default: False)
             other named options -- All other options are passed onto
             the show command; e.g., dpi=50 will make a small plot.
 
@@ -997,7 +1007,7 @@ class Graph(GenericGraph):
             Simple graph on 5 vertices (no loops, no multiple edges)
             sage: g.plot().save('sage.png')
         """
-        self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size).show(**kwds)
+        self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size,  graph_border=graph_border).show(**kwds)
 
 class DiGraph(GenericGraph):
     """

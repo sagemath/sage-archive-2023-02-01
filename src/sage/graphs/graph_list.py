@@ -6,7 +6,8 @@ AUTHOR:
 """
 
 #*****************************************************************************
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#                              and Emily A. Kirkman
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
@@ -135,4 +136,30 @@ def to_sparse6(list, file = None):
     else:
         file.write(l)
         file.flush()
+
+def to_graphics_arrays(list):
+    """
+    use this if too many graphs for show function
+    max graphs per array = 20 (5 rows of 4)
+    appends graphics arrays in list
+    then enter list and index and .show()
+    """
+    from sage.plot.plot import graphics_array
+    from sage.graphs import graph
+    plist = []
+    for i in range (len(list)):
+        if ( isinstance( list[i], graph.Graph ) ):
+            plist.append(list[i].plot(node_size=50, vertex_labels=False, graph_border=True))
+        else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
+
+    num_arrays = len(plist)/20
+    if ( len(plist)%20 > 0 ): num_arrays += 1
+
+    return plist
+
+
+def show_graphs(list):
+    if ( len(list) > 24 ):
+        raise ValueError, 'List is too long to display in a graphics array.  Try using the to_graphics_array function.'
+    return
 

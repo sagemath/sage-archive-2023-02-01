@@ -1043,7 +1043,7 @@ class Graph(GenericGraph):
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
             else:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
-        if pos is 'database':
+        elif pos is 'database':
             from math import sin, cos, pi
             n = self.order()
             pos_dict = {}

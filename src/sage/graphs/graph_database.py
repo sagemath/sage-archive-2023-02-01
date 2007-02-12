@@ -1,5 +1,6 @@
 import graph
 import graph_list
+from sage.sets.set import Set
 
 class GraphDatabase():
 
@@ -22,8 +23,42 @@ class GraphDatabase():
             glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
             return graph_list.to_graphics_arrays(glist)
         else:
-            # TODO
-            return
+            from sage.plot.plot import graphics_array
+            data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+
+            plist = []
+            for i in range (1253):
+                if ( data.has_key('G%s'%i) ):
+                    plist.append(graph.Graph(data['G%s'%i][0]).plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+                    TG = (self.__get_properties__(data['G%s'%i][1]))
+                    plist.append(TG)
+
+            num_arrays = len(plist)/20
+            if (len(plist)%20 > 0):
+                num_arrays += 1
+            rows = 10
+            cols = 2
+            g_arrays = []
+
+            for i in range (num_arrays - 1):
+                glist = []
+                for j in range (rows*cols):
+                    glist.append(plist[rows*cols*i + j])
+                ga = graphics_array(glist, rows, cols)
+                ga.__set_figsize__([4, 20])
+                g_arrays.append(ga)
+
+            glist = []
+            last = len(plist)%20
+            index = 20*(num_arrays-1)
+            last_rows = last/cols
+            for i in range ( last ):
+                glist.append(plist[ i + index ])
+            ga = graphics_array(glist, last_rows, cols)
+            ga.__set_figsize__([4, 2*last_rows])
+            g_arrays.append(ga)
+
+            return g_arrays
 
     def number_of(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
         glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
@@ -32,16 +67,44 @@ class GraphDatabase():
     def show_graphs(self, with_properties=False, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
         if ( with_properties == False):
             glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+            if ( len(glist) > 20 ):
+                raise ValueError, "Too many graphs to display in graphics array.  \nIf more than 20 graphs, try get_list_of_graphics_arrays."
             return graph_list.show_graphs(glist)
         else:
-            # TODO
+            data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+            if ( len(data) > 10 ):
+                raise ValueError, "Too many graphs to display in graphics array.  \nIf more than 10 graphs, try get_list_of_graphics_arrays."
+
+            from sage.plot.plot import graphics_array
+
+            glist = []
+            for i in range (1253):
+                if ( data.has_key('G%s'%i) ):
+                    glist.append(graph.Graph(data['G%s'%i][0]).plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+                    TG = (self.__get_properties__(data['G%s'%i][1]))
+                    glist.append(TG)
+
+            rows = len(glist)
+            ga = graphics_array(glist, rows, 2)
+            ga.__set_figsize__([4, 2*rows])
+            ga.show()
             return
 
-    def __get_properties__(self):
-        return
+    def __get_properties__(self, properties=None):
+        if ( properties == None): return None
+
+        str = "\n"
+        It = properties.__iter__()
+
+        for i in range (len(properties)):
+            str += It.next() + "\n"
+
+        from sage.plot.plot import text
+        prop = text(str, (1/2,1/2))
+        prop.axes(False)
+        return prop
 
     def __query__(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
-        from sage.sets.set import Set
         s = Set([])
         if (data_dict == None):
             data_dict = self.__get_data__()
@@ -71,7 +134,6 @@ class GraphDatabase():
         """
         Credit NetworkX for data.
         """
-        from sage.sets.set import Set
 
         data_dict = {}
         data_dict['G0'] = [{}, Set(['connected=False', 'edges=0', 'minDegree=0', 'maxDegree=0', 'diameter=None', 'radius=None', 'nodes=0', 'density=0.0'])]

@@ -151,7 +151,10 @@ def to_graphics_arrays(list):
     g_arrays = []
     for i in range (len(list)):
         if ( isinstance( list[i], graph.Graph ) ):
-            plist.append(list[i].plot(node_size=50, vertex_labels=False, graph_border=True))
+            pos = list[i].__get_pos__()
+            if ( pos is None and list[i].order() < 10 ):
+                plist.append(list[i].plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+            else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
         else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
 
     num_arrays = len(plist)/20
@@ -196,7 +199,10 @@ def show_graphs(list):
     plist = []
     for i in range (len(list)):
         if ( isinstance( list[i], graph.Graph ) ):
-            plist.append(list[i].plot(node_size=50, vertex_labels=False, graph_border=True))
+            pos = list[i].__get_pos__()
+            if ( pos is None and list[i].order() < 10 ):
+                plist.append(list[i].plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+            else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
         else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
 
     rows = len(list)/4

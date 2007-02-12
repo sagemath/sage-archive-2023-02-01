@@ -539,6 +539,9 @@ class Graph(GenericGraph):
     def to_undirected(self):
         return self.copy()
 
+    def __get_pos__(self):
+        return self.__pos
+
     ### General properties
 
     def is_directed(self):
@@ -592,6 +595,7 @@ class Graph(GenericGraph):
             self._nxg.add_node(i)
         else:
             self._nxg.add_node(name)
+        self.__pos = None
 
     def delete_vertex(self, vertex):
         """
@@ -1039,6 +1043,15 @@ class Graph(GenericGraph):
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
             else:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+        if pos is 'database':
+            from math import sin, cos, pi
+            n = self.order()
+            pos_dict = {}
+            for i in range(n):
+                x = float(cos((pi/2) + ((2*pi)/n)*i))
+                y = float(sin((pi/2) + ((2*pi)/n)*i))
+                pos_dict[i] = [x,y]
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
         else:
             NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
         GG.append(NGP)
@@ -1185,6 +1198,7 @@ class DiGraph(GenericGraph):
             self._nxg.add_node(i)
         else:
             self._nxg.add_node(name)
+        self.__pos = None
 
     def delete_vertex(self, vertex):
         """

@@ -188,9 +188,9 @@ class DualAbelianGroupElement(MonoidElement):
         """
         requires that len(invs) = n
         """
-        n = int(n)
         if not isinstance(n, (int, long, Integer)):
             raise TypeError, "Argument n (= %s) must be an integer."%n
+        n = int(n)
         M = self.parent()
         N = M.ngens()
         invs = M.invariants()

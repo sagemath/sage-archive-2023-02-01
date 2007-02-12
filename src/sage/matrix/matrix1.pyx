@@ -772,8 +772,12 @@ cdef class Matrix(matrix0.Matrix):
         """
         if self.is_dense():
             return self
-        return self.new_matrix(self._nrows, self._ncols, entries = self.list(), coerce=False,
+        cdef Matrix A
+        A = self.new_matrix(self._nrows, self._ncols, 0, coerce=False,
                                copy = False, sparse=False)
+        for i,j in self.nonzero_positions():
+            A.set_unsafe(i,j,self.get_unsafe(i,j))
+        return A
 
     def sparse_matrix(self):
         """

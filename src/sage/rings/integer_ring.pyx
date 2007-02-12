@@ -69,13 +69,16 @@ cimport rational
 import ring
 
 ###########
-from random import randint
+from random import randrange
 cdef extern from "stdlib.h":
     long random()
     void srandom(unsigned int seed)
+k = randrange(0,2**32)
+srandom(k)
 
-# seed it when module is loaded.
-srandom(randint(0,2**32))
+cdef gmp_randstate_t state
+gmp_randinit_mt(state)
+gmp_randseed_ui(state,k)
 ###########
 
 def is_IntegerRing(x):
@@ -292,32 +295,47 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             return False
 
-    def random_element(self, min=-2, max=2):
+    def random_element(self, x=None, y=None):
         """
-        Return a random integer between min and max,
-        including both endpoints.
+        Return a random integer.
 
-        INPUT:
-            min -- integer
-            max -- integer
+            ZZ.random_element() -- random integer [-2,-1,0,1,2].
+            ZZ.random_element(n) -- return an integer between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer between min and max-1, inclusive.
 
         EXAMPLES:
+        The default is integers between -2 and 2 inclusive:
+            sage: [ZZ.random_element() for _ in range(10)]
+            [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
+
             sage: ZZ.random_element(-10,10)
+            -6
+            sage: ZZ.random_element(10)
             6
-            sage: ZZ.random_element(0,10^50)
+            sage: ZZ.random_element(10^50)
             46451269108731711203254579547654565878787536081836
+            sage: [ZZ.random_element(5) for _ in range(10)]
+            [3, 3, 2, 1, 0, 4, 2, 1, 1, 0]
+
+        Notice that the right endpoint is not included:
+            sage: [ZZ.random_element(-2,2) for _ in range(10)]
+            [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
         """
-        cdef integer.Integer x
-        cdef int _min, _max, r
-        if max < 2147483648:
-            _min = min
-            _max = max
-            x = PY_NEW(integer.Integer)
-            r = random() % (_max - _min + 1) + _min
-            mpz_set_si(x.value, r)
-            return x
+        cdef integer.Integer z, n_max, n_min, n_width
+        z = integer.Integer()
+        if y is None:
+            if x is None:
+                mpz_set_si(z.value, random()%5 - 2)
+            else:
+                n_max = self(x)
+                mpz_urandomm(z.value, state, n_max.value)
         else:
-            return integer.Integer(randint(min,max))
+            n_min = self(x)
+            n_width = self(y) - n_min
+            mpz_urandomm(z.value, state, n_width.value)
+            mpz_add(z.value, z.value, n_min.value)
+        #end if
+        return z
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

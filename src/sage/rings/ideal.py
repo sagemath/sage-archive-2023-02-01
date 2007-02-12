@@ -29,6 +29,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.element import MonoidElement
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
 from sage.rings.infinity import Infinity
+from sage.structure.sequence import Sequence
 
 def Ideal(R, gens=[], coerce=True):
     r"""
@@ -72,11 +73,25 @@ def Ideal(R, gens=[], coerce=True):
         Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
         Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+
+    This example illustrates how SAGE finds a common ambient ring for the ideal, even though
+    1 is in the integers (in this case).
+        sage: R.<t> = ZZ['t']
+        sage: i = ideal(1,t,t^2)
+        sage: i
+        Ideal (1, t, t^2) of Univariate Polynomial Ring in t over Integer Ring
+        sage: i = ideal(1/2,t,t^2)
+        Traceback (most recent call last):
+        ...
+        TypeError: unable to find common ring into which all ideal generators map
     """
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())
 
     if isinstance(R, (list, tuple)) and len(R) > 0:
+        R = Sequence(R)
+        if not isinstance(R.universe(), sage.rings.ring.Ring):
+            raise TypeError, "unable to find common ring into which all ideal generators map"
         return R[0].parent().ideal(R)
 
     if not isinstance(R, sage.rings.ring.Ring):

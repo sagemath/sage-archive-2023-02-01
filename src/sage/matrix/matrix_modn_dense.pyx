@@ -327,7 +327,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         ALGORITHM: Uses LinBox if self.base_ring() is a field,
         otherwise use Hessenberg form algorithm.
         """
-        if algorithm == 'linbox' and not self.base_ring().is_field():
+        if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
 
         if algorithm == 'linbox':
@@ -349,7 +349,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
                          'generic'
         """
         #Disabling LinBox for now
-        if algorithm=='linbox' and not self.base_ring().is_field():
+        if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
             algorithm='generic' #LinBox only supports fields
 
         if algorithm == 'linbox':

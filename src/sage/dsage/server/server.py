@@ -147,12 +147,9 @@ class DSageServer(pb.Root):
         """
 
         try:
-            # job = cPickle.loads(zlib.decompress(pickled_job))
-            # print job
             if self.log_level > 3:
                 log.msg('[DSage, submitJob] Trying to unpickle job.')
             job = self.unpickle(pickled_job)
-            # print job
         except:
             return False
         if job.file is None:

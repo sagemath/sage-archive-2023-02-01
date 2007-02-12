@@ -2450,6 +2450,7 @@ class GraphicsArray(SageObject):
                 if not isinstance(g, Graphics):
                     raise TypeError, "every element of array must be a Graphics object"
                 self._glist.append(g)
+        self._figsize = DEFAULT_FIGSIZE
 
     def _repr_(self):
         return "Graphics Array of size %s x %s"%(self._rows, self._cols)
@@ -2467,6 +2468,11 @@ class GraphicsArray(SageObject):
     def __setitem__(self, i, g):
         i = int(i)
         self._glist[i] = g
+
+    def __set_figsize__(self, list):
+        m = int(list[0])
+        n = int(list[1])
+        self._figsize = [m,n]
 
     def __len__(self):
         return len(self._glist)
@@ -2509,12 +2515,13 @@ class GraphicsArray(SageObject):
         r"""
         Show this graphics array using the default viewer.
         """
+        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
+            self.save(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi, figsize=figsize, **args)
+        self._render(filename, dpi=dpi, figsize=self._figsize, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
 

@@ -1,8 +1,9 @@
 import graph
+import graph_list
 
 class GraphDatabase():
 
-    def getGraphsList(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+    def get_list_of_graphs(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
 
         data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
 
@@ -13,11 +14,30 @@ class GraphDatabase():
                 glist.append(graph.Graph(data['G%s'%i][0]))
         return glist
 
-    def getDataSet(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
-
+    def get_data_set(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
         return self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
 
-    def showGraphs():
+    def get_list_of_graphics_arrays(self, with_properties=False, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        if ( with_properties == False):
+            glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+            return graph_list.to_graphics_arrays(glist)
+        else:
+            # TODO
+            return
+
+    def number_of(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+        return len(glist)
+
+    def show_graphs(self, with_properties=False, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        if ( with_properties == False):
+            glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
+            return graph_list.show_graphs(glist)
+        else:
+            # TODO
+            return
+
+    def __get_properties__(self):
         return
 
     def __query__(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):

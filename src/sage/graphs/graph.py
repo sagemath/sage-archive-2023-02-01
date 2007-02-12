@@ -10,6 +10,7 @@ AUTHOR:
         multiple edges & arcs
                         (2007-02-07): graph6 and sparse6 formats, matrix input
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
+    -- Robert L. Miller (2007-02-12): vertex color-maps
 
 TUTORIAL:
 
@@ -41,7 +42,59 @@ TUTORIAL:
 
             B. Supported formats
 
-            TODO
+            SAGE Graphs can be created from a wide range of inputs. A few examples are
+            covered here.
+
+                i. NetworkX dictionary format:
+
+                sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
+                sage: G = Graph(d); G
+                sage: G.save('sage.png')
+
+                ii. graph6 or sparse6 format:
+
+                sage: s = ':I`AKGsaOs`cI]Gb~'
+                sage: G = Graph(s); G
+                Simple graph on 10 vertices (with loops, with multiple edges)
+                sage: G.save('sage.png')
+
+                iii. adjacency matrix: In an adjacency matrix, each column and each row represent
+                a vertex. If a 1 shows up in row i, column j, there is an edge (i,j).
+
+                sage: M = Matrix([(0,1,0,0,1,1,0,0,0,0),(1,0,1,0,0,0,1,0,0,0),(0,1,0,1,0,0,0,1,0,0),(0,0,1,0,1,0,0,0,1,0),(1,0,0,1,0,0,0,0,0,1),(1,0,0,0,0,0,0,1,1,0),(0,1,0,0,0,0,0,0,1,1),(0,0,1,0,0,1,0,0,0,1),(0,0,0,1,0,1,1,0,0,0),(0,0,0,0,1,0,1,1,0,0)])
+                sage: M
+                [0 1 0 0 1 1 0 0 0 0]
+                [1 0 1 0 0 0 1 0 0 0]
+                [0 1 0 1 0 0 0 1 0 0]
+                [0 0 1 0 1 0 0 0 1 0]
+                [1 0 0 1 0 0 0 0 0 1]
+                [1 0 0 0 0 0 0 1 1 0]
+                [0 1 0 0 0 0 0 0 1 1]
+                [0 0 1 0 0 1 0 0 0 1]
+                [0 0 0 1 0 1 1 0 0 0]
+                [0 0 0 0 1 0 1 1 0 0]
+                sage: G = Graph(M); G
+                Simple graph on 10 vertices (no loops, no multiple edges)
+                sage: G.save('sage.png')
+
+                iv. incidence matrix: In an incidence matrix, each row represents a vertex
+                and each column reprensents an edge.
+
+                sage: M = Matrix([(-1,0,0,0,1,0,0,0,0,0,-1,0,0,0,0),(1,-1,0,0,0,0,0,0,0,0,0,-1,0,0,0),(0,1,-1,0,0,0,0,0,0,0,0,0,-1,0,0),(0,0,1,-1,0,0,0,0,0,0,0,0,0,-1,0),(0,0,0,1,-1,0,0,0,0,0,0,0,0,0,-1),(0,0,0,0,0,-1,0,0,0,1,1,0,0,0,0),(0,0,0,0,0,0,0,1,-1,0,0,1,0,0,0),(0,0,0,0,0,1,-1,0,0,0,0,0,1,0,0),(0,0,0,0,0,0,0,0,1,-1,0,0,0,1,0),(0,0,0,0,0,0,1,-1,0,0,0,0,0,0,1)])
+                sage: M
+                [-1  0  0  0  1  0  0  0  0  0 -1  0  0  0  0]
+                [ 1 -1  0  0  0  0  0  0  0  0  0 -1  0  0  0]
+                [ 0  1 -1  0  0  0  0  0  0  0  0  0 -1  0  0]
+                [ 0  0  1 -1  0  0  0  0  0  0  0  0  0 -1  0]
+                [ 0  0  0  1 -1  0  0  0  0  0  0  0  0  0 -1]
+                [ 0  0  0  0  0 -1  0  0  0  1  1  0  0  0  0]
+                [ 0  0  0  0  0  0  0  1 -1  0  0  1  0  0  0]
+                [ 0  0  0  0  0  1 -1  0  0  0  0  0  1  0  0]
+                [ 0  0  0  0  0  0  0  0  1 -1  0  0  0  1  0]
+                [ 0  0  0  0  0  0  1 -1  0  0  0  0  0  0  1]
+                sage: G = Graph(M); G
+                Simple graph on 10 vertices (no loops, no multiple edges)
+                sage: G.save('sage.png')
 
         2. Databases
 
@@ -389,7 +442,13 @@ class Graph(GenericGraph):
         from sage.structure.element import is_Matrix
         if format is None:
             if isinstance(data, str):
-                if data[0] == ':':
+                if data[:10] == ">>graph6<<":
+                    data = data[10:]
+                    format = 'graph6'
+                elif data[:11] == ">>sparse6<<":
+                    data = data[11:]
+                    format = 'sparse6'
+                elif data[0] == ':':
                     format = 'sparse6'
                 else:
                     format = 'graph6'
@@ -472,17 +531,21 @@ class Graph(GenericGraph):
                 d[i] = {}
             self._nxg = networkx.XGraph(d, selfloops = True, multiedges = True)
         elif format == 'adjacency_matrix':
-            # assumes nonmultiple edges (there is a relevant NetworkX bug, see ticket #87)
             d = {}
-            for i,j in data.nonzero_positions():
-                if d.has_key(i):
-                    if d[i].has_key(j):
-                        pass
-                    else:
-                        d[i][j] = None
-                else:
-                    d[i] = {j : None}
+            for i in range(data.nrows()):
+                d[i] = {}
             self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
+            e = []
+            for i,j in data.nonzero_positions():
+                if i < j and kwds.get(multiedges,False):
+                    e += [(i,j)]*int(data[i][j])
+                elif i < j:
+                    e.append((i,j))
+                elif i == j and loops and kwds.get(multiedges,False):
+                    e += [(i,j)]*int(data[i][j])
+                elif i == j and loops:
+                    e.append((i,j))
+            self._nxg.add_edges_from(e)
         elif format == 'incidence_matrix':
             b = True
             for c in data.columns():
@@ -491,7 +554,7 @@ class Graph(GenericGraph):
                     b = False
                 else:
                     k = d.keys()
-                    if not d[k[0]] == -1 * d[k[1]]:
+                    if not (d[k[0]] == -1 * d[k[1]] and abs(d[k[0]]) == 1):
                         b = False
             if not b:
                 raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
@@ -505,7 +568,6 @@ class Graph(GenericGraph):
                     k = c.dict().keys()
                     e.append((k[0],k[1]))
                 self._nxg.add_edges_from(e)
-        # TODO weighted matrices
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
         self.__pos = pos
@@ -876,6 +938,26 @@ class Graph(GenericGraph):
         M = matrix(R, n, n, D, sparse=sparse)
         return M
 
+    def incidence_matrix(self, sparse=True):
+        """
+        Returns an incidence matrix of the graph. Each row is a vertex, and
+        each column is an edge.
+        """
+        from sage.matrix.constructor import matrix
+        from copy import copy
+        n = len(self._nxg.adj)
+        verts = self.vertices()
+        d = [0]*n
+        cols = []
+        for i, j, l in self.edge_iterator():
+            col = copy(d)
+            i = verts.index(i)
+            j = verts.index(j)
+            col[i] = -1
+            col[j] = 1
+            cols.append(col)
+        return matrix(cols, sparse=sparse).transpose()
+
     def __bit_vector(self):
         vertices = self.vertices()
         n = len(vertices)
@@ -1032,15 +1114,15 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False):
+    def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
         GG = Graphics()
         if pos is None:
             if self.__pos is None:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
+                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
             else:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         else:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         GG.append(NGP)
         pos = NGP._GraphicPrimitive_NetworkXGraph__pos
         xmin = NGP._xmin
@@ -1060,7 +1142,7 @@ class Graph(GenericGraph):
             return BGG
         return GG
 
-    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, **kwds):
+    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """
         INPUT:
             pos -- ??
@@ -1075,16 +1157,16 @@ class Graph(GenericGraph):
             Simple graph on 5 vertices (no loops, no multiple edges)
             sage: g.plot().save('sage.png')
         """
-        self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size,  graph_border=graph_border).show(**kwds)
+        self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
 
 class DiGraph(GenericGraph):
     """
-    Directed graph (no loops, multiple edges only with distinct labels, non-hyper).
+    Directed graph.
     """
 
-    def __init__(self, data=None, pos=None, loops=False, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
         """
-        Initialize digraph.
+        Create a digraph object.
 
         INPUT:
         data -- can be any of the following:
@@ -1109,14 +1191,64 @@ class DiGraph(GenericGraph):
         needed
         """
         import networkx
-        if isinstance(data, DiGraph):
-            self._nxg = data.networkx_graph()
-        elif isinstance(data, networkx.DiGraph):
-            self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
-        elif isinstance(data, networkx.XDiGraph):
-            self._nxg = data
-        else:
-            self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
+        from sage.structure.element import is_Matrix
+        if format is None:
+            if is_Matrix(data):
+                if data.is_square(): # adjacency matrix
+                    format = 'adjacency_matrix'
+                else: # incidence matrix
+                    format = 'incidence_matrix'
+            elif isinstance(data, DiGraph):
+                self._nxg = data.networkx_graph()
+            elif isinstance(data, networkx.DiGraph):
+                self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
+            elif isinstance(data, networkx.XDiGraph):
+                self._nxg = data
+            else:
+                self._nxg = networkx.XDiGraph(data, selfloops=loops, **kwds)
+        elif format == 'adjacency_matrix':
+            d = {}
+            for i in range(data.nrows()):
+                d[i] = {}
+            self._nxg = networkx.XDiGraph(d, selfloops = loops, **kwds)
+            e = []
+            for i,j in data.nonzero_positions():
+                if i == j and loops and kwds.get(multiedges,False):
+                    e += [(i,j)]*int(data[i][j])
+                elif i == j and loops:
+                    e.append((i,j))
+                elif not i == j and kwds.get(multiedges,False):
+                    e += [(i,j)]*int(data[i][j])
+                elif not i == j:
+                    e.append((i,j))
+            self._nxg.add_edges_from(e)
+        elif format == 'incidence_matrix':
+            b = True
+            for c in data.columns():
+                d = c.dict()
+                if not len(d) == 2:
+                    b = False
+                else:
+                    k = d.keys()
+                    if not d[k[0]] == -1 * d[k[1]]:
+                        b = False
+            if not b:
+                raise AttributeError, "Incidence Matrix must have one 1 and one -1 per column."
+            else:
+                d = {}
+                for i in range(data.nrows()):
+                    d[i] = {}
+                self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
+                e = []
+                for c in data.columns():
+                    k = c.dict().keys()
+                    if d[k[0]] == -1:
+                        e.append((k[0],k[1]))
+                    else:
+                        e.append((k[1],k[0]))
+                self._nxg.add_edges_from(e)
+        if kwds.has_key('name'):
+            self._nxg.name = kwds['name']
         self.__pos = pos
 
     def _repr_(self):
@@ -1124,7 +1256,15 @@ class DiGraph(GenericGraph):
             name = self._nxg.name
             name = name + ": a s"
         else: name = "S"
-        return name + "imple directed graph on %d vertices"%len(self._nxg.adj)
+        if self.loops():
+            loops = "with"
+        else:
+            loops = "no"
+        if self.multiple_edges():
+            multi = "with"
+        else:
+            multi = "no"
+        return name + "imple directed graph on %d vertices (%s loops, %s multiple edges)"%(len(self._nxg.adj),loops,multi)
 
     def copy(self):
         """
@@ -1500,6 +1640,26 @@ class DiGraph(GenericGraph):
         M = matrix(IntegerModRing(2), n, n, D, sparse=sparse)
         return M
 
+    def incidence_matrix(self, sparse=True):
+        """
+        Returns an incidence matrix of the graph. Each row is a vertex, and
+        each column is an edge.
+        """
+        from sage.matrix.constructor import matrix
+        from copy import copy
+        n = len(self._nxg.adj)
+        verts = self.vertices()
+        d = [0]*n
+        cols = []
+        for i, j, l in self.edge_iterator():
+            col = copy(d)
+            i = verts.index(i)
+            j = verts.index(j)
+            col[i] = -1
+            col[j] = 1
+            cols.append(col)
+        return matrix(cols, sparse=sparse).transpose()
+
     ### Contructors
 
     def reverse(self):
@@ -1538,96 +1698,36 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, vertex_labels=True, node_size=200):
+    def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
         GG = Graphics()
         if pos is None:
             if self.__pos is None:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size)
+                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
             else:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size)
+                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         else:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size)
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
         GG.append(NGP)
         pos = NGP._GraphicPrimitive_NetworkXGraph__pos
-        xmin = min([pos[i][0] for i in pos])
-        xmax = max([pos[i][0] for i in pos])
-        ymin = min([pos[i][1] for i in pos])
-        ymax = max([pos[i][1] for i in pos])
+        xmin = NGP._xmin
+        xmax = NGP._xmax
+        ymin = NGP._ymin
+        ymax = NGP._ymax
         GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
         GG.axes(False)
+        if ( graph_border ):
+            from sage.plot.plot import line
+            dx = (xmax - xmin)/10
+            dy = (ymax - ymin)/10
+            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+            border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+            BGG = GG + border
+            BGG.axes(False)
+            return BGG
         return GG
 
-    def show(self, pos=None, vertex_labels=True, node_size=200):
-        self.plot(pos, vertex_labels, node_size).show()
-
-def graph(data, format = None):
-    # TODO documentation
-    if format is None:
-        if isinstance(data, str):
-            if data[0] == ':':
-                format = 'sparse6'
-            else:
-                format = 'graph6'
-
-    if format == 'graph6':
-        if not isinstance(data, str):
-            raise ValueError, 'If input format is graph6, then data must be a string'
-        from sage.rings.integer import Integer
-        data = data.split('\n')
-        Glist = []
-        for s in data:
-            n, s = N_inverse(s)
-            m = R_inverse(s, n)
-            G = Graph()
-            k = 0
-            for i in range(n):
-                for j in range(i):
-                    if m[k] == '1':
-                        G.add_edge(j,i)
-                    k += 1
-            Glist.append(G)
-        if len(Glist) == 1:
-            return Glist[0]
-        else:
-            return Glist
-    elif format == 'sparse6':
-        from sage.rings.integer import Integer
-        from sage.rings.arith import ceil, floor
-        from sage.misc.functional import log
-        from sage.rings.integer_ring import ZZ
-        data = data.split('\n')
-        Glist = []
-        for s in data:
-            n, s = N_inverse(s[1:])
-            k = ceil(log(n,2))
-            l = [Integer(ord(i)-63).binary() for i in s]
-            for i in range(len(l)):
-                l[i] = '0'* (6-len(l[i])) + l[i]
-            bits = ''.join(l)
-            b = []
-            x = []
-            for i in range(floor(len(bits)/(k+1))):
-                b.append(ZZ(bits[(k+1)*i:(k+1)*i+1],base=2))
-                x.append(ZZ(bits[(k+1)*i+1:(k+1)*i+k+1],base=2))
-            v = 0
-            edges = []
-            for i in range(len(b)):
-                if b[i] == 1:
-                    v += 1
-                if x[i] > v:
-                    v = x[i]
-                else:
-                    if v < n:
-                        edges.append((x[i],v))
-            G = Graph(loops=True, multiedges=True)
-            G.add_vertices([i for i in range(n)])
-            for e in edges:
-                G.add_edge(e)
-            Glist.append(G)
-        if len(Glist) == 1:
-            return Glist[0]
-        else:
-           return Glist
+    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
+        self.plot(pos, vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
 
 def R(x): # Helper function for graph6
     from sage.rings.integer_ring import ZZ

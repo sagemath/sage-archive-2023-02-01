@@ -147,6 +147,7 @@ def to_graphics_arrays(list):
     from sage.plot.plot import graphics_array
     from sage.graphs import graph
     plist = []
+    g_arrays = []
     for i in range (len(list)):
         if ( isinstance( list[i], graph.Graph ) ):
             plist.append(list[i].plot(node_size=50, vertex_labels=False, graph_border=True))
@@ -154,12 +155,31 @@ def to_graphics_arrays(list):
 
     num_arrays = len(plist)/20
     if ( len(plist)%20 > 0 ): num_arrays += 1
+    rows = 5
+    cols = 4
 
-    return plist
+    for i in range (num_arrays-1):
+        glist = []
+        for j in range (rows*cols):
+            glist.append(plist[ i*rows*cols + j ])
+        ga = graphics_array(glist, rows, cols)
+        g_arrays.append(ga)
 
+    last = len(plist)%20
+    index = (num_arrays-1)*rows*cols
+    last_rows = last/cols
+    if ( last%cols > 0 ): last_rows += 1
+
+    glist = []
+    for i in range (last):
+        glist.append(plist[ i + index])
+    ga = graphics_array(glist, last_rows, cols)
+    g_arrays.append(ga)
+
+    return g_arrays
 
 def show_graphs(list):
-    if ( len(list) > 24 ):
+    if ( len(list) > 20 ):
         raise ValueError, 'List is too long to display in a graphics array.  Try using the to_graphics_array function.'
     return
 

@@ -49,6 +49,7 @@ TUTORIAL:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
+                Simple graph on 10 vertices (no loops, no multiple edges)
                 sage: G.save('sage.png')
 
                 ii. graph6 or sparse6 format:
@@ -325,7 +326,7 @@ class Graph(GenericGraph):
 
     ### Note: NetworkX function print_dna not wrapped.
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, with_boundary=False, boundary=None, **kwds):
         """
         Create a graph object.
 
@@ -359,6 +360,8 @@ class Graph(GenericGraph):
                 'sparse6' -- Brendan McKay's sparse6 format, in a string (if the string has
                             multiple graphs, the first graph is taken)
                 TODO: format = 'matrix'
+            with_boundary -- boolean, whether to create a graph with boundary or not
+            boundary -- ignored if not a graph with boundary- a list of boundary vertices
 
         EXAMPLES:
         We illustrate the first six input formats (the other two
@@ -537,7 +540,7 @@ class Graph(GenericGraph):
             self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
             e = []
             for i,j in data.nonzero_positions():
-                if i < j and kwds.get(multiedges,False):
+                if i < j and kwds.get('multiedges',False):
                     e += [(i,j)]*int(data[i][j])
                 elif i < j:
                     e.append((i,j))
@@ -570,6 +573,12 @@ class Graph(GenericGraph):
                 self._nxg.add_edges_from(e)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
+        if with_boundary:
+            self.__with_boundary = True
+            self.__boundary = boundary
+        else:
+            self.__with_boundary = False
+            self.__boundary = None
         self.__pos = pos
 
     def _repr_(self):
@@ -1116,6 +1125,12 @@ class Graph(GenericGraph):
 
     def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
         GG = Graphics()
+        if color_dict is None and self.__with_boundary:
+            v = self.vertices()
+            b = self.__boundary
+            for i in b:
+                v.pop(v.index(i))
+            color_dict = {'r':v,'b':b}
         if pos is None:
             if self.__pos is None:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
@@ -1164,7 +1179,7 @@ class DiGraph(GenericGraph):
     Directed graph.
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, with_boundary=False, boundary=None, **kwds):
         """
         Create a digraph object.
 
@@ -1249,6 +1264,12 @@ class DiGraph(GenericGraph):
                 self._nxg.add_edges_from(e)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
+        if with_boundary:
+            self.__with_boundary = True
+            self.__boundary = boundary
+        else:
+            self.__with_boundary = False
+            self.__boundary = None
         self.__pos = pos
 
     def _repr_(self):
@@ -1700,6 +1721,12 @@ class DiGraph(GenericGraph):
 
     def plot(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
         GG = Graphics()
+        if color_dict is None and self.__with_boundary:
+            v = self.vertices()
+            b = self.__boundary
+            for i in b:
+                v.pop(v.index(i))
+            color_dict = {'r':v,'b':b}
         if pos is None:
             if self.__pos is None:
                 NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)

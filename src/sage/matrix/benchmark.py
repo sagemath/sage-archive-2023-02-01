@@ -7,7 +7,7 @@ verbose = False
 #######################################################################
 
 def report_ZZ():
-    F = [nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ]
+    F = [nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ, det_ZZ]
     systems = ['sage', 'magma']
     for f in F:
         print "-"*70
@@ -130,6 +130,33 @@ s := Cputime(t);
         if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+def det_ZZ(n=400, min=1, max=100, system='sage'):
+    """
+    Dense integer determinant over ZZ.
+
+    Given an n x n (with n=400) matrix A over ZZ with random entries
+    between min=1 and max=100, inclusive, compute det(A).
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        t = cputime()
+        d = A.determinant()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+t := Cputime();
+d := Determinant(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
 

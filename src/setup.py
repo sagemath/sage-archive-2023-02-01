@@ -497,6 +497,9 @@ ext_modules = [ \
               libraries = ['gmp']
               ), \
 
+    Extension('sage.dsage.scripts.dsage_activate',
+              sources = ['sage/dsage/scripts/dsage_activate.pyx']), \
+
     ]
 
 
@@ -831,7 +834,8 @@ setup(name        = 'sage',
                      'sage.dsage.pb',
                      'sage.dsage.dist_functions',
                      'sage.dsage.misc',
-                     'sage.dsage.interface'
+                     'sage.dsage.interface',
+                     'sage.dsage.scripts'
                      ],
 
       scripts = ['sage/dsage/scripts/dsage_server.py',

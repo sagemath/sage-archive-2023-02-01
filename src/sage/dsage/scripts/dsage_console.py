@@ -58,6 +58,8 @@ try:
         orig_reactor = internet.reactor
 
         class DummyReactor(object):
+            def __init__(self):
+                self.orig_reactor = internet.reactor
             def run(self):
                 pass
             def __getattr__(self, name):
@@ -70,14 +72,15 @@ try:
 
 
     class IPShellTwisted(threading.Thread):
-        """Run a Twisted reactor while in an IPython session.
+        """
+        Run a Twisted reactor while in an IPython session.
 
         Python commands can be passed to the thread where they will be
         executed.  This is implemented by periodically checking for
         passed code using a Twisted reactor callback.
         """
 
-        TIMEOUT = 0.5 # Millisecond interval between reactor
+        TIMEOUT = 0.1 # Millisecond interval between reactor
 
         def __init__(self, argv=None, user_ns=None, debug=Integer(1),
                      shell_class=MTInteractiveShell):

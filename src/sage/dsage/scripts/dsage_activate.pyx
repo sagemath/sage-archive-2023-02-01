@@ -7,7 +7,7 @@ def start_dsage_console():
     shell = dsage_console.IPShellTwisted(
         argv=[],
         user_ns=globals())
-    print 'Starting Distributed SAGE...'
+    print 'Starting Distributed SAGE console...'
     global in_console_mode
     in_console_mode = True
     shell.mainloop()

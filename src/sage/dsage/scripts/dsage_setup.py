@@ -67,7 +67,7 @@ def setup_client():
     config.set('log', 'log_level', '0')
     # set public key authentication info
     print "Generating public/private key pair for authentication..."
-    print "Your key will be stored in ${DOT_SAGE}/dsage/dsage_key"
+    print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
     print "Just hit enter when prompted for a passphrase"
     key_file = os.path.join(DSAGE_DIR, 'dsage_key')
     cmd = ["ssh-keygen", "-q", "-trsa", "-f%s" % key_file]
@@ -118,10 +118,10 @@ def setup_server():
 
 
     print "Generating SSL certificate for server..."
-    # creates a private key
+    print "Creates a private key:"
     cmd = ['openssl genrsa > %s' % (config.get('ssl', 'privkey_file'))]
     subprocess.call(cmd, shell=True)
-    # creates a self signed SSL certificate
+    print "Creates a self signed SSL certificate:"
     cmd = ['openssl req  -config %s -new -x509 -key %s -out %s -days \
            1000' % (os.path.join(SAGE_ROOT,'local/openssl/openssl.cnf'),
                     config.get('ssl', 'privkey_file'),

@@ -46,8 +46,7 @@ try:
     LOG_FILE = config.get('db_log', 'log_file')
     LOG_LEVEL = config.getint('db_log', 'log_level')
 except:
-    print "Error reading ${dsage/server.conf, please fix manually or \
-run dsage.setup()"
+    print "Error reading '%s', please run dsage.setup() or fix manually"%conf_file
     sys.exit(-1)
 # End reading configuration
 

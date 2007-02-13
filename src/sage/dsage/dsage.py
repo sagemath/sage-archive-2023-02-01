@@ -173,5 +173,5 @@ dsage = DistributedSage()
 
 # we have to do it this way, so the proper globals
 # get passed to start_dsage_console.
-#import scripts.dsage_activate
-#dsage.console = scripts.dsage_activate.start_dsage_console
+import scripts.dsage_activate
+dsage.console = scripts.dsage_activate.start_dsage_console

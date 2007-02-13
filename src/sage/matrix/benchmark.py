@@ -2,26 +2,47 @@ from sage.all import *
 
 verbose = False
 
+timeout = 5
+
+def report(F, title):
+    systems = ['sage', 'magma']
+    print '\n\n'
+    print '='*70
+    print ' '*10 + title
+    print '='*70
+    os.system('uname -a')
+    print '\n'
+    for f in F:
+        print "-"*70
+        print f.__doc__.strip()
+        print ('%15s'*len(systems))%tuple(systems)
+        w = []
+        for s in systems:
+            alarm(timeout)
+            try:
+                t = f(system=s)
+            except KeyboardInterrupt:
+                t = -timeout
+            alarm(0)
+            w.append(t)
+        w = tuple(w)
+        print ('%15.3f'*len(w))%w
+
+
 #######################################################################
 # Dense Benchmarks over ZZ
 #######################################################################
 
 def report_ZZ():
     F = [nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ, det_ZZ]
-    systems = ['sage', 'magma']
-    for f in F:
-        print "-"*70
-        print f.__doc__
-        print ('%15s'*len(systems))%tuple(systems)
-        w = tuple([f(system = s) for s in systems])
-        print ('%15.3f'*len(w))%w
+    title = 'Dense benchmarks over ZZ'
+    report(F, title)
 
 # Integer Nullspace
 
 def nullspace_ZZ(n=300, min=0, max=10, system='sage'):
     """
     Nullspace over ZZ:
-
     Given a n+1 x n (with n=300) matrix over ZZ with random entries
     between min=0 and max=10, compute the nullspace.
     """
@@ -48,7 +69,6 @@ s := Cputime(t);
 def charpoly_ZZ(n=100, min=0, max=9, system='sage'):
     """
     Characteristic polynomial over ZZ:
-
     Given a n x n (with n=100) matrix over ZZ with random entries
     between min=0 and max=9, compute the charpoly.
     """
@@ -105,7 +125,6 @@ s := Cputime(t);
 def matrix_multiply_ZZ(n=200, min=-9, max=9, system='sage', times=1):
     """
     Matrix multiplication over ZZ
-
     Given an n x n (with n=200) matrix A over ZZ with random entries
     between min=-9 and max=9, inclusive, compute A * (A+1).
     """
@@ -137,7 +156,6 @@ s := Cputime(t);
 def det_ZZ(n=400, min=1, max=100, system='sage'):
     """
     Dense integer determinant over ZZ.
-
     Given an n x n (with n=400) matrix A over ZZ with random entries
     between min=1 and max=100, inclusive, compute det(A).
     """

@@ -11,22 +11,11 @@ Dense matrices over the integer ring.
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-from sage.misc.misc import verbose, get_verbose, cputime, UNAME
+from sage.misc.misc import verbose, get_verbose, cputime
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
-
-cdef extern from "matrix_integer_dense_linbox.h":
-    void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix, int do_minpoly)
-    void linbox_integer_dense_minpoly(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix)
-    void linbox_integer_dense_charpoly(mpz_t* *charpoly, size_t* degree,
-                                       size_t n, mpz_t** matrix)
-    void linbox_integer_dense_delete_array(mpz_t* f)
-    int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B,
-                                      size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 
 ctypedef unsigned int uint
 
@@ -51,7 +40,9 @@ cimport sage.structure.element
 
 import matrix_space
 
-from linbox import USE_LINBOX
+from sage.libs.linbox.linbox cimport Linbox_integer_dense
+cdef Linbox_integer_dense linbox
+linbox = Linbox_integer_dense()
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -128,6 +119,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
             k = k + self._ncols
+
+    cdef _init_linbox(self):
+        _sig_on
+        linbox.set(self._matrix, self._nrows, self._ncols)
+        _sig_off
 
     def __copy__(self):
         cdef Matrix_integer_dense A
@@ -454,16 +450,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int e
         cdef Matrix_integer_dense ans, B
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
-        B = right
+        self._init_linbox()
         _sig_on
-        e = linbox_integer_dense_matrix_matrix_multiply(ans._matrix, self._matrix, B._matrix,
-                                          self._nrows, self._ncols,
-                                          right._nrows, right._ncols)
+        linbox.matrix_matrix_multiply(ans._matrix, B._matrix, B._nrows, B._ncols)
         _sig_off
-        if e:
-            raise RuntimeError
         return ans
-
 
     def _multiply_classical(self, Matrix right):
         """
@@ -646,15 +637,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()                # optional -- os x only right now
             x^3 - 3990*x^2 - 266000*x
         """
-        if algorithm == 'linbox' and not USE_LINBOX:
-            algorithm = 'generic'
-
         key = 'charpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x
-
-        if UNAME != "Darwin" and algorithm == "linbox":
-            algorithm = 'generic'
 
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
@@ -683,15 +668,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()           # optional -- os x only right now
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
         """
-        if algorithm == 'linbox' and not USE_LINBOX:
-            algorithm = 'generic'
-
         key = 'minpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x
-
-        if UNAME != "Darwin" and algorithm == "linbox":
-            algorithm = 'generic'
 
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
@@ -720,37 +699,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ValueError, "matrix must be square"
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
-        cdef mpz_t* poly
-        cdef size_t degree
-        if self._nrows % 4 == 0 and UNAME == "Darwin":
-            verbose("using hack to get around bug in linbox on OS X since n is divisible by 4")
-            if typ == 'minpoly':
-                _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
-                _sig_off
-            else:
-                _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,0)
-                _sig_off
+        self._init_linbox()
+        _sig_on
+        if typ == 'minpoly':
+            v = linbox.minpoly()
         else:
-            if typ == 'minpoly':
-                _sig_on
-                linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix)
-                _sig_off
-            else:
-                _sig_on
-                linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
-                _sig_off
-
-        v = []
-        cdef Integer k
-        cdef size_t n
-        for n from 0 <= n <= degree:
-            k = PY_NEW(Integer)
-            mpz_set(k.value, poly[n])
-            mpz_clear(poly[n])
-            v.append(k)
-        linbox_integer_dense_delete_array(poly)
+            v = linbox.charpoly()
+        _sig_off
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)
@@ -1396,6 +1351,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     if min_is_nonzero:
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
         _sig_off
+
+    def _rank_linbox(self):
+        """
+        Compute the rank of this matrix using Linbox.
+        """
+        self._init_linbox()
+        cdef unsigned long r
+        _sig_on
+        r = linbox.rank()
+        _sig_off
+        return Integer(r)
+
+    def _rank_modp(self, p=46337):
+        A = self._mod_int_c(p)
+        return A.rank()
+
+    def rank(self):
+        # Can very quickly detect full rank by working modulo p.
+        r = self._rank_modp()
+        if r == self._nrows or r == self._ncols:
+            self.cache('rank', r)
+            return r
+        # Detecting full rank didn't work -- use Linbox's general algorithm.
+        r = self._rank_linbox()
+        self.cache('rank', r)
+        return r
 
 
 ###############################################################

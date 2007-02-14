@@ -174,6 +174,10 @@ int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **
     return 0;
 }
 
-
-
-
+unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
+					size_t ncols) {
+    DenseMatrix<GMP_Integers> A(new_matrix(matrix, nrows, ncols));
+    unsigned long r;
+    rank(r, A);
+    return r;
+}

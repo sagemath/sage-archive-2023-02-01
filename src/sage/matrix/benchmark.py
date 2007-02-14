@@ -34,7 +34,7 @@ def report(F, title):
 #######################################################################
 
 def report_ZZ():
-    F = [nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ, det_ZZ]
+    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ, det_ZZ]
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
@@ -93,6 +93,56 @@ s := Cputime(t);
 
 
 
+
+def rank_ZZ(n=500, min=0, max=9, system='sage'):
+    """
+    Rank over ZZ:
+    Given a n x (n+10) (with n=500) matrix over ZZ with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n+10, x=min, y=max+1)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n, n+10)![Random(%s,%s) : i in [1..n*(n+10)]];
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+def rank2_ZZ(n=500, min=0, max=9, system='sage'):
+    """
+    Rank over ZZ:
+    Given a (n + 10) x n (with n=500) matrix over ZZ with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n+10, n, x=min, y=max+1)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n+10, n)![Random(%s,%s) : i in [1..n*(n+10)]];
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
 
 # Smith Form
 

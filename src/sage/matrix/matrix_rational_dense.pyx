@@ -9,10 +9,6 @@ Dense matrices over the rational field.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-cdef extern from "matrix_rational_dense_linbox.h":
-    void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc)
-
-
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
@@ -693,10 +689,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.cache('echelon_form', E)
         self.cache('pivots', E.pivots())
         return E
-
-    def _echelonize_linbox(self):
-        raise NotImplementedError
-        linbox_rational_dense_echelon_form(self._matrix, self._nrows, self._ncols)
 
     def _echelon_form_multimodular(self, height_guess=None, proof=True):
         """

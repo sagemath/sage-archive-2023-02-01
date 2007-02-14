@@ -18,5 +18,5 @@ EXTERN void linbox_integer_dense_delete_array(mpz_t* f);
 EXTERN int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B,
 			      size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc);
 
-EXTERN void linbox_rational_dense_echelon_form(mpq_t** matrix, size_t nr, size_t nc);
-
+EXTERN unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
+					       size_t ncols);

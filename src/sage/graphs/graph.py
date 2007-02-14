@@ -10,7 +10,8 @@ AUTHOR:
         multiple edges & arcs
                         (2007-02-07): graph6 and sparse6 formats, matrix input
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
-    -- Robert L. Miller (2007-02-12): vertex color-maps
+    -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
+        graph6 helper functions in SageX
 
 TUTORIAL:
 
@@ -156,6 +157,7 @@ from random import random
 
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
+import sage.graphs.graph_fast
 
 class GenericGraph(SageObject):
 
@@ -314,133 +316,121 @@ class Graph(GenericGraph):
     """
     Undirected graph.
 
+    INPUT:
+        data -- can be any of the following:
+            1. A NetworkX graph
+            2. A dictionary of dictionaries
+            3. A dictionary of lists
+            4. A numpy matrix or ndarray
+            5. A graph6 or sparse6 string
+            6. A SAGE adjacency matrix or incidence matrix
+            7. A pygraphviz agraph
+            8. A scipy sparse matrix
+
+        pos -- a positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+        {0: [-0.91679746, 0.88169588],
+         1: [ 0.47294849, 1.125     ],
+         2: [ 1.125     ,-0.12867615],
+         3: [ 0.12743933,-1.125     ],
+         4: [-1.125     ,-0.50118505]}
+        name -- (must be an explicitly named parameter, i.e.,
+                 name="complete") gives the graph a name
+        loops -- boolean, whether to allow loops (ignored if data is an instance of
+        the Graph class)
+        multiedges -- boolean, whether to allow multiple edges (ignored if data is
+        an instance of the Graph class)
+        format -- if None, Graph tries to guess- can be several values, including:
+            'graph6' -- Brendan McKay's graph6 format, in a string (if the string has
+                        multiple graphs, the first graph is taken)
+            'sparse6' -- Brendan McKay's sparse6 format, in a string (if the string has
+                        multiple graphs, the first graph is taken)
+            TODO: format = 'matrix'
+        boundary -- a list of boundary vertices, if none, graph is considered as a 'graph
+                    without boundary
+
     EXAMPLES:
+    We illustrate the first six input formats (the other two
+    involve packages that are currently not standard in SAGE):
+
+    1. A networkx graph:
+        sage: import networkx
+        sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
+        sage: Graph(g)
+        Simple graph on 5 vertices (no loops, no multiple edges)
+
+    2. A dictionary of dictionaries:
+        sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
+        Simple graph on 5 vertices (no loops, no multiple edges)
+
+    The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
+    the label for the edge on 2 and 5. Labels can be used as weights, if all the
+    labels share some common parent.
+
+    3. A dictionary of lists:
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
         Simple graph on 5 vertices (no loops, no multiple edges)
-        sage: g.vertices()
-        [0, 1, 2, 3, 5]
-        sage: g.edges()
-        [(0, 1, None), (0, 2, None), (0, 3, None), (2, 5, None)]
-        sage: g.plot().save('sage.png')
+
+    4. A numpy matrix or ndarray:
+        TODO
+
+    5. A graph6 or sparse6 string:
+    SAGE automatically recognizes whether a string is in graph6 or sage6 format:
+
+        sage: s = ':I`AKGsaOs`cI]Gb~'
+        sage: Graph(s)
+        Simple graph on 10 vertices (with loops, with multiple edges)
+
+    There are also list functions to take care of lists of graphs:
+
+        sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
+        sage: graphs_list.from_sparse6(s)
+        [Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges)]
+
+    6. A SAGE matrix:
+    Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
+    matrix, and a nonsquare matrix is an incidence matrix.
+
+        A. an adjacency matrix:
+
+        sage: M = graphs.PetersenGraph().am(); M
+        [0 1 0 0 1 1 0 0 0 0]
+        [1 0 1 0 0 0 1 0 0 0]
+        [0 1 0 1 0 0 0 1 0 0]
+        [0 0 1 0 1 0 0 0 1 0]
+        [1 0 0 1 0 0 0 0 0 1]
+        [1 0 0 0 0 0 0 1 1 0]
+        [0 1 0 0 0 0 0 0 1 1]
+        [0 0 1 0 0 1 0 0 0 1]
+        [0 0 0 1 0 1 1 0 0 0]
+        [0 0 0 0 1 0 1 1 0 0]
+        sage: Graph(M)
+        Simple graph on 10 vertices (no loops, no multiple edges)
+
+        B. an incidence matrix:
+
+        sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
+        [-1  0  0  0  1]
+        [ 1 -1  0  0  0]
+        [ 0  1 -1  0  0]
+        [ 0  0  1 -1  0]
+        [ 0  0  0  1 -1]
+        [ 0  0  0  0  0]
+        sage: Graph(M)
+        Simple graph on 6 vertices (no loops, no multiple edges)
+
+    Other examples:
+        sage: G = Graph(name="Null graph")
+        sage: G
+        Null graph: a simple graph on 0 vertices (no loops, no multiple edges)
+        sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]}, name="Petersen graph")
+        sage: P
+        Petersen graph: a simple graph on 10 vertices (no loops, no multiple edges)
     """
 
     ### Note: NetworkX function print_dna not wrapped.
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, with_boundary=False, boundary=None, **kwds):
-        """
-        Create a graph object.
-
-        INPUT:
-            data -- can be any of the following:
-                1. A NetworkX graph
-                2. A dictionary of dictionaries
-                3. A dictionary of lists
-                4. A numpy matrix or ndarray
-                5. A graph6 or sparse6 string
-                6. A SAGE adjacency matrix or incidence matrix
-                7. A pygraphviz agraph
-                8. A scipy sparse matrix
-
-            pos -- a positioning dictionary: for example, the
-            spring layout from NetworkX for the 5-cycle is
-            {0: [-0.91679746, 0.88169588],
-             1: [ 0.47294849, 1.125     ],
-             2: [ 1.125     ,-0.12867615],
-             3: [ 0.12743933,-1.125     ],
-             4: [-1.125     ,-0.50118505]}
-            name -- (must be an explicitly named parameter, i.e.,
-                     name="complete") gives the graph a name
-            loops -- boolean, whether to allow loops (ignored if data is an instance of
-            the Graph class)
-            multiedges -- boolean, whether to allow multiple edges (ignored if data is
-            an instance of the Graph class)
-            format -- if None, Graph tries to guess- can be several values, including:
-                'graph6' -- Brendan McKay's graph6 format, in a string (if the string has
-                            multiple graphs, the first graph is taken)
-                'sparse6' -- Brendan McKay's sparse6 format, in a string (if the string has
-                            multiple graphs, the first graph is taken)
-                TODO: format = 'matrix'
-            with_boundary -- boolean, whether to create a graph with boundary or not
-            boundary -- ignored if not a graph with boundary- a list of boundary vertices
-
-        EXAMPLES:
-        We illustrate the first six input formats (the other two
-        involve packages that are currently not standard in SAGE):
-
-        1. A networkx graph:
-            sage: import networkx
-            sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
-            sage: Graph(g)
-            Simple graph on 5 vertices (no loops, no multiple edges)
-
-        2. A dictionary of dictionaries:
-            sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
-            Simple graph on 5 vertices (no loops, no multiple edges)
-
-        The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
-        the label for the edge on 2 and 5. Labels can be used as weights, if all the
-        labels share some common parent.
-
-        3. A dictionary of lists:
-            sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices (no loops, no multiple edges)
-
-        4. A numpy matrix or ndarray:
-            TODO
-
-        5. A graph6 or sparse6 string:
-        SAGE automatically recognizes whether a string is in graph6 or sage6 format:
-
-            sage: s = ':I`AKGsaOs`cI]Gb~'
-            sage: Graph(s)
-            Simple graph on 10 vertices (with loops, with multiple edges)
-
-        There are also list functions to take care of lists of graphs:
-
-            sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
-            sage: graphs_list.from_sparse6(s)
-            [Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges)]
-
-        6. A SAGE matrix:
-        Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
-        matrix, and a nonsquare matrix is an incidence matrix.
-
-            A. an adjacency matrix:
-
-            sage: M = graphs.PetersenGraph().am(); M
-            [0 1 0 0 1 1 0 0 0 0]
-            [1 0 1 0 0 0 1 0 0 0]
-            [0 1 0 1 0 0 0 1 0 0]
-            [0 0 1 0 1 0 0 0 1 0]
-            [1 0 0 1 0 0 0 0 0 1]
-            [1 0 0 0 0 0 0 1 1 0]
-            [0 1 0 0 0 0 0 0 1 1]
-            [0 0 1 0 0 1 0 0 0 1]
-            [0 0 0 1 0 1 1 0 0 0]
-            [0 0 0 0 1 0 1 1 0 0]
-            sage: Graph(M)
-            Simple graph on 10 vertices (no loops, no multiple edges)
-
-            B. an incidence matrix:
-
-            sage: M = Matrix(6, [-1,0,0,0,1, 1,-1,0,0,0, 0,1,-1,0,0, 0,0,1,-1,0, 0,0,0,1,-1, 0,0,0,0,0]); M
-            [-1  0  0  0  1]
-            [ 1 -1  0  0  0]
-            [ 0  1 -1  0  0]
-            [ 0  0  1 -1  0]
-            [ 0  0  0  1 -1]
-            [ 0  0  0  0  0]
-            sage: Graph(M)
-            Simple graph on 6 vertices (no loops, no multiple edges)
-
-        Other examples:
-            sage: G = Graph(name="Null graph")
-            sage: G
-            Null graph: a simple graph on 0 vertices (no loops, no multiple edges)
-            sage: P = Graph({0:[1,4,5],1:[0,2,6],2:[1,3,7],3:[2,4,8],4:[0,3,9],5:[0,7,8],6:[1,8,9],7:[2,5,9],8:[3,5,6],9:[4,6,7]}, name="Petersen graph")
-            sage: P
-            Petersen graph: a simple graph on 10 vertices (no loops, no multiple edges)
-        """
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -476,8 +466,8 @@ class Graph(GenericGraph):
             if n == -1:
                 n = len(data)
             s = data[:n]
-            n, s = N_inverse(s)
-            m = R_inverse(s, n)
+            n, s = sage.graphs.graph_fast.N_inverse(s)
+            m = sage.graphs.graph_fast.R_inverse(s, n)
             d = {}
             k = 0
             for i in range(n):
@@ -490,25 +480,23 @@ class Graph(GenericGraph):
                     k += 1
             self._nxg = networkx.XGraph(d)
         elif format == 'sparse6':
-            from sage.rings.integer import Integer
             from sage.rings.arith import ceil, floor
             from sage.misc.functional import log
-            from sage.rings.integer_ring import ZZ
             n = data.find('\n')
             if n == -1:
                 n = len(data)
             s = data[:n]
-            n, s = N_inverse(s[1:])
+            n, s = sage.graphs.graph_fast.N_inverse(s[1:])
             k = ceil(log(n,2))
-            l = [Integer(ord(i)-63).binary() for i in s]
+            l = [sage.graphs.graph_fast.binary(ord(i)-63) for i in s]
             for i in range(len(l)):
                 l[i] = '0'* (6-len(l[i])) + l[i]
             bits = ''.join(l)
             b = []
             x = []
             for i in range(floor(len(bits)/(k+1))):
-                b.append(ZZ(bits[(k+1)*i:(k+1)*i+1],base=2))
-                x.append(ZZ(bits[(k+1)*i+1:(k+1)*i+k+1],base=2))
+                b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
+                x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
             v = 0
             edges = []
             for i in range(len(b)):
@@ -573,12 +561,7 @@ class Graph(GenericGraph):
                 self._nxg.add_edges_from(e)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
-        if with_boundary:
-            self.__with_boundary = True
-            self.__boundary = boundary
-        else:
-            self.__with_boundary = False
-            self.__boundary = None
+        self.__boundary = boundary
         self.__pos = pos
 
     def _repr_(self):
@@ -605,17 +588,38 @@ class Graph(GenericGraph):
         return G
 
     def to_directed(self):
+        """
+        Returns a directed version of the graph. A single edge becomes two
+        arcs, one in each direction.
+
+        EXAMPLE:
+            sage: graphs.PetersenGraph().to_directed()
+            Simple directed graph on 10 vertices (no loops, no multiple arcs)
+        """
         return DiGraph(self._nxg.to_directed(), pos=self.__pos)
 
     def to_undirected(self):
+        """
+        Since the graph is already undirected, simply returns a copy of itself.
+
+        EXAMPLE:
+            sage: graphs.PetersenGraph().to_undirected()
+            Petersen graph: a simple graph on 10 vertices (no loops, no multiple edges)
+        """
         return self.copy()
 
     def __get_pos__(self):
         return self.__pos
 
+    def __set_pos__(self, pos):
+        self.__pos = pos
+
     ### General properties
 
     def is_directed(self):
+        """
+        Since graph is undirected, returns False.
+        """
         return False
 
     def loops(self, new=None):
@@ -624,6 +628,13 @@ class Graph(GenericGraph):
 
         INPUT:
         new -- boolean, changes whether loops are permitted in the graph.
+
+        EXAMPLE:
+            sage: G = Graph(); G
+            Simple graph on 0 vertices (no loops, no multiple edges)
+            sage: G.loops(True); G
+            True
+            Simple graph on 0 vertices (with loops, no multiple edges)
         """
         if not new is None:
             if new:
@@ -638,6 +649,13 @@ class Graph(GenericGraph):
 
         INPUT:
         new -- boolean, changes whether multiple edges are permitted in the graph.
+
+        EXAMPLE:
+            sage: G = Graph(multiedges=True); G
+            Simple graph on 0 vertices (no loops, with multiple edges)
+            sage: G.multiple_edges(False); G
+            False
+            Simple graph on 0 vertices (no loops, no multiple edges)
         """
         if not new is None:
             if new:
@@ -645,6 +663,12 @@ class Graph(GenericGraph):
             else:
                 self._nxg.ban_multiedges()
         return self._nxg.multiedges
+
+    def get_boundary(self):
+        return self.__boundary
+
+    def set_boundary(self, boundary):
+        self.__boundary = boundary
 
     ### Vertex handlers
 
@@ -656,6 +680,10 @@ class Graph(GenericGraph):
         name -- Name of the new vertex. If no name is specified, then the
         vertex will be represented by the least integer not already represen-
         ting a vertex. Name must be an immutable object.
+
+        EXAMPLE:
+            sage: G = Graph(); G.add_vertex(); G
+            Simple graph on 1 vertices (no loops, no multiple edges)
         """
         ### TODO- add doc note about representing other objects as vertices
         ### This will be done when such representation is implemented
@@ -670,6 +698,10 @@ class Graph(GenericGraph):
     def delete_vertex(self, vertex):
         """
         Deletes vertex, removing all incident edges.
+
+        EXAMPLE:
+            sage: G = graphs.WheelGraph(9)
+            sage: G.delete_vertex(0); G.save('sage.png')
         """
         self._nxg.delete_node(vertex)
 
@@ -677,15 +709,34 @@ class Graph(GenericGraph):
         """
         Remove vertices from the graph taken from an iterable container of
         vertices.
+
+        EXAMPLE:
+            sage: G = graphs.WheelGraph(9)
+            sage: G.delete_vertices([1,2,3,4,5,6,7,8]); G.save('sage.png')
         """
         self._nxg.delete_nodes_from(vertices)
 
     def has_vertex(self, vertex):
+        """
+        Indicates whether vertex is a vertex of the graph.
+
+        EXAMPLE:
+            sage: graphs.PetersenGraph().has_vertex(99)
+            False
+        """
         return self._nxg.has_node(vertex)
 
     def neighbor_iterator(self, vertex):
         """
         Return an iterator over neighbors of vertex.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(3)
+            sage: for i in G.neighbor_iterator('010'):
+            ...    print i
+            011
+            000
+            110
         """
         return self._nxg.neighbors_iter(vertex)
 
@@ -694,12 +745,23 @@ class Graph(GenericGraph):
         Returns a list of all vertices in the external boundary of vertices1,
         intersected with vertices2. If vertices2 is None, then vertices2 is the
         complement of vertices1.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(4)
+            sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
+            sage: G.vertex_boundary(['0000', '1111'], l)
+            ['0111', '1011', '1101', '0010', '0100', '0001']
         """
         return self._nxg.node_boundary(vertices1, vertices2)
 
     def loop_vertices(self):
         """
         Returns a list of vertices with loops.
+
+        EXAMPLE:
+            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
+            sage: G.loop_vertices()
+            [0, 1]
         """
         return self._nxg.nodes_with_selfloops()
 
@@ -721,19 +783,19 @@ class Graph(GenericGraph):
 
         WARNING:
         The following intuitive input results in nonintuitive output:
-        sage.: G = Graph()
-        sage.: G.add_edge((1,2), 'label')
+        sage: G = Graph()
+        sage: G.add_edge((1,2), 'label')
         sage.: G.networkx_graph().adj
         {'label': {(1, 2): None}, (1, 2): {'label': None}}
 
         Use one of these instead:
-        sage.: G = Graph()
-        sage.: G.add_edge((1,2), label="label")
+        sage: G = Graph()
+        sage: G.add_edge((1,2), label="label")
         sage.: G.networkx_graph().adj
         {1: {2: 'label'}, 2: {1: 'label'}}
 
-        sage.: G = Graph()
-        sage.: G.add_edge(1,2,'label')
+        sage: G = Graph()
+        sage: G.add_edge(1,2,'label')
         sage.: G.networkx_graph().adj
         {1: {2: 'label'}, 2: {1: 'label'}}
         """
@@ -742,6 +804,12 @@ class Graph(GenericGraph):
     def add_edges(self, edges):
         """
         Add edges from an iterable container.
+
+        EXAMPLE:
+            sage: G = graphs.DodecahedralGraph()
+            sage: H = Graph()
+            sage: H.add_edges( G.edge_iterator() ); H
+            Simple graph on 20 vertices (no loops, no multiple edges)
         """
         self._nxg.add_edges_from( edges )
 
@@ -759,18 +827,54 @@ class Graph(GenericGraph):
         G.delete_edge( 1, 2, 'label' )
         G.delete_edge( (1, 2, 'label') )
         G.delete_edges( [ (1, 2, 'label') ] )
+
+        EXAMPLES:
+            sage: G = graphs.CompleteGraph(19)
+            sage: G.size()
+            171
+            sage: G.delete_edge( 1, 2 )
+            sage: G.delete_edge( (3, 4) )
+            sage: G.delete_edges( [ (5, 6), (7, 8) ] )
+            sage: G.delete_edge( 9, 10, 'label' )
+            sage: G.delete_edge( (11, 12, 'label') )
+            sage: G.delete_edges( [ (13, 14, 'label') ] )
+            sage: G.size()
+            164
+            sage: G.has_edge( (11, 12) )
+            False
+
+        Note that even though the edge (11, 12) has no label, it still gets
+        deleted: NetworkX does not pay attention to labels here.
         """
         self._nxg.delete_edge(u, v, label)
 
     def delete_edges(self, edges):
         """
         Delete edges from an iterable container.
+
+        EXAMPLE:
+            sage: K12 = graphs.CompleteGraph(12)
+            sage: K4 = graphs.CompleteGraph(4)
+            sage: K12.size()
+            66
+            sage: K12.delete_edges(K4.edge_iterator())
+            sage: K12.size()
+            60
         """
         self._nxg.delete_edges_from(edges)
 
     def delete_multiedge(self, u, v):
         """
         Deletes all edges on u and v.
+
+        EXAMPLES:
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges([(0,1), (0,1), (0,1), (1,2), (2,3)])
+            sage: G.edges()
+            [(0, 1, None), (0, 1, None), (0, 1, None), (1, 2, None), (2, 3, None)]
+            sage: G.delete_multiedge( 0, 1 )
+            sage: G.edges()
+            [(1, 2, None), (2, 3, None)]
         """
         self._nxg.delete_multiedge(u, v)
 
@@ -781,6 +885,13 @@ class Graph(GenericGraph):
 
         INPUT:
         label -- if False, each edge is a tuple (u,v) of vertices.
+
+        EXAMPLES:
+            sage: graphs.DodecahedralGraph().edges()
+            [(0, 1, None), (0, 10, None), (0, 19, None), (1, 8, None), (1, 2, None), (2, 3, None), (2, 6, None), (3, 19, None), (3, 4, None), (4, 17, None), (4, 5, None), (5, 6, None), (5, 15, None), (6, 7, None), (7, 8, None), (7, 14, None), (8, 9, None), (9, 10, None), (9, 13, None), (10, 11, None), (11, 12, None), (11, 18, None), (12, 16, None), (12, 13, None), (13, 14, None), (14, 15, None), (15, 16, None), (16, 17, None), (17, 18, None), (18, 19, None)]
+
+            sage: graphs.DodecahedralGraph().edges(labels=False)
+            [(0, 1), (0, 10), (0, 19), (1, 8), (1, 2), (2, 3), (2, 6), (3, 19), (3, 4), (4, 17), (4, 5), (5, 6), (5, 15), (6, 7), (7, 8), (7, 14), (8, 9), (9, 10), (9, 13), (10, 11), (11, 12), (11, 18), (12, 16), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19)]
         """
         L = self._nxg.edges()
         if labels:
@@ -798,6 +909,13 @@ class Graph(GenericGraph):
 
         INPUT:
         label -- if False, each edge is a tuple (u,v) of vertices.
+
+        EXAMPLE:
+            sage: K = graphs.CompleteBipartiteGraph(9,3)
+            sage: len(K.edge_boundary( [0,1,2,3,4,5,6,7,8], [9,10,11] ))
+            27
+            sage: K.size()
+            27
         """
         L = self._nxg.edge_boundary(vertices1, vertices2)
         if labels:
@@ -812,6 +930,13 @@ class Graph(GenericGraph):
         """
         Returns an iterator over the edges incident with any vertex given.
         If vertices is None, then returns an iterator over all edges.
+
+        EXAMPLE:
+            sage: for i in graphs.PetersenGraph().edge_iterator([0]):
+            ...    print i
+            (0, 1, None)
+            (0, 4, None)
+            (0, 5, None)
         """
         return self._nxg.edges_iter(vertices)
 
@@ -822,6 +947,10 @@ class Graph(GenericGraph):
 
         INPUT:
         label -- if False, each edge is a tuple (u,v) of vertices.
+
+        EXAMPLE:
+            sage: graphs.PetersenGraph().edges_incident([0,9], labels=False)
+            [(0, 1), (0, 4), (0, 5), (9, 4), (9, 6), (9, 7)]
         """
         L = self._nxg.edges(vertices)
         if labels:
@@ -842,21 +971,56 @@ class Graph(GenericGraph):
         G.has_edge( 1, 2 )
         G.has_edge( (1, 2) )
         G.has_edge( 1, 2, 'label' )
+
+        EXAMPLE:
+            sage: graphs.EmptyGraph().has_edge(9,2)
+            False
         """
         return self._nxg.has_edge(u, v)
 
-    def edge_label(self, u, v=None, label=None):
+    def edge_label(self, u, v=None):
         """
         Returns the label of an edge.
+
+        EXAMPLE:
+            sage: G = Graph({0 : {1 : 'edgelabel'}})
+            sage: G.edges(labels=False)
+            [(0, 1)]
+            sage: G.edge_label( 0, 1 )
+            'edgelabel'
         """
         return self._nxg.get_edge(u,v)
 
     def remove_multiple_edges(self):
+        """
+        Removes all multiple edges, retaining one edge for each.
+
+        EXAMPLE:
+            sage: G = Graph(multiedges=True)
+            sage: G.add_edges( [ (0,1), (0,1), (0,1), (0,1), (1,2) ] )
+            sage: G.edges(labels=False)
+            [(0, 1), (0, 1), (0, 1), (0, 1), (1, 2)]
+
+            sage: G.remove_multiple_edges()
+            sage: G.edges(labels=False)
+            [(0, 1), (1, 2)]
+        """
         self._nxg.remove_all_multiedges()
 
     def remove_loops(self, vertices=None):
         """
         Removes loops on vertices in vertices. If vertices is None, removes all loops.
+
+        EXAMPLE
+            sage: G = Graph(loops=True)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
+            sage: G.remove_loops()
+            sage: G.edges(labels=False)
+            [(2, 3)]
+            sage: G.loops()
+            True
         """
         if vertices is None:
             self._nxg.remove_all_selfloops()
@@ -867,12 +1031,26 @@ class Graph(GenericGraph):
     def loop_edges(self):
         """
         Returns a list of all loops in the graph.
+
+        EXAMPLE:
+            sage: G = Graph(loops=True)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.loop_edges()
+            [(0, 0, None), (1, 1, None), (2, 2, None), (3, 3, None)]
         """
         return self._nxg.selfloop_edges()
 
     def number_of_loops(self):
         """
         Returns the number of edges that are loops.
+
+        EXAMPLE:
+            sage: G = Graph(loops=True)
+            sage: G.add_edges( [ (0,0), (1,1), (2,2), (3,3), (2,3) ] )
+            sage: G.edges(labels=False)
+            [(0, 0), (1, 1), (2, 2), (2, 3), (3, 3)]
+            sage: G.number_of_loops()
+            4
         """
         return self._nxg.number_of_selfloops()
 
@@ -906,16 +1084,54 @@ class Graph(GenericGraph):
     def degree_histogram(self):
         """
         Returns a list, whose ith entry is the frequency of degree i.
+
+        EXAMPLE:
+            sage: G = graphs.Grid2dGraph(9,12)
+            sage: G.degree_histogram()
+            [0, 0, 4, 34, 70]
         """
         import networkx
         return networkx.degree_histogram(self._nxg)
 
     def degree_iterator(self, vertices=None, with_labels=False):
         """
+        INPUT:
         with_labels=False:
             returns an iterator over degrees.
         with_labels=True:
             returns an iterator over tuples (vertex, degree).
+        vertices -- if specified, restrict to this subset.
+
+        EXAMPLE:
+            sage: G = graphs.Grid2dGraph(3,4)
+            sage: for i in G.degree_iterator():
+            ...    print i
+            3
+            4
+            2
+            3
+            3
+            2
+            3
+            2
+            3
+            3
+            2
+            4
+            sage: for i in G.degree_iterator(with_labels=True):
+            ...    print i
+            ((0, 1), 3)
+            ((1, 2), 4)
+            ((0, 0), 2)
+            ((2, 1), 3)
+            ((0, 2), 3)
+            ((2, 0), 2)
+            ((1, 3), 3)
+            ((2, 3), 2)
+            ((2, 2), 3)
+            ((1, 0), 3)
+            ((0, 3), 2)
+            ((1, 1), 4)
         """
         return self._nxg.degree_iter(vertices, with_labels)
 
@@ -926,6 +1142,27 @@ class Graph(GenericGraph):
         Returns the adjacency matrix of the graph. Each vertex is
         represented by its position in the list returned by the vertices()
         function.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(4)
+            sage: G.adjacency_matrix()
+            [0 1 0 0 0 1 0 1 0 1 0 0 0 0 0 0]
+            [1 0 0 0 1 0 1 0 1 0 0 0 0 0 0 0]
+            [0 0 0 1 0 1 0 1 0 0 0 0 0 0 0 1]
+            [0 0 1 0 1 0 1 0 0 0 0 0 0 0 1 0]
+            [0 1 0 1 0 1 0 0 0 0 0 0 0 1 0 0]
+            [1 0 1 0 1 0 0 0 0 0 0 0 1 0 0 0]
+            [0 1 0 1 0 0 0 1 0 0 0 1 0 0 0 0]
+            [1 0 1 0 0 0 1 0 0 0 1 0 0 0 0 0]
+            [0 1 0 0 0 0 0 0 0 1 0 1 0 1 0 0]
+            [1 0 0 0 0 0 0 0 1 0 1 0 1 0 0 0]
+            [0 0 0 0 0 0 0 1 0 1 0 1 0 0 0 1]
+            [0 0 0 0 0 0 1 0 1 0 1 0 0 0 1 0]
+            [0 0 0 0 0 1 0 0 0 1 0 0 0 1 0 1]
+            [0 0 0 0 1 0 0 0 1 0 0 0 1 0 1 0]
+            [0 0 0 1 0 0 0 0 0 0 0 1 0 1 0 1]
+            [0 0 1 0 0 0 0 0 0 0 1 0 1 0 1 0]
+
         """
         n = len(self._nxg.adj)
         verts = self.vertices()
@@ -954,6 +1191,18 @@ class Graph(GenericGraph):
         """
         Returns an incidence matrix of the graph. Each row is a vertex, and
         each column is an edge.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(3)
+            sage: G.incidence_matrix()
+            [-1 -1 -1  0  0  0  0  0  0  0  0  0]
+            [ 1  0  0 -1 -1  0  0  0  0  0  0  0]
+            [ 0  0  0  1  0 -1 -1  0  0  0  0  0]
+            [ 0  1  0  0  0  0  1 -1  0  0  0  0]
+            [ 0  0  0  0  1  0  0  0 -1 -1  0  0]
+            [ 0  0  1  0  0  0  0  0  0  1 -1  0]
+            [ 0  0  0  0  0  0  0  1  0  0  1 -1]
+            [ 0  0  0  0  0  1  0  0  1  0  0  1]
         """
         from sage.matrix.constructor import matrix
         from copy import copy
@@ -973,18 +1222,33 @@ class Graph(GenericGraph):
     def __bit_vector(self):
         vertices = self.vertices()
         n = len(vertices)
-        nc = n*(n - 1)/2
-        bit_vector = '0'*int(nc)
-        for e in self.edge_iterator():
-            a,b = min(vertices.index(e[0]), vertices.index(e[1])), max(vertices.index(e[0]), vertices.index(e[1]))
-            p = b*(b - 1)/2 + a
-            bit_vector = bit_vector[:p] + '1' + bit_vector[p+1:]
-        return bit_vector
+        nc = int(n*(n - 1))/int(2)
+        bit_vector = set()
+        for e,f,g in self.edge_iterator():
+            c = vertices.index(e)
+            d = vertices.index(f)
+            a,b = sorted([c,d])
+            p = int(b*(b - 1))/int(2) + a
+            bit_vector.add(p)
+        bit_vector = sorted(bit_vector)
+        s = []
+        j = 0
+        for i in bit_vector:
+            s.append( '0'*(i - j) + '1' )
+            j = i + 1
+        s = "".join(s)
+        s += '0'*(nc-len(s))
+        return s
 
     def graph6_string(self):
         """
         Returns the graph6 representation of the graph as an ASCII string. Only valid
         for simple (no loops, multiple edges) graphs on 0 to 262143 vertices.
+
+        EXAMPLE:
+            sage: G = graphs.KrackhardtKiteGraph()
+            sage: G.graph6_string()
+            'IvUqwK@?G'
         """
         n = self.order()
         if n > 262143:
@@ -992,13 +1256,18 @@ class Graph(GenericGraph):
         elif self.loops() or self.multiple_edges():
             raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
         else:
-            return N(n) + R(self.__bit_vector())
+            return sage.graphs.graph_fast.N(n) + sage.graphs.graph_fast.R(self.__bit_vector())
 
     def sparse6_string(self):
         """
         Returns the sparse6 representation of the graph as an ASCII string. Only valid
         for undirected graphs on 0 to 262143 vertices, but loops and multiple edges are
         permitted.
+
+        EXAMPLE:
+            sage: G = graphs.BullGraph()
+            sage: G.sparse6_string()
+            ':Da@en'
         """
         n = self.order()
         if n > 262143:
@@ -1025,10 +1294,8 @@ class Graph(GenericGraph):
             edges.sort(cmp)
 
             # encode bit vector
-            from sage.rings.integer import Integer
             from sage.rings.arith import ceil
             from sage.misc.functional import log
-            from sage.rings.integer_ring import ZZ
             k = ceil(log(n,2))
             v = 0
             i = 0
@@ -1036,18 +1303,18 @@ class Graph(GenericGraph):
             s = ''
             while m < len(edges):
                 if edges[m][1] > v + 1:
-                    sp = Integer(edges[m][1]).binary()
+                    sp = sage.graphs.graph_fast.binary(edges[m][1])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v = edges[m][1]
                 elif edges[m][1] == v + 1:
-                    sp = Integer(edges[m][0]).binary()
+                    sp = sage.graphs.graph_fast.binary(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v += 1
                     m += 1
                 else:
-                    sp = Integer(edges[m][0]).binary()
+                    sp = sage.graphs.graph_fast.binary(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '0' + sp
                     m += 1
@@ -1059,8 +1326,8 @@ class Graph(GenericGraph):
             # split into groups of 6, and convert numbers to decimal, adding 63
             six_bits = ''
             for i in range(len(s)/6):
-                six_bits += chr( ZZ( s[6*i:6*(i+1)], base=2) + 63 )
-            return ':' + N(n) + six_bits
+                six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
+            return ':' + sage.graphs.graph_fast.N(n) + six_bits
 
     ### Construction
 
@@ -1116,6 +1383,19 @@ class Graph(GenericGraph):
         of vertices, e.g. a list, set, graph, file or numeric array.
         create_using -- Can be an existing graph object or a call to a graph
         object, such as create_using=DiGraph().
+
+        EXAMPLES:
+            sage: G = graphs.CompleteGraph(9)
+            sage: H = G.subgraph([0,1,2]); H
+            Simple graph on 3 vertices (no loops, no multiple edges)
+            sage: G
+            Complete graph: a simple graph on 9 vertices (no loops, no multiple edges)
+            sage: K = G.subgraph([0,1,2], inplace=True); K
+            Subgraph of (Complete graph): a simple graph on 3 vertices (no loops, no multiple edges)
+            sage: G
+            Subgraph of (Complete graph): a simple graph on 3 vertices (no loops, no multiple edges)
+            sage: G is K
+            True
         """
         if inplace:
             self._nxg = self._nxg.subgraph(vertices, inplace, create_using)
@@ -1141,9 +1421,31 @@ class Graph(GenericGraph):
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
+
+        EXAMPLES:
+            sage: from math import sin, cos, pi
+            sage: P = graphs.PetersenGraph()
+            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+            sage: pos_dict = {}
+            sage: for i in range(5):
+            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: for i in range(10)[5:]:
+            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl.save('sage.png')
+
+            C = graphs.CubeGraph(8)
+            P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            P.save('sage.png')
         """
         GG = Graphics()
-        if color_dict is None and self.__with_boundary:
+        if color_dict is None and not self.__boundary is None:
             v = self.vertices()
             b = self.__boundary
             for i in b:
@@ -1187,22 +1489,45 @@ class Graph(GenericGraph):
             return BGG
         return GG
 
-    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
+    def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """
+        Shows the graph.
+
         INPUT:
             pos -- an optional positioning dictionary
-            with_labels -- bool (default: True)
-            node_size -- how big the nodes are
-            graph_border -- bool (default: False)
-            other named options -- All other options are passed onto
-            the show command; e.g., dpi=50 will make a small plot.
+            layout -- what kind of layout to use, takes precedence over pos
+                'circular' -- plots the graph with vertices evenly distributed on a circle
+                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+            vertex_labels -- whether to print vertex labels
+            node_size -- size of vertices displayed
+            graph_border -- whether to include a box around the graph
+            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
+                it looks invisible on the resulting plot (it doesn't get drawn).
 
         EXAMPLES:
-            sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices (no loops, no multiple edges)
-            sage: g.plot().save('sage.png')
+            sage: from math import sin, cos, pi
+            sage: P = graphs.PetersenGraph()
+            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+            sage: pos_dict = {}
+            sage: for i in range(5):
+            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: for i in range(10)[5:]:
+            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl.save('sage.png')
+
+            C = graphs.CubeGraph(8)
+            P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            P.save('sage.png')
         """
-        self.plot(pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
 
 class DiGraph(GenericGraph):
     """
@@ -1311,11 +1636,11 @@ class DiGraph(GenericGraph):
             loops = "with"
         else:
             loops = "no"
-        if self.multiple_edges():
+        if self.multiple_arcs():
             multi = "with"
         else:
             multi = "no"
-        return name + "imple directed graph on %d vertices (%s loops, %s multiple edges)"%(len(self._nxg.adj),loops,multi)
+        return name + "imple directed graph on %d vertices (%s loops, %s multiple arcs)"%(len(self._nxg.adj),loops,multi)
 
     def copy(self):
         """
@@ -1785,51 +2110,6 @@ class DiGraph(GenericGraph):
 
     def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         self.plot(pos, vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
-
-def R(x): # Helper function for graph6
-    from sage.rings.integer_ring import ZZ
-    # pad on the right to make a multiple of 6
-    x = x + ( '0' * ((6 - len(x))%6) )
-
-    # split into groups of 6, and convert numbers to decimal, adding 63
-    six_bits = ''
-    for i in range(len(x)/6):
-        six_bits += chr( ZZ( x[6*i:6*(i+1)], base=2) + 63 )
-    return six_bits
-
-def N(n): # Helper function for graph6
-    if n in range(63):
-        return chr(n + 63)
-    else:
-        from sage.rings.integer import Integer
-        # get 18-bit rep of n
-        n = Integer(n).binary()
-        n = '0'*(18-len(n)) + n
-        return chr(126) + R(n)
-
-def N_inverse(s): # Helper function for graph6
-    from sage.rings.integer_ring import ZZ
-    from sage.rings.integer import Integer
-    if s[0] == chr(126): # first four bytes are N
-        n = ZZ(Integer(ord(s[1])-63).binary() + Integer(ord(s[2])-63).binary() + Integer(ord(s[3])-63).binary(),base=2)
-        s = s[4:]
-    else: # only first byte is N
-        n = ord(s[0]) - 63
-        s = s[1:]
-    return n, s
-
-def R_inverse(s, n): # Helper function for graph6
-    from sage.rings.integer import Integer
-
-    l = [Integer(ord(i)-63).binary() for i in s]
-    for i in range(len(l)):
-        l[i] = '0'* (6-len(l[i])) + l[i]
-    m = ''
-    for i in l:
-        m += i
-    m = m[:(n*(n-1)/2)]
-    return m
-
 
 
 

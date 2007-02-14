@@ -656,7 +656,7 @@ class Graphics(SageObject):
 
     def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None, fontsize=None,
+             dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
@@ -675,6 +675,9 @@ class Graphics(SageObject):
         """
         global do_verify
         do_verify = verify
+
+        if axes is None:
+            axes = self.__show_axes
 
         from matplotlib.figure import Figure
         if filename is None:
@@ -1258,7 +1261,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
 class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
     """
-    Primitive class that initializes the NetworkX graph type
+    Primitive class that initializes the NetworkX graph type.
 
     INPUT:
         graph -- a NetworkX graph
@@ -1274,11 +1277,33 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
         matplotlib, and each entry is a list of vertices.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
         sage: import networkx
         sage: D = networkx.dodecahedral_graph()
         sage: NGP = GraphicPrimitive_NetworkXGraph(D)
+        sage: g = Graphics()
+        sage: g.append(NGP)
+        sage: g.axes(False)
+        sage: g.save('sage.png')
+
+        sage: import networkx
+        sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: from math import sin, cos, pi
+        sage: P = networkx.petersen_graph()
+        sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+        sage: pos_dict = {}
+        sage: for i in range(5):
+        ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: for i in range(10)[5:]:
+        ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: NGP = GraphicPrimitive_NetworkXGraph(graph=P, color_dict=d, pos=pos_dict)
         sage: g = Graphics()
         sage: g.append(NGP)
         sage: g.axes(False)

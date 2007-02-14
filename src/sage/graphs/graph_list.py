@@ -43,6 +43,11 @@ def from_graph6(data):
 
     INPUT:
         data -- can be a string, a list of strings, or a file stream.
+
+    EXAMPLE:
+        sage: l = ['N@@?N@UGAGG?gGlKCMO','XsGGWOW?CC?C@HQKHqOjYKC_uHWGX?P?~TqIKA`OA@SAOEcEA??']
+        sage: graphs_list.from_graph6(l)
+        [Simple graph on 14 vertices (no loops, no multiple edges), Simple graph on 25 vertices (no loops, no multiple edges)]
     """
     from sage.graphs.graph import Graph
     if isinstance(data,str):
@@ -55,8 +60,11 @@ def from_graph6(data):
         l = []
         for d in data:
             if isinstance(d, str):
-                if len(d) == d.find('\n') + 1 or d.find('\n') == -1:
-                    l.append(Graph(d[:d.rfind('\n')], format='graph6'))
+                nn = d.rfind('\n')
+                if nn == -1:
+                    l.append(Graph(d,format='graph6'))
+                elif len(d) == nn + 1:
+                    l.append(Graph(d[:nn], format='graph6'))
                 else:
                     l.append(from_graph6(d))
             else:
@@ -75,6 +83,11 @@ def from_sparse6(data):
 
     INPUT:
         data -- can be a string, a list of strings, or a file stream.
+
+    EXAMPLE:
+        sage: l = [':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI',':f`??KO?B_OOSCGE_?OWONDBO?GOJBDO?_SSJdApcOIG`?og_UKEbg?_SKFq@[CCBA`p?oYMFp@gw]Qaa@xEMHDb@hMCBCbQ@ECHEcAKKQKFPOwo[PIDQ{KIHEcQPOkVKEW_WMNKqPWwcRKOOWSKIGCqhWt??___WMJFCahWzEBa`xOu[MpPPKqYNoOOOKHHDBPs|??__gWMKEcAHKgTLErqA?A@a@G{kVLErs?GDBA@XCs\\NggWSOJIDbHh@?A@aF']
+        sage: graphs_list.from_sparse6(l)
+        [Simple graph on 17 vertices (with loops, with multiple edges), Simple graph on 39 vertices (with loops, with multiple edges)]
     """
     from sage.graphs.graph import Graph
     if isinstance(data,str):
@@ -88,8 +101,11 @@ def from_sparse6(data):
         l = []
         for d in data:
             if isinstance(d, str):
-                if len(d) == d.find('\n') + 1 or d.find('\n') == -1:
-                    l.append(Graph(d[:d.rfind('\n')], format='sparse6'))
+                nn = d.rfind('\n')
+                if nn == -1:
+                    l.append(Graph(d, format='sparse6'))
+                elif len(d) == nn + 1:
+                    l.append(Graph(d[:nn], format='sparse6'))
                 else:
                     l.append(from_sparse6(d))
             else:
@@ -108,12 +124,17 @@ def to_graph6(list, file = None):
     specified, then the string will be written quietly to the file.
 
     INPUT:
-    list -- a Python list of SAGE Graphs
-    file -- (optional) a file stream to write to (must be in 'w' mode)
+        list -- a Python list of SAGE Graphs
+        file -- (optional) a file stream to write to (must be in 'w' mode)
+
+    EXAMPLE:
+        sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
+        sage: graphs_list.to_graph6(l)
+        'ShCHGD@?K?_@?@?C_GGG@??cG?G?GK_?C\nIheA@GUAo\n'
     """
     l = ''
     for G in list:
-        l.append(G.graph6_string() + '\n')
+        l += G.graph6_string() + '\n'
     if file is None:
         return l
     else:
@@ -126,12 +147,17 @@ def to_sparse6(list, file = None):
     specified, then the string will be written quietly to the file.
 
     INPUT:
-    list -- a Python list of SAGE Graphs
-    file -- (optional) a file stream to write to (must be in 'w' mode)
+        list -- a Python list of SAGE Graphs
+        file -- (optional) a file stream to write to (must be in 'w' mode)
+
+    EXAMPLE:
+        sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
+        sage: graphs_list.to_sparse6(l)
+        ':S_`abcaDe`Fg_HijhKfLdMkNcOjP_BQ\n:I`ES@obGkqegW~\n'
     """
     l = ''
     for G in list:
-        l.append(G.sparse6_string() + '\n')
+        l += G.sparse6_string() + '\n'
     if file is None:
         return l
     else:

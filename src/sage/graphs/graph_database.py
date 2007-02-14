@@ -59,6 +59,13 @@ AUTHORS:
     -- Emily A. Kirkman (2007-02-13): initial version
 """
 
+################################################################################
+#           Copyright (C) 2007 Emily A. Kirkman
+#
+#
+# Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
+#                         http://www.gnu.org/licenses/
+################################################################################
 import graph
 from sage.sets.set import Set
 

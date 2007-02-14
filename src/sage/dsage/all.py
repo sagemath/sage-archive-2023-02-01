@@ -13,7 +13,7 @@ def DSage(server=None, port=8081, username=None,
         privkey_file -- file that stores the users private key
     """
     import sage.dsage.scripts.dsage_activate as activate
-    if not activate.in_console_mode:
+    if not activate.in_dsage_mode:
         raise ValueError, "You must first turn on distributed SAGE using dsage.console()."
 
     from sage.dsage.interface.dsage_interface import DSage

@@ -373,8 +373,14 @@ def random_matrix(R, nrows, ncols=None, sparse=False, density=1, *args, **kwds):
         R -- a ring
         nrows -- integer; number of rows
         ncols -- (default: None); number of columns; if None defaults to nrows
+        sparse -- (default; False); whether or not matrix is sparse.
         density -- integer (default: 1)
         *args, **kwds -- passed on to randomize function
+
+    EXAMPLES:
+        sage: A = random_matrix(ZZ,50,x=2^16)    # entries are up to 2^16 i size
+        sage: A
+        50 x 50 dense matrix over Integer Ring
     """
     if ncols is None:
         ncols = nrows

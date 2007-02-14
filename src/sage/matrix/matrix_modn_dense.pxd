@@ -3,6 +3,7 @@ cimport matrix_dense
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
     mod_int MOD_INT_MAX
+    mod_int MOD_INT_OVERFLOW
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef mod_int **_matrix
@@ -20,9 +21,4 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     cdef _add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from,
                                    mod_int multiple, Py_ssize_t start_row)
 
-
-
-
-#cdef class MatrixWindow:
-#    cdef Matrix_modn_dense _matrix
-#    cdef int _row, _col, _nrows, _ncols
+    cdef _init_linbox(self)

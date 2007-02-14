@@ -149,6 +149,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         else:
             try:
                 z=float(entries)
+                gsl_matrix_set_zero(self._matrix)
             except TypeError:
                 raise TypeError, "entries must to coercible to list or real double "
             if z != 0:

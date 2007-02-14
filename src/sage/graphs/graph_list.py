@@ -118,14 +118,18 @@ def from_sparse6(data):
             l.append(Graph(s[:s.rfind('\n')], format='sparse6'))
         return l
 
-def to_graph6(list, file = None):
+def to_graph6(list, file = None, output_list=False):
     """
     Converts a list of SAGE graphs to a single string of graph6 graphs. If file is
-    specified, then the string will be written quietly to the file.
+    specified, then the string will be written quietly to the file. If output_list
+    is True, then a list of strings will be returned, one string per graph.
 
     INPUT:
         list -- a Python list of SAGE Graphs
         file -- (optional) a file stream to write to (must be in 'w' mode)
+        output_list -- False -> output is a string
+                        True -> output is a list of strings
+                      (ignored if file gets specified)
 
     EXAMPLE:
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
@@ -136,19 +140,28 @@ def to_graph6(list, file = None):
     for G in list:
         l += G.graph6_string() + '\n'
     if file is None:
-        return l
+        if output_list:
+            a = l.split('\n')
+            a = a[:len(a)-1]
+            return a
+        else:
+            return l
     else:
         file.write(l)
         file.flush()
 
-def to_sparse6(list, file = None):
+def to_sparse6(list, file = None, output_list=False):
     """
     Converts a list of SAGE graphs to a single string of sparse6 graphs. If file is
-    specified, then the string will be written quietly to the file.
+    specified, then the string will be written quietly to the file. If output_list
+    is True, then a list of strings will be returned, one string per graph.
 
     INPUT:
         list -- a Python list of SAGE Graphs
         file -- (optional) a file stream to write to (must be in 'w' mode)
+        output_list -- False -> output is a string
+                        True -> output is a list of strings
+                      (ignored if file gets specified)
 
     EXAMPLE:
         sage: l = [graphs.DodecahedralGraph(), graphs.PetersenGraph()]
@@ -159,7 +172,12 @@ def to_sparse6(list, file = None):
     for G in list:
         l += G.sparse6_string() + '\n'
     if file is None:
-        return l
+        if output_list:
+            a = l.split('\n')
+            a = a[:len(a)-1]
+            return a
+        else:
+            return l
     else:
         file.write(l)
         file.flush()

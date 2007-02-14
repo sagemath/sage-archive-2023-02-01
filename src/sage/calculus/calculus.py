@@ -19,6 +19,8 @@ from sage.misc.sage_eval import sage_eval
 from sage.functions.constants import Constant
 import sage.functions.constants as c
 
+import pdb
+
 # There will only ever be one instance of this class
 class SymbolicExpressionRing_class(CommutativeRing):
     '''
@@ -224,6 +226,7 @@ class SymbolicExpression(RingElement):
         # check each time
         s = ""
         for i in range(len(args)):
+            #pdb.set_trace()
             if isinstance(args[i], SymbolicVariable):
                 s = s + '%s, ' %str(args[i])
                 # check to see if this is followed by an integer
@@ -458,7 +461,7 @@ class CallableFunction(RingElement):
             return CallableFunction(f, self._varlist)
         # else just take the derivative
         else:
-            return CallableFunction(self._expr.derivative(args), self._varlist)
+            return CallableFunction(self._expr.derivative(*args), self._varlist)
 
     def integral(self, dx):
         return CallableFunction(self._expr.integral(dx), self._varlist)

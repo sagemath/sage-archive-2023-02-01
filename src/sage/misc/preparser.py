@@ -116,7 +116,6 @@ implemented using the GMP C library.
 #                  http://www.gnu.org/licenses/
 ###########################################################################
 import os
-
 import pdb
 
 def isalphadigit_(s):
@@ -138,6 +137,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
     # for caclulus function notation:
     paren_level = 0
+    first_eq_index = -1
 
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.rstrip()  # xreadlines leaves the '\n' at end of line
@@ -251,8 +251,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 continue
 
         elif line[i] == ";" and not in_quote():
-            line = line[:i+1] + preparse(line[i+1:], reset, ignore_prompts,
-                                        dotime)
+            line = line[:i+1] + preparse(line[i+1:], reset, do_time, ignore_prompts)
             i = len(line)
             continue
 
@@ -360,6 +359,8 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             continue
 
         elif (line[i] == "=") and paren_level == 0 and not in_quote():
+            if first_eq_index == -1:
+                first_eq_index = i
             eq = i
 
             if cparen_index == -1:
@@ -373,7 +374,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 continue
 
             line_before = line[:oparen_index].strip()
-            if line_before == "":
+            print line_before
+            if line_before == "" or not line_before.isalnum():
+                i += 1
+                continue
+
+            if eq != first_eq_index:
                 i += 1
                 continue
 
@@ -412,7 +418,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
             line =  ''.join(b)
 
-            i += 1
+            # i should get set to the position of the first paren after the new
+            # assignment operator
+            n = len(line_before)
+            i = line.find('=', n) + 2
 
             continue
 

@@ -987,7 +987,7 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        #body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Worksheets</a>' + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Toggle Panel</a>' + vbar
         #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
         body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
@@ -1076,6 +1076,8 @@ class Notebook(SageObject):
             body += 'for(var i = 0; i < active_cell_list.length; i++)'
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
+
+        body += '<script language=javascript>toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):
@@ -1341,7 +1343,7 @@ Output
         head = self._doc_html_head(worksheet_id, css_href)
         body = self._doc_html_body(worksheet_id)
         if worksheet_id is not None:
-           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>;'%(worksheet_id, W.filename(), W.name())
+           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
 
         return """
         <html>
@@ -1372,7 +1374,7 @@ Output
             body = self._html_authorize()
 
         if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>;'%(worksheet_id, W.filename(), W.name())
+            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
         return """

@@ -809,7 +809,7 @@ class LinearCode(module.Module):
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(3))
-            sage: g = SymmetricGroup(13).random()
+            sage: g = SymmetricGroup(13).random_element()
             sage: C.is_permutation_automorphism(g)
             0
             sage: MS = MatrixSpace(GF(2),4,8)

@@ -42,10 +42,10 @@ cdef class ModuleElement(Element):
     cdef RingElement coerce_to_base_ring(self, x)
 
     # self * right,  where left need not be a ring element in the base ring
-    # This does type checking and canonical coercion then calls _lmul_c_impl.
+    # This does type checking and canonical coercion, then calls _lmul_c_impl.
     cdef ModuleElement _multiply_by_scalar(self, right)    # do not override
     # left * self, where left need not be a ring element in the base ring
-    # This does type checking and canonical coercion then calls _rmul_c_impl.
+    # This does type checking and canonical coercion, then calls _rmul_c_impl.
     cdef ModuleElement _rmultiply_by_scalar(self, left)    # do not override
 
     cdef ModuleElement _lmul_nonscalar_c(left, right)      # do not override

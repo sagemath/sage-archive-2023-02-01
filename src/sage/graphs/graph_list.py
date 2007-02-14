@@ -184,7 +184,7 @@ def to_graphics_arrays(list):
     EXAMPLES:
         sage: glist = []
         sage: for i in range(999):
-        ... glist.append(graphs.RandomGNP(6,.45))
+        ...    glist.append(graphs.RandomGNP(6,.45))
         ...
         sage: garray = graphs_list.to_graphics_arrays(glist)
 
@@ -277,7 +277,7 @@ def show_graphs(list):
         # But more than 20 graphs will raise an exception:
         sage: glist21 = []
         sage: for i in range(21):
-        ... glist21.append(graphs.RandomGNP(6,.45))
+        ...    glist21.append(graphs.RandomGNP(6,.45))
         ...
         sage: graphs_list.show_graphs(glist21)
         Traceback (most recent call last):

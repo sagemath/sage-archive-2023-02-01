@@ -155,10 +155,6 @@ class GraphDatabase():
         \end{verbatim}
 
         EXAMPLES:
-            # bad e.g. to remove: (also remember to add graph6list after robert's patch)
-            sage: 2+2
-            3
-
             # Obtain a list of graphs:
             sage: glist = graphs_query.get_list_of_graphs(max_degree=4, min_degree=3)
 
@@ -170,6 +166,11 @@ class GraphDatabase():
             # Now we can use functions from the graphs_list module.
             # Convert to graph6 format:
             sage: graph6list = graphs_list.to_graph6(glist)
+
+            # View the graph6 format of the first graph:
+            sage: graph6list.split('\n')[0]
+            'Dl{'
+
             # Convert to list of graphics arrays:
             garray = graphs_list.to_graphics_arrays(glist)
             # Show the last graphics array in the list:
@@ -223,6 +224,7 @@ class GraphDatabase():
             6
 
             # Now find all graphs with 5 vertices and 4 edges:
+            sage: data = graphs_query.get_data_set(nodes=5)
             sage: redata = graphs_query.get_data_set(data_dict=data, edges=4)
             sage: len(redata)
             6
@@ -419,6 +421,7 @@ class GraphDatabase():
             # But with properties, you are limited to 10.
             sage: graphs_query.number_of(nodes=4)
             11
+
             # Without displaying properties (default):
             sage.: graphs_query.show_graphs(nodes=4)
             # But with properties, we will raise an exception:
@@ -426,6 +429,7 @@ class GraphDatabase():
             Traceback (most recent call last):
             ...
             ValueError: Too many graphs to display in graphics array.
+            If more than 10 graphs, try get_list_of_graphics_arrays.
 
             # In this case, use get_list_of_graphics_arrays:
             sage: garray = graphs_query.get_list_of_graphics_arrays(nodes=4, with_properties=True)

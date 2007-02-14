@@ -1,11 +1,173 @@
+r"""
+Graph Database
+
+INFO:
+
+    This database contains all graphs with 7 or fewer nodes.  The graphs for
+    this database are generated from Networkx's graph_atlas_g function, and
+    the data from Networkx's property functions.  The dictionary of data is
+    in this class under the __get_data__ function.  The code used to generate
+    that data can be found at the project wiki:
+    http://sage.math.washington.edu:9001/graph_database
+
+USE:
+
+    To see a list of all functions, type "graphs_query." and then press the
+    tab key.  All functions take the search parameters as arguments.
+
+    The properties currently used as search parameters are:
+    \begin{verbatim}
+        - Nodes (number of)
+        - Edges (number of)
+        - Diameter
+        - Radius
+        - Connected (boolean)
+        - Density
+        - Minimum Degree
+        - Maximum Degree
+    \end{verbatim}
+
+    The output of all functions except get_data_set and number_of will
+    preserve Networkx's ordering structure.  The documentation for Networkx
+    is located at:  https://networkx.lanl.gov/reference/networkx/
+    \begin{verbatim}
+    They describe their ordering structure as follows:
+        1. in increasing order of number of nodes;
+        2. for a fixed number of nodes, in increasing order of the number of edges;
+        3. for fixed numbers of nodes and edges, in increasing order of the degree
+           sequence, for example 111223 < 112222;
+        4. for fixed degree sequence, in increasing number of automorphisms.
+    \end{verbatim}
+
+VISUALIZATION:
+
+    There are two functions in this class for viewing the query results.
+    For both functions, there is a boolean argument with_properties
+    (default = False).  Setting to True allows the user to view the list
+    of properties to the right of each graph in the graphics array.
+
+    For the show_graphs function, the user is limited to 20 graphs without
+    displaying properties or 10 with properties displayed.  This prevents
+    erroneous or truncated output.  If the user would like to display more
+    than this function allows, there is a get_graphics_arrays function,
+    which returns a list of graphics arrays parsed at the limiting size.
+    Each graphics array in the list can be shown individually.  There is
+    also a number_of function that allows the user to check the size of the
+    output before asking for a display, if so desired.
+
+AUTHORS:
+    -- Emily A. Kirkman (2007-02-13): initial version
+"""
+
 import graph
-import graph_list
 from sage.sets.set import Set
 
 class GraphDatabase():
+    r"""
+    Graph Database
+
+    This database contains all graphs with 7 or fewer nodes.  The graphs for
+    this database are generated from Networkx's graph_atlas_g function, and
+    the data from Networkx's property functions.  The dictionary of data is
+    in this class under the __get_data__ function.  The code used to generate
+    that data can be found at the project wiki:
+    http://sage.math.washington.edu:9001/graph_database
+
+    To see a list of all functions, type "graphs_query." and then press the
+    tab key.  All functions take the search parameters as arguments.
+
+    The properties currently used as search parameters are:
+    \begin{verbatim}
+        - Nodes (number of)
+        - Edges (number of)
+        - Diameter
+        - Radius
+        - Connected (boolean)
+        - Density
+        - Minimum Degree
+        - Maximum Degree
+    \end{verbatim}
+
+    The output of all functions except get_data_set and number_of will preserve
+    Networkx's ordering structure.  The documentation for Networkx is located at:
+    https://networkx.lanl.gov/reference/networkx/
+    \begin{verbatim}
+    They describe their ordering structure as follows:
+        1. in increasing order of number of nodes;
+        2. for a fixed number of nodes, in increasing order of the number of edges;
+        3. for fixed numbers of nodes and edges, in increasing order of the degree
+           sequence, for example 111223 < 112222;
+        4. for fixed degree sequence, in increasing number of automorphisms.
+    \end{verbatim}
+
+    There are two functions in this class for viewing the query results.
+    For both functions, there is a boolean argument with_properties
+    (default = False).  Setting to True allows the user to view the list
+    of properties to the right of each graph in the graphics array.
+
+    For the show_graphs function, the user is limited to 20 graphs without
+    displaying properties or 10 with properties displayed.  This prevents
+    erroneous or truncated output.  If the user would like to display more
+    than this function allows, there is a get_graphics_arrays function,
+    which returns a list of graphics arrays parsed at the limiting size.
+    Each graphics array in the list can be shown individually.  There is
+    also a number_of function that allows the user to check the size of the
+    output before asking for a display, if so desired.
+
+    """
 
     def get_list_of_graphs(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        r"""
+        Returns a list of SAGE graphs from the database that meet the search criteria.
 
+        INPUT:
+        Note:  Leaving out any parameters will include all possibilities for that property.
+            data_dict -- the data to search:  by default uses __get_data__ but can use output
+                         of get_data_set to search recursively
+            edges -- the number of edges desired in graphs
+            nodes -- the number of nodes desired in graphs
+            density -- the desired density of graphs
+            max_degree -- the maximum degree desired in graphs
+            min_degree -- the minimum degree desired in graphs
+            diameter -- the desired diameter of graphs
+            radius -- the desired radius of graphs
+            connected -- True if it is and False if it is not
+
+
+        ORDER:
+        The list of graphs returned by this function will preserve
+        Networkx's ordering structure.  The documentation for Networkx is
+        located at:  https://networkx.lanl.gov/reference/networkx/
+        \begin{verbatim}
+        They describe their ordering structure as follows:
+            1. in increasing order of number of nodes;
+            2. for a fixed number of nodes, in increasing order of the number of edges;
+            3. for fixed numbers of nodes and edges, in increasing order of the degree
+               sequence, for example 111223 < 112222;
+            4. for fixed degree sequence, in increasing number of automorphisms.
+        \end{verbatim}
+
+        EXAMPLES:
+            # bad e.g. to remove: (also remember to add graph6list after robert's patch)
+            sage: 2+2
+            3
+
+            # Obtain a list of graphs:
+            sage: glist = graphs_query.get_list_of_graphs(max_degree=4, min_degree=3)
+
+            # Inspect and display graphs individually:
+            sage: glist[0]
+            Simple graph on 5 vertices (no loops, no multiple edges)
+            sage.: glist[8].show(layout='circular')
+
+            # Now we can use functions from the graphs_list module.
+            # Convert to graph6 format:
+            sage: graph6list = graphs_list.to_graph6(glist)
+            # Convert to list of graphics arrays:
+            garray = graphs_list.to_graphics_arrays(glist)
+            # Show the last graphics array in the list:
+            sage.: garray[len(garray)-1].show()
+        """
         data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
 
         #return an ordered list of sage graphs
@@ -16,12 +178,121 @@ class GraphDatabase():
         return glist
 
     def get_data_set(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        """
+        Returns the data structure used in this database to store graphs and their
+        properties, containing only the graphs from the databases that matched the
+        search parameters.
+
+        The data structure is a Python dictionary, with the graphs' Networkx names
+        as keys.  Each entry is a tuple that consists of another Python dictionary
+        (used to construct a SAGE graph), and a SAGE Set that stores its precomputed
+        property values.
+
+        Typical use of this function would be to narrow a search and use the result
+        as input for the data_dict parameter in any of these query functions.  Also
+        useful for saving results.
+
+        INPUT:
+        Note:  Leaving out any parameters will include all possibilities for that property.
+            data_dict -- the data to search:  by default uses __get_data__ but can use output
+                         of get_data_set to search recursively
+            edges -- the number of edges desired in graphs
+            nodes -- the number of nodes desired in graphs
+            density -- the desired density of graphs
+            max_degree -- the maximum degree desired in graphs
+            min_degree -- the minimum degree desired in graphs
+            diameter -- the desired diameter of graphs
+            radius -- the desired radius of graphs
+            connected -- True if it is and False if it is not
+
+        EXAMPLES:
+            # Recursive searching:
+            # First note the following sizes of output:
+            sage: graphs_query.number_of(nodes=5)
+            34
+            sage: graphs_query.number_of(edges=4)
+            27
+            sage: graphs_query.number_of(nodes=5, edges=4)
+            6
+
+            # Now find all graphs with 5 vertices and 4 edges:
+            sage: redata = graphs_query.get_data_set(data_dict=data, edges=4)
+            sage: len(redata)
+            6
+
+            # Note that this is equivalent to searching both at once:
+            sage: redata == graphs_query.get_data_set(nodes=5, edges=4)
+            True
+        """
         return self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
 
     def get_list_of_graphics_arrays(self, with_properties=False, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        r"""
+        Returns a list of SAGE graphics arrays containing the graphs from
+        the database that meet the search criteria.
+
+        This is one of two display functions in the graph database.  For both
+        functions, there is a boolean argument with_properties (default = False).
+        Setting to True allows the user to view the list of properties to the
+        right of each graph in the graphics array.
+
+        In the show_graphs function, the user is limited to 20 graphs without
+        displaying properties or 10 with properties displayed.  If the user
+        would like to display more graphs, use this function to create a list of
+        graphics arrays.  The graphics arrays parse the output at their limiting
+        size and they can be shown individually by accessing the returned list.
+
+        INPUT:
+        Note:  Leaving out any parameters will include all possibilities for that property.
+            with_properties -- display with properties on or off (default off)
+            data_dict -- the data to search:  by default uses __get_data__ but can use output
+                         of get_data_set to search recursively
+            edges -- the number of edges desired in graphs
+            nodes -- the number of nodes desired in graphs
+            density -- the desired density of graphs
+            max_degree -- the maximum degree desired in graphs
+            min_degree -- the minimum degree desired in graphs
+            diameter -- the desired diameter of graphs
+            radius -- the desired radius of graphs
+            connected -- True if it is and False if it is not
+
+        ORDER:
+        The graphs in the graphics arrays returned by this function will preserve
+        Networkx's ordering structure.  The documentation for Networkx is
+        located at:  https://networkx.lanl.gov/reference/networkx/
+        \begin{verbatim}
+        They describe their ordering structure as follows:
+            1. in increasing order of number of nodes;
+            2. for a fixed number of nodes, in increasing order of the number of edges;
+            3. for fixed numbers of nodes and edges, in increasing order of the degree
+               sequence, for example 111223 < 112222;
+            4. for fixed degree sequence, in increasing number of automorphisms.
+        \end{verbatim}
+
+        EXAMPLES:
+            # Can obtain a list of graphics arrays for all graphs with 7 or fewer nodes:
+            # (pretty fast too -- time it)
+            sage: all_7 = graphs_query.get_list_of_graphics_arrays()
+
+            # And notice that Networkx's ordering structure is preserved.
+            # Display the first graphics array in the list:
+            sage.: all_7[0].show()
+            # And the last:
+            sage.: all_7[len(all_7)-1].show()
+
+            # And also notice that displaying properties will make the list longer:
+            # (Twice as many graphics objects in the arrays)
+            sage: all_7_with_props = graphs_query.get_list_of_graphics_arrays(with_properties=True)
+            sage: len(all_7) < len(all_7_with_props)
+            True
+
+            # Properties are displayed to the right of each graph
+            sage.: all_7_with_props[5].show()
+        """
         if ( with_properties == False):
+            from graph_list import to_graphics_arrays
             glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
-            return graph_list.to_graphics_arrays(glist)
+            return to_graphics_arrays(glist)
         else:
             from sage.plot.plot import graphics_array
             data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
@@ -29,15 +300,15 @@ class GraphDatabase():
             plist = []
             for i in range (1253):
                 if ( data.has_key('G%s'%i) ):
-                    plist.append(graph.Graph(data['G%s'%i][0]).plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+                    plist.append(graph.Graph(data['G%s'%i][0]).plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
                     TG = (self.__get_properties__(data['G%s'%i][1]))
                     plist.append(TG)
 
             num_arrays = len(plist)/20
             if (len(plist)%20 > 0):
                 num_arrays += 1
-            rows = 10
-            cols = 2
+            rows = 5
+            cols = 4
             g_arrays = []
 
             for i in range (num_arrays - 1):
@@ -45,31 +316,121 @@ class GraphDatabase():
                 for j in range (rows*cols):
                     glist.append(plist[rows*cols*i + j])
                 ga = graphics_array(glist, rows, cols)
-                ga.__set_figsize__([4, 20])
+                ga.__set_figsize__([8, 10])
                 g_arrays.append(ga)
 
             glist = []
             last = len(plist)%20
             index = 20*(num_arrays-1)
             last_rows = last/cols
+            if ( last%cols > 0 ):
+                last_rows += 1
             for i in range ( last ):
                 glist.append(plist[ i + index ])
             ga = graphics_array(glist, last_rows, cols)
-            ga.__set_figsize__([4, 2*last_rows])
+            ga.__set_figsize__([8, 2*last_rows])
             g_arrays.append(ga)
 
             return g_arrays
 
     def number_of(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        """
+        Returns the number of graphs in the database that meet the search parameters.
+
+        INPUT:
+        Note:  Leaving out any parameters will include all possibilities for that property.
+            data_dict -- the data to search:  by default uses __get_data__ but can use output
+                         of get_data_set to search recursively
+            edges -- the number of edges desired in graphs
+            nodes -- the number of nodes desired in graphs
+            density -- the desired density of graphs
+            max_degree -- the maximum degree desired in graphs
+            min_degree -- the minimum degree desired in graphs
+            diameter -- the desired diameter of graphs
+            radius -- the desired radius of graphs
+            connected -- True if it is and False if it is not
+
+        EXAMPLES:
+            sage: graphs_query.number_of(nodes=4, min_degree=3)
+            1
+            sage: graphs_query.number_of()
+            1253
+            sage: graphs_query.number_of(edges=9)
+            153
+            sage: graphs_query.number_of(max_degree=4, diameter=2)
+            92
+        """
         glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
         return len(glist)
 
     def show_graphs(self, with_properties=False, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        r"""
+        Displays a SAGE graphics array containing only the graphs from the
+        database that meet the search criteria.
+
+        Note: This function will throw an Exception if asked to display too many
+        graphs.  Use get_graphics_arrays if trying to show more than 10 with
+        properties displayed or 20 without properties displayed.
+
+        This is one of two display functions in the graph database.  For both
+        functions, there is a boolean argument with_properties (default = False).
+        Setting to True allows the user to view the list of properties to the
+        right of each graph in the graphics array.
+
+        INPUT:
+        Note:  Leaving out any parameters will include all possibilities for that property.
+            with_properties -- display with properties on or off (default off)
+            data_dict -- the data to search:  by default uses __get_data__ but can use output
+                         of get_data_set to search recursively
+            edges -- the number of edges desired in graphs
+            nodes -- the number of nodes desired in graphs
+            density -- the desired density of graphs
+            max_degree -- the maximum degree desired in graphs
+            min_degree -- the minimum degree desired in graphs
+            diameter -- the desired diameter of graphs
+            radius -- the desired radius of graphs
+            connected -- True if it is and False if it is not
+
+        ORDER:
+        The graphs displayed by this function will preserve Networkx's ordering
+        structure.  The documentation for Networkx is located at:
+        https://networkx.lanl.gov/reference/networkx/
+        \begin{verbatim}
+        They describe their ordering structure as follows:
+            1. in increasing order of number of nodes;
+            2. for a fixed number of nodes, in increasing order of the number of edges;
+            3. for fixed numbers of nodes and edges, in increasing order of the degree
+               sequence, for example 111223 < 112222;
+            4. for fixed degree sequence, in increasing number of automorphisms.
+        \end{verbatim}
+
+        EXAMPLES:
+            # Properties are displayed to the right of each graph:
+            sage.: graphs_query.show_graphs(nodes=3, with_properties=True)
+
+            # Without properties, you can show up to 20 graphs.
+            # But with properties, you are limited to 10.
+            sage: graphs_query.number_of(nodes=4)
+            11
+            # Without displaying properties (default):
+            sage.: graphs_query.show_graphs(nodes=4)
+            # But with properties, we will raise an exception:
+            sage: graphs_query.show_graphs(nodes=4, with_properties=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: Too many graphs to display in graphics array.
+
+            # In this case, use get_list_of_graphics_arrays:
+            sage: garray = graphs_query.get_list_of_graphics_arrays(nodes=4, with_properties=True)
+            sage.: garray[0].show()
+            sage.: garray[1].show()
+        """
         if ( with_properties == False):
+            from graph_list import show_graphs
             glist = self.get_list_of_graphs(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
             if ( len(glist) > 20 ):
                 raise ValueError, "Too many graphs to display in graphics array.  \nIf more than 20 graphs, try get_list_of_graphics_arrays."
-            return graph_list.show_graphs(glist)
+            return show_graphs(glist)
         else:
             data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
             if ( len(data) > 10 ):
@@ -80,24 +441,49 @@ class GraphDatabase():
             glist = []
             for i in range (1253):
                 if ( data.has_key('G%s'%i) ):
-                    glist.append(graph.Graph(data['G%s'%i][0]).plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+                    glist.append(graph.Graph(data['G%s'%i][0]).plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
                     TG = (self.__get_properties__(data['G%s'%i][1]))
                     glist.append(TG)
 
-            rows = len(glist)
-            ga = graphics_array(glist, rows, 2)
-            ga.__set_figsize__([4, 2*rows])
-            ga.show()
+            rows = len(glist)/4
+            if (len(glist)%4 > 0 ):
+                rows += 1
+            ga = graphics_array(glist, rows, 4)
+            ga.show(figsize=[8,2*rows])
             return
 
     def __get_properties__(self, properties=None):
+        """
+        Returns a graphics object containing a formatted version of the properties.
+        """
         if ( properties == None): return None
 
-        str = "\n"
+        import re
         It = properties.__iter__()
 
         for i in range (len(properties)):
-            str += It.next() + "\n"
+            s = It.next()
+            if ( re.search('^n', s ) != None ):
+                nodes = re.sub('^n','N',s)
+            elif ( re.search('^e', s ) != None ):
+                edges = re.sub('^e','E',s)
+            elif ( re.search('^di', s ) != None ):
+                diameter = re.sub('^d','D',s)
+            elif ( re.search('^r', s ) != None ):
+                radius = re.sub('^r','R',s)
+            elif ( re.search('^mi', s ) != None ):
+                r = re.sub('^m','M',s)
+                mindeg = re.sub('nD','n D',r)
+            elif ( re.search('^ma', s ) != None ):
+                r = re.sub('^m','M',s)
+                maxdeg = re.sub('xD','x D',r)
+            elif ( re.search('^c', s ) != None ):
+                connected = re.sub('^c','C',s)
+            else:
+                density = re.sub('^d','D',s)
+
+        str = nodes + "\n" + edges + "\n" + diameter + "\n" + radius + "\n" + connected + "\n" + density + "\n" + mindeg + "\n" + maxdeg
+        str = re.sub('=',': ',str)
 
         from sage.plot.plot import text
         prop = text(str, (1/2,1/2))
@@ -105,6 +491,10 @@ class GraphDatabase():
         return prop
 
     def __query__(self, data_dict=None, edges=None, nodes=None, density=None, max_degree=None, min_degree=None, diameter=None, radius=None, connected=None):
+        """
+        Returns the native data structure containing only graphs of the database that
+        meet specified parameters.  Empty arguments returns entire database.
+        """
         s = Set([])
         if (data_dict == None):
             data_dict = self.__get_data__()
@@ -132,7 +522,16 @@ class GraphDatabase():
 
     def __get_data__(self):
         """
-        Credit NetworkX for data.
+        This database contains all graphs with 7 or fewer nodes.  The graphs for
+        this database are generated from Networkx's graph_atlas_g function, and
+        the data from Networkx's property functions.  The code used to generate
+        this data can be found at the project wiki:
+        http://sage.math.washington.edu:9001/graph_database
+
+        The data structure is a Python dictionary, with the graphs' Networkx names
+        as keys.  Each entry is a tuple that consists of another Python dictionary
+        (used to construct a SAGE graph), and a SAGE Set that stores its precomputed
+        property values.
         """
 
         data_dict = {}

@@ -3,6 +3,7 @@ A module for dealing with lists of graphs.
 
 AUTHOR:
     -- Robert L. Miller (2007-02-10): initial version
+    -- Emily A. Kirkman (2007-02-13): added show functions (to_graphics_array and show_graphs)
 """
 
 #*****************************************************************************
@@ -140,10 +141,32 @@ def to_sparse6(list, file = None):
 
 def to_graphics_arrays(list):
     """
-    Use this if too many graphs for show_graphs function.
-    Max graphs per array = 20 (5 rows of 4).
-    Appends graphics arrays in a list.
-    Then enter list and index and .show()
+    Returns a list of SAGE graphics arrays containing the graphs in list.
+    The maximum number of graphs per array is 20 (5 rows of 4).  Use this
+    function if there are too many graphs for the show_graphs function.
+    The graphics arrays will contain 20 graphs each except potentially the
+    last graphics array in the list.
+
+    INPUT:
+        list -- a list of SAGE graphs
+
+    GRAPH PLOTTING:
+    Uses the circular layout for graphs.  This allows for a nicer display
+    in a small area and takes much less time to compute than the spring-
+    layout algorithm for many graphs.
+
+    EXAMPLES:
+        sage: glist = []
+        sage: for i in range(999):
+        ... glist.append(graphs.RandomGNP(6,.45))
+        ...
+        sage: garray = graphs_list.to_graphics_arrays(glist)
+
+        # Display the first graphics array in the list.
+        sage.: garray[0].show()
+
+        # Display the last graphics array in the list.
+        sage.: garray[len(garray)-1].show()
     """
     from sage.plot.plot import graphics_array
     from sage.graphs import graph
@@ -152,8 +175,8 @@ def to_graphics_arrays(list):
     for i in range (len(list)):
         if ( isinstance( list[i], graph.Graph ) ):
             pos = list[i].__get_pos__()
-            if ( pos is None and list[i].order() < 10 ):
-                plist.append(list[i].plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+            if ( pos is None ):
+                plist.append(list[i].plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
             else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
         else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
 
@@ -186,9 +209,59 @@ def to_graphics_arrays(list):
 
 def show_graphs(list):
     """
-    Will show max 20 graphs from list in a sage graphics array.
-    Raises ValueError if too many graphs are in the list.
-    Try to_graphics_arrays if too many graphs for this function.
+    Shows a maximum of 20 graphs from list in a sage graphics array.
+
+    Note:  Raises ValueError if too many graphs are in the list.
+    If the user wants to display more than 20 graphs, use the function
+    to_graphics_arrays and show each graphics array individually.
+
+    INPUT:
+        list -- a list of SAGE graphs
+
+    GRAPH PLOTTING:
+    Uses the circular layout for graphs.  This allows for a nicer display
+    in a small area and takes much less time to compute than the spring-
+    layout algorithm for many graphs.
+
+    EXAMPLES:
+        # Create a list of graphs:
+        sage: glist = []
+        sage: glist.append(graphs.CompleteGraph(6))
+        sage: glist.append(graphs.CompleteBipartiteGraph(4,5))
+        sage: glist.append(graphs.BarbellGraph(7,4))
+        sage: glist.append(graphs.CycleGraph(15))
+        sage: glist.append(graphs.DiamondGraph())
+        sage: glist.append(graphs.HouseGraph())
+        sage: glist.append(graphs.HouseXGraph())
+        sage: glist.append(graphs.KrackhardtKiteGraph())
+        sage: glist.append(graphs.LadderGraph(5))
+        sage: glist.append(graphs.LollipopGraph(5,6))
+        sage: glist.append(graphs.PathGraph(15))
+        sage: glist.append(graphs.PetersenGraph())
+        sage: glist.append(graphs.StarGraph(17))
+        sage: glist.append(graphs.WheelGraph(9))
+
+        # Check that length is <= 20:
+        sage: len(glist)
+        14
+
+        # Show the graphs in a graphics array:
+        sage.: graphs_list.show_graphs(glist)
+
+        # But more than 20 graphs will raise an exception:
+        sage: glist21 = []
+        sage: for i in range(21):
+        ... glist21.append(graphs.RandomGNP(6,.45))
+        ...
+        sage: graphs_list.show_graphs(glist21)
+        Traceback (most recent call last):
+        ...
+        ValueError: List is too long to display in a graphics array.  Try using the to_graphics_arrays function.
+
+        # In this case, use to_graphics_arrays instead:
+        sage: garrays = graphs_list.to_graphics_arrays(glist21)
+        sage.: garrays[0].show()
+        sage.: garrays[1].show()
     """
     if ( len(list) > 20 ):
         raise ValueError, 'List is too long to display in a graphics array.  Try using the to_graphics_arrays function.'
@@ -200,8 +273,8 @@ def show_graphs(list):
     for i in range (len(list)):
         if ( isinstance( list[i], graph.Graph ) ):
             pos = list[i].__get_pos__()
-            if ( pos is None and list[i].order() < 10 ):
-                plist.append(list[i].plot(pos='database', node_size=50, vertex_labels=False, graph_border=True))
+            if ( pos is None ):
+                plist.append(list[i].plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))
             else: plist.append(list[i].plot(pos=pos, node_size=50, vertex_labels=False, graph_border=True))
         else:  raise TypeError, 'Param list must be a list of SAGE graphs.'
 

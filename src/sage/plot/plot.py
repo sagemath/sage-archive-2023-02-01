@@ -2519,7 +2519,8 @@ class GraphicsArray(SageObject):
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
+        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
+        self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
              axes = None, **args):

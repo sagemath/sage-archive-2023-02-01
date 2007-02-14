@@ -842,6 +842,24 @@ y = var('y')
 z = var('z')
 w = var('w')
 
+class Function_erf(PrimitiveFunction):
+    r'''
+    The error function, defined as $\text{erf}(x) = \frac{2}{\sqrt{\pi}}\int_0^x
+    e^{-t^2} dt$.
+    '''
+
+    def _repr_(self):
+        return "erf"
+
+    def _latex_(self):
+        return "\\text{erf}"
+
+    def _is_atomic(self):
+        return True
+
+erf = Function_erf()
+_syms['erf'] = erf
+
 class Function_sin(PrimitiveFunction):
     '''
     The sine function
@@ -884,6 +902,9 @@ class Function_sec(PrimitiveFunction):
     def _latex_(self):
         return "\\sec"
 
+    def _is_atomic(self):
+        return True
+
 sec = Function_sec()
 _syms['sec'] = sec
 
@@ -897,8 +918,27 @@ class Function_log(PrimitiveFunction):
     def _latex_(self):
         return "\\log"
 
+    def _is_atomic(self):
+        return True
+
 log = Function_log()
 _syms['log'] = log
+
+class Function_sqrt(PrimitiveFunction):
+    '''
+    The (positive) square root function.
+    '''
+    def _repr_(self):
+        return "sqrt"
+
+    def _latex_(self):
+        return "\\sqrt"
+
+    def _is_atomic(self):
+        return True
+
+sqrt = Function_sqrt()
+_syms['sqrt'] = sqrt
 
 #######################################################
 symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
@@ -921,7 +961,7 @@ def symbolic_expression_from_maxima_string(x):
     s = maxima.eval('_tmp_')
     for x, y in symtable.iteritems():
         s = s.replace(x, y)
-    #print s
+    print s
     #print _syms
     return SymbolicExpressionRing(sage_eval(s, _syms))
 

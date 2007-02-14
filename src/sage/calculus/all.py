@@ -1,6 +1,6 @@
 from calculus import (SER,
                       var,
-                      sin, cos, sec,
+                      sin, cos, sec, log, erf, sqrt,
                       x, y, z, w, t)
 
 

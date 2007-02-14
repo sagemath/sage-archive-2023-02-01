@@ -424,7 +424,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             i = line.find('=', n) + 2
 
             continue
-
+        #
         ####### END CALCULUS ########
 
         # exponents can be either ^ or **

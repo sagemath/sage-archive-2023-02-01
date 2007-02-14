@@ -1353,7 +1353,7 @@ cdef class Matrix(matrix1.Matrix):
 
         assert sum(eval('[A.dimension() for A,_ in D]',{'D':D})) == M.dimension(), \
                "bug in decomposition; " + \
-               "the sum of the dimensions of the factors must equal the dimension of the acted on space."
+               "the sum of the dimensions of the factors must equal the dimension of the acted on space:\nFactors found: %s\nSpace: %s"%(D, M)
 
         # 3. Lift decomposition to subspaces of ambient vector space.
         # Each basis vector for an element of D defines a linear combination
@@ -1987,6 +1987,10 @@ cdef class Matrix(matrix1.Matrix):
             [3 4 5]
             [6 7 8]
         """
+        return self.matrix_window_c(row, col, nrows, ncols)
+
+    cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
+                         Py_ssize_t nrows, Py_ssize_t ncols):
         if nrows == -1:
             nrows = self._nrows - row
             ncols = self._ncols - col
@@ -2030,3 +2034,24 @@ cdef class Matrix(matrix1.Matrix):
 
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)
+
+
+def cmp_pivots(x,y):
+    """
+    Compare two sequences of pivot columns.
+    If x is short than y, return -1, i.e., x < y, "not as good".
+    If x is longer than y, x > y, "better"
+    If the length is the same then x is better, i.e., x > y
+        if the entries of x are correspondingly >= those of y with
+        one being greater.
+    """
+    if len(x) < len(y):
+        return -1
+    if len(x) > len(y):
+        return 1
+    if x < y:
+        return 1
+    elif x == y:
+        return 0
+    else:
+        return -1

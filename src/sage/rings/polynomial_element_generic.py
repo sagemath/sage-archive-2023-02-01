@@ -1329,6 +1329,12 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         """
         return self.parent()(self.__poly * right.__poly, construct=True)
 
+    def _lmul_(self, right):
+        return self.parent()(ZZX([right]) * self.__poly, construct=True)
+
+    def _rmul_(self, left):
+        return self.parent()(ZZX([left]) * self.__poly, construct=True)
+
     def _sub_(self, right):
         return self.parent()(self.__poly - right.__poly, construct=True)
 

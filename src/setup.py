@@ -171,10 +171,14 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  ['sage/matrix/matrix_integer_2x2.pyx'],
                                  libraries = ['gmp'])
 
+linbox = Extension('sage.matrix.linbox',
+                   ['sage/matrix/linbox.pyx',
+                    'sage/matrix/matrix_modn_dense_linbox.cpp'],
+                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx',
-                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
-                              libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+                              ['sage/matrix/matrix_modn_dense.pyx'],
+                              libraries = ['gmp'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -225,7 +229,7 @@ free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
-gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',CBLAS])
 
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
@@ -313,6 +317,7 @@ ext_modules = [ \
      matrix_real_double_dense,
      matrix_complex_double_dense,
      solve,
+     linbox,
      matrix_modn_dense,
      matrix_modn_sparse,
      givaro_gfq, \
@@ -329,7 +334,7 @@ ext_modules = [ \
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
-    #gsl_probability,
+    gsl_probability,
     gsl_integration,
     real_double,
     complex_double,

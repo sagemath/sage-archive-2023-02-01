@@ -189,7 +189,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 L += a[j]*(Y[j][0])
             t = verbose("crt time is",t, level=2)
             E = L.rational_reconstruction(prod)
-            L =0  # free memory
+            L = 0  # free memory
             verbose('rational reconstruction time is', t, level=2)
         except ValueError, msg:
             verbose("Redoing with several more primes", level=2)

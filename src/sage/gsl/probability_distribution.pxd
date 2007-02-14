@@ -1,9 +1,9 @@
 include '../ext/cdefs.pxi'
 include 'gsl.pxi'
-cdef class probability_distribution:
+cdef class ProbabilityDistribution:
     pass
 
-cdef class real_distribution(probability_distribution):
+cdef class RealDistribution(ProbabilityDistribution):
     cdef gsl_rng_type *T
     cdef gsl_rng *r
     cdef int distribution_type

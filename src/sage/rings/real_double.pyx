@@ -1,4 +1,4 @@
-"""
+r"""
 Double Precision Real Numbers
 
 EXAMPLES:
@@ -806,8 +806,14 @@ cdef class RealDoubleElement(FieldElement):
                 return -1./0
             if self._value < 0:
                 return 0./0
-            return self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
-        return self._new_c(gsl_sf_log(self._value) / log_of_base)
+            _sig_on
+            a = self._new_c(gsl_sf_log_1plusx(self._value - 1) / log_of_base)
+            _sig_off
+            return a
+        _sig_on
+        a = self._new_c(gsl_sf_log(self._value) / log_of_base)
+        _sig_off
+        return a
 
     def log(self, base=None):
         """
@@ -848,7 +854,10 @@ cdef class RealDoubleElement(FieldElement):
             4.99548451888
 
         """
-        return self._new_c(gsl_sf_log(self._value) / M_LN2)
+        _sig_on
+        a = self._new_c(gsl_sf_log(self._value) / M_LN2)
+        _sig_off
+        return a
 
 
     def log10(self):
@@ -863,7 +872,10 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF('39.9'); r.log10()
             1.60097289569
         """
-        return self._new_c(gsl_sf_log(self._value) / M_LN10)
+        _sig_on
+        a = self._new_c(gsl_sf_log(self._value) / M_LN10)
+        _sig_off
+        return a
 
     def logpi(self):
         """
@@ -877,7 +889,10 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF('39.9'); r.logpi()
             3.22030233461
         """
-        return self._new_c(gsl_sf_log(self._value) / M_LNPI)
+        _sig_on
+        a = self._new_c(gsl_sf_log(self._value) / M_LNPI)
+        _sig_off
+        return a
 
     def exp(self):
         r"""
@@ -897,8 +912,16 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF('-32.3')
             sage: r.exp()
             9.3818445885e-15
+
+            sage: RDF(1000).exp()
+            Traceback (most recent call last):
+            ...
+            RuntimeError
         """
-        return self._new_c(gsl_sf_exp(self._value))
+        _sig_on
+        a = self._new_c(gsl_sf_exp(self._value))
+        _sig_off
+        return a
 
     def exp2(self):
         """
@@ -916,9 +939,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(-32.3)
             sage: r.exp2()
             1.89117248253e-10
-
         """
-        return self._new_c(gsl_sf_exp(self._value * M_LN2))
+        _sig_on
+        a = self._new_c(gsl_sf_exp(self._value * M_LN2))
+        _sig_off
+        return a
 
     def exp10(self):
         r"""
@@ -937,7 +962,10 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.exp10()
             5.01187233627e-33
         """
-        return self._new_c(gsl_sf_exp(self._value * M_LN10))
+        _sig_on
+        a = self._new_c(gsl_sf_exp(self._value * M_LN10))
+        _sig_off
+        return a
 
     def cos(self):
         """
@@ -972,7 +1000,10 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.tan()
             0.57735026919
         """
-        return self._new_c(tan(self._value))
+        _sig_on
+        a = self._new_c(tan(self._value))
+        _sig_off
+        return a
 
     def sincos(self):
         """
@@ -986,7 +1017,10 @@ cdef class RealDoubleElement(FieldElement):
         return self.sin(), self.cos()
 
     def hypot(self, other):
-        return self._new_c(gsl_sf_hypot(self._value, float(other)))
+        _sig_on
+        a = self._new_c(gsl_sf_hypot(self._value, float(other)))
+        _sig_off
+        return a
 
     def acos(self):
         """
@@ -1129,7 +1163,10 @@ cdef class RealDoubleElement(FieldElement):
            sage: RDF(1.5).gamma()
            0.886226925453
         """
-        return self._new_c(gsl_sf_gamma(self._value))
+        _sig_on
+        a = self._new_c(gsl_sf_gamma(self._value))
+        _sig_off
+        return a
 
     def zeta(self):
         r"""

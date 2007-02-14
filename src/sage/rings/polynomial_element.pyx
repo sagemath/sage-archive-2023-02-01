@@ -165,11 +165,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         We evaluate a polynomial over a quaternion algebra:
             sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
             sage: R.<w> = PolynomialRing(A,sparse=True)
-            sage: f = i*j*w^5 - 13*i*w^2 * (i+j)*w + i
+            sage: f = i*j*w^5 - 13*i*w^2 + (i+j)*w + i
             sage: f(i+j+1)
-            -65 + 38*i - 11*j + 66*k
-            sage: w = i+j+1; i*j*w^5 - 13*i*w^2 * (i+j)*w + i
-            -65 + 38*i - 11*j + 66*k
+            24 + 26*i - 10*j - 25*k
+            sage: w = i+j+1; i*j*w^5 - 13*i*w^2 + (i+j)*w + i
+            24 + 26*i - 10*j - 25*k
 
         AUTHORS:
             -- David Joyner, 2005-04-10

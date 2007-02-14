@@ -13,7 +13,7 @@ from sage.misc.misc import verbose, get_verbose, cputime, UNAME
 #  * echelon form over GF(2) -> crash, worked around by using native 'gauss' in that case
 #  * charpoly and minpoly don't work randomly
 
-cdef extern from "matrix_modn_dense_linbox.h":
+cdef extern from "linbox_wrap.h":
     void linbox_modn_dense_delete_array(mod_int *f)
 
     int linbox_modn_dense_echelonize(unsigned long modulus,
@@ -105,7 +105,7 @@ cdef class Linbox_modn_sparse:
 ## Dense matrices over ZZ
 ##########################################################################
 
-cdef extern from "matrix_integer_dense_linbox.h":
+cdef extern from "linbox_wrap.h":
     void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
                                       size_t n, mpz_t** matrix, int do_minpoly)
 
@@ -122,6 +122,9 @@ cdef extern from "matrix_integer_dense_linbox.h":
 
     unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
                                             size_t ncols)
+
+    unsigned long linbox_integer_dense_det(mpz_t** matrix, size_t nrows,
+                                           size_t ncols)
 
 cdef class Linbox_integer_dense:
     cdef set(self, mpz_t** matrix, size_t nrows, size_t ncols):
@@ -185,3 +188,6 @@ cdef class Linbox_integer_dense:
 
     cdef unsigned long rank(self) except -1:
         return linbox_integer_dense_rank(self.matrix, self.nrows, self.ncols)
+
+    def det(self):
+        linbox_integer_dense_det(self.matrix, self.nrows, self.ncols)

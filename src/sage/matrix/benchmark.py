@@ -108,7 +108,7 @@ def rank_ZZ(n=500, min=0, max=9, system='sage'):
     elif system == 'magma':
         code = """
 n := %s;
-A := MatrixAlgebra(IntegerRing(), n, n+10)![Random(%s,%s) : i in [1..n*(n+10)]];
+A := RMatrixSpace(IntegerRing(), n, n+10)![Random(%s,%s) : i in [1..n*(n+10)]];
 t := Cputime();
 K := Rank(A);
 s := Cputime(t);
@@ -133,7 +133,7 @@ def rank2_ZZ(n=500, min=0, max=9, system='sage'):
     elif system == 'magma':
         code = """
 n := %s;
-A := MatrixAlgebra(IntegerRing(), n+10, n)![Random(%s,%s) : i in [1..n*(n+10)]];
+A := RMatrixSpace(IntegerRing(), n+10, n)![Random(%s,%s) : i in [1..n*(n+10)]];
 t := Cputime();
 K := Rank(A);
 s := Cputime(t);

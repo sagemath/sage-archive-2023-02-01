@@ -27,3 +27,4 @@ cdef class Linbox_integer_dense:
                                 mpz_t **B,
                                 size_t B_nr, size_t B_nc)
     cdef unsigned long rank(self) except -1
+

@@ -1352,6 +1352,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
         _sig_off
 
+    def rank(self):
+        # Can very quickly detect full rank by working modulo p.
+        r = self._rank_modp()
+        if r == self._nrows or r == self._ncols:
+            self.cache('rank', r)
+            return r
+        # Detecting full rank didn't work -- use Linbox's general algorithm.
+        r = self._rank_linbox()
+        self.cache('rank', r)
+        return r
+
     def _rank_linbox(self):
         """
         Compute the rank of this matrix using Linbox.
@@ -1367,17 +1378,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = self._mod_int_c(p)
         return A.rank()
 
-    def rank(self):
-        # Can very quickly detect full rank by working modulo p.
-        r = self._rank_modp()
-        if r == self._nrows or r == self._ncols:
-            self.cache('rank', r)
-            return r
-        # Detecting full rank didn't work -- use Linbox's general algorithm.
-        r = self._rank_linbox()
-        self.cache('rank', r)
-        return r
-
+    def _det_linbox(self):
+        """
+        Compute the determinant of this matrix using Linbox.
+        """
+        self._init_linbox()
+        _sig_on
+        linbox.det()
+        _sig_off
+        #return Integer(r)
 
 ###############################################################
 

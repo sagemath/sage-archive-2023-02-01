@@ -126,9 +126,8 @@ class DistributedSage(object):
 
         Simply type dsage.console() to launch it.  It is a special ipython
         console because it has a twisted thread running in the background.
-
         """
-
+        # this is overwritten below.
         cmd = 'dsage_console.py'
         os.system(cmd)
 
@@ -142,7 +141,6 @@ class DistributedSage(object):
         dsage.setup() client
 
         """
-
         cmd = 'dsage_setup.py'
         os.system(cmd)
 
@@ -171,3 +169,8 @@ class DistributedSage(object):
         os.system(cmd)
 
 dsage = DistributedSage()
+
+# we have to do it this way, so the proper globals
+# get passed to start_dsage_console.
+import scripts.dsage_activate
+dsage.console = scripts.dsage_activate.start_dsage_console

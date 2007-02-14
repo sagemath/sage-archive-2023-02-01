@@ -14,6 +14,7 @@ import sage.misc.misc as misc
 F = '%s/spawn'%misc.SAGE_TMP
 
 def monitor(pid, interval, cmd):
+    raise NotImplementedError, "do not use monitor -- deprecated -- use cleaner instead."
     cmd = 'sage-monitor %s %s %s &'%(PID, pid, interval)
     os.system(cmd)
 

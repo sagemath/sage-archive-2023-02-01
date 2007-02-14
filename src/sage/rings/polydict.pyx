@@ -546,12 +546,14 @@ cdef class PolyDict:
             sage: f**2
             PolyDict with representation {(3, 3): 24, (3, 5): 12, (4, 4): 16, (4, 2): 16, (4, 6): 4, (2, 4): 9}
         """
-        n = int(n)
-        if n < 0:
+        _n = int(n)
+        if _n != n:
+            raise ValueError, "n must be an integer"
+        if _n < 0:
             raise ValueError, "n must be nonnegative."
-        if n == 0:
+        if _n == 0:
             return self.__one()
-        return generic_power(self, n, self.__one())
+        return generic_power(self, _n, self.__one())
 
     def lcmt(PolyDict self,greater_etuple):
         """

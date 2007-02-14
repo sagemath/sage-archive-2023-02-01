@@ -314,16 +314,10 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
     return self * self
 
 
-  def __mul__(self, other):
+  def _mul_(self, other):
     # todo: cache results of toom-cook splitting, i.e. often we multiply
     # the same polynomial by a bunch of other things, and we can save
     # on part of the repetitve work
-
-    # todo: this should really be _mul_, not __mul__. But currently of the
-    # _mul_ dispatch code is a bit messed up and it doesn't seem to work
-    # if I make it _mul_. This is very frustrating. Maybe this will work
-    # properly when PolynomialRings become algebras rather than just
-    # commutative rings.
 
     # todo: if the degree is small, perhaps just use the naive
     # algorithm instead?
@@ -981,12 +975,12 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       sage: prec = 3
       sage: M = monsky_washnitzer.adjusted_prec(p, prec)
       sage: M
-        5
+      5
       sage: R.<x> = PolynomialRing(Integers(p**M))
       sage: A = monsky_washnitzer.matrix_of_frobenius(x^3 - x + R(1/4), p, M)
       sage: A
-       [3090  187]
-       [2945  408]
+      [3090  187]
+      [2945  408]
 
     But the result is only accurate to prec digits:
       sage: B = A.change_ring(Integers(p**prec))

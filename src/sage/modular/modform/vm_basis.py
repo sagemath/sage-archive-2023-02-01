@@ -149,6 +149,45 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
 ##         F6 = R(F6)
 ##     return (F4**3 - F6**2)/R(1728, prec)
 
+## def eta_qexp(prec=10, var='q'):
+##     """
+##     Return the q-expansion of the Dedekind eta functions as a power
+##     series with coefficients in ZZ.
+
+##     ALGORITHM:
+##         Compute a simple very explicit modular form whose 8th power
+##         is Delta.   Then compute the 8th power using NTL polynomial
+##         arithmetic, which is VERY fast.   This function
+##         computes a *million* terms of Delta in under a minute.
+
+##     EXAMPLES:
+##         sage: delta_qexp(7)
+##         q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^7)
+##         sage: delta_qexp(7,'z')
+##         z - 24*z^2 + 252*z^3 - 1472*z^4 + 4830*z^5 - 6048*z^6 - 16744*z^7 + O(z^7)
+##         sage: delta_qexp(-3)
+##         Traceback (most recent call last):
+##         ...
+##         ValueError: prec must be positive
+##     """
+##     if prec <= 0:
+##         raise ValueError, "prec must be positive"
+##     v = [0] * prec
+##     stop = int((-1+math.sqrt(1+8*prec))/2.0)
+##     for n in range(stop+1):
+## ##
+## {{{
+## pari('eta(q+O(q^200))')
+## ///
+## 1 - q - q^2 + q^5 + q^7 - q^12 - q^15 + q^22 + q^26 - q^35 - q^40 + q^51 + q^57 - q^70 - q^77 + q^92 + q^100 - q^117 - q^126 + q^145 + q^155 - q^176 - q^187 + O(q^200)
+## }}}
+## {{{
+## sloane_find([2,5,7,12,15,22,26])
+## ///
+## Searching Sloane's online database...
+## [[1318, 'Generalized pentagonal numbers: n(3n-1)/2, n=0, +- 1, +- 2,....', [0, 1, 2, 5, 7, 12, 15, 22, 26, 35, 40, 51, 57, 70, 77, 92, 100, 117, 126, 145, 155, 176, 187, 210, 222, 247, 260, 287, 301, 330, 345, 376, 392, 425, 442, 477, 495, 532, 551, 590, 610, 651, 672, 715, 737, 782, 805, 852, 876, 925, 950, 1001, 1027, 1080, 1107, 1162, 1190, 1247, 1276, 1335]]]
+## }}}
+
 def delta_qexp(prec=10, var='q'):
     """
     Return the q-expansion of Delta as a power series with

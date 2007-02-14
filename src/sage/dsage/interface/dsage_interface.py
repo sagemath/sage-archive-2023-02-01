@@ -57,8 +57,7 @@ try:
     SERVER = config.get('general', 'server')
     PORT = config.getint('general', 'port')
 except:
-    print 'Error reading %s, please fix manually or run dsage.setup()' % \
-    (conf_file)
+    print "Error reading '%s', please run dsage.setup() or fix manually"%conf_file
     sys.exit(-1)
 # End reading configuration
 
@@ -68,15 +67,7 @@ class DSageThread(threading.Thread):
 
 class DSage(object):
     r"""
-    This object represents a connection to the server
-
-       Parameters:
-       hostname -- hostname of the DSAGE server (str)
-       port -- port of the server (int)
-       username -- username stored on the server (str)
-       pubkey_file -- file that stores the users public key
-       privkey_file -- file that stores the users private key
-
+    This object represents a connection to the distributed SAGE server.
     """
 
     def __init__(self, server=None, port=8081, username=None,

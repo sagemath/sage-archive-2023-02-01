@@ -1,3 +1,4 @@
 TODO:
-[]	Add support for passworded public keys (Yi)
-[]	Add sqlite support (Alex)
+[ ] Add blockingCallFromThread support to DSage interface
+[X]	Add support for passworded gpg keys (Yi)
+[ ]	Add sqlite support (Alex)

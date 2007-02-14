@@ -1,4 +1,4 @@
-include "../ext/cdefs.pxi"
+include "../../ext/cdefs.pxi"
 
 ctypedef size_t mod_int
 

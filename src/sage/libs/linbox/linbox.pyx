@@ -1,5 +1,3 @@
-
-
 #USE_LINBOX=False
 USE_LINBOX=True
 
@@ -7,7 +5,7 @@ USE_LINBOX=True
 ## code that calls these functions.  Otherwise strangely objects get left
 ## in an incorrect state.
 
-include "../ext/interrupt.pxi"
+include "../../ext/interrupt.pxi"
 
 cdef extern from "matrix_modn_dense_linbox.h":
     void linbox_modn_dense_delete_array(mod_int *f)

@@ -1222,7 +1222,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
                (self.parent(), self.list(), False, self.is_gen())
 
     def __getitem__(self, n):
-        return ZZ(self.__poly[n])
+        return self.__poly[n]
 
     def __getslice__(self, i, j):
         i = max(0,i)

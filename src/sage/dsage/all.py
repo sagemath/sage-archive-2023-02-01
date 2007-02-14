@@ -1,4 +1,5 @@
 from dsage import dsage
+from sage.dsage.interface.dsage_interface import BlockingDSage
 
 def DSage(server=None, port=8081, username=None,
           pubkey_file=None, privkey_file=None):

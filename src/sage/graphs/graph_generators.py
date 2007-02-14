@@ -99,9 +99,9 @@ class GraphGenerators():
     are available.
 
     The docstrings include educational information about each named graph
-    with the hopes that this database can be used as a reference.
+    with the hopes that this class can be used as a reference.
 
-    For all the constructors in this database (except the octahedral,
+    For all the constructors in this class (except the octahedral,
     dodecahedral, random and empty graphs), the position dictionary
     is filled to override the spring-layout algorithm.
 

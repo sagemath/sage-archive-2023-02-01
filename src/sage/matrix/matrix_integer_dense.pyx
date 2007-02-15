@@ -823,7 +823,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             t = cputime()
             res[i] *= res_right[i]
             verbose('multiplied matrices modulo a prime (%s/%s)'%(i+1,k), t)
-        result = _lift_crt(res, mm)
+        result = left.new_matrix(left.nrows(), right.ncols())
+        _lift_crt(result, res, mm)  # changes result
         return result
 
     def _mod_int(self, modulus):
@@ -1516,7 +1517,7 @@ def convert_parimatrix(z):
 
 
 
-def _lift_crt(residues, moduli=None):
+def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
 
     cdef size_t n, i, j, k
     cdef Py_ssize_t nr, nc
@@ -1544,9 +1545,6 @@ def _lift_crt(residues, moduli=None):
     row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
     if row_list == NULL:
         raise MemoryError, "out of memory allocating multi-modular coefficent list"
-
-    cdef Matrix_integer_dense M
-    M = Matrix_integer_dense.__new__(Matrix_integer_dense, residues[0].matrix_space(nr, nc), None, None, None)
 
     _sig_on
     for i from 0 <= i < nr:

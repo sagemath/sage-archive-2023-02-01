@@ -110,7 +110,7 @@ def numerical_integral(func, a, b=None,
 
    For a Python function with parameters:
       sage: f = lambda x, a:1.0/(a[0]+x**2)
-      sage: [numerical_integral(f, 1, 2, max_points=100, params=[n]) for n in range(10)]
+      sage: [numerical_integral(f, 1, 2, max_points=100, params=[n]) for n in range(10)]   # slightly random output (architecture and os dependent)
       [(0.49999999999998657, 5.5511151231256336e-15),
        (0.32175055439664557, 3.5721487367706477e-15),
        (0.24030098317249229, 2.6678768435816325e-15),
@@ -127,17 +127,17 @@ def numerical_integral(func, a, b=None,
    It is possible to perform on infinite intervals as well by using
    'inf' or '-inf' in the interval argument. For example,
        sage: f = lambda x: float(exp(RR(-x)))
-       sage: numerical_integral(f, 0, 'inf')
+       sage: numerical_integral(f, 0, 'inf')       # slightly random output
        (0.99999999999957279, 1.8429811298996553e-07)
 
    Note the coercion to the real field RR, which prevents underflow.
 
        sage: f = lambda x: float(exp(RR(-x**2)))
-       sage: numerical_integral(f,'-inf', 'inf')
+       sage: numerical_integral(f,'-inf', 'inf')           # slightly random output
        (1.7724538509060035, 3.4295192165889879e-08)
 
    One can integrate any real-valued callable function:
-       sage: numerical_integral(zeta, [1.1,1.5])
+       sage: numerical_integral(zeta, [1.1,1.5])           # slightly random output
        (1.8488570602160455, 2.052643677492633e-14)
 
 

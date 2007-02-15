@@ -12,7 +12,7 @@ if os.environ.has_key('SAGE_CBLAS'):
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     CBLAS='cblas'
-elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
+elif os.path.exists('/usr/lib/libblas.dll.a'):
     CBLAS='blas'
 else:
     # This is very slow  (?), but *guaranteed* to be available.

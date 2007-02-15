@@ -32,12 +32,8 @@ def kill_spawned_jobs():
             except OSError, msg:
                 pass
             else:
-                print "WARNING: Failed to kill process with pid %s"%pid
-                time.sleep(0.5)
                 j += 1
-                if j > 20:
-                    print "ERROR: Unable to kill process with pid %s"%pid
-                    print "Please kill it manually."
+                if j > 5:
                     break
 
 def is_running(pid):

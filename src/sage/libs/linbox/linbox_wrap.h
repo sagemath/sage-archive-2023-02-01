@@ -53,7 +53,7 @@ EXTERN int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, m
 EXTERN unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
 					       size_t ncols);
 
-EXTERN unsigned long linbox_integer_dense_det(mpz_t** matrix, size_t nrows,
-					      size_t ncols);
+EXTERN  void linbox_integer_dense_det(mpz_t ans, mpz_t** matrix, size_t nrows,
+				      size_t ncols);
 
 #endif // LINBOX_WRAP_H

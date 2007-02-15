@@ -25,12 +25,12 @@ def kill_spawned_jobs():
         cmd = L[i+1:].strip()
         j = 0
         while True:
+            if not is_running(pid):
+                break
             try:
                 os.killpg(int(pid), 9)
             except OSError, msg:
                 pass
-            if not is_running(pid):
-                break
             else:
                 print "WARNING: Failed to kill process with pid %s"%pid
                 time.sleep(0.5)

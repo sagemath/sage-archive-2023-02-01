@@ -123,8 +123,8 @@ cdef extern from "linbox_wrap.h":
     unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
                                             size_t ncols)
 
-    unsigned long linbox_integer_dense_det(mpz_t** matrix, size_t nrows,
-                                           size_t ncols)
+    void linbox_integer_dense_det(mpz_t ans, mpz_t** matrix,
+                             size_t nrows, size_t ncols)
 
 cdef class Linbox_integer_dense:
     cdef set(self, mpz_t** matrix, size_t nrows, size_t ncols):
@@ -190,4 +190,7 @@ cdef class Linbox_integer_dense:
         return linbox_integer_dense_rank(self.matrix, self.nrows, self.ncols)
 
     def det(self):
-        linbox_integer_dense_det(self.matrix, self.nrows, self.ncols)
+        cdef Integer z
+        z = Integer()
+        linbox_integer_dense_det(z.value, self.matrix, self.nrows, self.ncols)
+        return z

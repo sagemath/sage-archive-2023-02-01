@@ -773,6 +773,7 @@ setup(name        = 'sage',
 
                      'sage.libs',
                      'sage.libs.hanke',
+                     'sage.libs.linbox',
                      'sage.libs.mwrank',
                      'sage.libs.ntl',
                      'sage.libs.ec',

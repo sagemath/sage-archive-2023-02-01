@@ -1384,9 +1384,26 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         self._init_linbox()
         _sig_on
-        linbox.det()
+        d = linbox.det()
         _sig_off
-        #return Integer(r)
+        return Integer(d)
+
+    def determinant(self):
+        """
+        Return the determinant of this matrix.
+
+        ALGORITHM: Uses linbox.
+
+        EXAMPLES:
+
+        """
+        d = self.fetch('det')
+        if not d is None:
+            return d
+        d = self._det_linbox()
+        self.cache('det', d)
+        return d
+
 
 ###############################################################
 

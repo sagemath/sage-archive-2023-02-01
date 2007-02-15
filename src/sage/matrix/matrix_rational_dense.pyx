@@ -1,5 +1,36 @@
 """
 Dense matrices over the rational field.
+
+EXAMPLES:
+We create a 3x3 matrix with rational entries and do some
+operations with it.
+
+    sage: a = matrix(QQ, 3,3, [1,2/3, -4/5, 1,1,1, 8,2, -3/19]); a
+    [    1   2/3  -4/5]
+    [    1     1     1]
+    [    8     2 -3/19]
+    sage: a.det()
+    2303/285
+    sage: a.charpoly()
+    x^3 - 35/19*x^2 + 1259/285*x - 2303/285
+    sage: b = a^(-1); b
+    [ -615/2303  -426/2303   418/2303]
+    [ 2325/2303  1779/2303  -513/2303]
+    [-1710/2303   950/2303    95/2303]
+    sage: b.det()
+    285/2303
+    sage: a == b
+    False
+    sage: a < b
+    False
+    sage: b < a
+    True
+    sage: a > b
+    True
+    sage: a*b
+    [1 0 0]
+    [0 1 0]
+    [0 0 1]
 """
 
 ##############################################################################
@@ -21,7 +52,7 @@ from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_integer_dense import _lift_crt
 import sage.structure.coerce
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Element
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_field import GF
@@ -208,12 +239,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 2 functionality
     # x * cdef _add_c_impl
-    #   * cdef _mul_c_impl
-    #   * cdef _cmp_c_impl
+    # x * cdef _mul_c_impl
+    # x * cdef _cmp_c_impl
     # x * __neg__
     #   * __invert__
     # x * __copy__
-    #   * _multiply_classical
+    # x * _multiply_classical
     #   * _list -- list of underlying elements (need not be a copy)
     #   * _dict -- sparse dictionary of underlying elements (need not be a copy)
     ########################################################################
@@ -302,6 +333,22 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
         return M
 
+    cdef int _cmp_c_impl(self, Element right) except -2:
+        cdef mpq_t *a, *b
+        cdef Py_ssize_t i, j
+        cdef int k
+        for i from 0 <= i < self._nrows:
+            a = self._matrix[i]
+            b = (<Matrix_rational_dense>right)._matrix[i]
+            for j from 0 <= j < self._ncols:
+                k = mpq_cmp(a[j], b[j])
+                if k:
+                    if k < 0:
+                        return -1
+                    else:
+                        return 1
+        return 0
+
     def __neg__(self):
         """
         Negate a matrix over QQ.
@@ -381,6 +428,30 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
+    def determinant(self):
+        """
+        Return the determinant of this matrix.
+
+        ALGORITHM: Clear denominators and call the integer determinant function.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,3,[1,2/3,4/5, 2,2,2, 5,3,2/5])
+            sage: m.determinant()
+            -34/15
+            sage: m.charpoly()
+            x^3 - 17/5*x^2 - 122/15*x + 34/15
+        """
+        det = self.fetch('det')
+        if not det is None: return det
+
+        A, denom = self._clear_denom()
+        det = Rational(A.determinant())
+        if denom != 1:
+            det = det / (denom**self.nrows())
+        self.cache('det', det)
+        return det
+
+
     def denom(self):
         """
         Return the denominator of this matrix.
@@ -944,7 +1015,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return QA
 
 
-    def randomize(self, density=1, num_bound=2, den_bound=1):
+    def randomize(self, density=1, num_bound=2, den_bound=2):
         """
         Randomize density proportion of the entries of this matrix to
         be rationals with numerators and denominators at most the

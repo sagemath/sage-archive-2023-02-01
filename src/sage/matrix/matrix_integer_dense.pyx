@@ -1,5 +1,26 @@
 """
 Dense matrices over the integer ring.
+
+AUTHORS:
+    -- William Stein
+    -- Robert Bradshaw
+
+EXAMPLES:
+    sage: a = matrix(ZZ, 3,3, range(9)); a
+    [0 1 2]
+    [3 4 5]
+    [6 7 8]
+    sage: a.det()
+    0
+    sage: a[0,0] = 10; a.det()
+    -30
+    sage: a.charpoly()
+    x^3 - 22*x^2 + 102*x + 30
+    sage: b = -3*a
+    sage: a == b
+    False
+    sage: b < a
+    True
 """
 
 ######################################################################
@@ -27,12 +48,13 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Element
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
 import sage.modules.free_module
+
 
 from matrix cimport Matrix
 
@@ -414,7 +436,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * cdef _add_c_impl
     # x * cdef _sub_c_impl
     # x * cdef _mul_c_impl
-    #   * cdef _cmp_c_impl
+    # x * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -424,7 +446,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     ########################################################################
 
     # cdef _mul_c_impl(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -449,6 +470,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef int e
         cdef Matrix_integer_dense ans, B
+        B = right
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         self._init_linbox()
         _sig_on
@@ -604,6 +626,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         return M
 
+
+    cdef int _cmp_c_impl(self, Element right) except -2:
+        cdef mpz_t *a, *b
+        cdef Py_ssize_t i, j
+        cdef int k
+        for i from 0 <= i < self._nrows:
+            a = self._matrix[i]
+            b = (<Matrix_integer_dense>right)._matrix[i]
+            for j from 0 <= j < self._ncols:
+                k = mpz_cmp(a[j], b[j])
+                if k:
+                    if k < 0:
+                        return -1
+                    else:
+                        return 1
+        return 0
 
 
     ########################################################################
@@ -986,17 +1024,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ordered in reverse by divisibility.
 
         INPUT:
-            matrix
+            self -- matrix
+            algorithm -- 'linbox' or 'pari'
+
         OUTPUT:
             list of int's
 
         EXAMPLES:
-            sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
-            sage: A.elementary_divisors()
-            [0, 3, 1]
+            sage: matrix(3, range(9)).elementary_divisors()
+            [1, 3, 0]
+            sage: matrix(3, range(9)).elementary_divisors(algorithm='pari')
+            [1, 3, 0]
             sage: C = MatrixSpace(ZZ,4)([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
             sage: C.elementary_divisors()
-            [687, 1, 1, 1]
+            [1, 1, 1, 687]
 
         SEE ALSO: smith_form
         """
@@ -1008,8 +1049,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             if algorithm == 'linbox':
                 d = self._elementary_divisors_linbox()
-            else:
+            elif algorithm == 'pari':
                 d = self._pari_().matsnf(0).python()
+                i = d.count(0)
+                if i > 0:
+                    d = list(reversed(d[i:])) + [d[0]]*i
+            else:
+                raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
         return d
 

@@ -34,7 +34,8 @@ def report(F, title):
 #######################################################################
 
 def report_ZZ():
-    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ, matrix_multiply_ZZ, det_ZZ]
+    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
+         matrix_multiply_ZZ, det_ZZ, det_QQ]
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
@@ -229,6 +230,31 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
+def det_QQ(n=300, num_bound=10, den_bound=10, system='sage'):
+    """
+    Dense rational determinant over QQ.
+    Given an n x n (with n=300) matrix A over QQ with random entries
+    with numerator and denominator between min=-10 and 10,
+    inclusive, compute det(A).
+    """
+    if system == 'sage':
+        A = random_matrix(QQ, n, n, num_bound=num_bound, den_bound=den_bound)
+        t = cputime()
+        d = A.determinant()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(RationalField(), n)![Random(%s,%s)/Random(1,%s) : i in [1..n^2]];
+t := Cputime();
+d := Determinant(A);
+s := Cputime(t);
+"""%(n,-num_bound, num_bound, den_bound)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
 
 #######################################################################
 # Dense Benchmarks over GF(p), for small p.

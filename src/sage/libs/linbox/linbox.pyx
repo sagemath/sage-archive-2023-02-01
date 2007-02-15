@@ -187,7 +187,7 @@ cdef class Linbox_integer_dense:
                                                         self.nrows, self.ncols,
                                                         B_nr, B_nc)
         if e:
-            raise RuntimError, "error doing matrix matrix multiply over ZZ using linbox"
+            raise RuntimeError, "error doing matrix matrix multiply over ZZ using linbox"
 
 
     cdef unsigned long rank(self) except -1:

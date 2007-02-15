@@ -1,6 +1,10 @@
 r"""
 Dense matrices over $\Z/n\Z$ for $n$ small.
 
+AUTHORS:
+    -- William Stein
+    -- Robert Bradshaw
+
 This is a compiled implementation of dense matrices over $\Z/n\Z$
 for $n$ small.
 

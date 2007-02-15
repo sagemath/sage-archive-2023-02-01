@@ -438,3 +438,37 @@ void printPolynomial (const Field &F, const Polynomial &v)
      det(d, A);
      mpz_set(ans, spy.get_mpz(d));
 }
+
+
+#include "linbox/algorithms/smith-form-adaptive.h"
+
+DenseMatrix<NTL_ZZ> new_matrix_integer_dense_ntl(mpz_t** matrix, size_t nrows, size_t ncols) {
+     NTL_ZZ ZZ;
+     DenseMatrix<NTL_ZZ> A (ZZ, nrows, ncols);
+     size_t i, j, k;
+     for (i=0; i < nrows; i++) {
+	 for (j=0; j < ncols; j++) {
+	   NTL_ZZ::Element t;
+	   PID_integer::Element s;
+	   mpz_set(spy.get_mpz(s), matrix[i][j]);
+	   ZZ.init(t, s);
+	   A.setEntry(i, j, t);
+	 }
+     }
+     return A;
+}
+
+void linbox_integer_dense_smithform(mpz_t **v,
+                                    mpz_t **matrix, size_t nrows, size_t ncols) {
+  typedef NTL_ZZ Ints;
+  Ints Z;
+  DenseMatrix<Ints> M(new_matrix_integer_dense_ntl(matrix, nrows, ncols));
+  vector<integer> w(ncols);
+  SmithFormAdaptive::smithForm(w, M);
+
+  (*v) = new mpz_t[ncols];
+  for (size_t i=0; i < ncols; i++) {
+    mpz_init((*v)[i]);
+    mpz_set((*v)[i], spy.get_mpz(w[i]));
+  }
+}

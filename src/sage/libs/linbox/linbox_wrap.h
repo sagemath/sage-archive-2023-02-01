@@ -56,4 +56,8 @@ EXTERN unsigned long linbox_integer_dense_rank(mpz_t** matrix, size_t nrows,
 EXTERN  void linbox_integer_dense_det(mpz_t ans, mpz_t** matrix, size_t nrows,
 				      size_t ncols);
 
+EXTERN void linbox_integer_dense_smithform(mpz_t **v,
+					   mpz_t **matrix,
+					   size_t nrows, size_t ncols);
+
 #endif // LINBOX_WRAP_H

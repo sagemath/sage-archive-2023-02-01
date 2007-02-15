@@ -126,6 +126,10 @@ cdef extern from "linbox_wrap.h":
     void linbox_integer_dense_det(mpz_t ans, mpz_t** matrix,
                              size_t nrows, size_t ncols)
 
+    void linbox_integer_dense_smithform(mpz_t **v,
+                                        mpz_t **matrix,
+                                        size_t nrows, size_t ncols)
+
 cdef class Linbox_integer_dense:
     cdef set(self, mpz_t** matrix, size_t nrows, size_t ncols):
         self.nrows = nrows
@@ -194,3 +198,18 @@ cdef class Linbox_integer_dense:
         z = Integer()
         linbox_integer_dense_det(z.value, self.matrix, self.nrows, self.ncols)
         return z
+
+    def smithform(self):
+        cdef mpz_t* v
+        linbox_integer_dense_smithform(&v, self.matrix, self.nrows, self.ncols)
+        z = []
+        cdef Integer k
+        cdef size_t n
+        for n from 0 <= n < self.ncols:
+            k = Integer()
+            mpz_set(k.value, v[n])
+            mpz_clear(v[n])
+            z.append(k)
+        linbox_integer_dense_delete_array(v)
+        return z
+

@@ -971,9 +971,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.cache('pivots', p)
         return p
 
-    def elementary_divisors(self):
+    #### Elementary divisors
+
+    def elementary_divisors(self, algorithm='linbox'):
         """
         Return the elementary divisors of self, in order.
+
+        IMPLEMENTATION: Uses linbox.
+
+        WARNING: This is MUCH faster than the smith_form function.
 
         The elementary divisors are the invariants of the finite
         abelian group that is the cokernel of this matrix.  They are
@@ -1000,8 +1006,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             d = []
         else:
-            d = self._pari_().matsnf(0).python()
+            if algorithm == 'linbox':
+                d = self._elementary_divisors_linbox()
+            else:
+                d = self._pari_().matsnf(0).python()
         self.cache('elementary_divisors', d)
+        return d
+
+    def _elementary_divisors_linbox(self):
+        self._init_linbox()
+        _sig_on
+        d = linbox.smithform()
+        _sig_off
         return d
 
     def smith_form(self):
@@ -1009,6 +1025,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Returns matrices S, U, and V such that S = U*self*V, and S
         is in Smith normal form.  Thus S is diagonal with diagonal
         entries the ordered elementary divisors of S.
+
+        WARNING: The elementary_divisors function, which returns
+        the diagonal entries of S, is VASTLY faster than this
+        function.
 
         The elementary divisors are the invariants of the finite
         abelian group that is the cokernel of this matrix.  They are
@@ -1352,6 +1372,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
         _sig_off
 
+    #### Rank
+
     def rank(self):
         # Can very quickly detect full rank by working modulo p.
         r = self._rank_modp()
@@ -1378,15 +1400,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = self._mod_int_c(p)
         return A.rank()
 
-    def _det_linbox(self):
-        """
-        Compute the determinant of this matrix using Linbox.
-        """
-        self._init_linbox()
-        _sig_on
-        d = linbox.det()
-        _sig_off
-        return Integer(d)
+    #### Determinante
 
     def determinant(self):
         """
@@ -1403,6 +1417,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         d = self._det_linbox()
         self.cache('det', d)
         return d
+
+    def _det_linbox(self):
+        """
+        Compute the determinant of this matrix using Linbox.
+        """
+        self._init_linbox()
+        _sig_on
+        d = linbox.det()
+        _sig_off
+        return Integer(d)
 
 
 ###############################################################

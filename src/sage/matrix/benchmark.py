@@ -47,14 +47,14 @@ def nullspace_ZZ(n=300, min=0, max=10, system='sage'):
     between min=0 and max=10, compute the nullspace.
     """
     if system == 'sage':
-        A = random_matrix(ZZ, n, n+1, x=min, y=max+1).change_ring(QQ)
+        A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(QQ)
         t = cputime()
         v = A.kernel()
         return cputime(t)
     elif system == 'magma':
         code = """
 n := %s;
-A := RMatrixSpace(RationalField(), n, n+1)![Random(%s,%s) : i in [1..n*(n+1)]];
+A := RMatrixSpace(RationalField(), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
 t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
@@ -146,23 +146,23 @@ s := Cputime(t);
 
 # Smith Form
 
-def smithform_ZZ(n=100, min=0, max=9, system='sage'):
+def smithform_ZZ(n=128, min=0, max=9, system='sage'):
     """
     Smith Form over ZZ:
-    Given a n x n (with n=100) matrix over ZZ with random entries
+    Given a n x n (with n=128) matrix over ZZ with random entries
     between min=0 and max=9, compute the Smith normal form.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n, n, x=min, y=max+1)
         t = cputime()
-        v = A.smith_form()
+        v = A.elementary_divisors()
         return cputime(t)
     elif system == 'magma':
         code = """
 n := %s;
 A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
 t := Cputime();
-K := SmithForm(A);
+K := ElementaryDivisors(A);
 s := Cputime(t);
 """%(n,min,max)
         if verbose: print code

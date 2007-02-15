@@ -21,8 +21,10 @@ import copy
 import cPickle
 import zlib
 
-from twisted.internet import task
+from twisted.internet import reactor, task
+
 from sage.dsage.database.job import Job
+from sage.dsage.twisted.misc import blockingCallFromThread
 
 class DistributedFunction(object):
     r"""
@@ -43,7 +45,7 @@ class DistributedFunction(object):
         self.end_time= None
         self.name = None
         self.job_files = []
-        self.checker_task = None
+        # self.checker_task = None
         self._done = False
 
     def __getstate__(self):
@@ -119,19 +121,47 @@ class DistributedFunction(object):
 
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
-            wrapped_job.syncJob()
+            # wrapped_job.syncJob()
             # wrapped_job._job refers to the actual Job object
+            wrapped_job.async_getJob()
             if wrapped_job._job.status == 'completed':
                 self.waiting_jobs.remove(wrapped_job)
-                self.process_result(wrapped_job._job)
+                self.process_result(wrapped_job)
                 self.processed_jobs.append(wrapped_job)
         if self.done:
             # kill the jobs in the waiting queue
             for wrapped_job in self.waiting_jobs:
-                wrapped_job.kill()
+                wrapped_job.async_kill()
             self.checker_task.stop()
             return
         self.done = len(self.waiting_jobs) == 0
+
+class BlockingDistributedFunction(DistributedFunction):
+    def __init__(self, dsage):
+        DistributedFunction.__init__(self, dsage)
+
+    def check_results(self):
+        for wrapped_job in self.waiting_jobs:
+            wrapped_job.async_getJob()
+            if wrapped_job.status == 'completed':
+                self.waiting_jobs.remove(wrapped_job)
+                self.process_result(wrapped_job)
+                self.processed_jobs.append(wrapped_job)
+        if self.done:
+            # kill the jobs in the waiting queue
+            for wrapped_job in self.waiting_jobs:
+                wrapped_job.async_kill()
+            reactor.callFromThread(self.checker_task.stop)
+            return
+        self.done = len(self.waiting_jobs) == 0
+
+    def start(self):
+        self.start_time = datetime.datetime.now()
+        self.submit_jobs(self.name)
+        self.checker_task = blockingCallFromThread(task.LoopingCall,
+                                                   self.check_results)
+        reactor.callFromThread(self.checker_task.start,
+                               1.0, now=True)
 
 class DistributedTestFunction(DistributedFunction):
     def __init__(self, DSage, n, name='DistributedTestFunction'):
@@ -145,3 +175,15 @@ class DistributedTestFunction(DistributedFunction):
     def process_result(self, job):
         self.result += int(job.output)
 
+class BlockingDistributedTestFunction(BlockingDistributedFunction):
+    """docstring for BlockingDistributedTestFunction"""
+    def __init__(self, DSage, n, name='DistributedTestFunction'):
+        DistributedFunction.__init__(self, DSage)
+        self.n = n
+        self.name = name
+        self.result = 0
+        self.results = []
+        self.outstanding_jobs = ["print %s"%i for i in range(1,n+1)]
+
+    def process_result(self, job):
+        self.result += int(job.output)

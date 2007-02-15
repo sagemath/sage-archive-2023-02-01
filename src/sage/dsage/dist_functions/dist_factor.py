@@ -1,9 +1,10 @@
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
+from sage.dsage.dist_functions.dist_function import BlockingDistributedFunction
 
 from sage.all import *
 
-class DistributedFactor(DistributedFunction):
+class DistributedFactor(BlockingDistributedFunction):
     r"""
     DistributedFactor uses ECM and QSIEVE to find factors of numbers.
 
@@ -14,6 +15,7 @@ class DistributedFactor(DistributedFunction):
            Robert Bradshaw
            Yi Qiang
     """
+
     def __init__(self, DSage, n, concurrent=10, verbosity=0,
                  trial_division_limit=10000, name='DistributedFactor'):
         r"""
@@ -30,8 +32,7 @@ class DistributedFactor(DistributedFunction):
 
         """
 
-        DistributedFunction.__init__(self, DSage)
-        # self.id = "ecm_factor(%s)" % (n)
+        BlockingDistributedFunction.__init__(self, DSage)
         self.n = n
         self.prime_factors = []
         self.cur_B1 = 2000
@@ -106,6 +107,7 @@ DSAGE_RESULT = 'result.sobj'
         If the factorization is not yet complete, spawn another job.
 
         """
+
         if prod(self.prime_factors) == self.n:
             print 'Found all prime factors. \r'
             self.done = True
@@ -176,11 +178,11 @@ DSAGE_RESULT = 'result.sobj'
         else:
             qsieve_count = 0
             for wrapped_job in self.waiting_jobs:
-                if wrapped_job._job.algorithm =='qsieve':
-                    if ZZ(wrapped_job._job.n) not in self.composite_factors:
+                if wrapped_job.algorithm =='qsieve':
+                    if ZZ(wrapped_job.n) not in self.composite_factors:
                         if self.verbosity > 2:
-                            print "killing qsieve(%s)" % wrapped_job._job.n
-                        wrapped_job.kill()
+                            print "killing qsieve(%s)" % wrapped_job.n
+                        wrapped_job.async_kill()
                         self.waiting_jobs.remove(wrapped_job)
                     else:
                         qsieve_count += 1

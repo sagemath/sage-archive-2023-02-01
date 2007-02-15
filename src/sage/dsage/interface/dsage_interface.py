@@ -244,6 +244,7 @@ class DSage(object):
                   author=self.username, type=type)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
+
         return wrapped_job
 
     def send_job(self, job):
@@ -667,6 +668,18 @@ class blockingJobWrapper(JobWrapper):
         jobID = blockingCallFromThread(self.remoteobj.callRemote,
                                    'killJob', self._job.id)
         return jobID
+
+    def async_kill(self):
+        r"""
+        async version of kill
+
+        """
+
+        print 'Killing ', self.id
+        d = self.remoteobj.callRemote('killJob', self.id)
+        d.addCallback(self._killedJob)
+        d.addErrback(self._catchFailure)
+        return d
 
     def wait(self):
         timeout = 0.1

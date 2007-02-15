@@ -29,7 +29,7 @@ def blockingCallFromThread(func, *args, **kwargs):
     e = threading.Event()
     l = []
     def _got_result(result):
-        print result
+        # print result
         l.append(result)
         e.set()
         return None

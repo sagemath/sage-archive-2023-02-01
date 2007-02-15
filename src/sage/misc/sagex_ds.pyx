@@ -54,7 +54,6 @@ cdef void binary_tree_insert(binary_tree_node *self, int key, object value):
         else:
             binary_tree_insert(self.right, key, value)
 
-
 cdef object binary_tree_get(binary_tree_node *self, int key):
     if self.key == key:
         return <object>self.value
@@ -91,8 +90,6 @@ cdef object binary_tree_delete(binary_tree_node *self, int key):
         else:
             return binary_tree_delete(self.right, key)
 
-
-
 cdef binary_tree_node *binary_tree_left_excise(binary_tree_node *self):
     cdef binary_tree_node *left, *cur
     if self.left == NULL:
@@ -101,7 +98,7 @@ cdef binary_tree_node *binary_tree_left_excise(binary_tree_node *self):
         left = self.left
     else:
         left = self.left
-        cur = self.left
+        cur = self.right
         while cur.right != NULL:
             cur = cur.right
         cur.right = self.left.right
@@ -118,7 +115,7 @@ cdef binary_tree_node *binary_tree_right_excise(binary_tree_node *self):
         right = self.right
     else:
         right = self.right
-        cur = self.right
+        cur = self.left
         while cur.left != NULL:
             cur = cur.left
         cur.left = self.right.left
@@ -166,22 +163,27 @@ cdef class BinaryTree:
             binary_tree_dealloc(self.head)
             sage_free(self.head)
 
-    def insert(BinaryTree self, int key, object value):
+    def insert(BinaryTree self, object key, object value = None):
         """
         Inserts a key-value pair into the BinaryTree.  Duplicate keys are ignored.
+        The first parameter, key, should be an int, or coercable (one-to-one) into an int.
         Example:
             sage: t = BinaryTree()
-            sage: t.insert(1,1)
-            sage: t.insert(0,0)
-            sage: t.insert(2,2)
+            sage: t.insert(1)
+            sage: t.insert(0)
+            sage: t.insert(2)
             sage: t.insert(0,1)
             sage: t.get(0)
             0
         """
+        cdef int ckey
+        if value is None:
+            value = key
+        ckey = int(key)
         if self.head is NULL:
-            self.head = BinaryTreeNode(key, value)
+            self.head = BinaryTreeNode(ckey, value)
         else:
-            binary_tree_insert(self.head, key, value)
+            binary_tree_insert(self.head, ckey, value)
     def delete(BinaryTree self, int key):
         """
         Removes a the node corresponding to key, and returns the value
@@ -234,7 +236,7 @@ cdef class BinaryTree:
             [1 1]
         """
         if self.head == NULL:
-            return <object>NULL
+            return None
         else:
             return binary_tree_get(self.head, key)
     def contains(BinaryTree self, int key):
@@ -368,3 +370,58 @@ cdef class BinaryTree:
             return True
         else:
             return False
+    def _headkey_(BinaryTree self):
+        """
+        Used by the stress tester.  Don't think a user would care.
+        Email tom if you care what the headkey is.
+        """
+        if self.head == NULL:
+            return 0
+        else:
+            return self.head.key
+
+
+
+class Test:
+    def random(self):
+        self.binary_tree()
+
+    def binary_tree(self, values = 100, cycles = 100000):
+        """
+        Performs a sequence of random operations, given random inputs
+        to stress test the binary tree structure.  This was useful during
+        development to find memory leaks / segfaults.  Cycles should be
+        at least 100 times as large as values, or the delete, contains,
+        and get methods won't hit very often.
+
+        Input:
+            values: number of possible values to use
+            cycles: number of operations to perform
+        """
+        from random import randint
+        t = BinaryTree()
+        for i in xrange(cycles):
+            r = randint(0,8)
+            s = randint(0,values)
+            if r==1:
+                t.insert(s)
+            elif r == 2:
+                t.delete(t._headkey_())
+            elif r == 3:
+                t.get(s)
+            elif r == 4:
+                t.contains(s)
+            elif r == 5:
+                t.get_max()
+            elif r == 6:
+                t.get_min()
+            elif r == 7:
+                t.pop_min()
+            elif r == 8:
+                t.pop_max()
+            else:
+                t.delete(s)
+
+
+
+

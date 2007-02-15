@@ -233,6 +233,7 @@ complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/mo
 
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
                 libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
                 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
@@ -240,6 +241,9 @@ gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
 dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
                  libraries=['gsl',CBLAS],
                  define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
+
+sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 
 
 #####################################################
@@ -304,6 +308,8 @@ ext_modules = [ \
     complex_double,
 
     complex_number,
+
+    sagex_ds,
 
     Extension('sage.ext.sig',
               sources = ['sage/ext/sig.pyx']), \

@@ -58,6 +58,8 @@ from trace import trace
 
 from cachefunc import CachedFunction
 
+from sagex_ds import BinaryTree
+
 ##########################################################################
 def benchmark(n=-1):
     """

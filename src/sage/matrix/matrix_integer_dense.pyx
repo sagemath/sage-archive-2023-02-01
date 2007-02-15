@@ -1,5 +1,26 @@
 """
 Dense matrices over the integer ring.
+
+AUTHORS:
+    -- William Stein
+    -- Robert Bradshaw
+
+EXAMPLES:
+    sage: a = matrix(ZZ, 3,3, range(9)); a
+    [0 1 2]
+    [3 4 5]
+    [6 7 8]
+    sage: a.det()
+    0
+    sage: a[0,0] = 10; a.det()
+    -30
+    sage: a.charpoly()
+    x^3 - 22*x^2 + 102*x + 30
+    sage: b = -3*a
+    sage: a == b
+    False
+    sage: b < a
+    True
 """
 
 ######################################################################
@@ -11,22 +32,11 @@ Dense matrices over the integer ring.
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-from sage.misc.misc import verbose, get_verbose, cputime, UNAME
+from sage.misc.misc import verbose, get_verbose, cputime
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
-
-cdef extern from "matrix_integer_dense_linbox.h":
-    void linbox_integer_dense_minpoly_hacked(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix, int do_minpoly)
-    void linbox_integer_dense_minpoly(mpz_t* *minpoly, size_t* degree,
-                                      size_t n, mpz_t** matrix)
-    void linbox_integer_dense_charpoly(mpz_t* *charpoly, size_t* degree,
-                                       size_t n, mpz_t** matrix)
-    void linbox_integer_dense_delete_array(mpz_t* f)
-    int linbox_integer_dense_matrix_matrix_multiply(mpz_t** ans, mpz_t **A, mpz_t **B,
-                                      size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 
 ctypedef unsigned int uint
 
@@ -38,12 +48,13 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
-from sage.structure.element cimport ModuleElement, RingElement
+from sage.structure.element cimport ModuleElement, RingElement, Element
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
 import sage.modules.free_module
+
 
 from matrix cimport Matrix
 
@@ -51,7 +62,9 @@ cimport sage.structure.element
 
 import matrix_space
 
-from linbox import USE_LINBOX
+from sage.libs.linbox.linbox cimport Linbox_integer_dense
+cdef Linbox_integer_dense linbox
+linbox = Linbox_integer_dense()
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -128,6 +141,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows:
             self._matrix[i] = self._entries + k
             k = k + self._ncols
+
+    cdef _init_linbox(self):
+        _sig_on
+        linbox.set(self._matrix, self._nrows, self._ncols)
+        _sig_off
 
     def __copy__(self):
         cdef Matrix_integer_dense A
@@ -418,7 +436,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # x * cdef _add_c_impl
     # x * cdef _sub_c_impl
     # x * cdef _mul_c_impl
-    #   * cdef _cmp_c_impl
+    # x * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
     #   * __copy__
@@ -428,7 +446,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     ########################################################################
 
     # cdef _mul_c_impl(self, Matrix right):
-    # cdef int _cmp_c_impl(self, Matrix right) except -2:
     # def __neg__(self):
     # def __invert__(self):
     # def __copy__(self):
@@ -453,17 +470,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef int e
         cdef Matrix_integer_dense ans, B
-        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         B = right
+        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+        self._init_linbox()
         _sig_on
-        e = linbox_integer_dense_matrix_matrix_multiply(ans._matrix, self._matrix, B._matrix,
-                                          self._nrows, self._ncols,
-                                          right._nrows, right._ncols)
+        linbox.matrix_matrix_multiply(ans._matrix, B._matrix, B._nrows, B._ncols)
         _sig_off
-        if e:
-            raise RuntimeError
         return ans
-
 
     def _multiply_classical(self, Matrix right):
         """
@@ -614,6 +627,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
 
+    cdef int _cmp_c_impl(self, Element right) except -2:
+        cdef mpz_t *a, *b
+        cdef Py_ssize_t i, j
+        cdef int k
+        for i from 0 <= i < self._nrows:
+            a = self._matrix[i]
+            b = (<Matrix_integer_dense>right)._matrix[i]
+            for j from 0 <= j < self._ncols:
+                k = mpz_cmp(a[j], b[j])
+                if k:
+                    if k < 0:
+                        return -1
+                    else:
+                        return 1
+        return 0
+
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
@@ -646,15 +675,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()                # optional -- os x only right now
             x^3 - 3990*x^2 - 266000*x
         """
-        if algorithm == 'linbox' and not USE_LINBOX:
-            algorithm = 'generic'
-
         key = 'charpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x
-
-        if UNAME != "Darwin" and algorithm == "linbox":
-            algorithm = 'generic'
 
         if algorithm == 'linbox':
             g = self._charpoly_linbox(var)
@@ -683,15 +706,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A.minpoly()           # optional -- os x only right now
             x^4 - 2695*x^3 - 257964*x^2 + 1693440*x
         """
-        if algorithm == 'linbox' and not USE_LINBOX:
-            algorithm = 'generic'
-
         key = 'minpoly_%s_%s'%(algorithm, var)
         x = self.fetch(key)
         if x: return x
-
-        if UNAME != "Darwin" and algorithm == "linbox":
-            algorithm = 'generic'
 
         if algorithm == 'linbox':
             g = self._minpoly_linbox(var)
@@ -720,37 +737,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise ValueError, "matrix must be square"
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
-        cdef mpz_t* poly
-        cdef size_t degree
-        if self._nrows % 4 == 0 and UNAME == "Darwin":
-            verbose("using hack to get around bug in linbox on OS X since n is divisible by 4")
-            if typ == 'minpoly':
-                _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,1)
-                _sig_off
-            else:
-                _sig_on
-                linbox_integer_dense_minpoly_hacked(&poly, &degree, self._nrows, self._matrix,0)
-                _sig_off
+        self._init_linbox()
+        _sig_on
+        if typ == 'minpoly':
+            v = linbox.minpoly()
         else:
-            if typ == 'minpoly':
-                _sig_on
-                linbox_integer_dense_minpoly(&poly, &degree, self._nrows, self._matrix)
-                _sig_off
-            else:
-                _sig_on
-                linbox_integer_dense_charpoly(&poly, &degree, self._nrows, self._matrix)
-                _sig_off
-
-        v = []
-        cdef Integer k
-        cdef size_t n
-        for n from 0 <= n <= degree:
-            k = PY_NEW(Integer)
-            mpz_set(k.value, poly[n])
-            mpz_clear(poly[n])
-            v.append(k)
-        linbox_integer_dense_delete_array(poly)
+            v = linbox.charpoly()
+        _sig_off
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)
@@ -1016,26 +1009,35 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.cache('pivots', p)
         return p
 
-    def elementary_divisors(self):
+    #### Elementary divisors
+
+    def elementary_divisors(self, algorithm='linbox'):
         """
         Return the elementary divisors of self, in order.
+
+        IMPLEMENTATION: Uses linbox.
+
+        WARNING: This is MUCH faster than the smith_form function.
 
         The elementary divisors are the invariants of the finite
         abelian group that is the cokernel of this matrix.  They are
         ordered in reverse by divisibility.
 
         INPUT:
-            matrix
+            self -- matrix
+            algorithm -- 'linbox' or 'pari'
+
         OUTPUT:
             list of int's
 
         EXAMPLES:
-            sage: A = MatrixSpace(IntegerRing(), 3)(range(9))
-            sage: A.elementary_divisors()
-            [0, 3, 1]
+            sage: matrix(3, range(9)).elementary_divisors()
+            [1, 3, 0]
+            sage: matrix(3, range(9)).elementary_divisors(algorithm='pari')
+            [1, 3, 0]
             sage: C = MatrixSpace(ZZ,4)([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
             sage: C.elementary_divisors()
-            [687, 1, 1, 1]
+            [1, 1, 1, 687]
 
         SEE ALSO: smith_form
         """
@@ -1045,8 +1047,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows == 0 or self._ncols == 0:
             d = []
         else:
-            d = self._pari_().matsnf(0).python()
+            if algorithm == 'linbox':
+                d = self._elementary_divisors_linbox()
+            elif algorithm == 'pari':
+                d = self._pari_().matsnf(0).python()
+                i = d.count(0)
+                if i > 0:
+                    d = list(reversed(d[i:])) + [d[0]]*i
+            else:
+                raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
+        return d
+
+    def _elementary_divisors_linbox(self):
+        self._init_linbox()
+        _sig_on
+        d = linbox.smithform()
+        _sig_off
         return d
 
     def smith_form(self):
@@ -1054,6 +1071,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Returns matrices S, U, and V such that S = U*self*V, and S
         is in Smith normal form.  Thus S is diagonal with diagonal
         entries the ordered elementary divisors of S.
+
+        WARNING: The elementary_divisors function, which returns
+        the diagonal entries of S, is VASTLY faster than this
+        function.
 
         The elementary divisors are the invariants of the finite
         abelian group that is the cokernel of this matrix.  They are
@@ -1396,6 +1417,62 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     if min_is_nonzero:
                         mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
         _sig_off
+
+    #### Rank
+
+    def rank(self):
+        # Can very quickly detect full rank by working modulo p.
+        r = self._rank_modp()
+        if r == self._nrows or r == self._ncols:
+            self.cache('rank', r)
+            return r
+        # Detecting full rank didn't work -- use Linbox's general algorithm.
+        r = self._rank_linbox()
+        self.cache('rank', r)
+        return r
+
+    def _rank_linbox(self):
+        """
+        Compute the rank of this matrix using Linbox.
+        """
+        self._init_linbox()
+        cdef unsigned long r
+        _sig_on
+        r = linbox.rank()
+        _sig_off
+        return Integer(r)
+
+    def _rank_modp(self, p=46337):
+        A = self._mod_int_c(p)
+        return A.rank()
+
+    #### Determinante
+
+    def determinant(self):
+        """
+        Return the determinant of this matrix.
+
+        ALGORITHM: Uses linbox.
+
+        EXAMPLES:
+
+        """
+        d = self.fetch('det')
+        if not d is None:
+            return d
+        d = self._det_linbox()
+        self.cache('det', d)
+        return d
+
+    def _det_linbox(self):
+        """
+        Compute the determinant of this matrix using Linbox.
+        """
+        self._init_linbox()
+        _sig_on
+        d = linbox.det()
+        _sig_off
+        return Integer(d)
 
 
 ###############################################################

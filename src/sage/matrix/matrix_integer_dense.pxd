@@ -18,6 +18,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _pickle_version0(self)
     cdef _unpickle_version0(self, data)
 
-
+    cdef _init_linbox(self)
 
 

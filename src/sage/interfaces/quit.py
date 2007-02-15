@@ -1,6 +1,6 @@
 """nodoctest"""
 
-import os
+import os, time
 
 expect_objects = []
 
@@ -13,7 +13,41 @@ def expect_quitall(verbose=False):
             except RuntimeError, msg:
                 if verbose:
                     print msg
+    kill_spawned_jobs()
 
+def kill_spawned_jobs():
+    file = '%s/tmp/%s/spawned_processes'%(os.environ['DOT_SAGE'], os.getpid())
+    if not os.path.exists(file):
+        return
+    for L in open(file).readlines():
+        i = L.find(' ')
+        pid = L[:i].strip()
+        cmd = L[i+1:].strip()
+        j = 0
+        while True:
+            try:
+                os.killpg(int(pid), 9)
+            except OSError, msg:
+                pass
+            if not is_running(pid):
+                break
+            else:
+                print "WARNING: Failed to kill process with pid %s"%pid
+                time.sleep(0.5)
+                j += 1
+                if j > 20:
+                    print "ERROR: Unable to kill process with pid %s"%pid
+                    print "Please kill it manually."
+                    break
 
+def is_running(pid):
+    """
+    Return True if and only if there is a process with id pid running.
+    """
+    try:
+        os.kill(int(pid),0)
+        return True
+    except (OSError, ValueError):
+        return False
 
 

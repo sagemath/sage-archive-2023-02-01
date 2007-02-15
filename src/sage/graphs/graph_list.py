@@ -15,6 +15,8 @@ AUTHOR:
 #*****************************************************************************
 
 def from_whatever(data):
+    # TODO : doctests
+    from sage.graphs.graph import Graph
     if isinstance(data, file):
         if data.name[data.name.rindex('.'):] == '.g6':
             return from_graph6(data)
@@ -27,8 +29,11 @@ def from_whatever(data):
         l = []
         for d in data:
             if isinstance(d, str):
-                if len(d) == d.find('\n') + 1 or d.find('\n') == -1:
-                    l.append(Graph(d[:d.rfind('\n')]))
+                nn = d.rfind('\n')
+                if nn == -1:
+                    l.append(Graph(d))
+                elif len(d) == nn + 1:
+                    l.append(Graph(d[:nn]))
                 else:
                     l.append(from_whatever(d))
             else:
@@ -36,7 +41,11 @@ def from_whatever(data):
         return l
     if isinstance(data, str):
         data = data.split('\n')
-        return from_whatever(data)
+        l = []
+        for d in data:
+            if not d == '':
+                l.append(Graph(d))
+        return l
 
 def from_graph6(data):
     """
@@ -55,7 +64,8 @@ def from_graph6(data):
         data = data.split('\n')
         l = []
         for d in data:
-            l.append(Graph(d, format = 'graph6'))
+            if not d == '':
+                l.append(Graph(d, format = 'graph6'))
         return l
     elif isinstance(data,list):
         l = []

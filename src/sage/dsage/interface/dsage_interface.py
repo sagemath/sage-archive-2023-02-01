@@ -25,8 +25,8 @@ import copy
 import cPickle
 import zlib
 import threading
+import time
 
-from twisted.python import threadable
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
 from twisted.cred import credentials
@@ -433,6 +433,18 @@ class BlockingDSage(DSage):
 
         return wrapped_job
 
+    def send_job(self, job):
+        r"""
+        Sends a Job object to the server.
+
+        """
+
+        if not isinstance(job, Job):
+            raise TypeError
+        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+
+        return wrapped_job
+
 class JobWrapper(object):
     r"""
     Represents a remote job.
@@ -608,6 +620,8 @@ class blockingJobWrapper(JobWrapper):
         self.worker_info = self._job.worker_info
 
 
+        # This is kind of stupid, why not just set the job ID when
+        # submitting the job?
         jobID = blockingCallFromThread(self.remoteobj.callRemote,
                                    'getNextJobID')
 
@@ -617,6 +631,7 @@ class blockingJobWrapper(JobWrapper):
                                    'submitJob', pickled_job)
 
     def __repr__(self):
+        self.getJob()
         if self.status == 'completed' and not self.output:
             return 'No output.'
         elif not self.output:
@@ -627,10 +642,21 @@ class blockingJobWrapper(JobWrapper):
     def getJob(self):
         if self.remoteobj == None:
            raise NotConnectedException
+        if self.status == 'completed':
+            return
+
         job = blockingCallFromThread(self.remoteobj.callRemote,
                                      'getJobByID', self._job.id)
 
         self._update_job(self.unpickle(job))
+
+    def async_getJob(self):
+        if self.remoteobj == None:
+            raise NotConnectedException
+        d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        d.addCallback(self._gotJob)
+        d.addErrback(self._catchFailure)
+        return d
 
     def kill(self):
         r"""
@@ -641,3 +667,9 @@ class blockingJobWrapper(JobWrapper):
         jobID = blockingCallFromThread(self.remoteobj.callRemote,
                                    'killJob', self._job.id)
         return jobID
+
+    def wait(self):
+        timeout = 0.1
+        while self.result is None:
+            time.sleep(timeout)
+            self.getJob()

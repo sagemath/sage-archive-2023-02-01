@@ -42,6 +42,7 @@ ORGANIZATION:
             - BarbellGraph
             - BullGraph
             - CircularLadderGraph
+            - ClawGraph
             - CycleGraph
             - DiamondGraph
             - DodecahedralGraph
@@ -58,7 +59,12 @@ ORGANIZATION:
             - TetrahedralGraph
             - WheelGraph
         Named Graphs:
+            - FlowerSnark
+            - FruchtGraph
+            - HeawoodGraph
+            - MoebiusKantorGraph
             - PetersenGraph
+            - ThomsenGraph
         Families of Graphs:
             - CompleteGraph
             - CompleteBipartiteGraph
@@ -76,6 +82,7 @@ AUTHORS:
     -- William Stein (2006-12-05): Editing.
     -- Robert Miller (2007-01-16): Cube generation and plotting
     -- Emily Kirkman (2007-01-16): more basic structures, docstrings
+    -- Emily Kirkman (2007-02-14): added more named graphs
 """
 
 ################################################################################
@@ -111,6 +118,7 @@ class GraphGenerators():
              - BarbellGraph
              - BullGraph
              - CircularLadderGraph
+             - ClawGraph
              - CycleGraph
              - DiamondGraph
              - DodecahedralGraph
@@ -127,7 +135,12 @@ class GraphGenerators():
              - TetrahedralGraph
              - WheelGraph
         Named Graphs:
+            - FlowerSnark
+            - FruchtGraph
+            - HeawoodGraph
+            - MoebiusKantorGraph
             - PetersenGraph
+            - ThomsenGraph
         Families of Graphs:
             - CompleteGraph
             - CompleteBipartiteGraph
@@ -287,6 +300,30 @@ class GraphGenerators():
         G = networkx.circular_ladder_graph(n)
         return graph.Graph(G, pos=pos_dict, name="Circular Ladder graph")
 
+    def ClawGraph(self):
+        """
+        Returns a claw graph.
+
+        A claw graph is named for its shape.  It is actually a complete
+        bipartite graph with (n1, n2) = (1, 3).
+
+        PLOTTING:
+        See CompleteBipartiteGraph.
+
+        EXAMPLES:
+            # Show a Claw graph
+            sage.: (graphs.ClawGraph()).show()
+
+            # Inspect a Claw graph
+            sage: G = graphs.ClawGraph()
+            sage: G
+            Claw graph: a simple graph on 4 vertices (no loops, no multiple edges)
+        """
+        pos_dict = {0:[0,1],1:[-1,0],2:[0,0],3:[1,0]}
+        import networkx
+        G = networkx.complete_bipartite_graph(1,3)
+        return graph.Graph(G, pos=pos_dict, name="Claw graph")
+
     def CycleGraph(self, n):
         r"""
         Returns a cycle graph with n nodes.
@@ -316,7 +353,6 @@ class GraphGenerators():
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
-
             # Compare the constructors (results will vary)
             sage: import networkx
             sage.: time n = networkx.cycle_graph(3989); spring3989 = Graph(n)
@@ -1078,6 +1114,168 @@ class GraphGenerators():
 #   Named Graphs
 ################################################################################
 
+    def FlowerSnark(self):
+        """
+        Returns a Flower Snark.
+
+        A flower snark has 20 vertices.  It is part of the class of biconnected
+        cubic graphs with edge chromatic number = 4, known as snarks.  (i.e.:
+        the Petersen graph).  All snarks are not Hamiltonian, non-planar and have
+        Petersen graph graph minors.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override the
+        spring-layout algoirithm.  By convention, the nodes are drawn 0-14 on
+        the outer circle, and 15-19 in an inner pentagon.
+
+        REFERENCES:
+            Weisstein, E. (1999). "Flower Snark -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/FlowerSnark.html [2007, February 17]
+
+        EXAMPLES:
+            # Inspect a flower snark:
+            sage: F = graphs.FlowerSnark()
+            sage: F
+            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+            sage: F.graph6_string()
+            'ShCGHC@?GGg@?@?Gp?K??C?CA?G?_G?Cc'
+
+            # Now show it:
+            sage.: F.show()
+        """
+        pos_dict = {}
+        for i in range(15):
+            x = float(2.5*(cos((pi/2) + ((2*pi)/15)*i)))
+            y = float(2.5*(sin((pi/2) + ((2*pi)/15)*i)))
+            pos_dict[i] = [x,y]
+        for i in range(20)[15:]:
+            x = float(cos((pi/2) + ((2*pi)/5)*i))
+            y = float(sin((pi/2) + ((2*pi)/5)*i))
+            pos_dict[i] = [x,y]
+        return graph.Graph({0:[1,14,15],1:[2,11],2:[3,7],3:[2,4,16],4:[5,14], \
+                            5:[6,10],6:[5,7,17],8:[7,9,13],9:[10,18],11:[10,12], \
+                            12:[13,19],13:[14],15:[19],16:[15,17],18:[17,19]}, \
+                            pos=pos_dict, name="Flower Snark")
+
+    def FruchtGraph(self):
+        """
+        Returns a Frucht Graph.
+
+        A Frucht graph has 12 nodes and 18 edges.  It is the smallest cubic
+        identity graph.  It is planar and it is Hamiltonian.
+
+        This constructor is dependant on Networkx's numeric labeling.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override the
+        spring-layout algorithm.  By convention, the first seven nodes are on
+        the outer circle, with the next four on an inner circle and the last
+        in the center.
+
+        REFERENCES:
+            Weisstein, E. (1999). "Frucht Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/FruchtGraph.html [2007, February 17]
+
+        EXAMPLES:
+            sage: FRUCHT = graphs.FruchtGraph()
+            sage: FRUCHT
+            Frucht graph: a simple graph on 12 vertices (no loops, no multiple edges)
+            sage: FRUCHT.graph6_string()
+            'KhCKM?_EGK?L'
+            sage.: (graphs.FruchtGraph()).show()
+        """
+        pos_dict = {}
+        for i in range(7):
+            x = float(2*(cos((pi/2) + ((2*pi)/7)*i)))
+            y = float(2*(sin((pi/2) + ((2*pi)/7)*i)))
+            pos_dict[i] = [x,y]
+        pos_dict[7] = [0,1]
+        pos_dict[8] = [-1,0]
+        pos_dict[9] = [0,-1]
+        pos_dict[10] = [1,0]
+        pos_dict[11] = [0,0]
+        import networkx
+        G = networkx.frucht_graph()
+        return graph.Graph(G, pos=pos_dict, name="Frucht graph")
+
+    def HeawoodGraph(self):
+        """
+        Returns a Heawood graph.
+
+        The Heawood graph is a cage graph that has 14 nodes.  It is a cubic
+        symmetric graph.  (See also the Moebius-Kantor graph).  It is nonplanar
+        and Hamiltonian.  It has diameter = 3, radius = 3, girth = 6, chromatic
+        number = 2.  It is 4-transitive but not 5-transitive.
+
+        This constructor is dependant on Networkx's numeric labeling.
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to override the
+        spring-layout algorithm.  By convention, the nodes are positioned in
+        a circular layout with the first node appearing at the top, and then
+        continuing counterclockwise.
+
+        REFERENCES:
+            Weisstein, E. (1999). "Heawood Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/HeawoodGraph.html [2007, February 17]
+
+        EXAMPLES:
+            sage: H = graphs.HeawoodGraph()
+            sage: H
+            Heawood graph: a simple graph on 14 vertices (no loops, no multiple edges)
+            sage: H.graph6_string()
+            'MhEGHC@AI?_PC@_G_'
+            sage.: (graphs.HeawoodGraph()).show()
+        """
+        pos_dict = {}
+        for i in range(14):
+            x = float(cos((pi/2) + (pi/7)*i))
+            y = float(sin((pi/2) + (pi/7)*i))
+            pos_dict[i] = [x,y]
+        import networkx
+        G = networkx.heawood_graph()
+        return graph.Graph(G, pos=pos_dict, name="Heawood graph")
+
+    def MoebiusKantorGraph(self):
+        """
+        Returns a Moebius-Kantor Graph.
+
+        A Moebius-Kantor graph is a cubic symmetric graph.  (See also the Haewood
+        graph).  It has 16 nodes and 24 edges.  It is nonplanar and Hamiltonian.
+        It has diameter = 4, girth = 6, and chromatic number = 2.  It is identical
+        to the Generalized Petersen graph, P[8,3].
+
+        PLOTTING:
+        Upon construction, the position dictionary is filled to overwrite the
+        spring-layout algorithm.  By convention, the first 8 nodes are drawn
+        counter-clockwise in an outer circle, with the remaining eight drawn
+        likewise nested in a smaller circular pattern.  The Moebius-Kantor graph
+        is constructed directly below from a dictionary with nodes as keys and
+        entries represented the nodes they are connected to.  Please browse this
+        dictionary or display an example to further understand the plotting
+        convention.
+
+        REFERENCES:
+            Weisstein, E. (1999). "Moebius-Kantor Graph -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/Moebius-KantorGraph.html [2007, February 17]
+
+        EXAMPLES:
+            sage: MK = graphs.MoebiusKantorGraph()
+            sage: MK
+            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            sage: MK.graph6_string()
+            'OhCGKE?O@?ACAC@I?Q_AS'
+            sage.: (graphs.MoebiusKantorGraph()).show()
+        """
+        pos_dict = {}
+        for i in range(8):
+            x = float(2*(cos((pi/2) + ((pi)/4)*i)))
+            y = float(2*(sin((pi/2) + ((pi)/4)*i)))
+            pos_dict[i] = [x,y]
+        for i in range(16)[8:]:
+            x = float(cos((pi/2) + ((pi)/4)*(i)))
+            y = float(sin((pi/2) + ((pi)/4)*(i)))
+            pos_dict[i] = [x,y]
+        return graph.Graph({0:[1,7,8],1:[2,9],2:[3,10],3:[4,11],4:[5,12], \
+                            5:[6,13],6:[7,14],9:[12,14],11:[8,14],13:[8,10], \
+                            15:[7,10,12]}, pos=pos_dict, name="Moebius-Kantor Graph")
+
     def PetersenGraph(self):
         """
         The Petersen Graph is a named graph that consists of 10 vertices
@@ -1119,6 +1317,29 @@ class GraphGenerators():
             5:[0,7,8], 6:[1,8,9], 7:[2,5,9], 8:[3,5,6], 9:[4,6,7]},\
             pos=pos_dict, name="Petersen graph")
         return P
+
+    def ThomsenGraph(self):
+        """
+        Returns the Thomsen Graph.
+
+        The Thomsen Graph is actually a complete bipartite graph with
+        (n1, n2) = (3, 3).  It is also called the Utility graph.
+
+        PLOTTING:
+        See CompleteBipartiteGraph.
+
+        EXAMPLES:
+            sage: T = graphs.ThomsenGraph()
+            sage: T
+            Thomsen graph: a simple graph on 6 vertices (no loops, no multiple edges)
+            sage: T.graph6_string()
+            'EFz_'
+            sage.: (graphs.ThomsenGraph()).show()
+        """
+        pos_dict = {0:[-1,1],1:[0,1],2:[1,1],3:[-1,0],4:[0,0],5:[1,0]}
+        import networkx
+        G = networkx.complete_bipartite_graph(3,3)
+        return graph.Graph(G, pos=pos_dict, name="Thomsen graph")
 
 ################################################################################
 #   Families of Graphs

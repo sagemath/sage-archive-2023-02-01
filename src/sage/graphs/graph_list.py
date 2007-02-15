@@ -248,6 +248,7 @@ def to_graphics_arrays(list):
         g_arrays.append(ga)
 
     last = len(plist)%20
+    if ( last == 0 and len(plist) != 0 ): last = 20
     index = (num_arrays-1)*rows*cols
     last_rows = last/cols
     if ( last%cols > 0 ): last_rows += 1

@@ -330,6 +330,7 @@ class GraphDatabase():
 
             glist = []
             last = len(plist)%20
+            if ( last == 0 and len(plist) != 0 ): last = 20
             index = 20*(num_arrays-1)
             last_rows = last/cols
             if ( last%cols > 0 ):

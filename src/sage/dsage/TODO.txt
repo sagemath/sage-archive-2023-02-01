@@ -4,6 +4,6 @@ TODO:
 [ ]	Add sqlite support (Alex)
 [ ] Set worker priority
 [ ]	Remove server side unpickling all together.
-[ ] Keep track of workers/clients and represent it in a meaningful way
+[-] Keep track of workers/clients and represent it in a meaningful way
 	[ ] Remove workers when they are disconnected.
 

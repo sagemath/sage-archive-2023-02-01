@@ -24,12 +24,19 @@ def update_library_files(R):
     LIB = '%s/local/lib/'%os.path.abspath(SAGE_ROOT)
     # The .a files should be re-ranlib'd
     os.system('cd "%s"; ranlib *.a 1>/dev/null 2>/dev/null'%LIB)
+
     # The .la files hardcode path info.  Fix this.
     for F in os.listdir(LIB):
        if F[-3:] == ".la":
            G = open(LIB + F).read()
-           H = G.replace(os.path.abspath(R), os.path.abspath(SAGE_ROOT))
-           open(LIB + F,'w').write(H)
+	   i = G.find('libdir=')
+	   j = i+8 + G[i+8:].find("'")
+	   z = G[i+8:j].strip().strip("'")
+ 	   i = z.find('local/')
+	   if i != -1:
+               z = z[:i]
+               H = G.replace(z, os.path.abspath(SAGE_ROOT) + '/')
+               open(LIB + F,'w').write(H)
 
 def update_hardcoded_files(path):
     # The only known files with hard coded paths.

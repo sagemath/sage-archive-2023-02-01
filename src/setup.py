@@ -839,7 +839,6 @@ setup(name        = 'sage',
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
                  'sage/dsage/scripts/dsage_setup.py',
-                 'sage/dsage/scripts/dsage_console.py'
                 ],
 
       ext_modules = ext_modules,

@@ -374,7 +374,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 continue
 
             line_before = line[:oparen_index].strip()
-            print line_before
             if line_before == "" or not line_before.isalnum():
                 i += 1
                 continue

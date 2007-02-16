@@ -1,5 +1,3 @@
-"""nodoctest"""
-
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC)
@@ -42,7 +40,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x):
             return SymbolicPolynomial(x)
-        elif isinstance(x, Integer):
+        elif isinstance(x, (Integer, int, Rational)):
             return Constant_object(x)
         else:
             return Symbolic_object(x)
@@ -202,8 +200,8 @@ class SymbolicExpression(RingElement):
            sin(x) + x*cos(y)
            sage: g(t,z)
            sin(t) + t*cos(z)
-           sage: g(x^2, log(y))
-           sin(x^2) + x^2*cos(log(y))
+           sage: g(x^2, x^y)
+           sin(x^2) + x^2*cos(x^y)
         """
         return CallableFunction(self, args)
 
@@ -262,8 +260,9 @@ class SymbolicExpression(RingElement):
     def integral(self, v):
         """
         EXAMPLES:
-            sage: h = sin(x)/cos(x)
+            sage: h = sin(x)/(cos(x))^2
             sage: h.integral(x)
+            1/cos(x)
         """
         if not isinstance(v, SymbolicVariable):
             raise TypeError, "second argument to diff must be a variable"
@@ -400,6 +399,8 @@ class CallableFunctionRing_class(CommutativeRing):
         self._default_precision = 53 # default precision bits
         ParentWithBase.__init__(self, RR)
 
+#    def _coerce_impl(self, x):
+
 CallableFunctionRing = CallableFunctionRing_class()
 CFR = CallableFunctionRing
 
@@ -483,29 +484,138 @@ class CallableFunction(RingElement):
 
     def _neg_(self):
         result = SymbolicArithmetic([self._expr], operator.neg)
-        return CallableFunction(result, self._varlist)
+        return CallableFunction(result, self._unify_varlists(right))
 
     def _add_(self, right):
         result = SymbolicArithmetic([self._expr, right._expr], operator.add)
-        return CallableFunction(result, self._varlist)
+        return CallableFunction(result, self._unify_varlists(right))
 
     def _sub_(self, right):
         result = SymbolicArithmetic([self._expr, right._expr], operator.sub)
-        return CallableFunction(result, self._varlist)
+        return CallableFunction(result, self._unify_varlists(right))
 
     def _mul_(self, right):
         result = SymbolicArithmetic([self._expr, right._expr], operator.mul)
-        return CallableFunction(result, self._varlist)
+        return CallableFunction(result, self._unify_varlists(right))
 
     def _div_(self, right):
         result = SymbolicArithmetic([self._expr, right._expr], operator.div)
-        return CallableFunction(result, self._varlist)
+        return CallableFunction(result, self._unify_varlit(right))
 
     def __pow__(self, right):
-        result = SymbolicArithmetic([self._expr, right._expr], operator.pow)
+        try:
+            result = SymbolicArithmetic([self._expr, right._expr], operator.pow)
+        except AttributeError:
+            result = SymbolicArithmetic([self._expr, right], operator.pow)
         return CallableFunction(result, self._varlist)
 
-    #TODO: think about coercion for callable functions
+
+    def _unify_varlists(self, x):
+        r"""
+        Takes the variable list from another CallableFunction object and
+        compares it with the current CallableFunction object's variable list,
+        combining them according to the following rules:
+
+        Let \code{a} be \code{self}'s variable list, let \code{b} be
+        \code{y}'s variable list.
+
+        \begin{enumerate}
+        \item If \code{a == b}, then the variable lists are identical, so return
+        that variable list.
+        \item If \code{a} $\neq$ \code{b}, then check if the first $n$ items in
+        \code{a} are the first $n$ items in \code{b}, or vice-versa. If so,
+        return a list with these $n$ items, followed by the remaining items in
+        $\code{b}$ and $\code{a}$.
+        \item If none of the previous conditions are met, then just return
+        \code{a} $\cup$ \code{b}, sorted alphabetically.
+
+        Note: When used for arithmetic between CallableFunctions, these rules
+        ensure that the set of CallableFunctions will have certain properties.
+        In particular, it ensures that the set is a commutative ring.
+
+        INPUT:
+            x -- A CallableFunction
+
+        OUTPUT:
+            A combination of \code{self}'s variables and \code{x}'s variables
+            sorted in a nice way.
+
+        EXAMPLES:
+            sage: f(x, y, z) = sin(x+y+z)
+            sage: f
+            (x, y, z) |--> sin(x + y + z)
+            sage: g(x, y) = 2*x + y
+            sage: g
+            (x, y) |--> 2*x + y
+            sage: f._unify_varlists(g)
+            (x, y, z)
+            sage: g._unify_varlists(f)
+            (x, y, z)
+
+            sage: f(x, y, z) = sin(x+y+z)
+            sage: g(w, t) = cos(w - t)
+            sage: g
+            (w, t) |--> cos(w - t)
+            sage: f._unify_varlists(g)
+            (t, w, x, y, z)
+
+            sage: f(x, y, t) = y*(x^2-t)
+            sage: f
+            (x, y, t) |--> y*(x^2 - t)
+            sage: g(x, y, w) = x + y - cos(w)
+            sage: f._unify_varlists(g)
+            (x, y, t, w)
+            sage: g._unify_varlists(f)
+            (x, y, t, w)
+
+            sage: f(x,y, t) = x+y
+            sage: g(x, y, w) = w + t
+            sage: f._unify_varlists(g)
+            (x, y, t, w)
+            sage: g._unify_varlists(f)
+            (x, y, t, w)
+
+        AUTHORS:
+            -- Bobby Moretti, thanks to William Stein for the rules
+
+        """
+        a = self._varlist
+        b = x._varlist
+
+        # Rule #1
+        if a == b:
+            return self._varlist
+
+        # Rule #dd
+        #elif set(a).issubset(set(b)):
+        #    return b
+        #elif set(b).issubset(set(a)):
+        #    return a
+
+        # Rule #2
+        new_list = []
+        done = False
+        i = 0
+        while not done and i < min(len(a), len(b)):
+            if a[i] == b[i]:
+                new_list.append(a[i])
+                i += 1
+            else:
+                done = True
+
+        temp = []
+        # Rule #3, plus the rest of Rule #4
+        for j in range(i, len(a)):
+            if not a[j] in new_list:
+                temp.append(a[j])
+
+        for j in range(i, len(b)):
+            if not b[j] in new_list:
+                temp.append(b[j])
+
+        temp.sort()
+        new_list.extend(temp)
+        return tuple(new_list)
 
 
 class Symbolic_object(SymbolicExpression):
@@ -753,6 +863,9 @@ class SymbolicVariable(SymbolicExpression):
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
 
+    def __cmp__(self, right):
+        return cmp(self._repr_(), right._repr_())
+
     def __call__(self, x):
         raise AttributeError, "A symbolic variable is not callable."
 
@@ -834,13 +947,60 @@ def var(s):
         _vars[s] = v
         return v
 
-_syms = {}
-
+a = var('a')
+b = var('b')
+c = var('c')
+d = var('d')
+e = var('e')
+f = var('f')
+g = var('g')
+h = var('h')
+i = var('i')
+j = var('j')
+k = var('k')
+l = var('l')
+m = var('m')
+n = var('n')
+o = var('o')
+p = var('p')
+q = var('q')
+r = var('r')
+s = var('s')
 t = var('t')
+u = var('u')
+v = var('v')
+w = var('w')
 x = var('x')
 y = var('y')
 z = var('z')
-w = var('w')
+A = var('A')
+B = var('B')
+C = var('C')
+D = var('D')
+E = var('E')
+F = var('F')
+G = var('G')
+H = var('H')
+I = var('I')
+J = var('J')
+K = var('K')
+L = var('L')
+M = var('M')
+N = var('N')
+O = var('O')
+P = var('P')
+Q = var('Q')
+R = var('R')
+S = var('S')
+T = var('T')
+U = var('U')
+V = var('V')
+W = var('W')
+X = var('X')
+Y = var('Y')
+Z = var('Z')
+
+_syms = {}
 
 class Function_erf(PrimitiveFunction):
     r'''
@@ -961,7 +1121,6 @@ def symbolic_expression_from_maxima_string(x):
     s = maxima.eval('_tmp_')
     for x, y in symtable.iteritems():
         s = s.replace(x, y)
-    print s
     #print _syms
     return SymbolicExpressionRing(sage_eval(s, _syms))
 

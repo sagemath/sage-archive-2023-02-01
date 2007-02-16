@@ -797,7 +797,12 @@ class SupersingularModule(hecke.HeckeModule_free_module):
              p = rings.next_prime(p)
 
         ell = 2
-        t = self.T(ell).matrix().change_ring(rings.GF(p))
+        t = self.hecke_matrix(ell).change_ring(rings.GF(p))
+
+        # TODO: temporarily try using sparse=False
+        # turn this off when sparse rank is optimized.
+        t = t.dense_matrix()
+
         B = 2*math.sqrt(ell)
         bnd = 0
         lower = -int(math.floor(B))
@@ -811,7 +816,8 @@ class SupersingularModule(hecke.HeckeModule_free_module):
             for i in range(t.nrows()):
                 t[i,i] += c
             tm = verbose("computing kernel",tm)
-            dim = t.kernel().dimension()
+            #dim = t.kernel().dimension()
+            dim = t.nrows() - t.rank()
             bnd += dim
             verbose('got dimension = %s; new bound = %s'%(dim, bnd), tm)
         return bnd
@@ -868,22 +874,34 @@ class SupersingularModule(hecke.HeckeModule_free_module):
         Fp2 = self.__finite_field
         h = len(SS)
         R = self.base_ring()
-        T_L = MatrixSpace(R,h,sparse=True)(0)
+        T_L = MatrixSpace(R,h)(0)
         S, X = rings.PolynomialRing(Fp2, 'x').objgen()
 
         if L in [3,5,7,11]:
             for i in range(len(SS)):
                 ss_i = SS[i]
-                phi_L_in_x = Phi_polys(L, X, S(ss_i))
+                phi_L_in_x = Phi_polys(L, X, ss_i)
                 rts = phi_L_in_x.roots()
                 for r in rts:
                     T_L[i,int(II[r[0]])] = r[1]
         else:
             DBMP = ClassicalModularPolynomialDatabase()
             phi_L = DBMP[L]
+            M, (x,y) = rings.PolynomialRing(Fp2,2, 'x,y').objgens()
+            phi_L = phi_L(x,y)
+
+            # As an optimization, we compute the coefficients of y and evaluate
+            # them, since univariate polynomial evaluation is much faster than
+            # multivariate evaluation (in SAGE :-( ).
+            uni_coeff = [phi_L(x,0).univariate_polynomial()] + \
+                              [phi_L.coefficient(y**i).univariate_polynomial() for
+                                          i in range(1,phi_L.degree(y)+1)]
             for i in range(len(SS)):
                 ss_i = SS[i]
-                phi_L_in_x = phi_L(X, S(ss_i))
+                ## We would do the eval below, but it is too slow (right now).
+                #phi_L_in_x = phi_L(X, ss_i)
+
+                phi_L_in_x = S([f(ss_i) for f in uni_coeff])
                 rts = phi_L_in_x.roots()
                 for r in rts:
                     T_L[i,int(II[r[0]])] = r[1]

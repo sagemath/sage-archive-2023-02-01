@@ -1,16 +1,14 @@
 """
 Implements a few data structures in SageX.
 
-Written by Tom Boothby, 2007.  Free for any use.
+AUTHORS:
+    -- Tom Boothby (2007-02-15).  Initial version free for any use (public domain).
 """
+
 include '../ext/stdsage.pxi'
 include '../ext/python.pxi'
 
 
-
-
-
-cdef struct binary_tree_node
 cdef struct binary_tree_node:
     int key
     binary_tree_node *left, *right

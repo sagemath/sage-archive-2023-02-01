@@ -487,7 +487,7 @@ def loads(s, compress=True):
         try:
             return cPickle.loads(s)
         except:
-            # maybe data is compressed?
+            # maybe data is compressed anyways??
             return loads(s, compress=True)
 
 

@@ -301,7 +301,7 @@ void ZZX_setitem(struct ZZX* x, long i, const char* a)
 }
 
 /* Sets ith coefficient of x to value.
-   AUTHOR: David Harvey (2008-06-08) */
+   AUTHOR: David Harvey (2006-06-08) */
 void ZZX_setitem_from_int(struct ZZX* x, long i, int value)
 {
   SetCoeff(*x, i, value);
@@ -315,10 +315,29 @@ char* ZZX_getitem(struct ZZX* x, long i)
 
 /* Returns ith coefficient of x.
    Return value is only valid if the result should fit into an int.
-   AUTHOR: David Harvey (2008-06-08) */
+   AUTHOR: David Harvey (2006-06-08) */
 int ZZX_getitem_as_int(struct ZZX* x, long i)
 {
   return ZZ_to_int(&coeff(*x, i));
+}
+
+/* Copies ith coefficient of x to output.
+   Assumes output has been mpz_init'd.
+   AUTHOR: David Harvey (2007-02) */
+void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i)
+{
+    unsigned char stack_bytes[4096];
+    int use_stack;
+    const ZZ& z = coeff(*x, i);
+    unsigned long size = NumBytes(z);
+    use_stack = (size > sizeof(stack_bytes));
+    unsigned char* bytes = use_stack ? (unsigned char*) malloc(size) : stack_bytes;
+    BytesFromZZ(bytes, z, size);
+    mpz_import(*output, size, -1, 1, 0, 0, bytes);
+    if (sign(z) < 0)
+        mpz_neg(*output, *output);
+    if (use_stack)
+        free(bytes);
 }
 
 struct ZZX* ZZX_add(struct ZZX* x, struct ZZX* y)

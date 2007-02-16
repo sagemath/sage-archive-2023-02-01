@@ -721,8 +721,8 @@ class NumberField_generic(field.Field):
             all -- bool, default: False.  If True, return a list
                    of all n-th roots of 1)
 
-        If there are no n-th roots of unity in self, this function
-        raises a ValueError exception.
+        If there are no n-th roots of unity in self (and all is
+        False), this function raises an ArithmeticError exception.
 
         EXAMPLES:
             sage: x = QQ['x'].0
@@ -740,7 +740,20 @@ class NumberField_generic(field.Field):
             sage: K.zeta(4)
             Traceback (most recent call last):
             ...
-            ValueError: There are no 4-th roots of unity self.
+            ArithmeticError: There are no 4-th roots of unity self.
+
+            sage: r.<x> = QQ[]
+            sage: K.<a> = NumberField(x^2+1)
+            sage: K.zeta(4)
+            a
+            sage: K.zeta(4,all=True)
+            [a, -a]
+            sage: K.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: There are no 3-th roots of unity self.
+            sage: K.zeta(3,all=True)
+            []
         """
         n = ZZ(n)
         if n <= 0:
@@ -761,7 +774,10 @@ class NumberField_generic(field.Field):
             F = polynomial_ring.PolynomialRing(field, 'x')(f)
             R = F.roots()
             if len(R) == 0:
-                raise ValueError, "There are no %s-th roots of unity self."%n
+                if all:
+                    return []
+                else:
+                    raise ArithmeticError, "There are no %s-th roots of unity self."%n
             if all:
                 return [r[0] for r in R]
             else:
@@ -1385,7 +1401,7 @@ class NumberField_cyclotomic(NumberField_generic):
             self.__multiplicative_order_table = t
             return t
 
-    def zeta(self, n=None):
+    def zeta(self, n=None, all=False):
         """
         Returns an element of multiplicative order $n$ in this this
         number field, if there is one.  Raises a ValueError if there
@@ -1393,9 +1409,11 @@ class NumberField_cyclotomic(NumberField_generic):
 
         INPUT:
             n -- integer (default: None, returns element of maximal order)
+            all -- bool (default: False) -- whether to return a list of
+                        all n-th roots.
 
         OUTPUT:
-            root of unity
+            root of unity or list
 
         EXAMPLES:
             sage: k = CyclotomicField(7)
@@ -1412,6 +1430,16 @@ class NumberField_cyclotomic(NumberField_generic):
             zeta49
             sage: k.zeta(7)
             zeta49^7
+
+            sage: K.<a> = CyclotomicField(5)
+            sage: K.zeta(4)
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: no 4-th root of unity in self
+            sage: v = K.zeta(5, all=True); v
+            [a, a^2, a^3, -a^3 - a^2 - a - 1]
+            sage: [b^5 for b in v]
+            [1, 1, 1, 1]
         """
         if n is None:
             return self.gen()
@@ -1420,8 +1448,19 @@ class NumberField_cyclotomic(NumberField_generic):
             z = self.gen()
             m = z.multiplicative_order()
             if m % n != 0:
-                raise ValueError, "No %sth root of unity in self"%n
-            return z**(m//n)
+                # use generic method (factor cyclotomic polynomial)
+                return field.Field.zeta(self, n, all=all)
+            a = z**(m//n)
+            if all:
+                v = [a]
+                b = a*a
+                for i in range(2,n):
+                    if sage.rings.arith.gcd(i, n) == 1:
+                        v.append(b)
+                    b = b * a
+                return v
+            else:
+                return a
 
 class NumberField_quadratic(NumberField_generic):
     """

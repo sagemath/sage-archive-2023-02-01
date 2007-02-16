@@ -84,6 +84,9 @@ Reals = RealField
 
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
+# Quad double
+#from real_qdrf import RealQuadDoubleField, RQDF
+
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
                        is_RealIntervalFieldElement, RIF,
@@ -136,7 +139,7 @@ from morphism import is_RingHomomorphism
 
 from homset import is_RingHomset
 
-from fast_polynomial.compiled_polynomial import compiled_polynomial
+#from fast_polynomial.compiled_polynomial import compiled_polynomial
 
 CC = ComplexField()
 I = CC.gen()

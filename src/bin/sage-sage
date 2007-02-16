@@ -300,15 +300,24 @@ if [ $1 = '-hgmerge'  -o $1 = '--hgmerge' ]; then
 fi
 
 #####################################################################
-# Run SAGE's versions of the standard Algebra/Geometry etc. software
+# Run Distributed SAGE
 #####################################################################
 
-if [ $1 = "-server1" -o $1 = "-server" -o $1 = "--server" ]; then
-   cd "$CUR"
+if [ $1 = "-server" -o $1 = "--server" ]; then
    shift
-   sage-server "$@"
+   dsage_server.py
    exit $?
 fi
+
+if [ $1 = "-worker" -o $1 = "--worker" ]; then
+   shift
+   dsage_worker.py
+   exit $?
+fi
+
+#####################################################################
+# Run SAGE's versions of the standard Algebra/Geometry etc. software
+#####################################################################
 
 if [ $1 = "-notebook"  -o $1 = '--notebook' ]; then
    cd "$CUR"

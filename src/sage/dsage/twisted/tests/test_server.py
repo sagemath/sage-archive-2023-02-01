@@ -16,20 +16,16 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-client_list = []
+#import unittest
+#import os
 
-def add(avatar):
-    r"""
-    Adds an avatar to clients_list.
-
-    """
-
-    client_list.append(avatar)
-
-def remove(avatar):
-    r"""
-    Removes the avatar from the client_list.
-
-    """
-
-    client_list.remove(avatar)
+#class ServerTestCase(unittest.TestCase):
+#    def testgetAuthorizedKeys(self):
+#        cur = os.getcwd()
+#        os.chdir('../dsage/tests/data')
+#        authorized_keys = getAuthorizedKeys('authorized_keys.db')
+#        for username, key in authorized_keys.iteritems():
+#            self.assert_(isinstance(username, str))
+#            self.assert_(isinstance(key, str))
+#        os.chdir(cur)
+#

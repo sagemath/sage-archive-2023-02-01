@@ -24,17 +24,17 @@ import ConfigParser
 import copy
 import cPickle
 import zlib
-import time
 import threading
+import time
 
-from twisted.python import threadable
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
 from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
 from sage.dsage.database.job import Job
-from sage.dsage.pb.dsage_pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.misc import blockingCallFromThread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
 # This is a randomly generated string we will use to as the signature to
@@ -70,6 +70,7 @@ class DSage(object):
     r"""
     This object represents a connection to the distributed SAGE server.
     """
+
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
 
@@ -90,15 +91,17 @@ class DSage(object):
         self.remoteobj = None
         self.result = None
 
+        passphrase = self._getpassphrase()
+
         # public key authentication information
-        self.public_key_string = keys.getPublicKeyString(
-                                                    filename=self.pubkey_file)
-        self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
-        self.public_key = keys.getPublicKeyObject(self.public_key_string)
+        self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
+        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
+                                                 passphrase=passphrase)
+        self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
-        self.blob = keys.makePublicKeyBlob(self.public_key)
+        self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.data = DATA
-        self.signature = keys.signData(self.private_key, self.data)
+        self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
                                                self.blob,
@@ -115,18 +118,24 @@ class DSage(object):
                     + self.server + ':' + str(self.port)
         return self.info_str + '\r'
 
-    def __call__(self, cmd, job_name=None):
+    def __call__(self, cmd, globals=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n'
                "save(ans, 'ans')\n"
                "DSAGE_RESULT = 'ans.sobj'\n"]
 
-        return self.eval(''.join(cmd), job_name)
+        return self.eval(''.join(cmd), globals, job_name)
 
     def __getstate__(self):
         d = copy.copy(self.__dict__)
         d['remoteobj'] = None
         return d
+
+    def _getpassphrase(self):
+        import getpass
+        passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
+
+        return passphrase
 
     def _catchFailure(self, failure):
         if failure.check(error.ConnectionRefusedError):
@@ -231,12 +240,11 @@ class DSage(object):
 
         type = 'file'
         cmd = open(fname).read()
-        # d = self.remoteobj.callRemote('getNextJobID')
-        # d.addCallback(self._gotID, cmd, job_name, type)
         job = Job(id=None, file=cmd, name=job_name,
                   author=self.username, type=type)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
+
         return wrapped_job
 
     def send_job(self, job):
@@ -329,9 +337,142 @@ class DSage(object):
         if self.remoteobj == None:
             raise NotConnectedException
 
-    def checkResult(self, jobs):
-        """Takes a list of jobs and checks the result."""
+class BlockingDSage(DSage):
+    r"""This is the blocking version of DSage
+    """
 
+    def __init__(self, server=None, port=8081, username=None,
+                 pubkey_file=None, privkey_file=None):
+
+        if server is None:
+            self.server = SERVER
+        else:
+            self.server = server
+
+        self.port = PORT
+        self.username = USERNAME
+        self.pubkey_file = PUBKEY_FILE
+        self.privkey_file = PRIVKEY_FILE
+
+        self.remoteobj = None
+        self.result = None
+
+        passphrase = self._getpassphrase()
+
+        # public key authentication information
+        self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
+        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
+                                                 passphrase=passphrase)
+        self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
+        self.alg_name = 'rsa'
+        self.blob = keys.makePublicKeyBlob(self.pub_key)
+        self.data = DATA
+        self.signature = keys.signData(self.priv_key, self.data)
+        self.creds = credentials.SSHPrivateKey(self.username,
+                                                self.alg_name,
+                                                self.blob,
+                                                self.data,
+                                                self.signature)
+
+        self.jobs = []
+        self.dsage_thread = DSageThread()
+        self.dsage_thread.start()
+        self.connect()
+
+    def connect(self):
+        r"""
+        This methods establishes the conection to the remote server.
+
+        """
+
+        # TODO: Send a useful 'mind' object with the login request!
+        # factory = pb.PBClientFactory()
+        factory = ClientPBClientFactory()
+
+        if SSL == 1:
+            from twisted.internet import ssl
+            contextFactory = ssl.ClientContextFactory()
+            blockingCallFromThread(reactor.connectSSL,
+                                   self.server, self.port,
+                                   factory, contextFactory)
+        else:
+            blockingCallFromThread(reactor.connectTCP,
+                                   self.server, self.port,
+                                   factory)
+
+        return factory.login(self.creds, None).addCallback(
+                            self._connected).addErrback(
+                            self._catchFailure)
+
+    def eval(self, cmd, globals=None, job_name=None):
+        r"""
+        eval evaluates a command
+
+        Parameters:
+        cmd -- the sage command to be evaluated (str)
+        globals -- a dict (see help for python's eval method)
+        job_name -- an alphanumeric job name
+
+        """
+
+        self.check_connected()
+        if not job_name or not isinstance(job_name, str):
+            job_name = 'default_job'
+
+        type = 'sage'
+
+        job = Job(id=None, file=cmd, name=job_name,
+                  author=self.username, type=type)
+
+        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+        if globals is not None:
+            for k, v in globals.iteritems():
+                job.attach(k, v)
+
+        return wrapped_job
+
+    def send_job(self, job):
+        r"""
+        Sends a Job object to the server.
+
+        """
+
+        if not isinstance(job, Job):
+            raise TypeError
+        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+
+        return wrapped_job
+
+    def cluster_speed(self):
+        r"""
+        Returns the speed of the cluster.
+
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getClusterSpeed')
+
+    def list_workers(self):
+        r"""Returns a list of workers connected to the server.
+
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getWorkerList')
+
+    def list_clients(self):
+        r"""
+        Returns a list of clients connected to the server.
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getClientList')
 
 class JobWrapper(object):
     r"""
@@ -497,3 +638,79 @@ class JobWrapper(object):
         if jobID:
             if LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.\r'
+
+class blockingJobWrapper(JobWrapper):
+    def __init__(self, remoteobj, job):
+        self.remoteobj = remoteobj
+        self._job = job
+
+        # TODO Make this more complete
+        self._update_job(job)
+        self.worker_info = self._job.worker_info
+
+
+        # This is kind of stupid, why not just set the job ID when
+        # submitting the job?
+        jobID = blockingCallFromThread(self.remoteobj.callRemote,
+                                   'getNextJobID')
+
+        self._job.id = jobID
+        pickled_job = self._job.pickle()
+        d = blockingCallFromThread(self.remoteobj.callRemote,
+                                   'submitJob', pickled_job)
+
+    def __repr__(self):
+        self.getJob()
+        if self.status == 'completed' and not self.output:
+            return 'No output.'
+        elif not self.output:
+            return 'No output yet.'
+
+        return self.output
+
+    def getJob(self):
+        if self.remoteobj == None:
+           raise NotConnectedException
+        if self.status == 'completed':
+            return
+
+        job = blockingCallFromThread(self.remoteobj.callRemote,
+                                     'getJobByID', self._job.id)
+
+        self._update_job(self.unpickle(job))
+
+    def async_getJob(self):
+        if self.remoteobj == None:
+            raise NotConnectedException
+        d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        d.addCallback(self._gotJob)
+        d.addErrback(self._catchFailure)
+        return d
+
+    def kill(self):
+        r"""
+        Kills the current job.
+
+        """
+
+        jobID = blockingCallFromThread(self.remoteobj.callRemote,
+                                   'killJob', self._job.id)
+        return jobID
+
+    def async_kill(self):
+        r"""
+        async version of kill
+
+        """
+
+        print 'Killing ', self.id
+        d = self.remoteobj.callRemote('killJob', self.id)
+        d.addCallback(self._killedJob)
+        d.addErrback(self._catchFailure)
+        return d
+
+    def wait(self):
+        timeout = 0.1
+        while self.result is None:
+            time.sleep(timeout)
+            self.getJob()

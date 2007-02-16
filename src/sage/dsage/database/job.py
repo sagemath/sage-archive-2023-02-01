@@ -25,7 +25,7 @@ from twisted.spread import pb
 
 from persistent import Persistent
 
-class Job(Persistent, pb.RemoteCopy):
+class Job(Persistent):
     """Defines a Job that gets distributed to clients.
     """
 

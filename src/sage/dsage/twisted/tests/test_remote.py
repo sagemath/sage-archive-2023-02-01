@@ -20,20 +20,24 @@ import ConfigParser
 import os
 import random
 from glob import glob
+import cPickle
+import zlib
 
 from twisted.trial import unittest
 from twisted.spread import pb
 from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from twisted.conch.ssh import keys
-import twisted.conch
 
-from dsage.pb.dsage_pb import Realm
-from dsage.pb.dsage_pb import DSage
-from dsage.pb.dsage_pb import _SSHKeyPortalRoot
-from dsage.pb.dsage_pb import ClientPBClientFactory
-from dsage.pb.pubkeyauth import PublicKeyCredentialsChecker
-from dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.twisted.pb import Realm
+from sage.dsage.server.server import DSageServer
+from sage.dsage.twisted.pb import _SSHKeyPortalRoot
+from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
+from sage.dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.database.job import Job
+from sage.dsage.errors.exceptions import BadJobError
+
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
@@ -65,10 +69,13 @@ except:
 Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                 range(500)]])
 
-class PublicKeyCredentialsCheckerTest(unittest.TestCase):
+class ClientRemoteCallsTest(unittest.TestCase):
+    def unpickle(self, pickled_job):
+        return cPickle.loads(zlib.decompress(pickled_job))
+
     def setUp(self):
         self.jobdb = JobDatabaseZODB(test=True)
-        self.dsage = DSage(self.jobdb, log_level=5)
+        self.dsage = DSageServer(self.jobdb, log_level=5)
         self.realm = Realm(self.dsage)
         self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage)))
         self.p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
@@ -102,55 +109,98 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
             os.remove(file)
         return self.r.stopListening()
 
-    def testLogin(self):
-        """Tests the login method. """
+    def testremoteGetJobEmptyQueue(self):
+        """Tests perspective_getJob on an empty database"""
         factory = ClientPBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
 
         d = factory.login(self.creds, None)
         d.addCallback(self._LoginConnected)
         return d
 
     def _LoginConnected(self, remoteobj):
-        self.assert_(isinstance(remoteobj, pb.RemoteReference))
-
-    def testBadLogin(self):
-        factory = ClientPBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
-
-        d = factory.login(None, None)
-        d.addErrback(lambda f: self.assertEquals(TypeError, f.check(TypeError)))
-
+        d = remoteobj.callRemote('getJob')
+        d.addCallback(self._gotNoJob)
         return d
 
-    def testBadLogin2(self):
+    def _gotNoJob(self, job):
+        self.assertEquals(job, None)
+
+    def testremoteGetJob(self):
+        """Tests perspective_getJob"""
+        jobs = self.createJobs(10)
+        for job in jobs:
+            self.jobdb.newJob(job)
+
         factory = ClientPBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
-        bad_creds = credentials.SSHPrivateKey('this user name should not exit',
-                                               self.alg_name,
-                                               self.blob,
-                                               self.data,
-                                               self.signature)
-        d = factory.login(bad_creds, None)
-        d.addErrback(self._BadLoginFailure)
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
+
+        d = factory.login(self.creds, None)
+        d.addCallback(self._LoginConnected1)
         return d
 
-    def _BadLoginFailure(self, failure):
-        self.assertEquals(failure.type, str(twisted.conch.error.ConchError))
-
-    def testBadLogin3(self):
-        factory = ClientPBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
-        bad_creds = credentials.SSHPrivateKey(self.username,
-                                              self.alg_name,
-                                              None,
-                                              self.data,
-                                              self.signature)
-
-        d = factory.login(bad_creds, None)
-        d.addErrback(self._BadLoginFailure)
-
+    def _LoginConnected1(self, remoteobj):
+        d = remoteobj.callRemote('getJob')
+        d.addCallback(self._gotJob)
         return d
+
+    def _gotJob(self, job):
+        self.assert_(isinstance(job, str))
+        import cPickle, zlib
+        job = self.unpickle(job)
+        self.assert_(isinstance(job, Job))
+
+    def testremoteSubmitJob(self):
+        """tests perspective_submitJob"""
+        jobs = self.createJobs(1)
+
+        factory = ClientPBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
+
+        d = factory.login(self.creds, None)
+        d.addCallback(self._LoginConnected2, jobs)
+        return d
+
+    def _LoginConnected2(self, remoteobj, jobs):
+        job = jobs[0]
+        job.file = ""
+        d = remoteobj.callRemote('submitJob', job.pickle())
+        d.addCallback(self._gotJobID)
+        return d
+
+    def _gotJobID(self, jobID):
+        self.assertEquals(type(jobID), str)
+
+    def testremoteSubmitBadJob(self):
+        """tests perspective_submitJob"""
+
+        factory = ClientPBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
+
+        d = factory.login(self.creds, None)
+        d.addCallback(self._LoginConnected3)
+        return d
+
+    def _LoginConnected3(self, remoteobj):
+        d = remoteobj.callRemote('submitJob', None)
+        d.addErrback(self._gotNoJobID)
+        return d
+
+    def _gotNoJobID(self, failure):
+        self.assertEquals(BadJobError, failure.check(BadJobError))
+
+    def createJobs(self, n):
+        """This method creates n jobs. """
+
+        jobs = []
+        for i in range(n):
+            jobs.append(Job(name='unittest', author='Yi Qiang'))
+
+        return jobs
 
 if __name__ == 'main':
     unittest.main()

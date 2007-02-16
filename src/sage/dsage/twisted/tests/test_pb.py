@@ -24,9 +24,9 @@ from random import randint
 from cPickle import dumps, loads
 import zlib
 
-from dsage.database.job import Job
-from dsage.database.jobdb import JobDatabaseZODB
-from dsage.pb.dsage_pb import DSage
+from sage.dsage.database.job import Job
+from sage.dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.server.server import DSageServer
 
 class DSageTestCase(unittest.TestCase):
     def unpickle(self, pickled_job):
@@ -34,7 +34,7 @@ class DSageTestCase(unittest.TestCase):
 
     def setUp(self):
         self.jobdb = JobDatabaseZODB(test=True)
-        self.dsage = DSage(self.jobdb, log_level=5)
+        self.dsage = DSageServer(self.jobdb, log_level=5)
         for job in self.createJobs(10):
             self.dsage.jobdb.newJob(job)
 

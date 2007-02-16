@@ -21,9 +21,17 @@
 worker_list = []
 
 def add(avatar):
-    """Adds an avatar to clients_list. """
+    r"""
+    Adds an avatar to worker_list.
+
+    """
+
     worker_list.append(avatar)
 
 def remove(avatar):
-    """Removes the avatar from the worker_list. """
+    r"""
+    Removes the avatar from the worker_list.
+
+    """
+
     worker_list.remove(avatar)

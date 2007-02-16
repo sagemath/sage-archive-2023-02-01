@@ -21,7 +21,8 @@ class DistributedSage(object):
         Worker
             Launch the worker with dsage.worker()
         Client
-            Launch the client with dsage.client()
+            Create the DSage object like this:
+                d = DSage()
 
     Examples:
         This starts a server instance on localhost
@@ -37,23 +38,17 @@ class DistributedSage(object):
 
         Open yet another terminal and type:
 
-        sage: dsage.console()
-
-        This drops you into the dsage ipython console
-
-        To do something simple, type:
-
-        sage: P = DSage()
+        sage: D = DSage()
 
         This creates a connection to the remote server.  To do a simple
         evaluation, type:
 
-        sage: job1 = P.eval('print 2+2', 'testjob')
+        sage: job1 = D('2+2')
 
         This sends the job 'print 2+2' to a worker and you can view the
         result by typing:
 
-        sage: print job1.result
+        sage: print job1
 
         This is the most basic way of interacting with dsage. To do more
         complicated tasks, you should look at the DistributedFunction class.
@@ -77,7 +72,6 @@ class DistributedSage(object):
         file should be self explanatory.
 
     TODO:
-        Allow you to pass options to the worker, server and console.
 
     """
     def __init__(self):
@@ -121,16 +115,16 @@ class DistributedSage(object):
 
         os.system(cmd)
 
-    def console(self):
-        r"""
-        This is the IPython console that allows you submit and view jobs.
-
-        Simply type dsage.console() to launch it.  It is a special ipython
-        console because it has a twisted thread running in the background.
-        """
-        # this is overwritten below.
-        cmd = 'dsage_console.py'
-        os.system(cmd)
+    # def console(self):
+    #     r"""
+    #     This is the IPython console that allows you submit and view jobs.
+    #
+    #     Simply type dsage.console() to launch it.  It is a special ipython
+    #     console because it has a twisted thread running in the background.
+    #     """
+    #     # this is overwritten below.
+    #     cmd = 'dsage_console.py'
+    #     os.system(cmd)
 
     def setup(self):
         r"""
@@ -170,8 +164,3 @@ class DistributedSage(object):
         os.system(cmd)
 
 dsage = DistributedSage()
-
-# we have to do it this way, so the proper globals
-# get passed to start_dsage_console.
-import scripts.dsage_activate
-dsage.console = scripts.dsage_activate.start_dsage_console

@@ -538,6 +538,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+
+        return self._multiply_classical(right)
+
+        # NOTE -- the multimodular matrix multiply implementation
+        # breaks on 64-bit machines; e..g, the following doctests
+        # *all* fail if multimodular matrix multiply is enabled
+        # on sage.math.washington.edu:
+
+        #sage -t  devel/sage-main/sage/modular/modsym/modsym.py
+        #sage -t  devel/sage-main/sage/modular/modsym/space.py
+        #sage -t  devel/sage-main/sage/modular/modsym/subspace.py
+        #sage -t  devel/sage-main/sage/modular/hecke/hecke_operator.py
+        #sage -t  devel/sage-main/sage/modular/hecke/module.py
+
+        #############
         # see the tune_multiplication function below.
         n = max(self._nrows, self._ncols, right._nrows, right._ncols)
         if n <= 20:

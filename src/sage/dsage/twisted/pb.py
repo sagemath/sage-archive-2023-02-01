@@ -44,12 +44,15 @@ class WorkerPBServerFactory(pb.PBServerFactory):
 
         """
 
+        broker.notifyOnDisconnect(self.clientConnectionLost)
         worker_tracker.add((broker,
                             broker.transport.getPeer().host,
                             broker.transport.getPeer().port))
 
-    def clientConnectionLost(self, connector, reason, reconnecting=0):
-        print 'Connection lost!'
+    def clientConnectionLost(self):
+        for broker, host, port in worker_tracker.worker_list:
+            if broker.transport.disconnected:
+                worker_tracker.remove((broker, host, port))
 
 
 

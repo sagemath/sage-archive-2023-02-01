@@ -199,7 +199,10 @@ class Worker(object):
         Extracts all the data that is in a job object.
 
         """
+
         if isinstance(job.data, list):
+            if LOG_LEVEL > 2:
+                log.msg('Extracting job data...')
             for var, data, kind in job.data:
                 # Uncompress data
                 try:

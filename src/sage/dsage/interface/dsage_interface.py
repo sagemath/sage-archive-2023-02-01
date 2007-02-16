@@ -118,13 +118,13 @@ class DSage(object):
                     + self.server + ':' + str(self.port)
         return self.info_str + '\r'
 
-    def __call__(self, cmd, globals=None, job_name=None):
+    def __call__(self, cmd, globals_=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n'
                "save(ans, 'ans')\n"
                "DSAGE_RESULT = 'ans.sobj'\n"]
 
-        return self.eval(''.join(cmd), globals, job_name)
+        return self.eval(''.join(cmd), globals_=globals_, job_name=job_name)
 
     def __getstate__(self):
         d = copy.copy(self.__dict__)
@@ -200,7 +200,7 @@ class DSage(object):
         print 'Disconnecting from server.'
         self.remoteobj = None
 
-    def eval(self, cmd, globals=None, job_name=None):
+    def eval(self, cmd, globals_=None, job_name=None):
         r"""
         eval evaluates a command
 
@@ -221,8 +221,8 @@ class DSage(object):
                   author=self.username, type=type)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
-        if globals is not None:
-            for k, v in globals.iteritems():
+        if globals_ is not None:
+            for k, v in globals_.iteritems():
                 job.attach(k, v)
 
         return wrapped_job
@@ -404,7 +404,7 @@ class BlockingDSage(DSage):
                             self._connected).addErrback(
                             self._catchFailure)
 
-    def eval(self, cmd, globals=None, job_name=None):
+    def eval(self, cmd, globals_=None, job_name=None):
         r"""
         eval evaluates a command
 
@@ -424,10 +424,11 @@ class BlockingDSage(DSage):
         job = Job(id=None, file=cmd, name=job_name,
                   author=self.username, type=type)
 
-        wrapped_job = blockingJobWrapper(self.remoteobj, job)
-        if globals is not None:
-            for k, v in globals.iteritems():
+        if globals_ is not None:
+            for k, v in globals_.iteritems():
                 job.attach(k, v)
+
+        wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 

@@ -1,7 +1,7 @@
 include "../ext/cdefs.pxi"
 include '../ext/interrupt.pxi'
 
-cimport matrix_field_sparse
+cimport matrix_sparse
 
 
 cdef struct c_vector_modint:
@@ -19,7 +19,8 @@ cdef struct mpq_vector:
     int    num_nonzero  # the number of nonzero entries of this vector.
 
 
-cdef class Matrix_rational_sparse(matrix_field_sparse.Matrix_field_sparse):
+cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     cdef mpq_vector* rows
     cdef public int nr, nc
     cdef public is_init
+

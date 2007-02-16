@@ -1203,7 +1203,7 @@ def DirichletGroup(modulus, base_ring=None, zeta=None, zeta_order=None, names=No
         try:
             zeta = base_ring.zeta(e)
             zeta_order = zeta.multiplicative_order()
-        except (TypeError, ValueError):
+        except (TypeError, ValueError, ArithmeticError):
             zeta = base_ring.zeta()
             n = zeta.multiplicative_order()
             zeta_order = arith.GCD(e,n)

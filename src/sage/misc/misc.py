@@ -46,8 +46,9 @@ except KeyError:
     except KeyError:
         DOT_SAGE = '%s/.sage/'%SAGE_ROOT
 
+UNAME=os.uname()[0]
 if ' ' in DOT_SAGE:
-    if os.uname()[0][:6] == 'CYGWIN':
+    if UNAME[:6] == 'CYGWIN':
         # on windows/cygwin it is typical for the home directory
         # to have a space in it.  Fortunately, users also have
         # write privilegs to c:\cygwin\home, so we just put

@@ -318,6 +318,11 @@ cdef class Matrix_generic_sparse(matrix_sparse.Matrix_sparse):
             return list(v)
         return v
 
+    ######################
+    # Echelon support
+    ######################
+
+
 ##     def dense_matrix(self):
 ##         import sage.matrix.matrix
 ##         M = sage.matrix.matrix.MatrixSpace(self.base_ring(),

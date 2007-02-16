@@ -24,7 +24,8 @@ def kill_spawned_jobs():
         pid = L[:i].strip()
         cmd = L[i+1:].strip()
         j = 0
-        while True:
+        while j < 3:
+            j += 1
             if not is_running(pid):
                 break
             try:

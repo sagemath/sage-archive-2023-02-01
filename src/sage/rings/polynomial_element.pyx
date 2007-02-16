@@ -1525,21 +1525,62 @@ cdef class Polynomial(CommutativeAlgebraElement):
                     seq.append(-g[0]/g[1])
         return seq
 
-    def valuation(self):
+    def valuation(self, p=None):
         r"""
         If $f = a_r x^r + a_{r+1}x^{r+1} + \cdots$, with $a_r$ nonzero,
         then the valuation of $f$ is $r$.  The valuation of the zero
         polynomial is $\infty$.
 
-        EXAMPLES:
+        If a prime (or non-prime) $p$ is given, then the valuation is
+        the largest power of $p$ which divides self.
 
+        The valuation at $\infty$ is -self.degree().
+
+        EXAMPLES:
+        sage: P,x=PolynomialRing(ZZ,'x').objgen()
+        sage: (x^2+x).valuation()
+        1
+        sage: (x^2+x).valuation(x+1)
+        1
+        sage: (x^2+1).valuation()
+        0
+        sage: (x^3+1).valuation(infinity)
+        -3
+        sage: P(0).valuation()
+        Infinity
         """
+        cdef int k
         if self.is_zero():
             return infinity
-        for i in xrange(self.degree()+1):
-            if self[i] != 0:
-                return ZZ(i)
+        if p == infinity:
+            return -self.degree()
+        if p is None:
+            p = self.parent().gen()
+        if not isinstance(p, Polynomial) or not p.parent() is self.parent():
+            raise TypeError, "The polynomial, p, must have the same parent as self."
+        if p is None or p == self.parent().gen():
+            for i in xrange(self.degree()+1):
+                if self[i] != 0:
+                    return ZZ(i)
+        else:
+            if p.degree() == 0:
+                raise ArithmeticError, "The polynomial, p, must have positive degree."
+            k = 0
+            while self % p == 0:
+                k = k + 1
+                self = self.__floordiv__(p)
+            return integer.Integer(k)
         raise RuntimeError, "bug in computing valuation of polynomial"
+
+    def ord(self, p=None):
+        """Synonym for valuation
+
+        EXAMPLES:
+        sage: P,x=PolynomialRing(ZZ,'x').objgen()
+        sage: (x^2+x).ord(x+1)
+        1
+        """
+        return self.valuation(p)
 
     def name(self):
         return self.parent().variable_name()

@@ -146,11 +146,13 @@ class NumberFieldIdeal(Ideal_fractional):
         I.__pari_hnf = hnf
         return I
 
-    def __pow__(self, right):
+    def __pow__(self, r):
         """
         Return self to the power of right.
         """
-        right = int(right)
+        right = int(r)
+        if right != r:
+            raise ValueError, "exponent must be an integer"
         if right < 0:
             x = self.number_field().ideal(1) / self
             right *= -1

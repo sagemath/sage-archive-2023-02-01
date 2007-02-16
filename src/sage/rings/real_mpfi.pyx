@@ -954,19 +954,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         otherwise self.relative_diameter().
 
         EXAMPLES:
-            sage: RIF(1, 2).diameter() # todo: not implemented
+            sage: RIF(1, 2).diameter()
+            1.00000000000000
             sage: RIF(1, 2).absolute_diameter()
             1.00000000000000
-            sage: RIF(1, 2).relative_diameter() # todo: not implemented
-            sage: RIF(pi).diameter() # todo: not implemented
+            sage: RIF(1, 2).relative_diameter()
+            1.00000000000000
+            sage: RIF(pi).diameter()
+            0.000000000000000444089209850062
             sage: RIF(pi).absolute_diameter()
             0.000000000000000444089209850062
-            sage: RIF(pi).relative_diameter() # todo: not implemented
+            sage: RIF(pi).relative_diameter()
+            0.000000000000000444089209850062
             sage: (RIF(pi) - RIF(pi).square().sqrt()).diameter()
             0.00000000000000177635683940025
             sage: (RIF(pi) - RIF(pi).square().sqrt()).absolute_diameter()
             0.00000000000000177635683940025
-            sage: (RIF(pi) - RIF(pi).square().sqrt()).relative_diameter() # todo: not implemented
+            sage: (RIF(pi) - RIF(pi).square().sqrt()).relative_diameter()
+            +infinity
         """
         cdef RealNumber x
         x = (<RealIntervalField>self._parent).__middle_field._new()
@@ -1792,6 +1797,36 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_exp2(x.value, self.value)
         _sig_off
         return x
+
+    def is_int(self):
+        """
+        OUTPUT:
+            bool -- True or False
+            n -- an integer
+
+        EXAMPLES:
+            sage: a = RIF(0.8,1.5)
+            sage: a.is_int()
+            (True, 1)
+            sage: a = RIF(1.1,1.5)
+            sage: a.is_int()
+            (False, None)
+            sage: a = RIF(1,2)
+            sage: a.is_int()
+            (False, None)
+            sage: a = RIF(-1.1, -0.9)
+            sage: a.is_int()
+            (True, -1)
+        """
+        if self.diameter() >= 1:
+            return False, None
+        a = (self.lower()+1).floor()
+        b = (self.upper()).floor()
+        if a == b:
+
+            return True, a
+        else:
+            return False, None
 
 # MPFI does not have exp10.  (Could easily be synthesized if anybody cares.)
 #     def exp10(self):

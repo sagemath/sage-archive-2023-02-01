@@ -1,13 +1,13 @@
 #####################################################################
 #
-# These are the "Syrex" pxi files for (most of) the Python/C API.
+# These are the "SageX" pxi files for (most of) the Python/C API.
 #
-#    Syrex = SAGE Pyrex, which is a for of Pyrex for use in SAGE.
+#    SageX = SAGE Pyrex, which is a fork of Pyrex for use in SAGE.
 #
 # REFERENCE COUNTING:
 #
 #   JUST TO SCARE YOU:
-#   If you are going to use any of the Python/C API in your Syrex
+#   If you are going to use any of the Python/C API in your SageX
 #   program, you might be responsible for doing reference counting.
 #   Read http://docs.python.org/api/refcounts.html which is so
 #   important I've copied it below.
@@ -15,10 +15,10 @@
 # For all the declaration below, whenver the Py_ function returns
 # a *new reference* to a PyObject*, the return type is "object".
 # When the function returns a borrowed reference, the return
-# type is PyObject*.  When Syrex sees "object" as a return type
+# type is PyObject*.  When SageX sees "object" as a return type
 # it doesn't increment the reference count.  When it sees PyObject*
 # in order to use the result you must explicitly cast to <object>,
-# and when you do that Syrex increments the reference count wether
+# and when you do that SageX increments the reference count wether
 # you want it to or not, forcing you to an explicit DECREF (or leak memory).
 # To avoid this we make the above convention.  Note, you can
 # always locally override this convention by putting something like
@@ -26,10 +26,10 @@
 #     cdef extern from "Python.h":
 #         PyObject* PyNumber_Add(PyObject *o1, PyObject *o2)
 #
-# in your file after any .pxi includes.  Syrex will use the latest
+# in your file after any .pxi includes.  SageX will use the latest
 # declaration.
 #
-# Syrex takes care of this automatically for anything of type object.
+# SageX takes care of this automatically for anything of type object.
 ## More precisely, I think the correct convention for
 ## using the Python/C API from Pyrex is as follows.
 ##

@@ -642,6 +642,7 @@ div.worksheet_title_under {
 }
 
 div.worksheet_cell_list {
+   padding-left:0.5ex;
 }
 
 a.delete_worksheet {
@@ -885,18 +886,8 @@ td.cell_number_running {
    font-size:12pt;
    font-family:arial, monospace;
    color:#bbbbbb;
-   background-color: ccffcc;
-/*   background-color: lightgreen;  */
+   background-color: 99ff99;
    text-align:left;
-
-   /* background-color:#990000;  */
-/*   font-size:10pt;
-   font-family:arial, monospace;
-   color:#006400;
-   text-align:left;
-   cursor:pointer;
-   text-decoration:blink;
-   */
 }
 
 td.cell_number_running:hover {

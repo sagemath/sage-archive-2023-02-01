@@ -240,8 +240,10 @@ class AffineSpace_generic(ambient_space.AmbientSpace, scheme.AffineScheme):
             sage: A^5
             Affine Space of dimension 5 over Rational Field
         """
-        m = int(m)
-        return self._constructor(self.dimension() * m, self._base_ring, names=self.variable_names() * m)
+        mm = int(m)
+        if mm != m:
+            raise ValueError, "m must be an integer"
+        return self._constructor(self.dimension() * mm, self._base_ring, names=self.variable_names() * mm)
 
     def coordinate_ring(self):
         """

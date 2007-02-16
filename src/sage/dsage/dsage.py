@@ -2,10 +2,11 @@
 Distributed SAGE
 
 AUTHORS:
-   -- Yi Qiang
+    Yi Qiang (yqiang@gmail.com)
 """
 
 import os
+
 class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
@@ -55,7 +56,7 @@ class DistributedSage(object):
         sage: print job1.result
 
         This is the most basic way of interacting with dsage. To do more
-        complicated tasks, you should look at the DistributedFunctions class.
+        complicated tasks, you should look at the DistributedFunction class.
         For example, to do distributed integer factorization with ECM, type
         this:
 
@@ -96,18 +97,28 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, blocking=True):
+    def worker(self, hostname=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
         Typing sage.worker() will launch a worker which by default connects to
         localhost on port 8082 to fetch jobs.
 
+        Parameters:
+        hostname -- the server you want to connect to
+        port -- the port that the server listens on for workers.
+
         """
 
         cmd = 'dsage_worker.py'
+        if isinstance(hostname, str):
+            cmd += ' %s' % hostname
+        if isinstance(port, int):
+            cmd += ' %s' % port
+
         if not blocking:
             cmd += '&'
+
         os.system(cmd)
 
     def console(self):
@@ -116,9 +127,8 @@ class DistributedSage(object):
 
         Simply type dsage.console() to launch it.  It is a special ipython
         console because it has a twisted thread running in the background.
-
         """
-
+        # this is overwritten below.
         cmd = 'dsage_console.py'
         os.system(cmd)
 
@@ -132,7 +142,6 @@ class DistributedSage(object):
         dsage.setup() client
 
         """
-
         cmd = 'dsage_setup.py'
         os.system(cmd)
 
@@ -161,3 +170,8 @@ class DistributedSage(object):
         os.system(cmd)
 
 dsage = DistributedSage()
+
+# we have to do it this way, so the proper globals
+# get passed to start_dsage_console.
+import scripts.dsage_activate
+dsage.console = scripts.dsage_activate.start_dsage_console

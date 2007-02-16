@@ -21,8 +21,8 @@ import os
 import datetime
 from glob import glob
 
-from dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
-from dsage.database.job import Job
+from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.job import Job
 
 class JobDatabaseZODBTestCase(unittest.TestCase):
     def setUp(self):

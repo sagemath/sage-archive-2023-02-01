@@ -19,7 +19,7 @@
 import unittest
 import datetime
 
-from dsage.database.job import Job
+from sage.dsage.database.job import Job
 
 
 class JobTestCase(unittest.TestCase):

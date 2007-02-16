@@ -77,8 +77,8 @@ from sage.categories.all import *
 from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
-from sage.functions.all  import *
-#from sage.calculus.all   import *
+#from sage.functions.all  import *
+from sage.calculus.all   import *
 from sage.server.all     import *
 from sage.dsage.all      import *
 import sage.tests.all as tests
@@ -143,7 +143,7 @@ true = True
 false = False
 
 oo = infinity
-x = PolynomialRing(QQ,'x').gen()
+#x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()

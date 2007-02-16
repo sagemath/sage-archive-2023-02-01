@@ -443,6 +443,21 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         except (NotImplementedError, PariError):
             return TypeError, "error coercing to finite field"
 
+    def __iter__(self):
+        """
+        EXAMPLES:
+            sage: R = IntegerModRing(3)
+            sage: for i in R:
+            ...    print i
+            0
+            1
+            2
+        """
+        i = integer.Integer(0)
+        while i < self.__order:
+            yield i
+            i = i + 1
+
     def _coerce_impl(self, x):
         r"""
         Canonical coercion.

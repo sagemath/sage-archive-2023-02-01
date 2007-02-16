@@ -4,6 +4,7 @@ NTL wrapper
 AUTHORS:
    - William Stein
    - Martin Albrecht <malb@informatik.uni-bremen.de>
+   - David Harvey (2007-02): speed up getting data in/out of NTL
 """
 
 #*****************************************************************************
@@ -22,8 +23,13 @@ AUTHORS:
 #*****************************************************************************
 
 include "../../ext/interrupt.pxi"
+include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
+
+from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
+#cimport sage.rings.integer
 
 
 ##############################################################################
@@ -302,9 +308,29 @@ cdef class ntl_ZZX:
         self.setitem_from_int(int(i), int(value))
 
     def __getitem__(self, unsigned int i):
-        cdef char* t
-        t = ZZX_getitem(self.x,i)
-        return int(string(t))
+        r"""
+        Retrieves coefficient #i as a SAGE Integer.
+
+        sage: x = ntl.ZZX([129381729371289371237128318293718237, 2, -3, 0, 4])
+        sage: x[0]
+         129381729371289371237128318293718237
+        sage: type(x[0])
+         <type 'sage.rings.integer.Integer'>
+        sage: x[1]
+         2
+        sage: x[2]
+         -3
+        sage: x[3]
+         0
+        sage: x[4]
+         4
+        sage: x[5]
+         0
+        """
+        cdef Integer output
+        output = Integer()
+        ZZX_getitem_as_mpz(&output.value, self.x, i)
+        return output
 
     cdef int getitem_as_int(ntl_ZZX self, long i):
         r"""

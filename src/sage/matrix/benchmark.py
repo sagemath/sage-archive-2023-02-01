@@ -1,42 +1,75 @@
 from sage.all import *
 
+verbose = False
+
+timeout = 5
+
+def report(F, title):
+    systems = ['sage', 'magma']
+    print '\n\n'
+    print '='*70
+    print ' '*10 + title
+    print '='*70
+    os.system('uname -a')
+    print '\n'
+    for f in F:
+        print "-"*70
+        print f.__doc__.strip()
+        print ('%15s'*len(systems))%tuple(systems)
+        w = []
+        for s in systems:
+            alarm(timeout)
+            try:
+                t = f(system=s)
+            except KeyboardInterrupt:
+                t = -timeout
+            alarm(0)
+            w.append(t)
+        w = tuple(w)
+        print ('%15.3f'*len(w))%w
+
+
 #######################################################################
 # Dense Benchmarks over ZZ
 #######################################################################
 
-
+def report_ZZ():
+    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
+         matrix_multiply_ZZ, det_ZZ, det_QQ]
+    title = 'Dense benchmarks over ZZ'
+    report(F, title)
 
 # Integer Nullspace
 
 def nullspace_ZZ(n=300, min=0, max=10, system='sage'):
     """
+    Nullspace over ZZ:
     Given a n+1 x n (with n=300) matrix over ZZ with random entries
     between min=0 and max=10, compute the nullspace.
     """
     if system == 'sage':
-        A = random_matrix(ZZ, n, n+1, x=min, y=max+1).change_ring(QQ)
+        A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(QQ)
         t = cputime()
         v = A.kernel()
         return cputime(t)
     elif system == 'magma':
         code = """
 n := %s;
-A := RMatrixSpace(RationalField(), n, n+1)![Random(%s,%s) : i in [1..n*(n+1)]];
+A := RMatrixSpace(RationalField(), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
 t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,min,max)
-        print code
+        if verbose: print code
         magma.eval(code)
-        return magma.eval('s')
+        return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
 
 
-# Characteristic Polynomial over ZZ
-
 def charpoly_ZZ(n=100, min=0, max=9, system='sage'):
     """
+    Characteristic polynomial over ZZ:
     Given a n x n (with n=100) matrix over ZZ with random entries
     between min=0 and max=9, compute the charpoly.
     """
@@ -53,46 +86,97 @@ t := Cputime();
 K := CharacteristicPolynomial(A);
 s := Cputime(t);
 """%(n,min,max)
-        print code
-        magma.eval(code)
-        return magma.eval('s')
-    else:
-        raise ValueError, 'unknown system "%s"'%system
-
-
-
-
-# Smith Form
-
-def smithform_ZZ(n=100, min=0, max=9, system='sage'):
-    """
-    Given a n x n (with n=100) matrix over ZZ with random entries
-    between min=0 and max=9, compute the charpoly.
-    """
-    if system == 'sage':
-        A = random_matrix(ZZ, n, n, x=min, y=max+1)
-        t = cputime()
-        v = A.smith_form()
-        return cputime(t)
-    elif system == 'magma':
-        code = """
-n := %s;
-A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
-t := Cputime();
-K := SmithForm(A);
-s := Cputime(t);
-"""%(n,min,max)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
 
 
-# Matrix multiplication over ZZ
-def matrix_multiply_ZZ(n=100, min=-9, max=9, system='sage', times=1):
+
+
+def rank_ZZ(n=500, min=0, max=9, system='sage'):
     """
-    Given an n x n (with n=100) matrix A over ZZ with random entries
+    Rank over ZZ:
+    Given a n x (n+10) (with n=500) matrix over ZZ with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n+10, x=min, y=max+1)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := RMatrixSpace(IntegerRing(), n, n+10)![Random(%s,%s) : i in [1..n*(n+10)]];
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+def rank2_ZZ(n=500, min=0, max=9, system='sage'):
+    """
+    Rank over ZZ:
+    Given a (n + 10) x n (with n=500) matrix over ZZ with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n+10, n, x=min, y=max+1)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := RMatrixSpace(IntegerRing(), n+10, n)![Random(%s,%s) : i in [1..n*(n+10)]];
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+# Smith Form
+
+def smithform_ZZ(n=128, min=0, max=9, system='sage'):
+    """
+    Smith Form over ZZ:
+    Given a n x n (with n=128) matrix over ZZ with random entries
+    between min=0 and max=9, compute the Smith normal form.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        t = cputime()
+        v = A.elementary_divisors()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+t := Cputime();
+K := ElementaryDivisors(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+def matrix_multiply_ZZ(n=200, min=-9, max=9, system='sage', times=1):
+    """
+    Matrix multiplication over ZZ
+    Given an n x n (with n=200) matrix A over ZZ with random entries
     between min=-9 and max=9, inclusive, compute A * (A+1).
     """
     if system == 'sage':
@@ -113,13 +197,64 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,min,max,times)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
         raise ValueError, 'unknown system "%s"'%system
 
 
+def det_ZZ(n=400, min=1, max=100, system='sage'):
+    """
+    Dense integer determinant over ZZ.
+    Given an n x n (with n=400) matrix A over ZZ with random entries
+    between min=1 and max=100, inclusive, compute det(A).
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        t = cputime()
+        d = A.determinant()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+t := Cputime();
+d := Determinant(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+def det_QQ(n=300, num_bound=10, den_bound=10, system='sage'):
+    """
+    Dense rational determinant over QQ.
+    Given an n x n (with n=300) matrix A over QQ with random entries
+    with numerator and denominator between min=-10 and 10,
+    inclusive, compute det(A).
+    """
+    if system == 'sage':
+        A = random_matrix(QQ, n, n, num_bound=num_bound, den_bound=den_bound)
+        t = cputime()
+        d = A.determinant()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(RationalField(), n)![Random(%s,%s)/Random(1,%s) : i in [1..n^2]];
+t := Cputime();
+d := Determinant(A);
+s := Cputime(t);
+"""%(n,-num_bound, num_bound, den_bound)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
 
 #######################################################################
 # Dense Benchmarks over GF(p), for small p.
@@ -145,7 +280,7 @@ t := Cputime();
 K := Kernel(A);
 s := Cputime(t);
 """%(n,p)
-        print code
+        if verbose: print code
         magma.eval(code)
         return magma.eval('s')
     else:
@@ -172,7 +307,7 @@ t := Cputime();
 K := CharacteristicPolynomial(A);
 s := Cputime(t);
 """%(n,min,max)
-        print code
+        if verbose: print code
         magma.eval(code)
         return magma.eval('s')
     else:
@@ -204,7 +339,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n,p,times)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -243,7 +378,7 @@ t := Cputime();
 K := EchelonForm(A);
 s := Cputime(t);
 """%(n,min,max)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -269,7 +404,7 @@ t := Cputime();
 K := A^(-1);
 s := Cputime(t);
 """%(n,min,max)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
     else:
@@ -302,7 +437,7 @@ for z in [1..%s] do
 end for;
 s := Cputime(t);
 """%(n, A.name(), times)
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))/times
     else:
@@ -324,7 +459,7 @@ d := Determinant(h);
 s := Cputime(tinit);
 delete h;
 """%n
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
 
@@ -343,7 +478,7 @@ d := h^(-1);
 s := Cputime(tinit);
 delete h;
 """%n
-        print code
+        if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
 

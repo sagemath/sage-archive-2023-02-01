@@ -1,7 +1,7 @@
-r"""
+r"""nodoctest
 Interface to PHC.
 
-WARNING -- currently totally broken!!
+WARNING -- currently totally broken!! -- do not use.
 
 PHC computes numerical information about systems of polynomials over
 the complex numbers.

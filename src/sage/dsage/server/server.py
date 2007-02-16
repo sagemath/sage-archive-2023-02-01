@@ -24,6 +24,7 @@ from twisted.python import log
 
 from sage.dsage.misc.hostinfo import HostInfo
 import sage.dsage.server.worker_tracker as worker_tracker
+import sage.dsage.server.client_tracker as client_tracker
 from sage.dsage.server.hostinfo_tracker import hostinfo_list
 from sage.dsage.errors.exceptions import BadTypeError
 
@@ -148,7 +149,7 @@ class DSageServer(pb.Root):
 
         try:
             if self.log_level > 3:
-                log.msg('[DSage, submitJob] Trying to unpickle job.')
+                log.msg('[DSage, submitJob] Trying to unpickle job')
             job = self.unpickle(pickled_job)
         except:
             return False
@@ -177,7 +178,7 @@ class DSageServer(pb.Root):
 
         return self.jobdb.getActiveJobs()
 
-    def getActiveClientsList(self):
+    def getActiveClientList(self):
         r"""
         Returns a list of active clients.
 
@@ -282,7 +283,7 @@ class DSageServer(pb.Root):
 
         return jobID
 
-    def getWorkersList(self):
+    def getWorkerList(self):
         r"""
         Returns a list of workers as a 3 tuple.
 
@@ -293,6 +294,14 @@ class DSageServer(pb.Root):
         """
 
         return worker_tracker.worker_list
+
+    def getClientList(self):
+        r"""
+        Returns a list of clients.
+
+        """
+
+        return client_tracker.client_list
 
     def getClusterSpeed(self):
         r"""

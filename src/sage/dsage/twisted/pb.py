@@ -43,13 +43,14 @@ class WorkerPBServerFactory(pb.PBServerFactory):
         tuple[2] - the worker port
 
         """
-        # self.clients.append((broker.transport.protocol,
-        #                      broker.transport.getPeer().host,
-        #                      broker.transport.getPeer().port))
 
         worker_tracker.add((broker,
                             broker.transport.getPeer().host,
                             broker.transport.getPeer().port))
+
+    def clientConnectionLost(self, connector, reason, reconnecting=0):
+        print 'Connection lost!'
+
 
 
 class ClientPBClientFactory(pb.PBClientFactory):
@@ -128,8 +129,11 @@ class UserPerspective(DefaultPerspective):
 
     """
 
-    def __init__(self, DSageServer):
+    def __init__(self, DSageServer, avatarID):
         self.DSageServer = DSageServer
+        self.avatarID = avatarID
+
+        log.msg('%s connected' % self.avatarID)
 
     def perspective_getJob(self):
         return self.DSageServer.getJob()
@@ -201,27 +205,21 @@ class UserPerspective(DefaultPerspective):
     def perspective_getClusterSpeed(self):
         return self.DSageServer.getClusterSpeed()
 
+    def perspective_getWorkerList(self):
+        return [x[1:] for x in self.DSageServer.getWorkerList()]
+
+    def perspective_getClientList(self):
+        return [avatar[0].avatarID for avatar in
+                self.DSageServer.getClientList()]
+
 class AdminPerspective(UserPerspective):
     r"""
     Defines the perspective of the admin.
 
     """
 
-    def __init__(self, DSageServer):
-        UserPerspective.__init__(self, DSageServer)
-        log.msg('[Realm]' + " admin connected")
-
-    def perspective_getClientList(self):
-        return client_tracker.client_list
-
-    def perspective_getWorkerList(self):
-        r"""
-        Returns a list of 2-tuples of connected workers.
-
-        """
-
-        return [x[1:] for x in self.DSageServer.getWorkersList()]
-
+    def __init__(self, DSageServer, avatarID):
+        UserPerspective.__init__(self, DSageServer, avatarID)
 
 class Realm(object):
     implements(portal.IRealm)
@@ -229,14 +227,14 @@ class Realm(object):
     def __init__(self, DSageServer):
         self.DSageServer = DSageServer
 
-    def requestAvatar(self, avatarId, mind, *interfaces):
+    def requestAvatar(self, avatarID, mind, *interfaces):
         if not pb.IPerspective in interfaces:
             raise NotImplementedError, "No supported avatar interface."
         else:
-            if avatarId == 'admin':
+            if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer)
             else:
-                avatar = UserPerspective(self.DSageServer)
+                avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)

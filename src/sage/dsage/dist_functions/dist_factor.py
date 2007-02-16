@@ -1,10 +1,9 @@
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
-from sage.dsage.dist_functions.dist_function import BlockingDistributedFunction
 
 from sage.all import *
 
-class DistributedFactor(BlockingDistributedFunction):
+class DistributedFactor(DistributedFunction):
     r"""
     DistributedFactor uses ECM and QSIEVE to find factors of numbers.
 
@@ -32,7 +31,7 @@ class DistributedFactor(BlockingDistributedFunction):
 
         """
 
-        BlockingDistributedFunction.__init__(self, DSage)
+        DistributedFunction.__init__(self, DSage)
         self.n = n
         self.prime_factors = []
         self.cur_B1 = 2000

@@ -337,9 +337,6 @@ class DSage(object):
         if self.remoteobj == None:
             raise NotConnectedException
 
-    def checkResult(self, jobs):
-        """Takes a list of jobs and checks the result."""
-
 class BlockingDSage(DSage):
     r"""This is the blocking version of DSage
     """
@@ -445,6 +442,37 @@ class BlockingDSage(DSage):
         wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
+
+    def cluster_speed(self):
+        r"""
+        Returns the speed of the cluster.
+
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getClusterSpeed')
+
+    def list_workers(self):
+        r"""Returns a list of workers connected to the server.
+
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getWorkerList')
+
+    def list_clients(self):
+        r"""
+        Returns a list of clients connected to the server.
+        """
+
+        self.check_connected()
+
+        return blockingCallFromThread(self.remoteobj.callRemote,
+                                      'getClientList')
 
 class JobWrapper(object):
     r"""

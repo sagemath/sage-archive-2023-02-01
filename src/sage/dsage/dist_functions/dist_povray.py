@@ -2,9 +2,8 @@ import os
 
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
-from sage.dsage.dist_functions.dist_function import BlockingDistributedFunction
 
-class DistributedPOVRay(BlockingDistributedFunction):
+class DistributedPOVRay(DistributedFunction):
     r"""
     DistributedPOVRay distributes rendering of a .pov file.
 
@@ -27,7 +26,7 @@ class DistributedPOVRay(BlockingDistributedFunction):
     """
 
     def __init__(self, DSage, name, files, splits, **kwargs):
-        BlockingDistributedFunction.__init__(self, DSage)
+        DistributedFunction.__init__(self, DSage)
         self.name = name
         self.files = files
         for f in files:

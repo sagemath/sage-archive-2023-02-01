@@ -1,5 +1,3 @@
-from dist_function import DistributedFunction
-from dist_function import BlockingDistributedFunction
-from dist_function import BlockingDistributedTestFunction
+from dist_function import DistributedFunction, DistributedFunctionTest
 from dist_factor import DistributedFactor
 from dist_povray import DistributedPOVRay

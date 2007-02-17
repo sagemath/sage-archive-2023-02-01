@@ -21,9 +21,9 @@ import pdb
 
 # There will only ever be one instance of this class
 class SymbolicExpressionRing_class(CommutativeRing):
-    '''
+    """
     A Ring of formal expressions.
-    '''
+    """
     def __init__(self):
         self._default_precision = 53 # default precision bits
         ParentWithBase.__init__(self, RR)
@@ -43,13 +43,14 @@ class SymbolicExpressionRing_class(CommutativeRing):
         elif isinstance(x, (Integer, int, Rational)):
             return Constant_object(x)
         else:
-            return Symbolic_object(x)
+            # we really want to raise a type error, here
+            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
 
     def _repr_(self):
-        return  "Ring of Symbolic Expressions"
+        return  'Ring of Symbolic Expressions'
 
     def _latex_(self):
-        return "SymbolicExpressionRing"
+        return 'SymbolicExpressionRing'
 
     def characteristic(self):
         return Integer(0)
@@ -392,7 +393,7 @@ class PrimitiveFunction(SymbolicExpression):
             return self(Constant_object(x))
 
         else:
-            return self(Symbolic_object(x))
+            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
 
 class CallableFunctionRing_class(CommutativeRing):
     def __init__(self):
@@ -422,8 +423,10 @@ class CallableFunction(RingElement):
             self._expr = expr
 
 
+    # TODO: should len(args) == len(vars)?
     def __call__(self, *args):
         vars = self._varlist
+
         dct = {}
         for i in range(len(args)):
             dct[vars[i]] = args[i]
@@ -574,6 +577,8 @@ class CallableFunction(RingElement):
             (x, y, t, w)
             sage: g._unify_varlists(f)
             (x, y, t, w)
+            sage: f + g
+            (x, y, t, w) |--> x + y + w + t
 
         AUTHORS:
             -- Bobby Moretti, thanks to William Stein for the rules
@@ -606,11 +611,11 @@ class CallableFunction(RingElement):
         temp = []
         # Rule #3, plus the rest of Rule #4
         for j in range(i, len(a)):
-            if not a[j] in new_list:
+            if not a[j] in temp:
                 temp.append(a[j])
 
         for j in range(i, len(b)):
-            if not b[j] in new_list:
+            if not b[j] in temp:
                 temp.append(b[j])
 
         temp.sort()
@@ -694,7 +699,7 @@ class Symbolic_object(SymbolicExpression):
 class SymbolicPolynomial(Symbolic_object):
     "An element of a polynomial ring as a formal symbolic expression."
 
-    # for now we do nothing except pass the info on to the supercontructor. It's
+    # for now we do nothing except pass the info on to the superconstructor. It's
     # not clear to me why we need anything else in this class -Bobby
     def __init__(self, p):
        Symbolic_object.__init__(self, p)

@@ -139,7 +139,7 @@ class DSage(object):
 
     def _catchFailure(self, failure):
         if failure.check(error.ConnectionRefusedError):
-            print 'Remote server refused our connection. \r'
+            print 'Remote server refused the connection.'
             return
         print "Error: ", failure.getErrorMessage()
         print "Traceback: ", failure.printTraceback()
@@ -256,7 +256,6 @@ class DSage(object):
         if not isinstance(job, Job):
             raise TypeError
         wrapped_job = JobWrapper(self.remoteobj, job)
-        # self.jobs.append(wrapped_job)
         return wrapped_job
 
     def _gotJobID(self, id, job):
@@ -404,7 +403,7 @@ class BlockingDSage(DSage):
                             self._connected).addErrback(
                             self._catchFailure)
 
-    def eval(self, cmd, globals_=None, job_name=None):
+    def eval(self, cmd, globals_=None, job_name=None, async=False):
         r"""
         eval evaluates a command
 
@@ -412,6 +411,7 @@ class BlockingDSage(DSage):
         cmd -- the sage command to be evaluated (str)
         globals -- a dict (see help for python's eval method)
         job_name -- an alphanumeric job name
+        async -- whether to use the async implementation of the method
 
         """
 
@@ -428,19 +428,29 @@ class BlockingDSage(DSage):
             for k, v in globals_.iteritems():
                 job.attach(k, v)
 
-        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 
-    def send_job(self, job):
+    def send_job(self, job, async=False):
         r"""
         Sends a Job object to the server.
+
+        Parameters:
+        job -- a Job object to send to the remote server
+        async -- if True, use async method of doing remote task
 
         """
 
         if not isinstance(job, Job):
             raise TypeError
-        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 
@@ -498,8 +508,8 @@ class JobWrapper(object):
         d.addErrback(self._catchFailure)
 
         # hack to try and fetch a result after submitting the job
-        self.syncJob_task = task.LoopingCall(self.syncJob)
-        self.syncJob_task.start(2.0, now=True)
+        # self.syncJob_task = task.LoopingCall(self.syncJob)
+        # self.syncJob_task.start(2.0, now=True)
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
@@ -542,6 +552,7 @@ class JobWrapper(object):
         return filename
 
     def _catchFailure(self, failure):
+        print failure
         if failure.check(pb.DeadReferenceError, error.ConnectionLost):
             print 'Disconnected from server.'
         else:
@@ -554,16 +565,19 @@ class JobWrapper(object):
         self._job = self.unpickle(job)
         self._update_job(self._job)
 
-    def _gotID(self, id):
-        self._job.id = id
+    def _gotID(self, id_):
+        self._job.id = id_
+        self.id = id_
         pickled_job = self._job.pickle()
         d = self.remoteobj.callRemote('submitJob', pickled_job)
         d.addErrback(self._catchFailure)
 
     def getJob(self):
-        if self.remoteobj == None:
+        if self.remoteobj is None:
             raise NotConnectedException
-        d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        if self.id is None:
+            return
+        d = self.remoteobj.callRemote('getJobByID', self.id)
         d.addCallback(self._gotJob)
         d.addErrback(self._catchFailure)
         return d
@@ -653,6 +667,7 @@ class blockingJobWrapper(JobWrapper):
 
         # This is kind of stupid, why not just set the job ID when
         # submitting the job?
+
         jobID = blockingCallFromThread(self.remoteobj.callRemote,
                                    'getNextJobID')
 
@@ -682,12 +697,13 @@ class blockingJobWrapper(JobWrapper):
         self._update_job(self.unpickle(job))
 
     def async_getJob(self):
-        if self.remoteobj == None:
-            raise NotConnectedException
-        d = self.remoteobj.callRemote('getJobByID', self._job.id)
-        d.addCallback(self._gotJob)
-        d.addErrback(self._catchFailure)
-        return d
+        # if self.remoteobj == None:
+        #     raise NotConnectedException
+        # d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        # d.addCallback(self._gotJob)
+        # d.addErrback(self._catchFailure)
+        return JobWrapper.getJob(self)
+        # return d
 
     def kill(self):
         r"""

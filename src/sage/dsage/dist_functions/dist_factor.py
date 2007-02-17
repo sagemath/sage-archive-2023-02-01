@@ -1,5 +1,6 @@
 from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
+from sage.dsage.interface.dsage_interface import JobWrapper
 
 from sage.all import *
 
@@ -108,12 +109,10 @@ DSAGE_RESULT = 'result.sobj'
         """
 
         if prod(self.prime_factors) == self.n:
-            print 'Found all prime factors. \r'
             self.done = True
             return
         if self.verbosity > 2:
-            print "process_result()", job, job.output
-            print job.result
+            print "process_result(): ", job, job.output, job.result
         result = job.result
         if self.verbosity > 1:
             print "factors:", self.prime_factors, self.composite_factors
@@ -175,17 +174,21 @@ DSAGE_RESULT = 'result.sobj'
             self.result = self.prime_factors
             self.done = True
         else:
-            qsieve_count = 0
+            self.qsieve_count = 0
             for wrapped_job in self.waiting_jobs:
                 if wrapped_job.algorithm == 'qsieve':
                     if ZZ(wrapped_job.n) not in self.composite_factors:
                         if self.verbosity > 2:
                             print "killing qsieve(%s)" % wrapped_job.n
-                        wrapped_job.async_kill()
+                        if isinstance(wrapped_job, JobWrapper):
+                            wrapped_job.kill()
+                        else:
+                            wrapped_job.async_kill()
                         self.waiting_jobs.remove(wrapped_job)
                     else:
-                        qsieve_count += 1
-
-            if qsieve_count == 0:
-                self.submit_job(self.qsieve_job(), self.name)
-            self.submit_job(self.ecm_job(), self.name)
+                        self.qsieve_count += 1
+            # Need to use async versions of submitting the jobs because
+            # this method is called from within the reactor thread
+            if self.qsieve_count == 0:
+                self.submit_job(self.qsieve_job(), self.name, async=True)
+            self.submit_job(self.ecm_job(), self.name, async=True)

@@ -24,6 +24,7 @@ import zlib
 from twisted.internet import reactor, task
 
 from sage.dsage.database.job import Job
+from sage.dsage.interface.dsage_interface import JobWrapper, blockingJobWrapper
 from sage.dsage.twisted.misc import blockingCallFromThread
 
 class DistributedFunction(object):
@@ -102,27 +103,40 @@ class DistributedFunction(object):
         self.checker_task = task.LoopingCall(self.check_results)
         self.checker_task.start(2.0, now=True)
 
-    def submit_job(self, job, job_name='job'):
-        if isinstance(job, Job):
-            self.waiting_jobs.append(self.DSage.send_job(job))
+    def submit_job(self, job, job_name='job', async=False):
+        if async:
+            if isinstance(job, Job):
+                self.waiting_jobs.append(self.DSage.send_job(job,
+                                                             async=True))
+            else:
+                self.waiting_jobs.append(self.DSage.eval(job,
+                                                         job_name=job_name,
+                                                         async=True))
         else:
-            self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name))
+            if isinstance(job, Job):
+                self.waiting_jobs.append(self.DSage.send_job(job))
+            else:
+                self.waiting_jobs.append(self.DSage.eval(job,
+                                                         job_name=job_name))
 
-    def submit_jobs(self, job_name='job'):
+    def submit_jobs(self, job_name='job', async=False):
         for job in self.outstanding_jobs:
-           self.submit_job(job, job_name)
+           self.submit_job(job, job_name, async)
         self.outstanding_jobs = []
 
     def start(self):
         self.start_time = datetime.datetime.now()
-        self.submit_jobs(self.name)
+        reactor.callFromThread(self.submit_jobs, self.name, async=True)
         self.checker_task = blockingCallFromThread(task.LoopingCall,
                                                    self.check_results)
         reactor.callFromThread(self.checker_task.start,
                                1.0, now=True)
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
-            wrapped_job.async_getJob()
+            if isinstance(wrapped_job, JobWrapper):
+                wrapped_job.getJob()
+            else:
+                wrapped_job.async_getJob()
             if wrapped_job.status == 'completed':
                 self.waiting_jobs.remove(wrapped_job)
                 self.process_result(wrapped_job)
@@ -130,9 +144,13 @@ class DistributedFunction(object):
         if self.done:
             # kill the jobs in the waiting queue
             for wrapped_job in self.waiting_jobs:
-                wrapped_job.async_kill()
+                if isinstance(wrapped_job, JobWrapper):
+                    wrapped_job.kill()
+                else:
+                    wrapped_job.async_kill()
+            self.waiting_jobs = []
             reactor.callFromThread(self.checker_task.stop)
-            return
+
         self.done = len(self.waiting_jobs) == 0
 
 class DistributedFunctionTest(DistributedFunction):

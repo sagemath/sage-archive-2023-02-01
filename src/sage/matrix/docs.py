@@ -113,8 +113,8 @@ x     Matrix_rational_dense
 x     Matrix_modn_dense
       Matrix_RR_dense
       Matrix_CC_dense
-      Matrix_RDF_dense
-      Matrix_CDF_dense
+x     Matrix_real_double_dense
+x     Matrix_complex_double_dense
 \end{verbatim}
 
 The corresponding files in the sage/matrix library code

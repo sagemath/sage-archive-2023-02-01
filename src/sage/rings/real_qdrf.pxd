@@ -20,6 +20,7 @@ cdef extern from "qd/qd_real.h":
         double *x
         qd _pi
         qd _log2
+        qd _nan
         # Methods
         void (* write)(char *s, int prec, int show, int upper)
 
@@ -85,6 +86,9 @@ cdef extern from "qd/c_qd.h":
 
     # comparison
     void c_qd_comp(double *a,double *b, int *result)
+
+    # random number generation
+    void c_qd_rand(double *a)
 
     # SAGE-specific
     void delete "delete "(void *o)

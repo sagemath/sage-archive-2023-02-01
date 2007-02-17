@@ -498,7 +498,8 @@ ext_modules = [ \
               ), \
 
     Extension('sage.graphs.graph_fast',
-              ['sage/graphs/graph_fast.pyx']
+              ['sage/graphs/graph_fast.pyx'],
+              libraries = ['gmp']
               ), \
 
     ]

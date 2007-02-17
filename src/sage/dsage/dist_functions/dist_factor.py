@@ -177,7 +177,7 @@ DSAGE_RESULT = 'result.sobj'
         else:
             qsieve_count = 0
             for wrapped_job in self.waiting_jobs:
-                if wrapped_job.algorithm =='qsieve':
+                if wrapped_job.algorithm == 'qsieve':
                     if ZZ(wrapped_job.n) not in self.composite_factors:
                         if self.verbosity > 2:
                             print "killing qsieve(%s)" % wrapped_job.n

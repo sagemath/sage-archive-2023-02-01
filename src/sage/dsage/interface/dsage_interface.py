@@ -500,9 +500,6 @@ class JobWrapper(object):
         # hack to try and fetch a result after submitting the job
         self.syncJob_task = task.LoopingCall(self.syncJob)
         self.syncJob_task.start(2.0, now=True)
-        # reactor.callLater(2.0, self.syncJob)
-        # reactor.callLater(5.0, self.syncJob)
-        # reactor.callLater(10.0, self.syncJob)
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
@@ -519,10 +516,14 @@ class JobWrapper(object):
         return d
 
     def _update_job(self, job):
+        # This sets all the attributes of our JobWrapper object to match the
+        # attributes of a Job object
         for k, v in Job.__dict__.iteritems():
             if isinstance(v, property):
                 setattr(self, k, getattr(job, k))
-                #setattr(self, k ,self._job.jdic[k])
+
+        for k, v in job.__dict__.iteritems():
+            setattr(self, k, getattr(job, k))
 
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))

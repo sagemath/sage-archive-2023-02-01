@@ -115,6 +115,7 @@ class DistributedSage(object):
 
         os.system(cmd)
 
+    # This is completely outdated now, only kept for historical reference
     # def console(self):
     #     r"""
     #     This is the IPython console that allows you submit and view jobs.

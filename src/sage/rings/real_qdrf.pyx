@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Field of quad double numbers
 """
 include '../ext/cdefs.pxi'

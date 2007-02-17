@@ -119,7 +119,7 @@ cdef class RealQuadDoubleField_class(Field):
         return "QuadDoubleField"
 
     def __hash__(self):
-        return -8953654399753187499 #==hash(self.name())
+        return 219746133
 
     def pi(self):
         """

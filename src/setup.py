@@ -341,7 +341,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    #qd,
+    qd,
 
     complex_number,
 

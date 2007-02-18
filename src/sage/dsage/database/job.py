@@ -20,6 +20,7 @@ import datetime
 import cPickle
 import zlib
 import bz2
+import os
 
 from twisted.spread import pb
 
@@ -272,6 +273,9 @@ class Job(Persistent):
         except:
             print 'Unable to read file.'
             return
+
+        # Strip out any hard coded path in the file name
+        file_name = os.path.split(file_name)[1]
         self.jdict['data'].append((file_name, f, 'file'))
 
     def pickle(self):

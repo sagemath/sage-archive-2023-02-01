@@ -37,31 +37,6 @@ from sage.dsage.twisted.pb import ClientPBClientFactory
 from sage.dsage.twisted.misc import blockingCallFromThread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
-# This is a randomly generated string we will use to as the signature to
-# sign
-DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
-                range(500)]])
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-# Begin reading configuration
-try:
-    conf_file = os.path.join(DSAGE_DIR, 'client.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-
-    LOG_FILE = config.get('log', 'log_file')
-    LOG_LEVEL = config.getint('log', 'log_level')
-    SSL = config.getint('ssl', 'ssl')
-    USERNAME = config.get('auth', 'username')
-    PRIVKEY_FILE = os.path.expanduser(config.get('auth', 'privkey_file'))
-    PUBKEY_FILE = os.path.expanduser(config.get('auth', 'pubkey_file'))
-    SERVER = config.get('general', 'server')
-    PORT = config.getint('general', 'port')
-except:
-    print "Error reading '%s', please run dsage.setup() or fix manually"%conf_file
-    sys.exit(-1)
-# End reading configuration
-
 class DSageThread(threading.Thread):
     def run(self):
         reactor.run(installSignalHandlers=False)
@@ -77,6 +52,8 @@ class DSage(object):
         # We will read the values in from the conf file first and let the
         # user override the values stored in the conf file by keyword
         # parameters
+
+        self._getconf()
 
         if server is None:
             self.server = SERVER
@@ -95,8 +72,15 @@ class DSage(object):
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
-        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
-                                                 passphrase=passphrase)
+        # try getting the private key object without a passphrase first
+        try:
+            self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file)
+        except keys.BadKeyError:
+            passphrase = self._getpassphrase()
+            self.priv_key = keys.getPrivateKeyObject(
+                            filename=self.privkey_file,
+                            passphrase=passphrase)
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
@@ -131,6 +115,30 @@ class DSage(object):
         d['remoteobj'] = None
         return d
 
+    def _getconf(self):
+        # randomly generated string we will use to sign
+        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
+                        range(500)]])
+        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+        # Begin reading configuration
+        try:
+            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
+            config = ConfigParser.ConfigParser()
+            config.read(conf_file)
+
+            self.LOG_FILE = config.get('log', 'log_file')
+            self.LOG_LEVEL = config.getint('log', 'log_level')
+            self.SSL = config.getint('ssl', 'ssl')
+            self.USERNAME = config.get('auth', 'username')
+            self.PRIVKEY_FILE = os.path.expanduser(config.get('auth',
+                                                              'privkey_file'))
+            self.PUBKEY_FILE = os.path.expanduser(config.get('auth',
+                                                             'pubkey_file'))
+            self.SERVER = config.get('general', 'server')
+            self.PORT = config.getint('general', 'port')
+        except Exception, msg:
+            raise
+
     def _getpassphrase(self):
         import getpass
         passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
@@ -139,13 +147,13 @@ class DSage(object):
 
     def _catchFailure(self, failure):
         if failure.check(error.ConnectionRefusedError):
-            print 'Remote server refused our connection. \r'
+            print 'Remote server refused the connection.'
             return
         print "Error: ", failure.getErrorMessage()
         print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
-        if LOG_LEVEL > 0:
+        if self.LOG_LEVEL > 0:
             print 'Connected to remote server.\r'
         self.remoteobj = remoteobj
         self.remoteobj.notifyOnDisconnect(self._disconnected)
@@ -163,7 +171,7 @@ class DSage(object):
 
     def _killedJob(self, jobID):
         if jobID:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.'
 
     def restore(self, remoteobj):
@@ -182,7 +190,7 @@ class DSage(object):
         # factory = pb.PBClientFactory()
         factory = ClientPBClientFactory()
 
-        if SSL == 1:
+        if self.SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.server,
@@ -256,7 +264,6 @@ class DSage(object):
         if not isinstance(job, Job):
             raise TypeError
         wrapped_job = JobWrapper(self.remoteobj, job)
-        # self.jobs.append(wrapped_job)
         return wrapped_job
 
     def _gotJobID(self, id, job):
@@ -336,6 +343,8 @@ class DSage(object):
     def check_connected(self):
         if self.remoteobj == None:
             raise NotConnectedException
+        if self.remoteobj.broker.disconnected:
+            raise NotConnectedException
 
 class BlockingDSage(DSage):
     r"""This is the blocking version of DSage
@@ -343,30 +352,39 @@ class BlockingDSage(DSage):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
-
+        self._getconf()
         if server is None:
-            self.server = SERVER
+            self.server = self.SERVER
         else:
             self.server = server
 
-        self.port = PORT
-        self.username = USERNAME
-        self.pubkey_file = PUBKEY_FILE
-        self.privkey_file = PRIVKEY_FILE
+        self.port = self.PORT
+        self.username = self.USERNAME
+        self.pubkey_file = self.PUBKEY_FILE
+        self.privkey_file = self.PRIVKEY_FILE
 
         self.remoteobj = None
         self.result = None
 
-        passphrase = self._getpassphrase()
+        # passphrase = self._getpassphrase()
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
-        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
-                                                 passphrase=passphrase)
+
+        # try getting the private key object without a passphrase first
+        try:
+            self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file)
+        except keys.BadKeyError:
+            passphrase = self._getpassphrase()
+            self.priv_key = keys.getPrivateKeyObject(
+                            filename=self.privkey_file,
+                            passphrase=passphrase)
+
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = DATA
+        self.data = self.DATA
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                 self.alg_name,
@@ -389,7 +407,7 @@ class BlockingDSage(DSage):
         # factory = pb.PBClientFactory()
         factory = ClientPBClientFactory()
 
-        if SSL == 1:
+        if self.SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             blockingCallFromThread(reactor.connectSSL,
@@ -404,7 +422,7 @@ class BlockingDSage(DSage):
                             self._connected).addErrback(
                             self._catchFailure)
 
-    def eval(self, cmd, globals_=None, job_name=None):
+    def eval(self, cmd, globals_=None, job_name=None, async=False):
         r"""
         eval evaluates a command
 
@@ -412,6 +430,7 @@ class BlockingDSage(DSage):
         cmd -- the sage command to be evaluated (str)
         globals -- a dict (see help for python's eval method)
         job_name -- an alphanumeric job name
+        async -- whether to use the async implementation of the method
 
         """
 
@@ -428,19 +447,29 @@ class BlockingDSage(DSage):
             for k, v in globals_.iteritems():
                 job.attach(k, v)
 
-        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 
-    def send_job(self, job):
+    def send_job(self, job, async=False):
         r"""
         Sends a Job object to the server.
+
+        Parameters:
+        job -- a Job object to send to the remote server
+        async -- if True, use async method of doing remote task
 
         """
 
         if not isinstance(job, Job):
             raise TypeError
-        wrapped_job = blockingJobWrapper(self.remoteobj, job)
+        if async:
+            wrapped_job = JobWrapper(self.remoteobj, job)
+        else:
+            wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
 
@@ -498,11 +527,8 @@ class JobWrapper(object):
         d.addErrback(self._catchFailure)
 
         # hack to try and fetch a result after submitting the job
-        self.syncJob_task = task.LoopingCall(self.syncJob)
-        self.syncJob_task.start(2.0, now=True)
-        # reactor.callLater(2.0, self.syncJob)
-        # reactor.callLater(5.0, self.syncJob)
-        # reactor.callLater(10.0, self.syncJob)
+        # self.syncJob_task = task.LoopingCall(self.syncJob)
+        # self.syncJob_task.start(2.0, now=True)
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
@@ -519,10 +545,14 @@ class JobWrapper(object):
         return d
 
     def _update_job(self, job):
+        # This sets all the attributes of our JobWrapper object to match the
+        # attributes of a Job object
         for k, v in Job.__dict__.iteritems():
             if isinstance(v, property):
                 setattr(self, k, getattr(job, k))
-                #setattr(self, k ,self._job.jdic[k])
+
+        for k, v in job.__dict__.iteritems():
+            setattr(self, k, getattr(job, k))
 
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
@@ -553,16 +583,19 @@ class JobWrapper(object):
         self._job = self.unpickle(job)
         self._update_job(self._job)
 
-    def _gotID(self, id):
-        self._job.id = id
+    def _gotID(self, id_):
+        self._job.id = id_
+        self.id = id_
         pickled_job = self._job.pickle()
         d = self.remoteobj.callRemote('submitJob', pickled_job)
         d.addErrback(self._catchFailure)
 
     def getJob(self):
-        if self.remoteobj == None:
+        if self.remoteobj is None:
             raise NotConnectedException
-        d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        if self.id is None:
+            return
+        d = self.remoteobj.callRemote('getJobByID', self.id)
         d.addCallback(self._gotJob)
         d.addErrback(self._catchFailure)
         return d
@@ -593,11 +626,11 @@ class JobWrapper(object):
 
     def syncJob(self):
         if self.remoteobj == None:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print 'self.remoteobj is None'
             return
         if self.status == 'completed':
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print 'Stopping syncJob'
             if self.syncJob_task:
                 if self.syncJob_task.running:
@@ -630,14 +663,14 @@ class JobWrapper(object):
 
         """
 
-        d = self.remoteobj.callRemote('killJob', self._job.id)
+        d = self.remoteobj.callRemote('killJob', self.id)
         d.addCallback(self._killedJob)
         d.addErrback(self._catchFailure)
         return d
 
     def _killedJob(self, jobID):
         if jobID:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.\r'
 
 class blockingJobWrapper(JobWrapper):
@@ -652,6 +685,7 @@ class blockingJobWrapper(JobWrapper):
 
         # This is kind of stupid, why not just set the job ID when
         # submitting the job?
+
         jobID = blockingCallFromThread(self.remoteobj.callRemote,
                                    'getNextJobID')
 
@@ -681,12 +715,13 @@ class blockingJobWrapper(JobWrapper):
         self._update_job(self.unpickle(job))
 
     def async_getJob(self):
-        if self.remoteobj == None:
-            raise NotConnectedException
-        d = self.remoteobj.callRemote('getJobByID', self._job.id)
-        d.addCallback(self._gotJob)
-        d.addErrback(self._catchFailure)
-        return d
+        # if self.remoteobj == None:
+        #     raise NotConnectedException
+        # d = self.remoteobj.callRemote('getJobByID', self._job.id)
+        # d.addCallback(self._gotJob)
+        # d.addErrback(self._catchFailure)
+        return JobWrapper.getJob(self)
+        # return d
 
     def kill(self):
         r"""

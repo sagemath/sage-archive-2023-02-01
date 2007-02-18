@@ -1,9 +1,0 @@
-TODO:
-[X] Add blockingCallFromThread support to DSage interface
-[X]	Add support for passworded gpg keys (Yi)
-[ ]	Add sqlite support (Alex)
-[ ] Set worker priority
-[ ]	Remove server side unpickling all together.
-[-] Keep track of workers/clients and represent it in a meaningful way
-	[ ] Remove workers when they are disconnected.
-

@@ -44,7 +44,8 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return Constant_object(x)
         else:
             # we really want to raise a type error, here
-            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
+            #raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
+            pass
 
     def _repr_(self):
         return  'Ring of Symbolic Expressions'
@@ -296,6 +297,11 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().trigsimp())
 
     trig_simplify = simplify_trig
+
+    def simplify_rational(self):
+        return self.parent()(self._maxima_().fullratsimp())
+
+    rational_simplify = simplify_rational
 
     ###################################################################
     # expand

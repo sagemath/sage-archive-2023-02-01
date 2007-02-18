@@ -27,7 +27,9 @@ from twisted.spread import pb
 from persistent import Persistent
 
 class Job(Persistent):
-    """Defines a Job that gets distributed to clients.
+    r"""
+    Defines a Job that gets distributed to clients.
+
     """
 
     def __init__(self, id=None, name=None, file=None, parent=None,

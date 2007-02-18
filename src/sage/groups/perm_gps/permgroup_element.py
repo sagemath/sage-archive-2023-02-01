@@ -26,7 +26,7 @@ The Rubik's cube group:
     4
 
 The interested user may wish to explore the following commands:
-move = cube.random() and time word_problem([F,B,L,R,U,D], move, False).
+move = cube.random_element() and time word_problem([F,B,L,R,U,D], move, False).
 This typically takes about 5 minutes (on a 2 Ghz machine) and outputs
 a word ('solving' the cube in the position move) with about 60 terms
 or so.
@@ -85,7 +85,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         sage: G = PermutationGroup(['(1,2,3)(4,5)'])
         sage: G
         Permutation Group with generators [(1,2,3)(4,5)]
-        sage: g = G.random()
+        sage: g = G.random_element()
         sage: g in G
         True
         sage: g = G.gen(0); g

@@ -1070,8 +1070,10 @@ class PowerSeries_poly(PowerSeries):
             self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
-    def __pow__(self, right):
-        right = int(right)
+    def __pow__(self, r):
+        right = int(r)
+        if right != r:
+            raise ValueError, "exponent must be an integer"
         if right < 0:
             return (~self)**(-right)
         if right == 0:

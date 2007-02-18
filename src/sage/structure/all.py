@@ -12,7 +12,6 @@ from element import (\
     is_DedekindDomainElement,
     is_EuclideanDomainElement,
     is_FieldElement,
-    is_FiniteFieldElement,
     is_InfinityElement,
     is_IntegralDomainElement,
     is_Element,

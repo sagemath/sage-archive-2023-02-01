@@ -111,7 +111,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         nc = parent.ncols()
         p = parent.base_ring().order()
 
+        _sig_on
         self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+        _sig_off
         if not self.rows:
             raise MemoryError, "error allocating memory for sparse matrix"
 

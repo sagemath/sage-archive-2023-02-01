@@ -183,6 +183,8 @@ cdef extern from "gsl/gsl_cdf.h":
   double gsl_cdf_exponential_P ( double x,  double mu)
   double gsl_cdf_exponential_Q ( double x,  double mu)
 
+  double gsl_cdf_exppow_P(double x, double a,double b)
+
   double gsl_cdf_exponential_Pinv ( double P,  double mu)
   double gsl_cdf_exponential_Qinv ( double Q,  double mu)
 
@@ -197,6 +199,8 @@ cdef extern from "gsl/gsl_cdf.h":
 
   double gsl_cdf_beta_P ( double x,  double a,  double b)
   double gsl_cdf_beta_Q ( double x,  double a,  double b)
+
+  double gsl_cdf_beta_Pinv(double x, double a, double b)
 
   double gsl_cdf_flat_P ( double x,  double a,  double b)
   double gsl_cdf_flat_Q ( double x,  double a,  double b)

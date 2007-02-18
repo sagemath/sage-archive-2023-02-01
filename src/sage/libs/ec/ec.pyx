@@ -66,11 +66,11 @@ def ec(ainvs):
 
     EXAMPLES:
         sage: import sage.libs.ec.all as ec
-        sage: v = ec.ec([1,2,3,4,5])
+        sage.: v = ec.ec([1,2,4,5,6])
         Traceback (most recent call last):                       # 64-bit
         ...                                                      # 64-bit
         OSError: ec does not work on 64-bit platforms            # 64-bit
-        sage: print v['Modular degree'] if is_32_bit else "ec not supported on 64-bit"
+        sage.: print v['Modular degree'] if is_32_bit else "ec not supported on 64-bit"
         464          # 32-bit
         ec not supported on 64-bit                               # 64-bit
     """

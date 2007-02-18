@@ -463,7 +463,7 @@ class LaurentSeries(ring_element.RingElement):
         return LaurentSeries(self.parent(),
                              self.__u * right.__u,
                              self.__n + right.__n)
-    def __pow__(self, right):
+    def __pow__(self, r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -474,7 +474,9 @@ class LaurentSeries(ring_element.RingElement):
             sage: g^7
             x^-70 - 7*x^-59 + 7*x^-58 - 7*x^-56 + O(x^-52)
         """
-        right=int(right)
+        right=int(r)
+        if right != r:
+            raise ValueError, "exponent must be an integer"
         return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
 
 

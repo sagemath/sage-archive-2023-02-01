@@ -58,7 +58,6 @@ AUTHORS:
     -- Andrey Novoseltsev (2007-01-15: all_* functions
     -- Maximilian Kreuzer and Harald Skarke: authors of PALP
     -- Erwin Riegler: the author of nef.x
-
 """
 
 #*****************************************************************************
@@ -298,6 +297,7 @@ class LatticePolytopeClass(SageObject):
                                                                     check=False)
         non_vertices = face.points()[face.nvertices():]
         distances = self.distances()
+
         other_facets = [i for i in range(self.nfacets())
                                      if not i in face._facets]
         for p in non_vertices:
@@ -477,8 +477,9 @@ class LatticePolytopeClass(SageObject):
             return self._distances
         except AttributeError:
             if self.is_reflexive():
-                self._distances = (self._polar._vertices.transpose()
-                                                        * self.points())
+                V = self._polar._vertices.transpose()
+                P = self.points()
+                self._distances = V * P
                 for i in range(self._distances.nrows()):
                     for j in range(self._distances.ncols()):
                         self._distances[i,j] += 1

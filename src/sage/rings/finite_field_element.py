@@ -24,7 +24,7 @@ import integer_mod
 import ring
 
 def is_FiniteFieldElement(x):
-    return ring.is_FiniteField(x.parent())
+    return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """

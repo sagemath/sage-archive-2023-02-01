@@ -1660,11 +1660,11 @@ cdef class FieldElement(CommutativeRingElement):
             right = self.parent()(right)
         return self/right, 0
 
-def is_FiniteFieldElement(x):
-    """
-    Return True if x is of type FiniteFieldElement.
-    """
-    return IS_INSTANCE(x, FiniteFieldElement)
+## def is_FiniteFieldElement(x):
+##     """
+##     Return True if x is of type FiniteFieldElement.
+##     """
+##     return IS_INSTANCE(x, FiniteFieldElement)
 
 cdef class FiniteFieldElement(FieldElement):
     pass

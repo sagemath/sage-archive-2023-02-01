@@ -26,6 +26,7 @@ from twisted.python import log
 
 from ZODB import FileStorage, DB
 from BTrees import OOBTree
+from persistent import Persistent
 import transaction
 
 import sqlite3 as sqlite

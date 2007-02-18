@@ -656,7 +656,7 @@ class Graphics(SageObject):
 
     def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
-             dpi=DEFAULT_DPI, axes=True, axes_label=None, fontsize=None,
+             dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):
         """
         Save the graphics to an image file of type: PNG, PS, EPS, SVG, SOBJ,
@@ -675,6 +675,9 @@ class Graphics(SageObject):
         """
         global do_verify
         do_verify = verify
+
+        if axes is None:
+            axes = self.__show_axes
 
         from matplotlib.figure import Figure
         if filename is None:
@@ -1258,7 +1261,7 @@ class GraphicPrimitive_Text(GraphicPrimitive):
 
 class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
     """
-    Primitive class that initializes the NetworkX graph type
+    Primitive class that initializes the NetworkX graph type.
 
     INPUT:
         graph -- a NetworkX graph
@@ -1271,8 +1274,10 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 4: [-1.125     ,-0.50118505,]   }
         vertex_labels -- determines whether labels for nodes are plotted
         node_size -- node size
+        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+        matplotlib, and each entry is a list of vertices.
 
-    EXAMPLE:
+    EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
         sage: import networkx
         sage: D = networkx.dodecahedral_graph()
@@ -1281,17 +1286,44 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.append(NGP)
         sage: g.axes(False)
         sage: g.save('sage.png')
+
+        sage: import networkx
+        sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: from math import sin, cos, pi
+        sage: P = networkx.petersen_graph()
+        sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+        sage: pos_dict = {}
+        sage: for i in range(5):
+        ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: for i in range(10)[5:]:
+        ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: NGP = GraphicPrimitive_NetworkXGraph(graph=P, color_dict=d, pos=pos_dict)
+        sage: g = Graphics()
+        sage: g.append(NGP)
+        sage: g.axes(False)
+        sage: g.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300):
+    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None):
         self.__nxg = graph
+        self.__node_size = node_size
+        self.__vertex_labels = vertex_labels
+        self.__color_dict = color_dict
         if len(self.__nxg) != 0:
             import networkx as NX
-            self.__node_size = node_size
-            self.__vertex_labels = vertex_labels
             if pos is None:
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
                 self.__pos = pos
+                for v in self.__nxg.nodes():
+                    if not v in self.__pos:
+                        from random import random
+                        self.__pos[v] = [random(),random()]
 
             # adjust the plot
             # TODO: right now, the bounds are assumed to be +-1
@@ -1313,12 +1345,38 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             for v in nodelist:
                 self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
                 self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            self._xmin = xmin
+            self._xmax = xmax
+            self._ymin = ymin
+            self._ymax = ymax
+        else:
+            self.__pos = {}
+            self._xmin = 0
+            self._xmax = 1
+            self._ymin = 0
+            self._ymax = 1
 
     def _render_on_subplot(self, subplot):
         if len(self.__nxg) != 0:
             import networkx as NX
             node_size = float(self.__node_size)
-            NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            if self.__color_dict is None:
+                NX.draw_networkx_nodes(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            else:
+                for i in self.__color_dict:
+                    NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=node_size)
             NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
             if self.__vertex_labels:
                 labels = {}
@@ -2428,6 +2486,7 @@ class GraphicsArray(SageObject):
                 if not isinstance(g, Graphics):
                     raise TypeError, "every element of array must be a Graphics object"
                 self._glist.append(g)
+        self._figsize = DEFAULT_FIGSIZE
 
     def _repr_(self):
         return "Graphics Array of size %s x %s"%(self._rows, self._cols)
@@ -2445,6 +2504,11 @@ class GraphicsArray(SageObject):
     def __setitem__(self, i, g):
         i = int(i)
         self._glist[i] = g
+
+    def __set_figsize__(self, list):
+        m = int(list[0])
+        n = int(list[1])
+        self._figsize = [m,n]
 
     def __len__(self):
         return len(self._glist)
@@ -2480,19 +2544,21 @@ class GraphicsArray(SageObject):
         save the \code{graphics_array} to
             (for now) a png called 'filename'.
         """
-        self._render(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
+        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
+        self._render(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
 
     def show(self, filename=None, dpi=DEFAULT_DPI, figsize=DEFAULT_FIGSIZE,
              axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
         """
+        if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if EMBEDDED_MODE:
-            self.save(filename, dpi=dpi, figsize=figsize, axes = axes, **args)
+            self.save(filename, dpi=dpi, figsize=self._figsize, axes = axes, **args)
             return
         if filename is None:
             filename = sage.misc.misc.tmp_filename() + '.png'
-        self._render(filename, dpi=dpi, figsize=figsize, **args)
+        self._render(filename, dpi=dpi, figsize=self._figsize, **args)
         os.system('%s %s 2>/dev/null 1>/dev/null &'%(
                          sage.misc.viewer.browser(), filename))
 

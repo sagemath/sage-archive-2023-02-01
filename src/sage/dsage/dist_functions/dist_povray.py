@@ -29,9 +29,9 @@ class DistributedPOVRay(DistributedFunction):
         DistributedFunction.__init__(self, DSage)
         self.name = name
         self.files = files
-        for f in files:
+        for f in self.files:
             if f.endswith('.pov'):
-                self.pov_fname = f
+                self.pov_fname = os.path.split(f)[1]
 
         self.splits = splits
         self.width = kwargs['W']
@@ -77,8 +77,8 @@ class DistributedPOVRay(DistributedFunction):
 
         job = Job(file=job_file, name='%s_%04d.ppm' % (self.name, self.n))
 
-        for file in self.files:
-            job.attach_file(file)
+        for file_ in self.files:
+            job.attach_file(file_)
         self.n += 1
 
         self.sr = self.er + 1

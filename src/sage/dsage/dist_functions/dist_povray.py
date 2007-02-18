@@ -29,7 +29,7 @@ class DistributedPOVRay(DistributedFunction):
         DistributedFunction.__init__(self, DSage)
         self.name = name
         self.files = files
-        for f in files:
+        for f in self.files:
             if f.endswith('.pov'):
                 self.pov_fname = f
 

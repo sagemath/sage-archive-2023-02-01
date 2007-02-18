@@ -335,6 +335,8 @@ class DSage(object):
     def check_connected(self):
         if self.remoteobj == None:
             raise NotConnectedException
+        if self.remoteobj.broker.disconnected:
+            raise NotConnectedException
 
 class BlockingDSage(DSage):
     r"""This is the blocking version of DSage
@@ -552,7 +554,6 @@ class JobWrapper(object):
         return filename
 
     def _catchFailure(self, failure):
-        print failure
         if failure.check(pb.DeadReferenceError, error.ConnectionLost):
             print 'Disconnected from server.'
         else:

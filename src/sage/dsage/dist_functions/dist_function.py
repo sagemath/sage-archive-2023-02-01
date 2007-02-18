@@ -22,6 +22,7 @@ import cPickle
 import zlib
 
 from twisted.internet import reactor, task
+from twisted.spread import pb
 
 from sage.dsage.database.job import Job
 from sage.dsage.interface.dsage_interface import JobWrapper, blockingJobWrapper
@@ -134,7 +135,13 @@ class DistributedFunction(object):
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
             if isinstance(wrapped_job, JobWrapper):
-                wrapped_job.getJob()
+                try:
+                    wrapped_job.getJob()
+                except pb.DeadReferenceError:
+                    print 'Got pb.DeadReferenceError.'
+                    print 'This will be handled in the future.'
+                    reactor.callFromThread(self.checker_task.stop)
+                    break
             else:
                 wrapped_job.async_getJob()
             if wrapped_job.status == 'completed':

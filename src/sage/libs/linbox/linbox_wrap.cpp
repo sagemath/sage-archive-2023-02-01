@@ -1,10 +1,12 @@
+#include <iostream>
+#include <gmp.h>
+#include "linbox_wrap.h"
+
 
 /*************************************************************************
    dense modulo Z/nZ
 *************************************************************************/
 
-#include <iostream>
-#include <gmp.h>
 #include <linbox/integer.h>
 #include <linbox/matrix/blas-matrix.h>
 #include <linbox/matrix/matrix-domain.h>
@@ -15,8 +17,6 @@
 #include <linbox/solutions/charpoly.h>
 #include <linbox/ring/givaro-polynomial.h>
 #include <linbox/field/modular.h>
-
-#include "linbox_wrap.h"
 
 using namespace LinBox;
 using namespace std;

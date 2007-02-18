@@ -12,6 +12,7 @@ AUTHOR:
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
         graph6 helper functions in SageX
+                        (2007-02-18): 3d plotting in Tachyon
 
 TUTORIAL:
 
@@ -1508,6 +1509,48 @@ class Graph(GenericGraph):
             BGG.axes(False)
             return BGG
         return GG
+
+    def plot3d(self, bgcolor=None, vertex_color=None, edge_color=None):
+        import networkx
+        from math import sqrt
+        from sage.plot.tachyon import Tachyon
+        pos3d = networkx.spring_layout(self._nxg, dim=3)
+        c = [0,0,0]
+        r = []
+        verts = self.vertices()
+        for v in verts:
+            c[0] += pos3d[v][0]
+            c[1] += pos3d[v][1]
+            c[2] += pos3d[v][2]
+        order = self.order()
+        c[0] = c[0]/order
+        c[1] = c[1]/order
+        c[2] = c[2]/order
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0] - c[0]
+            pos3d[v][1] = pos3d[v][1] - c[1]
+            pos3d[v][2] = pos3d[v][2] - c[2]
+            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
+        r = max(r)
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0]/r
+            pos3d[v][1] = pos3d[v][1]/r
+            pos3d[v][2] = pos3d[v][2]/r
+        TT = Tachyon(camera_center=(1.4,1.4,1.4))
+        TT.light((4,3,2), 0.02, (1,1,1))
+        if bgcolor is None: bgcolor=(1,1,1)
+        if vertex_color is None: vertex_color=(1,0,0)
+        if edge_color is None: edge_color=(0,0,0)
+        TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
+        TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
+        TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
+        TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
+        for v in verts:
+            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        for u,v,l in self.edges():
+            TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+        return TT
 
     def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """

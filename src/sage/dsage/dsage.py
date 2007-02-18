@@ -98,7 +98,7 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, hostname=None, port=None, blocking=True):
+    def worker(self, server=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
@@ -112,8 +112,8 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py'
-        if isinstance(hostname, str):
-            cmd += ' %s' % hostname
+        if isinstance(server, str):
+            cmd += ' %s' % server
         if isinstance(port, int):
             cmd += ' %s' % port
 

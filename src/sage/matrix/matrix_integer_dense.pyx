@@ -768,12 +768,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows <= 1:
             return matrix_dense.Matrix_dense.charpoly(self, var)
         self._init_linbox()
-        _sig_on
         if typ == 'minpoly':
+            _sig_on
             v = linbox.minpoly()
+            _sig_off
         else:
+            _sig_on
             v = linbox.charpoly()
-        _sig_off
+            _sig_off
         R = self._base_ring[var]
         verbose('finished computing %s'%typ, time)
         return R(v)

@@ -744,7 +744,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         no ring 'ring' is provided.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x, y> = MPolynomialRing(ZZ,2,'xy')
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.univariate_polynomial()
             Traceback (most recent call last):

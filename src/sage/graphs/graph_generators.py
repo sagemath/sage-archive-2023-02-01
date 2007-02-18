@@ -1237,7 +1237,7 @@ class GraphGenerators():
         """
         Returns a Moebius-Kantor Graph.
 
-        A Moebius-Kantor graph is a cubic symmetric graph.  (See also the Haewood
+        A Moebius-Kantor graph is a cubic symmetric graph.  (See also the Heawood
         graph).  It has 16 nodes and 24 edges.  It is nonplanar and Hamiltonian.
         It has diameter = 4, girth = 6, and chromatic number = 2.  It is identical
         to the Generalized Petersen graph, P[8,3].

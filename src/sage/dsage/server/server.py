@@ -69,7 +69,7 @@ class DSageServer(pb.Root):
                 log.msg('[DSage]' + ' Job db is empty.')
             return None
         else:
-            if self.log_level > 0:
+            if self.log_level > 3:
                 log.msg('[DSage, getJob]' + ' Returning Job (%s, %s) to client'
                 % (job.id, job.name))
                 job.status = 'processing'
@@ -346,6 +346,7 @@ class DSageWorkerServer(DSageServer):
 
     def remote_jobDone(self, jobID, output, result, completed, worker_info):
         if not (isinstance(jobID, str) or isinstance(completed, bool)):
+            log.msg('BadType in remote_jobDone')
             raise BadTypeError()
 
         return DSageServer.jobDone(self, jobID, output, result,
@@ -353,6 +354,7 @@ class DSageWorkerServer(DSageServer):
 
     def remote_jobFailed(self, jobID):
         if not isinstance(jobID, str):
+            log.msg('BadType in remote_jobFailed')
             raise BadTypeError()
 
         return DSageServer.jobFailed(self, jobID)
@@ -362,6 +364,7 @@ class DSageWorkerServer(DSageServer):
 
     def remote_submitHostInfo(self, hostinfo):
         if not isinstance(hostinfo, dict):
+            log.msg('BadType in remote_submitHostInfo')
             raise BadTypeError()
         return DSageServer.submitHostInfo(self, hostinfo)
 

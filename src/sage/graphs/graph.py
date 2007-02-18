@@ -996,6 +996,20 @@ class Graph(GenericGraph):
         """
         return self._nxg.get_edge(u,v)
 
+    def edge_labels(self):
+        """
+        Returns a list of edge labels.
+
+        EXAMPLE:
+            sage: G = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
+            sage: G.edge_labels()
+            ['x', 'z', 'a', 'out']
+        """
+        labels = []
+        for u,v,l in self.edges():
+            labels.append(l)
+        return labels
+
     def remove_multiple_edges(self):
         """
         Removes all multiple edges, retaining one edge for each.
@@ -2169,6 +2183,20 @@ class DiGraph(GenericGraph):
             'edgelabel'
         """
         return self._nxg.get_edge(u,v)
+
+    def arc_labels(self):
+        """
+        Returns a list of edge labels.
+
+        EXAMPLE:
+            sage: G = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}})
+            sage: G.arc_labels()
+            ['x', 'z', 'a', 'out']
+        """
+        labels = []
+        for u,v,l in self.arcs():
+            labels.append(l)
+        return labels
 
     def predecessor_iterator(self, vertex):
         """

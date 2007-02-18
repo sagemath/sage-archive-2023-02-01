@@ -7,6 +7,8 @@ AUTHORS:
 
 import os
 
+from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
+
 class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
@@ -77,6 +79,11 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
+    def start_all(self):
+        self.server(blocking=False)
+        self.worker(blocking=False)
+        return DSage()
+
     def server(self, blocking=True):
         r"""
         This is the server of Distributed SAGE
@@ -115,6 +122,7 @@ class DistributedSage(object):
 
         os.system(cmd)
 
+    # This is completely outdated now, only kept for historical reference
     # def console(self):
     #     r"""
     #     This is the IPython console that allows you submit and view jobs.

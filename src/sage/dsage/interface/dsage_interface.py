@@ -646,7 +646,7 @@ class JobWrapper(object):
 
         """
 
-        d = self.remoteobj.callRemote('killJob', self._job.id)
+        d = self.remoteobj.callRemote('killJob', self.id)
         d.addCallback(self._killedJob)
         d.addErrback(self._catchFailure)
         return d

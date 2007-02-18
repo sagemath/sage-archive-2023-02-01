@@ -40,7 +40,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x):
             return SymbolicPolynomial(x)
-        elif isinstance(x, (Integer, int, Rational)):
+        elif isinstance(x, (Constant, Integer, int, Rational)):
             return Constant_object(x)
         else:
             # we really want to raise a type error, here
@@ -484,6 +484,13 @@ class CallableFunction(RingElement):
 
     def trig_simplify(self):
         return CallableFunction(self._expr.trig_simplify(), self._varlist)
+
+    simplify_trig = trig_simplify
+
+    def rational_simplify(self):
+        return CallableFunction(self._expr.rational_simplify(), self._varlist)
+
+    simplify_rational = rational_simplify
 
     def expand(self):
         return CallableFunction(self._expr.expand(), self._varlist)

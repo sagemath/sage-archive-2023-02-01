@@ -4,7 +4,7 @@ Formal groups of elliptic curves.
 AUTHORS:
     -- William Stein: original implementations
     -- David Harvey: improved asymptotics of some methods
-    -- Nick Alexander: seperation from ell_generic.py, bugfixes and docstrings
+    -- Nick Alexander: separation from ell_generic.py, bugfixes and docstrings
 """
 
 from sage.structure.sage_object import SageObject

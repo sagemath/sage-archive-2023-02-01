@@ -77,6 +77,12 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
+    def start_all(self):
+        self.server(blocking=False)
+        self.worker(blocking=False)
+        from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
+        return DSage()
+
     def server(self, blocking=True):
         r"""
         This is the server of Distributed SAGE
@@ -91,7 +97,7 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, hostname=None, port=None, blocking=True):
+    def worker(self, server=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
@@ -105,8 +111,8 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py'
-        if isinstance(hostname, str):
-            cmd += ' %s' % hostname
+        if isinstance(server, str):
+            cmd += ' %s' % server
         if isinstance(port, int):
             cmd += ' %s' % port
 
@@ -115,6 +121,7 @@ class DistributedSage(object):
 
         os.system(cmd)
 
+    # This is completely outdated now, only kept for historical reference
     # def console(self):
     #     r"""
     #     This is the IPython console that allows you submit and view jobs.

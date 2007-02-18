@@ -110,12 +110,15 @@ def expnums(int n, int aa):
 #     return bell[1];
 # end);
 
-
-
 def expnums2(n, aa):
+    r"""
+    A vanilla python (but compiled via pyrex) implementation of expnums.
+
+    We Compute the first $n$ exponential numbers around $aa$, starting
+    with the zero-th.
+    """
     if n < 1:
         return []
-
     if n == 1:
         return [Integer(1)]
 

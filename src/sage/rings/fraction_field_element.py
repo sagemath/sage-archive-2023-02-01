@@ -191,7 +191,6 @@ class FractionFieldElement(field_element.FieldElement):
             raise TypeError, "denominator must equal 1"
 
     def __pow__(self, right):
-        right = int(right)
         return FractionFieldElement(self.parent(),
                                     self.__numerator**right,
                                     self.__denominator**right, coerce=False, reduce=False)

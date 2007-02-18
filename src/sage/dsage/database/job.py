@@ -20,13 +20,16 @@ import datetime
 import cPickle
 import zlib
 import bz2
+import os
 
 from twisted.spread import pb
 
 from persistent import Persistent
 
 class Job(Persistent):
-    """Defines a Job that gets distributed to clients.
+    r"""
+    Defines a Job that gets distributed to clients.
+
     """
 
     def __init__(self, id=None, name=None, file=None, parent=None,
@@ -272,6 +275,9 @@ class Job(Persistent):
         except:
             print 'Unable to read file.'
             return
+
+        # Strip out any hard coded path in the file name
+        file_name = os.path.split(file_name)[1]
         self.jdict['data'].append((file_name, f, 'file'))
 
     def pickle(self):

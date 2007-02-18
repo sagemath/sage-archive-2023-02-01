@@ -32,7 +32,7 @@ def update_library_files(R):
 	   i = G.find('libdir=')
 	   j = i+8 + G[i+8:].find("'")
 	   z = G[i+8:j].strip().strip("'")
- 	   i = z.find('local/')
+ 	   i = z.rfind('local/')
 	   if i != -1:
                z = z[:i]
                H = G.replace(z, os.path.abspath(SAGE_ROOT) + '/')

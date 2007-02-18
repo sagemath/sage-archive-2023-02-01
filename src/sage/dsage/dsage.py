@@ -7,8 +7,6 @@ AUTHORS:
 
 import os
 
-from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
-
 class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
@@ -82,6 +80,7 @@ class DistributedSage(object):
     def start_all(self):
         self.server(blocking=False)
         self.worker(blocking=False)
+        from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
         return DSage()
 
     def server(self, blocking=True):
@@ -98,7 +97,7 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, hostname=None, port=None, blocking=True):
+    def worker(self, server=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
@@ -112,8 +111,8 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py'
-        if isinstance(hostname, str):
-            cmd += ' %s' % hostname
+        if isinstance(server, str):
+            cmd += ' %s' % server
         if isinstance(port, int):
             cmd += ' %s' % port
 

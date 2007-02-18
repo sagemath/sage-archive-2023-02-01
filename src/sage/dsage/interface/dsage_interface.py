@@ -37,31 +37,6 @@ from sage.dsage.twisted.pb import ClientPBClientFactory
 from sage.dsage.twisted.misc import blockingCallFromThread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
-# This is a randomly generated string we will use to as the signature to
-# sign
-DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
-                range(500)]])
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-# Begin reading configuration
-try:
-    conf_file = os.path.join(DSAGE_DIR, 'client.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-
-    LOG_FILE = config.get('log', 'log_file')
-    LOG_LEVEL = config.getint('log', 'log_level')
-    SSL = config.getint('ssl', 'ssl')
-    USERNAME = config.get('auth', 'username')
-    PRIVKEY_FILE = os.path.expanduser(config.get('auth', 'privkey_file'))
-    PUBKEY_FILE = os.path.expanduser(config.get('auth', 'pubkey_file'))
-    SERVER = config.get('general', 'server')
-    PORT = config.getint('general', 'port')
-except:
-    print "Error reading '%s', please run dsage.setup() or fix manually"%conf_file
-    sys.exit(-1)
-# End reading configuration
-
 class DSageThread(threading.Thread):
     def run(self):
         reactor.run(installSignalHandlers=False)
@@ -77,6 +52,8 @@ class DSage(object):
         # We will read the values in from the conf file first and let the
         # user override the values stored in the conf file by keyword
         # parameters
+
+        self._getconf()
 
         if server is None:
             self.server = SERVER
@@ -95,8 +72,15 @@ class DSage(object):
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
-        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
-                                                 passphrase=passphrase)
+        # try getting the private key object without a passphrase first
+        try:
+            self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file)
+        except keys.BadKeyError:
+            passphrase = self._getpassphrase()
+            self.priv_key = keys.getPrivateKeyObject(
+                            filename=self.privkey_file,
+                            passphrase=passphrase)
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
@@ -131,6 +115,30 @@ class DSage(object):
         d['remoteobj'] = None
         return d
 
+    def _getconf(self):
+        # randomly generated string we will use to sign
+        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
+                        range(500)]])
+        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+        # Begin reading configuration
+        try:
+            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
+            config = ConfigParser.ConfigParser()
+            config.read(conf_file)
+
+            self.LOG_FILE = config.get('log', 'log_file')
+            self.LOG_LEVEL = config.getint('log', 'log_level')
+            self.SSL = config.getint('ssl', 'ssl')
+            self.USERNAME = config.get('auth', 'username')
+            self.PRIVKEY_FILE = os.path.expanduser(config.get('auth',
+                                                              'privkey_file'))
+            self.PUBKEY_FILE = os.path.expanduser(config.get('auth',
+                                                             'pubkey_file'))
+            self.SERVER = config.get('general', 'server')
+            self.PORT = config.getint('general', 'port')
+        except Exception, msg:
+            raise
+
     def _getpassphrase(self):
         import getpass
         passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
@@ -145,7 +153,7 @@ class DSage(object):
         print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
-        if LOG_LEVEL > 0:
+        if self.LOG_LEVEL > 0:
             print 'Connected to remote server.\r'
         self.remoteobj = remoteobj
         self.remoteobj.notifyOnDisconnect(self._disconnected)
@@ -163,7 +171,7 @@ class DSage(object):
 
     def _killedJob(self, jobID):
         if jobID:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.'
 
     def restore(self, remoteobj):
@@ -182,7 +190,7 @@ class DSage(object):
         # factory = pb.PBClientFactory()
         factory = ClientPBClientFactory()
 
-        if SSL == 1:
+        if self.SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.server,
@@ -344,30 +352,39 @@ class BlockingDSage(DSage):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
-
+        self._getconf()
         if server is None:
-            self.server = SERVER
+            self.server = self.SERVER
         else:
             self.server = server
 
-        self.port = PORT
-        self.username = USERNAME
-        self.pubkey_file = PUBKEY_FILE
-        self.privkey_file = PRIVKEY_FILE
+        self.port = self.PORT
+        self.username = self.USERNAME
+        self.pubkey_file = self.PUBKEY_FILE
+        self.privkey_file = self.PRIVKEY_FILE
 
         self.remoteobj = None
         self.result = None
 
-        passphrase = self._getpassphrase()
+        # passphrase = self._getpassphrase()
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
-        self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
-                                                 passphrase=passphrase)
+
+        # try getting the private key object without a passphrase first
+        try:
+            self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file)
+        except keys.BadKeyError:
+            passphrase = self._getpassphrase()
+            self.priv_key = keys.getPrivateKeyObject(
+                            filename=self.privkey_file,
+                            passphrase=passphrase)
+
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = DATA
+        self.data = self.DATA
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                 self.alg_name,
@@ -390,7 +407,7 @@ class BlockingDSage(DSage):
         # factory = pb.PBClientFactory()
         factory = ClientPBClientFactory()
 
-        if SSL == 1:
+        if self.SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             blockingCallFromThread(reactor.connectSSL,
@@ -609,11 +626,11 @@ class JobWrapper(object):
 
     def syncJob(self):
         if self.remoteobj == None:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print 'self.remoteobj is None'
             return
         if self.status == 'completed':
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print 'Stopping syncJob'
             if self.syncJob_task:
                 if self.syncJob_task.running:
@@ -653,7 +670,7 @@ class JobWrapper(object):
 
     def _killedJob(self, jobID):
         if jobID:
-            if LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.\r'
 
 class blockingJobWrapper(JobWrapper):

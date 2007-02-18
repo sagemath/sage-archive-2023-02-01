@@ -29,14 +29,18 @@ def is_FiniteFieldElement(x):
 
     EXAMPLE:
         sage: is_FiniteFieldElement(1)
-            False
+        False
         sage: is_FiniteFieldElement(IntegerRing())
-            False
+        False
         sage: is_FiniteFieldElement(GF(5)(2))
-            True
-
+        True
+        sage: is_FiniteFieldElement(GF(25,'a')(2))
+        True
     """
+    # This stupid thing is needed because GF(5)(2) gives an
+    # integer mod 5, and ints mod don't derive from FiniteFieldElement.
     return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())
+    #return isinstance(x, FiniteFieldElement)
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """

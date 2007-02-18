@@ -24,7 +24,19 @@ import integer_mod
 import ring
 
 def is_FiniteFieldElement(x):
-    return ring.is_FiniteField(x.parent())
+    """
+    Returns if x is a finite field element.
+
+    EXAMPLE:
+        sage: is_FiniteFieldElement(1)
+            False
+        sage: is_FiniteFieldElement(IntegerRing())
+            False
+        sage: is_FiniteFieldElement(GF(5)(2))
+            True
+
+    """
+    return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """

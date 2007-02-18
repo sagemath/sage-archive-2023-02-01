@@ -166,6 +166,7 @@ class ECM:
         cleaner.cleaner(child.pid, self.__cmd)
         child.timeout = None
 	child.__del__ = nothing   # program around studid exception ignored error
+        child.expect('[ECM]')
         child.sendline(str(n))
         child.sendline("bad") # child.sendeof()
         while True:
@@ -338,6 +339,7 @@ class ECM:
         child = pexpect.spawn(self.__cmd)
         cleaner.cleaner(child.pid, self.__cmd)
         child.timeout = None
+        child.expect('[ECM]')
         child.sendline(str(n))
         try:
             child.sendeof()

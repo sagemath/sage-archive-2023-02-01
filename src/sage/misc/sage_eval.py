@@ -112,3 +112,26 @@ def sage_eval(source, locals={}):
         raise SyntaxError, "%s\nError using SAGE to evaluate '%s'"%(msg, p)
 
 
+
+def sageobj(x, vars=None):
+    """
+    Return a native SAGE object associated to x, if possible
+    and implemented.
+
+    If x is a string it is evaluated with SAGE preparsing.
+
+    EXAMPLES:
+        sage: type(sageobj(gp('34/56')))
+        <type 'sage.rings.rational.Rational'>
+        sage: n = 5/2
+        sage: sageobj(n) is n
+        True
+        sage: k = sageobj('Z(8^3/1)', {'Z':ZZ}); k
+        512
+        sage: type(k)
+        <type 'sage.rings.integer.Integer'>
+    """
+    try:
+       return x._sage_()
+    except (TypeError, NotImplementedError, AttributeError):
+       return sage_eval(str(x), vars)

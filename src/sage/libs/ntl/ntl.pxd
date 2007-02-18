@@ -1,3 +1,6 @@
+cdef extern from "gmp.h":
+    struct mpz_t
+
 cdef extern from "ntl_wrap.h":
     struct ZZ
     cdef int ZZ_to_int(ZZ* x)
@@ -14,6 +17,7 @@ cdef extern from "ntl_wrap.h":
     struct ZZX
     cdef void ZZX_setitem_from_int(ZZX* x, long i, int value)
     cdef int ZZX_getitem_as_int(ZZX* x, long i)
+    cdef void ZZX_getitem_as_mpz(mpz_t* output, ZZX* x, long i)
 
 cdef class ntl_ZZX:
     cdef ZZX* x

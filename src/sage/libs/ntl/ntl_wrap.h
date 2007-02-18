@@ -8,6 +8,7 @@
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
+#include <gmp.h>
 using namespace NTL;
 #endif
 
@@ -85,6 +86,7 @@ EXTERN void ZZX_setitem(struct ZZX* x, long i, const char* a);
 EXTERN void ZZX_setitem_from_int(struct ZZX* x, long i, int value);
 EXTERN char* ZZX_getitem(struct ZZX* x, long i);
 EXTERN int ZZX_getitem_as_int(struct ZZX* x, long i);
+EXTERN void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i);
 EXTERN struct ZZX* ZZX_add(struct ZZX* x, struct ZZX* y);
 EXTERN struct ZZX* ZZX_sub(struct ZZX* x, struct ZZX* y);
 EXTERN struct ZZX* ZZX_mul(struct ZZX* x, struct ZZX* y);

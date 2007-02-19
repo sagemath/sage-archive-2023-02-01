@@ -150,6 +150,11 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             sage: S = M.cuspidal_submodule()
             sage: S.factorization()
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2
+
+        The following example exposes a bug:
+            sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
+            sage: M1 = M.decomposition()[1]
+            sage: M1.is_simple()
         """
         try:
             return self._factorization

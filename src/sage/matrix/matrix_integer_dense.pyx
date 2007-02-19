@@ -1368,21 +1368,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _linbox_sparse(self):
         cdef Py_ssize_t i, j
-        s = '%s %s +\n'%(self._nrows, self._ncols)
+        v = ['%s %s +'%(self._nrows, self._ncols)]
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if mpz_cmp_si(self._matrix[i][j], 0):
-                    s += '%s %s %s\n'%(i+1,j+1,self.get_unsafe(i,j))
-        s += '0 0 0\n'
-        return s
+                    v.append('%s %s %s'%(i+1,j+1,self.get_unsafe(i,j)))
+        v.append('0 0 0\n')
+        return '\n'.join(v)
 
     def _linbox_dense(self):
         cdef Py_ssize_t i, j
-        s = '%s %s x'%(self._nrows, self._ncols)
+        v = ['%s %s x'%(self._nrows, self._ncols)]
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
-                s += ' %s'%self.get_unsafe(i,j)
-        return s
+                v.append(str(self.get_unsafe(i,j)))
+        return ' '.join(v)
 
     def rational_reconstruction(self, N):
         """

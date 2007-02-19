@@ -756,9 +756,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             700*x^2 - 2*x + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
-            sage: R = PolynomialRing(QQ,'w')
-            sage: R(g)
-            700*w^2 - 2*w + 305
         """
         if not self.is_univariate():
             raise TypeError, "polynomial must involve at most one variable"

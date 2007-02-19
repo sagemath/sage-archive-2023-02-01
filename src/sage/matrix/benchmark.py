@@ -203,6 +203,38 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
+def matrix_add_ZZ(n=200, min=-9, max=9, system='sage', times=10):
+    """
+    Matrix addition over ZZ
+    Given an n x n (with n=200) matrix A and B over ZZ with random entries
+    between min=-9 and max=9, inclusive, compute A + B.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        B = random_matrix(ZZ, n, n, x=min, y=max+1)
+        t = cputime()
+        for z in range(times):
+            v = A + B
+        return cputime(t)/times
+    elif system == 'magma':
+        code = """
+n := %s;
+min := %s;
+max := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(min,max) : i in [1..n^2]];
+B := MatrixAlgebra(IntegerRing(), n)![Random(min,max) : i in [1..n^2]];
+t := Cputime();
+for z in [1..%s] do
+    K := A + B;
+end for;
+s := Cputime(t);
+"""%(n,min,max,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 
 def det_ZZ(n=400, min=1, max=100, system='sage'):
     """
@@ -318,6 +350,36 @@ s := Cputime(t);
         return magma.eval('s')
     else:
         raise ValueError, 'unknown system "%s"'%system
+
+def matrix_add_GF(n=1000, p=16411, system='sage',times=100):
+    """
+    Given two n x n (with n=1000) matrix over GF with random entries,
+    add them.
+    """
+    if system == 'sage':
+        A = random_matrix(GF(p), n, n)
+        B = random_matrix(GF(p), n, n)
+        t = cputime()
+        for n in range(times):
+            v = A + B
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := Random(MatrixAlgebra(GF(%s), n));
+B := Random(MatrixAlgebra(GF(%s), n));
+t := Cputime();
+for z in [1..%s] do
+    K := A + B;
+end for;
+s := Cputime(t);
+"""%(n,p,p,times)
+        if verbose: print code
+        magma.eval(code)
+        return magma.eval('s')
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 
 
 # Matrix multiplication over GF(p)

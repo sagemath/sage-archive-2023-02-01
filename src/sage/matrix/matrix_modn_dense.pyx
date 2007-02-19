@@ -81,10 +81,13 @@ MAX_MODULUS = 46340
 import matrix_window_modn_dense
 
 from sage.rings.arith import is_prime
+from sage.structure.element cimport ModuleElement
 
 cimport matrix_dense
 cimport matrix
 cimport matrix0
+cimport sage.structure.element
+
 
 from sage.libs.linbox.linbox cimport Linbox_modn_dense
 cdef Linbox_modn_dense linbox
@@ -93,8 +96,6 @@ linbox = Linbox_modn_dense()
 from sage.structure.element cimport Matrix
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
-
-from sage.structure.element import ModuleElement
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
@@ -253,6 +254,48 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A.p = self.p
         A.gather = self.gather
         return A
+
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        """
+        Add two dense matrices over Z/nZ
+
+        EXAMPLES:
+            sage: a = MatrixSpace(GF(19),3)(range(9))
+            sage: a+a
+            [ 0  2  4]
+            [ 6  8 10]
+            [12 14 16]
+            sage: b = MatrixSpace(GF(19),3)(range(9))
+            sage: b.swap_rows(1,2)
+            sage: a+b
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+            sage: b+a
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+        """
+
+        cdef Py_ssize_t i,j
+        cdef Matrix_modn_dense M
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        Matrix.__init__(M, self._parent)
+
+        _sig_on
+        cdef mod_int *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_modn_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                row_ans[j] = (row_self[j]+row_right[j])%self.p
+
+        _sig_off
+        return M;
+
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
         if self._will_use_strassen(right):

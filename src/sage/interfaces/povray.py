@@ -39,7 +39,7 @@ class POVRay:
         except:
             return "You must specify a width and height."
 
-        cmd = "povray -D +I%s +O%s " % (pov_file, outfile)
+        cmd = "povray -D +FP +I%s +O%s " % (pov_file, outfile)
         for k, v in kwargs.iteritems():
             cmd += "+%s%s " % (k, v)
 

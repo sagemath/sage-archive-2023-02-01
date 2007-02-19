@@ -52,9 +52,9 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
     # (d) something else entirely?
 
     cdef Py_ssize_t A_nrows, A_ncols, B_ncols
-    A_nrows = A.nrows()
-    A_ncols = A.ncols()        # this should also be the number of rows of B
-    B_ncols = B.ncols()
+    A_nrows = A._nrows
+    A_ncols = A._ncols        # this should also be the number of rows of B
+    B_ncols = B._ncols
 
     if (A_nrows <= cutoff) or (A_ncols <= cutoff) or (B_ncols <= cutoff):
         # note: this code is only reached if the TOP level is already beneath
@@ -85,19 +85,37 @@ cdef strassen_window_multiply_c(MatrixWindow C, MatrixWindow A,
     # Allocate temp space.
 
     cdef MatrixWindow S0, S1, S2, S3, T0, T1 ,T2, T3, Q0, Q1, Q2
-    S0 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
-    S1 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
-    S2 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
-    S3 = A.new_empty_window(A_sub_nrows, A_sub_ncols)
+    cdef MatrixWindow tmp
+    cdef Py_ssize_t tmp_cols, start_row
+    tmp_cols = A_sub_ncols
+    if (tmp_cols < B_sub_ncols):
+        tmp_cols = B_sub_ncols # tmp_cols = max(A_sub_ncols, B_sub_ncols)
+    tmp = A.new_empty_window(7*A_sub_nrows + 4*A_sub_ncols, tmp_cols)
 
-    T0 = A.new_empty_window(A_sub_ncols, B_sub_ncols)
-    T1 = A.new_empty_window(A_sub_ncols, B_sub_ncols)
-    T2 = A.new_empty_window(A_sub_ncols, B_sub_ncols)
-    T3 = A.new_empty_window(A_sub_ncols, B_sub_ncols)
+    start_row = 0
+    S0 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
+    start_row += A_sub_nrows
+    S1 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
+    start_row += A_sub_nrows
+    S2 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
+    start_row += A_sub_nrows
+    S3 = tmp.matrix_window(start_row, 0, A_sub_nrows, A_sub_ncols)
+    start_row += A_sub_nrows
 
-    Q0 = A.new_empty_window(A_sub_nrows, B_sub_ncols)
-    Q1 = A.new_empty_window(A_sub_nrows, B_sub_ncols)
-    Q2 = A.new_empty_window(A_sub_nrows, B_sub_ncols)
+    T0 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
+    start_row += A_sub_ncols
+    T1 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
+    start_row += A_sub_ncols
+    T2 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
+    start_row += A_sub_ncols
+    T3 = tmp.matrix_window(start_row, 0, A_sub_ncols, B_sub_ncols)
+    start_row += A_sub_ncols
+
+    Q0 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
+    start_row += A_sub_nrows
+    Q1 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
+    start_row += A_sub_nrows
+    Q2 = tmp.matrix_window(start_row, 0, A_sub_nrows, B_sub_ncols)
 
 
     # Preparatory matrix additions/subtractions.

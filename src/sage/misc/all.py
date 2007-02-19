@@ -37,7 +37,7 @@ from defaults import set_default_variable_name
 
 from preparser import preparse
 
-from sage_eval import sage_eval
+from sage_eval import sage_eval, sageobj
 
 from sagex import sagex_lambda
 from sagex_c import sagex
@@ -57,6 +57,8 @@ from latex import latex, view, lprint, jsmath
 from trace import trace
 
 from cachefunc import CachedFunction
+
+from sagex_ds import BinaryTree
 
 ##########################################################################
 def benchmark(n=-1):

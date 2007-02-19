@@ -1,0 +1,5 @@
+INSTALLATION
+    Currently, installation is deadly simple.  Just untar the archive and
+    run the programs in there.  No need for install.
+
+    *WARNING* This will probably change in the future.

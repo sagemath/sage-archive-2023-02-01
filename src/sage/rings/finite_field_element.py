@@ -24,7 +24,23 @@ import integer_mod
 import ring
 
 def is_FiniteFieldElement(x):
-    return ring.is_FiniteField(x.parent())
+    """
+    Returns if x is a finite field element.
+
+    EXAMPLE:
+        sage: is_FiniteFieldElement(1)
+        False
+        sage: is_FiniteFieldElement(IntegerRing())
+        False
+        sage: is_FiniteFieldElement(GF(5)(2))
+        True
+        sage: is_FiniteFieldElement(GF(25,'a')(2))
+        True
+    """
+    # This stupid thing is needed because GF(5)(2) gives an
+    # integer mod 5, and ints mod don't derive from FiniteFieldElement.
+    return isinstance(x, element.Element) and ring.is_FiniteField(x.parent())
+    #return isinstance(x, FiniteFieldElement)
 
 class FiniteField_ext_pariElement(FiniteFieldElement):
     """
@@ -501,8 +517,10 @@ class FiniteField_ext_pariElement(FiniteFieldElement):
     # out crazy warnings when the exponent is LARGE -- this
     # is even a problem in gp!!!
     # (Commenting out causes this to use a generic algorithm)
-    #def __pow__(self, right):
-    #    right = int(right)
+    #def __pow__(self, _right):
+    #    right = int(_right)
+    #    if right != _right:
+    #         raise ValueError
     #    return FiniteField_ext_pariElement(self.__parent, self.__value**right)
 
     def __neg__(self):

@@ -1176,7 +1176,7 @@ function evaluate_cell(id, action) {
     }
 
     if(!in_slide_mode) {
-        jump_to_cell(id,1);
+       jump_to_cell(id,1);
     }
     cell_set_running(id);
 

@@ -19,7 +19,8 @@ Relation matrices for ambient modular symbols spaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-__doc_exclude = ['RationalField', 'search', 'Rational']
+SPARSE = True
+#SPARSE = False
 
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
@@ -175,6 +176,8 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight):
     MAT = matrix_space.MatrixSpace(field, row,
                                 len(syms), sparse=True)
     R = MAT(entries)
+    if not SPARSE:
+        R = R.dense_matrix()
     misc.verbose("finished (number of rows=%s)"%row, tm)
     return R
 
@@ -203,7 +206,8 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     if not isinstance(mod, list):
         raise TypeError, "mod must be a list"
 
-    tm = misc.verbose()
+    misc.verbose(str(relation_matrix.parent()))
+    tm = misc.verbose("putting relation matrix in echelon form")
     A = relation_matrix.echelon_form()
     A.set_immutable()
 
@@ -306,11 +310,11 @@ def compute_presentation(syms, sign, field, weight):
 
     """
     R, mod = relation_matrix_wtk_g0(syms, sign, field, weight)
-    if weight==2:
+    #if weight==2:
         # heuristically the hecke operators are quite dense for weight > 2
-        sparse = True
-    else:
-        sparse = False
+    #    sparse = True
+    #else:
+    sparse = False
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 
@@ -524,7 +528,9 @@ def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
 
     M = matrix_space.MatrixSpace(RationalField(), row,
                     len(list), sparse=True)
-    #return M(entries, coerce_entries=False, copy=False)
+    if not SPARSE:
+        M = M.dense_matrix()
+
     return M(entries)
 
 def sparse_relation_matrix_wtk_g0n(M, field, sign=0):

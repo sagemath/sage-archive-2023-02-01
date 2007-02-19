@@ -1019,6 +1019,10 @@ cdef class ntl_ZZX:
         _sig_on
         return make_ZZ(ZZX_discriminant(self.x, proof))
 
+    #def __call__(self, ntl_ZZ a):
+    #    _sig_on
+    #    return make_ZZ(ZZX_polyeval(self.x, a.x))
+
     def charpoly_mod(self, ntl_ZZX modulus, proof=True):
         """
         Return the characteristic polynomial of this polynomial modulo

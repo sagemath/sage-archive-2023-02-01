@@ -121,7 +121,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         WARNING: This is for internal use only, or if you really know what you're doing.
         """
         matrix_dense.Matrix_dense.__init__(self, parent)
-        self._initialized = 0
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         self._pivots = None
@@ -174,9 +173,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         if self._entries == NULL: return
         cdef Py_ssize_t i
-        if self._initialized:
-            for i from 0 <= i < (self._nrows * self._ncols):
-                mpz_clear(self._entries[i])
+        for i from 0 <= i < (self._nrows * self._ncols):
+            mpz_clear(self._entries[i])
         sage_free(self._entries)
         sage_free(self._matrix)
 
@@ -240,7 +238,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int is_list
         cdef Integer x
 
-        if not isinstance(entries, list):  # todo -- change to PyObject_TypeCheck???
+        if not isinstance(entries, list):
             try:
                 entries = list(entries)
                 is_list = 1
@@ -291,7 +289,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i from 0 <= i < self._nrows:
                 mpz_init_set(self._entries[j], x.value)
                 j = j + self._nrows + 1
-            self._initialized = 1
 
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
@@ -426,7 +423,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(self._entries[i])
         _sig_off
-        self._initialized = 1
 
     cdef _new_unitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
@@ -582,7 +578,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(M._entries[i])
             mpz_mul(M._entries[i], self._entries[i], _x.value)
-        M._initialized = 1
         return M
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
@@ -602,19 +597,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [ 9 11 13]
             [ 9 11 13]
         """
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, j
 
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
-        Matrix.__init__(M, self._parent)
 
         _sig_on
-
-        cdef mpz_t *entries
-        entries = M._entries
-        for i from 0 <= i < self._ncols * self._nrows:
-            mpz_init(entries[i])
-            mpz_add(entries[i], self._entries[i], (<Matrix_integer_dense> right)._entries[i])
+        cdef mpz_t *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_integer_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpz_init(row_ans[j])
+                mpz_add(row_ans[j], row_self[j], row_right[j])
         _sig_off
         return M
 
@@ -629,22 +625,21 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [-8 -6 -4]
             [-2  0  2]
             [ 4  6  8]
-
         """
-        cdef Py_ssize_t i
+        cdef Py_ssize_t i, j
 
         cdef Matrix_integer_dense M
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
-        Matrix.__init__(M, self._parent)
 
         _sig_on
 
-        cdef mpz_t *entries
-        entries = M._entries
-        for i from 0 <= i < self._ncols * self._nrows:
-            mpz_init(entries[i])
-            mpz_sub(entries[i], self._entries[i], (<Matrix_integer_dense> right)._entries[i])
-
+        cdef mpz_t *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_integer_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpz_sub(row_ans[j], row_self[j], row_right[j])
         _sig_off
         return M
 

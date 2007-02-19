@@ -254,6 +254,41 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
+
+def matvec_ZZ(n=500, system='sage', min=-9, max=9, times=1):
+    """
+    Matrix vector multiplication over ZZ.
+
+    Given an n x n (with n=500) matrix A over ZZ with random entries
+    between min=-9 and max=9, inclusive, compute A * (A+1).
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        v = A.row(0)
+        t = cputime()
+        for z in range(times):
+            w = v * A
+        return cputime(t)/times
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+v := A[1];
+t := Cputime();
+for z in [1..%s] do
+    K := v * A;
+end for;
+s := Cputime(t);
+"""%(n,min,max,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+
+
 #######################################################################
 # Dense Benchmarks over GF(p), for small p.
 #######################################################################

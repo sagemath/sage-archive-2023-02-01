@@ -1192,8 +1192,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def linear_combination_of_rows(self, v):
         """
-        Return the linear combination of the rows of self given by the coefficients in
-        the list v.
+        Return the linear combination of the rows of self given by the
+        coefficients in the list v.
 
         INPUT:
             v -- list

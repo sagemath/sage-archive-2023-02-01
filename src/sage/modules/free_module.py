@@ -339,23 +339,29 @@ class FreeModule_generic(module.Module):
         if degree < 0:
             raise ValueError, "degree (=%s) must be nonnegative"%degree
 
+        ParentWithGens.__init__(self, base_ring)     # names aren't used anywhere.
         self.__uses_ambient_inner_product = True
         self.__rank = rank
         self.__degree = degree
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
-        ParentWithGens.__init__(self, base_ring)     # names aren't used anywhere.
 
     def element_class(self):
         try:
             return self._element_class
         except AttributeError:
             pass
-        if self.__is_sparse:
-            C = free_module_element.FreeModuleElement_generic_sparse
+        R = self.base_ring()
+        is_sparse = self.is_sparse()
+        if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
+            from vector_integer_dense import Vector_integer_dense
+            C = Vector_integer_dense
         else:
-            C = free_module_element.FreeModuleElement_generic_dense
+            if is_sparse:
+                C = free_module_element.FreeModuleElement_generic_sparse
+            else:
+                C = free_module_element.FreeModuleElement_generic_dense
         self._element_class = C
         return C
 

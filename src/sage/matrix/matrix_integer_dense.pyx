@@ -48,13 +48,12 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
-from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
 import sage.modules.free_module
-
 
 from matrix cimport Matrix
 
@@ -660,6 +659,34 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         return 1
         return 0
 
+
+    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+        """
+        Returns the vector times matrix product.
+
+        INPUT:
+             v -- a free module element.
+
+        OUTPUT:
+            The the vector times matrix product v*A.
+
+        EXAMPLES:
+            sage: B = matrix(ZZ,2, [1,2,3,4])
+            sage: V = ZZ^2
+            sage: w = V([-1,5])
+            sage: w*B
+            (14, 18)
+        """
+        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
+        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
+            v = M(v)
+        if self.nrows() != v.degree():
+            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+        s = M(0)
+        for i in xrange(self.nrows()):
+            if v[i] != 0:
+                s = s + v[i]*self.row(i)
+        return s
 
     ########################################################################
     # LEVEL 3 functionality (Optional)

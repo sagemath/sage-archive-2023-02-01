@@ -279,6 +279,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
 
         cdef Py_ssize_t i,j
+        cdef long k
         cdef Matrix_modn_dense M
 
         M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
@@ -291,7 +292,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             row_right = (<Matrix_modn_dense> right)._matrix[i]
             row_ans = M._matrix[i]
             for j from 0<= j < self._ncols:
-                row_ans[j] = (row_self[j]+row_right[j])%self.p
+                k = (row_self[j]+row_right[j])
+                # division is really slow, so we normalize only when it is necessary
+                if k>self.p:
+                    row_ans[j]=k-self.p
+                else:
+                    row_ans[j]=k
 
         _sig_off
         return M;

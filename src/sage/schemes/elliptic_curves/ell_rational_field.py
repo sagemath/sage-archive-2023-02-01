@@ -26,6 +26,7 @@ AUTHORS:
 
 import ell_point
 import formal_group
+import rational_torsion
 from ell_field import EllipticCurve_field
 
 import sage.groups.all
@@ -2061,27 +2062,25 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         Returns the torsion subgroup of this elliptic curve.
 
-        The flag is passed onto PARI and has the same algorithm
-        meaning as there.  So: If flag = 0, use Doud's algorithm; if
-        flag = 1, use Lutz-Nagell.
+        INPUT:
+            flag -- (default: 0)  chooses PARI algorithm:
+              flag = 0: uses Doud algorithm
+              flag = 1: uses Lutz-Nagell algorithm
+
+        OUTPUT:
+            The EllipticCurveTorsionSubgroup instance associated to this elliptic curve.
 
         EXAMPLES:
             sage: EllipticCurve('11a').torsion_subgroup()
-            Multiplicative Abelian Group isomorphic to C5
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C5 associated to the Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: EllipticCurve('37b').torsion_subgroup()
-            Multiplicative Abelian Group isomorphic to C3
+            Torsion Subgroup isomorphic to Multiplicative Abelian Group isomorphic to C3 associated to the Elliptic Curve defined by y^2 + y = x^3 + x^2 - 23*x - 50 over Rational Field
         """
         try:
-            return self.__torsion
+            return self.__torsion_subgroup
         except AttributeError:
-            try:
-                G = self.pari_curve().elltors(flag)
-            except RuntimeError:
-                self.__pari_double_prec()
-                return self.torsion_subgroup(flag)
-            self.__torsion = sage.groups.all.AbelianGroup(G[1].python())
-        return self.__torsion
-
+            self.__torsion_subgroup = rational_torsion.EllipticCurveTorsionSubgroup(self, flag)
+            return self.__torsion_subgroup
 
     ## def newform_eval(self, z, prec):
 ##         """

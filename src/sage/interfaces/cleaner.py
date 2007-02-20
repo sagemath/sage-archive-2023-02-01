@@ -20,6 +20,8 @@ def cleaner(pid, cmd):
     if os.path.exists(F):
         o = open(F,'a')
     else:
+        if not os.path.exists(misc.SAGE_TMP):
+            return
         o = open(F,'w')
     o.write('%s %s\n'%(pid, cmd))
     o.close()

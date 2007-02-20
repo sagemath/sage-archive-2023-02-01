@@ -165,8 +165,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-            return x.univariate_polynomial(self)
+        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
+        #    return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)
@@ -494,6 +494,59 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         for degree in xrange(max_degree + 1):
             for m in self._monics_degree( degree ):
                 yield m
+
+    def _polys_degree( self, of_degree ):
+        base = self.base_ring()
+        x = self.gen()
+        for leading_coeff in base:
+            if leading_coeff != base(0):
+                for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
+                    coeffs = [leading_coeff] + lt1
+                    yield sum([x**i*coeffs[of_degree-i] for i in range(len(coeffs))])
+
+    def _polys_max( self, max_degree ):
+        base = self.base_ring()
+        x = self.gen()
+        for lt1 in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
+            yield sum([x**i*lt1[max_degree-i] for i in range(len(lt1))])
+
+    def polynomials( self, of_degree = None, max_degree = None ):
+        """
+        Return an iterator over the monic polynomials of specified degree.
+
+        INPUT:
+            Pass exactly one of:
+            max_degree -- an int; the iterator will generate all monic polynomials which have degree less than or equal to max_degree
+            of_degree -- an int; the iterator will generate all monic polynomials which have degree of_degree
+
+        OUTPUT:
+            an iterator
+
+        EXAMPLES:
+            sage: P = PolynomialRing(GF(2),'y')
+            sage: for p in P.polynomials( of_degree = 2 ): print p
+            y^2
+            y^2 + 1
+            y^2 + y
+            y^2 + y + 1
+            sage: for p in P.polynomials( max_degree = 1 ): print p
+            0
+            1
+            y
+            y + 1
+            sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print p
+            Traceback (most recent call last):
+            ...
+            ValueError
+        """
+
+        if self.base_ring().order() is sage.rings.infinity.Infinity:
+            raise NotImplementedError
+        if of_degree is not None and max_degree is None:
+            return self._polys_degree( of_degree )
+        if max_degree is not None and of_degree is None:
+            return self._polys_max( max_degree )
+        raise ValueError # You should pass exactly one of of_degree and max_degree
 
     def monics( self, of_degree = None, max_degree = None ):
         """

@@ -589,7 +589,7 @@ cdef class ModuleElement(Element):
         #    left * self
         #
         if PY_TYPE_CHECK(left, Element):
-            if (<Element>self)._parent is self._parent._base:
+            if (<Element>left)._parent is self._parent._base:
                 # No coercion needed
                 return self._rmul_c(left)
             else:
@@ -647,22 +647,23 @@ cdef class ModuleElement(Element):
         canonically coerce the scalar to the integers and do that
         multiplication, which is always defined.
         """
-        from sage.rings.all import ZZ
-        n = (<Parent>ZZ)._coerce_c(left)
+        n = int(left)
+        if n != left:
+            raise TypeError, "left (=%s) must be an integer."%left
         a = self
         if n < 0:
             a = -a
             n = -n
-        prod = self._parent(0)
-        aprod = a
+        sum = self._parent(0)
+        asum = a
         while True:
-            if n&1 > 0: prod = prod + aprod
+            if n&1 > 0: sum = sum + asum
             n = n >> 1
             if n != 0:
-                aprod = aprod + aprod
+                asum = asum + asum
             else:
                 break
-        return prod
+        return sum
 
     def _rmul_(self, left):
         return self._rmul_c_impl(left)
@@ -1015,6 +1016,13 @@ cdef class RingElement(ModuleElement):
     # Multiplication
     ##################################
 
+    # The default behavior for scalars is just to coerce into the parent ring.
+    cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        return self._mul_c(<RingElement>(self._parent(right)))
+
+    cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        return (<RingElement>(self._parent)(left))._mul_c(self)
+
     def __mul__(self, right):
         """
         Top-level multiplication operator for ring elements.
@@ -1027,11 +1035,19 @@ cdef class RingElement(ModuleElement):
         if have_same_parent(self, right):
             return (<RingElement>self)._mul_c(<RingElement>right)
 
-        # VERY important special case:
-        # (ring element) * (module element that is not a ring element)
-        # We don't have to do the other direction, since it is
-        # done in module element __mul__.
-        if PY_TYPE_CHECK(right, ModuleElement):
+        if not (PY_TYPE_CHECK(self, Element) and PY_TYPE_CHECK(right, Element)):
+            # one of self or right is not even an Element.
+            return bin_op_c(self, right, operator.mul)
+
+        # Now we can assume both self and right are of a class that derives
+        # from Element (so they have a parent).  If one is a ModuleElement,
+        # do some special code.
+        if PY_TYPE_CHECK(self, ModuleElement) and PY_TYPE_CHECK(right, ModuleElement):
+            # We may assume both are module elements.
+            if (<Element>self)._parent is (<Element>right)._parent._base:
+                return (<ModuleElement>right)._rmul_c(self)
+            elif (<Element>self)._parent._base is (<Element>right)._parent:
+                return (<ModuleElement>self)._lmul_c(right)
             if not PY_TYPE_CHECK(right, RingElement):
                 # Now self must be a ring element:
                 # If the parent is the same as the base ring, good
@@ -1644,11 +1660,11 @@ cdef class FieldElement(CommutativeRingElement):
             right = self.parent()(right)
         return self/right, 0
 
-def is_FiniteFieldElement(x):
-    """
-    Return True if x is of type FiniteFieldElement.
-    """
-    return IS_INSTANCE(x, FiniteFieldElement)
+## def is_FiniteFieldElement(x):
+##     """
+##     Return True if x is of type FiniteFieldElement.
+##     """
+##     return IS_INSTANCE(x, FiniteFieldElement)
 
 cdef class FiniteFieldElement(FieldElement):
     pass

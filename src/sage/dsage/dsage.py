@@ -2,10 +2,11 @@
 Distributed SAGE
 
 AUTHORS:
-   -- Yi Qiang
+    Yi Qiang (yqiang@gmail.com)
 """
 
 import os
+
 class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
@@ -20,7 +21,8 @@ class DistributedSage(object):
         Worker
             Launch the worker with dsage.worker()
         Client
-            Launch the client with dsage.client()
+            Create the DSage object like this:
+                d = DSage()
 
     Examples:
         This starts a server instance on localhost
@@ -36,26 +38,20 @@ class DistributedSage(object):
 
         Open yet another terminal and type:
 
-        sage: dsage.console()
-
-        This drops you into the dsage ipython console
-
-        To do something simple, type:
-
-        sage: P = DSage()
+        sage: D = DSage()
 
         This creates a connection to the remote server.  To do a simple
         evaluation, type:
 
-        sage: job1 = P.eval('print 2+2', 'testjob')
+        sage: job1 = D('2+2')
 
         This sends the job 'print 2+2' to a worker and you can view the
         result by typing:
 
-        sage: print job1.result
+        sage: print job1
 
         This is the most basic way of interacting with dsage. To do more
-        complicated tasks, you should look at the DistributedFunctions class.
+        complicated tasks, you should look at the DistributedFunction class.
         For example, to do distributed integer factorization with ECM, type
         this:
 
@@ -76,11 +72,16 @@ class DistributedSage(object):
         file should be self explanatory.
 
     TODO:
-        Allow you to pass options to the worker, server and console.
 
     """
     def __init__(self):
         pass
+
+    def start_all(self):
+        self.server(blocking=False)
+        self.worker(blocking=False)
+        from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
+        return DSage()
 
     def server(self, blocking=True):
         r"""
@@ -96,7 +97,7 @@ class DistributedSage(object):
             cmd += '&'
         os.system(cmd)
 
-    def worker(self, hostname=None, port=None, blocking=True):
+    def worker(self, server=None, port=None, blocking=True):
         r"""
         This is the worker of Distributed SAGE
 
@@ -110,8 +111,8 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py'
-        if isinstance(hostname, str):
-            cmd += ' %s' % hostname
+        if isinstance(server, str):
+            cmd += ' %s' % server
         if isinstance(port, int):
             cmd += ' %s' % port
 
@@ -120,17 +121,17 @@ class DistributedSage(object):
 
         os.system(cmd)
 
-    def console(self):
-        r"""
-        This is the IPython console that allows you submit and view jobs.
-
-        Simply type dsage.console() to launch it.  It is a special ipython
-        console because it has a twisted thread running in the background.
-
-        """
-
-        cmd = 'dsage_console.py'
-        os.system(cmd)
+    # This is completely outdated now, only kept for historical reference
+    # def console(self):
+    #     r"""
+    #     This is the IPython console that allows you submit and view jobs.
+    #
+    #     Simply type dsage.console() to launch it.  It is a special ipython
+    #     console because it has a twisted thread running in the background.
+    #     """
+    #     # this is overwritten below.
+    #     cmd = 'dsage_console.py'
+    #     os.system(cmd)
 
     def setup(self):
         r"""
@@ -142,7 +143,6 @@ class DistributedSage(object):
         dsage.setup() client
 
         """
-
         cmd = 'dsage_setup.py'
         os.system(cmd)
 

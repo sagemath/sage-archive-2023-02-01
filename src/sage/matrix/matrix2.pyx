@@ -1353,7 +1353,7 @@ cdef class Matrix(matrix1.Matrix):
 
         assert sum(eval('[A.dimension() for A,_ in D]',{'D':D})) == M.dimension(), \
                "bug in decomposition; " + \
-               "the sum of the dimensions of the factors must equal the dimension of the acted on space."
+               "the sum of the dimensions of the factors must equal the dimension of the acted on space:\nFactors found: %s\nSpace: %s"%(D, M)
 
         # 3. Lift decomposition to subspaces of ambient vector space.
         # Each basis vector for an element of D defines a linear combination

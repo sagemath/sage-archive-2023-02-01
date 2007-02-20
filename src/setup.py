@@ -12,7 +12,7 @@ if os.environ.has_key('SAGE_CBLAS'):
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     CBLAS='cblas'
-elif os.path.exists('/usr/lib/libblas.dll.a'):   # untested.
+elif os.path.exists('/usr/lib/libblas.dll.a'):
     CBLAS='blas'
 else:
     # This is very slow  (?), but *guaranteed* to be available.
@@ -171,10 +171,15 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  ['sage/matrix/matrix_integer_2x2.pyx'],
                                  libraries = ['gmp'])
 
+linbox = Extension('sage.libs.linbox.linbox',
+                   ['sage/libs/linbox/linbox.pyx',
+                    'sage/libs/linbox/linbox_wrap.cpp'],
+                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS],
+                   language = 'c++')
+
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
-                              ['sage/matrix/matrix_modn_dense.pyx',
-                               'sage/matrix/matrix_modn_dense_linbox.cpp'],
-                              libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+                              ['sage/matrix/matrix_modn_dense.pyx'],
+                              libraries = ['gmp'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
                                ['sage/matrix/matrix_modn_sparse.pyx'])
@@ -186,14 +191,12 @@ matrix_field_sparse = Extension('sage.matrix.matrix_field_sparse',
                        ['sage/matrix/matrix_field_sparse.pyx'])
 
 matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
-                                  ['sage/matrix/matrix_rational_dense.pyx',
-                                   'sage/matrix/matrix_rational_dense_linbox.cpp'],
-                                 libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+                                  ['sage/matrix/matrix_rational_dense.pyx'],
+                                 libraries = ['gmp'])
 
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
-                                 ['sage/matrix/matrix_integer_dense.pyx',
-                                  'sage/matrix/matrix_integer_dense_linbox.cpp'],
-                                  libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS])
+                                 ['sage/matrix/matrix_integer_dense.pyx'],
+                                  libraries = ['gmp'])
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
@@ -225,6 +228,9 @@ free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
+gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',CBLAS])
+
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_fft = Extension('sage.gsl.fft',
@@ -258,6 +264,7 @@ complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/mo
 
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
                 libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
 gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
                 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
@@ -265,6 +272,9 @@ gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
 dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
                  libraries=['gsl',CBLAS],
                  define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+
+
+sagex_ds = Extension('sage.misc.sagex_ds', ['sage/misc/sagex_ds.pyx'])
 
 
 #####################################################
@@ -310,6 +320,7 @@ ext_modules = [ \
      matrix_real_double_dense,
      matrix_complex_double_dense,
      solve,
+     linbox,
      matrix_modn_dense,
      matrix_modn_sparse,
      givaro_gfq, \
@@ -326,12 +337,15 @@ ext_modules = [ \
     gsl_fft,
     gsl_interpolation,
     gsl_callback,
-
+    gsl_probability,
+    gsl_integration,
     real_double,
     complex_double,
-    qd,   # not worth it, since it is slower than mpfr!
+    #qd,
 
     complex_number,
+
+    sagex_ds,
 
     Extension('sage.ext.sig',
               sources = ['sage/ext/sig.pyx']), \
@@ -485,6 +499,11 @@ ext_modules = [ \
 
     Extension('sage.combinat.expnums',
               ['sage/combinat/expnums.pyx'],
+              libraries = ['gmp']
+              ), \
+
+    Extension('sage.graphs.graph_fast',
+              ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']
               ), \
 
@@ -762,6 +781,7 @@ setup(name        = 'sage',
 
                      'sage.libs',
                      'sage.libs.hanke',
+                     'sage.libs.linbox',
                      'sage.libs.mwrank',
                      'sage.libs.ntl',
                      'sage.libs.ec',
@@ -813,8 +833,25 @@ setup(name        = 'sage',
                      'sage.server.trac',
 
                      'sage.structure',
-                     'sage.dsage'
+
+                     'sage.dsage',
+                     'sage.dsage.database',
+                     'sage.dsage.database.tests',
+                     'sage.dsage.server',
+                     'sage.dsage.errors',
+                     'sage.dsage.tests',
+                     'sage.dsage.twisted',
+                     'sage.dsage.twisted.tests',
+                     'sage.dsage.dist_functions',
+                     'sage.dsage.misc',
+                     'sage.dsage.interface',
+                     'sage.dsage.scripts'
                      ],
+
+      scripts = ['sage/dsage/scripts/dsage_server.py',
+                 'sage/dsage/scripts/dsage_worker.py',
+                 'sage/dsage/scripts/dsage_setup.py',
+                ],
 
       ext_modules = ext_modules,
       include_dirs = include_dirs)

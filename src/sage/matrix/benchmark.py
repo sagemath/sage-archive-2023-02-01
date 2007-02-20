@@ -2,7 +2,7 @@ from sage.all import *
 
 verbose = False
 
-timeout = 5
+timeout = 10
 
 def report(F, title):
     systems = ['sage', 'magma']
@@ -25,7 +25,9 @@ def report(F, title):
                 t = -timeout
             alarm(0)
             w.append(t)
+        w.append(w[0]/w[1])
         w = tuple(w)
+
         print ('%15.3f'*len(w))%w
 
 
@@ -39,8 +41,9 @@ def report_ZZ():
     rational matrices.
     TODO: Probably I should start report_QQ as well.
     """
-    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
-         matrix_multiply_ZZ, det_ZZ, det_QQ]
+    F = [vecmat_ZZ, rank_ZZ, rank2_ZZ, charpoly_ZZ, smithform_ZZ,
+         det_ZZ, det_QQ, matrix_multiply_ZZ, nullspace_ZZ]
+
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
@@ -96,8 +99,6 @@ s := Cputime(t);
         return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
-
-
 
 
 def rank_ZZ(n=500, min=0, max=9, system='sage'):
@@ -292,6 +293,42 @@ s := Cputime(t);
         return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
+
+
+def vecmat_ZZ(n=500, system='sage', min=-9, max=9, times=200):
+    """
+    Vector matrix multiplication over ZZ.
+
+    Given an n x n (with n=500) matrix A over ZZ with random entries
+    between min=-9 and max=9, inclusive, and v the first row of A,
+    compute the product v * A  200 times.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        v = A.row(0)
+        t = cputime()
+        for z in range(times):
+            w = v * A
+        return cputime(t)/times
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+v := A[1];
+t := Cputime();
+for z in [1..%s] do
+    K := v * A;
+end for;
+s := Cputime(t);
+"""%(n,min,max,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+
 
 #######################################################################
 # Dense Benchmarks over GF(p), for small p.
@@ -511,7 +548,7 @@ s := Cputime(t);
 
 def hilbert_matrix(n):
     """
-    Retruns the hilber matrix of size n over rationals.
+    Returns the Hilbert matrix of size n over rationals.
     """
     A = Matrix(QQ,n,n)
     for i in range(A.nrows()):

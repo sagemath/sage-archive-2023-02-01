@@ -121,7 +121,6 @@ ai = arith_int()
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality

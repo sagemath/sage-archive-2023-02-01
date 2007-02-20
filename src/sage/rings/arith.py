@@ -711,7 +711,7 @@ def next_prime(n, proof=True):
         sage: next_prime(2004)
         2011
     """
-    n = integer_ring.ZZ(n)-1
+    n = integer_ring.ZZ(n)+1
     if n < 2:   # negatives are not prime.
         return integer_ring.ZZ(2)
     if n == 2:

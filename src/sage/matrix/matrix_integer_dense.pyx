@@ -890,6 +890,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int i, n, k
 
         h = left.height() * right.height()
+        t=cputime()
+        verbose('multiplying matrices of height %s and %s'%(left.height(),right.height()),t)
         mm = MultiModularBasis(h)
         res = left._reduce(mm)
         res_right = right._reduce(mm)

@@ -9,4 +9,5 @@ def diff(f, *args):
 
 derivative = diff
 
-
+def solve(f, *args):
+    return f.solve(*args)

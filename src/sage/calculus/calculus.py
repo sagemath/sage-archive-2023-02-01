@@ -17,6 +17,8 @@ from sage.misc.sage_eval import sage_eval
 from sage.functions.constants import Constant
 import sage.functions.constants as c
 
+from sage.calculus.equations import SymbolicEquation
+
 import pdb
 
 # There will only ever be one instance of this class
@@ -82,6 +84,12 @@ class SymbolicExpression(RingElement):
             self.__maxima = m
             return m
 
+    def hash(self):
+        return hash(maxima(self))
+
+    def __eq__(self, right):
+        return  SymbolicEquation(self, right)
+
     def _neg_(self):
         return SymbolicArithmetic([self], operator.neg)
 
@@ -90,12 +98,13 @@ class SymbolicExpression(RingElement):
 
     def _add_(self, right):
         # if we are adding a negation, instead subtract the operand of negation
-        #if isinstance(right, SymbolicArithmetic):
-        #    if right._operator is operator.neg:
-        #        return SymbolicArithmetic([self, right._operands[0]], operator.sub)
-        #elif isinstance(right, Symbolic_object) and right < 0:
-        #    return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
-        #else:
+
+        if isinstance(right, SymbolicArithmetic):
+            if right._operator is operator.neg:
+                return SymbolicArithmetic([self, right._operands[0]], operator.sub)
+        elif isinstance(right, Symbolic_object) and right < 0:
+            return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
+        else:
             return SymbolicArithmetic([self, right], operator.add)
 
     def _sub_(self, right):
@@ -406,7 +415,14 @@ class CallableFunctionRing_class(CommutativeRing):
         self._default_precision = 53 # default precision bits
         ParentWithBase.__init__(self, RR)
 
-#    def _coerce_impl(self, x):
+    def __call__(self, x):
+        return self._coerce_impl(x)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, (Integer, Rational, Constant, int)):
+            return CallableFunction(x, SER(x))
+        else:
+            raise NotImplementedError, "cannot coerce this (yet)"
 
 CallableFunctionRing = CallableFunctionRing_class()
 CFR = CallableFunctionRing

@@ -1,3 +1,4 @@
+from equations import SymbolicEquation
 from calculus import (SER,
                       var,
                       sin, cos, sec, log, erf, sqrt)

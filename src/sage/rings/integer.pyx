@@ -588,7 +588,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef RingElement _div_c_impl(self, RingElement right):
         r"""
-        Computes a \over{b}
+        Computes {a \over b}
 
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)

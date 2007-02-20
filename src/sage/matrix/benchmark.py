@@ -628,3 +628,44 @@ delete h;
         magma.eval(code)
         return float(magma.eval('s'))
 
+
+#######################################################################
+# Dense Benchmarks over machine reals
+# Note that the precision in reals for MAGMA is base 10, while in
+# sage it is in base 2
+#######################################################################
+
+def report_RR():
+    F = [rank_RR, rank2_RR, nullspace_RR, charpoly_RR, smithform_RR,
+         matrix_multiply_RR, det_RR]
+    title = 'Dense benchmarks over RR'
+    report(F, title)
+
+# Real Nullspace
+
+def nullspace_RR(n=300, min=0, max=10, system='sage'):
+    """
+    Nullspace over RR:
+    Given a n+1 x n (with n=300) matrix over RR with random entries
+    between min=0 and max=10, compute the nullspace.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(RR)
+        t = cputime()
+        v = A.kernel()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := RMatrixSpace(RealField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
+t := Cputime();
+K := Kernel(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+

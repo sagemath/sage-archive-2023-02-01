@@ -234,3 +234,26 @@ def cmp_pivots(x,y):
     else:
         return -1
 
+
+
+#######################################3
+
+from sage.modules.vector_integer_dense cimport Vector_integer_dense
+from matrix_integer_dense cimport Matrix_integer_dense
+from sage.modules.free_module import FreeModule
+from sage.modules.free_module_element import FreeModuleElement
+
+def matrix_integer_dense_matvec(Matrix_integer_dense mat,
+                                Vector_integer_dense vec):
+    return vec
+##     M = FreeModule(mat.base_ring(), self.ncols(), sparse=self.is_sparse())
+##     if not isinstance(v, FreeModuleElement):
+##         v = M(v)
+##     if self.nrows() != v.degree():
+##         raise ArithmeticError, "number of rows of matrix must equal degree of vector"
+##     s = M(0)
+##     for i in xrange(self.nrows()):
+##         if v[i] != 0:
+##             s = s + v[i]*self.row(i)
+##     return s
+

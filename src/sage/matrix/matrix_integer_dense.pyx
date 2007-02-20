@@ -32,6 +32,8 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
+#cimport sage.modules.vector_integer_dense
+
 from sage.misc.misc import verbose, get_verbose, cputime
 
 include "../ext/interrupt.pxi"
@@ -688,16 +690,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: w*B
             (14, 18)
         """
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
-        if self.nrows() != v.degree():
-            raise ArithmeticError, "number of rows of matrix must equal degree of vector"
-        s = M(0)
-        for i in xrange(self.nrows()):
-            if v[i] != 0:
-                s = s + v[i]*self.row(i)
-        return s
+        return v
+        #import misc
+        #return misc.matrix_integer_dense_matvec(self, v)
 
     ########################################################################
     # LEVEL 3 functionality (Optional)

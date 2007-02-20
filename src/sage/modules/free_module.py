@@ -173,7 +173,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
     The default is dense.
         sage: M = ZZ^200
         sage: type(M.0)
-        <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+        <type 'sage.modules.vector_integer_dense.Vector_integer_dense'>
 
 
     Note that matrices associated in some way to sparse free modules
@@ -3497,7 +3497,7 @@ class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
 ######################################################
 
 def element_class(R, is_sparse):
-    if False and sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
+    if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
         from vector_integer_dense import Vector_integer_dense
         return Vector_integer_dense
     else:

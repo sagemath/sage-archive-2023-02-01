@@ -54,6 +54,14 @@ following is defined, and the result is in the finite field.
     Vector space of dimension 5 over Finite Field of size 7
     sage: parent(M.0 + K.0)
     Vector space of dimension 5 over Finite Field of size 7
+
+Matrix vector multiply:
+    sage: MS = MatrixSpace(QQ,3)
+    sage: A = MS([0,1,0,1,0,0,0,0,1])
+    sage: V = QQ^3
+    sage: v = V([1,2,3])
+    sage: v * A
+    (2, 1, 3)
 """
 
 import operator
@@ -433,28 +441,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
         return cmp(left.list(copy=False), right.list(copy=False))
 
-    def _matrix_multiply(self, Matrix A):
-        """
-        Return the product self*A.
-
-        EXAMPLES:
-            sage: MS = MatrixSpace(QQ,3)
-            sage: A = MS([0,1,0,1,0,0,0,0,1])
-            sage: V = QQ^3
-            sage: v = V([1,2,3])
-            sage: v._matrix_multiply(A)
-            (2, 1, 3)
-
-        The multiplication operator also just calls \code{_matrix_multiply}:
-            sage: v*A
-            (2, 1, 3)
-        """
-        return self*A
-
     cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
-        if PY_TYPE_CHECK(right, Matrix):
-            return right.vector_matrix_multiply(left)
-        raise TypeError
+         raise TypeError
 
     def degree(self):
         return self._degree

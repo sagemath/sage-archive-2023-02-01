@@ -64,7 +64,7 @@ Base ring:
 """
 
 ####################################################################################
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -174,6 +174,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         sage: M = ZZ^200
         sage: type(M.0)
         <type 'sage.modules.free_module_element.FreeModuleElement_generic_dense'>
+
 
     Note that matrices associated in some way to sparse free modules
     are sparse by default:
@@ -347,21 +348,15 @@ class FreeModule_generic(module.Module):
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
 
+    def _an_element_impl(self):
+        return self.zero_vector()
+
     def element_class(self):
         try:
             return self._element_class
         except AttributeError:
             pass
-        R = self.base_ring()
-        is_sparse = self.is_sparse()
-        if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
-            from vector_integer_dense import Vector_integer_dense
-            C = Vector_integer_dense
-        else:
-            if is_sparse:
-                C = free_module_element.FreeModuleElement_generic_sparse
-            else:
-                C = free_module_element.FreeModuleElement_generic_dense
+        C = element_class(self.base_ring(), self.is_sparse())
         self._element_class = C
         return C
 
@@ -2605,7 +2600,12 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
                             ambient.is_sparse(), inner_product_matrix=inner_product_matrix)
 
         C = self.element_class()
-        w = [C(self, x.list(),
+        try:
+            w = [C(self, x.list(),
+                          coerce=False, copy=True) for x in basis]
+        except TypeError:
+            C = element_class(R.fraction_field(), self.is_sparse())
+            w = [C(self, x.list(),
                           coerce=False, copy=True) for x in basis]
 
         self.__basis = basis_seq(self, w)
@@ -3491,3 +3491,18 @@ class ComplexDoubleVectorSpace_class(FreeModule_ambient_field):
 
     def coordinates(self,v):
         return v
+
+
+
+######################################################
+
+def element_class(R, is_sparse):
+    if False and sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
+        from vector_integer_dense import Vector_integer_dense
+        return Vector_integer_dense
+    else:
+        if is_sparse:
+            return free_module_element.FreeModuleElement_generic_sparse
+        else:
+            return free_module_element.FreeModuleElement_generic_dense
+    raise NotImplementedError

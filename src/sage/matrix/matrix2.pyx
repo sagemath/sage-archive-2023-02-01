@@ -1809,7 +1809,11 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('echelon_form')
         if not x is None:
             return x
-        E = self.copy()
+        R = self.base_ring()
+        if not (R == ZZ or R.is_field()):
+            E = self.matrix_over_field()
+        else:
+            E = self.copy()
         if algorithm == 'default':
             E.echelonize(cutoff=cutoff)
         else:
@@ -1851,7 +1855,7 @@ cdef class Matrix(matrix1.Matrix):
             return
 
         self.check_mutability()
-        cdef Matrix d
+        cdef Matrix A, d
 
         nr = self._nrows
         nc = self._ncols
@@ -1866,8 +1870,9 @@ cdef class Matrix(matrix1.Matrix):
                 self.cache('pivots', d.pivots())
                 return
             else:
-                raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()
-
+                A = self.matrix_over_field()
+        else:
+            A = self
 
         start_row = 0
         pivots = []
@@ -1875,21 +1880,24 @@ cdef class Matrix(matrix1.Matrix):
         for c from 0 <= c < nc:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for r from start_row <= r < nr:
-                if self.get_unsafe(r, c) != 0:
+                if A.get_unsafe(r, c) != 0:
                     pivots.append(c)
-                    a_inverse = ~self.get_unsafe(r,c)
-                    self.rescale_row(r, a_inverse, c)
-                    self.swap_rows(r, start_row)
+                    a_inverse = ~A.get_unsafe(r,c)
+                    A.rescale_row(r, a_inverse, c)
+                    A.swap_rows(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
-                            if self.get_unsafe(i,c) != 0:
-                                minus_b = -self.get_unsafe(i, c)
-                                self.add_multiple_of_row(i, start_row, minus_b, c)
+                            if A.get_unsafe(i,c) != 0:
+                                minus_b = -A.get_unsafe(i, c)
+                                A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
                     break
         self.cache('pivots', pivots)
-        self.cache('in_echelon_form', True)
-        verbose('done with gauss', tm)
+        A.cache('pivots', pivots)
+        A.cache('in_echelon_form', True)
+        self.cache('echelon_form', A)
+
+        verbose('done with gauss echelon form', tm)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon

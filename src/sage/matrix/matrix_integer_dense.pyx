@@ -631,13 +631,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, self._parent, None, None, None)
 
         _sig_on
-
         cdef mpz_t *row_self, *row_right, *row_ans
         for i from 0 <= i < self._nrows:
             row_self = self._matrix[i]
             row_right = (<Matrix_integer_dense> right)._matrix[i]
             row_ans = M._matrix[i]
             for j from 0 <= j < self._ncols:
+                mpz_init(row_ans[j])
                 mpz_sub(row_ans[j], row_self[j], row_right[j])
         _sig_off
         return M

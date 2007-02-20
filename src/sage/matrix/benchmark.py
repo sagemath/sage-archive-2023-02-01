@@ -34,6 +34,11 @@ def report(F, title):
 #######################################################################
 
 def report_ZZ():
+    """
+    Reports all the benchmarks for integer matrices and few
+    rational matrices.
+    TODO: Probably I should start report_QQ as well.
+    """
     F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
          matrix_multiply_ZZ, det_ZZ, det_QQ]
     title = 'Dense benchmarks over ZZ'
@@ -293,6 +298,13 @@ s := Cputime(t);
 #######################################################################
 
 def report_GF(p=16411):
+    """
+    Runs all the reports for finite field matrix operations, for
+    prime p=16411.
+    Note: right now, even though p is an input, it is being ignored!
+    If you need to check the performance for other primes, you can
+    call individual benchmark functions.
+    """
     F = [rank_GF, rank2_GF, nullspace_GF, charpoly_GF,
          matrix_multiply_GF, det_GF]
     title = 'Dense benchmarks over GF with prime %i' % p
@@ -498,11 +510,14 @@ s := Cputime(t);
 #######################################################################
 
 def hilbert_matrix(n):
-  A = Matrix(QQ,n,n)
-  for i in range(A.nrows()):
-      for j in range(A.ncols()):
-          A[i,j] =  QQ(1)/((i+1)+(j+1)-1)
-  return A
+    """
+    Retruns the hilber matrix of size n over rationals.
+    """
+    A = Matrix(QQ,n,n)
+    for i in range(A.nrows()):
+        for j in range(A.ncols()):
+            A[i,j] =  QQ(1)/((i+1)+(j+1)-1)
+    return A
 
 # Reduced row echelon form over QQ
 
@@ -592,6 +607,10 @@ s := Cputime(t);
 
 # Determinant of Hilbert matrix
 def det_hilbert_QQ(n=80, system='sage'):
+    """
+    Runs the benchmark for calculating the determinant of the hilbert
+    matrix over rationals of dimension n.
+    """
     if system == 'sage':
         A = hilbert_matrix(n)
         t = cputime()
@@ -611,6 +630,10 @@ delete h;
 
 # inverse of Hilbert matrix
 def invert_hilbert_QQ(n=40, system='sage'):
+    """
+    Runs the benchmark for calculating the inverse of the hilbert
+    matrix over rationals of dimension n.
+    """
     if system == 'sage':
         A = hilbert_matrix(n)
         t = cputime()
@@ -634,12 +657,6 @@ delete h;
 # Note that the precision in reals for MAGMA is base 10, while in
 # sage it is in base 2
 #######################################################################
-
-def report_RR():
-    F = [rank_RR, rank2_RR, nullspace_RR, charpoly_RR, smithform_RR,
-         matrix_multiply_RR, det_RR]
-    title = 'Dense benchmarks over RR'
-    report(F, title)
 
 # Real Nullspace
 

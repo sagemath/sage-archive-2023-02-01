@@ -13,3 +13,4 @@ from ode import ode_system
 from probability_distribution import RealDistribution
 from integration import numerical_integral
 integral_numerical = numerical_integral
+from probability_distribution import SphericalDistribution

@@ -79,12 +79,13 @@ coerce = sage.structure.coerce.Coerce()
 from sage.structure.sequence import Sequence
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
-from sage.matrix.matrix cimport Matrix
 
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
 import sage.rings.integer_ring
+
+#from sage.matrix.matrix cimport Matrix
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)

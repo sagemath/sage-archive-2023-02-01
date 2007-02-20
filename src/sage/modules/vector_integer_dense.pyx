@@ -39,7 +39,7 @@ We make a large zero vector:
 include '../ext/interrupt.pxi'
 include '../ext/stdsage.pxi'
 
-from sage.structure.element cimport ModuleElement, RingElement, Vector
+from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 from sage.rings.integer cimport Integer
 
@@ -95,6 +95,32 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
             for i from 0 <= i < self._degree:
                 mpz_clear(self._entries[i])
             sage_free(self._entries)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
+        """
+        EXAMPLES:
+            sage: v = vector(ZZ, [0,0,0,0])
+            sage: v == 0
+            True
+            sage: v == 1
+            False
+            sage: v == v
+            True
+            sage: w = vector(ZZ, [-1,0,0,0])
+            sage: w < v
+            True
+            sage: w > v
+            False
+        """
+        cdef Py_ssize_t i
+        cdef int c
+        for i from 0 <= i < left.degree():
+            c = mpz_cmp(left._entries[i], (<Vector_integer_dense>right)._entries[i])
+            if c < 0:
+                return -1
+            elif c > 0:
+                return 1
+        return 0
 
     def __len__(self):
         return self._degree

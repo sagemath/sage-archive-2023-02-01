@@ -2,7 +2,7 @@ from sage.all import *
 
 verbose = False
 
-timeout = 5
+timeout = 10
 
 def report(F, title):
     systems = ['sage', 'magma']
@@ -25,7 +25,9 @@ def report(F, title):
                 t = -timeout
             alarm(0)
             w.append(t)
+        w.append(w[0]/w[1])
         w = tuple(w)
+
         print ('%15.3f'*len(w))%w
 
 
@@ -34,8 +36,8 @@ def report(F, title):
 #######################################################################
 
 def report_ZZ():
-    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
-         matrix_multiply_ZZ, det_ZZ, det_QQ]
+    F = [vecmat_ZZ, rank_ZZ, rank2_ZZ, charpoly_ZZ, smithform_ZZ,
+         det_ZZ, det_QQ, matrix_multiply_ZZ, nullspace_ZZ]
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
@@ -255,12 +257,13 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
-def matvec_ZZ(n=500, system='sage', min=-9, max=9, times=1):
+def vecmat_ZZ(n=500, system='sage', min=-9, max=9, times=200):
     """
-    Matrix vector multiplication over ZZ.
+    Vector matrix multiplication over ZZ.
 
     Given an n x n (with n=500) matrix A over ZZ with random entries
-    between min=-9 and max=9, inclusive, compute A * (A+1).
+    between min=-9 and max=9, inclusive, and v the first row of A,
+    compute the product v * A  200 times.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n, n, x=min, y=max+1)

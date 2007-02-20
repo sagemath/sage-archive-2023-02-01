@@ -16,15 +16,12 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-import strassen
-
 from   sage.structure.sequence import _combinations, Sequence
 from   sage.misc.misc import verbose, get_verbose
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
 
 import sage.modules.free_module
-import matrix_window
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -1118,6 +1115,14 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module()
 
+    def _row_ambient_module(self):
+        x = self.fetch('row_ambient_module')
+        if not x is None:
+            return x
+        x = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+        self.cache('row_ambient_module',x)
+        return x
+
     def row_module(self):
         """
         Return the free module over the base ring spanned by the rows
@@ -1131,7 +1136,7 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [0 2]
         """
-        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+        M = self._row_ambient_module()
         return M.span(self.rows())
 
     def row_space(self):
@@ -1151,6 +1156,15 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module()
 
+
+    def _column_ambient_module(self):
+        x = self.fetch('column_ambient_module')
+        if not x is None:
+            return x
+        x = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
+                                                sparse=self.is_sparse())
+        self.cache('column_ambient_module',x)
+        return x
 
     def column_module(self):
         """
@@ -1943,6 +1957,8 @@ cdef class Matrix(matrix1.Matrix):
         right_window  = right.matrix_window()
         output_window = output.matrix_window()
 
+
+        import strassen
         strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
@@ -1980,6 +1996,7 @@ cdef class Matrix(matrix1.Matrix):
             self._echelon_in_place_classical()
             return
 
+        import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         verbose('done with strassen', tm)
@@ -2001,6 +2018,7 @@ cdef class Matrix(matrix1.Matrix):
 
     cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
                          Py_ssize_t nrows, Py_ssize_t ncols):
+        import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
             ncols = self._ncols - col

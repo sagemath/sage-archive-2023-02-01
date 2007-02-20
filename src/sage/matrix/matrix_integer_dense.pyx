@@ -32,7 +32,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ######################################################################
 
-#cimport sage.modules.vector_integer_dense
+from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
@@ -56,6 +56,7 @@ from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
 
 import sage.modules.free_module
+import sage.modules.free_module_element
 
 from matrix cimport Matrix
 
@@ -72,7 +73,7 @@ linbox = Linbox_integer_dense()
 
 # Off since it is still flakie on some platforms (e.g., 64-bit linux,
 # 32-bit debian linux, etc.)
-USE_LINBOX_POLY = False
+USE_LINBOX_POLY = True
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -690,9 +691,23 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: w*B
             (14, 18)
         """
-        return v
-        #import misc
-        #return misc.matrix_integer_dense_matvec(self, v)
+        cdef Vector_integer_dense w, ans
+        cdef Py_ssize_t i, j
+        cdef mpz_t x
+
+        M = self._row_ambient_module()
+        w = <Vector_integer_dense> v
+        ans = M.zero_vector()
+
+        mpz_init(x)
+        for i from 0 <= i < self._ncols:
+            mpz_set_si(x, 0)
+            for j from 0 <= j < self._nrows:
+                mpz_addmul(x, w._entries[j], self._matrix[j][i])
+            mpz_set(ans._entries[i], x)
+        mpz_clear(x)
+        return ans
+
 
     ########################################################################
     # LEVEL 3 functionality (Optional)

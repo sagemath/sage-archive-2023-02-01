@@ -40,9 +40,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-import strassen
-import matrix_window
-
 
 
 cdef class Matrix(sage.structure.element.Matrix):

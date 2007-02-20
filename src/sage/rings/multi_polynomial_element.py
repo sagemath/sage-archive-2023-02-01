@@ -744,7 +744,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         no ring 'ring' is provided.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x, y> = MPolynomialRing(ZZ,2,'xy')
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
@@ -756,9 +756,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             700*x^2 - 2*x + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
-            sage: R = PolynomialRing(QQ,'w')
-            sage: R(g)
-            700*w^2 - 2*w + 305
         """
         if not self.is_univariate():
             raise TypeError, "polynomial must involve at most one variable"

@@ -1,10 +1,14 @@
+#include <iostream>
+#include <gmp.h>
+#include "linbox_wrap.h"
+
+
+
 
 /*************************************************************************
    dense modulo Z/nZ
 *************************************************************************/
 
-#include <iostream>
-#include <gmp.h>
 #include <linbox/integer.h>
 #include <linbox/matrix/blas-matrix.h>
 #include <linbox/algorithms/blas-domain.h>
@@ -15,8 +19,6 @@
 #include <linbox/solutions/charpoly.h>
 #include <linbox/ring/givaro-polynomial.h>
 #include <linbox/field/modular.h>
-
-#include "linbox_wrap.h"
 
 using namespace LinBox;
 using namespace std;
@@ -227,6 +229,31 @@ int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod
 
 
 
+
+/*************************************************************************
+   sparse modulo Z/nZ
+*************************************************************************/
+
+
+int linbox_modn_sparse_rank(mod_int modulus,
+			   mod_int** matrix, size_t nrows, size_t ncols) {
+
+  /*    typedef Modular<double> Field;
+    Field F(modulus);
+    SparseMatrix<Field, Vector<Field>::SparseSeq > B (ms);
+
+    mod_int* row;
+    for (size_t i=0; i < nrows; i++) {
+	row = matrix[i];
+	for (size_t j=0; j < ncols; j++)
+	    A.setEntry(i, j, (double)row[j]);
+	}
+
+    unsigned long r;
+    rank(r, A);
+    return r;
+  */
+}
 
 
 

@@ -424,7 +424,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
-            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
+            if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < 46340: # matrix_modn_dense.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
             # the default
             return matrix_generic_sparse.Matrix_generic_sparse

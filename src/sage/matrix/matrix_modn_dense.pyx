@@ -76,7 +76,8 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
-MAX_MODULUS = 46340
+import sage.ext.multi_modular
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
 import matrix_window_modn_dense
 
@@ -131,8 +132,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int p
         p = self._base_ring.characteristic()
         self.p = p
-        if p >= MOD_INT_MAX:
-            raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
+        if p >= MAX_MODULUS:
+            raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
         self.gather = MOD_INT_OVERFLOW/(p*p)
 
         _sig_on

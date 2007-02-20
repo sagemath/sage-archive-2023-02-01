@@ -16,6 +16,8 @@ This file gathers together all the tables in SAGE.
 
     * Sloane's tables -- sloane_sequence, sloane_find
 
+    * SymbolicData() -- many benchmark and testing ideals
+
     * Linear codes -- linear_code_bound
 
 EXAMPLES:
@@ -33,6 +35,9 @@ EXAMPLES:
 
     sage: SteinWatkinsDatabase()
     The Stein-Watkins database of elliptic curves
+
+    sage: SymbolicData()
+    SymbolicData with 372 ideals
 
 """
 
@@ -70,6 +75,8 @@ from stein_watkins import SteinWatkinsAllData, SteinWatkinsPrimeData
 from install import database_install
 
 from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
+
+from symbolic_data import SymbolicData
 
 from lincodes import linear_code_bound
 

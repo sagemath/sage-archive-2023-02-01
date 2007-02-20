@@ -300,6 +300,8 @@ class PermutationGroup_generic(group.FiniteGroup):
                 return x
             elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
                 return PermutationGroupElement(x._gap_(), self, check = False)
+            else:
+                raise TypeError
         else:
             raise TypeError
 

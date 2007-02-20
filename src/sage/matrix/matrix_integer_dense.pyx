@@ -544,23 +544,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
-
-        if False:
-            return self._multiply_classical(right)
-        else:
-            return self._multiply_multi_modular(right)
-
-        # NOTE -- the multimodular matrix multiply implementation
-        # breaks on 64-bit machines; e..g, the following doctests
-        # *all* fail if multimodular matrix multiply is enabled
-        # on sage.math.washington.edu:
-
-        #sage -t  devel/sage-main/sage/modular/modsym/modsym.py
-        #sage -t  devel/sage-main/sage/modular/modsym/space.py
-        #sage -t  devel/sage-main/sage/modular/modsym/subspace.py
-        #sage -t  devel/sage-main/sage/modular/hecke/hecke_operator.py
-        #sage -t  devel/sage-main/sage/modular/hecke/module.py
-
         #############
         # see the tune_multiplication function below.
         n = max(self._nrows, self._ncols, right._nrows, right._ncols)
@@ -573,6 +556,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             return self._multiply_classical(right)
         else:
             return self._multiply_multi_modular(right)
+
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
@@ -1418,7 +1402,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _linbox_sparse(self):
         cdef Py_ssize_t i, j
-        v = ['%s %s +'%(self._nrows, self._ncols)]
+        v = ['%s %s M'%(self._nrows, self._ncols)]
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if mpz_cmp_si(self._matrix[i][j], 0):

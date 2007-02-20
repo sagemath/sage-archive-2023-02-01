@@ -161,21 +161,22 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init_set(A._entries[i], self._entries[i])
         _sig_off
+        A._initialized = True
         return A
 
-    def  __dealloc__(self):
+    def __dealloc__(self):
         """
         Frees all the memory allocated for this matrix.
         EXAMPLE:
             sage: a = Matrix(ZZ,2,[1,2,3,4])
             sage: del a
         """
-        if self._entries == NULL: return
         cdef Py_ssize_t i
-        for i from 0 <= i < (self._nrows * self._ncols):
-            mpz_clear(self._entries[i])
-        sage_free(self._entries)
-        sage_free(self._matrix)
+        if self._initialized:
+            for i from 0 <= i < (self._nrows * self._ncols):
+                mpz_clear(self._entries[i])
+            sage_free(self._entries)
+            sage_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
         r"""
@@ -255,6 +256,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             # Create the matrix whose entries are in the given entry list.
             if len(entries) != self._nrows * self._ncols:
+                sage_free(self._entries)
+                sage_free(self._matrix)
+                self._entries = NULL
                 raise TypeError, "entries has the wrong length"
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
@@ -263,11 +267,12 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     # todo -- see integer.pyx and the TODO there; perhaps this could be
                     # sped up by creating a mpz_init_set_sage function.
                     mpz_init_set(self._entries[i], x.value)
+                self._initialized = True
             else:
                 for i from 0 <= i < self._nrows * self._ncols:
                     # TODO: Should use an unsafe un-bounds-checked array access here.
                     mpz_init_set(self._entries[i], (<Integer> entries[i]).value)
-
+                self._initialized = True
         else:
 
             # If x is zero, make the zero matrix and be done.
@@ -288,7 +293,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             for i from 0 <= i < self._nrows:
                 mpz_init_set(self._entries[j], x.value)
                 j = j + self._nrows + 1
-
+            self._initialized = True
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         """
@@ -397,6 +402,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             s = data[i]
             if mpz_init_set_str(self._entries[i], s, 32):
                 raise RuntimeError, "invalid pickle data"
+        self._initialized = True
 
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
@@ -422,6 +428,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(self._entries[i])
         _sig_off
+        self._initialized = True
 
     cdef _new_unitialized_matrix(self, Py_ssize_t nrows, Py_ssize_t ncols):
         """
@@ -530,6 +537,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         mpz_clear(s)
         mpz_clear(z)
+        M._initialized = True
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
@@ -577,6 +585,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         for i from 0 <= i < self._nrows * self._ncols:
             mpz_init(M._entries[i])
             mpz_mul(M._entries[i], self._entries[i], _x.value)
+        M._initialized = True
         return M
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
@@ -611,6 +620,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mpz_init(row_ans[j])
                 mpz_add(row_ans[j], row_self[j], row_right[j])
         _sig_off
+        M._initialized = True
         return M
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -640,6 +650,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 mpz_init(row_ans[j])
                 mpz_sub(row_ans[j], row_self[j], row_right[j])
         _sig_off
+        M._initialized = True
         return M
 
 

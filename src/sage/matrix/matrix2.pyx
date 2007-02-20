@@ -1737,10 +1737,9 @@ cdef class Matrix(matrix1.Matrix):
         base extend to the fraction field, if that is what you want.
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
-            sage: a.echelonize()
-            Traceback (most recent call last):
-            ...
-            ValueError: echelon form not implemented for elements of 'Full MatrixSpace of 2 by 2 dense matrices over Polynomial Ring in x, y over Rational Field'
+            sage: a.echelon_form()
+            [  1 y/x]
+            [  0   0]
             sage: b = a.change_ring(R.fraction_field())
             sage: b.echelon_form()
             [  1 y/x]
@@ -1811,7 +1810,10 @@ cdef class Matrix(matrix1.Matrix):
             return x
         R = self.base_ring()
         if not (R == ZZ or R.is_field()):
-            E = self.matrix_over_field()
+            try:
+                E = self.matrix_over_field()
+            except TypeError:
+                raise NotImplementedError, "Echelon form not implemented over '%s'."%R
         else:
             E = self.copy()
         if algorithm == 'default':

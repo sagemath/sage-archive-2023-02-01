@@ -79,7 +79,7 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         # we have to do this to avoid a garbage collection error in dealloc
         for i from 0 <= i < self._degree:
             mpz_init(self._entries[i])
-        if isinstance(x, list):
+        if isinstance(x, (list, tuple)):
             if len(x) != self._degree:
                 raise TypeError, "x must be a list of the right length"
             for i from 0 <= i < self._degree:

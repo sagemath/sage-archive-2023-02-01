@@ -16,6 +16,7 @@ cdef extern from "stdio.h":
 
 from matrix0 cimport Matrix
 from matrix_modn_dense cimport Matrix_modn_dense
+from matrix_modn_sparse cimport Matrix_modn_sparse
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_rational_dense cimport Matrix_rational_dense
 import matrix_modn_dense
@@ -57,6 +58,40 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
         for j from 0 <= j < A._ncols:
             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
     return R
+
+
+
+def matrix_modn_sparse_lift(Matrix_modn_sparse A):
+    raise NotImplementedError
+    cdef Py_ssize_t i, j
+    cdef Matrix_integer_sparse L
+    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
+                                     A.parent().change_ring(ZZ),
+                                     0, 0, 0)
+    cdef mpz_t* L_row
+    cdef mod_int* A_row
+    for i from 0 <= i < A._nrows:
+        L_row = L._matrix[i]
+        A_row = A._matrix[i]
+        for j from 0 <= j < A._ncols:
+            mpz_init_set_si(L_row[j], A_row[j])
+    L._initialized = 1
+    return L
+
+def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
+    raise NotImplementedError
+    cdef Matrix_rational_sparse R
+    R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
+                                      A.parent().change_ring(QQ), 0,0,0)
+
+    cdef mpz_t denom   # lcm of denoms so far
+    for i from 0 <= i < A._nrows:
+        for j from 0 <= j < A._ncols:
+            mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+    return R
+
+
+
 
 def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, proof=True):
     """
@@ -177,6 +212,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         prod = 1
         for i in range(len(X)):
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
+                ## TODO -- that dense assmumption *must* not be made below!!
                 Y.append((matrix_modn_dense_lift(X[i]), X[i].base_ring().order()))
                 prod = prod * X[i].base_ring().order()
         try:

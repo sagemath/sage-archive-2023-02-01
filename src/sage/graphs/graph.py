@@ -12,7 +12,7 @@ AUTHOR:
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
         graph6 helper functions in SageX
-                        SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon,
+                        SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon
 
 TUTORIAL:
 
@@ -1516,10 +1516,10 @@ class Graph(GenericGraph):
         a representation of the graph.
 
         INPUT:
-            bgcolor -- background color
-            vertex_color -- vertex color
-            edge_color -- edge color
-            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+            bgcolor
+            vertex_color
+            edge_color
+            pos3d -- a position dictionary for the vertices
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph()
@@ -1532,47 +1532,8 @@ class Graph(GenericGraph):
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
         """
-        import networkx
-        from math import sqrt
-        from sage.plot.tachyon import Tachyon
-        c = [0,0,0]
-        r = []
-        verts = self.vertices()
-        pos3d = networkx.spring_layout(self._nxg, dim=3) # to be replaced by comment blocks 1, 2 below
-        #spring = False # block 1
-        #if pos3d is None:
-        #    spring = True
-        #    pos3d = networkx.spring_layout(self._nxg, dim=3)
-        for v in verts:
-            c[0] += pos3d[v][0]
-            c[1] += pos3d[v][1]
-            c[2] += pos3d[v][2]
-        order = self.order()
-        c[0] = c[0]/order
-        c[1] = c[1]/order
-        c[2] = c[2]/order
-        for v in verts:
-            pos3d[v][0] = pos3d[v][0] - c[0]
-            pos3d[v][1] = pos3d[v][1] - c[1]
-            pos3d[v][2] = pos3d[v][2] - c[2]
-            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
-        r = max(r)
-        for v in verts:
-            pos3d[v][0] = pos3d[v][0]/r
-            pos3d[v][1] = pos3d[v][1]/r
-            pos3d[v][2] = pos3d[v][2]/r
-        #if not spring: # block 2
-        #    for v in verts:
-        #        if not v in pos3d:
-        #            pass### place node randomly inside B_1(origin)
-        TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
-        TT.light((4,3,2), 0.02, (1,1,1))
-        TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=pos3d)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
-        TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
-        TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
-        for v in verts:
-            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
         for u,v,l in self.edges():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
@@ -2741,16 +2702,16 @@ class DiGraph(GenericGraph):
             return BGG
         return GG
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
+    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
 
         INPUT:
-            bgcolor -- background color
-            vertex_color -- vertex color
-            edge_color -- edge color
-            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+            bgcolor
+            vertex_color
+            arc_color
+            pos3d -- a position dictionary for the vertices
 
         NOTE:
             The weaknesses of the NetworkX spring layout are illustrated even further in the
@@ -2771,49 +2732,15 @@ class DiGraph(GenericGraph):
             # However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
-        import networkx
-        from math import sqrt
-        from sage.plot.tachyon import Tachyon
-        c = [0,0,0]
-        r = []
-        verts = self.vertices()
-        #pos3d = networkx.spring_layout(self._nxg, dim=3)
-        spring = False
-        if pos3d is None:
-            pos3d = networkx.spring_layout(self._nxg, dim=3)
-        for v in verts:
-            c[0] += pos3d[v][0]
-            c[1] += pos3d[v][1]
-            c[2] += pos3d[v][2]
-        order = self.order()
-        c[0] = c[0]/order
-        c[1] = c[1]/order
-        c[2] = c[2]/order
-        for v in verts:
-            pos3d[v][0] = pos3d[v][0] - c[0]
-            pos3d[v][1] = pos3d[v][1] - c[1]
-            pos3d[v][2] = pos3d[v][2] - c[2]
-            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
-        r = max(r)
-        for v in verts:
-            pos3d[v][0] = pos3d[v][0]/r
-            pos3d[v][1] = pos3d[v][1]/r
-            pos3d[v][2] = pos3d[v][2]/r
-        TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
-        TT.light((4,3,2), 0.02, (1,1,1))
-        TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
-        TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
-        TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
-        TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
-        for v in verts:
-            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=pos3d)
+        TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
         for u,v,l in self.arcs():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'arc')
             TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
                            0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
                            0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'edge')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
         return TT
 
     def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
@@ -2882,9 +2809,47 @@ class DiGraph(GenericGraph):
             # However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
-        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
-
+def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
+    import networkx
+    from math import sqrt
+    from sage.plot.tachyon import Tachyon
+    c = [0,0,0]
+    r = []
+    verts = g.vertices()
+    spring = False
+    if pos3d is None: # TODO: in case all the vertices are not specified?
+        pos3d = networkx.spring_layout(g._nxg, dim=3)
+    try:
+        for v in verts:
+            c[0] += pos3d[v][0]
+            c[1] += pos3d[v][1]
+            c[2] += pos3d[v][2]
+    except KeyError:
+        raise KeyError, "Oops! You haven't specified positions for all the vertices."
+    order = g.order()
+    c[0] = c[0]/order
+    c[1] = c[1]/order
+    c[2] = c[2]/order
+    for v in verts:
+        pos3d[v][0] = pos3d[v][0] - c[0]
+        pos3d[v][1] = pos3d[v][1] - c[1]
+        pos3d[v][2] = pos3d[v][2] - c[2]
+        r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
+    r = max(r)
+    for v in verts:
+        pos3d[v][0] = pos3d[v][0]/r
+        pos3d[v][1] = pos3d[v][1]/r
+        pos3d[v][2] = pos3d[v][2]/r
+    TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
+    TT.light((4,3,2), 0.02, (1,1,1))
+    TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
+    TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
+    TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
+    for v in verts:
+        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+    return TT, pos3d
 
 
 

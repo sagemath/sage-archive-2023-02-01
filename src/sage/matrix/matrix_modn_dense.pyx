@@ -304,6 +304,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if get_verbose() >= 2:
+            verbose('mod-p multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
         if self._will_use_strassen(right):
             return self._multiply_strassen(right)
         else:

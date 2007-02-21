@@ -18,6 +18,7 @@ from sage.functions.constants import Constant
 import sage.functions.constants as c
 
 from sage.calculus.equations import SymbolicEquation
+from sage.rings.complex_number import ComplexNumber
 
 import pdb
 
@@ -42,7 +43,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x):
             return SymbolicPolynomial(x)
-        elif isinstance(x, (Constant, Integer, int, Rational)):
+        elif isinstance(x, (Constant, Integer, int, Rational, ComplexNumber)):
             return Constant_object(x)
         else:
             # we really want to raise a type error, here
@@ -444,6 +445,11 @@ class CallableFunction(RingElement):
             self._varlist = args
             self._expr = expr
 
+        def __float__(self):
+            if len(self._varlist) != 1:
+                raise TypeError, "Cannot coerce %s to a float" % self
+
+            else return
 
     # TODO: should len(args) == len(vars)?
     def __call__(self, *args):
@@ -1155,9 +1161,7 @@ def symbolic_expression_from_maxima_string(x):
     s = maxima.eval('_tmp_')
     for x, y in symtable.iteritems():
         s = s.replace(x, y)
-    #print _syms
     return SymbolicExpressionRing(sage_eval(s, _syms))
 
 def symbolic_expression_from_maxima_element(x):
     return symbolic_expression_from_maxima_string(x.name())
-

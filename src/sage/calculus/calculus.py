@@ -449,7 +449,7 @@ class CallableFunction(RingElement):
             if len(self._varlist) != 1:
                 raise TypeError, "Cannot coerce %s to a float" % self
 
-            else return
+            else: return self
 
     # TODO: should len(args) == len(vars)?
     def __call__(self, *args):

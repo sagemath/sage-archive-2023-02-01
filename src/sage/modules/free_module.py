@@ -3500,6 +3500,9 @@ def element_class(R, is_sparse):
     if sage.rings.integer_ring.is_IntegerRing(R) and not is_sparse:
         from vector_integer_dense import Vector_integer_dense
         return Vector_integer_dense
+    elif sage.rings.rational_field.is_RationalField(R) and not is_sparse:
+        from vector_rational_dense import Vector_rational_dense
+        return Vector_rational_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

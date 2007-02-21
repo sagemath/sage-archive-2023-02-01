@@ -11,9 +11,9 @@
 
 #include <linbox/integer.h>
 #include <linbox/matrix/blas-matrix.h>
-#include <linbox/matrix/matrix-domain.h>
+#include <linbox/algorithms/blas-domain.h>
 #include <linbox/field/gmp-rational.h>
-#include <linbox/blackbox/dense.h>
+#include <linbox/matrix/blas-matrix.h>
 #include <linbox/algorithms/echelon-form.h>
 #include <linbox/solutions/minpoly.h>
 #include <linbox/solutions/charpoly.h>
@@ -22,6 +22,8 @@
 
 using namespace LinBox;
 using namespace std;
+
+#define DISABLE_COMMENTATOR
 
 #include "linbox/util/commentator.h"
 
@@ -51,8 +53,8 @@ int linbox_modn_dense_echelonize(mod_int modulus,
 
     ModInt F((double)modulus);
     EchelonFormDomain< ModInt > EF(F);
-    DenseMatrix<ModInt> A(F, nrows, ncols);
-    DenseMatrix<ModInt> E(F, nrows, ncols);
+    BlasMatrix<ModInt::Element> A( nrows, ncols);
+    BlasMatrix<ModInt::Element> E( nrows, ncols);
 
     mod_int* row;
     for (size_t i=0; i < nrows; i++) {
@@ -153,7 +155,7 @@ static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int modulus, mod_int** mat
 
     ModInt F((double)modulus);
 
-    DenseMatrix<ModInt> A (F, nrows, ncols);
+    DenseMatrix<ModInt> A ( F, nrows, ncols);
 
     size_t i, j, k;
     for (i=0; i < nrows; i++) {
@@ -164,7 +166,7 @@ static DenseMatrix<ModInt> linbox_new_modn_matrix(mod_int modulus, mod_int** mat
     return A;
 };
 
-static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, size_t nrows, size_t ncols) {
+static void linbox_set_modn_matrix(mod_int** matrix, BlasMatrix<ModInt::Element>& A, size_t nrows, size_t ncols) {
     size_t i, j, k;
     for (i=0; i < nrows; i++) {
 	for (j=0; j < ncols; j++) {
@@ -177,49 +179,50 @@ static void linbox_set_modn_matrix(mod_int** matrix, DenseMatrix<ModInt>& A, siz
     Modular<int> versions of everything: much faster for this.
 **********************************************************************/
 
-typedef Modular<int> Mod_int;
+//typedef Modular<int> Mod_int;
+//typedef Modular<double> Mod_int;
 
-static DenseMatrix<Mod_int> linbox_new_modn_matrix2(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols) {
+// static DenseMatrix<Mod_int> linbox_new_modn_matrix2(mod_int modulus, mod_int** matrix, size_t nrows, size_t ncols) {
 
-    Mod_int F((double)modulus);
+//   Mod_int F((double)modulus);
 
-    DenseMatrix<Mod_int> A (F, nrows, ncols);
+//     DenseMatrix<Mod_int> A ( F, nrows, ncols);
 
-    size_t i, j, k;
-    for (i=0; i < nrows; i++) {
-	for (j=0; j < ncols; j++) {
-	    A.setEntry(i, j, matrix[i][j]);
-	}
-    }
-    return A;
-};
+//     size_t i, j, k;
+//     for (i=0; i < nrows; i++) {
+// 	for (j=0; j < ncols; j++) {
+// 	    A.setEntry(i, j, matrix[i][j]);
+// 	}
+//     }
+//     return A;
+// };
 
-static void linbox_set_modn_matrix2(mod_int** matrix, DenseMatrix<Mod_int>& A, size_t nrows, size_t ncols) {
-    size_t i, j, k;
-    for (i=0; i < nrows; i++) {
-	for (j=0; j < ncols; j++) {
-	    matrix[i][j] = (mod_int)A.getEntry(i,j);
-	}
-    }
-};
+// static void linbox_set_modn_matrix2(mod_int** matrix, BlasMatrix<Mod_int::Element>& A, size_t nrows, size_t ncols) {
+//     size_t i, j, k;
+//     for (i=0; i < nrows; i++) {
+// 	for (j=0; j < ncols; j++) {
+// 	    matrix[i][j] = (mod_int)A.getEntry(i,j);
+// 	}
+//     }
+// };
 
 int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod_int **A, mod_int **B,
 					     size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc)
 {
 
-    Mod_int F(modulus);
+    ModInt F((double)modulus);
 
-    DenseMatrix<Mod_int> AA(linbox_new_modn_matrix2(modulus, A, A_nr, A_nc));
-    DenseMatrix<Mod_int> BB(linbox_new_modn_matrix2(modulus, B, B_nr, B_nc));
+    BlasMatrix<ModInt::Element> AA(linbox_new_modn_matrix(modulus, A, A_nr, A_nc));
+    BlasMatrix<ModInt::Element> BB(linbox_new_modn_matrix(modulus, B, B_nr, B_nc));
     if (A_nc != B_nr)
 	return -1;   // error
-    DenseMatrix<Mod_int> CC(F, A_nr, B_nc);
+    BlasMatrix<ModInt::Element> CC( A_nr, B_nc);
 
-    MatrixDomain<Mod_int> MD(F);
+    BlasMatrixDomain<ModInt> MD(F);
 
     MD.mul(CC, AA, BB);
 
-    linbox_set_modn_matrix2(ans, CC, A_nr, B_nc);
+    linbox_set_modn_matrix(ans, CC, A_nr, B_nc);
 
     return 0;
 }
@@ -263,7 +266,7 @@ int linbox_modn_sparse_rank(mod_int modulus,
 #include<iostream>
 
 #include <linbox/integer.h>
-#include <linbox/matrix/matrix-domain.h>
+
 #include "linbox/field/gmp-integers.h"
 #include "linbox/solutions/rank.h"
 #include "linbox/solutions/minpoly.h"
@@ -287,12 +290,12 @@ void printPolynomial (const Field &F, const Polynomial &v)
         cout << endl;
 }
 
- GMP_Integers ZZ;
- SpyInteger spy;
- typedef GivPolynomialRing<GMP_Integers,Dense> IntPolRing;
+GMP_Integers ZZ;
+SpyInteger spy;
+typedef GivPolynomialRing<GMP_Integers,Dense> IntPolRing;
 
- DenseMatrix<GMP_Integers> new_matrix(mpz_t** matrix, size_t nrows, size_t ncols) {
-     DenseMatrix<GMP_Integers> A (ZZ, nrows, ncols);
+DenseMatrix<GMP_Integers> new_matrix(mpz_t** matrix, size_t nrows, size_t ncols) {
+  DenseMatrix<GMP_Integers> A ( ZZ, nrows, ncols);
 
      size_t i, j, k;
      for (i=0; i < nrows; i++) {
@@ -305,9 +308,9 @@ void printPolynomial (const Field &F, const Polynomial &v)
      return A;
  }
 
- DenseMatrix<Integers> new_matrix_integers(mpz_t** matrix, size_t nrows, size_t ncols) {
+DenseMatrix<Integers> new_matrix_integers(mpz_t** matrix, size_t nrows, size_t ncols) {
      Integers ZZ;
-     DenseMatrix<Integers> A (ZZ, nrows, ncols);
+     DenseMatrix<Integers> A ( ZZ,nrows, ncols);
 
      size_t i, j, k;
      for (i=0; i < nrows; i++) {
@@ -320,8 +323,8 @@ void printPolynomial (const Field &F, const Polynomial &v)
      return A;
  }
 
-template<class Field>
-void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncols) {
+template<class Element>
+void set_matrix(mpz_t** matrix, BlasMatrix<Element>& A, size_t nrows, size_t ncols) {
      size_t i, j, k;
      for (i=0; i < nrows; i++) {
 	 for (j=0; j < ncols; j++) {
@@ -341,7 +344,7 @@ void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncol
 	 m = n;
      }
 
-     DenseMatrix<GMP_Integers> A(ZZ, m, m);
+     DenseMatrix<GMP_Integers> A( ZZ, m, m);
 
      size_t i, j;
      GMP_Integers::Element t;
@@ -415,7 +418,7 @@ void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncol
      /* THIS IS Broken when n % 4 == 0!!!!  Use above function instead. */
    /*    linbox_integer_dense_minpoly(mp, degree, n, matrix, 0); */
 
-     DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
+   DenseMatrix<GMP_Integers> A(new_matrix(matrix, n, n));
      IntPolRing::Element m_A;
      minpoly(m_A, A);
 
@@ -438,11 +441,11 @@ void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncol
    typedef PID_integer Integers;
    Integers ZZ;
 
-     DenseMatrix<Integers> AA(new_matrix_integers(A, A_nr, A_nc));
-     DenseMatrix<Integers> BB(new_matrix_integers(B, B_nr, B_nc));
+     BlasMatrix<Integers::Element> AA(new_matrix_integers(A, A_nr, A_nc));
+     BlasMatrix<Integers::Element> BB(new_matrix_integers(B, B_nr, B_nc));
      if (A_nc != B_nr)
 	 return -1;   // error
-     DenseMatrix<Integers> CC(ZZ, A_nr, B_nc);
+     BlasMatrix<Integers::Element> CC( A_nr, B_nc);
 
      MatrixDomain<Integers> MD(ZZ);
 
@@ -466,10 +469,10 @@ void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncol
    commentator.setMaxDetailLevel(0);
    commentator.setMaxDepth (0);
 
-     DenseMatrix<Integers> A(new_matrix_integers(matrix, nrows, ncols));
-     GMP_Integers::Element d;
-     det(d, A);
-     mpz_set(ans, spy.get_mpz(d));
+   DenseMatrix<Integers> A(new_matrix_integers(matrix, nrows, ncols));
+   GMP_Integers::Element d;
+   det(d, A);
+   mpz_set(ans, spy.get_mpz(d));
 }
 
 
@@ -477,7 +480,7 @@ void set_matrix(mpz_t** matrix, DenseMatrix<Field>& A, size_t nrows, size_t ncol
 
 DenseMatrix<NTL_ZZ> new_matrix_integer_dense_ntl(mpz_t** matrix, size_t nrows, size_t ncols) {
      NTL_ZZ ZZ;
-     DenseMatrix<NTL_ZZ> A (ZZ, nrows, ncols);
+     DenseMatrix<NTL_ZZ> A (ZZ,nrows, ncols);
      size_t i, j, k;
      for (i=0; i < nrows; i++) {
 	 for (j=0; j < ncols; j++) {

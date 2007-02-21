@@ -676,7 +676,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
              v -- a free module element.
 
         OUTPUT:
-            The the vector times matrix product v*A.
+            The vector times matrix product v*A.
 
         EXAMPLES:
             sage: B = matrix(ZZ,2, [1,2,3,4])
@@ -685,6 +685,43 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: w*B
             (14, 18)
         """
+        cdef Vector_integer_dense w, ans
+        cdef Py_ssize_t i, j
+        cdef mpz_t x
+
+        M = self._row_ambient_module()
+        w = <Vector_integer_dense> v
+        ans = M.zero_vector()
+
+        mpz_init(x)
+        for i from 0 <= i < self._ncols:
+            mpz_set_si(x, 0)
+            for j from 0 <= j < self._nrows:
+                mpz_addmul(x, w._entries[j], self._matrix[j][i])
+            mpz_set(ans._entries[i], x)
+        mpz_clear(x)
+        return ans
+
+
+    cdef Vector _matrix_times_vector_c_impl(self, Vector v):
+        """
+        Returns the matrix times vector product.
+
+        INPUT:
+             v -- a free module element.
+
+        OUTPUT:
+            The matrix times vector product A*v.
+
+        EXAMPLES:
+            sage: B = matrix(ZZ,2, [1,2,3,4])
+            sage: V = ZZ^2
+            sage: w = V([-1,5])
+            sage: w*B
+            (14, 18)
+        """
+        # NOT DONE
+        raise NotImplementedError
         cdef Vector_integer_dense w, ans
         cdef Py_ssize_t i, j
         cdef mpz_t x

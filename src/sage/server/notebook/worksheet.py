@@ -348,7 +348,7 @@ class Worksheet:
             if S._expect != None:
                 return S
         except AttributeError:
-            S = Sage(maxread = 1)
+            S = Sage(maxread = 1, path = self.__dir)
         S._start(block_during_init=False)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'

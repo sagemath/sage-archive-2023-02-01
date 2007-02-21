@@ -650,6 +650,14 @@ void ZZX_preallocate_space(struct ZZX* x, long n)
   x->SetMaxLength(n);
 }
 
+/*
+EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a)
+{
+  ZZ* b = new ZZ();
+  *b = PolyEval(*f, *a);
+  return b;
+}
+*/
 
 ///////////////////////////////////////////////
 //////// ZZ_pX //////////

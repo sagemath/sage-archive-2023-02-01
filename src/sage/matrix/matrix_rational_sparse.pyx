@@ -165,52 +165,52 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #    * Other functions (list them here):
     ########################################################################
 
-    cdef int mpz_denom(self, mpz_t d) except -1:
-        mpz_set_si(d,1)
-        cdef Py_ssize_t i, j
-        cdef mpq_vector *v
+##     cdef int mpz_denom(self, mpz_t d) except -1:
+##         mpz_set_si(d,1)
+##         cdef Py_ssize_t i, j
+##         cdef mpq_vector *v
 
-        _sig_on
-        for i from 0 <= i < self._nrows:
-            v = self._matrix[i]
-            for j from 0 <= j < v.num_nonzero:
-                mpz_lcm(d, d, mpq_denref(v.entries[j]))
-        _sig_off
-        return 0
+##         _sig_on
+##         for i from 0 <= i < self._nrows:
+##             v = self._matrix[i]
+##             for j from 0 <= j < v.num_nonzero:
+##                 mpz_lcm(d, d, mpq_denref(v.entries[j]))
+##         _sig_off
+##         return 0
 
-    def _clear_denom(self):
-        """
-        INPUT:
-            self -- a matrix
+##     def _clear_denom(self):
+##         """
+##         INPUT:
+##             self -- a matrix
 
-        OUTPUT:
-            D*self, D
+##         OUTPUT:
+##             D*self, D
 
-        The product D*self is a matrix over ZZ
-        """
-        cdef Integer D
-        cdef Py_ssize_t i, j
-        cdef Matrix_integer_sparse A
-        cdef mpz_t t
+##         The product D*self is a matrix over ZZ
+##         """
+##         cdef Integer D
+##         cdef Py_ssize_t i, j
+##         cdef Matrix_integer_sparse A
+##         cdef mpz_t t
 
-        D = Integer()
-        self.mpz_denom(D.value)
+##         D = Integer()
+##         self.mpz_denom(D.value)
 
-        MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=True)
-        A = MZ.zero_matrix()
+##         MZ = sage.matrix.matrix_space.MatrixSpace(ZZ, self._nrows, self._ncols, sparse=True)
+##         A = MZ.zero_matrix()
 
-        mpz_init(t)
-            _sig_on
-        for i from 0 <= i < self._nrows:
-            v = self._matrix[i]
-            for j from 0 <= j < v.num_nonzero:
-                mpz_divexact(t, D.value, mpq_denref(v.entries[j]))
-                mpz_mul(t, t, mpq_numref(v.entries[j]))
-                mpz_vector_set_entry(&A._matrix[i], v.positions[j], t)
-        _sig_off
-        mpz_clear(t)
-        A._initialized = 1
-        return A, D
+##         mpz_init(t)
+##             _sig_on
+##         for i from 0 <= i < self._nrows:
+##             v = self._matrix[i]
+##             for j from 0 <= j < v.num_nonzero:
+##                 mpz_divexact(t, D.value, mpq_denref(v.entries[j]))
+##                 mpz_mul(t, t, mpq_numref(v.entries[j]))
+##                 mpz_vector_set_entry(&A._matrix[i], v.positions[j], t)
+##         _sig_off
+##         mpz_clear(t)
+##         A._initialized = 1
+##         return A, D
 
 
     def _echelon_form_multimodular(self, height_guess=None, proof=True):

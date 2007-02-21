@@ -61,34 +61,34 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
 
 
 
-def matrix_modn_sparse_lift(Matrix_modn_sparse A):
-    raise NotImplementedError
-    cdef Py_ssize_t i, j
-    cdef Matrix_integer_sparse L
-    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
-                                     A.parent().change_ring(ZZ),
-                                     0, 0, 0)
-    cdef mpz_t* L_row
-    cdef mod_int* A_row
-    for i from 0 <= i < A._nrows:
-        L_row = L._matrix[i]
-        A_row = A._matrix[i]
-        for j from 0 <= j < A._ncols:
-            mpz_init_set_si(L_row[j], A_row[j])
-    L._initialized = 1
-    return L
+## def matrix_modn_sparse_lift(Matrix_modn_sparse A):
+##     raise NotImplementedError
+##     cdef Py_ssize_t i, j
+##     cdef Matrix_integer_sparse L
+##     L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
+##                                      A.parent().change_ring(ZZ),
+##                                      0, 0, 0)
+##     cdef mpz_t* L_row
+##     cdef mod_int* A_row
+##     for i from 0 <= i < A._nrows:
+##         L_row = L._matrix[i]
+##         A_row = A._matrix[i]
+##         for j from 0 <= j < A._ncols:
+##             mpz_init_set_si(L_row[j], A_row[j])
+##     L._initialized = 1
+##     return L
 
-def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
-    raise NotImplementedError
-    cdef Matrix_rational_sparse R
-    R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
-                                      A.parent().change_ring(QQ), 0,0,0)
+## def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
+##     raise NotImplementedError
+##     cdef Matrix_rational_sparse R
+##     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
+##                                       A.parent().change_ring(QQ), 0,0,0)
 
-    cdef mpz_t denom   # lcm of denoms so far
-    for i from 0 <= i < A._nrows:
-        for j from 0 <= j < A._ncols:
-            mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
-    return R
+##     cdef mpz_t denom   # lcm of denoms so far
+##     for i from 0 <= i < A._nrows:
+##         for j from 0 <= j < A._ncols:
+##             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+##     return R
 
 
 

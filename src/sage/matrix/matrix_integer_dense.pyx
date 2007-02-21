@@ -463,6 +463,15 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _list(self):
     # def _dict(self):
 
+    def is_zero(self):
+        cdef mpz_t *a, *b
+        cdef Py_ssize_t i, j
+        cdef int k
+        for i from 0 <= i < self._nrows * self._ncols:
+            if mpz_cmp_si(self._entries[i], 0):
+                return False
+        return True
+
     def _multiply_linbox(self, Matrix right):
         """
         Multiply matrices over ZZ using linbox.
@@ -795,6 +804,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return self._poly_linbox(var=var, typ='minpoly')
 
     def _charpoly_linbox(self, var='x'):
+        if self.is_zero():  # program around a bug in linbox on 32-bit linux
+            x = self.base_ring()[var].gen()
+            return x ** self._nrows
         return self._poly_linbox(var=var, typ='charpoly')
 
     def _poly_linbox(self, var='x', typ='minpoly'):

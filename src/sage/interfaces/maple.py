@@ -202,6 +202,8 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, tmp
 
 import pexpect
 
+import commands
+
 from sage.misc.misc import verbose, DOT_SAGE
 from sage.misc.pager import pager
 

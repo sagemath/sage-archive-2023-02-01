@@ -704,6 +704,14 @@ def next_prime(n, proof=True):
     EXAMPLES:
         sage: next_prime(-100)
         2
+        sage: next_prime(1)
+        2
+        sage: next_prime(2)
+        3
+        sage: next_prime(3)
+        5
+        sage: next_prime(4)
+        5
 
     Notice that the next_prime(5) is not 5 but 7.
         sage: next_prime(5)
@@ -711,7 +719,7 @@ def next_prime(n, proof=True):
         sage: next_prime(2004)
         2011
     """
-    n = integer_ring.ZZ(n)+1
+    n = integer_ring.ZZ(n)
     if n < 2:   # negatives are not prime.
         return integer_ring.ZZ(2)
     if n == 2:

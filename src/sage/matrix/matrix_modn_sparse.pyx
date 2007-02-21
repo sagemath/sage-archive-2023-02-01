@@ -91,6 +91,9 @@ cdef arith_int ai
 ai = arith_int()
 ################
 
+import sage.ext.multi_modular
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################

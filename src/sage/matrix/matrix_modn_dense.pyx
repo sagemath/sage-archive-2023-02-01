@@ -76,7 +76,8 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
-MAX_MODULUS = 46340
+import sage.ext.multi_modular
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
 import matrix_window_modn_dense
 
@@ -115,7 +116,6 @@ ai = arith_int()
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
@@ -133,8 +133,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int p
         p = self._base_ring.characteristic()
         self.p = p
-        if p >= MOD_INT_MAX:
-            raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
+        if p >= MAX_MODULUS:
+            raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
         self.gather = MOD_INT_OVERFLOW/(p*p)
 
         _sig_on
@@ -304,6 +304,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
 
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if get_verbose() >= 2:
+            verbose('mod-p multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
         if self._will_use_strassen(right):
             return self._multiply_strassen(right)
         else:

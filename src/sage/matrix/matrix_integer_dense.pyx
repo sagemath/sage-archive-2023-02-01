@@ -71,8 +71,6 @@ linbox = Linbox_integer_dense()
 #import sage.misc.misc
 #USE_LINBOX_POLY = not sage.misc.misc.is_64bit()
 
-# Off since it is still flakie on some platforms (e.g., 64-bit linux,
-# 32-bit debian linux, etc.)
 USE_LINBOX_POLY = True
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse

@@ -294,7 +294,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             for j from 0<= j < self._ncols:
                 k = (row_self[j]+row_right[j])
                 # division is really slow, so we normalize only when it is necessary
-                if k>self.p:
+                if k>=self.p:
                     row_ans[j]=k-self.p
                 else:
                     row_ans[j]=k

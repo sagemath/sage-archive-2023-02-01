@@ -120,6 +120,7 @@ cdef extern from "gmp.h":
     void mpq_get_num(mpz_t numerator, mpq_t rational)
     void mpq_get_den(mpz_t denominator, mpq_t rational)
     void mpq_init(mpq_t rational_number)
+    void mpq_init_set(mpq_t rop, mpq_t op)
     void mpq_inv(mpq_t inverted_number, mpq_t number)
     void mpq_mul(mpq_t product, mpq_t multiplier, mpq_t multiplicand)
     void mpq_neg(mpq_t negated_operand, mpq_t operand)

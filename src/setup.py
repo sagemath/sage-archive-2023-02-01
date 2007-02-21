@@ -299,6 +299,7 @@ ext_modules = [ \
     real_double_vector,
 
     vector_integer_dense,
+    vector_rational_dense,
 
     #vector_rational_sparse,
 

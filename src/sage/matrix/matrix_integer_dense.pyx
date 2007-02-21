@@ -542,19 +542,33 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return M
 
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
+
+        return self._multiply_classical(right)
+
+        # NOTE -- the multimodular matrix multiply implementation
+        # breaks on 64-bit machines; e..g, the following doctests
+        # *all* fail if multimodular matrix multiply is enabled
+        # on sage.math.washington.edu:
+
+        #sage -t  devel/sage-main/sage/modular/modsym/modsym.py
+        #sage -t  devel/sage-main/sage/modular/modsym/space.py
+        #sage -t  devel/sage-main/sage/modular/modsym/subspace.py
+        #sage -t  devel/sage-main/sage/modular/hecke/hecke_operator.py
+        #sage -t  devel/sage-main/sage/modular/hecke/module.py
+
         #############
         # see the tune_multiplication function below.
         n = max(self._nrows, self._ncols, right._nrows, right._ncols)
         if n <= 20:
             return self._multiply_classical(right)
-        a = self.height(); b = right.height()
-        # waiting for multiply_multi_modular to get fixed, and not assume all matrix entries
-        # are between 0 and prod - 1.
-        if float(max(a,b)) / float(n) >= 0.70:
-            return self._multiply_classical(right)
-        else:
-            return self._multiply_multi_modular(right)
-
+        return self._multiply_multi_modular(right)
+##         a = self.height(); b = right.height()
+##         # waiting for multiply_multi_modular to get fixed, and not assume all matrix entries
+##         # are between 0 and prod - 1.
+##         if float(max(a,b)) / float(n) >= 0.70:
+##             return self._multiply_classical(right)
+##         else:
+##             return self._multiply_multi_modular(right)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
         """
@@ -657,14 +671,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                         return 1
         return 0
 
-    def is_zero(self):
-        cdef mpz_t *a, *b
-        cdef Py_ssize_t i, j
-        cdef int k
-        for i from 0 <= i < self._nrows * self._ncols:
-            if mpz_cmp_si(self._entries[i], 0):
-                return False
-        return True
 
     cdef Vector _vector_times_matrix_c_impl(self, Vector v):
         """
@@ -674,7 +680,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
              v -- a free module element.
 
         OUTPUT:
-            The vector times matrix product v*A.
+            The the vector times matrix product v*A.
 
         EXAMPLES:
             sage: B = matrix(ZZ,2, [1,2,3,4])
@@ -683,43 +689,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: w*B
             (14, 18)
         """
-        cdef Vector_integer_dense w, ans
-        cdef Py_ssize_t i, j
-        cdef mpz_t x
-
-        M = self._row_ambient_module()
-        w = <Vector_integer_dense> v
-        ans = M.zero_vector()
-
-        mpz_init(x)
-        for i from 0 <= i < self._ncols:
-            mpz_set_si(x, 0)
-            for j from 0 <= j < self._nrows:
-                mpz_addmul(x, w._entries[j], self._matrix[j][i])
-            mpz_set(ans._entries[i], x)
-        mpz_clear(x)
-        return ans
-
-
-    cdef Vector _matrix_times_vector_c_impl(self, Vector v):
-        """
-        Returns the matrix times vector product.
-
-        INPUT:
-             v -- a free module element.
-
-        OUTPUT:
-            The matrix times vector product A*v.
-
-        EXAMPLES:
-            sage: B = matrix(ZZ,2, [1,2,3,4])
-            sage: V = ZZ^2
-            sage: w = V([-1,5])
-            sage: w*B
-            (14, 18)
-        """
-        # NOT DONE
-        raise NotImplementedError
         cdef Vector_integer_dense w, ans
         cdef Py_ssize_t i, j
         cdef mpz_t x
@@ -822,15 +791,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         self.cache(key, g)
         return g
 
-
-
     def _minpoly_linbox(self, var='x'):
         return self._poly_linbox(var=var, typ='minpoly')
 
     def _charpoly_linbox(self, var='x'):
-        if self.is_zero():  # program around a bug in linbox on 32-bit linux
-            x = self.base_ring()[var].gen()
-            return x ** self._nrows
         return self._poly_linbox(var=var, typ='charpoly')
 
     def _poly_linbox(self, var='x', typ='minpoly'):
@@ -923,7 +887,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef mod_int *moduli
         cdef int i, n, k
 
-        h = left.height() * right.height() * left._ncols
+        h = left.height() * right.height() * left.ncols()
+        verbose('multiplying matrices of height %s and %s'%(left.height(),right.height()))
         mm = MultiModularBasis(h)
         res = left._reduce(mm)
         res_right = right._reduce(mm)
@@ -1450,7 +1415,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _linbox_sparse(self):
         cdef Py_ssize_t i, j
-        v = ['%s %s M'%(self._nrows, self._ncols)]
+        v = ['%s %s +'%(self._nrows, self._ncols)]
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:
                 if mpz_cmp_si(self._matrix[i][j], 0):
@@ -1525,7 +1490,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     k = random()%nc
                     mpz_urandomm(self._matrix[i][k], state, n_width.value)
                     if min_is_nonzero:
-                        mpz_add(self._matrix[i][k], self._matrix[i][k], n_min.value)
+                        mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
         _sig_off
 
     #### Rank
@@ -1651,7 +1616,7 @@ def _lift_crt(Matrix_integer_dense M, residues, moduli=None):
     res = FAST_SEQ_UNSAFE(residues)
 
     cdef mod_int **row_list
-    row_list = <mod_int**>sage_malloc(sizeof(mod_int) * n)
+    row_list = <mod_int**>sage_malloc(sizeof(mod_int*) * n)
     if row_list == NULL:
         raise MemoryError, "out of memory allocating multi-modular coefficent list"
 

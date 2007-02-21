@@ -39,7 +39,7 @@ import matrix_integer_dense
 ## import matrix_integer_sparse
 
 import matrix_rational_dense
-##import matrix_rational_sparse
+import matrix_rational_sparse
 
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
@@ -427,6 +427,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
             # the default
+            elif sage.rings.rational_field.is_RationalField(R):
+                return matrix_rational_sparse.Matrix_rational_sparse
             return matrix_generic_sparse.Matrix_generic_sparse
 
 

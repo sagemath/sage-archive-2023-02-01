@@ -4,15 +4,11 @@
 #
 #############################################################
 
-include "../ext/cdefs.pxi"
+include 'vector_rational_sparse_h.pxi'
 
-cdef struct mpq_vector:
-    mpq_t *entries      # array of nonzero entries
-    int   *positions    # positions of those nonzero entries, starting at 0
-    int    degree       # the degree of this sparse vector
-    int    num_nonzero  # the number of nonzero entries of this vector.
+from sage.rings.rational cimport Rational
 
-cdef int allocate_mpq_vector(mpq_vector* v, int num_nonzero) except -1:
+cdef int allocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
     """
     Allocate memory for a mpq_vector -- most user code won't call this.
     num_nonzero is the number of nonzero entries to allocate memory for.
@@ -20,18 +16,22 @@ cdef int allocate_mpq_vector(mpq_vector* v, int num_nonzero) except -1:
     This function *does* call mpq_init on each mpq_t that is allocated.
     It does *not* clear the entries of v, if there are any.
     """
-    cdef int i
+    cdef Py_ssize_t i
     v.entries = <mpq_t*>sage_malloc(num_nonzero*sizeof(mpq_t))
-    if v.entries == <mpq_t*> 0:
+    if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < num_nonzero:
         mpq_init(v.entries[i])
-    v.positions = <int*>sage_malloc(num_nonzero*sizeof(int))
-    if v.positions == <int*> 0:
+    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+    if v.positions == NULL:
+        for i from 0 <= i < num_nonzero:
+            mpq_clear(v.entries[i])
+        sage_free(v.entries)
+        v.entries = NULL
         raise MemoryError, "Error allocating memory"
     return 0
 
-cdef int init_mpq_vector(mpq_vector* v, int degree, int num_nonzero) except -1:
+cdef int init_mpq_vector(mpq_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzero) except -1:
     """
     Initialize a mpq_vector -- most user code *will* call this.
     """
@@ -40,7 +40,7 @@ cdef int init_mpq_vector(mpq_vector* v, int degree, int num_nonzero) except -1:
     v.degree = degree
 
 cdef void clear_mpq_vector(mpq_vector* v):
-    cdef int i
+    cdef Py_ssize_t i
     # Free all mpq objects allocated in creating v
     for i from 0 <= i < v.num_nonzero:
         mpq_clear(v.entries[i])
@@ -51,12 +51,73 @@ cdef void clear_mpq_vector(mpq_vector* v):
     sage_free(v.entries)
     sage_free(v.positions)
 
-cdef int mpq_binary_search0(mpq_t* v, int n, mpq_t x):
+cdef Py_ssize_t binary_search(Py_ssize_t* v, Py_ssize_t n, Py_ssize_t x, Py_ssize_t* ins):
+    """
+    Find the position of the integer x in the array v, which has length n.
+    Returns -1 if x is not in the array v, and in this case ins is
+    set equal to the position where x should be inserted in order to
+    obtain an ordered array.
+    """
+    if n == 0:
+        ins[0] = 0
+        return -1
+
+    cdef Py_ssize_t i, j, k
+    i = 0
+    j = n-1
+    while i<=j:
+        if i == j:
+            if v[i] == x:
+                ins[0] = i
+                return i
+            if v[i] < x:
+                ins[0] = i + 1
+            else:
+                ins[0] = i
+            return -1
+        k = (i+j)/2
+        if v[k] > x:
+            j = k-1
+        elif v[k] < x:
+            i = k+1
+        else:   # only possibility is that v[k] == x
+            ins[0] = k
+            return k
+    # end while
+    ins[0] = j+1
+    return -1
+
+cdef Py_ssize_t binary_search0(Py_ssize_t* v, Py_ssize_t n, Py_ssize_t x):
+    """
+    Find the position of the int x in the array v, which has length n.
+    Returns -1 if x is not in the array v.
+    """
+    if n == 0:
+        return -1
+
+    cdef Py_ssize_t i, j, k
+    i = 0
+    j = n-1
+    while i<=j:
+        if i == j:
+            if v[i] == x:
+                return i
+            return -1
+        k = (i+j)/2
+        if v[k] > x:
+            j = k-1
+        elif v[k] < x:
+            i = k+1
+        else:   # only possibility is that v[k] == x
+            return k
+    return -1
+
+cdef Py_ssize_t mpq_binary_search0(mpq_t* v, Py_ssize_t n, mpq_t x):
     """
     Find the position of the rational x in the array v, which has length n.
     Returns -1 if x is not in the array v.
     """
-    cdef int i, j, k, c
+    cdef Py_ssize_t i, j, k, c
     if n == 0:
         return -1
     i = 0
@@ -76,7 +137,7 @@ cdef int mpq_binary_search0(mpq_t* v, int n, mpq_t x):
             return k
     return -1
 
-cdef int mpq_binary_search(mpq_t* v, int n, mpq_t x, int* ins):
+cdef Py_ssize_t mpq_binary_search(mpq_t* v, Py_ssize_t n, mpq_t x, Py_ssize_t* ins):
     """
     Find the position of the integer x in the array v, which has length n.
     Returns -1 if x is not in the array v, and in this case ins is
@@ -88,10 +149,10 @@ cdef int mpq_binary_search(mpq_t* v, int n, mpq_t x, int* ins):
        n -- integer (length of array v)
        x -- mpq_t  (rational)
     OUTPUT:
-       position of x (as an int)
+       position of x (as an Py_ssize_t)
        ins -- (call be pointer), the insertion point if x is not found.
     """
-    cdef int i, j, k, c
+    cdef Py_ssize_t i, j, k, c
     if n == 0:
         ins[0] = 0
         return -1
@@ -121,7 +182,7 @@ cdef int mpq_binary_search(mpq_t* v, int n, mpq_t x, int* ins):
     ins[0] = j+1
     return -1
 
-cdef int mpq_vector_get_entry(mpq_t* ans, mpq_vector* v, int n) except -1:
+cdef int mpq_vector_get_entry(mpq_t* ans, mpq_vector* v, Py_ssize_t n) except -1:
     """
     Returns the n-th entry of the sparse vector v.  This
     would be v[n] in Python syntax.
@@ -131,7 +192,7 @@ cdef int mpq_vector_get_entry(mpq_t* ans, mpq_vector* v, int n) except -1:
     """
     if n >= v.degree:
         raise IndexError, "Index must be between 0 and %s."%(v.degree - 1)
-    cdef int m
+    cdef Py_ssize_t m
     m = binary_search0(v.positions, v.num_nonzero, n)
     if m == -1:
         mpq_set_si(ans[0], 0,1)
@@ -144,28 +205,27 @@ cdef object mpq_vector_to_list(mpq_vector* v):
     Returns a Python list of 2-tuples (i,x), where x=v[i] runs
     through the nonzero elements of x, in order.
     """
-    cdef X
-    cdef sage.rings.rational.Rational a
-    cdef int i
+    cdef object X
+    cdef Rational a
+    cdef Py_ssize_t i
     X = []
     for i from 0 <= i < v.num_nonzero:
-        a = sage.rings.rational.Rational()
+        a = Rational()
         a.set_from_mpq(v.entries[i])
         X.append( (v.positions[i], a) )
     return X
 
 
-cdef int mpq_vector_set_entry(mpq_vector* v, int n, mpq_t x) except -1:
+cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
     """
     Set the n-th component of the sparse vector v equal to x.
     This would be v[n] = x in Python syntax.
     """
     if n >= v.degree or n < 0:
         raise IndexError, "Index must be between 0 and the degree minus 1."
-        return -1
-    cdef int i, m, ins
-    cdef int m2, ins2
-    cdef int *pos
+    cdef Py_ssize_t i, m, ins
+    cdef Py_ssize_t m2, ins2
+    cdef Py_ssize_t *pos
     cdef mpq_t *e
 
     m = binary_search(v.positions, v.num_nonzero, n, &ins)
@@ -231,7 +291,7 @@ cdef int mpq_vector_set_entry(mpq_vector* v, int n, mpq_t x) except -1:
 
 cdef mpq_t mpq_set_tmp
 mpq_init(mpq_set_tmp)
-cdef int mpq_vector_set_entry_str(mpq_vector* v, int n, char *x_str) except -1:
+cdef int mpq_vector_set_entry_str(mpq_vector* v, Py_ssize_t n, char *x_str) except -1:
     """
     Set the n-th component of the sparse vector v equal to x.
     This would be v[n] = x in Python syntax.
@@ -251,7 +311,7 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
         print "Can't add vectors of degree %s and %s"%(v.degree, w.degree)
         raise ArithmeticError, "The vectors must have the same degree."
 
-    cdef int nz, i, j, k, do_multiply
+    cdef Py_ssize_t nz, i, j, k, do_multiply
     cdef mpq_vector* z
     cdef mpq_t tmp
     mpq_init(tmp)
@@ -340,7 +400,7 @@ cdef int scale_mpq_vector(mpq_vector* v, mpq_t scalar) except -1:
         clear_mpq_vector(v)
         init_mpq_vector(v, v.degree, 0)
         return 0
-    cdef int i
+    cdef Py_ssize_t i
     for i from 0 <= i < v.num_nonzero:
         # v.entries[i] = scalar * v.entries[i]
         mpq_mul(v.entries[i], v.entries[i], scalar)
@@ -351,7 +411,8 @@ cdef int mpq_vector_cmp(mpq_vector* v, mpq_vector* w):
         return -1
     elif v.degree > w.degree:
         return 1
-    cdef int i, c
+    cdef Py_ssize_t i
+    cdef int c
     for i from 0 <= i < v.num_nonzero:
         c = mpq_cmp(v.entries[i], w.entries[i])
         if c < 0:

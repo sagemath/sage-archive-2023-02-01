@@ -194,6 +194,10 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx'],
                                  libraries = ['gmp'])
 
+matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
+                                  ['sage/matrix/matrix_rational_sparse.pyx'],
+                                 libraries = ['gmp'])
+
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
                                   libraries = ['gmp'])
@@ -326,6 +330,7 @@ ext_modules = [ \
 
      matrix_integer_dense,
      matrix_rational_dense,
+     matrix_rational_sparse,
      matrix_integer_2x2,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,

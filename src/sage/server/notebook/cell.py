@@ -548,10 +548,13 @@ class Cell(Cell_generic):
         if do_print:
             btn = ""
         else:
-            btn = """<span class="cell_evaluate"><img src="/evaluate.png"
-                                                      onMouseOver="this.src='/evaluate_over.png'"
-                                                      onMouseOut="this.src='/evaluate.png'"
-                                                      onClick="evaluate_cell(%s,0);"></span>"""%self.__id
+            btn = """
+                <span class="hidden" id="evaluate_button_%s"><img
+                    src="/evaluate.png"
+                    onMouseOver="this.src='/evaluate_over.png'"
+                    onMouseOut="this.src='/evaluate.png'"
+                    onClick="evaluate_cell(%s,0);"></span>
+                  """%(self.__id,self.__id)
         tbl = btn + """
                <table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">

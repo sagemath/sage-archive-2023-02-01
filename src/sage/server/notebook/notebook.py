@@ -836,7 +836,7 @@ class Notebook(SageObject):
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
         head += '\n<script language=javascript src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css"/>\n'
 
         if css_href:
             head += '\n<link rel=stylesheet type="text/css" href=%s />\n'%(css_href)

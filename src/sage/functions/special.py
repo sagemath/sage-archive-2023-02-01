@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest -- TODO remove
 Special Functions
 
 AUTHORS:
@@ -75,11 +75,11 @@ They are named after the British astronomer George Biddell Airy.
 Spherical harmonics:
 Laplace's equation in spherical coordinates is:
 \[
-  {1 \over r^2}{\partial \over \partial r}
-  \left(r^2 {\partial f \over \partial r}\right) +
-  {1 \over r^2\sin\theta}{\partial \over \partial \theta}
-  \left(\sin\theta {\partial f \over \partial \theta}\right) +
-  {1 \over r^2\sin^2\theta}{\partial^2 f \over \partial \varphi^2} = 0.
+  {\frac{1}{r^2}}{\frac{\partial}{\partial r}}
+  \left(r^2 {\frac{\partial f}{\partial r}}\right) +
+  {\frac{1}{r^2}\sin\theta}{\frac{\partial}{\partial \theta}}
+  \left(\sin\theta {\frac{\partial f}{\partial \theta}}\right) +
+  {\frac{1}{r^2\sin^2\theta}}{\frac{\partial^2 f}{\partial \varphi^2}} = 0.
 \]
 Note that the spherical coordinates $\theta$
 and $\varphi$ are defined here as follows:
@@ -108,7 +108,7 @@ where the functions $Y$ are the {\it spherical harmonic functions}
 with parameters $\ell$, $m$, which can be written as:
 \[
     Y_\ell^m( \theta , \varphi )
-    = \sqrt{{(2\ell+1)\over 4\pi}{(\ell-m)!\over (\ell+m)!}}
+    = \sqrt{{\frac{(2\ell+1)}{4\pi}}{\frac{(\ell-m)!}{(\ell+m)!}}}
       \cdot e^{i m \varphi } \cdot P_\ell^m ( \cos{\theta} ) .
 \]
 
@@ -260,7 +260,7 @@ $cn (x,m)$ have real periods $4K(m)$, whereas $dn (x,m)$ has a period
 $2K(m)$. The limit $m\rightarrow 0$ gives
 $K(0) = \pi/2$ and trigonometric functions: $sn(x, 0) = \sin x$,
 $cn(x, 0) = \cos x$, $dn(x, 0) = 1$. The limit $m \rightarrow 1$
-gives $K(1) \\rightarrow \infty$ and hyperbolic functions:
+gives $K(1) \rightarrow \infty$ and hyperbolic functions:
 $sn(x, 1) = \tanh x$, $cn(x, 1) = \mbox{\rm sech} x$,
 $dn(x, 1) = \mbox{\rm sech} x$.
 
@@ -329,7 +329,7 @@ import sage.plot.plot
 import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
-from sage.rings.real_field import RealField
+from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR
 import sage.rings.commutative_ring as commutative_ring
@@ -419,9 +419,12 @@ def bessel_I(nu,z,alg = "pari",prec=53):
 
 def bessel_J(nu,z,alg="pari",prec=53):
     r"""
-    Implements the "J-Bessel function", or
+    Return value of the "J-Bessel function", or
     "Bessel function, 1st kind", with
     index (or "order") nu and argument z.
+
+    WARNING: The pari and maxima definitions of ``the'' J-Bessel
+    function are different (see below).
 
     \begin{verbatim}
     Defn:
@@ -459,6 +462,12 @@ def bessel_J(nu,z,alg="pari",prec=53):
         0.719622018527510801
         sage: bessel_J(0,1)    # last few digits are random
         0.765197686557966605
+
+    We illustrate that the pari and maxima definitions differ:
+        sage: bessel_J(3,10,"maxima")   # last few digits are random
+        0.0583793793051869
+        sage: bessel_J(3,10,"pari")     # last few digits are random
+        0.0000129283516457158
 
     """
     if alg=="pari":
@@ -713,35 +722,7 @@ def jacobi(sym,x,m):
     Now to view this, just type show(P).
 
     """
-    if sym=="dc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="nc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="sc":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cd":
-        return eval(maxima.eval("jacobi_cd(%s,%s)"%(float(x),float(m))))
-    if sym=="nd":
-        return eval(maxima.eval("jacobi_nd(%s,%s)"%(float(x),float(m))))
-    if sym=="sd":
-        return eval(maxima.eval("jacobi_sd(%s,%s)"%(float(x),float(m))))
-    if sym=="cn":
-        return eval(maxima.eval("jacobi_cn(%s,%s)"%(float(x),float(m))))
-    if sym=="dn":
-        return eval(maxima.eval("jacobi_dn(%s,%s)"%(float(x),float(m))))
-    if sym=="sn":
-        return eval(maxima.eval("jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cs":
-        return eval(maxima.eval("jacobi_cs(%s,%s)"%(float(x),float(m))))
-    if sym=="ds":
-        return eval(maxima.eval("jacobi_ds(%s,%s)"%(float(x),float(m))))
-    if sym=="ns":
-        return eval(maxima.eval("jacobi_ns(%s,%s)"%(float(x),float(m))))
-    return 1
-
-
-# This doesn't work -- commented out until it does.
-#    -- William
+    return eval(maxima.eval("jacobi_%s(%s,%s)"%(sym, float(x), float(m))))
 
 def inverse_jacobi(sym,x,m):
     """
@@ -761,31 +742,7 @@ def inverse_jacobi(sym,x,m):
 
     Now to view this, just type show(P).
     """
-    if sym=="dc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="nc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="sc":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cd":
-        return eval(maxima.eval("inverse_jacobi_cd(%s,%s)"%(float(x),float(m))))
-    if sym=="nd":
-        return eval(maxima.eval("inverse_jacobi_nd(%s,%s)"%(float(x),float(m))))
-    if sym=="sd":
-        return eval(maxima.eval("inverse_jacobi_sd(%s,%s)"%(float(x),float(m))))
-    if sym=="cn":
-        return eval(maxima.eval("inverse_jacobi_cn(%s,%s)"%(float(x),float(m))))
-    if sym=="dn":
-        return eval(maxima.eval("inverse_jacobi_dn(%s,%s)"%(float(x),float(m))))
-    if sym=="sn":
-        return eval(maxima.eval("inverse_jacobi_sn(%s,%s)"%(float(x),float(m))))
-    if sym=="cs":
-        return eval(maxima.eval("inverse_jacobi_cs(%s,%s)"%(float(x),float(m))))
-    if sym=="ds":
-        return eval(maxima.eval("inverse_jacobi_ds(%s,%s)"%(float(x),float(m))))
-    if sym=="ns":
-        return eval(maxima.eval("inverse_jacobi_ns(%s,%s)"%(float(x),float(m))))
-    return 1
+    return eval(maxima.eval("inverse_jacobi_%s(%s,%s)"%(sym, float(x),float(m))))
 
 #### elliptic integrals
 

@@ -58,9 +58,11 @@ Next we convert the factor $-x^5+y^2$ to a \sage multivariate
 polynomial.  Note that it is important to let $x$ and $y$ be the
 generators of a polynomial ring, so the eval command works.
 
-    sage: x, y = MPolynomialRing(RationalField(), 2).gens()
-    sage: g = eval(F[1][3].sage_polystring()); g
-    x1^2 - x0^5
+    sage: R.<x,y> = MPolynomialRing(QQ,2)
+    sage: s = F[1][3].sage_polystring(); s
+    '-x**5+y**2'
+    sage: g = eval(s); g
+    y^2 - x^5
 
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 
@@ -75,11 +77,12 @@ one tricky part.  In the GAP interpreter the object \code{I} has its
     own name (which isn't \code{I}).  We can access its name using
     \code{I.name()}.
 
-        sage: _ = gap.eval("x0 := %s[1];; x1 := %s[2];;"%(I.name(), I.name()))
+        sage: _ = gap.eval("x := %s[1];; y := %s[2];;"%(I.name(), I.name()))
 
     Now $x_0$ and $x_1$ are defined, so we can construct the GAP polynomial $f$
     corresponding to $g$:
 
+        sage: R.<x,y> = MPolynomialRing(QQ,2)
         sage: f = gap(str(g)); f
         -x_1^5+x_2^2
 
@@ -142,6 +145,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import expect
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from sage.misc.misc import SAGE_ROOT, DOT_SAGE, is_64_bit
 from IPython.genutils import page
@@ -149,19 +153,25 @@ import re
 import os
 import pexpect
 DB_HOME = "%s/data/"%SAGE_ROOT
-WORKSPACE = "%s/gap-workspace"%DOT_SAGE
+WORKSPACE = "%s/gap/workspace-%s"%(DOT_SAGE, abs(hash(SAGE_ROOT)))
+first_try = True
 
 if not os.path.exists('%s/tmp'%SAGE_ROOT):
     os.makedirs('%s/tmp'%SAGE_ROOT)
 
+if not os.path.exists('%s/gap/'%DOT_SAGE):
+    os.makedirs('%s/gap/'%DOT_SAGE)
+    open('%s/gap/README.txt'%DOT_SAGE, 'w').write("It is OK to delete all these cache files.  They will be recreated as needed.")
+
 gap_cmd = "gap"
 
 def gap_command(use_workspace_cache=True):
-    if use_workspace_cache and os.path.exists(WORKSPACE):
+    if use_workspace_cache:
+        if not os.path.exists(WORKSPACE):
+            gap_reset_workspace()
         return "%s -L %s"%(gap_cmd, WORKSPACE), False
     else:
         return gap_cmd, True
-
 
 class Gap(Expect):
     r"""
@@ -221,7 +231,22 @@ class Gap(Expect):
 
 
     def _start(self):
-        Expect._start(self, "Failed to start GAP.  One possible reason for this is that your gap workspace may be corrupted.  Perhaps remove %s/tmp/gap-workspace"%SAGE_ROOT)
+        global first_try
+        n = self._session_number
+        try:
+            Expect._start(self, "Failed to start GAP.")
+        except Exception, msg:
+            if self.__use_workspace_cache and first_try:
+                print "A workspace appears to have been corrupted... automatically rebuilding (this is harmless)."
+                first_try = False
+                self._expect = None
+                expect.failed_to_start.remove(self.name())
+                gap_reset_workspace(verbose=False)
+                Expect._start(self, "Failed to start GAP.")
+                self._session_number = n
+                return
+            raise RuntimeError, msg
+
         if self.__use_workspace_cache and self.__make_workspace:
             self.eval('SaveWorkspace("%s");'%WORKSPACE)
 
@@ -389,6 +414,22 @@ class Gap(Expect):
         os.killpg(self._expect.pid, 2)
         raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
+    def _eval_line_using_file(self, line, tmp):
+        i = line.find(':=')
+        if i != -1:
+            j = line.find('"')
+            if j >= 0 and j < i:
+                i = -1
+        if i == -1:
+            line0 = 'Print( %s );'%line.rstrip().rstrip(';')
+            try:  # this is necessary, since Print requires something as input, and some functions (e.g., Read) return nothing.
+                return Expect._eval_line_using_file(self, line0, tmp)
+            except RuntimeError, msg:
+                #if not ("Function call: <func> must return a value" in msg):
+                #    raise RuntimeError, msg
+                return ''
+        return Expect._eval_line_using_file(self, line, tmp)
+
     def _eval_line(self, line, allow_use_file=True, wait_for_prompt=True):
         #if line.find('\n') != -1:
         #    raise ValueError, "line must not contain any newlines"
@@ -404,8 +445,10 @@ class Gap(Expect):
                                                  expect_eof= (self._quit_string() in line))
 
                 if len(error)> 0:
-                    if 'completion files' in error:
-                        error += "\nPossibly try the command gap_reset_workspace() from SAGE."
+                    if 'Error, Rebuild completion files!' in error:
+                        error += "\nRunning gap_reset_workspace()..."
+                        self.quit()
+                        gap_reset_workspace()
                     raise RuntimeError, "%s produced error output\n%s\n   executing %s"%(self, error,line)
                 if len(normal) == 0:
                     return ''
@@ -508,10 +551,10 @@ def gap_reset_workspace(max_workspace_size=None, verbose=False):
                 'gapdoc', 'grape', 'design', \
                 'toric', 'laguna']:
         try:
-            g.load_package(pkg, verbose=True)
+            g.load_package(pkg, verbose=verbose)
         except RuntimeError, msg:
             if verbose:
-                print msg
+                print '*** %s'%msg
             pass
     # end for
     g.eval('SaveWorkspace("%s");'%WORKSPACE)
@@ -540,9 +583,28 @@ class GapElement(ExpectElement):
         return s
 
     def __len__(self):
-        if (self == "true"):
+        """
+        EXAMPLES:
+            sage: v = gap('[1,2,3]'); v
+            [ 1, 2, 3 ]
+            sage: len(v)
+            3
+
+        len is also called implicitly by if:
+            sage: if gap('1+1 = 2'):
+            ...    print "1 plus 1 does equal 2"
+            1 plus 1 does equal 2
+
+            sage: if gap('1+1 = 3'):
+            ...    print "it is true"
+            ... else:
+            ...    print "it is false"
+            it is false
+        """
+        P = self.parent()
+        if P.eval('%s = true'%self.name()) == 'true':
             return 1
-        elif (self == "false"):
+        elif P.eval('%s = false'%self.name()) == 'true':
             return 0
         else:
             return int(self.Length())
@@ -565,20 +627,20 @@ class GapElement(ExpectElement):
 
             sage: s = gap("(Z(7)^0)*[[1,2,3],[4,5,6]]"); s
             [ [ Z(7)^0, Z(7)^2, Z(7) ], [ Z(7)^4, Z(7)^5, Z(7)^3 ] ]
-            sage: matrix(GF(7), s)
+            sage: s._matrix_(GF(7))
             [1 2 3]
             [4 5 6]
 
             sage: s = gap("[[1,2], [3/4, 5/6]]"); s
             [ [ 1, 2 ], [ 3/4, 5/6 ] ]
-            sage: m = matrix(QQ, s); m
+            sage: m = s._matrix_(QQ); m
             [  1   2]
             [3/4 5/6]
             sage: parent(m)
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
             sage: s = gap('[[Z(16),Z(16)^2],[Z(16)^3,Z(16)]]')
-            sage: matrix(GF(16), s)
+            sage: s._matrix_(GF(16,'a'))
             [  a a^2]
             [a^3   a]
         """

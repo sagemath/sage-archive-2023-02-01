@@ -37,7 +37,9 @@ from functor  import (is_Functor,
                       ForgetfulFunctor,
                       IdentityFunctor)
 
-from homset   import Hom, hom, is_Homset, End, end, is_Endset, Homset
+from homset   import (Hom, hom, is_Homset,
+                      End, end, is_Endset,
+                      Homset, HomsetWithBase)
 
 from morphism import Morphism, is_Morphism
 

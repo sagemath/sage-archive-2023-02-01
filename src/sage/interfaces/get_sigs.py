@@ -19,6 +19,5 @@ def get_sigs():
     signal.signal(signal.SIGABRT, my_sigint)
     signal.signal(signal.SIGFPE, my_sigfpe)
     signal.signal(signal.SIGALRM, my_sigint)
-    #signal.signal(signal.SIGTERM, my_sigterm)
 
 

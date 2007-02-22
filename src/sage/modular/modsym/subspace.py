@@ -62,12 +62,11 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             return cmp((self.__ambient_hecke_module, self.free_module()),
                        (other.__ambient_hecke_module, other.free_module()))
         if not isinstance(other, sage.modular.modsym.space.ModularSymbolsSpace):
-            return -1
+            return cmp(type(self), type(other))
         c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
         if c:
             return c
         return cmp(self.free_module(), other.free_module())
-
 
 
     ################################
@@ -142,9 +141,9 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field) *
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field)
             sage: [A.T(2).matrix() for A, _ in D]
-            [[3], [-2], [-2]]
+            [[-2], [-2], [3]]
             sage: [A.star_eigenvalues() for A, _ in D]
-            [[1], [1], [-1]]
+            [[1], [-1], [1]]
 
         In this example there is one old factor squared.
             sage: M = ModularSymbols(22,sign=1)
@@ -191,7 +190,10 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         # endif
 
         # check that dimensions add up
-        assert self.rank() == sum([A.rank()*mult for A, mult in D]), "dimensions don't add up!"
+        r = self.dimension()
+        s = sum([A.rank()*mult for A, mult in D])
+        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s"%(
+            r, s)
         self._factorization = sage.structure.factorization.Factorization(D, cr=True)
         return self._factorization
 

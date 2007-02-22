@@ -24,7 +24,6 @@ of integers, etc., easier.
 #*****************************************************************************
 
 import operator
-import sage.rings.coerce as coerce
 
 import sage.rings.field_element as field_element
 import sage.rings.infinity as infinity
@@ -39,6 +38,7 @@ import sage.misc.misc as misc
 import number_field
 
 from sage.libs.all import pari_gen
+from sage.libs.pari.gen import PariError
 
 QQ = rational_field.RationalField()
 
@@ -60,11 +60,11 @@ class NumberFieldElement(field_element.FieldElement):
         number fields, and some basic arithmetic.
 
         First we define a polynomial over Q.
-            sage: x = PolynomialRing(QQ).0
+            sage: R.<x> = PolynomialRing(QQ)
             sage: f = x^2 + 1
 
         Next we use f to define the number field.
-            sage: K = NumberField(f, "a"); K
+            sage: K.<a> = NumberField(f); K
             Number Field in a with defining polynomial x^2 + 1
             sage: a = K.gen()
             sage: a^2
@@ -77,7 +77,7 @@ class NumberFieldElement(field_element.FieldElement):
             1/5
 
         We create a cube root of 2.
-            sage: K = NumberField(x^3 - 2, "b")
+            sage: K.<b> = NumberField(x^3 - 2)
             sage: b = K.gen()
             sage: b^3
             2
@@ -85,7 +85,7 @@ class NumberFieldElement(field_element.FieldElement):
             12*b^2 + 15*b + 19
 
         This example illustrates save and load:
-            sage: K, a = NumberField(x^17 - 2, 'a').objgen()
+            sage: K.<a> = NumberField(x^17 - 2)
             sage: s = a^15 - 19*a + 3
             sage: loads(s.dumps()) == s
             True
@@ -94,9 +94,6 @@ class NumberFieldElement(field_element.FieldElement):
         if isinstance(parent, number_field.NumberField_extension):
             ppr = parent.base_field().polynomial_ring()
 
-        if isinstance(parent, str):
-            print 'parent = ', parent
-            print 'f = ', f
         if isinstance(f, pari_gen):
             f = f.lift()
             f = ppr(f)
@@ -129,16 +126,58 @@ class NumberFieldElement(field_element.FieldElement):
 
     def _pari_(self, var=None):
         """
-        Return PARI C-library object representation of self.
+        Return PARI C-library object corresponding to self.
+
+        NOTE: This is not the actual underlying object that represents
+        this element, since that is a polynomial in x (as PARI
+        polynomials are rather constrained in their possible variable
+        names, e.g., I cannot be the name of a variable).
+
+        EXAMPLES:
+            sage: k.<j> = QuadraticField(-1)
+            sage: j._pari_()
+            Mod(j, j^2 + 1)
+            sage: pari(j)
+            Mod(j, j^2 + 1)
+
+        If you try do coerce a generator called I to PARI, hell may
+        break loose:
+            sage: k.<I> = QuadraticField(-1)
+            sage: pari(I)
+            Traceback (most recent call last):
+            ...
+            PariError: forbidden (45)
+
+        Instead, request the variable be named different for the coercion:
+            sage: I._pari_('i')
+            Mod(i, i^2 + 1)
+            sage: I._pari_('II')
+            Mod(II, II^2 + 1)
         """
         try:
-            return self.__pari
+            return self.__pari[var]
+        except KeyError:
+            pass
         except AttributeError:
-            if var == None:
-                var = self.parent().variable_name()
-            f = self.__element._pari_().subst("x",var)
-            g = self.parent().polynomial()._pari_().subst("x",var)
-            return f.Mod(g)
+            self.__pari = {}
+        if var is None:
+            var = self.parent().variable_name()
+        if isinstance(self.parent(), number_field.NumberField_extension):
+            f = self.__element._pari_()
+            g = str(self.parent().pari_relative_polynomial())
+            base = self.parent().base_ring()
+            gsub = base.gen()._pari_()
+            gsub = str(gsub).replace(base.variable_name(), "y")
+            g = g.replace("y", gsub)
+        else:
+            f = self.__element._pari_()
+            g = self.parent().polynomial()._pari_()
+            if var != 'x':
+                f = f.subst("x",var)
+                g = g.subst("x",var)
+        h = f.Mod(g)
+        self.__pari[var] = h
+        return h
 
     def _pari_init_(self, var=None):
         """
@@ -146,20 +185,68 @@ class NumberFieldElement(field_element.FieldElement):
         """
         if var == None:
             var = self.parent().variable_name()
-        f = self.__element._pari_().subst("x",var)
-        g = self.parent().polynomial()._pari_().subst("x",var)
+        if isinstance(self.parent(), number_field.NumberField_extension):
+            f = self.__element._pari_()
+            g = str(self.parent().pari_relative_polynomial())
+            base = self.parent().base_ring()
+            gsub = base.gen()._pari_()
+            gsub = str(gsub).replace(base.variable_name(), "y")
+            g = g.replace("y", gsub)
+        else:
+            f = self.__element._pari_().subst("x",var)
+            g = self.parent().polynomial()._pari_().subst("x",var)
         return 'Mod(%s, %s)'%(f,g)
-
-    def __cmp__(self, other):
-        if not isinstance(other, NumberFieldElement) or self.parent() != other.parent():
-            return coerce.cmp(self, other)
-        return misc.generic_cmp(self.__element, other.__element)
-
-    def _add_(self, other):
-        return NumberFieldElement(self.parent(), self.__element+other.__element)
 
     def __getitem__(self, n):
         return self.polynomial()[n]
+
+    def __cmp__(self, other):
+        return cmp(self.__element, other.__element)
+
+    def __abs__(self, i=0, prec=53):
+        """
+        Return the absolute value of this element with respect to the
+        ith complex embedding of parent, to the given precision.
+
+        EXAMPLES:
+            sage: z = CyclotomicField(7).gen()
+            sage: abs(z)
+            1.00000000000000
+            sage: abs(z^2 + 17*z - 3)
+            16.0604426799931
+            sage: K.<a> = NumberField(x^3+17)
+            sage: abs(a)
+            2.57128159065823
+            sage: a.__abs__(prec=100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(1,100)
+            2.5712815906582353554531872087
+            sage: a.__abs__(2,100)
+            2.5712815906582353554531872087
+
+        Here's one where the absolute value depends on the embedding.
+            sage: K.<b> = NumberField(x^2-2)
+            sage: a = 1 + b
+            sage: a.__abs__(i=0)
+            0.414213562373094
+            sage: a.__abs__(i=1)
+            2.41421356237309
+        """
+        P = self.parent().complex_embeddings(prec)[i]
+        return abs(P(self))
+
+    def __pow__(self, r):
+        right = int(r)
+        if right != r:
+            raise NotImplementedError, "number field element to non-integral power not implemented"
+        if right < 0:
+            x = self.__invert__()
+            right *= -1
+            return arith.generic_power(x, right, one=self.parent()(1))
+        return arith.generic_power(self, right, one=self.parent()(1))
+
+    def _add_(self, other):
+        return NumberFieldElement(self.parent(), self.__element+other.__element)
 
     def _mul_(self, other):
         """
@@ -172,15 +259,7 @@ class NumberFieldElement(field_element.FieldElement):
         #defining polynomial every time:
         #     src/number_fields/algebraic_num/order.cc: compute_table
         # but asymptotically fast poly multiplication means it's
-        # actually faster to *not* build a table!
-
-    def __pow__(self, right):
-        right = int(right)
-        if right < 0:
-            x = self.__invert__()
-            right *= -1
-            return arith.generic_power(x, right, one=self.parent()(1))
-        return arith.generic_power(self, right, one=self.parent()(1))
+        # actually faster to *not* build a table!?!
 
     def _sub_(self, other):
         return NumberFieldElement(self.parent(), self.__element - other.__element)
@@ -203,10 +282,12 @@ class NumberFieldElement(field_element.FieldElement):
     def __invert__(self):
         if self.__element.is_zero():
             raise ZeroDivisionError
-        g, _, a = self.parent().polynomial().xgcd(self.__element)
-        assert g.degree() == 0
-        c = g[0]
-        return NumberFieldElement(self.parent(), (1/c)*a)
+        K = self.parent()
+        quotient = K(1)._pari_('x') / self._pari_('x')
+        if isinstance(K, number_field.NumberField_extension):
+            return K(K.pari_rnf().rnfeltreltoabs(quotient))
+        else:
+            return K(quotient)
 
     def _integer_(self):
         return integer_ring.IntegerRing()(int(self))
@@ -215,6 +296,46 @@ class NumberFieldElement(field_element.FieldElement):
         if self.__element.degree() >= 1:
             raise TypeError, "Unable to coerce %s to a rational"%self
         return self.__element[0]
+
+    def conjugate(self):
+        """
+        Return the complex conjugate of the number field element.  Currently,
+        this is implemented for cyclotomic fields and quadratic extensions of Q.
+        It seems likely that there are other number fields for which the idea of
+        a conjugate would be easy to compute.
+
+        EXAMPLES:
+            sage: k.<I> = QuadraticField(-1)
+            sage: I.conjugate()
+            -I
+            sage: (I/(1+I)).conjugate()
+            -1/2*I + 1/2
+            sage: z6=CyclotomicField(6).gen(0)
+            sage: (2*z6).conjugate()
+            -2*zeta6 + 2
+
+            sage: K.<b> = NumberField(x^3 - 2)
+            sage: b.conjugate()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: complex conjugation is not implemented (or doesn't make sense).
+        """
+        coeffs = self.parent().polynomial().list()
+        if len(coeffs) == 3 and coeffs[2] == 1 and coeffs[1] == 0:
+            # polynomial looks like x^2+d
+            # i.e. we live in a quadratic extension of QQ
+            if coeffs[0] > 0:
+                gen = self.parent().gen()
+                return self.polynomial()(-gen)
+            else:
+                return self
+        elif isinstance(self.parent(), number_field.NumberField_cyclotomic):
+            # We are in a cyclotomic field
+            # Replace the generator zeta_n with (zeta_n)^(n-1)
+            gen = self.parent().gen()
+            return self.polynomial()(gen ** (gen.multiplicative_order()-1))
+        else:
+            raise NotImplementedError, "complex conjugation is not implemented (or doesn't make sense)."
 
     def polynomial(self):
         return self.__element
@@ -293,14 +414,14 @@ class NumberFieldElement(field_element.FieldElement):
         return self.__multiplicative_order
 
     def trace(self):
-        return QQ(self._pari_().trace())
-        # return self.matrix().trace()
+        K = self.parent().base_ring()
+        return K(self._pari_('x').trace())
 
     def norm(self):
-        return QQ(self._pari_().norm())
-        #return self.matrix().determinant()
+        K = self.parent().base_ring()
+        return K(self._pari_('x').norm())
 
-    def charpoly(self):
+    def charpoly(self, var):
         r"""
         The characteristic polynomial of this element over $\Q$.
 
@@ -308,31 +429,32 @@ class NumberFieldElement(field_element.FieldElement):
 
         We compute the charpoly of cube root of $3$.
 
-            sage: R.<x> = QQ['x']
+            sage: R.<x> = QQ[]
             sage: K.<a> = NumberField(x^3-2)
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^3 - 2
 
         We construct a relative extension and find the characteristic
         polynomial over $\Q$.
 
-            sage: S.<X> = K['X']
+            sage: S.<X> = K[]
             sage: L.<b> = NumberField(X^3 + 17)
             sage: L
             Extension by X^3 + 17 of the Number Field in a with defining polynomial x^3 - 2
             sage: a = L.0; a
             b
-            sage: a.charpoly()
+            sage: a.charpoly('x')
             x^9 + 57*x^6 + 165*x^3 + 6859
+            sage: a.charpoly('y')
+            y^9 + 57*y^6 + 165*y^3 + 6859
         """
-        R = self.parent().polynomial_ring()
+        R = self.parent().base_ring()[var]
         if not isinstance(self.parent(), number_field.NumberField_extension):
-            return R(self._pari_().charpoly())
+            return R(self._pari_('x').charpoly())
         else:
             g = self.polynomial()  # in QQ[x]
             f = self.parent().pari_polynomial()  # # field is QQ[x]/(f)
-            R = g.parent()
-            return R( (g._pari_().Mod(f)).charpoly() )
+            return R( (g._pari_('x').Mod(f)).charpoly() )
 
 ## This might be useful for computing relative charpoly.
 ## BUT -- currently I don't even know how to view elements
@@ -342,16 +464,30 @@ class NumberFieldElement(field_element.FieldElement):
 ##             prp = self.parent().pari_relative_polynomial()
 ##             elt = str(self.polynomial()._pari_())
 ##             return R(nf.rnfcharpoly(prp, elt))
-##         # return self.matrix().charpoly()
+##         # return self.matrix().charpoly('x')
 
-    def minpoly(self):
+    def minpoly(self, var):
+        """
+        Return the minimal polynomial of this number field element.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2+3)
+            sage: a.minpoly('x')
+            x^2 + 3
+            sage: R.<X> = K['X']
+            sage: L.<b> = K.extension(X^2-(22 + a))
+            sage: b.minpoly('t')
+            t^4 + (-44)*t^2 + 487
+            sage: b^2 - (22+a)
+            0
+        """
         # The minimal polynomial is square-free and
         # divisible by same irreducible factors as
         # the characteristic polynomial.
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
-        f = polynomial_ring.PolynomialRing(QQ)(1)
-        for g, _ in self.charpoly().factor():
+        f = polynomial_ring.PolynomialRing(QQ, var)(1)
+        for g, _ in self.charpoly(var).factor():
             f *= g
         return f
 
@@ -395,7 +531,7 @@ class NumberFieldElement(field_element.FieldElement):
             [3, 0]
         """
         n = self.parent().degree()
-        v = self.__element[:n]
+        v = self.__element.list()[:n]
         z = rational.Rational(0)
         return v + [z]*(n - len(v))
 

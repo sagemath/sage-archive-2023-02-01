@@ -1,5 +1,11 @@
-"""
-Interval arithmetic
+"""nodoctest
+Interval Arithmetic Ring
+
+(Deprecated -- use RealIntervalField instead.)
+
+This is very basic.  Use the \code{RealIntervalField()} object from
+\code{real_mpfi} instead for much more sophisticated optimized
+functionality.
 """
 
 #*****************************************************************************
@@ -20,20 +26,11 @@ Interval arithmetic
 import math
 import operator
 
-from coerce import bin_op
 import sage.rings.ring as ring
 import integer
 import rational
-import real_field
+import real_mpfr
 import ring_element
-
-def _adapt(x):
-    if isinstance(x, Interval):
-        return x
-    if isinstance(x, (int, long, float, integer.Integer,
-                      rational.Rational, real_field.RealNumberClass)):
-        return Interval(x)
-    raise TypeError, "cannot construct interval from x"
 
 _obj = {}
 class _uniq(object):
@@ -57,13 +54,21 @@ class IntervalRing(ring.Ring, _uniq):
 
     def __call__(self, x, y=None):
         if y is None:
-            return _adapt(x)
+            if isinstance(x, Interval):
+                if x.parent() is self:
+                    return x
+                elif x.parent() == self:
+                    return Interval(x.min(), x.max(), self)
+            if isinstance(x, (int, long, float, integer.Integer,
+                              rational.Rational, real_mpfr.RealNumberClass)):
+                return Interval(x)
+            raise TypeError, "cannot construct interval from x"
         else:
             return Interval(x,y)
 
-    def _coerce_(self, x):
+    def _coerce_impl(self, x):
         if isinstance(x, (int, long, float, Interval, integer.Integer,
-                          rational.Rational, real_field.RealNumberClass)):
+                          rational.Rational, real_mpfr.RealNumberClass)):
             return self(x)
         raise TypeError
 
@@ -82,13 +87,12 @@ class IntervalRing(ring.Ring, _uniq):
     def __cmp__(self, other):
         if isinstance(other, IntervalRing):
             return 0
-        return -1
+        return cmp(type(self), type(other))
 
     def zeta(self):
         return Interval(-1)
 
-_inst = IntervalRing()  # make sure there is at least one instance.
-
+_inst = IntervalRing()  # make sure there is exctly one instance.
 
 class Interval(ring_element.RingElement):
     """
@@ -99,11 +103,11 @@ class Interval(ring_element.RingElement):
         sage: loads(a.dumps()) == a
         True
     """
-    def __init__(self, min, max=None):
+    def __init__(self, min, max=None, parent=_inst):
         if max == None: max = min
         self.__min, self.__max = float(min), float(max)
         assert self.__min <= self.__max
-        ring_element.RingElement.__init__(self, _inst)
+        ring_element.RingElement.__init__(self, parent)
 
     def _repr_(self):
         return "[%s, %s]"%(self.__min, self.__max)
@@ -119,45 +123,33 @@ class Interval(ring_element.RingElement):
         return self.__max
     upper = max
 
-    def __add__(self, other):
-        if not isinstance(other, Interval):
-            return bin_op(self, other, operator.add)
+    def _add_(self, other):
         return Interval(self.__min+other.__min, self.__max + other.__max)
 
-    def __sub__(self, other):
-        if not isinstance(other, Interval):
-            return bin_op(self, other, operator.sub)
-        return Interval(self.__min+- other.__max, self.__max - other.__min)
+    def _sub_(self, other):
+        return Interval(self.__min - other.__max, self.__max - other.__min)
 
-    def __neg__(self):
+    def _neg_(self):
         return Interval(-self.__max, -self.__min)
 
-    def __mul__(self, other):
-        if not isinstance(other, Interval):
-            return bin_op(self, other, operator.mul)
+    def _mul_(self, other):
         xl,xu,yl,yu = self.__min, self.__max, other.__min, other.__max
         return Interval(min(xl*yl,xl*yu,xu*yl,xu*yu), \
                         max(xl*yl,xl*yu,xu*yl,xu*yu))
+
+    def _div_(self, other):
+        return self * ~other
 
     def __invert__(self):
         if 0 in self:
             raise ZeroDivisionError, "cannot invert interval"
         return Interval(1/self.__max, 1/self.__min)
 
-    def __div__(self, other):
-        if not isinstance(other, Interval):
-            return bin_op(self, other, operator.div)
-        return self * ~other
-
     def __contains__(self, x):
         x = float(x)
         return self.__min <= x and x <= self.__max
 
     def __cmp__(self, other):
-        try:
-            other = _adapt(other)
-        except TypeError:
-            return -1
         if self.__max < other.__min:
             return -1
         elif self.__min > other.__max:

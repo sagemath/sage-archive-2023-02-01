@@ -79,11 +79,11 @@ First we illustrate multivariate polynomial factorization:
 
 We can convert $f$ and each exponent back to SAGE objects as well.
 
-    sage: x, y = MPolynomialRing(RationalField(), 2).gens()
+    sage: R.<x, y> = MPolynomialRing(QQ,2)
     sage: g = eval(f.sage_polystring()); g
-    9*x1^8 - 9*x0^2*x1^7 - 18*x0^3*x1^6 - 18*x0^5*x1^6 + 9*x0^6*x1^4 + 18*x0^7*x1^5 + 36*x0^8*x1^4 + 9*x0^10*x1^4 - 18*x0^11*x1^2 - 9*x0^12*x1^3 - 18*x0^13*x1^2 + 9*x0^16
+    9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3 - 18*x^13*y^2 + 9*x^16
     sage: eval(F[1][2].sage_polystring())
-    x1^4 - x0^2*x1^3 - 2*x0^3*x1^2 + x0^6
+    y^4 - x^2*y^3 - 2*x^3*y^2 + x^6
 
 This example illustrates polynomial GCD's:
     sage: R2 = singular.ring(0, '(x,y,z)', 'lp')
@@ -838,11 +838,11 @@ class SingularElement(ExpectElement):
            MPolynomial
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'xy')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'xy')
             sage: f=R('a^20*x^2*y+a^10+x')
             sage: f._singular_().sage_poly(R)==f
             True
-            sage: R = PolynomialRing(GF(2**8),1,'x')
+            sage: R = PolynomialRing(GF(2^8,'a'),1,'x')
             sage: f=R('a^20*x^3+x^2+a^10')
             sage: f._singular_().sage_poly(R)==f
             True
@@ -1024,7 +1024,7 @@ class SingularElement(ExpectElement):
         Returns the internal type of this element.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'x')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'x')
             sage: R._singular_().type()
             'ring'
             sage: fs = singular('x0^2','poly')

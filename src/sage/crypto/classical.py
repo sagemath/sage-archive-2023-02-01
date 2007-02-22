@@ -1,0 +1,317 @@
+#*****************************************************************************
+#       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
+from sage.monoids.string_monoid import StringMonoid_class, AlphabeticStringMonoid
+from sage.monoids.string_monoid_element import StringMonoidElement
+from sage.monoids.string_ops import strip_encoding
+from sage.groups.perm_gps.permgroup import SymmetricGroup
+from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+from sage.rings.integer import Integer
+from random import randint
+
+from cryptosystem import SymmetricKeyCryptosystem
+from classical_cipher import (
+     SubstitutionCipher,
+     TranspositionCipher,
+     VigenereCipher)
+
+class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
+    """
+    Substitution cryptosystem class
+    """
+    def __init__(self, S):
+        """
+        Create a substitution cryptosystem.
+
+        INPUT:
+            A string monoid over some alphabet.
+
+        EXAMPLES:
+            sage: M = AlphabeticStrings()
+            sage: E = SubstitutionCryptosystem(M)
+            sage: E
+            Substitution cryptosystem on Free alphabetic string monoid on A-Z
+            sage: K = M([ 25-i for i in range(26) ])
+            sage: K
+            ZYXWVUTSRQPONMLKJIHGFEDCBA
+            sage: e = E(K)
+            sage: m = M("THECATINTHEHAT")
+            sage: e(m)
+            GSVXZGRMGSVSZG
+        """
+        if not isinstance(S, StringMonoid_class):
+            raise TypeError, "S (= %s) must be a string monoid."%S
+        SymmetricKeyCryptosystem.__init__(self, S, S, S)
+
+    def __call__(self, K):
+        """
+        Create a substitution cipher.
+
+        INPUT:
+            A key which is a permutation of the cryptosystem alphabet.
+
+        EXAMPLES:
+            sage: M = AlphabeticStrings()
+            sage: E = SubstitutionCryptosystem(M)
+            sage: E
+            Substitution cryptosystem on Free alphabetic string monoid on A-Z
+            sage: K = M([ 25-i for i in range(26) ])
+            sage: K
+            ZYXWVUTSRQPONMLKJIHGFEDCBA
+            sage: e = E(K)
+            sage: m = M("THECATINTHEHAT")
+            sage: e(m)
+            GSVXZGRMGSVSZG
+        """
+        if not isinstance(K, StringMonoidElement):
+            raise TypeError, "K (= %s) must be a string."%K
+        if K.parent() != self.key_space():
+            raise TypeError, "K (= %s) must be a string in the key space."%K
+        return SubstitutionCipher(self, K)
+
+    def __repr__(self):
+        return "Substitution cryptosystem on %s" % self.cipher_domain()
+
+    def random_key(self):
+        S = self.cipher_domain()
+        n = S.ngens()
+        I = SymmetricGroup(n).random_element().list()
+        return S([ i-1 for i in I ])
+
+    def inverse_key(self,K):
+        """
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = SubstitutionCryptosystem(S)
+            sage: K = E.random_key()
+            sage: L = E.inverse_key(K)
+            sage: M = S("THECATINTHEHAT")
+            sage: e = E(K)
+            sage: c = E(L)
+            sage: c(e(M))
+            THECATINTHEHAT
+        """
+        I = K._element_list
+        S = self.cipher_domain()
+        n = S.ngens()
+        return S([ I.index(i) for i in range(n) ])
+
+    def encoding(self,M):
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+
+    def deciphering(self,K,C):
+        i = self(self.inverse_key(K))
+        return i(C)
+
+    def enciphering(self,K,M):
+        e = self(K)
+        return e(M)
+
+class TranspositionCryptosystem(SymmetricKeyCryptosystem):
+    """
+    Transposition cryptosystem class
+    """
+    def __init__(self, S, n):
+        """
+        Create a transposeition cryptosystem of block length n.
+
+        INPUT:
+            A string monoid S over some alphabet, and a block length n.
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = TranspositionCryptosystem(S,14)
+            sage: E
+            Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            sage: K = [ 14-i for i in range(14) ]
+            sage: K
+            [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+            sage: e = E(K)
+            sage: e(S("THECATINTHEHAT"))
+            TAHEHTNITACEHT
+        """
+        if not isinstance(S, StringMonoid_class):
+            raise TypeError, "S (= %s) must be a string monoid."%S
+        key_space = SymmetricGroup(n)
+        SymmetricKeyCryptosystem.__init__(self, S, S, key_space, block_length = n)
+
+    def __call__(self, K):
+        """
+        Create a transposition cipher.
+
+        INPUT:
+            A key which specifies a block permutation.
+
+        EXAMPLES:
+            sage: M = AlphabeticStrings()
+            sage: E = TranspositionCryptosystem(M,14)
+            sage: E
+            Transposition cryptosystem on Free alphabetic string monoid on A-Z of block length 14
+            sage: K = [ 14-i for i in range(14) ]
+            sage: K
+            [14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
+            sage: e = E(K)
+            sage: m = M("THECATINTHEHAT")
+            sage: e(m)
+            TAHEHTNITACEHT
+        """
+        G = self.key_space()
+        if isinstance(K, list):
+            try:
+                K = G(K)
+            except:
+                raise TypeError, "K (= %s) must specify a permutation."%K
+        if not isinstance(K, PermutationGroupElement) and K.parent() == G:
+            raise TypeError, "K (= %s) must be a permutation or list specifying a permutation."%K
+        return TranspositionCipher(self, K)
+
+    def __repr__(self):
+        return "Transposition cryptosystem on %s of block length %s" % (
+            self.cipher_domain(), self.block_length())
+
+    def random_key(self):
+        n = self.block_length()
+        return SymmetricGroup(n).random_element()
+
+    def inverse_key(self,K,check = True):
+        """
+        """
+        if check:
+            if not K in self.key_space():
+                raise TypeError, "Argument K (= %s) is not in the key space." % K
+        return K**-1
+
+    def encoding(self,M):
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+
+    def deciphering(self,K,C):
+        i = self(self.inverse_key(K))
+        return i(C)
+
+    def enciphering(self,K,M):
+        e = self(K)
+        return e(M)
+
+class VigenereCryptosystem(SymmetricKeyCryptosystem):
+    """
+    Vigenere cryptosystem class
+    """
+
+    def __init__(self, S, n):
+        """
+        Create a Vigenere cryptosystem of block length n.
+
+        INPUT:
+            A string monoid S over some alphabet, and a block length n.
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,14)
+            sage: E
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
+            sage: K = S('ABCDEFGHIJKLMN')
+            sage: K
+            ABCDEFGHIJKLMN
+            sage: e = E(K)
+            sage: e
+            ABCDEFGHIJKLMN
+            sage: e(S("THECATINTHEHAT"))
+            TIGFEYOUBQOSMG
+        """
+        if not isinstance(S, StringMonoid_class):
+            raise TypeError, "S (= %s) must be a string monoid."%S
+        SymmetricKeyCryptosystem.__init__(self, S, S, S, block_length = 1, period = n)
+
+    def __call__(self, K):
+        """
+        Create a Vigenere cipher.
+
+        INPUT:
+            A key which specifies a block permutation.
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,14)
+            sage: E
+            Vigenere cryptosystem on Free alphabetic string monoid on A-Z of period 14
+            sage: K = S('ABCDEFGHIJKLMN')
+            sage: K
+            ABCDEFGHIJKLMN
+            sage: e = E(K)
+            sage: e
+            ABCDEFGHIJKLMN
+            sage: e(S("THECATINTHEHAT"))
+            TIGFEYOUBQOSMG
+        """
+        S = self.key_space()
+        m = self.period()
+        if isinstance(K, list):
+            try:
+                K = S(K)
+            except:
+                raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
+        if not len(K) == m:
+            raise TypeError, "K (= %s) must specify a string of length %s." % (K, m)
+        return VigenereCipher(self, K)
+
+    def __repr__(self):
+        return "Vigenere cryptosystem on %s of period %s" % (
+            self.cipher_domain(), self.period())
+
+    def random_key(self):
+        S = self.key_space()
+        n = S.ngens()
+        m = self.period()
+        return S([ randint(0,n-1) for i in range(m) ])
+
+    def inverse_key(self,K):
+        """
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,14)
+            sage: K = E.random_key()
+            sage: L = E.inverse_key(K)
+            sage: M = S("THECATINTHEHAT")
+            sage: e = E(K)
+            sage: c = E(L)
+            sage: c(e(M))
+            THECATINTHEHAT
+        """
+        S = self.key_space()
+        n = S.ngens()
+        return S([ (-i)%(n) for i in K._element_list ])
+
+    def encoding(self,M):
+        S = self.cipher_domain()
+        if isinstance(S,AlphabeticStringMonoid):
+            return S(strip_encoding(M))
+        try:
+            return S.encoding(M)
+        except:
+            raise TypeError, "Argument M = %s does not encode in the cipher domain" % M
+
+    def deciphering(self,K,C):
+        i = self(self.inverse_key(K))
+        return i(C)
+
+    def enciphering(self,K,M):
+        e = self(K)
+        return e(M)
+

@@ -79,12 +79,32 @@ def _rmcmd(s, cmd, left='', right=''):
 ##             + right + s[m.end():]
 ##     return s
 
+
 def format(s):
     """
     Format SAGE documentation for viewing with IPython.
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"
+    import sage.all
+    import sage.server.support
+    docs = set([])
+    while True:
+        i = s.find("<<<")
+        if i == -1: break
+        j = s[i+3:].find('>>>')
+        if j == -1: break
+        obj = s[i+3:i+3+j]
+        if obj in docs:
+            t = ''
+        else:
+            x = eval('sage.all.%s'%obj, locals())
+            t0 = sage.server.support.get_def(x, obj)
+            t1 = my_getdoc(x)
+            t = 'Definition: ' + t0 + '\n\n' + t1
+            docs.add(obj)
+        s = s[:i] + '\n' + t + s[i+6+j:]
+
     s = _rmcmd(s, 'url')
     s = _rmcmd(s, 'code')
     s = _rmcmd(s, 'mbox')
@@ -96,6 +116,33 @@ def format(s):
     s = _rmcmd(s, 'emph', '*', '*')
     for a,b in substitutes:
         s = s.replace(a,b)
+    return s
+
+def format_src(s):
+    """
+    Format SAGE documentation for viewing with IPython.
+    """
+    if not isinstance(s, str):
+        raise TypeError, "s must be a string"
+    docs = set([])
+    import sage.all
+    while True:
+        i = s.find("<<<")
+        if i == -1: break
+        j = s[i+3:].find('>>>')
+        if j == -1: break
+        obj = s[i+3:i+3+j]
+        if obj in docs:
+            t = ''
+        else:
+            x = eval('sage.all.%s'%obj, locals())
+            t = my_getsource(x, False)
+            docs.add(obj)
+        if t is None:
+            print x
+            t = ''
+        s = s[:i] + '\n' + t + s[i+6+j:]
+
     return s
 
 
@@ -110,4 +157,40 @@ def search_sage(s, extra=''):
     and you must have grep installed.
     """
     from sage.misc.all import pager
-    pager()(os.popen('sage -grep "%s" | grep "%s"'%(s,extra)).read())
+    cmd = 'sage -grep "%s" | grep "%s"'%(s,extra)
+    print cmd
+    pager()(os.popen(cmd).read())
+
+
+
+###############################
+
+#######################################
+## Add detex'ing of documentation
+#######################################
+import sagedoc
+import inspect
+import sageinspect
+
+
+def my_getdoc(obj):
+    try:
+        ds = obj._sage_doc_()
+    except (AttributeError, TypeError):  # TypeError for interfaces
+        try:
+            ds = sageinspect.sage_getdoc(obj)
+        except:
+            return None
+    if ds is None:
+        return None
+    return sagedoc.format(ds)
+
+def my_getsource(obj, is_binary):
+    try:
+        s = sageinspect.sage_getsource(obj, is_binary)
+        return sagedoc.format_src(s)
+    except Exception, msg:
+        print 'Error getting source:', msg
+        return None
+
+

@@ -1,5 +1,7 @@
-r"""
+r"""nodoctest
 Elementary Functions
+
+!!!TEMPORARILY TOTALLY BROKEN!!!
 
 Call a univariate function an "elementary function" if it can be
 written as a sum of functions of the form "polynomial times and
@@ -15,13 +17,14 @@ $$
 These arise naturally in solving constant coefficient ordinary
 differential equations using the method of undetermined coefficients.
 
-The set E of elementary functions is an algebra over RR.
-If D is differentiation and A = RR[D] is the polynomial
-ring in D over RR, let us define a smooth function f to be
-*finite* if the vector space A(f) is finite dimensional.
+The set E of elementary functions is an algebra over RR.  If D is
+differentiation and A = RR[D] is the polynomial ring in D over RR, let
+us define a smooth function f to be *finite* if the vector space A(f)
+is finite dimensional.
 
 Theorem: E is the algebra of all finite functions.
 
+\begin{verbatim}
 Methods implemented:
     * addition
     * multiplication (right scalar multiplication only)
@@ -51,46 +54,41 @@ TODO:
     * extend "desolve" so that it always returns a class instance
       instead of a string
     * extend piecewise piecewise functions to allow ElementaryFunctions.
+\end{verbatim}
 
 AUTHOR: David Joyner (2006-06)
-        " (2006-09) - minor bug fixes
+        -- (2006-09) - minor bug fixes
+        -- (2006-11) -- completely rewrite
 
      REFERENCE:
         * Abramowitz and Stegun: Handbook of Mathematical Functions,
           http://www.math.sfu.ca/~cbm/aands/
-
 """
 
-#*****************************************************************************
+################################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
 #                     2006 David Joyner <wdj@usna.edu>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
-#
-#    This code is distributed in the hope that it will be useful,
-#    but WITHOUT ANY WARRANTY; without even the implied warranty of
-#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-#    General Public License for more details.
-#
 #  The full text of the GPL is available at:
-#
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+################################################################################
 
 import copy
 import sage.plot.plot
 import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
-from sage.rings.real_field import RealField
+from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, RR, RDF, ZZ
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 from constants import e as E
 from functions import sin,cos,expo
 
-from functions import *
+from sage.structure.parent_base import ParentWithBase
+from sage.structure.element import CommutativeRingElement
 
 
 ############################################################
@@ -99,7 +97,8 @@ from functions import *
 
 def cosine(a,var):
     """
-    An algebra generator of the space of "elementary functions".
+    Cosine -- one of the algebra generators of the space of elementary
+    functions in the given variable.
 
     EXAMPLES:
         sage: R = ElementaryFunctionRing(QQ,"t")
@@ -194,18 +193,13 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
        sage: g = cosine(2,t); g
        Elementary function (1)cos(2*t)
        sage: x = g.polygen()
-       sage: ElementaryFunction([(-2*x^0,3,5,0),(x,-1,0,2)])
+       sage: ElementaryFunction(R,[(-2*x^0,3,5,0),(x,-1,0,2)])
        Elementary function (-2)exp(3*t)cos(5*t) + (t)exp(-t)sin(2*t)
 
     """
-    def __init__(self, base_ring, varname="x"):
-        self.__base_ring = base_ring
-        ring.Ring.__init__(self)
+    def __init__(self, base_ring, varname='x'):
+        ParentWithBase.__init__(self, base_ring)
         self._varname = varname
-
-    def base_ring(self):
-        # must be QQ, RR or some flavor of RR
-        return self.__base_ring
 
     def var(self):
         return self._varname
@@ -223,25 +217,22 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
         x = self.polygen()
         F = self.base_ring()
         if z is sin:
-            return ElementaryFunction([(x**0,0,0,1)])
+            return ElementaryFunction(self, [(x**0,0,0,1)])
         if z is cos:
-            return ElementaryFunction([(x**0,0,1,0)])
+            return ElementaryFunction(self, [(x**0,0,1,0)])
         if z is expo:
-            return ElementaryFunction([(x**0,1,0,0)])
+            return ElementaryFunction(self, [(x**0,1,0,0)])
         try:
             if z in RR:
-                return ElementaryFunction([(z*x**0,0,0,0)])
-            if z in PolynomialRing(F,str(x)):
-                return ElementaryFunction([(z,0,0,0)])
-        except:
+                return ElementaryFunction(self, [(z*x**0,0,0,0)])
+            P = PolynomialRing(F,str(x))
+            return ElementaryFunction(self, [(P(z),0,0,0)])
+        except TypeError:
             raise TypeError,"Not coercible."
         raise TypeError,"Not coercible."
 
-    def _coerce_(self,x):
-        if x in RR:
-            return self(x)
-        else:
-            raise TypeError
+    def _coerce_impl(self,x):
+        return self._coerce_try(x, [RR])
 
     def poly(self,p):
         """
@@ -260,7 +251,7 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
             Elementary function (x^2 + 1)exp(3*x)cos(2*x)
 
         """
-        return ElementaryFunction([(p,0,0,0)])
+        return ElementaryFunction(self, [(p,0,0,0)])
 
     def exponential(self,a):
         """
@@ -274,7 +265,7 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
         var = self.polygen()
         base_ring = self.base_ring()
         x = PolynomialRing(base_ring,str(var)).gen()
-        return ElementaryFunction([(x**0,a,0,0)])
+        return ElementaryFunction(self, [(x**0,a,0,0)])
 
     def sine(self,a):
         """
@@ -283,12 +274,11 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
             ElementaryFunctionRing over Rational Field in t
             sage: R.sine(2)
             Elementary function (1)sin(2*t)
-
         """
         var = self.polygen()
         base_ring = self.base_ring()
         x = PolynomialRing(base_ring,str(var)).gen()
-        return ElementaryFunction([(x**0,0,0,a)])
+        return ElementaryFunction(self, [(x**0,0,0,a)])
 
     def cosine(self,a):
         """
@@ -302,10 +292,29 @@ class ElementaryFunctionRing(commutative_ring.CommutativeRing):
         var = self.polygen()
         base_ring = self.base_ring()
         x = PolynomialRing(base_ring,str(var)).gen()
-        return ElementaryFunction([(x**0,0,a,0)])
+        return ElementaryFunction(self, [(x**0,0,a,0)])
 
-class ElementaryFunction(ElementaryFunctionRing):
-    def __init__(self, list_of_fcns):
+# The default global elementary function ring.
+EFR = ElementaryFunctionRing(RDF, 'x')
+
+def ElementaryFunction(list_of_fcns):
+   """
+   INPUT:
+        list_of_fcns --
+        \code{list_of_fcns} is a list of 4-tuples (p,a,b,c),
+        representating p*exp(a*x)*cos(b*x) (if c=0) or
+        p*exp(a*x)*sin(b*x) (if b=0). Here a,b,c are
+        in RR and p is in RR[x].
+        We assume that b=0 or c=0.
+
+   OUTPUT:
+        A double precision elementary function.
+   """
+   return ElementaryFunction_class(EFR, list_of_fcns)
+
+
+class ElementaryFunction_class(CommutativeRingElement):
+    def __init__(self, parent, list_of_fcns):
         r"""
         \code{list_of_fcns} is a list of 4-tuples (p,a,b,c),
         representating p*exp(a*x)*cos(b*x) (if c=0) or
@@ -313,15 +322,20 @@ class ElementaryFunction(ElementaryFunctionRing):
         in RR and p is in RR[x].
 
         We assume that b=0 or c=0.
-
         """
+        if not isinstance(list_of_fcns, list):
+           raise TypeError, "list_of_fcns must be a list of 4-tuples"
         self._length = len(list_of_fcns)
         self._list = list_of_fcns
+        self._set_parent(parent)
+        for x in list_of_fcns:
+           if not (isinstance(x, tuple) and len(x) == 4):
+              raise TypeError, "list_of_fcns must be a list of 4-tuples"
         if is_Polynomial(list_of_fcns[0][0]):
             self._var = list_of_fcns[0][0].parent().gen()
         else:
             F = list_of_fcns[0][0].base_ring()
-            var = self.variable()                        #### wrong -- FIX THIS
+            var = self.variable()                        #### todo: wrong -- FIX THIS
             R = PolynomialRing(F,str(var))
             self._var = R.gen()
 
@@ -329,7 +343,7 @@ class ElementaryFunction(ElementaryFunctionRing):
         """
         EXAMPLES:
             sage: x = PolynomialRing(QQ,"x").gen()
-            sage: g = ElementaryFunction([(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
+            sage: g = ElementaryFunction(self, [(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
             sage: P = plot(g,-1,1)
 
         Now type show(P) to view this.
@@ -344,7 +358,7 @@ class ElementaryFunction(ElementaryFunctionRing):
 
         EXAMPLES:
             sage: x = PolynomialRing(QQ,"x").gen()
-            sage: g = ElementaryFunction([(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
+            sage: g = ElementaryFunction(self, [(x^2-x+1,3,5,0),(x^3-2,-1,0,2)])
             sage: g.variable()
             x
         """
@@ -364,12 +378,12 @@ class ElementaryFunction(ElementaryFunctionRing):
     def base_ring(self):
         return self.parent().base_ring()
 
-    def __neg__(self):
+    def _neg_(self):
         """
         EXAMPLES:
             sage: R = ElementaryFunctionRing(QQ,"t")
             sage: t = R.polygen()
-            sage: g = ElementaryFunction([((4*t^3+t),3,5,0),(t,-1,0,2)])
+            sage: g = ElementaryFunction(self, [((4*t^3+t),3,5,0),(t,-1,0,2)])
             sage: -g
             Elementary function (-4*t^3 - t)exp(3*t)cos(5*t) + (-t)exp(-t)sin(2*t)
         """
@@ -411,7 +425,7 @@ class ElementaryFunction(ElementaryFunctionRing):
     def length(self):
         return self._length
 
-    def __repr__(self):
+    def _repr_(self):
         """
 
         EXAMPLES:
@@ -435,7 +449,7 @@ class ElementaryFunction(ElementaryFunctionRing):
             Elementary function (1/2)sin(2*t)
 
         """
-        var = self.variable()
+        var = str(self.variable())
         fcn = ""
         nonzero = "false"  ## silly trick
         for f in self.list():
@@ -476,6 +490,7 @@ class ElementaryFunction(ElementaryFunctionRing):
         else:
             return 'Elementary function 0'
 
+    # TODO: Why is this here?  Is it the same as _repr_ above?!!?  -- William Stein
     def __str__(self):
         """
 
@@ -485,7 +500,7 @@ class ElementaryFunction(ElementaryFunctionRing):
             sage: print g
             (x^2 - x + 1)*exp(3*x)*cos(5*x) + (x^3 - 2)*exp(-x)*sin(2*x)
         """
-        var = self.variable()
+        var = str(self.variable())
         fcn = ""
         nonzero = "false"  ## silly trick
         for f in self.list():
@@ -711,7 +726,7 @@ class ElementaryFunction(ElementaryFunctionRing):
                 df_list.append((c*p,a,c,0))
         df = ElementaryFunction(df_list)
         fcn = self.__str__()
-        var = self.variable()
+        var = str(self.variable())
         maxima.eval("expr: " + fcn)
         a = maxima.eval("diff(expr," + var +")")
         if verbose!=None:
@@ -737,12 +752,12 @@ class ElementaryFunction(ElementaryFunctionRing):
         """
         maxima = sage.interfaces.all.maxima
         fcn = self.__str__()
-        var = self.variable()
+        var = str(self.variable())
         maxima.eval("expr: " + fcn)
         a = maxima.eval("laplace(expr," + var +", s)")
         return a.replace("%","")
 
-    def __add__(self,other):
+    def _add_(self,other):
 	"""
 	Returns the elementary function which is the sum of
 	self and other.
@@ -767,7 +782,7 @@ class ElementaryFunction(ElementaryFunctionRing):
         # case 3 : self, other are elementary:
         return ElementaryFunction(self.list()+other.list())     ## gotta love Python:-)
 
-    def __mul__(self,other):
+    def _mul_(self,other):
 	r"""
 	Returns the elementary function which is the product of self
         with other. Right multiplication by a constant or a polynomial is
@@ -848,7 +863,7 @@ class ElementaryFunction(ElementaryFunctionRing):
         return ElementaryFunction(h).simplify()
 
 
-    def __sub__(self,other):
+    def _sub_(self,other):
 	"""
 	Returns the elementary function which is the difference of
 	self and other.

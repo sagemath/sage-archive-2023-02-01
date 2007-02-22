@@ -11,7 +11,59 @@ AUTHORS:
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
 
-PYREX: sage.rings.integer
+EXAMPLES:
+   Add 2 integers:
+       sage: a = Integer(3) ; b = Integer(4)
+       sage: a + b == 7
+       True
+
+   Add an integer and a real number:
+       sage: a + 4.0
+       7.00000000000000
+
+   Add an integer and a rational number:
+       sage: a + Rational(2)/5
+       17/5
+
+   Add an integer and a complex number:
+       sage: b = ComplexField().0 + 1.5
+       sage: loads((a+b).dumps()) == a+b
+       True
+
+   sage: z = 32
+   sage: -z
+   -32
+   sage: z = 0; -z
+   0
+   sage: z = -0; -z
+   0
+   sage: z = -1; -z
+   1
+
+Multiplication:
+    sage: a = Integer(3) ; b = Integer(4)
+    sage: a * b == 12
+    True
+    sage: loads((a * 4.0).dumps()) == a*b
+    True
+    sage: a * Rational(2)/5
+    6/5
+
+    sage: list([2,3]) * 4
+    [2, 3, 2, 3, 2, 3, 2, 3]
+
+    sage: 'sage'*Integer(3)
+    'sagesagesage'
+
+Coercions:
+    Returns version of this integer in the multi-precision floating
+    real field R.
+
+        sage: n = 9390823
+        sage: RR = RealField(200)
+        sage: RR(n)
+        9390823.0000000000000000000000000000000000000000000000000000
+
 """
 
 #*****************************************************************************
@@ -39,10 +91,7 @@ import sys
 
 include "../ext/gmp.pxi"
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
-
 include "../ext/stdsage.pxi"
-
-init_csage()
 
 cdef extern from "../ext/mpz_pylong.h":
     cdef mpz_get_pylong(mpz_t src)
@@ -54,14 +103,10 @@ from sage.libs.pari.gen cimport gen as pari_gen
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
-import sage.rings.integer_ring
-import sage.rings.coerce
 import sage.rings.infinity
-import sage.rings.complex_field
-import rational as rational
 import sage.libs.pari.all
 import real_mpfr
-import sage.misc.functional
+
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -83,57 +128,34 @@ cdef public mpz_t* get_value(Integer self):
 # The problem is related to realloc moving all the memory
 # and returning a pointer to the new block of memory, I think.
 
-cdef extern from "stdlib.h":
-    void abort()
+from sage.structure.sage_object cimport SageObject
+from sage.structure.element cimport EuclideanDomainElement, ModuleElement
+from sage.structure.element import  bin_op
 
-cdef void* pymem_realloc(void *ptr, size_t old_size, size_t new_size):
-    return PyMem_Realloc(ptr, new_size)
-    #print "hello-realloc: ", <long> ptr, old_size, new_size
-    #cdef void* p
-    #p = PyMem_Realloc(ptr, new_size)
-    #print "p = ", <long> p
-    #if <void*> p != <void*> ptr:
-    #    abort()
-    #return p
+import integer_ring
+the_integer_ring = integer_ring.ZZ
 
-
-cdef void pymem_free(void *ptr, size_t size):
-    PyMem_Free(ptr)
-
-cdef void* pymem_malloc(size_t size):
-    return PyMem_Malloc(size)
-
-cdef extern from "gmp.h":
-    void mp_set_memory_functions (void *(*alloc_func_ptr) (size_t), void *(*realloc_func_ptr) (void *, size_t, size_t), void (*free_func_ptr) (void *, size_t))
-
-
-def pmem_malloc():
-    """
-    Use the Python heap for GMP memory management.
-    """
-    mp_set_memory_functions(PyMem_Malloc, pymem_realloc, pymem_free)
-    #mp_set_memory_functions(pymem_malloc, pymem_realloc, pymem_free)
-
-pmem_malloc()
-
-cdef object the_integer_ring
-the_integer_ring = sage.rings.integer_ring.Z
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
-    """
-    The \\class{Integer} class represents arbitrary precision
-    integers.  It derives from the \\class{Element} class, so
+    r"""
+    The \class{Integer} class represents arbitrary precision
+    integers.  It derives from the \class{Element} class, so
     integers can be used as ring elements anywhere in SAGE.
 
-    \\begin{notice}
-    The class \\class{Integer} is implemented in Pyrex, as a wrapper
-    of the GMP \\code{mpz_t} integer type.
-    \\end{notice}
+    \begin{notice}
+    The class \class{Integer} is implemented in Pyrex, as a wrapper
+    of the GMP \code{mpz_t} integer type.
+    \end{notice}
     """
+
+    # todo: It would be really nice if we could avoid the __new__ call.
+    # It has python calling conventions, and our timing tests indicate the
+    # overhead can be significant. The difficulty is that then we can't
+    # guarantee that the initialization will be performed exactly once.
+
     def __new__(self, x=None, unsigned int base=0):
-        global the_integer_ring
         mpz_init(self.value)
-        self._parent = the_integer_ring
+        self._parent = <SageObject>the_integer_ring
 
     def __pyxdoc__init__(self):
         """
@@ -147,12 +169,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             495949209809328523
             sage: Integer(Mod(3,7))
             3
-
-        Integers also support the standard arithmetic operations, such
-        as +,-,*,/,^, \code{abs}, \code{mod}, \code{float}:
             sage: 2^3
             8
         """
+
     def __init__(self, x=None, unsigned int base=0):
         """
         EXAMPLES:
@@ -180,46 +200,38 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ('0x3b').str(16)
             '3b'
         """
+
+        # TODO: All the code below should somehow be in an external
+        # cdef'd function.  Then e.g., if a matrix or vector or
+        # polynomial is getting filled by mpz_t's, it can use the
+        # rules below to do the fill construction of mpz_t's, but
+        # without the overhead of creating any Python objects at all.
+        # The cdef's function should be of the form
+        #     mpz_init_set_sage(mpz_t y, object x)
+        # Then this function becomes the one liner:
+        #     mpz_init_set_sage(self.value, x)
+
+
         if not (x is None):
             # First do all the type-check versions; these are fast.
-            # PyObject_TypeCheck only works for *types* not for *classes*.
 
-            if PyObject_TypeCheck(x, Integer):
-                # todo: in this next line, Pyrex adds a call to its own
-                # function "__Pyx_TypeTest" to check that x is really an
-                # Integer. Pretty much all this function does is call
-                # PyObject_TypeCheck, which is what I've just done anyway.
-                # This is really annoying.
-                # Similarly with all the other conversions below.
-                set_from_Integer(self, x)
+            if PY_TYPE_CHECK(x, Integer):
+                set_from_Integer(self, <Integer>x)
 
-            # todo: You would think you could just do:
-            #  elif PyObject_TypeCheck(x, int): [...]
-            # But if you do that, Pyrex writes in a *name lookup* for "int".
-            # That's really strange; it should just know the pointer
-            # to the unique int type object. This is why I'm using instead:
             elif PyInt_Check(x):
                 mpz_set_si(self.value, x)
-            # same comment as above:
+
             elif PyLong_Check(x):
                 mpz_set_pylong(self.value, x)
-            # same comment as above:
+
             elif PyString_Check(x):
                 if base < 0 or base > 36:
                     raise ValueError, "base (=%s) must be between 2 and 36"%base
                 if mpz_set_str(self.value, x, base) != 0:
                     raise TypeError, "unable to convert x (=%s) to an integer"%x
-            # todo: I want to skip the name lookup here (rational.Rational).
-            # I tried importing/cimporting Rational in various ways, but every
-            # way was broken for some mysterious reason. Perhaps a circular
-            # include somewhere?
-            elif PyObject_TypeCheck(x, rational.Rational):
-                if x.denominator() != 1:
-                    raise TypeError, "Unable to coerce rational (=%s) to an Integer."%x
-                set_from_Integer(self, x.numer())
 
             # Similarly for "sage.libs.pari.all.pari_gen"
-            elif PyObject_TypeCheck(x, pari_gen):
+            elif PY_TYPE_CHECK(x, pari_gen):
                 if x.type() == 't_INTMOD':
                     x = x.lift()
                 # TODO: figure out how to convert to pari integer in base 16 ?
@@ -240,10 +252,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 # out of the NULL pointer. This really sucks. Perhaps we could
                 # make the function prototype have return type void*, but
                 # then how do we make Pyrex handle the reference counting?
-                set_from_Integer(self, PyObject_GetAttrString(x, "_integer_")())
+                set_from_Integer(self, (<object> PyObject_GetAttrString(x, "_integer_"))())
 
             else:
-                raise TypeError, "Unable to coerce %s (of type %s) to an Integer."%(x,type(x))
+                raise TypeError, "unable to coerce element to an integer"
 
 
     def __reduce__(self):
@@ -275,9 +287,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def _im_gens_(self, codomain, im_gens):
         return codomain._coerce_(self)
 
-    #def __reduce__(self):
-    #    return sage.rings.integer_ring.Z, (long(self),)
-
     def _xor(Integer self, Integer other):
         cdef Integer x
         x = Integer()
@@ -293,40 +302,31 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n.__xor__(m)
             1
         """
-        if isinstance(x, Integer) and isinstance(y, Integer):
+        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return x._xor(y)
-        return sage.rings.coerce.bin_op(x, y, operator.xor)
+        return bin_op(x, y, operator.xor)
 
 
+    def __richcmp__(left, right, int op):
+        return (<sage.structure.element.Element>left)._richcmp(right, op)
 
-    cdef int cmp(self, Integer x):
+    cdef int _cmp_c_impl(left, sage.structure.element.Element right) except -2:
         cdef int i
-        i = mpz_cmp(self.value, x.value)
-        if i < 0:
-            return -1
-        elif i == 0:
-            return 0
-        else:
-            return 1
+        i = mpz_cmp((<Integer>left).value, (<Integer>right).value)
+        if i < 0: return -1
+        elif i == 0: return 0
+        else: return 1
 
-    def __richcmp__(Integer self, right, int op):
-        cdef int n
-        if not isinstance(right, Integer):
-            try:
-                n = sage.rings.coerce.cmp(self, right)
-            except TypeError:
-                n = -1
-        else:
-            n = self.cmp(right)
-        return self._rich_to_bool(op, n)
-
-    def __cmp__(self, x):
-        return self.cmp(x)
-
-
-    def copy(self):
+    def __copy__(self):
         """
         Return a copy of the integer.
+
+        EXAMPLES:
+            sage: n = 2
+            sage: copy(n)
+            2
+            sage: copy(n) is n
+            False
         """
         cdef Integer z
         z = Integer()
@@ -336,13 +336,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def list(self):
         """
-        Return a list with the rational element in it, to be
+        Return a list with this integer in it, to be
         compatible with the method for number fields.
 
         EXAMPLES:
-        sage: m = 5
-        sage: m.list()
-        [5]
+            sage: m = 5
+            sage: m.list()
+            [5]
         """
         return [ self ]
 
@@ -360,15 +360,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return '<mn>%s</mn>'%self
 
     def __str_malloc(self, int base=10):
-        """
-        Return the string representation of \\code{self} in the given
-        base.  (Uses malloc then PyMem.  This is actually slightly
-        faster than self.str() below, but it is unpythonic to use
-        malloc.)  However, self.str() below is nice because we know
-        the size of the string ahead of time, and can work around a
-        bug in GMP nicely.  There seems to be a bug in GMP, where
-        non-2-power base conversion for very large integers > 10
-        million digits (?) crashes GMP.
+        r"""
+        Return the string representation of \code{self} in the given
+        base.
+
+        However, self.str() below is nice because we know the size of
+        the string ahead of time, and can work around a bug in GMP
+        nicely.  There seems to be a bug in GMP, where non-2-power
+        base conversion for very large integers > 10 million digits
+        (?) crashes GMP.
         """
         _sig_on
         cdef char *s
@@ -402,10 +402,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ValueError: base (=37) must be between 2 and 36
 
             sage: big = 10^5000000
-            sage: s = big.str()                 # long (> 20 seconds)
-            sage: len(s)                        # depends on long
+            sage: s = big.str()                 # long time (> 20 seconds)
+            sage: len(s)                        # long time (depends on above defn of s)
             5000001
-            sage: s[:10]                        # depends on long
+            sage: s[:10]                        # long time (depends on above defn of s)
             '1000000000'
         """
         if base < 2 or base > 36:
@@ -419,7 +419,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_on
         mpz_get_str(s, base, self.value)
         _sig_off
-        k = PyString_FromString(s)
+        k = <object> PyString_FromString(s)
         PyMem_Free(s)
         return k
 
@@ -459,8 +459,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             1101101011101100011110001110010010100111010001101010001111111000101000000000101111000010000011
         """
         return self.str(2)
-
-
 
     def set_si(self, signed long int n):
         """
@@ -532,103 +530,65 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
-    def __add_(Integer self, Integer other):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers
         cdef Integer x
-        x = Integer()
-        mpz_add(x.value, self.value, other.value)
+        x = PY_NEW(Integer)
+        mpz_add(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __add__(x, y):
-        """
-        EXAMPLES:
-        Add 2 integers:
-            sage: a = Integer(3) ; b = Integer(4)
-            sage: a + b == 7
-            True
+##     def _unsafe_add_in_place(self,  ModuleElement right):
+##         """
+##         Do *not* use this...  unless you really know what you
+##         are doing.
+##         """
+##         if not (right._parent is self._parent):
+##             raise TypeError
+##         mpz_add(self.value, self.value, (<Integer>right).value)
+##     cdef _unsafe_add_in_place_c(self,  ModuleElement right):
+##         """
+##         Do *not* use this...  unless you really know what you
+##         are doing.
+##         """
+##         if not (right._parent is self._parent):
+##             raise TypeError
+##         mpz_add(self.value, self.value, (<Integer>right).value)
 
-        Add an integer and a real number:
-            sage: a + 4.0
-            7.0000000000000000
-
-        Add an integer and a rational number:
-            sage: a + Rational(2)/5
-            17/5
-
-        Add an integer and a complex number:
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a+b).dumps()) == a+b
-            True
-        """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__add_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.add)
-
-    def __sub_(Integer self, Integer other):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        # self and right are guaranteed to be Integers
         cdef Integer x
-        x = Integer()
-        mpz_sub(x.value, self.value, other.value)
+        x = PY_NEW(Integer)
+        mpz_sub(x.value, self.value, (<Integer>right).value)
         return x
 
-    def __sub__(x, y):
-        """
-        EXAMPLES:
-            sage: a = Integer(5); b = Integer(3)
-            sage: b - a
-            -2
-        """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__sub_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.sub)
-
-    def __mul_(Integer self, Integer other):
+    cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
         x = Integer()
-
-        _sig_on
-        mpz_mul(x.value, self.value, other.value)
-        _sig_off
-
+        mpz_neg(x.value, self.value)
         return x
 
-    def __mul__(x, y):
-        """
-        EXAMPLES:
-            sage: a = Integer(3) ; b = Integer(4)
-            sage: a * b == 12
-            True
-            sage: loads((a * 4.0).dumps()) == a*b
-            True
-            sage: a * Rational(2)/5
-            6/5
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a*b).dumps()) == a*b
-            True
+    def _r_action(self, s):
+        if isinstance(s, (str, list)):
+            return s*int(self)
+        raise TypeError
 
-            sage: list([2,3]) * 4
-            [2, 3, 2, 3, 2, 3, 2, 3]
-
-            sage: 'sage'*Integer(3)
-            'sagesagesage'
-        """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__mul_(y)
-        if isinstance(x, (str, list)):
-            return x * int(y)
-        return sage.rings.coerce.bin_op(x, y, operator.mul)
-
-    def __div_(Integer self, Integer other):
+    cdef RingElement _mul_c_impl(self, RingElement right):
+        # self and right are guaranteed to be Integers
         cdef Integer x
-        #if mpz_divisible_p(self.value, other.value):
-        #    x = Integer()
-        #    mpz_divexact(x.value, self.value, other.value)
-        #    return x
-        #else:
-        return rational.Rational(self)/rational.Rational(other)
-        #raise ArithmeticError, "Exact division impossible."
+        x = PY_NEW(Integer)
+        if  mpz_sizeinbase(self.value, 2) > 1000000:  # some lack of symmetry
+            # We only use the signal handler (to enable ctrl-c out) in case
+            # self is huge, so the product might actually take a while to compute.
+            _sig_on
+            mpz_mul(x.value, self.value, (<Integer>right).value)
+            _sig_off
+        else:
+            mpz_mul(x.value, self.value, (<Integer>right).value)
+        return x
 
-    def __div__(x, y):
-        """
-        Computes a \over{b}
+    cdef RingElement _div_c_impl(self, RingElement right):
+        r"""
+        Computes \frac{a}{b}
 
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)
@@ -636,13 +596,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             True
             sage: Integer(32) / Integer(32)
             1
-            sage: b = ComplexField().0 + 1.5
-            sage: loads((a/b).dumps()) == a/b
-            True
         """
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x.__div_(y)
-        return sage.rings.coerce.bin_op(x, y, operator.div)
+        # this is vastly faster than doing it here, since here
+        # we can't cimport rationals.
+        return the_integer_ring._div(self, right)
 
     def __floordiv(Integer self, Integer other):
         cdef Integer x
@@ -658,16 +615,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of self \over{other}
+        Computes the whole part of \frac{self}{other}
 
         EXAMPLES:
             sage: a = Integer(321) ; b = Integer(10)
             sage: a // b
             32
         """
-        if isinstance(x, Integer) and isinstance(y, Integer):
+        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return x.__floordiv(y)
-        return sage.rings.coerce.bin_op(x, y, operator.floordiv)
+        return bin_op(x, y, operator.floordiv)
 
 
     def __pow__(self, n, dummy):
@@ -688,11 +645,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: exponent (=1/3) must be an integer.
             Coerce your numbers to real or complex numbers first.
+
+        The base need not be an integer (it can be a builtin
+        Python type).
+            sage: int(2)^10
+            1024
+            sage: float(2.5)^10
+            9536.7431640625
+            sage: 'sage'^3
+            'sagesagesage'
         """
         cdef Integer _self, _n
         cdef unsigned int _nval
-        if not isinstance(self, Integer):
-            return self.__pow__(int(n))
+        if not PY_TYPE_CHECK(self, Integer):
+            if isinstance(self, str):
+                return self * n
+            else:
+                return self.__pow__(int(n))
         try:
             _n = Integer(n)
         except TypeError:
@@ -778,7 +747,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def exact_log(self, m):
         r"""
-        Returns the largest integer $k$ such that $m^k \leq \text{self}$.
+        Returns the largest integer $k$ such that $m^k \leq \text{self}$, i.e.,
+        the floor of $\log_m(\text{self})$.
 
         This is guaranteed to return the correct answer even when the usual
         log function doesn't have sufficient precision.
@@ -806,27 +776,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            sage: Integer(1).exact_log(5)
            0
 
-        This is why you don't want to use log(n, m):
-           sage: x = 3**10000000
-           sage: log(x, 3)
-           9999999.9999999981
-           sage: log(x + 100000, 3)
-           9999999.9999999981
+
+           sage: x = 3^100000
+           sage: log(RR(x), 3)
+           99999.9999999999
+           sage: log(RR(x + 100000), 3)
+           99999.9999999999
 
            sage: x.exact_log(3)
-           10000000
+           100000
            sage: (x+1).exact_log(3)
-           10000000
+           100000
            sage: (x-1).exact_log(3)
-           9999999
+           99999
 
+           sage: x.exact_log(2.5)
+           Traceback (most recent call last):
+           ...
+           ValueError: base of log must be an integer
         """
+        _m = int(m)
+        if _m != m:
+            raise ValueError, "base of log must be an integer"
+        m = _m
         if self <= 0:
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
-
-        guess = int(sage.misc.functional.log(self, m))
+        R = real_mpfr.RealField(53)
+        guess = R(self).log(base = m).floor()
         power = m ** guess
 
         while power > self:
@@ -854,26 +832,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             43434
         """
         return self
-
-    def __neg__(self):
-        """
-        Computes $-self$
-
-        EXAMPLES:
-            sage: z = 32
-            sage: -z
-            -32
-            sage: z = 0; -z
-            0
-            sage: z = -0; -z
-            0
-            sage: z = -1; -z
-            1
-        """
-        cdef Integer x
-        x = Integer()
-        mpz_neg(x.value, self.value)
-        return x
 
     def __abs__(self):
         """
@@ -959,6 +917,42 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return q, r
 
+    def div(self, other):
+        """
+        Returns the quotient of self divided by other.
+
+        INPUT:
+            other -- the integer the divisor
+
+        OUTPUT:
+            q   -- the quotient of self/other
+
+        EXAMPLES:
+            sage: z = Integer(231)
+            sage: z.div(2)
+            115
+            sage: z.div(-2)
+            -115
+            sage: z.div(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: other (=0) must be nonzero
+        """
+        cdef Integer _other, _self
+        _other = integer(other)
+        if not _other:
+            raise ZeroDivisionError, "other (=%s) must be nonzero"%other
+        _self = integer(self)
+
+        cdef Integer q, r
+        q = Integer()
+        r = Integer()
+
+        _sig_on
+        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
+        _sig_off
+
+        return q
 
 
     def powermod(self, exp, mod):
@@ -966,7 +960,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Compute self**exp modulo mod.
 
         EXAMPLES:
-            sage: z = Integer(2)
+            sage: z = 2
             sage: z.powermod(31,31)
             2
             sage: z.powermod(0,31)
@@ -978,10 +972,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: z.powermod(31,0)
             Traceback (most recent call last):
             ...
-            RuntimeError
+            ZeroDivisionError: cannot raise to a power modulo 0
         """
         cdef Integer x, _exp, _mod
         _exp = Integer(exp); _mod = Integer(mod)
+        if mpz_cmp_si(_mod.value,0) == 0:
+            raise ZeroDivisionError, "cannot raise to a power modulo 0"
+
         x = Integer()
 
         _sig_on
@@ -991,6 +988,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
     def rational_reconstruction(self, Integer m):
+        import rational
         return rational.pyrex_rational_reconstruction(self, m)
 
     def powermodm_ui(self, exp, mod):
@@ -1034,19 +1032,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __int__(self):
         return int(mpz_get_pylong(self.value))
 
-        #cdef char *s
-        #s = mpz_get_str(NULL, 32, self.value)
-        #n = int(s,32)
-        #free(s)
-        #return n
-
     def __long__(self):
         return mpz_get_pylong(self.value)
-        #cdef char *s
-        #s = mpz_get_str(NULL, 32, self.value)
-        #n = long(s,32)
-        #free(s)
-        #return n
 
     def __nonzero__(self):
         return not self.is_zero()
@@ -1055,14 +1042,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return mpz_get_d(self.value)
 
     def __hash__(self):
-        #return hash(int(self))
         return mpz_pythonhash(self.value)
-
-        #cdef int n
-        #n = mpz_get_si(self.value)
-        #if n == -1:
-        #    return -2     # since -1 is not an allowed Python hash for C ext -- it's an error indicator.
-        #return n
 
     def factor(self, algorithm='pari'):
         """
@@ -1075,6 +1055,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                  * 'kash' -- use KASH computer algebra system (requires
                              the optional kash package be installed)
         """
+        import sage.rings.integer_ring
         return sage.rings.integer_ring.factor(self, algorithm=algorithm)
 
     def coprime_integers(self, m):
@@ -1096,6 +1077,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
+
+        ALGORITHM: Naive -- compute lots of GCD's.  If this isn't good
+        enough for you, please code something better and submit a
+        patch.
         """
         # TODO -- make VASTLY faster
         v = []
@@ -1129,18 +1114,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
     def valuation(self, p):
+        """
+        Return the p-adic valuation of self.
+
+        INPUT:
+            p -- an integer at least 2.
+
+        EXAMPLE:
+            sage: n = 60
+            sage: n.valuation(2)
+            2
+            sage: n.valuation(3)
+            1
+            sage: n.valuation(7)
+            0
+            sage: n.valuation(1)
+            Traceback (most recent call last):
+            ...
+            ValueError: You can only compute the valuation with respect to a integer larger than 1.
+
+        We do not require that p is a prime:
+            sage: (2^11).valuation(4)
+            5
+        """
         if self == 0:
             return sage.rings.infinity.infinity
+        cdef Integer _p
+        _p = Integer(p)
+        if mpz_cmp_ui(_p.value,2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         cdef int k
         k = 0
-        while self % p == 0:
+        while self % _p == 0:
             k = k + 1
-            self = self.__floordiv__(p)
+            self = self.__floordiv__(_p)
         return Integer(k)
+
+    def ord(self, p=None):
+        """Synonym for valuation
+
+        EXAMPLES:
+        sage: n=12
+        sage: n.ord(3)
+        1
+        """
+        return self.valuation(p)
 
     def _lcm(self, Integer n):
         """
         Returns the least common multiple of self and $n$.
+
+        EXAMPLES:
+            sage: n = 60
+            sage: n._lcm(150)
+            300
         """
         cdef mpz_t x
 
@@ -1192,6 +1219,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Self must fit in an \\code{unsigned long int}.
 
         EXAMPLES:
+            sage: for n in srange(7):
+            ...    print n, n.factorial()
+            0 1
+            1 1
+            2 2
+            3 6
+            4 24
+            5 120
+            6 720
         """
         if self < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
@@ -1217,14 +1253,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return z
 
     def floor(self):
+        """
+        Return the floor of self, which is just self since self is an integer.
+
+        EXAMPLES:
+            sage: n = 6
+            sage: n.floor()
+            6
+        """
         return self
 
     def ceil(self):
+        """
+        Return the ceiling of self, which is self since self is an integer.
+
+        EXAMPLES:
+            sage: n = 6
+            sage: n.ceil()
+            6
+        """
         return self
 
     def is_one(self):
-        """
-        Returns \\code{True} if the integers is $1$, otherwise \\code{False}.
+        r"""
+        Returns \code{True} if the integers is $1$, otherwise \code{False}.
 
         EXAMPLES:
             sage: Integer(1).is_one()
@@ -1235,8 +1287,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_cmp_si(self.value, 1) == 0)
 
     def is_zero(self):
-        """
-        Returns \\code{True} if the integers is $0$, otherwise \\code{False}.
+        r"""
+        Returns \code{True} if the integers is $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: Integer(1).is_zero()
@@ -1247,8 +1299,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_cmp_si(self.value, 0) == 0)
 
     def is_unit(self):
-        """
-        Returns \\code{true} if this integer is a unit, i.e., 1 or $-1$.
+        r"""
+        Returns \code{true} if this integer is a unit, i.e., 1 or $-1$.
+
+        EXAMPLES:
+            sage: for n in srange(-2,3):
+            ...    print n, n.is_unit()
+            -2 False
+            -1 True
+            0 False
+            1 True
+            2 False
         """
         return bool(mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0)
 
@@ -1277,6 +1338,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             False
         """
         return bool(self._pari_().isprime())
+
+    def is_pseudoprime(self):
+        r"""
+        Retuns \code{True} if self is a pseudoprime
+
+        EXAMPLES:
+            sage: z = 2^31 - 1
+            sage: z.is_pseudoprime()
+            True
+            sage: z = 2^31
+            sage: z.is_pseudoprime()
+            False
+        """
+        return bool(self._pari_().ispseudoprime())
 
     def square_free_part(self):
         """
@@ -1380,6 +1455,21 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari_().issquarefree()
 
     def _pari_(self):
+        """
+        Returns the PARI version of this integer.
+
+        EXAMPLES:
+            sage: n = 9390823
+            sage: m = n._pari_(); m
+            9390823
+            sage: type(m)
+            <type 'sage.libs.pari.gen.gen'>
+
+        ALGORITHM: Use base 10 Python string conversion, hence very
+        very slow for large integers. If you can figure out how to
+        input a number into PARI in hex, or otherwise optimize this,
+        please implement it and send me a patch.
+        """
         if self._pari is None:
             # better to do in hex, but I can't figure out
             # how to input/output a number in hex in PARI!!
@@ -1388,12 +1478,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return self._pari
 
     def _interface_init_(self):
+        """
+        Return canonical string to coerce this integer to any other math
+        software, i.e., just the string representation of this integer
+        in base 10.
+
+        EXAMPLES:
+            sage: n = 9390823
+            sage: n._interface_init_()
+            '9390823'
+        """
         return str(self)
 
     def isqrt(self):
-        """
+        r"""
         Returns the integer floor of the square root of self, or raises
-        an \\exception{ValueError} if self is negative.
+        an \exception{ValueError} if self is negative.
 
         EXAMPLE:
             sage: a = Integer(5)
@@ -1415,9 +1515,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_off
 
         return x
-
-    def _mpfr_(self, R):
-        return R(self.str(32), 32)
 
 
     def sqrt(self, bits=None):
@@ -1443,23 +1540,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(4).sqrt()
             2
             sage: Z(4).sqrt(53)
-            2.0000000000000000
+            2.00000000000000
             sage: Z(2).sqrt(53)
-            1.4142135623730951
+            1.41421356237309
             sage: Z(2).sqrt(100)
-            1.4142135623730950488016887242092
+            1.4142135623730950488016887242
             sage: n = 39188072418583779289; n.square_root()
             6260037733
             sage: (100^100).sqrt()
             10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
             sage: (-1).sqrt()
-            1.0000000000000000*I
+            1.00000000000000*I
             sage: sqrt(-2)
-            1.4142135623730951*I
+            1.41421356237309*I
             sage: sqrt(97)
-            9.8488578017961039
+            9.84885780179610
             sage: n = 97; n.sqrt(200)
-            9.8488578017961047217462114149176244816961362874427641717231516
+            9.8488578017961047217462114149176244816961362874427641717231
         """
         if bits is None:
             try:
@@ -1469,11 +1566,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
         if self < 0:
+            import sage.rings.complex_field
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
             R = real_mpfr.RealField(bits)
-            return self._mpfr_(R).sqrt()
+            return R(self).sqrt()
 
     def square_root(self):
         """
@@ -1495,11 +1593,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
     def _xgcd(self, Integer n):
-        """
-        Return a triple $g, s, t \\in\\Z$ such that
+        r"""
+        Return a triple $g, s, t \in\Z$ such that
         $$
-           g = s \\cdot \\mbox{\\rm self} + t \\cdot n.
+           g = s \cdot \mbox{\rm self} + t \cdot n.
         $$
+
+        EXAMPLES:
+            sage: n = 6
+            sage: g, s, t = n._xgcd(8)
+            sage: s*6 + 8*t
+            2
+            sage: g
+            2
         """
         cdef mpz_t g, s, t
         cdef object g0, s0, t0
@@ -1523,7 +1629,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    def _lshift(self, unsigned long int n):
+    cdef _lshift(self, unsigned long int n):
+        """
+        Shift self n bits to the left, i.e., quickly multiply by $2^n$.
+        """
         cdef Integer x
         x = Integer()
 
@@ -1534,6 +1643,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __lshift__(x,y):
         """
+        Shift x y bits to the left.
+
         EXAMPLES:
             sage: 32 << 2
             128
@@ -1542,11 +1653,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: int(32) << 2
             128
         """
-        if isinstance(x, Integer) and isinstance(y, (Integer, int, long)):
-            return x._lshift(long(y))
-        return sage.rings.coerce.bin_op(x, y, operator.lshift)
+        if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+            return (<Integer>x)._lshift(long(y))
+        return bin_op(x, y, operator.lshift)
 
-    def _rshift(Integer self, unsigned long int n):
+    cdef _rshift(Integer self, unsigned long int n):
         cdef Integer x
         x = Integer()
         _sig_on
@@ -1564,36 +1675,60 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: int(32) >> 2
             8
         """
-        if isinstance(x, Integer) and isinstance(y, (Integer, int, long)):
-            return x._rshift(long(y))
-        return sage.rings.coerce.bin_op(x, y, operator.rshift)
+        if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+            return (<Integer>x)._rshift(long(y))
+        return bin_op(x, y, operator.rshift)
 
-    def _and(Integer self, Integer other):
+    cdef _and(Integer self, Integer other):
         cdef Integer x
         x = Integer()
         mpz_and(x.value, self.value, other.value)
         return x
 
     def __and__(x, y):
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x._and(y)
-        return sage.rings.coerce.bin_op(x, y, operator.and_)
+        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+            return (<Integer>x)._and(y)
+        return bin_op(x, y, operator.and_)
 
 
-    def _or(Integer self, Integer other):
+    cdef _or(Integer self, Integer other):
         cdef Integer x
         x = Integer()
         mpz_ior(x.value, self.value, other.value)
         return x
 
     def __or__(x, y):
-        if isinstance(x, Integer) and isinstance(y, Integer):
-            return x._or(y)
-        return sage.rings.coerce.bin_op(x, y, operator.or_)
+        """
+        Return the bitwise or of the integers x and y.
+
+        EXAMPLES:
+            sage: n = 8; m = 4
+            sage: n.__or__(m)
+            12
+
+        On the command line use eval to evaluate the or using the
+        caret notation (which is normally exponentiation because
+        of the preprocessor).
+            sage: eval('n ^ m')
+            12
+            sage: eval('Integer(8) ^ Integer(4)')
+            12
+        """
+        if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
+            return (<Integer>x)._or(y)
+        return bin_op(x, y, operator.or_)
 
 
     def __invert__(self):
         """
+        Return the multiplicative interse of self, as a rational number.
+
+        EXAMPLE:
+            sage: n = 10
+            sage: 1/n
+            1/10
+            sage: n.__invert__()
+            1/10
         """
         return Integer(1)/self    # todo: optimize
 
@@ -1611,6 +1746,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 raises ZeroDivisionError.
         IMPLEMENTATION:
            Call the mpz_invert GMP library function.
+
         EXAMPLES:
             sage: a = Integer(189)
             sage: a.inverse_mod(10000)
@@ -1698,7 +1834,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def test_bit(self, index):
         r"""
-        Return the bit at \code{index}
+        Return the bit at \code{index}.
 
         EXAMPLES:
             sage: w = 6
@@ -1719,7 +1855,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 ONE = Integer(1)
 
 def integer(x):
-    if isinstance(x, Integer):
+    if PY_TYPE_CHECK(x, Integer):
         return x
     return Integer(x)
 
@@ -1803,6 +1939,24 @@ def GCD_list(v):
     return w
 
 def make_integer(s):
-    r = Integer()
+    cdef Integer r
+    r = PY_NEW(Integer)
     r._reduce_set(s)
     return r
+
+
+from random import randint
+def random_integer(min=-2, max=2):
+    cdef Integer x
+    cdef int _min, _max, r
+    try:
+        _min = min
+        _max = max
+        x = PY_NEW(Integer)
+        r = random() % (_max - _min + 1) + _min
+        mpz_set_si(x.value, r)
+        return x
+    except OverflowError:
+        return Integer(randint(min,max))
+
+

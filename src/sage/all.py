@@ -3,11 +3,13 @@ all.py -- much of sage is imported into this module, so you don't
           have to import everything individually.
 """
 
-#*****************************************************************************
+from __future__ import with_statement
+
+###############################################################################
 #
 #   SAGE: System for Algebra and Geometry Experimentation
 #
-#       Copyright (C) 2005 William Stein <wstein@gmail.com>
+#       Copyright (C) 2005, 2006 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -19,7 +21,7 @@ all.py -- much of sage is imported into this module, so you don't
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
-#*****************************************************************************
+###############################################################################
 
 # Error message that matches the SAGE/IPython defaults
 quit = "Use Ctrl-D (i.e. EOF), %Exit, or %Quit to exit without confirmation."
@@ -51,43 +53,62 @@ from time                import sleep
 from sage.interfaces.get_sigs import get_sigs
 get_sigs()
 
+from sage.rings.memory import pmem_malloc
+pmem_malloc()
+
 from sage.misc.all       import *         # takes a while
 
 from sage.libs.all       import *
 from sage.rings.all      import *
 from sage.matrix.all     import *
+
+pmem_malloc()
+
 from sage.modules.all    import *
 from sage.monoids.all    import *
 from sage.algebras.all   import *
 from sage.modular.all    import *
 from sage.schemes.all    import *
+from sage.graphs.all     import *
 from sage.groups.all     import *
 from sage.databases.all  import *
 from sage.structure.all  import *
 from sage.categories.all import *
 from sage.sets.all       import *
+from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
+#from sage.calculus.all   import *
 from sage.server.all     import *
+from sage.dsage.all      import *
 import sage.tests.all as tests
 
 from sage.crypto.all     import *
-import sage.edu.all   as edu
 
 from sage.plot.all       import *
 from sage.coding.all     import *
-from sage.combinat.all     import *
+from sage.combinat.all   import *
 
 from sage.lfunctions.all import *
 
-from sage.geometry.all import *
+from sage.geometry.all   import *
 
 from sage.quadratic_forms.all import *
 
-from sage.gsl.all import *
+from sage.gsl.all        import *
+
+from sage.games.all      import *
 
 from copy import copy
 
+
+###########################################################
+#### WARNING:
+# DO *not* import numpy / matplotlib / networkx here!!
+# Each takes a surprisingly long time to initialize,
+# and that initialization should be done more on-the-fly
+# when they are first needed.
+###########################################################
 
 ###################################################################
 
@@ -222,6 +243,11 @@ def quit_sage(verbose=True):
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 
+    # stop the twisted reactor
+    from twisted.internet import reactor
+    if reactor.running:
+        reactor.callFromThread(reactor.stop)
+
 def _quit_sage_(self):
     import sage.misc.preparser_ipython
     if sage.misc.preparser_ipython.interface != None:
@@ -243,4 +269,9 @@ def _quit_sage_(self):
 from IPython.iplib import InteractiveShell
 InteractiveShell.exit = _quit_sage_
 
+from sage.ext.interactive_constructors_c import inject_on, inject_off
 
+from catalogue.all import new
+
+import sage.ext.sig
+sage.ext.sig.get_bad_sigs()

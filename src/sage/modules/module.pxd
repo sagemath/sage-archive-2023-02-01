@@ -1,5 +1,4 @@
-cimport sage.structure.gens
-import  sage.structure.gens
+cimport sage.structure.parent_gens
 
-cdef class Module(sage.structure.gens.AdditiveAbelianGenerators):
+cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     pass

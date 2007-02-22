@@ -11,10 +11,15 @@ import os, pexpect
 import re
 from math import ceil, floor
 
-import sage.rings.integer
-from sage.misc.all import verbose, get_verbose, tmp_filename
+from sage.rings.integer import Integer
+from sage.misc.misc import verbose, get_verbose, tmp_filename
+
+import cleaner
 
 import sage.misc.package
+
+def nothing():
+    pass
 
 class ECM:
     def __init__(self, B1=10, B2=None, **kwds):
@@ -91,7 +96,7 @@ class ECM:
         return s
 
     def __call__(self, n, watch=False):
-        n = sage.rings.integer.Integer(n)
+        n = Integer(n)
         cmd = 'echo "%s" | %s'%(n, self.__cmd)
         if watch:
             t = tmp_filename()
@@ -152,11 +157,16 @@ class ECM:
         if not 'c' in kwds: kwds['c'] = 1000000000
         if not 'I' in kwds: kwds['I'] = 1
         if not factor_digits is None:
-            B1 = self.recommended_B1(factor_digits);
+            B1 = self.recommended_B1(factor_digits)
         kwds['one'] = ''
         kwds['cofdec'] = ''
         self.__cmd = self._ECM__startup_cmd(B1, None, kwds)
+        self.last_params = { 'B1' : B1 }
         child = pexpect.spawn(self.__cmd)
+        cleaner.cleaner(child.pid, self.__cmd)
+        child.timeout = None
+	child.__del__ = nothing   # program around studid exception ignored error
+        child.expect('[ECM]')
         child.sendline(str(n))
         child.sendline("bad") # child.sendeof()
         while True:
@@ -171,20 +181,20 @@ class ECM:
                                          'sigma' : child.match.groups()[4] }
                 elif info[7] != None:
                     child.kill(0)
-                    self.primality = [false]
+                    self.primality = [False]
                     return [n]
                 else:
-                    p = sage.rings.integer.Integer(info[6])
+                    p = Integer(info[6])
                     child.expect('(input number)|(prime factor)|(composite factor)')
                     if not child.match.groups()[0] is None:
                         child.kill(0)
-                        return self.find_factor(n, B1=4+floor(B1/2), **kwds)
+                        return self.find_factor(n, B1=4+floor(float(B1)/2), **kwds)
                     else:
                         # primality testing is cheap compared to factoring, but has already been done
                         # return [p, n/p]
                         self.primality = [not child.match.groups()[1] is None]
                         child.expect('((prime cofactor)|(Composite cofactor)) (\d+)\D')
-                        q = sage.rings.integer.Integer(child.match.groups()[3])
+                        q = Integer(child.match.groups()[3])
                         self.primality += [not child.match.groups()[1] is None]
                         child.kill(0)
                         return [p, q]
@@ -192,14 +202,18 @@ class ECM:
 
             except pexpect.EOF:
                 child.kill(0)
-                self.primality = [false]
+                self.primality = [False]
                 return [n]
-        del child
+        child.kill(0)
 
 
     def factor(self, n, factor_digits=None, B1=2000, **kwds):
         """
-        Returns a list of all probable prime factors of n, using gmp-ecm.
+        Returns a list of integers whose product is n, computed using
+        gmp-ecm, and PARI for small factors.
+
+        ** WARNING: There is no guarantee that the factors returned are
+        prime. **
 
         INPUT:
             n -- a positive integer
@@ -208,24 +222,30 @@ class ECM:
             kwds -- arguments to pass to ecm-gmp. See help for ECM for more details.
 
         OUTPUT:
-            factorization of n
+            a list of integers whose product is n
 
         NOTE:
-            Trial division should typically be performed before using this method.
-            Also, if you suspect that n is the product of two similarly-sized primes,
-            other methods (such as pari's quadratic sieve) will usually be faster.
+            Trial division should typically be performed before using
+            this method.  Also, if you suspect that n is the product
+            of two similarly-sized primes, other methods (such as a
+            quadratic sieve -- use the qsieve command) will usually be
+            faster.
 
         EXAMPLES:
-            sage: ECM().factor(602400691612422154516282778947806249229526581)
+            sage: ecm.factor(602400691612422154516282778947806249229526581)
             [45949729863572179, 13109994191499930367061460439]
 
-            sage: ECM().factor((2^197 + 1)/3)           # takes a long time
+            sage: ecm.factor((2^197 + 1)/3)           # takes a long time
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
         """
+        if B1 < 2000 or len(str(n)) < 15:
+            return sum([[p]*e for p, e in Integer(n).factor()], [])
+
         factors = self.find_factor(n, factor_digits, B1, **kwds)
         factors.sort()
-        if len(factors) != 2:
+        if len(factors) == 1:
             return factors
+        assert len(factors) == 2
         _primality = [self.primality[0], self.primality[1]]
         try:
             last_B1 = self.last_params['B1']
@@ -256,8 +276,7 @@ class ECM:
             The parameters for the most recent factorization.
 
         EXAMPLES:
-            sage: ecm = ECM()
-            sage: ecm.factor((2^197 + 1)/3)
+            sage: ecm.factor((2^197 + 1)/3)             # long time
             [197002597249, 1348959352853811313, 251951573867253012259144010843]
             sage: ecm.get_last_params()                 # random output
             {'poly': 'x^1', 'sigma': '1785694449', 'B1': '8885', 'B2': '1002846'}
@@ -281,11 +300,11 @@ class ECM:
 
             sage: n = next_prime(11^23)*next_prime(11^37)
 
-            sage.: ECM().time(n, 20)
+            sage.: ecm.time(n, 20)
             Expected curves: 77     Expected time: 7.21s
-            sage.: ECM().time(n, 25)
+            sage.: ecm.time(n, 25)
             Expected curves: 206    Expected time: 1.56m
-            sage.: ECM().time(n, 30, verbose=1)
+            sage.: ecm.time(n, 30, verbose=1)
             GMP-ECM 6.0.1 [powered by GMP 4.2] [ECM]
 
             Input number is 304481639541418099574459496544854621998616257489887231115912293 (63 digits)
@@ -318,12 +337,15 @@ class ECM:
         B1 = self.recommended_B1(factor_digits)
         self.__cmd = self._ECM__startup_cmd(B1, None, {'v': ' '})
         child = pexpect.spawn(self.__cmd)
+        cleaner.cleaner(child.pid, self.__cmd)
+        child.timeout = None
+        child.expect('[ECM]')
         child.sendline(str(n))
         try:
             child.sendeof()
         except:
             pass
-        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65', timeout=None)
+        child.expect('20\s+25\s+30\s+35\s+40\s+45\s+50\s+55\s+60\s+65')
         if verbose:
             print child.before,
             print child.after,
@@ -345,3 +367,5 @@ class ECM:
         child.kill(0)
         print "Expected curves:", curve_count, "\tExpected time:", time
 
+# unique instance
+ecm = ECM()

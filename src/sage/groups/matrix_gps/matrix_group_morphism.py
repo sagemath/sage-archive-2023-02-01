@@ -1,10 +1,9 @@
 """
-Contains general base classes for homomorphisms between the matrix groups
-
+Homomorphisms Between Matrix Groups
 
 AUTHORS:
     David Joyner and William Stein (2006-03) -- initial version
-    David Joyner (2006-05) -- examples added
+    David Joyner (2006-05) -- examples
 
 """
 
@@ -19,11 +18,8 @@ AUTHORS:
 from sage.groups.group import Group
 from sage.rings.all import IntegerRing, is_Ring, Integer
 from sage.interfaces.gap import gap
-from linear import LinearGroup_generic
 from sage.categories.morphism import *
-from sage.groups.matrix_gps.matrix_group import MatrixGroup
 from sage.misc.latex import latex
-
 
 class MatrixGroupMap(Morphism):
     """
@@ -54,7 +50,9 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         sage: H = MatrixGroup([MS([1,0,1,1])])
         sage: phi = G.hom(H.gens())
         sage: phi
-        Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+        Homomorphism : Matrix group over Finite Field of size 5 with 1 generators:
+         [[[1, 1], [0, 1]]] --> Matrix group over Finite Field of size 5 with 1 generators:
+         [[[1, 0], [1, 1]]]
         sage: phi(MS([1,1,0,1]))
         [1 0]
         [1 1]
@@ -64,7 +62,6 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
         sage: G = MatrixGroup([MS([3,0,0,1])])
         sage: a = G.gens()[0]^2
         sage: phi = G.hom([a])
-
     """
     def __init__(self, homset, imgsH, check=True):
         MatrixGroupMorphism.__init__(self, homset)   # sets the parent
@@ -98,7 +95,6 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             'Group([ [ [ Z(7)^3, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
             sage: phi.image(G.gens()[0])
             '[ [ Z(7)^2, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ]'
-
         """
         cmd = self._gap_hom_string
         gap.eval(cmd)
@@ -125,13 +121,12 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             [[[2, 0], [0, 1]]]
             sage: phi.image(H)
             'Group([ [ [ Z(7)^4, 0*Z(7) ], [ 0*Z(7), Z(7)^0 ] ] ])'
-
         """
         cmd = self._gap_hom_string
         gap.eval(cmd)
         return gap.eval("Image( phi, "+str(J._gap_init_())+")")
 
-    def __repr__(self):
+    def _repr_(self):
         """
         EXAMPLES:
             sage: F = GF(5); MS = MatrixSpace(F,2,2)
@@ -139,15 +134,13 @@ class MatrixGroupMorphism_im_gens(MatrixGroupMorphism):
             sage: H = MatrixGroup([MS([1,0,1,1])])
             sage: phi = G.hom(H.gens())
             sage: phi
-            Homomorphism : MatrixGroup( [[[1, 1], [0, 1]]] ) --> MatrixGroup( [[[1, 0], [1, 1]]] )
+            Homomorphism : Matrix group over Finite Field of size 5 with 1 generators:
+             [[[1, 1], [0, 1]]] --> Matrix group over Finite Field of size 5 with 1 generators:
+             [[[1, 0], [1, 1]]]
             sage: phi(MS([1,1,0,1]))
             [1 0]
             [1 1]
-
         """
-        return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
-
-    def __str__(self):
         return "Homomorphism : %s --> %s"%(self.domain(),self.codomain())
 
     def _latex_(self):

@@ -124,7 +124,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         sage: v[3] = 2/3
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=2/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     Sequences can be used absolutely anywhere lists or tuples can be used:
         sage: isinstance(v, list)
@@ -230,6 +230,63 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         y = self.__universe(x)
         list.__setitem__(self, n, y)
         self.__hash=None
+
+    def __setslice__(self, i, j, seq):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: v[1:3] = [5,7]
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: v = Sequence([1,2,3,4])
+            sage: v[1:3] = [5, 3/1]
+            sage: v
+            [1, 5, 3, 4]
+            sage: type(v[2])
+            <type 'sage.rings.integer.Integer'>
+        """
+        self._require_mutable()
+        y = [self.__universe(x) for x in seq]
+        list.__setslice__(self, i, j, y)
+        self.__hash=None
+
+    def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: w = v[2:]
+            sage: w
+            [3, 4]
+            sage: type(w)
+            <class 'sage.structure.sequence.Sequence'>
+            sage: w[0] = 5; w
+            [5, 4]
+            sage: v
+            [1, 2, 3, 4]
+        """
+        return Sequence(list.__getslice__(self, i, j),
+                        universe = self.__universe,
+                        check = False,
+                        immutable = False,
+                        cr = self.__cr)
+
+    def append(self, x):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: v.append(34)
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: v = Sequence([1/3,2,3,4])
+            sage: v.append(4)
+            sage: type(v[4])
+            <type 'sage.rings.rational.Rational'>
+        """
+        self._require_mutable()
+        y = self.__universe(x)
+        list.append(self, y)
 
     def __hash__(self):
         if self.__hash is None:

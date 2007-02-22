@@ -1,14 +1,17 @@
 IDENTITY:
-Make sure to define your username and password so the
-patches you make are identified as yours.  Make a
-file ~/.hgrc like this
+Make sure to create a ~/.hgrc file like this
 
 [ui]
 username = William Stein <wstein@gmail.com>
 
------------------------------------------------------
+----------------------------------------------------
 
-WARNING: Mercurial is much much different than darcs.
+It's probably easiest to just type
+
+   hg_[tab]
+
+at the sage: prompt and go from there.  If you want to use the hg
+commands directly, see the rest of this document.
 
 -----------------------------------------------------
 

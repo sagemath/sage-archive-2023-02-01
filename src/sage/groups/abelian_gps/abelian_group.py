@@ -6,6 +6,7 @@ AUTHOR:
     -- David Joyner (2006-05) several significant bug fixes
     --      "       (2006-08) trivial changes to docs, added random,
                               fixed bug in how invariants are recorded
+    --      +       (2006-10) added dual_group method
 
 TODO:
    * additive abelian groups should also be supported
@@ -260,7 +261,7 @@ def AbelianGroup(n, invfac=None, names="f"):
         sage: F(1)
         1
         sage: (a, b, c, d, e) = F.gens()
-        sage: mul([ a, b, a, c, b, d, c, d ])
+        sage: mul([ a, b, a, c, b, d, c, d ], F(1))
         a^2*b^2*c^2*d^2
         sage: d * b**2 * c**3
         b^2*c^3*d
@@ -355,7 +356,7 @@ class AbelianGroup_class(group.AbelianGroup):
         self.__invariants = invs
         # *now* define ngens
         self.__ngens = len(self.__invariants)
-        self.assign_names(names)
+        self._assign_names(names)
 
 
     def invariants(self):
@@ -595,7 +596,7 @@ class AbelianGroup_class(group.AbelianGroup):
         except AttributeError:
             if len(self.invariants()) < self.ngens():
                 self.__len = sage.rings.all.infinity
-            self.__len = sage.misc.misc.mul(self.invariants())
+            self.__len = sage.rings.all.Integer(sage.misc.misc.mul(self.invariants()))
             if self.__len == 0:
                 self.__len = sage.rings.all.infinity
         return self.__len
@@ -733,6 +734,16 @@ class AbelianGroup_class(group.AbelianGroup):
         """
         for g in self.list():
             yield g
+
+    def dual_group(self):
+        """
+        Returns the dual group.
+
+        EXAMPLES:
+
+        """
+        from sage.groups.abelian_gps.dual_abelian_group import DualAbelianGroup
+        return DualAbelianGroup(self)
 
 class AbelianGroup_subgroup(AbelianGroup_class):
     """

@@ -119,15 +119,11 @@ cdef class PolyDict:
         self.__repn  = pdict
         self.__zero = zero
 
-    def __cmp__(PolyDict self, other):
-        if not isinstance(other, PolyDict):
-            return False
-        return cmp(self.__repn, (<PolyDict>other).__repn)
+    def __cmp__(self, PolyDict right):
+        return cmp(self.__repn, right.__repn)
 
-    def _cmp_(PolyDict self, PolyDict other, fn=None):
-        if not isinstance(other, PolyDict):
-            return False
-        if fn == None:
+    def compare(PolyDict self, PolyDict other, fn=None):
+        if fn is None:
             return cmp(self.__repn, other.__repn)
 
         left  = iter(sorted( self.__repn,fn,reverse=True)) #start with biggest
@@ -550,12 +546,14 @@ cdef class PolyDict:
             sage: f**2
             PolyDict with representation {(3, 3): 24, (3, 5): 12, (4, 4): 16, (4, 2): 16, (4, 6): 4, (2, 4): 9}
         """
-        n = int(n)
-        if n < 0:
+        _n = int(n)
+        if _n != n:
+            raise ValueError, "n must be an integer"
+        if _n < 0:
             raise ValueError, "n must be nonnegative."
-        if n == 0:
+        if _n == 0:
             return self.__one()
-        return generic_power(self, n, self.__one())
+        return generic_power(self, _n, self.__one())
 
     def lcmt(PolyDict self,greater_etuple):
         """
@@ -690,7 +688,7 @@ cdef class ETuple:
         """
         return self._data.get(i,0)
 
-    def __getslice__(ETuple self,int i,int j):
+    def __getslice__(ETuple self, Py_ssize_t i, Py_ssize_t j):
         """
         x.__getslice(i,j) <==> x[i:j]
 
@@ -723,7 +721,7 @@ cdef class ETuple:
         """
         x.__hash__() <==> hash(x)
         """
-        return hash((tuple(self._data.iteritems()),self._length))
+        return hash((tuple(sorted(self._data.iteritems())),self._length))
 
     def __len__(ETuple self):
         """

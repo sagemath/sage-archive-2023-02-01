@@ -3,6 +3,7 @@ Elements (characters) of the dual group of a finite Abelian group.
 
 AUTHORS:
     - David Joyner (2006-07); based on abelian_group_element.py.
+    - David Joyner (2006-10); modifications suggested by William Stein.
 
 EXAMPLES:
     sage: F = AbelianGroup(5,[2, 3, 5, 7, 8], names="abcde")
@@ -14,7 +15,7 @@ EXAMPLES:
     sage: A(a)    ## random last few digits
     -1.0000000000000000 + 0.00000000000000013834419720915037*I
     sage: B(b)
-    -0.49999999999999983 + 0.86602540378443871*I
+    -0.499999999999995 + 0.866025403784441*I
     sage: A(a*b)    ## random last few digits
     -1.0000000000000000 + 0.00000000000000013834419720915037*I
     sage: (A*B*C^2*D^20*E^65).list()
@@ -54,7 +55,7 @@ from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from abelian_group import AbelianGroup
 from sage.misc.functional import exp
 from sage.functions.constants import pi
-from sage.rings.complex_field import CC,ComplexField
+from sage.rings.complex_field import is_ComplexField
 
 
 def add_strings(x, z=0):
@@ -187,9 +188,9 @@ class DualAbelianGroupElement(MonoidElement):
         """
         requires that len(invs) = n
         """
-        n = int(n)
         if not isinstance(n, (int, long, Integer)):
             raise TypeError, "Argument n (= %s) must be an integer."%n
+        n = int(n)
         M = self.parent()
         N = M.ngens()
         invs = M.invariants()
@@ -261,11 +262,21 @@ class DualAbelianGroupElement(MonoidElement):
             sage: A(a*b)    ## random last few digits
             -1.0000000000000000 + 0.00000000000000013834419720915037*I
         """
-        I = CC.gen()
+        F = self.parent().base_ring()
         expsX = list(self.list())
         expsg = list(g.list())
         invs = self.parent().invariants()
-        ans = prod([exp(2*pi*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])
+        N = LCM(invs)
+        if is_ComplexField(F):
+            I = F.gen()
+            ans = prod([exp(2*pi*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])
+            return ans
+        ans = F(1)  ## assumes F is the cyclotomic field
+        zeta = F.gen()
+        #print F,zeta
+        for i in range(len(expsX)):
+            inv_noti = N/invs[i]
+            ans = ans*zeta**(expsX[i]*expsg[i]*inv_noti)
         return ans
 
     def word_problem(self, words, display=True):

@@ -25,15 +25,14 @@ import operator
 
 import homset
 
-import sage.rings.coerce
 import sage.rings.arith as arith
 
-from sage.structure.all import Element, Element_cmp_
+from sage.structure.element import Element
 
 def is_Morphism(x):
     return isinstance(x, Morphism)
 
-class Morphism(Element, Element_cmp_):
+class Morphism(Element):
     def __init__(self, parent):
         if not isinstance(parent, homset.Homset):
             raise TypeError, "parent (=%s) must be a Homspace"%parent
@@ -106,14 +105,13 @@ class Morphism(Element, Element_cmp_):
     def __pow__(self, n):
         if not self.is_endomorphism():
             raise TypeError, "self must be an endomorphism."
+        # todo -- what about the case n=0 -- need to specify the identity map somehow.
         return arith.generic_power(self, n)
 
 class FormalCoercionMorphism(Morphism):
     def __init__(self, parent):
         Morphism.__init__(self, parent)
-        try:
-            self.codomain()._coerce_(self.domain().gen(0))
-        except TypeError:
+        if not self.codomain().has_coerce_map_from(self.domain()):
             raise TypeError, "Natural coercion morphism from %s to %s not defined."%(self.domain(), self.codomain())
 
     def _repr_type(self):

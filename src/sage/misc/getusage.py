@@ -71,6 +71,9 @@ def get_memory_usage(t=None):
 _proc_status = '/proc/%d/status' % os.getpid()
 
 def VmB(VmKey):
+    """
+    Function used internally by this module.
+    """
     global _proc_status, _scale
      # get pseudo file  /proc/<pid>/status
     try:

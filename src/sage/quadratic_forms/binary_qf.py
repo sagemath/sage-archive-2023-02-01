@@ -57,7 +57,7 @@ class BinaryQF(SageObject):
         return BinaryQF([self.a + Q.a, self.b + Q.b, self.c + Q.c])
 
 
-    def __repr__(self):
+    def _repr_(self):
         """
         Display the quadratic form.
         """
@@ -71,7 +71,7 @@ class BinaryQF(SageObject):
         ## Print the first coefficient
         out_str = ""
         if abs(self.a) > 1:
-            out_str +=  self.a
+            out_str +=  str(self.a)
         if self.a != 0:
             out_str += "x^2 "
             lc_flag = False
@@ -232,7 +232,7 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,0,1])
             sage: Q.complex_point()
-            1.0000000000000000*I
+            1.00000000000000*I
         """
         if self.discriminant() >= 0:
             raise NotImplementedError, "only implemented for negative discriminant"

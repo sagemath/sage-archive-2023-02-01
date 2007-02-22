@@ -17,14 +17,14 @@ from hyperelliptic_g2_generic import HyperellipticCurve_g2_generic
 from hyperelliptic_g2_finite_field import HyperellipticCurve_g2_finite_field
 from hyperelliptic_g2_rational_field import HyperellipticCurve_g2_rational_field
 
-from sage.rings.all import is_FiniteField, is_RationalField, Polynomial
+from sage.rings.all import is_FiniteField, is_RationalField, is_Polynomial
 
 def HyperellipticCurve(f,h=None,names=None,PP=None):
     r"""
     Returns the hyperelliptic curve $y^2 + h y = f$, for univariate
     polynomials $h$ and $f$.
     """
-    if not isinstance(f, Polynomial):
+    if not is_Polynomial(f):
         raise TypeError, "Arguments f (=%s) and h (= %s) must be polynomials"%(f,h)
     P = f.parent()
     if h is None:

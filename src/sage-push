@@ -1,0 +1,6 @@
+#!/bin/sh
+
+hg status
+hg diff
+hg ci
+hg push -f ssh://was@sage.math.washington.edu/www/sage/hg/sage-main

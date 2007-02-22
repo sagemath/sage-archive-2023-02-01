@@ -29,7 +29,7 @@ ACKNOWLEDGMENT:
 
 import os, weakref
 from expect import Expect
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Genus2reduction_expect(Expect):
     def __init__(self, server=None, logfile=None):
@@ -341,10 +341,9 @@ class Genus2reduction(SageObject):
             raise ValueError, "Q (=%s) must have degree at most 3"%Q
 
         E = self.__expect
-        cmd = '%s\n%s'%(Q, P)
-        cmd = cmd.replace(' ','')
         try:
-            s = E.eval(cmd)
+            E.eval(str(Q).replace(' ',''))
+            s = E.eval(str(P).replace(' ',''))
         except RuntimeError:
             raise ValueError, "error in input; possibly singular curve? (Q=%s, P=%s)"%(Q,P)
         i = s.find('a minimal')

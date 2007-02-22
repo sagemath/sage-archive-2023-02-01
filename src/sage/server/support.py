@@ -9,14 +9,14 @@ import inspect
 import os
 import string
 
-import sage.plot.plot
-import sage.ext.sage_object
+import sage.structure.sage_object
 import sage.misc.latex
-import sage.all
 import sage.misc.pager
 
 import sage.misc.sagedoc as sagedoc
+import sage.misc.sageinspect as sageinspect
 
+from sage.misc.preparser import preparse
 
 ######################################################################
 # Initialization
@@ -38,11 +38,13 @@ def init(object_directory=None, globs={}):
     globals_at_init = globs.values()
     global_names_at_init = set(globs.keys())
     EMBEDDED_MODE = True
+
+    import sage.plot.plot
     sage.plot.plot.EMBEDDED_MODE = True
     # Set this to true and plots are shown by default.
     #sage.plot.plot.SHOW_DEFAULT = True
     if object_directory:
-        sage.ext.sage_object.base=object_directory
+        sage.structure.sage_object.base=object_directory
     sage.misc.latex.EMBEDDED_MODE = True
     sage.misc.pager.EMBEDDED_MODE = True
 
@@ -68,13 +70,17 @@ def completions(s, globs, format=False, width=90):
     n = len(s)
     if n == 0:
         return '(empty string)'
-    if not '.' in s:
+    if not '.' in s and not '(' in s:
         v = [x for x in globs.keys() if x[:n] == s]
     else:
-        i = s.rfind('.')
-        method = s[i+1:]
-        obj = s[:i]
-        n = len(method)
+        if not ')' in s:
+            i = s.rfind('.')
+            method = s[i+1:]
+            obj = s[:i]
+            n = len(method)
+        else:
+            obj = preparse(s)
+            method = ''
         try:
             O = eval(obj, globs)
             D = dir(O)
@@ -86,7 +92,8 @@ def completions(s, globs, format=False, width=90):
                 v = [obj + '.'+x for x in D if x and x[0] != '_']
             else:
                 v = [obj + '.'+x for x in D if x[:n] == method]
-        except:
+        except Exception, msg:
+            print msg
             v = []
     v = list(set(v))   # make uniq
     v.sort()
@@ -97,80 +104,35 @@ def completions(s, globs, format=False, width=90):
             return tabulate(v, width)
     return v
 
-def get_argspec(obj):
-    """
-    Return the names and default values of a function's arguments.
-
-    A tuple of four things is returned: (args, varargs, varkw,
-    defaults).  'args' is a list of the argument names (it may contain
-    nested lists).  'varargs' and 'varkw' are the names of the * and
-    ** arguments or None.  'defaults' is an n-tuple of the default
-    values of the last n arguments.
-
-    AUTHOR: This is a modified version of inspect.getargspec from the
-    Python Standard Library, which was taken from IPython for use in
-    SAGE.
-    """
-    if inspect.isfunction(obj):
-        func_obj = obj
-    elif inspect.ismethod(obj):
-        func_obj = obj.im_func
-    else:
-        raise TypeError, 'arg is not a Python function'
-    args, varargs, varkw = inspect.getargs(func_obj.func_code)
-    return args, varargs, varkw, func_obj.func_defaults
-
-
-def get_def(obj, obj_name=''):
-    """
-    Return the definition header for any callable object.
-
-    If any exception is generated, None is returned instead and the
-    exception is suppressed.
-
-    AUTHOR: William Stein (but taken from IPython for use in SAGE).
-    """
-    try:
-        s = str(inspect.formatargspec(*get_argspec(obj)))
-        s = s.strip('(').strip(')').strip()
-        if s[:4] == 'self':
-            s = s[4:]
-        s = s.lstrip(',').strip()
-        return obj_name + '(' + s + ')'
-    except:
-        return '%s( ... )'%obj_name
-
-
-def get_doc(obj, obj_name=''):
-    try:
-        s = sagedoc.format(str(obj._sage_doc_()))
-    except AttributeError:
-        s = sagedoc.format(str(obj.__doc__))
-    if obj_name != '':
-        i = obj_name.find('.')
-        if i != -1:
-            obj_name = obj_name[:i]
-        s = s.replace('self.','%s.'%obj_name)
-    return s
-
 def docstring(obj_name, globs):
+    r"""
+    Format obj's docstring for printing in Sage notebook.
+
+    AUTHOR:
+        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- Extensions by Nick Alexander
+    """
     try:
         obj = eval(obj_name, globs)
     except (AttributeError, NameError, SyntaxError):
         return "No object '%s' currently defined."%obj_name
     s  = ''
     try:
-        s += 'File:        %s\n'%inspect.getabsfile(obj)
+        s += 'File:        %s\n'%sageinspect.sage_getfile(obj)
     except TypeError:
         pass
     s += 'Type:        %s\n'%type(obj)
-    s += 'Definition:  %s\n'%get_def(obj, obj_name)
-    s += 'Docstring:\n%s\n'%get_doc(obj, obj_name)
-    return s
+    s += 'Definition:  %s\n'%sageinspect.sage_getdef(obj, obj_name)
+    s += 'Docstring: \n%s\n'%sageinspect.sage_getdoc(obj, obj_name)
+    return s.rstrip()
 
 def source_code(s, globs):
-    """
-        AUTHOR: William Stein (but taken from IPython for use in SAGE).
+    r"""
+    Format obj's source code for printing in Sage notebook.
+
+    AUTHOR:
+        -- William Stein (but partly taken from IPython for use in SAGE).
+        -- Extensions by Nick Alexander
     """
     try:
         obj = eval(s, globs)
@@ -178,19 +140,17 @@ def source_code(s, globs):
         return "No object %s"%s
 
     try:
-        try:
-            fname = inspect.getabsfile(obj)
-        except TypeError:
-            fname = "unknown"
-        lines, num = inspect.getsourcelines(obj)
+        filename = sageinspect.sage_getfile(obj)
+        lines, lineno = sageinspect.sage_getsourcelines(obj, is_binary=False)
         src = ''.join(lines)
-        return """File: %s
-Source Code (starting at line %s):\n%s"""%(fname, num, src)
+        src = sagedoc.format_src(src)
+        if not lineno is None:
+            src = "File: %s\nSource Code (starting at line %s):\n%s"%(filename, lineno, src)
+        return src
 
-    except (TypeError, IndexError):
-
+    except (TypeError, IndexError), msg:
+        print msg
         return "Source code for %s not available."%obj
-
 
 def tabulate(v, width=90, ncols=3):
     e = len(v)
@@ -223,25 +183,25 @@ def save_session(filename):
     for k in v:
         x = sage_globals[k]
         try:
-            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+            _ = sage.structure.sage_object.loads(sage.structure.sage_object.dumps(x))
         except (IOError, TypeError):
             print "Unable to save %s"%k
         else:
             D[k] = x
     print "Saving variables to object %s.sobj"%filename
-    sage.ext.sage_object.save(D, filename)
+    sage.structure.sage_object.save(D, filename)
 
 def load_session(v, filename, state):
     D = {}
     for k, x in v.iteritems():
         try:
-            _ = sage.ext.sage_object.loads(sage.ext.sage_object.dumps(x))
+            _ = sage.structure.sage_object.loads(sage.structure.sage_object.dumps(x))
         except (IOError, TypeError):
             print "Unable to save %s"%k
         else:
             D[k] = x
     print "Saving variables to %s"%filename
-    sage.ext.sage_object.save(D, filename)
+    sage.structure.sage_object.save(D, filename)
 
 def _is_new_var(x, v):
     if x[:2] == '__':
@@ -279,48 +239,46 @@ def syseval(system, cmd):
 
 
 ######################################################################
-# Pyrex
+# Sagex
 ######################################################################
-import sage.misc.pyrex
+import sage.misc.sagex
 import sys
 import __builtin__
 
-def pyrex_import(filename, verbose=False, compile_message=False,
-                 make_c_file_nice=False, use_cache=False):
+def sagex_import(filename, verbose=False, compile_message=False,
+                 use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains pyrex code
+        filename -- name of a file that contains sagex code
 
     OUTPUT:
-        module -- the module that contains the compiled pyrex code.
+        module -- the module that contains the compiled sagex code.
 
     Raises an ImportError exception if anything goes wrong.
     """
-
-    name, build_dir = sage.misc.pyrex.pyrex(filename, verbose=verbose,
+    name, build_dir = sage.misc.sagex.sagex(filename, verbose=verbose,
                                             compile_message=compile_message,
-                                            make_c_file_nice=make_c_file_nice,
-                                            use_cache=use_cache)
-
+                                            use_cache=use_cache,
+                                            create_local_c_file=create_local_c_file)
     sys.path.append(build_dir)
     return __builtin__.__import__(name)
 
 
-def pyrex_import_all(filename, globals, verbose=False, compile_message=False,
-                     make_c_file_nice=False, use_cache=False):
+def sagex_import_all(filename, globals, verbose=False, compile_message=False,
+                     use_cache=False, create_local_c_file=True):
     """
     INPUT:
-        filename -- name of a file that contains pyrex code
+        filename -- name of a file that contains sagex code
 
     OUTPUT:
-        changes globals using the attributes of the Pyrex module
+        changes globals using the attributes of the Sagex module
         that do not begin with an underscore.
 
     Raises an ImportError exception if anything goes wrong.
     """
-    m = pyrex_import(filename, verbose=verbose, compile_message=compile_message,
-                     make_c_file_nice=make_c_file_nice,
-                     use_cache=use_cache)
+    m = sagex_import(filename, verbose=verbose, compile_message=compile_message,
+                     use_cache=use_cache,
+                     create_local_c_file=create_local_c_file)
     for k, x in m.__dict__.iteritems():
         if k[0] != '_':
             globals[k] = x

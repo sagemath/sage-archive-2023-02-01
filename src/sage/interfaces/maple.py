@@ -127,7 +127,7 @@ instead.
 If you want to load the combinatorics package for future calculations,
 in \sage this can be done as
 
-    sage: maple.with('combinat')
+    sage: maple.with_package('combinat')
 
 or
 
@@ -202,7 +202,8 @@ from expect import Expect, ExpectElement, ExpectFunction, FunctionElement, tmp
 
 import pexpect
 
-from sage.misc.all import pager, verbose, DOT_SAGE
+from sage.misc.misc import verbose, DOT_SAGE
+from sage.misc.pager import pager
 
 COMMANDS_CACHE = '%s/maple_commandlist_cache.sobj'%DOT_SAGE
 
@@ -383,11 +384,17 @@ command-line version of Maple.
             raise RuntimeError, "An error occured running a Maple command:\nINPUT:\n%s\nOUTPUT:\n%s"%(line, z)
         return z
 
+    def cputime(self, t=None):
+        if t is None:
+            return float(self('time()'))
+        else:
+            return float(self('time() - %s'%float(t)))
+
     def set(self, var, value):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s:=%s;'%(var,value)
+        cmd = '%s:=%s:'%(var,value)
         out = self.eval(cmd)
         if out.find("error") != -1:
             raise TypeError, "Error executing code in Maple\nCODE:\n\t%s\nMaple ERROR:\n\t%s"%(cmd, out)
@@ -439,7 +446,7 @@ command-line version of Maple.
         """
         pager()(self._help(str))
 
-    def with(self, package):
+    def with_package(self, package):
         """
         Make a package of Maple procedures available in the
         interpreter.
@@ -455,7 +462,7 @@ command-line version of Maple.
             partition(10)
             sage.: maple('bell(10)')                   # optional
             bell(10)
-            sage: maple.with('combinat')               # optional
+            sage: maple.with_package('combinat')               # optional
             sage: maple('partition(10)')               # optional
              [[1, 1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1, 2], [1, 1, 1, 1, 1,
              1, 2, 2], [1, 1, 1, 1, 2, 2, 2], [1, 1, 2, 2, 2, 2], [2, 2, 2, 2, 2], [1, 1, 1
@@ -473,7 +480,7 @@ command-line version of Maple.
         """
         self.eval('with(%s)'%package)
 
-    load = with
+    load = with_package
 
     #def clear(self, var):
     #    """

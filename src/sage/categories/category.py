@@ -59,7 +59,7 @@ import weakref
 import sage.rings.all
 import sage.algebras.all
 from sage.misc.latex import latex
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 
 class Category(SageObject):
@@ -129,7 +129,7 @@ class Category(SageObject):
 
         The \code{is_subcategory} function takes into account the base.
             sage: M3 = VectorSpaces(FiniteField(3))
-            sage: M9 = VectorSpaces(FiniteField(9))
+            sage: M9 = VectorSpaces(FiniteField(9, 'a'))
             sage: M3.is_subcategory(M9)
             False
 
@@ -673,7 +673,7 @@ class Fields(Category_uniq):
         Category of fields
         sage: K(IntegerRing())
         Rational Field
-        sage: K(PolynomialRing(GF(3)))
+        sage: K(PolynomialRing(GF(3), 'x'))
         Fraction Field of Univariate Polynomial Ring in x over
         Finite Field of size 3
         sage: K(RealField())
@@ -759,8 +759,8 @@ class NumberFields(Category_uniq):
 
     However, we can define a degree 1 extension of $\Q$, which is in
     this category.
-        sage: x = PolynomialRing(RationalField()).gen()
-        sage: K = NumberField(x - 1); K
+        sage: x = PolynomialRing(RationalField(), 'x').gen()
+        sage: K = NumberField(x - 1, 'a'); K
         Number Field in a with defining polynomial x - 1
         sage: K in C
         True
@@ -771,7 +771,7 @@ class NumberFields(Category_uniq):
 
     Number fields all lie in this category, irregardless of the name
     of the variable.
-        sage: K = NumberField(x^2 + 1, name='a')
+        sage: K = NumberField(x^2 + 1, 'a')
         sage: K in C
         True
     """
@@ -975,8 +975,8 @@ class FreeModules(Category_module):
             M = x.free_module()
             if M.base_ring() != self.base_ring():
                 M = M.change_ring(self.base_ring())
-        except TypeError, AttributeError:
-            raise TypeError, "unable to coerce x (=%s) into %s"%(x,self)
+        except (TypeError, AttributeError), msg:
+            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return M
 
     def is_abelian(self):
@@ -1014,8 +1014,8 @@ class VectorSpaces(Category_module):
             V = x.vector_space(self.base_field())
             if V.base_field() != self.base_field():
                 V = V.change_ring(self.base_field())
-        except TypeError, AttributeError:
-            raise TypeError, "unable to coerce x (=%s) into %s"%(x,self)
+        except (TypeError, AttributeError), msg:
+            raise TypeError, "%s\nunable to coerce x (=%s) into %s"%(msg,x,self)
         return V
 
     def base_field(self):
@@ -1050,7 +1050,7 @@ class HeckeModules(Category_module):
         Category of Hecke modules over Finite Field of size 5
 
     The base ring doesn't have to be a principal ideal domain.
-        sage: HeckeModules(PolynomialRing(IntegerRing()))
+        sage: HeckeModules(PolynomialRing(IntegerRing(), 'x'))
         Category of Hecke modules over Univariate Polynomial Ring in x over Integer Ring
     """
     def __init__(self, R):
@@ -1150,7 +1150,7 @@ class AlgebraModules(Category_module):
     def __reduce__(self):
         """
         EXAMPLES:
-            sage: C = AlgebraModules(FreeAlgebra(QQ,2))
+            sage: C = AlgebraModules(FreeAlgebra(QQ,2,'a,b'))
             sage: loads(C.dumps()) == C
             True
         """
@@ -1166,7 +1166,7 @@ class AlgebraIdeals(Category_ideal):
     The category of ideals in a fixed algebra $A$.
 
     EXAMPLES:
-        sage: C = AlgebraIdeals(FreeAlgebra(QQ,2))
+        sage: C = AlgebraIdeals(FreeAlgebra(QQ,2,'a,b'))
         sage: loads(C.dumps()) == C
         True
     """
@@ -1331,7 +1331,7 @@ category_hierarchy = {\
     CommutativeRings       : [Rings, Sets],\
     Fields                 : [CommutativeRings, Rings, Sets],\
     FiniteFields           : [Fields, CommutativeRings, Rings, Sets],\
-    NumberFields           : [CommutativeRings, Rings, Sets],\
+    NumberFields           : [CommutativeRings, Rings, Sets, Fields],\
     Algebras               : [Rings, RingModules, Sets],\
     CommutativeAlgebras    : [Algebras, CommutativeRings, Rings, Sets],\
     MonoidAlgebras         : [Algebras, Sets],\

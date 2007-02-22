@@ -1,5 +1,7 @@
 #ifdef __cplusplus
+/* The order here is very important. */
 #include "mwrank/curve.h"
+#include "mwrank/egr.h"
 #include "mwrank/descent.h"
 #include "mwrank/points.h"
 #include "mwrank/isogs.h"
@@ -43,8 +45,8 @@ struct Curvedata;
 #endif
 
 EXTERN struct Curvedata* Curvedata_new(const struct bigint* a1, const struct bigint* a2,
-				const struct bigint* a3, const struct bigint* a4,
-				const struct bigint* a6, int min_on_init);
+				       const struct bigint* a3, const struct bigint* a4,
+				       const struct bigint* a6, int min_on_init);
 
 EXTERN void Curvedata_del(struct Curvedata* curve);
 
@@ -67,18 +69,6 @@ EXTERN char* Curvedata_isogeny_class(struct Curvedata* E, int verbose);
 #ifndef __cplusplus
 struct mw;
 #endif
-
-/*#ifdef __cplusplus
-typedef vector<Point> point_vector;
-#else
-struct point_vector;
-#endif;
-
-EXTERN point_vector* mw_getbasis(struct Curvedata* curve);
-// Set (x,y,z) = v[n].
-EXTERN void point_vector_getitem(struct point_vector* v, int n,
-            struct bigint int* x, struct bigint int* y, struct bigint int *z);
-*/
 
 EXTERN struct mw* mw_new(struct Curvedata* curve, int verb, int pp, int maxr);
 

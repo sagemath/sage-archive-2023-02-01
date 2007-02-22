@@ -4,6 +4,15 @@ Darcs from SAGE.
 These functions make setup and use of darcs with SAGE easier.
 """
 
+########################################################################
+#       Copyright (C) 2006 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
+
 import os, shutil
 
 import package
@@ -169,7 +178,7 @@ class Darcs:
             files = [files]
         for file in files:
             file = os.path.abspath(file)
-            print "Adding file %s"%file
+            print "Removing file %s"%file
             self('remove %s "%s"'%(options, file))
 
     def changes(self, options=''):
@@ -326,10 +335,11 @@ class Darcs:
 #                  target='sage')
 
 class Deprecated:
-    def __init__(self, newcmd):
+    def __init__(self, newcmd, note=''):
         self.newcmd = newcmd
+        self.note = note
     def __repr__(self):
-        return "Use of darcs in SAGE is deprecated.  Use %s instead."%self.newcmd
+        return "Use of darcs in SAGE is deprecated.  Use %s instead. %s"%(self.newcmd, self.note)
     def pull(self, **args):
         return str(self)
     get = pull
@@ -347,9 +357,13 @@ class Deprecated:
     send = pull
     what = pull
 
-darcs_src = Deprecated('hg_sage')
+darcs_src = Deprecated('hg_sage', 'Note -- it is not hg_src!')
 
-darcs_doc = Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
+darcs_doc = Deprecated('hg_doc')
+
+darcs_scripts = Deprecated('hg_scripts')
+
+Darcs('%s/devel/doc-darcs'%os.environ['SAGE_ROOT'],
                   'SAGE documentation',
         url="http://modular.math.washington.edu/sage/dist/src/doc-darcs",
                   target='doc')

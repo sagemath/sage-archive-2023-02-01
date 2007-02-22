@@ -15,7 +15,7 @@
 
 from free_module import FreeModule, VectorSpace, span, is_FreeModule
 
-from free_module_element import is_FreeModuleElement, Vector
+from free_module_element import is_FreeModuleElement, vector, free_module_element
 
 from free_module_homspace import is_FreeModuleHomspace
 

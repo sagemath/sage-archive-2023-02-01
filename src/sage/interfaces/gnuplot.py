@@ -25,7 +25,7 @@ except ImportError:
     # Functionality just won't be available
     pass
 
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Gnuplot(SageObject):
     """
@@ -141,7 +141,7 @@ class Gnuplot(SageObject):
              title   -- (string) title of the graph.
 
         EXAMPLES:
-            sage.: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')
+            sage.: gnuplot.plot3d_parametric('v^2*sin(u), v*cos(u), v*(1-v)')   # optional
         """
         if title is None:
             title = str(f)

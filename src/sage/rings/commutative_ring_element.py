@@ -17,7 +17,7 @@ Base class for commutative ring elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import CommutativeRingElement
+from sage.structure.element import CommutativeRingElement
 
 def is_CommutativeRingElement(x):
     return isinstance(x, CommutativeRingElement)

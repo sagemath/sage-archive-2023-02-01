@@ -26,6 +26,8 @@ from principal_ideal_domain import PrincipalIdealDomain, is_PrincipalIdealDomain
 from euclidean_domain import EuclideanDomain, is_EuclideanDomain
 from field import Field, is_Field, is_PrimeField
 
+from commutative_algebra_element import CommutativeAlgebraElement, is_CommutativeAlgebraElement
+
 # Ring element base classes
 from ring_element import RingElement, is_RingElement
 from commutative_ring_element import CommutativeRingElement, is_CommutativeRingElement
@@ -43,7 +45,7 @@ from ideal import Ideal, is_Ideal
 from quotient_ring import QuotientRing
 
 # Class Infinity containing the one element infinity
-from infinity import infinity, is_Infinity
+from infinity import infinity, is_Infinity, InfinityRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
@@ -56,13 +58,13 @@ Rationals = RationalField
 
 # Integers modulo n.
 from integer_mod_ring import IntegerModRing, Zmod, is_IntegerModRing
-from integer_mod_pyx import IntegerMod, Mod, mod, is_IntegerMod
+from integer_mod import IntegerMod, Mod, mod, is_IntegerMod
 Integers = IntegerModRing
 
 # Finite fields
 from finite_field import (FiniteField, is_FiniteField, GF,
                           conway_polynomial, exists_conway_polynomial)
-from finite_field_element import FiniteFieldElement
+from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 
 # Number field
 from number_field.all import *
@@ -76,23 +78,34 @@ from padic_field import pAdicField, Qp, is_pAdicField
 from padic import pAdic
 
 # Real numbers
-from real_field import RealField, is_RealField, is_RealNumber, RR, RealNumber
+from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
+                       create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.
 Reals = RealField
 
+from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
+
+# Quad double
+#from real_qdrf import RealQuadDoubleField, RQDF
+
+# Intervals
+from real_mpfi import (RealIntervalField, is_RealIntervalField,
+                       is_RealIntervalFieldElement, RIF,
+                       RealInterval)
+
 # Complex numbers
-from complex_field import ComplexField, is_ComplexField, CC
+from complex_field import ComplexField, is_ComplexField
 from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
-from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF
+from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
 
 # Univariate Polynomial Rings
-from polynomial_ring import PolynomialRing, polygen, is_PolynomialRing
-from polynomial_element import Polynomial, is_Polynomial
+from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
+from polynomial_element import is_Polynomial
 
 # Multivariate Polynomial Rings
 from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
-from multi_polynomial_element import MPolynomial, degree_lowest_rational_function, is_MPolynomialRingElement
+from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing
@@ -103,7 +116,8 @@ from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
 from laurent_series_ring_element import LaurentSeries
 
 # Float interval arithmetic
-from interval import IntervalRing, Interval
+# (deprecated)
+# from interval import IntervalRing, Interval
 
 # Pseudo-ring of PARI objects.
 from pari_ring import PariRing, Pari
@@ -119,6 +133,13 @@ from fraction_field_element import is_FractionFieldElement
 # Arithmetic
 from arith import *
 
+from bernoulli_mod_p import bernoulli_mod_p
+
 from morphism import is_RingHomomorphism
 
 from homset import is_RingHomset
+
+#from fast_polynomial.compiled_polynomial import compiled_polynomial
+
+CC = ComplexField()
+I = CC.gen()

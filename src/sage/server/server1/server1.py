@@ -111,7 +111,7 @@ import sage.interfaces.sage0
 from   sage.misc.misc import word_wrap
 import sage.misc.preparser
 from   sage.misc.viewer     import browser
-from   sage.ext.sage_object import load, SageObject
+from   sage.structure.sage_object import load, SageObject
 
 def get_doc(query):
     query = query.replace('\n','').strip()

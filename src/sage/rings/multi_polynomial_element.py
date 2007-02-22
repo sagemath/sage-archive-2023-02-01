@@ -37,8 +37,7 @@ import operator
 
 import arith
 
-from sage.structure.element import CommutativeRingElement, Element_cmp_, Element
-from coerce import bin_op, cmp as coerce_cmp
+from sage.structure.element import CommutativeRingElement, Element
 
 from sage.interfaces.all import singular, macaulay2
 
@@ -51,13 +50,17 @@ from sage.structure.factorization import Factorization
 
 from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
 
+from sage.structure.sequence import Sequence
+
 import multi_polynomial_ring
 import polynomial_ring
 
-def is_MPolynomialRingElement(x):
+from integer_ring import ZZ
+
+def is_MPolynomial(x):
     return isinstance(x, MPolynomial)
 
-class MPolynomial(Element_cmp_, CommutativeRingElement):
+class MPolynomial(CommutativeRingElement):
     def __init__(self, parent, x):
         CommutativeRingElement.__init__(self, parent)
         self.__element = x
@@ -80,7 +83,7 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             sage: f((1,2))
             5
 
-            sage: x = MPolynomialRing(RationalField(),3).gens()
+            sage: x = MPolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
             x1 - 2*x1*x2 + x0
@@ -104,10 +107,10 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
             K = self.parent().base_ring()
         y = K(0)
         for (m,c) in self.element().dict().iteritems():
-            y += c*misc.mul([ x[i]**m[i] for i in range(n) ])
+            y += c*misc.mul([ x[i]**m[i] for i in range(n) if m[i] != 0])
         return y
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
         self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
@@ -146,9 +149,10 @@ class MPolynomial(Element_cmp_, CommutativeRingElement):
 
         """
         try:
-            return self.__element._cmp_(right.__element,self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
+            return self.__element.compare(right.__element,
+                             self.parent()._MPolynomialRing_generic__term_order.compare_tuples)
         except AttributeError:
-            return self.__element.__cmp__(right.__element)
+            return self.__element.compare(right.__element)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -247,7 +251,8 @@ class MPolynomial_macaulay2_repr:
             sage: f = (x^3 + 2*y^2*x)^7; f          # optional
             2*x^7*y^14 + x^21
             sage: h = f._macaulay2_(); h            # optional
-            x^21+2*x^7*y^14
+             21     7 14
+            x   + 2x y
             sage: R(h)                              # optional
             2*x^7*y^14 + x^21
             sage: R(h^20) == f^20                   # optional
@@ -267,7 +272,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def __init__(self, parent, x):
         """
         EXAMPLES:
-            sage: R, x = MPolynomialRing(QQ, 10).objgens()
+            sage: R, x = MPolynomialRing(QQ, 'x', 10).objgens()
             sage: x
             (x0, x1, x2, x3, x4, x5, x6, x7, x8, x9)
             sage: loads(dumps(x)) == x
@@ -392,6 +397,15 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the base ring of self; in
+        this case, QQ.
+            sage: f = 2 * x * y
+            sage: c = f.monomial_coefficient(x*y); c
+            2
+            sage: c in QQ
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.monomial_coefficient(y^2)
             1
@@ -430,7 +444,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f[0,1]
             0
 
-            sage: R.<x> = MPolynomialRing(GF(7)); R
+            sage: R.<x> = PolynomialRing(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
             3 + 5*x^2
@@ -466,18 +480,35 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         EXAMPLE:
             sage: x, y = MPolynomialRing(RationalField(), 2, names = ['x','y']).gens()
+
+        The coefficient returned is an element of the parent of self; in
+        this case, QQ[x, y].
+            sage: f = 2 * x * y
+            sage: c = f.coefficient(x*y); c
+            2
+            sage: c in QQ
+            False
+            sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
+            True
+
             sage: f = y^2 - x^9 - 7*x + 5*x*y
             sage: f.coefficient(y)
             5*x
             sage: f = y - x^9*y - 7*x + 5*x*y
             sage: f.coefficient(y)
             1 + 5*x - x^9
+
+        The coefficient of 1 is also an element of the multivariate
+        polynomial ring:
+            sage: R.<x,y> = GF(389)[]
+            sage: parent(R(x*y+5).coefficient(1))
+            Polynomial Ring in x, y over Finite Field of size 389
         """
+        R = self.parent()
         if mon == 1:
-            return self.constant_coefficient()
+            return R(self.constant_coefficient())
         if not (isinstance(mon, MPolynomial) and mon.parent() == self.parent() and mon.is_monomial()):
             raise TypeError, "mon must be a monomial in the parent of self."
-        R = self.parent()
         return R(self.element().coefficient(mon.element().dict()))
 
     def exponents(self):
@@ -713,24 +744,21 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         no ring 'ring' is provided.
 
         EXAMPLES:
-            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: R.<x, y> = MPolynomialRing(ZZ,2,'xy')
             sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
             sage: f.univariate_polynomial()
             Traceback (most recent call last):
             ...
-            ValueError: polynomial must involve at most one variable
+            TypeError: polynomial must involve at most one variable
             sage: g = f.fix({x:10}); g
             305 - 2*y + 700*y^2
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
             700*z^2 - 2*z + 305
-            sage: R = PolynomialRing(QQ,'w')
-            sage: R(g)
-            700*w^2 - 2*w + 305
         """
         if not self.is_univariate():
-            raise ValueError, "polynomial must involve at most one variable"
+            raise TypeError, "polynomial must involve at most one variable"
 
         #construct ring if none
         if R == None:
@@ -925,7 +953,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                     return True
                 else:
                     return False
-            return NotImplemented
+            return self._richcmp_(right,2)
         return self._MPolynomial__element == right._MPolynomial__element
 
     def __ne__(self,right):
@@ -939,7 +967,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
                 else:
                     return True
             # maybe add constant elements as well
-            return NotImplemented
+            return self._richcmp_(right,3)
         return self._MPolynomial__element != right._MPolynomial__element
 
     def is_zero(self):
@@ -983,7 +1011,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
             sage: F = f.factor()
             sage: F
-            2 * x * (2 + x)^2 * (y + x) * (y + 2*x)
+            2 * x * (y + x) * (y + 2*x) * (2 + x)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how
@@ -1007,6 +1035,32 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         F.sort()
         return F
 
+    def lift(self,I):
+        """
+        given an ideal I = (f_1,...,f_r) and some g (== self) in I,
+        find s_1,...,s_r such that g = s_1 f_1 + ... + s_r f_r
+
+        ALGORITHM: Use Singular.
+
+        EXAMPLE:
+            sage: A.<x,y> = PolynomialRing(QQ,2,order='degrevlex')
+            sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
+            sage: f = x*y^13 + y^12
+            sage: M = f.lift(I)
+            sage: M
+            [y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8, y^7]
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
+        """
+        fs = self._singular_()
+        Is = I._singular_()
+        P = I.ring()
+        try:
+            M = Is.lift(fs)._sage_(P)
+        except TypeError:
+            raise ArithmeticError, "f is not in I"
+        return Sequence(M.list(), P, check=False, immutable=True)
+
     def gcd(self, f):
         """
         Compute the greatest common divisor of this polynomial and f.
@@ -1014,14 +1068,34 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: x, y = PolynomialRing(RationalField(), 2, ['x','y']).gens()
+            sage: x, y = QQ['x,y'].gens()
             sage: f = (x^3 + 2*y^2*x)^2
             sage: g = x^2*y^2
             sage: f.gcd(g)
             x^2
+
+        This also works correctly over ZZ:
+            sage: R.<x,y> = ZZ[]
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(2*x,4*x)
+            2*x
+            sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
+            3*x*y
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
             raise TypeError, "self and f must have the same parent"
+
+
+        # Singular ignores coefficents anyway, thus it is okay to work over Z here
+        # PARI uses the coefficents btw.
+        # TODO: This is slow
+
+        if self.parent().base_ring() is ZZ:
+            res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
+            coef = arith.gcd(self.element().dict().values() + f.element().dict().values(),True)
+            return coef*res
+
         return self.parent()(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):

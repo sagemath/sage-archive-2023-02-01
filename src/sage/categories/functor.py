@@ -23,7 +23,7 @@ AUTHORS:
 #*****************************************************************************
 
 import category
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 class Functor(SageObject):
     """

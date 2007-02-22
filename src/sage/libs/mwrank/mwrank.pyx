@@ -18,7 +18,7 @@ EXAMPLES:
 
 import os
 
-include 'interrupt.pxi'
+include '../../ext/interrupt.pxi'
 
 cdef extern from "stdlib.h":
     void free(void *ptr)
@@ -168,7 +168,7 @@ cdef class _Curvedata:
         _a6 = _bigint(a6)
         self.x = Curvedata_new(_a1.x, _a2.x, _a3.x, _a4.x, _a6.x, min_on_init)
         if self.discriminant() == 0:
-            raise ArithmeticError, "Invariants (= %s) do not describe an elliptic curve."%(a1,a2,a3,a4,a6)
+            raise ArithmeticError, "Invariants (= %s) do not describe an elliptic curve."%([a1,a2,a3,a4,a6])
 
     def __dealloc__(self):
         Curvedata_del(self.x)

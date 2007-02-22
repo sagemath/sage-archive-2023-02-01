@@ -107,7 +107,6 @@ cdef extern from 'pari/pari.h':
     long    itos(GEN x)
     double  gtodouble(GEN x)
     GEN     stoi(long s)
-    #GEN     dbltor(double s)
     # These types are actually an enum type, but I can't get Pyrex to "properly"
     # wrap enums.  It doesn't matter as long as they are treated as ints by pyrexc.
     extern int t_INT, t_REAL, t_INTMOD, t_FRAC, t_COMPLEX, t_PADIC, t_QUAD, \

@@ -4,6 +4,7 @@ NTL wrapper
 AUTHORS:
    - William Stein
    - Martin Albrecht <malb@informatik.uni-bremen.de>
+   - David Harvey (2007-02): speed up getting data in/out of NTL
 """
 
 #*****************************************************************************
@@ -21,9 +22,14 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-include 'interrupt.pxi'
+include "../../ext/interrupt.pxi"
+include "../../ext/stdsage.pxi"
 include 'misc.pxi'
 include 'decl.pxi'
+
+from sage.rings.integer import Integer
+from sage.rings.integer cimport Integer
+#cimport sage.rings.integer
 
 
 ##############################################################################
@@ -51,6 +57,8 @@ cdef class ntl_ZZ:
         _sig_on
         return string(ZZ_to_str(self.x))
 
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __mul__(ntl_ZZ self, other):
         cdef ntl_ZZ y
@@ -258,6 +266,9 @@ cdef class ntl_ZZX:
         """
         return
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         if self.x:
             ZZX_dealloc(self.x)
@@ -266,6 +277,9 @@ cdef class ntl_ZZX:
         return str(ZZX_repr(self.x))
 
     def copy(self):
+        return make_ZZX(ZZX_copy(self.x))
+
+    def __copy__(self):
         return make_ZZX(ZZX_copy(self.x))
 
     def __setitem__(self, long i, a):
@@ -294,9 +308,29 @@ cdef class ntl_ZZX:
         self.setitem_from_int(int(i), int(value))
 
     def __getitem__(self, unsigned int i):
-        cdef char* t
-        t = ZZX_getitem(self.x,i)
-        return int(string(t))
+        r"""
+        Retrieves coefficient #i as a SAGE Integer.
+
+        sage: x = ntl.ZZX([129381729371289371237128318293718237, 2, -3, 0, 4])
+        sage: x[0]
+         129381729371289371237128318293718237
+        sage: type(x[0])
+         <type 'sage.rings.integer.Integer'>
+        sage: x[1]
+         2
+        sage: x[2]
+         -3
+        sage: x[3]
+         0
+        sage: x[4]
+         4
+        sage: x[5]
+         0
+        """
+        cdef Integer output
+        output = Integer()
+        ZZX_getitem_as_mpz(&output.value, self.x, i)
+        return output
 
     cdef int getitem_as_int(ntl_ZZX self, long i):
         r"""
@@ -985,6 +1019,10 @@ cdef class ntl_ZZX:
         _sig_on
         return make_ZZ(ZZX_discriminant(self.x, proof))
 
+    #def __call__(self, ntl_ZZ a):
+    #    _sig_on
+    #    return make_ZZ(ZZX_polyeval(self.x, a.x))
+
     def charpoly_mod(self, ntl_ZZX modulus, proof=True):
         """
         Return the characteristic polynomial of this polynomial modulo
@@ -1103,6 +1141,9 @@ cdef class ntl_ZZ_p:
     TODO: This documentation is wrong
     """
     # See ntl.pxd for definition of data members
+
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __dealloc__(self):
         del_ZZ_p(self.x)
@@ -1269,6 +1310,9 @@ cdef class ntl_ZZ_pX:
         """
         return
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         if self.x:
             ZZ_pX_dealloc(self.x)
@@ -1276,6 +1320,9 @@ cdef class ntl_ZZ_pX:
 
     def __repr__(self):
         return str(ZZ_pX_repr(self.x))
+
+    def __copy__(self):
+        return make_ZZ_pX(ZZ_pX_copy(self.x))
 
     def copy(self):
         return make_ZZ_pX(ZZ_pX_copy(self.x))
@@ -2113,6 +2160,9 @@ cdef class ntl_mat_ZZ:
                     mat_ZZ_setitem(self.x, i, j, <ZZ*> tmp.x)
 
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_mat_ZZ(self.x)
 
@@ -2358,6 +2408,9 @@ cdef class ntl_GF2X:
     """
     # See ntl.pxd for definition of data members
 
+    def __reduce__(self):
+        raise NotImplementedError
+
     def __dealloc__(self):
         del_GF2X(self.gf2x_x)
 
@@ -2544,17 +2597,18 @@ def make_new_GF2X(x=[]):
         [1 0 1]
         sage: ntl.GF2X([1,0,1,0])
         [1 0 1]
-        sage: ntl.GF2X(GF(2**8).gen()**20)
+        sage: ntl.GF2X(GF(2**8,'a').gen()**20)
         [0 0 1 0 1 1 0 1]
-        sage: ntl.GF2X(GF(2**8))
+        sage: ntl.GF2X(GF(2**8,'a'))
         [1 0 1 1 1 0 0 0 1]
         sage: ntl.GF2X(2)
         [0 1]
     """
-    from sage.rings.finite_field_element import FiniteFieldElement
+    from sage.rings.finite_field_element import FiniteField_ext_pariElement
     from sage.rings.finite_field import FiniteField_ext_pari
-    from sage.rings.polynomial_element import Polynomial_dense_mod_p
-    from sage.ext.integer import Integer
+    from sage.rings.finite_field_givaro import FiniteField_givaro,FiniteField_givaroElement
+    from sage.rings.polynomial_element_generic import Polynomial_dense_mod_p
+    from sage.rings.integer import Integer
 
     if isinstance(x, Integer):
         #binary repr, reversed, and "["..."]" added
@@ -2565,13 +2619,15 @@ def make_new_GF2X(x=[]):
     elif isinstance(x, Polynomial_dense_mod_p):
         if x.base_ring().characteristic():
             x=x._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteField_ext_pari):
+    elif isinstance(x, (FiniteField_ext_pari,FiniteField_givaro)):
         if x.characteristic() == 2:
-            x=x.modulus()._Polynomial_dense_mod_n__poly
-    elif isinstance(x, FiniteFieldElement):
+            x= list(x.modulus())
+    elif isinstance(x, FiniteField_ext_pariElement):
         if x.parent().characteristic() == 2:
             x=x._pari_().centerlift().centerlift().subst('a',2).int_unsafe()
             x="0x"+hex(x)[2:][::-1]
+    elif isinstance(x, FiniteField_givaroElement):
+        x = "0x"+hex(int(x))[2:][::-1]
     s = str(x).replace(","," ")
     cdef ntl_GF2X n
     n = ntl_GF2X()
@@ -2661,7 +2717,7 @@ def ntl_GF2E_modulus_degree():
     else:
         raise "NoModulus"
 
-def ntl_GF2E_sage():
+def ntl_GF2E_sage(names='a'):
     """
     Returns a SAGE FiniteField element matching the current modulus.
 
@@ -2672,7 +2728,7 @@ def ntl_GF2E_sage():
     """
     from sage.rings.finite_field import FiniteField_ext_pari
     f = ntl_GF2E_modulus()._sage_()
-    return FiniteField_ext_pari(int(2)**GF2E_degree(),modulus=f)
+    return FiniteField_ext_pari(int(2)**GF2E_degree(),modulus=f,name=names)
 
 
 def ntl_GF2E_random():
@@ -2700,6 +2756,8 @@ cdef class ntl_GF2E(ntl_GF2X):
     """
 
     # See ntl.pxd for definition of data members
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __dealloc__(self):
         del_GF2E(self.gf2e_x)
@@ -2761,6 +2819,9 @@ cdef class ntl_GF2E(ntl_GF2X):
         Returns True if this element equals one, False otherwise.
         """
         return bool(GF2E_is_one(self.gf2e_x))
+
+    def __copy__(self):
+        return make_GF2E(GF2E_copy(self.gf2e_x))
 
     def copy(ntl_GF2E self):
         """
@@ -2865,7 +2926,7 @@ def make_new_GF2E(x=[]):
         [1 0 1]
         sage: ntl.GF2E([1,0,1,0])
         [1 0 1]
-        sage: ntl.GF2E(GF(2**8).gen()**20)
+        sage: ntl.GF2E(GF(2**8,'a').gen()**20)
         [0 0 1 0 1 1 0 1]
     """
     if not __have_GF2E_modulus:
@@ -2895,6 +2956,9 @@ cdef class ntl_GF2EX:
     r"""
     """
     # See ntl.pxd for definition of data members
+
+    def __reduce__(self):
+        raise NotImplementedError
 
     def __dealloc__(self):
         del_GF2EX(self.x)
@@ -2983,7 +3047,7 @@ cdef class ntl_mat_GF2E:
         EXAMPLES:
             sage: ntl.GF2E_modulus([1,1,0,1,1,0,0,0,1])
             sage: m=ntl.mat_GF2E(10,10)
-            sage: m=ntl.mat_GF2E(Matrix(GF(2**8),10,10))
+            sage: m=ntl.mat_GF2E(Matrix(GF(2**8, 'a'),10,10))
             sage: m=ntl.mat_GF2E(10,10,[ntl.GF2E_random() for x in xrange(10*10)])
         """
 
@@ -3021,6 +3085,9 @@ cdef class ntl_mat_GF2E:
                         tmp=elem
                     mat_GF2E_setitem(self.x, i, j, <GF2E*> tmp.gf2e_x)
             _sig_off
+
+    def __reduce__(self):
+        raise NotImplementedError
 
 
     def __dealloc__(self):
@@ -3077,7 +3144,7 @@ cdef class ntl_mat_GF2E:
             x = make_new_GF2E(x)
         y = x
 
-        from sage.ext.integer import Integer
+        from sage.rings.integer import Integer
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
         elif self.ncols()==1 and (isinstance(ij, Integer) or type(ij)==int):
@@ -3093,7 +3160,7 @@ cdef class ntl_mat_GF2E:
 
     def __getitem__(self, ij):
         cdef int i, j
-        from sage.ext.integer import Integer
+        from sage.rings.integer import Integer
         if isinstance(ij, tuple) and len(ij) == 2:
             i, j = ij
         elif self.ncols()==1 and (isinstance(ij, Integer) or type(ij)==int):
@@ -3176,9 +3243,8 @@ cdef class ntl_mat_GF2E:
         for elem in self.list():
             l.append(elem._sage_(k, cache))
 
-        from sage.matrix.matrix import Matrix_generic_dense
-        from sage.matrix.matrix_space import MatrixSpace
-        return Matrix_generic_dense(MatrixSpace(k,self.nrows(),self.ncols()),coerce_entries=False,copy=False,entries=l)
+        from sage.matrix.constructor import Matrix
+        return Matrix(k,self.nrows(),self.ncols(),l)
 
     def transpose(ntl_mat_GF2E self):
         """

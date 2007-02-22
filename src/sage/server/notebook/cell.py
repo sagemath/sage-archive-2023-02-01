@@ -21,6 +21,7 @@ list of cells.
 # and numbers, so don't make this too small.
 MAX_OUTPUT = 65536
 
+TRACEBACK = 'Traceback (most recent call last):'
 
 
 import os, shutil
@@ -31,7 +32,57 @@ import notebook
 
 import worksheet
 
-class Cell:
+class Cell_generic:
+    pass
+
+class TextCell(Cell_generic):
+    def __init__(self, id, text, worksheet):
+        self.__id = int(id)
+        self.__text = text
+        self.__worksheet = worksheet
+
+    def set_worksheet(self, worksheet, id=None):
+        self.__worksheet = worksheet
+        self.__dir = '%s/cells/%s'%(worksheet.directory(), self.relative_id())
+        if not id is None:
+            self.__id = id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def html(self, ncols, do_print=False, do_math_parse=True):
+        """
+            do_math_parse -- bool (default: True)
+                If True, call math_parse (defined in cell.py)
+                on the html.
+        """
+        t = self.__text
+        if do_math_parse:
+            # Do dollar sign math parsing
+            t = math_parse(t)
+        s = '<font size=+1>%s</font>'%t
+        return s
+
+    def plain_text(self, prompts=False):
+        return self.__text
+
+    def edit_text(self, prompts=False):
+        return self.__text
+
+    def id(self):
+        return self.__id
+
+    def is_auto_cell(self):
+        return False
+
+    def __cmp__(self, right):
+        return cmp(self.id(), right.id())
+
+    def set_cell_output_type(self, typ='wrap'):
+        pass # ignored
+
+
+class Cell(Cell_generic):
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
         self.__in    = str(input)
@@ -60,8 +111,28 @@ class Cell:
             self.set_id(id)
         self.__out_html = self.files_html()
 
+    def id(self):
+        return self.__id
+
+    def relative_id(self):
+        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
+
+    def set_id(self, id):
+        self.__id = int(id)
+
+    def worksheet(self):
+        return self.__worksheet
+
+    def notebook(self):
+        return self.__worksheet.notebook()
+
+    def directory(self):
+        if not os.path.exists(self.__dir):
+            os.makedirs(self.__dir)
+        return self.__dir
+
     def __cmp__(self, right):
-        return cmp(self.__id, right.__id)
+        return cmp(self.id(), right.id())
 
     def __del__(self):
         if os.path.exists(self.__dir):
@@ -70,19 +141,19 @@ class Cell:
     def __repr__(self):
         return 'Cell %s; in=%s, out=%s'%(self.__id, self.__in, self.__out)
 
-    def plain_text(self, ncols=0, prompts=True, max_out=None):
+    def plain_text(self, ncols=0, prompts=True, max_out=None, wiki_out=False):
         if ncols == 0:
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
 
         input_lines = self.__in.strip()
-        if input_lines[:1] == '%':
-            pr = '%s> '%(input_lines.split()[0])[1:]
-        else:
-            pr = 'sage: '
+        #if input_lines[:1] == '%':
+        #    pr = '%s> '%(input_lines.split()[0])[1:]
+        #else:
+        pr = 'sage: '
 
         if prompts:
-            input_lines = input_lines.split('\n')
+            input_lines = input_lines.splitlines()
             has_prompt = False
             if pr == 'sage: ':
                 for v in input_lines:
@@ -102,21 +173,24 @@ class Cell:
                     if len(v) == 0:
                         pass
                     #    s += '<BLANKLINE>\n'
-                    elif v[0] == ' ':
+                    elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
                         s += '...' + v + '\n'
+                    elif v[:5] == 'else:':
+                        in_loop = True
+                        s += '... ' + v + '\n'
                     else:
                         if in_loop:
                             s += '...\n'
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip() + '\n'
+            s += self.__in.strip()
 
         if prompts:
             msg = 'Traceback (most recent call last):'
-            if self.__out[:len(msg)] == msg:
-                v = self.__out.split('\n')
+            if self.__out.strip()[:len(msg)] == msg:
+                v = self.__out.strip().splitlines()
                 w = [msg, '...']
                 for i in range(1,len(v)):
                     if not (len(v[i]) > 0 and v[i][0] == ' '):
@@ -126,19 +200,25 @@ class Cell:
             else:
                 out = self.output_text(ncols, html=False)
         else:
-            out = self.output_text(ncols, html=False).strip().split('\n')
-            out = [x for x in out if x.strip() != '']
-            if len(out) > 0:
-                out = '# ' + '\n# '.join(out)
-            else:
-                out = ''
+            out = self.output_text(ncols, html=False)
+            if wiki_out and len(out) > 0:
+                out = '///\n' + out
 
         if not max_out is None and len(out) > max_out:
             out = out[:max_out] + '...'
 
-        s = s.strip() + '\n' + out.strip()
+        # Get rid of spurious carriage returns
+        s = s.strip('\n')
+        out = out.strip('\n').strip('\r').strip('\r\n')
+        s = s + '\n' + out
 
+        if not prompts:
+            s = s.rstrip('\n')
         return s
+
+    def edit_text(self, ncols=0, prompts=False, max_out=None):
+        s = self.plain_text(ncols,prompts,max_out,wiki_out=True)
+        return '{{{\n%s\n}}}'%s
 
     def is_last(self):
         return self.__worksheet.cell_list()[-1] == self
@@ -164,26 +244,6 @@ class Cell:
     def computing(self):
         return self in self.__worksheet.queue()
 
-    def directory(self):
-        if not os.path.exists(self.__dir):
-            os.makedirs(self.__dir)
-        return self.__dir
-
-    def id(self):
-        return self.__id
-
-    def relative_id(self):
-        return self.__id - self.__worksheet.id()*notebook.MAX_WORKSHEETS
-
-    def set_id(self, id):
-        self.__id = int(id)
-
-    def worksheet(self):
-        return self.__worksheet
-
-    def notebook(self):
-        return self.__worksheet.notebook()
-
     def set_input_text(self, input):
         self.__version = 1+self.version()
         self.__in = input
@@ -192,7 +252,7 @@ class Cell:
         return self.__in
 
     def is_auto_cell(self):
-        return '%auto' in self.__in.split('\n')[0]
+        return '#auto' in self.__in
 
     def changed_input_text(self):
         try:
@@ -207,12 +267,20 @@ class Cell:
         self.__in = new_text
 
     def set_output_text(self, output, html, sage=None):
+        output = output.replace('\r','')
         i = output.find(worksheet.SAGE_VARS)
         if i != -1:
             output = output[:i]
         if len(output) > MAX_OUTPUT:
-            output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT] + '\n(truncated)'
-        self.__out = output.strip()
+            if not self.computing():
+                file = "%s/full_output.txt"%self.directory()
+                open(file,"w").write(output)
+                html+="<br><a href='/%s' target='_new' class='file_link'>full_output.txt</a>"%file
+            if output.lstrip()[:len(TRACEBACK)] != TRACEBACK:
+                output = 'WARNING: Output truncated!\n' + output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
+            else:
+                output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
+        self.__out = output
         self.__out_html = html
         self.__sage = sage
 
@@ -248,10 +316,14 @@ class Cell:
     def output_text(self, ncols=0, html=True):
         s = self.__out
 
-        def format(x):
-            return word_wrap(x.replace('<','&lt;'), ncols=ncols)
-
         if html:
+            def format(x):
+                return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
+            # if there is an error in the output,
+            # specially format it.
+            s = format_exception(s, ncols)
+
             # Everything not wrapped in <html> ... </html>
             # should have the <'s replaced by &lt;'s
             # and be word wrapped.
@@ -269,8 +341,11 @@ class Cell:
                 s = s[j+7:]
             s = t
             if not self.is_html() and len(s.strip()) > 0:
-                s = '<pre class="shrunk">' + s + '</pre>'
-        return s
+                s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
+#                s = s.strip('\n')
+
+
+        return s.strip('\n')
 
     def has_output(self):
         return len(self.__out.strip()) > 0
@@ -319,15 +394,53 @@ class Cell:
             return self.__version
 
     def time(self):
-        return self.__time
+        try:
+            return self.__time
+        except AttributeError:
+            return "?"
 
     def do_time(self):
         self.__time = True
 
-    def html(self, wrap=None, div_wrap=True, do_print=False):
+    #def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+     #   self.evaluate()
+        #s = self.output_text()
+      #  s = '\n\n<div class="doc_html" id="doc_html_%s">\n%s\n</div>\n'%(self.id(),self.output_text())
+       # return s
+
+    def doc_html(self, wrap=None, div_wrap=True, do_print=False):
+        """Modified version of self.html for the doc browser. This is a hack and needs to be improved.
+        The problem is how to get the documentation html to display nicely between the example cells.
+        The type setting (jsMath formating) needs attention too.
+        """
+        self.evaluate()
         if wrap is None:
             wrap = self.notebook().defaults()['word_wrap_cols']
         evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        if evaluated:
+            cls = 'cell_evaluated'
+        else:
+            cls = 'cell_not_evaluated'
+
+        html_in  = self.html_in(do_print=do_print)
+        introspect = "<div id='introspect_div_%s' class='introspection'></div>"%self.id()
+        #html_out = self.html_out(wrap, do_print=do_print)
+        html_out = self.html()
+        s = html_out
+        if div_wrap:
+            s = '\n\n<div id="cell_outer_%s" class="cell_visible"><div id="cell_%s" class="%s">'%(self.id(), self.id(), cls) + s + '</div></div>'
+        return s
+
+    def html(self, wrap=None, div_wrap=True, do_print=False):
+        if self.__in.lstrip()[:8] == '%hideall':
+            return ''
+
+        if wrap is None:
+            wrap = self.notebook().defaults()['word_wrap_cols']
+        if self.worksheet().compute_process_has_been_started():
+            evaluated = (self.worksheet().sage() is self.sage()) and not self.interrupted()
+        else:
+            evaluated = False
         if evaluated:
             cls = 'cell_evaluated'
         else:
@@ -362,7 +475,7 @@ class Cell:
                  </div>
               """%(id, id)
 
-        r = len(t.split('\n'))
+        r = len(t.splitlines())
 
         s += """
            <textarea class="%s" rows=%s cols=100000 columns=100000
@@ -382,17 +495,16 @@ class Cell:
             return ''
         images = []
         files  = []
-        ## The c and question mark hack here is so that images will be reloaded when
-        ## the async request requests the output text for a computation.
-        ## This is a total hack, inspired by http://www.irt.org/script/416.htm/.
-        # Global c replaced by cell version number -- TB
+        # The question mark trick here is so that images will be reloaded when
+        # the async request requests the output text for a computation.
+        # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
             elif F[-4:] == '.svg':
                 images.append('<embed src="%s/%s" type="image/svg+xml" name="emap">'%(dir,F))
             else:
-                files.append('<a target="_new" href="%s/%s">%s</a>'%(dir, F, F))
+                files.append('<a target="_new" href="%s/%s" class="file_link">%s</a>'%(dir, F, F))
         if len(images) == 0:
             images = ''
         else:
@@ -404,11 +516,13 @@ class Cell:
         return images + files
 
     def html_out(self, ncols=0, do_print=False):
-        out_nowrap = self.output_text(0, html=True).strip()
+        out_nowrap = self.output_text(0, html=True)
+        out_html = self.output_html()
+
         if self.introspect():
             out_wrap = out_nowrap
         else:
-            out_wrap = self.output_text(ncols, html=True).strip()
+            out_wrap = self.output_text(ncols, html=True)
 
         typ = self.cell_output_type()
 
@@ -420,24 +534,100 @@ class Cell:
         top = '<div class="%s" id="cell_div_output_%s">'%(
                          cls, self.__id)
 
-        out_html = self.output_html()
-
-        out = """<span class="cell_output_%s" id="cell_output_%s">%s </span>
-                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s </span>
+        out = """<span class="cell_output_%s" id="cell_output_%s">%s</span>
+                 <span class="cell_output_nowrap_%s" id="cell_output_nowrap_%s">%s</span>
                  <span class="cell_output_html_%s" id="cell_output_html_%s">%s </span>
                  """%(typ, self.__id, out_wrap,
                       typ, self.__id, out_nowrap,
                       typ, self.__id, out_html)
 
+        s = top + out + '</div>'
 
-        s = top + out + '\n</div>'
-
-        r = '[%s]'%self.relative_id()
-        r += '&nbsp;'*(5-len(r))
-        tbl = """<table class="cell_output_box"><tr>
-               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">%s</td>
+        #r = '[%s]'%self.relative_id()
+        #r = '>'
+        r = ''
+        r += '&nbsp;'*(7-len(r))
+        if do_print:
+            btn = ""
+        else:
+            btn = """<span class="cell_evaluate"><img src="/evaluate.png"
+                                                      onMouseOver="this.src='/evaluate_over.png'"
+                                                      onMouseOut="this.src='/evaluate.png'"
+                                                      onClick="evaluate_cell(%s,0);"></span>"""%self.__id
+        tbl = btn + """
+               <table class="cell_output_box"><tr>
+               <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
+                 %s
+               </td>
                <td class="output_cell">%s</td></tr></table>"""%(
                    self.__id, self.__id, r, s)
 
         return tbl
+
+
+
+########
+
+def format_exception(s0, ncols):
+    s = s0.lstrip()
+    if s[:len(TRACEBACK)] != TRACEBACK:
+        return s0
+    if ncols > 0:
+        s = s.strip()
+        s = s.replace('Traceback (most recent call last)','Exception (click to the left for traceback)')
+        w = s.splitlines()
+        s = w[0] + '\n...\n' + w[-1]
+    else:
+        s = s.replace("exec compile(ur'","")
+        s = s.replace("' + '\\n', '', 'single')", "")
+    t = '<html><font color="#990099">' + s + '</font></html>'
+    return t
+
+ComputeCell=Cell
+
+
+def math_parse(s):
+    r"""
+    Do the following:
+    \begin{verbatim}
+       * Replace all $ text $'s by
+          <span class='math'> text </span>
+       * Replace all $$ text $$'s by
+          <div class='math'> text </div>
+       * Replace all \$'s by $'.s  Note that in
+         the above two cases nothing is done if the $
+         is preceeded by a backslash.
+    \end{verbatim}
+    """
+    t = ''
+    while True:
+        i = s.find('$')
+        if i == -1:
+            return t + s
+        elif i > 0 and s[i-1] == '\\':
+            t += s[:i-1] + '$'
+            s = s[i+1:]
+        elif i-1 < len(s) and s[i+1] == '$':
+            typ = 'div'
+        else:
+            typ = 'span'
+        j = s[i+2:].find('$')
+        if j == -1:
+            j = len(s)
+            s += '$'
+            if typ == 'div':
+                s += '$$'
+        else:
+            j += i + 2
+        if typ == 'div':
+            txt = s[i+2:j]
+        else:
+            txt = s[i+1:j]
+        t += s[:i] + '<%s class="math">%s</%s>'%(typ,
+                      ' '.join(txt.splitlines()), typ)
+        s = s[j+1:]
+        if typ == 'div':
+            s = s[1:]
+    return t
+
 

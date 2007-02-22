@@ -17,4 +17,4 @@ Abstract base class for noetherian rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.ring import NoetherianRing
+from sage.rings.ring import NoetherianRing

@@ -17,7 +17,7 @@ Base class for principal ideal domain elements
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.ext.element import PrincipalIdealDomainElement
+from sage.structure.element import PrincipalIdealDomainElement
 
 def is_PrincipalIdealDomainElement(x):
     return isinstance(x, PrincipalIdealDomainElement)

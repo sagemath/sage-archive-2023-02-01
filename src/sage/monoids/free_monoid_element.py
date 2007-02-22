@@ -23,8 +23,8 @@ of integers.
 #*****************************************************************************
 
 import operator
-from sage.ext.integer import Integer
-from sage.ext.element import MonoidElement
+from sage.rings.integer import Integer
+from sage.structure.element import MonoidElement
 
 def is_FreeMonoidElement(x):
     return isinstance(x, FreeMonoidElement)
@@ -66,7 +66,25 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def __repr__(self):
+    def __cmp__(left, right):
+        """
+        Compare two free monoid elements with the same parents.
+
+        The ordering is the one on the underlying sorted list of
+        (monomial,coefficients) pairs.
+
+        EXAMPLES:
+            sage: R.<x,y> = FreeMonoid(2)
+            sage: x < y
+            True
+            sage: x * y < y * x
+            True
+            sage: x * y * x^2 < x * y * x^3
+            True
+        """
+        return cmp(left._element_list, right._element_list)
+
+    def _repr_(self):
         s = ""
         v = self._element_list
         x = self.parent().variable_names()

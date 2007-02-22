@@ -118,6 +118,27 @@ We coerce some polynomial rings into MAGMA:
     sage: S.1
     y
 
+This example illustrates that SAGE doesn't magically extend how MAGMA
+implicit coercion (what there is, at least) works:
+    sage: R.<x> = ZZ[]
+    sage: x * 5
+    5*x
+    sage: x * 1.0
+    1.00000000000000*x
+    sage: x * (2/3)
+    2/3*x
+    sage: y = magma(x)
+    sage: y * 5
+    5*x
+    sage: y * 1.0
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+    sage: y * (2/3)
+    Traceback (most recent call last):
+    ...
+    TypeError: unsupported operand parent(s) for '*': 'Magma' and 'Magma'
+
 
 AUTHOR:
     -- William Stein (2005): initial version
@@ -186,7 +207,8 @@ class Magma(Expect):
                            then MAGMA is started with the -n option which
                            supresses user configuration files.
         """
-        command = 'magma -b '
+        #command = 'magma -b '
+        command = 'magma'
         if not user_config:
             command += ' -n'
         Expect.__init__(self,
@@ -243,6 +265,7 @@ class Magma(Expect):
         Expect._start(self)
         self.eval('SetPrompt("%s"); SetLineEditor(false); SetColumns(0);'%PROMPT)
         self._change_prompt(PROMPT)
+        self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         self.expect().expect(PROMPT)
         if os.path.exists(MAGMA_SPEC):
@@ -599,10 +622,18 @@ class MagmaElement(ExpectElement):
         return G
 
     def evaluate(self, *args):
-        return ExpectElement.__call__(self, *args)
+        P = self._check_valid()
+        v = [P(a) for a in args]
+        names = ','.join([str(x) for x in v])
+        return P('%s(%s)'%(self.name(), names))
+    eval = evaluate
 
     def __call__(self, *args):
         """
+        Coerce something into the object (using the MAGMA ! notation).
+
+        For function calls, use self.eval(...).
+
         EXAMPLES:
             sage: M = magma.RMatrixSpace(magma.IntegerRing(), 2, 2)  # optional
             sage: A = M([1,2,3,4]); A        # optional
@@ -617,10 +648,10 @@ class MagmaElement(ExpectElement):
             return self.evaluate(*args)
         P = self._check_valid()
         x = P(args[0])
-        #try:
-        return P('%s!%s'%(self.name(), x.name()))
-        #except (RuntimeError, TypeError):
-        #    return self.evaluate(*args)
+        try:
+            return P('%s!%s'%(self.name(), x.name()))
+        except (RuntimeError, TypeError):
+            return self.evaluate(*args)
 
     def x__iter__(self):
         P = self._check_valid()

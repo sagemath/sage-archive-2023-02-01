@@ -28,7 +28,7 @@ from sage.misc.all import SAGE_TMP, tmp_filename
 from sage.rings.all import Integer, QQ
 from sage.structure.all import Sequence
 from sage.modules.all import VectorSpace
-from sage.ext.sage_object import SageObject
+from sage.structure.sage_object import SageObject
 
 import os
 

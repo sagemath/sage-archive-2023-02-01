@@ -72,10 +72,10 @@ specifying the universe of the sequence:
 
 
 import sage.misc.latex as latex
-import sage.ext.sage_object
+import sage.structure.sage_object
 #from mutability import Mutability #we cannot inherit from Mutability and list at the same time
 
-class Sequence(sage.ext.sage_object.SageObject, list):
+class Sequence(sage.structure.sage_object.SageObject, list):
     """
     A mutable list of elements with a common guaranteed universe,
     which can be set immutable.
@@ -124,7 +124,7 @@ class Sequence(sage.ext.sage_object.SageObject, list):
         sage: v[3] = 2/3
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=2/3) to an Integer.
+        TypeError: no coercion of this rational to integer
 
     Sequences can be used absolutely anywhere lists or tuples can be used:
         sage: isinstance(v, list)
@@ -204,12 +204,12 @@ class Sequence(sage.ext.sage_object.SageObject, list):
                 import sage.categories.all
                 universe = sage.categories.all.Objects()
             else:
-                import sage.ext.coerce
+                import sage.structure.coerce
                 y = x
                 x = list(x)   # make a copy, or we'd change the type of the elements of x, which would be bad.
                 for i in range(len(x)-1):
                     try:
-                        x[i], x[i+1] = sage.ext.coerce.canonical_coercion(x[i],x[i+1])
+                        x[i], x[i+1] = sage.structure.coerce.canonical_coercion(x[i],x[i+1])
                     except TypeError:
                         import sage.categories.all
                         universe = sage.categories.all.Objects()
@@ -217,8 +217,8 @@ class Sequence(sage.ext.sage_object.SageObject, list):
                         check = False  # no point
                         break
                 if universe is None:   # no type errors raised.
-                    universe = sage.ext.coerce.parent(x[len(x)-1])
-                #universe = sage.ext.coerce.parent(x[0])
+                    universe = sage.structure.coerce.parent(x[len(x)-1])
+                #universe = sage.structure.coerce.parent(x[0])
         self.__universe = universe
         if check:
             x = [universe(t) for t in x]
@@ -230,6 +230,63 @@ class Sequence(sage.ext.sage_object.SageObject, list):
         y = self.__universe(x)
         list.__setitem__(self, n, y)
         self.__hash=None
+
+    def __setslice__(self, i, j, seq):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: v[1:3] = [5,7]
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: v = Sequence([1,2,3,4])
+            sage: v[1:3] = [5, 3/1]
+            sage: v
+            [1, 5, 3, 4]
+            sage: type(v[2])
+            <type 'sage.rings.integer.Integer'>
+        """
+        self._require_mutable()
+        y = [self.__universe(x) for x in seq]
+        list.__setslice__(self, i, j, y)
+        self.__hash=None
+
+    def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: w = v[2:]
+            sage: w
+            [3, 4]
+            sage: type(w)
+            <class 'sage.structure.sequence.Sequence'>
+            sage: w[0] = 5; w
+            [5, 4]
+            sage: v
+            [1, 2, 3, 4]
+        """
+        return Sequence(list.__getslice__(self, i, j),
+                        universe = self.__universe,
+                        check = False,
+                        immutable = False,
+                        cr = self.__cr)
+
+    def append(self, x):
+        """
+        EXAMPLES:
+            sage: v = Sequence([1,2,3,4], immutable=True)
+            sage: v.append(34)
+            Traceback (most recent call last):
+            ...
+            ValueError: object is immutable; please change a copy instead.
+            sage: v = Sequence([1/3,2,3,4])
+            sage: v.append(4)
+            sage: type(v[4])
+            <type 'sage.rings.rational.Rational'>
+        """
+        self._require_mutable()
+        y = self.__universe(x)
+        list.append(self, y)
 
     def __hash__(self):
         if self.__hash is None:

@@ -15,7 +15,7 @@ AUTHOR: 2005-12-08, William Stein <wstein@gmail.com>
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import is_MPolynomialRingElement
+from sage.rings.all import is_MPolynomial
 from algebraic_scheme import AlgebraicScheme
 from affine_scheme import AffineScheme_generic
 from affine_space import AffineSpace
@@ -40,7 +40,7 @@ class ProjectiveHypersurface(ProjectiveScheme, HypersurfaceScheme):
     The projective hypersurface defined by the given polynomial.
     """
     def __init__(self, ambient, poly):
-        if not is_MPolynomialRingElement(poly):
+        if not is_MPolynomial(poly):
             raise TypeError, \
                   "Defining polynomial (=%s) must be a multivariate polynomial."%poly
         if not poly.is_homogeneous():
@@ -60,7 +60,7 @@ class AffineHypersurface(AffineScheme_generic, HypersurfaceScheme):
     The affine hypersurface defined by the given polynomial.
     """
     def __init__(self, ambient, poly):
-        if not is_MPolynomialRingElement(poly):
+        if not is_MPolynomial(poly):
             raise TypeError, "Defining polynomial (= %s) must be a multivariate polynomial"%poly
         if ambient == None:
             P = poly.parent()

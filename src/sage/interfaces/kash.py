@@ -323,10 +323,7 @@ Computation of class groups and unit groups:
       ext1 := Mapping from: grp^abl: sage34 to ord^num: sage30
 
     sage: kash.Apply('x->%s.ext1(x)'%U.name(), U.Generators().List())
-       [ [1, -1, 0, 0, 0]
-            ,
-          [1, 1, 0, 0, 0],
-          [-1, 0, 0, 0, 0] ]
+    [ [1, -1, 0, 0, 0], [1, 1, 0, 0, 0], [-1, 0, 0, 0, 0] ]
 
 \subsubsection{Function Fields}
     sage: k = kash.FiniteField(25)
@@ -409,7 +406,10 @@ class Kash(Expect):
                         restart_on_ctrlc = True,
                         verbose_start = False,
                         logfile = logfile,
-                        eval_using_file_cutoff=100)
+                        eval_using_file_cutoff=100,
+                        init_code = ['X:=ZX.1;']
+                        )
+        # The above init_code programs around a bug reported by Jack Schmidt
 
         self.__seq = 0
 

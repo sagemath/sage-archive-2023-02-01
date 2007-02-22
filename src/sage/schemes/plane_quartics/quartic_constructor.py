@@ -9,7 +9,7 @@ Quartic curve constructor
 #*****************************************************************************
 
 from sage.schemes.generic.all import is_ProjectiveSpace, ProjectiveSpace
-from sage.rings.all import MPolynomial
+from sage.rings.all import is_MPolynomial
 
 from quartic_generic import QuarticCurve_generic
 from sage.schemes.plane_curves.projective_curve import ProjectiveCurve_generic
@@ -23,7 +23,7 @@ def QuarticCurve(F,PP=None,check=False):
     if not PP is None:
         if not is_ProjectiveSpace(PP) and PP.dimension == 2:
             raise TypeError, "Argument PP (=%s) must be a projective plane"%PP
-    elif not isinstance(F, MPolynomial):
+    elif not is_MPolynomial(F):
         raise TypeError, \
               "Argument F (=%s) must be a homogeneous multivariate polynomial"%F
     else:

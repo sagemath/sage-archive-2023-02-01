@@ -198,13 +198,6 @@ cdef class ComplexField(ring.Field):
         """
         return ComplexNumber(self, x)
 
-    def _coerce_(self, x):
-        if isinstance(x, ComplexNumber) and x.parent() is self:
-            return x
-        if isinstance(x, sage.rings.complex_number.ComplexNumber):
-            raise TypeError
-        return self(x)
-
     def __contains__(self, x):
         """
         True if x is in this field.

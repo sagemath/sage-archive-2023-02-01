@@ -1,11 +1,38 @@
 
 from piecewise import Piecewise
-from transcendental import *
-from elementary import *
-from special import *
-from orthogonal_polys import *
 
-from functions import FunctionRing, sin as sin0, cos as cos0, airy_ai, airy_bi
+from transcendental import (exponential_integral_1,
+                            gamma, gamma_inc, incomplete_gamma,
+                            zeta, zeta_symmetric)
+
+# This is too terrible code.
+#from elementary import (cosine, sine, exponential,
+#                        ElementaryFunction,
+#                        ElementaryFunctionRing)
+
+from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
+                        hypergeometric_U, incomplete_gamma,
+                        spherical_bessel_J, spherical_bessel_Y,
+                        spherical_hankel1, spherical_hankel2,
+                        spherical_harmonic, jacobi,
+                        inverse_jacobi, sinh, cosh,
+                        tanh, coth, sech, csch, dilog,
+                        lngamma, exp_int, error_fcn)
+
+from orthogonal_polys import (chebyshev_T,
+                              chebyshev_U,
+                              gen_laguerre,
+                              gen_legendre_P,
+                              gen_legendre_Q,
+                              hermite,
+                              jacobi_P,
+                              laguerre,
+                              legendre_P,
+                              legendre_Q,
+                              ultraspherical,
+                              gegenbauer)
+
+from functions import FunctionRing, sin, cos, airy_ai, airy_bi, var
 
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
                        khinchin, twinprime, merten, brun)

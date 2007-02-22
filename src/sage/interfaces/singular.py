@@ -13,6 +13,9 @@ AUTHORS:
    -- Stein (2006-04-10): Fixed problems with ideal constructor
    -- Martin Albrecht (2006-05-18): added sage_poly.
 
+
+\subsection{Introduction}
+
 This interface is extremely flexible, since it's exactly like typing
 into the Singular interpreter, and anything that works there should
 work here.
@@ -76,11 +79,11 @@ First we illustrate multivariate polynomial factorization:
 
 We can convert $f$ and each exponent back to SAGE objects as well.
 
-    sage: x, y = MPolynomialRing(RationalField(), 2).gens()
+    sage: R.<x, y> = MPolynomialRing(QQ,2)
     sage: g = eval(f.sage_polystring()); g
-    9*x1^8 - 9*x0^2*x1^7 - 18*x0^3*x1^6 - 18*x0^5*x1^6 + 9*x0^6*x1^4 + 18*x0^7*x1^5 + 36*x0^8*x1^4 + 9*x0^10*x1^4 - 18*x0^11*x1^2 - 9*x0^12*x1^3 - 18*x0^13*x1^2 + 9*x0^16
+    9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3 - 18*x^13*y^2 + 9*x^16
     sage: eval(F[1][2].sage_polystring())
-    x1^4 - x0^2*x1^3 - 2*x0^3*x1^2 + x0^6
+    y^4 - x^2*y^3 - 2*x^3*y^2 + x^6
 
 This example illustrates polynomial GCD's:
     sage: R2 = singular.ring(0, '(x,y,z)', 'lp')
@@ -668,7 +671,7 @@ class Singular(Expect):
         Return a list of all Singular commands.
         """
         p = re.compile("// *([a-z0-9A-Z_]*).*") #compiles regular expression
-        proclist = singular.eval("listvar(proc)").splitlines()
+        proclist = self.eval("listvar(proc)").splitlines()
         return [p.match(line).group(int(1)) for line in proclist]
 
     def console(self):
@@ -835,11 +838,11 @@ class SingularElement(ExpectElement):
            MPolynomial
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'xy')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'xy')
             sage: f=R('a^20*x^2*y+a^10+x')
             sage: f._singular_().sage_poly(R)==f
             True
-            sage: R = PolynomialRing(GF(2**8),1,'x')
+            sage: R = PolynomialRing(GF(2^8,'a'),1,'x')
             sage: f=R('a^20*x^3+x^2+a^10')
             sage: f._singular_().sage_poly(R)==f
             True
@@ -865,6 +868,7 @@ class SingularElement(ExpectElement):
         from sage.rings.polynomial_ring import is_PolynomialRing
         from sage.rings.polydict import PolyDict,ETuple
         from sage.rings.quotient_ring import QuotientRing_generic
+        from sage.rings.quotient_ring_element import QuotientRingElement
 
         sage_repr = {}
         k = R.base_ring()
@@ -884,7 +888,7 @@ class SingularElement(ExpectElement):
         # [[['x','3'],['y','3']],'a']. We may do this quickly,
         # as we know what to expect.
 
-        singular_poly_list = singular.eval("string(coef(%s,%s))"%(\
+        singular_poly_list = self.parent().eval("string(coef(%s,%s))"%(\
                                    self.name(),variable_str)).split(",")
 
         if singular_poly_list == ['1','0'] :
@@ -921,7 +925,11 @@ class SingularElement(ExpectElement):
                         kcache[elem] = k( elem )
                     sage_repr[ETuple(exp,ngens)]= kcache[elem]
 
-            return MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
+            p = MPolynomial_polydict(R,PolyDict(sage_repr,force_int_exponents=False,force_etuples=False))
+            if isinstance(R, MPolynomialRing_polydict):
+                return p
+            else:
+                return QuotientRingElement(R,p,reduce=False)
 
         elif is_PolynomialRing(R) and R._can_convert_to_singular():
 
@@ -1016,7 +1024,7 @@ class SingularElement(ExpectElement):
         Returns the internal type of this element.
 
         EXAMPLES:
-            sage: R = MPolynomialRing(GF(2**8),2,'x')
+            sage: R = MPolynomialRing(GF(2^8,'a'),2,'x')
             sage: R._singular_().type()
             'ring'
             sage: fs = singular('x0^2','poly')
@@ -1025,7 +1033,7 @@ class SingularElement(ExpectElement):
         """
         # singular reports //  $varname [index] $type $random
         p = re.compile("//.*[\w]*.*\[[0-9]*\][ \*]*([a-z]*)")
-        m = p.match(singular.eval("type(%s)"%self.name()))
+        m = p.match(self.parent().eval("type(%s)"%self.name()))
         return m.group(int(1))
 
     def __iter__(self):

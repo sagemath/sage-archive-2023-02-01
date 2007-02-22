@@ -12,24 +12,28 @@ EXAMPLES:
     sage: float(f(pi))
     6.1232339957367663e-16
 """
+import weakref
 
-from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                            is_RealNumber, is_ComplexNumber, RR)
+import sage.functions.constants
+
+from   sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
+                              is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.rational
 import sage.rings.integer
 
 import sage.rings.all
-from sage.structure.all import RingElement, Element_cmp_
+from   sage.structure.element import RingElement
 import operator
-from sage.misc.latex import latex
-from sage.interfaces.maxima import maxima, MaximaFunction
+from   sage.misc.latex import latex
+from   sage.interfaces.maxima import maxima, MaximaFunction
 import sage.functions.special as special
-from sage.libs.all import  pari
-
+from   sage.libs.all import  pari
+from   sage.structure.parent_base import ParentWithBase
 
 class FunctionRing_class(CommutativeRing):
     def __init__(self):
         self._default_precision = 53  # default bits of precision
+        ParentWithBase.__init__(self, RR)
 
     def _repr_(self):
         return "Ring of Mathematical Functions"
@@ -44,12 +48,12 @@ class FunctionRing_class(CommutativeRing):
         EXAMPLES:
             sage: old_prec = FunctionRing.set_precision(200)
             sage: pi.str()
-            '3.1415926535897932384626433832795028841971693993751058209749445'
+            '3.1415926535897932384626433832795028841971693993751058209749'
             sage: gap(pi)
-            "3.1415926535897932384626433832795028841971693993751058209749445"
+            "3.1415926535897932384626433832795028841971693993751058209749"
             sage: _ = FunctionRing.set_precision(old_prec)
             sage: pi.str()
-            '3.1415926535897931'
+            '3.14159265358979'
 
         Note that there seems to be no real numbers in GAP, which is why that
         coercion returns a GAP string.
@@ -94,33 +98,36 @@ class FunctionRing_class(CommutativeRing):
 
     def __call__(self, x):
         try:
-            return self._coerce_(x)
+            if is_Polynomial(x):
+                return Function_polynomial(x)
+            elif isinstance(x, sage.functions.constants.Constant):
+                return Function_constant(x)
         except TypeError:
-            return Function_gen(x)
+            pass
+        try:
+            t = RR._coerce_(x)
+            return Function_constant(sage.functions.constants.Constant_gen(x))
+        except TypeError:
+            pass
+        return Function_gen(x)
 
-    def _coerce_(self, x):
-        if isinstance(x, Function):
-            return x
-        elif is_Polynomial(x):
-            return Function_polynomial(x)
-        elif isinstance(x, (sage.rings.integer.Integer,
-                            sage.rings.rational.Rational,
-                            int,long,float,complex)):
-            return Constant_gen(x)
-        raise TypeError
+    def _coerce_impl(self, x):
+        if is_Polynomial(x):
+            return self(x)
+        return self(x)
 
     def characteristic(self):
         return sage.rings.all.Integer(0)
 
 FunctionRing = FunctionRing_class()
 
-class Function(Element_cmp_, RingElement):
+class Function(RingElement):
     def __init__(self, conversions={}):
         self._conversions = conversions
         RingElement.__init__(self, FunctionRing)
 
     def __call__(self, x):
-        if isinstance(x, Function) and not isinstance(x, Constant):
+        if isinstance(x, Function) and not isinstance(x, sage.functions.constants.Constant):
             return Function_composition(self, x)
 
         elif is_Polynomial(x):
@@ -146,8 +153,12 @@ class Function(Element_cmp_, RingElement):
             R = RR
         return str(self._mpfr_(R))
 
-    def integral(self):
-        raise NotImplementedError, "computation of integral of %s not implemented"%self
+    def integral(self, x):
+        if isinstance(x, Function_var):
+            return self._integral(self, x)
+        else:
+            x = Function_var(x)
+            return self._integral(self, x)
 
     def _interface_init_(self):
         """
@@ -164,6 +175,12 @@ class Function(Element_cmp_, RingElement):
     def _kash_init_(self):
         try:
             return self._conversions['kash']
+        except KeyError:
+            return self.str()
+
+    def _axiom_init_(self):
+        try:
+            return self._conversions['axiom']
         except KeyError:
             return self.str()
 
@@ -201,11 +218,11 @@ class Function(Element_cmp_, RingElement):
         """
         EXAMPLES:
             sage: singular(e)
-            2.7182818284590451
+            2.71828182845904
             sage: P = e.parent()
             sage: old_prec = P.set_precision(200)
             sage: singular(e)
-            2.7182818284590452353602874713526624977572470936999595749669679
+            2.7182818284590452353602874713526624977572470936999595749669
             sage: _ = P.set_precision(old_prec)
         """
         try:
@@ -242,7 +259,7 @@ class Function(Element_cmp_, RingElement):
             raise TypeError, "computation of %s^%s not defined"%(self, right)
         return Function_arith(self, right, operator.pow)
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         EXAMPLES:
             sage: s = e + pi
@@ -290,6 +307,9 @@ class Function_composition(Function):
     def _mpfr_(self, R):
         return self.__f(self.__g._mpfr_(R))
 
+    def _axiom_(self, M):
+        return self.__f._axiom_(M)(self.__g._axiom_(M))
+
     def _maxima_(self, M):
         return self.__f._maxima_(M)(self.__g._maxima_(M))
 
@@ -299,7 +319,7 @@ class Function_composition(Function):
 
 #################################################################
 #
-# Support for arithmetic with constants.
+# Support for arithmetic with functions.
 #
 #################################################################
 
@@ -316,20 +336,20 @@ class Function_arith(Function):
         sage: s
         (((pi + pi)*e) + e)
         sage: RR(s)
-        19.797750273806177
+        19.7977502738061
         sage: maxima(s)
         2*%e*%pi + %e
 
         sage: t = e^2 + pi + 2/3; t
         (((e^2) + pi) + 2/3)
         sage: RR(t)
-        11.197315419187108
+        11.1973154191871
         sage: maxima(t)
         %pi + %e^2 + 2/3
         sage: t^e
         ((((e^2) + pi) + 2/3)^e)
         sage: RR(t^e)
-        710.86524768885772
+        710.865247688857
     """
     def __init__(self, x, y, op):
         if not isinstance(x, Function) or not isinstance(y, Function):
@@ -371,7 +391,7 @@ class Function_arith(Function):
             raise NotImplementedError, 'operator %s unknown'%self.__op
 
     def _call_(self, x):
-        if isinstance(self, Constant):
+        if isinstance(self, sage.functions.constants.Constant):
             return self
         return self.__op(self.__x(x), self.__y(x))
 
@@ -379,7 +399,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: gap(e + pi)
-            "5.8598744820488378"
+            "5.85987448204883"
         """
         return '"%s"'%self.str()
 
@@ -424,6 +444,9 @@ class Function_arith(Function):
         """
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
+    def _axiom_(self, axiom):
+        return self.__op(self.__x._axiom_(axiom), self.__y._axiom_(axiom))
+
     def _octave_(self, octave):
         """
         EXAMPLES:
@@ -445,7 +468,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: singular(e + pi)
-            5.8598744820488378
+            5.85987448204883
         """
         return '"%s"'%self.str()
 
@@ -453,7 +476,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: RealField(100)(e + pi)
-            5.8598744820488384738229308546306
+            5.8598744820488384738229308546
         """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
@@ -470,15 +493,15 @@ class Function_gen(Function):
         sage: maxima(a)
         %pi/2 + %e
         sage: RR(a)
-        4.2890781552539412
+        4.28907815525394
         sage: RealField(200)(a)
-        4.2890781552539418545916091629924139398558317933875124854544427
+        4.2890781552539418545916091629924139398558317933875124854544
 
         sage: b = e + 5/7
         sage: maxima(b)
         %e + 5/7
         sage: RR(b)
-        3.4325675427447595
+        3.43256754274475
     """
     def __init__(self, x):
         Function.__init__(self)
@@ -512,6 +535,9 @@ class Function_gen(Function):
     def _kash_(self, kash):
         return kash(self.__x)
 
+    def _axiom_(self,axiom):
+        return axiom(self.__x)
+
     def _maxima_(self, maxima):
         return maxima(self.__x)
 
@@ -529,6 +555,20 @@ class Function_gen(Function):
 
     def _singular_(self, singular):
         return singular(self.__x)
+
+class Function_constant(Function_gen):
+    def __init__(self, x):
+        self.__x = x
+        Function_gen.__init__(self, x)
+
+    def _repr_(self):
+        return str(self.__x)
+
+    def _call_(self, x):
+        return self
+
+    def _latex_(self):
+        return latex(self.__x)
 
 
 class Function_polynomial(Function_gen):
@@ -565,42 +605,56 @@ class Function_at(Function):
         except AttributeError:
             raise NotImplementedError, 'coercion of %s to maxima not implemented'%self
 
-######################
-# Constant functions
-######################
-
-class Constant(Function):
-    def __call__(self, x):
-        return self
-
-    def _interface_is_cached_(self):
-        """
-        Return False, since coercion of functions to interfaces
-        is not cached.
-
-        We do not cache coercions of functions to interfaces, since
-        the precision of the interface may change.
-
-        EXAMPLES:
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-            sage: old_prec = gp.set_precision(100)
-            sage: gp(pi)
-            3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-            sage: _ = gp.set_precision(old_prec)
-            sage: gp(pi)
-            3.141592653589793238462643383              # 32-bit
-            3.1415926535897932384626433832795028842    # 64-bit
-        """
-        return False
-
-class Constant_gen(Constant, Function_gen):
-    def __call__(self, x):
-        return self.obj()
 
 
 ########################################################
+class Function_var(Function):
+    """
+    Formal indeterminant.
+    """
+    def __init__(self, name):
+        assert isinstance(name, str)
+        Function.__init__(self,
+            {'axiom':name, 'maxima':name, 'mathematica':name})
+        self._name = name
+
+    def _repr_(self):
+        return self._name
+
+    def _latex_(self):
+        return "\\"+self._name
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _subs(self, v):
+        """
+        v dictionary function_var:object
+        """
+        try:
+            return v[self]
+        except KeyError:
+            return self
+
+    def _integral(self, x):
+        if self is x:
+            return x*x/2
+        else:
+            return self*x
+
+var_cache = {}
+def var(s):
+    s = str(s)
+    try:
+        x = var_cache[s]()
+        if not x is None:
+            return x
+    except KeyError:
+        pass
+    x = Function_var(s)
+    var_cache[s] = weakref.ref(x)
+    return x
+
 
 class Function_sin(Function):
     """
@@ -608,7 +662,7 @@ class Function_sin(Function):
     """
     def __init__(self):
         Function.__init__(self,
-            {'maxima':'sin', 'mathematica':'Sin'})
+            {'axiom':'sin', 'maxima':'sin', 'mathematica':'Sin'})
 
     def _repr_(self):
         return "sin"
@@ -635,14 +689,14 @@ class Function_cos(Function):
     EXAMPLES:
         sage: z = 1+2*I
         sage: theta = arg(z)
-        sage: cos(theta)*abs(z)
-        1.0000000000000002
+        sage: cos(theta)*abs(z)         # slightly random output on cygwin
+        1.00000000000000
         sage: cos(3.141592)
-        -0.99999999999978639
+        -0.999999999999786
     """
     def __init__(self):
         Function.__init__(self,
-            {'maxima':'cos', 'mathematica':'Cos'})
+            {'axiom':'cos', 'maxima':'cos', 'mathematica':'Cos'})
 
     def _repr_(self):
         return "cos"
@@ -665,7 +719,7 @@ cos = Function_cos()
 class Function_exp(Function):
     def __init__(self):
         Function.__init__(self,
-            {'maxima':'exp', 'mathematica':'Exp'})
+            {'axiom':'exp', 'maxima':'exp', 'mathematica':'Exp'})
 
     def _repr_(self):
         return "expo"
@@ -687,7 +741,7 @@ expo = Function_exp()
 class Function_gamma(Function):
     def __init__(self):
         Function.__init__(self,
-            {'maxima':'gamma', 'mathematica':'Gamma'})
+            {'axiom':'gamma', 'maxima':'gamma', 'mathematica':'Gamma'})
     ## the Maxima notation for the Euler-Mascheroni constant is %gamma.
 
     def _repr_(self):

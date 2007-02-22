@@ -63,20 +63,20 @@ class QuaternionOrderElement(AlgebraOrderElement):
         R = self.parent().base_ring()
         return R(self.ambient_algebra_element().reduced_norm())
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
 	"""
         R = self.parent().base_ring()
-        P = PolynomialRing(R)
-        return P(self.ambient_algebra_element().charpoly())
+        P = PolynomialRing(R, var)
+        return P(self.ambient_algebra_element().charpoly('x'))
 
     characteristic_polynomial = charpoly
 
-    def minpoly(self):
+    def minpoly(self, var):
         """
 	"""
         R = self.parent().base_ring()
-        P = PolynomialRing(R)
+        P = PolynomialRing(R, var)
         return P(self.ambient_algebra_element().minpoly())
 
     minimal_polynomial = minpoly

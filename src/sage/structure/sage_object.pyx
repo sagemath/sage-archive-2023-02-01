@@ -1,13 +1,9 @@
 r"""
-Abstract base class for \sage objects
-
-PYREX: sage.structure.sage_object
+Abstract base class for SAGE objects
 """
 
 import cPickle
 import os
-import urllib
-import sage.misc.misc
 import sys
 
 # changeto import zlib to use zlib instead; but this
@@ -24,6 +20,7 @@ cdef process(s):
         return s + '.sobj'
     else:
         return s
+
 
 cdef class SageObject:
 
@@ -58,11 +55,11 @@ cdef class SageObject:
         Real numbers are not Python classes, so rename is not supported:
             sage: a = 3.14
             sage: type(a)
-            <type 'real_mpfr.RealNumber'>
+            <type 'sage.rings.real_mpfr.RealNumber'>
             sage: a.rename('pi')
             Traceback (most recent call last):
             ...
-            NotImplementedError: object does not support renaming: 3.1400000000000001
+            NotImplementedError: object does not support renaming: 3.14000000000000
 
         \note{The reason C-extension types are not supported is if
         they were then every single one would have to carry around an
@@ -77,18 +74,18 @@ cdef class SageObject:
                 self.__custom_name = str(x)
             except AttributeError:
                 raise NotImplementedError, "object does not support renaming: %s"%self
+
     def reset_name(self):
-        del self.__custom_name
+        if hasattr(self, '__custom_name'):
+            del self.__custom_name
+
 
     def __repr__(self):
-        try:
+        if hasattr(self, '__custom_name'):
             return self.__custom_name
-        except AttributeError:
-            try:
-                return self._repr_()
-            except AttributeError:
-                return str(type(self))
-
+        elif hasattr(self, '_repr_'):
+            return self._repr_()
+        return str(type(self))
 
     def _plot_(self, *args, **kwds):
         import sage.plot.plot
@@ -139,7 +136,7 @@ cdef class SageObject:
             self._default_filename = filename
         except AttributeError:
             pass
-        open(filename, 'w').write(self.dumps(compress))
+        open(filename, 'wb').write(self.dumps(compress))
 
     def dump(self, filename, compress=True):
         """
@@ -188,35 +185,6 @@ cdef class SageObject:
     #############################################################################
     # Category theory / structure
     #############################################################################
-    def Hom(self, codomain, cat=None):
-        r"""
-        self.Hom(codomain, cat=None):
-
-        Return the homspace \code{Hom(self, codomain, cat)} of all
-        homomorphisms from self to codomain in the category cat.  The
-        default category is \code{self.category()}.
-
-        EXAMPLES:
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: R.Hom(QQ)
-            Set of Homomorphisms from Polynomial Ring in x, y over Rational Field to Rational Field
-
-        Homspaces are defined for very general \sage objects, even elements of familiar rings.
-            sage: n = 5; n.Hom(7)
-            Set of Morphisms from 5 to 7 in Category of elements of Integer Ring
-            sage: z=(2/3); z.Hom(8/1)
-            Set of Morphisms from 2/3 to 8 in Category of elements of Rational Field
-
-        This example illustrates the optional third argument:
-            sage: QQ.Hom(ZZ, Sets())
-            Set of Morphisms from Rational Field to Integer Ring in Category of sets
-        """
-        try:
-            return self._Hom_(codomain, cat)
-        except (TypeError, AttributeError):
-            pass
-        from sage.categories.all import Hom
-        return Hom(self, codomain, cat)
 
     def category(self):
         from sage.categories.all import Objects
@@ -231,32 +199,6 @@ cdef class SageObject:
 
 ##     def _set_category(self, C):
 ##         self.__category = C
-
-    #############################################################################
-    # Containment testing
-    #############################################################################
-
-    def __contains__(self, x):
-        r"""
-        True if coercion of $x$ into self is possible.  Thus, e.g.,
-        $2$ is in the integers and in $\Z/7\Z$ and the element $3$ of
-        $\Z/7\Z$ {\em is} in $\Z$.  However, $2/3$ is not in $\Z$.
-        Think of this as returning True if $x==y$ for some $y$ in
-        self.
-
-        EXAMPLES:
-            sage: 2 in Integers(7)
-            True
-            sage: 2 in IntegerRing()
-            True
-            sage: Integers(7)(3) in IntegerRing()
-            True
-        """
-        try:
-            self(x)
-        except TypeError:
-            return False
-        return True
 
 
     #############################################################################
@@ -296,8 +238,8 @@ cdef class SageObject:
             try:
                 s = self._interface_init_()
             except AttributeError, msg1:
-                raise NotImplementedError, "coercion of %s (of type %s) to %s not implemented:\n%s\n%s"%\
-                      (self, type(self), I, msg0, msg1)
+                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
+                      (I, msg0, msg1)
         X = I(s)
         if c:
             try:
@@ -305,6 +247,9 @@ cdef class SageObject:
             except AttributeError:
                 pass
         return X
+
+    def _interface_init_(self):
+        return str(self)
 
     def _interface_is_cached_(self):
         """
@@ -340,6 +285,15 @@ cdef class SageObject:
         return self._interface_(G)
 
     def _kash_init_(self):
+        return self._interface_init_()
+
+    def _axiom_(self, G=None):
+        if G is None:
+            import sage.interfaces.axiom
+            G = sage.interfaces.axiom.axiom
+        return self._interface_(G)
+
+    def _axiom_init_(self):
         return self._interface_init_()
 
     def _maxima_(self, G=None):
@@ -429,15 +383,6 @@ cdef class SageObject:
 ##################################################################
 
 
-cur = 0
-def report_hook(block, size, total):
-     global cur
-     n = block*size*50/total
-     if n > cur:
-          cur = n
-          sys.stdout.write('.')
-          sys.stdout.flush()
-
 
 
 def load(filename, compress=True, verbose=True):
@@ -458,34 +403,19 @@ def load(filename, compress=True, verbose=True):
     (Setting "verbose = False" suppresses the loading progress indicator.)
 
     EXAMPLE:
-        sage: u = 'http://sage.math.washington.edu/home/was/db/modsym/gamma0/'  # optional
-        sage: M = load(u + "48_2.sobj")                                         # optional
-        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/modsym/gamma0/48_2.sobj
-        Loading: [..]
-        sage: M                  # optional
-        Modular Symbols space of dimension 5 for Gamma_0(48) of weight 2 with sign -1 over Rational Field
+        sage: u = 'http://sage.math.washington.edu/home/was/db/test.sobj'  # optional
+        sage: s = load(u)                                                  # optional
+        Attempting to load remote file: http://sage.math.washington.edu/home/was/db/test.sobj
+        Loading: [.]
+        sage: s                                                            # optional
+        'hello SAGE'
     """
 
     ## Check if filename starts with "http://" or "https://"
     if filename.startswith("http://") or filename.startswith("https://"):
-        if verbose:
-            print "Attempting to load remote file: " + filename
-
-        temp_name = sage.misc.misc.tmp_filename()
-        try:
-            global cur
-            cur = 0
-            if verbose:
-                sys.stdout.write("Loading: [")
-                sys.stdout.flush()
-                urllib.urlretrieve(filename, temp_name, report_hook)
-                print "]"
-            else:
-                urllib.urlretrieve(filename, temp_name)
-            filename = temp_name
-            tmpfile_flag = True
-        except:
-            raise BadURLError, "Could not load URL: " + filename
+        from sage.misc.remote_file import get_remote_file
+        filename = get_remote_file(filename, verbose=verbose)
+        tmpfile_flag = True
     else:
         tmpfile_flag = False
         filename = process(filename)
@@ -499,7 +429,7 @@ def load(filename, compress=True, verbose=True):
 
     ## Delete the tempfile, if it exists
     if tmpfile_flag == True:
-        os.unlink(temp_name)
+        os.unlink(filename)
 
     return X
 
@@ -518,7 +448,7 @@ def save(obj, filename=None, compress=True):
         s = cPickle.dumps(obj, protocol=2)
         if compress:
             s = comp.compress(s)
-        open(process(filename), 'w').write(s)
+        open(process(filename), 'wb').write(s)
 
 def dumps(obj, compress=True):
     """
@@ -544,17 +474,20 @@ def loads(s, compress=True):
     if compress:
         try:
             return cPickle.loads(comp.decompress(s))
-        except:
+        except Exception, msg1:
             try:
                 return cPickle.loads(comp_other.decompress(s))
-            except:
+            except Exception, msg2:
                 # Maybe data is uncompressed?
-                return cPickle.loads(s)
+                try:
+                    return cPickle.loads(s)
+                except Exception, msg3:
+                    raise RuntimeError, "%s\n%s\n%s\nUnable to load pickled data."%(msg1,msg2,msg3)
     else:
         try:
             return cPickle.loads(s)
         except:
-            # maybe data is compressed?
+            # maybe data is compressed anyways??
             return loads(s, compress=True)
 
 

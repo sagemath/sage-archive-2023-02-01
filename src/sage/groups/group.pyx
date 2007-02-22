@@ -1,7 +1,5 @@
 """
-Base class for all groups
-
-PYREX: sage.groups.group
+Base class for groups
 """
 
 #*****************************************************************************
@@ -25,25 +23,22 @@ Base class for all groups
 
 import random
 
-import sage.rings.coerce
-
 from   sage.rings.infinity import infinity
+import sage.rings.integer_ring
 
-cdef class Group(sage.structure.gens.Generators):
+cdef class Group(sage.structure.parent_gens.ParentWithGens):
     """
     Generic group class
     """
     def __init__(self):
-        pass
+        sage.structure.parent_gens.ParentWithGens.__init__(self,
+                sage.rings.integer_ring.ZZ)
 
     def __call__(self, x):
         """
         Coerce x into this group.
         """
         raise NotImplementedError
-
-    def _coerce_(self, x):
-        return self(x)
 
     def __contains__(self, x):
         r"""

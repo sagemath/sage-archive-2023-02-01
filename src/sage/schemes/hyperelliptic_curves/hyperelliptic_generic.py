@@ -77,12 +77,12 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
 
-    def hyperelliptic_polynomials(self, K=None):
+    def hyperelliptic_polynomials(self, K=None, var='x'):
         if K == None:
             return self._hyperelliptic_polynomials
         else:
             f, h = self._hyperelliptic_polynomials
-            P = PolynomialRing(K)
+            P = PolynomialRing(K, var)
             return (P(f),P(h))
 
     def genus(self):

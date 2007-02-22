@@ -28,7 +28,7 @@ strings using the optional \code{names} argument to the
 #*****************************************************************************
 
 from sage.rings.integer import Integer
-from sage.structure.gens import Generators
+from sage.structure.parent_gens import ParentWithGens, normalize_names
 from free_monoid_element import FreeMonoidElement
 
 from monoid import Monoid_class
@@ -36,34 +36,29 @@ from monoid import Monoid_class
 import weakref
 
 _cache = {}
-def FreeMonoid(n, names=None):
+def FreeMonoid(n, names):
     """
     Returns a free monoid on $n$ generators.
 
     INPUT:
         n -- integer
-        names -- (optional) names of generators
+        names -- names of generators
 
     OUTPUT:
         free abelian monoid
 
     EXAMPLES:
-        sage: FreeMonoid(0)
+        sage: FreeMonoid(0,'')
         Free monoid on 0 generators ()
-        sage: F = FreeMonoid(5, names = list("abcde"))
-        sage: F
+        sage: F.<a,b,c,d,e> = FreeMonoid(5); F
         Free monoid on 5 generators (a, b, c, d, e)
         sage: F(1)
         1
-        sage: (a, b, c, d, e) = F.gens()
-        sage: mul([ a, b, a, c, b, d, c, d ])
+        sage: mul([ a, b, a, c, b, d, c, d ], F(1))
         a*b*a*c*b*d*c*d
     """
-    global _cache
-    if isinstance(names, list):
-        key = (n, tuple(names))
-    else:
-        key = (n, names)
+    names = normalize_names(n, names)
+    key = (n, names)
     if _cache.has_key(key):
         M = _cache[key]()
         if not M is None:
@@ -79,11 +74,11 @@ def is_FreeMonoid(x):
     EXAMPLES:
         sage: is_FreeMonoid(5)
         False
-        sage: is_FreeMonoid(FreeMonoid(7))
+        sage: is_FreeMonoid(FreeMonoid(7,'a'))
         True
-        sage: is_FreeMonoid(FreeAbelianMonoid(7))
+        sage: is_FreeMonoid(FreeAbelianMonoid(7,'a'))
         False
-        sage: is_FreeMonoid(FreeAbelianMonoid(0))
+        sage: is_FreeMonoid(FreeAbelianMonoid(0,''))
         False
     """
     return isinstance(x, FreeMonoid_class)
@@ -101,8 +96,7 @@ class FreeMonoid_class(Monoid_class):
             names -- (optional) variable name or list of variable names
 
         EXAMPLES:
-            sage: F = FreeMonoid(3)
-            sage: F
+            sage: F = FreeMonoid(3,'x'); F
             Free monoid on 3 generators (x0, x1, x2)
             sage: x = F.gens()
             sage: x[0]*x[1]**5 * (x[0]*x[2])
@@ -121,7 +115,7 @@ class FreeMonoid_class(Monoid_class):
         if n < 0:
             raise ValueError, "n (=%s) must be nonnegative."%n
         self.__ngens = int(n)
-        self.assign_names(names)
+        self._assign_names(names)
 
     def __cmp__(self, other):
         if not isinstance(other, FreeMonoid_class):
@@ -199,7 +193,7 @@ class FreeMonoid_class(Monoid_class):
         The number of free generators of the monoid.
 
         EXAMPLES:
-            sage: F = FreeMonoid(2005)
+            sage: F = FreeMonoid(2005, 'a')
             sage: F.ngens()
             2005
         """

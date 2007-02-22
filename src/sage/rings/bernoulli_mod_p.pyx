@@ -201,21 +201,21 @@ def verify_bernoulli_mod_p(data):
 
 
 def bernoulli_mod_p(int p):
-    r""" Computes bernoulli numbers $B_0, B_2, ... B_{p-3}$ modulo $p$.
+    r"""
+    Returns the bernoulli numbers $B_0, B_2, ... B_{p-3}$ modulo $p$.
 
-    Returns a list of integers [B(0), B(2), ... B(p-3)].
+    INPUT:
+        p -- integer, a prime
+
+    OUTPUT:
+        list -- Bernoulli numbers modulo $p$ as a list
+                of integers [B(0), B(2), ... B(p-3)].
 
     ALGORITHM:
         Described in accompanying latex file.
 
     PERFORMANCE:
         Should be complexity $O(p \log p)$.
-
-    INPUT:
-        p -- integer, a prime
-
-    OUTPUT:
-        list -- the bernoulli numbers
 
     EXAMPLES:
     Check the results against PARI's C-library implemention (that

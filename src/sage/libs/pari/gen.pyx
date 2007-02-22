@@ -4,20 +4,45 @@ PARI C-library interface
 AUTHORS:
     -- William Stein (2006-03-01): updated to work with PARI 2.2.12-beta
              (this involved changing almost every doc strings, among other
-             things; the precision behavior of PARI changes
-             from any version to the next!).
+             things; the precision behavior of PARI seems to change
+             from any version to the next...).
     -- William Stein (2006-03-06): added newtonpoly
+    -- Justin Walker: contributed some of the function definitions
+    -- Gonzalo Tornaria: improvements to conversions; much better error handling.
 
+EXAMPLES:
+    sage: pari('5! + 10/x')
+    (120*x + 10)/x
+    sage: pari('intnum(x=0,13,sin(x)+sin(x^2) + x)')
+    85.18856819515268446242866615                # 32-bit
+    85.188568195152684462428666150825866897      # 64-bit
+    sage: f = pari('x^3-1')
+    sage: v = f.factor(); v
+    [x - 1, 1; x^2 + x + 1, 1]
+    sage: v[0]   # indexing is 0-based unlike in GP.
+    [x - 1, x^2 + x + 1]~
+    sage: v[1]
+    [1, 1]~
+
+Arithmetic obeys the usual coercion rules.
+    sage: type(pari(1) + 1)
+    <type 'sage.libs.pari.gen.gen'>
+    sage: type(1 + pari(1))
+    <type 'sage.libs.pari.gen.gen'>
 """
 
 import math
 import types
 from sage.misc.misc import xsrange
-import sage.rings.coerce
+import sage.structure.coerce
 import operator
+from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.structure.parent cimport Parent
 
+#include '../../ext/interrupt.pxi'
 include 'pari_err.pxi'
 include 'setlvalue.pxi'
+include '../../ext/stdsage.pxi'
 
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
@@ -30,6 +55,8 @@ P = pari_instance   # shorthand notation
 # so Galois groups are represented in a sane way
 # See the polgalois section of the PARI users manual.
 new_galois_format = 1
+
+cdef pari_sp mytop
 
 # keep track of the stack
 cdef pari_sp stack_avma
@@ -64,13 +91,13 @@ cdef t4GEN(x):
     global t4
     t4 = P.toGEN(x)
 
-cdef class gen:
+cdef class gen(sage.structure.element.RingElement):
     """
     Python extension class that models the PARI GEN type.
     """
     def __init__(self):
         self.b = 0
-        self.refers_to = {}
+        self._parent = P
 
     def parent(self):
         return pari_instance
@@ -84,10 +111,11 @@ cdef class gen:
         """
         self.g = g
         self.b = b
+        self._parent = P
 
     def __dealloc__(self):
         if self.b:
-            PyMem_Free(<void*> self.b)
+            sage_free(<void*> self.b)
 
     def __repr__(self):
         return P.GEN_to_str(self.g)
@@ -115,54 +143,134 @@ cdef class gen:
         return list(self.Vec())
 
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: f = pari('x^3 - 3')
+            sage: loads(dumps(f)) == f
+            True
+        """
         s = str(self)
         import sage.libs.pari.gen_py
         return sage.libs.pari.gen_py.pari, (s,)
 
-    def _add(gen self, gen other):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
         _sig_on
-        return P.new_gen(gadd(self.g, other.g))
+        return P.new_gen(gadd(self.g, (<gen>right).g))
 
-    def _sub(gen self, gen other):
-        _sig_on
-        return P.new_gen(gsub(self.g, other.g))
+    def _add_unsafe(gen self, gen right):
+        """
+        VERY FAST addition of self and right on stack (and leave on
+        stack) without any type checking.
 
-    def _mul(gen self, gen other):
+        Basically, this is often about 10 times faster than just typing "self + right".
+        The drawback is that (1) if self + right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._add_unsafe(pari(3))
+            5
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gadd(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z,0)
+        mytop = avma
+        return w
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         _sig_on
-        return P.new_gen(gmul(self.g, other.g))
+        return P.new_gen(gsub(self.g, (<gen> right).g))
+
+    def _sub_unsafe(gen self, gen right):
+        """
+        VERY FAST subtraction of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self - right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._sub_unsafe(pari(3))
+            -1
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gsub(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    cdef RingElement _mul_c_impl(self, RingElement right):
+        _sig_on
+        return P.new_gen(gmul(self.g, (<gen>right).g))
+
+    def _mul_unsafe(gen self, gen right):
+        """
+        VERY FAST multiplication of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self * right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._mul_unsafe(pari(3))
+            6
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gmul(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    cdef RingElement _div_c_impl(self, RingElement right):
+        _sig_on
+        return P.new_gen(gdiv(self.g, (<gen>right).g))
+
+    def _div_unsafe(gen self, gen right):
+        """
+        VERY FAST division of self and right on stack (and leave on
+        stack) without any type checking.
+
+        Basically, this is often about 10 times faster than just typing "self / right".
+        The drawback is that (1) if self - right would give an error in PARI, it will
+        totally crash SAGE, and (2) the memory used by self + right is *never*
+        returned -- it gets allocated on the PARI stack and will never be freed.
+
+        EXAMPLES:
+            sage: pari(2)._div_unsafe(pari(3))
+            2/3
+        """
+        global mytop
+        cdef GEN z
+        cdef gen w
+        z = gdiv(self.g, right.g)
+        w = PY_NEW(gen)
+        w.init(z, 0)
+        mytop = avma
+        return w
+
+    #################################################################
 
     def _mod(gen self, gen other):
         _sig_on
         return P.new_gen(gmod(self.g, other.g))
 
-    def _div(gen self, gen other):
-        _sig_on
-        return P.new_gen(gdiv(self.g, other.g))
-
-    def __add__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._add(other)
-        return sage.rings.coerce.bin_op(self, other, operator.add)
-
-    def __sub__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._sub(other)
-        return sage.rings.coerce.bin_op(self, other, operator.sub)
-
-    def __mul__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._mul(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mul)
-
-    def __div__(self, other):
-        if isinstance(self, gen) and isinstance(other, gen):
-            return self._div(other)
-        return sage.rings.coerce.bin_op(self, other, operator.div)
-
     def __mod__(self, other):
         if isinstance(self, gen) and isinstance(other, gen):
             return self._mod(other)
-        return sage.rings.coerce.bin_op(self, other, operator.mod)
+        return sage.structure.coerce.bin_op(self, other, operator.mod)
 
     def __pow__(self, n, m):
         t0GEN(self)
@@ -422,7 +530,10 @@ cdef class gen:
         _sig_on
         x = pari(y)
         if isinstance(n, tuple):
-            self.refers_to[n] = x
+            try:
+                self.refers_to[n] = x
+            except TypeError:
+                self.refers_to = {n:x}
             i = n[0]
             j = n[1]
             if i < 0 or i >= self.nrows():
@@ -435,9 +546,13 @@ cdef class gen:
         if n < 0 or n >= glength(self.g):
             raise IndexError, "index (%s) must be between 0 and %s"%(n,glength(self.g)-1)
 
-        self.refers_to[n] = x       # so python memory manager will work correctly
-                                    # and not free x if PARI part of self is the
-                                    # only thing pointing to it.
+        # so python memory manager will work correctly
+        # and not free x if PARI part of self is the
+        # only thing pointing to it.
+        try:
+            self.refers_to[n] = x
+        except TypeError:
+            self.refers_to = {n:x}
 
         if typ(self.g) == t_POL:
             n = n + 1
@@ -449,32 +564,33 @@ cdef class gen:
 
 
     ###########################################
-    # ?
+    # comparisions
+    # I had to put the call to gcmp in another
+    # function since otherwise I can't trap
+    # the PariError it will sometimes raise.
+    # (This might be a bug/shortcoming to SageX.)
+    # Annoyingly the _cmp method always has
+    # to be not cdef'd.
     ###########################################
 
-    def __cmp__(gen self, gen other):
+    def _cmp(gen self, gen other):
+        cdef int result
+        _sig_on
+        result = gcmp(self.g, other.g)
+        _sig_off
+        return result
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         Comparisons
 
-        Compares the underlying strings unless the inputs
-        are integer, real, or fraction (quotient of integers).
-        """
-        if gegal(self.g, other.g):
-            return 0
-        cdef int tg, to, a
-        tg = typ(self.g)
-        to = typ(other.g)
+        First uses PARI's cmp routine; if it decides the objects are
+        not comparable, it then compares the underlying strings (since
+        in Python all objects are supposed to be comparable).
 
-        cdef int t_g, t_o
-        t_g = typ(self.g); t_o = typ(other.g)
-        if (t_g == t_INT or t_g == t_REAL or t_g == t_FRAC) and \
-           (t_o == t_INT or t_g == t_REAL or t_g == t_FRAC):
-            return gcmp(self.g, other.g)
-
-        return cmp(str(self),str(other))
-
-    def __richcmp__(gen self, other, int op):
-        """
         EXAMPLES:
             sage: a = pari(5)
             sage: b = 10
@@ -494,23 +610,21 @@ cdef class gen:
             True
             sage: a is 5
             False
+
+            sage: pari(2.5) > None
+            False
+            sage: pari(3) == pari(3)
+            True
+            sage: pari('x^2 + 1') == pari('I-1')
+            False
+            sage: pari(I) == pari(I)
+            True
         """
-        cdef int n
-        cdef gen x
-        x = P.adapt(other)
-        n = self.__cmp__(x)
-        if op == 0:
-            return bool(n < 0)
-        elif op == 1:
-            return bool(n <= 0)
-        elif op == 2:
-            return bool(n == 0)
-        elif op == 3:
-            return bool(n != 0)
-        elif op == 4:
-            return bool(n > 0)
-        elif op == 5:
-            return bool(n >= 0)
+        try:
+            return left._cmp(right)
+        except PariError:
+            pass
+        return cmp(str(left),str(right))
 
     def copy(gen self):
         return P.new_gen(forcecopy(self.g))
@@ -570,7 +684,7 @@ cdef class gen:
             return "0"
         lx = lgefint(x)-2  # number of words
         size = lx*2*BYTES_IN_LONG
-        s = <char *>PyMem_Malloc(size+2) # 1 char for sign, 1 char for '\0'
+        s = <char *>sage_malloc(size+2) # 1 char for sign, 1 char for '\0'
         sp = s + size+1
         sp[0] = 0
         xp = int_LSW(x)
@@ -588,7 +702,7 @@ cdef class gen:
             sp = sp-1
             sp[0] = c'-'
         k = sp
-        PyMem_Free(s)
+        sage_free(s)
         return k
 
     def __int__(gen self):
@@ -713,7 +827,7 @@ cdef class gen:
             sage: w
             [1, 2, 3, 10, 102, 10]
             sage: type(w[0])
-            <type 'gen.gen'>
+            <type 'sage.libs.pari.gen.gen'>
         """
         if typ(self.g) != t_VEC:
             raise TypeError, "Object (=%s) must be of type t_VEC."%self
@@ -800,6 +914,7 @@ cdef class gen:
                     2: certify primality using the APRCL test.
         OUTPUT:
             bool -- True or False
+
         EXAMPLES:
             sage: pari(9).isprime()
             False
@@ -817,6 +932,36 @@ cdef class gen:
         t = bool(gisprime(self.g, flag) != stoi(0))
         _sig_off
         return t
+
+    def ispseudoprime(gen self, flag=0):
+        """
+        ispseudoprime(x, flag=0): Returns True if x is a pseudo-prime
+        number, and False otherwise.
+
+        INPUT:
+            flag -- int
+                    0 (default): checks whether x is a Baillie-Pomerance-Selfridge-Wagstaff pseudo prime (strong Rabin-Miller pseudo prime for base 2, followed by strong Lucas test for the sequence (P,-1), P smallest positive integer such that P^2 - 4 is not a square mod x).
+                    > 0: checks whether x is a strong Miller-Rabin pseudo prime for flag randomly chosen bases (with end-matching to catch square roots of -1).
+
+        OUTPUT:
+            bool -- True or False
+
+        EXAMPLES:
+            sage: pari(9).ispseudoprime()
+            False
+            sage: pari(17).ispseudoprime()
+            True
+            sage: n = pari(561)     # smallest Carmichael number
+            sage: n.ispseudoprime() # not just any old pseudo-primality test!
+            False
+            sage: n.ispseudoprime(2)
+            False
+        """
+        cdef GEN z
+        _sig_on
+        z = gispseudoprime(self.g, flag)
+        _sig_off
+        return bool(gcmp(z, stoi(0)))
 
     def ispower(gen self, k=None):
         r"""
@@ -882,8 +1027,6 @@ cdef class gen:
             2-dimensional column vector the quotient and the
             remainder, with respect to v (to main variable if v is
             omitted).
-
-        sage:
         """
         t0GEN(y)
         _sig_on
@@ -4062,14 +4205,6 @@ cdef class gen:
         _sig_on
         return self.new_gen(rnfidealabstorel(self.g, t0))
 
-    def rnfidealadd(self, nf, x, y):
-        # Note the extra nf parameter, which should be the pari_nf
-        # corresponding to self.
-        a = self.rnfidealreltoabs(x)
-        b = self.rnfidealreltoabs(y)
-        sum = nf.idealadd(a, b)
-        return self.rnfidealabstorel(sum)
-
     def rnfidealhnf(self, x):
         t0GEN(x)
         _sig_on
@@ -4328,6 +4463,16 @@ cdef class gen:
 
         If f(t) is a series in t with valuation 1, find the
         series g(t) such that g(f(t)) = t.
+
+        EXAMPLES:
+            sage: f = pari('x+x^2+x^3+O(x^4)'); f
+            x + x^2 + x^3 + O(x^4)
+            sage: g = f.serreverse(); g
+            x - x^2 + x^3 + O(x^4)
+            sage: f.subst('x',g)
+            x + O(x^4)
+            sage: g.subst('x',f)
+            x + O(x^4)
         """
         _sig_on
         return self.new_gen(recip(self.g))
@@ -4367,6 +4512,13 @@ cdef class gen:
             return P.new_gen(extract0(self.g, t0, t1))
 
     def ncols(self):
+        """
+        Return the number of rows of self.
+
+        EXAMPLES:
+            sage: pari('matrix(19,8)').ncols()
+            8
+        """
         cdef long n
         _sig_on
         n = glength(self.g)
@@ -4374,6 +4526,13 @@ cdef class gen:
         return n
 
     def nrows(self):
+        """
+        Return the number of rows of self.
+
+        EXAMPLES:
+            sage: pari('matrix(19,8)').nrows()
+            19
+        """
         cdef long n
         _sig_on
         n = glength(<GEN>(self.g[1]))
@@ -4382,22 +4541,27 @@ cdef class gen:
 
     def mattranspose(self):
         """
+        Transpose of the matrix self.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').mattranspose()
+            [1, 4, 7; 2, 5, 8; 3, 6, 9]
         """
         _sig_on
         return self.new_gen(gtrans(self.g)).Mat()
 
-    def transpose(self):
-        return self.mattranspose()
-
     def matadjoint(self):
         """
         matadjoint(x): adjoint matrix of x.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').matadjoint()
+            [-3, 6, -3; 6, -12, 6; -3, 6, -3]
+            sage: pari('[a,b,c; d,e,f; g,h,i]').matadjoint()
+            [(i*e - h*f), (-i*b + h*c), (f*b - e*c); (-i*d + g*f), i*a - g*c, -f*a + d*c; (h*d - g*e), -h*a + g*b, e*a - d*b]
         """
         _sig_on
         return self.new_gen(adj(self.g)).Mat()
-
-    def adjoint(self):
-        return self.matadjoint()
 
     def qflllgram(self, long flag=0):
         """
@@ -4446,31 +4610,103 @@ cdef class gen:
 
     def matker(self, long flag=0):
         """
+        Return a basis of the kernel of this matrix.
+
+        INPUT:
+            flag -- optional; may be set to
+                0: default;
+                non-zero: x is known to have integral entries.
+
+        EXAMPLES:
+            sage: pari('[1,2,3;4,5,6;7,8,9]').matker()
+            [1; -2; 1]
+
+        With algorithm 1, even if the matrix has integer entries the
+        kernel need nto be saturated (which is weird):
+            sage: pari('[1,2,3;4,5,6;7,8,9]').matker(1)
+            [3; -6; 3]
+            sage: pari('matrix(3,3,i,j,i)').matker()
+            [-1, -1; 1, 0; 0, 1]
+            sage: pari('[1,2,3;4,5,6;7,8,9]*Mod(1,2)').matker()
+            [Mod(1, 2); Mod(0, 2); 1]
         """
         _sig_on
         return self.new_gen(matker0(self.g, flag))
 
     def matkerint(self, long flag=0):
         """
+        Return the integer kernel of a matrix.
+
+        This is the LLL-reduced Z-basis of the kernel of the matrix x
+        with integral entries.
+
+        INPUT:
+            flag -- optional, and may be set to
+                   0: default, uses a modified LLL,
+                   1: uses matrixqz.
+
+        EXAMPLES:
+            sage: pari('[2,1;2,1]').matker()
+            [-1/2; 1]
+            sage: pari('[2,1;2,1]').matkerint()
+            [-1; 2]
+
+        This is worrisome (so be careful!):
+            sage: pari('[2,1;2,1]').matkerint(1)
+            Mat(1)
         """
         _sig_on
         return self.new_gen(matkerint0(self.g, flag))
 
+    def matdet(self, long flag=0):
+        """
+        Return the determinant of this matrix.
+
+        INPUT:
+            flag  -- (optional) flag
+                     0: using Gauss-Bareiss.
+                     1: use classical gaussian elimination (slightly better for integer entries)
+
+        EXAMPLES:
+            sage: pari('[1,2; 3,4]').matdet(0)
+            -2
+            sage: pari('[1,2; 3,4]').matdet(1)
+            -2
+        """
+        _sig_on
+        return self.new_gen(det0(self.g, flag))
+
     def trace(self):
+        """
+        Return the trace of this PARI object.
+
+        EXAMPLES:
+            sage: pari('[1,2; 3,4]').trace()
+            5
+        """
         _sig_on
         return self.new_gen(gtrace(self.g))
 
     def mathnf(self, flag=0):
         """
         A.mathnf({flag=0}): (upper triangular) Hermite normal form of
-        A, basis for the lattice formed by the columns of A.  flag is
-        optional whose value range from 0 to 4 (0 if omitted), meaning
-        : 0: naive algorithm. 1: Use Batut's algorithm. Output
-        2-component vector [H,U] such that H is the HNF of A, and U is
-        a unimodular matrix such that xU=H. 3: Use Batut's
-        algorithm. Output [H,U,P] where P is a permutation matrix such
-        that P A U = H. 4: as 1, using a heuristic variant of LLL
-        reduction along the way.
+        A, basis for the lattice formed by the columns of A.
+
+        INPUT:
+            flag -- optional, value range from 0 to 4 (0 if
+            omitted), meaning :
+                0: naive algorithm
+                1: Use Batut's algorithm -- output 2-component vector
+                   [H,U] such that H is the  HNF of A, and U is a
+                   unimodular matrix such that xU=H.
+                3: Use Batut's algorithm. Output [H,U,P] where P is
+                   a permutation matrix such that P A U = H.
+                4: As 1, using a heuristic variant of LLL reduction
+                   along the way.
+
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').mathnf()
+            [6, 1; 3, 1; 0, 1]
         """
         _sig_on
         return self.new_gen(mathnf0(self.g, flag))
@@ -4484,12 +4720,15 @@ cdef class gen:
         entries, otherwise assume x is integral, 4: removes all
         information corresponding to entries equal to 1 in d.
 
+        EXAMPLES:
+            sage: pari('[1,2,3; 4,5,6;  7,8,9]').matsnf()
+            [0, 3, 1]
         """
         _sig_on
         return self.new_gen(matsnf0(self.g, flag))
 
     def matfrobenius(self, flag=0):
-        """
+        r"""
         M.matfrobenius({flag=0}): Return the Frobenius form of the
         square matrix M. If flag is 1, return only the elementary
         divisors (a list of polynomials). If flag is 2, return a
@@ -4510,19 +4749,14 @@ cdef class gen:
             sage: v[1]^(-1)*v[0]*v[1]
             [1, 2; 3, 4]
 
-            sage: T = ModularSymbols(43,sign=1).T(2).matrix()
-            sage: T
-            [ 3 -2  0  0]
-            [ 0 -2  0  1]
-            [ 0 -1 -2  2]
-            [ 0 -2  0  2]
-            sage: t = pari(T)
+        We let t be the matrix of $T_2$ acting on modular symbols of level 43,
+        which was computed using \code{ModularSymbols(43,sign=1).T(2).matrix()}:
+
+            sage: t = pari('[3, -2, 0, 0; 0, -2, 0, 1; 0, -1, -2, 2; 0, -2, 0, 2]')
             sage: t.matfrobenius()
             [0, 0, 0, -12; 1, 0, 0, -2; 0, 1, 0, 8; 0, 0, 1, 1]
-            sage: T.charpoly()
+            sage: t.charpoly('x')
             x^4 - x^3 - 8*x^2 + 2*x + 12
-            sage: T.charpoly().factor()
-            (x - 3) * (x + 2) * (x^2 - 2)
             sage: t.matfrobenius(1)
             [x^4 - x^3 - 8*x^2 + 2*x + 12]
 
@@ -4543,16 +4777,28 @@ cdef class gen:
     ###########################################
     def factor(gen self, limit=-1):
         """
-        factor(x,{lim}): factorization of x. lim is optional and can
-        be set whenever x is of (possibly recursive) rational
-        type. If lim is set return partial factorization, using
-        primes up to lim (up to primelimit if lim=0)
+        Return the factorization of x.
+
+        lim is optional and can be set whenever x is of (possibly
+        recursive) rational type. If lim is set return partial
+        factorization, using primes up to lim (up to primelimit if
+        lim=0).
+
+        EXAMPLES:
+            sage: pari('x^10-1').factor()
+            [x - 1, 1; x + 1, 1; x^4 - x^3 + x^2 - x + 1, 1; x^4 + x^3 + x^2 + x + 1, 1]
+            sage: pari(2^100-1).factor()
+            [3, 1; 5, 3; 11, 1; 31, 1; 41, 1; 101, 1; 251, 1; 601, 1; 1801, 1; 4051, 1; 8101, 1; 268501, 1]
+
+        PARI doesn't have an algorithm for factoring multivariate polynomials:
+
+            sage: pari('x^3 - y^3').factor()
+            Traceback (most recent call last):
+            ...
+            PariError: sorry, (15)
         """
         _sig_on
         return P.new_gen(factor0(self.g, limit))
-
-
-
 
 
     ###########################################
@@ -4870,7 +5116,7 @@ cdef class gen:
 
 cdef unsigned long num_primes
 
-cdef class PariInstance:
+cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     def __init__(self, long size=16000000, unsigned long maxprime=500000):
         """
         Initialize the PARI system.
@@ -4937,6 +5183,24 @@ cdef class PariInstance:
 
     def __repr__(self):
         return "Interface to the PARI C library"
+
+    def __hash__(self):
+        return 907629390   # hash('pari')
+
+    cdef has_coerce_map_from_c_impl(self, x):
+        return True
+
+    def __richcmp__(left, right, int op):
+        """
+        EXAMPLES:
+            sage: pari == pari
+            True
+            sage: pari == gp
+            False
+            sage: pari == 5
+            False
+        """
+        return (<Parent>left)._richcmp(right, op)
 
     def default(self, variable, value=None):
         if not value is None:
@@ -5012,8 +5276,8 @@ cdef class PariInstance:
         cdef gen g
         g = _new_gen(x)
 
-        global top, avma
-        avma = top
+        global mytop, avma
+        avma = mytop
         _sig_off
         return g
 
@@ -5032,8 +5296,11 @@ cdef class PariInstance:
         cdef gen p
         p = gen()
         p.init(x, 0)
-        p.refers_to[-1] = g  # so underlying memory won't get deleted
-                             # out from under us.
+        try:
+            p.refers_to[-1] = g  # so underlying memory won't get deleted
+                                 # out from under us.
+        except TypeError:
+            p.refers_to = {-1:g}
         return p
 
     cdef gen adapt(self, s):
@@ -5074,7 +5341,7 @@ cdef class PariInstance:
         _sig_off
         return self.new_gen(g)
 
-    def _coerce_(self, x):
+    cdef _coerce_c_impl(self, x):
         """
         Implicit canonical coercion into a PARI object.
         """
@@ -5085,6 +5352,9 @@ cdef class PariInstance:
         if isinstance(x, gen):
             return x
         raise TypeError, "x must be a PARI object"
+
+    cdef _an_element_c_impl(self):  # override this in SageX
+        return self.ZERO
 
     def new_with_prec(self, s, long precision=0):
         r"""
@@ -5262,14 +5532,14 @@ cdef class PariInstance:
         self.init_primes(n+1)
         return self.prime_list(pari(n).primepi())
 
-        cdef long k
-        k = (n+10)/math.log(n)
-        p = 2
-        while p <= n:
-            p = self.nth_prime(k)
-            k = 2
-        v = self.prime_list(k)
-        return v[:pari(n).primepi()]
+##         cdef long k
+##         k = (n+10)/math.log(n)
+##         p = 2
+##         while p <= n:
+##             p = self.nth_prime(k)
+##             k = 2
+##         v = self.prime_list(k)
+##         return v[:pari(n).primepi()]
 
     def __nth_prime(self, long n):
         """
@@ -5479,11 +5749,11 @@ cdef class PariInstance:
 cdef int init_stack(size_t size) except -1:
     cdef size_t s
 
-    global top, bot, avma, stack_avma
+    global top, bot, avma, stack_avma, mytop
 
     # delete this if get core dumps and change the 2* to a 1* below.
     if bot:
-        PyMem_Free(<void*>bot)
+        sage_free(<void*>bot)
 
     if size == 0:
         size = 2*(top-bot)
@@ -5493,7 +5763,7 @@ cdef int init_stack(size_t size) except -1:
         s = 4294967295
         while True:
             s = fix_size(s)
-            bot = <pari_sp> PyMem_Malloc(s)
+            bot = <pari_sp> sage_malloc(s)
             if bot:
                 break
             s = s/2
@@ -5503,12 +5773,12 @@ cdef int init_stack(size_t size) except -1:
         # Alocate memory for new stack using Python's memory allocator.
         # As explained in the python/C api reference, using this instead
         # of malloc is much better (and more platform independent, etc.)
-        bot = <pari_sp> PyMem_Malloc(s)
+        bot = <pari_sp> sage_malloc(s)
         if not bot:
             raise MemoryError, "Unable to allocate %s bytes memory for PARI."%(<long>size)
     #endif
-
     top = bot + s
+    mytop = top
     avma = top
     stack_avma = avma
 
@@ -5527,7 +5797,7 @@ cdef size_t fix_size(size_t a):
 cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     cdef size_t s
     cdef pari_sp tmp_bot, tmp_top, tmp_avma
-    global avma, bot, top
+    global avma, bot, top, mytop
     cdef GEN h
 
     tmp_top = top
@@ -5538,7 +5808,7 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     s = <size_t> (tmp_avma - avma)
 
     #print "Allocating %s bytes for PARI/Python object"%(<long> s)
-    bot = <pari_sp> PyMem_Malloc(s)
+    bot = <pari_sp> sage_malloc(s)
     top = bot + s
     avma = top
     h = forcecopy(x)
@@ -5550,14 +5820,23 @@ cdef GEN deepcopy_to_python_heap(GEN x, pari_sp* address):
     avma = tmp_avma
     return h
 
+# The first one makes a separate copy on the heap, so the stack
+# won't overflow -- but this costs more time...
 cdef gen _new_gen(GEN x):
     cdef GEN h
     cdef pari_sp address
     cdef gen y
     _sig_on
     h = deepcopy_to_python_heap(x, &address)
-    y = gen()
+    y = PY_NEW(gen)
     y.init(h, address)
+    _sig_off
+    return y
+
+cdef gen xxx_new_gen(GEN x):
+    cdef gen y
+    y = PY_NEW(gen)
+    y.init(x, 0)
     _sig_off
     return y
 
@@ -5584,8 +5863,8 @@ cdef int _read_script(char* s) except -1:
 
     # We set top to avma, so the script's affects won't be undone
     # when we call new_gen again.
-    global top, avma
-    top = avma
+    global mytop, top, avma
+    mytop = avma
     return 0
 
 
@@ -5634,7 +5913,8 @@ cdef void _pari_trap "_pari_trap" (long errno, long retries) except *:
     if retries > 100:
         raise RuntimeError, "_pari_trap recursion too deep"
     if errno == errpile:
-        raise RuntimeError, "The PARI stack overflowed.  Use pari.allocatemem() to double the stack."
+        P.allocatemem()
+        raise RuntimeError, "The PARI stack overflowed.  It has automaticallyed been doubled using pari.allocatemem().  Please retry your computation, possibly after you manually call pari.allocatemem() a few times."
 
         #print "Stack overflow! (%d retries so far)"%retries
         #print " enlarge the stack."

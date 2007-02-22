@@ -1,10 +1,17 @@
+
+include "python.pxi"
+
 cdef extern from "stdlib.h":
-    ctypedef int size_t
+    ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
     void *realloc(void *ptr, size_t size)
     size_t strlen(char *s)
     char *strcpy(char *dest, char *src)
+
+cdef extern from "string.h":
+    void *memset(void *dest, int c, size_t n)
+    void *memcpy(void *dest, void *src, size_t n)
 
 cdef extern from "stdio.h":
     ctypedef struct FILE
@@ -16,36 +23,9 @@ cdef extern from "stdio.h":
     cdef FILE *stdout
     int scanf(char *format, ...)
 
-
 cdef extern from "math.h":
     double sqrt(double x)
     float roundf(float x)    # linux-ish and non-standard; avoid!
-
-
-cdef extern from "Python.h":
-    # Memory management
-    void PyMem_Free(void *p)
-    void* PyMem_Realloc(void *p, size_t n)
-    void* PyMem_Malloc(size_t)
-
-    # Type conversions
-    object PyString_FromString(char *v)
-    char* PyString_AsString(object string)
-    object PyString_InternFromString(char *v)
-
-    # Type checking
-    int PyObject_TypeCheck(object o, object t)
-    int PyInt_Check(object o)
-    int PyLong_Check(object o)
-    int PyString_Check(object o)
-
-    # Python attribute lookup functions
-    object PyObject_GetAttrString(object o, char *attr_name)
-    int PyObject_HasAttrString(object o, char *attr_name)
-
-    # Miscellaneous
-    int PyErr_CheckSignals()
-
 
 
 cdef extern from "gmp.h":
@@ -55,11 +35,14 @@ cdef extern from "gmp.h":
     ctypedef void* gmp_randstate_t
 
     void gmp_randinit_default(gmp_randstate_t state)
+    int gmp_randinit_mt (gmp_randstate_t state)
     size_t mpz_sizeinbase(mpz_t op, int base)
+    size_t mpz_size(mpz_t op)
 
     # The mpz type
     void mpz_abs (mpz_t rop, mpz_t op)
     void mpz_add (mpz_t rop, mpz_t op1, mpz_t op2)
+    void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_and (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_clear(mpz_t integer)
@@ -67,7 +50,9 @@ cdef extern from "gmp.h":
     int  mpz_cmp_si(mpz_t op1, signed long int op2)
     int  mpz_cmp_ui(mpz_t op1, unsigned long int op2)
     void mpz_divexact (mpz_t q, mpz_t n, mpz_t d)
+    void mpz_divexact_ui (mpz_t q, mpz_t n, unsigned long int d)
     int mpz_divisible_p (mpz_t n, mpz_t d)
+    int mpz_divisible_ui_p (mpz_t n, unsigned long int d)
     void mpz_fac_ui (mpz_t rop, unsigned long int op)
     void mpz_fdiv_q  (mpz_t q, mpz_t n, mpz_t d)
     void mpz_fdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
@@ -78,6 +63,7 @@ cdef extern from "gmp.h":
     double mpz_get_d (mpz_t op)
     unsigned long int mpz_fdiv_ui (mpz_t n, unsigned long int d)
     unsigned long int mpz_fdiv_q_ui(mpz_t q, mpz_t n, unsigned long int d)
+    void mpz_fdiv_q_2exp(mpz_t q, mpz_t n, unsigned long int b)
     void mpz_gcd(mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_gcdext(mpz_t g, mpz_t s, mpz_t t, mpz_t a, mpz_t b)
     signed long int mpz_get_si(mpz_t op)
@@ -87,6 +73,8 @@ cdef extern from "gmp.h":
     void mpz_init_set(mpz_t rop, mpz_t op)
     void mpz_init_set_si(mpz_t integer, signed long int n)
     void mpz_init_set_ui(mpz_t integer, unsigned long int n)
+    int mpz_init_set_str(mpz_t rop, char* str, int base)
+
     int mpz_invert (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_lcm(mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_mod (mpz_t r, mpz_t n, mpz_t d)
@@ -107,7 +95,13 @@ cdef extern from "gmp.h":
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
+
+    void mpz_urandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void mpz_urandomm(mpz_t rop, gmp_randstate_t state, mpz_t n)
+    void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
+    void gmp_randseed (gmp_randstate_t state, mpz_t seed)
+    void gmp_randseed_ui (gmp_randstate_t state, unsigned long int seed)
+
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
@@ -126,6 +120,7 @@ cdef extern from "gmp.h":
     void mpq_get_num(mpz_t numerator, mpq_t rational)
     void mpq_get_den(mpz_t denominator, mpq_t rational)
     void mpq_init(mpq_t rational_number)
+    void mpq_init_set(mpq_t rop, mpq_t op)
     void mpq_inv(mpq_t inverted_number, mpq_t number)
     void mpq_mul(mpq_t product, mpq_t multiplier, mpq_t multiplicand)
     void mpq_neg(mpq_t negated_operand, mpq_t operand)
@@ -153,4 +148,8 @@ cdef extern from "gmp.h":
     void mpf_sqrt (mpf_t rop, mpf_t op)
     void mpf_neg (mpf_t rop, mpf_t op)
     void mpf_abs (mpf_t rop, mpf_t op)
+
+##########################################################################
+# stdsage.pxi declares the macros, etc., that got used a lot in SAGE.
+##########################################################################
 

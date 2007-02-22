@@ -10,7 +10,8 @@ Space of homomorphisms between two rings.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.all import Homset, Rings
+from sage.categories.all import HomsetWithBase, Rings
+from sage.structure.parent_base import ParentWithBase
 
 import morphism
 import quotient_ring
@@ -27,9 +28,9 @@ def RingHomset(R, S):
     return RingHomset_generic(R, S)
 
 
-class RingHomset_generic(Homset):
+class RingHomset_generic(HomsetWithBase):
     def __init__(self, R, S):
-        Homset.__init__(self, R, S, RINGS)
+        HomsetWithBase.__init__(self, R, S, RINGS)
 
     def _repr_(self):
         return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())
@@ -57,8 +58,8 @@ class RingHomset_quo_ring(RingHomset_generic):
     Space of ring homomorphism where the domain is a (formal) quotient ring.
 
     EXAMPLES:
-        sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-        sage: S, (a,b) = (R/(x^2 + y^2)).objgens('ab')
+        sage: R.<x,y> = PolynomialRing(QQ, 2)
+        sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: phi = S.hom([b,a]); phi
         Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
           Defn: a |--> b

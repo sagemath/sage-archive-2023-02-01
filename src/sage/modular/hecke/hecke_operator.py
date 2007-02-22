@@ -29,7 +29,6 @@ import sage.modules.module
 import sage.modules.free_module_morphism as free_module_morphism
 import sage.modular.dims as dims
 import sage.rings.arith as arith
-import sage.rings.coerce
 
 import algebra
 import morphism
@@ -85,7 +84,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
     def __is_compatible(self, other):
         return isinstance(other, HeckeAlgebraElement) and self.parent() == other.parent()
 
-    def __add__(self, other):
+    def _add_(self, other):
         """
         EXAMPLES:
             sage: M = ModularSymbols(11)
@@ -105,11 +104,9 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: t2 - t3
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
             (not printing 6 x 6 matrix)
-            sage: (t2 - t3).charpoly()
+            sage: (t2 - t3).charpoly('x')
             x^6 + 36*x^5 + 104*x^4 - 3778*x^3 + 7095*x^2 - 3458*x
         """
-        if not self.__is_compatible(other):
-            return sage.rings.coerce.bin_op(self, other, operator.add)
         return self.parent()(self.matrix() + other.matrix())
 
     def __call__(self, x):
@@ -142,7 +139,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         return self.parent()(left * self.matrix())
 
-    def __sub__(self, other):
+    def _sub_(self, other):
         """
         Compute the difference of self and other.
 
@@ -153,8 +150,6 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             Hecke operator on Modular Symbols space of dimension 6 for Gamma_1(6) of weight 4 with sign 0 and over Rational Field defined by:
             (not printing 6 x 6 matrix)
         """
-        if not self.__is_compatible(other):
-            return sage.rings.coerce.bin_op(self, other, operator.sub)
         return self.parent()(self.matrix() - other.matrix())
 
     def apply_sparse(self, x):
@@ -173,16 +168,16 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         T = self.hecke_module_morphism()
         return T(x)
 
-    def charpoly(self):
+    def charpoly(self, var):
         """
         Return the characteristic polynomial of this Hecke operator.
 
         EXAMPLES:
             sage: M = ModularSymbols(Gamma1(6),4)
-            sage: M.hecke_operator(2).charpoly()
+            sage: M.hecke_operator(2).charpoly('x')
             x^6 - 14*x^5 + 29*x^4 + 172*x^3 - 124*x^2 - 320*x + 256
         """
-        return self.matrix().charpoly()
+        return self.matrix().charpoly(var)
 
     def decomposition(self):
         """
@@ -231,7 +226,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         return self.hecke_module_morphism().det()
 
-    def fcp(self):
+    def fcp(self, var='x'):
         """
         Return the factorization of the characteristic polynomial of
         this Hecke operator.
@@ -239,10 +234,10 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         EXAMPLES:
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
-            sage: T.fcp()
+            sage: T.fcp('x')
             (x - 4) * (x^2 - 5)^2
         """
-        return self.hecke_module_morphism().fcp()
+        return self.hecke_module_morphism().fcp(var)
 
     def image(self):
         """
@@ -251,7 +246,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         EXAMPLES:
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
-            sage: T.fcp()
+            sage: T.fcp('x')
             (x - 4) * (x^2 - 5)^2
             sage: T.image()
             Modular Symbols subspace of dimension 5 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
@@ -269,7 +264,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         EXAMPLES:
             sage: M = ModularSymbols(23)
             sage: T = M.hecke_operator(3)
-            sage: T.fcp()
+            sage: T.fcp('x')
             (x - 4) * (x^2 - 5)^2
             sage: T.kernel()
             Modular Symbols subspace of dimension 0 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
@@ -290,6 +285,16 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         """
         return self.hecke_module_morphism().trace()
 
+    def __getitem__(self, ij):
+        """
+        EXAMPLE:
+            sage: M = ModularSymbols(1,12)
+            sage: T = M.hecke_operator(2).matrix_form()
+            sage: T[0,0]
+            -24
+        """
+        return self.matrix()[ij]
+
 
 class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
     def __init__(self, parent, A):
@@ -305,8 +310,6 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
             return sage.rings.coerce.cmp(self, other)
         c = cmp(self.parent(), other.parent())
         if c: return c
-        if self.__n == other.__n:
-            return 0
         return cmp(self.__matrix, other.__matrix)
 
     def _repr_(self):
@@ -333,11 +336,8 @@ class HeckeAlgebraElement_matrix(HeckeAlgebraElement):
         """
         return self.__matrix
 
-
-    def __mul__(self, other):
-        if isinstance(other, HeckeAlgebraElement) and other.parent() == self.parent():
-            return self.parent()(other.matrix() * self.matrix())
-        return sage.rings.coerce.bin_op(self, other, operator.mul)
+    def _mul_(self, other):
+        return self.parent()(other.matrix() * self.matrix())
 
 
 

@@ -1,5 +1,5 @@
 """
-Elliptic curves over a general ring
+Elliptic curves over a general field
 """
 
 #*****************************************************************************

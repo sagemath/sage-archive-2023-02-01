@@ -58,7 +58,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
            returning [(a(x),y-b(x))].
 
         EXAMPLES:
-            sage: P, x = PolynomialRing(QQ).objgen()
+            sage: P.<x> = PolynomialRing(QQ)
             sage: f = x^5 - x + 1; h = x
             sage: C = HyperellipticCurve(f,h,'u,v')
             sage: P = C(0,1,1)
@@ -73,7 +73,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             (1)
         """
         if P == 0:
-            R = PolynomialRing(self.value_ring())
+            R = PolynomialRing(self.value_ring(), 'x')
             return JacobianMorphism_divisor_class(self, (R(1),R(0)))
         elif isinstance(P,JacobianMorphism_divisor_class) and self == P.parent():
             return P
@@ -87,7 +87,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
                 return self(P1) - self(P2)
         elif is_SchemeMorphism(P):
             x0 = P[0]; y0 = P[1]
-            R, x = PolynomialRing(self.value_ring()).objgen()
+            R, x = PolynomialRing(self.value_ring(), 'x').objgen()
             return self((x-x0,R(y0)))
         raise TypeError, "Argument P (= %s) does not determine a divisor class"%P
 

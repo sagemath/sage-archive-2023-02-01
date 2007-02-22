@@ -438,19 +438,19 @@ class CharPolyTp(Benchmark):
     def sage(self):
         m = self.matrix()
         t = cputime()
-        f = m.charpoly()
+        f = m.charpoly('x')
         return cputime(t)
 
     def gp(self):
         m = gp(self.matrix())
         gp.eval('gettime')
-        f = m.charpoly()
+        f = m.charpoly('x')
         return float(gp.eval('gettime/1000.0'))
 
     def pari(self):
         m = pari(self.matrix())
         t = cputime()
-        f = m.charpoly()
+        f = m.charpoly('x')
         return cputime(t)
 
     def magma(self):
@@ -1017,8 +1017,8 @@ def suite1():
     PolyFactor(300,GF(19))
     PolyFactor(700,GF(19))
 
-    PolyFactor(500,GF(49))
-    PolyFactor(100,GF(10007^3))
+    PolyFactor(500,GF(49,'a'))
+    PolyFactor(100,GF(10007^3,'a'))
 
     CharPolyTp(54,4).run()
     CharPolyTp(389,2).run()

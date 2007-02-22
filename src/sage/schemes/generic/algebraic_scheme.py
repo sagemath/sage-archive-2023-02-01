@@ -78,6 +78,16 @@ class AlgebraicScheme(scheme.Scheme):
         self.__A = A
         self.__divisor_groups = {}
 
+    def coordinate_ring(self):
+        try:
+            return self._coordinate_ring
+        except AttributeError:
+            R = self.__A.coordinate_ring()
+            I = self.defining_ideal()
+            Q = R.quotient(I)
+            self._coordinate_ring = Q
+            return Q
+
     def ambient_space(self):
         return self.__A
 
@@ -236,19 +246,6 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return "Closed subscheme of %s defined by:\n  %s"%(self.ambient_space(),
                                                            polys)
 
-    def coordinate_ring(self):
-        try:
-            return self._coordinate_ring
-        except AttributeError:
-            R = self.__A.coordinate_ring()
-            if len(self.__X) == 0:
-                Q = R
-            else:
-                I = self.defining_ideal()
-                Q = R/I
-            self._coordinate_ring = Q
-            return Q
-
     def defining_polynomials(self):
         return self.__G
 
@@ -275,14 +272,19 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         We define what is clearly a union of four hypersurfaces in
         $\P^4_{\Q}$ then find the irreducible components.
-            sage: P, (x,y,z,w,v) = ProjectiveSpace(4,QQ).objgens()
+            sage: P.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
             sage: V = P.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
-            [Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            x3, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            -1*x2^2 - x1^2 + x0^2, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            -1*x4^3 + x0^2*x2, Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-            x3^5 - 2*x2^3*x4^2]
+            [
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+              w^5 - 2*z^3*v^2,
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+              -1*v^3 + x^2*z,
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+              -1*z^2 - y^2 + x^2,
+            Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
+              w
+            ]
         """
         try:
             return self.__irreducible_components
@@ -291,7 +293,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         I = self.defining_ideal()
         P = I.associated_primes()
         A = self.ambient_space()
-        C = Sequence([A.subscheme(X) for X in P], check=False, immutable=True)
+        C = Sequence([A.subscheme(X) for X in P], check=False, immutable=True, cr=True)
         C.sort()
         self.__irreducible_components = C
         return C
@@ -304,7 +306,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         EXAMPLES:
         First we construct the union of a doubled and triplled line
         in the affine plane over $\Q$.
-            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
+            sage: A.<x,y> = AffineSpace(2, QQ)
             sage: X = A.subscheme([(x-1)^2*(x-y)^3]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
               -1*y^3 + 3*x*y^2 + 2*x*y^3 - 3*x^2*y - 6*x^2*y^2 - x^2*y^3 + x^3 + 6*x^3*y + 3*x^3*y^2 - 2*x^4 - 3*x^4*y + x^5
@@ -346,7 +348,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         EXAMPLES:
         We construct the union of a line and a tripled-point on the line.
-            sage: A, (x,y) = AffineSpace(2, QQ, 'xy').objgens()
+            sage: A.<x,y> = AffineSpace(2, QQ)
             sage: I = ideal([x,y])^3
             sage: P = A.subscheme(I)
             sage: L = A.subscheme([y-1])
@@ -433,7 +435,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
     def dimension(self):
         """
         EXAMPLES:
-            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
+            sage: A.<x,y> = AffineSpace(2, QQ)
             sage: A.subscheme([]).dimension()
             2
             sage: A.subscheme([x]).dimension()
@@ -446,7 +448,7 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
-            sage: A, (x,y,z,w) = AffineSpace(4, QQ).objgens('xyzw')
+            sage: A.<x,y,z,w> = AffineSpace(4, QQ)
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
@@ -526,7 +528,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
     def dimension(self):
         """
         EXAMPLES:
-            sage: A, (x,y) = AffineSpace(2, QQ).objgens('xy')
+            sage: A.<x,y> = AffineSpace(2, QQ)
             sage: A.subscheme([]).dimension()
             2
             sage: A.subscheme([x]).dimension()
@@ -539,7 +541,7 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             0
 
         Something less obvious
-            sage: A, (x,y,z,w) = AffineSpace(4, QQ).objgens('xyzw')
+            sage: A.<x,y,z,w> = AffineSpace(4, QQ)
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:

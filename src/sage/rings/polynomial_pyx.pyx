@@ -1,5 +1,7 @@
 """
-Polynomial rings.
+Polynomial over QQ
+
+NOTE -- this is no longer used ?!
 
 AUTHOR:
     -- William Stein (2004): first version
@@ -27,6 +29,7 @@ import sage.rings.polynomial_element as polynomial
 
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
 
 cimport sage.structure.element
 import  sage.structure.element
@@ -66,7 +69,7 @@ cdef int Pmodint_init(Pmodint* f, ulong p, int degree) except -1:
     if degree == -1:
         f.v = <ulong*> 0
         return 0
-    f.v = <ulong*>PyMem_Malloc(sizeof(ulong)*(degree+1))
+    f.v = <ulong*>sage_malloc(sizeof(ulong)*(degree+1))
     if f.v == <ulong*>0:
         raise MemoryError, "Error allocating memory for polynomial."
     return 0
@@ -74,7 +77,7 @@ cdef int Pmodint_init(Pmodint* f, ulong p, int degree) except -1:
 cdef int Pmodint_clear(Pmodint* f) except -1:
     cdef int i
     if f.v:
-        PyMem_Free(f.v)
+        sage_free(f.v)
         f.v = <ulong*> 0
     return 0
 
@@ -483,15 +486,19 @@ cdef class Polynomial_modint:
         Pmodint_init(&self.poly, self.poly.p, len(v)+1)
         for i from 0 <= i < len(v):
             self[i] = v[i]
+
     def __pow__(self, n, m):
+        _n = int(n)
+        if _n != n:
+            raise ValueError, "exponent must be an integer"
         ans = Polynomial_modint(self.prime())
         ans[0] = 1
         apow = self
-        while n != 0:
-            if n%2 != 0:
+        while _n != 0:
+            if _n%2 != 0:
                 ans = ans * apow
             apow = apow * apow
-            n = n/2
+            _n = _n/2
         return ans
 
 
@@ -516,7 +523,7 @@ cdef int PQ_init(PQ* f, int degree) except -1:
     if degree == -1:
         f.v = <mpq_t*> 0
         return 0
-    f.v = <mpq_t*>PyMem_Malloc(sizeof(mpq_t)*(degree+1))
+    f.v = <mpq_t*>sage_malloc(sizeof(mpq_t)*(degree+1))
     if f.v == <mpq_t*>0:
         raise MemoryError, "Error allocating memory for polynomial."
     for i from 0 <= i <= degree:
@@ -528,7 +535,7 @@ cdef int PQ_clear(PQ* f) except -1:
     for i from 0 <= i <= f.degree:
         mpq_clear(f.v[i])
     if f.v:
-        PyMem_Free(f.v)
+        sage_free(f.v)
         f.v = <mpq_t*> 0
     return 0
 
@@ -805,7 +812,7 @@ cdef int PQ_num_den(mpz_t **vec, mpz_t den, PQ f) except -1:
     cdef mpz_t tmp
 
     # Allocate memory for answer, and raise exception on failure.
-    vec[0] = <mpz_t *> PyMem_Malloc(sizeof(mpz_t) * (f.degree+1))
+    vec[0] = <mpz_t *> sage_malloc(sizeof(mpz_t) * (f.degree+1))
     if vec[0] == <mpz_t *> 0:
         raise MemoryError
 
@@ -953,10 +960,10 @@ cdef int PQ_mul_modular_alg(PQ* prod, PQ f, PQ g) except -1:
             mpz_crt_vec(&lift2, lift, fg_vec, degree+1, pr, p)
             # De-allocate memory used in lift
             ag.mpzvec_clear(lift, degree+1)
-            PyMem_Free(lift)
+            sage_free(lift)
             lift = lift2
             ag.mpzvec_clear(fg_vec, degree+1)
-            PyMem_Free(fg_vec)
+            sage_free(fg_vec)
             Pmodint_clear(&fgmod)
         #endif
 
@@ -986,11 +993,11 @@ cdef int PQ_mul_modular_alg(PQ* prod, PQ f, PQ g) except -1:
     mpz_clear(H_f)
     mpz_clear(H_g)
     ag.mpzvec_clear(lift, degree+1)
-    PyMem_Free(lift)
+    sage_free(lift)
     ag.mpzvec_clear(f_vec, f.degree+1)
-    PyMem_Free(f_vec)
+    sage_free(f_vec)
     ag.mpzvec_clear(g_vec, g.degree+1)
-    PyMem_Free(g_vec)
+    sage_free(g_vec)
     return 0
 
 cdef object mpq_to_str(mpq_t x):
@@ -1074,9 +1081,6 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
 
     def __new__(self):
         PQ_init(&self.pq, -1)
-
-    def __init__(self):
-        pass
 
     def __dealloc__(self):
         PQ_clear(&self.pq)
@@ -1199,7 +1203,7 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
 
 #         # The quotient will have degree deg(self) - deg(other)
 #         n = self.pq.degree - other.pq.degree
-#         quo_coeffs = <mpq_t> PyMem_Malloc(sizeof(mpq_t)*n)
+#         quo_coeffs = <mpq_t> sage_malloc(sizeof(mpq_t)*n)
 
 #         while R.pq.degree >= B.pq.degree:
 #             # Here's what we do below:

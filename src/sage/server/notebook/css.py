@@ -29,6 +29,10 @@ span.hidden{
   display:none;
 }
 
+div.fivepix {
+  height:5px;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -53,6 +57,18 @@ span.control_commands {
 /*    text-decoration:underline; */
 }
 
+span.worksheet_control_commands {
+   position: fixed;
+   top:36px;
+   right:0px;
+   text-align:right;
+   color:blue;
+   font-weight:normal;
+   font-family:arial;
+   font-size:12px;
+   padding:5;
+}
+
 div.slide_control_commands {
    float:right;
    position: fixed;
@@ -73,47 +89,33 @@ span.vbar {
    width:1px;
 }
 
-div.top_control_bar a.evaluate {
-   background-color:white;
+div.top_control_bar a {
+   color: #0000BB;
+   text-decoration: none;
    padding:5;
-   text-decoration:underline;
 }
 
-div.top_control_bar a.evaluate:hover {
-   background-color:#00bb00;
-   color:#FFFFFF;
+div.top_control_bar a:hover {
    cursor:pointer;
 }
 
 div.top_control_bar a.upload_worksheet {
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
-   text-align:right;
+}
+
+div.top_control_bar a.worksheets_button {
 }
 
 div.top_control_bar a.upload_worksheet:hover {
-   background-color:#00aa00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.restart_sage {
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.restart_sage:hover {
    background-color:#ff0000;
-   color:#FFFFFF;
-   cursor:pointer;
-   text-decoration:none;
 }
 
 div.top_control_bar  a.restart_sage_in_progress {
-   color:#FFFFFF;
-   padding:5;
    background-color:#ff0000;
    text-decoration:blink;
 }
@@ -125,143 +127,99 @@ div.top_control_bar  a.interrupt {
    font-weight:bold;
    color:#000000;
    */
-   text-decoration:underline;
-   padding:5;
-   background-color:white;
 }
-
-
-
 
 div.top_control_bar a.interrupt:hover {
    background-color:#bb0000;
-   color:#FFFFFF;
-   cursor:pointer;
-   text-decoration:none;
 }
 
 div.top_control_bar  a.interrupt_grey {
    color:#888888;
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar  a.interrupt_in_progress {
    color:#FFFFFF;
-   padding:5;
    background-color:#bb0000;
    text-decoration:blink;
 }
 
-div.top_control_bar  a.hide{
-   background-color:white;
-   padding:5;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.hide:hover {
-   background-color:#0000bb;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
 div.top_control_bar a.help {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.help:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.slide_mode {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.slide_mode:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.cell_mode {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.cell_mode:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 div.top_control_bar a.slide_arrow {
-   padding:5;
-   background-color:white;
-   text-decoration:none;
 }
 
 div.top_control_bar a.slide_arrow:hover{
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
-div.top_control_bar  a.plain_text {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.plain_text:hover {
-   background-color:#00bb00;
-   color:#FFFFFF;
-   cursor:pointer;
-}
-
-div.top_control_bar  a.doctest_text {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
-}
-
-div.top_control_bar a.doctest_text:hover {
-   background-color:#0044bb;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
 
 div.top_control_bar  a.history_link {
-   padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
 div.top_control_bar a.history_link:hover {
-   background-color:995533;
-   color:#FFFFFF;
-   cursor:pointer;
 }
 
-div.top_control_bar  a.download_sws {
+
+/* links darker! no underlines! */
+
+span.worksheet_control_commands a {
+   color: #0000BB;
+   text-decoration: none;
    padding:5;
-   background-color:white;
-   text-decoration:underline;
 }
 
-div.top_control_bar a.download_sws:hover {
-   background-color:#55bb22;
-   color:#FFFFFF;
+span.worksheet_control_commands a:hover {
    cursor:pointer;
 }
+
+span.worksheet_control_commands  a.plain_text {
+}
+
+span.worksheet_control_commands a.plain_text:hover {
+}
+
+span.worksheet_control_commands  a.doctest_text {
+}
+
+span.worksheet_control_commands a.doctest_text:hover {
+}
+
+span.worksheet_control_commands  a.download_sws {
+}
+
+span.worksheet_control_commands a.download_sws:hover {
+}
+
+span.worksheet_control_commands a.evaluate {
+}
+
+span.worksheet_control_commands a.evaluate:hover {
+}
+
+span.worksheet_control_commands  a.hide{
+}
+
+span.worksheet_control_commands a.hide:hover {
+}
+
+
+
+
 
 div.slideshow_control {
   float:right;
@@ -419,34 +377,65 @@ span.pane {
    font-family:courier, monospace;
    font-size:12px;
    position: fixed;
-   left: 1em;
+   left: 5px;
    top: 33px;
    width: 180px;
    height:100%;
    margin: 0px;
    padding-right: 2px;
-   padding-left: 2px;
+   padding-left: 0px;
    padding-top: 0px;
    bottom: 0ex;
 }
 
+span.plusminus {
+  color:black;
+  font-size:8pt;
+  font-family:courier, monospace;
+}
+span.plusminus:hover {
+    cursor:pointer;
+}
+
+span.controltoggle {
+  color:#0000ff;
+  font-size:10pt;
+  text-decoration:underline;
+}
+span.controltoggle:hover {
+    cursor:pointer;
+}
+
+div.left_pane_bar {
+  position:fixed;
+  left: 0px;
+  top:36px;
+  background-color: white;
+  width:8px;
+  height:100%;
+  z-index:100;
+}
+div.left_pane_bar:hover {
+  background-color: #8888fe;  /* #000000; */
+}
 
 
 /************ VARIABLES **************************/
 
 span.pane div.variables_topbar {
    color:black;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    font-family:arial;
    text-decoration: none;
    font-size:13px;
    height: 2ex;
    padding-left: 10px;
-   margin:0;
+   padding-bottom:1px;
    width: 174px;
 }
 
-span.pane div.variables_list {
+span.pane div.variable_list {
    font-size:11px;
    top:0ex;
    height:20ex;
@@ -479,11 +468,13 @@ span.pane div.attached_topbar {
    color: black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
    padding-left: 10px;
+   padding-bottom:1px;
    width: 174px;
 }
 
@@ -513,6 +504,7 @@ span.pane div.worksheets_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
    font-size:12px;
@@ -627,6 +619,7 @@ div.worksheet_title {
    height:31px;
    padding-top: 3px;
    padding-left: 1em;
+   background: url('corner.png') no-repeat top left;
    background-color: <color1>;
    width: 100%;
    font-family:arial;
@@ -649,6 +642,7 @@ div.worksheet_title_under {
 }
 
 div.worksheet_cell_list {
+   padding-left:0.5ex;
 }
 
 a.delete_worksheet {
@@ -710,17 +704,30 @@ span.pane a.worksheet_other_computing {
    color:black;
 }
 
+/*********** DOC-BROWSER************************/
+
+
+.verbatim {
+    background-color: #fafad2;
+    border-style: solid;
+    border-width: 1px 1px;
+    border-color: black;
+}
+
+
 /************ OBJECTS **************************/
 
 span.pane div.objects_topbar {
    color:black;
    height: 2ex;
    top: 0ex;
+   background: url('corner.png') no-repeat top left;
    background-color: <color2>;
    text-decoration: none;
    font-size:13px;
    font-family:arial;
    padding-left: 10px;
+   padding-bottom:1px;
    width: 174px;
 }
 
@@ -781,11 +788,11 @@ div.worksheet {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid <color1>;
+  border-left: 2px solid <color1>;
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 205px;
+  left: 198px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
@@ -797,11 +804,11 @@ div.slideshow {
   z-index:1;
   background-color: white;
   border-top: 0px;
-  border-left: 10px solid <color1>;
+  border-left: 2px solid <color1>;
   top: 70px;
   bottom: 0ex;
   right: 0ex;
-  left: 0px;
+  left: 5px;
   padding-left: 0ex;
   float: right;
   padding-top: 0ex;
@@ -810,20 +817,21 @@ div.slideshow {
 
 span.banner{
   background-color:white;
-  font-family:arial;
+  /* font-family:arial;
   font-size:30px;
   text-decoration: none;
   font-weight: bold;
-  color: #387CAF;
-  margin: 0px;
+  color: #387CAF; */
 }
 
-span.banner a.banner {
+span.banner a.banner img{
     text-decoration:none;
+    border:none;
+    margin-top:2px;
 }
 
 span.banner a.banner:hover {
-   background-color:<color2>;
+   background-color:none;
 }
 
 input.btn {
@@ -853,19 +861,19 @@ div.cell_visible {
 }
 
 div.cell_evaluated {
-    border-left: 2px solid white;
+    border-left: 3px solid white;
     padding-left:3px;
 }
 
 div.cell_not_evaluated {
-    border-left: 2px dotted red;
+    border-left: 2px dotted #ff8888;
     padding-left:3px;
 }
 
 td.cell_number {
-   font-size:8pt;
+   font-size:12pt;
    font-family:arial, monospace;
-   color:#999999;
+   color:#bbbbbb;
    text-align:left;
 }
 
@@ -875,57 +883,65 @@ td.cell_number:hover {
 }
 
 td.cell_number_running {
-   font-size:10pt;
+   font-size:12pt;
    font-family:arial, monospace;
-   color:#006400;
+   color:#bbbbbb;
+   background-color: 99ff99;
    text-align:left;
-   cursor:pointer;
-   text-decoration:blink;
+}
+
+td.cell_number_running:hover {
+  cursor:wait;
 }
 
 td.output_cell {
    width:100%;
+   height:3px;
 }
 
 div.cellbox {
   z-index:2;
   background-color: white;
   padding-left: .5em;
-  padding-top: 1.5em;
+  padding-top: 4em;
 }
 
 pre.cell_input_pre {
   background-color: white;
-  border: 0px solid #ffffff;
+  border: 0px solid white;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:0px;
   padding-top:0px;
   padding-bottom:0px;
+  margin:0px;
+  display:inline;
   width: 100%;
 }
 
 textarea.cell_input {
-  background-color: white;
+  color:#000000;
+  background-color: #e8e8e8;
   border: 0px solid white;
-  border-left: 1px dotted black;
+  /* border-left: 2px solid green; */
   font-family: courier, monospace;
   font-size:12pt;
-  overflow:hidden;
-  padding-left:3px;
-  padding-top:0px;
+/*  overflow:hidden; */
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
   padding-bottom:0px;
-  /* width: 100%;  */
-  width:400%;
+/*  margin:0px; */
+  width: 100%;
+  margin-bottom:0px;
+  margin-top:0px;
 }
+
 
 textarea.cell_input_hide {
   background-color: white;
-  color:#cccccc;
   border: 0px solid white;
-  border-top: 1px solid #aaaaff;
-  border-bottom: 1px solid #aaaaff;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:hidden;
@@ -933,57 +949,67 @@ textarea.cell_input_hide {
   padding-top:0px;
   padding-bottom:0px;
   width: 100%;
-  height:1.2em;
+  height:0.5em;
+  margin:0px;
 }
+
 
 textarea.cell_input_active {
   background-color: white;
-  border: 1px solid #8888fe;
+  border: 2px solid  #8888fe;
   font-family: courier, monospace;
   font-size:12pt;
   overflow:auto;
-  padding-left:3px;
-  padding-top:0px;
+  padding-left:5px;
+  padding-top:3px;
   padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
   width: 100%;
 }
 
 
+span.cell_evaluate {
+  position: relative;
+  top: 2px;
+  cursor:pointer;
+}
 
 /************ CELL OUTPUT **************************/
-/* This is complicated and redundant but it makes
-   the other Python and Javascript code way simpler,
-   and you have a lot of options for customizability. */
 
 div.cell_output {
   font-family: courier, monospace;
   font-size:12pt;
   width: 95%;
-  margin: 0px;
-  padding: 0px;
+  margin-top:-5px;
+  margin-bottom:5px;
+  padding-bottom:5px;
+
  /* border-left: 1px solid #aaaaff;  */
 }
 
 table.cell_output_box {
   margin:0px;
   padding:0px;
-/*  border: 1px solid <color1>; */
-  border-top:1px solid <color1>;
-  border-bottom:2px solid <color2>;
 }
 
-table.cell_output_box:hover {
+/*table.cell_output_box:hover {
   background-color: #fafafa;
+}
+*/
+
+div.cell_output_wrap {
+  font-size:12pt;
+  margin:0px;
+  padding-left:0px;
+  color:#0000aa;
 }
 
 span.cell_output_wrap {
-/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000099;
-/*  padding-left:3px; */
-  /*  background-color: #fbeefb; */
+  color:#0000aa;
 }
 span.cell_output_nowrap {
   display:none;
@@ -994,16 +1020,13 @@ span.cell_output_hidden {
 
 
 span.cell_output_nowrap_wrap {
-  display:none;
+ display:none;
 }
 span.cell_output_nowrap_nowrap {
-/*  font-family: courier, monospace; */
   font-size:12pt;
   margin:0px;
   padding:0px;
-  color:#000099;
-/*  padding-left:3px;   */
-/*  background-color: #fbeefb;   */
+  color:#0000aa;
 }
 span.cell_output_nowrap_hidden {
   display:none;
@@ -1013,12 +1036,10 @@ span.cell_output_html_wrap {
   font-family: courier, monospace;
   font-size:12pt;
 }
-
 span.cell_output_html_nowrap {
   font-family: courier, monospace;
   font-size:12pt;
 }
-
 span.cell_output_html_hidden {
    display:none;
 }
@@ -1027,23 +1048,20 @@ div.cell_output_running {
   font-family: courier, monospace;
   font-size:12pt;
   width: 100%;
-  margin: 0px;
-  /* border-left: 2px solid #880000;  */
-  /* background-color: #eeeeee; */
-/*  padding-left:3px;*/
-  /* background-color:#98fb98; */
-  background-color:#d8fbe8;
+  margin:0px;
+  background-color:#ffffff;
+  padding:0px;
 }
 
 div.cell_output_running:hover {
-  /*  cursor:wait;*/
+  cursor:wait;
 }
 
 
 div.cell_output_hidden {
   width: 100%;
   height: 3px;
-  margin: 0px;
+  margin:0px;
   border-left: 4em solid #aaaaaa;
 /*   border-top: 1px solid <color1>;
   border-bottom: 1px solid <color1>;
@@ -1051,7 +1069,7 @@ div.cell_output_hidden {
 }
 
 pre.shrunk {
-   height:0px;
+/*   height:0px; */
    display:inline;
 }
 
@@ -1063,6 +1081,10 @@ pre.cell_output_hide {
   display:none;
 }
 
+a.file_link {
+  text_decoration:underline;
+}
+
 
 /************ INSERTING NEW CELLS **************************/
 
@@ -1071,11 +1093,13 @@ div.insert_new_cell {
   width:100%;
   /* border-top: 4px solid white; */
   display:block;
+  margin:3px;
 }
 
 div.insert_new_cell:hover {
   /* border-top: 4px solid #000000; */
-  background-color: #000000;
+  background-color: #8888fe;  /* #000000; */
+  margin:3px;
   /* background-color:#eeeeee; */
 }
 
@@ -1133,6 +1157,11 @@ span.red{
 }
 
 
+/***********************************************************/
+/*                     wiki css styling                    */
+/***********************************************************/
+
+
 
 """
     if color == 'gmail':
@@ -1142,9 +1171,11 @@ span.red{
         color1 = '#aaaaaa'
         color2 = '#888888'
     elif color == 'default' or color == None:
-        color1 = '#aaaaff'
+        color1 = '#dcdcdc'
+        color2 = '#cccccc'
+        #color1 = '#aaaaff'
         #color2 = '#b5edbc'
-        color2 = '#6cc755'
+        #color2 = '#6cc755'
     elif isinstance(color, (tuple,list)):
         color1, color2 = color
     else:

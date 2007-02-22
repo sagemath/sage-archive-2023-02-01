@@ -34,8 +34,6 @@ very readable.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import sage.rings.all as rings
-
 _pylab = None
 def pylab():
     global _pylab
@@ -48,6 +46,7 @@ def pylab():
     return _pylab
 
 def _adapt(args, kwds):
+    from sage.structure.element import RingElement
     args = list(args)
     for i in range(len(args)):
         if isinstance(args[i], rings.RingElement):

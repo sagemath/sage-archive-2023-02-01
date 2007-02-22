@@ -74,15 +74,15 @@ These satisfy the orthogonality relation
 Each {\it Legendre polynomial} $P_n(x)$ is an $n$-th degree polynomial.
 It may be expressed using Rodrigues' formula:
 \[
-P_n(x) = (2^n n!)^{-1} {d^n \over dx^n } \left[ (x^2 -1)^n \right].
+P_n(x) = (2^n n!)^{-1} {\frac{d^n}{dx^n} } \left[ (x^2 -1)^n \right].
 \]
 These are solutions to Legendre's differential equation:
 \[
-  {d \over dx} \left[ (1-x^2) {d \over dx} P(x) \right] + n(n+1)P(x) = 0.
+  {\frac{d}{dx}} \left[ (1-x^2) {\frac{d}{dx}} P(x) \right] + n(n+1)P(x) = 0.
 \]
 and satisfy the orthogonality relation
 \[
-  \int_{-1}^{1} P_m(x) P_n(x)\,dx = {2 \over {2n + 1}} \delta_{mn}
+  \int_{-1}^{1} P_m(x) P_n(x)\,dx = {\frac{2}{2n + 1}} \delta_{mn}
 \]
 
 The {\it Legendre function of the second kind} $Q_n(x)$ is another
@@ -136,7 +136,7 @@ Rodrigues formula:
 
 \[
   L_n^{(\alpha)}(x)
-  = {x^{-\alpha} e^x \over n!}{d^n \over dx^n} \left(e^{-x} x^{n+\alpha}\right) .
+  = {\frac{x^{-\alpha} e^x}{n!}}{\frac{d^n}{dx^n}} \left(e^{-x} x^{n+\alpha}\right) .
 \]
 (These are also sometimes called the {\it associated Laguerre polynomials}.)
 The simple Laguerre polynomials are recovered from the generalized
@@ -289,7 +289,7 @@ import sage.plot.plot
 import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
-from sage.rings.real_field import RealField
+from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, ZZ, CDF, RDF
 import sage.rings.commutative_ring as commutative_ring
@@ -415,7 +415,7 @@ def gen_legendre_Q(n,m,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
-        2.49185259170895401
+        2.49185259171
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -462,8 +462,8 @@ def jacobi_P(n,a,b,x):
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: jacobi_P(2,0,0,x)
         3/2*x^2 - 1/2
-        sage: jacobi_P(2,1,2,1.2)
-        5.01
+        sage: jacobi_P(2,1,2,1.2)        # random output of low order bits
+        5.009999999999998
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -524,7 +524,7 @@ def legendre_Q(n,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(3,0.5)
-        -0.198654771479482399
+        -0.198654771479
         sage: legendre_Q(4,2)
         0.00116107583163 + 86.9828491211*I
     """

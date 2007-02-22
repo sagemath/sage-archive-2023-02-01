@@ -115,6 +115,32 @@ class Factorization(SageObject, list):
         self.__cr = cr
         self.sort()
 
+    def _set_cr(self, cr):
+        self.__cr = cr
+
+    def sort(self):
+        if len(self) == 0:
+            return
+        try:
+            a = self[0][0].degree()
+            def _cmp(f,g):
+                try:
+                    return cmp(f[0].degree()*f[1], g[0].degree()*g[1])
+                except (AttributeError, NotImplementedError):
+                    return cmp(f[0], g[0])
+        except (AttributeError, NotImplementedError):
+            try:
+                a = self[0][0].dimension()
+                def _cmp(f,g):
+                    try:
+                        return cmp(f[0].dimension()*f[1], g[0].dimension()*g[1])
+                    except (AttributeError, NotImplementedError):
+                        return cmp(f[0], g[0])
+            except (AttributeError, NotImplementedError):
+                def _cmp(f,g):
+                    return cmp(f[0],g[0])
+        list.sort(self, _cmp)
+
     def __reduce__(self):
         x = list(self)
         return Factorization, (x,)
@@ -137,11 +163,14 @@ class Factorization(SageObject, list):
         """
         return self.__unit
 
-    def _repr_(self):
+    def _cr(self):
         try:
-            cr = self.__cr
+            return self.__cr
         except AttributeError:
-            cr = False
+            return False
+
+    def _repr_(self):
+        cr = self._cr()
         if len(self) == 0:
             return str(self.__unit)
         try:
@@ -155,9 +184,9 @@ class Factorization(SageObject, list):
             mul += '\n'
         for i in range(len(self)):
             t = str(self[i][0])
-            if not atomic  and ('+' in t or '-' in t or ' ' in t):
-                t = '(%s)'%t
             n = self[i][1]
+            if (n>1 or len(self) > 1 or self.__unit != 1) and not atomic  and ('+' in t or '-' in t or ' ' in t):
+                t = '(%s)'%t
             if n != 1:
                 t += '^%s'%n
             s += t
@@ -228,9 +257,9 @@ class Factorization(SageObject, list):
         Return the product of two factorizations.
 
         EXAMPLES:
-            sage: factor(-10) *factor(-16)
+            sage: factor(-10) * factor(-16)
             2^5 * 5
-            sage: factor(-10) *factor(16)
+            sage: factor(-10) * factor(16)
             -1 * 2^5 * 5
         """
         if not isinstance(other, Factorization):
@@ -245,6 +274,13 @@ class Factorization(SageObject, list):
             if d2.has_key(a):
                 s[a] += d2[a]
         return Factorization(list(s.iteritems()), unit=self.unit()*other.unit())
+
+    def __pow__(self, n):
+        from sage.rings.arith import generic_power
+        return generic_power(self, n, Factorization([]))
+
+    def __invert__(self):
+        return Factorization([(p,-e) for p,e in self], cr=self._cr())
 
     def value(self):
         """

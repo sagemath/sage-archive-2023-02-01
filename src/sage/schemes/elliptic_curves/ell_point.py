@@ -1,5 +1,26 @@
 """
 Points on elliptic curves
+
+EXAMPLES:
+    sage: K = pAdicField(5)
+    sage: E = EllipticCurve([K(1), K(1)])
+    sage: P = E([K(0), K(1), K(1)])
+    sage: P
+    (0 : 1 : 1)
+    sage: P + P
+    (4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
+
+Arithmetic with a point over an extension of a finite field:
+    sage: k.<a> = GF(5^2)
+    sage: E = EllipticCurve(k,[1,0]); E
+    Elliptic Curve defined by y^2  = x^3 + x over Finite Field in a of size 5^2
+    sage: P = E([a,2*a+4])
+    sage: 5*P
+    (2*a + 3 : 2*a : 1)
+    sage: P*5
+    (2*a + 3 : 2*a : 1)
+    sage: P + P + P + P + P
+    (2*a + 3 : 2*a : 1)
 """
 
 #*****************************************************************************
@@ -65,8 +86,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
         sage: E = EllipticCurve([0,0,1,-1,0])
         sage: S = E(QQ); S
-        Set of Rational Points of Elliptic Curve defined by y^2 + y = x^3 - x
-        over Rational Field
+        Abelian group of points on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
         sage: loads(S.dumps()) == S
         True
@@ -166,18 +186,20 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: h = P.height()
             sage: RR = h.parent()
             sage: RR.scientific_notation(True)
-            sage: h
-            -1.4246355279999999e-248          # 32-bit
+            sage: h  # output should be about 0; is somewhat random depending on arch
+            -1.43860254300000e-248            # 32-bit
             -3.0999021078264000e-691          # 64-bit
+            sage: h < 0.001
+            True
             sage: Q = 5*P
             sage: Q.height()
-            0.0000000000000000e-1
+            0.00000000000000e-1
 
             sage: E = EllipticCurve('37a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: P = E([0,0])
             sage: P.height()
-            5.1111408239968840e-2
+            5.11114082399688e-2
             sage: P.order()
             Infinity
             sage: E.regulator()      # slightly random output

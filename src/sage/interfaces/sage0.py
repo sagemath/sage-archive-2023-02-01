@@ -15,7 +15,7 @@ interpreter.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import cPickle, os
+import cPickle, os, time
 
 from expect import Expect, ExpectElement, FunctionElement, tmp
 import sage.misc.preparser
@@ -101,28 +101,72 @@ class Sage(Expect):
     \code{s('"x"')}, which is the string \code{"x"} in the s interpreter.
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
-                       logfile=None,  preparse=True, server=None):
+                       logfile=None,  preparse=True, server=None,
+                       do_cleaner=True, python=True, path=None):
+        if python:
+            command = "sage -python -u"
+            prompt = ">>>"
+            init_code = ['from sage.all import *', 'import cPickle']
+        else:
+            command = "sage"
+            prompt = "sage: "
+            init_code = ['import cPickle']
+
         Expect.__init__(self,
                         name = 'sage',
-                        prompt = '>>> ',
-                        command = "sage -python -u",
+                        prompt = prompt,
+                        command = command,
                         server = server,
                         maxread = maxread,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         logfile = logfile,
-                        init_code=['from sage.all import *', 'import cPickle']
+                        init_code = init_code,
+                        do_cleaner = do_cleaner,
+                        path = path
                         )
         self._preparse = preparse
+        self._is_local = (server is None)
+
+    def is_local(self):
+        return self._is_local
+
+    def trait_names(self):
+        return eval(self.eval('globals().keys()'))
 
     def quit(self, verbose=False):
+        import signal
         if not self._expect is None:
+            pid = self._expect.pid
             if verbose:
-                print "Exiting spawned %s process."%self
-            for i in range(20):   # multiple times, since clears out junk injected with ._get, etc.
-                self._eval_line('quit_sage(verbose=%s)'%verbose)
-            os.killpg(self._expect.pid, 9)
-            os.kill(self._expect.pid, 9)
+                print "Exiting spawned %s process (pid=%s)."%(self, pid)
+            try:
+                for i in range(10):   # multiple times, since clears out junk injected with ._get, etc.
+                    self._expect.sendline(chr(3))  # send ctrl-c
+                    self._expect.sendline('quit_sage(verbose=%s)'%verbose)
+                    self._so_far(wait=0.2)
+
+                os.killpg(pid, 9)
+                os.kill(pid, 9)
+
+            except (RuntimeError, OSError), msg:
+                pass
+
+            try:
+                os.killpg(pid, 9)
+                os.kill(pid, 9)
+            except OSError:
+                pass
+
+            try:
+                self._expect.close(signal.SIGQUIT)
+            except Exception:
+                pass
+            self._expect = None
+
+            F = '%s/tmp/%s'%(os.environ['SAGE_ROOT'], pid)
+            if os.path.exists(F):
+                O = open(F).read()
 
     def _remote_tmpfile(self):
         try:
@@ -187,7 +231,7 @@ class Sage(Expect):
         """
         cmd = '%s=%s'%(var,value)
         out = self.eval(cmd)
-        if out.find("Traceback") != -1:
+        if 'Traceback' in out:
             raise TypeError, "Error executing code in SAGE\nCODE:\n\t%s\nSAGE ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):

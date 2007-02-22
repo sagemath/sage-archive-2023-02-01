@@ -1,5 +1,6 @@
-###############################################################
-# Interactive debugger
+"""
+Interactively tracing execution of a command
+"""
 
 import pdb
 

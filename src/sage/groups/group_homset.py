@@ -11,7 +11,8 @@ Set of homomorphisms between two groups.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.categories.all import Homset, Groups, Morphism
+from sage.categories.all import HomsetWithBase, Groups, Morphism
+import sage.rings.integer_ring
 
 GROUPS = Groups()
 
@@ -23,13 +24,13 @@ def GroupHomset(G, H):
     return RingHomset_generic(G, H)
 
 
-class GroupHomset_generic(Homset):
+class GroupHomset_generic(HomsetWithBase):
     """
     This class will not work since morphism.GroupHomomorphism_coercion
     is undefined and morphism.GroupHomomorphism_im_gens is undefined.
     """
     def __init__(self, G, H):
-        Homset.__init__(self, G, H, GROUPS)
+        HomsetWithBase.__init__(self, G, H, GROUPS, sage.rings.integer_ringer.ZZ)
 
     def _repr_(self):
         return "Set of Homomorphisms from %s to %s"%(self.domain(), self.codomain())

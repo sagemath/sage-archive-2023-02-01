@@ -40,4 +40,4 @@ Do this to manually test the notebook on a browser.
 
 [] jscript:
    * try:
-      view(-19/37 + x^3)2
+      view(-19/37 + x^3)

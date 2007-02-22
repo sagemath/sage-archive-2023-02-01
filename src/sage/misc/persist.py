@@ -30,8 +30,6 @@ import copy_reg
 from sage.structure.sage_object import save, load, \
      loads, dumps, SageObject
 
-from sage.structure.element import Element
-
 from misc import SAGE_DB
 
 def load_sage_object(cls, dic):   # not used

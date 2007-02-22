@@ -26,11 +26,16 @@ The Rubik's cube group:
     4
 
 The interested user may wish to explore the following commands:
-move = cube.random() and time word_problem([F,B,L,R,U,D], move, False).
+move = cube.random_element() and time word_problem([F,B,L,R,U,D], move, False).
 This typically takes about 5 minutes (on a 2 Ghz machine) and outputs
 a word ('solving' the cube in the position move) with about 60 terms
 or so.
 
+OTHER EXAMPLES:
+We create element of a permutation group of large degree.
+    sage: G = SymmetricGroup(30)
+    sage: s = G(srange(30,0,-1)); s
+    (1,30)(2,29)(3,28)(4,27)(5,26)(6,25)(7,24)(8,23)(9,22)(10,21)(11,20)(12,19)(13,18)(14,17)(15,16)
 """
 
 ###########################################################################
@@ -47,7 +52,7 @@ import random
 import sage.structure.element as element
 import sage.groups.group as group
 
-from sage.rings.all      import RationalField, Integer, MPolynomial, MPolynomialRing, Polynomial
+from sage.rings.all      import ZZ, Integer, is_MPolynomial, MPolynomialRing, is_Polynomial
 from sage.matrix.all     import MatrixSpace
 from sage.interfaces.all import gap, is_GapElement, is_ExpectElement
 
@@ -57,7 +62,7 @@ import operator
 
 from sage.rings.integer import Integer
 from sage.structure.element import MonoidElement
-from sage.rings.arith import *
+from sage.rings.arith import *   # todo: get rid of this -- "from blah import *" is evil.
 
 import permgroup
 
@@ -69,11 +74,10 @@ def gap_format(x):
     """
     Put a permutation in Gap format, as a string.
     """
-    x = str(x).replace(' ','')
+    x = str(x).replace(' ','').replace('\n','')
     return x.replace('),(',')(').replace('[','').replace(']','')
 
-class PermutationGroupElement(element.Element_cmp_,
-                              element.MultiplicativeGroupElement):
+class PermutationGroupElement(element.MultiplicativeGroupElement):
     """
     An element of a permutation group.
 
@@ -81,7 +85,7 @@ class PermutationGroupElement(element.Element_cmp_,
         sage: G = PermutationGroup(['(1,2,3)(4,5)'])
         sage: G
         Permutation Group with generators [(1,2,3)(4,5)]
-        sage: g = G.random()
+        sage: g = G.random_element()
         sage: g in G
         True
         sage: g = G.gen(0); g
@@ -283,7 +287,7 @@ class PermutationGroupElement(element.Element_cmp_,
             raise IndexError, "i (=%s) must be between 0 and %s, inclusive"%(i, len(S)-1)
         return PermutationGroupElement(gap(T), check = False)
 
-    def _cmp_(self, right):
+    def __cmp__(self, right):
         """
         Compare group elements self and right.
 
@@ -342,9 +346,8 @@ class PermutationGroupElement(element.Element_cmp_,
 
         EXAMPLES:
             sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
-            sage: R = MPolynomialRing(RationalField(), 5, ["x","y","z","u","v"])
-            sage: x,y,z,u,v = R.gens()
-            sage: f = x**2 + y**2 - z**2 + 2*u**2
+            sage: R.<x,y,z,u,v> = MPolynomialRing(QQ,5)
+            sage: f = x^2 + y^2 - z^2 + 2*u^2
             sage: sigma, tau = G.gens()
             sage: f*sigma
             2*v^2 + z^2 + y^2 - x^2
@@ -355,14 +358,14 @@ class PermutationGroupElement(element.Element_cmp_,
             sage: (f*sigma)*tau
             u^2 + z^2 - y^2 + 2*x^2
         """
-        if isinstance(left, Polynomial):
-            if not (self == 1):
+        if is_Polynomial(left):
+            if self != 1:
                 raise ValueError, "%s does not act on %s"%(self, left.parent())
             return left
         elif isinstance(left, PermutationGroupElement):
             return PermutationGroupElement(self._gap_()*left._gap_(),
                                            parent = None, check = True)
-        elif isinstance(left, MPolynomial):
+        elif is_MPolynomial(left):
             F = left.base_ring()
             R = left.parent()
             x = R.gens()
@@ -408,6 +411,34 @@ class PermutationGroupElement(element.Element_cmp_,
         """
         return PermutationGroupElement(self._gap_().Inverse(),
                           self.parent(), check=False)
+
+    def list(self):
+        """
+        Returns list of the images of the integers from 1 to n under
+        this permutation as a list of Python ints.
+
+        EXAMPLES:
+            sage: G = SymmetricGroup(4)
+            sage: x = G([2,1,4,3]); x
+            (1,2)(3,4)
+            sage: v = x.list(); v
+            [2, 1, 4, 3]
+            sage: type(v[0])
+            <type 'int'>
+            sage: x = G([2,1]); x
+            (1,2)
+            sage: x.list()
+            [2, 1, 3, 4]
+        """
+        v = eval(gap.eval('ListPerm(%s)'%self.__gap))
+        # the following is necessary, since if the
+        # permutation doesn't move some elements at
+        # the end, it is consider by gap as being in
+        # a smaller group.
+        d = self.parent().degree()
+        if len(v) < d:
+            v += range(len(v)+1,d+1)
+        return v
 
     def order(self):
         """
@@ -473,7 +504,7 @@ class PermutationGroupElement(element.Element_cmp_,
             [0 0 0 1 0]
         """
         deg = self.parent().degree()
-        M = MatrixSpace(RationalField(),deg,deg)
+        M = MatrixSpace(ZZ,deg,deg)
         A = M(0)
         for i in range(deg):
             A[i, self(i+1) - 1] = 1

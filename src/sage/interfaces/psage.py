@@ -52,8 +52,8 @@ class PSage(Sage):
                  logfile=None,  preparse=True):
         Sage.__init__(self, maxread=maxread, script_subdirectory=script_subdirectory,
                       logfile=logfile,  preparse=preparse)
-        import sage.misc.all
-        T = sage.misc.all.tmp_dir('sage_smp')
+        import sage.misc.misc
+        T = sage.misc.misc.tmp_dir('sage_smp')
         self.__tmp_dir = T
         self.__tmp = '%s/lock'%T
         self._unlock()

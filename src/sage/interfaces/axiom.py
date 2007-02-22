@@ -102,25 +102,15 @@ control-C.
     ...
     <type 'exceptions.TypeError'>: Ctrl-c pressed while running Axiom
 
+    sage: axiom('1/100 + 1/101')                  # optional
+       201
+      -----
+      10100
 
-
+    sage: a = axiom('(1 + sqrt(2))^5'); a         # optional
+         +-+
+      29\|2  + 41
 """
-
-#\subsection{Tutorial}
-#We follow the tutorial at
-#\url{http://wiki.axiom-developer.org/AxiomTutorial}.
-#\subsection{Interactivity}
-#Axiom has a non-interactive mode that is initiated via the command
-#")read file.input".
-#\subsection{Long Input}
-#The Axiom interface reads in even very long input (using files) in a
-#robust manner, as long as you are creating a new object.
-#\note{Using \code{axiom.eval} for long input
-#is much less robust, and is not recommended.}
-#
-#    sage: t = '"%s"'%10^10000   # ten thousand character string.    (optional)
-#    sage: a = axiom(t)                                              # optional
-
 
 ###########################################################################
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
@@ -136,18 +126,14 @@ import os, re
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
-from sage.misc.misc import verbose
+from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
 cnt = 0
 seq = 0
 
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
-
 COMMANDS_CACHE = '%s/axiom_commandlist_cache.sobj'%DOT_SAGE
-
-import sage.server.support
 
 # The Axiom commands ")what thing det" ")show Matrix" and ")display
 # op det" commands, gives a list of all identifiers that begin in
@@ -188,7 +174,7 @@ class Axiom(Expect):
         out = self._eval_line(')set functions compile on', reformat=False)
         out = self._eval_line(')set output length 245', reformat=False)
         out = self._eval_line(')set message autoload off', reformat=False)
-        self._expect.expect(self._prompt)
+        #self._expect.expect(self._prompt)
 
     def _eval_line_using_file(self, line, tmp):
         F = open(tmp, 'w')
@@ -272,6 +258,7 @@ class Axiom(Expect):
     ###########################################
 
     def help(self, s):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             e = os.system('asq -op "%s"< /dev/null'%s)
         else:
@@ -280,6 +267,7 @@ class Axiom(Expect):
             print "Help system not available."
 
     def example(self, s):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             e = os.system('asq -doc "%s" < /dev/null'%s)
         else:
@@ -290,6 +278,7 @@ class Axiom(Expect):
     describe = help
 
     def demo(self):
+        import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
             os.system('axiom -ht < /dev/null')
         else:

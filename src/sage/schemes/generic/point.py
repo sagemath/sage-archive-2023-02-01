@@ -8,7 +8,7 @@ Points on schemes
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.structure.all import Element
+from sage.structure.element import Element
 
 ########################################################
 # Base class for points on a scheme, either topological

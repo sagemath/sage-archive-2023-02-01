@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest [[remove the nodoctest, so doctests will run]]
 Interface Template
 
 [[Describe the math software you are interfacing with here.]]
@@ -91,18 +91,18 @@ class MySystem(Expect):
         return MySystemFunction(self, attrname)
 
     def _quit_string(self):
-        return "\\q"
+        raise NotImplementedError
 
     def _read_in_file_command(self, filename):
-        return 'read("%s")'%filename
+        raise NotImplementedError
 
     def trait_names(self):
         ## [[implement giving a list of all functions and identifiers in the system]]
-        pass
+        raise NotImplementedError
 
     def read(self, filename):
         # [[implement loading of the contents of filename into the system]]
-        pass
+        raise NotImplementedError
 
 
     def kill(self, var):
@@ -136,7 +136,7 @@ class MySystem(Expect):
 
     def help(self, command):
         # return help on a given command.
-        pass
+        raise NotImplementedError
 
 class MySystemElement(ExpectElement):
     """
@@ -144,18 +144,18 @@ class MySystemElement(ExpectElement):
     """
     def trait_names(self):
         # This is if your system doesn't really have types.  If you have types
-        # this function should only return the relevant methods that thake self
-        # as their firce argument.
+        # this function should only return the relevant methods that take self
+        # as their first argument.
         return self.parent().trait_names()
 
 
-class GpFunctionElement(FunctionElement):
+class MySystemFunctionElement(FunctionElement):
     def _sage_doc_(self):
         M = self._obj.parent()
         return M.help(self._name)
 
 
-class GpFunction(ExpectFunction):
+class MySystemFunction(ExpectFunction):
     def _sage_doc_(self):
         M = self._parent
         return M.help(self._name)
@@ -182,3 +182,4 @@ def mysystem_version():
         sage: mysystem.version()
         ???
     """
+    raise NotImplementedError

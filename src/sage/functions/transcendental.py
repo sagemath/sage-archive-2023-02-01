@@ -20,7 +20,7 @@ Transcendental Functions
 import  sage.libs.pari.all
 pari = sage.libs.pari.all.pari
 import sage.rings.complex_field as complex_field
-import sage.rings.real_field as real_field
+import sage.rings.real_mpfr as real_field
 import sage.rings.complex_number
 
 from sage.rings.all import is_RealNumber, RealField, is_ComplexNumber, ComplexField
@@ -125,10 +125,10 @@ def zeta(s):
 
     EXAMPLES:
         sage: zeta(2)
-        1.6449340668482264
+        1.64493406684822
         sage: RR = RealField(200)
         sage: zeta(RR(2))
-        1.6449340668482264364724151666460251892189499012067984377355578
+        1.6449340668482264364724151666460251892189499012067984377355
     """
     try:
         return s.zeta()
@@ -161,19 +161,19 @@ def zeta_symmetric(s):
 
     EXAMPLES:
         sage: zeta_symmetric(0.7)
-        0.49758041465112701
+        0.497580414651127
         sage: zeta_symmetric(1-0.7)
-        0.49758041465112696
+        0.497580414651126
         sage: RR = RealField(200)
         sage: zeta_symmetric(RR('0.7'))
-        0.49758041465112690357779107525638385212657443284080589766061548
+        0.49758041465112690357779107525638385212657443284080589766061
         sage: I = CC.0
         sage: zeta_symmetric(RR('0.5') + I*RR('14.0'))
-        0.00020129444423525752 + 0.000000000000000000060986372202309624*I
+        0.000201294444235257 + 0.00000000000000000145689666927739*I
         sage: zeta_symmetric(RR('0.5') + I*RR('14.1'))
-        0.000048989348325568226 + 0.0000000000000000000084703294725430034*I
+        0.0000489893483255689 - 0.0000000000000000000423516473627150*I
         sage: zeta_symmetric(RR('0.5') + I*RR('14.2'))
-        -0.000086893128262009693 - 0.000000000000000000035575383784680614*I
+        -0.0000868931282618784 - 0.00000000000000000346267068837557*I
 
     REFERENCE:
       I copied the definition of xi from

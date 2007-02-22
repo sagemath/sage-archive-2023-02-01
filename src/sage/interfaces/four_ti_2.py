@@ -1,4 +1,4 @@
-"""
+"""nodoctest -- TODO -- not done yet!!!!
 Interface to 4ti2.
 
 4ti2 is a software package for algebraic, geometric and combinatorial
@@ -24,125 +24,124 @@ def tmp_dir():
 
 bin='%s/local/lib/4ti2/'%os.environ['SAGE_ROOT']
 
-class FourTi2:
-    r"""
-    A 4ti2 Interface Object.
+## class FourTi2:
+##     r"""
+##     A 4ti2 Interface Object.
 
-    4ti2 is a software package for algebraic, geometric and
-    combinatorial problems on linear spaces.
+##     4ti2 is a software package for algebraic, geometric and
+##     combinatorial problems on linear spaces.
 
-    If you use any of these function in your work, cite SAGE and the following
-    reference:
-    \begin{verbatim}
-        @Misc{4ti2,
-        author =   {4ti2 team},
-        title =    {4ti2 -- A software package for algebraic, geometric and
-                   combinatorial problems on linear spaces},
-        howpublished = {Available at www.4ti2.de}
-        }
-    \end{verbatim}
-    """
-    def __init__(self, mat='', lat=''):
-        global seq
-        self._seq = seq
-        seq = seq + 1
-        self._dir = tmp_dir()
-        self._mat = mat
-        self._lat = lat
-        self._dat = {}
-        open('%s/%s'%(self._dir, self._seq), 'w').write(self._mat)
+##     If you use any of these function in your work, cite SAGE and the following
+##     reference:
+##     \begin{verbatim}
+##         @Misc{4ti2,
+##         author =   {4ti2 team},
+##         title =    {4ti2 -- A software package for algebraic, geometric and
+##                    combinatorial problems on linear spaces},
+##         howpublished = {Available at www.4ti2.de}
+##         }
+##     \end{verbatim}
+##     """
+##     def __init__(self, mat='', lat=''):
+##         global seq
+##         self._seq = seq
+##         seq = seq + 1
+##         self._dir = tmp_dir()
+##         self._mat = mat
+##         self._lat = lat
+##         self._dat = {}
+##         open('%s/%s'%(self._dir, self._seq), 'w').write(self._mat)
 
-    def __repr__(self):
-        s = "4ti2 Linear Combinatorial Object Defined By matrix:\n%s"%self._mat
-        if self._lat:
-            s += '\nand lattice:\n%s'%self._lat
-        return s
+##     def __repr__(self):
+##         s = "4ti2 Linear Combinatorial Object Defined By matrix:\n%s"%self._mat
+##         if self._lat:
+##             s += '\nand lattice:\n%s'%self._lat
+##         return s
 
-    def __call__(self, command, extension, options='', verbose=False):
-        try:
-            return self._dat[command]
-        except KeyError:
-            pass
-        ans = call_4ti2(self._dir, self._seq, command, extension, options, verbose)
-        self._dat[command] = ans
-        return ans
+##     def __call__(self, command, extension, options='', verbose=False):
+##         try:
+##             return self._dat[command]
+##         except KeyError:
+##             pass
+##         ans = call_4ti2(self._dir, self._seq, command, extension, options, verbose)
+##         self._dat[command] = ans
+##         return ans
 
-    ########################################################################
-    # Commands:
-    ########################################################################
-    def circuits(self, options='', verbose=False):
-        """
-        """
-        return self('circuits', 'cir', options='', verbose=False)
+##     ########################################################################
+##     # Commands:
+##     ########################################################################
+##     def circuits(self, options='', verbose=False):
+##         """
+##         """
+##         return self('circuits', 'cir', options='', verbose=False)
 
-    def genmodel(self):
-        """
-        """
-        return self('genmodel', 'x', options='', verbose=False)
+##     def genmodel(self):
+##         """
+##         """
+##         return self('genmodel', 'x', options='', verbose=False)
 
-    def gensymm(self):
-        """
-        """
-        return self('gensymm', 'x', options='', verbose=False)
+##     def gensymm(self):
+##         """
+##         """
+##         return self('gensymm', 'x', options='', verbose=False)
 
-    def graver(self):
-        """
-        """
-        return self('graver', 'gra')
+##     def graver(self):
+##         """
+##         """
+##         return self('graver', 'gra')
 
-    def groebner(self):
-        """
-        """
-        return self('groebner', 'gro')
+##     def groebner(self):
+##         """
+##         """
+##         return self('groebner', 'gro')
 
-    def hilbert(self):
-        """
-        """
-        return self('hilbert', 'hil')
+##     def hilbert(self):
+##         """
+##         """
+##         return self('hilbert', 'hil')
 
-    def markov(self):
-        """
-        """
-        return self('markov', 'mar')
+##     def markov(self):
+##         """
+##         """
+##         return self('markov', 'mar')
 
-    def minimize(self):
-        """
-        """
-        return self('minimize', 'x')
+##     def minimize(self):
+##         """
+##         """
+##         return self('minimize', 'x')
 
-    def normalform(self):
-        """
-        """
-        self.groebner()  #??
-        return self('normalform', 'x')
+##     def normalform(self):
+##         """
+##         """
+##         self.groebner()  #??
+##         return self('normalform', 'x')
 
-    def output(self):
-        """
-        """
-        return self('output', 'x')
+##     def output(self):
+##         """
+##         """
+##         return self('output', 'x')
 
-    def qsolve(self):
-        """
-        """
-        return self('qsolve', 'qhom')
+##     def qsolve(self):
+##         """
+##         """
+##         return self('qsolve', 'qhom')
 
-    def rays(self):
-        """
-        """
-        return self('rays', 'ray')
+##     def rays(self):
+##         """
+##         """
+##         return self('rays', 'ray')
 
-    def walk(self):
-        """
-        """
-        return self('walk', 'x')
+##     def walk(self):
+##         """
+##         """
+##         return self('walk', 'x')
 
-    def zbasis(self):
-        """
-        """
-        return self('zbasis', 'lat')
+##     def zbasis(self):
+##         """
+##         """
+##         return self('zbasis', 'lat')
 
-
-four_ti_2 = FourTi2
+## four_ti_2 = FourTi2
 
 
 class Cone:
@@ -246,7 +245,7 @@ class ExtremalRays(list):
 class LinearSystem:
     r"""
     A linear system of relations $A x \eps b$, where $\eps$ is a list
-    of relations (<, =, >), $A$ is a matrix of integers, and $b$ is a
+    of relations (<=, =, >=), $A$ is a matrix of integers, and $b$ is a
     column vector.  Also the possible orthants of $x$ can be constrained.
 
     LinearSystem(matrix, rel, rhs, sign)
@@ -281,11 +280,11 @@ class LinearSystem:
                  position, and the output is the union of the
                  resuls.  E.g., if you specify exactly 3 '2's,
                  then you have a union of 8 cases.  (Internally
-                 the comptutation is not actually done by
+                 the computation is not actually done by
                  splitting up like this.)
 
     EXAMPLES:
-        sage: from sage.interfaces.fortytwo import LinearSystem
+        sage: from sage.interfaces.four_ti_2 import LinearSystem
         sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
         sage: rel = ['<=', '<=']
         sage: rhs = 0
@@ -408,7 +407,7 @@ class LinearSystem:
             -- generators (defined over ZZ) for the RR-vector space.
 
         EXAMPLES:
-            sage: from sage.interfaces.fortytwo import LinearSystem
+            sage: from sage.interfaces.four_ti_2 import LinearSystem
             sage: m = matrix(ZZ, 2, 4, [1,1,1,1, 1,2,3,4])
             sage: rel = ['<=', '<=']
             sage: rhs = 0
@@ -488,7 +487,11 @@ class LinearSystemOverQQ(LinearSystem):
     pass
 
 
-
 linear_system_over_ZZ = LinearSystemOverZZ
 
 linear_system_over_QQ = LinearSystemOverQQ
+
+
+class ToricIdeal:
+    pass
+

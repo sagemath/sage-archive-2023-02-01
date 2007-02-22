@@ -1,3 +1,24 @@
+r"""
+SAGE package management commands
+
+A SAGE package has the extension .spkg.  It is a tarball that is
+(usually) bzip2 compressed that contains arbitrary data and an
+spkg-install file.  An SAGE package typically has the following
+components:
+\begin{itemize}
+  \item spkg-install -- shell script that is run to install the package
+  \item SAGE.txt -- file that describes how the package was made, who maintains it, etc.
+  \item sage -- directory with extra patched version of files that needed during the install
+\end{itemize}
+
+Use the \code{install_package} command to install a new package, and use
+\code{optional_packages} to list all optional packages available on the
+central SAGE server.   The \code{upgrade} command upgrades all \emph{standard}
+packages -- there is no auto-upgrade command for optional packages.
+
+All package management can also be done via the SAGE command line.
+"""
+
 import os
 
 def install_package(package=None, force=False):
@@ -12,7 +33,7 @@ def install_package(package=None, force=False):
         package -- optional; if specified, install the
                    given package.  If not, list all
                    installed packages.
-ppp
+
     IMPLEMENTATION: calls 'sage -f'.
 
     RELATED COMMANDS:
@@ -52,9 +73,16 @@ def optional_packages():
         upgrade -- upgrade to latest version of core packages
                    (optional packages are not automatically upgraded).
     """
-    X = os.popen('sage -optional').read().split('\n')
-    i = X.index('INSTALLED:')
-    j = X.index('NOT INSTALLED:')
+    R = os.popen('sage -optional').read()
+    X = R.split('\n')
+    try:
+        i = X.index('INSTALLED:')
+        j = X.index('NOT INSTALLED:')
+    except ValueError, msg:
+        print R
+        print "Optional package list (shown above) appears to be currently not available or corrupted (network error?)."
+        return [], []
+
     installed = []
     for k in X[i+1:]:
         if k == '':

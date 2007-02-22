@@ -201,7 +201,7 @@ def bell_number(n):
     Returns the n-th Bell number (the number of ways to partition a
     set of n elements into pairwise disjoint nonempty subsets).
 
-    If $n\leq 1$, returns $1$.
+    If $n \leq 0$, returns $1$.
 
     Wraps GAP's Bell.
 
@@ -217,7 +217,7 @@ def bell_number(n):
         sage: bell_number(1/3)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/3) to an Integer.
+        TypeError: no coercion of this rational to integer
     """
     ans=gap.eval("Bell(%s)"%ZZ(n))
     return eval(ans)
@@ -337,7 +337,7 @@ def fibonacci(n, algorithm="pari"):
         sage: fibonacci(1/2)
         Traceback (most recent call last):
         ...
-        TypeError: Unable to coerce rational (=1/2) to an Integer.
+        TypeError: no coercion of this rational to integer
     """
     n = ZZ(n)
     if algorithm == 'pari':
@@ -380,7 +380,7 @@ def lucas_number1(n,P,Q):
         sage: lucas_number1(5,2,1.5)
         Traceback (most recent call last):
         ...
-        TypeError
+        TypeError: no implicit coercion of element to the rational numbers
 
     There was a conjecture that the sequence $L_n$ defined by
     $L_{n+2} = L_{n+1} + L_n$, $L_1=1$, $L_2=3$, has the property
@@ -434,11 +434,11 @@ def lucas_number2(n,P,Q):
         sage: n = lucas_number2(5,2,3); n
         2
         sage: type(n)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
         sage: n = lucas_number2(5,2,-3/9); n
         418/9
         sage: type(n)
-        <type 'rational.Rational'>
+        <type 'sage.rings.rational.Rational'>
 
     The case P=1, Q=-1 is the Lucas sequence in Brualdi's
     {\bf Introductory Combinatorics}, 4th ed., Prentice-Hall, 2004:
@@ -487,7 +487,7 @@ def stirling_number2(n,k):
         sage: n = stirling_number2(20,11); n
         1900842429486
         sage: type(n)
-        <type 'integer.Integer'>
+        <type 'sage.rings.integer.Integer'>
     """
     return ZZ(gap.eval("Stirling2(%s,%s)"%(ZZ(n),ZZ(k))))
 
@@ -706,17 +706,13 @@ def tuples(S,k):
 	 ['e', 't'], ['i', 't'], ['n', 't'], ['s', 'e'], ['t', 'e'], ['e', 'e'], ['i', 'e'],
          ['n', 'e'], ['s', 'i'], ['t', 'i'], ['e', 'i'], ['i', 'i'], ['n', 'i'], ['s', 'n'],
 	 ['t', 'n'], ['e', 'n'], ['i', 'n'], ['n', 'n']]
-	sage: mset = [x for x in GF(4) if x!=0]
+
+    The Set(...) comparisons are necessary because finite fields are not
+    enumerated in a standard order.
+	sage: K.<a> = GF(4, 'a')
+	sage: mset = [x for x in K if x!=0]
 	sage: tuples(mset,2)
-        [[1, 1],
-         [a, 1],
-         [a + 1, 1],
-         [1, a],
-         [a, a],
-         [a + 1, a],
-         [1, a + 1],
-         [a, a + 1],
-         [a + 1, a + 1]]
+        [[a, a], [a + 1, a], [1, a], [a, a + 1], [a + 1, a + 1], [1, a + 1], [a, 1], [a + 1, 1], [1, 1]]
 
     AUTHOR: Jon Hanke (2006-08?)
     """
@@ -996,11 +992,9 @@ def number_of_partitions_list(n,k=None):
     \]
     SAGE verifies that the first several coefficients do instead agree:
 
-        sage: q = PowerSeriesRing(QQ,'q').gen()
-        sage: prod((1-q^k)^(-1) for k in range(1,20))  ## partial product of
-        1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + 30*q^9 + 42*q^10
-        + 56*q^11 + 77*q^12 + 101*q^13 + 135*q^14 + 176*q^15 + 231*q^16 + 297*q^17 + 385*q^18
-        + 490*q^19 + O(q^20)
+        sage: q = PowerSeriesRing(QQ, 'q', default_prec=9).gen()
+        sage: prod([(1-q^k)^(-1) for k in range(1,9)])  ## partial product of
+        1 + q + 2*q^2 + 3*q^3 + 5*q^4 + 7*q^5 + 11*q^6 + 15*q^7 + 22*q^8 + O(q^9)
         sage: [number_of_partitions_list(k) for k in range(2,10)]
         [2, 3, 5, 7, 11, 15, 22, 30]
 

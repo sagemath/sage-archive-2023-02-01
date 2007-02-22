@@ -17,7 +17,7 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*******************************************************************************
 
-from sage.structure.sage_object import SageObject
+from sage.structure.parent_base import ParentWithBase
 from sage.categories.all import Schemes
 from sage.rings.all import (IntegerRing, is_CommutativeRing, is_Field,
                             ZZ, is_RingHomomorphism)
@@ -47,15 +47,17 @@ def is_Scheme(x):
 # or _base_morphism, it will determine the others.  If none are set,
 # the base defaults to Spec(Z) with the canonical morphism.
 
-class Scheme(SageObject):
+class Scheme(ParentWithBase):
     """
     A scheme.
     """
     def __init__(self,X):
         if spec.is_Spec(X):
             self._base_ring = X.coordinate_ring()
+            ParentWithBase.__init__(self, self._base_ring)
         else:
             self._base_scheme = X
+            ParentWithBase.__init__(self, self._base_scheme)
 
     def __cmp__(self, X):
         if not isinstance(X, self.__class__):
@@ -91,7 +93,7 @@ class Scheme(SageObject):
             Set of Rational Points over Real Field with 53 bits of precision of Affine
             Space of dimension 2 over Rational Field
             sage: R.<x> = PolynomialRing(QQ)
-            sage: A(NumberField(x^2+1))
+            sage: A(NumberField(x^2+1, 'a'))
             Set of Rational Points over Number Field in a with defining polynomial x^2 + 1
             of Affine Space of dimension 2 over Rational Field
             sage: A(GF(7))

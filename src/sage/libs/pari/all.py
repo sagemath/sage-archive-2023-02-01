@@ -1,7 +1,3 @@
-"""
-PYREX: sage.libs.pari.gen
-"""
-
 import gen as _gen
 
 pari = _gen.pari

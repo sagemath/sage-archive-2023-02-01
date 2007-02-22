@@ -1,5 +1,9 @@
 """
 Abstract base class for rings
+
+AUTHORS:
+    -- David Harvey (2006-10-16): changed CommutativeAlgebra to derive from
+    CommutativeRing instead of from Algebra
 """
 
 #*****************************************************************************
@@ -17,9 +21,13 @@ Abstract base class for rings
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import random
+include "../ext/stdsage.pxi"
+include "../ext/python_bool.pxi"
 
-cdef class Ring(sage.structure.gens.Generators):
+from sage.structure.parent_gens cimport ParentWithGens
+from random import randint, randrange
+
+cdef class Ring(ParentWithGens):
     """
     Generic ring class.
     """
@@ -42,7 +50,8 @@ cdef class Ring(sage.structure.gens.Generators):
 
     def __getitem__(self, x):
         """
-        Create a polynomial or power series ring over self.
+        Create a polynomial or power series ring over self and inject
+        the variables into the global module scope.
 
         EXAMPLES:
         We create several polynomial rings.
@@ -67,6 +76,17 @@ cdef class Ring(sage.structure.gens.Generators):
             Laurent Series Ring in t over Rational Field
 
         """
+
+        from sage.rings.polynomial_element import is_Polynomial
+        if is_Polynomial(x):
+            x = str(x)
+
+
+        if not isinstance(x, list):
+            from sage.rings.polynomial_ring import PolynomialRing
+            P = PolynomialRing(self, x)
+            return P
+
         P = None
         if isinstance(x, list):
             if len(x) != 1:
@@ -98,40 +118,29 @@ cdef class Ring(sage.structure.gens.Generators):
             v = x.split(',')
 
         if len(v) > 1:
-            return P(self, len(v), names=v)
+            R = P(self, len(v), names=v)
         else:
-            return P(self, x)
+            R = P(self, x)
 
-
+        return R
 
     def __xor__(self, n):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
-    def _coerce_(self, x):
-        # TODO: Should uncommment this line and *do the work* to implement _coerce_
-        # everywhere else.
-        # raise NotImplementedError
-        return self(x)
-
-    def has_natural_map_from(self, S):
+    def base_extend(self, R):
         """
-        Return True if there is a natural map from S to self.
-        Otherwise, return False.
+        EXAMPLES:
+            sage: QQ.base_extend(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no base extension defined
+            sage: ZZ.base_extend(GF(7))
+            Finite Field of size 7
         """
-        # TODO This generic behavior is stupid and slow -- but is
-        # doing exactly what we want.  Moreover, again, as in _coerce_
-        # above, this should be "raise NotImplementedError", and all
-        # rings must define this.
-        try:
-            self(S(0))
-        except TypeError:
-            return False
-        return True
-
-    def base_ring(self):
-        import sage.rings.integer_ring
-        return sage.rings.integer_ring.Z
+        if R.has_coerce_map_from(self):
+            return R
+        raise TypeError, 'no base extension defined'
 
     def category(self):
         """
@@ -198,6 +207,27 @@ cdef class Ring(sage.structure.gens.Generators):
         """
         raise NotImplementedError
 
+    def is_exact(self):
+        """
+        Return True if elements of this ring are represented exactly, i.e.,
+        there is no precision loss when doing arithmetic.
+
+        NOTE: This defaults to true, so even if it does return True you have
+        no guarantee (unless the ring has properly overloaded this).
+        """
+        return True
+
+    def is_subring(self, other):
+        """
+        Return True if the canonical map from self to other is injective.
+
+        Raises a NotImplementedError if not known.
+        """
+        try:
+            return self.Hom(other).natural_map().is_injective()
+        except TypeError:
+            return False
+
     def is_prime_field(self):
         r"""
         Return True if this ring is one of the prime fields $\Q$
@@ -244,29 +274,79 @@ cdef class Ring(sage.structure.gens.Generators):
     def __hash__(self):
         return hash(self.__repr__())
 
-    def zeta(self):
-        return self(-1)
+    def zeta(self, n=2, all=False):
+        """
+        Return an n-th root of unity in self if there is one,
+        or raise an ArithmeticError otherwise.
+
+        INPUT:
+            n -- positive integer
+            all -- bool, default: False.  If True, return a list
+                   of all n-th roots of 1)
+        """
+        if n == 2:
+            if all:
+                return [self(-1)]
+            else:
+                return self(-1)
+        elif n == 1:
+            if all:
+                return [self(1)]
+            else:
+                return self(1)
+        else:
+            f = self['x'].cyclotomic_polynomial(n)
+            if all:
+                return [-P[0] for P, e in f.factor() if P.degree() == 1]
+            for P, e in f.factor():
+                if P.degree() == 1:
+                    return -P[0]
+            raise ArithmeticError, "no %s-th root of unity in self"%n
 
     def zeta_order(self):
         return self.zeta().multiplicative_order()
 
-    def random_element(self, bound=None):
+    def random_element(self, bound=2):
         """
         Return a random integer coerced into this ring, where the
         integer is chosen uniformly from the interval [-bound,bound].
 
         INPUT:
-            bound -- int or None; (default: None, which defaults to 2.)
+            bound -- integer (default: 2)
+
+
+        ALGORITHM:
+             -- uses numpy's randint.
         """
-        if bound is None:
-            bound = 2
-        return self(random.randrange(-bound, bound+1))
+        return self(randint(-bound,bound))
 
 
 cdef class CommutativeRing(Ring):
     """
     Generic commutative ring.
     """
+    def fraction_field(self):
+        """
+        Return the fraction field of self.
+
+        EXAMPLES:
+            sage: R = Integers(389)['x,y']
+            sage: Frac(R)
+            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+            sage: R.fraction_field()
+            Fraction Field of Polynomial Ring in x, y over Ring of integers modulo 389
+        """
+        if not self.is_integral_domain():
+            raise TypeError, "self must be an integral domain."
+        if self.__fraction_field is not None:
+            return self.__fraction_field
+        else:
+            import sage.rings.fraction_field
+            K = sage.rings.fraction_field.FractionField_generic(self)
+            self.__fraction_field = K
+            K._assign_names(self.variable_names())
+        return self.__fraction_field
+
     def __pow__(self, n, _):
         """
         Return the free module of rank $n$ over this ring.
@@ -293,7 +373,7 @@ cdef class CommutativeRing(Ring):
         """
         Return the monoid of ideals of this ring.
         """
-        if self.__ideal_monoid != None:
+        if self.__ideal_monoid is not None:
             return self.__ideal_monoid
         else:
             from sage.rings.ideal_monoid import IdealMonoid
@@ -311,16 +391,19 @@ cdef class CommutativeRing(Ring):
         INPUT:
             R -- a commutative ring
             I -- an ideal of R
+            names -- (optional) names of the generators of the quotient (if there are multiple generators,
+                     you can specify a single character string and the generators are named
+                     in sequence starting with 0).
 
         EXAMPLES:
-            sage: R, x = (ZZ['x']).objgen()
+            sage: R.<x> = PolynomialRing(ZZ)
             sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
             sage: S = R.quotient(I, 'a')
             sage: S.gens()
             (a,)
 
-            sage: R, (x,y) = PolynomialRing(QQ, 2, 'xy').objgens()
-            sage: S, (a,b) = ( R/ (x^2, y) ).objgens('ab')
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quotient((x^2, y))
             sage: S
             Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
             sage: S.gens()
@@ -329,19 +412,40 @@ cdef class CommutativeRing(Ring):
             False
         """
         import sage.rings.quotient_ring
-        Q = sage.rings.quotient_ring.QuotientRing(self, I)
-        Q.assign_names(names)
-        return Q
+        return sage.rings.quotient_ring.QuotientRing(self, I, names=names)
+
+    def quo(self, I, names=None):
+        """
+        Create the quotient of R by the ideal I.
+
+        This is a synonym for self.quotient(...)
+
+        INPUT:
+            R -- a commutative ring
+            I -- an ideal of R
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ,2)
+            sage: S.<a,b> = R.quo((x^2, y))
+            sage: S
+            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
+            sage: S.gens()
+            (a, 0)
+            sage: a == b
+            False
+        """
+        return self.quotient(I, names=names)
 
     def __div__(self, I):
-        return self.quotient(I)
+        raise TypeError, "Use self.quo(I) or self.quotient(I) to construct the quotient ring."
+        #return self.quotient(I, names=None)
 
-    def quotient_ring(self, I):
+    def quotient_ring(self, I, names=None):
         """
         Return the quotient of self by the ideal I of self.
         (Synonym for self.quotient(I).)
         """
-        return self.quotient(I)
+        return self.quotient(I, names)
 
 
 cdef class IntegralDomain(CommutativeRing):
@@ -353,17 +457,6 @@ cdef class IntegralDomain(CommutativeRing):
         Return True, since this ring is an integral domain.
         """
         return True
-
-    def fraction_field(self):
-        """
-        Return the fraction field of self.
-        """
-        if self.__fraction_field != None:
-            return self.__fraction_field
-        else:
-            import sage.rings.fraction_field
-            self.__fraction_field = sage.rings.fraction_field.FractionField_generic(self)
-        return self.__fraction_field
 
     def is_field(self):
         """
@@ -464,18 +557,6 @@ cdef class Field(PrincipalIdealDomain):
     """
     Generic field
     """
-    def base_ring(self):
-        """
-        Return the base ring of this field.  This is the prime
-        subfield of this field.
-        """
-        p = self.characteristic()
-        if p == 0:
-            import sage.rings.rational_field
-            return sage.rings.rational_field.Q
-        import sage.rings.finite_field
-        return sage.rings.finite_field.GF(p)
-
     def category(self):
         from sage.categories.all import Fields
         return Fields()
@@ -547,7 +628,7 @@ cdef class Field(PrincipalIdealDomain):
         Return the prime subfield of self.
 
         EXAMPLES:
-            sage: k = GF(9)
+            sage: k = GF(9, 'a')
             sage: k.prime_subfield()
             Finite Field of size 3
         """
@@ -561,6 +642,7 @@ cdef class Field(PrincipalIdealDomain):
 cdef class FiniteFieldIterator:
     cdef object iter
     cdef FiniteField parent
+
     def __init__(self,FiniteField parent):
         self.parent = parent
         self.iter =iter(self.parent.vector_space())
@@ -579,7 +661,7 @@ cdef class FiniteField(Field):
             Finite Field of size 7
             sage: loads(K.dumps()) == K
             True
-            sage: GF(7^10)
+            sage: GF(7^10, 'a')
             Finite Field in a of size 7^10
             sage: K = GF(7^10, 'a'); K
             Finite Field in a of size 7^10
@@ -591,7 +673,7 @@ cdef class FiniteField(Field):
     def _latex_(self):
         r"""
         EXAMPLES:
-            sage: latex(GF(81))
+            sage: latex(GF(81, 'a'))
             \mathbf{F}_{3^{4}}
             sage: latex(GF(3))
             \mathbf{F}_{3}
@@ -610,35 +692,36 @@ cdef class FiniteField(Field):
 
     def __cmp__(self, other):
         """
-        Compares this finite field with other.  Two finite fields are
-        equal if and only if they have the same cardinality *and* the
-        defining polynomials are the same.
+        Compares this finite field with other.
+
+        WARNING: The notation of equality of finite fields in SAGE is
+        currently not stable, i.e., it may change in a future version.
 
         EXAMPLES:
-            sage: FiniteField(3**2) == FiniteField(3**3)
+            sage: FiniteField(3**2, 'c') == FiniteField(3**3, 'c')
             False
-            sage: FiniteField(3**2) == FiniteField(3**2)
+            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'c')
             True
-            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'alpha')
+
+        The variable name is (currently) relevant for comparison of finite fields:
+            sage: FiniteField(3**2, 'c') == FiniteField(3**2, 'd')
             False
-            sage: FiniteField(3**2,'beta') == FiniteField(3**2,'beta')
-            True
         """
         if self is other: return 0
         if not isinstance(other, FiniteField):
             return -1
-        if self.characteristic() < other.characteristic():
-            return -1
-        elif self.characteristic() > other.characteristic():
-            return 1
-        if self.variable_name() != other.variable_name():
-            return -1
-        if self.order() < other.order():
-            return -1
-        elif self.order()== other.order() and \
-                 (self.degree() == 1 or self.polynomial() == other.polynomial()):
+        c = cmp(self.characteristic(), other.characteristic())
+        if c:
+            return c
+        c = cmp(self.order(), other.order())
+        if c:
+            return c
+        c = cmp(self.order(), other.order())
+        if c:
+            return c
+        if self.degree() == 1:
             return 0
-        return 1
+        return cmp(self.polynomial('x'), other.polynomial('x'))
 
 ##     def __getstate__(self):
 ##         d = []
@@ -709,7 +792,7 @@ cdef class FiniteField(Field):
             2
             sage: k.zeta(3).multiplicative_order()
             3
-            sage: k = GF(49)
+            sage: k = GF(49, 'a')
             sage: k.zeta().multiplicative_order()
             48
             sage: k.zeta(6)
@@ -736,14 +819,13 @@ cdef class FiniteField(Field):
             sage: k = GF(997)
             sage: k.multiplicative_generator()
             7
-            sage: k = GF(11**3, name='a')
+            sage: k = GF(11^3, name='a')
             sage: k.multiplicative_generator()
             a
         """
-
         from sage.rings.arith import primitive_root
 
-        if self.__multiplicative_generator != None:
+        if self.__multiplicative_generator is not None:
             return self.__multiplicative_generator
         else:
             if self.degree() == 1:
@@ -766,7 +848,7 @@ cdef class FiniteField(Field):
         The number of generators of the finite field.  Always 1.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4)
+            sage: k = FiniteField(3^4, 'b')
             sage: k.ngens()
             1
         """
@@ -778,7 +860,7 @@ cdef class FiniteField(Field):
         always returns True.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4)
+            sage: k.<a> = FiniteField(3^4)
             sage: k.is_field()
             True
         """
@@ -802,7 +884,7 @@ cdef class FiniteField(Field):
         finite field, this is always the order minus 1.
 
         EXAMPLES:
-            sage: k = GF(2**10)
+            sage: k = GF(2^10, 'a')
             sage: k.order()
             1024
             sage: k.unit_group_exponent()
@@ -819,12 +901,12 @@ cdef class FiniteField(Field):
             bound -- ignored
 
         EXAMPLES:
-            sage.: k = GF(2**10, 'a')
+            sage.: k = GF(2^10, 'a')
             sage.: k.random_element()
             a^9 + a
         """
         if self.degree() == 1:
-            return self(random.randrange(self.order()))
+            return self(randrange(self.order()))
         v = self.vector_space().random_element()
         return self(v)
 
@@ -837,14 +919,14 @@ cdef class FiniteField(Field):
         same variable as this finite field.
 
         EXAMPLES:
-            sage: k = FiniteField(3**4, "alpha")
+            sage: k.<alpha> = FiniteField(3^4)
             sage: k.polynomial_ring()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
         from sage.rings.polynomial_ring import PolynomialRing
         from sage.rings.finite_field import GF
 
-        if self.__polynomial_ring != None:
+        if self.__polynomial_ring is not None:
             return self.__polynomial_ring
         else:
             self.__polynomial_ring = PolynomialRing(
@@ -852,7 +934,7 @@ cdef class FiniteField(Field):
             return self.__polynomial_ring
 
     def vector_space(self):
-        if self.__vector_space != None:
+        if self.__vector_space is not None:
             return self.__vector_space
         else:
             import sage.modules.all
@@ -860,19 +942,16 @@ cdef class FiniteField(Field):
             self.__vector_space = V
             return V
 
+def is_FiniteField(x):
+    return IS_INSTANCE(x, FiniteField)
+
+
 cdef class Algebra(Ring):
     """
     Generic algebra
     """
-    def __init__(self, base_ring):
-        self.__base_ring = base_ring
-
-    def base_ring(self):
-        """
-        Return the base ring of this algebra.  This is part of the
-        structure of being an algebra.
-        """
-        return self.__base_ring
+    def __init__(self, base_ring, names=None, normalize=True):
+        ParentWithGens.__init__(self, base_ring, names=names, normalize=normalize)
 
     def characteristic(self):
         """
@@ -882,18 +961,14 @@ cdef class Algebra(Ring):
         return self.base_ring().characteristic()
 
 
-cdef class CommutativeAlgebra(Algebra):
+cdef class CommutativeAlgebra(CommutativeRing):
     """
-    Generic algebra
+    Generic commutative algebra
     """
-    def __init__(self, base_ring):
-        Algebra.__init__(self, base_ring)
-
-    def base_ring(self):
-        """
-        Return the base ring of this commutative algebra.
-        """
-        return self.__base_ring
+    def __init__(self, base_ring, names=None, normalize=True):
+        if not isinstance(base_ring, CommutativeRing):
+            raise TypeError, "base ring must be a commutative ring"
+        ParentWithGens.__init__(self, base_ring, names=names, normalize=normalize)
 
     def is_commutative(self):
         """
@@ -904,3 +979,5 @@ cdef class CommutativeAlgebra(Algebra):
 
 def is_Ring(x):
     return isinstance(x, Ring)
+
+

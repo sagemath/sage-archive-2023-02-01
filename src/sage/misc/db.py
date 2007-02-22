@@ -1,6 +1,5 @@
 """
-Saving SAGE objects to a compressed database
-(deprecated !!  DO NOT USE)
+Saving SAGE objects to a file
 """
 
 #*****************************************************************************

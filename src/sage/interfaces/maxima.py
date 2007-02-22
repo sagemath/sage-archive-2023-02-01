@@ -130,7 +130,7 @@ Here is an example of solving an algebraic equation:
 
 You can even nicely typeset the solution in latex:
     sage: latex(s)
-    \left[ \left[ a=\frac{25 \sqrt{79} i+25}{6 \sqrt{79} i-34} , b=  \frac{5 \sqrt{79} i+5}{\sqrt{79} i+11} , c=\frac{\sqrt{79} i+1}{10}   \right]  , \left[ a=\frac{25 \sqrt{79} i-25}{6 \sqrt{79} i+34} , b=  \frac{5 \sqrt{79} i-5}{\sqrt{79} i-11} , c=-\frac{\sqrt{79} i-1}{10}   \right]  \right]
+    \left[ \left[ a={{25\,\sqrt{79}\,i+25}\over{6\,\sqrt{79}\,i-34}} ,   b={{5\,\sqrt{79}\,i+5}\over{\sqrt{79}\,i+11}} , c={{\sqrt{79}\,i+1  }\over{10}} \right]  , \left[ a={{25\,\sqrt{79}\,i-25}\over{6\,  \sqrt{79}\,i+34}} , b={{5\,\sqrt{79}\,i-5}\over{\sqrt{79}\,i-11}} ,   c=-{{\sqrt{79}\,i-1}\over{10}} \right]  \right]
 
 To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
 (TODO: For OS X should create pdf output and use preview instead?)
@@ -186,7 +186,7 @@ We can also compute the echelon form in \sage:
     [  0   0   0   0]
     [  0   0   0   0]
     [  0   0   0   0]
-    sage: B.charpoly().factor()
+    sage: B.charpoly('x').factor()
     (x - 4) * x^3
 
 \subsection{Laplace Transforms}
@@ -213,10 +213,10 @@ We illustrate Laplace transforms:
               (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
 
     sage: maxima("laplace(diff(x(t),t),t,s)")
-    s*laplace(x(t),t,s) - x(0)
+    s*?%laplace(x(t),t,s) - x(0)
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -at('diff(x(t),t,1),t = 0) + s^2*laplace(x(t),t,s) - x(0)*s
+    -?%at('diff(x(t),t,1),t = 0) + s^2*?%laplace(x(t),t,s) - x(0)*s
 
 It is difficult to read some of these without the 2d representation:
     sage.: maxima("laplace(diff(x(t),t,2),t,s)").display2d()
@@ -317,7 +317,7 @@ Here's another example:
 
     sage: g = maxima('exp(3*%i*x)/(6*%i) + exp(%i*x)/(2*%i) + c')
     sage: latex(g)
-     -\frac{i e^{3 i x}}{6}-\frac{i e^{i x}}{2}+c
+    -{{i\,e^{3\,i\,x}}\over{6}}-{{i\,e^{i\,x}}\over{2}}+c
 
 \subsection{Long Input}
 The MAXIMA interface reads in even very long input (using files) in a
@@ -345,10 +345,16 @@ is much less robust, and is not recommended.}
 #*****************************************************************************
 
 import os, re
+import pexpect
+cygwin = os.uname()[0][:6]=="CYGWIN"
 
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
+from pexpect import EOF
 
-from sage.misc.misc import verbose
+import sage.rings.all
+#import sage.rings.complex_number2 as complex_number
+
+from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
@@ -356,8 +362,6 @@ SAGE_START = '_s_start_'
 SAGE_END = '_s_stop_'
 cnt = 0
 seq = 0
-
-from sage.misc.all import pager, verbose, DOT_SAGE, SAGE_ROOT
 
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
@@ -396,7 +400,7 @@ class Maxima(Expect):
                         restart_on_ctrlc = False,
                         verbose_start = False,
                         init_code = ['display2d : false',  # no ascii art output
-                                     'load("mactex-utilities")'   # latex instead of plain tex from tex command
+                                     #'load("mactex-utilities")'   # latex instead of plain tex from tex command (broken in maxima-5.11.0!)
                                      ],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
@@ -461,21 +465,40 @@ class Maxima(Expect):
             #print "in = '%s'"%line
             E.sendline(line)
             self._expect.expect(end)
-            self._expect.expect(end)
-            out = self._expect.before
-            #print "out = '%s'"%out
-            self._expect.expect(self._prompt)
-            out += self._expect.before
+            # We have timeouts below, since getting the end above
+            # means the computation completed, but on some systems
+            # (Cygwin) the expect interface can sometimes hang getting
+            # the final prompts.
+            try:
+                self._expect.expect(end, timeout=1)
+                out = self._expect.before
+                self._expect.expect(self._prompt, timeout=1)
+                out += self._expect.before
+            except pexpect.TIMEOUT:
+                out = self._expect.before
+            if not '(%o' in out:
+                self._expect.expect(self._prompt)
 
+        except EOF:
+            if self._quit_string() in line:
+                return ''
         except KeyboardInterrupt:
             self._keyboard_interrupt()
+            return ''
 
         if 'Incorrect syntax:' in out:
             raise RuntimeError, out
 
-        i = out.rfind(start)
-        j = out.rfind(end)
-        out = out[i+len(start):j]
+        import os
+        if cygwin:
+            # for reasons I can't deduce yet, maxima behaves somewhat
+            # differently under cygwin...
+            out = out.lstrip(';')
+        else:
+	    i = out.rfind(start)
+	    j = out.rfind(end)
+            out = out[i+len(start):j]
+
         if not reformat:
             return out
         if 'error' in out:
@@ -604,10 +627,10 @@ class Maxima(Expect):
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
             sage: f(3.2)
-            -0.058374143427580086
+            -.05837414342758009
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
-            sin(2) - 0.9364566872907963
+            sin(2) - .9364566872907963
             sage: f
             sin(x)+cos(y)
 
@@ -641,8 +664,7 @@ class Maxima(Expect):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s : %s;'%(var, value)
-        #out = self._eval_line(cmd, reformat=False)
+        cmd = '%s : %s$"";'%(var, str(value).rstrip(';'))
         out = self._eval_line(cmd, reformat=False, allow_use_file=True)
 
         if out.find("error") != -1:
@@ -902,7 +924,7 @@ class Maxima(Expect):
         EXAMPLES:
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
-            sage: maxima.solve_linear(eqns, vars)
+            sage.: maxima.solve_linear(eqns, vars)
             [x = a + 1,y = 2*a,z = a - 1]
         """
         eqs = "["
@@ -1023,9 +1045,9 @@ class MaximaElement(ExpectElement):
     def __call__(self, x):
         self._check_valid()
         P = self.parent()
-        return P('%s[%s]'%(self.name(), x))
+        return P('%s(%s)'%(self.name(), x))
 
-    def _cmp_(self, other):
+    def __cmp__(self, other):
         """
         EXAMPLES:
             sage: a = maxima(1); b = maxima(2)
@@ -1066,6 +1088,18 @@ class MaximaElement(ExpectElement):
     def imag(self):
         return self.imagpart()
 
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: CC(maxima('1+%i'))
+             1.00000000000000 + 1.00000000000000*I
+            sage: CC(maxima('2342.23482943872+234*%i'))
+             2342.23482943872 + 234.000000000000*I
+            sage: ComplexField(10)(maxima('2342.23482943872+234*%i'))
+             2300 + 230*I
+        """
+        return sage.rings.all.ComplexNumber( CC, self.real(), self.imag() )
+
     def str(self):
         self._check_valid()
         P = self.parent()
@@ -1091,13 +1125,12 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
         P._eval_line('display2d : false', reformat=False)
+        if not cygwin:
+            i = s.find('true')
+            i += s[i:].find('\n')
+            s = s[i+1:]
         i = s.find('true')
         i += s[i:].find('\n')
-        s = s[i+1:]
-        i = s.find('true')
-        i += s[i:].find('\n')
-        #j = s.rfind('(%o')
-        #s = s[:j]
         j = s.rfind('(%o')
         s = s[i:j-2]
         i = s.find('(%o')
@@ -1172,7 +1205,7 @@ class MaximaElement(ExpectElement):
 
         EXAMPLES:
             sage: maxima('exp(-sqrt(x))').nintegral('x',0,1)
-            (0.5284822353142306, 4.1633141378838445E-11, 231, 0)
+            (.5284822353142306, 4.163314137883845E-11, 231, 0)
 
         Note that GP also does numerical integration, and can do
         so to very high precision very quickly:
@@ -1217,7 +1250,7 @@ class MaximaElement(ExpectElement):
             sage: f = maxima('exp(x^2)').integral('x',0,1); f
             -sqrt(%pi)*%i*erf(%i)/2
             sage: f.numer()         # I wonder how to get a real number (~1.463)??
-            -0.8862269254527579*%i*erf(%i)
+            -.8862269254527579*%i*erf(%i)
         """
         I = ExpectElement.__getattr__(self, 'integrate')
         if min is None:
@@ -1298,6 +1331,15 @@ class MaximaElement(ExpectElement):
                               '\\arcsin ':'\\sin^{-1} ',
                               '\\arccos ':'\\cos^{-1} ',
                               '\\arctan ':'\\tan^{-1} '}, s)
+
+        # Fix a maxima bug, which gives a latex representation of multiplying
+        # two numbers as a single space. This was really bad when 2*17^(1/3)
+        # gets TeXed as '2 17^{\frac{1}{3}}'
+        #
+        # This regex matches a string of spaces preceeded by either a '}', a
+        # decimal digit, or a ')', and followed by a decimal digit. The spaces
+        # get replaced by a '\cdot'.
+        s = re.sub(r'(?<=[})\d]) +(?=\d)', '\cdot', s)
         return s
 
     def trait_names(self):

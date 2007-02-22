@@ -92,10 +92,9 @@ AUTHORS:
   For algebraic schemes $X/S$ and $T/S$ over $S$, one can form
   the point set $X(T)$ of morphisms from $T\to X$ over $S$.
 
-        sage: PP = ProjectiveSpace(2, QQ)
+        sage: PP.<X,Y,Z> = ProjectiveSpace(2, QQ)
         sage: PP
         Projective Space of dimension 2 over Rational Field
-        sage: X,Y,Z = PP.gens()
 
   The last line is an abuse of language -- returning the generators
   of the coordinate ring by \code{gens()}.
@@ -113,9 +112,9 @@ AUTHORS:
   Over a ring, this is not true, e.g. even over an integral domain which is not
   a PID, there may be no \emph{single} affine patch which covers a point.
 
-        sage: R, x = objgen(ZZ['x'])
-        sage: S, t = objgen(R/(x^2+5), 't')
-        sage: P = ProjectiveSpace(2, S)
+        sage: R.<x> = ZZ[]
+        sage: S.<t> = R.quo(x^2+5)
+        sage: P.<X,Y,Z> = ProjectiveSpace(2, S)
         sage: P(S)
         Set of Rational Points of Projective Space of dimension 2 over
         Univariate Quotient Polynomial Ring in t over Integer Ring with

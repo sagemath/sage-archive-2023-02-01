@@ -89,6 +89,7 @@ cdef extern from "ntl_wrap.h":
     ZZ* ZZX_resultant(ZZX* x, ZZX* y, int proof)
     ZZ* ZZX_norm_mod(ZZX* x, ZZX* y, int proof)
     ZZ* ZZX_discriminant(ZZX* x, int proof)
+    ZZ* ZZX_polyeval(ZZX* x, ZZ* a)
     ZZX* ZZX_charpoly_mod(ZZX* x, ZZX* y, int proof)
     ZZX* ZZX_minpoly_mod(ZZX* x, ZZX* y)
     void ZZX_clear(ZZX* x)

@@ -11,15 +11,17 @@ from attach import attach
 
 from profiler import Profiler
 
-from mrange import xmrange, mrange
+from mrange import xmrange, mrange, xmrange_iter, mrange_iter
 
-from bug import bug
+# deprecated
+#from bug import bug
 
 from dist import install_scripts
 
-from darcs import darcs_src, darcs_doc, darcs_scripts
+# deprecated
+#from darcs import darcs_src, darcs_doc, darcs_scripts
 
-from hg import hg_sage, hg_doc, hg_scripts, hg_extcode
+from hg import hg_sage, hg_doc, hg_scripts, hg_extcode, hg_c_lib
 
 from package import install_package, optional_packages, upgrade
 
@@ -35,9 +37,11 @@ from defaults import set_default_variable_name
 
 from preparser import preparse
 
-from sage_eval import sage_eval
+from sage_eval import sage_eval, sageobj
 
-from pyrex import pyrex
+from sagex import sagex_lambda
+from sagex_c import sagex
+pyrex = sagex # synonym
 
 from persist import save, load, dumps, loads, db, db_save
 
@@ -45,11 +49,16 @@ from func_persist import func_persist
 
 from functional import *
 
-from latex import latex, view, lprint
+from latex import latex, view, lprint, jsmath
 
-from mathml import mathml
+# disabled -- nobody uses mathml
+#from mathml import mathml
 
-from trace import *
+from trace import trace
+
+from cachefunc import CachedFunction
+
+from sagex_ds import BinaryTree
 
 ##########################################################################
 def benchmark(n=-1):

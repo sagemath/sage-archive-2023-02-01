@@ -111,20 +111,17 @@ class LatexExpr(str):
         return str(self)
 
 def latex(x):
-    try:
-
+    if hasattr(x, '_latex_'):
         return LatexExpr(x._latex_())
 
-    except (AttributeError, TypeError):
+    for k, f in latex_table.iteritems():
+        if isinstance(x, k):
+            return LatexExpr(f(x))
 
-        for k, f in latex_table.iteritems():
-            if isinstance(x, k):
-                return LatexExpr(f(x))
+    if x is None:
+        return LatexExpr("\\mbox{\\rm None}")
 
-        if x is None:
-            return LatexExpr("\\mbox{\\rm None}")
-
-        return LatexExpr(str_function(str(x)))
+    return LatexExpr(str_function(str(x)))
 
 
 ##############################################################
@@ -329,6 +326,81 @@ def _latex_file_(objects, title='SAGE', expert=True, debug=False, \
 def typeset(x):
     return LatexExpr('<html><span class="math">%s</span></html>'%latex(x))
 
+class JSMathExpr:
+    '''
+    An arbitrary JSMath expression that can be nicely concatenated.
+    '''
+    def __init__(self, y):
+        self.__y = y
+
+    def __repr__(self):
+        return str(self.__y)
+
+    def __add__(self, y):
+        return JSMathExpr(self.__y + y)
+
+    def __radd__(self, y):
+        return JSMathExpr(y + self.__y)
+
+class JSMath:
+    '''
+    A simple object for rendering LaTeX input using JSMath.
+
+    '''
+
+    def __call__(self, x):
+        return self.eval(x)
+
+    def eval(self, x, mode='display'):
+        try:
+            # try to get a latex representation of the object
+            x = x._latex_()
+        except AttributeError:
+            # otherwise just get the string representation
+            x = str(x)
+
+
+        # in JSMath:
+        # inline math: <span class="math">...</span>
+        # displaymath: <div class="math">...</div>
+        if 'display' == mode:
+            return JSMathExpr('<html><div class="math">%s</div></html>'%x)
+        elif 'inline' == mode:
+            return JSMathExpr('<html><span class="math">%s</span></html>'%x)
+        else:
+            # what happened here?
+            raise ValueError, "mode must be either 'display' or 'inline'"
+
+def jsmath(x, mode='display'):
+    r'''
+    Attempt to nicely render an arbitrary SAGE object wih jsmath typesetting.
+    Tries to call ._latex_() on x. If that fails, it will render a string
+    representation of x.
+
+    INPUT:
+        x -- the object to render
+        mode -- 'display' for displaymath or 'inline' for inline math
+
+    OUTPUT:
+        A string of html that contains the LaTeX represntation of x. In the
+        notebook this gets embedded into the cell.
+
+    EXAMPLES:
+        sage: f = maxima('1/(x^2+1)')
+        sage: g = f.integrate()
+        sage: jsmath(f)
+         <html><div class="math">\frac{1}{x^2+1}</div></html>
+        sage: jsmath(g, 'inline')
+         <html><span class="math">\tan^{-1} x</span></html>
+        sage: jsmath('\int' + latex(f) + '\ dx=' + latex(g))
+         <html><div class="math">\int\frac{1}{x^2+1}\ dx=\tan^{-1} x</div></html>
+
+    AUTHOR:
+        -- William Stein -- general layout (2006-10)
+        -- Bobby Moretti -- improvements, comments, documentation (2006-10)
+    '''
+    return jsmath.eval(x, mode)
+
 def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
          sep='$$ $$', tiny=False,  center=False, **kwds):
     """
@@ -352,15 +424,8 @@ def view(objects, title='SAGE', zoom=4, expert=True, debug=False, \
         Pops up xdvi with the objects displayed.
     """
     if EMBEDDED_MODE:
-        return typeset(objects)
-        #if sage.plot.all.is_Graphics(objects):
-        #    objects.show(**kwds)
-        #    return
-        #i = 0
-        #while os.path.exists('sage%s.png'%i):
-        #    i += 1
-        #png(objects, 'sage%s.png'%i, do_in_background=False, debug=debug, density=150, tiny=tiny)
-        #return
+        print typeset(objects)
+        return
 
     if isinstance(objects, LatexExpr):
         s = str(objects)
@@ -509,3 +574,19 @@ def lprint():
 
 
 
+def latex_variable_name(x):
+    """
+    Return latex version of a variable name.
+
+    The rule is this:
+        x393 --> x_{393}
+    I.e., always replace the last numeric part by _{number}.
+    """
+    import re
+    # * The "\d" means "decimal digit"
+    # * The "+" means "1 or more"
+    # * The "$" means "at the end of the line"
+    m = re.search('\d+$',x)
+    if m is None:
+        return x
+    return '%s_{%s}'%(x[:m.start()], x[m.start():])

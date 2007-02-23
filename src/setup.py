@@ -256,10 +256,10 @@ complex_double = Extension('sage.rings.complex_double',
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'])
 
 real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
-                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')])
+                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
-                           libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                           libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],

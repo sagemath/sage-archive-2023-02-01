@@ -27,7 +27,7 @@ cdef arith_llong ai
 ai = arith_llong()
 
 # We use both integer and double operations, hence the min.
-MAX_MODULUS = min(int(sqrt(MOD_INT_OVERFLOW)-1), int(2**20))
+MAX_MODULUS = min(int(sqrt(int(MOD_INT_OVERFLOW))-1), int(2)**int(20))
 
 
 # TODO: have one global instance for sharing, copy for MutableMultiModularBasis

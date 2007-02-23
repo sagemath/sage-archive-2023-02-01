@@ -704,6 +704,14 @@ def next_prime(n, proof=True):
     EXAMPLES:
         sage: next_prime(-100)
         2
+        sage: next_prime(1)
+        2
+        sage: next_prime(2)
+        3
+        sage: next_prime(3)
+        5
+        sage: next_prime(4)
+        5
 
     Notice that the next_prime(5) is not 5 but 7.
         sage: next_prime(5)

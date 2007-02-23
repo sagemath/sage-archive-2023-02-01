@@ -20,8 +20,6 @@ This file gathers together all the tables in SAGE.
 
     * Linear codes -- linear_code_bound
 
-    * Symbolic Data -- benchmark and test ideals
-
 EXAMPLES:
     sage: ConwayPolynomials()
     Frank Luebeck's database of Conway polynomials
@@ -93,5 +91,3 @@ from db_modular_polynomials import \
 
 from db_class_polynomials import \
      HilbertClassPolynomialDatabase
-
-from symbolic_data import SymbolicData

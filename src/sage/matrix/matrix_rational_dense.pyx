@@ -385,7 +385,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 mpq_mul(y, w._entries[j], self._matrix[j][i])
                 mpq_add(x, x, y)
             mpq_set(ans._entries[i], x)
-        mpz_clear(x)
+        mpq_clear(x)
+        mpq_clear(y)
         return ans
 
 
@@ -513,7 +514,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef int mpz_denom(self, mpz_t d) except -1:
         mpz_set_si(d,1)
-        cdef int i, j
+        cdef Py_ssize_t i, j
         cdef mpq_t *self_row
         _sig_on
         for i from 0 <= i < self._nrows:

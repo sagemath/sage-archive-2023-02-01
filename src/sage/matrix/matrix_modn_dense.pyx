@@ -1,6 +1,10 @@
 r"""
 Dense matrices over $\Z/n\Z$ for $n$ small.
 
+AUTHORS:
+    -- William Stein
+    -- Robert Bradshaw
+
 This is a compiled implementation of dense matrices over $\Z/n\Z$
 for $n$ small.
 
@@ -66,33 +70,37 @@ We create a matrix group and coerce it to GAP:
           [ 0*Z(3), 0*Z(3), Z(3)^0 ] ] ])
 """
 
+
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
+include '../ext/random.pxi'
+
+import sage.ext.multi_modular
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
 import matrix_window_modn_dense
+
+from sage.rings.arith import is_prime
+from sage.structure.element cimport ModuleElement
 
 cimport matrix_dense
 cimport matrix
 cimport matrix0
+cimport sage.structure.element
+
+
+from sage.libs.linbox.linbox cimport Linbox_modn_dense
+cdef Linbox_modn_dense linbox
+linbox = Linbox_modn_dense()
+
+from sage.structure.element cimport Matrix
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
-from sage.rings.arith import is_prime
+from sage.misc.misc import verbose, get_verbose, cputime
 
-cdef extern from "stdint.h":
-    ctypedef int int_fast32_t
-
-cdef extern from "matrix_modn_dense_linbox.h":
-    int linbox_modp_dense_rank(int p, int nrows, int ncols, mod_int **matrix)
-    mod_int linbox_modp_dense_det(int p, int nrows, mod_int **matrix)
-    void linbox_modp_dense_poly(int p, mod_int **mp, size_t* degree, size_t n, mod_int **matrix, int flag)
-    void linbox_delete_array (void *f)
-    void linbox_modp_dense_echelonize(int p, int nrows, int ncols, mod_int **matrix)
-
-from sage.structure.element import ModuleElement
-
-from sage.misc.misc import verbose, get_verbose
+from sage.rings.integer import Integer
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -119,21 +127,24 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # x * __richcmp__    -- always the same
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
+
         matrix_dense.Matrix_dense.__init__(self, parent)
 
         cdef mod_int p
         p = self._base_ring.characteristic()
         self.p = p
-        if p >= MOD_INT_MAX:
-            raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
-        self.gather = MOD_INT_MAX/(p*p)
+        if p >= MAX_MODULUS:
+            raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
+        self.gather = MOD_INT_OVERFLOW/(p*p)
 
+        _sig_on
         self._entries = <mod_int *> sage_malloc(sizeof(mod_int)*self._nrows*self._ncols)
+        _sig_off
         if self._entries == NULL:
            raise MemoryError, "Error allocating matrix"
 
-        self.matrix = <mod_int **> sage_malloc(sizeof(mod_int*)*self._nrows)
-        if self.matrix == NULL:
+        self._matrix = <mod_int **> sage_malloc(sizeof(mod_int*)*self._nrows)
+        if self._matrix == NULL:
             sage_free(self._entries)
             raise MemoryError, "Error allocating memory"
 
@@ -141,14 +152,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         k = 0
         for i from 0 <= i < self._nrows:
-            self.matrix[i] = self._entries + k
+            self._matrix[i] = self._entries + k
             k = k + self._ncols
 
     def __dealloc__(self):
-        if self.matrix == NULL: # TODO: should never happen now, right
+        if self._matrix == NULL: # TODO: should never happen now, right
             return
         sage_free(self._entries)
-        sage_free(self.matrix)
+        sage_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
 
@@ -164,7 +175,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             e = entries   # coerce to an unsigned int
             if e != 0:
                 for i from 0 <= i < self._nrows:
-                    self.matrix[i][i] = e
+                    self._matrix[i][i] = e
             _sig_off
             return
 
@@ -181,14 +192,14 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         if coerce:
             for i from 0 <= i < self._nrows:
                 if PyErr_CheckSignals(): raise KeyboardInterrupt
-                v = self.matrix[i]
+                v = self._matrix[i]
                 for j from 0 <= j < self._ncols:
                     v[j] = R( <object> w[k])
                     k = k + 1
         else:
             for i from 0 <= i < self._nrows:
                 if PyErr_CheckSignals(): raise KeyboardInterrupt
-                v = self.matrix[i]
+                v = self._matrix[i]
                 for j from 0 <= j < self._ncols:
                     v[j] = int( <object> w[k])
                     k = k + 1
@@ -200,13 +211,13 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return self._hash()
 
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
-        self.matrix[i][j] = (<IntegerMod_int> value).ivalue
+        self._matrix[i][j] = (<IntegerMod_int> value).ivalue
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef IntegerMod_int n
         n =  IntegerMod_int.__new__(IntegerMod_int)
         IntegerMod_abstract.__init__(n, self._base_ring)
-        n.ivalue = self.matrix[i][j]
+        n.ivalue = self._matrix[i][j]
         return n
 
     ########################################################################
@@ -215,6 +226,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #   * cdef _unpickle
     #   * cdef _add_c_impl
     #   * cdef _mul_c_impl
+    #   * cdef _matrix_times_matrix_c_impl
     #   * cdef _cmp_c_impl
     #   * __neg__
     #   * __invert__
@@ -244,6 +256,99 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return A
 
 
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        """
+        Add two dense matrices over Z/nZ
+
+        EXAMPLES:
+            sage: a = MatrixSpace(GF(19),3)(range(9))
+            sage: a+a
+            [ 0  2  4]
+            [ 6  8 10]
+            [12 14 16]
+            sage: b = MatrixSpace(GF(19),3)(range(9))
+            sage: b.swap_rows(1,2)
+            sage: a+b
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+            sage: b+a
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+        """
+
+        cdef Py_ssize_t i,j
+        cdef long k
+        cdef Matrix_modn_dense M
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        Matrix.__init__(M, self._parent)
+
+        _sig_on
+        cdef mod_int *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_modn_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                k = (row_self[j]+row_right[j])
+                # division is really slow, so we normalize only when it is necessary
+                if k>=self.p:
+                    row_ans[j]=k-self.p
+                else:
+                    row_ans[j]=k
+
+        _sig_off
+        return M;
+
+
+    cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if get_verbose() >= 2:
+            verbose('mod-p multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
+        if self._will_use_strassen(right):
+            return self._multiply_strassen(right)
+        else:
+            return self._multiply_classical(right)
+
+##         if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
+##             return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
+##         else:
+##             if self._will_use_strassen(right):
+##                 return self._multiply_strassen(right)
+##             else:
+##                 return self._multiply_classical(right)
+
+    def _multiply_linbox(Matrix_modn_dense self, Matrix_modn_dense right):
+        """
+        Multiply matrices using LinBox.
+
+        INPUT:
+            right -- Matrix
+
+        """
+        if get_verbose() >= 2:
+            verbose('linbox multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
+        cdef int e
+        cdef Matrix_modn_dense ans, B
+
+        if not self.base_ring().is_field():
+            raise ArithmeticError, "LinBox only supports fields"
+
+        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+
+        B = right
+        self._init_linbox()
+        _sig_on
+        linbox.matrix_matrix_multiply(ans._matrix, B._matrix, B._nrows, B._ncols)
+        _sig_off
+        return ans
+
+    def _multiply_classical(left, right):
+        return left._multiply_strassen(right, left._ncols + left._nrows)
+
 
     ########################################################################
     # LEVEL 3 functionality (Optional)
@@ -257,13 +362,193 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     #        - Hessenberg forms of matrices
     ########################################################################
 
-    # TODO TODO: fix all type conversion and Py_ssize_t's below
 
-    def _echelon_in_place_classical(self):
+    def charpoly(self, var='x', algorithm='linbox'):
+        """
+        Returns the characteristic polynomial of self.
+
+       INPUT:
+            var -- a variable name
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
+                         'generic'
+
+        EXAMPLES:
+            sage: A = Mat(GF(7),3,3)(range(3)*3)
+            sage: A.charpoly()
+            x^3 + 4*x^2
+
+            sage: A = Mat(Integers(6),3,3)(range(9))
+            sage: A.charpoly()
+            x^3
+
+        ALGORITHM: Uses LinBox if self.base_ring() is a field,
+        otherwise use Hessenberg form algorithm.
+        """
+        if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
+            algorithm = 'generic' # LinBox only supports Z/pZ (p prime)
+
+        if algorithm == 'linbox':
+            g = self._charpoly_linbox(var)
+        elif algorithm == 'generic':
+            g = matrix_dense.Matrix_dense.charpoly(self, var)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('charpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    def minpoly(self, var='x', algorithm='linbox'):
+        """
+        Returns the minimal polynomial of self.
+
+        INPUT:
+            var -- a variable name
+            algorithm -- 'linbox' (default if self.base_ring() is a field)
+                         'generic'
+        """
+        if algorithm == 'linbox' and (self.p == 2 or not self.base_ring().is_field()):
+            algorithm='generic' #LinBox only supports fields
+
+        if algorithm == 'linbox':
+            g = self._minpoly_linbox(var)
+        elif algorithm == 'generic':
+            #g = self._minpoly_generic(var)
+            raise NotImplementedError, "minimal polynomials are not implemented for Z/nZ"
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('minpoly_%s_%s'%(algorithm, var), g)
+        return g
+
+    def _minpoly_linbox(self, var='x'):
+        """
+        Computes the minimal polynomial using LinBox. No checks are
+        performed.
+        """
+        verbose('_minpoly_linbox...')
+        return self._poly_linbox(var=var, typ='minpoly')
+
+    def _charpoly_linbox(self, var='x'):
+        """
+        Computes the characteristic polynomial using LinBox. No checks
+        are performed.
+        """
+        verbose('_charpoly_linbox...')
+        return self._poly_linbox(var=var, typ='charpoly')
+
+    def _poly_linbox(self, var='x', typ='minpoly'):
+        """
+        Computes either the minimal or the characteristic polynomial
+        using LinBox. No checks are performed.
+
+        INPUT:
+            var -- 'x'
+            typ -- 'minpoly' or 'charpoly'
+        """
+        if self._nrows != self._ncols:
+            raise ValueError, "matrix must be square"
+        if self._nrows <= 1:
+            return matrix_dense.Matrix_dense.charpoly(self, var)
+
+        self._init_linbox()
+        _sig_on
+        if typ == 'minpoly':
+            v = linbox.minpoly()
+        else:
+            v = linbox.charpoly()
+        _sig_off
+        R = self._base_ring[var]
+        return R(v)
+
+    def echelonize(self, algorithm="linbox", **kwds):
+        """
+        Puts self in row echelon form.
+
+        INPUT:
+            self -- a mutable matrix
+            algorithm -- 'linbox' -- uses the C++ linbox library
+                         'gauss'  -- uses a custom slower O(n^3) Gauss
+                                     elimination implemented in SAGE.
+            **kwds -- these are all ignored
+
+        OUTPUT:
+            -- self is put in reduced row echelon form.
+            -- the rank of self is computed and cached
+            -- the pivot columns of self are computed and cached.
+            -- the fact that self is now in echelon form is recorded
+               and cached so future calls to echelonize return
+               immediately.
+
+        EXAMPLES:
+            sage: a = matrix(GF(97),3,4,range(12))
+            sage: a.echelonize(); a
+            [ 1  0 96 95]
+            [ 0  1  2  3]
+            [ 0  0  0  0]
+            sage: a.pivots()
+            [0, 1]
+        """
+        if self.p == 2 and algorithm=='linbox':
+            # TODO: LinBox crashes if working over GF(2)
+            algorithm ='gauss'
+
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
+        if not self.base_ring().is_field():
+            raise NotImplementedError, "Echelon form not implemented over '%s'."%self.base_ring()
 
         self.check_mutability()
+        self.clear_cache()
+
+        if algorithm == 'linbox':
+            self._echelonize_linbox()
+        elif algorithm == 'gauss':
+            self._echelon_in_place_classical()
+        else:
+            raise ValueError, "algorithm '%s' not known"%algorithm
+
+    cdef _init_linbox(self):
+        _sig_on
+        linbox.set(self.p, self._matrix, self._nrows, self._ncols)
+        _sig_off
+
+    def _echelonize_linbox(self):
+        """
+        Puts self in row echelon form using LinBox.
+        """
+        self.check_mutability()
+        self.clear_cache()
+
+        t = verbose('calling linbox echelonize mod %s'%self.p)
+        self._init_linbox()
+        _sig_on
+        r = linbox.echelonize()
+        _sig_off
+        verbose('done with linbox echelonize',t)
+        self.cache('in_echelon_form',True)
+        self.cache('rank', r)
+        self.cache('pivots', self._pivots())
+
+    def _pivots(self):
+        if not self.fetch('in_echelon_form'):
+            raise RuntimeError, "self must be in reduced row echelon form first."
+        pivots = []
+        cdef Py_ssize_t i, j, nc
+        nc = self._ncols
+        cdef mod_int* row
+        i = 0
+        while i < self._nrows:
+            row = self._matrix[i]
+            for j from i <= j < nc:
+                if row[j] != 0:
+                    pivots.append(j)
+                    i += 1
+                    break
+            if j == nc:
+                break
+        return pivots
+
+    def _echelon_in_place_classical(self):
+        self.check_mutability()
+        self.clear_cache()
 
         cdef Py_ssize_t start_row, c, r, nr, nc, i
         cdef mod_int p, a, a_inverse, b
@@ -271,7 +556,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         start_row = 0
         p = self.p
-        m = self.matrix
+        m = self._matrix
         nr = self._nrows
         nc = self._ncols
         pivots = []
@@ -309,7 +594,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int* v
         cdef Py_ssize_t i
         p = self.p
-        v = self.matrix[row]
+        v = self._matrix[row]
         for i from start_col <= i < self._ncols:
             v[i] = (v[i]*multiple) % p
 
@@ -353,7 +638,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef Py_ssize_t i
         p = self.p
         for i from start_row <= i < self._nrows:
-            self.matrix[i][col] = (self.matrix[i][col]*multiple) % p
+            self._matrix[i][col] = (self._matrix[i][col]*multiple) % p
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple,
                                Py_ssize_t start_col):
@@ -365,8 +650,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int *v_from, *v_to
 
         p = self.p
-        v_from = self.matrix[row_from]
-        v_to = self.matrix[row_to]
+        v_from = self._matrix[row_from]
+        v_to = self._matrix[row_to]
 
         cdef Py_ssize_t i, nc
         nc = self._ncols
@@ -382,7 +667,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int  p
         cdef mod_int **m
 
-        m = self.matrix
+        m = self._matrix
         p = self.p
 
         cdef Py_ssize_t i, nr
@@ -392,15 +677,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     cdef swap_rows_c(self, Py_ssize_t row1, Py_ssize_t row2):
         cdef mod_int* temp
-        temp = self.matrix[row1]
-        self.matrix[row1] = self.matrix[row2]
-        self.matrix[row2] = temp
+        temp = self._matrix[row1]
+        self._matrix[row1] = self._matrix[row2]
+        self._matrix[row2] = temp
 
     cdef swap_columns_c(self, Py_ssize_t col1, Py_ssize_t col2):
         cdef Py_ssize_t i, nr
         cdef mod_int t
         cdef mod_int **m
-        m = self.matrix
+        m = self._matrix
         nr = self._nrows
         for i from 0 <= i < self._nrows:
             t = m[i][col1]
@@ -422,7 +707,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         n = self._nrows
 
         cdef mod_int **h
-        h = self.matrix
+        h = self._matrix
 
         cdef mod_int p, r, t, t_inv, u
         cdef Py_ssize_t i, j, m
@@ -508,28 +793,70 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
         cdef Matrix_modn_dense c
         c = self.new_matrix(nrows=n+1,ncols=n+1)    # the 0 matrix
-        c.matrix[0][0] = 1
+        c._matrix[0][0] = 1
         for m from 1 <= m <= n:
             # Set the m-th row of c to (x - H[m-1,m-1])*c[m-1] = x*c[m-1] - H[m-1,m-1]*c[m-1]
             # We do this by hand by setting the m-th row to c[m-1]
             # shifted to the right by one.  We then add
             # -H[m-1,m-1]*c[m-1] to the resulting m-th row.
             for i from 1 <= i <= n:
-                c.matrix[m][i] = c.matrix[m-1][i-1]
+                c._matrix[m][i] = c._matrix[m-1][i-1]
             # the p-.. below is to keep scalar normalized between 0 and p.
-            c._add_multiple_of_row_c(m, m-1, p - H.matrix[m-1][m-1], 0)
+            c._add_multiple_of_row_c(m, m-1, p - H._matrix[m-1][m-1], 0)
             t = 1
             for i from 1 <= i < m:
-                t = (t*H.matrix[m-i][m-i-1]) % p
+                t = (t*H._matrix[m-i][m-i-1]) % p
                 # Set the m-th row of c to c[m] - t*H[m-i-1,m-1]*c[m-i-1]
-                c._add_multiple_of_row_c(m, m-i-1, p - (t*H.matrix[m-i-1][m-1])%p, 0)
+                c._add_multiple_of_row_c(m, m-i-1, p - (t*H._matrix[m-i-1][m-1])%p, 0)
 
         # The answer is now the n-th row of c.
         v = []
         for i from 0 <= i <= n:
-            v.append(int(c.matrix[n][i]))
+            v.append(int(c._matrix[n][i]))
         R = self._base_ring[var]    # polynomial ring over the base ring
         return R(v)
+
+    def rank(self):
+        if self.p > 2:
+            x = self.fetch('rank')
+            if not x is None:
+                return x
+            self._init_linbox()
+            _sig_on
+            r = Integer(linbox.rank())
+            _sig_off
+            self.cache('rank', r)
+            return r
+        else:
+            # linbox is very buggy for p=2
+            return matrix_dense.Matrix_dense.rank(self)
+
+    def randomize(self, density=1):
+        """
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
+        """
+        density = float(density)
+        if density == 0:
+            return
+
+        self.check_mutability()
+        self.clear_cache()
+
+        cdef int nc
+        if density == 1:
+            for i from 0 <= i < self._nrows*self._ncols:
+                self._entries[i] = random() % self.p
+        else:
+            density = float(density)
+            nc = self._ncols
+            num_per_row = int(density * nc)
+            _sig_on
+            for i from 0 <= i < self._nrows:
+                for j from 0 <= j < num_per_row:
+                    k = random()%nc
+                    self._matrix[i][k] = random() % self.p
+            _sig_off
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:
         # TODO: lots of testing
@@ -538,8 +865,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     # TODO: TEMPORARILY DISABLED due to bug on 64-bit sage.math:
     #  A = matrix(Integers(389),4,range(16)); A._echelon_strassen(4)
     # *** glibc detected *** free(): invalid next size (fast): 0x0000000000fb15e0 ***
-    def xxx_matrix_window(self, Py_ssize_t row=0, Py_ssize_t col=0,
-                      Py_ssize_t nrows=-1, Py_ssize_t ncols=-1):
+    # due to error in set_to memcpy on 64-bit
+    cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
+                        Py_ssize_t nrows, Py_ssize_t ncols):
         """
         Return the requested matrix window.
 
@@ -564,187 +892,5 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
-    def rank(self, algorithm="linbox"):
-        """
-
-        INPUT:
-            algorithm -- 'linbox' (default if base ring is prime field)
-                         'generic' use pivots
-
-        Computes the rank of self. If the base ring of self is a prime
-        field this done using the LinBox library.
-
-        ALGORITHM: Uses LinBox or generic algorithm of superclass.
-
-        """
-        x = self.fetch('rank')
-        if not x is None: return x
-        if is_prime(self.p) and algorithm=="linbox":
-            r = self._rank_linbox()
-        else:
-            r =  len(self.pivots())
-        self.cache('rank', r)
-        return r
-
-    def _rank_linbox(self):
-        """
-        Calculates the rank by calling LinBox. No checks are performed
-        whether the base ring is a prime field.
-        """
-        cdef int r
-        r = 0
-        _sig_on
-        r = linbox_modp_dense_rank(self.p, self._nrows, self._ncols, self.matrix);
-        _sig_off
-        return r
 
 
-    def minpoly(self, var='x'):
-        """
-
-        Computes and returns the minimal polynomial fo self in the variable var.
-
-        INPUT:
-            var -- variable of minimial polynomial (default: 'x')
-
-        ALGORITHM: Uses LinBox
-
-        """
-        if self._nrows != self._ncols:
-            raise ValueError, "matrix must be square"
-        if self._nrows == 0:
-            return self.characteristic_polynomial(var)
-        if is_prime(self.p):
-            return self._minpoly_linbox(var)
-        else:
-            raise NotImplemented
-
-    def _minpoly_linbox(self, var='x'):
-        """
-        """
-        cdef mod_int* minpoly
-        cdef size_t n
-        cdef size_t degree
-        _sig_on
-        linbox_modp_dense_poly(self.p, &minpoly, &degree, self._nrows, self.matrix, 0)
-        _sig_off
-        v = []
-
-        for n from 0 <= n <= degree:
-            v.append(minpoly[n])
-        linbox_delete_array(minpoly)
-        R = self._base_ring[var]
-
-        return R(v)
-
-
-#### GET LINK ERROR WITH THIS
-##     def charpoly(self, var='x', algorithm="linbox"):
-##         """
-##         """
-##         D = self.fetch('charpoly')
-##         if not D is None:
-##             if D.has_key(var):
-##                 return D[var]
-##         else:
-##             D = {}
-##             self.cache('charpoly',D)
-
-##         if is_prime(self.p) and algorithm=="linbox":
-##             f = self._charpoly_linbox(var)
-##         else:
-##             f = self._charpoly_hessenberg(var)
-##         D[var] = f   # this caches it.
-##         return f
-
-##     def _charpoly_linbox(self, var='x'):
-##         """
-##         """
-##         cdef mod_int* charpoly
-##         cdef size_t n
-##         cdef size_t degree
-
-##         raise NotImplementedError
-
-##         _sig_on
-##         linbox_modp_dense_poly(self.p, &charpoly, &degree, self._nrows, self.matrix, 1)
-##         _sig_off
-##         v = []
-
-##         for n from 0 <= n <= degree:
-##             v.append(charpoly[n])
-##         linbox_delete_array(charpoly)
-##         R = self._base_ring[var]
-
-##         return R(v)
-
-
-    def determinant(self, algorithm="linbox"):
-        """
-        See self.det
-        """
-        return self.det(algorithm)
-
-    def det(self, algorithm="linbox"):
-        """
-
-        Computes the determinant of self.
-
-        INPUT:
-            algorithm -- 'linbox' (default if base ring is prime field)
-                         'generic' use pivots
-
-        EXAMPLE:
-            sage: A = Matrix(GF(127),2,2,[1,2,3,4])
-            sage: A.det()
-            125
-            sage: A = Mat(GF(127),1000,1000).random_element() # long time, random
-            sage: A.det() # long time, random
-            106
-
-        ALGORITHM: Uses LinBox or generic algorithm of superclass.
-
-        """
-        if self._nrows != self._ncols:
-            raise ValueError, "self must be square"
-
-        d = self.fetch('det')
-        if not d is None: return d
-
-        # if charpoly known, then det is easy.
-        D = self.fetch('charpoly')
-        if not D is None:
-            c = D[D.keys()[0]][0]
-            if self._nrows % 2 != 0:
-                c = -c
-            d = self._coerce_element(c)
-            self.cache('det', d)
-            return d
-
-        #now try something else
-
-        if is_prime(self.p) and algorithm=="linbox":
-            d = linbox_modp_dense_det(self.p, self._nrows, self.matrix)
-        else:
-            d = matrix_dense.Matrix_dense.determinant(self)
-
-        d = self._coerce_element(d)
-        self.cache('det', d)
-        return d
-
-    def _det_linbox(self):
-        """
-        Computes the determinant using LinBox. No checks are performed
-        if the characteristic of the base ring is prime.
-
-        """
-        cdef mod_int d
-        d = 0
-        _sig_on
-        d = linbox_modp_dense_det(self.p, self._nrows, self.matrix)
-        _sig_off
-        return d
-
-
-## def linbox_echelonize(Matrix_modn_dense self):
-##     linbox_modp_dense_echelonize(self.p, self._nrows, self._ncols, self.matrix)

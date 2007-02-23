@@ -132,10 +132,6 @@ class QuotientRingElement(ring_element.RingElement):
     def __rdiv__(self, left):
         return self.parent()(left)/self
 
-    def __pow__(self, right):
-        right = int(right)
-        return QuotientRingElement(self.parent(), self.__rep**right)
-
     def __neg__(self):
         return QuotientRingElement(self.parent(), -self.__rep)
 

@@ -91,6 +91,9 @@ cdef arith_int ai
 ai = arith_int()
 ################
 
+import sage.ext.multi_modular
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
 cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
 
     ########################################################################
@@ -111,7 +114,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         nc = parent.ncols()
         p = parent.base_ring().order()
 
+        _sig_on
         self.rows = <c_vector_modint*> sage_malloc(nr*sizeof(c_vector_modint))
+        _sig_off
         if not self.rows:
             raise MemoryError, "error allocating memory for sparse matrix"
 
@@ -139,10 +144,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             copy -- ignored
             coerce -- ignored
         """
-        cdef int s, y, z, p
+        cdef int s, z, p
         cdef Py_ssize_t i, j, k
 
-        cdef object seq
         cdef void** X
 
         matrix.Matrix.__init__(self, parent)
@@ -154,8 +158,7 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # Sparse input format.
             R = self._base_ring
             for ij, x in entries.iteritems():
-                y = x
-                z = R(y)
+                z = R(x)
                 if z != 0:
                     i, j = ij  # nothing better to do since this is user input, which may be bogus.
                     if i < 0 or j < 0 or i >= self._nrows or j >= self._ncols:
@@ -172,7 +175,9 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
             # Get fast access to the entries list.
             for i from 0 <= i < self._nrows:
                 for  j from 0 <= j < self._ncols:
-                    set_entry(&self.rows[i], j, R(<object>X[k]))
+                    z = R(<object>X[k])
+                    if z != 0:
+                        set_entry(&self.rows[i], j, z)
                     k = k + 1
         else:
             # scalar?

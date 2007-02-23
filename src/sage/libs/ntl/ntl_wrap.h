@@ -2,12 +2,14 @@
 #include <NTL/ZZ.h>
 #include <NTL/ZZX.h>
 #include <NTL/ZZ_pXFactoring.h>
+/* #include <NTL/ZZXFactoring.h> */
 #include <NTL/mat_ZZ.h>
 #include <NTL/GF2E.h>
 #include <NTL/GF2X.h>
 #include <NTL/GF2EX.h>
 #include <NTL/mat_GF2E.h>
 #include <NTL/HNF.h>
+#include <gmp.h>
 using namespace NTL;
 #endif
 
@@ -85,6 +87,7 @@ EXTERN void ZZX_setitem(struct ZZX* x, long i, const char* a);
 EXTERN void ZZX_setitem_from_int(struct ZZX* x, long i, int value);
 EXTERN char* ZZX_getitem(struct ZZX* x, long i);
 EXTERN int ZZX_getitem_as_int(struct ZZX* x, long i);
+EXTERN void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i);
 EXTERN struct ZZX* ZZX_add(struct ZZX* x, struct ZZX* y);
 EXTERN struct ZZX* ZZX_sub(struct ZZX* x, struct ZZX* y);
 EXTERN struct ZZX* ZZX_mul(struct ZZX* x, struct ZZX* y);
@@ -118,6 +121,7 @@ EXTERN struct ZZX* ZZX_square_and_truncate(struct ZZX* x, long m);
 EXTERN struct ZZX* ZZX_invert_and_truncate(struct ZZX* x, long m);
 EXTERN struct ZZX* ZZX_multiply_mod(struct ZZX* x, struct ZZX* y,  struct ZZX* modulus);
 EXTERN struct ZZ* ZZX_trace_mod(struct ZZX* x, struct ZZX* y);
+/* EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a); */
 EXTERN char* ZZX_trace_list(struct ZZX* x);
 EXTERN struct ZZ* ZZX_resultant(struct ZZX* x, struct ZZX* y, int proof);
 EXTERN struct ZZ* ZZX_norm_mod(struct ZZX* x, struct ZZX* y, int proof);

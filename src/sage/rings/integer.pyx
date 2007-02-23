@@ -588,7 +588,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef RingElement _div_c_impl(self, RingElement right):
         r"""
-        Computes a \over{b}
+        Computes \frac{a}{b}
 
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)
@@ -615,7 +615,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of self \over{other}
+        Computes the whole part of \frac{self}{other}
 
         EXAMPLES:
             sage: a = Integer(321) ; b = Integer(10)
@@ -645,11 +645,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             TypeError: exponent (=1/3) must be an integer.
             Coerce your numbers to real or complex numbers first.
+
+        The base need not be an integer (it can be a builtin
+        Python type).
+            sage: int(2)^10
+            1024
+            sage: float(2.5)^10
+            9536.7431640625
+            sage: 'sage'^3
+            'sagesagesage'
         """
         cdef Integer _self, _n
         cdef unsigned int _nval
         if not PY_TYPE_CHECK(self, Integer):
-            return self.__pow__(int(n))
+            if isinstance(self, str):
+                return self * n
+            else:
+                return self.__pow__(int(n))
         try:
             _n = Integer(n)
         except TypeError:
@@ -777,7 +789,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
            100000
            sage: (x-1).exact_log(3)
            99999
+
+           sage: x.exact_log(2.5)
+           Traceback (most recent call last):
+           ...
+           ValueError: base of log must be an integer
         """
+        _m = int(m)
+        if _m != m:
+            raise ValueError, "base of log must be an integer"
+        m = _m
         if self <= 0:
             raise ValueError, "self must be positive"
         if m < 2:
@@ -1128,6 +1149,16 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             k = k + 1
             self = self.__floordiv__(_p)
         return Integer(k)
+
+    def ord(self, p=None):
+        """Synonym for valuation
+
+        EXAMPLES:
+        sage: n=12
+        sage: n.ord(3)
+        1
+        """
+        return self.valuation(p)
 
     def _lcm(self, Integer n):
         """

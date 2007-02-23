@@ -274,8 +274,34 @@ cdef class Ring(ParentWithGens):
     def __hash__(self):
         return hash(self.__repr__())
 
-    def zeta(self):
-        return self(-1)
+    def zeta(self, n=2, all=False):
+        """
+        Return an n-th root of unity in self if there is one,
+        or raise an ArithmeticError otherwise.
+
+        INPUT:
+            n -- positive integer
+            all -- bool, default: False.  If True, return a list
+                   of all n-th roots of 1)
+        """
+        if n == 2:
+            if all:
+                return [self(-1)]
+            else:
+                return self(-1)
+        elif n == 1:
+            if all:
+                return [self(1)]
+            else:
+                return self(1)
+        else:
+            f = self['x'].cyclotomic_polynomial(n)
+            if all:
+                return [-P[0] for P, e in f.factor() if P.degree() == 1]
+            for P, e in f.factor():
+                if P.degree() == 1:
+                    return -P[0]
+            raise ArithmeticError, "no %s-th root of unity in self"%n
 
     def zeta_order(self):
         return self.zeta().multiplicative_order()

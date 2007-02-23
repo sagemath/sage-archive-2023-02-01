@@ -88,7 +88,9 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
 
-# late (i.e. circular) imports.
+
+
+
 
 cdef object is_IntegerMod
 cdef object IntegerModRing_generic
@@ -289,8 +291,11 @@ cdef class FiniteField_givaro(FiniteField):
 
     cdef gen_array(FiniteField_givaro self):
         """
+        Generates an array/list/tuple containing all elements of self indexed by their
+        power with respect to the internal generator.
         """
         cdef int i
+
         array = list()
         for i from 0 <= i < self.order_c():
             array.append( make_FiniteField_givaroElement(self,i) )
@@ -599,11 +604,11 @@ cdef class FiniteField_givaro(FiniteField):
         """
         Coercion accepts elements of self.parent(), ints, and prime subfield elements.
         """
-        cdef int r,cx
+        cdef int r, cx
 
         if PY_TYPE_CHECK(x, int) \
                or PY_TYPE_CHECK(x, long) or PY_TYPE_CHECK(x, Integer):
-            cx = int(x)
+            cx = x % self.characteristic()
             r = (<FiniteField_givaro>self).objectptr.read(r, cx%self.objectptr.characteristic())
             return make_FiniteField_givaroElement(<FiniteField_givaro>self,r)
 
@@ -1077,6 +1082,11 @@ cdef class FiniteField_givaro(FiniteField):
             sage: loads(dumps(k)) == k
             True
         """
+        if self._array is None:
+            cache = 0
+        else:
+            cache = 1
+
         return sage.rings.finite_field_givaro.unpickle_FiniteField_givaro, \
                (self.order_c(),self.variable_name(),
                 map(int,list(self.modulus())),int(self.repr),int(self._array is not None))
@@ -1369,6 +1379,10 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         AUTHOR:
             Robert Bradshaw
         """
+        _exp = int(exp)
+        if _exp != exp:
+            raise ValueError, "exponent must be an integer"
+        exp = _exp
 
         cdef int r
         cdef int order
@@ -1399,31 +1413,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         return make_FiniteField_givaroElement(field, r)
 
-
-##     def add(FiniteField_givaroElement self,FiniteField_givaroElement other):
-##         """
-##         """
-##         cdef int r
-##         r = (<FiniteField_givaro>self._parent).objectptr.add(r, self.element , other.element )
-##         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
-
-##     def mul(FiniteField_givaroElement self,FiniteField_givaroElement other):
-##         """
-##         """
-##         cdef int r
-##         r = (<FiniteField_givaro>self._parent).objectptr.mul(r, self.element , other.element )
-##         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
-
-
-##     def div(FiniteField_givaroElement self,FiniteField_givaroElement  other):
-##         cdef int r
-##         r = (<FiniteField_givaro>self._parent).objectptr.div(r, self.element , other.element )
-##         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
-
-##     def sub(FiniteField_givaroElement self,FiniteField_givaroElement other):
-##         cdef int r
-##         r = (<FiniteField_givaro>self._parent).objectptr.sub(r, self.element , other.element )
-##         return make_FiniteField_givaroElement((<FiniteField_givaro>self._parent),r)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1910,8 +1899,6 @@ cdef FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro
     else:
         w = FAST_SEQ_UNSAFE(parent._array)
         return <FiniteField_givaroElement>w[x]
-        #return parent._array[x]
-
 
 def gap_to_givaro(x, F):
     """

@@ -40,9 +40,6 @@ import sage.modules.free_module
 
 import matrix_misc
 
-import strassen
-import matrix_window
-
 
 
 cdef class Matrix(sage.structure.element.Matrix):
@@ -306,6 +303,9 @@ cdef class Matrix(sage.structure.element.Matrix):
         if self._cache is None:
             self._cache = {}
         self._cache[key] = x
+
+    def _get_cache(self):
+        return self._cache
 
     ###########################################################
     # Mutability and bounds checking
@@ -687,8 +687,16 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###########################################################
     # Representation -- string, latex, etc.
     ###########################################################
-
     def __repr__(self):
+        if self._nrows < max_rows and self._ncols < max_cols:
+            return self.str()
+        if self.is_sparse():
+            s = 'sparse'
+        else:
+            s = 'dense'
+        return "%s x %s %s matrix over %s"%(self._nrows, self._ncols, s, self.base_ring())
+
+    def str(self):
         r"""
         EXAMPLES:
             sage: R = PolynomialRing(QQ,6,'z')
@@ -696,7 +704,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a.__repr__()
             '[z0 z1 z2]\n[z3 z4 z5]'
         """
-        #x = self.fetch('repr')
+        #x = self.fetch('repr')  # too confusing!!
         #if not x is None: return x
         cdef Py_ssize_t nr, nc, r, c
         nr = self._nrows
@@ -1181,8 +1189,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     ###################################################
     def linear_combination_of_rows(self, v):
         """
-        Return the linear combination of the rows of self given by the coefficients in
-        the list v.
+        Return the linear combination of the rows of self given by the
+        coefficients in the list v.
 
         INPUT:
             v -- list
@@ -1837,7 +1845,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: d = b*c; d
             Traceback (most recent call last):
             ...
-            TypeError: unsupported operand parent(s) for '*': 'Finite Field of size 7' and 'Rational Field'
+            TypeError: Base rings must be the same.
             sage: d = b*c.change_ring(GF(7)); d
             [2 3]
             [6 4]
@@ -2172,3 +2180,13 @@ def unpickle(cls, parent, mutability, cache, data, version):
     return A
 
 
+max_rows = 20
+max_cols = 50
+
+def set_max_rows(n):
+    global max_rows
+    max_rows = n
+
+def set_max_cols(n):
+    global max_cols
+    max_cols = n

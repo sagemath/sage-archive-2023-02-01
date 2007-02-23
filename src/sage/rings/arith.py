@@ -704,6 +704,14 @@ def next_prime(n, proof=True):
     EXAMPLES:
         sage: next_prime(-100)
         2
+        sage: next_prime(1)
+        2
+        sage: next_prime(2)
+        3
+        sage: next_prime(3)
+        5
+        sage: next_prime(4)
+        5
 
     Notice that the next_prime(5) is not 5 but 7.
         sage: next_prime(5)
@@ -711,6 +719,7 @@ def next_prime(n, proof=True):
         sage: next_prime(2004)
         2011
     """
+    n = integer_ring.ZZ(n)
     if n < 2:   # negatives are not prime.
         return integer_ring.ZZ(2)
     if n == 2:
@@ -1159,6 +1168,11 @@ def generic_power(a, m, one=1):
         m = -m
     if m == 0:
         return one
+    _m = int(m)
+    if _m != m:
+        raise ValueError, "exponent must be an integer"
+    else:
+        m = _m
     power = None
     i = 0
     apow2 = a
@@ -2249,6 +2263,85 @@ def convergents(v):
         w.append((pn, qn))
     return [Q(x) for x in w[2:]]
 
+
+
+## def continuant(v, n=None):
+##     """
+##     Naive implementation with recursion.
+##
+##     See Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants
+##     """
+##     m = len(v)
+##     if n == None or m < n:
+##         n = m
+##     if n == 0:
+##         return 1
+##     if n == 1:
+##         return v[0]
+##     return continuant(v[:n-1])*v[n-1] + continuant(v[:n-2])
+
+def continuant(v, n=None):
+    r"""
+    Function returns the continuant of the sequence $v$ (list or tuple).
+
+    Definition: see Graham, Knuth and Patashnik: Concrete Mathematics: 6.7 Continuants:
+
+    $K_0() = 1$
+
+    $K_1(x_1) = x_1$
+
+    $K_n(x_1, \cdots, x_n) = K_{n-1}(x_n, \cdots x_{n-1})x_n + K_{n-2}(x_1,  \cdots, x_{n-2})$
+
+    If $n = None$ or $n > len(v)$ the default $n = len(v)$ is used.
+
+    INPUT:
+        v -- list or tuple of elements of a ring
+        n -- optional integer
+
+    OUTPUT:
+        element of ring (integer, polynomial, etcetera).
+
+    EXAMPLES:
+        sage: continuant([1,2,3])
+        10
+        sage: p = continuant([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: q = continuant([1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10])
+        sage: p/q
+        517656/190435
+        sage: convergent([2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10],14)
+        517656/190435
+        sage: x = MPolynomialRing(RationalField(),'x',5).gens()
+        sage: continuant(x)
+        x4 + x2 + x2*x3*x4 + x0 + x0*x3*x4 + x0*x1*x4 + x0*x1*x2 + x0*x1*x2*x3*x4
+        sage: continuant(x, 3)
+        x2 + x0 + x0*x1*x2
+        sage: continuant(x,2)
+        1 + x0*x1
+
+        $K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}$:
+
+        sage: z = QQ['z'].0
+        sage: continuant((z,z,z,z,z,z,z,z,z,z,z,z,z,z,z),6)
+        z^6 + 5*z^4 + 6*z^2 + 1
+        sage: continuant(9)
+        Traceback (most recent call last):
+        ...
+        TypeError: object of type 'sage.rings.integer.Integer' has no len()
+
+    AUTHOR:
+        -- Jaap Spies (2007-02-06)
+    """
+    m = len(v)
+    if n == None or m < n:
+        n = m
+    if n == 0:
+        return 1
+    if n == 1:
+        return v[0]
+    a, b = 1, v[0]
+    for k in range(1,n):
+        a, b = b, a + b*v[k]
+    return b
 
 def number_of_divisors(n):
     """

@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Interface to Cocoa 4
 
 [[Describe the math software you are interfacing with here.]]
@@ -178,6 +178,6 @@ def cocoa_console():
 def cocoa_version():
     """
     EXAMPLES:
-        sage: cocoa.version()
-        ???
+        sage: cocoa.version()            # optional
+
     """

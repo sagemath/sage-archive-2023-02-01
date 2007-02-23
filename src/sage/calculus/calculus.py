@@ -18,6 +18,7 @@ from sage.functions.constants import Constant
 import sage.functions.constants as c
 
 from sage.calculus.equations import SymbolicEquation
+from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
 
 import pdb
@@ -43,7 +44,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x):
             return SymbolicPolynomial(x)
-        elif isinstance(x, (Constant, Integer, int, Rational, ComplexNumber)):
+        elif isinstance(x, (RealNumber, float, Constant, Integer, int, Rational, ComplexNumber)):
             return Constant_object(x)
         else:
             # we really want to raise a type error, here
@@ -76,6 +77,7 @@ class SymbolicExpression(RingElement):
     """
     def __init__(self, conversions={}):
         RingElement.__init__(self, SymbolicExpressionRing)
+        self._simp = None
 
     def _maxima_(self, maxima=maxima):
         try:
@@ -88,25 +90,35 @@ class SymbolicExpression(RingElement):
     def hash(self):
         return hash(maxima(self))
 
-    def __eq__(self, right):
-        return  SymbolicEquation(self, right)
+    def __float__(self):
+        return float(self._obj)
 
-    def _neg_(self):
-        return SymbolicArithmetic([self], operator.neg)
+    def _plot_(self, param=None, **kwds):
+        from sage.plot.plot import plot
+        if param is None:
+            return SageObject.plot(self, **kwds)
+
+        return plot(self.function(param), **kwds)
+
+
+    def __eq__(self, right):
+        return SymbolicEquation(self, right)
 
     def __cmp__(self, right):
         return cmp(maxima(self), maxima(right))
 
+    def _neg_(self):
+        return SymbolicArithmetic([self], operator.neg)
+
     def _add_(self, right):
         # if we are adding a negation, instead subtract the operand of negation
-
-        if isinstance(right, SymbolicArithmetic):
-            if right._operator is operator.neg:
-                return SymbolicArithmetic([self, right._operands[0]], operator.sub)
-        elif isinstance(right, Symbolic_object) and right < 0:
-            return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
-        else:
-            return SymbolicArithmetic([self, right], operator.add)
+        #if isinstance(right, SymbolicArithmetic):
+        #    if right._operator is operator.neg:
+        #        return SymbolicArithmetic([self, right._operands[0]], operator.sub)
+        #elif isinstance(right, Symbolic_object) and right < 0:
+        #    return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
+        #else:
+        return SymbolicArithmetic([self, right], operator.add)
 
     def _sub_(self, right):
         return SymbolicArithmetic([self, right], operator.sub)
@@ -285,7 +297,9 @@ class SymbolicExpression(RingElement):
     # simplify
     ###################################################################
     def simplify(self):
-        return self.parent()(self._maxima_())
+        if self._simp is None:
+            self._simp = self.parent()(self._maxima_())
+        return self._simp
 
     def simplify_trig(self):
         r"""
@@ -354,7 +368,7 @@ class SymbolicExpression(RingElement):
 
             sage: f = sin(x)^2 + 32*x^(y/2)
             sage: f.substitute(x=2, y = 10)
-            sin(2)^2 + 32*2^(10/2)
+            sin(2)^2 + 1024
 
             sage: f(x=pi, y=t)
             sin(pi)^2 + 32*pi^(t/2)
@@ -377,6 +391,7 @@ class SymbolicExpression(RingElement):
         # if we are a symbolic variable, we're at a leaf node
         if isinstance(self, SymbolicVariable):
             s = str(self)
+            # do the replacement if needed
             if s in kwds:
                 return kwds[s]
             else:
@@ -385,7 +400,8 @@ class SymbolicExpression(RingElement):
             return self
         elif isinstance(self, SymbolicArithmetic):
             new_ops = [op._recursive_sub(kwds) for op in ops]
-            return SymbolicArithmetic(new_ops, self._operator)
+            arith = SymbolicArithmetic(new_ops, self._operator)
+            return  arith._operator(*(arith._operands))
         elif isinstance(self, SymbolicComposition):
             return SymbolicComposition(ops[0], ops[1]._recursive_sub(kwds))
 
@@ -449,7 +465,7 @@ class CallableFunction(RingElement):
             if len(self._varlist) != 1:
                 raise TypeError, "Cannot coerce %s to a float" % self
 
-            else: return self
+            return float(self.obj)
 
     # TODO: should len(args) == len(vars)?
     def __call__(self, *args):
@@ -679,7 +695,7 @@ class Symbolic_object(SymbolicExpression):
     def __pow__(self, right):
         if isinstance(right, Symbolic_object):
             try:
-                return Symbolic_object(self._obj + right._obj)
+                return Symbolic_object(self._obj ** right._obj)
             except TypeError:
                 pass
         return SymbolicExpression.__pow__(self, right)

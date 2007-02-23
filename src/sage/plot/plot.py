@@ -119,6 +119,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import pdb
+
 from sage.structure.sage_object import SageObject
 
 ## IMPORTANT: Do not import matplotlib at module scope.  It takes a

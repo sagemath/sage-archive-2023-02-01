@@ -34,6 +34,15 @@ TUTORIAL:
 
                 sage: N.adj
                 {0: {1: None, 4: None, 5: None}, 1: {0: None, 2: None, 6: None}, 2: {1: None, 3: None, 7: None}, 3: {8: None, 2: None, 4: None}, 4: {0: None, 9: None, 3: None}, 5: {0: None, 8: None, 7: None}, 6: {8: None, 1: None, 9: None}, 7: {9: None, 2: None, 5: None}, 8: {3: None, 5: None, 6: None}, 9: {4: None, 6: None, 7: None}}
+             1: {0: None, 2: None, 6: None},
+             2: {1: None, 3: None, 7: None},
+             3: {2: None, 4: None, 8: None},
+             4: {0: None, 3: None, 9: None},
+             5: {0: None, 7: None, 8: None},
+             6: {1: None, 8: None, 9: None},
+             7: {2: None, 5: None, 9: None},
+             8: {3: None, 5: None, 6: None},
+             9: {4: None, 6: None, 7: None}}
 
             Each dictionary key is a vertex label, and each key in the following
             dictionary is a neighbor of that vertex. In undirected graphs, there
@@ -127,8 +136,8 @@ TUTORIAL:
 
             sage: S = G.random_subgraph(.7)
             sage: S.plot().save('sage.png')    # or S.show()
-            sage: S.density()         # random output (depends on choice of random graph)
-            0.33333333333333331
+            sage: S.density()
+            ???
 
         3. Labels
 

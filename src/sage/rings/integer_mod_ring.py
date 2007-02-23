@@ -649,7 +649,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         if not (bound is None):
             return commutative_ring.CommutativeRing.random_element(self, bound)
         a = random.randint(0,self.order()-1)
-        return self(a)
+        return integer_mod.IntegerMod(self, x)#self(a)
 
     #######################################################
     # Suppose for interfaces

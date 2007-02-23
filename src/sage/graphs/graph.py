@@ -432,8 +432,7 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Simple graph on 6 vertices (no loops, no multiple edges)
     """
-
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -564,8 +563,7 @@ class Graph(GenericGraph):
                 self._nxg.add_edges_from(e)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
-        self.__boundary = boundary
-        self.__pos = pos
+        self._pos = pos
 
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
@@ -599,7 +597,7 @@ class Graph(GenericGraph):
             sage: graphs.PetersenGraph().to_directed()
             Simple directed graph on 10 vertices (no loops, no multiple arcs)
         """
-        return DiGraph(self._nxg.to_directed(), pos=self.__pos)
+        return DiGraph(self._nxg.to_directed(), pos=self._pos)
 
     def to_undirected(self):
         """
@@ -612,10 +610,10 @@ class Graph(GenericGraph):
         return self.copy()
 
     def __get_pos__(self):
-        return self.__pos
+        return self._pos
 
     def __set_pos__(self, pos):
-        self.__pos = pos
+        self._pos = pos
 
     ### General properties
 
@@ -1465,50 +1463,7 @@ class Graph(GenericGraph):
             sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
             sage: P.save('sage.png')
         """
-        GG = Graphics()
-        if color_dict is None and not self.__boundary is None:
-            v = self.vertices()
-            b = self.__boundary
-            for i in b:
-                v.pop(v.index(i))
-            color_dict = {'r':v,'b':b}
-        if pos is None and layout is None:
-            if self.__pos is None:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-            else:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        elif layout == 'circular':
-            from math import sin, cos, pi
-            n = self.order()
-            verts = self.vertices()
-            pos_dict = {}
-            for i in range(n):
-                x = float(cos((pi/2) + ((2*pi)/n)*i))
-                y = float(sin((pi/2) + ((2*pi)/n)*i))
-                pos_dict[verts[i]] = [x,y]
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
-        elif layout == 'spring':
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        else:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        GG.append(NGP)
-        pos = NGP._GraphicPrimitive_NetworkXGraph__pos
-        xmin = NGP._xmin
-        xmax = NGP._xmax
-        ymin = NGP._ymin
-        ymax = NGP._ymax
-        GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        GG.axes(False)
-        if ( graph_border ):
-            from sage.plot.plot import line
-            dx = (xmax - xmin)/10
-            dy = (ymax - ymin)/10
-            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
-            border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
-            BGG = GG + border
-            BGG.axes(False)
-            return BGG
-        return GG
+        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
         """
@@ -1689,7 +1644,7 @@ class DiGraph(GenericGraph):
         Simple directed graph on 6 vertices (no loops, no multiple arcs)
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -1749,8 +1704,7 @@ class DiGraph(GenericGraph):
                 self._nxg.add_edges_from(e)
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
-        self.__boundary = boundary
-        self.__pos = pos
+        self._pos = pos
 
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
@@ -1796,13 +1750,13 @@ class DiGraph(GenericGraph):
             sage: G.edges(labels=False)
             [(0, 1), (0, 2)]
         """
-        return Graph(self._nxg.to_undirected(), pos=self.__pos)
+        return Graph(self._nxg.to_undirected(), pos=self._pos)
 
     def __get_pos__(self):
-        return self.__pos
+        return self._pos
 
     def __set_pos__(self, pos):
-        self.__pos = pos
+        self._pos = pos
 
     ### General Properties
 
@@ -2657,50 +2611,7 @@ class DiGraph(GenericGraph):
             sage: pl = P.plot(pos=pos_dict, color_dict=d)
             sage: pl.save('sage.png')
         """
-        GG = Graphics()
-        if color_dict is None and not self.__boundary is None:
-            v = self.vertices()
-            b = self.__boundary
-            for i in b:
-                v.pop(v.index(i))
-            color_dict = {'r':v,'b':b}
-        if pos is None and layout is None:
-            if self.__pos is None:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-            else:
-                NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self.__pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        elif layout == 'circular':
-            from math import sin, cos, pi
-            n = self.order()
-            verts = self.vertices()
-            pos_dict = {}
-            for i in range(n):
-                x = float(cos((pi/2) + ((2*pi)/n)*i))
-                y = float(sin((pi/2) + ((2*pi)/n)*i))
-                pos_dict[verts[i]] = [x,y]
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
-        elif layout == 'spring':
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        else:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-        GG.append(NGP)
-        pos = NGP._GraphicPrimitive_NetworkXGraph__pos
-        xmin = NGP._xmin
-        xmax = NGP._xmax
-        ymin = NGP._ymin
-        ymax = NGP._ymax
-        GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-        GG.axes(False)
-        if ( graph_border ):
-            from sage.plot.plot import line
-            dx = (xmax - xmin)/10
-            dy = (ymax - ymin)/10
-            border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
-            border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
-            BGG = GG + border
-            BGG.axes(False)
-            return BGG
-        return GG
+        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None):
         """
@@ -2811,6 +2722,56 @@ class DiGraph(GenericGraph):
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
+class Graph_With_Boundary(Graph):
+    pass
+
+class DiGraph_With_Boundary(DiGraph):
+    pass
+
+def matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict):
+    GG = Graphics()
+#    if color_dict is None and not self.__boundary is None:
+#        v = self.vertices()
+#        b = self.__boundary
+#        for i in b:
+#            v.pop(v.index(i))
+#        color_dict = {'r':v,'b':b}
+    if pos is None and layout is None:
+        if self._pos is None:
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+        else:
+            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self._pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+    elif layout == 'circular':
+        from math import sin, cos, pi
+        n = self.order()
+        verts = self.vertices()
+        pos_dict = {}
+        for i in range(n):
+            x = float(cos((pi/2) + ((2*pi)/n)*i))
+            y = float(sin((pi/2) + ((2*pi)/n)*i))
+            pos_dict[verts[i]] = [x,y]
+        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
+    elif layout == 'spring':
+        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+    else:
+        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+    GG.append(NGP)
+    xmin = NGP._xmin
+    xmax = NGP._xmax
+    ymin = NGP._ymin
+    ymax = NGP._ymax
+    GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    if ( graph_border ):
+        from sage.plot.plot import line
+        dx = (xmax - xmin)/10
+        dy = (ymax - ymin)/10
+        border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+        BGG = GG + border
+        return BGG
+    GG.axes(False)
+    return GG
+
 def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     import networkx
     from math import sqrt
@@ -2850,9 +2811,5 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     for v in verts:
         TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
     return TT, pos3d
-
-
-
-
 
 

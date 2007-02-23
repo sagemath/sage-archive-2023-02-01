@@ -281,6 +281,7 @@ class Cell(Cell_generic):
             else:
                 output = output[:MAX_OUTPUT/2] + '...\n\n...' + output[-MAX_OUTPUT/2:]
         self.__out = output
+        self.__out_html = html
         self.__sage = sage
 
     def sage(self):

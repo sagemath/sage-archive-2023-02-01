@@ -34,26 +34,18 @@ TUTORIAL:
 
                 sage: N.adj
                 {0: {1: None, 4: None, 5: None}, 1: {0: None, 2: None, 6: None}, 2: {1: None, 3: None, 7: None}, 3: {8: None, 2: None, 4: None}, 4: {0: None, 9: None, 3: None}, 5: {0: None, 8: None, 7: None}, 6: {8: None, 1: None, 9: None}, 7: {9: None, 2: None, 5: None}, 8: {3: None, 5: None, 6: None}, 9: {4: None, 6: None, 7: None}}
-             1: {0: None, 2: None, 6: None},
-             2: {1: None, 3: None, 7: None},
-             3: {2: None, 4: None, 8: None},
-             4: {0: None, 3: None, 9: None},
-             5: {0: None, 7: None, 8: None},
-             6: {1: None, 8: None, 9: None},
-             7: {2: None, 5: None, 9: None},
-             8: {3: None, 5: None, 6: None},
-             9: {4: None, 6: None, 7: None}}
 
-            Each dictionary key is a vertex label, and each key in the following
-            dictionary is a neighbor of that vertex. In undirected graphs, there
-            is reduncancy: for example, the dictionary containing the entry
-            1: {2: None} implies it must contain 2: {1: None}. The innermost entry
-            of None is related to edge labelling (see section I.3.).
+            Each dictionary key is a vertex label, and each key in the
+            following dictionary is a neighbor of that vertex. In
+            undirected graphs, there is reduncancy: for example, the
+            dictionary containing the entry 1: {2: None} implies it
+            must contain 2: {1: None}. The innermost entry of None is
+            related to edge labelling (see section I.3.).
 
             B. Supported formats
 
-            SAGE Graphs can be created from a wide range of inputs. A few examples are
-            covered here.
+            SAGE Graphs can be created from a wide range of inputs. A
+            few examples are covered here.
 
                 i. NetworkX dictionary format:
 
@@ -136,8 +128,8 @@ TUTORIAL:
 
             sage: S = G.random_subgraph(.7)
             sage: S.plot().save('sage.png')    # or S.show()
-            sage: S.density()
-            ???
+            sage: S.density()   # random output
+            0.40000000000000002
 
         3. Labels
 

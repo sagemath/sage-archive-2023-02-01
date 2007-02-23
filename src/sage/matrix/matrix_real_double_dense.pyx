@@ -22,8 +22,10 @@ include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
 from sage.rings.real_double cimport RealDoubleElement
 import sage.rings.real_double
+import sage.rings.complex_double
 from matrix cimport Matrix
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement,Vector
+from sage.modules.real_double_vector cimport RealDoubleVectorSpaceElement
 
 cimport sage.structure.element
 
@@ -36,21 +38,22 @@ cdef extern from "arrayobject.h":
 
     ctypedef int intp
 
-    ctypedef extern class numpy.dtype [object PyArray_Descr]:
-        cdef int type_num, elsize, alignment
-        cdef char type, kind, byteorder, hasobject
-        cdef object fields, typeobj
+##     ctypedef extern class numpy.dtype [object PyArray_Descr]:
+##         cdef int type_num, elsize, alignment
+##         cdef char type, kind, byteorder, hasobject
+##         cdef object fields, typeobj
 
     ctypedef extern class numpy.ndarray [object PyArrayObject]:
         cdef char *data
         cdef int nd
         cdef intp *dimensions
         cdef intp *strides
-        cdef object base
-        cdef dtype descr
+#        cdef object base
+#        cdef dtype descr
         cdef int flags
 
     object PyArray_FromDims(int,int *,int)
+    object PyArray_FromDimsAndData(int,int*,int,double *)
     void import_array()
 
 
@@ -374,7 +377,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         p = <double *> _m.data
         for i from 0<=i<_M._matrix.size1*_M._matrix.size2:
             _result_matrix._matrix.data[i] = p[i]
-        return ([sage.rings.real_double.RDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
+        return ([sage.rings.complex_double.CDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
     def solve_left(self, vec):
         """
         Solve the equation A*x = b, where
@@ -392,6 +395,19 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         """
         import solve
         return solve.solve_matrix_real_double_dense(self, vec)
+    def solve_numpy(self,vec):
+        import numpy
+        cdef double *p
+        cdef RealDoubleVectorSpaceElement _vec,ans
+        _vec=vec
+        cdef ndarray _result
+        _result=numpy.linalg.solve(self.numpy(),_vec.numpy())
+        M=self._column_ambient_module()
+        ans=M.zero_vector()
+        p = <double *>_result.data
+#        cdef gsl_vector* result
+#        result=gsl_vector_alloc(_result.dimension[0])
+        memcpy(ans.v.data,_result.data,_result.dimension[0]*sizeof(double))
 
 
     def determinant(self):
@@ -509,3 +525,103 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
          if result!=GSL_SUCCESS:
              raise ValueError,"Error computing QR factorization"
          return [Q,R]
+
+    def cholesky(self,check_symmetry=True):
+        cdef gsl_matrix *A
+        cdef Matrix_real_double_dense result
+        cdef int i,j
+        if check_symmetry:
+            if not self.is_symmetric():
+                raise TypeError,"cannot take cholesky decomposition of non-symmetric matrix"
+        A=<gsl_matrix*>gsl_matrix_alloc(self._nrows,self._ncols)
+        gsl_matrix_memcpy(A,self._matrix)
+        _sig_on
+        gsl_linalg_cholesky_decomp(A)
+        _sig_off
+        parent = self.matrix_space(self._nrows,self._ncols)
+        result=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        for i from 0<i<self._nrows:
+            for j from 0<=j<i:
+                gsl_matrix_set(A,j,i,0)
+        gsl_matrix_memcpy(result._matrix,A)
+        gsl_matrix_free(A)
+        return result
+
+
+    def is_symmetric(self,tol=1e-12):
+        cdef int i
+        cdef int j
+        bool=self.fetch('symmetric')
+        if bool!=None:
+            return bool
+        if self._nrows!=self._ncols:
+            self.cache('symmetric',False)
+            return False
+        self.cache('symmetric',True)
+        for i from 0<i<self._nrows:
+            for j from 0<=j<i:
+#                print("%d,%d,%d"%fabs(self.get_unsafe(i,j)-self.get_unsafe(j,i) ),i,j)
+                if fabs(self.get_unsafe(i,j)-self.get_unsafe(j,i))>float(tol):
+                    self.cache('symmetric',False)
+                    break
+        return self.fetch('symmetric')
+
+
+    def cholesky_numpy(self):
+        cdef Matrix_real_double_dense _M,_result_matrix
+        _M=self
+        cdef int i
+        cdef double *p
+        cdef ndarray _n,_m
+        import numpy
+        _m = numpy.linalg.cholesky(self.numpy())
+        parent = self.matrix_space(self._nrows,self._ncols)
+        _result_matrix = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
+        p = <double *> _m.data
+        for i from 0<=i<_M._matrix.size1*_M._matrix.size2:
+            _result_matrix._matrix.data[i] = p[i]
+        return _result_matrix
+#        return ([sage.rings.complex_double.CDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
+
+
+
+
+    cdef Vector _vector_times_matrix_c_impl(self,Vector v):
+        cdef RealDoubleVectorSpaceElement v_,ans
+        cdef gsl_vector *vec
+        cdef Py_ssize_t i,j
+        M=self._row_ambient_module()
+        v_ = v
+        ans=M.zero_vector()
+        gsl_blas_dgemv(CblasNoTrans,1.0,self._matrix, v_.v,0.0,ans.v)
+        return ans
+
+    cdef Vector _matrix_times_vector_c_impl(self,Vector v):
+        cdef RealDoubleVectorSpaceElement v_,ans
+        cdef gsl_vector *vec
+        cdef Py_ssize_t i,j
+        M=self._column_ambient_module()
+        v_ = v
+        ans=M.zero_vector()
+        gsl_blas_dgemv(CblasTrans,1.0,self._matrix, v_.v,0.0,ans.v)
+        return ans
+
+
+    def numpy(self):
+        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cdef Matrix_real_double_dense _M,_result_matrix
+        _M=self
+        cdef int dims[2]
+        cdef double * data
+        cdef int i
+        cdef object temp
+        cdef double *p
+        cdef ndarray _n,_m
+        dims[0] = _M._matrix.size1
+        dims[1] = _M._matrix.size2
+        data = <double*> malloc(sizeof(double)*dims[0]*dims[1])
+        memcpy(data,_M._matrix.data,sizeof(double)*dims[0]*dims[1])
+        temp = PyArray_FromDimsAndData(2, dims, 12,data)
+        _n = temp
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership bug
+        return _n

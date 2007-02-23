@@ -37,21 +37,22 @@ cdef extern from "arrayobject.h":
 
     ctypedef int intp
 
-    ctypedef extern class numpy.dtype [object PyArray_Descr]:
-        cdef int type_num, elsize, alignment
-        cdef char type, kind, byteorder, hasobject
-        cdef object fields, typeobj
+##     ctypedef extern class numpy.dtype [object PyArray_Descr]:
+##         cdef int type_num, elsize, alignment
+##         cdef char type, kind, byteorder, hasobject
+##         cdef object fields, typeobj
 
     ctypedef extern class numpy.ndarray [object PyArrayObject]:
         cdef char *data
         cdef int nd
         cdef intp *dimensions
         cdef intp *strides
-        cdef object base
-        cdef dtype descr
+#        cdef object base
+#        cdef dtype descr
         cdef int flags
 
     object PyArray_FromDims(int,int *,int)
+    object PyArray_FromDimsAndData(int,int*,int,double *)
     void import_array()
 
 
@@ -431,3 +432,22 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
                 gsl_matrix_complex_set(U._matrix,l,i,z)
 
         return [P,L,U]
+
+    def numpy(self):
+        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cdef Matrix_complex_double_dense _M,_result_matrix
+        _M=self
+        cdef int dims[2]
+        cdef double * data
+        cdef int i
+        cdef object temp
+        cdef double *p
+        cdef ndarray _n,_m
+        dims[0] = _M._matrix.size1
+        dims[1] = _M._matrix.size2
+        data = <double*> malloc(sizeof(double)*dims[0]*dims[1]*2)
+        memcpy(data,_M._matrix.data,sizeof(double)*dims[0]*dims[1]*2)
+        temp = PyArray_FromDimsAndData(2, dims, 15,data)
+        _n = temp
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership flag
+        return _n

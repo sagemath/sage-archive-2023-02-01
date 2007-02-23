@@ -28,6 +28,29 @@ import sage.rings.complex_double
 
 include '../ext/stdsage.pxi'
 
+cdef extern from "arrayobject.h":
+#The following exposes the internal C structure of the numpy python object
+# extern class [object PyArrayObject]  tells pyrex that this is
+# a compiled python class defined by the C struct PyArrayObject
+    cdef enum:
+        NPY_OWNDATA = 0x0004 #bit mask so numpy does not free array contents when its destroyed
+
+    ctypedef int intp
+
+    ctypedef extern class numpy.ndarray [object PyArrayObject]:
+        cdef char *data
+        cdef int nd
+        cdef intp *dimensions
+        cdef intp *strides
+        cdef int flags
+
+    object PyArray_FromDims(int,int *,int)
+    object PyArray_FromDimsAndData(int,int*,int,double *)
+    void import_array()
+
+
+
+
 cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     cdef _new_c(self, gsl_vector* v):
         cdef RealDoubleVectorSpaceElement y
@@ -196,5 +219,23 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         v.fft(inplace=True)
         return v
 
+    def numpy(self):
+        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cdef RealDoubleVectorSpaceElement _V,_result_vector
+        _V=self
+        cdef int dims[1]
+        cdef double * data
+        cdef int i
+        cdef object temp
+        cdef double *p
+        cdef ndarray _n,_m
+        dims[0] = _V.v.size
+#        dims[1] = _M._matrix.size2
+        data = <double*> malloc(sizeof(double)*dims[0])
+        memcpy(data,_V.v.data,sizeof(double)*dims[0])
+        temp = PyArray_FromDimsAndData(1, dims, 12,data)
+        _n = temp
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership flag
+        return _n
 
 

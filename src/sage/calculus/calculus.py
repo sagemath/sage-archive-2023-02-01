@@ -93,12 +93,15 @@ class SymbolicExpression(RingElement):
     def __float__(self):
         return float(self._obj)
 
-    def _plot_(self, param=None, **kwds):
+    def _plot_(self, x=None, *args, **kwds):
         from sage.plot.plot import plot
-        if param is None:
-            return SageObject.plot(self, **kwds)
-
-        return plot(self.function(param), **kwds)
+        # see if the user passed a param
+        try:
+            param = kwds['param']
+        except KeyError:
+            return SageObject.plot(self, *args, **kwds)
+        del kwds['param']
+        return plot(self.function(param), *args, **kwds)
 
 
     def __eq__(self, right):

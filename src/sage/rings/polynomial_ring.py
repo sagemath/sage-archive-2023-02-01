@@ -540,7 +540,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ValueError
         """
 
-        if self.base_ring().order() is sage.rings.infinity.Infinity:
+        if self.base_ring().order() is sage.rings.infinity.infinity:
             raise NotImplementedError
         if of_degree is not None and max_degree is None:
             return self._polys_degree( of_degree )
@@ -591,7 +591,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             ValueError
         """
 
-        if self.base_ring().order() is sage.rings.infinity.Infinity:
+        if self.base_ring().order() is sage.rings.infinity.infinity:
             raise NotImplementedError
         if of_degree is not None and max_degree is None:
             return self._monics_degree( of_degree )

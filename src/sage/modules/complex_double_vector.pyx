@@ -210,6 +210,15 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._new_c(v)
 
     def fft(self,direction = "forward",algorithm = "radix2",inplace=False):
+        """
+        This performs a fast fourier transform on the vector.
+        By default a forward transform is performed.
+        To perform the inverse fourier transform use the the keyword
+        direction='backward'.
+        sage: v = vector(CDF,[1,2,3,4])
+        sage: w = v.fft()
+        sage: v2 = w.fft(direction='backward')
+        """
         gsl_set_error_handler_off()
         cdef gsl_fft_complex_wavetable* wavetable
         cdef gsl_fft_complex_workspace* workspace

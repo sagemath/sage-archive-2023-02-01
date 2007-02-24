@@ -70,7 +70,6 @@ In the lazy case, a certain number of digits are computed and stored, and in add
     sage: c = a * b; c
         2 + 2*5 + 4*5^4 + O(5^5)
     sage: c.set_precision_absolute(15)
-        True
     sage: c
         2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
 

@@ -25,7 +25,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
         sage: L = Qp(5, 10, type = 'lazy'); b = L(2); b
         2 + O(5^10)
         sage: a + b
-        6 + O(5^10)
+        6 + O(5^20)
 
     NOTES:
          values of type:

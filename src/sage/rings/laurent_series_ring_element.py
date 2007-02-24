@@ -167,7 +167,7 @@ class LaurentSeries(ring_element.RingElement):
                 if not first:
                     s += " + "
                 x = str(x)
-                if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
+                if not atomic_repr and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "(%s)"%x
                 if e == 1:
                     var = "*%s"%X

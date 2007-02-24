@@ -34,8 +34,7 @@ In the lazy case, a certain number of digits are computed and stored, and in add
         2 + 5^3 + O(5^5)
     sage: c = a * b; c
         2 + 2*5 + 4*5^4 + O(5^5)
-    sage: c.cache_set_precision(15)
-        True
+    sage: c.set_precision_absolute(15)
     sage: c
         2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
 
@@ -91,7 +90,8 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #import sage.rings.rational
 #import sage.rings.finite_field
 import sage.rings.padics.padic_field_capped_relative_element
-import sage.rings.padics.padic_field_generic
+import sage.rings.padics.padic_field_generic_element
+import sage.rings.padics.padic_generic
 import sage.rings.padics.padic_lazy_element as lazy
 import sage.rings.padics.padic_ring_capped_relative_element
 import sage.rings.padics.padic_ring_generic
@@ -103,6 +103,7 @@ Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 Mod = sage.rings.integer_mod.Mod
 pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
 pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
@@ -138,7 +139,7 @@ class pAdicFieldLazy(pAdicFieldGeneric):
             y = copy.copy(x)
             y._set_parent(self)
             return y
-        if isinstance(x, pAdicRingGenericElement):
+        if isinstance(x, pAdicGenericElement):
             if x.parent().prime() == self.prime():
                 return lazy.pAdicLazy_otherpadic(self, x, prec)
             raise TypeError, "cannot change primes in creating p-adic elements"
@@ -206,7 +207,7 @@ class pAdicFieldLazy(pAdicFieldGeneric):
         OUTPUT:
             element -- the teichmuller lift of x
         EXAMPLES:
-            sage: R = Qp(5, 10, 'lazy')
+            sage: R = Qp(5, 10, 'lazy', 'series')
             sage: R.teichmuller(2)
                 2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
         """

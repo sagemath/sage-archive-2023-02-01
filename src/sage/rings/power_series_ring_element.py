@@ -995,7 +995,7 @@ class PowerSeries(ring_element.RingElement):
             sage: f.valuation()
             100000
             sage: R(0).valuation()
-            Infinity
+            +Infinity
 
         Dense examples:
             sage: R.<t> = PowerSeriesRing(ZZ)

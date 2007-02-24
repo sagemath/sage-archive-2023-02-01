@@ -64,7 +64,7 @@ def algdep(z, n):
         0.000000000000000111022302462515
 
     This example involves a $p$-adic number.
-        sage: K = pAdicField(3)
+        sage: K = Qp(3, print_mode = 'series')
         sage: a = K(7/19); a
         1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
         sage: algdep(a, 1)
@@ -438,7 +438,7 @@ def valuation(m, p):
     Valuation of 0 is defined, but valuation with respect to 0 is not::
 
         sage: valuation(0,7)
-        Infinity
+        +Infinity
         sage: valuation(3,0)
         Traceback (most recent call last):
         ...

@@ -162,13 +162,13 @@ We next compose the inclusion with reduction from the integers to GF(2).
     Finite Field in a of size 2^2
 
 EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
-    sage: phi = QQ.hom(pAdicField(3))
+    sage: phi = QQ.hom(Qp(3, print_mode = 'series'))
     sage: phi
     Coercion morphism:
       From: Rational Field
-      To:   3-adic Field
+      To:   3-adic Field with capped relative precision 20
     sage: phi.codomain()
-    3-adic Field
+    3-adic Field with capped relative precision 20
     sage: phi(394)
     1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + ... + O(3^+Infinity)
 

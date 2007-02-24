@@ -1762,6 +1762,19 @@ whereas y has parent '%s'"""%(x,y,parent_c(x),parent_c(y))
     return x, y
 
 def canonical_coercion(x, y):
+    """
+    canonical_coercion(x,y) is what is called before doing an
+    arithmetic operation between x and y.  It returns a pair (z,w)
+    such that z is got from x and w from y via canonical coercion and
+    the parents of z and w are identical.
+
+    EXAMPLES:
+        sage: A = Matrix([[0,1],[1,0]])
+        sage: canonical_coercion(A,1)
+        ([0 1]
+        [1 0], [1 0]
+        [0 1])
+    """
     return canonical_coercion_c(x,y)
 
 cdef canonical_coercion_c(x, y):

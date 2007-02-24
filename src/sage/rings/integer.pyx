@@ -588,7 +588,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef RingElement _div_c_impl(self, RingElement right):
         r"""
-        Computes a \over{b}
+        Computes \frac{a}{b}
 
         EXAMPLES:
             sage: a = Integer(3) ; b = Integer(4)
@@ -615,7 +615,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def __floordiv__(x, y):
         r"""
-        Computes the whole part of self \over{other}
+        Computes the whole part of \frac{self}{other}
 
         EXAMPLES:
             sage: a = Integer(321) ; b = Integer(10)

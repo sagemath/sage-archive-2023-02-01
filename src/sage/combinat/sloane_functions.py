@@ -88,6 +88,8 @@ AUTHORS:
 ########################################################################
 
 # just used for handy .load, .save, etc.
+
+import inspect
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
@@ -194,13 +196,13 @@ class A000001(SloaneSequence):
         Traceback (most recent call last):
         ...
         ValueError: input n (=0) must be a positive integer
-        sage: a(1)
+        sage: a(1) #optional database_gap
         1
-        sage: a(2)
+        sage: a(2) #optional database_gap
         1
-        sage: a(9)
+        sage: a(9) #optional database_gap
         2
-        sage: a.list(16)
+        sage: a.list(16) #optional database_gap
         [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
         sage: a(60)     # optional
         13
@@ -6886,136 +6888,62 @@ class A000100(SloaneSequence):
 #############################################################
 
 class Sloane(SageObject):
-    pass
-sloane = Sloane()
+    r"""
+    A collection of Sloane generating functions.
 
-sloane.A000001 = A000001()
-sloane.A000004 = A000004()
-sloane.A000005 = A000005()
-sloane.A000007 = A000007()
-sloane.A000009 = A000009()
-sloane.A000010 = A000010()
-sloane.A000012 = A000012()
-sloane.A000015 = A000015()
-sloane.A000016 = A000016()
-sloane.A000027 = A000027()
-sloane.A000030 = A000030()
-sloane.A000032 = A000032()
-sloane.A000035 = A000035()
-sloane.A000040 = A000040()
-sloane.A000043 = A000043()
-sloane.A000041 = A000041()
-sloane.A000045 = A000045()
-sloane.A000069 = A000069()
-sloane.A000073 = A000073()
-sloane.A000079 = A000079()
-sloane.A000085 = A000085()
-sloane.A000100 = A000100()
-sloane.A000108 = A000108()
-sloane.A000110 = A000110()
-sloane.A000120 = A000120()
-sloane.A000124 = A000124()
-sloane.A000129 = A000129()
-sloane.A000142 = A000142()
-sloane.A000153 = A000153()
-sloane.A000165 = A000165()
-sloane.A000166 = A000166()
-sloane.A000169 = A000169()
-sloane.A000203 = A000203()
-sloane.A000204 = A000204()
-sloane.A000213 = A000213()
-sloane.A000217 = A000217()
-sloane.A000225 = A000225()
-sloane.A000244 = A000244()
-sloane.A000255 = A000255()
-sloane.A000261 = A000261()
-sloane.A000272 = A000272()
-sloane.A000290 = A000290()
-sloane.A000292 = A000292()
-sloane.A000302 = A000302()
-sloane.A000312 = A000312()
-sloane.A000326 = A000326()
-sloane.A000330 = A000330()
-sloane.A000396 = A000396()
-sloane.A000578 = A000578()
-sloane.A000583 = A000583()
-sloane.A000587 = A000587()
-sloane.A000668 = A000668()
-sloane.A000670 = A000670()
-sloane.A000720 = A000720()
-sloane.A000796 = A000796()
-sloane.A000961 = A000961()
-sloane.A000984 = A000984()
-sloane.A001006 = A001006()
-sloane.A001055 = A001055()
-sloane.A001045 = A001045()
-sloane.A001109 = A001109()
-sloane.A001110 = A001110()
-sloane.A001147 = A001147()
-sloane.A001157 = A001157()
-sloane.A001189 = A001189()
-sloane.A001221 = A001221()
-sloane.A001222 = A001222()
-sloane.A001227 = A001227()
-sloane.A001333 = A001333()
-sloane.A001358 = A001358()
-sloane.A001405 = A001405()
-sloane.A001477 = A001477()
-sloane.A001694 = A001694()
-sloane.A001836 = A001836()
-sloane.A001906 = A001906()
-sloane.A001909 = A001909()
-sloane.A001910 = A001910()
-sloane.A001969 = A001969()
-sloane.A002110 = A002110()
-sloane.A002113 = A002113()
-sloane.A002378 = A002378()
-sloane.A002275 = A002275()
-sloane.A002620 = A002620()
-sloane.A002808 = A002808()
-sloane.A003418 = A003418()
-sloane.A004086 = A004086()
-sloane.A004526 = A004526()
-sloane.A005100 = A005100()
-sloane.A005101 = A005101()
-sloane.A005117 = A005117()
-sloane.A005408 = A005408()
-sloane.A005843 = A005843()
-sloane.A006318 = A006318()
-sloane.A006882 = A006882()
-sloane.A006530 = A006530()
-sloane.A007318 = A007318()
-sloane.A008275 = A008275()
-sloane.A008277 = A008277()
-sloane.A008683 = A008683()
-sloane.A010060 = A010060()
-sloane.A015521 = A015521()
-sloane.A015523 = A015523()
-sloane.A015530 = A015530()
-sloane.A015531 = A015531()
-sloane.A018252 = A018252()
-sloane.A020639 = A020639()
-sloane.A046660 = A046660()
-sloane.A049310 = A049310()
-sloane.A051959 = A051959()
-sloane.A055790 = A055790()
-sloane.A061084 = A061084()
-sloane.A064553 = A064553()
-sloane.A079922 = A079922()
-sloane.A079923 = A079923()
-sloane.A082411 = A082411()
-sloane.A083103 = A083103()
-sloane.A083104 = A083104()
-sloane.A083105 = A083105()
-sloane.A083216 = A083216()
-sloane.A083216 = A083216()
-sloane.A090010 = A090010()
-sloane.A090012 = A090012()
-sloane.A090013 = A090013()
-sloane.A090014 = A090014()
-sloane.A090015 = A090015()
-sloane.A090016 = A090016()
-sloane.A111774 = A111774()
-sloane.A111775 = A111775()
-sloane.A111776 = A111776()
-sloane.A111787 = A111787()
+    This class inspects sage.combinat.sloane_functions, accumulating all the SloaneSequence classes starting with 'A'.  These are listed for tab completion, but not instantiated until requested.
+
+    EXAMPLES:
+        Ensure we have lots of entries:
+        sage: len(sloane.trait_names()) > 100
+        True
+
+        And ensure none are being incorrectly returned:
+        sage: [ None for n in sloane.trait_names() if not n.startswith('A') ]
+        []
+
+        Ensure we can access dynamic constructions and cache correctly:
+        sage: s = sloane.A000587
+        sage: s is sloane.A000587
+        True
+
+        And that we can access other functions in parent classes:
+        sage: sloane.__class__
+        <class 'sage.combinat.sloane_functions.Sloane'>
+
+    AUTHOR: Nick Alexander
+    """
+
+    def trait_names(self):
+        r"""List Sloane generating functions for tab-completion.
+
+        The member classes are inspected from module sage.combinat.sloane_functions.
+
+        They must be sub classes of SloaneSequence and must start with 'A'.  These
+        restrictions are only to prevent typos, incorrect inspecting, etc.
+        """
+        try:
+            return self.__trait_names
+        except AttributeError:
+            import sage.combinat.sloane_functions
+            xs = inspect.getmembers(sage.combinat.sloane_functions, inspect.isclass)
+            self.__trait_names = [ n for (n, c) in xs if n.startswith('A') and issubclass(c, SloaneSequence) ]
+            return self.__trait_names
+
+    def __getattribute__(self, name):
+        r"""Construct and cache unique instances of Sloane generating function objects
+        .
+        """
+        try:
+            return SageObject.__getattribute__(self, name)
+        except AttributeError:
+            try:
+                import sage.combinat.sloane_functions
+                f = getattr(sage.combinat.sloane_functions, name)
+                seq = f()
+                setattr(self, name, seq)
+                return seq
+            except AttributeError:
+                raise AttributeError, name
+
+sloane = Sloane()

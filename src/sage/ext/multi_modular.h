@@ -12,3 +12,5 @@
  * we have room to gather.
  */
 #define START_PRIME_MAX (MOD_INT_MAX/7)
+
+#define LINBOX_PRIME_MAX ((1<< 50)-1)

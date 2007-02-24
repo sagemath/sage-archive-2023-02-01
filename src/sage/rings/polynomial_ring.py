@@ -165,8 +165,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-            return x.univariate_polynomial(self)
+        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
+        #    return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         return C(self, x, check, is_gen, construct=construct)

@@ -311,6 +311,9 @@ class Worksheet:
         return cells[0].id()
 
     def directory(self):
+        if not os.path.exists(self.__dir):
+            # prevent "rm -rf" accidents.
+            os.makedirs(self.__dir)
         return self.__dir
 
     def DIR(self):
@@ -348,7 +351,7 @@ class Worksheet:
             if S._expect != None:
                 return S
         except AttributeError:
-            S = Sage(maxread = 1)
+            S = Sage(maxread = 1, path = self.__dir)
         S._start(block_during_init=False)
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
@@ -517,7 +520,9 @@ class Worksheet:
 
         id = self.next_block_id()
 
-        #id = C.relative_id()
+        # prevent directory disappear problems
+        if not os.path.exists('%s/code'%self.directory()):
+            os.makedirs('%s/code'%self.directory())
         tmp = '%s/code/%s.py'%(self.directory(), id)
         input = 'os.chdir("%s")\n'%os.path.abspath(D)
 
@@ -565,7 +570,10 @@ class Worksheet:
         # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
         # in order to support use of the with statement in the notebook.  Very annoying.
         input = 'from __future__ import with_statement\n' + input
+
+
         open(tmp,'w').write(input)
+
         cmd = 'execfile("%s")\n'%os.path.abspath(tmp)
         # Signal an end (which would only be seen if there is an error.)
         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
@@ -798,7 +806,7 @@ class Worksheet:
             # no sage running anyways!
             return
 
-        alarm(2)
+        alarm(3)
         try:
             S.quit()
             S._expect = None
@@ -818,7 +826,7 @@ class Worksheet:
     def postprocess_output(self, out, C):
         i = out.find('\r\n')
         out = out[i+2:]
-        out = out.rstrip()
+        #out = out.rstrip()
         if C.introspect():
             return out
 

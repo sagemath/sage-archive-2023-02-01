@@ -1790,12 +1790,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         Returns the $n^{th}$ root of self
 
         Parameters:
-        n -- A positive number rounded down to the nearest integer.
-             Note that $n$ shoould be less than $\code{sys.maxint}$.
+        n -- A positive number, rounded down to the nearest integer.
+             Note that $n$ should be less than $\code{sys.maxint}$.
 
         EXAMPLES:
             sage: R = RealField()
             sage: R(8).nth_root(3)
+            2.00000000000000
+            sage: R(8).nth_root(3.7)    # illustrate rounding down
             2.00000000000000
             sage: R(-8).nth_root(3)
             -2.00000000000000
@@ -1808,31 +1810,36 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(32).nth_root(1.0)
             32.0000000000000
 
-        Note that for negative numbers, any even root
-        returns NaN
+        Note that for negative numbers, any even root returns NaN
             sage: R(-2).nth_root(6)
             NaN
 
-        The $n^{th}$ root of -0 is defined to be -0, for
-        any $n$
+        The $n^{th}$ root of -0 is defined to be -0, for any $n$
             sage: R(-0).nth_root(6)
             0.000000000000000
 
             sage: R(-0).nth_root(7)
             0.000000000000000
 
-        Author: didier deshommes
+        Author: Didier Deshommes (2007-02)
+        Referee: David Harvey
+
+        TODO: (trac #294) the underlying mpfr_root function is unforgivably
+        slow when n is large. e.g. RealNumber(8).nth_root(100000) is very slow.
+        This should be investigated further and possibly discussed with the
+        mpfr developers.
         """
         cdef RealNumber x
 
-        if n < 0 :
-            raise ValueError,"Invalid value for n"
+        if n < 0:
+            raise ValueError, "Invalid value for n"
 
         x = self._new()
         _sig_on
-        mpfr_root(x.value, self.value,n ,(<RealField>self._parent).rnd)
+        mpfr_root(x.value, self.value, n, (<RealField>self._parent).rnd)
         _sig_off
         return x
+
 
 RR = RealField()
 

@@ -68,7 +68,8 @@ from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
 
-USE_LINBOX_POLY = True
+# It is still buggy. buzzard.py fails once in a while on charpoly.
+USE_LINBOX_POLY = False
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""

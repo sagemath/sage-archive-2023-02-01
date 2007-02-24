@@ -637,7 +637,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix right):
         return self._multiply_over_integers(right)
 
-    def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='default'):
+    def _multiply_over_integers(self, Matrix_rational_dense right, algorithm='multimodular'):
         """
         Multiply this matrix by right using a multimodular algorithm
         and return the result.

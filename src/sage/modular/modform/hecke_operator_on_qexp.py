@@ -30,7 +30,7 @@ def hecke_operator_on_qexp(f, n, k, eps = None,
     v = []
     if prec is None:
         pr = f.prec()
-        if pr == infinity:
+        if pr is infinity:
             raise ValueError, "f must have finite precision."
         prec = pr // n + 1
     else:

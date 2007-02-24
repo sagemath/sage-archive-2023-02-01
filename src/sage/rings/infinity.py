@@ -1,26 +1,34 @@
 r"""
-Infinity Ring
+Infinity Rings
 
-The infinity ``ring'' is the set of two elements
+The unsigned infinity ``ring'' is the set of two elements
 \begin{verbatim}
         * infinity
         * A number less than infinity
 \end{verbatim}
 
-This isn't really a ring, but a formal construction that is incredibly
-useful in much of the implementation of SAGE.
-
-The rules for arithmetic are that the infinity ring does not canonically
+The rules for arithmetic are that the unsigned infinity ring does not canonically
 coerce to any other ring, and all other rings canonically coerce to
-the infinity ring, sending all elements to the single element
-``a number less than infinity'' of the infinity ring.
-Arithmetic and comparisons then takes place in the infinity ring,
+the unsigned infinity ring, sending all elements to the single element
+``a number less than infinity'' of the unsigned infinity ring.
+Arithmetic and comparisons then takes place in the unsigned infinity ring,
 where all arithmetic operations that are well defined are defined.
 
+The infinity ``ring'' is the set of five elements
+\begin{verbatim}
+        * plus infinity
+        * a positive finite element
+        * zero
+        * a negative finite element
+        * negative infinity
+\end{verbatim}
+
+The infinity ring coerces to the unsigned infinity ring, sending the infinite elements to infinity and the non-infinite elements to ``a number less than infinity.''  Any ordered ring coerces to the infinity ring in the obvious way.
+
 EXAMPLES:
-We fetch the infinity ring and create some elements:
-    sage: P = InfinityRing(); P
-    The Infinity Ring
+We fetch the unsigned infinity ring and create some elements:
+    sage: P = UnsignedInfinityRing; P
+    The Unsigned Infinity Ring
     sage: P(5)
     A number less than infinity
     sage: P.ngens()
@@ -47,10 +55,10 @@ not well defined.
     sage: oo/0
     Traceback (most recent call last):
     ...
-    ArithmeticError: quotient of oo by number < oo not defined
+    TypeError: unsupported operand parent(s) for '/': 'The Unsigned Infinity Ring' and 'Integer Ring'
 
 What happened above is that 0 is canonically coerced to
-"a number less than infinity" in the infinity ring, and the quotient
+"a number less than infinity" in the unsigned infinity ring, and the quotient
 is then not well defined.
 
     sage: 0/oo
@@ -58,67 +66,118 @@ is then not well defined.
     sage: oo * 0
     Traceback (most recent call last):
     ...
-    ArithmeticError: oo times smaller number not defined
-
+    TypeError: unsupported operand parent(s) for '*': 'The Unsigned Infinity Ring' and 'The Unsigned Infinity Ring'
     sage: oo/oo
     Traceback (most recent call last):
     ...
-    ArithmeticError: oo / oo not defined
+    TypeError: unsupported operand parent(s) for '/': 'The Unsigned Infinity Ring' and 'The Unsigned Infinity Ring'
 
-
-Saving and loading:
-    sage: R = loads(dumps(InfinityRing())); R
+In the infinity ring, we can negate infinity, multiply positive numbers by infinity, etc.
+    sage: P = InfinityRing; P
     The Infinity Ring
-    sage: R == InfinityRing()
+    sage: P(5)
+    A positive finite number
+    sage: oo = P.0; oo
+    +Infinity
+
+We compare finite and infinite elements
+    sage: 5 < oo
     True
-    sage: R is InfinityRing()
+    sage: P(-5) < P(5)
+    True
+    sage: P(2) < P(3)
     False
+    sage: -oo < oo
+    True
+
+We can do more arithmetic than in the unsigned infinity ring.
+    sage: 2 * oo
+    +Infinity
+    sage: -2 * oo
+    -Infinity
+    sage: 1 - oo
+    -Infinity
+    sage: 1 / oo
+    Zero
+    sage: -1 / oo
+    Zero
+
+If we try to subtract infinities or multiply infinity by zero we still get an error.
+    sage: oo - oo
+    Traceback (most recent call last):
+    ...
+    SignError: cannot add infinity to minus infinity
+    sage: 0 * oo
+    Traceback (most recent call last):
+    ...
+    SignError: cannot multiply infinity by zero
+    sage: P(2) + P(-3)
+    Traceback (most recent call last):
+    ...
+    SignError: cannot add positive finite value to negative finite value
 """
 
-from ring_element import RingElement
+from sage.rings.ring_element import RingElement
 from sage.rings.ring import Ring
 from sage.structure.element import RingElement, InfinityElement
 from sage.structure.parent_gens import ParentWithGens
+#import sage.rings.real_double
+#import sage.rings.real_mpfr
+import sage.rings.integer
+import sage.rings.rational
 
-class InfinityRing_class(Ring):
-    """
-    The infinity "ring", which contains oo and one formal quantity
-    that is "less than infinity".
-    """
+_obj = {}
+class _uniq0(object):
+    def __new__(cls):
+        if _obj.has_key(0):
+            return _obj[0]
+        O = Ring.__new__(cls)
+        _obj[0] = O
+        return O
+class _uniq1(object):
+    def __new__(cls):
+        if _obj.has_key(1):
+            return _obj[1]
+        O = InfinityElement.__new__(cls)
+        _obj[1] = O
+        return O
+class _uniq2(object):
+    def __new__(cls):
+        if _obj.has_key(2):
+            return _obj[2]
+        O = Ring.__new__(cls)
+        _obj[2] = O
+        return O
+class _uniq3(object):
+    def __new__(cls):
+        if _obj.has_key(3):
+            return _obj[3]
+        O = InfinityElement.__new__(cls)
+        _obj[3] = O
+        return O
+class _uniq4(object):
+    def __new__(cls):
+        if _obj.has_key(4):
+            return _obj[4]
+        O = InfinityElement.__new__(cls)
+        _obj[4] = O
+        return O
+
+class UnsignedInfinityRing_class(_uniq0, Ring):
     def __init__(self):
         ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
 
     def ngens(self):
-        """
-        Return the number of generators (1) of the infinity ring.
-
-        EXAMPLES:
-            sage: InfinityRing().ngens()
-            1
-        """
         return 1
 
     def gen(self, n=0):
-        """
-        Return the "generator" of the infinity ring.  By convention this
-        is infinity.
-
-        EXAMPLES:
-            sage: InfinityRing().gen()
-            Infinity
-        """
         try:
             return self._gen
         except AttributeError:
-            self._gen = Infinity(self)
+            self._gen = UnsignedInfinity()
         return self._gen
 
     def less_than_infinity(self):
-        """
-        EXAMPLES:
-            sage: InfinityRing().less_than_infinity()
-            A number less than infinity
-        """
         try:
             return self._less_than_infinity
         except AttributeError:
@@ -126,114 +185,41 @@ class InfinityRing_class(Ring):
             return self._less_than_infinity
 
     def gens(self):
-        """
-        EXAMPLES:
-            sage: InfinityRing().gens()
-            [Infinity]
-        """
         return [self.gen()]
 
     def _repr_(self):
-        """
-        EXAMPLES:
-            sage: InfinityRing()
-            The Infinity Ring
-        """
-        return "The Infinity Ring"
+        return "The Unsigned Infinity Ring"
 
     def __cmp__(self, right):
-        """
-        The only ring that is equal to the infinity ring is another copy of the
-        infinity ring.
-
-        Other rings compare based on their underlying types.
-
-        EXAMPLES:
-            sage: InfinityRing() == InfinityRing()
-            True
-            sage: InfinityRing() == loads(dumps(InfinityRing()))
-            True
-            sage: InfinityRing() == ZZ
-            False
-        """
-        if isinstance(right, InfinityRing_class):
+        if isinstance(right, UnsignedInfinityRing_class):
             return 0
         return cmp(type(self), type(right))
 
     def __call__(self, x):
-        """
-        Coerce x into the infinity ring.
-
-        If x is infinity, then x coerce to the infinity element.  All other
-        elements of rings coerce to the "less than infinity" element.
-
-        EXAMPLES:
-            sage: R = InfinityRing()
-            sage: R(5)
-            A number less than infinity
-            sage: R(oo)
-            Infinity
-            sage: R(RDF(1.459))
-            A number less than infinity
-            sage: R(RDF(1)/RDF(0))       # real double field
-            Infinity
-            sage: R(RR(1)/RR(0))   # mpr real field
-            Infinity
-        """
         if isinstance(x, InfinityElement):
             if x.parent() is self:
                 return x
             else:
                 return self.gen()
-        elif isinstance(x, (int,long,float,complex)):
-            return self.less_than_infinity()
-        elif isinstance(x, RingElement):
-            if hasattr(x, 'is_infinity') and x.is_infinity():
-                    return self.gen()
-            return self.less_than_infinity()
-        else:
-            raise TypeError, 'no coercion of non-ring element to infinity ring'
-
-    def _coerce_impl(self, x):
-        """
-        Canonical coercion of elements into self.
-
-        EXAMPLES:
-            sage: R = InfinityRing()
-            sage: R._coerce_(oo)
-            Infinity
-            sage: R._coerce_(5)
-            A number less than infinity
-            sage: R._coerce_('hello')
-            Traceback (most recent call last):
-            ...
-            TypeError
-        """
-        if isinstance(x, InfinityElement):
-            x = Infinity()
-            x._set_parent(self)
-            return x
-        elif isinstance(x, RingElement):
+        elif isinstance(x, RingElement) or isinstance(x, (int,long,float,complex)):
             return self.less_than_infinity()
         else:
             raise TypeError
 
-theInfinityRing = InfinityRing_class()
-def InfinityRing():
-    r"""
-    Return the infinity ring.
+    def _coerce_impl(self, x):
+        if isinstance(x, InfinityElement):
+            x = UnsignedInfinity()
+            x._set_parent(self)
+            return x
+        elif isinstance(x, RingElement):
+            return less_than_infinity
+        else:
+            raise TypeError
 
-    The infinity ``ring'' is the set of two elements "infinity" and
-    "a number less than infinity".
-
-    EXAMPLES:
-        sage: InfinityRing()
-        The Infinity Ring
-    """
-    return theInfinityRing
+UnsignedInfinityRing = UnsignedInfinityRing_class()
 
 class LessThanInfinity(RingElement):
-    def __init__(self, parent=InfinityRing):
+    def __init__(self, parent=UnsignedInfinityRing):
         RingElement.__init__(self, parent)
 
     def _repr_(self):
@@ -243,34 +229,34 @@ class LessThanInfinity(RingElement):
         return "(<\\infty)"
 
     def _add_(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return other
         return self
 
     def _sub_(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return other
         return self
 
     def _mul_(self, other):
-        if isinstance(other, Infinity):
-            raise ArithmeticError, "oo times number < oo not defined"
+        if isinstance(other, UnsignedInfinity):
+            raise TypeError, "oo times number < oo not defined"
         return self
 
     def _div_(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return self
-        raise ArithmeticError, "quotient of numbers < oo not defined"
+        raise TypeError, "quotient of oo by number < oo not defined"
 
     def __cmp__(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return -1
         return 0
 
 
-class Infinity(InfinityElement):
-    def __init__(self, parent=InfinityRing):
-        InfinityElement.__init__(self, parent)
+class UnsignedInfinity(_uniq1, InfinityElement):
+    def __init__(self):
+        InfinityElement.__init__(self, UnsignedInfinityRing)
 
     def _repr_(self):
         return "Infinity"
@@ -281,6 +267,7 @@ class Infinity(InfinityElement):
         is by definition oo unless x is 0.
 
         EXAMPLES:
+            sage: oo = UnsignedInfinityRing.gen(0)
             sage: oo.lcm(0)
             0
             sage: oo.lcm(oo)
@@ -300,29 +287,329 @@ class Infinity(InfinityElement):
         return self
 
     def _sub_(self, other):
-        if not isinstance(other, Infinity):
+        if not isinstance(other, UnsignedInfinity):
             return self
-        raise ArithmeticError, "oo - oo not defined"
+        raise TypeError, "oo - oo not defined"
 
     def _mul_(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return self
-        raise ArithmeticError, "oo times smaller number not defined"
-
-    def _div_(self, other):
-        if isinstance(other, Infinity):
-            raise ArithmeticError, "oo / oo not defined"
-        raise ArithmeticError, "quotient of oo by number < oo not defined"
+        raise TypeError, "oo times smaller number not defined"
 
     def __cmp__(self, other):
-        if isinstance(other, Infinity):
+        if isinstance(other, UnsignedInfinity):
             return 0
         return 1
 
 
-infinity = theInfinityRing.gen(0)
-less_than_infinity = theInfinityRing.less_than_infinity()
+unsigned_infinity = UnsignedInfinityRing.gen(0)
+less_than_infinity = UnsignedInfinityRing.less_than_infinity()
 
-def is_Infinity(x):
-    return isinstance(x, Infinity)
+def is_Infinite(x):
+    return isinstance(x, InfinityElement)
+
+class SignError(Exception):
+    pass
+
+class InfinityRing_class(_uniq2, Ring):
+    def __init__(self):
+        ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
+
+    def ngens(self):
+        return 1
+
+    def gen(self, n=0):
+        try:
+            if n == 0:
+                return self._gcd0
+            elif n == 1:
+                return self._gcd1
+            else:
+                raise IndexError, "n must be 0 or 1"
+        except AttributeError:
+            if n == 0:
+                self._gen0 = PlusInfinity()
+                return self._gen0
+            elif n == 1:
+                self._gen1 = MinusInfinity()
+                return self._gen1
+
+    def gens(self):
+        return [self.gen(0), self.gen(1)]
+
+    def _repr_(self):
+        return "The Infinity Ring"
+
+    def __cmp__(self, right):
+        if isinstance(right, InfinityRing_class):
+            return 0
+        return cmp(type(self), type(right))
+
+    def __call__(self, x):
+        if isinstance(x, PlusInfinity):
+            return self.gen(0)
+        elif isinstance(x, MinusInfinity):
+            return self.gen(1)
+        elif isinstance(x, InfinityElement):
+            return self.gen(0)
+        elif isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational, sage.rings.real_double.RealDoubleElement, sage.rings.real_mpfr.RealNumber)) or isinstance(x, (int,long,float)):
+            if x < 0:
+                return FiniteNumber(self, -1)
+            elif x > 0:
+                return FiniteNumber(self, 1)
+            else:
+                return FiniteNumber(self, 0)
+        else:
+            raise TypeError
+
+    def _coerce_impl(self, x):
+        if isinstance(x, PlusInfinity):
+            if x.parent() is self:
+                return x
+            else:
+                return self.gen()
+        elif isinstance(x, MinusInfinity):
+            if x.parent() is self:
+                return x
+            else:
+                return -self.gen()
+        elif isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational, sage.rings.real_double.RealDoubleElement, sage.rings.real_mpfr.RealNumber)) or isinstance(x, (int,long,float)):
+        #elif isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational)) or isinstance(x, (int,long,float)):
+            if x < 0:
+                return FiniteNumber(self, -1)
+            elif x > 0:
+                return FiniteNumber(self, 1)
+            else:
+                return FiniteNumber(self, 0)
+        else:
+            raise TypeError
+
+class FiniteNumber(RingElement):
+    def __init__(self, parent, x):
+        RingElement.__init__(self, parent)
+        self.value = x
+
+    def __cmp__(self, other):
+        if isinstance(other, PlusInfinity):
+            return -1
+        if isinstance(other, MinusInfinity):
+            return 1
+        return self.value.__cmp__(other.value)
+
+    def _add_(self, other):
+        if isinstance(other, InfinityElement):
+            return other
+        if self.value * other.value < 0:
+            raise SignError, "cannot add positive finite value to negative finite value"
+        return FiniteNumber(self.parent(), self.value)
+
+    def _mul_(self, other):
+        if self.value < 0:
+            if isinstance(other, InfinityElement):
+                return -other
+            return FiniteNumber(self.parent(), self.value * other.value)
+        if self.value > 0:
+            if isinstance(other, InfinityElement):
+                return other
+            return FiniteNumber(self.parent(), self.value * other.value)
+        if self.value == 0:
+            if isinstance(other, InfinityElement):
+                raise SignError, "cannot multiply infinity by zero"
+            return FiniteNumber(self.parent(), 0)
+
+    def _div_(self, other):
+        return self._mul_(other.__invert__())
+
+    def _sub_(self, other):
+        return self._add_(other._neg_())
+
+    def __invert__(self):
+        if self.value == 0:
+            raise ZeroDivisionError, "Cannot divide by zero"
+        return self
+
+    def _neg_(self):
+        return FiniteNumber(self.parent(), -self.value)
+
+    def __repr__(self):
+        if self.value < 0:
+            return "A negative finite number"
+        if self.value > 0:
+            return "A positive finite number"
+        return "Zero"
+
+    def _latex_(self):
+        return self.__repr__()
+
+    def __abs__(self):
+        if self.value == 0:
+            return FiniteNumber(self.parent(), 0)
+        return FiniteNumber(self.parent(), 1)
+
+    def sqrt(self):
+        if self._value < 0:
+            raise SignError, "cannot take square root of a negative number"
+        return self
+
+    def square_root(self):
+        if self._value < 0:
+            raise SignError, "cannot take square root of a negative number"
+        return self
+
+class MinusInfinity(_uniq3, InfinityElement):
+    def __init__(self):
+        InfinityElement.__init__(self, InfinityRing)
+
+    def __cmp__(self, other):
+        if isinstance(other, MinusInfinity):
+            return 0
+        return -1
+
+    def __repr__(self):
+        return "-Infinity"
+
+    def _latex_(self):
+        return "-\\infty"
+
+    def _add_(self, other):
+        if isinstance(other, PlusInfinity):
+            raise SignError, "cannot add infinity to minus infinity"
+        return self
+
+    def _mul_(self, other):
+        if other < 0:
+            return -self
+        if other > 0:
+            return self
+        raise SignError, "cannot multiply infinity by zero"
+
+    def _sub_(self, other):
+        if isinstance(other, MinusInfinity):
+            raise SignError, "cannot add infinity to minus infinity"
+        return self
+
+    def _div_(self, other):
+        return self * other.__invert__()
+
+    def _neg_(self):
+        return self.parent().gen(0)
+
+    def __invert__(self):
+        return FiniteNumber(self.parent(), 0)
+
+    def __abs__(self):
+        return self.parent().gen(0)
+
+    def lcm(self, x):
+        """
+        Return the least common multiple of -oo and x, which
+        is by definition oo unless x is 0.
+
+        EXAMPLES:
+            sage: moo = InfinityRing.gen(1)
+            sage: moo.lcm(0)
+            0
+            sage: moo.lcm(oo)
+            +Infinity
+            sage: moo.lcm(10)
+            +Infinity
+        """
+        if x == 0:
+            return x
+        else:
+            return -self
+
+    def sqrt(self):
+        raise SignError, "cannot take square root of negative infinity"
+
+    def square_root(self):
+        raise SignError, "cannot take square root of negative infinity"
+
+class PlusInfinity(_uniq4, InfinityElement):
+    def __init__(self):
+        InfinityElement.__init__(self, InfinityRing)
+
+    def __cmp__(self, other):
+        if isinstance(other, PlusInfinity):
+            return 0
+        return 1
+
+    def __repr__(self):
+        return "+Infinity"
+
+    def _latex_(self):
+        return "+\\infty"
+
+    def _add_(self, other):
+        if isinstance(other, MinusInfinity):
+            raise SignError, "cannot add infinity to minus infinity"
+        return self
+
+    def _mul_(self, other):
+        if other < 0:
+            return -self
+        if other > 0:
+            return self
+        raise TypeError, "cannot multiply infinity by zero"
+
+    def _sub_(self, other):
+        if isinstance(other, PlusInfinity):
+            raise SignError, "cannot add infinity to minus infinity"
+        return self
+
+    def _div_(self, other):
+        return self * other.__invert__()
+
+    def _neg_(self):
+        return self.parent().gen(1)
+
+    def __invert__(self):
+        return FiniteNumber(self.parent(), 0)
+
+    def __abs__(self):
+        return self
+
+    def lcm(self, x):
+        """
+        Return the least common multiple of oo and x, which
+        is by definition oo unless x is 0.
+
+        EXAMPLES:
+            sage: oo = InfinityRing.gen(0)
+            sage: oo.lcm(0)
+            0
+            sage: oo.lcm(oo)
+            +Infinity
+            sage: oo.lcm(10)
+            +Infinity
+        """
+        if x == 0:
+            return x
+        else:
+            return self
+
+    def sqrt(self):
+        return self
+
+    def square_root(self):
+        return self
+
+InfinityRing = InfinityRing_class()
+infinity = InfinityRing.gen(0)
+Infinity = infinity
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

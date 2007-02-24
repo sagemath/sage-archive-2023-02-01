@@ -39,7 +39,7 @@ import copy
 
 from sage.rings.integer import Integer
 
-from sage.rings.infinity import Infinity
+from sage.rings.infinity import infinity
 from sage.rings.arith import factor,is_prime_power,LCM
 from abelian_group_element import AbelianGroupElement,is_AbelianGroupElement
 from sage.misc.misc import add, prod
@@ -77,7 +77,7 @@ def DualAbelianGroup(G, names="X", base_ring=CC):
         1.00000000000000
         1.00000000000000
     """
-    if G.order()==Infinity:
+    if G.order() is infinity:
         NotImplementedError, "The group must be finite"
     #infac = G.invariants()
     #n = G.ngens()

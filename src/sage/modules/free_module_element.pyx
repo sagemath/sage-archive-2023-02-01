@@ -226,7 +226,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v = vector([1,2,3])
             sage: v.additive_order()
-            Infinity
+            +Infinity
 
             sage: v = vector(Integers(30), [6, 15]); v
             (6, 15)

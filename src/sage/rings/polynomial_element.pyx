@@ -1547,7 +1547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: (x^3+1).valuation(infinity)
         -3
         sage: P(0).valuation()
-        Infinity
+        +Infinity
         """
         cdef int k
         if self.is_zero():

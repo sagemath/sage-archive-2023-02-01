@@ -66,7 +66,7 @@ from sage.rings.all import (
     ComplexField, RationalField)
 
 import gp_cremona
-import padic_height
+#import padic_height
 import monsky_washnitzer
 import sea
 

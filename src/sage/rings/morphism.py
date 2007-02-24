@@ -170,7 +170,7 @@ EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
     sage: phi.codomain()
     3-adic Field
     sage: phi(394)
-    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + ... + O(3^Infinity)
+    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + ... + O(3^+Infinity)
 
 EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
     sage: R.<x> = PolynomialRing(QQ)

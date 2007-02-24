@@ -1361,7 +1361,7 @@ cdef class ComplexDoubleElement(FieldElement):
             Infinity
         """
         if self._complex.dat[0] == 0 and self._complex.dat[1] == 0:
-            return infinity.infinity
+            return infinity.unsigned_infinity
         cdef pari_sp sp
         sp = avma
         return self._new_from_gen_c(  ggamma(self._gen(), PREC),   sp)

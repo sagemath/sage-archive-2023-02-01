@@ -45,7 +45,7 @@ from ideal import Ideal, is_Ideal
 from quotient_ring import QuotientRing
 
 # Class Infinity containing the one element infinity
-from infinity import infinity, is_Infinity, InfinityRing
+from infinity import infinity, Infinity, is_Infinite, InfinityRing, unsigned_infinity, UnsignedInfinityRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
@@ -74,8 +74,11 @@ from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotie
 from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # p-adic field
-from padic_field import pAdicField, Qp, is_pAdicField
-from padic import pAdic
+#from padic_field import pAdicField, Qp, is_pAdicField
+#from padic import pAdic
+# To turn on the new p-adics, comment out the above two lines and uncomment the two below.
+from padics.zp import Zp
+from padics.qp import Qp
 
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,

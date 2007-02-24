@@ -308,7 +308,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R(19).valuation()
             0
             sage: R(0).valuation()
-            Infinity
+            +Infinity
         """
         c = self.__coeffs.keys()
         if len(c) == 0:

@@ -109,7 +109,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
@@ -201,7 +201,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P.height()
             5.11114082399688e-2
             sage: P.order()
-            Infinity
+            +Infinity
             sage: E.regulator()      # slightly random output
             0.051111408239968840
         """
@@ -317,7 +317,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])

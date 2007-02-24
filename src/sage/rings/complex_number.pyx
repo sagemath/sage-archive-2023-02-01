@@ -429,7 +429,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: C(-i).multiplicative_order()
             4
             sage: C(2).multiplicative_order()
-            Infinity
+            +Infinity
             sage: w = (1+sqrt(-3))/2; w
             0.500000000000000 + 0.866025403784438*I
             sage: abs(w)
@@ -758,7 +758,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: CC(0).additive_order()
             1
             sage: CC.gen().additive_order()
-            Infinity
+            +Infinity
         """
         if self == 0:
             return 1

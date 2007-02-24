@@ -24,10 +24,11 @@ include '../ext/cdefs.pxi'
 include '../ext/python.pxi'
 #include '../gsl/gsl.pxi'
 from sage.rings.complex_double cimport ComplexDoubleElement
+from sage.modules.complex_double_vector cimport ComplexDoubleVectorSpaceElement
 import sage.rings.complex_double
 import sage.rings.real_double
 from matrix cimport Matrix
-from sage.structure.element cimport ModuleElement
+from sage.structure.element cimport ModuleElement, Vector
 cdef extern from "arrayobject.h":
 #The following exposes the internal C structure of the numpy python object
 # extern class [object PyArrayObject]  tells pyrex that this is
@@ -112,7 +113,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             raise MemoryError, "unable to allocate memory for matrix "
         self._LU = <gsl_matrix_complex *> NULL
         self._p = <gsl_permutation *> NULL
-        self._LU_valid = 0
+
 
     def __dealloc__(self):
         gsl_matrix_complex_free(self._matrix)
@@ -165,7 +166,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         cdef ComplexDoubleElement z
         z = sage.rings.complex_double.CDF(value)   # do I assume value is already CDF
         gsl_matrix_complex_set(self._matrix,i,j,z._complex) #sig on here ?
-        self._LU_valid  = 0
+
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef gsl_complex z
         z= gsl_matrix_complex_get(self._matrix,i,j)
@@ -251,7 +252,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     def __invert__(self):
         cdef int result_LU, result_invert
-        if(self._LU_valid != 1):
+        if self.fetch('LU_valid') != True:
             self._c_compute_LU()
         cdef Matrix_complex_double_dense M
         parent = self.matrix_space(self._nrows,self._ncols)
@@ -291,7 +292,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         result_LU = gsl_linalg_complex_LU_decomp(self._LU,self._p,&self._signum)
         _sig_off
         if result_LU == GSL_SUCCESS:
-            self._LU_valid = 1
+            self.cache('LU_valid',True)
         else:
             raise ValueError,"Error computing LU decomposition"
 
@@ -342,7 +343,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         return ( [sage.rings.complex_double.CDF(x) for x in v],_result_matrix)   #todo: make the result a complex double matrix
 
 
-    def solve_left(self, vec):
+    def solve_left(self,vec):
         """
         Solve the equation A*x = b, where
 
@@ -358,13 +359,51 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: A*x
             (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
         """
+        import numpy
+        cdef double *p
+        cdef ComplexDoubleVectorSpaceElement _vec,ans
+        _vec=vec
+        cdef ndarray _result
+        _result=numpy.linalg.solve(self.numpy(),_vec.numpy())
+        M=self._column_ambient_module()
+        ans=M.zero_vector()
+        p = <double *>_result.data
+#        cdef gsl_vector* result
+#        result=gsl_vector_alloc(_result.dimension[0])
+        memcpy(ans.v.data,_result.data,_result.dimensions[0]*sizeof(double)*2)
+        return ans
+
+
+
+    def solve_left_LU(self, vec):
+        """
+        Solve the equation A*x = b, where
+
+        EXAMPLES:
+            sage: A =I*matrix(CDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1])
+            sage: A   # slightly random output
+            [1.0*I             2.0*I                5.0*I]
+	    [7.59999990463*I   2.29999995232*I      1.0*I]
+ 	    [1.0*I             2.0*I               -1.0*I]
+            sage: b = vector(CDF,[1,2,3])+I*vector(CDF,[1,2,3])
+            sage: x = A.solve_left(b); x
+            (-0.113695090439 + 0.113695092499*I, 1.39018087855 - 1.39018082619*I, -0.333333333333 + 0.333333343267*I)
+            sage: A*x
+            (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
+
+        This method precomputes and stores the LU decomposition before solving. If many equations of the form Ax=b need to
+        be solved for a singe matrix A, then this method should be used instead of solve.The first time this method is called
+        it will compute the LU decomposition.
+        If the matrix hs not changed then subsequent calls will be very fast as the precomputed LU decomposition will be used.
+
+        """
         import solve
         return solve.solve_matrix_complex_double_dense(self, vec)
 
     def determinant(self):
          """compute the determinant using GSL (LU decompositon)"""
          cdef gsl_complex z
-         if(self._LU_valid !=1):
+         if(self.fetch('LU_valid') !=True):
              self._c_compute_LU()
          z=gsl_linalg_complex_LU_det(self._LU, self._signum)
          return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
@@ -373,7 +412,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
          """compute the log of the absolute value of the determinant using GSL(LU decomposition)
            useful if the determinant overlows"""
          cdef double z
-         if(self._LU_valid !=1):
+         if(self.fetch('LU_valid') !=True):
              self._c_compute_LU()
          z=gsl_linalg_complex_LU_lndet(self._LU)
          return sage.rings.real_double.RDF(z)
@@ -409,7 +448,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         """
         if self._ncols!=self._nrows:
             raise TypeError,"LU decomposition only works for square matrix"
-        if self._LU_valid != 1:
+        if self.fetch('LU_valid') != True:
             self._c_compute_LU()
         cdef Py_ssize_t i,j,k,l,copy_result
         cdef Matrix_complex_double_dense P, L,U
@@ -434,6 +473,17 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         return [P,L,U]
 
     def numpy(self):
+        r"""
+        This method returns a copy of the matrix as a numpy array. It is fast as the copy is done
+        using the numpy C/api.
+        sage: import numpy
+        sage: m=matrix(CDF,[[1,2],[3,4]])
+        sage: m=I*m
+        sage: n=m.numpy()
+        sage: numpy.linalg.eig(n)
+
+
+        """
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef Matrix_complex_double_dense _M,_result_matrix
         _M=self
@@ -451,3 +501,39 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         _n = temp
         _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership flag
         return _n
+
+
+    def _replace_self_with_numpy(self,numpy_matrix):
+        cdef ndarray n
+        cdef double *p
+        n=numpy_matrix
+        p=<double *>n.data
+        memcpy(self._matrix.data,p,sizeof(double)*self._nrows*self._ncols*2)
+
+    cdef Vector _matrix_times_vector_c_impl(self,Vector v):
+        cdef ComplexDoubleVectorSpaceElement v_,ans
+        cdef gsl_complex a,b
+        cdef gsl_vector *vec
+        cdef Py_ssize_t i,j
+        M=self._column_ambient_module()
+        v_ = v
+        ans=M.zero_vector()
+        GSL_SET_COMPLEX(&a,1.0,0)
+        GSL_SET_COMPLEX(&b,0,0)
+        gsl_blas_zgemv(CblasNoTrans,a,self._matrix, v_.v,b,ans.v)
+        return ans
+
+    cdef Vector _vector_times_matrix_c_impl(self,Vector v):
+        cdef ComplexDoubleVectorSpaceElement v_,ans
+        cdef gsl_complex a,b
+        cdef gsl_vector *vec
+        cdef Py_ssize_t i,j
+        M=self._row_ambient_module()
+        v_ = v
+        ans=M.zero_vector()
+        GSL_SET_COMPLEX(&a,1.0,0)
+        GSL_SET_COMPLEX(&b,0,0)
+        gsl_blas_zgemv(CblasTrans,a,self._matrix, v_.v,b,ans.v)
+        return ans
+
+

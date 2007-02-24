@@ -238,4 +238,10 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership flag
         return _n
 
+    def _replace_self_with_numpy(self,numpy_array):
+        cdef double *p
+        cdef ndarray n
+        n=numpy_array
+        p=<double *>n.data
+        memcpy(self.v.data,p,self.v.size*sizeof(double))
 

@@ -1785,6 +1785,55 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return sage.rings.arith.algdep(self,n)
 
+    def nth_root(self, int n):
+        r"""
+        Returns the $n^{th}$ root of self
+
+        Parameters:
+        n -- A positive number rounded down to the nearest integer.
+             Note that $n$ shoould be less than $\code{sys.maxint}$.
+
+        EXAMPLES:
+            sage: R = RealField()
+            sage: R(8).nth_root(3)
+            2.00000000000000
+            sage: R(-8).nth_root(3)
+            -2.00000000000000
+            sage: R(0).nth_root(3)
+            0.000000000000000
+            sage: R(32).nth_root(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: Invalid value for n
+            sage: R(32).nth_root(1.0)
+            32.0000000000000
+
+        Note that for negative numbers, any even root
+        returns NaN
+            sage: R(-2).nth_root(6)
+            NaN
+
+        The $n^{th}$ root of -0 is defined to be -0, for
+        any $n$
+            sage: R(-0).nth_root(6)
+            0.000000000000000
+
+            sage: R(-0).nth_root(7)
+            0.000000000000000
+
+        Author: didier deshommes
+        """
+        cdef RealNumber x
+
+        if n < 0 :
+            raise ValueError,"Invalid value for n"
+
+        x = self._new()
+        _sig_on
+        mpfr_root(x.value, self.value,n ,(<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
 RR = RealField()
 
 

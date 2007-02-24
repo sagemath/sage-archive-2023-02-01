@@ -65,6 +65,7 @@ cdef extern from "mpfr.h":
     int mpfr_sqrt (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     #int mpfr_sqrt_ui _PROTO ((mpfr_ptr, unsigned long, mp_rnd_t));
     int mpfr_cbrt (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
+    int mpfr_root (mpfr_t rop, mpfr_t op, unsigned long int k, mp_rnd_t rnd)
 
     int mpfr_log (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_log2 (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)

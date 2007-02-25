@@ -209,15 +209,37 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         gsl_blas_zscal(<gsl_complex> (<ComplexDoubleElement>right)._complex, v)
         return self._new_c(v)
 
+    def inv_fft(self,algorithm="radix2", inplace=False):
+        """
+        This performs the inverse fast fourier transform on the vector.
+        sage: v = vector(CDF,[1,2,3,4])
+        sage: w = v.fft()
+        sage: v-w.inv_fft()
+        (0, 0, 0, 0)
+
+        The fourier transform can be done in place using the keyword
+        inplace=True
+
+        This will be fastest if the vector's length is a power of 2.
+
+        """
+        return self.fft(direction="backward",algorithm=algorithm,inplace=inplace)
+
     def fft(self,direction = "forward",algorithm = "radix2",inplace=False):
         """
         This performs a fast fourier transform on the vector.
         By default a forward transform is performed.
         To perform the inverse fourier transform use the the keyword
-        direction='backward'.
+        direction='backward', or use the method inv_fft.
+
         sage: v = vector(CDF,[1,2,3,4])
         sage: w = v.fft()
         sage: v2 = w.fft(direction='backward')
+
+        To perform the transform in place use the keyword
+        inplace=True
+
+        This will be fastest if the vector's length is a power of 2.
         """
         gsl_set_error_handler_off()
         cdef gsl_fft_complex_wavetable* wavetable

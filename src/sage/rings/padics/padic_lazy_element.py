@@ -613,12 +613,27 @@ class pAdicLazy_invert(pAdicLazyElement):
             self._recompute()
 
 class pAdicLazy_slice(pAdicLazyElement):
-    def __init__(self, x, i, j):
+    def __init__(self, x, i, j, k):
         pAdicGenericElement.__init__(self, x.parent())
         self._x = x
-        self._i = i
-        self._j = j
-        raise NotImplementedError
+        if not (i is None):
+            self._i = i
+        else:
+            self._i = infinity
+        if not (j is None):
+            self._j = j
+        else:
+            self._j = x._min_valuation()
+        self._recompute()
+
+    def _recompute(self):
+        pass
+
+    #def set_precision_absolute(self, n, halt = None):
+    #    if n > self.precision_absolute():
+    #        if n > self._i:
+    #            self._set_cache_prec(n)
+    #            self._set_cache(Mod(self._cache, self.parent().prime_pow(self._cache_prec)))
 
 class pAdicLazy_unitpart(pAdicLazyElement):
     def __init__(self, x):

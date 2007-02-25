@@ -220,6 +220,9 @@ def sage_getsource(obj, is_binary=False):
     r"""
     Return the source code associated to obj as a string, or None.
 
+    sage: sage.misc.sageinspect.sage_getsource(sage.rings.rational.make_rational, True)
+    'def make_rational(s):\n    r = Rational()\n    r._reduce_set(s)\n    return r\n'
+
     AUTHOR:
         -- William Stein
         -- Extensions by Nick Alexander
@@ -255,8 +258,9 @@ def sage_getsourcelines(obj, is_binary=False):
         source_lines = open(filename).readlines()
         # XXX Whole file for modules -- fails at this time because sagex does not embed positions for modules, nor for classes
         if inspect.ismodule(obj):
-            return (source_lines(), 0)
-        return _extract_source(source_lines, lineno)
+            return (source_lines, 0)
+        else:
+            return _extract_source(source_lines, lineno), lineno
     except (IOError, IndexError):
         return None
 
@@ -306,51 +310,55 @@ def _extract_embedded_position(docstring):
         pass
     raise ValueError, "Docstring (='''%s''') does not contain an embedded position"%docstring
 
+__test_string1 = '''
+import os                                  # 1
+# preceding comment not include            # 2
+def test1(a, b=2):                         # 3
+    if a:                                  # 4
+        return 1                           # 5
+    return b                               # 6
+# intervening comment not included         # 7
+class test2():                             # 8
+    pass                                   # 9
+    # indented comment not included        # 10
+# trailing comment not included            # 11
+def test3(b,                               # 12
+          a=2):                            # 13
+    pass # EOF                             # 14
+'''
+
 def _extract_source(lines, lineno):
     r"""
-    Given a list of lines or a multiline string and a starting lineno, _extract_source returns a pair ([source_lines], first_lineno).  [source_lines] is the smallest indentation block (started by 'def ', 'class ', or BOF) surrounding lineno, and first_lineno is the beginning line number of that indentation block, starting from line 0.
+    Given a list of lines or a multiline string and a starting lineno,
+    _extract_source returns [source_lines].  [source_lines] is the smallest
+    indentation block starting at lineno.
 
     EXAMPLES:
         sage: from sage.misc.sageinspect import _extract_source
-        sage: s = 'import os\n# preceding comment not include\ndef test1(a, b=2):\n    if a:\n        return 1\n    return b\n# intervening comment not included\n\nclass test2():\n    pass\n    # indented comment included\n# trailing comment not included\n    \ndef test3(b,\n    a=2):\n    pass # EOF\n'
-        sage: _extract_source(s, 2)
-        (['def test1(a, b=2):\n', '    if a:\n', '        return 1\n', '    return b\n'], 2)
-        sage: _extract_source(s, 3)
-        (['def test1(a, b=2):\n', '    if a:\n', '        return 1\n', '    return b\n'], 2)
-        sage: _extract_source(s, 7)
-        (['def test1(a, b=2):\n', '    if a:\n', '        return 1\n', '    return b\n'], 2)
-        sage: _extract_source(s, 8)
-        (['class test2():\n', '    pass\n', '    # indented comment included\n'], 8)
-        sage: _extract_source(s, 10)
-        (['class test2():\n', '    pass\n', '    # indented comment included\n'], 8)
-        sage: _extract_source(s, 13)
-        (['def test3(b,\n', '    a=2):\n', '    pass # EOF\n'], 13)
+        sage: s = sage.misc.sageinspect.__test_string1.lstrip()
+        sage: es = lambda ls, l: ''.join(_extract_source(ls, l)).rstrip()
+
+        sage: print es(s, 3)
+        def test1(a, b=2):                         # 3
+            if a:                                  # 4
+                return 1                           # 5
+            return b                               # 6
+
+        sage: print es(s, 8)
+        class test2():                             # 8
+            pass                                   # 9
+
+        sage: print es(s, 12)
+        def test3(b,                               # 12
+                  a=2):                            # 13
+            pass # EOF                             # 14
     """
+    if lineno < 1:
+        raise ValueError, "Line numbering starts at 1! (tried to extract line %s)" % lineno
+    lineno -= 1
+
     if isinstance(lines, str):
         lines = lines.splitlines()
         lines = [ line + '\n' for line in lines ]
 
-    # search backward for def or class
-    # XXX won't work for module?
-    # XXX breaks on embedded functions, classes, etc
-    while lineno > 0 \
-              and not lines[lineno].lstrip().startswith('def ') \
-              and not lines[lineno].lstrip().startswith('class '): \
-        lineno -= 1
-
-    # Go down the file until we find another line indented the same
-    # as the first line.
-    line0 = lines[lineno]
-    indent_level = len(line0) - len(line0.lstrip())
-    source_lines = [line0]
-    i = 1
-    for line in lines[lineno+1:]:
-        if len(line.strip()) == 0:
-            source_lines.append(line)
-            continue
-        line_indent = len(line) - len(line.lstrip())
-        if line_indent <= indent_level: # XXX handle strings and comments?
-            break
-        source_lines.append(line)
-
-    return (source_lines, lineno)
+    return inspect.getblock(lines[lineno:])

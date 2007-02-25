@@ -295,13 +295,29 @@ class PermutationGroup_generic(group.FiniteGroup):
             raise TypeError, "unable to coerce %s to permutation in %s"%(x, self)
 
     def _coerce_impl(self, x):
+        r"""
+        EXAMPLES:
+        The following test verifies that Trac #270 has been fixed:
+
+        sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
+        sage: g1.parent()
+        Symmetric group of order 5! as a permutation group
+        sage: g2 = PermutationGroupElement([(1,2)])
+        sage: g2.parent()
+        Symmetric group of order 2! as a permutation group
+        sage: g1*g2
+        (3,4,5)
+        sage: g2*g2
+        ()
+        sage: g2*g1
+        (3,4,5)
+        """
         if isinstance(x, PermutationGroupElement):
             if x.parent() is self:
                 return x
             elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
                 return PermutationGroupElement(x._gap_(), self, check = False)
-        else:
-            raise TypeError
+        raise TypeError
 
     def list(self):
         """

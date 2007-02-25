@@ -760,7 +760,7 @@ function cell_focus(id) {
     if(e == null) return;
     e.className="cell_input_active";
     cell_input_resize(e);
-    set_class('evaluate_button_'+id, 'evaluate_button')
+    /* set_class('evaluate_button_'+id, 'evaluate_button') */
     return true;
 }
 function cell_blur(id) {
@@ -770,7 +770,7 @@ function cell_blur(id) {
     if(e == null) return;
     e.className="cell_input";
     cell_input_minimize_size(e);
-    setTimeout("set_class('evaluate_button_"+id+"', 'hidden')", 100);
+    /* setTimeout("set_class('evaluate_button_"+id+"', 'hidden')", 100); */
     return true;
 }
 

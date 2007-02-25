@@ -496,6 +496,45 @@ class NumberFieldElement(field_element.FieldElement):
         The matrix of right multiplication by the element on the power
         basis $1, x, x^2, \ldots, x^{d-1}$ for the number field.  Thus
         the {\em rows} of this matrix give the images of each of the $x^i$.
+
+        EXAMPLES:
+
+        Regular number field:
+            sage: K.<a> = NumberField(QQ['x'].0^3 - 5)
+            sage: M = a.matrix(); M
+            [0 1 0]
+            [0 0 1]
+            [5 0 0]
+            sage: M.base_ring() is QQ
+            True
+
+        Relative number field:
+            sage: L.<b> = K.extension(K['x'].0^2 - 3)
+            sage: 1*b, b*b, b**3
+            sage: M = b.matrix(); M
+            [0 1]
+            [3 0]
+            sage: M.base_ring() is K
+            True
+
+        Absolute number field:
+            sage: M = L.absolute_field().gen().matrix(); M
+            [  0   1   0   0   0   0]
+            [  0   0   1   0   0   0]
+            [  0   0   0   1   0   0]
+            [  0   0   0   0   1   0]
+            [  0   0   0   0   0   1]
+            [  2 -90 -27 -10   9   0]
+            sage: M.base_ring() is QQ
+            True
+
+        More complicated relative number field:
+            sage: L.<b> = K.extension(K['x'].0^2 - a); L
+            sage: M = b.matrix(); M
+            [0 1]
+            [a 0]
+            M.base_ring() is K
+            True
         """
         # Mutiply each power of field generator on
         # the left by this element; make matrix
@@ -512,9 +551,9 @@ class NumberFieldElement(field_element.FieldElement):
             for n in range(d):
                 v += (a*self).list()
                 a *= x
-            Q = rational_field.RationalField()
+            k = K.base_ring() # rational_field.RationalField()
             import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(Q, d)
+            M = sage.matrix.matrix_space.MatrixSpace(k, d)
             self.__matrix = M(v)
             return self.__matrix
 

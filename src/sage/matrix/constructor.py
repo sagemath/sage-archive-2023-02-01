@@ -204,13 +204,12 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         [ 0  0  0  0  0]
         [ 0  0 10  0  0]
         [ 0  0  0  0  0] True
+
     8. Creating a matrix from a numpy array
         Any numpy array with a datatype of float or complex may be passed to matrix
         If the data type is float the result will be a matrix over the real double field.
         complex numpy arrays will give matrices over the complex double field.
         The data of the numpy array must be contiguous, so slices of other matrices will raise an exception.
-
-
         sage: import numpy
         sage: n=numpy.array([[1,2],[3,4]],float)
         sage: m=matrix(n)

@@ -818,8 +818,6 @@ function focus_delay(id,bottom) {
 
 
 function cell_input_resize(cell_input) {
-    var rows = 2;
-    //var rows = cell_input.value.split('\n').length - 1;
     var rows = cell_input.value.split('\n').length + 1;
     if (rows <= 1) {
       rows = 2;

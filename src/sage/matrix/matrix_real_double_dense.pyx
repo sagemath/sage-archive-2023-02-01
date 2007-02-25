@@ -596,20 +596,22 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def cholesky(self):
-        """
+        r"""
         Computes the cholesky factorization of matrix. The matrix must be symmetric
         and positive definite or an
         exception will be raised.
-        sage:M=MatrixSpace(RDF,5)
-        sage:r=matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],
-                           [   1.,    1.,    1.,    1.,    1.],
-                           [  16.,    8.,    4.,    2.,    1.],
-                           [  81.,   27.,    9.,    3.,    1.],
-                           [ 256.,   64.,   16.,    4.,    1.]])
+        sage: M=MatrixSpace(RDF,5)
+        sage: r=matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
 
-        sage:m=r*M(1)*r.transpose()
-        sage:c=m.cholesky()
-        sage:c*c.transpose()
+        sage: m=r*M(1)*r.transpose()
+        sage: c=m.cholesky()
+        sage: c*c.transpose()
+         [ 1.0     1.0     1.0     1.0     1.0]
+         [ 1.0     5.0    31.0   121.0   341.0]
+         [ 1.0    31.0   341.0  1555.0  4681.0]
+         [ 1.0   121.0  1555.0  7381.0 22621.0]
+         [ 1.0   341.0  4681.0 22621.0 69905.0]
+
         """
         cdef Matrix_real_double_dense _M,_result_matrix
         _M=self
@@ -661,7 +663,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         sage: import numpy
         sage: m=matrix(RDF,[[1,2],[3,4]])
         sage: n=m.numpy()
-        sage: numpy.linalg.eig(n)
+        sage: e=numpy.linalg.eig(n)
 
         """
         import_array() #This must be called before using the numpy C/api or you will get segfault

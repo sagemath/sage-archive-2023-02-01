@@ -204,6 +204,19 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             Infinity
             sage: E.regulator()      # slightly random output
             0.051111408239968840
+
+            sage: E = EllipticCurve('4602a1'); E
+            Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 - 37746035*x - 89296920339 over Rational Field
+            sage: x = 77985922458974949246858229195945103471590
+            sage: y = 19575260230015313702261379022151675961965157108920263594545223
+            sage: d = 2254020761884782243
+            sage: E([ x / d^2,  y / d^3 ]).height()
+            8.67406561381274e1
+
+            sage: E = EllipticCurve([17, -60, -120, 0, 0]); E
+            Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field
+            sage: E([30, -90]).height()
+            5.04870979e-29
         """
         if self.is_zero():
             return rings.RR(0)

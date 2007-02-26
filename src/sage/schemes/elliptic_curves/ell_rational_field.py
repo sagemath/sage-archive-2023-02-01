@@ -39,7 +39,7 @@ import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
 
-# Use some interval arithmetic to guaranty correctness.  We assume
+# Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
 IR = rings.RIF
 #from sage.rings.interval import IntervalRing; IR = IntervalRing()
@@ -4387,6 +4387,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=True)
             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
+        Here's one using the $p^{1/2}$ algorithm:
+            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 1, check=True)  # long time (< 10s)
+            1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
+
         """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
@@ -4427,23 +4431,38 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                "The discriminant of the weierstrass model should be a unit " \
                " at p."
 
-        # Need to increase precision a little to compensate for precision
-        # losses during the computation. (See monsky_washnitzer.py
-        # for more details.)
-        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        # If p is large, we use the matrix_of_frobenius_alternate
+        # function, which has better asymptotic performance for large p.
+        # The right cutoff should depend on N, but this has not been
+        # investigated properly yet, so for now we have an arbitrary
+        # cutoff at p = 3000, which works decently on sage.math when
+        # the precision is very low.
 
-        if check:
-            trace = None
+        if p < 3000:
+            # Need to increase precision a little to compensate for precision
+            # losses during the computation. (See monsky_washnitzer.py
+            # for more details.)
+            adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+
+            if check:
+                trace = None
+            else:
+                trace = self.ap(p)
+
+            base_ring = rings.Integers(p**adjusted_prec)
+            output_ring = rings.pAdicField(p, prec)
+
+            R, x = rings.PolynomialRing(base_ring, 'x').objgen()
+            Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
+            frob_p = monsky_washnitzer.matrix_of_frobenius(
+                             Q, p, adjusted_prec, trace)
+
         else:
-            trace = self.ap(p)
+            base_ring = rings.Integers(p**prec)
+            output_ring = rings.pAdicField(p, prec)
+            frob_p = monsky_washnitzer.matrix_of_frobenius_alternate(
+                          X.a4(), X.a6(), p, prec)
 
-        base_ring = rings.Integers(p**adjusted_prec)
-        output_ring = rings.pAdicField(p, prec)
-
-        R, x = rings.PolynomialRing(base_ring, 'x').objgen()
-        Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
-        frob_p = monsky_washnitzer.matrix_of_frobenius(
-                        Q, p, adjusted_prec, trace)
 
         if check:
             trace_of_frobenius = frob_p.trace().lift() % p**prec

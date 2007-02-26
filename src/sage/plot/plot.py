@@ -2240,7 +2240,8 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except (TypeError, ValueError), msg:
-                raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
+                #raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
+                pass
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])

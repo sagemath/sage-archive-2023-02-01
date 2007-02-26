@@ -490,6 +490,7 @@ class Cell(Cell_generic):
     def files_html(self):
         dir = self.directory()
         D = os.listdir(dir)
+        D.sort()
         if len(D) == 0:
             return ''
         images = []

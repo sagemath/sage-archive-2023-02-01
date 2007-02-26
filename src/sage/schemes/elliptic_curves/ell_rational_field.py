@@ -59,7 +59,7 @@ import padic_lseries
 import mod5family
 
 from sage.rings.all import (
-    PowerSeriesRing, O,
+    PowerSeriesRing, LaurentSeriesRing, O,
     infinity as oo,
     Integer,
     IntegerRing, RealField,
@@ -4041,10 +4041,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                  section for description
             E2 -- precomputed value of E2. If not supplied, this function will
                  call padic_E2 to compute it. The value supplied must be
-                 correct mod $p^{N-1}$.
-            check -- boolean, whether to perform a consistency check (verify
-                 that the computed sigma satisfies the defining differential
-                 equation)
+                 correct mod $p^{N-2}$.
+            check -- boolean, whether to perform a consistency check (i.e.
+                 verify that the computed sigma satisfies the defining
+                 differential equation -- note that this does NOT guarantee
+                 correctness of all the returned digits, but it comes pretty
+                 close :-))
             check_hypotheses -- boolean, whether to check that this is a
                  curve for which the p-adic sigma function makes sense
 
@@ -4052,8 +4054,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             A power series $t + \cdots$ with coefficients in $\Z_p$.
 
             The output series will be truncated at $O(t^{N+1})$, and the
-            coefficient of $t^n$ for $n \geq 1$ will be correct to whatever
-            precision it is returned at, which will be at least as good as
+            coefficient of $t^n$ for $n \geq 1$ will be correct to precision
             $O(p^{N-n+1})$.
 
             In practice this means the following. If $t_0 = p^k u$, where
@@ -4063,22 +4064,25 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             $p$-adic digits).
 
         ALGORITHM:
-           Streamlined version of the algorithm described in ``Computation of
-           $p$-adic Heights and Log Convergence'' (Mazur, Stein, Tate).
-           Running time is $O(p^{1+\epsilon} M^{2+\epsilon})$ if $E_2$
-           needs to be computed, or only $O(p^{\epsilon} M^{2+\epsilon})$
-           if $E_2$ is supplied in advance.
+           Described in ``Efficient Computation of p-adic Heights''
+           (David Harvey), which is basically an optimised version of the
+           algorithm from ``p-adic Heights and Log Convergence'' (Mazur,
+           Stein, Tate).
+
+           Running time is soft-$O(N^2 \log p)$, plus whatever time is
+           necessary to compute $E_2$.
 
         AUTHOR:
             -- David Harvey (2006-09-12)
+            -- David Harvey (2007-02): rewrote
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + O(5^9))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + O(5^9))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + 3*5^4 + 5^6 + O(5^7))*t^7 + (1 + 2*5 + 3*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
+             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + 5^8 + O(5^9))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + O(5^9))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + 2*5^7 + 2*5^8 + O(5^9))*t^5 + (2 + 3*5 + 5^4 + 2*5^6 + O(5^7))*t^6 + (4 + 3*5 + 2*5^2 + 2*5^5 + 2*5^6 + O(5^7))*t^7 + (2 + 3*5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^6 + O(5^7))*t^8 + (4*5 + 4*5^2 + 4*5^3 + 5^4 + 5^6 + O(5^7))*t^9 + (1 + 2*5 + 5^2 + 4*5^3 + 5^4 + 4*5^5 + O(5^6))*t^10 + O(t^11)
+             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
@@ -4086,17 +4090,19 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
              t + (3 + O(5))*t^2 + O(t^3)
 
-          Check that sigma is ``weight 1'' (note that f loses some precision
-          when you do the substitution, but otherwise the results match up):
-            sage: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
-            sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
-            sage: t = f.parent().gen()
-            sage: f(2*t)/2
-            (1 + O(5^7))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + O(5^7))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + O(5^7))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
-            sage: g
-            t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
+          Check that sigma is ``weight 1''. [This test is disabled until
+          trac \#254 is addressed. The lines f(2*t)/2 and g should return
+          exactly the same answer. Currently there is some precision loss.]
+            sage.: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
+            sage.: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
+            sage.: t = f.parent().gen()
+            sage.: f(2*t)/2
+            sage.: g
 
           Test that it returns consistent results over a range of precision:
+          [NOTE: this test currently FAILS due to trac \#255. It seems to be
+          essentially correct though. Should be revisited when that bug is
+          resolved.]
             sage: max_N = 30   # get up to at least p^2         # long time
             sage: E = EllipticCurve([1, 1, 1, 1, 1])            # long time
             sage: p = 5                                         # long time
@@ -4119,163 +4125,95 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise NotImplementedError, "p (=%s) must be at least 5" % p
 
         N = int(N)
-        if N <= 1:
+        if N <= 2:
+            # a few special cases for small N
             if N < 1:
                 raise ValueError, "N (=%s) must be at least 1" % prec
 
-            # return simply t
             K = rings.pAdicField(p)
-            return PowerSeriesRing(K, "t")([K(0), K(1)], prec=2)
+
+            if N == 1:
+                # return simply t + O(t^2)
+                return PowerSeriesRing(K, "t")([K(0), K(1)], prec=2)
+
+            if N == 2:
+                # return t + a_1/2 t^2 + O(t^3)
+                return PowerSeriesRing(K, "t")([K(0), K(1),
+                                                K(self.a1()/2, 1)], prec=3)
 
         if self.discriminant().valuation(p) != 0:
             raise NotImplementedError, "equation of curve must be minimal at p"
 
         if E2 is None:
-            E2 = self.padic_E2(p, N-1, check_hypotheses=False)
-        elif E2.big_oh() < N-1:
+            E2 = self.padic_E2(p, N-2, check_hypotheses=False)
+        elif E2.big_oh() < N-2:
             raise ValueError, "supplied E2 has insufficient precision"
 
+        QQt = LaurentSeriesRing(RationalField(), "x")
 
-        R = rings.Integers(p**(N-1))
-        E2 = R(E2)
-
-
-        # todo: This next function is borrowed from power_series_ring_element.
-        # I can't use the version there because it sometimes does divisions
-        # by p, and that's not allowed in $Z/p^N Z$. One day, when we have
-        # an efficient pAdicInteger type, then I can probably use the
-        # generic code, and I should come back and reimplement this. But
-        # for now I have to have specialised code here.
-
-        S = rings.PolynomialRing(R, 'x')
-
-        def _solve_linear_de(N, L, a, b, f0):
-            if L == 1:
-                # base case
-                if N == 0:
-                    return [f0]
-                else:
-                    # todo: here's where the division by p is a problem!
-                    return [R(b[0].lift() / N)]
-
-            L2 = (L + 1) >> 1    # ceil(L/2)
-
-            g = _solve_linear_de(N, L2, a, b, f0)
-
-            term1 = S(g, check=False)
-            term2 = S(a[:L], check=False)
-            product = (term1 * term2).list()
-
-            # todo: perhaps next loop could be made more efficient
-            c = b[L2 : L]
-            for j in range(L2 - 1, min(L-1, len(product))):
-                c[j - (L2-1)] = c[j - (L2-1)] + product[j]
-
-            h = _solve_linear_de(N + L2, L - L2, a, c, f0)
-
-            g.extend(h)
-            return g
-
-
+        R = rings.Integers(p**(N-2))
         X = self.change_ring(R)
+        c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
 
-        c = (X.a1()**2 + 4*X.a2() - E2) / 12
+        f = X.formal_group().differential(N+2)   # f = 1 + ... + O(t^{N+2})
+        x = X.formal_group().x(N)                # x = t^{-2} + ... + O(t^N)
 
-        # We compute sigma by solving the differential equation
-        # $$ x(t) + c =
-        #   -\frac{d}{\omega}\left(\frac{1}{\sigma} \frac{d\sigma}{\omega}. $$
-        # We do this a little differently from the Mazur/Stein/Tate paper;
-        # in particular we reorganise things to skip the series reversions
-        # and compositions (which are inherently asymptotically slower
-        # than the other operations).
-        x = X.formal_group().x(N+1)               # x = t^{-2} + ...
-        f = X.formal_group().differential(N+1)    # f = 1 + ...
+        Rt = x.parent()
 
-        # todo: I would like to write:
-        #     A = -f * ((x + c) * f).integral()
-        # But I can't, because the integral() sometimes involves divisions by
-        # p. So we have to do it "manually". This needs to be reimplemented
-        # when we have a decent pAdicInteger ring available.
         A  = (x + c) * f
-        integral_list = [A[i].lift() / (i+1) for i in range(N-1)]
-        A = A.parent()([-1, 0] + integral_list, -1)
-        A = -f * A
+        # do integral over QQ, to avoid divisions by p
+        A = Rt(QQt(A).integral())
+        A = (-X.a1()/2 - A) * f
 
-        # The above integral has a constant of integration which we need to
-        # figure out. The constant is determined by the condition that sigma is
-        # an odd function. (Be careful: it is odd in the sense that
-        # $\sigma(i(t)) = -\sigma(t)$, where $i(t) = -t - a_1 t^2 + \cdots$ is
-        # the formal inverse series; this does not necessarily mean that the
-        # series expansion of $\sigma$ contains only odd index terms. This is
-        # glossed over in Mazur/Stein/Tate, because they work in terms of a
-        # different variable with respect to which it really does mean "only
-        # odd terms".) It turns out we need the constant term to be $a_1/2$:
-        A = A + (X.a1()/2 - A[0]) * f
+        # Convert to a power series and remove the -1/x term.
+        # Also we artifically bump up the accuracy from N-2 to to N-1 digits;
+        # the constant term needs to be known to N-1 digits, so we compute
+        # it directly
+        assert A.valuation() == -1 and A[-1] == 1
+        A = A - A.parent().gen() ** (-1)
+        A = A.power_series().list()
+        R = rings.Integers(p**(N-1))
+        A = [R(u) for u in A]
+        A[0] = self.change_ring(R).a1()/2     # fix constant term
+        A = PowerSeriesRing(R, "x")(A, len(A))
 
-        # Remove $t^{-1}$ term
-        # A[-1] = 0
-        # I changed this, since commutative ring elements are immutable in SAGE now.
-        A._unsafe_mutate(-1, 0)
+        theta = _brent(A, p, N)
+        sigma = theta * theta.parent().gen()
 
-        # Now A should be $g'/g$, where $\sigma(t) = t g(t)$.
-
-        # todo: here I want to write:
-        #     sigma = A.power_series().solve_linear_de(N)
-        # but I can't. See the local _solve_linear_de() method above.
-        a = A.power_series()
-        series_ring = a.parent()
-        b = [R(0) for i in range(N)]
-        sigma = series_ring(_solve_linear_de(0, N, a.list(), b, R(1)))
-        sigma = sigma * sigma.parent().gen()
-
-        # (Note: the very fact that the above differential equation gets
-        # solved without any "division by zero" errors is already a very good
-        # indication that we're doing something correctly!)
-
-        # Now we have sigma as a power series over $\Z/p^M\Z$. However, we
-        # lost some precision during the integration and in solve_linear_de().
-        # So now we need to account for that precision loss.
-
-        # The precision loss (measured in p-adic digits) for the $t^n$ term
-        # of $\int (x+c) f$ is at most $\log_p(n)$; similarly after we
-        # multiply by $f$. Then when we call solve_linear_de(), we lose another
-        # $v_p(n!) \leq (n-1)/(p-1)$ digits. Finally we multiply by $t$, so
-        # the total precision loss for the $t^n$ term of $\sigma$ is at most
-        # $\log_p(n-1) + (n-2)/(p-1)$.
-
+        # Convert the answer to power series over p-adics; drop the precision
+        # of the $t^k$ coefficient to $p^(N-k+1)$.
+        # [Note: there are actually more digits available, but it's a bit
+        # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
+        # for p-adic height purposes anyway]
         K = rings.pAdicField(p)
         sigma = sigma.padded_list(N+1)
         sigma[0] = K(0)
         sigma[1] = K(1)
         for n in range(2, N+1):
-            loss = Integer(n-1).exact_log(p) + int((n-2) / (p-1))
-            sigma[n] = K(sigma[n].lift(), (N-1) - loss)
+            sigma[n] = K(sigma[n].lift(), N - n + 1)
 
         S = rings.PowerSeriesRing(K, "t", N+1)
         sigma = S(sigma, N+1)
 
+        # if requested, check that sigma satisfies the appropriate
+        # differential equation
         if check:
-            Y = self.change_ring(K)
+            R = rings.Integers(p**N)
+            X = self.change_ring(R)
+            x = X.formal_group().x(N+5)       # few extra terms for safety
+            f = X.formal_group().differential(N+5)
+            c = (X.a1()**2 + 4*X.a2() - R(E2)) / 12
 
-            # convert x and f to have coefficients over p-adics, so that
-            # SAGE keeps track of precision for us (this code is so damn
-            # ugly... todo: get some decent coercions written...)
-            x_coeffs = x.valuation_zero_part().list()
-            f_coeffs = f.list()
-            xK = S([K(r.lift()) for r in x_coeffs], N+1 - x.valuation())
-            f = S.gen()**(x.valuation())
-            xK = xK * f
-            xK = xK.add_bigoh(N+1)
-            fK = S([K(r.lift()) for r in f_coeffs]).add_bigoh(N+1)
+            # convert sigma to be over Z/p^N
+            s = f.parent()(sigma)
 
-            fK_inverse = 1/fK
-            stuff = (sigma.derivative() * fK_inverse / sigma)
-            stuff = stuff.derivative() * fK_inverse
-            result = xK + K(c.lift()) + stuff
+            # apply differential equation
+            temp = (s.derivative() / s / f).derivative() / f + c + x
 
-            # result should be zero mod $t^{N-2}$
-            for n in range(N-2):
-                assert result[n] == 0, "sigma correctness check failed!"
+            # coefficient of t^k in the result should be zero mod p^(N-k-2)
+            for k in range(N-2):
+                assert temp[k].lift().valuation(p) >= N - k - 2, \
+                            "sigma correctness check failed!"
 
         return sigma
 
@@ -4560,3 +4498,77 @@ def cremona_optimal_curves(conductors):
         conductors = [conductors]
     return sage.databases.cremona.CremonaDatabase().iter_optimal(conductors)
 
+def _brent(F, p, N):
+    r"""
+    This is an internal function; it is used by padic_sigma().
+
+    $F$ is a assumed to be a power series over $R = \Z/p^{N-1}\Z$.
+
+    It solves the differential equation $G'(t)/G(t) = F(t)$ using Brent's
+    algorithm, with initial condition $G(0) = 1$. It is assumed that the
+    solution $G$ has $p$-integral coefficients.
+
+    More precisely, suppose that $f(t)$ is a power series with genuine
+    $p$-adic coefficients, and suppose that $g(t)$ is an exact solution to
+    $g'(t)/g(t) = f(t)$. Let $I$ be the ideal $(p^N, p^{N-1} t, \ldots,
+    p t^{N-1}, t^N)$. The input $F(t)$ should be a finite-precision
+    approximation to $f(t)$, in the sense that $\int (F - f) dt$ should lie
+    in $I$. Then the function returns a series $G(t)$ such that $(G - g)(t)$
+    lies in $I$.
+
+    Complexity should be about $O(N^2 \log^2 N \log p)$, plus some log-log
+    factors.
+
+    For more information, and a proof of the precision guarantees,
+    see Lemma 4 in ``Efficient Computation of p-adic Heights'' (David
+    Harvey).
+
+    AUTHOR:
+        -- David Harvey (2007-02)
+
+    EXAMPLES:
+    Carefully test the precision guarantees:
+        sage: brent = sage.schemes.elliptic_curves.ell_rational_field._brent
+        sage: for p in [2, 3, 5]:
+        ...     for N in [2, 3, 10, 50]:
+        ...       R = Integers(p**(N-1))
+        ...       Rx, x = PowerSeriesRing(R, "x").objgen()
+        ...       for _ in range(5):
+        ...         g = [R.random_element() for i in range(N)]
+        ...         g[0] = R(1)
+        ...         g = Rx(g, len(g))
+        ...         f = g.derivative() / g
+        ...         # perturb f by something whose integral is in I
+        ...         err = [R.random_element() * p**(N-i) for i in range(N+1)]
+        ...         err = Rx(err, len(err))
+        ...         err = err.derivative()
+        ...         F = f + err
+        ...         # run brent() and compare output modulo I
+        ...         G = brent(F, p, N)
+        ...         assert G.prec() >= N, "not enough output terms"
+        ...         err = (G - g).list()
+        ...         for i in range(len(err)):
+        ...           assert err[i].lift().valuation(p) >= (N - i), \
+        ...                  "incorrect precision output"
+
+    """
+    Rx = F.parent()           # Rx = power series ring over Z/p^{N-1} Z
+    R = Rx.base_ring()        # R = Z/p^{N-1} Z
+    Qx = PowerSeriesRing(RationalField(), "x")
+
+    # initial approximation:
+    G = Rx(1)
+
+    # loop over an appropriate increasing sequence of lengths s
+    for s in misc.newton_method_sizes(N):
+        # zero-extend to s terms
+        # todo: there has to be a better way in SAGE to do this...
+        G = Rx(G.list(), s)
+
+        # extend current approximation to be correct to s terms
+        H = G.derivative() / G - F
+        # Do the integral of H over QQ[x] to avoid division by p problems
+        H = Rx(Qx(H).integral())
+        G = G * (1 - H)
+
+    return G

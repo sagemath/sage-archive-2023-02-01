@@ -80,6 +80,8 @@ from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 from padics.zp import Zp
 from padics.qp import Qp
 
+from padics.padic_ring_extension import pAdicRingExtension
+
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
                        create_RealNumber as RealNumber)   # this is used by the preparser to wrap real literals -- very important.

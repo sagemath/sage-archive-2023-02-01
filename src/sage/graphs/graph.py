@@ -13,6 +13,7 @@ AUTHOR:
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
         graph6 helper functions in SageX
                         SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon
+                        (2007-02-25): display a partition
 
 TUTORIAL:
 
@@ -99,16 +100,14 @@ TUTORIAL:
                 Simple graph on 10 vertices (no loops, no multiple edges)
                 sage: G.save('sage.png')
 
-        2. Databases
+        2. Generators
 
         For some commonly used graphs to play with, type
 
-        graphs.
+            sage.: graphs.
 
         and hit <tab>. Most of these graphs come with their own custom plot, so you
-        can see how people usually visualize these graphs. Work is currently in progress
-        to include a database of known graphs that can be searched by certain
-        parameters.
+        can see how people usually visualize these graphs.
 
             sage: G = graphs.PetersenGraph()
             sage: G.plot().save('sage.png')    # or G.show()
@@ -131,6 +130,9 @@ TUTORIAL:
             sage: S.density()         # random output (depends on choice of random graph)
             0.33333333333333331
 
+            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage.: graphs_list.show_graphs(L)
+
         3. Labels
 
         Each vertex can have any hashable object as a label. These are things like
@@ -138,21 +140,44 @@ TUTORIAL:
         if specified, edges can have any label at all. Edges between nodes u and v are
         represented typically as (u, v, l), where l is the label for the edge.
 
+        4. Database
+
+        There is a database available for searching for graphs that satisfy a certain set
+        of parameters, including number of vertices and edges, density, maximum and minimum
+        degree, diameter, radius, and connectivity. If you wish to search a database of
+        graphs by parameter, type
+
+            sage.: graphs_query.
+
+        and hit tab.
+
+            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage.: graphs_list.show_graphs(L)
+
+        6. Visualization
+
+        To see a graph G you are working with, right now there are two main options:
+
+            sage: G = graphs.RandomGNP(15,.3)
+
+        You can view the graph in two dimensions via matplotlib:
+
+            sage.: G.show()
+
+        Or you can view it in three dimensions via Tachyon:
+
+            sage.: G.show3d()
+
 NOTE: Many functions are passed directly on to NetworkX, and in this
 case the documentation is based on the NetworkX docs.
 """
 
 #*****************************************************************************
-#           Copyright (C) 2006 Robert L. Miller <rlmillster@gmail.com>
+#      Copyright (C) 2006 - 2007 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
-
-## IMPORTANT: Do not import networkx at module scope.  It takes a
-## surprisingliy long time to initialize itself.  It's better if it is
-## imported in functions, so it only gets started if it is actually
-## going to be used.
 
 from random import random
 
@@ -448,9 +473,9 @@ class Graph(GenericGraph):
                 else:
                     format = 'graph6'
             elif is_Matrix(data):
-                if data.is_square(): # adjacency matrix
+                if data.is_square():
                     format = 'adjacency_matrix'
-                else: # incidence matrix
+                else:
                     format = 'incidence_matrix'
             elif isinstance(data, Graph):
                 self._nxg = data.networkx_graph()
@@ -1425,7 +1450,7 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
+    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05):
         """
         Returns a graphics object representing the graph.
 
@@ -1440,6 +1465,11 @@ class Graph(GenericGraph):
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
+            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
+                color. color_dict takes precedence.
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -1463,7 +1493,7 @@ class Graph(GenericGraph):
             sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
             sage: P.save('sage.png')
         """
-        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict)
+        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
         """
@@ -1494,7 +1524,7 @@ class Graph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
         return TT
 
-    def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
+    def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05, **kwds):
         """
         Shows the graph.
 
@@ -1509,6 +1539,9 @@ class Graph(GenericGraph):
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -1532,7 +1565,7 @@ class Graph(GenericGraph):
             sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
             sage: P.save('sage.png')
         """
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
         """
@@ -1649,9 +1682,9 @@ class DiGraph(GenericGraph):
         from sage.structure.element import is_Matrix
         if format is None:
             if is_Matrix(data):
-                if data.is_square(): # adjacency matrix
+                if data.is_square():
                     format = 'adjacency_matrix'
-                else: # incidence matrix
+                else:
                     format = 'incidence_matrix'
             elif isinstance(data, DiGraph):
                 self._nxg = data.networkx_graph()
@@ -2576,7 +2609,7 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None):
+    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05):
         """
         Returns a graphics object representing the digraph.
 
@@ -2591,6 +2624,10 @@ class DiGraph(GenericGraph):
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
+
 
         EXAMPLE:
             sage: from math import sin, cos, pi
@@ -2611,7 +2648,7 @@ class DiGraph(GenericGraph):
             sage: pl = P.plot(pos=pos_dict, color_dict=d)
             sage: pl.save('sage.png')
         """
-        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict)
+        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term)
 
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None):
         """
@@ -2654,7 +2691,7 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
         return TT
 
-    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
+    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, scaling_term=0.05, **kwds):
         """
         Shows the digraph.
 
@@ -2669,6 +2706,9 @@ class DiGraph(GenericGraph):
             color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
                 by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
                 it looks invisible on the resulting plot (it doesn't get drawn).
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
 
         EXAMPLE:
             sage: from math import sin, cos, pi
@@ -2689,7 +2729,7 @@ class DiGraph(GenericGraph):
             sage: pl = P.plot(pos=pos_dict, color_dict=d)
             sage: pl.save('sage.png')
         """
-        self.plot(pos, vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
+        self.plot(pos, vertex_labels, node_size=node_size, graph_border=graph_border, color_dict=color_dict, scaling_term=scaling_term).show(**kwds)
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
         """
@@ -2728,19 +2768,64 @@ class Graph_With_Boundary(Graph):
 class DiGraph_With_Boundary(DiGraph):
     pass
 
-def matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict):
-    GG = Graphics()
-#    if color_dict is None and not self.__boundary is None:
-#        v = self.vertices()
-#        b = self.__boundary
-#        for i in b:
-#            v.pop(v.index(i))
-#        color_dict = {'r':v,'b':b}
+def float_to_html(r,g,b):
+    """
+    This is a function to present tuples of RGB floats as HTML-happy hex
+    for matplotlib. This may not seem necessary, but there are some odd
+    cases where matplotlib is just plain schizophrenic- for an example, do
+
+    sage.: color_dict = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+    sage.: graphs.DodecahedralGraph().show(color_dict=color_dict)
+
+    Notice how the colors don't respect the partition at all.....
+    """ # TODO: figure out WTF
+    from sage.rings.integer import Integer
+    from sage.rings.arith import floor
+    rr = Integer(floor(r*255)).str(base=16)
+    gg = Integer(floor(g*255)).str(base=16)
+    bb = Integer(floor(b*255)).str(base=16)
+    rr = '0'*(2-len(rr)) + rr
+    gg = '0'*(2-len(gg)) + gg
+    bb = '0'*(2-len(bb)) + bb
+    return '#' + rr\
+               + gg\
+               + bb
+
+def rainbow(n):
+    from sage.rings.arith import floor
+    R = []
+    for i in range(n):
+        r = 6*float(i)/n
+        h = floor(r)
+        r = float(r - h)
+        if h == 0:#RED
+            R.append(float_to_html(1.,r,0.))
+        elif h == 1:
+            R.append(float_to_html(1. - r,1.,0.))
+        elif h == 2:#GREEN
+            R.append(float_to_html(0.,1.,r))
+        elif h == 3:
+            R.append(float_to_html(0.,1. - r,1.))
+        elif h == 4:#BLUE
+            R.append(float_to_html(r,0.,1.))
+        elif h == 5:
+            R.append(float_to_html(1.,0.,1. - r))
+    return R
+
+def matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term):
+    # NOTE: add attributes to END! other functions depend on order of arguments
+    from sage.plot.plot import networkx_plot
+    if color_dict is None and not partition is None:
+        l = len(partition)
+        R = rainbow(l)
+        color_dict = {}
+        for i in range(l):
+            color_dict[R[i]] = partition[i]
     if pos is None and layout is None:
         if self._pos is None:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+            return networkx_plot(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
         else:
-            NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=self._pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+            return networkx_plot(self._nxg, pos=self._pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
     elif layout == 'circular':
         from math import sin, cos, pi
         n = self.order()
@@ -2750,27 +2835,11 @@ def matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, c
             x = float(cos((pi/2) + ((2*pi)/n)*i))
             y = float(sin((pi/2) + ((2*pi)/n)*i))
             pos_dict[verts[i]] = [x,y]
-        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size)
+        return networkx_plot(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
     elif layout == 'spring':
-        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
+        return networkx_plot(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
     else:
-        NGP = GraphicPrimitive_NetworkXGraph(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict)
-    GG.append(NGP)
-    xmin = NGP._xmin
-    xmax = NGP._xmax
-    ymin = NGP._ymin
-    ymax = NGP._ymax
-    GG.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
-    if ( graph_border ):
-        from sage.plot.plot import line
-        dx = (xmax - xmin)/10
-        dy = (ymax - ymin)/10
-        border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
-        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
-        BGG = GG + border
-        return BGG
-    GG.axes(False)
-    return GG
+        return networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     import networkx

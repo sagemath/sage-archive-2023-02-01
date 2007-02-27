@@ -326,7 +326,7 @@ def show_graphs(list):
 
     plist = []
     for i in range (len(list)):
-        if ( isinstance( list[i], graph.Graph ) ):
+        if ( isinstance( list[i], graph.GenericGraph ) ): ## GenericGraph instead of Graph allows for DiGraphs...
             pos = list[i].__get_pos__()
             if ( pos is None ):
                 plist.append(list[i].plot(layout='circular', node_size=50, vertex_labels=False, graph_border=True))

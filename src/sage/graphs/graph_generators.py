@@ -479,7 +479,7 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.dodecahedral_graph()
-        return graph.Graph(G, name="Dodecahedral")
+        return graph.Graph(G, name="Dodecahedron")
 
     def EmptyGraph(self):
         """

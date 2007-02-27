@@ -481,7 +481,8 @@ class Graphics(SageObject):
 
     def append(self, primitive):
         """
-        Append an arbitrary GraphicPrimitive to a Graphics object
+        Append an arbitrary GraphicPrimitive to a Graphics object. Low level- only
+        appends the primitive to the objects list, that's it.
         """
         if not isinstance(primitive, GraphicPrimitive):
             raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
@@ -1275,7 +1276,10 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         vertex_labels -- determines whether labels for nodes are plotted
         node_size -- node size
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
-        matplotlib, and each entry is a list of vertices.
+                        matplotlib, and each entry is a list of vertices.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -1309,7 +1313,7 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.axes(False)
         sage: g.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None):
+    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None, scaling_term=0.05):
         self.__nxg = graph
         self.__node_size = node_size
         self.__vertex_labels = vertex_labels
@@ -1320,52 +1324,48 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
                 self.__pos = pos
-                for v in self.__nxg.nodes():
-                    if not v in self.__pos:
-                        from random import random
-                        self.__pos[v] = [random(),random()]
+
+            nodelist=self.__nxg.nodes()
+
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            dx = xmax - xmin
+            dy = ymax - ymin
+
+            if not pos is None:
+                missing = []
+                for e in nodelist:
+                    if not e in self.__pos:
+                        missing.append(e)
+                for e in missing:
+                    from random import random
+                    self.__pos[v] = [xmin + dx*random(),ymin + dy*random()]
 
             # adjust the plot
-            # TODO: right now, the bounds are assumed to be +-1
-            nodelist=self.__nxg.nodes()
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            st = float(0.125) # scaling term: looks better, maybe should
-                              # depend on node_size?
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
-            for v in nodelist:
-                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
-                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
+            xmin -= scaling_term*dx
+            xmax += scaling_term*dx
+            ymin -= scaling_term*dy
+            ymax += scaling_term*dy
+
             self._xmin = xmin
             self._xmax = xmax
             self._ymin = ymin
             self._ymax = ymax
         else:
             self.__pos = {}
-            self._xmin = 0
+            self._xmin = -1
             self._xmax = 1
-            self._ymin = 0
+            self._ymin = -1
             self._ymax = 1
 
     def _render_on_subplot(self, subplot):
@@ -2405,6 +2405,69 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
     if show:
         P.show(**kwargs)
     return P
+
+def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict=None, graph_border=False, scaling_term=0.05):
+    """
+    Creates a graphics object ready to display a NetworkX graph.
+
+    INPUT:
+        graph -- a NetworkX graph
+        pos -- an optional positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+            {   0: [-0.91679746, 0.88169588,],
+                1: [ 0.47294849, 1.125     ,],
+                2: [ 1.125     ,-0.12867615,],
+                3: [ 0.12743933,-1.125     ,],
+                4: [-1.125     ,-0.50118505,]   }
+        vertex_labels -- determines whether labels for nodes are plotted
+        node_size -- node size
+        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of vertices.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
+
+    EXAMPLES:
+        sage: import networkx
+        sage: D = networkx.dodecahedral_graph()
+        sage: g = networkx_plot(D)
+        sage: g.save('sage.png')
+
+        sage: import networkx
+        sage: from math import sin, cos, pi
+        sage: P = networkx.petersen_graph()
+        sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+        sage: pos_dict = {}
+        sage: for i in range(5):
+        ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: for i in range(10)[5:]:
+        ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: g = networkx_plot(graph=P, color_dict=d, pos=pos_dict)
+        sage: g.save('sage.png')
+"""
+    g = Graphics()
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, scaling_term=scaling_term)
+    g.append(NGP)
+    xmin = NGP._xmin
+    xmax = NGP._xmax
+    ymin = NGP._ymin
+    ymax = NGP._ymax
+    g.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    if graph_border:
+        from sage.plot.plot import line
+        dx = (xmax - xmin)/10
+        dy = (ymax - ymin)/10
+        border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+        g = g + border
+    g.axes(False)
+    return g
 
 def to_float_list(v):
     return [float(x) for x in v]

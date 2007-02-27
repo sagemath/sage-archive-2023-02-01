@@ -314,10 +314,10 @@ cdef class Element(sage_object.SageObject):
     def is_zero(self):
         return PyBool_FromLong(self == self._parent(0))
 
-    def _richcmp_(left, right, op):
-        return left._richcmp(right, op)
+    def _cmp_(left, right):
+        return left._cmp(right)
 
-    cdef _richcmp(left, right, int op):
+    cdef _cmp(left, right):
         """
         Compare left and right.
         """
@@ -325,7 +325,33 @@ cdef class Element(sage_object.SageObject):
         if not have_same_parent(left, right):
             try:
                 _left, _right = canonical_coercion_c(left, right)
-                r = cmp(_left, _right)
+                if PY_IS_NUMERIC(_left):
+                    return cmp(_left, _right)
+                else:
+                    return _left._cmp_(_right)
+            except TypeError:
+                r = cmp(type(left), type(right))
+                if r == 0:
+                    r = -1
+                return r
+        else:
+            return left._cmp_c_impl(right)
+
+    def _richcmp_(left, right, op):
+        return left._richcmp(right, op)
+
+    cdef _richcmp(left, right, int op):
+        """
+        Compare left and right, according to the comparison operator op.
+        """
+        cdef int r
+        if not have_same_parent(left, right):
+            try:
+                _left, _right = canonical_coercion_c(left, right)
+                if PY_IS_NUMERIC(_left):
+                    r = cmp(_left, _right)
+                else:
+                    return _left._richcmp_(_right, op)
             except TypeError:
                 r = cmp(type(left), type(right))
                 if r == 0:
@@ -334,7 +360,7 @@ cdef class Element(sage_object.SageObject):
             if HAS_DICTIONARY(left):   # fast check
                 r = left.__cmp__(right)
             else:
-                r = left._cmp_c_impl(right)
+                return left._richcmp_c_impl(right, op)
 
         return left._rich_to_bool(op, r)
 
@@ -356,7 +382,12 @@ cdef class Element(sage_object.SageObject):
     # For a derived Pyrex class, you **must** put the following in
     # your subclasses, in order for it to take advantage of the
     # above generic comparison code.  You must also define
-    # _cmp_c_impl.
+    # either _cmp_c_impl (if your subclass is totally ordered),
+    # _richcmp_c_impl (if your subclass is partially ordered), or both
+    # (if your class has both a total order and a partial order;
+    # then the total order will be available with cmp(), and the partial
+    # order will be available with the relation operators; in this case
+    # you must also define __cmp__ in your subclass).
     # This is simply how Python works.
     #
     # For a *Python* class just define __cmp__ as always.
@@ -366,13 +397,24 @@ cdef class Element(sage_object.SageObject):
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
+    ####################################################################
+    # If your subclass has both a partial order (available with the
+    # relation operators) and a total order (available with cmp()),
+    # you **must** put the following in your subclass.
+    #
+    # Note that in this case the total order defined by cmp() will
+    # not properly respect coercions.
+    ####################################################################
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        return left._rich_to_bool(op, left._cmp_c_impl(right))
+
     cdef int _cmp_c_impl(left, Element right) except -2:
         ### For derived SAGEX code, you *MUST* ALSO COPY the __richcmp__ above
         ### into your class!!!  For Python code just use __cmp__.
         raise NotImplementedError, "BUG: sort algorithm for elements of '%s' not implemented"%right.parent()
-
-    def __cmp__(left, right):
-        return left._cmp_c_impl(right)   # default
 
 def is_ModuleElement(x):
     """
@@ -1762,6 +1804,19 @@ whereas y has parent '%s'"""%(x,y,parent_c(x),parent_c(y))
     return x, y
 
 def canonical_coercion(x, y):
+    """
+    canonical_coercion(x,y) is what is called before doing an
+    arithmetic operation between x and y.  It returns a pair (z,w)
+    such that z is got from x and w from y via canonical coercion and
+    the parents of z and w are identical.
+
+    EXAMPLES:
+        sage: A = Matrix([[0,1],[1,0]])
+        sage: canonical_coercion(A,1)
+        ([0 1]
+        [1 0], [1 0]
+        [0 1])
+    """
     return canonical_coercion_c(x,y)
 
 cdef canonical_coercion_c(x, y):

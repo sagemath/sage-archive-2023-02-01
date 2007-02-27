@@ -94,7 +94,7 @@ def is_IntegerMod(x):
         sage: is_IntegerMod(Mod(5,10))
         True
     """
-    return isinstance(x, IntegerMod_abstract)
+    return bool(isinstance(x, IntegerMod_abstract))
 
 def makeNativeIntStruct(sage.rings.integer.Integer z):
     return NativeIntStruct(z)

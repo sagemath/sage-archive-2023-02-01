@@ -168,7 +168,7 @@ def ntl_setSeed(x=None):
     cdef ntl_ZZ seed
     if x is None:
         from random import randint
-        seed = make_new_ZZ(str(randint(0,2**64)))
+        seed = make_new_ZZ(str(randint(0,int(2)**64)))
     else:
         seed = make_new_ZZ(str(x))
     _sig_on

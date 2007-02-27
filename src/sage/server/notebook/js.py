@@ -760,7 +760,7 @@ function cell_focus(id) {
     if(e == null) return;
     e.className="cell_input_active";
     cell_input_resize(e);
-    set_class('evaluate_button_'+id, 'evaluate_button')
+    /* set_class('evaluate_button_'+id, 'evaluate_button') */
     return true;
 }
 function cell_blur(id) {
@@ -770,7 +770,7 @@ function cell_blur(id) {
     if(e == null) return;
     e.className="cell_input";
     cell_input_minimize_size(e);
-    setTimeout("set_class('evaluate_button_"+id+"', 'hidden')", 100);
+    /* setTimeout("set_class('evaluate_button_"+id+"', 'hidden')", 100); */
     return true;
 }
 
@@ -818,21 +818,17 @@ function focus_delay(id,bottom) {
 
 
 function cell_input_resize(cell_input) {
-    var rows = 2;
-    //var rows = cell_input.value.split('\n').length - 1;
     var rows = cell_input.value.split('\n').length + 1;
-    if (rows <= 1) {
-      rows = 2;
-    } else {
-      /* to avoid bottom chop off */
-/*      rows = rows + 1; */
+    if (rows < 1) {
+      rows = 1;
     }
     try {
-        cell_input.style.height = rows + 'em'; // this sort of works in konqueror...
+        cell_input.style.height = 1.3*rows + 'em'; // this sort of works in konqueror...
     } catch(e) {}
-    try{
+/*    try{
         cell_input.rows = rows;
     } catch(e) {}
+    */
 
     if(slide_hidden) {
         cell_input.className="cell_input_active";
@@ -860,11 +856,17 @@ function cell_input_minimize_size(cell_input) {
     }
 
     cell_input.className = 'cell_input';
-    var rows = v.split('\n').length ;
+    var rows = v.split('\n').length + 1;
     if (rows < 1) {
       rows = 1;
     }
-    cell_input.rows = rows;
+    try {
+        cell_input.style.height = 1.3*rows + 'em'; // this sort of works in konqueror...
+    } catch(e) {}
+   /*    try{
+        cell_input.rows = rows;
+    } catch(e) {}
+    */
     if (rows == 1) {
        // hack because of bug in firefox with 1-row textarea
        cell_input.style.height = '1.5em';

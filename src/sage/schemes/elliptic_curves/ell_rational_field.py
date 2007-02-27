@@ -39,7 +39,7 @@ import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
 
-# Use some interval arithmetic to guaranty correctness.  We assume
+# Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
 IR = rings.RIF
 #from sage.rings.interval import IntervalRing; IR = IntervalRing()
@@ -4281,7 +4281,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
 
-    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True):
+    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True,
+                 algorithm="auto"):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
         where $\omega$ is the usual invariant differential
@@ -4299,6 +4300,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                  (possibly after a change of basis).)
             check_hypotheses -- boolean, whether to check that this is a
                  curve for which the p-adic sigma function makes sense
+            algorithm -- one of "standard", "sqrtp", or "auto". This
+                 selects which version of Kedlaya's algorithm is used. The
+                 "standard" one is the one described in Kedlaya's paper.
+                 The "sqrtp" one has better performance for large $p$;
+                 however it is not as well tested yet, and might not work
+                 properly when $p$ is too small. The "auto" option selects
+                 "sqrtp" when $p$ is at least 3000, and "standard" otherwise.
+                 Note that if the "sqrtp" algorithm is used, a consistency
+                 check will automatically be applied, regardless of the
+                 setting of the "check" flag.
 
         OUTPUT:
             p-adic number to precision prec
@@ -4387,9 +4398,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 30, check=True)
             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
+        Here's one using the $p^{1/2}$ algorithm:
+            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")  # long time (< 10s)
+            1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
+
         """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
+
+        # The cutoff p = 3000 is pretty arbitrary. It seems to work well
+        # on sage.math for low precision problems. In reality the optimal
+        # crossover will depend on the precision, and also on the architecture.
+        if algorithm == "auto":
+            algorithm = "standard" if p < 3000 else "sqrtp"
+
+        if algorithm not in ["standard", "sqrtp"]:
+            raise ValueError, "unknown algorithm '%s'" % algorithm
 
         # todo: maybe it would be good if default prec was None, and then
         # it selects an appropriate precision based on how large the prime
@@ -4427,23 +4451,36 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                "The discriminant of the weierstrass model should be a unit " \
                " at p."
 
-        # Need to increase precision a little to compensate for precision
-        # losses during the computation. (See monsky_washnitzer.py
-        # for more details.)
-        adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        if algorithm == "standard":
+            # Need to increase precision a little to compensate for precision
+            # losses during the computation. (See monsky_washnitzer.py
+            # for more details.)
+            adjusted_prec = monsky_washnitzer.adjusted_prec(p, prec)
 
-        if check:
-            trace = None
-        else:
+            if check:
+                trace = None
+            else:
+                trace = self.ap(p)
+
+            base_ring = rings.Integers(p**adjusted_prec)
+            output_ring = rings.pAdicField(p, prec)
+
+            R, x = rings.PolynomialRing(base_ring, 'x').objgen()
+            Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
+            frob_p = monsky_washnitzer.matrix_of_frobenius(
+                             Q, p, adjusted_prec, trace)
+
+        else:   # algorithm == "sqrtp"
+            base_ring = rings.Integers(p**prec)
+            output_ring = rings.pAdicField(p, prec)
+            frob_p = monsky_washnitzer.matrix_of_frobenius_alternate(
+                          X.a4(), X.a6(), p, prec)
+
+            # let's force a trace-check since this algorithm is fairly new
+            # and we don't want to get caught with our pants down...
             trace = self.ap(p)
+            check = True
 
-        base_ring = rings.Integers(p**adjusted_prec)
-        output_ring = rings.pAdicField(p, prec)
-
-        R, x = rings.PolynomialRing(base_ring, 'x').objgen()
-        Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())
-        frob_p = monsky_washnitzer.matrix_of_frobenius(
-                        Q, p, adjusted_prec, trace)
 
         if check:
             trace_of_frobenius = frob_p.trace().lift() % p**prec

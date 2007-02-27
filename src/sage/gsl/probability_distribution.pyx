@@ -20,9 +20,10 @@ import sage.plot.plot
 #include 'gsl.pxi'
 #cimport sage.rings.real_double
 import sage.rings.real_double
+#from sage.modules.real_double_vector import
 import random
 import integration
-
+from sage.modules.free_module_element import vector
 
 
 #TODO: Add more distributions available in gsl
@@ -47,6 +48,71 @@ cdef class ProbabilityDistribution:
 
    def get_random_element(self):
       raise NotImplementedError,"implement in derived class"
+
+cdef class SphericalDistribution(ProbabilityDistribution):
+   r"""
+   This class is capable of producing random points uniformly distributed on the surface of an
+   n-1 sphere in n dimensional euclidean space. The dimension, n is selected via the
+   keyword dimension. The random number generator which drives it can be selected using the keyword
+   rng. Valid choices are 'default' which uses the Mersenne-Twister, 'luxury' which uses RANDLXS,
+   and 'taus' which uses the tausworth generator. The default dimension is 3.
+   sage: T=SphericalDistribution()
+   sage: T.get_random_element()
+   sage: T=SphericalDistribution(dimension=4,rng='luxury')
+   sage: T.get_random_element()
+   """
+   def __init__(self,dimension=3,rng='default',seed=None):
+      gsl_rng_env_setup()
+      self.set_random_number_generator(rng)
+      self.r=gsl_rng_alloc(self.T)
+      if seed==None:
+         self.seed=random.randint(1,2^32)
+      self.set_seed(self.seed)
+      self.dimension=dimension
+      self.vec=<double *>malloc(self.dimension*(sizeof(double)))
+
+   def set_seed(self,seed):
+      gsl_rng_set(self.r,seed)
+      self.seed=seed
+
+   def set_random_number_generator(self,rng='default'):
+      if rng=='default':
+         self.T=gsl_rng_default
+      elif rng=='luxury':
+         self.T=gsl_rng_ranlxd2
+      elif rng=='taus':
+         self.T=gsl_rng_taus2
+      else:
+         raise TypeError,"Not a valid random number generator"
+
+   def __dealloc__(self):
+      if self.r!=NULL:
+         gsl_rng_free(self.r)
+      free(self.vec)
+
+   def get_random_element(self):
+      cdef int i
+      v=[0]*self.dimension
+      gsl_ran_dir_nd(self.r,self.dimension,self.vec)
+      for i from 0<=i<self.dimension:
+         v[i]=self.vec[i]
+      return vector(sage.rings.real_double.RDF,v) #This could be made more efficient by directly constructing the vector, TODO.
+
+   def reset_distribution(self):
+      """
+      This method resets the distribution.
+
+      EXAMPLES:
+         sage: T = SphericalDistribution()
+         sage: v = [T.get_random_element() for _ in range(10)]
+         sage: T.reset_distribution()
+         sage: w = [T.get_random_element() for _ in range(10)]
+      """
+      if self.r!=NULL:
+         gsl_rng_free(self.r)
+      self.r = gsl_rng_alloc(self.T)
+      self.set_seed(self.seed)
+#      gsl_rng_env_setup()
 
 
 

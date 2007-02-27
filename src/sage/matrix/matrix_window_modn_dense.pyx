@@ -24,21 +24,19 @@ cdef class MatrixWindow_modn_dense(matrix_window.MatrixWindow):
         cdef Py_ssize_t i, j
         if self._nrows != A._nrows or self._ncols != A._ncols:
             raise ArithmeticError, "incompatible dimensions"
-        cdef mod_int* self_row
-        cdef mod_int* A_row
+        cdef mod_int** self_rows
+        cdef mod_int** A_rows
+        self_rows = ( <Matrix_modn_dense> self._matrix )._matrix
+        A_rows    = ( <Matrix_modn_dense> A._matrix )._matrix
         for i from 0 <= i < self._nrows:
-            self_row = ( <Matrix_modn_dense> self._matrix )._matrix[i + self._row] + self._col
-            A_row    = ( <Matrix_modn_dense>    A._matrix )._matrix[i +    A._row] + A._col
-            for j from 0 <= j < self._ncols:
-                self_row[j] = A_row[j]
-#            memcpy(self_rows[i+self._row] + self._col, A_rows[i+A._row] + A._col, self._ncols * sizeof(mod_int*))
+            memcpy(self_rows[i+self._row] + self._col, A_rows[i+A._row] + A._col, self._ncols * sizeof(mod_int))
 
     cdef set_to_zero(MatrixWindow_modn_dense self):
         cdef Py_ssize_t i, j
         cdef mod_int** rows
         rows = ( <Matrix_modn_dense> self._matrix )._matrix
         for i from self._row <= i < self._row + self._nrows:
-            memset(rows[i] + self._col, 0, self._ncols * sizeof(mod_int*))
+            memset(rows[i] + self._col, 0, self._ncols * sizeof(mod_int))
 
     cdef add(self, MatrixWindow A):
         cdef Py_ssize_t i, j

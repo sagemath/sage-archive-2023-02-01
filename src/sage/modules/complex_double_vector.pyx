@@ -40,6 +40,28 @@ from sage.rings.complex_double cimport ComplexDoubleElement
 
 include '../ext/stdsage.pxi'
 
+cdef extern from "arrayobject.h":
+#The following exposes the internal C structure of the numpy python object
+# extern class [object PyArrayObject]  tells pyrex that this is
+# a compiled python class defined by the C struct PyArrayObject
+    cdef enum:
+        NPY_OWNDATA = 0x0004 #bit mask so numpy does not free array contents when its destroyed
+
+    ctypedef int intp
+
+    ctypedef extern class numpy.ndarray [object PyArrayObject]:
+        cdef char *data
+        cdef int nd
+        cdef intp *dimensions
+        cdef intp *strides
+        cdef int flags
+
+    object PyArray_FromDims(int,int *,int)
+    object PyArray_FromDimsAndData(int,int*,int,double *)
+    void import_array()
+
+
+
 cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     cdef _new_c(self, gsl_vector_complex* v):
         cdef ComplexDoubleVectorSpaceElement y
@@ -187,7 +209,38 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         gsl_blas_zscal(<gsl_complex> (<ComplexDoubleElement>right)._complex, v)
         return self._new_c(v)
 
+    def inv_fft(self,algorithm="radix2", inplace=False):
+        """
+        This performs the inverse fast fourier transform on the vector.
+        sage: v = vector(CDF,[1,2,3,4])
+        sage: w = v.fft()
+        sage: v-w.inv_fft()
+        (0, 0, 0, 0)
+
+        The fourier transform can be done in place using the keyword
+        inplace=True
+
+        This will be fastest if the vector's length is a power of 2.
+
+        """
+        return self.fft(direction="backward",algorithm=algorithm,inplace=inplace)
+
     def fft(self,direction = "forward",algorithm = "radix2",inplace=False):
+        """
+        This performs a fast fourier transform on the vector.
+        By default a forward transform is performed.
+        To perform the inverse fourier transform use the the keyword
+        direction='backward', or use the method inv_fft.
+
+        sage: v = vector(CDF,[1,2,3,4])
+        sage: w = v.fft()
+        sage: v2 = w.fft(direction='backward')
+
+        To perform the transform in place use the keyword
+        inplace=True
+
+        This will be fastest if the vector's length is a power of 2.
+        """
         gsl_set_error_handler_off()
         cdef gsl_fft_complex_wavetable* wavetable
         cdef gsl_fft_complex_workspace* workspace
@@ -241,6 +294,32 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             return
         else:
             return result
+
+
+    def numpy(self):
+        import_array() #This must be called before using the numpy C/api or you will get segfault
+        cdef ComplexDoubleVectorSpaceElement _V,_result_vector
+        _V=self
+        cdef int dims[1]
+        cdef double * data
+        cdef int i
+        cdef object temp
+        cdef double *p
+        cdef ndarray _n,_m
+        dims[0] = _V.v.size
+        data = <double*> malloc(sizeof(double)*dims[0]*2)
+        memcpy(data,_V.v.data,sizeof(double)*dims[0]*2)
+        temp = PyArray_FromDimsAndData(1, dims, 15,data)
+        _n = temp
+        _n.flags = _n.flags|(NPY_OWNDATA) # this sets the ownership flag
+        return _n
+
+    def _replace_self_with_numpy(self,numpy_array):
+        cdef double* p
+        cdef ndarray n
+        n=numpy_array
+        p=<double *>n.data
+        memcpy(self.v.data,p,self.v.size*sizeof(double)*2)
 
 
 cdef int ispow(int n):

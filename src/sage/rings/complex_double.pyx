@@ -62,7 +62,7 @@ cdef extern from "math.h":
     double modf (double value, double *integer_part)
     double M_PI_4
 
-cdef extern from "../libs/pari/misc.h":
+cdef extern from "stdsage.h":
     void set_gel(GEN x, long n, GEN z)
 
 from sage.misc.sage_eval import sage_eval
@@ -301,6 +301,17 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         """
         import real_double
         return real_double.RDF
+
+    def pi(self):
+        """
+        Returns pi as a double precision complex number.
+
+        EXAMPLES:
+            sage: CDF.pi()
+            3.14159265359
+        """
+        return self(3.1415926535897932384626433832)
+
 
 def new_ComplexDoubleElement():
     cdef ComplexDoubleElement z

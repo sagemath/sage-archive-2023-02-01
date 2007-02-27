@@ -98,6 +98,7 @@ import os
 from expect import Expect, ExpectElement
 
 from sage.misc.misc import verbose
+from sage.misc.multireplace import multiple_replace
 
 from re import search
 
@@ -288,12 +289,14 @@ class Macaulay2Element(ExpectElement):
     def str(self):
         P = self._check_valid()
         X = P.eval('toExternalString(%s)'%self.name(), strip=True)
+
         if 'stdio:' in X:
             if 'cannot be converted to external string' in ans:
                 return clean_output(P.eval(self, '%s'%code))
             raise RuntimeError, "Error evaluating Macaulay2 code.\nIN:%s\nOUT:%s"%(code, ans)
-        return X
 
+        s = multiple_replace({'\r':'', '\n':' '}, X)
+        return s
 
     def __len__(self):
         self._check_valid()
@@ -404,7 +407,7 @@ class Macaulay2Element(ExpectElement):
             sage: X = R.Proj()                                  # optional
             sage: X.structure_sheaf()                           # optional
             OO
-              sage6
+              sage1
         """
         return self.parent()('OO_%s'%self.name())
 

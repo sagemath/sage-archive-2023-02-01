@@ -296,28 +296,40 @@ class PermutationGroup_generic(group.FiniteGroup):
 
     def _coerce_impl(self, x):
         r"""
-        EXAMPLES:
-        The following test verifies that Trac #270 has been fixed:
+        Implicit coercion of x into self.
 
-        sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
-        sage: g1.parent()
-        Symmetric group of order 5! as a permutation group
-        sage: g2 = PermutationGroupElement([(1,2)])
-        sage: g2.parent()
-        Symmetric group of order 2! as a permutation group
-        sage: g1*g2
-        (3,4,5)
-        sage: g2*g2
-        ()
-        sage: g2*g1
-        (3,4,5)
+        EXAMPLES:
+        We illustrate some arithmetic that involves implicit coercion
+        of elements in different permutation groups.
+
+            sage: g1 = PermutationGroupElement([(1,2),(3,4,5)])
+            sage: g1.parent()
+            Symmetric group of order 5! as a permutation group
+            sage: g2 = PermutationGroupElement([(1,2)])
+            sage: g2.parent()
+            Symmetric group of order 2! as a permutation group
+            sage: g1*g2
+            (3,4,5)
+            sage: g2*g2
+            ()
+            sage: g2*g1
+            (3,4,5)
+
+        We try to implicitly coerce in a non-permutation, which raises
+        a TypeError:
+
+           sage: G = PermutationGroup([[(1,2,3,4)], [(1,2)]])
+           sage: G._coerce_impl(1)
+           Traceback (most recent call last):
+           ...
+           TypeError: no implicit coercion of element into permutation group
         """
         if isinstance(x, PermutationGroupElement):
             if x.parent() is self:
                 return x
             elif x.parent().degree() <= self.degree() and x._gap_() in self._gap_():
                 return PermutationGroupElement(x._gap_(), self, check = False)
-        raise TypeError
+        raise TypeError, "no implicit coercion of element into permutation group"
 
     def list(self):
         """

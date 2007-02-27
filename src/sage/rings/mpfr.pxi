@@ -129,5 +129,6 @@ cdef extern from "mpfr.h":
 
     int mpfr_neg (mpfr_ptr rop, mpfr_srcptr op, mp_rnd_t rnd)
     # int mpfr_eq (mpfr_srcptr rop, mpfr_srcptr op, unsigned long i)
-    # int mpfr_less_p (mpfr_t op1, mpfr_t op2)
+    int mpfr_less_p (mpfr_t op1, mpfr_t op2)
+    int mpfr_lessequal_p (mpfr_t op1, mpfr_t op2)
     int mpfr_cmp (mpfr_t op1, mpfr_t op2)

@@ -16,6 +16,7 @@ import sage.misc.misc as misc
 
 from   sage.misc.viewer     import browser
 
+# if you change the default sage_wiki, you must also change local/bin/sage-wiki
 def wiki_create_instance(directory='sage_wiki'):
     from MoinMoin.server.standalone import StandaloneConfig, run
 
@@ -30,7 +31,9 @@ def wiki_create_instance(directory='sage_wiki'):
     os.system('cp -r %s/underlay %s'%(share,directory))
     os.system('cp %s/config/wikiconfig.py %s/'%(share,directory))
     os.system('cp %s/server/moin.py %s/'%(share,directory))
-
+    R = open('%s/moin.py'%directory,'r').read()
+    R = R.replace('/path/to/wikiconfig',directory)
+    open('%s/moin.py'%directory,'w').write(R)
 
 def wiki(directory='sage_wiki',
          port=9000,

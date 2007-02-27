@@ -214,7 +214,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         This performs the inverse fast fourier transform on the vector.
         sage: v = vector(CDF,[1,2,3,4])
         sage: w = v.fft()
-        sage: v-w.inv_fft()
+        sage: v - w.inv_fft()    # random -- should be very close to 0.
         (0, 0, 0, 0)
 
         The fourier transform can be done in place using the keyword

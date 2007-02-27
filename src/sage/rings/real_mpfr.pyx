@@ -1787,11 +1787,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def nth_root(self, int n):
         r"""
-        Returns the $n^{th}$ root of self
+        Returns an $n^{th}$ root of self.
 
-        Parameters:
-        n -- A positive number, rounded down to the nearest integer.
-             Note that $n$ should be less than $\code{sys.maxint}$.
+        INPUT:
+            n -- A positive number, rounded down to the nearest integer.
+                 Note that $n$ should be less than $\code{sys.maxint}$.
 
         EXAMPLES:
             sage: R = RealField()
@@ -1806,7 +1806,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(32).nth_root(-1)
             Traceback (most recent call last):
             ...
-            ValueError: Invalid value for n
+            ValueError: n must be nonnegative
             sage: R(32).nth_root(1.0)
             32.0000000000000
 
@@ -1814,15 +1814,15 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(-2).nth_root(6)
             NaN
 
-        The $n^{th}$ root of -0 is defined to be -0, for any $n$
-            sage: R(-0).nth_root(6)
+        The $n^{th}$ root of 0 is defined to be 0, for any $n$
+            sage: R(0).nth_root(6)
             0.000000000000000
 
-            sage: R(-0).nth_root(7)
+            sage: R(0).nth_root(7)
             0.000000000000000
 
-        Author: Didier Deshommes (2007-02)
-        Referee: David Harvey
+        AUTHOR: Didier Deshommes (2007-02)
+        REFEREE: David Harvey
 
         TODO: (trac #294) the underlying mpfr_root function is unforgivably
         slow when n is large. e.g. RealNumber(8).nth_root(100000) is very slow.
@@ -1832,7 +1832,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber x
 
         if n < 0:
-            raise ValueError, "Invalid value for n"
+            raise ValueError, "n must be nonnegative"
 
         x = self._new()
         _sig_on

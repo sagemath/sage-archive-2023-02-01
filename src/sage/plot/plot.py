@@ -2695,3 +2695,59 @@ def graphics_array(array, n=None, m=None):
         array = reshape(array, n, m)
     return GraphicsArray(array)
 
+def float_to_html(r,g,b):
+    """
+    This is a function to present tuples of RGB floats as HTML-happy hex
+    for matplotlib. This may not seem necessary, but there are some odd
+    cases where matplotlib is just plain schizophrenic- for an example, do
+
+    sage.: color_dict = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+    sage.: graphs.DodecahedralGraph().show(color_dict=color_dict)
+
+    Notice how the colors don't respect the partition at all.....
+    """ # TODO: figure out WTF
+    from sage.rings.integer import Integer
+    from sage.rings.arith import floor
+    rr = Integer(floor(r*255)).str(base=16)
+    gg = Integer(floor(g*255)).str(base=16)
+    bb = Integer(floor(b*255)).str(base=16)
+    rr = '0'*(2-len(rr)) + rr
+    gg = '0'*(2-len(gg)) + gg
+    bb = '0'*(2-len(bb)) + bb
+    return '#' + rr\
+               + gg\
+               + bb
+
+def rainbow(n):
+    """
+    Given an integer n, returns a list of colors, represented in HTML hex,
+    that changes smoothly in hue from one end of the spectrum to the other.
+    Written in order to easily represent vertex partitions on graphs.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLE:
+        sage: from sage.plot.plot import rainbow
+        sage: rainbow(7)
+        ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
+    """
+    from sage.rings.arith import floor
+    R = []
+    for i in range(n):
+        r = 6*float(i)/n
+        h = floor(r)
+        r = float(r - h)
+        if h == 0:#RED
+            R.append(float_to_html(1.,r,0.))
+        elif h == 1:
+            R.append(float_to_html(1. - r,1.,0.))
+        elif h == 2:#GREEN
+            R.append(float_to_html(0.,1.,r))
+        elif h == 3:
+            R.append(float_to_html(0.,1. - r,1.))
+        elif h == 4:#BLUE
+            R.append(float_to_html(r,0.,1.))
+        elif h == 5:
+            R.append(float_to_html(1.,0.,1. - r))
+    return R
+

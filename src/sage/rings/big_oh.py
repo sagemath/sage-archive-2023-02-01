@@ -4,7 +4,8 @@ Big O for various types (power series, p-adics, etc.)
 
 import arith
 import laurent_series_ring_element
-import padic_field
+import padics.qp
+import padics.padic_generic
 import power_series_ring_element
 import integer
 import rational
@@ -24,7 +25,9 @@ def O(x):
         if len(F) != 1:
             raise ArithmeticError, "x must be prime power"
         p, r = F[0]
-        return padic_field.Qp(p)(0,r)
+        return padics.qp.Qp(p, prec = r, type = 'capped-rel')(Mod(0, x))
 
+    elif isinstance(x, padics.padic_generic.pAdicGeneric):
+         return padics.qp.Qp(p, prec = x.parent().precision_cap(), type = 'capped-rel')(x.parent().prime_pow(x.valuation()))
     raise ArithmeticError, "O(x) not defined"
 

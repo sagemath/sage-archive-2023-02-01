@@ -29,7 +29,7 @@ import integer_mod_ring
 import polynomial_pyx
 import rational_field
 import complex_field
-import padic_field
+#import padic_field
 from infinity import infinity
 import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval

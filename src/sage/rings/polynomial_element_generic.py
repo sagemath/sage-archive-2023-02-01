@@ -1480,8 +1480,12 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f = x^3 + 3*x - 17
             sage: f.list()
             [-17, 3, 0, 1]
+            sage: f = PolynomialRing(ZZ,'x')(0)
+            sage: f.list()
+            []
         """
-        return [ZZ(str(self.__poly[i])) for i in xrange(self.degree()+1)]
+        return self.__poly.list()
+
 
     def resultant(self, other):
         """

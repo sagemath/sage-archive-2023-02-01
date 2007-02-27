@@ -119,7 +119,7 @@ If we try to subtract infinities or multiply infinity by zero we still get an er
 
 from sage.rings.ring_element import RingElement
 from sage.rings.ring import Ring
-from sage.structure.element import RingElement, InfinityElement
+from sage.structure.element import RingElement, InfinityElement, PlusInfinityElement, MinusInfinityElement
 from sage.structure.parent_gens import ParentWithGens
 #import sage.rings.real_double
 #import sage.rings.real_mpfr
@@ -316,7 +316,7 @@ class InfinityRing_class(_uniq2, Ring):
         ParentWithGens.__init__(self, self, names=('oo',), normalize=False)
 
     def ngens(self):
-        return 1
+        return 2
 
     def gen(self, n=0):
         try:
@@ -346,9 +346,9 @@ class InfinityRing_class(_uniq2, Ring):
         return cmp(type(self), type(right))
 
     def __call__(self, x):
-        if isinstance(x, PlusInfinity):
+        if isinstance(x, PlusInfinityElement):
             return self.gen(0)
-        elif isinstance(x, MinusInfinity):
+        elif isinstance(x, MinusInfinityElement):
             return self.gen(1)
         elif isinstance(x, InfinityElement):
             return self.gen(0)
@@ -363,18 +363,17 @@ class InfinityRing_class(_uniq2, Ring):
             raise TypeError
 
     def _coerce_impl(self, x):
-        if isinstance(x, PlusInfinity):
+        if isinstance(x, PlusInfinityElement):
             if x.parent() is self:
                 return x
             else:
-                return self.gen()
-        elif isinstance(x, MinusInfinity):
+                return self.gen(0)
+        elif isinstance(x, MinusInfinityElement):
             if x.parent() is self:
                 return x
             else:
-                return -self.gen()
+                return self.gen(1)
         elif isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational, sage.rings.real_double.RealDoubleElement, sage.rings.real_mpfr.RealNumber)) or isinstance(x, (int,long,float)):
-        #elif isinstance(x, (sage.rings.integer.Integer, sage.rings.rational.Rational)) or isinstance(x, (int,long,float)):
             if x < 0:
                 return FiniteNumber(self, -1)
             elif x > 0:
@@ -431,7 +430,7 @@ class FiniteNumber(RingElement):
     def _neg_(self):
         return FiniteNumber(self.parent(), -self.value)
 
-    def __repr__(self):
+    def _repr_(self):
         if self.value < 0:
             return "A negative finite number"
         if self.value > 0:
@@ -439,7 +438,7 @@ class FiniteNumber(RingElement):
         return "Zero"
 
     def _latex_(self):
-        return self.__repr__()
+        return self._repr_()
 
     def __abs__(self):
         if self.value == 0:
@@ -456,7 +455,7 @@ class FiniteNumber(RingElement):
             raise SignError, "cannot take square root of a negative number"
         return self
 
-class MinusInfinity(_uniq3, InfinityElement):
+class MinusInfinity(_uniq3, MinusInfinityElement):
     def __init__(self):
         InfinityElement.__init__(self, InfinityRing)
 
@@ -465,7 +464,7 @@ class MinusInfinity(_uniq3, InfinityElement):
             return 0
         return -1
 
-    def __repr__(self):
+    def _repr_(self):
         return "-Infinity"
 
     def _latex_(self):
@@ -525,7 +524,7 @@ class MinusInfinity(_uniq3, InfinityElement):
     def square_root(self):
         raise SignError, "cannot take square root of negative infinity"
 
-class PlusInfinity(_uniq4, InfinityElement):
+class PlusInfinity(_uniq4, PlusInfinityElement):
     def __init__(self):
         InfinityElement.__init__(self, InfinityRing)
 

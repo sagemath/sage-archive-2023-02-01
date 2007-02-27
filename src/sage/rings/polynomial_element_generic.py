@@ -32,7 +32,7 @@ import integer
 import complex_field
 import arith
 import finite_field
-import padic_field
+#import padic_field
 
 import fraction_field_element
 import sage.rings.polynomial_ring

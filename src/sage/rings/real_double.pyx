@@ -208,7 +208,6 @@ cdef class RealDoubleField_class(Field):
         Returns pi to double-precision.
 
         EXAMPLES:
-            sage: R = RealField(100)
             sage: RDF.pi()
             3.14159265359
             sage: RDF.pi().sqrt()/2

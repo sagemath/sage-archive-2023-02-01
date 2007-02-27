@@ -196,13 +196,13 @@ class A000001(SloaneSequence):
         Traceback (most recent call last):
         ...
         ValueError: input n (=0) must be a positive integer
-        sage: a(1)
+        sage: a(1) #optional database_gap
         1
-        sage: a(2)
+        sage: a(2) #optional database_gap
         1
-        sage: a(9)
+        sage: a(9) #optional database_gap
         2
-        sage: a.list(16)
+        sage: a.list(16) #optional database_gap
         [1, 1, 1, 2, 1, 2, 1, 5, 2, 2, 1, 5, 1, 2, 1, 14]
         sage: a(60)     # optional
         13

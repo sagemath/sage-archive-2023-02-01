@@ -688,6 +688,34 @@ delete h;
         magma.eval(code)
         return float(magma.eval('s'))
 
+def MatrixVector_QQ(n=1000,h=100,system='sage',times=1):
+    if system=='sage':
+        V=QQ**n
+        v=V.random_element(h)
+        M=random_matrix(QQ,n)
+        t=cputime()
+        for i in range(times):
+            w=M*v
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+            n:=%s;
+            h:=%s;
+            times:=%s;
+            v:=VectorSpace(RationalField(),n)![Random(h)/(Random(h)+1) : i in [1..n]];
+            M:=MatrixAlgebra(RationalField(),n)![Random(h)/(Random(h)+1) : i in [1..n^2]];
+            t := Cputime();
+            for z in [1..times] do
+                W:=v*M;
+            end for;
+            s := Cputime(t);
+        """%(n,h,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 
 #######################################################################
 # Dense Benchmarks over machine reals

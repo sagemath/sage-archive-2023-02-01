@@ -171,7 +171,8 @@ class HG:
             cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(), 'localhost', port)
             t = tmp_filename()
             open(t,'w').write(cmd)
-            os.system('source %s &'%(os.path.abspath(t)))
+            P = os.path.abspath(t)
+            os.system('chmod +x %s; %s &'%(P, P))
         self('serve --port %s'%port)
 
     browse = serve

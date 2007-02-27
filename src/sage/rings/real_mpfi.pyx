@@ -44,6 +44,56 @@ EXAMPLES:
     True
     sage: a == 2
     False
+
+COMPARISONS:
+
+Comparison operations (==,!=,<,<=,>,>=) return true if every value in
+the first interval has the given relation to every value in the second
+interval.  The cmp(a, b) function works differently; it compares two
+intervals lexicographically.  (However, the behavior is not specified
+if given a non-interval and an interval.)
+
+This convention for comparison operators has good and bad points.  The
+good:
+* Expected transitivity properties hold (if a > b and b == c, then a > c;
+etc.)
+* if a>b, then cmp(a, b) == 1; if a==b, then cmp(a,b) == 0; if a<b, then
+cmp(a, b) == -1
+* a==0 is true if the interval contains only the floating-point number 0;
+similarly for a==1
+* a>0 means something useful (that every value in the interval is greater
+than 0)
+
+The bad:
+* Trichotomy fails to hold: there are values (a,b) such that none of a<b,
+a==b, or a>b are true
+* It is not the case that if cmp(a, b) == 0 then a==b, or that if
+cmp(a, b) == 1 then a>b, or that if cmp(a, b) == -1 then a<b
+* There are values a,b such that a<=b but neither a<b nor a==b hold
+
+Note that intervals a and b overlap iff not(a != b).
+
+EXAMPLES:
+    sage: 0 < RIF(1, 2)
+    True
+    sage: 0 == RIF(0)
+    True
+    sage: not(0 == RIF(0, 1))
+    True
+    sage: not(0 != RIF(0, 1))
+    True
+    sage: 0 <= RIF(0, 1)
+    True
+    sage: not(0 < RIF(0, 1))
+    True
+    sage: cmp(RIF(0), RIF(0, 1))
+    -1
+    sage: cmp(RIF(0, 1), RIF(0))
+    1
+    sage: cmp(RIF(0, 1), RIF(1))
+    -1
+    sage: cmp(RIF(0, 1), RIF(0, 1))
+    0
 """
 
 ############################################################################
@@ -705,12 +755,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: a = RIF(5,5.5)
-            sage: loads(dumps(a)) == a
-            True
+            sage: cmp(loads(dumps(a)), a)
+            0
             sage: R = RealIntervalField(sci_not=1, prec=200)
             sage: b = R('393.39203845902384098234098230948209384028340')
-            sage: loads(dumps(b)) == b
-            True
+            sage: cmp(loads(dumps(b)), b)
+            0
             sage: b = R(1)/R(0); b
             [+infinity ... +infinity]
             sage: loads(dumps(b)) == b
@@ -721,8 +771,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             True
             sage: b = R('[2 ... 3]'); b
             [2.0000000000000000000000000000000000000000000000000000000000000e0 ... 3.0000000000000000000000000000000000000000000000000000000000000e0]
-            sage: loads(dumps(b)) == b
-            True
+            sage: cmp(loads(dumps(b)), b)
+            0
         """
         s = self.str(32, no_sci=False, e='@')
         return (__create__RealIntervalFieldElement_version0, (self._parent, s, 32))
@@ -933,13 +983,12 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def relative_diameter(self):
         """
-        XXX This MPFI function is buggy!
-
         The relative diameter of this interval (for [a ... b],
         this is (b-a)/((a+b)/2)), rounded upward, as a RealNumber.
 
         EXAMPLES:
-            sage: RIF(1, pi).relative_diameter() # todo: not implemented
+            sage: RIF(1, pi).relative_diameter()
+	    1.03418797197910
         """
         cdef RealNumber x
         x = (<RealIntervalField>self._parent).__middle_field._new()
@@ -948,30 +997,28 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def diameter(self):
         """
-        XXX This MPFI function is buggy!
-
         If (0 in self), returns self.absolute_diameter(),
         otherwise self.relative_diameter().
 
         EXAMPLES:
             sage: RIF(1, 2).diameter()
-            1.00000000000000
+            0.666666666666666
             sage: RIF(1, 2).absolute_diameter()
             1.00000000000000
             sage: RIF(1, 2).relative_diameter()
-            1.00000000000000
+            0.666666666666666
             sage: RIF(pi).diameter()
-            0.000000000000000444089209850062
+            0.000000000000000141357985842822
             sage: RIF(pi).absolute_diameter()
             0.000000000000000444089209850062
             sage: RIF(pi).relative_diameter()
-            0.000000000000000444089209850062
-            sage: (RIF(pi) - RIF(pi).square().sqrt()).diameter()
-            0.00000000000000177635683940025
-            sage: (RIF(pi) - RIF(pi).square().sqrt()).absolute_diameter()
-            0.00000000000000177635683940025
-            sage: (RIF(pi) - RIF(pi).square().sqrt()).relative_diameter()
-            +infinity
+            0.000000000000000141357985842822
+            sage: (RIF(pi) - RIF(3, 22/7)).diameter()
+            0.142857142857143
+            sage: (RIF(pi) - RIF(3, 22/7)).absolute_diameter()
+            0.142857142857143
+            sage: (RIF(pi) - RIF(3, 22/7)).relative_diameter()
+            2.03604377705517
         """
         cdef RealNumber x
         x = (<RealIntervalField>self._parent).__middle_field._new()
@@ -993,7 +1040,22 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         mpfi_mag(<mpfr_t> x.value, self.value)
         return x
 
-    # I'm skipping mignitude (mpfi_mig()).  Is this a useful function?
+    def mignitude(self):
+        """
+        The smallest absolute value of the elements of the interval.
+
+        EXAMPLES:
+            sage: RIF(-2, 1).mignitude()
+            0.000000000000000
+            sage: RIF(-2, -1).mignitude()
+            1.00000000000000
+            sage: RIF(3, 4).mignitude()
+            3.00000000000000
+        """
+        cdef RealNumber x
+        x = (<RealIntervalField>self._parent).__middle_field._new()
+        mpfi_mig(<mpfr_t> x.value, self.value)
+        return x
 
     def center(self):
         """
@@ -1441,40 +1503,232 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         return bool(mpfi_nan_p(self.value))
 
     def __richcmp__(left, right, int op):
-        return (<RingElement>left)._richcmp(right, op)
+        return (<Element>left)._richcmp(right, op)
+
+    cdef _richcmp_c_impl(left, Element right, int op):
+        """
+        Implements comparisons between intervals.  (See the file header
+        comment for more information on interval comparison.)
+
+        EXAMPLES:
+            sage: 0 < RIF(1, 3)
+            True
+            sage: 1 < RIF(1, 3)
+            False
+            sage: 2 < RIF(1, 3)
+            False
+            sage: 4 < RIF(1, 3)
+            False
+            sage: RIF(0, 1/2) < RIF(1, 3)
+            True
+            sage: RIF(0, 1) < RIF(1, 3)
+            False
+            sage: RIF(0, 2) < RIF(1, 3)
+            False
+            sage: RIF(1, 2) < RIF(1, 3)
+            False
+            sage: RIF(1, 3) < 4
+            True
+            sage: RIF(1, 3) < 3
+            False
+            sage: RIF(1, 3) < 2
+            False
+            sage: RIF(1, 3) < 0
+            False
+            sage: 0 <= RIF(1, 3)
+            True
+            sage: 1 <= RIF(1, 3)
+            True
+            sage: 2 <= RIF(1, 3)
+            False
+            sage: 4 <= RIF(1, 3)
+            False
+            sage: RIF(0, 1/2) <= RIF(1, 3)
+            True
+            sage: RIF(0, 1) <= RIF(1, 3)
+            True
+            sage: RIF(0, 2) <= RIF(1, 3)
+            False
+            sage: RIF(1, 2) <= RIF(1, 3)
+            False
+            sage: RIF(1, 3) <= 4
+            True
+            sage: RIF(1, 3) <= 3
+            True
+            sage: RIF(1, 3) <= 2
+            False
+            sage: RIF(1, 3) <= 0
+            False
+            sage: RIF(1, 3) > 0
+            True
+            sage: RIF(1, 3) > 1
+            False
+            sage: RIF(1, 3) > 2
+            False
+            sage: RIF(1, 3) > 4
+            False
+            sage: RIF(1, 3) > RIF(0, 1/2)
+            True
+            sage: RIF(1, 3) > RIF(0, 1)
+            False
+            sage: RIF(1, 3) > RIF(0, 2)
+            False
+            sage: RIF(1, 3) > RIF(1, 2)
+            False
+            sage: 4 > RIF(1, 3)
+            True
+            sage: 3 > RIF(1, 3)
+            False
+            sage: 2 > RIF(1, 3)
+            False
+            sage: 0 > RIF(1, 3)
+            False
+            sage: RIF(1, 3) >= 0
+            True
+            sage: RIF(1, 3) >= 1
+            True
+            sage: RIF(1, 3) >= 2
+            False
+            sage: RIF(1, 3) >= 4
+            False
+            sage: RIF(1, 3) >= RIF(0, 1/2)
+            True
+            sage: RIF(1, 3) >= RIF(0, 1)
+            True
+            sage: RIF(1, 3) >= RIF(0, 2)
+            False
+            sage: RIF(1, 3) >= RIF(1, 2)
+            False
+            sage: 4 >= RIF(1, 3)
+            True
+            sage: 3 >= RIF(1, 3)
+            True
+            sage: 2 >= RIF(1, 3)
+            False
+            sage: 0 >= RIF(1, 3)
+            False
+            sage: 0 == RIF(0)
+            True
+            sage: 0 == RIF(1)
+            False
+            sage: 1 == RIF(0)
+            False
+            sage: 0 == RIF(0, 1)
+            False
+            sage: 1 == RIF(0, 1)
+            False
+            sage: RIF(0, 1) == RIF(0, 1)
+            False
+            sage: RIF(1) == 0
+            False
+            sage: RIF(1) == 1
+            True
+            sage: RIF(0) == RIF(0)
+            True
+            sage: RIF(pi) == RIF(pi)
+            False
+            sage: RIF(0, 1) == RIF(1, 2)
+            False
+            sage: RIF(1, 2) == RIF(0, 1)
+            False
+            sage: 0 != RIF(0)
+            False
+            sage: 0 != RIF(1)
+            True
+            sage: 1 != RIF(0)
+            True
+            sage: 0 != RIF(0, 1)
+            False
+            sage: 1 != RIF(0, 1)
+            False
+            sage: RIF(0, 1) != RIF(0, 1)
+            False
+            sage: RIF(1) != 0
+            True
+            sage: RIF(1) != 1
+            False
+            sage: RIF(0) != RIF(0)
+            False
+            sage: RIF(pi) != RIF(pi)
+            False
+            sage: RIF(0, 1) != RIF(1, 2)
+            False
+            sage: RIF(1, 2) != RIF(0, 1)
+            False
+        """
+        cdef RealIntervalFieldElement lt, rt
+
+        lt = left
+        rt = right
+
+        if op == 0: #<
+            return PyBool_FromLong(mpfr_less_p(&lt.value.right, &rt.value.left))
+        elif op == 2: #==
+            # a == b iff a<=b and b <= a
+            # (this gives a result with two comparisons, where the
+            # obvious approach would use three)
+            return PyBool_FromLong(mpfr_lessequal_p(&lt.value.right, &rt.value.left)) \
+                and PyBool_FromLong(mpfr_lessequal_p(&rt.value.right, &lt.value.left))
+        elif op == 4: #>
+            return PyBool_FromLong(mpfr_less_p(&rt.value.right, &lt.value.left))
+        elif op == 1: #<=
+            return PyBool_FromLong(mpfr_lessequal_p(&lt.value.right, &rt.value.left))
+        elif op == 3: #!=
+            return PyBool_FromLong(mpfr_less_p(&lt.value.right, &rt.value.left)) \
+                or PyBool_FromLong(mpfr_less_p(&rt.value.right, &lt.value.left))
+        elif op == 5: #>=
+            return PyBool_FromLong(mpfr_lessequal_p(&rt.value.right, &lt.value.left))
+
+    def __cmp__(left, right):
+        """
+        Compare two intervals lexicographically.  Returns 0 if they
+        are the same interval, -1 if the second is larger, or 1 if
+        the first is larger.
+
+        EXAMPLES:
+            sage: cmp(RIF(0), RIF(1))
+            -1
+            sage: cmp(RIF(0, 1), RIF(1))
+            -1
+            sage: cmp(RIF(0, 1), RIF(1, 2))
+            -1
+            sage: cmp(RIF(0, 0.99999), RIF(1, 2))
+            -1
+            sage: cmp(RIF(1, 2), RIF(0, 1))
+            1
+            sage: cmp(RIF(1, 2), RIF(0))
+            1
+            sage: cmp(RIF(0, 1), RIF(0, 2))
+            -1
+            sage: cmp(RIF(0, 1), RIF(0, 1))
+            0
+            sage: cmp(RIF(0, 1), RIF(0, 1/2))
+            1
+        """
+        return (<Element>left)._cmp(right)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
-        Compare two intervals.  Returns 0 if they overlap, -1 if the
-        second is larger, or 1 if the first is larger.
-
-        EXAMPLES:
-            sage: RIF(0) < RIF(1)
-            True
-            sage: RIF(0, 1) < RIF(1)
-            False
-            sage: RIF(0, 1) == RIF(1, 2)
-            True
-            sage: RIF(0, 0.99999) == RIF(1, 2)
-            False
-            sage: RIF(1, 2) > RIF(0, 1)
-            False
-            sage: RIF(1, 2) > RIF(0)
-            True
+        Implements the lexicographic total order on intervals.
         """
-        cdef RealIntervalFieldElement self, x
-        self = left
-        x = right
+        cdef RealIntervalFieldElement lt, rt
+
+        lt = left
+        rt = right
 
         cdef int i
-        i = mpfi_cmp(self.value, x.value)
+        i = mpfr_cmp(&lt.value.left, &rt.value.left)
         if i < 0:
             return -1
-        elif i == 0:
-            return 0
-        else:
+        elif i > 0:
             return 1
-
+        i = mpfr_cmp(&lt.value.right, &rt.value.right)
+        if i < 0:
+            return -1
+        elif i > 0:
+            return 1
+        else:
+            return 0
 
     def __contains__(self, other):
         """
@@ -1510,9 +1764,34 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         except TypeError, msg:
             return False
 
-    # Skipping mpfi_intersect(), because it can return an empty
-    # interval (where nothing else can), and I don't want to
-    # deal with empty intervals everywhere.
+    def intersection(self, other):
+        """
+        Return the intersection of two intervals.  If the intervals
+        do not overlap, raises a ValueError.
+
+        EXAMPLES:
+            sage: RIF(1, 2).intersection(RIF(1.5, 3))
+            [1.5000000000000000 ... 2.0000000000000000]
+            sage: RIF(1, 2).intersection(RIF(4/3, 5/3))
+            [1.3333333333333332 ... 1.6666666666666668]
+            sage: RIF(1, 2).intersection(RIF(3, 4))
+            Traceback (most recent call last):
+            ...
+            ValueError: intersection of non-overlapping intervals
+        """
+        cdef RealIntervalFieldElement x
+        x = self._new()
+        cdef RealIntervalFieldElement other_intv
+        if PY_TYPE_CHECK(other, RealIntervalFieldElement):
+            other_intv = other
+        else:
+            # Let type errors from _coerce_ propagate...
+            other_intv = self._parent._coerce_(other)
+
+        mpfi_intersect(x.value, self.value, other_intv.value)
+        if mpfr_less_p(&x.value.right, &x.value.left):
+            raise ValueError, "intersection of non-overlapping intervals"
+        return x
 
     def union(self, other):
         """
@@ -1554,12 +1833,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def sqrt(self):
         """
-        Return a square root of self.
+        Return a square root of self.  Raises an error if self is
+        nonpositive.
 
-        If self is negative a complex number is returned.
-
-        If you use self.square_root() then a real number will always
-        be returned (though it will be NaN if self is negative).
+        If you use self.square_root() then an interval will always
+        be returned (though it will be NaN if self is nonpositive).
 
         EXAMPLES:
             sage: r = RIF(4.0)
@@ -1572,6 +1850,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r.sqrt()
             [65.909028213136323 ... 65.909028213136339]
             sage: r.sqrt()^2 == r
+            False
+            sage: r in r.sqrt()^2
             True
             sage: r.sqrt()^2 - r
             [-0.00000000000090949470177292824 ... 0.0000000000018189894035458565]
@@ -1596,7 +1876,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     def square_root(self):
         """
         Return a square root of self.  An interval will always be
-        returned (though it will be NaN if self is negative).
+        returned (though it will be NaN if self is nonpositive).
 
         EXAMPLES:
             sage: r = RIF(-2.0)
@@ -1817,13 +2097,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = RIF(-1.1, -0.9)
             sage: a.is_int()
             (True, -1)
+            sage: a = RIF(0.1, 1.9)
+            sage: a.is_int()
+            (True, 1)
         """
-        if self.diameter() >= 1:
-            return False, None
-        a = (self.lower()+1).floor()
+        a = (self.lower()).ceil()
         b = (self.upper()).floor()
         if a == b:
-
             return True, a
         else:
             return False, None
@@ -1936,8 +2216,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [0.49999999999999988 ... 0.50000000000000012]
             sage: q2 = i.acos(); q2
             [1.0471975511965974 ... 1.0471975511965981]
-            sage: q2 == q
-            True
+            sage: q == q2
+            False
+            sage: q != q2
+            False
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
@@ -1963,8 +2245,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [0.58778525229247302 ... 0.58778525229247325]
             sage: q2 = i.asin(); q2
             [0.62831853071795851 ... 0.62831853071795885]
-            sage: q2 == q
-            True
+            sage: q == q2
+            False
+            sage: q != q2
+            False
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
@@ -1990,8 +2274,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             [0.72654252800536078 ... 0.72654252800536113]
             sage: q2 = i.atan(); q2
             [0.62831853071795851 ... 0.62831853071795885]
-            sage: q2 == q
-            True
+            sage: q == q2
+            False
+            sage: q != q2
+            False
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
@@ -2253,7 +2539,7 @@ def is_RealIntervalField(x):
     return PY_TYPE_CHECK(x, RealIntervalField)
 
 def is_RealIntervalFieldElement(x):
-    return PY_TYPE_CHECK(x, RealIntervalFieldElementClass)
+    return PY_TYPE_CHECK(x, RealIntervalFieldElement)
 
 
 #### pickle functions
@@ -2263,4 +2549,3 @@ def __create__RealIntervalField_version0(prec, sci_not):
 ## Keep all old versions!!!
 def __create__RealIntervalFieldElement_version0(parent, x, base=10):
     return RealIntervalFieldElement(parent, x, base=base)
-

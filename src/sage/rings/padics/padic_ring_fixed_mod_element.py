@@ -129,6 +129,18 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         return pAdicRingFixedModElement(self.parent(), self._value**right, construct = True)
 
     def _add_(self, right):
+        r"""
+        Adds self to right.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: x = R(1721); x
+            6 + 5*7^3 + O(7^4)
+            sage: y = R(1373); y
+            1 + 4*7^3 + O(7^4)
+            sage: x + y
+            7 + 2*7^3 + O(7^4)
+        """
         return pAdicRingFixedModElement(self.parent(), self._value + right._value, construct = True)
 
     def _div_(self, right):

@@ -22,7 +22,7 @@ AUTHORS:
 
 
 from sage.rings.integer_ring import ZZ
-from sage.rings.padic_field import pAdicField
+# from sage.rings.padic_field import pAdicField
 
 from sage.structure.sage_object import SageObject
 

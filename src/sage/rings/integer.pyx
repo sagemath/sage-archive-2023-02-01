@@ -1470,12 +1470,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         input a number into PARI in hex, or otherwise optimize this,
         please implement it and send me a patch.
         """
-        if self._pari is None:
+        #if self._pari is None:
             # better to do in hex, but I can't figure out
             # how to input/output a number in hex in PARI!!
             # TODO: (I could just think carefully about raw bytes and make this all much faster...)
-            self._pari = sage.libs.pari.all.pari(str(self))
-        return self._pari
+            #self._pari = sage.libs.pari.all.pari(str(self))
+        #return self._pari
+        return sage.libs.pari.all.pari(str(self))
 
     def _interface_init_(self):
         """
@@ -1960,3 +1961,146 @@ def random_integer(min=-2, max=2):
         return Integer(randint(min,max))
 
 
+############### INTEGER CREATION CODE #####################
+######## There is nothing to see here, move along   #######
+
+cdef extern from *:
+
+    # We need a PyTypeObject with elements such that we can
+    # get and set tp_new, tp_dealloc, and tp_basicsize
+    ctypedef struct PyTypeObject2 "PyTypeObject":
+        PyObject* (*tp_new) (PyTypeObject2*, PyObject*, PyObject*)
+        void (*tp_dealloc) (PyObject*)
+        size_t tp_basicsize # sizeof(Object)
+
+    # We need a PyObject where we can get/set the refcnt directly
+    # and the type.
+    ctypedef struct PyObject2 "PyObject":
+        int ob_refcnt
+        PyTypeObject2* ob_type
+
+    # Allocation
+    PyObject2* PyObject_MALLOC(int)
+
+    # Free
+    void PyObject_FREE(PyObject*)
+
+    # Ref Counting
+    void Py_INCREF(object)
+
+
+cdef extern from "gmp.h":
+    ctypedef void* mp_ptr #"mp_ptr"
+
+    # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
+    ctypedef struct __mpz_struct "__mpz_struct":
+        mp_ptr _mp_d
+
+    # sets the three free, alloc, and realloc function pointers to the
+    # memory management functions set in GMP. Accepts NULL pointer.
+    # Potentially dangerous if changed by calling
+    # mp_set_memory_functions after we initialized this module.
+    void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
+
+    # GMP's configuration of how many Bits are stuffed into a limb
+    cdef int __GMP_BITS_PER_MP_LIMB
+
+# This variable holds the size of any Integer object in bytes.
+cdef int sizeof_Integer
+
+# We use a global Integer element to steal all the references from
+cdef Integer z
+
+# Accessing the .value attribute of an Integer object causes Pyrex to
+# refcount it. This is problematic, because that causes overhead and
+# more importantly an infinite loop in the destructor. If you refcount
+# in the destructor and the refcount reaches zero (which is true
+# everytime) the destructor is called.
+#
+# To avoid this we calculate the byte offset of the value member and
+# remember it in this variable.
+cdef long mpz_t_offset
+
+
+# stores the GMP alloc function
+cdef void * (* mpz_alloc)(size_t)
+
+# stores the GMP free function
+cdef void (* mpz_free)(void *, size_t)
+
+
+# The signature of tp_new is PyObject* tp_new(PyTypeObject2 *t,
+# PyObject *a, PyObject *k). However we only use t in this
+# implementation.
+#
+# t in this case is the Integer TypeObject.
+
+cdef PyObject* fast_tp_new(PyTypeObject2 *t, PyObject *a, PyObject *k):
+     global z
+
+     cdef PyObject2* new
+
+     # allocate enough room for the Integer, sizeof_Integer is sizeof(Integer)
+     new = PyObject_MALLOC( sizeof_Integer )
+
+     # Now set every member as set in z, the global dummy Integer
+     # created before this tp_new started to operate.
+     memcpy(new, <PyObject*>z, sizeof_Integer )
+
+     # Make sure the refcnt isn't too high
+     new.ob_refcnt = 1
+
+     # We take the address 'new' and move mpz_t_offset bytes (chars)
+     # to the address of 'value'. We treat that address as a pointer
+     # to a mpz_t struct and allocate memory for the _mp_d element of
+     # that struct. We allocate one limb.
+
+     (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)
+
+     return new
+
+cdef void fast_tp_dealloc(PyObject* o):
+
+    # Again, we move to the mpz_t and clear it.
+    mpz_clear(<mpz_t>(<char *>o + mpz_t_offset))
+
+    # We free the object.
+    PyObject_FREE(o)
+
+def hook_fast_tp_functions():
+    """
+    """
+    global z, mpz_t_offset, sizeof_Integer
+
+    # create a reference Integer
+    z = Integer()
+
+    cdef PyObject2* o
+    o = <PyObject2*>z
+
+    # Make sure z stays around
+    Py_INCREF(z)
+
+    # calculate the offset of the GMP mpz_t to avoid casting to/from
+    # an Integer which includes reference counting.
+    mpz_t_offset = <char *>(&z.value) - <char *>o
+
+    # store how much memory needs to be allocated for an Integer.
+    sizeof_Integer = o.ob_type.tp_basicsize
+
+    # get the functions to do memory management for the GMP elements
+    # WARNING if the memory management functions are changed after this initialisation, we are doomed.
+    mp_get_memory_functions(&mpz_alloc, NULL, &mpz_free)
+
+    # Finally replace the functions called when an Integer is constructed/destructed.
+    o.ob_type.tp_new = &fast_tp_new
+    o.ob_type.tp_dealloc = &fast_tp_dealloc
+
+# call it
+#hook_fast_tp_functions()
+
+
+def time_alloc(n):
+     cdef int i
+     for i from 0 <= i < n:
+         z = PY_NEW(Integer)

@@ -151,10 +151,13 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
             sage: S.factorization()
             (Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(11) of weight 2 with sign 1 over Rational Field)^2
 
-        The following example exposes a bug:
-            sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
-            sage: M1 = M.decomposition()[1]
-            sage: M1.is_simple()
+        The following example exposes a not-implemented issue:
+             sage: M = ModularSymbols(Gamma0(22), 2, sign=1)
+             sage: M1 = M.decomposition()[1]
+             sage: M1.factorization()
+             Traceback (most recent call last):
+             ...
+             NotImplementedError: modular symbols factorization not fully implemented yet --  self has dimension 3, but sum of dimensions of factors is 2
         """
         try:
             return self._factorization
@@ -197,7 +200,8 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         # check that dimensions add up
         r = self.dimension()
         s = sum([A.rank()*mult for A, mult in D])
-        assert r == s, "bug in factorization --  self has dimension %s, but sum of dimensions of factors is %s"%(
+        if r != s:
+            raise NotImplementedError, "modular symbols factorization not fully implemented yet --  self has dimension %s, but sum of dimensions of factors is %s"%(
             r, s)
         self._factorization = sage.structure.factorization.Factorization(D, cr=True)
         return self._factorization

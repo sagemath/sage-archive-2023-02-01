@@ -2,6 +2,7 @@
 #include <NTL/ZZ.h>
 #include <NTL/ZZX.h>
 #include <NTL/ZZ_pXFactoring.h>
+/* #include <NTL/ZZXFactoring.h> */
 #include <NTL/mat_ZZ.h>
 #include <NTL/GF2E.h>
 #include <NTL/GF2X.h>
@@ -120,6 +121,7 @@ EXTERN struct ZZX* ZZX_square_and_truncate(struct ZZX* x, long m);
 EXTERN struct ZZX* ZZX_invert_and_truncate(struct ZZX* x, long m);
 EXTERN struct ZZX* ZZX_multiply_mod(struct ZZX* x, struct ZZX* y,  struct ZZX* modulus);
 EXTERN struct ZZ* ZZX_trace_mod(struct ZZX* x, struct ZZX* y);
+/* EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a); */
 EXTERN char* ZZX_trace_list(struct ZZX* x);
 EXTERN struct ZZ* ZZX_resultant(struct ZZX* x, struct ZZX* y, int proof);
 EXTERN struct ZZ* ZZX_norm_mod(struct ZZX* x, struct ZZX* y, int proof);

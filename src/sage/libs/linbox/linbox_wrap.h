@@ -6,6 +6,9 @@
 #define EXTERN
 #endif
 
+/* Turn off lots of verbosity in the output of linbox functions */
+#define DISABLE_COMMENTATOR
+
 #include<stddef.h>
 typedef size_t mod_int;
 

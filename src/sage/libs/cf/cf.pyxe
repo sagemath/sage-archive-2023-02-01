@@ -116,10 +116,6 @@ include '../../../ext/interrupt.pxi' # path is a hack for pyrexembed
 include 'misc.pxi'
 
 
-from sage.rings.integer import pmem_malloc
-
-pmem_malloc()
-
 
 cdef class Variable:
 

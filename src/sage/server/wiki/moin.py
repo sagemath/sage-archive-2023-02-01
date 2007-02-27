@@ -10,7 +10,7 @@ WikiEngine with a large community of users. Said in a few words, it is
 about collaboration on easily editable web pages.''
 """
 
-import os, sys
+import os, socket, sys
 
 import sage.misc.misc as misc
 
@@ -124,5 +124,14 @@ def wiki(directory='sage_wiki',
         cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
         os.system(cmd)
 
-    run(Config)
+    for i in range(256):
+        try:
+            run(Config)
+        except socket.error:
+            print "Port %s is already in use.  Trying next port..."%(Config.port)
+            Config.port += 1
+        else:
+            break
+
+
     return True

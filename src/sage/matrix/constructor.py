@@ -341,33 +341,26 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         entries = arg3
         if isinstance(entries, dict):
             if sparse is None: sparse = True
-    elif len(arg0.shape)==2:
-       import numpy
-       if isinstance(arg0,numpy.ndarray):
-           if str(arg0.dtype).count('float')==1:
-               if arg0.flags.c_contiguous==True:
-                   m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
-                   m._replace_self_with_numpy(arg0)
-                   return m
-           elif str(arg0.dtype).count('complex')==1:
-               if arg0.flags.c_contiguous==True:
-                   m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
-                   m._replace_self_with_numpy(arg0)
-                   return m
 
     else:
         import numpy
         if isinstance(arg0,numpy.ndarray):
             if str(arg0.dtype).count('float')==1:
-                if arg0.flags.c_contiguous==True:
+                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
                     m=matrix(RDF,arg0.shape[0],arg0.shape[1],0)
                     m._replace_self_with_numpy(arg0)
-                    return m
+                    if arg0.flags.c_contiguous:
+                        return m
+                    else:
+                        return m.transpose()
             elif str(arg0.dtype).count('complex')==1:
-                if arg0.flags.c_contiguous==True:
+                if arg0.flags.c_contiguous==True or arg0.flags.f_contiguous==True:
                     m=matrix(CDF,arg0.shape[0],arg0.shape[1],0)
                     m._replace_self_with_numpy(arg0)
-                    return m
+                    if arg0.flags.c_contiguous:
+                        return m
+                    else:
+                        return m.transpose()
 
 
         else:

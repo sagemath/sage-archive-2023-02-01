@@ -21,6 +21,8 @@ from sage.calculus.equations import SymbolicEquation
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
 
+import math
+
 import pdb
 
 # There will only ever be one instance of this class
@@ -90,8 +92,8 @@ class SymbolicExpression(RingElement):
     def hash(self):
         return hash(maxima(self))
 
-    def __float__(self):
-        return float(self._obj)
+    #def __float__(self):
+    #    return float(self._obj)
 
     def _plot_(self, x=None, *args, **kwds):
         from sage.plot.plot import plot
@@ -420,10 +422,10 @@ class PrimitiveFunction(SymbolicExpression):
         # if x is a polynomial object, first turn it into a function and
         # compose self with x
         elif is_Polynomial(x):
-            return Function_composition(self, SymbolicPolynomial(x))
+            return SymbolicComposition(self, SymbolicPolynomial(x))
 
         # if we can't figure out what x is, return a symbolic version of x
-        elif isinstance(x, (Integer, Rational,
+        elif isinstance(x, (Integer, Rational, RealNumber,
                             int, long, float, complex)):
             return self(Constant_object(x))
 
@@ -689,6 +691,9 @@ class Symbolic_object(SymbolicExpression):
     def obj(self):
         return self._obj
 
+    def __float__(self):
+        return float(self._obj)
+
     def _repr_(self):
         return str(self._obj)
 
@@ -802,6 +807,10 @@ class SymbolicComposition(SymbolicOperation):
             self.__maxima = m
             return m
 
+    def __float__(self):
+        f = self._operands[0]
+        g = self._operands[1]
+        return float(f._approx_()(g))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
             operator.div:'/', operator.pow:'^'}
@@ -868,6 +877,10 @@ class SymbolicArithmetic(SymbolicOperation):
             return '-%s' % s[0]
         else:
             return '%s%s%s' % (s[0], symbols[op], s[1])
+
+    def __float__(self):
+        fops = [float(op) for op in self._operands]
+        return self._operator(*fops)
 
     def _latex_(self):
         op = self._operator
@@ -1006,6 +1019,151 @@ def var(s):
         _vars[s] = v
         return v
 
+_syms = {}
+
+class Function_erf(PrimitiveFunction):
+    r'''
+    The error function, defined as $\text{erf}(x) = \frac{2}{\sqrt{\pi}}\int_0^x
+    e^{-t^2} dt$.
+    '''
+
+    def _repr_(self):
+        return "erf"
+
+    def _latex_(self):
+        return "\\text{erf}"
+
+    def _is_atomic(self):
+        return True
+
+erf = Function_erf()
+_syms['erf'] = erf
+
+class Function_sin(PrimitiveFunction):
+    '''
+    The sine function
+    '''
+
+    def __call__(self, x):
+        return PrimitiveFunction.__call__(self, x)
+
+    def _repr_(self):
+        return "sin"
+
+    def _latex_(self):
+        return "\\sin"
+
+    def _is_atomic(self):
+        return True
+
+    def _approx_(self):
+        return math.sin
+
+sin = Function_sin()
+_syms['sin'] = sin
+
+class Function_cos(PrimitiveFunction):
+    '''
+    The cosine function
+    '''
+    def _repr_(self):
+        return "cos"
+
+    def _latex_(self):
+        return "\\cos"
+
+    def _is_atomic(self):
+        return True
+
+    def _approx_(self):
+        return math.cos
+
+
+cos = Function_cos()
+_syms['cos'] = cos
+
+class Function_sec(PrimitiveFunction):
+    '''
+    The secant function
+    '''
+    def _repr_(self):
+        return "sec"
+
+    def _latex_(self):
+        return "\\sec"
+
+    def _is_atomic(self):
+        return True
+
+    def _sec(self, x):
+        return float(1)/float(cos(x))
+
+    def _approx_(self):
+        return self._sec
+sec = Function_sec()
+_syms['sec'] = sec
+
+class Function_log(PrimitiveFunction):
+    '''
+    The log function
+    '''
+    def _repr_(self):
+        return "log"
+
+    def _latex_(self):
+        return "\\log"
+
+    def _is_atomic(self):
+        return True
+
+    def _approx_(self):
+        return math.log
+
+log = Function_log()
+_syms['log'] = log
+
+class Function_sqrt(PrimitiveFunction):
+    '''
+    The (positive) square root function.
+    '''
+    def _repr_(self):
+        return "sqrt"
+
+    def _latex_(self):
+        return "\\sqrt"
+
+    def _is_atomic(self):
+        return True
+
+sqrt = Function_sqrt()
+_syms['sqrt'] = sqrt
+
+#######################################################
+symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
+import sage.functions.constants as c
+_syms['_Pi_'] = SER(c.Pi)
+_syms['_E_'] = SER(c.E)
+_syms['_I_'] = SER(CC.gen(0))  # change when we create a symbolic I.
+
+def symbolic_expression_from_maxima_string(x):
+    global _syms
+    maxima.eval('listdummyvars: false')
+    maxima.eval('_tmp_: %s'%x)
+    r = maxima.eval('listofvars(_tmp_)')[1:-1]
+    if len(r) > 0:
+        # Now r is a list of all the indeterminate variables that
+        # appear in the expression x.
+        v = r.split(',')
+        for a in v:
+            _syms[a] = var(a)
+    s = maxima.eval('_tmp_')
+    for x, y in symtable.iteritems():
+        s = s.replace(x, y)
+    return SymbolicExpressionRing(sage_eval(s, _syms))
+
+def symbolic_expression_from_maxima_element(x):
+    return symbolic_expression_from_maxima_string(x.name())
+
 a = var('a')
 b = var('b')
 c = var('c')
@@ -1059,128 +1217,4 @@ X = var('X')
 Y = var('Y')
 Z = var('Z')
 
-_syms = {}
 
-class Function_erf(PrimitiveFunction):
-    r'''
-    The error function, defined as $\text{erf}(x) = \frac{2}{\sqrt{\pi}}\int_0^x
-    e^{-t^2} dt$.
-    '''
-
-    def _repr_(self):
-        return "erf"
-
-    def _latex_(self):
-        return "\\text{erf}"
-
-    def _is_atomic(self):
-        return True
-
-erf = Function_erf()
-_syms['erf'] = erf
-
-class Function_sin(PrimitiveFunction):
-    '''
-    The sine function
-    '''
-    def _repr_(self):
-        return "sin"
-
-    def _latex_(self):
-        return "\\sin"
-
-    def _is_atomic(self):
-        return True
-
-sin = Function_sin()
-_syms['sin'] = sin
-
-class Function_cos(PrimitiveFunction):
-    '''
-    The cosine function
-    '''
-    def _repr_(self):
-        return "cos"
-
-    def _latex_(self):
-        return "\\cos"
-
-    def _is_atomic(self):
-        return True
-
-cos = Function_cos()
-_syms['cos'] = cos
-
-class Function_sec(PrimitiveFunction):
-    '''
-    The secant function
-    '''
-    def _repr_(self):
-        return "sec"
-
-    def _latex_(self):
-        return "\\sec"
-
-    def _is_atomic(self):
-        return True
-
-sec = Function_sec()
-_syms['sec'] = sec
-
-class Function_log(PrimitiveFunction):
-    '''
-    The log function
-    '''
-    def _repr_(self):
-        return "log"
-
-    def _latex_(self):
-        return "\\log"
-
-    def _is_atomic(self):
-        return True
-
-log = Function_log()
-_syms['log'] = log
-
-class Function_sqrt(PrimitiveFunction):
-    '''
-    The (positive) square root function.
-    '''
-    def _repr_(self):
-        return "sqrt"
-
-    def _latex_(self):
-        return "\\sqrt"
-
-    def _is_atomic(self):
-        return True
-
-sqrt = Function_sqrt()
-_syms['sqrt'] = sqrt
-
-#######################################################
-symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
-import sage.functions.constants as c
-_syms['_Pi_'] = SER(c.Pi)
-_syms['_E_'] = SER(c.E)
-_syms['_I_'] = SER(CC.gen(0))  # change when we create a symbolic I.
-
-def symbolic_expression_from_maxima_string(x):
-    global _syms
-    maxima.eval('listdummyvars: false')
-    maxima.eval('_tmp_: %s'%x)
-    r = maxima.eval('listofvars(_tmp_)')[1:-1]
-    if len(r) > 0:
-        # Now r is a list of all the indeterminate variables that
-        # appear in the expression x.
-        v = r.split(',')
-        for a in v:
-            _syms[a] = var(a)
-    s = maxima.eval('_tmp_')
-    for x, y in symtable.iteritems():
-        s = s.replace(x, y)
-    return SymbolicExpressionRing(sage_eval(s, _syms))
-
-def symbolic_expression_from_maxima_element(x):
-    return symbolic_expression_from_maxima_string(x.name())

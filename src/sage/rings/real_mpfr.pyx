@@ -1824,7 +1824,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         AUTHOR: Didier Deshommes (2007-02)
         REFEREE: David Harvey
 
-        TODO: (trac #294) the underlying mpfr_root function is unforgivably
+        TODO: (trac \#294) the underlying mpfr_root function is unforgivably
         slow when n is large. e.g. RealNumber(8).nth_root(100000) is very slow.
         This should be investigated further and possibly discussed with the
         mpfr developers.

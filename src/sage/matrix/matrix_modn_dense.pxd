@@ -2,7 +2,6 @@ cimport matrix_dense
 
 cdef extern from "../ext/multi_modular.h":
     ctypedef unsigned long mod_int
-    mod_int MOD_INT_MAX
     mod_int MOD_INT_OVERFLOW
 
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):

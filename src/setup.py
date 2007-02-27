@@ -194,6 +194,10 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx'],
                                  libraries = ['gmp'])
 
+matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
+                                  ['sage/matrix/matrix_rational_sparse.pyx'],
+                                 libraries = ['gmp'])
+
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
                                   libraries = ['gmp'])
@@ -262,6 +266,18 @@ complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/mo
                            libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 
+vector_integer_dense = Extension('sage.modules.vector_integer_dense',
+                                 ['sage/modules/vector_integer_dense.pyx'],
+                                 libraries = ['gmp'])
+
+vector_rational_sparse = Extension('sage.modules.vector_rational_sparse',
+                                 ['sage/modules/vector_rational_sparse.pyx'],
+                                 libraries = ['gmp'])
+
+vector_rational_dense = Extension('sage.modules.vector_rational_dense',
+                                 ['sage/modules/vector_rational_dense.pyx'],
+                                 libraries = ['gmp'])
+
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
                 libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
@@ -285,6 +301,12 @@ ext_modules = [ \
 
     complex_double_vector,
     real_double_vector,
+
+    vector_integer_dense,
+    vector_rational_dense,
+
+    #vector_rational_sparse,
+
     ec,
     pari,
 
@@ -315,6 +337,7 @@ ext_modules = [ \
 
      matrix_integer_dense,
      matrix_rational_dense,
+     matrix_rational_sparse,
      matrix_integer_2x2,
 ##     matrix_integer_sparse,
      matrix_real_double_dense,

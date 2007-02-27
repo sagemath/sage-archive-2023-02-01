@@ -40,6 +40,8 @@ operations with it.
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+from sage.modules.vector_rational_dense cimport Vector_rational_dense
+
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/cdefs.pxi"
@@ -52,7 +54,7 @@ from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
 from matrix_integer_dense import _lift_crt
 import sage.structure.coerce
-from sage.structure.element cimport ModuleElement, RingElement, Element
+from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_field import GF
@@ -240,6 +242,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # LEVEL 2 functionality
     # x * cdef _add_c_impl
     # x * cdef _mul_c_impl
+    # x * cdef _vector_times_matrix_c_impl
     # x * cdef _cmp_c_impl
     # x * __neg__
     #   * __invert__
@@ -348,6 +351,44 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     else:
                         return 1
         return 0
+
+    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+        """
+        Returns the vector times matrix product.
+
+        INPUT:
+                v -- a free module element.
+
+        OUTPUT:
+                The the vector times matrix product v*A.
+
+        EXAMPLES:
+            sage: B = matrix(QQ,2, [1,2,3,4])
+            sage: V = QQ^2
+            sage: w = V([-1,5/2])
+            sage: w*B
+            (13/2, 8)
+        """
+        cdef Vector_rational_dense w, ans
+        cdef Py_ssize_t i, j
+        cdef mpq_t x
+
+        M = self._row_ambient_module()
+        w = <Vector_rational_dense> v
+        ans = M.zero_vector()
+
+        mpq_init(x)
+        mpq_init(y)
+        for i from 0 <= i < self._ncols:
+            mpq_set_si(x, 0,1)
+            for j from 0 <= j < self._nrows:
+                mpq_mul(y, w._entries[j], self._matrix[j][i])
+                mpq_add(x, x, y)
+            mpq_set(ans._entries[i], x)
+        mpq_clear(x)
+        mpq_clear(y)
+        return ans
+
 
     def __neg__(self):
         """
@@ -473,7 +514,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     cdef int mpz_denom(self, mpz_t d) except -1:
         mpz_set_si(d,1)
-        cdef int i, j
+        cdef Py_ssize_t i, j
         cdef mpq_t *self_row
         _sig_on
         for i from 0 <= i < self._nrows:

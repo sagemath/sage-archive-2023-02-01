@@ -168,7 +168,7 @@ def ntl_setSeed(x=None):
     cdef ntl_ZZ seed
     if x is None:
         from random import randint
-        seed = make_new_ZZ(str(randint(0,2**64)))
+        seed = make_new_ZZ(str(randint(0,int(2)**64)))
     else:
         seed = make_new_ZZ(str(x))
     _sig_on
@@ -1018,6 +1018,10 @@ cdef class ntl_ZZX:
         """
         _sig_on
         return make_ZZ(ZZX_discriminant(self.x, proof))
+
+    #def __call__(self, ntl_ZZ a):
+    #    _sig_on
+    #    return make_ZZ(ZZX_polyeval(self.x, a.x))
 
     def charpoly_mod(self, ntl_ZZX modulus, proof=True):
         """

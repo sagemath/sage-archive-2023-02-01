@@ -29,7 +29,6 @@ include 'decl.pxi'
 
 from sage.rings.integer import Integer
 from sage.rings.integer cimport Integer
-#cimport sage.rings.integer
 
 
 ##############################################################################
@@ -328,7 +327,7 @@ cdef class ntl_ZZX:
          0
         """
         cdef Integer output
-        output = Integer()
+        output = PY_NEW(Integer)
         ZZX_getitem_as_mpz(&output.value, self.x, i)
         return output
 
@@ -355,6 +354,24 @@ cdef class ntl_ZZX:
          0
         """
         return self.getitem_as_int(i)
+
+    def list(self):
+        r"""
+        Retrieves coefficients as a list of SAGE Integers.
+
+        EXAMPLES:
+            sage: x = ntl.ZZX([129381729371289371237128318293718237, 2, -3, 0, 4])
+            sage: L = x.list(); L
+            [129381729371289371237128318293718237, 2, -3, 0, 4]
+            sage: type(L[0])
+            <type 'sage.rings.integer.Integer'>
+            sage: x = ntl.ZZX()
+            sage: L = x.list(); L
+            []
+        """
+        cdef int i
+        return [self[i] for i from 0 <= i <= ZZX_degree(self.x)]
+
 
     def __add__(ntl_ZZX self, ntl_ZZX other):
         """

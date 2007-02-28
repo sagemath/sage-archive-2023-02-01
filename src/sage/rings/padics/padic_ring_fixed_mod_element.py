@@ -108,19 +108,64 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             raise TypeError, "unable to create p-adic element"
 
     def __invert__(self):
+        r"""
+        Returns multiplicative inverse of this element. Its valuation
+        must be zero.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: ~R(2)
+            4 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
+            sage: ~R(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+            sage: ~R(7)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+        """
         if self.valuation() > 0:
             raise ValueError, "cannot invert non-unit"
         else:
+            # todo: use ~(self._value) perhaps? -- dmharvey
             inverse = 1 / self._value
             return pAdicRingFixedModElement(self.parent(), inverse, construct = True)
 
     def __mod__(self, right):
+        r"""
+        Returns self modulo right.
+
+        This doesn't make a whole lot of sense :-) but things are defined so
+        that always (x // y) * y + (x % y) == x.
+
+        TODO:
+            -- write down a full and proper explanation of the exact semantics
+            of floordiv and mod for all padic rings/fields; this should go
+            in a single overall doc file somewhere, and a reference to it
+            plus a summary should go in this docstring
+            -- make this work when "right" is e.g. an Integer -- perhaps
+            the mod operator needs to be brought under the SAGE arithmetic
+            architecture umbrella
+
+        """
         val = self.valuation()
         rval = right.valuation()
         quotient =  self / right._unit_part()
-        return pAdicRingFixedModElement(self.parent(), Mod(quotient.lift() % self.parent().prime_pow(rval), self.parent().prime_pow(self.parent().precision_cap())), construct = True)
+        return pAdicRingFixedModElement(self.parent(),
+                     Mod(quotient.lift() % self.parent().prime_pow(rval),
+                     self.parent().prime_pow(self.parent().precision_cap())),
+                     construct = True)
 
     def _neg_(self):
+        r"""
+        Returns negative of self.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: -R(7)
+            6*7 + 6*7^2 + 6*7^3 + O(7^4)
+        """
         return pAdicRingFixedModElement(self.parent(), -self._value, construct = True)
 
 
@@ -130,7 +175,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
 
     def _add_(self, right):
         r"""
-        Adds self to right.
+        Returns sum of self and right.
 
         EXAMPLES:
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
@@ -141,13 +186,32 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             sage: x + y
             7 + 2*7^3 + O(7^4)
         """
-        return pAdicRingFixedModElement(self.parent(), self._value + right._value, construct = True)
+        return pAdicRingFixedModElement(self.parent(),
+                            self._value + right._value, construct = True)
 
     def _div_(self, right):
+        r"""
+        Returns quotient of self and right. The latter must have
+        valuation zero.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: R(3) / R(2)
+            5 + 3*7 + 3*7^2 + 3*7^3 + O(7^4)
+            sage: R(5) / R(0)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+            sage: R(7) / R(49)
+            Traceback (most recent call last):
+            ...
+            ValueError: cannot invert non-unit
+        """
         if right.valuation() > 0:
             raise ValueError, "cannot invert non-unit"
         else:
-            return pAdicRingFixedModElement(self.parent(), self._value / right.value, construct = True)
+            return pAdicRingFixedModElement(self.parent(),
+                            self._value / right.value, construct = True)
 
     def __floordiv__(self, right):
         if isinstance(right, Integer):
@@ -158,12 +222,39 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         return pAdicRingFixedModElement(self.parent(), quotient, construct = True)
 
     def _integer_(self):
+        r"""
+        Return an integer congruent to self modulo self's precision.
+
+        See the lift() method.
+        """
         return self._value.lift()
 
     def _mul_(self, right):
+        r"""
+        Returns product of self and right.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: R(3) * R(2)
+            7 + O(7^4)
+            sage: R(1/2) * R(2)
+            1 + O(7^4)
+        """
         return pAdicRingFixedModElement(self.parent(), self._value * right._value, construct = True)
 
     def _sub_(self, right):
+        r"""
+        Returns difference of self and right.
+
+        EXAMPLES:
+            sage: R = Zp(7, 4, 'fixed-mod', 'series')
+            sage: x = R(1721); x
+            6 + 5*7^3 + O(7^4)
+            sage: y = R(1373); y
+            1 + 4*7^3 + O(7^4)
+            sage: x - y
+            5 + 7^3 + O(7^4)
+        """
         return pAdicRingFixedModElement(self.parent(), self._value - right._value, construct = True)
 
     def add_bigoh(self, prec):
@@ -218,8 +309,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         return Mod(self._value, self.parent().prime_pow(prec)) == Mod(right._value, self.parent().prime_pow(prec))
 
     def lift(self):
-        """
-        Return an integer congruent to self modulo self's precision
+        r"""
+        Return an integer congruent to self modulo self's precision.
 
         INPUT:
             self -- a p-adic element
@@ -228,16 +319,21 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.lift()
             8
+            sage: type(a.lift())
+            <type 'sage.rings.integer.Integer'>
         """
         return self._value.lift()
 
     def list(self):
-        """
-        Returns a list of coeficiants of p starting with $p^0$
+        r"""
+        Returns a list of coefficients of p starting with $p^0$.
+
         INPUT:
             self -- a p-adic element
         OUTPUT:
-            list -- the list of coeficients of self
+            list -- the list of coefficients of self. Precisely $n$
+                coefficients are returned, where the modulus of this ring
+                is $p^n$.
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.list()
             [0, 2, 1, 0]
@@ -258,7 +354,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
 
     def multiplicative_order(self):
         r"""
-        Returns the multiplicative order of self, where self is considered to be one if it is one modulo $p^{\mbox{prec}}$.
+        Returns the multiplicative order of self, where self is considered to
+        be 1 if it is 1 modulo $p^{\mbox{prec}}$.
 
         INPUT:
             self -- a p-adic element
@@ -291,7 +388,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         return self.parent().precision_cap()
 
     def precision_relative(self):
-        """
+        r"""
         Returns the relative precision of self
          INPUT:
             self -- a p-adic element
@@ -304,7 +401,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         return self.parent().precision_cap() - self.valuation()
 
     def residue(self, prec):
-        """
+        r"""
         Reduces this mod $p^prec$
         INPUT:
             self -- a p-adic element

@@ -67,12 +67,7 @@ import matrix_space
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
-
-#USE_LINBOX_POLY = True
-
-# It still breaks, e.g., on 64-bit Linux on this matrix:
-#   m = matrix(ZZ,4, [2, -8, -22, -10, 0, 12, 12, 36, -5, -16, -11, -17, 5, -8, -1, 5])
-USE_LINBOX_POLY = False
+USE_LINBOX_POLY = True
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""

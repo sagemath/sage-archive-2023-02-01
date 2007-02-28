@@ -36,17 +36,6 @@ A difficult conversion:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#*****************************************************************************
-# general TODOs:
-#
-# more type conversions and coercion. examples:
-# sage: R(1/2)
-# TypeError: Unable to convert x (='1/2') to mpfr.
-#
-# sage: 1 + R(42)
-# _49 = 1
-#*****************************************************************************
-
 import math # for log
 import sys
 

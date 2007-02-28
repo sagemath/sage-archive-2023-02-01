@@ -628,13 +628,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent
 
-    def str(self, int base=10, no_sci=None, e='e', int truncate=1):
+    def str(self, int base=10, no_sci=None, e=None, int truncate=1):
         """
         INPUT:
              base -- base for output
              no_sci -- if True do not print using scientific notation; if False
                        print with scientific notation; if None (the default), print how the parent prints.
-             e - symbol used in scientific notation
+             e - symbol used in scientific notation; defaults to 'e' for
+                       base<=10, and '@' otherwise
              truncate -- if True, truncate the last digits in printing to avoid confusing base-2
                          roundoff issues.
 
@@ -647,6 +648,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '10100.010101010101010101010101010101010101010101010101'
             sage: a.str(no_sci=False)
             '2.03333333333333e1'
+            sage: a.str(16, no_sci=False)
+            '1.4555555555555@1'
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -660,6 +663,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 return "+infinity"
             else:
                 return "-infinity"
+
+        if e is None:
+            if base > 10:
+                e = '@'
+            else:
+                e = 'e'
 
         cdef char *s
         cdef mp_exp_t exponent

@@ -68,7 +68,7 @@ def test_file(F):
     global CUR
     os.chdir(CUR)
     if not os.path.exists(F):
-        if F[:6] != "__test":
+        if F[:6] != "__test" and not F.endswith('.png'):
             print "ERROR: File %s/%s is missing"%(os.curdir,F)
             failed.append('%s/%s'%(os.curdir,F))
         return 1

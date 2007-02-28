@@ -334,3 +334,18 @@ class xmrange:
 
     def __iter__(self):
         return _xmrange(self.sizes, self.typ)
+
+def cartesian_product_iterator(X):
+    """
+    Iterate over the Cartesian product.
+
+    INPUT:
+        X -- list or tuple of lists
+    OUTPUT:
+        iterator over the cartesian product of the elements of X
+
+    EXAMPLES:
+        sage: list(cartesian_product_iterator([[1,2], ['a','b']]))
+        [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
+    """
+    return xmrange_iter(X, tuple)

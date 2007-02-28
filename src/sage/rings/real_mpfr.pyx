@@ -137,7 +137,7 @@ cdef class RealField(sage.rings.ring.Field):
         sage: RealField(100000)
         Real Field with 100000 bits of precision
 
-    NOTE: The default precision is 53, since according to the GMP
+    NOTE: The default precision is 53, since according to the MPFR
        manual: 'mpfr should be able to exactly reproduce all
        computations with double-precision machine floating-point
        numbers (double type in C), except the default exponent

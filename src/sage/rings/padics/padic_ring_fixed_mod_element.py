@@ -211,7 +211,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             raise ValueError, "cannot invert non-unit"
         else:
             return pAdicRingFixedModElement(self.parent(),
-                            self._value / right.value, construct = True)
+                            self._value / right._value, construct = True)
 
     def __floordiv__(self, right):
         if isinstance(right, Integer):
@@ -236,7 +236,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         EXAMPLES:
             sage: R = Zp(7, 4, 'fixed-mod', 'series')
             sage: R(3) * R(2)
-            7 + O(7^4)
+            6 + O(7^4)
             sage: R(1/2) * R(2)
             1 + O(7^4)
         """

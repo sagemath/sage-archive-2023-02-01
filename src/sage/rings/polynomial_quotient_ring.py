@@ -366,7 +366,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         The discriminant of the quotient polynomial ring need not
         equal the discriminant of the corresponding number field,
         since the discriminant of a number field is by definition the
-        discriminant of the ring ring of integers of the number field:
+        discriminant of the ring of integers of the number field:
             sage: S = R.quotient(x^2 - 8)
             sage: S.number_field().discriminant()
             8

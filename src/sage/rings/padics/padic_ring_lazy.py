@@ -104,15 +104,15 @@ Rational = sage.rings.rational.Rational
 Qp = sage.rings.padics.qp.Qp
 pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
-pAdicRingGeneric = sage.rings.padics.padic_ring_generic.pAdicRingGeneric
-pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 
-class pAdicRingLazy(pAdicRingGeneric):
+class pAdicRingLazy(pAdicRingBaseGeneric):
     r"""
     An implementation of the p-adic integers with lazily evaluated elements.
     """
     def __init__(self, p, prec, print_mode, halt):
-        pAdicRingGeneric.__init__(self, p, prec, print_mode)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode)
         self._halt = halt
 
     def __call__(self, x, prec = None):
@@ -177,7 +177,7 @@ class pAdicRingLazy(pAdicRingGeneric):
                 return 1
             else:
                 return 0
-        elif isinstance(other, pAdicRingGeneric) or isinstance(other, pAdicFieldGeneric):
+        elif isinstance(other, pAdicRingBaseGeneric) or isinstance(other, pAdicFieldBaseGeneric):
             return 1
         else:
             return -1

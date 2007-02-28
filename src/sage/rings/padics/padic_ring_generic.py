@@ -223,3 +223,17 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
             boolean -- whether ring is an implementation of $\Z_p$ for the same prime as self.
         """
         return is_instance(ring, pAdicRingGeneric) and self.prime() == ring.prime()
+
+    def krull_dimension(self):
+        r"""
+        Returns the Krull dimension of self, i.e. 1
+
+        INPUT:
+            self -- a p-adic ring
+        OUTPUT:
+            the Krull dimension of self.  Since self is a p-adic ring, this is 1.
+        """
+        return 1
+
+class pAdicRingBaseGeneric(pAdicRingGeneric):
+    pass

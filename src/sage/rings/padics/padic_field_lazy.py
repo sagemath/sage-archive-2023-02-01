@@ -102,19 +102,19 @@ pari = sage.libs.pari.gen.pari
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 Mod = sage.rings.integer_mod.Mod
-pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
 pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
 #Zp = sage.rings.padics.padic_ring_generic.Zp
 
-class pAdicFieldLazy(pAdicFieldGeneric):
+class pAdicFieldLazy(pAdicFieldBaseGeneric):
     r"""
     An implementation of p-adic fields using lazy evaluation.
     """
     def __init__(self, p, prec, print_mode, halt):
-        pAdicFieldGeneric.__init__(self, p, prec, print_mode)
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode)
         self._halt = halt
 
     def __call__(self, x, prec = None):

@@ -99,13 +99,13 @@ import sage.rings.padics.qp
 Integer = sage.rings.integer.Integer
 Mod = sage.rings.integer_mod.Mod
 Qp = sage.rings.padics.qp.Qp
-pAdicRingGeneric = sage.rings.padics.padic_ring_generic.pAdicRingGeneric
-pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 
-class pAdicRingCappedRelative(pAdicRingGeneric):
+class pAdicRingCappedRelative(pAdicRingBaseGeneric):
     r"""
     An implementation of the p-adic integers with capped relative precision.
     """
@@ -128,7 +128,7 @@ class pAdicRingCappedRelative(pAdicRingGeneric):
                 return 1
             else:
                 return 0
-        elif isinstance(other, pAdicRingFixedMod) or isinstance(other, pAdicFieldGeneric):
+        elif isinstance(other, pAdicRingFixedMod) or isinstance(other, pAdicFieldBaseGeneric):
             return 1
         else:
             return -1

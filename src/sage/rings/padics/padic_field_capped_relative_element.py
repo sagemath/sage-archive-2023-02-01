@@ -356,9 +356,6 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         else:
             raise ValueError, "Element must have non-negative valuation in order to compute residue."
 
-    def set_precision_absolute(self, prec):
-        return prec <= self.precision_absolute()
-
     def unit_part(self):
         r"""
         Returns the unit part of self.

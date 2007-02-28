@@ -101,13 +101,13 @@ pari = sage.libs.pari.gen.pari
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 Mod = sage.rings.integer_mod.Mod
-pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
 pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
 pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
 #Zp = sage.rings.padics.zp.Zp
-class pAdicFieldCappedRelative(pAdicFieldGeneric):
+class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
     r"""
     An implementation of p-adic fields with capped relative precision.
     """

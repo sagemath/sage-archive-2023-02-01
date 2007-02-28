@@ -309,9 +309,6 @@ self -- a p-adic element
         else:
             raise ValueError, "element is not a square" # should eventually change to return an element of an extension field
 
-    def set_precision_absolute(self, prec):
-        return prec <= self.precision_absolute()
-
     def unit_part(self):
         r"""
         Returns the unit part of self.

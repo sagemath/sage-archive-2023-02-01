@@ -466,9 +466,6 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         else:
             raise PrecisionError, "not enough precision to compute residue"
 
-    def set_precision_absolute(self, prec):
-        return prec <= self.precision_absolute()
-
     def unit_part(self):
         r"""
         Returns the unit part of self.

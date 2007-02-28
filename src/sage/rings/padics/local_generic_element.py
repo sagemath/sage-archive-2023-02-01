@@ -181,12 +181,6 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
     def residue(self, prec):
         raise NotImplementedError
 
-    def set_precision_absolute(self, prec):
-        raise NotImplementedError
-
-    def set_precision_relative(self, prec):
-        raise NotImplementedError
-
     def sqrt(self):
         r"""
         Returns the square root of this local ring element

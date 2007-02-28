@@ -317,9 +317,6 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         """
         return Mod(self._value, self.parent().prime_pow(prec))
 
-    def set_precision_absolute(self, prec):
-        return False
-
     def square_root(self):
         r"""
         Returns the square root of this p-adic number

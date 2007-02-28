@@ -90,6 +90,9 @@ class ExtendedRationalField_class(_uniq, RationalField):
         else:
             raise IndexError, "n must be 0, 1 or 2"
 
+    def is_prime_field(self):
+        return False
+
     def ngens(self):
         return 3
 

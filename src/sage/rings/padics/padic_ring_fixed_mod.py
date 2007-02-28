@@ -90,18 +90,18 @@ import sage.rings.integer_mod
 
 Integer = sage.rings.integer.Integer
 Integers = sage.rings.integer_mod_ring.IntegerModRing
-pAdicRingGeneric = sage.rings.padics.padic_ring_generic.pAdicRingGeneric
-pAdicFieldGeneric = sage.rings.padics.padic_field_generic.pAdicFieldGeneric
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicRingFixedModElement = sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement
 pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
 Mod = sage.rings.integer_mod.Mod
 
-class pAdicRingFixedMod(pAdicRingGeneric):
+class pAdicRingFixedMod(pAdicRingBaseGeneric):
     r"""
     An implementation of the p-adic integers using fixed modulus.
     """
 
-    def __call__(self, x):
+    def __call__(self, x, prec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingFixedModElement.
         """
@@ -119,7 +119,7 @@ class pAdicRingFixedMod(pAdicRingGeneric):
                 return 1
             else:
                 return 0
-        elif isinstance(other, pAdicFieldGeneric):
+        elif isinstance(other, pAdicFieldBaseGeneric):
             return 1
         else:
             return -1

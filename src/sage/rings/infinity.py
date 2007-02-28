@@ -152,14 +152,14 @@ class _uniq3(object):
     def __new__(cls):
         if _obj.has_key(3):
             return _obj[3]
-        O = InfinityElement.__new__(cls)
+        O = MinusInfinityElement.__new__(cls)
         _obj[3] = O
         return O
 class _uniq4(object):
     def __new__(cls):
         if _obj.has_key(4):
             return _obj[4]
-        O = InfinityElement.__new__(cls)
+        O = PlusInfinityElement.__new__(cls)
         _obj[4] = O
         return O
 

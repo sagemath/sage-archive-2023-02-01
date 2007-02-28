@@ -249,7 +249,7 @@ class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
 
     def is_normal(self):
         """
-        Returns whether or not this is a normal extension, i.e. Ture.
+        Returns whether or not this is a normal extension, i.e. True.
 
         INPUT:
             self -- a p-adic ring

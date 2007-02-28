@@ -818,17 +818,17 @@ function focus_delay(id,bottom) {
 
 
 function cell_input_resize(cell_input) {
-    var rows = cell_input.value.split('\n').length + 1;
+    var rows = cell_input.value.split('\n').length;
     if (rows < 1) {
       rows = 1;
     }
-    try {
+/*    try {
         cell_input.style.height = 1.3*rows + 'em'; // this sort of works in konqueror...
     } catch(e) {}
-/*    try{
+    */
+    try{
         cell_input.rows = rows;
     } catch(e) {}
-    */
 
     if(slide_hidden) {
         cell_input.className="cell_input_active";
@@ -856,17 +856,17 @@ function cell_input_minimize_size(cell_input) {
     }
 
     cell_input.className = 'cell_input';
-    var rows = v.split('\n').length + 1;
+    var rows = v.split('\n').length;
     if (rows < 1) {
       rows = 1;
     }
-    try {
+/*    try {
         cell_input.style.height = 1.3*rows + 'em'; // this sort of works in konqueror...
     } catch(e) {}
-   /*    try{
+    */
+    try{
         cell_input.rows = rows;
     } catch(e) {}
-    */
     if (rows == 1) {
        // hack because of bug in firefox with 1-row textarea
        cell_input.style.height = '1.5em';

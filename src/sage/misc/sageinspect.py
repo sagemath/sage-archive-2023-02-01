@@ -1,79 +1,158 @@
 r"""
 Inspect Python, Sage, and Sagex objects.
 
-This module extends parts of python's inspect module to Sagex objects.
-It does not yet handle Sagex classes or modules; a source patch to
-sagexc is needed for that.
+This module extends parts of Python's inspect module to Sagex objects.
 
 AUTHOR:
    -- originally taken from Fernando Perez's IPython
    -- modified extensively by William Stein
    -- extended by Nick Alexander
+   -- testing by Nick Alexander
+
+EXAMPLES:
+    sage: from sage.misc.sageinspect import *
+
+Test introspection of modules defined in Python and Sagex files:
+
+    Sagex modules:
+        sage: sage_getfile(sage.rings.rational)
+        '.../rational.pyx'
+
+        sage: sage_getdoc(sage.rings.rational).lstrip()
+        'Rational Numbers...'
+
+        sage: sage_getsource(sage.rings.rational)[5:]
+        'Rational Numbers...'
+
+    Python modules:
+        sage: sage_getfile(sage.misc.sageinspect)
+        '.../sageinspect.py'
+
+        sage: sage_getdoc(sage.misc.sageinspect).lstrip()
+        'Inspect Python, Sage, and Sagex objects...'
+
+        sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
+        'Inspect Python, Sage, and Sagex objects...'
+
+Test introspection of classes defined in Python and Sagex files:
+
+    Sagex classes:
+        sage: sage_getfile(sage.rings.rational.Rational)
+        '.../rational.pyx'
+
+        sage: sage_getdoc(sage.rings.rational.Rational).lstrip()
+        "A Rational number..."
+
+        sage: sage_getsource(sage.rings.rational.Rational)
+        'cdef class Rational...'
+
+    Python classes:
+        sage: sage_getfile(sage.misc.attach.Attach)
+        '.../attach.py'
+
+        sage: sage_getdoc(sage.misc.attach.Attach).lstrip()
+        'Attach a file to a running instance of SAGE...'
+
+        sage: sage_getsource(sage.misc.attach.Attach)
+        'class Attach:...'
+
+Test introspection of functions defined in Python and Sagex files:
+
+    Sagex functions:
+        sage: sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
+        'mr(s)'
+
+        sage: sage_getfile(sage.rings.rational.make_rational)
+        '.../rational.pyx'
+
+        sage: sage_getdoc(sage.rings.rational.make_rational).lstrip()
+        ''
+
+        sage: sage_getsource(sage.rings.rational.make_rational, True)
+        'def make_rational(s):...'
+
+    Python functions:
+        sage: sage_getdef(sage.misc.sageinspect.sage_getfile, obj_name='sage_getfile')
+        'sage_getfile(obj)'
+
+        sage: sage_getfile(sage.misc.sageinspect.sage_getfile)
+        '.../sageinspect.py'
+
+        sage: sage_getdoc(sage.misc.sageinspect.sage_getfile).lstrip()
+        'Get the full file name associated to obj as a string...'
+
+        sage: sage_getsource(sage.misc.sageinspect.sage_getfile)
+        'def sage_getfile(obj):...'
+
+    Unfortunately, there is no argspec extractable from builtins:
+        sage: sage_getdef(''.find, 'find')
+        'find( [noargspec] )'
+
+        sage: sage_getdef(str.find, 'find')
+        'find( [noargspec] )'
 """
 
 import inspect
 import os
-import sagedoc
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 
-def sage_getfile(obj):
-    r"""
-    Get the full file name associated to obj as a string.
+import re
+# Parse strings of form "File: sage/rings/rational.pyx (starting at line 1080)"
+# "\ " protects a space in re.VERBOSE mode.
+__embedded_position_re = re.compile(r'''
+\A                                          # anchor to the beginning of the string
+File:\ (?P<FILENAME>.*?)                    # match File: then filename
+\ \(starting\ at\ line\ (?P<LINENO>\d+)\)   # match line number
+\n?                                         # if there is a newline, eat it
+(?P<ORIGINAL>.*)                            # the original docstring is the end
+\Z                                          # anchor to the end of the string
+''', re.MULTILINE | re.DOTALL | re.VERBOSE)
 
-    EXAMPLES:
-    Works with functions, classes, and modules.
-        sage: import os.path
-        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer.Integer.factor))[1]
-        'integer.pyx'
-        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer.Integer))[1]
-        'integer.pyx'
-        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.rings.integer))[1]
-        'integer.pyx'
-        sage: os.path.split(sage.misc.sageinspect.sage_getfile(sage.misc.sageinspect.sage_getfile))[1]
-        'sageinspect.py'
+def _extract_embedded_position(docstring):
+    r"""
+    If docstring has a Sagex embedded position, return a tuple (original_docstring, filename, line).  If not, return None.
+
+    AUTHOR:
+        -- William Stein
+        -- Extensions by Nick Alexander
+    """
+    if docstring is None:
+        return None
+    res = __embedded_position_re.match(docstring)
+    if res is not None:
+        filename = '%s/local/lib/python/site-packages/%s' % (SAGE_ROOT, res.group('FILENAME'))
+        lineno = int(res.group('LINENO'))
+        original = res.group('ORIGINAL')
+        return (original, filename, lineno)
+    return None
+
+def _extract_source(lines, lineno):
+    r"""
+    Given a list of lines or a multiline string and a starting lineno,
+    _extract_source returns [source_lines].  [source_lines] is the smallest
+    indentation block starting at lineno.
+    """
+    if lineno < 1:
+        raise ValueError, "Line numbering starts at 1! (tried to extract line %s)" % lineno
+    lineno -= 1
+
+    if isinstance(lines, str):
+        lines = lines.splitlines(True) # true keeps the '\n'
+    if len(lines) > 0:
+        # Fixes an issue with getblock
+        lines[-1] += '\n'
+
+    return inspect.getblock(lines[lineno:])
+
+def _sage_getargspec_sagex(source):
+    r"""
+    inspect.getargspec from source code.
 
     AUTHOR:
         -- Nick Alexander
     """
     try:
-        # We can _extract Sagex objects' files from docstrings
-        d = inspect.getdoc(obj)
-        (docstring, filename, lineno) = _extract_embedded_position(d)
-        return filename
-    except ValueError:
-        return inspect.getabsfile(obj)
-
-def _sage_getargspec_sagex(obj):
-    r"""
-    inspect.getargspec for Sagex objects.
-
-    EXAMPLES:
-    If \code{obj} is not a function, we raise an exception.
-        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.integer.Integer)
-        Traceback (most recent call last):
-        ...
-        TypeError: obj is not a function
-
-    If \code{obj} is not a Sagex function, we raise an exception.
-        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.misc.sageinspect.sage_getfile)
-        Traceback (most recent call last):
-        ...
-        ValueError: Could not parse sagex argspec
-
-    We handle default arguments, but ignore varargs and kwargs.
-        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.integer.Integer.factor)
-        (['self', 'algorithm'], None, None, ('pari',))
-        sage: sage.misc.sageinspect._sage_getargspec_sagex(sage.rings.rational.make_rational)
-        (['s'], None, None, None)
-
-    AUTHOR:
-        -- Nick Alexander
-    """
-    if not inspect.isroutine(obj):
-        raise TypeError, "obj is not a function"
-    try:
-        source = sage_getsource(obj, is_binary=True)
         defpos = source.find('def ')
         assert defpos > -1
         colpos = source.find(':')
@@ -120,6 +199,24 @@ def _sage_getargspec_sagex(obj):
     except:
         raise ValueError, "Could not parse sagex argspec"
 
+def sage_getfile(obj):
+    r"""
+    Get the full file name associated to obj as a string.
+
+    AUTHOR:
+        -- Nick Alexander
+    """
+    # We try to extract from docstrings, because Python's inspect
+    # will happily report compiled .so files
+    d = inspect.getdoc(obj)
+    pos = _extract_embedded_position(d)
+    if pos is not None:
+        (_, filename, _) = pos
+        return filename
+
+    # No go? fall back to inspect.
+    return inspect.getabsfile(obj)
+
 def sage_getargspec(obj):
     r"""
     Return the names and default values of a function's arguments.
@@ -130,28 +227,25 @@ def sage_getargspec(obj):
     ** arguments or None.  'defaults' is an n-tuple of the default
     values of the last n arguments.
 
-    EXAMPLES:
-        sage: sage.misc.sageinspect.sage_getargspec(sage.rings.integer.Integer.factor)
-        (['self', 'algorithm'], None, None, ('pari',))
-        sage: sage.misc.sageinspect.sage_getargspec(sage.misc.sageinspect.sage_getargspec)
-        (['obj'], None, None, None)
-
     AUTHOR:
         -- William Stein: a modified version of inspect.getargspec from the
         Python Standard Library, which was taken from IPython for use in SAGE.
         -- Extensions by Nick Alexander
     """
+    if not callable(obj):
+        raise TypeError, "obj is not a code object"
+
     if inspect.isfunction(obj):
         func_obj = obj
     elif inspect.ismethod(obj):
         func_obj = obj.im_func
     else:
-        # Perhaps it's binary and is defined in a Sagex file
-        try:
-            return _sage_getargspec_sagex(obj)
-        except:
-            pass
-        raise TypeError, 'arg is not a Python or a Sagex function'
+        # Perhaps it is binary and defined in a Sagex file
+        source = sage_getsource(obj, is_binary=True)
+        if source:
+            return _sage_getargspec_sagex(source)
+
+    # Otherwise we're (hopefully!) plain Python, so use inspect
     args, varargs, varkw = inspect.getargs(func_obj.func_code)
     return args, varargs, varkw, func_obj.func_defaults
 
@@ -159,28 +253,23 @@ def sage_getdef(obj, obj_name=''):
     r"""
     Return the definition header for any callable object.
 
-    If any exception is generated, None is returned instead and the
+    If an exception is generated, None is returned instead and the
     exception is suppressed.
-
-    EXAMPLES:
-        sage: sage.misc.sageinspect.sage_getdef(sage.rings.rational.make_rational, obj_name='mr')
-        'mr(s)'
-        sage: sage.misc.sageinspect.sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
-        "factor(algorithm='pari')"
 
     AUTHOR:
         -- William Stein
         -- Extensions by Nick Alexander
     """
     try:
-        s = str(inspect.formatargspec(*sage_getargspec(obj)))
+        spec = sage_getargspec(obj)
+        s = str(inspect.formatargspec(*spec))
         s = s.strip('(').strip(')').strip()
         if s[:4] == 'self':
             s = s[4:]
         s = s.lstrip(',').strip()
         return obj_name + '(' + s + ')'
-    except:
-        return '%s( ... )'%obj_name
+    except TypeError, ValueError:
+        return '%s( [noargspec] )'%obj_name
 
 def sage_getdoc(obj, obj_name=''):
     r"""
@@ -189,39 +278,37 @@ def sage_getdoc(obj, obj_name=''):
     If obj is a Sagex object with an embedded position in its docstring,
     the embedded position is stripped.
 
-    EXAMPLES:
-        sage: sage.misc.sageinspect.sage_getdoc(sage.rings.rational.make_rational)
-        ''
-        sage: sage.misc.sageinspect.sage_getdoc(sage.rings.rational).strip().splitlines()[0]
-        'Rational Numbers'
-
     AUTHOR:
         -- William Stein
         -- Extensions by Nick Alexander
     """
+    import sage.misc.sagedoc
+    r = None
     try:
-        s = sagedoc.format(str(obj._sage_doc_()))
+        r = obj._sage_doc_()
     except AttributeError:
-        s = sagedoc.format(str(obj.__doc__))
+        r = obj.__doc__
+    if r is None:
+        return ''
+    s = sage.misc.sagedoc.format(str(r))
+
     # If there is a Sagex embedded position, it needs to be stripped
-    try:
-        (docstring, filename, lineno) = _extract_embedded_position(s)
-        s = docstring
-    except ValueError:
-        pass
+    pos = _extract_embedded_position(s)
+    if pos is not None:
+        s, _, _ = pos
+
+    # Fix object naming
     if obj_name != '':
         i = obj_name.find('.')
         if i != -1:
             obj_name = obj_name[:i]
         s = s.replace('self.','%s.'%obj_name)
+
     return s
 
 def sage_getsource(obj, is_binary=False):
     r"""
     Return the source code associated to obj as a string, or None.
-
-    sage: sage.misc.sageinspect.sage_getsource(sage.rings.rational.make_rational, True)
-    'def make_rational(s):\n    r = Rational()\n    r._reduce_set(s)\n    return r\n'
 
     AUTHOR:
         -- William Stein
@@ -237,80 +324,28 @@ def sage_getsourcelines(obj, is_binary=False):
     r"""
     Return a pair ([source_lines], starting line number) of the source code associated to obj, or None.
 
+    At this time we ignore is_binary in favour of a 'do our best' strategy.
+
     AUTHOR:
         -- William Stein
         -- Extensions by Nick Alexander
     """
-    if not is_binary:
-        # First try the python inspection library
-        try:
-            return inspect.getsourcelines(obj)
-        except Exception:
-            pass
-    # Perhaps it's binary and is defined in a Sagex file, and maybe we
-    # didn't know it, so we set is_binary=False.
+    # If we can handle it, we do.  This is because Python's inspect will
+    # happily dump binary for sagex extension source code.
+    d = inspect.getdoc(obj)
+    pos = _extract_embedded_position(d)
+    if pos is None:
+        return inspect.getsourcelines(obj)
+
+    (orig, filename, lineno) = pos
     try:
-        try:
-            d = inspect.getdoc(obj)
-        except:
-            return None
-        (orig, filename, lineno) = _extract_embedded_position(d)
         source_lines = open(filename).readlines()
-        # XXX Whole file for modules -- fails at this time because sagex does not embed positions for modules, nor for classes
-        if inspect.ismodule(obj):
-            return (source_lines, 0)
-        else:
-            return _extract_source(source_lines, lineno), lineno
-    except (IOError, IndexError):
+    except IOError:
         return None
 
-def _extract_embedded_position(docstring):
-    r"""
-    If docstring has a Sagex embedded position, return a tuple (original_docstring, filename, line).  If not, raise ValueError.
+    return _extract_source(source_lines, lineno), lineno
 
-    EXAMPLES:
-    We cannot test the filename since it depends on SAGE_ROOT.
-        sage: from sage.misc.sageinspect import _extract_embedded_position
-        sage: s = 'File: sage/rings/rational.pyx (starting at line 1080)\noriginal'
-        sage: p = _extract_embedded_position(s)
-        sage: (p[0], p[2])
-        ('original', 1080)
-
-        sage: s = 'no embedded position'
-        sage: _extract_embedded_position(s)
-        Traceback (most recent call last):
-        ...
-        ValueError: Docstring (='''no embedded position''') does not contain an embedded position
-
-    AUTHOR:
-        -- William Stein
-        -- Extensions by Nick Alexander
-    """
-    try:
-        # isolate first line
-        i = docstring.find('\n')
-        if i >= 0:
-            line0 = docstring[:i+1]
-            original_docstring = docstring[i+1:]
-        if i < 0:
-            original_docstring = ''
-            line0 = docstring
-
-        if line0.startswith("File:") and '.pyx' in line0:
-            # Sagex embedded position found
-            parts = line0.split()
-            filename = parts[1]
-            assert filename.endswith('.pyx')
-            last = parts[-1]
-            assert last.endswith(')')
-            line = last[:-1]
-            filename = '%s/local/lib/python/site-packages/%s'%(SAGE_ROOT, filename)
-            return (original_docstring, filename, eval(line))
-    except:
-        pass
-    raise ValueError, "Docstring (='''%s''') does not contain an embedded position"%docstring
-
-__test_string1 = '''
+__internal_teststring = '''
 import os                                  # 1
 # preceding comment not include            # 2
 def test1(a, b=2):                         # 3
@@ -324,18 +359,39 @@ class test2():                             # 8
 # trailing comment not included            # 11
 def test3(b,                               # 12
           a=2):                            # 13
-    pass # EOF                             # 14
-'''
+    pass # EOF                             # 14'''
 
-def _extract_source(lines, lineno):
+def __internal_tests():
     r"""
-    Given a list of lines or a multiline string and a starting lineno,
-    _extract_source returns [source_lines].  [source_lines] is the smallest
-    indentation block starting at lineno.
+    Test internals of the sageinspect module.
 
-    EXAMPLES:
-        sage: from sage.misc.sageinspect import _extract_source
-        sage: s = sage.misc.sageinspect.__test_string1.lstrip()
+    sage: from sage.misc.sageinspect import *
+    sage: from sage.misc.sageinspect import _extract_source, _extract_embedded_position, _sage_getargspec_sagex, __internal_teststring
+
+    If docstring is None, nothing bad happens:
+        sage: sage_getdoc(None)
+        ''
+
+        sage: sage_getsource(sage)
+        "...all..."
+
+    A sagex function with default arguments:
+        sage: sage_getdef(sage.rings.integer.Integer.factor, obj_name='factor')
+        "factor(algorithm='pari')"
+
+    A sagex method without an embedded position can lead to surprising errors:
+        sage: sage_getsource(sage.rings.integer.Integer.__init__, is_binary=True)
+        Traceback (most recent call last):
+        ...
+        TypeError: arg is not a module, class, method, function, traceback, frame, or code object
+
+        sage: sage_getdef(sage.rings.integer.Integer.__init__, obj_name='__init__')
+        '__init__( [noargspec] )'
+
+    Test _extract_source with some likely configurations, including no trailing
+    newline at the end of the file:
+
+        sage: s = __internal_teststring.strip()
         sage: es = lambda ls, l: ''.join(_extract_source(ls, l)).rstrip()
 
         sage: print es(s, 3)
@@ -352,13 +408,38 @@ def _extract_source(lines, lineno):
         def test3(b,                               # 12
                   a=2):                            # 13
             pass # EOF                             # 14
+
+    Test _sage_getargspec_sagex with multiple default arguments and a type:
+        sage: _sage_getargspec_sagex("def init(self, x=None, base=0):")
+        (['self', 'x', 'base'], None, None, ('None', '0'))
+        sage: _sage_getargspec_sagex("def __init__(self, x=None, base=0):")
+        (['self', 'x', 'base'], None, None, ('None', '0'))
+        sage: _sage_getargspec_sagex("def __init__(self, x=None, unsigned int base=0):")
+        (['self', 'x', 'base'], None, None, ('None', '0'))
+
+    Test _extract_embedded_position:
+        We cannot test the filename since it depends on SAGE_ROOT.
+
+        Make sure things work with no trailing newline:
+            >>> _extract_embedded_position('File: sage/rings/rational.pyx (starting at line 1080)')
+            ('', '.../rational.pyx', 1080)
+
+        And with a trailing newline:
+            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\n'
+            >>> _extract_embedded_position(s)
+            ('', '.../rational.pyx', 1080)
+
+        And with an original docstring:
+            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\noriginal'
+            >>> _extract_embedded_position(s)
+            ('original', '.../rational.pyx', 1080)
+
+        And with a complicated original docstring:
+            >>> s = 'File: sage/rings/rational.pyx (starting at line 1080)\n\n\noriginal test\noriginal'
+            >>> _extract_embedded_position(s)
+            ('\n\noriginal test\noriginal', ..., 1080)
+
+            >>> s = 'no embedded position'
+            >>> _extract_embedded_position(s) is None
+            True
     """
-    if lineno < 1:
-        raise ValueError, "Line numbering starts at 1! (tried to extract line %s)" % lineno
-    lineno -= 1
-
-    if isinstance(lines, str):
-        lines = lines.splitlines()
-        lines = [ line + '\n' for line in lines ]
-
-    return inspect.getblock(lines[lineno:])

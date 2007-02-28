@@ -108,7 +108,6 @@ import sage.rings.infinity
 import sage.libs.pari.all
 import real_mpfr
 
-
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
 
@@ -135,7 +134,6 @@ from sage.structure.element import  bin_op
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
-
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -1474,12 +1472,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         input a number into PARI in hex, or otherwise optimize this,
         please implement it and send me a patch.
         """
-        if self._pari is None:
+        #if self._pari is None:
             # better to do in hex, but I can't figure out
             # how to input/output a number in hex in PARI!!
             # TODO: (I could just think carefully about raw bytes and make this all much faster...)
-            self._pari = sage.libs.pari.all.pari(str(self))
-        return self._pari
+            #self._pari = sage.libs.pari.all.pari(str(self))
+        #return self._pari
+        return sage.libs.pari.all.pari(str(self))
 
     def _interface_init_(self):
         """
@@ -1964,3 +1963,225 @@ def random_integer(min=-2, max=2):
         return Integer(randint(min,max))
 
 
+############### INTEGER CREATION CODE #####################
+######## There is nothing to see here, move along   #######
+
+cdef extern from *:
+
+    ctypedef struct RichPyObject "PyObject"
+
+    # We need a PyTypeObject with elements such that we can
+    # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
+    ctypedef struct RichPyTypeObject "PyTypeObject":
+
+        # We replace this one
+        PyObject*      (*    tp_new) ( RichPyTypeObject*, PyObject*, PyObject*)
+
+        # Not used, may be useful to determine correct memory management function
+        RichPyObject *(*   tp_alloc) ( RichPyTypeObject*, size_t )
+
+        # We replace this one
+        void           (*tp_dealloc) ( PyObject*)
+
+        # Not used, may be useful to determine correct memory management function
+        void          (*    tp_free) ( PyObject* )
+
+        # sizeof(Object)
+        size_t tp_basicsize
+
+        # We set those flags to circumvent the memory manager
+        long tp_flags
+
+    cdef long Py_TPFLAGS_HAVE_GC
+
+    # We need a PyObject where we can get/set the refcnt directly
+    # and the type.
+    ctypedef struct RichPyObject "PyObject":
+        int ob_refcnt
+        RichPyTypeObject* ob_type
+
+    # Allocation
+    RichPyObject* PyObject_MALLOC(int)
+
+    # Useful for debugging, see below
+    void PyObject_INIT(RichPyObject *, RichPyTypeObject *)
+
+    # Free
+    void PyObject_FREE(PyObject*)
+
+
+# We need a couple of internal GMP datatypes
+
+cdef extern from "gmp.h":
+    ctypedef void* mp_ptr #"mp_ptr"
+
+    # We allocate _mp_d directly (mpz_t is typedef of this in GMP)
+    ctypedef struct __mpz_struct "__mpz_struct":
+        mp_ptr _mp_d
+
+    # sets the three free, alloc, and realloc function pointers to the
+    # memory management functions set in GMP. Accepts NULL pointer.
+    # Potentially dangerous if changed by calling
+    # mp_set_memory_functions after we initialized this module.
+    void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
+
+    # GMP's configuration of how many Bits are stuffed into a limb
+    cdef int __GMP_BITS_PER_MP_LIMB
+
+# This variable holds the size of any Integer object in bytes.
+cdef int sizeof_Integer
+
+# We use a global Integer element to steal all the references
+# from. This Integer is initialized by Pyrex automatically. DO NOT
+# INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+cdef Integer global_dummy_Integer
+
+# Accessing the .value attribute of an Integer object causes Pyrex to
+# refcount it. This is problematic, because that causes overhead and
+# more importantly an infinite loop in the destructor. If you refcount
+# in the destructor and the refcount reaches zero (which is true
+# everytime) the destructor is called.
+#
+# To avoid this we calculate the byte offset of the value member and
+# remember it in this variable.
+cdef long mpz_t_offset
+
+
+# stores the GMP alloc function
+cdef void * (* mpz_alloc)(size_t)
+
+# stores the GMP free function
+cdef void (* mpz_free)(void *, size_t)
+
+
+# The signature of tp_new is PyObject* tp_new(RichPyTypeObject *t,
+# PyObject *a, PyObject *k). However we only use t in this
+# implementation.
+#
+# t in this case is the Integer TypeObject.
+
+cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
+     cdef RichPyObject* new
+
+     # allocate enough room for the Integer, sizeof_Integer is
+     # sizeof(Integer). This assumes that Integers are not garbage
+     # collected, i.e. they do not pocess references to other Python
+     # objects. See below for a more detailed description.
+
+     new = PyObject_MALLOC( sizeof_Integer )
+
+     # Now set every member as set in z, the global dummy Integer
+     # created before this tp_new started to operate.
+
+     memcpy(new, (<void*>global_dummy_Integer), sizeof_Integer )
+
+     # The global_dummy_Integer may have a reference count larger than
+     # one, but it is expected that newly created objects have a
+     # reference count of one. This is potentially unneeded if
+     # everybody plays nice, because the gobal_dummy_Integer has only
+     # one reference in that case.
+
+     new.ob_refcnt = 1
+
+     # This line is only needed if Python is compiled in debugging
+     # mode './configure --with-pydebug'. If that is the case a Python
+     # object has a bunch of debugging fields which are initialized
+     # with this macro. For speed reasons, we don't call it if Python
+     # is not compiled in debug mode. So uncomment the following line
+     # if you are debugging Python.
+
+     #PyObject_INIT(new, (<RichPyObject*>global_dummy_Integer).ob_type)
+
+     # We take the address 'new' and move mpz_t_offset bytes (chars)
+     # to the address of 'value'. We treat that address as a pointer
+     # to a mpz_t struct and allocate memory for the _mp_d element of
+     # that struct. We allocate one limb.
+     #
+     # What is done here is potentialy very dangerous as it reaches
+     # deeply into the internal structure of GMP. Consequently things
+     # may break if a new release of GMP changes some internals. To
+     # emphazise this, this is what the GMP manual has to say about
+     # the documentation for the struct we are using:
+     #
+     #  "This chapter is provided only for informational purposes and the
+     #  various internals described here may change in future GMP releases.
+     #  Applications expecting to be compatible with future releases should use
+     #  only the documented interfaces described in previous chapters."
+     #
+     # If this line is used: SAGE is no such application.
+     # The safe and slower version of the following line is
+     #
+     #  mpz_init(( <mpz_t>(<char *>new + mpz_t_offset) ) This is slower
+     #
+     # because of a function call and because the rest of the mpz
+     # struct was already copied using the memcpy above.
+
+     (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)
+
+
+     return new
+
+cdef void fast_tp_dealloc(PyObject* o):
+
+    # Again, we move to the mpz_t and clear it. See above, why this is evil.
+    # The clean version of this line would be:
+    #   mpz_clear(<mpz_t>(<char *>o + mpz_t_offset))
+
+    mpz_free((<__mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
+
+    # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
+    # set. If it was set another free function would need to be
+    # called.
+
+    PyObject_FREE(o)
+
+#hook_fast_tp_functions()
+
+def hook_fast_tp_functions():
+    """
+    """
+    global global_dummy_Integer, mpz_t_offset, sizeof_Integer
+
+    cdef long flag
+
+    cdef RichPyObject* o
+    o = <RichPyObject*>global_dummy_Integer
+
+    # By default every object created in Pyrex is garbage
+    # collected. This means it may have references to other objects
+    # the Garbage collector has to look out for. We remove this flag
+    # as the only reference an Integer has is to the global Integer
+    # ring. As this object is unique we don't need to garbage collect
+    # it as we always have a module level reference to it. If another
+    # attribute is added to the Integer class this flag removal so as
+    # the alloc and free functions may not be used anymore.
+    flag = Py_TPFLAGS_HAVE_GC
+    o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
+
+    # calculate the offset of the GMP mpz_t to avoid casting to/from
+    # an Integer which includes reference counting. Reference counting
+    # is bad in constructors and destructors as it potentially calls
+    # the destructor.
+    mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
+
+    # store how much memory needs to be allocated for an Integer.
+    sizeof_Integer = o.ob_type.tp_basicsize
+
+    # get the functions to do memory management for the GMP elements
+    # WARNING: if the memory management functions are changed after
+    # this initialisation, we are/you are doomed.
+
+    mp_get_memory_functions(&mpz_alloc, NULL, &mpz_free)
+
+    # Finally replace the functions called when an Integer is
+    # constructed/destructed.
+    o.ob_type.tp_new = &fast_tp_new
+    o.ob_type.tp_dealloc = &fast_tp_dealloc
+
+def time_alloc(n):
+    cdef int i
+    l = []
+    for i from 0 <= i < n:
+        l.append(PY_NEW(Integer))
+
+    return l

@@ -36,7 +36,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
             prec = R.precision_cap()
         if print_mode is None:
             print_mode = R.get_print_mode()
-        pAdicRingGeneric.__init__(self, R.prime(), prime, print_mode)
+        pAdicRingGeneric.__init__(self, R.prime(), prec, print_mode)
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
 
     def __call__(self, x, prec = None):

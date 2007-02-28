@@ -1970,7 +1970,7 @@ cdef extern from *:
 
     ctypedef struct RichPyObject "PyObject"
 
-    # We need a PyTypeObject with elements such that we can
+    # We need a PyTypeObject with elements so we can
     # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
     ctypedef struct RichPyTypeObject "PyTypeObject":
 
@@ -1989,13 +1989,13 @@ cdef extern from *:
         # sizeof(Object)
         size_t tp_basicsize
 
-        # We set those flags to circumvent the memory manager
+        # We set a flag here to circumvent the memory manager
         long tp_flags
 
     cdef long Py_TPFLAGS_HAVE_GC
 
     # We need a PyObject where we can get/set the refcnt directly
-    # and the type.
+    # and access the type.
     ctypedef struct RichPyObject "PyObject":
         int ob_refcnt
         RichPyTypeObject* ob_type
@@ -2010,7 +2010,12 @@ cdef extern from *:
     void PyObject_FREE(PyObject*)
 
 
-# We need a couple of internal GMP datatypes
+# We need a couple of internal GMP datatypes.
+
+# This may be potentialy very dangerous as it reaches
+# deeply into the internal structure of GMP which may not
+# be consistant across future versions of GMP.
+# See extensive note in the fast_tp_new() function below.
 
 cdef extern from "gmp.h":
     ctypedef void* mp_ptr #"mp_ptr"
@@ -2022,7 +2027,7 @@ cdef extern from "gmp.h":
     # sets the three free, alloc, and realloc function pointers to the
     # memory management functions set in GMP. Accepts NULL pointer.
     # Potentially dangerous if changed by calling
-    # mp_set_memory_functions after we initialized this module.
+    # mp_set_memory_functions again after we initialized this module.
     void mp_get_memory_functions (void *(**alloc) (size_t), void *(**realloc)(void *, size_t, size_t), void (**free) (void *, size_t))
 
     # GMP's configuration of how many Bits are stuffed into a limb
@@ -2044,6 +2049,9 @@ global_dummy_Integer = Integer()
 #
 # To avoid this we calculate the byte offset of the value member and
 # remember it in this variable.
+#
+# Eventually this may be rendered obsolete by a change in SageX allowing
+# non-reference counted extension types.
 cdef long mpz_t_offset
 
 
@@ -2054,9 +2062,9 @@ cdef void * (* mpz_alloc)(size_t)
 cdef void (* mpz_free)(void *, size_t)
 
 
-# The signature of tp_new is PyObject* tp_new(RichPyTypeObject *t,
-# PyObject *a, PyObject *k). However we only use t in this
-# implementation.
+# The signature of tp_new is
+# PyObject* tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k).
+# However we only use t in this implementation.
 #
 # t in this case is the Integer TypeObject.
 
@@ -2064,9 +2072,11 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
      cdef RichPyObject* new
 
      # allocate enough room for the Integer, sizeof_Integer is
-     # sizeof(Integer). This assumes that Integers are not garbage
-     # collected, i.e. they do not pocess references to other Python
-     # objects. See below for a more detailed description.
+     # sizeof(Integer). The use of PyObject_MALLOC directly
+     # assumes that Integers are not garbage collected, i.e.
+     # they do not pocess references to other Python
+     # objects (Aas indicated by the Py_TPFLAGS_HAVE_GC flag).
+     # See below for a more detailed description.
 
      new = PyObject_MALLOC( sizeof_Integer )
 
@@ -2108,13 +2118,15 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
      #  Applications expecting to be compatible with future releases should use
      #  only the documented interfaces described in previous chapters."
      #
-     # If this line is used: SAGE is no such application.
-     # The safe and slower version of the following line is
+     # If this line is used SAGE is not such an application.
      #
-     #  mpz_init(( <mpz_t>(<char *>new + mpz_t_offset) ) This is slower
+     # The clean version of the following line is:
      #
-     # because of a function call and because the rest of the mpz
-     # struct was already copied using the memcpy above.
+     #  mpz_init(( <mpz_t>(<char *>new + mpz_t_offset) )
+     #
+     # We save time both by avoiding an extra function call and
+     # because the rest of the mpz struct was already initalized
+     # fully using the memcpy above.
 
      (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)
 
@@ -2155,6 +2167,7 @@ def hook_fast_tp_functions():
     # it as we always have a module level reference to it. If another
     # attribute is added to the Integer class this flag removal so as
     # the alloc and free functions may not be used anymore.
+    # This object will still be reference counted.
     flag = Py_TPFLAGS_HAVE_GC
     o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
 
@@ -2162,6 +2175,8 @@ def hook_fast_tp_functions():
     # an Integer which includes reference counting. Reference counting
     # is bad in constructors and destructors as it potentially calls
     # the destructor.
+    # Eventually this may be rendered obsolete by a change in SageX allowing
+    # non-reference counted extension types.
     mpz_t_offset = <char *>(&global_dummy_Integer.value) - <char *>o
 
     # store how much memory needs to be allocated for an Integer.
@@ -2173,8 +2188,8 @@ def hook_fast_tp_functions():
 
     mp_get_memory_functions(&mpz_alloc, NULL, &mpz_free)
 
-    # Finally replace the functions called when an Integer is
-    # constructed/destructed.
+    # Finally replace the functions called when an Integer needs
+    # to be constructed/destructed.
     o.ob_type.tp_new = &fast_tp_new
     o.ob_type.tp_dealloc = &fast_tp_dealloc
 

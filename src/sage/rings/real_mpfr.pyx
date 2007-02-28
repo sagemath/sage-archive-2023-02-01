@@ -118,8 +118,10 @@ cdef class RealField(sage.rings.ring.Field):
                 and mpfr_prec_max(). In the current implementation,
                 mpfr_prec_min() is equal to 2.
 
-        sci_not -- (default: False) whether or not to display
-                using scientific notation
+        sci_not -- (default: False) if True, always display
+                using scientific notation; if False, display
+                using scientific notation only for very large or
+                very small numbers
 
         rnd -- (string) the rounding mode
                 RNDN -- (default) round to nearest: Knuth says this is
@@ -590,8 +592,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def _interface_init_(self):
         """
-        Return string representation of self in base 10 with
-        no scientific notation.
+        Return string representation of self in base 10, avoiding
+        scientific notation except for very large or very small numbers.
 
         This is most likely to make sense in other computer algebra
         systems (this function is the default for exporting to other
@@ -632,8 +634,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         INPUT:
              base -- base for output
-             no_sci -- if True do not print using scientific notation; if False
-                       print with scientific notation; if None (the default), print how the parent prints.
+             no_sci -- if 2, never print using scientific notation;
+                       if 1 or True, print using scientific notation only
+                       for very large or very small numbers;
+                       if 0 or False always print with scientific notation;
+                       if None (the default), print how the parent prints.
              e - symbol used in scientific notation; defaults to 'e' for
                        base<=10, and '@' otherwise
              truncate -- if True, truncate the last digits in printing to avoid confusing base-2
@@ -650,6 +655,26 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '2.03333333333333e1'
             sage: a.str(16, no_sci=False)
             '1.4555555555555@1'
+            sage: b = 2.0^99
+            sage: b.str()
+            '633825300114114000000000000000'
+            sage: b.str(no_sci=False)
+            '6.33825300114114e29'
+            sage: b.str(no_sci=True)
+            '633825300114114000000000000000'
+            sage: c = 2.0^100
+            sage: c.str()
+            '1.26765060022822e30'
+            sage: c.str(no_sci=False)
+            '1.26765060022822e30'
+            sage: c.str(no_sci=True)
+            '1.26765060022822e30'
+            sage: c.str(no_sci=2)
+            '1267650600228220000000000000000'
+            sage: 0.5^53
+            0.000000000000000111022302462515
+            sage: 0.5^54
+            5.55111512312578e-17
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -701,7 +726,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
             if i > 0:
                 t = t[:i]
 
-        if no_sci==False or ((<RealField>self._parent).sci_not and not (no_sci==True)):
+        cdef int digits
+        digits = len(t)
+
+        if no_sci is None:
+            no_sci = not (<RealField>self._parent).sci_not
+
+        if no_sci==True and (-exponent > digits or exponent > 2*digits):
+            no_sci = False
+
+        if no_sci==False:
             if t[0] == "-":
                 return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
@@ -1400,11 +1434,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.0
             sage: r.exp10()
-            100000000000000000000000000000000
+            1.00000000000000e32
 
             sage: r = -32.3
             sage: r.exp10()
-            0.00000000000000000000000000000000501187233627275
+            5.01187233627275e-33
         """
         cdef RealNumber x
         x = self._new()
@@ -1420,7 +1454,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: t=RR.pi()/2
             sage: t.cos()
-            0.0000000000000000612323399573676
+            6.12323399573676e-17
         """
         cdef RealNumber x
         x = self._new()

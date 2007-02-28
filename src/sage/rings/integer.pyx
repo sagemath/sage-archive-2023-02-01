@@ -2077,7 +2077,7 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
      # everybody plays nice, because the gobal_dummy_Integer has only
      # one reference in that case.
 
-     ob.ob_refcnt = 1
+     new.ob_refcnt = 1
 
      # This line is only needed if Python is compiled in debugging
      # mode './configure --with-pydebug'. If that is the case a Python
@@ -2104,9 +2104,16 @@ cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
      #  Applications expecting to be compatible with future releases should use
      #  only the documented interfaces described in previous chapters."
      #
-     # If this line is used: SAGE is no such application:
+     # If this line is used: SAGE is no such application.
+     # The safe and slower version of the following line is
+     #
+     #  mpz_init(( <mpz_t>(<char *>new + mpz_t_offset) ) This is slower
+     #
+     # because of a function call and because the rest of the mpz
+     # struct was already copied using the memcpy above.
 
      (<__mpz_struct *>( <char *>new + mpz_t_offset) )._mp_d = <mp_ptr>mpz_alloc(__GMP_BITS_PER_MP_LIMB >> 3)
+
 
      return new
 
@@ -2119,12 +2126,12 @@ cdef void fast_tp_dealloc(PyObject* o):
     mpz_free((<__mpz_struct *>( <char *>o + mpz_t_offset) )._mp_d, 0)
 
     # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
-    # set. If it was set another Free function would need to be
+    # set. If it was set another free function would need to be
     # called.
 
     PyObject_FREE(o)
 
-hook_fast_tp_functions()
+#hook_fast_tp_functions()
 
 def hook_fast_tp_functions():
     """

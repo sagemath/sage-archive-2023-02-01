@@ -1,3 +1,4 @@
+/* #define mod_int size_t */
 #define mod_int size_t
 
 /* This is the largest value we can do arithmetic on without risking overflowing.

@@ -29,10 +29,14 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     given as a tower.
     """
 
-    def __init__(self, poly):
+    def __init__(self, poly, prec = None, print_mode = None):
         #need to check stuff about poly: irreducible, monic, unramified, valid coefficient ring
         R = poly.base_ring()
-        pAdicRingGeneric.__init__(self, R.prime(), R.precision_cap(), R.get_print_mode())
+        if prec is None:
+            prec = R.precision_cap()
+        if print_mode is None:
+            print_mode = R.get_print_mode()
+        pAdicRingGeneric.__init__(self, R.prime(), prime, print_mode)
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
 
     def __call__(self, x, prec = None):

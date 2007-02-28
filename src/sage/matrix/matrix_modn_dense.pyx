@@ -77,14 +77,15 @@ include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
 import sage.ext.multi_modular
-#MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
 # TODO: DO NOT change this back until all the ints, etc., below are changed
 # and get_unsafe is rewritten to return the right thing.  E.g., with
 # the above uncommented, on 64-bit,
 # m =matrix(Integers(101^3),2,[824362, 606695, 641451, 205942])
 # m.det()
 #  --> gives 0, which is totally wrong.
-MAX_MODULUS = 46340
 
 import matrix_window_modn_dense
 

@@ -4,7 +4,7 @@ import sage.rings.padics.padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.integer
-import sage.rings.unramified_ring_extension
+import sage.rings.padics.unramified_ring_extension
 
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute

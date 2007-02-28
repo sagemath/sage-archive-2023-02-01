@@ -58,8 +58,8 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
         key = (p, prec, halt)
     if padic_ring_cache.has_key(key):
         K = padic_ring_cache[key]()
-        if K != None:
-            if print_mode != None:
+        if not (K is None):
+            if not (print_mode is None):
                 K.set_print_mode(print_mode)
             return K
     if print_mode == None:
@@ -94,8 +94,8 @@ def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = Non
         key = (q, name, prec, halt)
     if qadic_ring_cache.has_key(key):
         K = qadic_ring_cache[key]()
-        if K != None:
-            if print_mode != None:
+        if not (K is None):
+            if not (print_mode is None):
                 K.set_print_mode(print_mode)
             return K
     if modulus is None:

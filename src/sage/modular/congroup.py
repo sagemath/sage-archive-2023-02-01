@@ -94,6 +94,19 @@ class CongruenceSubgroup(Group):
     def is_subgroup(self, right):
         raise NotImplementedError
 
+    def is_odd(self):
+        """
+        Return True precisely if this subgroup does not contain the
+        matrix -1.
+        """
+        return not self.is_even()
+
+    def is_even(self):
+        """
+        Return True precisely if this subgroup contains the matrix -1.
+        """
+        raise NotImplementedError
+
     def order(self):
         return infinity
 
@@ -198,6 +211,12 @@ class Gamma0(CongruenceSubgroup):
             return 1
         return 0
 
+    def is_even(self):
+        """
+        Return True precisely if this subgroup contains the matrix -1.
+        """
+        return True
+
     def is_subgroup(self, right):
         """
         Return True if self is a subgroup of right.
@@ -292,6 +311,12 @@ class SL2Z(Gamma0):
     def _latex_(self):
         return "\\mbox{\\rm SL}_2(%s)"%(IntegerRing()._latex_())
 
+    def is_even(self):
+        """
+        Return True precisely if this subgroup contains the matrix -1.
+        """
+        return True
+
     def is_subgroup(self, right):
         """
         Return True if self is a subgroup of right.
@@ -347,6 +372,12 @@ class Gamma1(CongruenceSubgroup):
         elif self.level() > right.level():
             return 1
         return 0
+
+    def is_even(self):
+        """
+        Return True precisely if this subgroup contains the matrix -1.
+        """
+        return self.level() in [1,2]
 
     def is_subgroup(self, right):
         """
@@ -463,6 +494,15 @@ class GammaH_class(CongruenceSubgroup):
         H.sort()
         self.__list_of_elements_in_H = H
         return H
+
+    def is_even(self):
+        """
+        Return True precisely if this subgroup contains the matrix -1.
+        """
+        if self.level() == 1:
+            return True
+        v = self._list_of_elements_in_H()
+        return int(self.level() - 1) in v
 
     def _coset_reduction_data_first_coord(G):
         """

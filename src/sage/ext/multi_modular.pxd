@@ -6,8 +6,7 @@ from sage.rings.integer cimport Integer
 
 cdef extern from "multi_modular.h":
     ctypedef unsigned long mod_int
-    mod_int MOD_INT_MAX
-    mod_int START_PRIME_MAX
+    mod_int MOD_INT_OVERFLOW
 
 cdef class MultiModularBasis_base:
     cdef int      n

@@ -7,6 +7,12 @@ AUTHORS:
     -- Robert Bradshaw (most of the work)
     -- Didier Deshommes (bit shifting)
     -- William Stein (editing and polishing; new arith architecture)
+
+TESTS:
+    sage: R = Integers(101^3)
+    sage: a = R(824362); b = R(205942)
+    sage: a * b
+    851127
 """
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
@@ -94,7 +100,7 @@ def is_IntegerMod(x):
         sage: is_IntegerMod(Mod(5,10))
         True
     """
-    return isinstance(x, IntegerMod_abstract)
+    return bool(isinstance(x, IntegerMod_abstract))
 
 def makeNativeIntStruct(sage.rings.integer.Integer z):
     return NativeIntStruct(z)

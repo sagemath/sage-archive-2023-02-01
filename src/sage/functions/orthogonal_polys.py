@@ -291,7 +291,7 @@ from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, ZZ, CDF, RDF
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 
@@ -323,7 +323,7 @@ def chebyshev_T(n,x):
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("chebyshev_t(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("chebyshev_t(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -342,7 +342,7 @@ def chebyshev_U(n,x):
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("chebyshev_u(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("chebyshev_u(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -370,7 +370,7 @@ def gen_laguerre(n,a,x):
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("gen_laguerre(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("gen_laguerre(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("gen_laguerre(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})
@@ -390,15 +390,13 @@ def gen_legendre_P(n,m,x):
         3/2*t^2 - 1/2
         sage: gen_legendre_P(3,1,t)
         '-6*(5*(1 - t)^2/4 - 5*(1 - t)/2 + 1)*sqrt(1 - t^2)'
-
-
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     m0 = ZZ(m) # m must be an integer
     if not(is_Polynomial(x)):
-        s = maxima.eval("assoc_legendre_p(%s,%s,%s)"%(n0,m0,RR(x)))
-        return sage_eval(s.replace("%i","I"))
+        s = maxima.eval("assoc_legendre_p(%s,%s,%s)"%(n0,m0,RDF(x)))
+        return CDF(s.replace("%i","I"))
     R = x.parent()
     y = R.gen()
     s = maxima.eval("assoc_legendre_p(%s,%s,%s)"%(n0,m0,y)).replace("%i","I")
@@ -417,14 +415,14 @@ def gen_legendre_Q(n,m,x):
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
-        2.491852591708954
+        2.49185259171
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     m0 = ZZ(m) # m must be an integer
     if not(is_Polynomial(x)):
-        s = maxima.eval("assoc_legendre_q(%s,%s,%s)"%(n0,m0,RR(x)))
-        return sage_eval(s.replace("%i","I"))
+        s = maxima.eval("assoc_legendre_q(%s,%s,%s)"%(n0,m0,RDF(x)))
+        return CDF(s.replace("%i","I"))
     R = x.parent()
     y = R.gen()
     s = maxima.eval("assoc_legendre_q(%s,%s,%s)"%(n0,m0,y)).replace("%i","I")
@@ -433,7 +431,7 @@ def gen_legendre_Q(n,m,x):
 
 def hermite (n,x):
     """
-    Returns the Hermite polynomial for integers n > -1.
+    Returns the Hermite polynomial for integers $n > -1$.
 
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
@@ -441,20 +439,21 @@ def hermite (n,x):
         4*x^2 - 2
         sage: hermite(3,x)
         8*x^3 - 12*x
-
+        sage: hermite(3,2)
+        40.0
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("hermite(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("hermite(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def jacobi_P(n,a,b,x):
-    """
-    Returns the Jacobi polynomial $P_n^{(a,b)}(x)$ for integers n > -1
-    and a and b symbolic or a > -1 and b > -1.
+    r"""
+    Returns the Jacobi polynomial $P_n^{(a,b)}(x)$ for integers $n > -1$
+    and a and b symbolic or $a > -1$ and $b > -1$.
     The Jacobi polynomials are actually defined for all a and b.
     However, the Jacobi polynomial weight $(1-x)^a(1+x)^b$ isn't
     integrable for $a \leq -1$ or $b \leq -1$.
@@ -469,14 +468,14 @@ def jacobi_P(n,a,b,x):
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,RR(x))))
+        return RDF(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("jacobi_p(%s,%s,%s,%s)"%(n0,a,b,y)),locals={str(y):y})
 
 def laguerre(n,x):
     """
-    Returns the Laguerre polynomial for integers n > -1.
+    Returns the Laguerre polynomial for integers $n > -1$.
 
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
@@ -484,12 +483,13 @@ def laguerre(n,x):
         1/2*x^2 - 2*x + 1
         sage: laguerre(3,x)
         -1/6*x^3 + 3/2*x^2 - 3*x + 1
-
+        sage: laguerre(2,2)
+        -1.0
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("laguerre(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("laguerre(%s,%s)"%(n0,y)),locals={str(y):y})
@@ -503,32 +503,37 @@ def legendre_P(n,x):
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
         sage: legendre_P(3,1.1)
-        1.67750000000000
+        1.6775
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,RR(x))))
+        return RDF(maxima.eval("legendre_p(%s,%s)"%(n0,RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("legendre_p(%s,%s)"%(n0,y)),locals={str(y):y})
 
 def legendre_Q(n,x):
     """
-    Returns the Legendre function of the second kind for integers n > -1,
-    as a string.
+    Returns the Legendre function of the second kind for integers n > -1.
+
+    Computed using Maxima.
 
     EXAMPLES:
         sage: t = PolynomialRing(QQ, 't').gen()
         sage: legendre_Q(2,t)
         '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
         sage: legendre_Q(3,0.5)
-        -0.1986547714794823
+        -0.198654771479
+        sage: legendre_Q(4,2)
+        0.00116107583163 + 86.9828491211*I
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("legendre_q(%s,%s)"%(n0,RR(x))))
+        t = maxima.eval("legendre_q(%s,%s)"%(n0,RDF(x)))
+        t = t.replace('%i','I')
+        return CDF(t)
     R = x.parent()
     y = R.gen()
     return maxima.eval("legendre_q(%s,%s)"%(n0,y))
@@ -537,6 +542,8 @@ def ultraspherical(n,a,x):
     """
     Returns the ultraspherical (or Gegenbauer) polynomial for
     integers n > -1.
+
+    Computed using Maxima.
 
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
@@ -549,12 +556,11 @@ def ultraspherical(n,a,x):
         sage: t = PolynomialRing(RationalField(),"t").gen()
         sage: gegenbauer(3,2,t)
         32*t^3 - 12*t
-
     """
     _init()
     n0 = ZZ(n) # n must be an integer
     if not(is_Polynomial(x)):
-        return sage_eval(maxima.eval("ultraspherical(%s,%s)"%(n0,RR(a),RR(x))))
+        return RDF(maxima.eval("ultraspherical(%s,%s)"%(n0,RDF(a),RDF(x))))
     R = x.parent()
     y = R.gen()
     return sage_eval(maxima.eval("ultraspherical(%s,%s,%s)"%(n0,a,y)),locals={str(y):y})

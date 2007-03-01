@@ -54,13 +54,20 @@ following is defined, and the result is in the finite field.
     Vector space of dimension 5 over Finite Field of size 7
     sage: parent(M.0 + K.0)
     Vector space of dimension 5 over Finite Field of size 7
+
+Matrix vector multiply:
+    sage: MS = MatrixSpace(QQ,3)
+    sage: A = MS([0,1,0,1,0,0,0,0,1])
+    sage: V = QQ^3
+    sage: v = V([1,2,3])
+    sage: v * A
+    (2, 1, 3)
 """
 
 import operator
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
-
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 
@@ -71,12 +78,15 @@ coerce = sage.structure.coerce.Coerce()
 from sage.structure.sequence import Sequence
 
 from sage.structure.element cimport Element, ModuleElement, RingElement, Vector as element_Vector
-from sage.matrix.matrix cimport Matrix
 
 import sage.rings.arith
 
 from sage.rings.ring import is_Ring
 import sage.rings.integer_ring
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
+
+#from sage.matrix.matrix cimport Matrix
 
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
@@ -89,6 +99,7 @@ def vector(arg0, arg1=None, sparse=None):
         1. vector(object)
         2. vector(ring, object)
         3. vector(object, ring)
+        4. vector(numpy_array)
 
     INPUT:
         elts -- entries of a vector (either a list or dict).
@@ -142,6 +153,17 @@ def vector(arg0, arg1=None, sparse=None):
     Make a vector mod 3 out of a vector over ZZ:
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
+
+    Any 1 dimensional numpy array of type float or complex may be passed to vector. The result
+    will vector in the appropriate dimensional vector space over the real double field or the
+    complex double field. The data in the array must be contiguous so columnwise slices of numpy matrices
+    will rase an exception.
+
+    sage: import numpy
+    sage: x=numpy.random.randn(10)
+    sage: y=vector(x)
+    sage: v=numpy.random.randn(10)*numpy.complex(0,1)
+    sage: w=vector(v)
     """
     if hasattr(arg0, '_vector_'):
         if arg1 is None:
@@ -164,6 +186,24 @@ def vector(arg0, arg1=None, sparse=None):
         if sparse is None:
             sparse = True
         v, R = prepare_dict(v, R)
+
+    from numpy import ndarray
+    from free_module import VectorSpace
+    if isinstance(v,ndarray):
+        if len(v.shape)==1:
+            if str(v.dtype).count('float')==1:
+                if v.flags.c_contiguous==True:
+                    V=VectorSpace(RDF,v.shape[0])
+                    _v=V.zero_vector()
+                    _v._replace_self_with_numpy(v)
+                    return _v
+            if str(v.dtype).count('complex')==1:
+                if v.flags.c_contiguous==True:
+                    V=VectorSpace(CDF,v.shape[0])
+                    _v=V.zero_vector()
+                    _v._replace_self_with_numpy(v)
+                    return _v
+
     else:
         if sparse is None:
             sparse = False
@@ -202,6 +242,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     def __init__(self, parent):
         self._parent = parent
         self._degree = parent.degree()
+        self._is_mutable = 1
 
     def _vector_(self, R):
         return self.change_ring(R)
@@ -432,28 +473,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
     cdef int _cmp_same_ambient_c(left, FreeModuleElement right):
         return cmp(left.list(copy=False), right.list(copy=False))
 
-    def _matrix_multiply(self, Matrix A):
-        """
-        Return the product self*A.
-
-        EXAMPLES:
-            sage: MS = MatrixSpace(QQ,3)
-            sage: A = MS([0,1,0,1,0,0,0,0,1])
-            sage: V = QQ^3
-            sage: v = V([1,2,3])
-            sage: v._matrix_multiply(A)
-            (2, 1, 3)
-
-        The multiplication operator also just calls \code{_matrix_multiply}:
-            sage: v*A
-            (2, 1, 3)
-        """
-        return self*A
-
     cdef ModuleElement _rmul_nonscalar_c_impl(left, right):
-        if PY_TYPE_CHECK(right, Matrix):
-            return right.vector_matrix_multiply(left)
-        raise TypeError
+         raise TypeError
 
     def degree(self):
         return self._degree
@@ -603,11 +624,14 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         return s + '\\right)'
 
 
-
 #############################################
 # Generic dense element
 #############################################
 def make_FreeModuleElement_generic_dense(parent, entries, degree):
+    # If you think you want to change this function, don't.
+    # Instead make a new version with a name like
+    #    make_FreeModuleElement_generic_dense_v1
+    # and changed the reduce method below.
     cdef FreeModuleElement_generic_dense v
     v = FreeModuleElement_generic_dense.__new__(FreeModuleElement_generic_dense)
     v._entries = entries
@@ -723,7 +747,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         v = [None]*n
         for i from 0 <= i < n:
             v[i] = (<RingElement>left._entries[i])._mul_c((<FreeModuleElement_generic_dense>right)._entries[i])
-        return self._new_c(v)
+        return left._new_c(v)
 
     def __reduce__(self):
         return (make_FreeModuleElement_generic_dense, (self._parent, self._entries, self._degree))
@@ -794,6 +818,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         module element are equal if their coefficients are the same.
         """
         return cmp(left._entries, (<FreeModuleElement_generic_dense>right)._entries)
+
 
 
 #############################################
@@ -1027,4 +1052,6 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         K = self._entries.keys()
         K.sort()
         return K
+
+
 

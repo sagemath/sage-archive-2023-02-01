@@ -3,7 +3,8 @@ include '../ext/cdefs.pxi'
 
 cdef extern from "mpfi.h":
     ctypedef struct __mpfi_struct:
-        pass
+        __mpfr_struct left
+        __mpfr_struct right
     #ctypedef __mpfi_struct mpfi_t[1]
     ctypedef __mpfi_struct* mpfi_t
     ctypedef __mpfi_struct* mpfi_ptr

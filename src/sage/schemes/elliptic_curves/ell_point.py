@@ -128,12 +128,69 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             raise NotImplementedError, "%s\nComputation of order of point."%msg
 
     def curve(self):
+        """
+        Return the curve that this point is a point on.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: P.curve()
+            Elliptic Curve defined by y^2 + y = x^3 + x^2 - 2*x over Rational Field
+        """
         return self.scheme()
 
     def is_zero(self):
+        """
+        Return True if this is the zero point on the curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: P = E(0); P
+            (0 : 1 : 0)
+            sage: P.is_zero()
+            True
+            sage: P = E.gens()[0]
+            sage: P.is_zero()
+            False
+        """
         return self[2] == 0
 
-    def _plot_(self, **args):
+    def is_finite_order(self):
+        """
+        Return True if this point has finite additive order as an element
+        of the group of points on this curve.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('11a')
+            sage: P = E([5,5])
+            sage: P.is_finite_order()
+            True
+            sage: Q = 5*P; Q
+            (0 : 1 : 0)
+            sage: Q.is_finite_order()
+            True
+            sage: E = EllipticCurve('37a')
+            sage: P = E([0,0])
+            sage: P.is_finite_order()
+            False
+        """
+        return self[2] == 0 or self.order() != oo
+
+    def plot(self, **args):
+        """
+        Plot this point on an elliptic curve.
+
+        INPUT:
+            **args -- all arguments get passed directly onto the point
+              plotting function.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: G = P.plot(pointsize=30, rgbcolor=(1,0,0)); G
+            Graphics object consisting of 1 graphics primitive
+            sage: G.save()
+        """
         if self.is_zero():
             return plot.text("$\\infty$", (-3,3), **args)
 
@@ -143,6 +200,12 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
     def _add_(self, right):
         """
         Add self to right.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P,Q = E.gens()
+            sage: P + Q
+            (-3/4 : -15/8 : 1)
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
         if self.is_zero():
@@ -166,9 +229,31 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         return E.point([x3, y3, 1], check=False)
 
     def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P,Q = E.gens()
+            sage: P - Q
+            (0 : -1 : 1)
+            sage: (P - Q) + Q
+            (-1 : 1 : 1)
+            sage: P
+            (-1 : 1 : 1)
+        """
         return self + (-right)
 
     def __neg__(self):
+        """
+        Return the additive inverse of this point.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: Q = -P; Q
+            (-1 : -2 : 1)
+            sage: Q + P
+            (0 : 1 : 0)
+        """
         if self.is_zero():
             return self
         E, x, y = self.curve(), self[0], self[1]
@@ -178,52 +263,89 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         """
         The Neron-Tate canonical height of the point.
 
+        INPUT:
+            self -- a point on a curve over QQ
+
+        OUTPUT:
+            the rational number 0 or a nonzero real field element
+
         EXAMPLES:
             sage: E = EllipticCurve('11a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Rational Field
             sage: P = E([5,5]); P
             (5 : 5 : 1)
-            sage: h = P.height()
-            sage: RR = h.parent()
-            sage: RR.scientific_notation(True)
-            sage: h  # output should be about 0; is somewhat random depending on arch
-            -1.43860254300000e-248            # 32-bit
-            -3.0999021078264000e-691          # 64-bit
-            sage: h < 0.001
-            True
+            sage: P.height()
+            0
             sage: Q = 5*P
             sage: Q.height()
-            0.00000000000000e-1
+            0
 
             sage: E = EllipticCurve('37a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: P = E([0,0])
             sage: P.height()
-            5.11114082399688e-2
+            0.0511114082399688
             sage: P.order()
             Infinity
             sage: E.regulator()      # slightly random output
             0.051111408239968840
+
+            sage: E = EllipticCurve('4602a1'); E
+            Elliptic Curve defined by y^2 + x*y  = x^3 + x^2 - 37746035*x - 89296920339 over Rational Field
+            sage: x = 77985922458974949246858229195945103471590
+            sage: y = 19575260230015313702261379022151675961965157108920263594545223
+            sage: d = 2254020761884782243
+            sage: E([ x / d^2,  y / d^3 ]).height()
+            86.7406561381274
+
+            sage: E = EllipticCurve([17, -60, -120, 0, 0]); E
+            Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field
+            sage: E([30, -90]).height()
+            0
         """
-        if self.is_zero():
-            return rings.RR(0)
+        if self.is_finite_order():
+            return rings.QQ(0)
         h = self.curve().pari_curve().ellheight([self[0], self[1]])
         return rings.RR(h)
 
     def xy(self):
+        """
+        Return the x and y coordinates of this point, as a 2-tuple.
+        If this is point at infinity a ZeroDivisionError is raised.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: P = E([-1,1])
+            sage: P.xy()
+            (-1, 1)
+            sage: Q = E(0); Q
+            (0 : 1 : 0)
+            sage: Q.xy()
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Rational division by zero
+        """
         if self[2] == 1:
             return self[0], self[1]
         else:
             return self[0]/self[2], self[1]/self[2]
 
-    def sigma(self, p):
-        k = rings.Qp(p)
-        if self.is_zero():
-            return k(0)
-        sigma = self.curve().sigma(p)
-        return sigma(k(-self[0]/self[1]))
 
 ##########################################################################################
+        ## this is nonsense:
+##     def sigma(self, p):
+##         """
+##         Return the value of the $p$-adic sigma function of
+##         the elliptic curve on this point.
+
+##         EXAMPLES:
+
+##         """
+##         k = rings.Qp(p)
+##         if self.is_zero():
+##             return k(0)
+##         sigma = self.curve().sigma(p)
+##         return sigma(k(-self[0]/self[1]))
 
 
 

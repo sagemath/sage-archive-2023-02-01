@@ -5,7 +5,7 @@ from random import randrange
 cdef extern from "stdlib.h":
     long random()
     void srandom(unsigned int seed)
-k = randrange(0,2**32)
+k = randrange(0, int(2)**32)
 srandom(k)
 
 cdef gmp_randstate_t state

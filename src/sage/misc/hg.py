@@ -171,7 +171,8 @@ class HG:
             cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(), 'localhost', port)
             t = tmp_filename()
             open(t,'w').write(cmd)
-            os.system('source %s &'%(os.path.abspath(t)))
+            P = os.path.abspath(t)
+            os.system('chmod +x %s; %s &'%(P, P))
         self('serve --port %s'%port)
 
     browse = serve
@@ -610,7 +611,7 @@ class HG:
         print "of the repository you are using.  This might not"
         print "work with the notebook yet."
 
-    def merge(self, options='tip'):
+    def merge(self, options=''):
         """
         Merge working directory with another revision
 
@@ -620,7 +621,8 @@ class HG:
         performed before any further updates are allowed.
 
         INPUT:
-            options -- default: 'tip'
+            options -- default: ''
+                'tip' -- tip
                  -b --branch  merge with head of a specific branch
                  -f --force   force a merge with outstanding changes
         """

@@ -25,6 +25,11 @@ from zope.interface import implements
 from twisted.internet import defer
 
 class PublicKeyCredentialsChecker(object):
+    r"""
+    This class provides authentication checking using ssh public keys.
+
+    """
+
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.ISSHPrivateKey,)
 
@@ -73,22 +78,20 @@ class PublicKeyCredentialsCheckerDB(object):
     def __init__(self, userdb):
         self.userdb = userdb
 
-    def getUser(self, username):
-        if not self.userdb.has_key('username'):
-            return False
-        return self.userdb[username]
-
     def requestAvatarId(self, credentials):
-        user = self.getUser(credentials.username)
+        try:
+            user, key = self.get_user(credentials.username)
+        except TypeError:
+            return defer.fail(error.ConchError("Invalid username."))
+
         if user:
-            userKey = user['public_key']
-            if not credentials.blob == base64.decodestring(userKey):
+            if not credentials.blob == base64.decodestring(key):
                 return defer.fail(error.ConchError("Invalid key."))
             if not credentials.signature:
                 return defer.fail(error.ValidPublicKey())
 
-            pubKey = keys.getPublicKeyObject(data=credentials.blob)
-            if keys.verifySignature(pubKey, credentials.signature,
+            pub_key = keys.getPublicKeyObject(data=credentials.blob)
+            if keys.verifySignature(pub_key, credentials.signature,
                                     credentials.sigData):
                 return credentials.username
             else:
@@ -96,3 +99,5 @@ class PublicKeyCredentialsCheckerDB(object):
         else:
             return defer.fail(error.ConchError("Invalid username."))
 
+    def get_user(self, username):
+        return self.userdb.get_user(username)

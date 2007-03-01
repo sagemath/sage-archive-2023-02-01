@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import sys
@@ -34,12 +35,13 @@ from twisted.conch.ssh import keys
 
 from sage.dsage.database.job import Job
 from sage.dsage.twisted.pb import ClientPBClientFactory
-from sage.dsage.twisted.misc import blockingCallFromThread
+from sage.dsage.twisted.misc import blocking_call_from_thread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
 class DSageThread(threading.Thread):
     def run(self):
-        reactor.run(installSignalHandlers=False)
+        if not reactor.running:
+            reactor.run(installSignalHandlers=0)
 
 class DSage(object):
     r"""
@@ -56,19 +58,17 @@ class DSage(object):
         self._getconf()
 
         if server is None:
-            self.server = SERVER
+            self.server = self.SERVER
         else:
             self.server = server
 
-        self.port = PORT
-        self.username = USERNAME
-        self.pubkey_file = PUBKEY_FILE
-        self.privkey_file = PRIVKEY_FILE
+        self.port = self.PORT
+        self.username = self.USERNAME
+        self.pubkey_file = self.PUBKEY_FILE
+        self.privkey_file = self.PRIVKEY_FILE
 
         self.remoteobj = None
         self.result = None
-
-        passphrase = self._getpassphrase()
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
@@ -84,7 +84,7 @@ class DSage(object):
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = DATA
+        self.data = self.DATA
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
@@ -98,7 +98,7 @@ class DSage(object):
 
     def __str__(self):
         self.check_connected()
-        self.info_str = 'Connected to: ' \
+        self.info_str = 'Connected to DSAGE server at: ' \
                     + self.server + ':' + str(self.port)
         return self.info_str + '\r'
 
@@ -145,7 +145,7 @@ class DSage(object):
 
         return passphrase
 
-    def _catchFailure(self, failure):
+    def _catch_failure(self, failure):
         if failure.check(error.ConnectionRefusedError):
             print 'Remote server refused the connection.'
             return
@@ -162,14 +162,14 @@ class DSage(object):
         print 'Lost connection to the server.'
         self.info_str = 'Not connected.'
 
-    def _gotMyJobs(self, jobs, job_name):
+    def _got_my_jobs(self, jobs, job_name):
         if jobs == None:
             raise NoJobException
         if job_name:
             return [JobWrapper(self.remoteobj, job)
                     for job in jobs if job.name == job_name]
 
-    def _killedJob(self, jobID):
+    def _killed_job(self, jobID):
         if jobID:
             if self.LOG_LEVEL > 2:
                 print str(jobID) + ' was successfully killed.'
@@ -202,7 +202,7 @@ class DSage(object):
 
         return factory.login(self.creds, None).addCallback(
                             self._connected).addErrback(
-                            self._catchFailure)
+                            self._catch_failure)
 
     def disconnect(self):
         print 'Disconnecting from server.'
@@ -223,10 +223,10 @@ class DSage(object):
         if not job_name or not isinstance(job_name, str):
             job_name = 'default_job'
 
-        type = 'sage'
+        type_ = 'sage'
 
         job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type=type)
+                  author=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
         if globals_ is not None:
@@ -246,10 +246,10 @@ class DSage(object):
 
         self.check_connected()
 
-        type = 'file'
+        type_ = 'file'
         cmd = open(fname).read()
         job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type=type)
+                  author=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
 
@@ -266,15 +266,15 @@ class DSage(object):
         wrapped_job = JobWrapper(self.remoteobj, job)
         return wrapped_job
 
-    def _gotJobID(self, id, job):
+    def _got_job_id(self, id, job):
         job.id = id
         job.author = self.username
 
         self.jobs.append(job)
 
         pickled_job = job.pickle()
-        d = self.remoteobj.callRemote('submitJob', pickled_job)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('submit_job', pickled_job)
+        d.addErrback(self._catch_failure)
         # d.addCallback(self._submitted, job)
 
         return JobWrapper(self.remoteobj, job)
@@ -286,10 +286,10 @@ class DSage(object):
         deferreds = []
         for file in files:
             sage_cmd = open(file).readlines()
-            d = self.remoteobj.callRemote('getNextJobID')
-            d.addCallback(self._gotID, sage_cmd, job_name, file=True,
-                          type='spyx')
-            d.addErrback(self._catchFailure)
+            d = self.remoteobj.callRemote('get_next_job_id')
+            d.addCallback(self._got_id, sage_cmd, job_name, file=True,
+                          type_='spyx')
+            d.addErrback(self._catch_failure)
             deferreds.append(d)
         d_list = defer.DeferredList(deferreds)
         return d_list
@@ -303,9 +303,9 @@ class DSage(object):
 
         """
 
-        d = self.remoteobj.callRemote('killJob', jobID)
-        d.addCallback(self._killedJob)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('kill_job', jobID)
+        d.addCallback(self._killed_job)
+        d.addErrback(self._catch_failure)
 
     def get_my_jobs(self, is_active=False, job_name=None):
         r"""
@@ -321,12 +321,12 @@ class DSage(object):
 
         self.check_connected()
 
-        d = self.remoteobj.callRemote('getJobsByAuthor',
+        d = self.remoteobj.callRemote('get_jobs_by_author',
                                       self.username,
                                       is_active,
                                       job_name)
-        d.addCallback(self._gotMyJobs, job_name)
-        d.addErrback(self._catchFailure)
+        d.addCallback(self._got_my_jobs, job_name)
+        d.addErrback(self._catch_failure)
 
         return d
 
@@ -338,7 +338,7 @@ class DSage(object):
 
         self.check_connected()
 
-        return self.remoteobj.callRemote('getClusterSpeed')
+        return self.remoteobj.callRemote('get_cluster_speed')
 
     def check_connected(self):
         if self.remoteobj == None:
@@ -405,22 +405,24 @@ class BlockingDSage(DSage):
 
         # TODO: Send a useful 'mind' object with the login request!
         # factory = pb.PBClientFactory()
-        factory = ClientPBClientFactory()
+        self.factory = ClientPBClientFactory()
 
         if self.SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
-            blockingCallFromThread(reactor.connectSSL,
+            blocking_call_from_thread(reactor.connectSSL,
                                    self.server, self.port,
-                                   factory, contextFactory)
+                                   self.factory, contextFactory)
         else:
-            blockingCallFromThread(reactor.connectTCP,
+            blocking_call_from_thread(reactor.connectTCP,
                                    self.server, self.port,
-                                   factory)
+                                   self.factory)
 
-        return factory.login(self.creds, None).addCallback(
-                            self._connected).addErrback(
-                            self._catchFailure)
+        d = self.factory.login(self.creds, None)
+        d.addCallback(self._connected)
+        d.addErrback(self._catch_failure)
+
+        return d
 
     def eval(self, cmd, globals_=None, job_name=None, async=False):
         r"""
@@ -438,10 +440,10 @@ class BlockingDSage(DSage):
         if not job_name or not isinstance(job_name, str):
             job_name = 'default_job'
 
-        type = 'sage'
+        type_ = 'sage'
 
         job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type=type)
+                  author=self.username, type_=type_)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():
@@ -481,8 +483,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blockingCallFromThread(self.remoteobj.callRemote,
-                                      'getClusterSpeed')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                      'get_cluster_speed')
 
     def list_workers(self):
         r"""Returns a list of workers connected to the server.
@@ -491,8 +493,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blockingCallFromThread(self.remoteobj.callRemote,
-                                      'getWorkerList')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                      'get_worker_list')
 
     def list_clients(self):
         r"""
@@ -501,8 +503,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blockingCallFromThread(self.remoteobj.callRemote,
-                                      'getClientList')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                      'get_client_list')
 
 class JobWrapper(object):
     r"""
@@ -522,13 +524,13 @@ class JobWrapper(object):
         self._update_job(job)
         self.worker_info = self._job.worker_info
 
-        d = self.remoteobj.callRemote('getNextJobID')
-        d.addCallback(self._gotID)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('get_next_job_id')
+        d.addCallback(self._got_id)
+        d.addErrback(self._catch_failure)
 
         # hack to try and fetch a result after submitting the job
-        # self.syncJob_task = task.LoopingCall(self.syncJob)
-        # self.syncJob_task.start(2.0, now=True)
+        # self.sync_job_task = task.LoopingCall(self.sync_job)
+        # self.sync_job_task.start(2.0, now=True)
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
@@ -541,7 +543,7 @@ class JobWrapper(object):
     def __getstate__(self):
         d = copy.copy(self.__dict__)
         d['remoteobj'] = None
-        d['syncJob_task'] = None
+        d['sync_job_task'] = None
         return d
 
     def _update_job(self, job):
@@ -570,83 +572,83 @@ class JobWrapper(object):
         cPickle.dump(self, f, 2)
         return filename
 
-    def _catchFailure(self, failure):
+    def _catch_failure(self, failure):
         if failure.check(pb.DeadReferenceError, error.ConnectionLost):
             print 'Disconnected from server.'
         else:
             print "Error: ", failure.getErrorMessage()
             print "Traceback: ", failure.printTraceback()
 
-    def _gotJob(self, job):
+    def _got_job(self, job):
         if job == None:
             return
         self._job = self.unpickle(job)
         self._update_job(self._job)
 
-    def _gotID(self, id_):
+    def _got_id(self, id_):
         self._job.id = id_
         self.id = id_
         pickled_job = self._job.pickle()
-        d = self.remoteobj.callRemote('submitJob', pickled_job)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('submit_job', pickled_job)
+        d.addErrback(self._catch_failure)
 
-    def getJob(self):
+    def get_job(self):
         if self.remoteobj is None:
             raise NotConnectedException
         if self.id is None:
             return
-        d = self.remoteobj.callRemote('getJobByID', self.id)
-        d.addCallback(self._gotJob)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('get_job_by_id', self.id)
+        d.addCallback(self._got_job)
+        d.addErrback(self._catch_failure)
         return d
 
-    def getJobOutput(self):
+    def get_job_output(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('getJobOutputByID', self._job.id)
-        d.addCallback(self._gotJobOutput)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('get_job_output_by_id', self._job.id)
+        d.addCallback(self._got_job_output)
+        d.addErrback(self._catch_failure)
         return d
 
-    def _gotJobOutput(self, output):
+    def _got_job_output(self, output):
         self.output = output
         self._job.output = output
 
-    def getJobResult(self):
+    def get_job_result(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('getJobResultByID', self._job.id)
-        d.addCallback(self._gotJobResult)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('get_job_result_by_id', self._job.id)
+        d.addCallback(self._got_job_result)
+        d.addErrback(self._catch_failure)
         return d
 
-    def _gotJobResult(self, result):
+    def _got_job_result(self, result):
         self.result = result
         self._job.result = result
 
-    def syncJob(self):
+    def sync_job(self):
         if self.remoteobj == None:
             if self.LOG_LEVEL > 2:
                 print 'self.remoteobj is None'
             return
         if self.status == 'completed':
             if self.LOG_LEVEL > 2:
-                print 'Stopping syncJob'
-            if self.syncJob_task:
-                if self.syncJob_task.running:
-                    self.syncJob_task.stop()
+                print 'Stopping sync_job'
+            if self.sync_job_task:
+                if self.sync_job_task.running:
+                    self.sync_job_task.stop()
             return
 
         try:
-            d = self.remoteobj.callRemote('syncJob', self._job.id)
+            d = self.remoteobj.callRemote('sync_job', self._job.id)
         except pb.DeadReferenceError:
-            if self.syncJob_task:
-                if self.syncJob_task.running:
-                    self.syncJob_task.stop()
+            if self.sync_job_task:
+                if self.sync_job_task.running:
+                    self.sync_job_task.stop()
             return
 
-        d.addCallback(self._gotJob)
-        d.addErrback(self._catchFailure)
+        d.addCallback(self._got_job)
+        d.addErrback(self._catch_failure)
 
     def write_result(self, filename):
         result_file = open(filename, 'w')
@@ -663,15 +665,16 @@ class JobWrapper(object):
 
         """
 
-        d = self.remoteobj.callRemote('killJob', self.id)
-        d.addCallback(self._killedJob)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('kill_job', self.id)
+        d.addCallback(self._killed_job)
+        d.addErrback(self._catch_failure)
         return d
 
-    def _killedJob(self, jobID):
-        if jobID:
-            if self.LOG_LEVEL > 2:
-                print str(jobID) + ' was successfully killed.\r'
+    def _killed_job(self, jobID):
+        return
+        # if jobID:
+        #     if self.LOG_LEVEL > 2:
+        #         print str(jobID) + ' was successfully killed.\r'
 
 class blockingJobWrapper(JobWrapper):
     def __init__(self, remoteobj, job):
@@ -686,16 +689,16 @@ class blockingJobWrapper(JobWrapper):
         # This is kind of stupid, why not just set the job ID when
         # submitting the job?
 
-        jobID = blockingCallFromThread(self.remoteobj.callRemote,
-                                   'getNextJobID')
+        jobID = blocking_call_from_thread(self.remoteobj.callRemote,
+                                          'get_next_job_id')
 
         self._job.id = jobID
         pickled_job = self._job.pickle()
-        d = blockingCallFromThread(self.remoteobj.callRemote,
-                                   'submitJob', pickled_job)
+        d = blocking_call_from_thread(self.remoteobj.callRemote,
+                                   'submit_job', pickled_job)
 
     def __repr__(self):
-        self.getJob()
+        self.get_job()
         if self.status == 'completed' and not self.output:
             return 'No output.'
         elif not self.output:
@@ -703,25 +706,19 @@ class blockingJobWrapper(JobWrapper):
 
         return self.output
 
-    def getJob(self):
+    def get_job(self):
         if self.remoteobj == None:
            raise NotConnectedException
         if self.status == 'completed':
             return
 
-        job = blockingCallFromThread(self.remoteobj.callRemote,
-                                     'getJobByID', self._job.id)
+        job = blocking_call_from_thread(self.remoteobj.callRemote,
+                                     'get_job_by_id', self._job.id)
 
         self._update_job(self.unpickle(job))
 
-    def async_getJob(self):
-        # if self.remoteobj == None:
-        #     raise NotConnectedException
-        # d = self.remoteobj.callRemote('getJobByID', self._job.id)
-        # d.addCallback(self._gotJob)
-        # d.addErrback(self._catchFailure)
-        return JobWrapper.getJob(self)
-        # return d
+    def async_get_job(self):
+        return JobWrapper.get_job(self)
 
     def kill(self):
         r"""
@@ -729,8 +726,8 @@ class blockingJobWrapper(JobWrapper):
 
         """
 
-        jobID = blockingCallFromThread(self.remoteobj.callRemote,
-                                   'killJob', self._job.id)
+        jobID = blocking_call_from_thread(self.remoteobj.callRemote,
+                                   'kill_job', self._job.id)
         return jobID
 
     def async_kill(self):
@@ -740,13 +737,13 @@ class blockingJobWrapper(JobWrapper):
         """
 
         print 'Killing ', self.id
-        d = self.remoteobj.callRemote('killJob', self.id)
-        d.addCallback(self._killedJob)
-        d.addErrback(self._catchFailure)
+        d = self.remoteobj.callRemote('kill_job', self.id)
+        d.addCallback(self._killed_job)
+        d.addErrback(self._catch_failure)
         return d
 
     def wait(self):
         timeout = 0.1
         while self.result is None:
             time.sleep(timeout)
-            self.getJob()
+            self.get_job()

@@ -30,7 +30,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
     def __repr__(self):
         return str(self.host_info)
 
-    def _catchFailure(self, failure):
+    def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
 
@@ -112,7 +112,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             args = ('-a', 'hw')
             d = utils.getProcessOutput(cmd, args, errortoo=1)
             d.addCallback(self._gotsysctl, host_info_mac)
-            d.addErrback(self._catchFailure)
+            d.addErrback(self._catch_failure)
             return d
 
     def canonical_info(self, platform_host_info):

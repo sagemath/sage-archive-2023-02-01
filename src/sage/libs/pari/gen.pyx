@@ -5308,6 +5308,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         return _new_gen(x)
 
+    def complex(self, re, im):
+        """
+        Create a new complex number, initialized from re and im.
+        """
+        t0GEN(re)
+        t1GEN(im)
+        cdef GEN cp
+        cp = cgetg(3, t_COMPLEX)
+        __set_lvalue__(gel(cp, 1), t0)
+        __set_lvalue__(gel(cp, 2), t1)
+        return self.new_gen(cp)
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         return deepcopy_to_python_heap(x, address)

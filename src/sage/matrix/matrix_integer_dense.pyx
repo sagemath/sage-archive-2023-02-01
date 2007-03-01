@@ -1565,15 +1565,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #### Rational kernel, via IML
     def _rational_kernel_iml(self):
         """
-        IML: Return the rational kernel of this matrix, considered as
-        a matrix over QQ.
+        IML: Return the rational kernel of this matrix (acting from
+        the left), considered as a matrix over QQ.  I.e., returns a
+        matrix K such that self*K = 0, and the number of columns of K
+        equals the nullity of self.
         """
-        cdef long *A, *row
         cdef long dim
         cdef mpz_t *mp_N
-        cdef mpz_t *my_row
 
+        _sig_on
         dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
+        _sig_off
 
         # Now read the answer as a matrix.
         cdef Matrix_integer_dense M
@@ -1585,6 +1587,42 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         free(mp_N)
         return M
 
+    def _invert_iml(self):
+        """
+        Invert this matrix using IML.  The output matrix is an integer
+        matrix and a denominator.
+
+        INPUT:
+           self -- an invertible matrix
+
+        OUTPUT: A, d such that A*self = d
+           A -- a matrix over ZZ
+           d -- an integer
+
+        ALGORITHM: Uses IML's p-adic nullspace function.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,3,[1,2,5, 3,7,8, 2,2,1])
+            sage: b, d = a._invert_iml(); b,d
+            ([  9  -8  19]
+            [-13   9  -7]
+            [  8  -2  -1], 23)
+            sage: a*b
+            [23  0  0]
+            [ 0 23  0]
+            [ 0  0 23]
+        """
+        if self._nrows != self._ncols:
+            raise TypeError, "self must be a square matrix."
+
+        P = self.parent()
+        A = self.augment(P.identity_matrix())
+        K = A._rational_kernel_iml()
+        if K.ncols() != self._ncols:
+            raise ZeroDivisionError, "input matrix must be nonsingular"
+        B = K[:self._nrows]
+        d = -K[self._nrows,0]
+        return B, d
 
 ###############################################################
 

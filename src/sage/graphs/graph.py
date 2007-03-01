@@ -14,6 +14,8 @@ AUTHOR:
         graph6 helper functions in SageX
                         SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon
                         (2007-02-25): display a partition
+                        (2007-02-28): associate arbitrary objects to vertices,
+        edge and arc label display (in 2d), edge coloring
 
 TUTORIAL:
 
@@ -48,12 +50,19 @@ TUTORIAL:
             SAGE Graphs can be created from a wide range of inputs. A few examples are
             covered here.
 
-                i. NetworkX dictionary format:
+                i.   a. NetworkX dictionary format:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
                 Simple graph on 10 vertices (no loops, no multiple edges)
                 sage: G.save('sage.png')
+
+                    b. A NetworkX graph:
+
+                sage: K = networkx.complete_bipartite_graph(12,7)
+                sage: G = Graph(K)
+                sage: G.degree()
+                [7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 7, 12, 12, 12, 12, 12, 12, 12]
 
                 ii. graph6 or sparse6 format:
 
@@ -140,6 +149,27 @@ TUTORIAL:
         if specified, edges can have any label at all. Edges between nodes u and v are
         represented typically as (u, v, l), where l is the label for the edge.
 
+        Note that vertex labels themselves cannot be mutable items:
+
+            sage: M = Matrix( [[0,0],[0,0]] )
+            sage: G = Graph({ 0 : { M : None } })
+            Traceback (most recent call last):
+            ...
+            TypeError: mutable matrices are unhashable
+
+        However, if one wants to define a dictionary, with the same keys and arbitrary objects
+        for entries, one can make that association:
+
+            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(),2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: d[2]
+            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.vertices()
+            [0, 1, 2, 3]
+            sage: T.associate(d)
+            sage: T.obj(1)
+            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+
         4. Database
 
         There is a database available for searching for graphs that satisfy a certain set
@@ -180,10 +210,9 @@ case the documentation is based on the NetworkX docs.
 #*****************************************************************************
 
 from random import random
-
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
-import sage.graphs.graph_fast
+import sage.graphs.graph_fast as graph_fast
 
 class GenericGraph(SageObject):
 
@@ -221,14 +250,24 @@ class GenericGraph(SageObject):
         return self.vertex_iterator()
 
     def __len__(self):
+        """
+        len(G) returns the number of vertices in G.
+        """
         return len(self._nxg.adj)
 
     def __str__(self):
+        """
+        str(G) returns the name of the graph, unless it doesn't have one, in
+        which case it returns the default refresentation.
+        """
         if self._nxg.name != "No Name":
             return self._nxg.name
         else: return repr(self)
 
     def _latex_(self):
+        """
+        TODO: Apply Craig's algo.
+        """
         return repr(self)
 
     def _matrix_(self, R=None):
@@ -269,7 +308,40 @@ class GenericGraph(SageObject):
         """
         self._nxg.info(vertex)
 
+    def __get_pos__(self):
+        return self._pos
+
+    def __set_pos__(self, pos):
+        self._pos = pos
+
     ### General properties
+
+    def loops(self, new=None):
+        """
+        Returns whether loops are permitted in the graph.
+
+        INPUT:
+        new -- boolean, changes whether loops are permitted in the graph.
+
+        EXAMPLE:
+            sage: G = Graph(); G
+            Simple graph on 0 vertices (no loops, no multiple edges)
+            sage: G.loops(True); G
+            True
+            Simple graph on 0 vertices (with loops, no multiple edges)
+
+            sage: D = DiGraph(); D
+            Simple directed graph on 0 vertices (no loops, no multiple arcs)
+            sage: D.loops(True); D
+            True
+            Simple directed graph on 0 vertices (with loops, no multiple arcs)
+        """
+        if not new is None:
+            if new:
+                self._nxg.allow_selfloops()
+            else:
+                self._nxg.ban_selfloops()
+        return self._nxg.selfloops
 
     def density(self):
         """
@@ -293,11 +365,145 @@ class GenericGraph(SageObject):
 
     ### Vertex handlers
 
+    def has_vertex(self, vertex):
+        """
+        Indicates whether vertex is a vertex of the graph.
+
+        EXAMPLE:
+            sage: graphs.PetersenGraph().has_vertex(99)
+            False
+        """
+        return self._nxg.has_node(vertex)
+
+    def add_vertex(self, name=None):
+        """
+        Creates an isolated vertex.
+
+        INPUT:
+        n -- Name of the new vertex. If no name is specified, then the vertex
+        will be represented by the least integer not already representing a
+        vertex. Name must be an immutable object.
+
+        EXAMPLES:
+            sage: G = Graph(); G.add_vertex(); G
+            Simple graph on 1 vertices (no loops, no multiple edges)
+
+            sage: D = DiGraph(); D.add_vertex(); D
+            Simple directed graph on 1 vertices (no loops, no multiple arcs)
+        """
+        if name is None: # then find an integer to use as a key
+            i = 0
+            while self.has_vertex(i):
+                i=i+1
+            self._nxg.add_node(i)
+        else:
+            self._nxg.add_node(name)
+
     def add_vertices(self, vertices):
         """
-        Add vertices to the graph from an iterable container of vertices.
+        Add vertices to the (di)graph from an iterable container of vertices.
         """
         self._nxg.add_nodes_from(vertices)
+
+    def delete_vertex(self, vertex):
+        """
+        Deletes vertex, removing all incident edges(arcs).
+
+        EXAMPLES:
+            sage: G = graphs.WheelGraph(9)
+            sage: G.delete_vertex(0); G.save('sage.png')
+
+            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
+            sage: D.delete_vertex(0); D
+            Simple directed graph on 5 vertices (no loops, no multiple arcs)
+        """
+        self._nxg.delete_node(vertex)
+
+    def delete_vertices(self, vertices):
+        """
+        Remove vertices from the (di)graph taken from an iterable container of
+        vertices.
+
+        EXAMPLE:
+            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
+            sage: D.delete_vertices([1,2,3,4,5]); D
+            Simple directed graph on 1 vertices (no loops, no multiple arcs)
+        """
+        self._nxg.delete_nodes_from(vertices)
+
+    def get_boundary(self):
+        return self.__boundary
+
+    def set_boundary(self, boundary):
+        self.__boundary = boundary
+
+    def vertex_boundary(self, vertices1, vertices2=None):
+        """
+        Returns a list of all vertices in the external boundary of vertices1,
+        intersected with vertices2. If vertices2 is None, then vertices2 is the
+        complement of vertices1.
+
+        EXAMPLE:
+            sage: G = graphs.CubeGraph(4)
+            sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
+            sage: G.vertex_boundary(['0000', '1111'], l)
+            ['0111', '1011', '1101', '0010', '0100', '0001']
+        """
+        return self._nxg.node_boundary(vertices1, vertices2)
+
+    def associate(self, vertex_dict):
+        """
+        Associate arbitrary objects with each vertex, via an association dictionary.
+
+        INPUT:
+            vertex_dict -- the association dictionary
+
+        EXAMPLES:
+            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: d[2]
+            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.vertices()
+            [0, 1, 2, 3]
+            sage: T.associate(d)
+            sage: T.obj(1)
+            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+        """
+        for v in self.vertices():
+            if not vertex_dict.has_key(v):
+                vertex_dict[v] = None
+        self._assoc = vertex_dict
+
+    def obj(self, vertex):
+        """
+        Retrieve the object associated with a given vertex.
+
+        INPUT:
+            vertex -- the given vertex
+
+        EXAMPLES:
+            sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
+            sage: d[2]
+            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            sage: T = graphs.TetrahedralGraph()
+            sage: T.vertices()
+            [0, 1, 2, 3]
+            sage: T.associate(d)
+            sage: T.obj(1)
+            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+        """
+        return self._assoc[vertex]
+
+    def loop_vertices(self):
+        """
+        Returns a list of vertices with loops.
+
+        EXAMPLE:
+            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
+            sage: G.loop_vertices()
+            [0, 1]
+        """
+        return self._nxg.nodes_with_selfloops()
 
     def clear(self):
         """
@@ -343,6 +549,188 @@ class GenericGraph(SageObject):
         Shorter call for adjacency matrix makes life easier.
         """
         return self.adjacency_matrix()
+
+    ### Visualization
+
+    def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
+             node_size=200, graph_border=False, color_dict=None, partition=None,
+             edge_colors=None, scaling_term=0.05):
+        """
+        Returns a graphics object representing the (di)graph.
+
+        INPUT:
+            pos -- an optional positioning dictionary
+            layout -- what kind of layout to use, takes precedence over pos
+                'circular' -- plots the graph with vertices evenly distributed on a circle
+                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+            vertex_labels -- whether to print vertex labels
+            edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
+                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            node_size -- size of vertices displayed
+            graph_border -- whether to include a box around the graph
+            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
+                it looks invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
+                color. color_dict takes precedence.
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
+
+        EXAMPLES:
+            sage: from math import sin, cos, pi
+            sage: P = graphs.PetersenGraph()
+            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+            sage: pos_dict = {}
+            sage: for i in range(5):
+            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: for i in range(10)[5:]:
+            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl.save('sage.png')
+
+            sage: C = graphs.CubeGraph(8)
+            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            sage: P.save('sage.png')
+
+            sage: G = graphs.HeawoodGraph()
+            sage: for u,v,l in G.edges():
+            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: G.plot(edge_labels=True).save('sage.png')
+
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
+            sage: for u,v,l in D.arcs():
+            ...    D.set_arc_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: D.plot(edge_labels=True, layout='circular').save('sage.png')
+
+            sage: from sage.plot.plot import rainbow
+            sage: C = graphs.CubeGraph(5)
+            sage: R = rainbow(5)
+            sage: edge_colors = {}
+            sage: for i in range(5):
+            ...    edge_colors[R[i]] = []
+            sage: for u,v,l in C.edges():
+            ...    for i in range(5):
+            ...        if u[i] != v[i]:
+            ...            edge_colors[R[i]].append((u,v,l))
+            sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+        """
+        from sage.plot.plot import networkx_plot, rainbow
+        import networkx
+        if color_dict is None and not partition is None:
+            l = len(partition)
+            R = rainbow(l)
+            color_dict = {}
+            for i in range(l):
+                color_dict[R[i]] = partition[i]
+        if pos is None and layout is None:
+            if not self._pos is None:
+                pos = self._pos
+        elif layout == 'circular':
+            from math import sin, cos, pi
+            n = self.order()
+            verts = self.vertices()
+            pos = {}
+            for i in range(n):
+                x = float(cos((pi/2) + ((2*pi)/n)*i))
+                y = float(sin((pi/2) + ((2*pi)/n)*i))
+                pos[verts[i]] = [x,y]
+        elif layout == 'spring':
+            pos = None
+        if pos is None:
+            pos = networkx.drawing.spring_layout(self._nxg)
+        G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
+        if edge_labels:
+            from sage.plot.plot import text
+            K = Graphics()
+            for u,v,l in self._nxg.edges():
+                if not l is None:
+                    K += text(str(l), [(pos[u][0] + pos[v][0])/2, (pos[u][1] + pos[v][1])/2])
+            K.range(xmin=G.xmin(), xmax=G.xmax(), ymin=G.ymin(), ymax=G.ymax())
+            G += K
+            G.axes(False)
+        return G
+
+    def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, node_size=200,
+             graph_border=False, color_dict=None, edge_colors=None, partition=None,
+             scaling_term=0.05, **kwds):
+        """
+        Shows the (di)graph.
+
+        INPUT:
+            pos -- an optional positioning dictionary
+            layout -- what kind of layout to use, takes precedence over pos
+                'circular' -- plots the graph with vertices evenly distributed on a circle
+                'spring' -- uses the traditional spring layout, ignores the graphs current positions
+            vertex_labels -- whether to print vertex labels
+            edge_labels -- whether to print edge(arc) labels. By default, False, but if True, the result
+                of str(l) is printed on the edge for each label l. Labels equal to None are not printed.
+            node_size -- size of vertices displayed
+            graph_border -- whether to include a box around the graph
+            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
+                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
+                it looks invisible on the resulting plot (it doesn't get drawn).
+            edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                matplotlib, and each entry is a list of edges.
+            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
+                color. color_dict takes precedence.
+            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                is too small, decrease. should be positive, but values much bigger than
+                1/8 won't be useful unless the nodes are huge
+
+        EXAMPLES:
+            sage: from math import sin, cos, pi
+            sage: P = graphs.PetersenGraph()
+            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+            sage: pos_dict = {}
+            sage: for i in range(5):
+            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: for i in range(10)[5:]:
+            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+            ...    pos_dict[i] = [x,y]
+            ...
+            sage: pl = P.plot(pos=pos_dict, color_dict=d)
+            sage: pl.save('sage.png')
+
+            sage: C = graphs.CubeGraph(8)
+            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            sage: P.save('sage.png')
+
+            sage: G = graphs.HeawoodGraph()
+            sage: for u,v,l in G.edges():
+            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: G.plot(edge_labels=True).save('sage.png')
+
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
+            sage: for u,v,l in D.arcs():
+            ...    D.set_arc_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: D.plot(edge_labels=True, layout='circular').save('sage.png')
+
+            sage: from sage.plot.plot import rainbow
+            sage: C = graphs.CubeGraph(5)
+            sage: R = rainbow(5)
+            sage: edge_colors = {}
+            sage: for i in range(5):
+            ...    edge_colors[R[i]] = []
+            sage: for u,v,l in C.edges():
+            ...    for i in range(5):
+            ...        if u[i] != v[i]:
+            ...            edge_colors[R[i]].append((u,v,l))
+            sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
+        """
+        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
 
 class Graph(GenericGraph):
     r"""
@@ -457,7 +845,7 @@ class Graph(GenericGraph):
         sage: Graph(M)
         Simple graph on 6 vertices (no loops, no multiple edges)
     """
-    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -493,8 +881,8 @@ class Graph(GenericGraph):
             if n == -1:
                 n = len(data)
             s = data[:n]
-            n, s = sage.graphs.graph_fast.N_inverse(s)
-            m = sage.graphs.graph_fast.R_inverse(s, n)
+            n, s = graph_fast.N_inverse(s)
+            m = graph_fast.R_inverse(s, n)
             d = {}
             k = 0
             for i in range(n):
@@ -513,9 +901,9 @@ class Graph(GenericGraph):
             if n == -1:
                 n = len(data)
             s = data[:n]
-            n, s = sage.graphs.graph_fast.N_inverse(s[1:])
+            n, s = graph_fast.N_inverse(s[1:])
             k = ceil(log(n,2))
-            l = [sage.graphs.graph_fast.binary(ord(i)-63) for i in s]
+            l = [graph_fast.binary(ord(i)-63) for i in s]
             for i in range(len(l)):
                 l[i] = '0'* (6-len(l[i])) + l[i]
             bits = ''.join(l)
@@ -589,6 +977,7 @@ class Graph(GenericGraph):
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
         self._pos = pos
+        self._boundary = boundary
 
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
@@ -634,12 +1023,6 @@ class Graph(GenericGraph):
         """
         return self.copy()
 
-    def __get_pos__(self):
-        return self._pos
-
-    def __set_pos__(self, pos):
-        self._pos = pos
-
     ### General properties
 
     def is_directed(self):
@@ -647,27 +1030,6 @@ class Graph(GenericGraph):
         Since graph is undirected, returns False.
         """
         return False
-
-    def loops(self, new=None):
-        """
-        Returns whether loops are permitted in the graph.
-
-        INPUT:
-        new -- boolean, changes whether loops are permitted in the graph.
-
-        EXAMPLE:
-            sage: G = Graph(); G
-            Simple graph on 0 vertices (no loops, no multiple edges)
-            sage: G.loops(True); G
-            True
-            Simple graph on 0 vertices (with loops, no multiple edges)
-        """
-        if not new is None:
-            if new:
-                self._nxg.allow_selfloops()
-            else:
-                self._nxg.ban_selfloops()
-        return self._nxg.selfloops
 
     def multiple_edges(self, new=None):
         """
@@ -692,66 +1054,6 @@ class Graph(GenericGraph):
 
     ### Vertex handlers
 
-    def get_boundary(self):
-        return self.__boundary
-
-    def set_boundary(self, boundary):
-        self.__boundary = boundary
-
-    def add_vertex(self, name=None):
-        """
-        Creates an isolated vertex
-
-        INPUT:
-        name -- Name of the new vertex. If no name is specified, then the
-        vertex will be represented by the least integer not already represen-
-        ting a vertex. Name must be an immutable object.
-
-        EXAMPLE:
-            sage: G = Graph(); G.add_vertex(); G
-            Simple graph on 1 vertices (no loops, no multiple edges)
-        """
-        ### TODO- add doc note about representing other objects as vertices
-        ### This will be done when such representation is implemented
-        if name is None: # then find an integer to use as a key
-            i = 0
-            while self._nxg.adj.has_key(i):
-                i=i+1
-            self._nxg.add_node(i)
-        else:
-            self._nxg.add_node(name)
-
-    def delete_vertex(self, vertex):
-        """
-        Deletes vertex, removing all incident edges.
-
-        EXAMPLE:
-            sage: G = graphs.WheelGraph(9)
-            sage: G.delete_vertex(0); G.save('sage.png')
-        """
-        self._nxg.delete_node(vertex)
-
-    def delete_vertices(self, vertices):
-        """
-        Remove vertices from the graph taken from an iterable container of
-        vertices.
-
-        EXAMPLE:
-            sage: G = graphs.WheelGraph(9)
-            sage: G.delete_vertices([1,2,3,4,5,6,7,8]); G.save('sage.png')
-        """
-        self._nxg.delete_nodes_from(vertices)
-
-    def has_vertex(self, vertex):
-        """
-        Indicates whether vertex is a vertex of the graph.
-
-        EXAMPLE:
-            sage: graphs.PetersenGraph().has_vertex(99)
-            False
-        """
-        return self._nxg.has_node(vertex)
-
     def neighbor_iterator(self, vertex):
         """
         Return an iterator over neighbors of vertex.
@@ -765,31 +1067,6 @@ class Graph(GenericGraph):
             110
         """
         return self._nxg.neighbors_iter(vertex)
-
-    def vertex_boundary(self, vertices1, vertices2=None):
-        """
-        Returns a list of all vertices in the external boundary of vertices1,
-        intersected with vertices2. If vertices2 is None, then vertices2 is the
-        complement of vertices1.
-
-        EXAMPLE:
-            sage: G = graphs.CubeGraph(4)
-            sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
-            sage: G.vertex_boundary(['0000', '1111'], l)
-            ['0111', '1011', '1101', '0010', '0100', '0001']
-        """
-        return self._nxg.node_boundary(vertices1, vertices2)
-
-    def loop_vertices(self):
-        """
-        Returns a list of vertices with loops.
-
-        EXAMPLE:
-            sage: G = Graph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
-            sage: G.loop_vertices()
-            [0, 1]
-        """
-        return self._nxg.nodes_with_selfloops()
 
     ### Edge Handlers
 
@@ -1006,6 +1283,24 @@ class Graph(GenericGraph):
             False
         """
         return self._nxg.has_edge(u, v)
+
+    def set_edge_label(self, u, v, l):
+        """
+        Set the edge label of a given edge.
+
+        INPUT:
+            u, v -- the vertices of the edge
+            l -- the new label
+
+        EXAMPLE:
+            sage: G = graphs.HeawoodGraph()
+            sage: for u,v,l in G.edges():
+            ...    G.set_edge_label(u,v,'(' + str(u) + ',' + str(v) + ')')
+            sage: G.plot(edge_labels=True).save('sage.png')
+        """
+        if self.has_edge(u, v):
+            self._nxg.adj[u][v] = l
+            self._nxg.adj[v][u] = l
 
     def edge_label(self, u, v=None):
         """
@@ -1300,7 +1595,7 @@ class Graph(GenericGraph):
         elif self.loops() or self.multiple_edges():
             raise ValueError, 'graph6 format supports only simple graphs (no loops, no multiple edges)'
         else:
-            return sage.graphs.graph_fast.N(n) + sage.graphs.graph_fast.R(self.__bit_vector())
+            return graph_fast.N(n) + graph_fast.R(self.__bit_vector())
 
     def sparse6_string(self):
         """
@@ -1347,18 +1642,18 @@ class Graph(GenericGraph):
             s = ''
             while m < len(edges):
                 if edges[m][1] > v + 1:
-                    sp = sage.graphs.graph_fast.binary(edges[m][1])
+                    sp = graph_fast.binary(edges[m][1])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v = edges[m][1]
                 elif edges[m][1] == v + 1:
-                    sp = sage.graphs.graph_fast.binary(edges[m][0])
+                    sp = graph_fast.binary(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '1' + sp
                     v += 1
                     m += 1
                 else:
-                    sp = sage.graphs.graph_fast.binary(edges[m][0])
+                    sp = graph_fast.binary(edges[m][0])
                     sp = '0'*(k-len(sp)) + sp
                     s += '0' + sp
                     m += 1
@@ -1371,7 +1666,7 @@ class Graph(GenericGraph):
             six_bits = ''
             for i in range(len(s)/6):
                 six_bits += chr( int( s[6*i:6*(i+1)], 2) + 63 )
-            return ':' + sage.graphs.graph_fast.N(n) + six_bits
+            return ':' + graph_fast.N(n) + six_bits
 
     ### Construction
 
@@ -1450,51 +1745,6 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05):
-        """
-        Returns a graphics object representing the graph.
-
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
-            vertex_labels -- whether to print vertex labels
-            node_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            partition -- a partition of the vertex set. if specified, plot will show each cell in a different
-                color. color_dict takes precedence.
-            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the nodes are huge
-
-        EXAMPLES:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph()
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
-            sage: pl.save('sage.png')
-
-            sage: C = graphs.CubeGraph(8)
-            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
-            sage: P.save('sage.png')
-        """
-        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term)
-
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
@@ -1523,49 +1773,6 @@ class Graph(GenericGraph):
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
         return TT
-
-    def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05, **kwds):
-        """
-        Shows the graph.
-
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
-            vertex_labels -- whether to print vertex labels
-            node_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the nodes are huge
-
-        EXAMPLES:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph()
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
-            sage: pl.save('sage.png')
-
-            sage: C = graphs.CubeGraph(8)
-            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
-            sage: P.save('sage.png')
-        """
-        self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
         """
@@ -1677,7 +1884,7 @@ class DiGraph(GenericGraph):
         Simple directed graph on 6 vertices (no loops, no multiple arcs)
     """
 
-    def __init__(self, data=None, pos=None, loops=False, format=None, **kwds):
+    def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
         import networkx
         from sage.structure.element import is_Matrix
         if format is None:
@@ -1738,6 +1945,7 @@ class DiGraph(GenericGraph):
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
         self._pos = pos
+        self._boundary = boundary
 
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
@@ -1785,12 +1993,6 @@ class DiGraph(GenericGraph):
         """
         return Graph(self._nxg.to_undirected(), pos=self._pos)
 
-    def __get_pos__(self):
-        return self._pos
-
-    def __set_pos__(self, pos):
-        self._pos = pos
-
     ### General Properties
 
     def is_directed(self):
@@ -1798,27 +2000,6 @@ class DiGraph(GenericGraph):
         Since digraph is directed, returns True.
         """
         return True
-
-    def loops(self, new=None):
-        """
-        Returns whether loops are permitted in the digraph.
-
-        INPUT:
-        new -- boolean, changes whether loops are permitted in the digraph.
-
-        EXAMPLE:
-            sage: D = DiGraph(); D
-            Simple directed graph on 0 vertices (no loops, no multiple arcs)
-            sage: D.loops(True); D
-            True
-            Simple directed graph on 0 vertices (with loops, no multiple arcs)
-        """
-        if not new is None:
-            if new:
-                self._nxg.allow_selfloops()
-            else:
-                self._nxg.ban_selfloops()
-        return self._nxg.selfloops
 
     def multiple_arcs(self, new=None):
         """
@@ -1843,58 +2024,6 @@ class DiGraph(GenericGraph):
 
     ### Vertex Handlers
 
-    def get_boundary(self):
-        return self.__boundary
-
-    def set_boundary(self, boundary):
-        self.__boundary = boundary
-
-    def add_vertex(self, name=None):
-        """
-        Creates an isolated vertex.
-
-        INPUT:
-        n -- Name of the new vertex. If no name is specified, then the vertex
-        will be represented by the least integer not already representing a
-        vertex. Name must be an immutable object.
-
-        EXAMPLE:
-            sage: D = DiGraph(); D.add_vertex(); D
-            Simple directed graph on 1 vertices (no loops, no multiple arcs)
-        """
-        ### TODO- add doc note about representing other objects as vertices
-        ### This will be done when such representation is implemented
-        if name is None: # then find an integer to use as a key
-            i = 0
-            while self._nxg.succ.has_key(i):
-                i=i+1
-            self._nxg.add_node(i)
-        else:
-            self._nxg.add_node(name)
-
-    def delete_vertex(self, vertex):
-        """
-        Deletes vertex, removing all incident arcs.
-
-        EXAMPLE:
-            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
-            sage: D.delete_vertex(0); D
-            Simple directed graph on 5 vertices (no loops, no multiple arcs)
-        """
-        self._nxg.delete_node(vertex)
-
-    def delete_vertices(self, vertices):
-        """
-        Remove vertices from the digraph taken from an iterable container of
-        vertices.
-
-        EXAMPLE:
-            sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
-            sage: D.delete_vertices([1,2,3,4,5]); D
-            Simple directed graph on 1 vertices (no loops, no multiple arcs)
-        """
-        self._nxg.delete_nodes_from(vertices)
-
     def neighbor_iterator(self, vertex):
         """
         Return an iterator over neighbors (connected either way) of vertex.
@@ -1916,31 +2045,6 @@ class DiGraph(GenericGraph):
         for V in B:
             C += [V]
         return iter(C)
-
-    def vertex_boundary(self, vertices1, vertices2=None):
-        """
-        Returns a list of all vertices in the external boundary of vertices1,
-        intersected with vertices2. If vertices2 is None, then vertices2 is the
-        complement of vertices1.
-
-        EXAMPLE:
-            sage: D = graphs.CubeGraph(4).to_directed()
-            sage: l = ['0111', '0000', '0001', '0011', '0010', '0101', '0100', '1111', '1101', '1011', '1001']
-            sage: D.vertex_boundary(['0000', '1111'], l)
-            ['0111', '1011', '1101', '0010', '0100', '0001']
-        """
-        return self._nxg.node_boundary(vertices1, vertices2)
-
-    def loop_vertices(self):
-        """
-        Returns a list of vertices with loops.
-
-        EXAMPLE:
-            sage: D = DiGraph({0 : [0], 1: [1,2,3], 2: [3]}, loops=True)
-            sage: D.loop_vertices()
-            [0, 1]
-        """
-        return self._nxg.nodes_with_selfloops()
 
     ### Arc Handlers
 
@@ -2210,6 +2314,20 @@ class DiGraph(GenericGraph):
             False
         """
         return self._nxg.has_edge(u,v)
+
+    def set_arc_label(self, u, v, l):
+        """
+        Set the arc label of a given arc.
+
+        INPUT:
+            u, v -- the vertices (and direction) of the arc
+            l -- the new label
+
+        EXAMPLE:
+            TODO
+        """
+        if self.has_arc(u, v):
+            self._nxg.adj[u][v] = l
 
     def arc_label(self, u, v=None):
         """
@@ -2609,47 +2727,6 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, partition=None, scaling_term=0.05):
-        """
-        Returns a graphics object representing the digraph.
-
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
-            vertex_labels -- whether to print vertex labels
-            node_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the nodes are huge
-
-
-        EXAMPLE:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph().to_directed()
-            sage: P.delete_arcs( [ (1, 0), (2, 1), (3, 2), (4, 3), (0, 4), (5, 0), (6, 1), (7, 2), (8, 3), (9, 4), (8, 5), (5, 7), (7, 9), (9, 6), (6, 8) ] )
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
-            sage: pl.save('sage.png')
-        """
-        return matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term)
-
     def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
@@ -2691,46 +2768,6 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
         return TT
 
-    def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, scaling_term=0.05, **kwds):
-        """
-        Shows the digraph.
-
-        INPUT:
-            pos -- an optional positioning dictionary
-            layout -- what kind of layout to use, takes precedence over pos
-                'circular' -- plots the graph with vertices evenly distributed on a circle
-                'spring' -- uses the traditional spring layout, ignores the graphs current positions
-            vertex_labels -- whether to print vertex labels
-            node_size -- size of vertices displayed
-            graph_border -- whether to include a box around the graph
-            color_dict -- optional dictionary to specify vertex colors: each key is a color recognizable
-                by matplotlib, and each corresponding entry is a list of vertices. If a vertex is not listed,
-                it looks invisible on the resulting plot (it doesn't get drawn).
-            scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
-                is too small, decrease. should be positive, but values much bigger than
-                1/8 won't be useful unless the nodes are huge
-
-        EXAMPLE:
-            sage: from math import sin, cos, pi
-            sage: P = graphs.PetersenGraph().to_directed()
-            sage: P.delete_arcs( [ (1, 0), (2, 1), (3, 2), (4, 3), (0, 4), (5, 0), (6, 1), (7, 2), (8, 3), (9, 4), (8, 5), (5, 7), (7, 9), (9, 6), (6, 8) ] )
-            sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
-            sage: pos_dict = {}
-            sage: for i in range(5):
-            ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: for i in range(10)[5:]:
-            ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
-            ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
-            ...    pos_dict[i] = [x,y]
-            ...
-            sage: pl = P.plot(pos=pos_dict, color_dict=d)
-            sage: pl.save('sage.png')
-        """
-        self.plot(pos, vertex_labels, node_size=node_size, graph_border=graph_border, color_dict=color_dict, scaling_term=scaling_term).show(**kwds)
-
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
@@ -2762,35 +2799,6 @@ class DiGraph(GenericGraph):
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
-def matplotlib_plot(self, pos, layout, vertex_labels, node_size, graph_border, color_dict, partition, scaling_term):
-    # NOTE: add attributes to END! other functions depend on order of arguments
-    from sage.plot.plot import networkx_plot, rainbow
-    if color_dict is None and not partition is None:
-        l = len(partition)
-        R = rainbow(l)
-        color_dict = {}
-        for i in range(l):
-            color_dict[R[i]] = partition[i]
-    if pos is None and layout is None:
-        if self._pos is None:
-            return networkx_plot(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
-        else:
-            return networkx_plot(self._nxg, pos=self._pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
-    elif layout == 'circular':
-        from math import sin, cos, pi
-        n = self.order()
-        verts = self.vertices()
-        pos_dict = {}
-        for i in range(n):
-            x = float(cos((pi/2) + ((2*pi)/n)*i))
-            y = float(sin((pi/2) + ((2*pi)/n)*i))
-            pos_dict[verts[i]] = [x,y]
-        return networkx_plot(self._nxg, pos=pos_dict, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
-    elif layout == 'spring':
-        return networkx_plot(self._nxg, pos=None, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
-    else:
-        return networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border, scaling_term=scaling_term)
-
 def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     import networkx
     from math import sqrt
@@ -2799,7 +2807,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     r = []
     verts = g.vertices()
     spring = False
-    if pos3d is None: # TODO: in case all the vertices are not specified?
+    if pos3d is None:
         pos3d = networkx.spring_layout(g._nxg, dim=3)
     try:
         for v in verts:

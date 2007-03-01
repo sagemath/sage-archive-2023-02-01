@@ -696,8 +696,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
                        if None (the default), print how the parent prints.
              e - symbol used in scientific notation; defaults to 'e' for
                        base<=10, and '@' otherwise
-             truncate -- if True, truncate the last digits in printing to avoid confusing base-2
-                         roundoff issues.
+             truncate -- if True, round off the last digits in printing to
+                       lessen confusing base-2 roundoff issues.
 
         EXAMPLES:
             sage: a = 61/3.0; a
@@ -753,8 +753,34 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef char *s
         cdef mp_exp_t exponent
 
+        cdef int reqdigits
+
+        reqdigits = 0
+
+        if base == 10 and truncate:
+
+            # This computes reqdigits == floor(log_{10}(2^(b-1))),
+            # which is the number of *decimal* digits that are
+            # "right", given that the last binary bit of the binary
+            # number can be off.  That is, if this real is within a
+            # relative error of 2^(-b) of an exact decimal with
+            # reqdigits digits, that decimal will be returned.
+            # This is equivalent to saying that exact decimals with
+            # reqdigits digits differ by at least 2*2^(-b) (relative).
+
+            # (Depending on the precision and the exact number involved,
+            # adjacent exact decimals can differ by far more than 2*2^(-b)
+            # (relative).)
+
+            # This avoids the confusion a lot of people have with the last
+            # 1-2 binary digits being wrong due to rounding coming from
+            # representating numbers in binary.
+
+            reqdigits = ((<RealField>self._parent).__prec - 1) * 0.3010299956
+            if reqdigits <= 1: reqdigits = 2
+
         _sig_on
-        s = mpfr_get_str(<char*>0, &exponent, base, 0,
+        s = mpfr_get_str(<char*>0, &exponent, base, reqdigits,
                          self.value, (<RealField>self._parent).rnd)
         _sig_off
         if s == <char*> 0:
@@ -762,24 +788,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
         t = str(s)
         free(s)
 
-        cdef int i
-
-        # This is log_{10}(2^(b-1)), which is the number of *decimal*
-        # digits that are "right", given that the last binary bit of the
-        # binary number can be off.  I.e., the number that corresponds to an
-        # exact real number, which written in binary, is right except that
-        # the last digit could be wrong.  This changes the number by
-        # a relative error of 2^(-b). Thus a guaranteed number of digits
-        # that are right is
-        # This avoids the confusion a lot of people have with the last
-        # 1-2 binary digits being wrong due to rounding coming from
-        # representating numbers in binary.
-
-        if base == 10 and truncate:
-            i = ((<RealField>self._parent).__prec - 1) * 0.3010299956
-            if len(t) == 0 or t[0] == '-': i = i + 1  # to compensate for minus sign.
-            if i > 0:
-                t = t[:i]
 
         cdef int digits
         digits = len(t)

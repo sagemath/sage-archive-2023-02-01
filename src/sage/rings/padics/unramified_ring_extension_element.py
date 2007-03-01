@@ -7,6 +7,7 @@ import sage.rings.finite_field_element
 import sage.rings.polynomial_ring_constructor
 import sage.rings.padics.padic_ring_generic
 import sage.rings.polynomial_element
+import sys
 
 PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
 Integer = sage.rings.integer.Integer
@@ -55,14 +56,19 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
     def __floordiv__(self, right):
         raise NotImplementedError
 
-    def __getitem(self, n):
+    def __getitem__(self, n):
         if isinstance(n, slice):
             if n.start == 0:
                 raise ValueError, "due to limitations in Python 2.5, you must call the slice() function rather than using the [:] syntax in this case"
+            if n.stop == sys.MAXINT:
+                return self.slice(n.start, None, n.step)
             return self.slice(n.start, n.stop, n.step)
         if n < 0:
             return self.parent().residue_class_field()(0)
         return self.list()[n]
+
+    def __len__(self):
+        return 0 #this is so that __getitem__ with negative inputs works.  It may also have the consequence of having p-adics evaluate to False in a Boolean context.
 
     def slice(self, i, j, k = 1):
         raise NotImplementedError
@@ -85,8 +91,7 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
     def _pari_init_(self):
         raise TypeError, "Pari does not support p-adic extension rings"
 
-    #def __pow__(self, right):  #currently using PQRElement's
-    #    raise NotImplementedError
+    #def __pow__(self, right):  #Using PQRElement's
 
     def _repr_(self, mode = None, do_latex = False, caprel = False):
         if mode is None:
@@ -114,17 +119,17 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
             return "not-done"
         else:
             if mode == 'series':
-                p = self.parent().prime()
+                p = self.parent().uniformizer()
             else:
                 p = "p"
             selflist = self.list()
             triples = [(selflist[i], p, i) for i in range(2, self.precision_absolute())]
             triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
             def addparen(c):
-                if c.polynomial().degree() > c.polynomial().valuation():
-                    return "(%s)"%c
-                else:
-                    return "%s"%c
+                c = "%s"%c
+                if c.find("+") != -1:
+                    c = "(%s)"%c
+                return c
             triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
             if do_latex:
                 s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(p, self.precision_absolute())
@@ -193,8 +198,8 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
     def ordp(self):
         return self.valuation()
 
-    def padded_list(self):
-        raise NotImplementedError
+    def padded_list(self, n):
+        return self.list()[:n] + [0 for w in range(n, self.precision_absolute())]
 
     def precision_absolute(self):
         return min(c.precision_absolute() for c in self._polynomial.list())
@@ -223,4 +228,14 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
     def valuation(self):
         return min([a.valuation() for a in self._polynomial.list()])
 
+    def norm(self, K = None):
+        if K is None:
+            return PQRElement.norm(self)
+        else:
+            raise NotImplementedError
 
+    def trace(self, K = None):
+        if K is None:
+            return PQRElement.trace(self)
+        else:
+            raise NotImplementedError

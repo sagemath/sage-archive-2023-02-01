@@ -32,7 +32,6 @@ import integer
 import complex_field
 import arith
 import finite_field
-#import padic_field
 
 import fraction_field_element
 import sage.rings.polynomial_ring
@@ -1046,6 +1045,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: f.factor_padic(5)
             ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
         """
+        import padics.qp.Qp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1053,7 +1053,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
-        K = padic_field.pAdicField(p)
+        K = padics.qp.Qp(p, prec, type='capped-rel')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
 
@@ -1459,6 +1459,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         OUTPUT:
             factorization of self reduced modulo p.
         """
+        import padics.zp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1466,7 +1467,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         if prec <= 0:
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
-        K = padic_field.pAdicField(p)
+        K = padics.zp.Zp(p, prec, type='capped-abs')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
 
@@ -1537,6 +1538,28 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         except AttributeError:
             pass
 
+class Polynomial_padic_ring_dense(Polynomial_generic_dense, Polynomial_generic_domain):
+    def __init__(self, parent, x=None, check=True, is_gen = False, construct=False):
+        Polynomial_generic_dense.__init__(self, parent, x, check, is_gen)
+
+    def _mul_(self, right):
+        return self._mul_generic(right)
+
+    def __pow__(self, right):
+        #computing f^p in this way loses precision
+        return self._pow(right)
+
+
+class Polynomial_padic_field_dense(Polynomial_generic_dense_field):
+    def __init__(self, parent, x=None, check=True, is_gen = False, construct=False):
+        Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen)
+
+    def _mul_(self, right):
+        return self._mul_generic(right)
+
+    def __pow__(self, right):
+        #computing f^p in this way loses precision
+        return self._pow(right)
 
 class Polynomial_dense_mod_n(Polynomial):
     """

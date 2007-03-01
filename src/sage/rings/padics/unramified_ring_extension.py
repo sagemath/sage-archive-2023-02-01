@@ -11,6 +11,7 @@ import sage.rings.polynomial_element
 
 Polynomial = sage.rings.polynomial_element.Polynomial
 pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicGeneric = sage.rings.padics.padic_ring_generic.pAdicRingGeneric
 PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
 
 class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
@@ -29,8 +30,17 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     given as a tower.
     """
 
-    def __init__(self, poly, prec = None, print_mode = None):
-        #need to check stuff about poly: irreducible, monic, unramified, valid coefficient ring
+    def __init__(self, poly, prec = None, print_mode = None, check = True):
+        if check:
+            if not (isinstance(poly, Polynomial) and isinstance(poly.base_ring(), pAdicRingGeneric)):
+                raise TypeError, "Defining must be a polynomial with p-adic base ring"
+            if poly.leading_coefficient() != 1:
+                raise ValueError, "Defining polynomial must be monic"
+            if poly[0].valuation() > 0:
+                raise ValueError, "Defining polynomial must be irreducible and unramified"
+            F = PolynomialRing(f.base_ring().residue_class_field(), f.parent().variable_name())(f).factor()
+            if len(F) != 1 or F[0][1] != 1:
+                raise ValueError, "Defining polynomial must be irreducible over the residue field"
         R = poly.base_ring()
         if prec is None:
             prec = R.precision_cap()
@@ -96,11 +106,17 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         else:
             return self.base_ring().ground_ring_of_tower()
 
-    def ramification_index(self):
-        return 1
+    def ramification_index(self, K = None):
+        if K is None:
+            return 1
+        else:
+            raise NotImplementedError
 
-    def inertia_degree(self):
-        return self.modulus().degree()
+    def inertia_degree(self, K = None):
+        if K is None:
+            return self.modulus().degree()
+        else:
+            raise NotImplementedError
 
     def inertia_subring(self):
         raise NotImplementedError
@@ -150,7 +166,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         return True
 
     def uniformizer(self):
-        return self(self.prime())
+        return self(self.ground_ring().uniformizer())
 
     def has_pth_root(self):
         raise NotImplementedError
@@ -188,5 +204,5 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         the extension of base.fraction_field() determined by the
         same polynomial.
         """
-
-        return self.base_ring().fraction_field().extension(self._poly)
+        raise NotImplementedError
+        #return self.base_ring().fraction_field().extension(self._poly)

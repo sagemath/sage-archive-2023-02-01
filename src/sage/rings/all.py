@@ -44,8 +44,10 @@ from ideal import Ideal, is_Ideal
 # Quotient
 from quotient_ring import QuotientRing
 
-# Class Infinity containing the one element infinity
+# Infinities
 from infinity import infinity, Infinity, is_Infinite, InfinityRing, unsigned_infinity, UnsignedInfinityRing
+from extended_rational_field import ExtendedRationalField
+from extended_integer_ring import ExtendedIntegerRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis

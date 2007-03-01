@@ -78,7 +78,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
     return K
 
 qadic_ring_cache = {}
-def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = None, halt = 40):
+def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = None, halt = 40, check = True):
     r"""
     The creation function for unramified extensions of $\Z_p$
     """
@@ -99,11 +99,12 @@ def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = Non
                 K.set_print_mode(print_mode)
             return K
     if modulus is None:
+        check = False
         from sage.rings.finite_field import GF
         modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), name)(GF(q, name).modulus())
-    if print_mode == None:
+    if print_mode is None:
         print_mode = 'series'
-    K = UnramifiedRingExtension(modulus, prec, print_mode)
+    K = UnramifiedRingExtension(modulus, prec, print_mode, check)
     qadic_ring_cache[key] = weakref.ref(K)
     return K
 

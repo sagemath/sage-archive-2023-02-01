@@ -321,9 +321,9 @@ class InfinityRing_class(_uniq2, Ring):
     def gen(self, n=0):
         try:
             if n == 0:
-                return self._gcd0
+                return self._gen0
             elif n == 1:
-                return self._gcd1
+                return self._gen1
             else:
                 raise IndexError, "n must be 0 or 1"
         except AttributeError:

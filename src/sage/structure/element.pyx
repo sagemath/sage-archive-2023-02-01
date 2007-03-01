@@ -1877,7 +1877,7 @@ cdef bin_op_c(x, y, op):
         x1, y1 = canonical_coercion_c(x, y)
         return op(x1,y1)
     except TypeError, msg:
-        # print msg  # this can be useful for debugging.
+        #print msg  # this can be useful for debugging.
         if not op is operator.mul:
             raise TypeError, arith_error_message(x,y,op)
 

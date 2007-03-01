@@ -39,10 +39,8 @@ A difficult conversion:
 import math # for log
 import sys
 
-include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
-include '../libs/pari/decl.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -56,8 +54,8 @@ import sage.misc.misc as misc
 import sage.structure.coerce
 import operator
 
-from sage.libs.pari.gen import PariInstance
-from sage.libs.pari.gen cimport PariInstance
+from sage.libs.pari.gen import PariInstance, gen
+from sage.libs.pari.gen cimport PariInstance, gen
 
 from integer import Integer
 from integer cimport Integer
@@ -539,6 +537,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber _x, n, d
         cdef Integer _ix
         cdef RealField parent
+        cdef gen _gen
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
@@ -547,6 +546,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif PY_TYPE_CHECK(x, Rational):
             mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
+        elif PY_TYPE_CHECK(x, gen) and x.type() == "t_REAL":
+            _gen = x
+            self._set_from_GEN_REAL(_gen.g)
         elif isinstance(x, (int, long)):
             _ix = Integer(x)
             mpfr_set_z(self.value, _ix.value, parent.rnd)
@@ -563,6 +565,52 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     mpfr_set_inf(self.value, -1)
                 else:
                     raise TypeError, "Unable to convert x (='%s') to real number."%s
+
+    cdef _set_from_GEN_REAL(self, GEN g):
+        """
+        EXAMPLES:
+            sage: rt2 = sqrt(pari('2.0'))
+            sage: rt2
+            1.414213562373095048801688724              # 32-bit
+            1.4142135623730950488016887242096980786    # 64-bit
+            sage: rt2.python()
+            1.414213562373095048801688724              # 32-bit
+            1.4142135623730950488016887242096980785    # 64-bit
+            sage: rt2.python().prec()
+            96                                         # 32-bit
+            128                                        # 64-bit
+            sage: pari(rt2.python()) == rt2
+            True
+            sage: for i in xrange(1, 1000):
+            ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+        """
+        cdef int sgn
+        sgn = signe(g)
+
+        if sgn == 0:
+            mpfr_set_ui(self.value, 0, GMP_RNDN)
+            return
+
+        cdef int wordsize
+
+        if sage.misc.misc.is_64_bit:
+            wordsize = 64
+        else:
+            wordsize = 32
+
+        cdef mpz_t mantissa
+        mpz_init(mantissa)
+
+        mpz_import(mantissa, lg(g) - 2, 1, wordsize/8, 0, 0, &g[2])
+
+        cdef int exponent
+        exponent = expo(g)
+
+        # Rounding mode doesn't matter...this is guaranteed to fit exactly
+        mpfr_set_z(self.value, mantissa, GMP_RNDN)
+        mpfr_set_exp(self.value, exponent + 1)
+
+        mpz_clear(mantissa)
 
     def __reduce__(self):
         """
@@ -1121,6 +1169,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             0.E-19
             sage: RR(-1.234567)._pari_()
             -1.2345669999999999700
+            sage: RR(2.0).sqrt()._pari_()
+            1.4142135623730951455
+            sage: RR(2.0).sqrt()._pari_().python()
+            1.41421356237309514
+            sage: RR(2.0).sqrt()._pari_().python().prec()
+            64
+            sage: RealField(70)(pi)._pari_().python().prec()
+            96                                         # 32-bit
+            128                                        # 64-bit
+            sage: for i in xrange(1, 1000):
+            ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
         """
         # return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField>self._parent).__prec)
 

@@ -126,6 +126,8 @@ cdef extern from "mpfr.h":
 
     double mpfr_get_d (mpfr_t op, mp_rnd_t rnd)
 
+    # Miscellaneous
+    int mpfr_set_exp (mpfr_t op, mp_exp_t E)
 
     # Operators
 

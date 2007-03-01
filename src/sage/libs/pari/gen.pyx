@@ -466,6 +466,9 @@ cdef class gen(sage.structure.element.RingElement):
             v[k-i] = self[k]
         return v
 
+    def gen_length(gen self):
+        return lg(self.g)
+
     def __setitem__(gen self, n, y):
         r"""
         Set the nth entry to a reference to y.

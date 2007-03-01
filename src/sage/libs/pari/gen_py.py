@@ -1,4 +1,5 @@
 import sage.libs.pari.gen as gen
+import sage.misc.misc
 
 from math import log
 from sage.rings.all import *
@@ -10,10 +11,12 @@ def pari(x):
 def python(z):
     t = z.type()
     if t == "t_REAL":
-        s = str(z).replace(" E","e")
-        prec = int(len(s)*3)  # underestimate
+        wordsize = 32
+        if sage.misc.misc.is_64_bit:
+            wordsize = 64
+        prec = (z.gen_length() - 2) * wordsize
         R = RealField(prec)
-        return R(s)
+        return R(z)
     elif t == "t_FRAC":
          Q = RationalField()
          return Q(z)

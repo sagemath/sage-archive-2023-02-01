@@ -1,14 +1,11 @@
+include '../../ext/cdefs.pxi'
+
 cdef extern from "stdlib.h":
     ctypedef unsigned long size_t
     void free(void *ptr)
     void *malloc(size_t size)
     void *realloc(void *ptr, size_t size)
     void exit (int __status)
-
-cdef extern from "stdio.h":
-    struct FILE
-    FILE *fopen(char *path, char *mode)
-    int fclose(FILE *fp)
 
 cdef extern from "string.h":
     void *memmove(void *dest, void *src, size_t n)

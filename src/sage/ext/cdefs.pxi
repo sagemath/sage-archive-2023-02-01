@@ -95,6 +95,8 @@ cdef extern from "gmp.h":
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
 
+    void *mpz_export (void *, size_t *, int, size_t, int, size_t, mpz_t)
+
     void mpz_urandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void mpz_urandomm(mpz_t rop, gmp_randstate_t state, mpz_t n)
     void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)

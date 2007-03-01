@@ -47,6 +47,8 @@ cdef extern from "mpfr.h":
     char * mpfr_get_str (char *str, mp_exp_t *expptr, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
     size_t mpfr_out_str (int *stream, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
 
+    mp_exp_t mpfr_get_z_exp(mpz_t rop, mpfr_t op)
+
     # Arithmetic
     int mpfr_add (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_sub (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)

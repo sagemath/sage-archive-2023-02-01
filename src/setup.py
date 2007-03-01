@@ -400,7 +400,7 @@ ext_modules = [ \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
-              libraries = ['mpfr', 'gmp']), \
+              libraries = ['mpfr', 'pari', 'gmp']), \
 
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],

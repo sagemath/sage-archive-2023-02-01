@@ -39,8 +39,10 @@ A difficult conversion:
 import math # for log
 import sys
 
+include '../ext/cdefs.pxi'
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
+include '../libs/pari/decl.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -49,8 +51,13 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 import  sage.structure.element
 
+import sage.misc.misc as misc
+
 import sage.structure.coerce
 import operator
+
+from sage.libs.pari.gen import PariInstance
+from sage.libs.pari.gen cimport PariInstance
 
 from integer import Integer
 from integer cimport Integer
@@ -1102,8 +1109,74 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
     def _pari_(self):
-        return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField>self._parent).__prec)
+        """
+        Returns self as a Pari floating-point number.
 
+        EXAMPLES:
+            sage: RR(2.0)._pari_()
+            2.000000000000000000
+            sage: RealField(250).pi()._pari_()
+            3.141592653589793238462643383
+            sage: RR(0.0)._pari_()
+            0.E-19
+            sage: RR(-1.234567)._pari_()
+            -1.2345669999999999700
+        """
+        # return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField>self._parent).__prec)
+
+        # This uses interfaces of MPFR and Pari which are documented
+        # (and not marked subject-to-change).  It could be faster
+        # by using internal interfaces of MPFR, which are documented
+        # as subject-to-change.
+
+        if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to Pari float'
+
+        cdef int wordsize
+
+        if sage.misc.misc.is_64_bit:
+            wordsize = 64
+        else:
+            wordsize = 32
+
+        cdef int prec
+        prec = (<RealField>self._parent).__prec
+
+        # We round up the precision to the nearest multiple of wordsize.
+        cdef int rounded_prec
+        rounded_prec = (self.prec() + wordsize - 1) & ~(wordsize - 1)
+
+        # Yes, assigning to self works fine, even in Pyrex.
+        if rounded_prec > prec:
+            self = RealField(rounded_prec)(self)
+
+        # Now we can extract the mantissa, and it will be normalized
+        # (the most significant bit of the most significant word will be 1).
+        cdef mpz_t mantissa
+        cdef mp_exp_t exponent
+        mpz_init(mantissa)
+
+        exponent = mpfr_get_z_exp(mantissa, self.value)
+
+        cdef GEN pari_float
+        pari_float = cgetr(2 + rounded_prec / wordsize)
+
+        mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
+
+        if mpfr_zero_p(self.value):
+            setexpo(pari_float, -rounded_prec)
+        else:
+            setexpo(pari_float, exponent + rounded_prec - 1)
+        setsigne(pari_float, mpfr_sgn(self.value))
+
+        cdef PariInstance P
+        P = sage.libs.pari.all.pari
+
+        gen = P.new_gen(pari_float)
+
+        mpz_clear(mantissa)
+
+        return gen
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=

@@ -23,6 +23,12 @@ EXAMPLES:
     True
 """
 
+########## *** IMPORTANT ***
+# If you're working on this code, we *always* assume that
+#   self._matrix[i] = self._entries[i*self._ncols]
+# !!!!!!!! Do not break this!
+# This is assumed in the _rational_kernel_iml
+
 ######################################################################
 #       Copyright (C) 2006,2007 William Stein
 #
@@ -75,10 +81,8 @@ USE_LINBOX_POLY = True
 ########## iml -- integer matrix library ###########
 
 cdef extern from "iml.h":
-    long nullspaceLong(long n,
-                       long m,
-                       long *A,
-                       mpz_t **mp_N)
+    long nullspaceMP(long n, long m,
+                     mpz_t *A, mpz_t * *mp_N_pass)
 
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
@@ -142,6 +146,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # Allocate an array of pointers to the rows, which is useful for
         # certain algorithms.
+        ##################################
+        # *IMPORTANT*: FOR MATRICES OVER ZZ, WE ALWAYS ASSUME THAT
+        # THIS ARRAY IS *not* PERMUTED.  This should be OK, since all
+        # algorithms are multi-modular.
+        ##################################
         self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
@@ -1556,44 +1565,24 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #### Rational kernel, via IML
     def _rational_kernel_iml(self):
         """
-        Return the rational kernel of this matrix, considered as a
-        matrix over QQ.
+        IML: Return the rational kernel of this matrix, considered as
+        a matrix over QQ.
         """
         cdef long *A, *row
         cdef long dim
-        cdef mpz_t *mp_N, *mp_N_row
+        cdef mpz_t *mp_N
         cdef mpz_t *my_row
 
-        A = <long*> sage_malloc(sizeof(long)*self._nrows * self._ncols)
-        if A == NULL:
-            raise MemoryError, "error allocating memory in IML matrix rational kernel function"
-        cdef Py_ssize_t i, j
-        for i from 0 <= i < self._ncols:
-            row = A + i*self._nrows
-            for j from 0 <= j < self._nrows:
-                #row[j] = mpz_get_si(self._matrix[j][i])
-                A[i*self._nrows + j] = mpz_get_si(self._matrix[j][i])
-                print mpz_get_si(self._matrix[j][i]),
-        dim = nullspaceLong (self._ncols, self._nrows, A, &mp_N)
-        sage_free(A)
+        dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
 
         # Now read the answer as a matrix.
         cdef Matrix_integer_dense M
-        P = self.matrix_space(dim, self._nrows)
+        P = self.matrix_space(self._ncols, dim)
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
-        for i from 0 <= i < dim*self._nrows:
+        for i from 0 <= i < dim*self._ncols:
             mpz_init_set(M._entries[i], mp_N[i])
-##         for i from 0 <= i < dim:
-##             my_row = M._matrix[i]
-##             mp_N_row = mp_N + self._nrows*i
-##             for j from 0 <= j < self._nrows:
-##                 #mpz_init_set(my_row[j], mp_N_row[j])
-##                 mpz_init_set(my_row[j], mp_N[)
-##                 #mpz_clear(mp_N_row[j])
-
-        #if mp_N != NULL:
-        #    free(mp_N)     # IML uses malloc.
-
+            mpz_clear(mp_N[i])
+        free(mp_N)
         return M
 
 

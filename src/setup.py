@@ -202,9 +202,10 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                   ['sage/matrix/matrix_rational_sparse.pyx'],
                                  libraries = ['gmp'])
 
+# TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp'])
+                                  libraries = ['gmp', 'iml', 'm', BLAS])
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],

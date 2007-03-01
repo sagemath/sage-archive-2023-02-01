@@ -64,10 +64,22 @@ cimport sage.structure.element
 
 import matrix_space
 
+
+######### linbox interface ##########
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
 USE_LINBOX_POLY = True
+
+
+########## iml -- integer matrix library ###########
+
+cdef extern from "iml.h":
+    long nullspaceLong(long n,
+                       long m,
+                       long *A,
+                       mpz_t **mp_N)
+
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -1541,6 +1553,49 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         return Integer(d)
 
+    #### Rational kernel, via IML
+    def _rational_kernel_iml(self):
+        """
+        Return the rational kernel of this matrix, considered as a
+        matrix over QQ.
+        """
+        cdef long *A, *row
+        cdef long dim
+        cdef mpz_t *mp_N, *mp_N_row
+        cdef mpz_t *my_row
+
+        A = <long*> sage_malloc(sizeof(long)*self._nrows * self._ncols)
+        if A == NULL:
+            raise MemoryError, "error allocating memory in IML matrix rational kernel function"
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < self._ncols:
+            row = A + i*self._nrows
+            for j from 0 <= j < self._nrows:
+                #row[j] = mpz_get_si(self._matrix[j][i])
+                A[i*self._nrows + j] = mpz_get_si(self._matrix[j][i])
+                print mpz_get_si(self._matrix[j][i]),
+        dim = nullspaceLong (self._ncols, self._nrows, A, &mp_N)
+        sage_free(A)
+
+        # Now read the answer as a matrix.
+        cdef Matrix_integer_dense M
+        P = self.matrix_space(dim, self._nrows)
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+        for i from 0 <= i < dim*self._nrows:
+            mpz_init_set(M._entries[i], mp_N[i])
+##         for i from 0 <= i < dim:
+##             my_row = M._matrix[i]
+##             mp_N_row = mp_N + self._nrows*i
+##             for j from 0 <= j < self._nrows:
+##                 #mpz_init_set(my_row[j], mp_N_row[j])
+##                 mpz_init_set(my_row[j], mp_N[)
+##                 #mpz_clear(mp_N_row[j])
+
+        #if mp_N != NULL:
+        #    free(mp_N)     # IML uses malloc.
+
+        return M
+
 
 ###############################################################
 
@@ -1662,5 +1717,37 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
                 print 'classical'
             else:
                 print 'multimod'
+
+
+#########################################################
+# Interface to the integer matrix library.
+#########################################################
+## cdef class Matrix_IML:
+##     cdef mpz_t* matrix
+##     cdef long nrows
+##     cdef long ncols
+
+##     def __init__(self):
+##         self.matrix = NULL
+
+##     cdef set(self, mpz_t* matrix, long nrows, long ncols):
+##         self.nrows = nrows
+##         self.ncols = ncols
+##         self.matrix = matrix
+
+##     def kernel(self, mpz_t** answer):
+##         """
+##         INPUT:
+##             self  -- assumes nrows, ncols and matrix have been set
+##         OUTPUT:
+##         """
+##         if self.matrix == NULL:
+##             raise RuntimeError, "you must set self.matrix first."
+##         raise NotImplementedError
+
+##     def solve(self, v):
+##         raise NotImplementedError
+
+
 
 

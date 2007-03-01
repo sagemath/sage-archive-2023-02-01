@@ -583,6 +583,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
             True
             sage: for i in xrange(1, 1000):
             ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+            sage: (-3.1415)._pari_().python()
+            -3.14150000000000018
         """
         cdef int sgn
         sgn = signe(g)
@@ -609,6 +611,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         # Rounding mode doesn't matter...this is guaranteed to fit exactly
         mpfr_set_z(self.value, mantissa, GMP_RNDN)
         mpfr_set_exp(self.value, exponent + 1)
+
+        if sgn < 0:
+            mpfr_neg(self.value, self.value, GMP_RNDN)
 
         mpz_clear(mantissa)
 

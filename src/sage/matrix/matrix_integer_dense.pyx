@@ -278,7 +278,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
 
             # If x is zero, make the zero matrix and be done.
-            if mpz_cmp_si(x.value, 0) == 0:
+            if mpz_sgn(x.value, 0) == 0:
                 self._zero_out_matrix()
                 return
 

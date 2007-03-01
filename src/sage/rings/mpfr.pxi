@@ -56,6 +56,7 @@ cdef extern from "mpfr.h":
     int mpfr_div (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul_2exp (mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
     int mpfr_div_2exp(mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
+    int mpfr_mul_2si (mpfr_t top, mpfr_t op1, long int opt2, mp_rnd_t rnd)
 
     # constants
     int mpfr_const_log2 (mpfr_t rop, mp_rnd_t rnd)

@@ -608,9 +608,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef int exponent
         exponent = expo(g)
 
-        # Rounding mode doesn't matter...this is guaranteed to fit exactly
+        # Round to nearest for best results when setting a low-precision
+        # MPFR from a high-precision GEN
         mpfr_set_z(self.value, mantissa, GMP_RNDN)
-        mpfr_set_exp(self.value, exponent + 1)
+        mpfr_mul_2si(self.value, self.value, exponent - wordsize * (lg(g) - 2) + 1, GMP_RNDN)
 
         if sgn < 0:
             mpfr_neg(self.value, self.value, GMP_RNDN)

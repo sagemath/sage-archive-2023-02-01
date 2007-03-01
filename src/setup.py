@@ -7,16 +7,20 @@ from distutils.core import setup, Extension
 
 ## Choose cblas library -- note -- make sure to update sage/misc/sagex.py
 ## if you change this!!
-if os.environ.has_key('SAGE_CBLAS'):
-    CBLAS=os.environ['SAGE_CBLAS']
+if os.environ.has_key('SAGE_BLAS'):
+    BLAS=os.environ['SAGE_BLAS']
+    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
-    CBLAS='cblas'
+    BLAS='cblas'
+    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libblas.dll.a'):
-    CBLAS='blas'
+    BLAS='gslcblas'
+    LINBOX_BLAS='gslcblas'   # linbox can only use a CBLAS and Cygwin doesn't have one.
 else:
     # This is very slow  (?), but *guaranteed* to be available.
-    CBLAS='gslcblas'
+    BLAS='gslcblas'
+    LINBOX_BLAS=BLAS
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
@@ -174,7 +178,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx',
                     'sage/libs/linbox/linbox_wrap.cpp'],
-                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', CBLAS],
+                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', LINBOX_BLAS],
                    language = 'c++')
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
@@ -198,20 +202,21 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                   ['sage/matrix/matrix_rational_sparse.pyx'],
                                  libraries = ['gmp'])
 
+# TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp'])
+                                  libraries = ['gmp', 'iml', 'm', BLAS])
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
-   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',CBLAS],
+   ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
    define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 matrix_complex_double_dense=Extension('sage.matrix.matrix_complex_double_dense',
-   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',CBLAS],
+   ['sage/matrix/matrix_complex_double_dense.pyx'],libraries=['gsl',BLAS],
    define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
-solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',CBLAS],define_macros =
+solve = Extension('sage.matrix.solve',['sage/matrix/solve.pyx'],libraries = ['gsl',BLAS],define_macros =
    [('GSL_DISABLE_DEPRECATED','1')])
 
 matrix_cyclo_dense = Extension('sage.matrix.matrix_cyclo_dense',
@@ -232,38 +237,38 @@ free_module_element = Extension('sage.modules.free_module_element',
                                 ['sage/modules/free_module_element.pyx'])
 
 ################ GSL wrapping ######################
-gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
-gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',CBLAS])
+gsl_probability=Extension('sage.gsl.probability_distribution',['sage/gsl/probability_distribution.pyx'],libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_integration=Extension('sage.gsl.integration',['sage/gsl/integration.pyx'],define_macros=[('GSL_DISABLE_DEPRECATED','1')], libraries=['gsl',BLAS])
 
-gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_fft = Extension('sage.gsl.fft',
                 ['sage/gsl/fft.pyx'],
-                libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_interpolation = Extension('sage.gsl.interpolation',
                 ['sage/gsl/interpolation.pyx'],
-                libraries = ['gsl', CBLAS],
+                libraries = ['gsl', BLAS],
 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 gsl_callback = Extension('sage.gsl.callback',
                 ['sage/gsl/callback.pyx'],
-                libraries = ['gsl', CBLAS]
+                libraries = ['gsl', BLAS]
 ,define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
-                           libraries = ['gsl', CBLAS, 'pari', 'gmp'])
+                           libraries = ['gsl', BLAS, 'pari', 'gmp'])
 
 real_double_vector = Extension('sage.modules.real_double_vector',['sage/modules/real_double_vector.pyx'],
-                              libraries = ['gsl',CBLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                              libraries = ['gsl',BLAS,'pari','gmp'],define_macros = [('GSL_DISABLE_DEPRECAED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 complex_double_vector = Extension('sage.modules.complex_double_vector',['sage/modules/complex_double_vector.pyx'],
-                           libraries = ['gsl', CBLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
+                           libraries = ['gsl', BLAS, 'pari', 'gmp'],define_macros=[('GSL_DISABLE_DEPRECATED','1')],include_dirs=[SAGE_ROOT+'/local/lib/python2.5/site-packages/numpy/core/include/numpy'])
 
 
 vector_integer_dense = Extension('sage.modules.vector_integer_dense',
@@ -279,14 +284,14 @@ vector_rational_dense = Extension('sage.modules.vector_rational_dense',
                                  libraries = ['gmp'])
 
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
-                libraries=['gsl',CBLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
-gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',CBLAS],
+gsl_ode = Extension('sage.gsl.ode',['sage/gsl/ode.pyx'],libraries=['gsl',BLAS],
                 define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 
 dwt = Extension('sage.gsl.dwt',['sage/gsl/dwt.pyx'],
-                 libraries=['gsl',CBLAS],
+                 libraries=['gsl',BLAS],
                  define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 

@@ -23,6 +23,12 @@ EXAMPLES:
     True
 """
 
+########## *** IMPORTANT ***
+# If you're working on this code, we *always* assume that
+#   self._matrix[i] = self._entries[i*self._ncols]
+# !!!!!!!! Do not break this!
+# This is assumed in the _rational_kernel_iml
+
 ######################################################################
 #       Copyright (C) 2006,2007 William Stein
 #
@@ -64,15 +70,20 @@ cimport sage.structure.element
 
 import matrix_space
 
+
+######### linbox interface ##########
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
+USE_LINBOX_POLY = True
 
-#USE_LINBOX_POLY = True
 
-# It still breaks, e.g., on 64-bit Linux on this matrix:
-#   m = matrix(ZZ,4, [2, -8, -22, -10, 0, 12, 12, 36, -5, -16, -11, -17, 5, -8, -1, 5])
-USE_LINBOX_POLY = False
+########## iml -- integer matrix library ###########
+
+cdef extern from "iml.h":
+    long nullspaceMP(long n, long m,
+                     mpz_t *A, mpz_t * *mp_N_pass)
+
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -135,6 +146,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # Allocate an array of pointers to the rows, which is useful for
         # certain algorithms.
+        ##################################
+        # *IMPORTANT*: FOR MATRICES OVER ZZ, WE ALWAYS ASSUME THAT
+        # THIS ARRAY IS *not* PERMUTED.  This should be OK, since all
+        # algorithms are multi-modular.
+        ##################################
         self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
@@ -278,7 +294,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
 
             # If x is zero, make the zero matrix and be done.
-            if mpz_sgn(x.value, 0) == 0:
+            if mpz_sgn(x.value) == 0:
                 self._zero_out_matrix()
                 return
 
@@ -1546,6 +1562,29 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         return Integer(d)
 
+    #### Rational kernel, via IML
+    def _rational_kernel_iml(self):
+        """
+        IML: Return the rational kernel of this matrix, considered as
+        a matrix over QQ.
+        """
+        cdef long *A, *row
+        cdef long dim
+        cdef mpz_t *mp_N
+        cdef mpz_t *my_row
+
+        dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
+
+        # Now read the answer as a matrix.
+        cdef Matrix_integer_dense M
+        P = self.matrix_space(self._ncols, dim)
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+        for i from 0 <= i < dim*self._ncols:
+            mpz_init_set(M._entries[i], mp_N[i])
+            mpz_clear(mp_N[i])
+        free(mp_N)
+        return M
+
 
 ###############################################################
 
@@ -1667,5 +1706,37 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
                 print 'classical'
             else:
                 print 'multimod'
+
+
+#########################################################
+# Interface to the integer matrix library.
+#########################################################
+## cdef class Matrix_IML:
+##     cdef mpz_t* matrix
+##     cdef long nrows
+##     cdef long ncols
+
+##     def __init__(self):
+##         self.matrix = NULL
+
+##     cdef set(self, mpz_t* matrix, long nrows, long ncols):
+##         self.nrows = nrows
+##         self.ncols = ncols
+##         self.matrix = matrix
+
+##     def kernel(self, mpz_t** answer):
+##         """
+##         INPUT:
+##             self  -- assumes nrows, ncols and matrix have been set
+##         OUTPUT:
+##         """
+##         if self.matrix == NULL:
+##             raise RuntimeError, "you must set self.matrix first."
+##         raise NotImplementedError
+
+##     def solve(self, v):
+##         raise NotImplementedError
+
+
 
 

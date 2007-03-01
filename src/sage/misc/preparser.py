@@ -408,7 +408,7 @@ def preparse_file(contents, attached={}, magic=True,
                 continue
             loaded_files.append(name_load)
             if name_load[-3:] == '.py':
-                ipmagic('run -i "%s"'%name_load)
+                _ip.magic('run -i "%s"'%name_load)
                 L = ''
             elif name_load[-5:] == '.sage':
                 try:

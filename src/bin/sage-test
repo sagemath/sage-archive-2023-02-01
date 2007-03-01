@@ -95,6 +95,8 @@ files = argv[1:]
 if len(files) == 0:
     files = os.listdir('.')
 
+files.sort()
+
 for F in files:
     e = test_file(F)
     if e:

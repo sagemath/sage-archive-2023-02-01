@@ -11,7 +11,7 @@ from attach import attach
 
 from profiler import Profiler
 
-from mrange import xmrange, mrange, xmrange_iter, mrange_iter
+from mrange import xmrange, mrange, xmrange_iter, mrange_iter, cartesian_product_iterator
 
 # deprecated
 #from bug import bug

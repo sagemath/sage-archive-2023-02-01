@@ -89,7 +89,7 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.rings.integer
+from sage.rings.integer_ring import ZZ
 #import sage.rings.integer_mod
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_field_generic
@@ -192,7 +192,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric):
         """
         Returns a random element of self.
         """
-        raise NotImplementedError
+        return self(ZZ.random_element(self.prime()**self.precision_cap()))
 
     def unit_group(self):
         raise NotImplementedError

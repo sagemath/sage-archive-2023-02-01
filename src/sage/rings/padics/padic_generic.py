@@ -303,16 +303,25 @@ class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
         OUTPUT:
             boolean -- whether self has $n^{\mbox{th}}$ root of unity
         """
-        p = self.prime()
-        if (p == 2) and (n % 2 == 0):
-            return True
-        if p.divides(n):
-            return False
-        if n == 1:
-            return True
-        if gcd(n, p-1) > 1:
-            return True
-        return False
+##        p = self.prime()
+##        if (p == 2) and (n % 2 == 0):
+##            return True
+##        if p.divides(n):
+##            return False
+##        if n == 1:
+##            return True
+##        if gcd(n, p-1) > 1:
+##            return True
+##        return False
+	##
+	## I'm not sure why the above definition existed. I'm keeping
+	## it for now until at least one other person looks and says
+	## I'm not missing something.
+	##
+	if (self.prime() == 2):
+	    return n.divides(2)
+        else:
+	    return n.divides(self.prime() - 1)
 
     def hasGNB(self):
         r"""

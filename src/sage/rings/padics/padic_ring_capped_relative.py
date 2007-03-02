@@ -96,6 +96,8 @@ import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_lazy_element
 import sage.rings.padics.qp
 
+from sage.rings.integer_ring import ZZ
+
 Integer = sage.rings.integer.Integer
 Mod = sage.rings.integer_mod.Mod
 Qp = sage.rings.padics.qp.Qp
@@ -193,11 +195,26 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
         """
         return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.get_print_mode())
 
-    def random_element(self):
+    def random_element(self, algorithm='default'):
+        r"""
+        Returns a random element of self, optionally using the algorithm
+        argument to decide how it generates the element. Algorithms currently
+        implemented:
+
+            default: Choose a_i, i >= 0, randomly between 0 and p-1 until
+              a nonzero choice is made. Then continue choosing a_i randomly
+              between 0 and p-1 until we reach precision_cap, and return
+              \sum a_i p^i.
         """
-        Returns a random element of self.
-        """
-        raise NotImplementedError
+        if (algorithm == 'default'):
+            i = 0
+            a_i = ZZ.random_element(self.prime())
+            while a_i.is_zero():
+                i += 1
+                a_i = ZZ.random_element(self.prime())
+            return self((self.prime()**i)*(a_i + self.prime()*ZZ.random_element(self.prime()**(self.precision_cap()-1))))
+        else:
+            raise NotImplementedError, "Don't know %s algorithm"%algorithm
 
     def unit_group(self):
         raise NotImplementedError

@@ -148,19 +148,34 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
 
     def absolute_discriminant(self):
-        raise NotImplementedError
+        r"""
+        Return the absolute discriminant of self over Zp.
+        """
+        return 1
 
     def discriminant(self, K=None):
-        raise NotImplementedError
+        if K is None:
+            return 1
+        else:
+            raise NotImplementedError
 
     def automorphisms(self):
         raise NotImplementedError
 
     def galois_group(self):
-        raise NotImplementedError
+        r"""
+        Returns the galois group of self's fraction field over Qp.
+        """
+        ##
+        ## If K is a number field, then K.galois_group() can return
+        ## other variants, i.e. via Pari or KASH. We could consider
+        ## doing this.
+        ##
+        from sage.groups.perm_gps.permgroup import CyclicPermutationGroup
+        return CyclicPermutationGroup(self.modulus().degree())
 
     def is_abelian(self):
-        raise NotImplementedError
+        return True
 
     def is_normal(self):
         return True
@@ -169,10 +184,17 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         return self(self.ground_ring().uniformizer())
 
     def has_pth_root(self):
-        raise NotImplementedError
+        return (self.prime() == 2)
 
     def has_root_of_unity(self, n):
-        raise NotImplementedError
+        ##
+        ## I wouldn't mind if someone wanted to check to make sure
+        ## I've got the right formula for the 2-adic case.
+        ##
+        if (self.prime() == 2):
+            return n.divides(2*(self.residue_class_field().order()-1))
+        else:
+            return n.divides(self.residue_class_field().order() - 1)
 
     def hasGNB(self):
         raise NotImplementedError
@@ -181,7 +203,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         raise NotImplementedError
 
     def random_element(self):
-        raise NotImplementedError
+        return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.base_ring().random_element() for _ in range(self.modulus().degree())],[self.polynomial_ring().gen()**i for i in range(self.modulus().degree())]),0)
 
     def unit_group(self):
         raise NotImplementedError

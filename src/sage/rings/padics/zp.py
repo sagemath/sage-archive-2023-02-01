@@ -4,6 +4,9 @@ import sage.rings.padics.padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.integer
+
+from sage.rings.integer_ring import ZZ
+
 from sage.rings.polynomial_ring import PolynomialRing
 import sage.rings.padics.unramified_ring_extension
 
@@ -101,7 +104,7 @@ def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = Non
     if modulus is None:
         check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), name)(GF(q, name).modulus())
+        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), name)(GF(q, name).modulus().change_ring(ZZ))
     if print_mode is None:
         print_mode = 'series'
     K = UnramifiedRingExtension(modulus, prec, print_mode, check)

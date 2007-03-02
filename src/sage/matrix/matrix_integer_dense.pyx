@@ -1572,7 +1572,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         cdef long dim
         cdef mpz_t *mp_N
-
+        time = verbose('computing nullspace of %s x %s matrix using IML'%(self._nrows, self._ncols))
         _sig_on
         dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
         _sig_off
@@ -1585,6 +1585,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             mpz_init_set(M._entries[i], mp_N[i])
             mpz_clear(mp_N[i])
         free(mp_N)
+
+        verbose("finished computing nullspace", time)
         return M
 
     def _invert_iml(self):
@@ -1616,12 +1618,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             raise TypeError, "self must be a square matrix."
 
         P = self.parent()
+        time = verbose('computing inverse of %s x %s matrix using IML'%(self._nrows, self._ncols))
         A = self.augment(P.identity_matrix())
         K = A._rational_kernel_iml()
-        if K.ncols() != self._ncols:
+        d = -K[self._nrows,0]
+        if K.ncols() != self._ncols or d == 0:
             raise ZeroDivisionError, "input matrix must be nonsingular"
         B = K[:self._nrows]
-        d = -K[self._nrows,0]
+        verbose("finished computing inverse using IML", time)
         return B, d
 
 ###############################################################

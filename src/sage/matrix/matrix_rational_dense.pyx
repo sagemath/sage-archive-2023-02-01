@@ -469,6 +469,25 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
+
+    def __invert__(self):
+        """
+        OUTPUT:
+           -- the inverse of self
+
+        If self is not invertible, a ZeroDivisionError is raised.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,3,range(9))
+            sage: a^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+        """
+        A, denom = self._clear_denom()
+        B, d = A._invert_iml()
+        return (denom/d)*B
+
     def determinant(self):
         """
         Return the determinant of this matrix.

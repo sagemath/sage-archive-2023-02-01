@@ -389,7 +389,7 @@ class RationalMinusInfinity(_uniq2, MinusInfinityElement):
         is by definition oo unless x is 0.
 
         EXAMPLES:
-            sage: moo = InfinityRing.gen(1)
+            sage: moo = InfinityRing.gen(2)
             sage: moo.lcm(0)
             0
             sage: moo.lcm(oo)

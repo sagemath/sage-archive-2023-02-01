@@ -81,6 +81,11 @@ USE_LINBOX_POLY = True
 ########## iml -- integer matrix library ###########
 
 cdef extern from "iml.h":
+
+    enum SOLU_POS:
+        LeftSolu = 101
+        RightSolu = 102
+
     long nullspaceMP(long n, long m,
                      mpz_t *A, mpz_t * *mp_N_pass)
 
@@ -1587,6 +1592,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         free(mp_N)
 
         verbose("finished computing nullspace", time)
+        M._initialized = True
         return M
 
     def _invert_iml(self):
@@ -1627,6 +1633,101 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         B = K[:self._nrows]
         verbose("finished computing inverse using IML", time)
         return B, d
+
+
+    def _solve_iml(self, Matrix_integer_dense B, right=True):
+        """
+        Let A equal self. Given B return an integer matrix C and an
+        integer d such that self C*A == d*B if right is True or A*C ==
+        d*B if right is False.
+
+        EXAMPLES:
+            sage: A = matrix(ZZ,4,4,[0, 1, -2, -1, -1, 1, 0, 2, 2, 2, 2, -1, 0, 2, 2, 1])
+            sage: B = matrix(ZZ,3,4, [-1, 1, 1, 0, 2, 0, -2, -1, 0, -2, -2, -2])
+            sage: C,d = A._solve_iml(B,right=False); C
+            [  6 -18 -15  27]
+            [  0  24  24 -36]
+            [  4 -12  -6  -2]
+
+            sage: d
+            12
+
+            sage: C*A == d*B
+            True
+
+            sage: A = matrix(ZZ,4,4,[0, 1, -2, -1, -1, 1, 0, 2, 2, 2, 2, -1, 0, 2, 2, 1])
+            sage: B = matrix(ZZ,4,3, [-1, 1, 1, 0, 2, 0, -2, -1, 0, -2, -2, -2])
+            sage: C,d = A._solve_iml(B)
+            sage: C
+            [ 12  40  28]
+            [-12  -4  -4]
+            [ -6 -25 -16]
+            [ 12  34  16]
+
+            sage: d
+            12
+
+            sage: A*C == d*B
+            True
+
+        ALGORITHM: Uses IML.
+
+        """
+        cdef int i
+        cdef mpz_t *mp_N, mp_D
+        cdef Matrix_integer_dense M
+        cdef Integer D
+
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "self must be square"
+
+
+        mpz_init(mp_D)
+
+
+        if right:
+            if self._ncols != B._nrows:
+                raise ArithmeticError, "B's number of rows must match self's number of columns"
+
+            n = self._ncols
+            m = B._ncols
+
+            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+            for i from 0 <= i < n * m:
+                mpz_init( mp_N[i] )
+
+            nonsingSolvLlhsMM(RightSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+
+            P = self.matrix_space(n, m)
+
+        else: # left
+            if self._nrows != B._ncols:
+                raise ArithmeticError, "B's number of columns must match self's number of rows"
+
+            n = self._ncols
+            m = B._nrows
+
+            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+            for i from 0 <= i < n * m:
+                mpz_init( mp_N[i] )
+
+            nonsingSolvLlhsMM(LeftSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+
+            P = self.matrix_space(m, n)
+
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+        for i from 0 <= i < n*m:
+            mpz_init_set(M._entries[i], mp_N[i])
+            mpz_clear(mp_N[i])
+        M._initialized = True
+
+        D = PY_NEW(Integer)
+        mpz_set(D.value, mp_D)
+        mpz_clear(mp_D)
+
+        return M,D
+
+
 
 ###############################################################
 

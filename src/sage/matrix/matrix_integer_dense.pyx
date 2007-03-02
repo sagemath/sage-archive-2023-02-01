@@ -1701,6 +1701,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         AUTHOR:
             -- Martin Albrecht
         """
+        if B.nrows() == 0:
+            return self.matrix(nrows=self.ncols(), ncols=0), Integer(1)
+
         cdef int i
         cdef mpz_t *mp_N, mp_D
         cdef Matrix_integer_dense M
@@ -1720,6 +1723,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             n = self._ncols
             m = B._ncols
 
+            if m == 0 or n == 0:
+                return self.new_matrix(nrows = n, ncols = m), Integer(1)
+
             mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
             for i from 0 <= i < n * m:
                 mpz_init( mp_N[i] )
@@ -1734,6 +1740,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             n = self._ncols
             m = B._nrows
+
+            if m == 0 or n == 0:
+                return self.new_matrix(nrows = m, ncols = n), Integer(1)
 
             mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
             for i from 0 <= i < n * m:
@@ -1757,11 +1766,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def _rational_echelon_via_solve(self, debug=False):
         r"""
-        Computes the rational reduced row echelon form of a matrix
-        with integer entries mostly using a $p$-adic integer solver.
+        Computes the reduced row echelon form (over QQ!) of a matrix
+        with integer entries.
 
         INPUT:
-            self -- a matrix over the rational numbers
+            self -- a matrix over the integers.
 
         OUTPUT:
             pivots -- list of integers that give the pivot column positions
@@ -1886,6 +1895,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # Step 6: Verify (skip this for now -- TODO)
         return pivots, X, d
+
+    def _rational_decomposition(self, debug=False):
+        r"""
+        Compute the rational decomposition of this matrix.
+
+        INPUT:
+            self -- a matrix with integer entries
+
+        OUTPUT:
+            a list of reduced row echelon form basis
+
+        AUTHOR:
+           -- William Stein
+
+        ALGORITHM: I created the following algorithm from scratch.
+
+        INPUT: a matrix A with integer coordinates
+
+        \begin{enumerate}
+        \item[1] Compute the characteristic polynomial $f$ of $A$.
+
+        \item[2] Compute the factorization $f=\prod_{i=1}^r f_i^{e_i}$.
+
+        \item[3]
+        """
+
 
 
 ###############################################################

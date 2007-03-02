@@ -26,8 +26,15 @@ from sage.ext.arith cimport arith_llong
 cdef arith_llong ai
 ai = arith_llong()
 
-# TODO: have one global instance for sharing, copy for MutableMultiModularBasis
+# We use both integer and double operations, hence the min.
+# MAX_MODULUS = min(int(sqrt(int(MOD_INT_OVERFLOW))-1), int(2)**int(20))
 
+# Hard coded because currently matrix_modn_dense is implemented using C ints
+# which are always 32-bit.   Once this gets firxed, i.e., there is a better
+# matrix_modn class, then this can change.
+MAX_MODULUS = 46340
+
+# TODO: have one global instance for sharing, copy for MutableMultiModularBasis
 cdef class MultiModularBasis_base:
     r"""
     This class stores a list of machine-sized prime numbers,
@@ -46,7 +53,7 @@ cdef class MultiModularBasis_base:
         and initalize the first element of that list.
         """
         cdef mod_int p
-        p = next_prime(START_PRIME_MAX-1)
+        p = next_prime(MAX_MODULUS/7)
 
         self.n = 1
 
@@ -76,7 +83,7 @@ cdef class MultiModularBasis_base:
         INPUT:
             height -- as integer
                           determines how many primes are computed
-                          (their product must be at least height)
+                          (their product will be at least 2*height)
                       as list
                           a list of prime moduli to start with
         """
@@ -90,7 +97,7 @@ cdef class MultiModularBasis_base:
             if self.moduli == NULL or self.partial_products == NULL or self.C == NULL:
                 raise MemoryError, "out of memory allocating multi-modular prime list"
             for i from 0 <= i < len(m):
-                if m[i] > MOD_INT_MAX:
+                if m[i] > MAX_MODULUS:
                     raise ValueError, "given modulus cannot be manipulated in a single machine word"
                 self.moduli[i] = m[i]
             for i from 1 <= i < len(m):
@@ -108,7 +115,7 @@ cdef class MultiModularBasis_base:
         h = ZZ(height)
         self._extend_moduli_to_height_c(h.value)
 
-    cdef int _extend_moduli_to_height_c(self, mpz_t height) except -1:
+    cdef int _extend_moduli_to_height_c(self, mpz_t height0) except -1:
         r"""
         Expand the list of primes and perform precomputations.
 
@@ -116,6 +123,9 @@ cdef class MultiModularBasis_base:
             height -- determines how many primes are computed
                       (their product must be at least height)
         """
+        cdef mpz_t height
+        mpz_init(height)
+        mpz_mul_2exp(height, height0, 1)
         if mpz_cmp(height, self.partial_products[self.n-1]) <= 0:
             return self.n
         cdef int i
@@ -130,6 +140,7 @@ cdef class MultiModularBasis_base:
             new_moduli.append(p)
             M *= p
             new_partial_products.append(M)
+        mpz_clear(height)
 
         cdef int new_count, old_count
         old_count = self.n

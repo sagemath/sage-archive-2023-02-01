@@ -32,7 +32,8 @@ def __prep_num(x):
         x = str(x)
     return x
 
-I = complex_field.ComplexField().gen(0)
+CC = complex_field.ComplexField()
+I = CC.gen(0)
 def __eval(x):
     return eval(x)
 
@@ -87,27 +88,43 @@ def exponential_integral_1(x, n=0):
 def gamma(s):
     """
     Gamma function at s.
+
+    EXAMPLES:
+        sage: gamma(CDF(0.5,14))
+        -4.05370307804e-10 - 5.77329961615e-10*I
+        sage: gamma(I)
+        -0.154949828301810 - 0.498015668118356*I
+        sage: gamma(6)
+        120.000000000000
     """
-    if not (is_ComplexNumber(s) or is_RealNumber(s)):
-        s = RealField()(s)
-    return s.gamma()
-    #return complex_field.ComplexField()(pari(s).gamma(prec).python(prec))
+    try:
+        return s.gamma()
+    except AttributeError:
+        return CC(s).gamma()
 
 def gamma_inc(s, t):
     """
     Incomplete Gamma function Gamma(s,t).
-    """
-    if not (is_ComplexNumber(s)):
-        if is_ComplexNumber(t):
-            C = t.parent()
-        else:
-            C = ComplexField()
-        s = C(s)
-    return s.gamma_inc(t)
 
-    #s = pari.new_with_prec(s, prec)
-    #t = pari.new_with_prec(s, prec)
-    #return complex_field.ComplexField()(s.incgam(t, prec).python(prec))
+    EXAMPLES:
+        sage: gamma_inc(CDF(0,1), 3)
+        0.00320857499337 + 0.0124061862007*I
+        sage: gamma_inc(3, 3)
+        0.846380162253687
+        sage: gamma_inc(RDF(1), 3)
+        0.0497870683678639
+    """
+    try:
+        return s.gamma_inc(t)
+    except AttributeError:
+        if not (is_ComplexNumber(s)):
+            if is_ComplexNumber(t):
+                C = t.parent()
+            else:
+                C = ComplexField()
+            s = C(s)
+        return s.gamma_inc(t)
+
 
 # synonym.
 incomplete_gamma = gamma_inc

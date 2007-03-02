@@ -327,16 +327,16 @@ int ZZX_getitem_as_int(struct ZZX* x, long i)
 void ZZX_getitem_as_mpz(mpz_t* output, struct ZZX* x, long i)
 {
     unsigned char stack_bytes[4096];
-    int use_stack;
+    int use_heap;
     const ZZ& z = coeff(*x, i);
     unsigned long size = NumBytes(z);
-    use_stack = (size > sizeof(stack_bytes));
-    unsigned char* bytes = use_stack ? (unsigned char*) malloc(size) : stack_bytes;
+    use_heap = (size > sizeof(stack_bytes));
+    unsigned char* bytes = use_heap ? (unsigned char*) malloc(size) : stack_bytes;
     BytesFromZZ(bytes, z, size);
     mpz_import(*output, size, -1, 1, 0, 0, bytes);
     if (sign(z) < 0)
         mpz_neg(*output, *output);
-    if (use_stack)
+    if (use_heap)
         free(bytes);
 }
 
@@ -650,6 +650,14 @@ void ZZX_preallocate_space(struct ZZX* x, long n)
   x->SetMaxLength(n);
 }
 
+/*
+EXTERN struct ZZ* ZZX_polyeval(struct ZZX* f, struct ZZ* a)
+{
+  ZZ* b = new ZZ();
+  *b = PolyEval(*f, *a);
+  return b;
+}
+*/
 
 ///////////////////////////////////////////////
 //////// ZZ_pX //////////

@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 A Cell.
 
 A cell is a single input/output block.  Worksheets are built out of a
@@ -85,8 +85,8 @@ class TextCell(Cell_generic):
 class Cell(Cell_generic):
     def __init__(self, id, input, out, worksheet):
         self.__id    = int(id)
-        self.__in    = str(input)
-        self.__out   = str(out)
+        self.__in    = str(input).replace('\r','')
+        self.__out   = str(out).replace('\r','')
         self.__worksheet = worksheet
         self.__interrupted = False
         self.__completions = False
@@ -342,7 +342,6 @@ class Cell(Cell_generic):
             s = t
             if not self.is_html() and len(s.strip()) > 0:
                 s = '<pre class="shrunk">' + s.strip('\n') + '</pre>'
-#                s = s.strip('\n')
 
 
         return s.strip('\n')
@@ -491,6 +490,7 @@ class Cell(Cell_generic):
     def files_html(self):
         dir = self.directory()
         D = os.listdir(dir)
+        D.sort()
         if len(D) == 0:
             return ''
         images = []
@@ -547,14 +547,18 @@ class Cell(Cell_generic):
         #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-        if do_print:
-            btn = ""
-        else:
-            btn = """<span class="cell_evaluate"><img src="/evaluate.png"
-                                                      onMouseOver="this.src='/evaluate_over.png'"
-                                                      onMouseOut="this.src='/evaluate.png'"
-                                                      onClick="evaluate_cell(%s,0);"></span>"""%self.__id
-        tbl = btn + """
+##         if do_print:
+##             btn = ""
+##         else:
+##             btn = """
+##                 <span class="hidden" id="evaluate_button_%s"><img
+##                     src="/evaluate.png"
+##                     onMouseOver="this.src='/evaluate_over.png'"
+##                     onMouseOut="this.src='/evaluate.png'"
+##                     onClick="evaluate_cell(%s,0);"></span>
+##                   """%(self.__id,self.__id)
+##        tbl = btn + """
+        tbl = """
                <table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
                  %s

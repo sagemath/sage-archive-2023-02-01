@@ -41,7 +41,7 @@ def R(x):
     http://cs.anu.edu.au/~bdm/data/formats.txt (2007-02-13)
     """
     # pad on the right to make a multiple of 6
-    x = x + ( '0' * ((6 - len(x))%6) )
+    x += '0' * ( (6 - (len(x) % 6)) % 6)
 
     # split into groups of 6, and convert numbers to decimal, adding 63
     six_bits = ''

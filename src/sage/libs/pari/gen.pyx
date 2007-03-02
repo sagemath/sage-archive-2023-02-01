@@ -4158,6 +4158,11 @@ cdef class gen(sage.structure.element.RingElement):
         return idealval(self.g, t0, t1)
 
     def modreverse(self):
+        """
+        modreverse(x): reverse polymod of the polymod x, if it exists.
+
+        EXAMPLES:
+        """
         _sig_on
         return self.new_gen(polymodrecip(self.g))
 

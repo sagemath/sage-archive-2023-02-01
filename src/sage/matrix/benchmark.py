@@ -2,7 +2,7 @@ from sage.all import *
 
 verbose = False
 
-timeout = 5
+timeout = 10
 
 def report(F, title):
     systems = ['sage', 'magma']
@@ -25,7 +25,9 @@ def report(F, title):
                 t = -timeout
             alarm(0)
             w.append(t)
+        w.append(w[0]/w[1])
         w = tuple(w)
+
         print ('%15.3f'*len(w))%w
 
 
@@ -34,8 +36,14 @@ def report(F, title):
 #######################################################################
 
 def report_ZZ():
-    F = [rank_ZZ, rank2_ZZ, nullspace_ZZ, charpoly_ZZ, smithform_ZZ,
-         matrix_multiply_ZZ, det_ZZ, det_QQ]
+    """
+    Reports all the benchmarks for integer matrices and few
+    rational matrices.
+    TODO: Probably I should start report_QQ as well.
+    """
+    F = [vecmat_ZZ, rank_ZZ, rank2_ZZ, charpoly_ZZ, smithform_ZZ,
+         det_ZZ, det_QQ, matrix_multiply_ZZ, nullspace_ZZ]
+
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
@@ -91,8 +99,6 @@ s := Cputime(t);
         return float(magma.eval('s'))
     else:
         raise ValueError, 'unknown system "%s"'%system
-
-
 
 
 def rank_ZZ(n=500, min=0, max=9, system='sage'):
@@ -203,6 +209,38 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
+def matrix_add_ZZ(n=200, min=-9, max=9, system='sage', times=10):
+    """
+    Matrix addition over ZZ
+    Given an n x n (with n=200) matrix A and B over ZZ with random entries
+    between min=-9 and max=9, inclusive, compute A + B.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        B = random_matrix(ZZ, n, n, x=min, y=max+1)
+        t = cputime()
+        for z in range(times):
+            v = A + B
+        return cputime(t)/times
+    elif system == 'magma':
+        code = """
+n := %s;
+min := %s;
+max := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(min,max) : i in [1..n^2]];
+B := MatrixAlgebra(IntegerRing(), n)![Random(min,max) : i in [1..n^2]];
+t := Cputime();
+for z in [1..%s] do
+    K := A + B;
+end for;
+s := Cputime(t);
+"""%(n,min,max,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 
 def det_ZZ(n=400, min=1, max=100, system='sage'):
     """
@@ -256,9 +294,58 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
+
+def vecmat_ZZ(n=500, system='sage', min=-9, max=9, times=200):
+    """
+    Vector matrix multiplication over ZZ.
+
+    Given an n x n (with n=500) matrix A over ZZ with random entries
+    between min=-9 and max=9, inclusive, and v the first row of A,
+    compute the product v * A  200 times.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        v = A.row(0)
+        t = cputime()
+        for z in range(times):
+            w = v * A
+        return cputime(t)/times
+    elif system == 'magma':
+        code = """
+n := %s;
+A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+v := A[1];
+t := Cputime();
+for z in [1..%s] do
+    K := v * A;
+end for;
+s := Cputime(t);
+"""%(n,min,max,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))/times
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+
+
 #######################################################################
 # Dense Benchmarks over GF(p), for small p.
 #######################################################################
+
+def report_GF(p=16411):
+    """
+    Runs all the reports for finite field matrix operations, for
+    prime p=16411.
+    Note: right now, even though p is an input, it is being ignored!
+    If you need to check the performance for other primes, you can
+    call individual benchmark functions.
+    """
+    F = [rank_GF, rank2_GF, nullspace_GF, charpoly_GF,
+         matrix_multiply_GF, det_GF]
+    title = 'Dense benchmarks over GF with prime %i' % p
+    report(F, title)
 
 # Nullspace over GF
 
@@ -291,27 +378,57 @@ s := Cputime(t);
 
 def charpoly_GF(n=100, p=16411, system='sage'):
     """
-    Given a n x n (with n=100) matrix over ZZ with random entries,
+    Given a n x n (with n=100) matrix over GF with random entries,
     compute the charpoly.
     """
     if system == 'sage':
-        A = random_matrix(ZZ, n, n, x=min, y=max+1)
+        A = random_matrix(GF(p), n, n)
         t = cputime()
         v = A.charpoly()
         return cputime(t)
     elif system == 'magma':
         code = """
 n := %s;
-A := MatrixAlgebra(IntegerRing(), n)![Random(%s,%s) : i in [1..n^2]];
+A := Random(MatrixAlgebra(GF(%s), n));
 t := Cputime();
 K := CharacteristicPolynomial(A);
 s := Cputime(t);
-"""%(n,min,max)
+"""%(n,p)
         if verbose: print code
         magma.eval(code)
         return magma.eval('s')
     else:
         raise ValueError, 'unknown system "%s"'%system
+
+def matrix_add_GF(n=1000, p=16411, system='sage',times=100):
+    """
+    Given two n x n (with n=1000) matrix over GF with random entries,
+    add them.
+    """
+    if system == 'sage':
+        A = random_matrix(GF(p), n, n)
+        B = random_matrix(GF(p), n, n)
+        t = cputime()
+        for n in range(times):
+            v = A + B
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := Random(MatrixAlgebra(GF(%s), n));
+B := Random(MatrixAlgebra(GF(%s), n));
+t := Cputime();
+for z in [1..%s] do
+    K := A + B;
+end for;
+s := Cputime(t);
+"""%(n,p,p,times)
+        if verbose: print code
+        magma.eval(code)
+        return magma.eval('s')
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 
 
 # Matrix multiplication over GF(p)
@@ -346,17 +463,98 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
+def rank_GF(n=500, p=16411, min=0, max=9, system='sage'):
+    """
+    Rank over GF:
+    Given a n x (n+10) (with n=500) matrix over ZZ with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(GF(p), n, n+10)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := Random(MatrixAlgebra(GF(%s), n));
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,p)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+def rank2_GF(n=500, p=16411, min=0, max=9, system='sage'):
+    """
+    Rank over GF(p):
+    Given a (n + 10) x n (with n=500) matrix over GF(p) with random entries
+    between min=0 and max=9, compute the rank.
+    """
+    if system == 'sage':
+        A = random_matrix(GF(p), n+10, n)
+        t = cputime()
+        v = A.rank()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := Random(MatrixAlgebra(GF(%s), n));
+t := Cputime();
+K := Rank(A);
+s := Cputime(t);
+"""%(n,p)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+def det_GF(n=400, p=16411 ,min=1, max=100, system='sage'):
+    """
+    Dense integer determinant over GF.
+    Given an n x n (with n=400) matrix A over GF with random entries
+    between min=1 and max=100, inclusive, compute det(A).
+    """
+    if system == 'sage':
+        A = random_matrix(GF(p), n, n, x=min, y=max+1)
+        t = cputime()
+        d = A.determinant()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := Random(MatrixAlgebra(GF(%s), n));
+t := Cputime();
+d := Determinant(A);
+s := Cputime(t);
+"""%(n,p)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+
+
 
 #######################################################################
 # Dense Benchmarks over QQ
 #######################################################################
 
 def hilbert_matrix(n):
-  A = Matrix(QQ,n,n)
-  for i in range(A.nrows()):
-      for j in range(A.ncols()):
-          A[i,j] =  QQ(1)/((i+1)+(j+1)-1)
-  return A
+    """
+    Returns the Hilbert matrix of size n over rationals.
+    """
+    A = Matrix(QQ,n,n)
+    for i in range(A.nrows()):
+        for j in range(A.ncols()):
+            A[i,j] =  QQ(1)/((i+1)+(j+1)-1)
+    return A
 
 # Reduced row echelon form over QQ
 
@@ -446,6 +644,10 @@ s := Cputime(t);
 
 # Determinant of Hilbert matrix
 def det_hilbert_QQ(n=80, system='sage'):
+    """
+    Runs the benchmark for calculating the determinant of the hilbert
+    matrix over rationals of dimension n.
+    """
     if system == 'sage':
         A = hilbert_matrix(n)
         t = cputime()
@@ -465,6 +667,10 @@ delete h;
 
 # inverse of Hilbert matrix
 def invert_hilbert_QQ(n=40, system='sage'):
+    """
+    Runs the benchmark for calculating the inverse of the hilbert
+    matrix over rationals of dimension n.
+    """
     if system == 'sage':
         A = hilbert_matrix(n)
         t = cputime()
@@ -481,4 +687,67 @@ delete h;
         if verbose: print code
         magma.eval(code)
         return float(magma.eval('s'))
+
+def MatrixVector_QQ(n=1000,h=100,system='sage',times=1):
+    if system=='sage':
+        V=QQ**n
+        v=V.random_element(h)
+        M=random_matrix(QQ,n)
+        t=cputime()
+        for i in range(times):
+            w=M*v
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+            n:=%s;
+            h:=%s;
+            times:=%s;
+            v:=VectorSpace(RationalField(),n)![Random(h)/(Random(h)+1) : i in [1..n]];
+            M:=MatrixAlgebra(RationalField(),n)![Random(h)/(Random(h)+1) : i in [1..n^2]];
+            t := Cputime();
+            for z in [1..times] do
+                W:=v*M;
+            end for;
+            s := Cputime(t);
+        """%(n,h,times)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
+
+#######################################################################
+# Dense Benchmarks over machine reals
+# Note that the precision in reals for MAGMA is base 10, while in
+# sage it is in base 2
+#######################################################################
+
+# Real Nullspace
+
+def nullspace_RR(n=300, min=0, max=10, system='sage'):
+    """
+    Nullspace over RR:
+    Given a n+1 x n (with n=300) matrix over RR with random entries
+    between min=0 and max=10, compute the nullspace.
+    """
+    if system == 'sage':
+        A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(RR)
+        t = cputime()
+        v = A.kernel()
+        return cputime(t)
+    elif system == 'magma':
+        code = """
+n := %s;
+A := RMatrixSpace(RealField(16), n+1,n)![Random(%s,%s) : i in [1..n*(n+1)]];
+t := Cputime();
+K := Kernel(A);
+s := Cputime(t);
+"""%(n,min,max)
+        if verbose: print code
+        magma.eval(code)
+        return float(magma.eval('s'))
+    else:
+        raise ValueError, 'unknown system "%s"'%system
+
 

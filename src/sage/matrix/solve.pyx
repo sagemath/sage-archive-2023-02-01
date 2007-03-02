@@ -22,7 +22,8 @@ def solve_matrix_real_double_dense(mat, vec):
        cdef gsl_vector *b
        cdef gsl_permutation *p
        cdef gsl_matrix *LU
-       if _mat._LU_valid == 0:
+#       if _mat._LU_valid == 0:
+       if _mat.fetch('LU_valid')!=True:
            _mat._c_compute_LU()
        result_vector = <gsl_vector *> gsl_vector_alloc(_mat._matrix.size1)
        cdef int result_solve
@@ -50,7 +51,7 @@ def solve_matrix_complex_double_dense(mat, vec):
        cdef gsl_permutation *p
        cdef gsl_matrix_complex *LU
        cdef gsl_complex z
-       if _mat._LU_valid == 0:
+       if _mat.fetch('LU_valid')!=True:
            _mat._c_compute_LU()
        result_vector = <gsl_vector_complex *> gsl_vector_complex_alloc(_mat._matrix.size1)
        cdef int result_solve

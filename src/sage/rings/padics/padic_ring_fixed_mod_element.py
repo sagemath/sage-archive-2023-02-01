@@ -403,11 +403,14 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
     def residue(self, prec):
         r"""
         Reduces this mod $p^prec$
+
         INPUT:
             self -- a p-adic element
             prec - an integer
+
         OUTPUT:
             element of Z/(p^prec Z) -- self reduced mod p^prec
+
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
             1
@@ -478,36 +481,52 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
 
 
     def _unit_part(self):
-        return Mod(self._value.lift() // self.parent().prime_pow(self.valuation()), self.parent().prime_pow(self.parent().precision_cap()))
+        r"""
+        Returns the unit part of self, as an element of $\Z/p^(prec)\Z$.
+
+        This is an internal function, used by unit_part().
+        """
+        return Mod(self._value.lift() //
+                   self.parent().prime_pow(self.valuation()),
+                   self.parent().prime_pow(self.parent().precision_cap()))
 
     def unit_part(self):
         r"""
         Returns the unit part of self.
 
+        If the valuation of self is positive, then the high digits of the
+        result will be zero.
+
         INPUT:
             self -- a p-adic element
+
         OUTPUT:
             p-adic element -- the unit part of self
+
         EXAMPLES:
-            sage: R = Zp(17,4,'fixed-mod')
-            sage: a = R(18*17)
-            sage: a.unit_part()
+            sage: R = Zp(17, 4, 'fixed-mod')
+            sage: R(5).unit_part()
+            5 + O(17^4)
+            sage: R(18*17).unit_part()
             18 + O(17^4)
-            sage: type(a)
+            sage: R(0).unit_part()
+            O(17^4)
+            sage: type(R(5).unit_part())
             <class 'sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement'>
         """
-        if self._value == 0:
-            raise PrecisionError, "Not enough precision to determine unit part."
-        return pAdicRingFixedModElement(self.parent(), self._unit_part(), construct = True)
+        return pAdicRingFixedModElement(self.parent(), self._unit_part(),
+                                        construct = True)
 
     def valuation(self):
         """
         Returns the valuation of self.
 
+        If self is zero, the valuation returned is the precision of the ring.
+
         INPUT:
             self -- a p-adic element
         OUTPUT:
-            integer -- the valuation of self
+            integer -- the valuation of self.
 
         EXAMPLES:
             sage: R = Zp(17, 4,'fixed-mod')
@@ -531,7 +550,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             2
         """
         val = sage.rings.arith.valuation(self.lift(),self.parent().prime())
-        if val == infinity:
+        if val is infinity:
             return self.parent().precision_cap()
         else:
             return val

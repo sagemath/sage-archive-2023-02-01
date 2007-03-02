@@ -424,10 +424,18 @@ class PrimitiveFunction(SymbolicExpression):
         elif is_Polynomial(x):
             return SymbolicComposition(self, SymbolicPolynomial(x))
 
-        # if we can't figure out what x is, return a symbolic version of x
-        elif isinstance(x, (Integer, Rational, RealNumber,
-                            int, long, float, complex)):
-            return self(Constant_object(x))
+        # if we can't figure out what x is, return the composition with a symbolic version of x
+        elif isinstance(x, (Integer, Rational, int, long)):
+            return self(SER(x))
+        elif isinstance(x, (RealNumber, float)):
+            # try getting an approximation
+            try:
+                r = self._approx_(x)
+            except AttributeError:
+            # else return some constant object
+                r = self(SER(x))
+
+            return r
 
         else:
             raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
@@ -810,7 +818,7 @@ class SymbolicComposition(SymbolicOperation):
     def __float__(self):
         f = self._operands[0]
         g = self._operands[1]
-        return float(f._approx_()(g))
+        return float(f._approx_(float(g)))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
             operator.div:'/', operator.pow:'^'}
@@ -1056,8 +1064,15 @@ class Function_sin(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
-    def _approx_(self):
-        return math.sin
+    def _approx_(self, x):
+        try:
+            return x.sin()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.sin(x)
+            else:
+                # this is a major hack
+                raise AttributeError
 
 sin = Function_sin()
 _syms['sin'] = sin

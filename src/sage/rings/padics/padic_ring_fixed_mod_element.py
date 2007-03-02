@@ -49,15 +49,79 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         r"""
         INPUT:
             parent -- a pAdicRingFixedMod object.
+
         Types currently supported:
             Integers
             Rationals -- denominator must be relatively prime to p
             FixedMod p-adics
+
         Types that should be supported:
             Finite precision p-adics
             Lazy p-adics
             Elements of local extensions of THIS p-adic ring that actually lie in Zp
             Elements of IntegerModRing(p^k) for k less than or equal to the modulus
+
+        EXAMPLES:
+            sage: R = Zp(5, 20, 'fixed-mod', 'integer')
+
+        Construct from integers:
+            sage: R(3)
+            3 + O(5^20)
+            sage: R(75)
+            75 + O(5^20)
+            sage: R(0)
+            O(5^20)
+
+        # todo: in the "integer" print mode, it would be better if the
+        # above case printed as "0 + O(5^20)" instead of just "O(5^20)"
+
+            sage: R(-1)
+            95367431640624 + O(5^20)
+            sage: R(-5)
+            95367431640620 + O(5^20)
+
+        Construct from rationals:
+            sage: R(1/2)
+            47683715820313 + O(5^20)
+            sage: R(-7875/874)
+            9493096742250 + O(5^20)
+            sage: R(15/425)
+            Traceback (most recent call last):
+            ...
+            ValueError: p divides the denominator
+
+        # todo: the above error message does not agree with the error message
+        # in the corresponding capped-relative constructor
+
+        Construct from IntegerMod:
+            sage: R(Integers(125)(3))
+            3 + O(5^20)
+            sage: R(Integers(5)(3))
+            3 + O(5^20)
+            sage: R(Integers(5^30)(3))
+            3 + O(5^20)
+            sage: R(Integers(5^30)(1+5^23))
+            1 + O(5^20)
+            sage: R(Integers(49)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change primes in creating p-adic elements
+
+        # todo: should the above TypeError be another type of error?
+
+            sage: R(Integers(48)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change primes in creating p-adic elements
+
+        # todo: the error message for the above TypeError is not quite accurate
+
+        Some other conversions:
+            sage: R(R(5))
+            5 + O(5^20)
+
+        # todo: doctests for converting from other types of p-adic rings
+
         """
         sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self,parent)
         if construct:

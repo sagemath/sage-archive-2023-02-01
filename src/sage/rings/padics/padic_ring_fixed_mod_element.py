@@ -49,15 +49,79 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         r"""
         INPUT:
             parent -- a pAdicRingFixedMod object.
+
         Types currently supported:
             Integers
             Rationals -- denominator must be relatively prime to p
             FixedMod p-adics
+
         Types that should be supported:
             Finite precision p-adics
             Lazy p-adics
             Elements of local extensions of THIS p-adic ring that actually lie in Zp
             Elements of IntegerModRing(p^k) for k less than or equal to the modulus
+
+        EXAMPLES:
+            sage: R = Zp(5, 20, 'fixed-mod', 'integer')
+
+        Construct from integers:
+            sage: R(3)
+            3 + O(5^20)
+            sage: R(75)
+            75 + O(5^20)
+            sage: R(0)
+            O(5^20)
+
+        # todo: in the "integer" print mode, it would be better if the
+        # above case printed as "0 + O(5^20)" instead of just "O(5^20)"
+
+            sage: R(-1)
+            95367431640624 + O(5^20)
+            sage: R(-5)
+            95367431640620 + O(5^20)
+
+        Construct from rationals:
+            sage: R(1/2)
+            47683715820313 + O(5^20)
+            sage: R(-7875/874)
+            9493096742250 + O(5^20)
+            sage: R(15/425)
+            Traceback (most recent call last):
+            ...
+            ValueError: p divides the denominator
+
+        # todo: the above error message does not agree with the error message
+        # in the corresponding capped-relative constructor
+
+        Construct from IntegerMod:
+            sage: R(Integers(125)(3))
+            3 + O(5^20)
+            sage: R(Integers(5)(3))
+            3 + O(5^20)
+            sage: R(Integers(5^30)(3))
+            3 + O(5^20)
+            sage: R(Integers(5^30)(1+5^23))
+            1 + O(5^20)
+            sage: R(Integers(49)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change primes in creating p-adic elements
+
+        # todo: should the above TypeError be another type of error?
+
+            sage: R(Integers(48)(3))
+            Traceback (most recent call last):
+            ...
+            TypeError: cannot change primes in creating p-adic elements
+
+        # todo: the error message for the above TypeError is not quite accurate
+
+        Some other conversions:
+            sage: R(R(5))
+            5 + O(5^20)
+
+        # todo: doctests for converting from other types of p-adic rings
+
         """
         sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self,parent)
         if construct:
@@ -403,11 +467,14 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
     def residue(self, prec):
         r"""
         Reduces this mod $p^prec$
+
         INPUT:
             self -- a p-adic element
             prec - an integer
+
         OUTPUT:
             element of Z/(p^prec Z) -- self reduced mod p^prec
+
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
             1
@@ -478,36 +545,52 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
 
 
     def _unit_part(self):
-        return Mod(self._value.lift() // self.parent().prime_pow(self.valuation()), self.parent().prime_pow(self.parent().precision_cap()))
+        r"""
+        Returns the unit part of self, as an element of $\Z/p^(prec)\Z$.
+
+        This is an internal function, used by unit_part().
+        """
+        return Mod(self._value.lift() //
+                   self.parent().prime_pow(self.valuation()),
+                   self.parent().prime_pow(self.parent().precision_cap()))
 
     def unit_part(self):
         r"""
         Returns the unit part of self.
 
+        If the valuation of self is positive, then the high digits of the
+        result will be zero.
+
         INPUT:
             self -- a p-adic element
+
         OUTPUT:
             p-adic element -- the unit part of self
+
         EXAMPLES:
-            sage: R = Zp(17,4,'fixed-mod')
-            sage: a = R(18*17)
-            sage: a.unit_part()
+            sage: R = Zp(17, 4, 'fixed-mod')
+            sage: R(5).unit_part()
+            5 + O(17^4)
+            sage: R(18*17).unit_part()
             18 + O(17^4)
-            sage: type(a)
+            sage: R(0).unit_part()
+            O(17^4)
+            sage: type(R(5).unit_part())
             <class 'sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement'>
         """
-        if self._value == 0:
-            raise PrecisionError, "Not enough precision to determine unit part."
-        return pAdicRingFixedModElement(self.parent(), self._unit_part(), construct = True)
+        return pAdicRingFixedModElement(self.parent(), self._unit_part(),
+                                        construct = True)
 
     def valuation(self):
         """
         Returns the valuation of self.
 
+        If self is zero, the valuation returned is the precision of the ring.
+
         INPUT:
             self -- a p-adic element
         OUTPUT:
-            integer -- the valuation of self
+            integer -- the valuation of self.
 
         EXAMPLES:
             sage: R = Zp(17, 4,'fixed-mod')
@@ -531,7 +614,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             2
         """
         val = sage.rings.arith.valuation(self.lift(),self.parent().prime())
-        if val == infinity:
+        if val is infinity:
             return self.parent().precision_cap()
         else:
             return val

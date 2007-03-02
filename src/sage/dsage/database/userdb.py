@@ -34,6 +34,7 @@ class UserDatabase(object):
     """
 
     TABLENAME = 'users'
+
     CREATE_USER_TABLE = """CREATE TABLE %s
     (
      id integer PRIMARY KEY,
@@ -41,20 +42,19 @@ class UserDatabase(object):
      public_key text NOT NULL UNIQUE,
      email text,
      creation_time timestamp,
-     access_time timestamp
+     access_time timestamp,
+     last_login timestamp,
+     status integer NOT NULL
     )
     """ % TABLENAME
 
-
-    CREATION_TIME_TRIGGER = """CREATE TRIGGER creation_time
-AFTER INSERT ON users
-BEGIN
-    UPDATE users SET creation_time = DATETIME('NOW')
-    WHERE username = new.username;
-END;
-"""
-
     def __init__(self, test=False):
+        r"""
+        Parameters:
+        test -- set to true if you would like to do testing.
+
+        """
+
         self._getconf()
         self.tablename = 'users'
         if test:
@@ -69,8 +69,6 @@ END;
             sql_functions.create_table(self.con,
                                        self.tablename,
                                        self.CREATE_USER_TABLE)
-            sql_functions.add_trigger(self.con,
-                                      self.CREATION_TIME_TRIGGER)
             self.con.commit()
 
     def _shutdown(self):
@@ -95,13 +93,13 @@ END;
             raise
         # End reading configuration
 
-    def get_user(self, username):
+    def get_user_and_key(self, username):
         r"""
-        Returns a tuple containing the users information.
+        Returns a tuple containing the username and public key.
 
         """
 
-        query = """SELECT * FROM users WHERE username = ?"""
+        query = """SELECT username, public_key FROM users WHERE username = ?"""
 
         cur = self.con.cursor()
         cur.execute(query, (username,))
@@ -109,7 +107,22 @@ END;
 
         return result
 
-    def add_user(self, username, pubkey, email=None, file=True):
+    def get_user(self, username):
+        r"""
+        Returns a tuple containing all of the users information.
+
+        WARNING: ORDER OF RETURNED TUPLE MIGHT CHANGE
+
+        """
+
+        query = """SELECT * FROM users WHERE username = ?"""
+        cur = self.con.cursor()
+        cur.execute(query, (username,))
+        result = cur.fetchone()
+
+        return result
+
+    def add_user(self, username, pubkey, email):
         r"""
         Adds a user to the database.
 
@@ -120,17 +133,15 @@ END;
                    VALUES (?, ?, ?, ?)
                 """
 
-        if file and os.path.isfile(pubkey):
-            f = open(pubkey)
-            type_, key = f.readlines()[0].split()[:2]
-            f.close()
-            if not type_ == 'ssh-rsa':
-                raise TypeError
-        else:
-            key = pubkey
+        f = open(pubkey)
+        type_, key = f.readlines()[0].split()[:2]
+        f.close()
+        if not type_ == 'ssh-rsa':
+            raise TypeError
 
         cur = self.con.cursor()
-        cur.execute(query, (username, key, email))
+        cur.execute(query, (username, key, email, datetime.datetime.now()))
+        self.set_user_status(username, 1) # Enable the account when we add it
         self.con.commit()
 
     def del_user(self, username):
@@ -140,5 +151,39 @@ END;
         """
 
         query = """DELETE FROM users WHERE username = ?"""
-        self.con.execute(query, username)
+        self.con.execute(query, (username,))
+        self.con.commit()
+
+    def set_user_status(self, username, status):
+        r"""
+        Enables/Disables a users account.
+
+        Parameters:
+        username -- obvious
+        status -- 1 or 0 (enabled/disabled)
+        """
+
+        if status != 0 or status != 1:
+            raise TypeError
+
+        query = """UPDATE users
+        SET status = ?
+        WHERE username = ?
+        """
+
+        self.con.execute(query, (status, username))
+        self.con.commit()
+
+    def update_login_time(self, username):
+        r"""
+        Updates the last_login time of the user.
+
+        """
+
+        query = """UPDATE users
+        SET last_login = ?
+        WHERE username = ?
+        """
+
+        self.con.execute(query, (datetime.datetime.now(), username,))
         self.con.commit()

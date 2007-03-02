@@ -396,17 +396,18 @@ class JobDatabaseSQLite(JobDatabase):
                "finish_time")
 
     CREATE_NEW_TABLE = """CREATE TABLE jobs
-    (num INTEGER PRIMARY KEY,
-     id text NOT NULL UNIQUE,
-     file text,
-     author text NOT NULL,
+    (id INTEGER PRIMARY KEY,
+     security_id text NOT NULL UNIQUE,
+     code text NOT NULL,
+     username text NOT NULL,
      data text,
-     output text,
-     worker_info text,
+     output text NOT NULL DEFAULT 'No output',
+     worker text,
      status text NOT NULL,
+     priority integer NOT NULL,
      creation_time timestamp NOT NULL,
      update_time timestamp NOT NULL,
-     finish_time timestamp NOT NULL
+     finish_time timestamp NOT NULL,
     );
     """
 

@@ -93,6 +93,9 @@ class PublicKeyCredentialsCheckerDB(object):
             pub_key = keys.getPublicKeyObject(data=credentials.blob)
             if keys.verifySignature(pub_key, credentials.signature,
                                     credentials.sigData):
+                # If we get to this stage, it means the user successfully
+                # logged in
+                self.userdb.update_login_time(credentials.username)
                 return credentials.username
             else:
                 return defer.fail(error.ConchError("Invalid signature."))
@@ -100,4 +103,4 @@ class PublicKeyCredentialsCheckerDB(object):
             return defer.fail(error.ConchError("Invalid username."))
 
     def get_user(self, username):
-        return self.userdb.get_user(username)
+        return self.userdb.get_user_and_key(username)

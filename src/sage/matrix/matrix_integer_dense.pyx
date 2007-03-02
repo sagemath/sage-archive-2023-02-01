@@ -89,6 +89,11 @@ cdef extern from "iml.h":
     long nullspaceMP(long n, long m,
                      mpz_t *A, mpz_t * *mp_N_pass)
 
+    void nonsingSolvLlhsMM (SOLU_POS solupos, long n, \
+                       long m, mpz_t *mp_A, mpz_t *mp_B, mpz_t *mp_N, \
+                       mpz_t mp_D)
+
+
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -1595,13 +1600,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         M._initialized = True
         return M
 
-    def _invert_iml(self):
+    def _invert_iml(self, use_nullspace=True):
         """
         Invert this matrix using IML.  The output matrix is an integer
         matrix and a denominator.
 
         INPUT:
            self -- an invertible matrix
+           use_nullspace -- (default: True): whether to use nullspace algorithm;
+                     if this is False, if self is singular, then the algorithm
+                     will hang forever, whereas when this is True, that will
+                     be detected.
 
         OUTPUT: A, d such that A*self = d
            A -- a matrix over ZZ
@@ -1625,14 +1634,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         P = self.parent()
         time = verbose('computing inverse of %s x %s matrix using IML'%(self._nrows, self._ncols))
-        A = self.augment(P.identity_matrix())
-        K = A._rational_kernel_iml()
-        d = -K[self._nrows,0]
-        if K.ncols() != self._ncols or d == 0:
-            raise ZeroDivisionError, "input matrix must be nonsingular"
-        B = K[:self._nrows]
-        verbose("finished computing inverse using IML", time)
-        return B, d
+        if use_nullspace:
+            A = self.augment(P.identity_matrix())
+            K = A._rational_kernel_iml()
+            d = -K[self._nrows,0]
+            if K.ncols() != self._ncols or d == 0:
+                raise ZeroDivisionError, "input matrix must be nonsingular"
+            B = K[:self._nrows]
+            verbose("finished computing inverse using IML", time)
+            return B, d
+        else:
+            return self._solve_iml(P.identity_matrix(), right=True)
 
 
     def _solve_iml(self, Matrix_integer_dense B, right=True):
@@ -1640,6 +1652,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Let A equal self. Given B return an integer matrix C and an
         integer d such that self C*A == d*B if right is True or A*C ==
         d*B if right is False.
+
+        OUTPUT:
+            C -- integer matrix
+            d -- integer denominator
 
         EXAMPLES:
             sage: A = matrix(ZZ,4,4,[0, 1, -2, -1, -1, 1, 0, 2, 2, 2, 2, -1, 0, 2, 2, 1])

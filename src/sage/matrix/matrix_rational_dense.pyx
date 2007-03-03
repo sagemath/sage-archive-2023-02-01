@@ -58,6 +58,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_field import GF
+from sage.rings.rational_field import QQ
 
 import sage.ext.multi_modular
 from matrix2 import cmp_pivots
@@ -792,13 +793,31 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return _pr
 
     ################################################
+    # Kernel
+    ################################################
+    def kernel(self):
+        """
+        Return the kernel of this matrix, as a vector space over QQ.
+        """
+        K = self.fetch('kernel')
+        if not K is None:
+            return K
+        A, _ = self.transpose()._clear_denom()
+        K = A._rational_kernel_iml().change_ring(QQ)
+        V = K.column_space()
+        self.cache('kernel', V)
+        return V
+
+
+    ################################################
     # Echelon form
     ################################################
-    def echelonize(self, algorithm='padic',
+    def echelonize(self, algorithm='default',
                    height_guess=None, proof=True, **kwds):
         """
         INPUT:
-            algorithm -- 'padic' (default): an algorithm based on the IML p-adic solver.
+            algorithm -- 'default' (default): use heuristic choice
+                         'padic': an algorithm based on the IML p-adic solver.
                          'multimodular': uses a multimodular algorithm the uses linbox
                                          modulo many primes.
             height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
@@ -833,6 +852,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.clear_cache()
 
         cdef Matrix_rational_dense E
+        if algorithm == 'default':
+            algorithm = 'padic'
         if algorithm == 'padic':
             pivots = self._echelonize_padic()
         elif algorithm == 'multimodular':
@@ -843,11 +864,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.cache('pivots', pivots)
 
 
-    def echelon_form(self, algorithm='padic',
+    def echelon_form(self, algorithm='default',
                      height_guess=None, proof=True, **kwds):
         """
         INPUT:
-            algorithm -- 'padic' (default): an algorithm based on the IML p-adic solver.
+            algorithm -- 'default' (default): use heuristic choice
+                         'padic': an algorithm based on the IML p-adic solver.
                          'multimodular': uses a multimodular algorithm the uses linbox
                                          modulo many primes.
             height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
@@ -879,6 +901,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             return x
         if self.fetch('in_echelon_form'): return self
 
+        if algorithm == 'default':
+            algorithm = 'padic'
+
         if algorithm == 'padic':
             E = self._echelon_form_padic()
         elif algorithm == 'multimodular':
@@ -901,7 +926,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         cdef mpq_t* E_row
         cdef mpz_t* X_row
 
-        t = verbose('Computing echelon form of matrix over QQ using p-adic nullspace algorithm.')
+        t = verbose('Computing echelon form of %s x %s matrix over QQ using p-adic nullspace algorithm.'%(
+            self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
         t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
@@ -932,14 +958,15 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def _echelonize_padic(self):
         """
-        Compute and return the echelon form of self using a p-adic nullspace algorithm.
+        Echelonize self using a p-adic nullspace algorithm.
         """
         cdef Matrix_integer_dense X
         cdef Integer d
         cdef mpq_t* E_row
         cdef mpz_t* X_row
 
-        t = verbose('Computing echelonization of matrix over QQ using p-adic nullspace algorithm.')
+        t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
+                    (self.nrows(), self.ncols()))
         A, _ = self._clear_denom()
         t = verbose('  Got integral matrix', t)
         pivots, nonpivots, X, d = A._rational_echelon_via_solve()
@@ -1003,8 +1030,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
-
-
+    ################################################################
     # second implementation of the above, usually over twice as fast
     # even without denominator lcm trick
     # TODO: merge with the above
@@ -1146,6 +1172,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         E.cache('pivots', best_pivots)
         return E
 
+    ################################################################
 
     def _lift_crt_rr(self, res, mm):
         cdef Integer m

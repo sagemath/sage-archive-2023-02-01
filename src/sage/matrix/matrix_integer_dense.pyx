@@ -1701,9 +1701,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         AUTHOR:
             -- Martin Albrecht
         """
-        if B.nrows() == 0:
-            return self.new_matrix(nrows=self.ncols(), ncols=0), Integer(1)
-
         cdef int i
         cdef mpz_t *mp_N, mp_D
         cdef Matrix_integer_dense M
@@ -1712,6 +1709,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._nrows != self._ncols:
             raise ArithmeticError, "self must be square"
 
+        if self.nrows() == 1:
+            return B, self[0,0]
 
         mpz_init(mp_D)
 

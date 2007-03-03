@@ -215,6 +215,9 @@ from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
 
 class GenericGraph(SageObject):
+    """
+    Base class for graphs and digraphs.
+    """
 
     def __contains__(self, vertex):
         """
@@ -1721,7 +1724,7 @@ class Graph(GenericGraph):
         vertices -- Vertices can be a single vertex or an iterable container
         of vertices, e.g. a list, set, graph, file or numeric array.
         create_using -- Can be an existing graph object or a call to a graph
-        object, such as create_using=DiGraph().
+        object, such as create_using=DiGraph(). Must be a NetworkX object.
 
         EXAMPLES:
             sage: G = graphs.CompleteGraph(9)
@@ -1796,6 +1799,77 @@ class Graph(GenericGraph):
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
+
+    ### Connected components
+
+    def is_connected(self):
+        """
+        Indicates whether the graph is connected. Note that in a graph, path
+        connected is equivalent to connected.
+
+        EXAMPLE:
+            sage: G = Graph( { 0 : [1, 2], 1 : [2], 3 : [4, 5], 4 : [5] } )
+            sage: G.is_connected()
+            False
+            sage: G.add_edge(0,3)
+            sage: G.is_connected()
+            True
+        """
+        import networkx
+        return networkx.component.is_connected(self._nxg)
+
+    def connected_components(self):
+        """
+        Returns a list of lists of vertices, each list representing a
+        connected component. The list is ordered from largest to smallest
+        component.
+
+        EXAMPLE:
+            sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: G.connected_components()
+            [[0, 1, 2, 3], [4, 5, 6]]
+        """
+        import networkx
+        return networkx.component.connected_components(self._nxg)
+
+    def connected_components_number(self):
+        """
+        Returns the number of connected components.
+
+        EXAMPLE:
+            sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: G.connected_components_number()
+            2
+        """
+        import networkx
+        return networkx.component.number_connected_components(self._nxg)
+
+    def connected_components_subgraphs(self):
+        """
+        Returns a list of connected components as graph objects.
+
+        EXAMPLE:
+            sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: L = G.connected_components_subgraphs()
+            sage.: graphs_list.show_graphs(L)
+        """
+        cc = self.connected_components()
+        list = []
+        for c in cc:
+            list.append(self.subgraph(c, inplace=False))
+        return list
+
+    def connected_component_containing_vertex(self, vertex):
+        """
+        Returns a list of the vertices connected to vertex.
+
+        EXAMPLE:
+            sage: G = Graph( { 0 : [1, 3], 1 : [2], 2 : [3], 4 : [5, 6], 5 : [6] } )
+            sage: G.connected_component_containing_vertex(0)
+            [0, 1, 2, 3]
+        """
+        import networkx
+        return networkx.component.node_connected_component(self._nxg, vertex)
 
 class DiGraph(GenericGraph):
     """

@@ -23,6 +23,8 @@ from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
 from zope.interface import implements
 from twisted.internet import defer
+from twisted.python import log
+from twisted.spread import pb
 
 class PublicKeyCredentialsChecker(object):
     r"""
@@ -82,14 +84,15 @@ class PublicKeyCredentialsCheckerDB(object):
         try:
             user, key = self.get_user(credentials.username)
         except TypeError:
-            return defer.fail(error.ConchError("Invalid username."))
-
+            log.msg("Invalid username '%s'" % credentials.username)
+            return defer.fail(AuthenticationError('Login failed.'))
         if user:
             if not credentials.blob == base64.decodestring(key):
-                return defer.fail(error.ConchError("Invalid key."))
+                log.msg('Invalid key.')
+                return defer.fail(AuthenticationError('Login failed.'))
             if not credentials.signature:
-                return defer.fail(error.ValidPublicKey())
-
+                log.msg('No signature.')
+                return defer.fail(AuthenticationError('Login failed.'))
             pub_key = keys.getPublicKeyObject(data=credentials.blob)
             if keys.verifySignature(pub_key, credentials.signature,
                                     credentials.sigData):
@@ -98,9 +101,22 @@ class PublicKeyCredentialsCheckerDB(object):
                 self.userdb.update_login_time(credentials.username)
                 return credentials.username
             else:
-                return defer.fail(error.ConchError("Invalid signature."))
+                log.msg('Invalid signature.')
+                return defer.fail(AuthenticationError('Login failed.'))
         else:
-            return defer.fail(error.ConchError("Invalid username."))
+            log.msg('Invalid username.')
+            return defer.fail(AuthenticationError('Login failed.'))
 
     def get_user(self, username):
         return self.userdb.get_user_and_key(username)
+
+class AuthenticationError(pb.Error):
+    r"""
+    Return this when credential checking has failed.
+
+    """
+
+    def __init__(self, value, data=None):
+        Exception.__init__(self, value, data)
+        self.value = value
+        self.data = data

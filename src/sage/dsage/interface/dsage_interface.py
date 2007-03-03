@@ -61,11 +61,22 @@ class DSage(object):
             self.server = self.SERVER
         else:
             self.server = server
-
-        self.port = self.PORT
-        self.username = self.USERNAME
-        self.pubkey_file = self.PUBKEY_FILE
-        self.privkey_file = self.PRIVKEY_FILE
+        if port is None:
+            self.port = self.PORT
+        else:
+            self.port = port
+        if username is None:
+            self.username = self.USERNAME
+        else:
+            self.username = username
+        if pubkey_file is None:
+            self.pubkey_file = self.PUBKEY_FILE
+        else:
+            self.pubkey_file = pubkey_file
+        if privkey_file is None:
+            self.privkey_file = self.PRIVKEY_FILE
+        else:
+            self.privkey_file = privkey_file
 
         self.remoteobj = None
         self.result = None
@@ -352,21 +363,35 @@ class BlockingDSage(DSage):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
+        # We will read the values in from the conf file first and let the
+        # user override the values stored in the conf file by keyword
+        # parameters
+
         self._getconf()
+
         if server is None:
             self.server = self.SERVER
         else:
             self.server = server
-
-        self.port = self.PORT
-        self.username = self.USERNAME
-        self.pubkey_file = self.PUBKEY_FILE
-        self.privkey_file = self.PRIVKEY_FILE
+        if port is None:
+            self.port = self.PORT
+        else:
+            self.port = port
+        if username is None:
+            self.username = self.USERNAME
+        else:
+            self.username = username
+        if pubkey_file is None:
+            self.pubkey_file = self.PUBKEY_FILE
+        else:
+            self.pubkey_file = pubkey_file
+        if privkey_file is None:
+            self.privkey_file = self.PRIVKEY_FILE
+        else:
+            self.privkey_file = privkey_file
 
         self.remoteobj = None
         self.result = None
-
-        # passphrase = self._getpassphrase()
 
         # public key authentication information
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)

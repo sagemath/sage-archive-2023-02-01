@@ -1702,7 +1702,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             -- Martin Albrecht
         """
         if B.nrows() == 0:
-            return self.matrix(nrows=self.ncols(), ncols=0), Integer(1)
+            return self.new_matrix(nrows=self.ncols(), ncols=0), Integer(1)
 
         cdef int i
         cdef mpz_t *mp_N, mp_D
@@ -1764,16 +1764,17 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         return M,D
 
-    def _rational_echelon_via_solve(self, debug=False):
+    def _rational_echelon_via_solve(self):
         r"""
-        Computes the reduced row echelon form (over QQ!) of a matrix
-        with integer entries.
+        Computes information that gives the reduced row echelon form
+        (over QQ!) of a matrix with integer entries.
 
         INPUT:
             self -- a matrix over the integers.
 
         OUTPUT:
-            pivots -- list of integers that give the pivot column positions
+            pivots -- ordered list of integers that give the pivot column positions
+            nonpivots -- ordered list of the nonpivot column positions
             X -- matrix with integer entries
             d -- integer
 
@@ -1782,8 +1783,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         you get the reduced row echelon form of self, without zero
         rows at the bottom.
 
-        NOTE: IML is the actual underlying $p$-adic solver that
-        we use.
+        NOTE: IML is the actual underlying $p$-adic solver that we use.
+
+        EXAMPLES:
+
+
 
         AUTHOR:
            -- William Stein
@@ -1830,24 +1834,32 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 systems of the form $Cx = v$, where the columns of
                 $X$ are the solutions.
 
-            \item[6] Inspect the matrix $X$ obtained in step 5.  If
-                when used to construct the echelon form of $B$, $X$
+            \item[6] Verify that we had chosen the correct pivot
+                columns.  Inspect the matrix $X$ obtained in step 5.
+                If when used to construct the echelon form of $B$, $X$
                 indeed gives a matrix in reduced row echelon form,
                 then we are done -- output the pivot columns, $X$, and
-                $d$.  Otherwise, we got the pivots of $B$ wrong -- try
-                again starting at step 4, but with a different random
-                prime.
+                $d$. To tell if $X$ is correct, do the following: For
+                each column of $X$ (corresponding to non-pivot column
+                $i$ of $B$), read up the column of $X$ until finding
+                the first nonzero position $j$; then verify that $j$
+                is strictly less than the number of pivot columns of
+                $B$ that are strictly less than $i$.  Otherwise, we
+                got the pivots of $B$ wrong -- try again starting at
+                step 4, but with a different random prime.
 
         \end{enumerate}
         """
         from matrix_modn_dense import MAX_MODULUS
         A = self
+        # Step 1: Compute the rank
+
         r = A.rank()
         if r == self._nrows:
             # The input matrix already has full rank.
             B = A
         else:
-            # We extract out a submatrix of full rank.
+            # Steps 2 and 3: Extract out a submatrix of full rank.
             i = 0
             while True:
                 p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
@@ -1860,43 +1872,55 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                     if i == 50:
                         raise RuntimeError, "Bug in _rational_echelon_via_solve in finding linearly independent rows."
 
-        # Step 4: Now we instead worry about computing the reduced row echelon form of B.
-        i = 0
+        _i = 0
         while True:
-            p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
-            pivots = B._mod_int(p).pivots()
-            if len(pivots) == r:
+            _i += 1
+            if _i == 50:
+                raise RuntimeError, "Bug in _rational_echelon_via_solve -- pivot columns keep being wrong."
+
+            # Step 4: Now we instead worry about computing the reduced row echelon form of B.
+            i = 0
+            while True:
+                p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
+                pivots = B._mod_int(p).pivots()
+                if len(pivots) == r:
+                    break
+                else:
+                    i += 1
+                    if i == 50:
+                        raise RuntimeError, "Bug in _rational_echelon_via_solve in finding pivot columns."
+
+            # Step 5: Apply p-adic solver
+            C = B.matrix_from_columns(pivots)
+            pivots_ = set(pivots)
+            non_pivots = [i for i in range(B.ncols()) if not i in pivots_]
+            D = B.matrix_from_columns(non_pivots)
+            X, d = C._solve_iml(D, right=True)
+
+            # Step 6: Verify that we had chosen the correct pivot columns.
+            pivots_are_right = True
+            for z in range(X.ncols()):
+                if not pivots_are_right:
+                    break
+                i = non_pivots[z]
+                np = len([k for k in pivots if k < i])
+                for j in reversed(range(X.nrows())):
+                    if X[j,z] != 0:
+                        if j < np:
+                            break # we're good -- go on to next column of X
+                        else:
+                            pivots_are_right = False
+                            break
+            if pivots_are_right:
                 break
-            else:
-                i += 1
-                if i == 50:
-                    raise RuntimeError, "Bug in _rational_echelon_via_solve in finding pivot columns."
 
-        if debug:
-            print "B = \n", B
-            print "pivots = ", pivots
+        #end while
 
-        # Step 5: Apply p-adic solver
-        C = B.matrix_from_columns(pivots)
-        if debug:
-            print "C = \n", C
-        pivots_ = set(pivots)
-        non_pivots = [i for i in range(B.ncols()) if not i in pivots_]
-        if debug:
-            print "non-pivots = ", non_pivots
-        D = B.matrix_from_columns(non_pivots)
-        if debug:
-            print "D = \n", D
-        X, d = C._solve_iml(D, right=True)
 
-        if debug:
-            print "X = \n", X
-            print "d = ", d
+        # Finally, return the answer.
+        return pivots, non_pivots, X, d
 
-        # Step 6: Verify (skip this for now -- TODO)
-        return pivots, X, d
-
-    def _rational_decomposition(self, debug=False):
+    def _rational_decomposition(self):
         r"""
         Compute the rational decomposition of this matrix.
 

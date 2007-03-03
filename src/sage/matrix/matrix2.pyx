@@ -1137,7 +1137,10 @@ cdef class Matrix(matrix1.Matrix):
             [0 2]
         """
         M = self._row_ambient_module()
-        return M.span(self.rows())
+        if self.fetch('in_echelon_form'):
+            return M.span(self.rows(), already_echelonized=True)
+        else:
+            return M.span(self.rows(), already_echelonized=True)
 
     def row_space(self):
         """
@@ -1215,10 +1218,11 @@ cdef class Matrix(matrix1.Matrix):
     def decomposition(self, is_diagonalizable=False, dual=False):
         """
         Returns the decomposition of the free module on which this
-        matrix acts from the right, along with whether this matrix
-        acts irreducibly on each factor.  The factors are guaranteed
-        to be sorted in the same way as the corresponding factors of
-        the characteristic polynomial.
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
 
         Let A be the matrix acting from the on the vector space V of
         column vectors.  Assume that A is square.  This function
@@ -1301,15 +1305,157 @@ cdef class Matrix(matrix1.Matrix):
                 return decomp_seq([(V,m==1)])
         F.sort()
         for g, m in f.factor():
+            t = verbose('decomposition -- Computing g(self) for an irreducible factor g of degree %s'%g.degree(),level=2)
             if is_diagonalizable:
                 B = g(self)
             else:
-                B = g(self) ** m
+                B = g(self)
+                t2 = verbose('decomposition -- raising g(self) to the power %s'%m,level=2)
+                B = B ** m
+                verbose('done powering',t2)
+            t = verbose('decomposition -- done computing g(self)', level=2, t=t)
             E.append((B.kernel(), m==1))
+            t = verbose('decomposition -- time to compute kernel', level=2, t=t)
             if dual:
                 Edual.append((B.transpose().kernel(), m==1))
+                verbose('decomposition -- time to compute dual kernel', level=2, t=t)
         if dual:
             return E, Edual
+        return E
+
+    def _decomposition_devel(self, is_diagonalizable=False, dual=False,
+                            echelon_algorithm='default', height_guess=None):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
+
+        Let A be the matrix acting from the on the vector space V of
+        column vectors.  Assume that A is square.  This function
+        computes maximal subspaces W_1, ..., W_n corresponding to
+        Galois conjugacy classes of eigenvalues of A.  More precisely,
+        let f(X) be the characteristic polynomial of A.  This function
+        computes the subspace $W_i = ker(g_(A)^n)$, where g_i(X) is an
+        irreducible factor of f(X) and g_i(X) exactly divides f(X).
+        If the optional parameter is_diagonalizable is True, then we
+        let W_i = ker(g(A)), since then we know that ker(g(A)) =
+        $ker(g(A)^n)$.
+
+        If dual is True, also returns the corresponding decomposition
+        of V under the action of the transpose of A.  The factors are
+        guarenteed to correspond.
+
+        INPUT:
+            self -- a matrix over a field
+
+        OUTPUT:
+            Sequence -- list of pairs (V,t), where V is a vector spaces
+                    and t is a bool, and t is True exactly when the
+                    charpoly of self on V is irreducible.
+
+            (optional) list -- list of pairs (W,t), where W is a vector
+                    space and t is a bool, and t is True exactly
+                    when the charpoly of the transpose of self on W
+                    is irreducible.
+
+        EXAMPLES:
+            sage: MS1 = MatrixSpace(ZZ,4)
+            sage: MS2 = MatrixSpace(QQ,6)
+            sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
+            sage: B = MS2(range(36))
+            sage: B*11   # random output
+            [-11  22 -11 -11 -11 -11]
+            [ 11 -22 -11 -22  11  11]
+            [-11 -11 -11 -22 -22 -11]
+            [-22  22 -22  22 -11  11]
+            [ 22 -11  11 -22  11  22]
+            [ 11  11  11 -22  22  22]
+            sage: decomposition(A)
+            [
+            (Ambient free module of rank 4 over the principal ideal domain Integer Ring, 1)
+            ]
+            sage: decomposition(B)
+            [
+            (Vector space of degree 6 and dimension 2 over Rational Field
+            Basis matrix:
+            [ 1  0 -1 -2 -3 -4]
+            [ 0  1  2  3  4  5], 1),
+            (Vector space of degree 6 and dimension 4 over Rational Field
+            Basis matrix:
+            [ 1  0  0  0 -5  4]
+            [ 0  1  0  0 -4  3]
+            [ 0  0  1  0 -3  2]
+            [ 0  0  0  1 -2  1], 0)
+            ]
+        """
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+
+        if not self.base_ring().is_field():
+            raise TypeError, "self must be over a field."
+
+        if self.nrows() == 0:
+            return decomp_seq([])
+
+        f = self.charpoly('x')
+        E = decomp_seq([])
+
+        if dual:
+            Edual = decomp_seq([])
+
+        t = verbose('decomposition -- factoring the characteristic polynomial', level=2)
+        F = f.factor()
+        verbose('decomposition -- done factoring', t=t, level=2)
+
+        V = sage.modules.free_module.FreeModule(
+                self.base_ring(), self.nrows(), sparse=self.is_sparse())
+
+        if len(F) == 1:
+            m = F[0][1]
+            if dual:
+                return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
+            else:
+                return decomp_seq([(V,m==1)])
+
+        v = V.random_element()
+
+        num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
+        t = verbose('decomposition -- computing %s iterates of a random vector.'%num_iterates)
+
+        S = self.iterates(v, num_iterates)
+
+        verbose('decomposition -- done computing iterates.', t = t)
+
+        F.sort()
+        for i in range(len(F)):
+            g, m = F[i]
+
+            # Compute the complementary factor.
+            h = f // (g**m)
+
+            # Compute one element of the kernel of g(self)**m.
+            t = verbose('decomposition -- compute element of kernel of g(self), for g of degree %s'%g.degree(),level=2)
+            w = S.linear_combination_of_rows(h.list())
+            t = verbose('decomposition -- done computing element of kernel of g(self)', t=t,level=2)
+
+            # normalize??
+            t = verbose('decomposition -- normalize vector', level=2)
+            w = w.normalize()
+            verbose('decomposition -- normalize vector', t, level = 2)
+
+            # Get the rest of the kernel.
+            t = verbose('decomposition -- fill out rest of kernel',level=2)
+            W = self.iterates(w, g.degree())
+            t = verbose('decomposition -- finished filling out rest of kernel',level=2, t=t)
+
+            t = verbose('decomposition -- now computing row space', level=2)
+            W.echelonize(algorithm = echelon_algorithm, height_guess=height_guess)
+            E.append((W.row_space(), m==1))
+            verbose('decomposition -- computed row space', level=2,t=t)
+
         return E
 
     def decomposition_of_subspace(self, M, is_diagonalizable=False):

@@ -49,6 +49,8 @@ include "../ext/gmp.pxi"
 include "../ext/random.pxi"
 
 cimport sage.structure.element
+
+from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
@@ -1030,6 +1032,95 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
+    def _decomposition_devel(self, is_diagonalizable=False, dual=False,
+                            echelon_algorithm='default', height_guess=None):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
+
+        INPUT:
+            self -- a matrix over a field
+
+        OUTPUT:
+            Sequence -- list of pairs (V,t), where V is a vector spaces
+                    and t is a bool, and t is True exactly when the
+                    charpoly of self on V is irreducible.
+
+            (optional) list -- list of pairs (W,t), where W is a vector
+                    space and t is a bool, and t is True exactly
+                    when the charpoly of the transpose of self on W
+                    is irreducible.
+        """
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+
+        if not self.base_ring().is_field():
+            raise TypeError, "self must be over a field."
+
+        if self.nrows() == 0:
+            return decomp_seq([])
+
+        f = self.charpoly('x')
+        E = decomp_seq([])
+
+        if dual:
+            Edual = decomp_seq([])
+
+        t = verbose('decomposition -- factoring the characteristic polynomial', level=2)
+        F = f.factor()
+        verbose('decomposition -- done factoring', t=t, level=2)
+
+        if len(F) == 1:
+            V = QQ**self.nrows()
+            m = F[0][1]
+            if dual:
+                return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
+            else:
+                return decomp_seq([(V,m==1)])
+
+
+        V = ZZ**self.nrows()
+        v = V.random_element()
+
+        num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
+
+        A, _ = self._clear_denom()
+
+        t = verbose('decomposition -- computing %s iterates of a random vector.'%num_iterates)
+        S = A.iterates(v, num_iterates)
+        verbose('decomposition -- done computing iterates.', t = t)
+
+        F.sort()
+        for i in range(len(F)):
+            g, m = F[i]
+
+            # Compute the complementary factor.
+            h = f // (g**m)
+            h = h * h.denominator()
+
+            # Compute one element of the kernel of g(self)**m.
+            t = verbose('decomposition -- compute element of kernel of g(self), for g of degree %s'%g.degree(),level=2)
+            w = S.linear_combination_of_rows(h.list())
+            t = verbose('decomposition -- done computing element of kernel of g(self)', t=t,level=2)
+
+            # Get the rest of the kernel.
+            t = verbose('decomposition -- fill out rest of kernel',level=2)
+            W = A.iterates(w, g.degree())
+            t = verbose('decomposition -- finished filling out rest of kernel',level=2, t=t)
+
+            W = W.change_ring(QQ)
+
+            t = verbose('decomposition -- now computing row space', level=2)
+            W.echelonize(algorithm = echelon_algorithm, height_guess=height_guess)
+            E.append((W.row_space(), m==1))
+            verbose('decomposition -- computed row space', level=2,t=t)
+
+        return E
+
     ################################################################
     # second implementation of the above, usually over twice as fast
     # even without denominator lcm trick
@@ -1317,3 +1408,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
 
 
+
+
+cdef decomp_seq(v):
+    return Sequence(v, universe=tuple, check=False, cr=True)

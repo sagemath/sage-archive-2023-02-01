@@ -1193,7 +1193,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         coefficients in the list v.
 
         INPUT:
-            v -- list
+            v -- list of length at most the number of rows of self.
 
         EXAMPLES:
             sage: a = matrix(QQ,2,3,range(6)); a
@@ -1207,17 +1207,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, n
         R = self.rows()
         n = len(R)
-        if len(v) != n:
-            raise ValueError, "length of v must equal number of rows."
+        if len(v) > n:
+            raise ValueError, "length of v (=%s) must be at most the number (=%s) of rows."%(len(v), n)
         zero = self._base_ring(0)
         s = None
-        for i from 0 <= i < n:
+        for i from 0 <= i < len(v):
             if v[i] != zero:
                 a = v[i] * R[i]
                 if s is None:
                     s = a
                 else:
-                    s = s + a
+                    s += a
         if s is None:
             return self.parent().row_space()(0)
         return s

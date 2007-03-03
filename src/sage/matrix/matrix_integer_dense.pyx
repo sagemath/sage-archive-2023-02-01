@@ -1853,7 +1853,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A = self
         # Step 1: Compute the rank
 
+        t = verbose('computing rank', level=2, caller_name='p-adic echelon')
         r = A.rank()
+        verbose('done computing rank', level=2, t=t, caller_name='p-adic echelon')
+
         if r == self._nrows:
             # The input matrix already has full rank.
             B = A
@@ -1894,7 +1897,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             pivots_ = set(pivots)
             non_pivots = [i for i in range(B.ncols()) if not i in pivots_]
             D = B.matrix_from_columns(non_pivots)
+            t = verbose('calling IML solver', level=2, caller_name='p-adic echelon')
             X, d = C._solve_iml(D, right=True)
+            t = verbose('finished IML solver', level=2, caller_name='p-adic echelon', t=t)
 
             # Step 6: Verify that we had chosen the correct pivot columns.
             pivots_are_right = True

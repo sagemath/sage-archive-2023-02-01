@@ -4012,7 +4012,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             L = rings.pAdicField(p, adjusted_prec)
             total = (-alpha / beta) * total
-            total = L(total.lift())   # yuck... get rid of this lift!
+            total = L(total.lift(), adjusted_prec)   # yuck... get rid of this lift!
             answer = total.log() / n**2 / p
 
             if check:

@@ -1,7 +1,7 @@
+/* #define mod_int size_t */
 #define mod_int size_t
 
-
-/* This is the largest value we can do arithmatic on without risking overflowing.
+/* This is the largest value we can do arithmetic on without risking overflowing.
  * It will be optimized to a constant if any optimization is turned on.
  * The expression below assumes unsigned.
  */

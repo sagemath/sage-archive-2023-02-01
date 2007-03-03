@@ -1643,6 +1643,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: # A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
             sage: A = matrix(QQ, 4, [3, 9, 0, 0, 0, 9, 0, 1, 0, 10, 9, 2, 0, 9, 0, 2])
+            sage: A.charpoly()
+            x^4 - 23*x^3 + 168*x^2 - 405*x + 243
             sage: A.eigenspaces(var = 'beta')
             [
             (9, [

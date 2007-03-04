@@ -890,13 +890,17 @@ class pAdic(field_element.FieldElement):
                 extra_prec += 1
 
             x = 1 - self
-            x = pAdic(self.__parent, x.lift(), prec + extra_prec)
+            p = self.__p
+            R = sage.rings.all.Integers(p**(prec + extra_prec))
+            x = R(x.lift())
+
             xpow = x
-            ans = self.parent()(0)
+            ans = R(0)
             for n in range(1, prec + extra_prec):
-                ans -= xpow/n
-                xpow *= x
-            return pAdic(self.__parent, ans, prec)
+                ans = ans - R(xpow.lift()/n)
+                xpow = xpow * x
+
+            return pAdic(self.__parent, ans.lift(), prec)
         else:
             z = self.unit_part()
             p = self.__p

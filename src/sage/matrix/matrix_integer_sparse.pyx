@@ -39,9 +39,19 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
     #   * __hash__       -- alway simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
+        self._initialized = False
+        # set the parent, nrows, ncols, etc.
+        matrix_sparse.Matrix_sparse.__init__(self, parent)
+
         self._matrix = <mpz_vector*> sage_malloc(parent.nrows()*sizeof(mpz_vector))
         if self._matrix == NULL:
             raise MemoryError, "error allocating sparse matrix"
+        # initialize the rows
+        for i from 0 <= i < parent.nrows():
+            init_mpz_vector(&self._matrix[i], self._ncols, 0)
+        # record that rows have been initialized
+        self._initialized = True
+
 
     def __dealloc__(self):
         cdef Py_ssize_t i
@@ -70,13 +80,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         # set the parent, nrows, ncols, etc.
         matrix_sparse.Matrix_sparse.__init__(self, parent)
-
-        # initialize the rows
-        for i from 0 <= i < parent.nrows():
-            init_mpz_vector(&self._matrix[i], self._ncols, 0)
-
-        # record that rows have been initialized
-        self._initialized = True
 
         # fill in entries in the dict case
         if isinstance(entries, dict):
@@ -177,18 +180,6 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
     cdef _mod_int_c(self, mod_int p):
         raise NotImplementedError
-        cdef Py_ssize_t i, j
-        cdef Matrix_modn_dense res
-        cdef mpz_t* self_row
-        cdef mod_int* res_row
-        res = Matrix_modn_dense.__new__(Matrix_modn_dense, matrix_space.MatrixSpace(IntegerModRing(p),
-                                                             self._nrows, self._ncols, sparse=False), None, None, None)
-        for i from 0 <= i < self._nrows:
-            self_row = self._matrix[i]
-            res_row = res._matrix[i]
-            for j from 0 <= j < self._ncols:
-                res_row[j] = mpz_fdiv_ui(self_row[j], p)
-        return res
 
     def rational_reconstruction(self, N):
         """

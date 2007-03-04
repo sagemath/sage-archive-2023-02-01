@@ -37,9 +37,19 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #   * __hash__       -- alway simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
+        # set the parent, nrows, ncols, etc.
+        matrix_sparse.Matrix_sparse.__init__(self, parent)
+
         self._matrix = <mpq_vector*> sage_malloc(parent.nrows()*sizeof(mpq_vector))
         if self._matrix == NULL:
             raise MemoryError, "error allocating sparse matrix"
+        # initialize the rows
+        for i from 0 <= i < parent.nrows():
+            init_mpq_vector(&self._matrix[i], self._ncols, 0)
+
+        # record that rows have been initialized
+        self._initialized = True
+
 
     def __dealloc__(self):
         cdef Py_ssize_t i
@@ -65,16 +75,6 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i, j, k
         cdef Rational z
         cdef void** X
-
-        # set the parent, nrows, ncols, etc.
-        matrix_sparse.Matrix_sparse.__init__(self, parent)
-
-        # initialize the rows
-        for i from 0 <= i < parent.nrows():
-            init_mpq_vector(&self._matrix[i], self._ncols, 0)
-
-        # record that rows have been initialized
-        self._initialized = True
 
         # fill in entries in the dict case
         if isinstance(entries, dict):

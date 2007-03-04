@@ -8,11 +8,6 @@ include 'vector_integer_sparse_h.pxi'
 
 from sage.rings.integer cimport Integer
 
-cdef class Vector_mpz
-
-cdef void Vector_mpz_rescale(Vector_mpz w, mpz_t x):
-    scale_mpz_vector(&w.v, x)
-
 
 cdef int allocate_mpz_vector(mpz_vector* v, Py_ssize_t num_nonzero) except -1:
     """
@@ -132,7 +127,7 @@ cdef Py_ssize_t mpz_binary_search0(mpz_t* v, Py_ssize_t n, mpz_t x):
     j = n-1
     while i<=j:
         if i == j:
-            if mpz_equal(v[i],x):
+            if mpz_cmp(v[i],x) == 0:
                 return i
             return -1
         k = (i+j)/2
@@ -199,11 +194,11 @@ cdef int mpz_vector_get_entry(mpz_t* ans, mpz_vector* v, Py_ssize_t n) except -1
     that *must* have been initialized using mpz_init.
     """
     if n >= v.degree:
-        raise IndexError, "Index must be between 0 and %s."%(v.degree - 1)
+        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree - 1)
     cdef Py_ssize_t m
     m = binary_search0(v.positions, v.num_nonzero, n)
     if m == -1:
-        mpz_set_si(ans[0], 0,1)
+        mpz_set_si(ans[0], 0)
         return 0
     mpz_set(ans[0], v.entries[m])
     return 0
@@ -230,7 +225,7 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
     This would be v[n] = x in Python syntax.
     """
     if n >= v.degree or n < 0:
-        raise IndexError, "Index must be between 0 and the degree minus 1."
+        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree - 1)
     cdef Py_ssize_t i, m, ins
     cdef Py_ssize_t m2, ins2
     cdef Py_ssize_t *pos
@@ -323,11 +318,11 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     cdef mpz_vector* z
     cdef mpz_t tmp
     mpz_init(tmp)
-    if mpz_cmp_si(multiple, 0, 1) == 0:
+    if mpz_cmp_si(multiple, 0) == 0:
         init_mpz_vector(sum, v.degree, 0)
         return 0
     # Do not do the multiply if the multiple is 1.
-    do_multiply = mpz_cmp_si(multiple, 1,1)
+    do_multiply = mpz_cmp_si(multiple, 1)
 
     z = sum
     # ALGORITHM:

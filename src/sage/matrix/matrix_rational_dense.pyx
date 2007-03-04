@@ -1077,15 +1077,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         You can get very very fast decomposition with proof=False.
         """
-        X = self._decomposition_rational(echelon_algorithm = algorithm,
+        X = self._decomposition_rational(is_diagonalizable=is_diagonalizable,
+                                         echelon_algorithm = algorithm,
                                          height_guess = height_guess, proof=proof)
         if dual:
-            Y = self.transpose()._decomposition_rational(echelon_algorithm = algorithm,
-                                                         height_guess = height_guess, proof=proof)
+            Y = self.transpose()._decomposition_rational(is_diagonalizable=is_diagonalizable,
+                   echelon_algorithm = algorithm, height_guess = height_guess, proof=proof)
             return X, Y
         return X
 
-    def _decomposition_rational(self, echelon_algorithm='default', **kwds):
+    def _decomposition_rational(self, is_diagonalizable = False,
+                                echelon_algorithm='default', **kwds):
         """
         Returns the decomposition of the free module on which this
         matrix A acts from the right (i.e., the action is x goes to x
@@ -1154,7 +1156,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 B = A.copy()
                 for k from 0 <= k < A.nrows():
                     B[k,k] += g[0]
-                if m > 1:
+                if m > 1 and not is_diagonalizable:
                     B = B**m
                 W = B.change_ring(QQ).kernel()
                 E.append((W, m==1))
@@ -1169,7 +1171,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 v = h.list()
 
                 while len(S) < m:
-                    t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)), level=2, caller_name='rational decomp')
+                    t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)),
+                                level=2, caller_name='rational decomp')
                     S.append(A.iterates(V.random_element(x=-10,y=10), num_iterates))
                     verbose('done spinning', level=2, t=t, caller_name='rational decomp')
 
@@ -1196,7 +1199,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     verbose('computed row space', level=2,t=t, caller_name='rational decomp')
                     break
                 else:
-                    verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
+                    verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
+                        W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
                     j += 1
                     if j > 3*m:
                         raise RuntimeError, "likely bug in decomposition"

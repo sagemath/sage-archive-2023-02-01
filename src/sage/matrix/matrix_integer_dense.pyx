@@ -59,6 +59,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.structure.sequence import Sequence
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
@@ -1927,31 +1928,40 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         # Finally, return the answer.
         return pivots, non_pivots, X, d
 
-    def _rational_decomposition(self):
-        r"""
-        Compute the rational decomposition of this matrix.
+    def decomposition(self, **kwds):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial, and are saturated as ZZ modules.
 
         INPUT:
-            self -- a matrix with integer entries
+            self -- a matrix over the integers
+            **kwds -- these are passed onto to the decomposition over QQ command.
 
-        OUTPUT:
-            a list of reduced row echelon form basis
-
-        AUTHOR:
-           -- William Stein
-
-        ALGORITHM: I created the following algorithm from scratch.
-
-        INPUT: a matrix A with integer coordinates
-
-        \begin{enumerate}
-        \item[1] Compute the characteristic polynomial $f$ of $A$.
-
-        \item[2] Compute the factorization $f=\prod_{i=1}^r f_i^{e_i}$.
-
-        \item[3]
+        EXAMPLES:
+            sage: t = ModularSymbols(11,sign=1).hecke_matrix(2)
+            sage: w = t.change_ring(ZZ)
+            sage: w.list()
+            [3, -1, 0, -2]
         """
+        F = self.charpoly().factor()
+        if len(F) == 1:
+            V = self.base_ring()**self.nrows()
+            return decomp_seq([(V, bool(F[0][1]==1))])
 
+        A = self.change_ring(QQ)
+        X = A.decomposition(**kwds)
+        V = ZZ**self.nrows()
+        if isinstance(X, tuple):
+            D, E = X
+            D = [(W.intersection(V), t) for W, t in D]
+            E = [(W.intersection(V), t) for W, t in E]
+            return D, E
+        else:
+            return [(W.intersection(V), t) for W, t in X]
 
 
 ###############################################################
@@ -2108,3 +2118,5 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
 
 
 
+cdef decomp_seq(v):
+    return Sequence(v, universe=tuple, check=False, cr=True)

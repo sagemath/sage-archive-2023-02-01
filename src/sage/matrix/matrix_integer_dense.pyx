@@ -23,6 +23,12 @@ EXAMPLES:
     True
 """
 
+########## *** IMPORTANT ***
+# If you're working on this code, we *always* assume that
+#   self._matrix[i] = self._entries[i*self._ncols]
+# !!!!!!!! Do not break this!
+# This is assumed in the _rational_kernel_iml
+
 ######################################################################
 #       Copyright (C) 2006,2007 William Stein
 #
@@ -35,6 +41,8 @@ EXAMPLES:
 from sage.modules.vector_integer_dense cimport Vector_integer_dense
 
 from sage.misc.misc import verbose, get_verbose, cputime
+
+from sage.rings.arith import previous_prime
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -51,6 +59,7 @@ from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.structure.sequence import Sequence
 
 from matrix_modn_dense import Matrix_modn_dense
 from matrix_modn_dense cimport Matrix_modn_dense
@@ -64,12 +73,30 @@ cimport sage.structure.element
 
 import matrix_space
 
+
+######### linbox interface ##########
 from sage.libs.linbox.linbox cimport Linbox_integer_dense
 cdef Linbox_integer_dense linbox
 linbox = Linbox_integer_dense()
+USE_LINBOX_POLY = True
 
-# It is still buggy. buzzard.py fails once in a while on charpoly.
-USE_LINBOX_POLY = False
+
+########## iml -- integer matrix library ###########
+
+cdef extern from "iml.h":
+
+    enum SOLU_POS:
+        LeftSolu = 101
+        RightSolu = 102
+
+    long nullspaceMP(long n, long m,
+                     mpz_t *A, mpz_t * *mp_N_pass)
+
+    void nonsingSolvLlhsMM (SOLU_POS solupos, long n, \
+                       long m, mpz_t *mp_A, mpz_t *mp_B, mpz_t *mp_N, \
+                       mpz_t mp_D)
+
+
 
 cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     r"""
@@ -132,6 +159,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         # Allocate an array of pointers to the rows, which is useful for
         # certain algorithms.
+        ##################################
+        # *IMPORTANT*: FOR MATRICES OVER ZZ, WE ALWAYS ASSUME THAT
+        # THIS ARRAY IS *not* PERMUTED.  This should be OK, since all
+        # algorithms are multi-modular.
+        ##################################
         self._matrix = <mpz_t **> sage_malloc(sizeof(mpz_t*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
@@ -275,7 +307,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
 
             # If x is zero, make the zero matrix and be done.
-            if mpz_cmp_si(x.value, 0) == 0:
+            if mpz_sgn(x.value) == 0:
                 self._zero_out_matrix()
                 return
 
@@ -1490,6 +1522,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #### Rank
 
     def rank(self):
+        r = self.fetch('rank')
+        if not r is None: return r
+
         # Can very quickly detect full rank by working modulo p.
         r = self._rank_modp()
         if r == self._nrows or r == self._ncols:
@@ -1542,6 +1577,391 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         d = linbox.det()
         _sig_off
         return Integer(d)
+
+    #### Rational kernel, via IML
+    def _rational_kernel_iml(self):
+        """
+        IML: Return the rational kernel of this matrix (acting from
+        the left), considered as a matrix over QQ.  I.e., returns a
+        matrix K such that self*K = 0, and the number of columns of K
+        equals the nullity of self.
+
+        AUTHOR:
+            -- William Stein
+        """
+        cdef long dim
+        cdef mpz_t *mp_N
+        time = verbose('computing nullspace of %s x %s matrix using IML'%(self._nrows, self._ncols))
+        _sig_on
+        dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
+        _sig_off
+
+        # Now read the answer as a matrix.
+        cdef Matrix_integer_dense M
+        P = self.matrix_space(self._ncols, dim)
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+        for i from 0 <= i < dim*self._ncols:
+            mpz_init_set(M._entries[i], mp_N[i])
+            mpz_clear(mp_N[i])
+        free(mp_N)
+
+        verbose("finished computing nullspace", time)
+        M._initialized = True
+        return M
+
+    def _invert_iml(self, use_nullspace=False):
+        """
+        Invert this matrix using IML.  The output matrix is an integer
+        matrix and a denominator.
+
+        INPUT:
+           self -- an invertible matrix
+           use_nullspace -- (default: False): whether to use nullspace
+                     algorithm, which is slower, but doesn't require
+                     checking that the matrix is invertible as a
+                     precondition.
+
+        OUTPUT: A, d such that A*self = d
+           A -- a matrix over ZZ
+           d -- an integer
+
+        ALGORITHM: Uses IML's p-adic nullspace function.
+
+        EXAMPLES:
+            sage: a = matrix(ZZ,3,[1,2,5, 3,7,8, 2,2,1])
+            sage: b, d = a._invert_iml(); b,d
+            ([  9  -8  19]
+            [-13   9  -7]
+            [  8  -2  -1], 23)
+            sage: a*b
+            [23  0  0]
+            [ 0 23  0]
+            [ 0  0 23]
+
+        AUTHOR:
+            -- William Stein
+        """
+        if self._nrows != self._ncols:
+            raise TypeError, "self must be a square matrix."
+
+        P = self.parent()
+        time = verbose('computing inverse of %s x %s matrix using IML'%(self._nrows, self._ncols))
+        if use_nullspace:
+            A = self.augment(P.identity_matrix())
+            K = A._rational_kernel_iml()
+            d = -K[self._nrows,0]
+            if K.ncols() != self._ncols or d == 0:
+                raise ZeroDivisionError, "input matrix must be nonsingular"
+            B = K[:self._nrows]
+            verbose("finished computing inverse using IML", time)
+            return B, d
+        else:
+            if self.rank() != self._nrows:
+                raise ZeroDivisionError, "input matrix must be nonsingular"
+            return self._solve_iml(P.identity_matrix(), right=True)
+
+
+    def _solve_iml(self, Matrix_integer_dense B, right=True):
+        """
+        Let A equal self. Given B return an integer matrix C and an
+        integer d such that self C*A == d*B if right is False or
+        A*C == d*B if right is True.
+
+        OUTPUT:
+            C -- integer matrix
+            d -- integer denominator
+
+        EXAMPLES:
+            sage: A = matrix(ZZ,4,4,[0, 1, -2, -1, -1, 1, 0, 2, 2, 2, 2, -1, 0, 2, 2, 1])
+            sage: B = matrix(ZZ,3,4, [-1, 1, 1, 0, 2, 0, -2, -1, 0, -2, -2, -2])
+            sage: C,d = A._solve_iml(B,right=False); C
+            [  6 -18 -15  27]
+            [  0  24  24 -36]
+            [  4 -12  -6  -2]
+
+            sage: d
+            12
+
+            sage: C*A == d*B
+            True
+
+            sage: A = matrix(ZZ,4,4,[0, 1, -2, -1, -1, 1, 0, 2, 2, 2, 2, -1, 0, 2, 2, 1])
+            sage: B = matrix(ZZ,4,3, [-1, 1, 1, 0, 2, 0, -2, -1, 0, -2, -2, -2])
+            sage: C,d = A._solve_iml(B)
+            sage: C
+            [ 12  40  28]
+            [-12  -4  -4]
+            [ -6 -25 -16]
+            [ 12  34  16]
+
+            sage: d
+            12
+
+            sage: A*C == d*B
+            True
+
+        ALGORITHM: Uses IML.
+
+        AUTHOR:
+            -- Martin Albrecht
+        """
+        cdef int i
+        cdef mpz_t *mp_N, mp_D
+        cdef Matrix_integer_dense M
+        cdef Integer D
+
+        if self._nrows != self._ncols:
+            raise ArithmeticError, "self must be square"
+
+        if self.nrows() == 1:
+            return B, self[0,0]
+
+        mpz_init(mp_D)
+
+
+        if right:
+            if self._ncols != B._nrows:
+                raise ArithmeticError, "B's number of rows must match self's number of columns"
+
+            n = self._ncols
+            m = B._ncols
+
+            if m == 0 or n == 0:
+                return self.new_matrix(nrows = n, ncols = m), Integer(1)
+
+            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+            for i from 0 <= i < n * m:
+                mpz_init( mp_N[i] )
+
+            nonsingSolvLlhsMM(RightSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+
+            P = self.matrix_space(n, m)
+
+        else: # left
+            if self._nrows != B._ncols:
+                raise ArithmeticError, "B's number of columns must match self's number of rows"
+
+            n = self._ncols
+            m = B._nrows
+
+            if m == 0 or n == 0:
+                return self.new_matrix(nrows = m, ncols = n), Integer(1)
+
+            mp_N = <mpz_t *> sage_malloc( n * m * sizeof(mpz_t) )
+            for i from 0 <= i < n * m:
+                mpz_init( mp_N[i] )
+
+            nonsingSolvLlhsMM(LeftSolu, n, m, self._entries, B._entries, mp_N, mp_D)
+
+            P = self.matrix_space(m, n)
+
+        M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
+        for i from 0 <= i < n*m:
+            mpz_init_set(M._entries[i], mp_N[i])
+            mpz_clear(mp_N[i])
+        M._initialized = True
+
+        D = PY_NEW(Integer)
+        mpz_set(D.value, mp_D)
+        mpz_clear(mp_D)
+
+        return M,D
+
+    def _rational_echelon_via_solve(self):
+        r"""
+        Computes information that gives the reduced row echelon form
+        (over QQ!) of a matrix with integer entries.
+
+        INPUT:
+            self -- a matrix over the integers.
+
+        OUTPUT:
+            pivots -- ordered list of integers that give the pivot column positions
+            nonpivots -- ordered list of the nonpivot column positions
+            X -- matrix with integer entries
+            d -- integer
+
+        If you put standard basis vectors in order at the pivot
+        columns, and put the matrix (1/d)*X everywhere else, then
+        you get the reduced row echelon form of self, without zero
+        rows at the bottom.
+
+        NOTE: IML is the actual underlying $p$-adic solver that we use.
+
+        EXAMPLES:
+
+
+
+        AUTHOR:
+           -- William Stein
+
+        ALGORITHM:  I came up with this algorithm from scratch.
+        As far as I know it is new.  It's pretty simple, but it
+        is ... (fast?!).
+
+        Let A be the input matrix.
+
+        \begin{enumerate}
+            \item[1] Compute r = rank(A).
+
+            \item[2] Compute the pivot columns of the transpose $A^t$ of
+                $A$.  One way to do this is to choose a random prime
+                $p$ and compute the row echelon form of $A^t$ modulo
+                $p$ (if the number of pivot columns is not equal to
+                $r$, pick another prime).
+
+            \item[3] Let $B$ be the submatrix of $A$ consisting of the
+                rows corresponding to the pivot columns found in
+                the previous step.  Note that, aside from zero rows
+                at the bottom, $B$ and $A$ have the same reduced
+                row echelon form.
+
+            \item[4] Compute the pivot columns of $B$, again possibly by
+                choosing a random prime $p$ as in [2] and computing
+                the Echelon form modulo $p$.  If the number of pivot
+                columns is not $r$, repeat with a different prime.
+                Note -- in this step it is possible that we mistakenly
+                choose a bad prime $p$ such that there are the right
+                number of pivot columns modulo $p$, but they are
+                at the wrong positions -- e.g., imagine the
+                augmented matrix $[pI|I]$ -- modulo $p$ we would
+                miss all the pivot columns.   This is OK, since in
+                the next step we would detect this, as the matrix
+                we would obtain would not be in echelon form.
+
+            \item[5] Let $C$ be the submatrix of $B$ of pivot columns.
+                Let $D$ be the complementary submatrix of $B$ of
+                all all non-pivot columns.  Use a $p$-adic solver
+                to find the matrix $X$ and integer $d$ such
+                that $C (1/d) X=D$.  I.e., solve a bunch of linear
+                systems of the form $Cx = v$, where the columns of
+                $X$ are the solutions.
+
+            \item[6] Verify that we had chosen the correct pivot
+                columns.  Inspect the matrix $X$ obtained in step 5.
+                If when used to construct the echelon form of $B$, $X$
+                indeed gives a matrix in reduced row echelon form,
+                then we are done -- output the pivot columns, $X$, and
+                $d$. To tell if $X$ is correct, do the following: For
+                each column of $X$ (corresponding to non-pivot column
+                $i$ of $B$), read up the column of $X$ until finding
+                the first nonzero position $j$; then verify that $j$
+                is strictly less than the number of pivot columns of
+                $B$ that are strictly less than $i$.  Otherwise, we
+                got the pivots of $B$ wrong -- try again starting at
+                step 4, but with a different random prime.
+
+        \end{enumerate}
+        """
+        from matrix_modn_dense import MAX_MODULUS
+        A = self
+        # Step 1: Compute the rank
+
+        t = verbose('computing rank', level=2, caller_name='p-adic echelon')
+        r = A.rank()
+        verbose('done computing rank', level=2, t=t, caller_name='p-adic echelon')
+
+        if r == self._nrows:
+            # The input matrix already has full rank.
+            B = A
+        else:
+            # Steps 2 and 3: Extract out a submatrix of full rank.
+            i = 0
+            while True:
+                p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
+                P = A._mod_int(p).transpose().pivots()
+                if len(P) == r:
+                    B = A.matrix_from_rows(P)
+                    break
+                else:
+                    i += 1
+                    if i == 50:
+                        raise RuntimeError, "Bug in _rational_echelon_via_solve in finding linearly independent rows."
+
+        _i = 0
+        while True:
+            _i += 1
+            if _i == 50:
+                raise RuntimeError, "Bug in _rational_echelon_via_solve -- pivot columns keep being wrong."
+
+            # Step 4: Now we instead worry about computing the reduced row echelon form of B.
+            i = 0
+            while True:
+                p = previous_prime(random() % (MAX_MODULUS-15000) + 10000)
+                pivots = B._mod_int(p).pivots()
+                if len(pivots) == r:
+                    break
+                else:
+                    i += 1
+                    if i == 50:
+                        raise RuntimeError, "Bug in _rational_echelon_via_solve in finding pivot columns."
+
+            # Step 5: Apply p-adic solver
+            C = B.matrix_from_columns(pivots)
+            pivots_ = set(pivots)
+            non_pivots = [i for i in range(B.ncols()) if not i in pivots_]
+            D = B.matrix_from_columns(non_pivots)
+            t = verbose('calling IML solver', level=2, caller_name='p-adic echelon')
+            X, d = C._solve_iml(D, right=True)
+            t = verbose('finished IML solver', level=2, caller_name='p-adic echelon', t=t)
+
+            # Step 6: Verify that we had chosen the correct pivot columns.
+            pivots_are_right = True
+            for z in range(X.ncols()):
+                if not pivots_are_right:
+                    break
+                i = non_pivots[z]
+                np = len([k for k in pivots if k < i])
+                for j in reversed(range(X.nrows())):
+                    if X[j,z] != 0:
+                        if j < np:
+                            break # we're good -- go on to next column of X
+                        else:
+                            pivots_are_right = False
+                            break
+            if pivots_are_right:
+                break
+
+        #end while
+
+
+        # Finally, return the answer.
+        return pivots, non_pivots, X, d
+
+    def decomposition(self, **kwds):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial, and are saturated as ZZ modules.
+
+        INPUT:
+            self -- a matrix over the integers
+            **kwds -- these are passed onto to the decomposition over QQ command.
+
+        EXAMPLES:
+            sage: t = ModularSymbols(11,sign=1).hecke_matrix(2)
+            sage: w = t.change_ring(ZZ)
+            sage: w.list()
+            [3, -1, 0, -2]
+        """
+        F = self.charpoly().factor()
+        if len(F) == 1:
+            V = self.base_ring()**self.nrows()
+            return decomp_seq([(V, bool(F[0][1]==1))])
+
+        A = self.change_ring(QQ)
+        X = A.decomposition(**kwds)
+        V = ZZ**self.nrows()
+        if isinstance(X, tuple):
+            D, E = X
+            D = [(W.intersection(V), t) for W, t in D]
+            E = [(W.intersection(V), t) for W, t in E]
+            return D, E
+        else:
+            return [(W.intersection(V), t) for W, t in X]
 
 
 ###############################################################
@@ -1666,3 +2086,37 @@ def tune_multiplication(k, nmin=10, nmax=200, bitmin=2,bitmax=64):
                 print 'multimod'
 
 
+#########################################################
+# Interface to the integer matrix library.
+#########################################################
+## cdef class Matrix_IML:
+##     cdef mpz_t* matrix
+##     cdef long nrows
+##     cdef long ncols
+
+##     def __init__(self):
+##         self.matrix = NULL
+
+##     cdef set(self, mpz_t* matrix, long nrows, long ncols):
+##         self.nrows = nrows
+##         self.ncols = ncols
+##         self.matrix = matrix
+
+##     def kernel(self, mpz_t** answer):
+##         """
+##         INPUT:
+##             self  -- assumes nrows, ncols and matrix have been set
+##         OUTPUT:
+##         """
+##         if self.matrix == NULL:
+##             raise RuntimeError, "you must set self.matrix first."
+##         raise NotImplementedError
+
+##     def solve(self, v):
+##         raise NotImplementedError
+
+
+
+
+cdef decomp_seq(v):
+    return Sequence(v, universe=tuple, check=False, cr=True)

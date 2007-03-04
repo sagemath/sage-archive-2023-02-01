@@ -177,9 +177,7 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
             sage: M.hecke_operator(2).charpoly('x')
             x^6 - 14*x^5 + 29*x^4 + 172*x^3 - 124*x^2 - 320*x + 256
         """
-        M=self.matrix()
-        f=M.charpoly(var)
-        return f
+        return self.matrix().charpoly(var)
 
     def decomposition(self):
         """

@@ -27,8 +27,12 @@ cdef arith_llong ai
 ai = arith_llong()
 
 # We use both integer and double operations, hence the min.
-MAX_MODULUS = min(int(sqrt(int(MOD_INT_OVERFLOW))-1), int(2)**int(20))
+# MAX_MODULUS = min(int(sqrt(int(MOD_INT_OVERFLOW))-1), int(2)**int(20))
 
+# Hard coded because currently matrix_modn_dense is implemented using C ints
+# which are always 32-bit.   Once this gets firxed, i.e., there is a better
+# matrix_modn class, then this can change.
+MAX_MODULUS = 46340
 
 # TODO: have one global instance for sharing, copy for MutableMultiModularBasis
 cdef class MultiModularBasis_base:

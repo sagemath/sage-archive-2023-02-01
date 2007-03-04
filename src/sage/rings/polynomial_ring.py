@@ -466,23 +466,32 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return 1
 
-    def random_element(self, degree, bound=0):
+    def random_element(self, degree, *args, **kwds):
         """
         Return a random polynomial.
 
         INPUT:
             degree -- an integer
-            bound -- an integer (default: 0, which tries to spread choice
-                      across ring, if implemented)
+            *args, **kwds -- passed onto the random_element method for the base ring.
 
         OUTPUT:
             Polynomial -- A polynomial such that the coefficient of x^i,
             for i up to degree, are coercions to the base ring of
             random integers between -bound and bound.
 
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: R.random_element(10, 5,10)
+            6*x^10 + 7*x^9 + 8*x^8 + 9*x^7 + 8*x^6 + 9*x^5 + 6*x^4 + 9*x^3 + 5*x^2 + 8*x + 6
+            sage: R.random_element(6)
+            2*x^5 - 2*x^4 - x^3 + 1
+            sage: R.random_element(6)
+            2*x^5 + 2*x^3 + x - 1
+            sage: R.random_element(6)
+            -2*x^6 - x^5 - 2*x^3 - x^2 + 2*x + 1
         """
         R = self.base_ring()
-        return self([R.random_element(bound) for _ in xrange(degree+1)])
+        return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
 
     def _monics_degree( self, of_degree ):
         base = self.base_ring()

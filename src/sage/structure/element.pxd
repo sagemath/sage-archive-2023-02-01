@@ -11,8 +11,10 @@ import  sage_object
 
 cdef class Element(sage_object.SageObject):
     cdef ParentWithBase _parent
+    cdef _richcmp_c_impl(left, Element right, int op)
     cdef int _cmp_c_impl(left, Element right) except -2
     cdef public _richcmp(self, right, int op)
+    cdef public _cmp(self, right)
     cdef _set_parent_c(self, ParentWithBase parent)
     cdef base_extend_c(self, ParentWithBase R)       # do *NOT* override, but OK to call directly
     cdef base_extend_c_impl(self, ParentWithBase R)  # OK to override, but do NOT call

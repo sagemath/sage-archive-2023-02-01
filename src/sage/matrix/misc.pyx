@@ -172,7 +172,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         while prod < M:
             problem = problem + 1
             if problem > 50:
-                verbose("sparse_matrix multi-modular reduce not converging?")
+                verbose("echelon multi-modular possibly not converging?")
             t = verbose("echelon modulo p=%s (%.2f%% done)"%(
                        p, 100*float(len(str(prod))) / len(str(M))), level=2)
 
@@ -182,9 +182,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             A.echelonize()
             t = verbose("time to put reduced matrix in echelon form:",t, level=2)
 
-            # a very worthwhile check (we will extend the algorithm to
-            # switch to a system solving method in the nonsquare full
-            # rank case at some point).
+            # a worthwhile check / shortcut.
             if self._nrows == self._ncols and len(A.pivots()) == self._nrows:
                 verbose("done: the echelon form mod p is the identity matrix")
                 E = self.parent().identity_matrix()
@@ -228,7 +226,8 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             L = 0  # free memory
             verbose('rational reconstruction time is', t, level=2)
         except ValueError, msg:
-            verbose("Redoing with several more primes", level=2)
+            verbose(msg, level=2)
+            verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2)
             M = prod * p*p*p
             continue
 

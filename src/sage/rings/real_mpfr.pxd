@@ -3,6 +3,8 @@ cdef extern from "stdlib.h":
     void free(void *ptr)
 
 include 'mpfr.pxi'
+include '../ext/cdefs.pxi'
+include '../libs/pari/decl.pxi'
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -24,5 +26,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
     cdef char init
     cdef RealNumber _new(self)
     cdef _set(self, x, int base)
+    cdef _set_from_GEN_REAL(self, GEN g)
     cdef RealNumber abs(RealNumber self)
 

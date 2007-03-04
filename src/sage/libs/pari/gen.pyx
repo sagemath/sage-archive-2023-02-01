@@ -466,6 +466,9 @@ cdef class gen(sage.structure.element.RingElement):
             v[k-i] = self[k]
         return v
 
+    def gen_length(gen self):
+        return lg(self.g)
+
     def __setitem__(gen self, n, y):
         r"""
         Set the nth entry to a reference to y.
@@ -5310,6 +5313,17 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         return _new_gen(x)
 
+    def complex(self, re, im):
+        """
+        Create a new complex number, initialized from re and im.
+        """
+        t0GEN(re)
+        t1GEN(im)
+        cdef GEN cp
+        cp = cgetg(3, t_COMPLEX)
+        __set_lvalue__(gel(cp, 1), t0)
+        __set_lvalue__(gel(cp, 2), t1)
+        return self.new_gen(cp)
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         return deepcopy_to_python_heap(x, address)

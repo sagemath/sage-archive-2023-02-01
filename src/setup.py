@@ -167,10 +167,6 @@ matrix_pid_sparse = Extension('sage.matrix.matrix_pid_sparse',
                        ['sage/matrix/matrix_pid_sparse.pyx'])
 
 
-matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
-                                  ['sage/matrix/matrix_integer_sparse.pyx'],
-                                  libraries = ['gmp'])
-
 matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  ['sage/matrix/matrix_integer_2x2.pyx'],
                                  libraries = ['gmp'])
@@ -198,13 +194,18 @@ matrix_rational_dense = Extension('sage.matrix.matrix_rational_dense',
                                   ['sage/matrix/matrix_rational_dense.pyx'],
                                  libraries = ['gmp'])
 
+matrix_integer_sparse = Extension('sage.matrix.matrix_integer_sparse',
+                                  ['sage/matrix/matrix_integer_sparse.pyx'],
+                                  libraries = ['gmp'])
+
 matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
                                   ['sage/matrix/matrix_rational_sparse.pyx'],
                                  libraries = ['gmp'])
 
+# TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp'])
+                                  libraries = ['gmp', 'iml', 'm', BLAS])
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
@@ -322,7 +323,7 @@ ext_modules = [ \
 
     matrix_misc,
 
-    #cf,
+    cf,
 
     matrix_dense,
     matrix_generic_dense,
@@ -343,7 +344,7 @@ ext_modules = [ \
      matrix_rational_dense,
      matrix_rational_sparse,
      matrix_integer_2x2,
-##     matrix_integer_sparse,
+     matrix_integer_sparse,
      matrix_real_double_dense,
      matrix_complex_double_dense,
      solve,
@@ -427,7 +428,7 @@ ext_modules = [ \
 
     Extension('sage.rings.real_mpfr',
               sources = ['sage/rings/real_mpfr.pyx', 'sage/rings/ring.pyx'],
-              libraries = ['mpfr', 'gmp']), \
+              libraries = ['mpfr', 'pari', 'gmp']), \
 
     Extension('sage.rings.real_mpfi',
               sources = ['sage/rings/real_mpfi.pyx'],

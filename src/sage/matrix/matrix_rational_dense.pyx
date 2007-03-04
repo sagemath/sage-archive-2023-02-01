@@ -49,6 +49,8 @@ include "../ext/gmp.pxi"
 include "../ext/random.pxi"
 
 cimport sage.structure.element
+
+from sage.structure.sequence import Sequence
 from sage.rings.rational cimport Rational
 from matrix cimport Matrix
 from matrix_integer_dense cimport Matrix_integer_dense
@@ -58,6 +60,7 @@ from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
 from sage.rings.integer_ring import ZZ
 from sage.rings.finite_field import GF
+from sage.rings.rational_field import QQ
 
 import sage.ext.multi_modular
 from matrix2 import cmp_pivots
@@ -469,6 +472,25 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     # x * _multiply_multi_modular(self, Matrix_rational_dense right):
     # o * echelon_modular(self, height_guess=None):
     ########################################################################
+
+    def __invert__(self):
+        """
+        OUTPUT:
+           -- the inverse of self
+
+        If self is not invertible, a ZeroDivisionError is raised.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,3,range(9))
+            sage: a^(-1)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: input matrix must be nonsingular
+        """
+        A, denom = self._clear_denom()
+        B, d = A._invert_iml()
+        return (denom/d)*B
+
     def determinant(self):
         """
         Return the determinant of this matrix.
@@ -493,7 +515,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return det
 
 
-    def denom(self):
+    def denominator(self):
         """
         Return the denominator of this matrix.
 
@@ -504,7 +526,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b
             [-5007/293         1         2]
             [        3         4         5]
-            sage: b.denom()
+            sage: b.denominator()
             293
         """
         cdef Integer z
@@ -534,6 +556,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The product is a matrix over ZZ
         """
+        X = self.fetch('clear_denom')
+        if not X is None: return X
         cdef Integer D
         cdef Py_ssize_t i, j
         cdef Matrix_integer_dense A
@@ -555,6 +579,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 self_row = self_row + 1
         _sig_off
         A._initialized = 1
+        self.cache('clear_denom', (A,D))
         return A, D
 
     def charpoly(self, var='x', algorithm='linbox'):
@@ -773,15 +798,219 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return _pr
 
     ################################################
+    # Kernel
+    ################################################
+    def kernel(self):
+        """
+        Return the kernel of this matrix, as a vector space over QQ.
+        """
+        K = self.fetch('kernel')
+        if not K is None:
+            return K
+        A, _ = self.transpose()._clear_denom()
+        K = A._rational_kernel_iml().change_ring(QQ)
+        V = K.column_space()
+        self.cache('kernel', V)
+        return V
+
+
+    ################################################
     # Echelon form
     ################################################
-    def echelonize(self, height_guess=None, proof=True, **kwds):
+    def echelonize(self, algorithm='default',
+                   height_guess=None, proof=True, **kwds):
+        """
+        INPUT:
+            algorithm -- 'default' (default): use heuristic choice
+                         'padic': an algorithm based on the IML p-adic solver.
+                         'multimodular': uses a multimodular algorithm the uses linbox
+                                         modulo many primes.
+            height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
+                                           by the p-adic algorithm.
+
+        OUTPUT:
+            matrix -- the reduced row echelon for of self.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 4, range(16)); a[0,0] = 1/19; a[0,1] = 1/5; a
+            [1/19  1/5    2    3]
+            [   4    5    6    7]
+            [   8    9   10   11]
+            [  12   13   14   15]
+            sage: a.echelonize(); a
+            [      1       0       0 -76/157]
+            [      0       1       0  -5/157]
+            [      0       0       1 238/157]
+            [      0       0       0       0]
+
+            sage: a = matrix(QQ, 4, range(16)); a[0,0] = 1/19; a[0,1] = 1/5
+            sage: a.echelonize(algorithm='multimodular'); a
+            [      1       0       0 -76/157]
+            [      0       1       0  -5/157]
+            [      0       0       1 238/157]
+            [      0       0       0       0]
+        """
+
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         self.check_mutability()
         self.clear_cache()
+
         cdef Matrix_rational_dense E
-        E = self._echelon_form_multimodular(height_guess, proof=proof)
+        if algorithm == 'default':
+            algorithm = 'padic'
+        if algorithm == 'padic':
+            pivots = self._echelonize_padic()
+        elif algorithm == 'multimodular':
+            pivots = self._echelonize_multimodular(height_guess, proof, **kwds)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache('in_echelon_form', True)
+        self.cache('pivots', pivots)
+
+
+    def echelon_form(self, algorithm='default',
+                     height_guess=None, proof=True, **kwds):
+        """
+        INPUT:
+            algorithm -- 'default' (default): use heuristic choice
+                         'padic': an algorithm based on the IML p-adic solver.
+                         'multimodular': uses a multimodular algorithm the uses linbox
+                                         modulo many primes.
+            height_guess, proof, **kwds -- all passed to the multimodular algorithm; ignored
+                                           by the p-adic algorithm.
+
+        OUTPUT:
+            self is no in reduced row echelon form.
+
+        EXAMPLES:
+            sage: a = matrix(QQ, 4, range(16)); a[0,0] = 1/19; a[0,1] = 1/5; a
+            [1/19  1/5    2    3]
+            [   4    5    6    7]
+            [   8    9   10   11]
+            [  12   13   14   15]
+            sage: a.echelon_form()
+            [      1       0       0 -76/157]
+            [      0       1       0  -5/157]
+            [      0       0       1 238/157]
+            [      0       0       0       0]
+            sage: a.echelon_form(algorithm='multimodular')
+            [      1       0       0 -76/157]
+            [      0       1       0  -5/157]
+            [      0       0       1 238/157]
+            [      0       0       0       0]
+        """
+        label = 'echelon_form_%s'%algorithm
+        x = self.fetch(label)
+        if not x is None:
+            return x
+        if self.fetch('in_echelon_form'): return self
+
+        if algorithm == 'default':
+            algorithm = 'padic'
+
+        if algorithm == 'padic':
+            E = self._echelon_form_padic()
+        elif algorithm == 'multimodular':
+            E = self._echelon_form_multimodular(height_guess, proof=proof)
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+        self.cache(label, E)
+        self.cache('pivots', E.pivots())
+        return E
+
+
+    # p-adic echelonization algorithms
+    def _echelon_form_padic(self, include_zero_rows=True):
+        """
+        Compute and return the echelon form of self using a p-adic nullspace algorithm.
+        """
+        cdef Matrix_integer_dense X
+        cdef Matrix_rational_dense E
+        cdef Integer d
+        cdef mpq_t* E_row
+        cdef mpz_t* X_row
+
+        t = verbose('Computing echelon form of %s x %s matrix over QQ using p-adic nullspace algorithm.'%(
+            self.nrows(), self.ncols()))
+        A, _ = self._clear_denom()
+        t = verbose('  Got integral matrix', t)
+        pivots, nonpivots, X, d = A._rational_echelon_via_solve()
+        t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
+
+        nr = self.nrows() if include_zero_rows else X.nrows()
+        parent = self.matrix_space(nr, self.ncols())
+        E = Matrix_rational_dense.__new__(Matrix_rational_dense, parent, None, None, None)
+
+        # Fill in the identity part of the matrix
+        cdef Py_ssize_t i, j
+        for i from 0 <= i < len(pivots):
+            mpz_set_si(mpq_numref(E._matrix[i][pivots[i]]), 1)
+
+        # Fill in the non-pivot part of the matrix
+        for i from 0 <= i < X.nrows():
+            E_row = E._matrix[i]
+            X_row = X._matrix[i]
+            for j from 0 <= j < X.ncols():
+                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
+                mpq_canonicalize(E_row[nonpivots[j]])
+
+        t = verbose('Reconstructed solution over QQ, thus completing the echelonize', t)
+        E.cache('in_echelon_form', True)
+        E.cache('pivots', pivots)
+        return E
+
+    def _echelonize_padic(self):
+        """
+        Echelonize self using a p-adic nullspace algorithm.
+        """
+        cdef Matrix_integer_dense X
+        cdef Integer d
+        cdef mpq_t* E_row
+        cdef mpz_t* X_row
+
+        t = verbose('Computing echelonization of %s x %s matrix over QQ using p-adic nullspace algorithm.'%
+                    (self.nrows(), self.ncols()))
+        A, _ = self._clear_denom()
+        t = verbose('  Got integral matrix', t)
+        pivots, nonpivots, X, d = A._rational_echelon_via_solve()
+        t = verbose('  Computed ZZ-echelon using p-adic algorithm.', t)
+
+        # Fill in the identity part of self.
+        cdef Py_ssize_t i, j, k
+        for j from 0 <= j < len(pivots):
+            k = pivots[j]
+            for i from 0 <= i < len(pivots):
+                if i == j:
+                    mpq_set_si(self._matrix[i][k], 1, 1)
+                else:
+                    mpq_set_si(self._matrix[i][k], 0, 1)
+
+
+        # Fill in the non-pivot part of self.
+        for i from 0 <= i < X.nrows():
+            E_row = self._matrix[i]
+            X_row = X._matrix[i]
+            for j from 0 <= j < X.ncols():
+                mpz_set(mpq_numref(E_row[nonpivots[j]]), X_row[j])
+                mpz_set(mpq_denref(E_row[nonpivots[j]]), d.value)
+                mpq_canonicalize(E_row[nonpivots[j]])
+
+        # Fill in the 0-rows at the bottom.
+        for i from len(pivots) <= i < self._nrows:
+            E_row = self._matrix[i]
+            for j from 0 <= j < self._ncols:
+                mpq_set_si(E_row[j], 0, 1)
+
+        t = verbose('Filled in echelonization of self, thus completing the echelonize', t)
+        return pivots
+
+
+    # Multimodular echelonization algorithms
+    def _echelonize_multimodular(self, height_guess=None, proof=True, **kwds):
+        cdef Matrix_rational_dense E
+        E = self._echelon_form_multimodular(height_guess, proof=proof, **kwds)
         cdef Py_ssize_t i, j
         cdef mpq_t *row0, *row1
         for i from 0 <= i < self._nrows:
@@ -789,18 +1018,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             row1 = E._matrix[i]
             for j from 0 <= j < self._ncols:
                 mpq_set(row0[j], row1[j])
-        self.cache('in_echelon_form', True)
-        self.cache('pivots', E.pivots())
-
-    def echelon_form(self, height_guess=None, proof=True, **kwds):
-        x = self.fetch('echelon_form')
-        if not x is None:
-            return x
-        cdef Matrix_rational_dense E
-        E = self._echelon_form_multimodular(height_guess, proof=proof)
-        self.cache('echelon_form', E)
-        self.cache('pivots', E.pivots())
-        return E
+        return E.pivots()
 
     def _echelon_form_multimodular(self, height_guess=None, proof=True):
         """
@@ -817,147 +1035,178 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
-
-
-    # second implementation of the above, usually over twice as fast
-    # even without denominator lcm trick
-    # TODO: merge with the above
-    def _echelon_multimodular(self, height_guess=None, proof=True):
+    def decomposition(self, is_diagonalizable=False, dual=False,
+                      algorithm='default', height_guess=None, proof=True):
         """
-        _echelon_multimodular(self, height_guess=None):
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
 
-        Returns echelon form of self, without modifying self.  Uses a
-        multi-modular method.
+        Let A be the matrix acting from the on the vector space V of
+        column vectors.  Assume that A is square.  This function
+        computes maximal subspaces W_1, ..., W_n corresponding to
+        Galois conjugacy classes of eigenvalues of A.  More precisely,
+        let f(X) be the characteristic polynomial of A.  This function
+        computes the subspace $W_i = ker(g_(A)^n)$, where g_i(X) is an
+        irreducible factor of f(X) and g_i(X) exactly divides f(X).
+        If the optional parameter is_diagonalizable is True, then we
+        let W_i = ker(g(A)), since then we know that ker(g(A)) =
+        $ker(g(A)^n)$.
 
-        REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
+        If dual is True, also returns the corresponding decomposition
+        of V under the action of the transpose of A.  The factors are
+        guarenteed to correspond.
 
         INPUT:
-            self -- matrix with n columns (this).
-            height_guess -- integer or None
-            proof -- boolean (default: True)
+            is_diagonizalible -- ignored
+            dual -- whether to also return decompositions for the dual
+            algorithm -- 'default': use default algorithm for computing Echelon forms,
+                         'multimodular': much better if the answers factors have small height
+            height_guess -- positive integer; only used by the multimodular algorithm
+            proof -- bool (default: True); only used by the multimodular algorithm
 
-        ALGORITHM:
-        The following is a modular algorithm for computing the echelon
-        form.  Define the height of a matrix to be the max of the
-        absolute values of the entries.
+        IMPORTANT NOTE:
+        If you expect that the subspaces in the answer are spanned by vectors
+        with small height coordinates, use algorithm='multimodular' and
+        height_guess=1; this is potentially much faster than the default.
+        If you know for a fact the answer will be very small, use
+           algorithm='multimodular', height_guess=bound on height, proof=False
 
-        0. Rescale input matrix A to have integer entries.  This does
-           not change echelon form and makes reduction modulo many
-           primes significantly easier if there were denominators.
-           Henceforth we assume A has integer entries.
-
-        1. Let c be a guess for the height of the echelon form.  E.g.,
-           c=1000, since matrix is sparse and application is modular
-           symbols.
-
-        2. Let M = n * c * H(A) + 1,
-           where n is the number of columns of A.
-
-        3. List primes p_1, p_2, ..., such that the product of
-           the p_i is at least M.
-
-        4. Try to compute the rational reconstruction CRT echelon form
-           of A mod the product of the p_i.  Throw away those A mod p_i
-           whose pivot sequence is not >= all other pivot sequences of
-           A mod p_j.
-           If rational reconstruction fails, compute 1 more echelon
-           forms mod the next prime, and attempt again.  Let E be this
-           matrix.
-
-        5. Compute the denominator d of E.
-           Try to prove that result is correct by checking that
-
-                 H(d*E) < (prod of reduction primes)/(ncols*H(A)),
-
-           where H denotes the height.   If this fails, do step 4 with
-           a few more primes.
-
-        AUTHORS:
-            -- William Stein
-            -- Robert Bradshaw
+        You can get very very fast decomposition with proof=False.
         """
-        cdef Matrix_integer_dense A
-        cdef Matrix_rational_dense E
-        cdef Integer d
-        cdef int problem
-        A, d = self._clear_denom()
-        hA = A.height()
-        if height_guess is None:
-            height_guess = (2*hA)**(self._ncols/2+1)
-        tm = verbose("height_guess = %s"%height_guess, level=2)
-        best_pivots = []
+        X = self._decomposition_rational(is_diagonalizable=is_diagonalizable,
+                                         echelon_algorithm = algorithm,
+                                         height_guess = height_guess, proof=proof)
+        if dual:
+            Y = self.transpose()._decomposition_rational(is_diagonalizable=is_diagonalizable,
+                   echelon_algorithm = algorithm, height_guess = height_guess, proof=proof)
+            return X, Y
+        return X
 
-        if proof:
-            M = self._ncols * height_guess * hA  +  1
-        else:
-            M = height_guess + 1
-        mm = sage.ext.multi_modular.MutableMultiModularBasis(M)
+    def _decomposition_rational(self, is_diagonalizable = False,
+                                echelon_algorithm='default', **kwds):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
 
-        res = []
-        # reduction via several primes can be made more efficient than reduction via each prime one at a time
-        t = verbose("Reducing mod %s:"%mm, level=2)
-        new_res = A._reduce(mm) # TODO: can I recognize special forms (e.g. identity) before calculating all of these?
-        t = verbose("time to reduce matrix mod p:",t, level=2)
-        problem = 0
+        INPUT:
+            self -- a matrix over a field
+            echelon_algorithm -- 'default'
+                                 'multimodular' -- use this if the answers
+            **kwds -- passed on to echelon function.
 
-        _sig_on
-        while True:
-            # calculate the new echelon forms
-            for B in new_res:
-                B.echelonize()
-                t = verbose("time to put reduced matrix in echelon form:",t, level=2)
-            i = len(res)
-            res += new_res
-            new_res = []
-            # make sure they all have the same pivots
-            while i < len(res):
-                c = cmp_pivots(best_pivots, res[i].pivots())
-                if c == 0:
-                    i += 1
-                elif c < 0:
-                    best_pivots = res[i].pivots()
-                    i = 0
-                else:
-                    p = mm.replace_prime(i)
-                    res[i] = A._mod_int(p)
-                    res[i].echelonize()
-                    verbose("Excluding this prime (bad pivots).")
-            t = verbose("time for pivot compare", t, level=2)
-            # now try and lift
-            try:
-                t = verbose("start crt/rr", level=1)
-                E = self._lift_crt_rr_with_lcm(res, mm)
-                verbose("done crt/rr", t, level=1)
-            except ValueError:
-                mm._extend_moduli(3)
-                new_res = A._reduce(mm[-3:])
-                verbose("Failed to compute rational reconstruction -- redoing with several more primes", level=2)
+        IMPORTANT NOTE:
+        If you expect that the subspaces in the answer are spanned by vectors
+        with small height coordinates, use algorithm='multimodular' and
+        height_guess=1; this is potentially much faster than the default.
+        If you know for a fact the answer will be very small, use
+           algorithm='multimodular', height_guess=bound on height, proof=False
+
+        OUTPUT:
+            Sequence -- list of triples (V,t), where V is a vector spaces
+                    and t is True if and only if the charpoly of self on V
+                    is irreducible.
+                    The triples are in order corresponding to the elements
+                    of the sorted list self.charpoly().factor().
+        """
+        cdef Py_ssize_t k
+
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+
+        if not self.base_ring().is_field():
+            raise TypeError, "self must be over a field."
+
+        if self.nrows() == 0:
+            return decomp_seq([])
+
+        A, _ = self._clear_denom()
+
+        f = A.charpoly('x')
+        E = decomp_seq([])
+
+        t = verbose('factoring the characteristic polynomial', level=2, caller_name='rational decomp')
+        F = f.factor()
+        verbose('done factoring', t=t, level=2, caller_name='rational decomp')
+
+        if len(F) == 1:
+            V = QQ**self.nrows()
+            m = F[0][1]
+            return decomp_seq([(V,m==1)])
+
+        V = ZZ**self.nrows()
+        v = V.random_element()
+        num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
+
+        S = [ ]
+
+        F.sort()
+        for i in range(len(F)):
+            g, m = F[i]
+
+            if g.degree() == 1:
+                # Just use kernel -- much easier.
+                B = A.copy()
+                for k from 0 <= k < A.nrows():
+                    B[k,k] += g[0]
+                if m > 1 and not is_diagonalizable:
+                    B = B**m
+                W = B.change_ring(QQ).kernel()
+                E.append((W, m==1))
                 continue
 
-            # see if we have enough clearance for the height
-            if not proof:
-                verbose("Not checking validity of result (since proof=False).", level=2)
-                break
+            # General case, i.e., deg(g) > 1:
+            W = None
+            while True:
 
-            dE, d = E._clear_denom()
-            hE = dE.height()
-            if hE * hA * self._ncols < mm.prod():
-                self.cache('pivots', best_pivots)
-                (<Matrix_rational_dense>E).cache('pivots', best_pivots)
-                break
+                # Compute the complementary factor.
+                h = f // (g**m)
+                v = h.list()
 
-            # try a few more primes
-            mm._extend_moduli(3)
-            new_res = A._reduce(mm[-3:])
-            problem += 1
-            if problem > 50:
-                verbose("sparse_matrix multi-modular reduce not converging?")
+                while len(S) < m:
+                    t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)),
+                                level=2, caller_name='rational decomp')
+                    S.append(A.iterates(V.random_element(x=-10,y=10), num_iterates))
+                    verbose('done spinning', level=2, t=t, caller_name='rational decomp')
 
-        #end while
-        _sig_off
-        verbose("total time", tm, level=2)
-        self.cache('pivots', best_pivots)
-        E.cache('pivots', best_pivots)
+                for j in range(len(S)):
+                    # Compute one element of the kernel of g(A)**m.
+                    t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
+                            caller_name='rational decomp')
+                    w = S[j].linear_combination_of_rows(h.list())
+                    t = verbose('done computing element of kernel of g(A)', t=t,level=2, caller_name='rational decomp')
+
+                    # Get the rest of the kernel.
+                    t = verbose('fill out rest of kernel',level=2, caller_name='rational decomp')
+                    if W is None:
+                        W = A.iterates(w, g.degree())
+                    else:
+                        W = W.stack(A.iterates(w, g.degree()))
+                    t = verbose('finished filling out more of kernel',level=2, t=t, caller_name='rational decomp')
+
+                if W.rank() == m * g.degree():
+                    W = W.change_ring(QQ)
+                    t = verbose('now computing row space', level=2, caller_name='rational decomp')
+                    W.echelonize(algorithm = echelon_algorithm, **kwds)
+                    E.append((W.row_space(), m==1))
+                    verbose('computed row space', level=2,t=t, caller_name='rational decomp')
+                    break
+                else:
+                    verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
+                        W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
+                    j += 1
+                    if j > 3*m:
+                        raise RuntimeError, "likely bug in decomposition"
+                # end if
+            #end while
+        #end for
         return E
 
 
@@ -1104,3 +1353,17 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
 
 
+    def rank(self):
+        """
+        Return the rank of this matrix.
+        """
+        r = self.fetch('rank')
+        if not r is None: return r
+        A, _ = self._clear_denom()
+        r = A.rank()
+        self.cache('rank', r)
+        return r
+
+
+cdef decomp_seq(v):
+    return Sequence(v, universe=tuple, check=False, cr=True)

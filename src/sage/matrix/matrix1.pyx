@@ -609,7 +609,7 @@ cdef class Matrix(matrix0.Matrix):
             raise TypeError, "other must be a matrix"
 
         if not (self._base_ring is other.base_ring()):
-            raise TypeError, "base rings must be the same"
+            other = other.change_ring(self._base_ring)
         if self._ncols != other.ncols():
             raise TypeError, "number of columns must be the same"
 

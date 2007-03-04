@@ -76,12 +76,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             if PY_TYPE_CHECK(real, ComplexNumber):
                 real, imag = (<ComplexNumber>real).real(), (<ComplexNumber>real).imag()
             elif isinstance(real, sage.libs.pari.all.pari_gen):
-                x = real
-                orig = sage.libs.pari.all.pari.get_real_precision()
-                sage.libs.pari.all.pari.set_real_precision(int(parent.prec()*3.33)+1)
-                real = str(x.real()).replace(' E','e')
-                imag = str(x.imag()).replace(' E','e')
-                sage.libs.pari.all.pari.set_real_precision(orig)
+                real, imag = real.real(), real.imag()
             elif isinstance(real, list) or isinstance(real, tuple):
                 re, imag = real
                 real = re
@@ -147,7 +142,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         return s
 
     def _pari_(self):
-        return sage.libs.pari.all.pari.new_with_bits_prec(str(self), self.prec())
+        return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
 
     def _pari_init_(self):
         """

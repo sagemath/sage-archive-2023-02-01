@@ -42,6 +42,7 @@ cdef extern from "gmp.h":
     # The mpz type
     void mpz_abs (mpz_t rop, mpz_t op)
     void mpz_add (mpz_t rop, mpz_t op1, mpz_t op2)
+    void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_and (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_clear(mpz_t integer)
@@ -103,6 +104,8 @@ cdef extern from "gmp.h":
     void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void gmp_randseed (gmp_randstate_t state, mpz_t seed)
     void gmp_randseed_ui (gmp_randstate_t state, unsigned long int seed)
+    void mpz_realloc2 (mpz_t z, unsigned long int size) # in bits
+    void * _mpz_realloc (mpz_t z, unsigned long int size) # in limbs
 
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
@@ -122,6 +125,7 @@ cdef extern from "gmp.h":
     void mpq_get_num(mpz_t numerator, mpq_t rational)
     void mpq_get_den(mpz_t denominator, mpq_t rational)
     void mpq_init(mpq_t rational_number)
+    void mpq_init_set(mpq_t rop, mpq_t op)
     void mpq_inv(mpq_t inverted_number, mpq_t number)
     void mpq_mul(mpq_t product, mpq_t multiplier, mpq_t multiplicand)
     void mpq_neg(mpq_t negated_operand, mpq_t operand)

@@ -985,6 +985,10 @@ class SingularElement(ExpectElement):
             return self.sage_matrix(R,sparse=True)
         if self.type() == 'matrix':
             return self.sage_matrix(R,sparse=False)
+        if self.type() == 'list':
+            return [ f._sage_(R) for f in self ]
+
+        NotImplementedError, "Coercion of this datatype not implemented yet"
 
     def set_ring(self):
         self.parent().set_ring(self)

@@ -12,6 +12,7 @@ AUTHOR:
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
         graph6 helper functions in SageX
+                        SAGE Days 3 (2007-02-17--21): 3d plotting in Tachyon,
 
 TUTORIAL:
 
@@ -35,16 +36,17 @@ TUTORIAL:
                 sage: N.adj
                 {0: {1: None, 4: None, 5: None}, 1: {0: None, 2: None, 6: None}, 2: {1: None, 3: None, 7: None}, 3: {8: None, 2: None, 4: None}, 4: {0: None, 9: None, 3: None}, 5: {0: None, 8: None, 7: None}, 6: {8: None, 1: None, 9: None}, 7: {9: None, 2: None, 5: None}, 8: {3: None, 5: None, 6: None}, 9: {4: None, 6: None, 7: None}}
 
-            Each dictionary key is a vertex label, and each key in the following
-            dictionary is a neighbor of that vertex. In undirected graphs, there
-            is reduncancy: for example, the dictionary containing the entry
-            1: {2: None} implies it must contain 2: {1: None}. The innermost entry
-            of None is related to edge labelling (see section I.3.).
+            Each dictionary key is a vertex label, and each key in the
+            following dictionary is a neighbor of that vertex. In
+            undirected graphs, there is reduncancy: for example, the
+            dictionary containing the entry 1: {2: None} implies it
+            must contain 2: {1: None}. The innermost entry of None is
+            related to edge labelling (see section I.3.).
 
             B. Supported formats
 
-            SAGE Graphs can be created from a wide range of inputs. A few examples are
-            covered here.
+            SAGE Graphs can be created from a wide range of inputs. A
+            few examples are covered here.
 
                 i. NetworkX dictionary format:
 
@@ -127,8 +129,8 @@ TUTORIAL:
 
             sage: S = G.random_subgraph(.7)
             sage: S.plot().save('sage.png')    # or S.show()
-            sage: S.density()         # random output (depends on choice of random graph)
-            0.33333333333333331
+            sage: S.density()   # random output
+            0.40000000000000002
 
         3. Labels
 
@@ -1460,9 +1462,9 @@ class Graph(GenericGraph):
             sage: pl = P.plot(pos=pos_dict, color_dict=d)
             sage: pl.save('sage.png')
 
-            C = graphs.CubeGraph(8)
-            P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
-            P.save('sage.png')
+            sage: C = graphs.CubeGraph(8)
+            sage: P = C.plot(vertex_labels=False, node_size=0, graph_border=True)
+            sage: P.save('sage.png')
         """
         GG = Graphics()
         if color_dict is None and not self.__boundary is None:
@@ -1509,6 +1511,74 @@ class Graph(GenericGraph):
             return BGG
         return GG
 
+    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
+        """
+        Plots the graph using Tachyon, and returns a Tachyon object containing
+        a representation of the graph.
+
+        INPUT:
+            bgcolor -- background color
+            vertex_color -- vertex color
+            edge_color -- edge color
+            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+
+        EXAMPLES:
+            sage: D = graphs.DodecahedralGraph()
+            sage: P3D = D.plot3d()
+            sage: P3D.save('sage.png') # long time
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.plot3d(vertex_color=(0,0,1)).save('sage.png') # long time
+
+            sage: C = graphs.CubeGraph(4)
+            sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+        """
+        import networkx
+        from math import sqrt
+        from sage.plot.tachyon import Tachyon
+        c = [0,0,0]
+        r = []
+        verts = self.vertices()
+        pos3d = networkx.spring_layout(self._nxg, dim=3) # to be replaced by comment blocks 1, 2 below
+        #spring = False # block 1
+        #if pos3d is None:
+        #    spring = True
+        #    pos3d = networkx.spring_layout(self._nxg, dim=3)
+        for v in verts:
+            c[0] += pos3d[v][0]
+            c[1] += pos3d[v][1]
+            c[2] += pos3d[v][2]
+        order = self.order()
+        c[0] = c[0]/order
+        c[1] = c[1]/order
+        c[2] = c[2]/order
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0] - c[0]
+            pos3d[v][1] = pos3d[v][1] - c[1]
+            pos3d[v][2] = pos3d[v][2] - c[2]
+            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
+        r = max(r)
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0]/r
+            pos3d[v][1] = pos3d[v][1]/r
+            pos3d[v][2] = pos3d[v][2]/r
+        #if not spring: # block 2
+        #    for v in verts:
+        #        if not v in pos3d:
+        #            pass### place node randomly inside B_1(origin)
+        TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
+        TT.light((4,3,2), 0.02, (1,1,1))
+        TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
+        TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
+        TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
+        TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
+        for v in verts:
+            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        for u,v,l in self.edges():
+            TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+        return TT
+
     def show(self, pos=None, layout=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """
         Shows the graph.
@@ -1548,6 +1618,29 @@ class Graph(GenericGraph):
             sage: P.save('sage.png')
         """
         self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
+
+    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+        """
+        Plots the graph using Tachyon, and shows the resulting plot.
+
+        INPUT:
+            bgcolor -- background color
+            vertex_color -- vertex color
+            edge_color -- edge color
+            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+
+        EXAMPLES:
+            sage: D = graphs.DodecahedralGraph()
+            sage: P3D = D.plot3d()
+            sage: P3D.save('sage.png') # long time
+
+            sage: G = graphs.PetersenGraph()
+            sage: G.plot3d(vertex_color=(0,0,1)).save('sage.png') # long time
+
+            sage: C = graphs.CubeGraph(4)
+            sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
+        """
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
 
 class DiGraph(GenericGraph):
     """
@@ -2649,6 +2742,81 @@ class DiGraph(GenericGraph):
             return BGG
         return GG
 
+    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
+        """
+        Plots the graph using Tachyon, and returns a Tachyon object containing
+        a representation of the graph.
+
+        INPUT:
+            bgcolor -- background color
+            vertex_color -- vertex color
+            edge_color -- edge color
+            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+
+        NOTE:
+            The weaknesses of the NetworkX spring layout are illustrated even further in the
+            case of digraphs: my guess is that digraphs weren't even considered in the authoring
+            of this algorithm. The following example illustrates this.
+
+        EXAMPLE:
+            # This is a running example
+
+            # A directed version of the dodecahedron
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
+
+            # If I use an undirected version of my graph, the output is as expected
+            sage: import networkx
+            sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
+            sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
+
+            # However, if I use the directed version, everything gets skewed bizarrely:
+            sage: D.plot3d().save('sage.png') # long time
+        """
+        import networkx
+        from math import sqrt
+        from sage.plot.tachyon import Tachyon
+        c = [0,0,0]
+        r = []
+        verts = self.vertices()
+        #pos3d = networkx.spring_layout(self._nxg, dim=3)
+        spring = False
+        if pos3d is None:
+            pos3d = networkx.spring_layout(self._nxg, dim=3)
+        for v in verts:
+            c[0] += pos3d[v][0]
+            c[1] += pos3d[v][1]
+            c[2] += pos3d[v][2]
+        order = self.order()
+        c[0] = c[0]/order
+        c[1] = c[1]/order
+        c[2] = c[2]/order
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0] - c[0]
+            pos3d[v][1] = pos3d[v][1] - c[1]
+            pos3d[v][2] = pos3d[v][2] - c[2]
+            r.append(abs(sqrt((pos3d[v][0])**2 + (pos3d[v][1])**2 + (pos3d[v][2])**2)))
+        r = max(r)
+        for v in verts:
+            pos3d[v][0] = pos3d[v][0]/r
+            pos3d[v][1] = pos3d[v][1]/r
+            pos3d[v][2] = pos3d[v][2]/r
+        TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
+        TT.light((4,3,2), 0.02, (1,1,1))
+        TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
+        TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
+        TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
+        TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
+        for v in verts:
+            TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        for u,v,l in self.arcs():
+            TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+            TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
+                           0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
+                           0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'edge')
+        return TT
+
     def show(self, pos=None, vertex_labels=True, node_size=200, graph_border=False, color_dict=None, **kwds):
         """
         Shows the digraph.
@@ -2686,6 +2854,36 @@ class DiGraph(GenericGraph):
         """
         self.plot(pos, vertex_labels, node_size=node_size, color_dict=color_dict, graph_border=graph_border).show(**kwds)
 
+    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+        """
+        Plots the graph using Tachyon, and shows the resulting plot.
+
+        INPUT:
+            bgcolor -- background color
+            vertex_color -- vertex color
+            edge_color -- edge color
+            (pos3d -- currently ignored, pending GSL random point distribution in sphere...)
+
+        NOTE:
+            The weaknesses of the NetworkX spring layout are illustrated even further in the
+            case of digraphs: my guess is that digraphs weren't even considered in the authoring
+            of this algorithm. The following example illustrates this.
+
+        EXAMPLE:
+            # This is a running example
+
+            # A directed version of the dodecahedron
+            sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
+
+            # If I use an undirected version of my graph, the output is as expected
+            sage: import networkx
+            sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
+            sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
+
+            # However, if I use the directed version, everything gets skewed bizarrely:
+            sage: D.plot3d().save('sage.png') # long time
+        """
+        self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, edge_color=edge_color).show(**kwds)
 
 
 

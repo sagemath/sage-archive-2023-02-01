@@ -81,7 +81,7 @@ class Expect(ParentWithBase):
                  script_subdirectory="", restart_on_ctrlc=False,
                  verbose_start=False, init_code=[], max_startup_time=30,
                  logfile = None, eval_using_file_cutoff=0,
-                 do_cleaner = True):
+                 do_cleaner = True, path=None):
 
         self.__is_remote = False
         if command == None:
@@ -102,10 +102,13 @@ class Expect(ParentWithBase):
         self._prompt = prompt
         self._restart_on_ctrlc = restart_on_ctrlc
         self.__verbose_start = verbose_start
-        if script_subdirectory == None:
+        if not path is None:
+            self.__path = path
+        elif script_subdirectory is None:
             self.__path = '.'
         else:
-            self.__path = '%s/data/extcode/%s/%s'%(SAGE_ROOT,self.__name, self.__script_subdirectory)
+            self.__path = '%s/data/extcode/%s/%s'%(SAGE_ROOT,self.__name,
+                                                   self.__script_subdirectory)
         self.__initialized = False
         self.__seq = -1
         self._expect = None

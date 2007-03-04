@@ -17,7 +17,7 @@ Hecke modules
 #                  http://www.gnu.org/licenses/
 ##########################################################################################
 
-
+import sage.rings.all
 import sage.rings.arith as arith
 import sage.misc.misc as misc
 import sage.modules.module
@@ -412,7 +412,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__basis = self.gens()
         return self.__basis
 
-    def decomposition(self, bound=None, anemic=True, compute_dual=False):
+    def decomposition(self, bound=None, anemic=True, compute_dual=False,
+                      height_guess=1, proof=True):
         """
         Returns the maximal decomposition of this Hecke module under
         the action of Hecke operators of index coprime to the level.
@@ -461,6 +462,8 @@ class HeckeModule_free_module(HeckeModule_generic):
             self.__decomposition[key] = Sequence([], immutable=True, cr=True)
             return self.__decomposition[key]
 
+        is_rational = self.base_ring() == sage.rings.all.QQ
+
         time = misc.verbose("Decomposing %s"%self)
         T = self.ambient_hecke_module().hecke_algebra()
         if bound is None:
@@ -484,7 +487,11 @@ class HeckeModule_free_module(HeckeModule_generic):
                     is_diagonalizable = True
                 else:
                     is_diagonalizable = False
-                X = t.decomposition_of_subspace(U[i], is_diagonalizable=is_diagonalizable)
+                if is_rational:
+                    X = t.decomposition_of_subspace(U[i], algorithm='multimodular',
+                                                    height_guess=height_guess, proof=proof)
+                else:
+                    X = t.decomposition_of_subspace(U[i], is_diagonalizable=is_diagonalizable)
                 if compute_dual:
                     Xdual = t.transpose().decomposition_of_subspace(Udual[i], is_diagonalizable=is_diagonalizable)
                     if len(X) != len(Xdual):

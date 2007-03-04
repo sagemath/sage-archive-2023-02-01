@@ -522,7 +522,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             generator = True
             z = integer_mod.Mod(x,p)
             for q in P:
-                if z**(ord/q) == one:
+                if z**(ord//q) == one:
                     generator = False
                     break
             if generator:

@@ -990,6 +990,37 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         self.__integral_structure = J
         return J
 
+    def intersection_number(self, M):
+        """
+        Given modular symbols spaces self and M in some common ambient
+        space, returns the intersection number of these two spaces.
+        This is the index in their saturation of the sum of their
+        underlying integral structures.
+
+        If self and M are of weight two and defined over QQ, and
+        correspond to newforms f and g, then this number equals the
+        order of the intersection of the modular abelian varieties
+        attached to f and g.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(389,2)
+            sage: d = m.decomposition(2)
+            sage: eis = d[0]
+            sage: ell = d[1]
+            sage: af = d[-1]
+            sage: af.intersection_number(eis)
+            97
+            sage: af.intersection_number(ell)
+            400
+        """
+        if not isinstance(M, ModularSymbolsSpace):
+            raise TypeError, "M must be a modular symbols space"
+        if M.ambient() != self.ambient():
+            raise ValueError, "self and M must be in the same ambient space."
+        A = self.integral_structure()
+        B = M.integral_structure()
+        return (A+B).index_in_saturation()
+
     def integral_basis(self):
         r"""
         Return a basis for the $\Z$-submodule of this modular symbols

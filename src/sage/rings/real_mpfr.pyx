@@ -11,11 +11,17 @@ AUTHORS:
 
 EXAMPLES:
 
+
+
 A difficult conversion:
 
     sage: RR(sys.maxint)
     9223372036854770000     # 64-bit
     2147483647.00000        # 32-bit
+
+TESTS:
+    sage: -1e30
+    -1000000000000000000000000000000
 """
 
 #*****************************************************************************
@@ -809,11 +815,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
 
-        n = abs(exponent)
         lpad = ''
         if exponent <= 0:
             n = len(t)
             lpad = '0.' + '0'*abs(exponent)
+        else:
+            n = exponent
         if t[0] == '-':
             lpad = '-' + lpad
             t = t[1:]
@@ -821,7 +828,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         w = t[n:]
         if len(w) > 0:
             z = z + ".%s"%w
-        elif lpad == '':
+        elif exponent > 0:
             z = z + '0'*(n-len(t))
         return z
 
@@ -1962,6 +1969,62 @@ cdef class RealNumber(sage.structure.element.RingElement):
               x^4 - 4*x^2 + 4                # 64-bit
         """
         return sage.rings.arith.algdep(self,n)
+
+    def nth_root(self, int n):
+        r"""
+        Returns an $n^{th}$ root of self.
+
+        INPUT:
+            n -- A positive number, rounded down to the nearest integer.
+                 Note that $n$ should be less than $\code{sys.maxint}$.
+
+        EXAMPLES:
+            sage: R = RealField()
+            sage: R(8).nth_root(3)
+            2.00000000000000
+            sage: R(8).nth_root(3.7)    # illustrate rounding down
+            2.00000000000000
+            sage: R(-8).nth_root(3)
+            -2.00000000000000
+            sage: R(0).nth_root(3)
+            0.000000000000000
+            sage: R(32).nth_root(-1)
+            Traceback (most recent call last):
+            ...
+            ValueError: n must be nonnegative
+            sage: R(32).nth_root(1.0)
+            32.0000000000000
+
+        Note that for negative numbers, any even root returns NaN
+            sage: R(-2).nth_root(6)
+            NaN
+
+        The $n^{th}$ root of 0 is defined to be 0, for any $n$
+            sage: R(0).nth_root(6)
+            0.000000000000000
+
+            sage: R(0).nth_root(7)
+            0.000000000000000
+
+        AUTHOR: Didier Deshommes (2007-02)
+        REFEREE: David Harvey
+
+        TODO: (trac \#294) the underlying mpfr_root function is unforgivably
+        slow when n is large. e.g. RealNumber(8).nth_root(100000) is very slow.
+        This should be investigated further and possibly discussed with the
+        mpfr developers.
+        """
+        cdef RealNumber x
+
+        if n < 0:
+            raise ValueError, "n must be nonnegative"
+
+        x = self._new()
+        _sig_on
+        mpfr_root(x.value, self.value, n, (<RealField>self._parent).rnd)
+        _sig_off
+        return x
+
 
 RR = RealField()
 

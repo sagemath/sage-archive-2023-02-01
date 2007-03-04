@@ -218,8 +218,9 @@ cdef class Matrix(matrix0.Matrix):
 
     def matrix_over_field(self):
         """
-        Return this matrix, but with entries viewed as elements of the
-        fraction field of the base ring (assuming it is defined).
+        Return copy of this matrix, but with entries viewed as
+        elements of the fraction field of the base ring (assuming it
+        is defined).
 
         EXAMPLES:
             sage: A = MatrixSpace(IntegerRing(),2)([1,2,3,4])
@@ -608,7 +609,7 @@ cdef class Matrix(matrix0.Matrix):
             raise TypeError, "other must be a matrix"
 
         if not (self._base_ring is other.base_ring()):
-            raise TypeError, "base rings must be the same"
+            other = other.change_ring(self._base_ring)
         if self._ncols != other.ncols():
             raise TypeError, "number of columns must be the same"
 

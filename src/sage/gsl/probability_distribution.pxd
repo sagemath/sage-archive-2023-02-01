@@ -3,6 +3,13 @@ include 'gsl.pxi'
 cdef class ProbabilityDistribution:
     pass
 
+cdef class SphericalDistribution(ProbabilityDistribution):
+    cdef gsl_rng_type *T
+    cdef gsl_rng*r
+    cdef Py_ssize_t dimension
+    cdef long int seed
+    cdef double* vec
+
 cdef class RealDistribution(ProbabilityDistribution):
     cdef gsl_rng_type *T
     cdef gsl_rng *r

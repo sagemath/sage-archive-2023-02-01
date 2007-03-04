@@ -566,6 +566,9 @@ class Notebook(SageObject):
         return self.__default_worksheet
 
     def directory(self):
+        if not os.path.exists(self.__dir):
+            # prevent "rm -rf" accidents.
+            os.makedirs(self.__dir)
         return self.__dir
 
     def DIR(self):
@@ -573,7 +576,11 @@ class Notebook(SageObject):
         Return the absolute path to the directory that contains
         the SAGE Notebook directory.
         """
-        return os.path.abspath('%s/..'%self.__dir)
+        P = os.path.abspath('%s/..'%self.__dir)
+        if not os.path.exists(P):
+            # prevent "rm -rf" accidents.
+            os.makedirs(P)
+        return P
 
     def max_history_length(self):
         try:
@@ -737,6 +744,9 @@ class Notebook(SageObject):
             F = os.path.abspath(filename)
 
         print "Saving notebook to '%s'..."%F
+        D, _ = os.path.split(F)
+        if not os.path.exists(D):
+            os.makedirs(D)
         SageObject.save(self, F, compress=False)
         print "Press control-C twice to stop notebook server."
         print "-"*70
@@ -836,7 +846,7 @@ class Notebook(SageObject):
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
         head += '\n<script language=javascript src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css"/>\n'
 
         if css_href:
             head += '\n<link rel=stylesheet type="text/css" href=%s />\n'%(css_href)

@@ -1521,6 +1521,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     #### Rank
 
     def rank(self):
+        r = self.fetch('rank')
+        if not r is None: return r
+
         # Can very quickly detect full rank by working modulo p.
         r = self._rank_modp()
         if r == self._nrows or r == self._ncols:

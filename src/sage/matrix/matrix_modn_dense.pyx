@@ -475,6 +475,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             algorithm -- 'linbox' -- uses the C++ linbox library
                          'gauss'  -- uses a custom slower O(n^3) Gauss
                                      elimination implemented in SAGE.
+                         'all' -- compute using both algorithms and verify
+                                  that the results are the same (for the paranoid).
             **kwds -- these are all ignored
 
         OUTPUT:
@@ -506,6 +508,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             self._echelonize_linbox()
         elif algorithm == 'gauss':
             self._echelon_in_place_classical()
+        elif algorithm == 'all':
+            A = self.copy()
+            self._echelonize_linbox()
+            A._echelon_in_place_classical()
+            if A != self:
+                raise RuntimeError, "bug in echelon form"
         else:
             raise ValueError, "algorithm '%s' not known"%algorithm
 

@@ -991,14 +991,13 @@ class FreeModule_generic(module.Module):
         """
         return FreeModule(self.base_ring(), self.rank())
 
-    def random_element(self, bound=2, prob=1.0):
+    def random_element(self, prob=1.0, **kwds):
         """
         Returns a random element of self.
 
         INPUT:
-            bound -- integer; coefficients of linear combination of basis are chosen
-                     from the closed interval [-bound,bound]
             prob -- float; probability that given coefficient is nonzero.
+            **kwds -- passed on to random_element function of base ring.
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
@@ -1015,7 +1014,7 @@ class FreeModule_generic(module.Module):
         prob = float(prob)
         for i in range(self.rank()):
             if random.random() <= prob:
-                v += self.gen(i) * R.random_element(bound)
+                v += self.gen(i) * R.random_element(**kwds)
         return v
 
     def rank(self):

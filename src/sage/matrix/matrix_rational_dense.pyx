@@ -556,6 +556,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         The product is a matrix over ZZ
         """
+        X = self.fetch('clear_denom')
+        if not X is None: return X
         cdef Integer D
         cdef Py_ssize_t i, j
         cdef Matrix_integer_dense A
@@ -577,6 +579,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 self_row = self_row + 1
         _sig_off
         A._initialized = 1
+        self.cache('clear_denom', (A,D))
         return A, D
 
     def charpoly(self, var='x', algorithm='linbox'):
@@ -1032,8 +1035,57 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return misc.matrix_rational_echelon_form_multimodular(self,
                                  height_guess=height_guess, proof=proof)
 
-    def _decomposition_devel(self, is_diagonalizable=False, dual=False,
-                            echelon_algorithm='default', height_guess=None):
+    def decomposition(self, is_diagonalizable=False, dual=False,
+                      algorithm='default', height_guess=None, proof=True):
+        """
+        Returns the decomposition of the free module on which this
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
+
+        Let A be the matrix acting from the on the vector space V of
+        column vectors.  Assume that A is square.  This function
+        computes maximal subspaces W_1, ..., W_n corresponding to
+        Galois conjugacy classes of eigenvalues of A.  More precisely,
+        let f(X) be the characteristic polynomial of A.  This function
+        computes the subspace $W_i = ker(g_(A)^n)$, where g_i(X) is an
+        irreducible factor of f(X) and g_i(X) exactly divides f(X).
+        If the optional parameter is_diagonalizable is True, then we
+        let W_i = ker(g(A)), since then we know that ker(g(A)) =
+        $ker(g(A)^n)$.
+
+        If dual is True, also returns the corresponding decomposition
+        of V under the action of the transpose of A.  The factors are
+        guarenteed to correspond.
+
+        INPUT:
+            is_diagonizalible -- ignored
+            dual -- whether to also return decompositions for the dual
+            algorithm -- 'default': use default algorithm for computing Echelon forms,
+                         'multimodular': much better if the answers factors have small height
+            height_guess -- positive integer; only used by the multimodular algorithm
+            proof -- bool (default: True); only used by the multimodular algorithm
+
+        IMPORTANT NOTE:
+        If you expect that the subspaces in the answer are spanned by vectors
+        with small height coordinates, use algorithm='multimodular' and
+        height_guess=1; this is potentially much faster than the default.
+        If you know for a fact the answer will be very small, use
+           algorithm='multimodular', height_guess=bound on height, proof=False
+
+        You can get very very fast decomposition with proof=False.
+        """
+        X = self._decomposition_rational(echelon_algorithm = algorithm,
+                                         height_guess = height_guess, proof=proof)
+        if dual:
+            Y = self.transpose()._decomposition_rational(echelon_algorithm = algorithm,
+                                                         height_guess = height_guess, proof=proof)
+            return X, Y
+        return X
+
+    def _decomposition_rational(self, echelon_algorithm='default', **kwds):
         """
         Returns the decomposition of the free module on which this
         matrix A acts from the right (i.e., the action is x goes to x
@@ -1044,17 +1096,26 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         INPUT:
             self -- a matrix over a field
+            echelon_algorithm -- 'default'
+                                 'multimodular' -- use this if the answers
+            **kwds -- passed on to echelon function.
+
+        IMPORTANT NOTE:
+        If you expect that the subspaces in the answer are spanned by vectors
+        with small height coordinates, use algorithm='multimodular' and
+        height_guess=1; this is potentially much faster than the default.
+        If you know for a fact the answer will be very small, use
+           algorithm='multimodular', height_guess=bound on height, proof=False
 
         OUTPUT:
-            Sequence -- list of pairs (V,t), where V is a vector spaces
-                    and t is a bool, and t is True exactly when the
-                    charpoly of self on V is irreducible.
-
-            (optional) list -- list of pairs (W,t), where W is a vector
-                    space and t is a bool, and t is True exactly
-                    when the charpoly of the transpose of self on W
+            Sequence -- list of triples (V,t), where V is a vector spaces
+                    and t is True if and only if the charpoly of self on V
                     is irreducible.
+                    The triples are in order corresponding to the elements
+                    of the sorted list self.charpoly().factor().
         """
+        cdef Py_ssize_t k
+
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
 
@@ -1064,61 +1125,84 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if self.nrows() == 0:
             return decomp_seq([])
 
-        f = self.charpoly('x')
+        A, _ = self._clear_denom()
+
+        f = A.charpoly('x')
         E = decomp_seq([])
 
-        if dual:
-            Edual = decomp_seq([])
-
-        t = verbose('decomposition -- factoring the characteristic polynomial', level=2)
+        t = verbose('factoring the characteristic polynomial', level=2, caller_name='rational decomp')
         F = f.factor()
-        verbose('decomposition -- done factoring', t=t, level=2)
+        verbose('done factoring', t=t, level=2, caller_name='rational decomp')
 
         if len(F) == 1:
             V = QQ**self.nrows()
             m = F[0][1]
-            if dual:
-                return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
-            else:
-                return decomp_seq([(V,m==1)])
-
+            return decomp_seq([(V,m==1)])
 
         V = ZZ**self.nrows()
         v = V.random_element()
-
         num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
 
-        A, _ = self._clear_denom()
-
-        t = verbose('decomposition -- computing %s iterates of a random vector.'%num_iterates)
-        S = A.iterates(v, num_iterates)
-        verbose('decomposition -- done computing iterates.', t = t)
+        S = [ ]
 
         F.sort()
         for i in range(len(F)):
             g, m = F[i]
 
-            # Compute the complementary factor.
-            h = f // (g**m)
-            h = h * h.denominator()
+            if g.degree() == 1:
+                # Just use kernel -- much easier.
+                B = A.copy()
+                for k from 0 <= k < A.nrows():
+                    B[k,k] += g[0]
+                if m > 1:
+                    B = B**m
+                W = B.change_ring(QQ).kernel()
+                E.append((W, m==1))
+                continue
 
-            # Compute one element of the kernel of g(self)**m.
-            t = verbose('decomposition -- compute element of kernel of g(self), for g of degree %s'%g.degree(),level=2)
-            w = S.linear_combination_of_rows(h.list())
-            t = verbose('decomposition -- done computing element of kernel of g(self)', t=t,level=2)
+            # General case, i.e., deg(g) > 1:
+            W = None
+            while True:
 
-            # Get the rest of the kernel.
-            t = verbose('decomposition -- fill out rest of kernel',level=2)
-            W = A.iterates(w, g.degree())
-            t = verbose('decomposition -- finished filling out rest of kernel',level=2, t=t)
+                # Compute the complementary factor.
+                h = f // (g**m)
+                v = h.list()
 
-            W = W.change_ring(QQ)
+                while len(S) < m:
+                    t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)), level=2, caller_name='rational decomp')
+                    S.append(A.iterates(V.random_element(x=-10,y=10), num_iterates))
+                    verbose('done spinning', level=2, t=t, caller_name='rational decomp')
 
-            t = verbose('decomposition -- now computing row space', level=2)
-            W.echelonize(algorithm = echelon_algorithm, height_guess=height_guess)
-            E.append((W.row_space(), m==1))
-            verbose('decomposition -- computed row space', level=2,t=t)
+                for j in range(len(S)):
+                    # Compute one element of the kernel of g(A)**m.
+                    t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
+                            caller_name='rational decomp')
+                    w = S[j].linear_combination_of_rows(h.list())
+                    t = verbose('done computing element of kernel of g(A)', t=t,level=2, caller_name='rational decomp')
 
+                    # Get the rest of the kernel.
+                    t = verbose('fill out rest of kernel',level=2, caller_name='rational decomp')
+                    if W is None:
+                        W = A.iterates(w, g.degree())
+                    else:
+                        W = W.stack(A.iterates(w, g.degree()))
+                    t = verbose('finished filling out more of kernel',level=2, t=t, caller_name='rational decomp')
+
+                if W.rank() == m * g.degree():
+                    W = W.change_ring(QQ)
+                    t = verbose('now computing row space', level=2, caller_name='rational decomp')
+                    W.echelonize(algorithm = echelon_algorithm, **kwds)
+                    E.append((W.row_space(), m==1))
+                    verbose('computed row space', level=2,t=t, caller_name='rational decomp')
+                    break
+                else:
+                    verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
+                    j += 1
+                    if j > 3*m:
+                        raise RuntimeError, "likely bug in decomposition"
+                # end if
+            #end while
+        #end for
         return E
 
     ################################################################
@@ -1254,7 +1338,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             new_res = A._reduce(mm[-3:])
             problem += 1
             if problem > 50:
-                verbose("sparse_matrix multi-modular reduce not converging?")
+                verbose("dense_matrix multi-modular reduce not converging?")
 
         #end while
         _sig_off
@@ -1408,6 +1492,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
 
 
+    def rank(self):
+        """
+        Return the rank of this matrix.
+        """
+        r = self.fetch('rank')
+        if not r is None: return r
+        A, _ = self._clear_denom()
+        r = A.rank()
+        self.cache('rank', r)
+        return r
 
 
 cdef decomp_seq(v):

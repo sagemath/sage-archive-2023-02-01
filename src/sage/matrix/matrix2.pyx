@@ -960,7 +960,7 @@ cdef class Matrix(matrix1.Matrix):
             B = A.matker()
             n = self._nrows
             V = sage.modules.free_module.VectorSpace(R, n)
-            basis = eval('[V([R(x) for x in b]) for b in B]', {'V':V, 'B':B, 'R':R})
+            basis = [V([R(x) for x in b]) for b in B]
             Z = V.subspace(basis)
             self.cache('kernel', Z)
             return Z
@@ -1137,10 +1137,10 @@ cdef class Matrix(matrix1.Matrix):
             [0 2]
         """
         M = self._row_ambient_module()
-        if self.fetch('in_echelon_form'):
+        if self.fetch('in_echelon_form') and self.rank() == self.nrows():
             return M.span(self.rows(), already_echelonized=True)
         else:
-            return M.span(self.rows(), already_echelonized=True)
+            return M.span(self.rows(), already_echelonized=False)
 
     def row_space(self):
         """
@@ -1458,12 +1458,15 @@ cdef class Matrix(matrix1.Matrix):
 
         return E
 
-    def decomposition_of_subspace(self, M, is_diagonalizable=False):
+    def decomposition_of_subspace(self, M, **kwds):
         """
         Suppose the right action of self on M leaves M
         invariant. Return the decomposition of M as a list of pairs
         (W, is_irred) where is_irred is True if the charpoly of self
         acting on the factor W is irreducible.
+
+        Additional inputs besides M are passed onto the decomposition
+        command.
 
         EXAMPLES:
             sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]); t
@@ -1505,27 +1508,26 @@ cdef class Matrix(matrix1.Matrix):
 
         # 1. Restrict
         B = self.restrict(M)
-
         time0 = verbose("decompose restriction -- ", time)
 
         # 2. Decompose restriction
-        D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
+        D = B.decomposition(**kwds)
 
-        assert sum(eval('[A.dimension() for A,_ in D]',{'D':D})) == M.dimension(), \
+        sum_dim = sum([A.dimension() for A,_ in D])
+        assert sum_dim == M.dimension(), \
                "bug in decomposition; " + \
-               "the sum of the dimensions of the factors must equal the dimension of the acted on space:\nFactors found: %s\nSpace: %s"%(D, M)
+               "the sum of the dimensions (=%s) of the factors must equal the dimension (%s) of the acted on space:\nFactors found: %s\nSpace: %s"%(sum_dim, M.dimension(), D, M)
 
         # 3. Lift decomposition to subspaces of ambient vector space.
-        # Each basis vector for an element of D defines a linear combination
-        # of the basis of W, and these linear combinations define the
-        # corresponding subspaces of the ambient space M.
+        # Each basis vector for an element of D defines a linear
+        # combination of the basis of W, and these linear combinations
+        # define the corresponding subspaces of the ambient space M.
 
         verbose("decomposition -- ", time0)
         C = M.basis_matrix()
         Z = M.ambient_vector_space()
 
-        D = eval('[(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]',\
-                 {'C':C, 'D':D, 'Z':Z})
+        D = [((W.basis_matrix() * C).row_space(), is_irred) for W, is_irred in D]
         D = decomp_seq(D)
 
         verbose(t=time)
@@ -1592,7 +1594,7 @@ cdef class Matrix(matrix1.Matrix):
             n = V.rank()
             try:
                 # todo optimize so only involves matrix multiplies ?
-                C = eval('[V.coordinate_vector(b*self) for b in V.basis()]',{'V':V, 'self':self})
+                C = [V.coordinate_vector(b*self) for b in V.basis()]
             except ArithmeticError:
                 raise ArithmeticError, "subspace is not invariant under matrix"
             return self.new_matrix(n, n, C, sparse=False)
@@ -1622,7 +1624,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  2  0]
             [ 7 10  0]
         """
-        e = eval('[b*self for b in V.basis()]', {'self':self, 'V':V})
+        e = [b*self for b in V.basis()]
         return self.new_matrix(V.dimension(), self.ncols(), e)
 
     def maxspin(self, v):

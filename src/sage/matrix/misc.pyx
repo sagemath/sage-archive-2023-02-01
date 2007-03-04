@@ -8,7 +8,14 @@ of several classes, and we want to avoid circular cimports.
 include "../ext/interrupt.pxi"
 include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
-include "../ext/gmp.pxi"   # rational reconstruction
+
+include '../modules/binary_search.pxi'
+include '../modules/vector_integer_sparse_h.pxi'
+include '../modules/vector_integer_sparse_c.pxi'
+include '../modules/vector_rational_sparse_h.pxi'
+include '../modules/vector_rational_sparse_c.pxi'
+include '../modules/vector_modn_sparse_h.pxi'
+include '../modules/vector_modn_sparse_c.pxi'
 
 # mod_int isn't defined in stdio.h -- this is to fool SageX.
 cdef extern from "stdio.h":
@@ -18,8 +25,12 @@ from matrix0 cimport Matrix
 from matrix_modn_dense cimport Matrix_modn_dense
 from matrix_modn_sparse cimport Matrix_modn_sparse
 from matrix_integer_dense cimport Matrix_integer_dense
+from matrix_integer_sparse cimport Matrix_integer_sparse
 from matrix_rational_dense cimport Matrix_rational_dense
+from matrix_rational_sparse cimport Matrix_rational_sparse
+
 import matrix_modn_dense
+import matrix_modn_sparse
 
 from sage.rings.integer_ring   import ZZ
 from sage.rings.rational_field import QQ
@@ -47,18 +58,63 @@ def matrix_modn_dense_lift(Matrix_modn_dense A):
     return L
 
 
+def matrix_modn_sparse_lift(Matrix_modn_sparse A):
+    cdef Py_ssize_t i, j
+    cdef Matrix_integer_sparse L
+    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
+                                     A.parent().change_ring(ZZ),
+                                     0, 0, 0)
+
+    cdef mpz_t z
+    mpz_init(z)
+
+    cdef mpz_vector* L_row
+    cdef c_vector_modint* A_row
+    for i from 0 <= i < A._nrows:
+        L_row = &(L._matrix[i])
+        A_row = &(A.rows[i])
+        for j from 0 <= j < A_row.num_nonzero:
+            mpz_set_si(z, A_row.entries[j])
+            mpz_vector_set_entry(L_row, A_row.positions[j], z)
+
+    mpz_clear(z)
+    return L
+
 
 def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
                                       A.parent().change_ring(QQ), 0,0,0)
 
-    cdef mpz_t denom   # lcm of denoms so far
+    # todo -- use lcm of denoms so far trick...
+    #cdef mpz_t denom   # lcm of denoms so far
+
     for i from 0 <= i < A._nrows:
         for j from 0 <= j < A._ncols:
             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
     return R
 
+def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
+    cdef Matrix_rational_sparse R
+    R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
+                                      A.parent().change_ring(QQ), 0,0,0)
+
+    # todo -- use lcm of denoms so far trick...
+    #cdef mpz_t denom   # lcm of denoms so far
+
+    cdef mpq_t x
+    mpq_init(x)
+    cdef mpz_vector* A_row
+    cdef mpq_vector* R_row
+    for i from 0 <= i < A._nrows:
+        A_row = &A._matrix[i]
+        R_row = &R._matrix[i]
+        for j from 0 <= j < A_row.num_nonzero:
+            mpq_rational_reconstruction(x, A_row.entries[j], N.value)
+            mpq_vector_set_entry(R_row, A_row.positions[j], x)
+
+    mpq_clear(x)
+    return R
 
 
 ## def matrix_modn_sparse_lift(Matrix_modn_sparse A):
@@ -143,7 +199,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     """
 
     verbose("Multimodular echelon algorithm on %s x %s matrix"%(self._nrows, self._ncols))
-    cdef Matrix_rational_dense E
+    cdef Matrix E
     if self._nrows == 0 or self._ncols == 0:
         self.cache('in_echelon_form', True)
         self.cache('echelon_form', self)
@@ -162,7 +218,10 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     else:
         M = height_guess + 1
 
-    p = matrix_modn_dense.MAX_MODULUS + 1
+    if self.is_sparse():
+        p = matrix_modn_sparse.MAX_MODULUS + 1
+    else:
+        p = matrix_modn_dense.MAX_MODULUS + 1
     X = []
     best_pivots = []
     prod = 1
@@ -210,15 +269,18 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         prod = 1
         for i in range(len(X)):
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
-                ## TODO -- that dense assmumption *must* not be made below!!
-                Y.append((matrix_modn_dense_lift(X[i]), X[i].base_ring().order()))
+                Y.append((matrix_modn_dense_lift(X[i]) if X[i].is_dense() else matrix_modn_sparse_lift(X[i]),
+                          X[i].base_ring().order()))
                 prod = prod * X[i].base_ring().order()
         try:
+            if len(Y) == 0:
+                raise ValueError, "not enough primes"
             t = verbose("start crt linear combination", level=2)
             a = CRT_basis([w[1] for w in Y])
             # take the linear combination of the lifts of the elements
             # of Y times coefficients in a
             L = a[0]*(Y[0][0])
+            assert Y[0][0].is_sparse() == L.is_sparse()
             for j in range(1,len(Y)):
                 L += a[j]*(Y[j][0])
             t = verbose("crt time is",t, level=2)
@@ -234,7 +296,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         if not proof:
             verbose("Not checking validity of result (since proof=False).", level=2)
             break
-        d   = E.denom()
+        d   = E.denominator()
         hdE = long(E.height())
         if True or hdE * self.ncols() * height < prod:
             break

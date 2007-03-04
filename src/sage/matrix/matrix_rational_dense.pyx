@@ -515,7 +515,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return det
 
 
-    def denom(self):
+    def denominator(self):
         """
         Return the denominator of this matrix.
 
@@ -526,7 +526,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: b = matrix(QQ,2,range(6)); b[0,0]=-5007/293; b
             [-5007/293         1         2]
             [        3         4         5]
-            sage: b.denom()
+            sage: b.denominator()
             293
         """
         cdef Integer z
@@ -1209,149 +1209,6 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         #end for
         return E
 
-    ################################################################
-    # second implementation of the above, usually over twice as fast
-    # even without denominator lcm trick
-    # TODO: merge with the above
-    def _echelon_multimodular(self, height_guess=None, proof=True):
-        """
-        _echelon_multimodular(self, height_guess=None):
-
-        Returns echelon form of self, without modifying self.  Uses a
-        multi-modular method.
-
-        REFERENCE: Chapter 7 of Stein's "Explicitly Computing Modular Forms".
-
-        INPUT:
-            self -- matrix with n columns (this).
-            height_guess -- integer or None
-            proof -- boolean (default: True)
-
-        ALGORITHM:
-        The following is a modular algorithm for computing the echelon
-        form.  Define the height of a matrix to be the max of the
-        absolute values of the entries.
-
-        0. Rescale input matrix A to have integer entries.  This does
-           not change echelon form and makes reduction modulo many
-           primes significantly easier if there were denominators.
-           Henceforth we assume A has integer entries.
-
-        1. Let c be a guess for the height of the echelon form.  E.g.,
-           c=1000, since matrix is sparse and application is modular
-           symbols.
-
-        2. Let M = n * c * H(A) + 1,
-           where n is the number of columns of A.
-
-        3. List primes p_1, p_2, ..., such that the product of
-           the p_i is at least M.
-
-        4. Try to compute the rational reconstruction CRT echelon form
-           of A mod the product of the p_i.  Throw away those A mod p_i
-           whose pivot sequence is not >= all other pivot sequences of
-           A mod p_j.
-           If rational reconstruction fails, compute 1 more echelon
-           forms mod the next prime, and attempt again.  Let E be this
-           matrix.
-
-        5. Compute the denominator d of E.
-           Try to prove that result is correct by checking that
-
-                 H(d*E) < (prod of reduction primes)/(ncols*H(A)),
-
-           where H denotes the height.   If this fails, do step 4 with
-           a few more primes.
-
-        AUTHORS:
-            -- William Stein
-            -- Robert Bradshaw
-        """
-        cdef Matrix_integer_dense A
-        cdef Matrix_rational_dense E
-        cdef Integer d
-        cdef int problem
-        A, d = self._clear_denom()
-        hA = A.height()
-        if height_guess is None:
-            height_guess = (2*hA)**(self._ncols/2+1)
-        tm = verbose("height_guess = %s"%height_guess, level=2)
-        best_pivots = []
-
-        if proof:
-            M = self._ncols * height_guess * hA  +  1
-        else:
-            M = height_guess + 1
-        mm = sage.ext.multi_modular.MutableMultiModularBasis(M)
-
-        res = []
-        # reduction via several primes can be made more efficient than reduction via each prime one at a time
-        t = verbose("Reducing mod %s:"%mm, level=2)
-        new_res = A._reduce(mm) # TODO: can I recognize special forms (e.g. identity) before calculating all of these?
-        t = verbose("time to reduce matrix mod p:",t, level=2)
-        problem = 0
-
-        _sig_on
-        while True:
-            # calculate the new echelon forms
-            for B in new_res:
-                B.echelonize()
-                t = verbose("time to put reduced matrix in echelon form:",t, level=2)
-            i = len(res)
-            res += new_res
-            new_res = []
-            # make sure they all have the same pivots
-            while i < len(res):
-                c = cmp_pivots(best_pivots, res[i].pivots())
-                if c == 0:
-                    i += 1
-                elif c < 0:
-                    best_pivots = res[i].pivots()
-                    i = 0
-                else:
-                    p = mm.replace_prime(i)
-                    res[i] = A._mod_int(p)
-                    res[i].echelonize()
-                    verbose("Excluding this prime (bad pivots).")
-            t = verbose("time for pivot compare", t, level=2)
-            # now try and lift
-            try:
-                t = verbose("start crt/rr", level=1)
-                E = self._lift_crt_rr_with_lcm(res, mm)
-                verbose("done crt/rr", t, level=1)
-            except ValueError:
-                mm._extend_moduli(3)
-                new_res = A._reduce(mm[-3:])
-                verbose("Failed to compute rational reconstruction -- redoing with several more primes", level=2)
-                continue
-
-            # see if we have enough clearance for the height
-            if not proof:
-                verbose("Not checking validity of result (since proof=False).", level=2)
-                break
-
-            dE, d = E._clear_denom()
-            hE = dE.height()
-            if hE * hA * self._ncols < mm.prod():
-                self.cache('pivots', best_pivots)
-                (<Matrix_rational_dense>E).cache('pivots', best_pivots)
-                break
-
-            # try a few more primes
-            mm._extend_moduli(3)
-            new_res = A._reduce(mm[-3:])
-            problem += 1
-            if problem > 50:
-                verbose("dense_matrix multi-modular reduce not converging?")
-
-        #end while
-        _sig_off
-        verbose("total time", tm, level=2)
-        self.cache('pivots', best_pivots)
-        E.cache('pivots', best_pivots)
-        return E
-
-    ################################################################
 
     def _lift_crt_rr(self, res, mm):
         cdef Integer m

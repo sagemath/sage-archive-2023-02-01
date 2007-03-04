@@ -2202,8 +2202,6 @@ cdef class Matrix(matrix1.Matrix):
                     self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
 
 
-
-
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)
 

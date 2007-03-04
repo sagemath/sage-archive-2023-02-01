@@ -5,6 +5,10 @@
 #############################################################
 
 include 'vector_rational_sparse_h.pxi'
+include "../ext/cdefs.pxi"
+include "../ext/gmp.pxi"
+include "../ext/stdsage.pxi"
+
 
 from sage.rings.rational cimport Rational
 
@@ -17,7 +21,7 @@ cdef int allocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
     It does *not* clear the entries of v, if there are any.
     """
     cdef Py_ssize_t i
-    v.entries = <mpq_t*>sage_malloc(num_nonzero*sizeof(mpq_t))
+    v.entries = <mpq_t *> sage_malloc(num_nonzero*sizeof(mpq_t))
     if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
     for i from 0 <= i < num_nonzero:

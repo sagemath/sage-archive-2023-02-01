@@ -1,6 +1,10 @@
 include 'vector_rational_sparse_c.pxi'
 
 
+from sage.rings.rational cimport Rational
+cimport free_module_element
+
+
 cdef class Vector_mpq
 
 cdef void Vector_mpq_rescale(Vector_mpq w, mpq_t x):
@@ -8,14 +12,14 @@ cdef void Vector_mpq_rescale(Vector_mpq w, mpq_t x):
 
 cdef class Vector_mpq:
     """
-    Vector_mpq -- a sparse vector of GMP rationals.  This is a Python
-    extension type that wraps the C implementation of sparse vectors
-    modulo a small prime.
+    Vector_mpq -- a sparse vector of GMP rationals.
     """
     cdef mpq_vector v
 
+    # We are doing coersion all the time. Should that be a flag?
     def __init__(self, int degree, int num_nonzero=0, entries=[], sort=True):
         cdef int i
+        cdef Rational z
         init_mpq_vector(&self.v, degree, num_nonzero)
         if entries != []:
             if len(entries) != num_nonzero:
@@ -24,8 +28,8 @@ cdef class Vector_mpq:
                 entries = list(entries) # copy so as not to modify passed in list
                 entries.sort()
             for i from 0 <= i < num_nonzero:
-                s = str(entries[i][1])
-                mpq_set_str(self.v.entries[i], s, 0)
+                z = Rational(entries[i])
+                mpq_set(self.v.entries[i], z.value)
                 self.v.positions[i] = entries[i][0]
 
     def __dealloc__(self):
@@ -33,11 +37,11 @@ cdef class Vector_mpq:
 
     def __getitem__(self, int n):
         cdef mpq_t x
-        cdef sage.rings.rational.Rational a
+        cdef Rational a
         mpq_init(x)
         mpq_vector_get_entry(&x, &self.v, n)
-        a = sage.rings.rational.Rational()
-        a.set_from_mpq(x)
+        a = PY_NEW(Rational)
+        mpq_set(a.value, x)
         mpq_clear(x)
         return a
 
@@ -59,13 +63,11 @@ cdef class Vector_mpq:
             return bool(n != 0)
         elif op == 4:
             return bool(n > 0)
-        elif op == 5:
+        else:
             return bool(n >= 0)
 
-    def __setitem__(self, int n, x):
-        cdef object s
-        s = str(x)
-        mpq_vector_set_entry_str(&self.v, n, s)
+    def __setitem__(self, Py_ssize_t n, x):
+        mpq_vector_set_entry(&self.v, n, (<Rational> x).value)
 
     def __repr__(self):
         return str(list(self))
@@ -86,11 +88,13 @@ cdef class Vector_mpq:
         cdef mpq_vector z1, *z2
         cdef Vector_mpq w
         cdef mpq_t ONE
+
         mpq_init(ONE)
         mpq_set_si(ONE,1,1)
 
         add_mpq_vector_init(&z1, &self.v, &other.v, ONE)
         mpq_clear(ONE)
+
         w = Vector_mpq(self.v.degree)
         z2 = &(w.v)
         clear_mpq_vector(z2)   # free memory wasted on allocated w
@@ -123,12 +127,11 @@ cdef class Vector_mpq:
             raise TypeError, "Invalid types."
         cdef object s, z
         cdef mpq_t t
+        cdef Rational r
+
         z = self.copy()
-        mpq_init(t)
-        s = str(other)
-        mpq_set_str(t, s, 0)
-        Vector_mpq_rescale(z, t)
-        mpq_clear(t)
+        r = Rational(y)
+        Vector_mpq_rescale(z, r.value)
         return z
 
     def randomize(self, int sparcity, bound=3):

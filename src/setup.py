@@ -283,6 +283,10 @@ vector_rational_dense = Extension('sage.modules.vector_rational_dense',
                                  ['sage/modules/vector_rational_dense.pyx'],
                                  libraries = ['gmp'])
 
+vector_rational_sparse = Extension('sage.modules.vector_rational_sparse',
+                                 ['sage/modules/vector_rational_sparse.pyx'],
+                                 libraries = ['gmp'])
+
 gsl_array = Extension('sage.gsl.gsl_array',['sage/gsl/gsl_array.pyx'],
                 libraries=['gsl',BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
@@ -309,6 +313,7 @@ ext_modules = [ \
 
     vector_integer_dense,
     vector_rational_dense,
+    vector_rational_sparse,
 
     #vector_rational_sparse,
 

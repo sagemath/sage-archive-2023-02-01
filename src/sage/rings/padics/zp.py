@@ -81,10 +81,13 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
     return K
 
 qadic_ring_cache = {}
-def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = None, halt = 40, check = True):
+def Zq(q, name=None, prec = 20, type = 'capped-abs', modulus = None, print_mode = None, halt = 40, check = True):
     r"""
     The creation function for unramified extensions of $\Z_p$
     """
+    if name is None:
+        raise TypeError, "You must specify the name of the generator."
+
     q = Integer(q)
     F = q.factor()
     if len(F) != 1:

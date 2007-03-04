@@ -144,7 +144,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
                 return True
         if sage.rings.finite_field_element.is_FiniteFieldElement(x) and x.parent().order() == self.prime():
             return True
-        if isinstance(x, pAdicFieldCappedRelativeElement) and x.parent().prime() == self.prime() and x.parent.precision_cap() >= self.precision_cap():
+        if isinstance(x, pAdicFieldCappedRelativeElement) and x.parent().prime() == self.prime() and x.parent().precision_cap() >= self.precision_cap():
             return True
         if isinstance(x, (pAdicRingCappedAbsoluteElement, pAdicRingCappedRelativeElement, pAdicLazyElement)) and x.parent().prime() == self.prime():
             return True

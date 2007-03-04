@@ -46,8 +46,8 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
             prec = R.precision_cap()
         if print_mode is None:
             print_mode = R.get_print_mode()
-        pAdicRingGeneric.__init__(self, R.prime(), prec, print_mode)
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
+        pAdicRingGeneric.__init__(self, R.prime(), prec, print_mode)
 
     def __call__(self, x, prec = None):
         return UnramifiedRingExtensionElement(self, x, prec)
@@ -174,6 +174,9 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         from sage.groups.perm_gps.permgroup import CyclicPermutationGroup
         return CyclicPermutationGroup(self.modulus().degree())
 
+    def gen(self):
+        return self.polynomial_ring().gen()
+
     def is_abelian(self):
         return True
 
@@ -203,7 +206,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         raise NotImplementedError
 
     def random_element(self):
-        return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.base_ring().random_element() for _ in range(self.modulus().degree())],[self.polynomial_ring().gen()**i for i in range(self.modulus().degree())]),0)
+        return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.base_ring().random_element() for _ in range(self.modulus().degree())],[self.gen()**i for i in range(self.modulus().degree())]),0)
 
     def unit_group(self):
         raise NotImplementedError
@@ -219,6 +222,12 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
 
     def zeta_order(self):
         raise NotImplementedError
+
+    def set_print_mode(self, mode):
+        return self.base_ring().set_print_mode(mode)
+
+    def get_print_mode(self):
+        return self.base_ring().get_print_mode()
 
     def fraction_field(self):
         r"""

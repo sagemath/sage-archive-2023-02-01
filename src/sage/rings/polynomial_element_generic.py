@@ -1045,7 +1045,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: f.factor_padic(5)
             ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
         """
-        import padics.qp.Qp
+        from padics.qp import Qp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1053,7 +1053,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
-        K = padics.qp.Qp(p, prec, type='capped-rel')
+        K = Qp(p, prec, type='capped-rel')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
 

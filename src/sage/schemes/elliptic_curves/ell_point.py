@@ -2,7 +2,7 @@
 Points on elliptic curves
 
 EXAMPLES:
-    sage: K = pAdicField(5)
+    sage: K = Qp(5)
     sage: E = EllipticCurve([K(1), K(1)])
     sage: P = E([K(0), K(1), K(1)])
     sage: P
@@ -39,6 +39,8 @@ Arithmetic with a point over an extension of a finite field:
 #*****************************************************************************
 
 import sage.plot.all as plot
+
+from sage.rings.padics.qp import Qp
 
 import ell_generic
 import sage.rings.all as rings

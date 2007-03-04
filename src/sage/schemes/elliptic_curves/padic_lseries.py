@@ -22,7 +22,7 @@ AUTHORS:
 
 
 from sage.rings.integer_ring import ZZ
-# from sage.rings.padic_field import pAdicField
+from sage.rings.padics.qp import Qp
 
 from sage.structure.sage_object import SageObject
 
@@ -36,7 +36,7 @@ class pAdicLseries(SageObject):
         #    raise NotImplementedError, "p (=%s) must be a prime of good reduction"%p
         self._prec = prec
         self._modular_symbol = E.modular_symbol()
-        self._Qp = pAdicField(p, self._prec)
+        self._Qp = Qp(p, self._prec, print_mode='series')
 
     def _repr_(self):
         return "%s-adic L-series of %s"%(self._p, self._E)
@@ -91,11 +91,11 @@ class pAdicLseries(SageObject):
             for pr, e in G:
                 a = -pr[0]
                 if a.valuation() < 1:
-                    self._alpha = a
-                    return a
+                    self._alpha = self._Qp(a)
+                    return self._Qp(a)
             raise ValueError, "bug in p-adic L-function alpha"
         else: # supersingular case
-            f = f.change_ring(pAdicField(p, self._prec))
+            f = f.change_ring(Qp(p, self._prec, print_mode='series'))
             a = f.root_field('alpha', check_irreducible=False).gen()
             self._alpha = a
             return a

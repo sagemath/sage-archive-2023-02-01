@@ -9,6 +9,7 @@ import padics.padic_generic
 import power_series_ring_element
 import integer
 import rational
+from sage.rings.integer_mod import Mod
 
 def O(x):
     if isinstance(x, power_series_ring_element.PowerSeries):

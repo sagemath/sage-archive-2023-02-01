@@ -1,7 +1,7 @@
 from equations import SymbolicEquation
 from calculus import (SER,
                       var,
-                      sin, cos, sec, log, erf, sqrt)
+                      sin, cos, sec, log, erf, sqrt, asin, acos, atan)
 
 from calculus import (a,
                       b,
@@ -43,7 +43,7 @@ from calculus import (a,
                       L,
                       M,
                       N,
-                      O,
+                      #O,
                       P,
                       Q,
                       R,

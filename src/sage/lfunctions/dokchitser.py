@@ -69,16 +69,16 @@ class Dokchitser(SageObject):
         ...
         ArithmeticError:   ###   user error: L*(s) has a pole at s=1.000000000000000000
         sage: L(2)
-        1.64493406684822
+        1.64493406684823
         sage: L(2, 1.1)
-        1.64493406684822
+        1.64493406684823
         sage: L.derivative(2)
-        -0.937548254315843
+        -0.937548254315844
         sage: h = RR('0.0000000000001')
         sage: (zeta(2+h) - zeta(2))/h
         -0.937028232783632
         sage: L.taylor_series(2, k=5)
-        1.64493406684822 + -0.937548254315843*z + 0.994640117149450*z^2 + -1.00002430047384*z^3 + 1.00006193307235*z^4 + O(z^5)
+        1.64493406684823 + -0.937548254315844*z + 0.994640117149451*z^2 + -1.00002430047384*z^3 + 1.00006193307235*z^4 + O(z^5)
 
     RANK 1 ELLIPTIC CURVE:
 
@@ -91,14 +91,14 @@ class Dokchitser(SageObject):
         sage: L.derivative(1)
         0.305999773834052
         sage: L.derivative(1,2)
-        0.373095594536323
+        0.373095594536324
         sage: L.num_coeffs()
         48
         sage: L.taylor_series(1,4)
-        0.305999773834052*z + 0.186547797268161*z^2 + -0.136791463097187*z^3 + O(z^4)
+        0.305999773834052*z + 0.186547797268162*z^2 + -0.136791463097188*z^3 + O(z^4)
         sage: L.check_functional_equation()
-        0.00000000000000000611218974800000              # 32-bit
-        0.00000000000000000604442711160668              # 64-bit
+        6.11218974800000e-18                            # 32-bit
+        6.04442711160669e-18                            # 64-bit
 
     RANK 2 ELLIPTIC CURVE:
 
@@ -112,8 +112,8 @@ class Dokchitser(SageObject):
         sage: L.derivative(1,E.rank())
         1.51863300057685
         sage: L.taylor_series(1,4)
-        -0.0000000000000000000000128158145691931 + 0.00000000000000000000000726268290635586*z + 0.759316500288426*z^2 + -0.430302337583362*z^3 + O(z^4)   # 32-bit
-        -0.0000000000000000000000269129566562796 + 0.0000000000000000000000152514901968782*z + 0.759316500288426*z^2 + -0.430302337583362*z^3 + O(z^4)    # 64-bit
+        -1.28158145691931e-23 + (7.26268290635587e-24)*z + 0.759316500288427*z^2 + -0.430302337583362*z^3 + O(z^4)      # 32-bit
+        -2.69129566562797e-23 + (1.52514901968783e-23)*z + 0.759316500288427*z^2 + -0.430302337583362*z^3 + O(z^4)      # 64-bit
 
 
     RAMANUJAN DELTA L-FUNCTION:
@@ -141,7 +141,7 @@ class Dokchitser(SageObject):
         sage: L(1, 1.1)
         0.0374412812685155
         sage: L.taylor_series(1,3)
-        0.0374412812685155 + 0.0709221123619322*z + 0.0380744761270519*z^2 + O(z^3)
+        0.0374412812685155 + 0.0709221123619322*z + 0.0380744761270520*z^2 + O(z^3)
     """
     def __init__(self, conductor, gammaV, weight, eps, \
                        poles=[], residues='automatic', prec=53,
@@ -180,7 +180,7 @@ class Dokchitser(SageObject):
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_dokchitser()
             sage: L(2)
-            0.546048036215013
+            0.546048036215014
             sage: L.gp()
             GP/PARI interpreter
         """
@@ -346,11 +346,11 @@ class Dokchitser(SageObject):
         EXAMPLES:
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.taylor_series(2, 3)
-            1.64493406684822 + -0.937548254315843*z + 0.994640117149450*z^2 + O(z^3)
+            1.64493406684823 + -0.937548254315844*z + 0.994640117149451*z^2 + O(z^3)
             sage: E = EllipticCurve('37a')
             sage: L = E.Lseries_dokchitser()
             sage: L.taylor_series(1)
-            0.305999773834052*z + 0.186547797268161*z^2 + -0.136791463097187*z^3 + 0.0161066468496400*z^4 + 0.0185955175398802*z^5 + O(z^6)
+            0.305999773834052*z + 0.186547797268162*z^2 + -0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
         """
         self.__check_init()
         a = self.__CC(a)
@@ -401,14 +401,14 @@ class Dokchitser(SageObject):
         EXAMPLES:
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=1, poles=[1], residues=[-1], init='1')
             sage: L.check_functional_equation ()
-            -0.0000000000000000000271050543199999        # 32-bit
-            -0.0000000000000000000271050543121376        # 64-bit
+            -2.71050543200000e-20                        # 32-bit
+            -2.71050543121376e-20                        # 64-bit
 
         If we choose the sign in functional equation for the $\zeta$
         function incorrectly, the functional equation doesn't check out.
             sage: L = Dokchitser(conductor=1, gammaV=[0], weight=1, eps=-11, poles=[1], residues=[-1], init='1')
             sage: L.check_functional_equation ()
-            -9.73967861488123
+            -9.73967861488124
         """
         self.__check_init()
         z = self.gp().eval('checkfeq(%s)'%T).replace(' ','')

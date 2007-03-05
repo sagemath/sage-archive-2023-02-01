@@ -296,7 +296,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: y = 19575260230015313702261379022151675961965157108920263594545223
             sage: d = 2254020761884782243
             sage: E([ x / d^2,  y / d^3 ]).height()
-            86.7406561381274
+            86.7406561381275
 
             sage: E = EllipticCurve([17, -60, -120, 0, 0]); E
             Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field

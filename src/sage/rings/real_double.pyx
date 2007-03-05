@@ -96,7 +96,7 @@ cdef class RealDoubleField_class(Field):
         numbers and higher-precision ones, though of course there may
         be loss of precision:
             sage: a = RealField(200)(2).sqrt(); a
-            1.4142135623730950488016887242096980785696718753769480731766
+            1.4142135623730950488016887242096980785696718753769480731767
             sage: b = RDF(a); b
             1.41421356237
             sage: a.parent()(b)
@@ -693,7 +693,7 @@ cdef class RealDoubleElement(FieldElement):
 
             sage: r = -2.0
             sage: r.sqrt()
-            1.41421356237309*I
+            1.41421356237310*I
             """
         if self >= 0:
             return self.square_root()
@@ -712,7 +712,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.square_root()
             NaN
             sage: r.sqrt()
-            1.41421356237309*I
+            1.41421356237310*I
         """
         return self._new_c(sqrt(self._value))
 

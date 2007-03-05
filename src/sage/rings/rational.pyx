@@ -385,13 +385,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1.33333333333333
             sage: x = 9837/2
             sage: x.sqrt()
-            70.1320183653657
+            70.1320183653658
             sage: x = 645373/45
             sage: x.sqrt()
-            119.756512233039
+            119.756512233040
             sage: x = -12/5
             sage: x.sqrt()
-            1.54919333848296*I
+            1.54919333848297*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples

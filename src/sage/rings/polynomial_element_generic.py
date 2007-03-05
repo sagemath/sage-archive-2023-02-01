@@ -954,7 +954,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.complex_roots()[0]
-            0.713639173536900
+            0.713639173536901
         """
         R = self.__poly.polroots(flag)
         C = complex_field.ComplexField()
@@ -1370,7 +1370,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: alpha = f.complex_roots()[0]; alpha
-            0.713639173536900
+            0.713639173536901
             sage: f(alpha)
             0
         """

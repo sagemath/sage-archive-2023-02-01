@@ -67,7 +67,7 @@ From bigger to small does:
     sage: f(2.5)
     2.500
     sage: f(RR.pi())
-    3.141
+    3.142
 
 EXAMPLE: Inclusion map from the reals to the complexes:
     sage: i = RR.hom([CC(1)]); i
@@ -280,7 +280,7 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^3)
     2.00000000000000
     sage: i(beta^2 + 1)
-    2.58740105196819
+    2.58740105196820
 """
 
 #*****************************************************************************

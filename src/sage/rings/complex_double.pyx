@@ -196,7 +196,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
         numbers and higher-precision ones, though of course there may
         be loss of precision:
             sage: a = ComplexField(200)(-2).sqrt(); a
-            1.4142135623730950488016887242096980785696718753769480731766*I
+            1.4142135623730950488016887242096980785696718753769480731767*I
             sage: b = CDF(a); b
             1.41421353817*I
             sage: a.parent()(b)
@@ -722,7 +722,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
-            0.099425429372582675602989386713555936556752871164033127857197
+            0.099425429372582675602989386713555936556752871164033127857198
 
         Indeed, the logabs, wins.
         """
@@ -1335,7 +1335,7 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: (1+I).agm(2-I)
-            1.62780548487270 + 0.136827548397368*I
+            1.62780548487271 + 0.136827548397369*I
         """
         cdef pari_sp sp
         sp = avma

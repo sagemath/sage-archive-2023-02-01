@@ -53,15 +53,15 @@ def algdep(z, n):
 
     This example involves a complex number.
         sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
-        0.500000000000000 + 0.866025403784438*I
+        0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
-        x^6 + 2*x^3 + 1                      # 32-bit
+        x^5 + x^2                            # 32-bit
         x^5 - x^4 + x^3 + x^2 - x + 1        # 64-bit
         sage: p.factor()
-        (x + 1)^2 * (x^2 - x + 1)^2          # 32-bit
+        (x + 1) * x^2 * (x^2 - x + 1)        # 32-bit
         (x + 1) * (x^2 - x + 1)^2            # 64-bit
         sage: z^2 - z + 1
-        0.000000000000000111022302462515
+        0.000000000000000111022302462516
 
     This example involves a $p$-adic number.
         sage: K = pAdicField(3)
@@ -2483,13 +2483,13 @@ def falling_factorial(x, a):
         sage: falling_factorial(10, RR('3.0'))
         720.000000000000
         sage: falling_factorial(10, RR('3.3'))
-        1310.11633396600
+        1310.11633396601
         sage: falling_factorial(10, 10)
         3628800
         sage: factorial(10)
         3628800
         sage: falling_factorial(1+I, I)
-        0.652965496420166 + 0.343065839816545*I
+        0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
         2.00000000000000 + 4.00000000000000*I
         sage: falling_factorial(I, 4)
@@ -2550,7 +2550,7 @@ def rising_factorial(x, a):
         2826.38895824964
 
         sage: rising_factorial(1+I, I)
-        0.266816390637832 + 0.122783354006371*I
+        0.266816390637832 + 0.122783354006372*I
 
         sage: rising_factorial(I, 4)
         -10.0000000000000

@@ -732,8 +732,14 @@ class Set_object_intersection(Set_object):
             True
             sage: ComplexField().0 in X
             False
+
+            Floating-point numbers are rational.
+
             sage: sqrt(2) in X
-            False
+            True
+
+            Real constants are not rational.
+
             sage: pi in X
             False
             sage: pi in RR

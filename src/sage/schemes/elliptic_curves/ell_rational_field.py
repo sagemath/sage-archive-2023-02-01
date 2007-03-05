@@ -1430,8 +1430,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice ()
-            (2.993458646231959629832009, 2.45138938198999*I)           # 32-bit
-            (2.993458646231959629832009979452508, 2.45138938198999*I)   # 64-bit
+            (2.993458646231959629832009979452508177797583791370132985340523378563250356987, 2.451389381986790060854224831866525225349617289144796614656471406129152899999*I)    # 32-bit
+            (2.99345864623195962983200997945250817779758379137013298534052337856325035698668290412039406739705147343584052710494728819414438723737202525437537667109326, 2.45138938198679006085422483186652522534961728914479661465647140612915289999925689289113212802918108871268421886966184797547519986661675580167893816478303*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
 
@@ -1447,22 +1447,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
-            5.986917292463919259664019               # 32-bit
-            5.986917292463919259664019958905016      # 64-bit
+            5.986917292463919259664019958905016355595167582740265970681046757126500713973     # 32-bit
+            5.98691729246391925966401995890501635559516758274026597068104675712650071397336580824078813479410294687168105420989457638828877447474405050875075334218652        # 64-bit
 
 
         This is not a minimal model.
             sage: E = EllipticCurve([0,-432*6^2])
             sage: E.omega()
-            0.48610938571005642989723045             # 32-bit
-            0.48610938571005642989723045617382554    # 64-bit
+            0.4861093857100564298972304561738255425526098601923921971195408561181781048715    # 32-bit
+            0.486109385710056429897230456173825542552609860192392197119540856118178104871498709353307487730842084963451161261340032305532890657753313985258848453458110       # 64-bit
 
         If you were to plug the above omega into the BSD conjecture, you
         would get nonsense.   The following works though:
             sage: F = E.minimal_model()
             sage: F.omega()
-            0.97221877142011285979446091             # 32-bit
-            0.97221877142011285979446091234765108    # 64-bit
+            0.9722187714201128597944609123476510851052197203847843942390817122363562097430    # 32-bit
+             0.972218771420112859794460912347651085105219720384784394239081712236356209742997418706614975461684169926902322522680064611065781315506627970517696906916220      # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
 
@@ -1474,7 +1474,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.complex_area()
-            7.33813274079918
+            7.338132740789576739070721003332305588006176586123733717543180156079096606979     # 32-bit
+            7.33813274078957673907072100333230558800617658612373371754318015607909660697945809438214607592923817142863798604406024044503049908233884534256274529672707        # 64-bit
         """
         w1,w2 = self.period_lattice()
         return (w1*w2.imag()).real()
@@ -1628,7 +1629,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
-            [(6.87039121, 0.248922780), (8.01433080, -0.140168533), (9.93309835, -0.129943029)]
+            [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.zeros_in_interval(x, y, stepsize, L=self)
@@ -1713,7 +1714,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_twist_zeros(3, -4, -3)         # long
-            {-4: [1.60813782, 2.96144840, 3.89751747], -3: [2.06170899, 3.48216880, 4.45853218]}
+            {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.twist_zeros(n, dmin, dmax, L=self)
@@ -1765,7 +1766,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37b')
             sage: E.Lseries_at1(100)
-            (0.725681061936000, 0.00000000000000000000000000000000000000000000152437502288999)
+            (0.725681061936000, 1.52437502289000e-45)
         """
         if self.root_number() == -1:
             return 0
@@ -1829,7 +1830,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_deriv_at1(100)
-            (0.305999773834999, 0.00000000000000000000000000000000000000000000152437502288999)
+            (0.305999773835000, 1.52437502289000e-45)
         """
         if self.root_number() == 1: return 0
         k = int(k)
@@ -1891,7 +1892,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.354172680515554 + 0.874518681718912*I
+            -0.354172680515549 + 0.874518681718936*I
         """
         s = C(s)
         N = self.conductor()
@@ -1922,9 +1923,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.638409959098255 + 0.715495262191407*I
+            -0.638409959098258 + 0.715495262191409*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.00761216538769246 + 0.000434885704642074*I
+            -0.00761216538769414 + 0.000434885704642169*I
 
         NOTE: You might also want to use Tim Dokchitser's
         L-function calculator, which is available by typing

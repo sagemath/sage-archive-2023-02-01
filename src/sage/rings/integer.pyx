@@ -781,9 +781,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
            sage: x = 3^100000
            sage: log(RR(x), 3)
-           99999.9999999999
+           100000.000000000
            sage: log(RR(x + 100000), 3)
-           99999.9999999999
+           100000.000000000
 
            sage: x.exact_log(3)
            100000
@@ -1548,7 +1548,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(4).sqrt(53)
             2.00000000000000
             sage: Z(2).sqrt(53)
-            1.41421356237309
+            1.41421356237310
             sage: Z(2).sqrt(100)
             1.4142135623730950488016887242
             sage: n = 39188072418583779289; n.square_root()
@@ -1558,11 +1558,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.00000000000000*I
             sage: sqrt(-2)
-            1.41421356237309*I
+            1.41421356237310*I
             sage: sqrt(97)
             9.84885780179610
             sage: n = 97; n.sqrt(200)
-            9.8488578017961047217462114149176244816961362874427641717231
+            9.8488578017961047217462114149176244816961362874427641717232
         """
         if bits is None:
             try:

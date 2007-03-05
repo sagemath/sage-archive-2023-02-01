@@ -322,7 +322,7 @@ class GpElement(ExpectElement):
             sage: CC(gp(11243.9812+15*I))
              11243.9812000000 + 15.0000000000000*I
             sage: ComplexField(10)(gp(11243.9812+15*I))
-             11000 + 15*I
+             1.1e4 + 15*I
         """
         GP = self.parent()
         orig = GP.get_real_precision()

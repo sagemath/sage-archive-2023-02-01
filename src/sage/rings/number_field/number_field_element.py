@@ -216,7 +216,7 @@ class NumberFieldElement(field_element.FieldElement):
             16.0604426799931
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
-            2.57128159065823
+            2.57128159065824
             sage: a.__abs__(prec=100)
             2.5712815906582353554531872087
             sage: a.__abs__(1,100)
@@ -228,9 +228,9 @@ class NumberFieldElement(field_element.FieldElement):
             sage: K.<b> = NumberField(x^2-2)
             sage: a = 1 + b
             sage: a.__abs__(i=0)
-            0.414213562373094
-            sage: a.__abs__(i=1)
             2.41421356237309
+            sage: a.__abs__(i=1)
+            0.414213562373095
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))

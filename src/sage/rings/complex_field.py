@@ -85,13 +85,13 @@ class ComplexField_class(field.Field):
 
     This illustrates precision.
         sage: CC = ComplexField(10); CC(1/3, 2/3)
-        0.33 + 0.66*I
+        0.33 + 0.67*I
         sage: CC
         Complex Field with 10 bits of precision
         sage: CC = ComplexField(100); CC
         Complex Field with 100 bits of precision
         sage: z = CC(1/3, 2/3); z
-        0.33333333333333333333333333333 + 0.66666666666666666666666666666*I
+        0.33333333333333333333333333333 + 0.66666666666666666666666666667*I
 
     We can load and save complex numbers and the complex field.
         sage: loads(z.dumps()) == z

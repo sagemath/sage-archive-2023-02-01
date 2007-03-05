@@ -278,9 +278,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: nearest = RIF(RR(1/10), RR(7/10)); nearest
         [0.10000000000000000 ... 0.69999999999999996]
         sage: nearest.lower() - outward.lower()
-        0.0000000000000000138777878078144
+        1.38777878078144e-17
         sage: outward.upper() - nearest.upper()
-        0.000000000000000111022302462515
+        0.000000000000000111022302462516
 
     Some examples with a real interval field of higher precision:
         sage: R = RealIntervalField(100)
@@ -943,9 +943,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: x = R(1.2,1.3); x
             [1.1999 ... 1.3001]
             sage: x.upper()
-            1.30
+            1.31
             sage: x.upper('RNDU')
-            1.30
+            1.31
             sage: x.upper('RNDN')
             1.30
             sage: x.upper('RNDD')
@@ -1002,23 +1002,23 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1, 2).diameter()
-            0.666666666666666
+            0.666666666666667
             sage: RIF(1, 2).absolute_diameter()
             1.00000000000000
             sage: RIF(1, 2).relative_diameter()
-            0.666666666666666
+            0.666666666666667
             sage: RIF(pi).diameter()
-            0.000000000000000141357985842822
+            0.000000000000000141357985842823
             sage: RIF(pi).absolute_diameter()
-            0.000000000000000444089209850062
+            0.000000000000000444089209850063
             sage: RIF(pi).relative_diameter()
-            0.000000000000000141357985842822
+            0.000000000000000141357985842823
             sage: (RIF(pi) - RIF(3, 22/7)).diameter()
-            0.142857142857143
+            0.142857142857144
             sage: (RIF(pi) - RIF(3, 22/7)).absolute_diameter()
-            0.142857142857143
+            0.142857142857144
             sage: (RIF(pi) - RIF(3, 22/7)).relative_diameter()
-            2.03604377705517
+            2.03604377705518
         """
         cdef RealNumber x
         x = (<RealIntervalField>self._parent).__middle_field._new()

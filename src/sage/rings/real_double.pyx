@@ -25,6 +25,10 @@ include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
 import math, operator
+
+cimport sage.libs.pari.gen
+import sage.libs.pari.gen
+
 from random import random
 
 from sage.misc.sage_eval import sage_eval
@@ -641,7 +645,8 @@ cdef class RealDoubleElement(FieldElement):
         return sage.rings.complex_double.ComplexDoubleField()(self)
 
     def _pari_(self):
-        return sage.libs.pari.all.pari.new_with_bits_prec("%.15e"%self._value, 64)
+        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
+        return P.double_to_gen_c(self._value)
 
 
     ###########################################
@@ -1207,7 +1212,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(2).sqrt(); r
             1.41421356237
             sage: r.algdep(5)
-            x^4 - 2*x^2
+            x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 
@@ -1224,7 +1229,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = sqrt(RDF(2)); r
             1.41421356237
             sage: r.algdep(5)
-            x^4 - 2*x^2
+            x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 

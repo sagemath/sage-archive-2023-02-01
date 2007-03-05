@@ -515,8 +515,9 @@ cdef class ComplexDoubleElement(FieldElement):
     cdef GEN _gen(self):
         cdef GEN y
         y = cgetg(3, t_COMPLEX)    # allocate space for a complex number
-        set_gel(y,1,dbltor(self._complex.dat[0]))
-        set_gel(y,2,dbltor(self._complex.dat[1]))
+        cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
+        set_gel(y,1,P.double_to_GEN(self._complex.dat[0]))
+        set_gel(y,2,P.double_to_GEN(self._complex.dat[1]))
         return y
 
     def _pari_(self):

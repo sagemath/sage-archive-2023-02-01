@@ -101,6 +101,7 @@ cdef extern from 'pari/pari.h':
     GEN     gp_read_str(char *t)
     GEN     gp_read_file(FILE *f)
 
+    GEN     real_0_bit(long bitprec)
     long    itos(GEN x)
     double  gtodouble(GEN x)
     GEN     stoi(long s)

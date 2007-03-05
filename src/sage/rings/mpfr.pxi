@@ -43,6 +43,7 @@ cdef extern from "mpfr.h":
     void mpfr_set_nan (mpfr_t x)
     int mpfr_set_z (mpfr_t rop, mpz_t op, mp_rnd_t rnd)
     int mpfr_set_q (mpfr_t rop, mpq_t op, mp_rnd_t rnd)
+    int mpfr_set_d (mpfr_t rop, double op, mp_rnd_t rnd)
 
     char * mpfr_get_str (char *str, mp_exp_t *expptr, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
     size_t mpfr_out_str (int *stream, int base, size_t n, mpfr_t op, mp_rnd_t rnd)

@@ -62,6 +62,7 @@ from integer cimport Integer
 from rational import Rational
 from rational cimport Rational
 
+from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
@@ -538,6 +539,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef Integer _ix
         cdef RealField parent
         cdef gen _gen
+        cdef RealDoubleElement rd
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
@@ -552,6 +554,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, (int, long)):
             _ix = Integer(x)
             mpfr_set_z(self.value, _ix.value, parent.rnd)
+        elif isinstance(x, float):
+            mpfr_set_d(self.value, x, parent.rnd)
+        elif PY_TYPE_CHECK(x, RealDoubleElement):
+            rd = x
+            mpfr_set_d(self.value, rd._value, parent.rnd)
         #elif hasattr(x, '_mpfr_'):
         #    return x._mpfr_(self)
         else:
@@ -1505,8 +1512,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = 16.0; r.log10()
             1.20411998265592
-            sage: r.log() / log(10)
-            1.20411998265804
+            sage: r.log() / log(10.0)
+            1.20411998265592
 
             sage: r = 39.9; r.log10()
             1.60097289568675

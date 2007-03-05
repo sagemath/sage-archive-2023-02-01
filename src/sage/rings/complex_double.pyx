@@ -902,8 +902,8 @@ cdef class ComplexDoubleElement(FieldElement):
         The branch cut is the negative real axis.
 
         EXAMPLES:
-            sage: CDF(1,1).log()
-            0.34657359028 + 0.785398163397*I
+            sage: CDF(1,1).log10()
+            0.150514997832 + 0.34109408846*I
         """
         return self._new_c(gsl_complex_log10(self._complex))
 

@@ -17,6 +17,9 @@ Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
 is_FiniteFieldElement = sage.rings.finite_field_element.is_FiniteFieldElement
 pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
+pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
+pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 Polynomial = sage.rings.polynomial_element.Polynomial
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 
@@ -35,7 +38,7 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
                     raise NotImplementedError, "we have not yet implemented coercion between different unramified extensions"
             PQRElement.__init__(self, parent, x._polynomial, check = False)
             return
-        if isinstance(x, (int, long, Integer, Rational)) or is_IntegerMod(x) or is_FiniteFieldElement(x) or (isinstance(x, sage.structure.element.Element) and (isinstance(x.parent(), pAdicRingBaseGeneric) or x.parent() is self.base_ring())):
+        if isinstance(x, (int, long, Integer, Rational)) or is_IntegerMod(x) or is_FiniteFieldElement(x) or (isinstance(x, sage.structure.element.Element) and (isinstance(x.parent(), pAdicRingBaseGeneric) or x.parent() is parent.base_ring())):
             x = parent.base_ring()(x, prec = prec)
             PQRElement.__init__(self, parent, sage.rings.polynomial_ring_constructor.PolynomialRing(parent.base_ring(), parent.polynomial_ring().variable_name())(x), check=False)
             return
@@ -207,7 +210,10 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
 
     def precision_absolute(self):
         if self._polynomial == 0:
-            return infinity
+            if isinstance(self.parent().ground_ring_of_tower(), (pAdicRingCappedRelative, pAdicRingLazy)):
+                return infinity
+            else:
+                return self.parent().precision_cap()
         return min(c.precision_absolute() for c in self._polynomial.list())
 
     def precision_relative(self):
@@ -237,7 +243,10 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
     def valuation(self):
         clist = self._polynomial.list()
         if len(clist) == 0:
-            return infinity
+            if isinstance(self.parent().ground_ring_of_tower(), (pAdicRingCappedRelative, pAdicRingLazy)):
+                return infinity
+            else:
+                return self.parent().precision_cap()
         return min([a.valuation() for a in clist])
 
     def norm(self, K = None):

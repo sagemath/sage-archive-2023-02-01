@@ -133,7 +133,7 @@ class pAdicFieldGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
         EXAMPLES:
             sage: R = Qp(7,5, 'capped-rel')
             sage: R.get_print_mode()
-                'val-unit'
+            'series'
         """
         return self._print_mode
 

@@ -1496,6 +1496,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(4, 1), (2, 1)]
             sage: g.roots(multiplicities=False)
             [4, 2]
+
+            sage: x = RR['x'].0
+            sage: f = x^2 - 1e100
+            sage: f.roots()
+            [-1.00000000000000e50, 1.00000000000000e50]
+            sage: f = x^10 - 2*(5*x-1)^2
+            sage: f.roots()
+            [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
+
+            sage: x = CC['x'].0
+            sage: f = (x-1)*(x-I)
+            sage: f.roots()
+            [1.00000000000000*I, 1.00000000000000]
         """
         seq = []
 
@@ -1507,8 +1520,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.get_real_precision()
             pari.set_real_precision(int(K.prec()/3.2)+1)
             r = pari(self).polroots()
-            r = str(r).rstrip('~')
-            seq = sage_eval(r, locals={'I':K.gen(), 'RealNumber':K._real_field()})
+            seq = [K(root) for root in r]
             pari.set_real_precision(n)
             return seq
 

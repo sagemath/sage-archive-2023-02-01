@@ -723,7 +723,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.square_root()
             nan
             sage: r.sqrt()
-            1.41421353817*I
+            1.41421356237*I
         """
         return self._new_c(sqrt(self._value))
 

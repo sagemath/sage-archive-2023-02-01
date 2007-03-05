@@ -811,11 +811,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
                 return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
 
-        n = abs(exponent)
         lpad = ''
         if exponent <= 0:
             n = len(t)
             lpad = '0.' + '0'*abs(exponent)
+        else:
+            n = exponent
         if t[0] == '-':
             lpad = '-' + lpad
             t = t[1:]
@@ -823,7 +824,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         w = t[n:]
         if len(w) > 0:
             z = z + ".%s"%w
-        elif lpad == '':
+        elif exponent > 0:
             z = z + '0'*(n-len(t))
         return z
 

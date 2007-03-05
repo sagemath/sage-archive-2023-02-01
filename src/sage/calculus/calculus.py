@@ -312,6 +312,8 @@ class SymbolicExpression(RingElement):
             _all_simplified_ = True
             self._simp = self.parent()(self._maxima_())
             _all_simplified_ = False
+        else:
+            self._simp = self
         return self._simp
 
     def simplify_trig(self):
@@ -440,7 +442,9 @@ class PrimitiveFunction(SymbolicExpression):
             return SymbolicComposition(self, SymbolicPolynomial(x))
 
         # if we can't figure out what x is, return the composition with a symbolic version of x
-        elif isinstance(x, (Integer, Rational, int, long, Constant)):
+        elif isinstance(x, (Integer, Rational, int, long)):
+            return self(SER(x))
+        elif isinstance(x, Constant):
             return self(SER(x))
         elif isinstance(x, (RealNumber, float)):
             # try getting an approximation
@@ -489,7 +493,6 @@ class CallableFunction(RingElement):
             self._expr = expr
 
         def __float__(self):
-            s = self.simplify()
             return float(self.obj)
 
         def _mpfr_(self, field):
@@ -818,10 +821,14 @@ class SymbolicComposition(SymbolicOperation):
         return True
 
     def _repr_(self):
+        if not self.is_simplified():
+            return self.simplify()._repr_()
         ops = self._operands
         return "%s(%s)"% (ops[0]._repr_(), ops[1]._repr_())
 
     def _latex_(self):
+        if not self.is_simplified():
+            return self.simplify()._repr_()
         ops = self._operands
         # certain functions (such as \sqrt) need braces in LaTeX
         if (ops[0]).tex_needs_braces():
@@ -839,19 +846,14 @@ class SymbolicComposition(SymbolicOperation):
             return m
 
     def __float__(self):
-        if not self.is_simplified():
-            return float(self.simplify())
-
         f = self._operands[0]
         g = self._operands[1]
         return float(f._approx_(float(g)))
 
     def _mpfr_(self, field):
-        if not self.is_simplified():
-            return self.simplify()._mpfr_(field)
         f = self._operands[0]
         g = self._operands[1]
-        return f._appro(g._mpfr_(field))
+        return f._approx_(g._mpfr_(field))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
             operator.div:'/', operator.pow:'^'}
@@ -882,14 +884,10 @@ class SymbolicArithmetic(SymbolicOperation):
         self._operator = op
 
     def __float__(self):
-        if not self.is_simplified():
-            return float(self.simplify())
         fops = [float(op) for op in self._operands]
         return self._operator(*fops)
 
     def _mpfr_(self, field):
-        if not self.is_simplified():
-            return float(self.simplify())
         rops = [op._mprf_(field) for op in self._operands]
         return self._operator(*rops)
 
@@ -897,7 +895,8 @@ class SymbolicArithmetic(SymbolicOperation):
         return self._atomic
 
     def _repr_(self):
-
+        if not self.is_simplified():
+            return self.simplify()._repr_()
         ops = self._operands
         op = self._operator
 
@@ -943,6 +942,9 @@ class SymbolicArithmetic(SymbolicOperation):
             return '%s%s%s' % (s[0], symbols[op], s[1])
 
     def _latex_(self):
+        # if we are not simplified, return the latex of a simplified version
+        if not self.is_simplified():
+            return self.simplify()._latex_()
         op = self._operator
         ops = self._operands
         s = [x._latex_() for x in self._operands]

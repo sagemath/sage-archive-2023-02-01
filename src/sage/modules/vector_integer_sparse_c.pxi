@@ -4,14 +4,12 @@
 #
 #############################################################
 
+# You must do this in the file that uses this code
+#     include 'binary_search.pxi'
+
 include 'vector_integer_sparse_h.pxi'
 
 from sage.rings.integer cimport Integer
-
-cdef class Vector_mpz
-
-cdef void Vector_mpz_rescale(Vector_mpz w, mpz_t x):
-    scale_mpz_vector(&w.v, x)
 
 
 cdef int allocate_mpz_vector(mpz_vector* v, Py_ssize_t num_nonzero) except -1:
@@ -57,69 +55,6 @@ cdef void clear_mpz_vector(mpz_vector* v):
     sage_free(v.entries)
     sage_free(v.positions)
 
-# We can probably get away with only having the mpz_binary_searches in here.
-# I'm too scared to get rid of it at 2am though.
-cdef Py_ssize_t binary_search(Py_ssize_t* v, Py_ssize_t n, Py_ssize_t x, Py_ssize_t* ins):
-    """
-    Find the position of the integer x in the array v, which has length n.
-    Returns -1 if x is not in the array v, and in this case ins is
-    set equal to the position where x should be inserted in order to
-    obtain an ordered array.
-    """
-    if n == 0:
-        ins[0] = 0
-        return -1
-
-    cdef Py_ssize_t i, j, k
-    i = 0
-    j = n-1
-    while i<=j:
-        if i == j:
-            if v[i] == x:
-                ins[0] = i
-                return i
-            if v[i] < x:
-                ins[0] = i + 1
-            else:
-                ins[0] = i
-            return -1
-        k = (i+j)/2
-        if v[k] > x:
-            j = k-1
-        elif v[k] < x:
-            i = k+1
-        else:   # only possibility is that v[k] == x
-            ins[0] = k
-            return k
-    # end while
-    ins[0] = j+1
-    return -1
-
-cdef Py_ssize_t binary_search0(Py_ssize_t* v, Py_ssize_t n, Py_ssize_t x):
-    """
-    Find the position of the int x in the array v, which has length n.
-    Returns -1 if x is not in the array v.
-    """
-    if n == 0:
-        return -1
-
-    cdef Py_ssize_t i, j, k
-    i = 0
-    j = n-1
-    while i<=j:
-        if i == j:
-            if v[i] == x:
-                return i
-            return -1
-        k = (i+j)/2
-        if v[k] > x:
-            j = k-1
-        elif v[k] < x:
-            i = k+1
-        else:   # only possibility is that v[k] == x
-            return k
-    return -1
-
 cdef Py_ssize_t mpz_binary_search0(mpz_t* v, Py_ssize_t n, mpz_t x):
     """
     Find the position of the integers x in the array v, which has length n.
@@ -132,7 +67,7 @@ cdef Py_ssize_t mpz_binary_search0(mpz_t* v, Py_ssize_t n, mpz_t x):
     j = n-1
     while i<=j:
         if i == j:
-            if mpz_equal(v[i],x):
+            if mpz_cmp(v[i],x) == 0:
                 return i
             return -1
         k = (i+j)/2
@@ -199,11 +134,11 @@ cdef int mpz_vector_get_entry(mpz_t* ans, mpz_vector* v, Py_ssize_t n) except -1
     that *must* have been initialized using mpz_init.
     """
     if n >= v.degree:
-        raise IndexError, "Index must be between 0 and %s."%(v.degree - 1)
+        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree - 1)
     cdef Py_ssize_t m
     m = binary_search0(v.positions, v.num_nonzero, n)
     if m == -1:
-        mpz_set_si(ans[0], 0,1)
+        mpz_set_si(ans[0], 0)
         return 0
     mpz_set(ans[0], v.entries[m])
     return 0
@@ -230,7 +165,7 @@ cdef int mpz_vector_set_entry(mpz_vector* v, Py_ssize_t n, mpz_t x) except -1:
     This would be v[n] = x in Python syntax.
     """
     if n >= v.degree or n < 0:
-        raise IndexError, "Index must be between 0 and the degree minus 1."
+        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree - 1)
     cdef Py_ssize_t i, m, ins
     cdef Py_ssize_t m2, ins2
     cdef Py_ssize_t *pos
@@ -323,11 +258,11 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     cdef mpz_vector* z
     cdef mpz_t tmp
     mpz_init(tmp)
-    if mpz_cmp_si(multiple, 0, 1) == 0:
+    if mpz_cmp_si(multiple, 0) == 0:
         init_mpz_vector(sum, v.degree, 0)
         return 0
     # Do not do the multiply if the multiple is 1.
-    do_multiply = mpz_cmp_si(multiple, 1,1)
+    do_multiply = mpz_cmp_si(multiple, 1)
 
     z = sum
     # ALGORITHM:

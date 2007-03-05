@@ -475,6 +475,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             algorithm -- 'linbox' -- uses the C++ linbox library
                          'gauss'  -- uses a custom slower O(n^3) Gauss
                                      elimination implemented in SAGE.
+                         'all' -- compute using both algorithms and verify
+                                  that the results are the same (for the paranoid).
             **kwds -- these are all ignored
 
         OUTPUT:
@@ -494,10 +496,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             sage: a.pivots()
             [0, 1]
         """
-        if self.p == 2 and algorithm=='linbox':
-            # TODO: LinBox crashes if working over GF(2)
-            algorithm ='gauss'
-
         x = self.fetch('in_echelon_form')
         if not x is None: return  # already known to be in echelon form
         if not self.base_ring().is_field():
@@ -510,6 +508,12 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             self._echelonize_linbox()
         elif algorithm == 'gauss':
             self._echelon_in_place_classical()
+        elif algorithm == 'all':
+            A = self.copy()
+            self._echelonize_linbox()
+            A._echelon_in_place_classical()
+            if A != self:
+                raise RuntimeError, "bug in echelon form"
         else:
             raise ValueError, "algorithm '%s' not known"%algorithm
 
@@ -843,7 +847,16 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         """
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
+
+        NOTE: The random() function doesn't seem to be as random as
+        expected. The lower-order bits seem to have a strong bias
+        towards zero. Even stranger, if you create two 1000x1000
+        matrices over GF(2) they always appear to have the same
+        reduced row echelon form, i.e. they span the same space. The
+        higher-order bits seem to be much more random and thus we
+        shift first and mod p then.
         """
+
         density = float(density)
         if density == 0:
             return
@@ -854,7 +867,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef int nc
         if density == 1:
             for i from 0 <= i < self._nrows*self._ncols:
-                self._entries[i] = random() % self.p
+                # 16-bit seems safe
+                self._entries[i] =  (random()>>16) % self.p
         else:
             density = float(density)
             nc = self._ncols
@@ -862,8 +876,9 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             _sig_on
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
-                    k = random()%nc
-                    self._matrix[i][k] = random() % self.p
+                    k = ((random()>>16)+random())%nc # is this safe?
+                    # 16-bit seems safe
+                    self._matrix[i][k] = (random()>>16) % self.p
             _sig_off
 
     cdef int _strassen_default_cutoff(self, matrix0.Matrix right) except -2:

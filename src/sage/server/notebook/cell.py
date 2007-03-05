@@ -146,7 +146,7 @@ class Cell(Cell_generic):
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
 
-        input_lines = self.__in.strip()
+        input_lines = self.__in
         #if input_lines[:1] == '%':
         #    pr = '%s> '%(input_lines.split()[0])[1:]
         #else:
@@ -185,7 +185,7 @@ class Cell(Cell_generic):
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip()
+            s += self.__in
 
         if prompts:
             msg = 'Traceback (most recent call last):'

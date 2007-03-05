@@ -104,6 +104,8 @@ cdef extern from "gmp.h":
     void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void gmp_randseed (gmp_randstate_t state, mpz_t seed)
     void gmp_randseed_ui (gmp_randstate_t state, unsigned long int seed)
+    void mpz_realloc2 (mpz_t z, unsigned long int size) # in bits
+    void * _mpz_realloc (mpz_t z, unsigned long int size) # in limbs
 
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)

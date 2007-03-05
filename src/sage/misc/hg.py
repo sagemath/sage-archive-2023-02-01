@@ -529,7 +529,7 @@ class HG:
          -n --dry-run    do not perform actions, just print output
         """
         if not rev is None:
-            options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
+            options = ' -r %s %s'%(rev, files)
         else:
             options = files
         self('revert %s'%options)

@@ -841,10 +841,7 @@ def random_prime(n):
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        previous_prime(random.randint(3,n))
-
-    return previous_prime(random.randint(3,n))
-
+        return previous_prime(random.randint(3,n+1))
 
 
 def divisors(n):

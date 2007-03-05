@@ -1343,7 +1343,7 @@ cdef class Matrix(matrix1.Matrix):
 
         V = self.base_ring()**self.nrows()
         v = V.random_element()
-        num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
+        num_iterates = max([f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
 
         S = [ ]
 
@@ -1364,18 +1364,19 @@ cdef class Matrix(matrix1.Matrix):
 
             # General case, i.e., deg(g) > 1:
             W = None
+            tries = m
             while True:
 
                 # Compute the complementary factor.
                 h = f // (g**m)
                 v = h.list()
 
-                while len(S) < m:
+                while len(S) < tries:
                     t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)), level=2, caller_name='generic spin decomp')
                     S.append(self.iterates(V.random_element(), num_iterates))
                     verbose('done spinning', level=2, t=t, caller_name='generic spin decomp')
 
-                for j in range(len(S)):
+                for j in range(0 if W is None else W.nrows() // g.degree(), len(S)):
                     # Compute one element of the kernel of g(A)**m.
                     t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
                                 caller_name='generic spin decomp')
@@ -1399,8 +1400,8 @@ cdef class Matrix(matrix1.Matrix):
                 else:
                     verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
                         W.rank(), m*g.degree()), level=2, caller_name='generic spin decomp')
-                    j += 1
-                    if j > 3*m:
+                    tries += 1
+                    if tries > 5*m:
                         raise RuntimeError, "likely bug in decomposition"
                 # end if
             #end while

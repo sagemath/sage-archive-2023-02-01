@@ -65,7 +65,7 @@ from sage.rings.rational_field import QQ
 import sage.ext.multi_modular
 from matrix2 import cmp_pivots
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.misc import verbose, get_verbose, prod
 
 cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
@@ -1101,9 +1101,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         polynomial.
 
         INPUT:
-            self -- a matrix over a field
+            self -- a square matrix over the rational numbers
             echelon_algorithm -- 'default'
-                                 'multimodular' -- use this if the answers
+                                 'multimodular' -- use this if the
+                                 answers have small height
             **kwds -- passed on to echelon function.
 
         IMPORTANT NOTE:
@@ -1114,19 +1115,16 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
            algorithm='multimodular', height_guess=bound on height, proof=False
 
         OUTPUT:
-            Sequence -- list of triples (V,t), where V is a vector spaces
+            Sequence -- list of tuples (V,t), where V is a vector spaces
                     and t is True if and only if the charpoly of self on V
                     is irreducible.
-                    The triples are in order corresponding to the elements
+                    The tuples are in order corresponding to the elements
                     of the sorted list self.charpoly().factor().
         """
         cdef Py_ssize_t k
 
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
-
-        if not self.base_ring().is_field():
-            raise TypeError, "self must be over a field."
 
         if self.nrows() == 0:
             return decomp_seq([])
@@ -1147,7 +1145,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         V = ZZ**self.nrows()
         v = V.random_element()
-        num_iterates = max([f.degree() - g.degree() for g, _ in F]) + 1
+        num_iterates = max([f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
 
         S = [ ]
 
@@ -1168,19 +1166,20 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
             # General case, i.e., deg(g) > 1:
             W = None
+            tries = m
             while True:
 
-                # Compute the complementary factor.
+                # Compute the complementary factor of the charpoly.
                 h = f // (g**m)
                 v = h.list()
 
-                while len(S) < m:
+                while len(S) < tries:
                     t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)),
                                 level=2, caller_name='rational decomp')
                     S.append(A.iterates(V.random_element(x=-10,y=10), num_iterates))
                     verbose('done spinning', level=2, t=t, caller_name='rational decomp')
 
-                for j in range(len(S)):
+                for j in range(0 if W is None else W.nrows() // g.degree(), len(S)):
                     # Compute one element of the kernel of g(A)**m.
                     t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
                             caller_name='rational decomp')
@@ -1205,13 +1204,130 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                 else:
                     verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
                         W.rank(), m*g.degree()), level=2, caller_name='rational decomp')
-                    j += 1
-                    if j > 3*m:
+                    tries += 1
+                    if tries > 5*m:
                         raise RuntimeError, "likely bug in decomposition"
                 # end if
             #end while
         #end for
         return E
+
+
+##     def simple_decomposition(self, echelon_algorithm='default', **kwds):
+##         """
+##         Returns the decomposition of the free module on which this
+##         matrix A acts from the right (i.e., the action is x goes to x
+##         A), as a direct sum of simple modules.
+
+##         NOTE: self *must* be diagonalizable.
+
+##         INPUT:
+##             self -- a square matrix that is assumed to be diagonalizable
+##             echelon_algorithm -- 'default'
+##                                  'multimodular' -- use this if the answers
+##                                  have small height
+##             **kwds -- passed on to echelon function.
+
+##         IMPORTANT NOTE:
+##         If you expect that the subspaces in the answer are spanned by vectors
+##         with small height coordinates, use algorithm='multimodular' and
+##         height_guess=1; this is potentially much faster than the default.
+##         If you know for a fact the answer will be very small, use
+##            algorithm='multimodular', height_guess=bound on height, proof=False
+
+##         OUTPUT:
+##             Sequence -- list of tuples (V,g), where V is a subspace
+##                         and an irreducible polynomial g, which is the
+##                         charpoly (=minpoly) of self acting on V.
+##         """
+##         cdef Py_ssize_t k
+
+##         if not self.is_square():
+##             raise ArithmeticError, "self must be a square matrix"
+
+##         if self.nrows() == 0:
+##             return decomp_seq([])
+
+##         A, _ = self._clear_denom()
+
+##         f = A.charpoly('x')
+##         E = decomp_seq([])
+
+##         t = verbose('factoring the characteristic polynomial', level=2, caller_name='simple decomp')
+##         F = f.factor()
+##         G = [g for g, _ in F]
+##         minpoly = prod(G)
+##         square_free_degree = sum([g.degree() for g in G])
+##         verbose('done factoring', t=t, level=2, caller_name='simple decomp')
+
+##         V = ZZ**self.nrows()
+##         v = V.random_element()
+##         num_iterates = max([square_free_degree - g.degree() for g in G]) + 1
+
+##         S = [ ]
+
+##         F.sort()
+##         for i in range(len(F)):
+##             g, m = F[i]
+
+##             if g.degree() == 1:
+##                 # Just use kernel -- much easier.
+##                 B = A.copy()
+##                 for k from 0 <= k < A.nrows():
+##                     B[k,k] += g[0]
+##                 if m > 1 and not is_diagonalizable:
+##                     B = B**m
+##                 W = B.change_ring(QQ).kernel()
+##                 for b in W.basis():
+##                     E.append((W.span(b), g))
+##                 continue
+
+##             # General case, i.e., deg(g) > 1:
+##             W = None
+##             while True:
+
+##                 # Compute the complementary factor of the charpoly.
+##                 h = minpoly // g
+##                 v = h.list()
+
+##                 while len(S) < m:
+##                     t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)),
+##                                 level=2, caller_name='simple decomp')
+##                     S.append(A.iterates(V.random_element(x=-10,y=10), num_iterates))
+##                     verbose('done spinning', level=2, t=t, caller_name='simple decomp')
+
+##                 for j in range(len(S)):
+##                     # Compute one element of the kernel of g(A).
+##                     t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
+##                             caller_name='simple decomp')
+##                     w = S[j].linear_combination_of_rows(h.list())
+##                     t = verbose('done computing element of kernel of g(A)', t=t,level=2, caller_name='simple decomp')
+
+##                     # Get the rest of the kernel.
+##                     t = verbose('fill out rest of kernel',level=2, caller_name='simple decomp')
+##                     if W is None:
+##                         W = A.iterates(w, g.degree())
+##                     else:
+##                         W = W.stack(A.iterates(w, g.degree()))
+##                     t = verbose('finished filling out more of kernel',level=2, t=t, caller_name='simple decomp')
+
+##                 if W.rank() == m * g.degree():
+##                     W = W.change_ring(QQ)
+##                     t = verbose('now computing row space', level=2, caller_name='simple decomp')
+##                     W.echelonize(algorithm = echelon_algorithm, **kwds)
+##                     E.append((W.row_space(), m==1))
+##                     verbose('computed row space', level=2,t=t, caller_name='simple decomp')
+##                     break
+##                 else:
+##                     verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
+##                         W.rank(), m*g.degree()), level=2, caller_name='simple decomp')
+##                     j += 1
+##                     if j > 3*m:
+##                         raise RuntimeError, "likely bug in decomposition"
+##                 # end if
+##             #end while
+##         #end for
+##         return E
 
 
     def _lift_crt_rr(self, res, mm):

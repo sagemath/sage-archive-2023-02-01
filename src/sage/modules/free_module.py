@@ -98,6 +98,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
+import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
@@ -3502,6 +3503,9 @@ def element_class(R, is_sparse):
     elif sage.rings.rational_field.is_RationalField(R) and not is_sparse:
         from vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
+    elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
+        from vector_modn_dense import Vector_modn_dense
+        return Vector_modn_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

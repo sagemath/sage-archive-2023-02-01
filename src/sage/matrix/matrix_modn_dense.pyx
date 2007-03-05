@@ -89,6 +89,8 @@ MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
 
 import matrix_window_modn_dense
 
+from sage.modules.vector_modn_dense cimport Vector_modn_dense
+
 from sage.rings.arith import is_prime
 from sage.structure.element cimport ModuleElement
 
@@ -109,6 +111,8 @@ from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.integer import Integer
+
+from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -320,14 +324,6 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         else:
             return self._multiply_classical(right)
 
-##         if self.base_ring().is_field() and self.base_ring() is right.base_ring() and is_prime(self.p):
-##             return (<Matrix_modn_dense>self)._multiply_linbox(<Matrix_modn_dense>right)
-##         else:
-##             if self._will_use_strassen(right):
-##                 return self._multiply_strassen(right)
-##             else:
-##                 return self._multiply_classical(right)
-
     def _multiply_linbox(Matrix_modn_dense self, Matrix_modn_dense right):
         """
         Multiply matrices using LinBox.
@@ -356,6 +352,28 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
 
     def _multiply_classical(left, right):
         return left._multiply_strassen(right, left._ncols + left._nrows)
+
+    cdef Vector _vector_times_matrix_c_impl(self, Vector v):
+        cdef Vector_modn_dense w, ans
+        cdef Py_ssize_t i, j
+        cdef mod_int k
+        cdef mod_int x
+
+        M = self._row_ambient_module()
+        w = v
+        ans = M.zero_vector()
+
+        for i from 0 <= i < self._ncols:
+            x = 0
+            k = 0
+            for j from 0 <= j < self._nrows:
+                x += w._entries[j] * self._matrix[j][i]
+                k += 1
+                if k >= self.gather:
+                    x %= self.p
+                    k = 0
+            ans._entries[i] = x % self.p
+        return ans
 
 
     ########################################################################

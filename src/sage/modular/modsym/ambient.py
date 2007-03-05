@@ -493,10 +493,11 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                         W[j,f] = W[j,f] + s*K(x)
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
-        Tp = W*R
+        Tp = W * R
         misc.verbose("done matrix multiply",tm)
         Tp = Tp.dense_matrix()
         misc.verbose("done making matrix",tm)
+        self._hecke_matrices[p] = Tp
         return Tp
 
 
@@ -1371,9 +1372,10 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         misc.verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
                                                                                          R.nrows(), R.ncols()))
         Tp = W * R
-        misc.verbose("done multiplying",tm)
+        tm = misc.verbose("done multiplying",tm)
+        Tp = Tp.dense_matrix()
+        tm = misc.verbose("done making hecke operator dense",tm)
         self._hecke_matrices[p] = Tp
-        misc.verbose("done making matrix",tm)
         return Tp
 
     def boundary_space(self):

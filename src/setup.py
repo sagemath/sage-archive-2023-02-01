@@ -275,6 +275,9 @@ vector_integer_dense = Extension('sage.modules.vector_integer_dense',
                                  ['sage/modules/vector_integer_dense.pyx'],
                                  libraries = ['gmp'])
 
+vector_modn_dense = Extension('sage.modules.vector_modn_dense',
+                                 ['sage/modules/vector_modn_dense.pyx'])
+
 vector_rational_sparse = Extension('sage.modules.vector_rational_sparse',
                                  ['sage/modules/vector_rational_sparse.pyx'],
                                  libraries = ['gmp'])
@@ -308,6 +311,7 @@ ext_modules = [ \
     real_double_vector,
 
     vector_integer_dense,
+    vector_modn_dense,
     vector_rational_dense,
 
     #vector_rational_sparse,

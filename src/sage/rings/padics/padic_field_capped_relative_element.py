@@ -74,6 +74,9 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             else:
                 x = QQ(t)
 
+	if isinstance(x, pari_gen) and x.type() == "t_INT":
+	    x = int(x)
+
         if sage.rings.finite_field_element.is_FiniteFieldElement(x):
             if x.parent().order() != parent.prime():
                 raise TypeError, "can only create p-adic element out of finite field when order of field is p"

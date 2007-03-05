@@ -1079,6 +1079,9 @@ cdef class gen(sage.structure.element.RingElement):
         sign(x): Return the sign of x, where x is of type integer, real
             or fraction.
         """
+        # Pari throws an error if you attempt to take the sign of
+        # a complex number.
+        _sig_on
         return gsigne(x.g)
 
     def vecmax(gen x):

@@ -57,7 +57,6 @@ def matrix_modn_dense_lift(Matrix_modn_dense A):
     L._initialized = 1
     return L
 
-
 def matrix_modn_sparse_lift(Matrix_modn_sparse A):
     cdef Py_ssize_t i, j
     cdef Matrix_integer_sparse L
@@ -78,6 +77,35 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
             mpz_vector_set_entry(L_row, A_row.positions[j], z)
 
     mpz_clear(z)
+    return L
+
+def xxx_matrix_modn_sparse_lift(Matrix_modn_sparse A):
+    cdef Py_ssize_t i, j
+    cdef Matrix_integer_sparse L
+    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
+                                     A.parent().change_ring(ZZ),
+                                     0, 0, 0)
+
+    cdef mpz_vector* L_row
+    cdef c_vector_modint* A_row
+    _sig_on
+    for i from 0 <= i < A._nrows:
+        L_row = &(L._matrix[i])
+        A_row = &(A.rows[i])
+        sage_free(L_row.entries)
+        L_row.entries = <mpz_t*> sage_malloc(sizeof(mpz_t)*A_row.num_nonzero)
+        L_row.num_nonzero = A_row.num_nonzero
+        if L_row.entries == NULL:
+            raise MemoryError, "error allocating space for sparse vector during sparse lift"
+        L_row.positions = <Py_ssize_t*> sage_malloc(sizeof(Py_ssize_t)*A_row.num_nonzero)
+        if L_row.positions == NULL:
+            sage_free(L_row.entries)
+            L_row.entries = NULL
+            raise MemoryError, "error allocating space for sparse vector during sparse lift"
+        for j from 0 <= j < A_row.num_nonzero:
+            L_row.positions[j] = A_row.positions[j]
+            mpz_init_set_si(L_row.entries[j], A_row.entries[j])
+    _sig_off
     return L
 
 
@@ -198,7 +226,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         a few more primes.
     """
 
-    verbose("Multimodular echelon algorithm on %s x %s matrix"%(self._nrows, self._ncols))
+    verbose("Multimodular echelon algorithm on %s x %s matrix"%(self._nrows, self._ncols), caller_name="multimod echelon")
     cdef Matrix E
     if self._nrows == 0 or self._ncols == 0:
         self.cache('in_echelon_form', True)
@@ -211,7 +239,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     height = self.height()
     if height_guess is None:
         height_guess = 10000000*(height+100)
-    tm = verbose("height_guess = %s"%height_guess, level=2)
+    tm = verbose("height_guess = %s"%height_guess, level=2, caller_name="multimod echelon")
 
     if proof:
         M = self._ncols * height_guess * height  +  1
@@ -231,19 +259,19 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         while prod < M:
             problem = problem + 1
             if problem > 50:
-                verbose("echelon multi-modular possibly not converging?")
+                verbose("echelon multi-modular possibly not converging?", caller_name="multimod echelon")
             t = verbose("echelon modulo p=%s (%.2f%% done)"%(
-                       p, 100*float(len(str(prod))) / len(str(M))), level=2)
+                       p, 100*float(len(str(prod))) / len(str(M))), level=2, caller_name="multimod echelon")
 
             # We use denoms=False, since we made self integral by calling clear_denom above.
             A = B._mod_int(p)
-            t = verbose("time to reduce matrix mod p:",t, level=2)
+            t = verbose("time to reduce matrix mod p:",t, level=2, caller_name="multimod echelon")
             A.echelonize()
-            t = verbose("time to put reduced matrix in echelon form:",t, level=2)
+            t = verbose("time to put reduced matrix in echelon form:",t, level=2, caller_name="multimod echelon")
 
             # a worthwhile check / shortcut.
             if self._nrows == self._ncols and len(A.pivots()) == self._nrows:
-                verbose("done: the echelon form mod p is the identity matrix")
+                verbose("done: the echelon form mod p is the identity matrix", caller_name="multimod echelon")
                 E = self.parent().identity_matrix()
                 E.cache('pivots', range(self._nrows))
                 E.cache('in_echelon_form', True)
@@ -260,22 +288,26 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             else:
                 # do not save A since it is bad.
                 if LEVEL > 1:
-                    verbose("Excluding this prime (bad pivots).")
-            t = verbose("time for pivot compare", t, level=2)
+                    verbose("Excluding this prime (bad pivots).", caller_name="multimod echelon")
+            t = verbose("time for pivot compare", t, level=2, caller_name="multimod echelon")
             p = previous_prime(p)
         # Find set of best matrices.
         Y = []
         # recompute product, since may drop bad matrices
         prod = 1
+        t = verbose("now comparing pivots and dropping any bad ones", level=2, t=t, caller_name="multimod echelon")
         for i in range(len(X)):
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
+                t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
                 Y.append((matrix_modn_dense_lift(X[i]) if X[i].is_dense() else matrix_modn_sparse_lift(X[i]),
                           X[i].base_ring().order()))
+                verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
                 prod = prod * X[i].base_ring().order()
+        verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
             if len(Y) == 0:
                 raise ValueError, "not enough primes"
-            t = verbose("start crt linear combination", level=2)
+            t = verbose("start crt linear combination", level=2, caller_name="multimod echelon")
             a = CRT_basis([w[1] for w in Y])
             # take the linear combination of the lifts of the elements
             # of Y times coefficients in a
@@ -283,18 +315,19 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             assert Y[0][0].is_sparse() == L.is_sparse()
             for j in range(1,len(Y)):
                 L += a[j]*(Y[j][0])
-            t = verbose("crt time is",t, level=2)
+            verbose("crt time is",t, level=2, caller_name="multimod echelon")
+            t = verbose("now doing rational reconstruction", level=2, caller_name="multimod echelon")
             E = L.rational_reconstruction(prod)
             L = 0  # free memory
-            verbose('rational reconstruction time is', t, level=2)
+            verbose('rational reconstruction completed', t, level=2, caller_name="multimod echelon")
         except ValueError, msg:
             verbose(msg, level=2)
-            verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2)
+            verbose("Not enough primes to do CRT lift; redoing with several more primes.", level=2, caller_name="multimod echelon")
             M = prod * p*p*p
             continue
 
         if not proof:
-            verbose("Not checking validity of result (since proof=False).", level=2)
+            verbose("Not checking validity of result (since proof=False).", level=2, caller_name="multimod echelon")
             break
         d   = E.denominator()
         hdE = long(E.height())
@@ -302,7 +335,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
             break
         M = prod * p*p*p
     #end while
-    verbose("total time",tm, level=2)
+    verbose("total time",tm, level=2, caller_name="multimod echelon")
     self.cache('pivots', best_pivots)
     E.cache('pivots', best_pivots)
     return E
@@ -333,6 +366,16 @@ def cmp_pivots(x,y):
 
 
 
-#######################################3
+#######################################
 
+def matrix_rational_sparse__dense_matrix(Matrix_rational_sparse self):
+    cdef Matrix_rational_dense B
+    cdef mpq_vector* v
+
+    B = self.matrix_space(sparse=False).zero_matrix()
+    for i from 0 <= i < self._nrows:
+        v = &(self._matrix[i])
+        for j from 0 <= j < v.num_nonzero:
+            mpq_set(B._matrix[i][v.positions[j]], v.entries[j])
+    return B
 

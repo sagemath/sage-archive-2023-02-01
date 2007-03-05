@@ -1484,6 +1484,72 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.cache('rank', r)
         return r
 
+    def set_row_to_multiple_of_row(self, i, j, s):
+        """
+        Set row i equal to s times row j.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a
+            [ 0  1  2]
+            [ 0 -3 -6]
+        """
+        self.check_mutability()
+        cdef Py_ssize_t n
+        cdef Rational _s
+        _s = Rational(s)
+        cdef mpq_t *row_i, *row_j
+        row_i = self._matrix[i]
+        row_j = self._matrix[j]
+        for n from 0 <= n < self._ncols:
+            if mpq_cmp_si(row_j[n], 0, 1):
+                mpq_mul(row_i[n], row_j[n], _s.value)
+            else:
+                mpq_set_si(row_i[n], 0, 1)
+
+##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
+##                                                                  Py_ssize_t r, cols):
+##         """
+##         Set row i of self to -(row r of A), but where we only take
+##         the given column positions in that row of A:
+
+##         INPUT:
+##             i -- integer, index into the rows of self
+##             A -- a matrix
+##             r -- integer, index into rows of A
+##             cols -- a *sorted* list of integers.
+
+##         EXAMPLES:
+##             sage: a = matrix(QQ,2,3,range(6)); a
+##             [0 1 2]
+##             [3 4 5]
+##             sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
+##             sage: a
+##             [-4 -5  2]
+##             [ 3  4  5]
+##         """
+##         cdef Matrix_rational_dense _A
+##         self.check_mutability()
+##         # this function exists just because it is useful for modular symbols presentations.
+##         cdef Py_ssize_t l
+##         l = 0
+##         cdef mpq_t minus_one
+##         mpq_init(minus_one)
+##         mpq_set_si(minus_one, -1, 0)
+##         if not A.base_ring() == QQ:
+##             A = A.change_ring(QQ)
+##         if A.is_dense():
+##             _A = A
+##             for k in cols:
+##                 mpq_mul(self._matrix[i][l], A._matrix[r][k], minus_one)   #self[i,l] = -A[r,k]
+##                 l += 1
+##         else:
+
+##         mpq_clear(minus_one)
+
 
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)

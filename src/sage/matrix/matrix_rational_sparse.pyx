@@ -53,7 +53,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             raise MemoryError, "error allocating sparse matrix"
         # initialize the rows
         for i from 0 <= i < parent.nrows():
-            init_mpq_vector(&self._matrix[i], self._ncols, 0)
+            mpq_vector_init(&self._matrix[i], self._ncols, 0)
 
         # record that rows have been initialized
         self._initialized = True
@@ -66,7 +66,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i
         if self._initialized:
             for i from 0 <= i < self._nrows:
-                clear_mpq_vector(&self._matrix[i])
+                mpq_vector_clear(&self._matrix[i])
         if self._matrix != NULL:
             sage_free(self._matrix)
 
@@ -165,6 +165,16 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     # def __copy__(self):
     # def _multiply_classical(left, matrix.Matrix _right):
     # def _list(self):
+
+# TODO
+##     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+##         """
+##         EXAMPLES:
+##             sage: a = matrix(QQ,2,range(6))
+##             sage: (3/4) * a
+##             [   0  3/4  3/2]
+##             [ 9/4    3 15/4]
+##         """
 
     def _dict(self):
         """
@@ -418,3 +428,65 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
                                  height_guess=height_guess, proof=proof)
 
 
+    def set_row_to_multiple_of_row(self, i, j, s):
+        """
+        Set row i equal to s times row j.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,2,3,range(6), sparse=True); a
+            [0 1 2]
+            [3 4 5]
+            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a
+            [ 0  1  2]
+            [ 0 -3 -6]
+        """
+        self.check_mutability()
+        cdef Rational _s
+        _s = Rational(s)
+        mpq_vector_scalar_multiply(&self._matrix[i], &self._matrix[j], _s.value)
+
+    def dense_matrix(self):
+        import misc
+        return misc.matrix_rational_sparse__dense_matrix(self)
+
+    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
+                                                                 Py_ssize_t r, cols):
+        """
+        Set row i of self to -(row r of A), but where we only take
+        the given column positions in that row of A:
+
+        INPUT:
+            i -- integer, index into the rows of self
+            A -- a sparse matrix
+            r -- integer, index into rows of A
+            cols -- a *sorted* list of integers.
+
+        EXAMPLES:
+            sage: a = matrix(QQ['x'],2,3,range(6), sparse=True); a
+            [0 1 2]
+            [3 4 5]
+            sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
+            sage: a
+            [-4 -5  2]
+            [ 3  4  5]
+        """
+        # this function exists just because it is useful for modular symbols presentations.
+        self.check_mutability()
+
+        cdef Matrix_rational_sparse _A
+        _A = A
+
+        cdef Py_ssize_t l
+        l = 0
+
+        cdef mpq_vector *v, *w
+        v = &self._matrix[i]
+        w = &_A._matrix[r]
+        cdef mpq_t x
+        mpq_init(x)
+        for k in cols:
+            mpq_vector_get_entry(&x, w, k)
+            mpq_vector_set_entry(v, l, x)
+            l += 1
+        mpq_clear(x)

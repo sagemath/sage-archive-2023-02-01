@@ -1153,7 +1153,11 @@ cdef class Matrix(sage.structure.element.Matrix):
             [ 0  1  2]
             [ 0 -3 -6]
         """
-        self[i] = s*self[j]
+        self.check_mutability()
+        cdef Py_ssize_t n
+        s = self._base_ring(s)
+        for n from 0 <= n < self._ncols:
+            self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols):
@@ -1176,13 +1180,13 @@ cdef class Matrix(sage.structure.element.Matrix):
             [-4 -5  2]
             [ 3  4  5]
         """
+        self.check_mutability()
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
-        z = self._base_ring(0)
         l = 0
         for k in cols:
-            self[i,l] = -A[r,k]
-            l = l + 1
+            self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
+            l += 1
 
     ###################################################
     # Matrix-vector multiply

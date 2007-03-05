@@ -35,7 +35,7 @@ cdef int allocate_mpz_vector(mpz_vector* v, Py_ssize_t num_nonzero) except -1:
         raise MemoryError, "Error allocating memory"
     return 0
 
-cdef int init_mpz_vector(mpz_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzero) except -1:
+cdef int mpz_vector_init(mpz_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzero) except -1:
     """
     Initialize a mpz_vector -- most user code *will* call this.
     """
@@ -43,14 +43,14 @@ cdef int init_mpz_vector(mpz_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzer
     v.num_nonzero = num_nonzero
     v.degree = degree
 
-cdef void clear_mpz_vector(mpz_vector* v):
+cdef void mpz_vector_clear(mpz_vector* v):
     cdef Py_ssize_t i
     # Free all mpz objects allocated in creating v
     for i from 0 <= i < v.num_nonzero:
         mpz_clear(v.entries[i])
     # Free entries and positions of those entries.
     # These were allocated from the Python heap.
-    # If init_mpz_vector was not called, then this
+    # If mpz_vector_init was not called, then this
     # will (of course!) cause a core dump.
     sage_free(v.entries)
     sage_free(v.positions)
@@ -259,7 +259,7 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     cdef mpz_t tmp
     mpz_init(tmp)
     if mpz_cmp_si(multiple, 0) == 0:
-        init_mpz_vector(sum, v.degree, 0)
+        mpz_vector_init(sum, v.degree, 0)
         return 0
     # Do not do the multiply if the multiple is 1.
     do_multiply = mpz_cmp_si(multiple, 1)
@@ -279,7 +279,7 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     # 1. Allocate memory:
     nz = v.num_nonzero + w.num_nonzero
     if nz > v.degree: nz = v.degree
-    init_mpz_vector(z, v.degree, nz)
+    mpz_vector_init(z, v.degree, nz)
     # 2. Merge entries
     i = 0  # index into entries of v
     j = 0  # index into entries of w
@@ -340,8 +340,8 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
 
 cdef int scale_mpz_vector(mpz_vector* v, mpz_t scalar) except -1:
     if mpz_sgn(scalar) == 0:  # scalar = 0
-        clear_mpz_vector(v)
-        init_mpz_vector(v, v.degree, 0)
+        mpz_vector_clear(v)
+        mpz_vector_init(v, v.degree, 0)
         return 0
     cdef Py_ssize_t i
     for i from 0 <= i < v.num_nonzero:

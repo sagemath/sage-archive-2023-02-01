@@ -56,7 +56,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
 
         # initialize the rows
         for i from 0 <= i < parent.nrows():
-            init_mpz_vector(&self._matrix[i], self._ncols, 0)
+            mpz_vector_init(&self._matrix[i], self._ncols, 0)
         # record that rows have been initialized
         self._initialized = True
 
@@ -64,7 +64,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         cdef Py_ssize_t i
         if self._initialized:
             for i from 0 <= i < self._nrows:
-                clear_mpz_vector(&self._matrix[i])
+                mpz_vector_clear(&self._matrix[i])
         sage_free(self._matrix)
 
     def __init__(self, parent, entries, copy, coerce):
@@ -199,7 +199,7 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         cdef mpz_t mul
         mpz_init_set_si(mul,1)
         for i from 0 <= i < self._nrows:
-            clear_mpz_vector(&M._matrix[i])
+            mpz_vector_clear(&M._matrix[i])
             add_mpz_vector_init(&M._matrix[i], &self._matrix[i], &(<Matrix_integer_sparse>right)._matrix[i], mul)
         mpz_clear(mul)
         return M

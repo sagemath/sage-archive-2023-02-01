@@ -39,7 +39,7 @@ cdef int allocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
         raise MemoryError, "Error allocating memory"
     return 0
 
-cdef int init_mpq_vector(mpq_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzero) except -1:
+cdef int mpq_vector_init(mpq_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzero) except -1:
     """
     Initialize a mpq_vector -- most user code *will* call this.
     """
@@ -47,14 +47,16 @@ cdef int init_mpq_vector(mpq_vector* v, Py_ssize_t degree, Py_ssize_t num_nonzer
     v.num_nonzero = num_nonzero
     v.degree = degree
 
-cdef void clear_mpq_vector(mpq_vector* v):
+cdef void mpq_vector_clear(mpq_vector* v):
     cdef Py_ssize_t i
+    if v.entries == NULL:
+        return
     # Free all mpq objects allocated in creating v
     for i from 0 <= i < v.num_nonzero:
         mpq_clear(v.entries[i])
     # Free entries and positions of those entries.
     # These were allocated from the Python heap.
-    # If init_mpq_vector was not called, then this
+    # If mpq_vector_init was not called, then this
     # will (of course!) cause a core dump.
     sage_free(v.entries)
     sage_free(v.positions)
@@ -263,7 +265,7 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     cdef mpq_t tmp
     mpq_init(tmp)
     if mpq_cmp_si(multiple, 0, 1) == 0:
-        init_mpq_vector(sum, v.degree, 0)
+        mpq_vector_init(sum, v.degree, 0)
         return 0
     # Do not do the multiply if the multiple is 1.
     do_multiply = mpq_cmp_si(multiple, 1,1)
@@ -283,7 +285,7 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     # 1. Allocate memory:
     nz = v.num_nonzero + w.num_nonzero
     if nz > v.degree: nz = v.degree
-    init_mpq_vector(z, v.degree, nz)
+    mpq_vector_init(z, v.degree, nz)
     # 2. Merge entries
     i = 0  # index into entries of v
     j = 0  # index into entries of w
@@ -342,16 +344,44 @@ cdef int add_mpq_vector_init(mpq_vector* sum,
     mpq_clear(tmp)
     return 0
 
-cdef int scale_mpq_vector(mpq_vector* v, mpq_t scalar) except -1:
+cdef int mpq_vector_scale(mpq_vector* v, mpq_t scalar) except -1:
     if mpq_sgn(scalar) == 0:  # scalar = 0
-        clear_mpq_vector(v)
-        init_mpq_vector(v, v.degree, 0)
+        mpq_vector_clear(v)
+        mpq_vector_init(v, v.degree, 0)
         return 0
     cdef Py_ssize_t i
     for i from 0 <= i < v.num_nonzero:
         # v.entries[i] = scalar * v.entries[i]
         mpq_mul(v.entries[i], v.entries[i], scalar)
     return 0
+
+cdef int mpq_vector_scalar_multiply(mpq_vector* v, mpq_vector* w, mpq_t scalar) except -1:
+    """
+    v = w * scalar
+    """
+    cdef Py_ssize_t i
+    if v == w:
+        # rescale self
+        return mpq_vector_scale(v, scalar)
+    else:
+        # TODO
+        mpq_vector_clear(v)
+        v.entries = <mpq_t*> sage_malloc(w.num_nonzero * sizeof(mpq_t))
+        if v.entries == NULL:
+            v.positions = NULL
+            raise MemoryError, "error allocating rational sparse vector"
+        v.positions = <Py_ssize_t*> sage_malloc(w.num_nonzero * sizeof(Py_ssize_t))
+        if v.positions == NULL:
+            sage_free(v.entries)
+            v.entries = NULL
+            raise MemoryError, "error allocating rational sparse vector"
+        v.num_nonzero = w.num_nonzero
+        v.degree = w.degree
+        for i from 0 <= i < v.num_nonzero:
+            mpq_init(v.entries[i])
+            mpq_mul(v.entries[i], w.entries[i], scalar)
+            v.positions[i] = w.positions[i]
+        return 0
 
 cdef int mpq_vector_cmp(mpq_vector* v, mpq_vector* w):
     if v.degree < w.degree:

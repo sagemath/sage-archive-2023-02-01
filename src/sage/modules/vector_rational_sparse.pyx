@@ -10,7 +10,7 @@ cimport free_module_element
 cdef class Vector_mpq
 
 cdef void Vector_mpq_rescale(Vector_mpq w, mpq_t x):
-    scale_mpq_vector(&w.v, x)
+    mpq_vector_scale(&w.v, x)
 
 cdef class Vector_mpq:
     """
@@ -22,7 +22,7 @@ cdef class Vector_mpq:
     def __init__(self, int degree, int num_nonzero=0, entries=[], sort=True):
         cdef int i
         cdef Rational z
-        init_mpq_vector(&self.v, degree, num_nonzero)
+        mpq_vector_init(&self.v, degree, num_nonzero)
         if entries != []:
             if len(entries) != num_nonzero:
                 raise ValueError, "length of entries (=%s) must equal num_nonzero (=%s)"%(len(entries), num_nonzero)

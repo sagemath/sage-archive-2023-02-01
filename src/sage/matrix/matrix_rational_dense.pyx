@@ -108,6 +108,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         self._matrix =  <mpq_t **> sage_malloc(sizeof(mpq_t*) * self._nrows)
         if self._matrix == NULL:
+            sage_free(self._entries)
+            self._entries = NULL
             raise MemoryError, "out of memory allocating a matrix"
 
         # store pointers to the starts of the rows
@@ -122,6 +124,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         _sig_off
 
     def  __dealloc__(self):
+        if self._entries == NULL:
+            return
         cdef Py_ssize_t i
         for i from 0 <= i < self._nrows * self._ncols:
             mpq_clear(self._entries[i])

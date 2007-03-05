@@ -58,7 +58,21 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     #        raise NotImplementedError, "not smart enough to embed rings"
 
     def __cmp__(self, other):
-        raise NotImplementedError
+        if isinstance(other, UnramifiedRingExtension):
+            if self.prime() < other.prime():
+                return -1
+            elif self.prime() > other.prime():
+                return 1
+            elif cmp(type(self.base_ring()), type(other.base_ring())) != 0:
+                return cmp(type(self.base_ring()), type(other.base_ring()))
+            elif self.base_ring().precision_cap() < other.base_ring().precision_cap():
+                return -1
+            elif self.base_ring().precision_cap() > other.base_ring().precision_cap():
+                return 1
+            else:
+                return cmp(self.defining_polynomial(), other.defining_polynomial())
+        else:
+            return cmp(type(self), type(other))
 
     def __contains__(self, x):
         if isinstance(x, PQRElement) and x.parent() is self:

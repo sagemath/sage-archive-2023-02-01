@@ -436,6 +436,8 @@ cdef class RealDoubleElement(FieldElement):
             sage: a = RDF(-1.5)*RDF(2.5)
             sage: a.__invert__()
             -0.266666666667
+	    sage: ~a
+            -0.266666666667
         """
         return RealDoubleElement(1/self._value)
 
@@ -636,7 +638,7 @@ cdef class RealDoubleElement(FieldElement):
         return sage.rings.complex_field.ComplexField()(self)
 
     def _complex_double_(self):
-        return sage.rings.complex_double.ComplexDoubleField(self)
+        return sage.rings.complex_double.ComplexDoubleField()(self)
 
     def _pari_(self):
         return sage.libs.pari.all.pari.new_with_bits_prec("%.15e"%self._value, 64)
@@ -683,21 +685,21 @@ cdef class RealDoubleElement(FieldElement):
         be returned (though it will be NaN if self is negative).
 
         EXAMPLES:
-            sage: r = 4.0
+            sage: r = RDF(4.0)
             sage: r.sqrt()
-            2.00000000000000
+            2.0
             sage: r.sqrt()^2 == r
             True
 
-            sage: r = 4344
+            sage: r = RDF(4344)
             sage: r.sqrt()
-            65.9090282131363
+            65.9090282131
             sage: r.sqrt()^2 - r
-            0.000000000000000
+            0.0
 
-            sage: r = -2.0
+            sage: r = RDF(-2.0)
             sage: r.sqrt()
-            1.41421356237310*I
+            1.41421356237*I
             """
         if self >= 0:
             return self.square_root()
@@ -712,11 +714,11 @@ cdef class RealDoubleElement(FieldElement):
         Use self.sqrt() to get a complex number if self is negative.
 
         EXAMPLES:
-            sage: r = -2.0
+            sage: r = RDF(-2.0)
             sage: r.square_root()
-            NaN
+            nan
             sage: r.sqrt()
-            1.41421356237310*I
+            1.41421353817*I
         """
         return self._new_c(sqrt(self._value))
 

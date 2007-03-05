@@ -183,6 +183,9 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     def uniformizer(self):
         return self(self.ground_ring().uniformizer())
 
+    def _uniformizer_sym(self, do_latex = False):
+        return self.ground_ring()._uniformizer_sym(do_latex)
+
     def has_pth_root(self):
         return (self.prime() == 2)
 

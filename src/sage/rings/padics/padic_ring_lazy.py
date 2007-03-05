@@ -215,9 +215,12 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
             sage: R.teichmuller(2)
                 2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
         """
+        x = self.residue_class_field()(x)
+        if x == 0:
+            return lazy.pAdicLazy_zero(self)
         if prec is None:
             prec = self.precision_cap()
-        return lazy.pAdicLazy_teichmuller(self, self.residue_class_field()(x), prec)
+        return lazy.pAdicLazy_teichmuller(self, x, prec)
 
     def halting_parameter(self):
         return self._halt

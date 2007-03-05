@@ -92,9 +92,9 @@ def Zq(q, name, prec = 20, type = 'capped-abs', modulus = None, print_mode = Non
     if F[0][1] == 1:
         return Zp(q, prec, type, print_mode, halt)
     if type != 'lazy':
-        key = (q, name, prec, type) #should the modulus be part of the key?
+        key = (q, name, prec, type, modulus)
     else:
-        key = (q, name, prec, halt)
+        key = (q, name, prec, halt, modulus)
     if qadic_ring_cache.has_key(key):
         K = qadic_ring_cache[key]()
         if not (K is None):

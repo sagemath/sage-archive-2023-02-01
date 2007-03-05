@@ -13,8 +13,9 @@ PrecisionLimitError = sage.rings.padics.precision_error.PrecisionLimitError
 QQe = sage.rings.extended_rational_field.ExtendedRationalField
 infinity = QQe.gen(1)
 minfinity = QQe.gen(2)
+CRE = sage.rings.commutative_ring_element.CommutativeRingElement
 
-class Valuation(sage.rings.commutative_ring_element):
+class Valuation(CRE):
     def _set_low(self, value):
         self._low = value
 
@@ -26,6 +27,24 @@ class Valuation(sage.rings.commutative_ring_element):
 
     def _set_highflex(self, value):
         self._highflex = value
+
+    def _set_lowlimit(self, value):
+        self._lowlimit = value
+
+    def _set_highlimit(self, value):
+        self._highlimit = value
+
+    def _lowlimit(self):
+        try:
+            return self._lowlimit
+        except AttributeError:
+            return self._high
+
+    def _highlimit(self):
+        try:
+            return self._highlimit
+        except AttributeError:
+            return self._low
 
     def _add_(self, right, halt = None):
         if isinstance(self, Valuation_infinity):
@@ -247,20 +266,21 @@ class Valuation_infinity(Valuation):
     def _fix(self, halt = None):
         return
 
-    def _recompute(self):
+    def _recompute(self, chain = False):
         return
 
-    def _recompute_low(self):
+    def _recompute_low(self, chain = False):
         return
 
-    def _recompute_high(self):
+    def _recompute_high(self, chain = False):
         return
 
     def _flex(self):
         return False
 
 class Valuation_point(Valuation):
-    def __init__(self, value):
+    def __init__(self, parent, value):
+        CRE.__init__(self, parent)
         self._set_low(value)
         self._set_high(value)
         self._set_lowflex(False)
@@ -269,20 +289,21 @@ class Valuation_point(Valuation):
     def _fix(self, halt = None):
         return
 
-    def _recompute(self):
+    def _recompute(self, chain = False):
         return
 
-    def _recompute_low(self):
+    def _recompute_low(self, chain = False):
         return
 
-    def _recompute_high(self):
+    def _recompute_high(self, chain = False):
         return
 
     def _flex(self):
         return False
 
 class Valuation_padic(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent,  x):
+        CRE.__init__(self, parent)
         self._x = x
         self._set_low(x._min_valuation())
         self._set_high(QQi.gen(1))
@@ -292,32 +313,53 @@ class Valuation_padic(Valuation):
     def _fix(self, halt = None):
         if halt is None:
             halt = 1 / (1 - self.parent().halting_parameter())
-        self._x.set_precision_absolute(halt)
+        self._x.set_precision_absolute(halt) #should switch to exponential backoff
         self._recompute()
         if self._low != self._high:
             raise HaltingError, "Cannot fix value; calling _fix with higher halt value may help"
 
-    def _recompute(self):
+    def _recompute(self, chain = False):
         self._set_low(self._x._min_valuation())
         if self._x._cache_prec > 0:
             self._set_high(self._x._min_valuation())
             self._set_lowflex(False)
 
-    def _recompute_low(self):
+    def _recompute_low(self, chain = False):
         self._set_low(self._x._min_valuation())
         if self._x._cache_prec > 0:
             self._set_lowflex(False)
 
-    def _recompute_high(self):
+    def _recompute_high(self, chain = False):
         if self._x._cache_prec > 0:
             self._set_high(self._x._min_valuation())
 
     def _flex(self):
         return self._lowflex
 
+    def _budge(self, halt = None):
+        error = False
+        try:
+            self._x._set_precision_absolute(self._x._min_valuation() + 1)
+        except PrecisionLimitError:
+            self._set_lowflex(False)
+            error = True
+            raise PrecisionLimitError
+        finally:
+            if not error:
+                self._recompute()
+
+    def _shrink_from_low_to(self, n):
+        try:
+            self._x._set_precision_absolute(n.floor() + 1) #should switch to exponential backoff
+        except PrecisionLimitError:
+            self._set_lowflex(False)
+            raise PrecisionLimitError
+        finally:
+            self._recompute()
 
 class Valuation_add(Valuation):
-    def __init__(self, x, y):
+    def __init__(self, parent, x, y):
+        CRE.__init__(self, parent)
         self._x = x
         self._y = y
         self._recompute()
@@ -333,6 +375,10 @@ class Valuation_add(Valuation):
             self._y._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = Valuation_point(self.parent(), self._x._low)
+        if self._y._low == self._y._high:
+            self._y = Valuation_point(self.parent(), self._y._low)
 
     def _recompute_low(self, chain = True):
         if chain:
@@ -351,8 +397,68 @@ class Valuation_add(Valuation):
     def _flex(self):
         return self._x._flex() or self._y._flex()
 
+    def _budge(self, halt = None):
+        """
+        Preprocessing: self._flex() should return True.
+        Postprocessing: ensure's self's state
+        """
+        if self._x._flex():
+            try:
+                self._x._budge(halt)
+            except PrecisionLimitError:
+                if self._y._flex():
+                    self._y._budge(halt)
+                else:
+                    raise PrecisionLimitError
+            finally:
+                self._recompute(chain = False)
+        else:
+            try:
+                self._y._budge(halt)
+            finally:
+                self._recompute(chain = False)
+
+
+#This is the point I stopped writing.  There should be no compile issues, but this file is totally not ready.
+    def _shrink_from_low_to(self, n, halt = None): #n must be finite, we assume lowflex and thus self._low finite, should call self._recompute_low() first
+        """
+        Preprocessing required: n must be finite, we assume that self._lowflex == True and thus self._low is finite.  Must call self._recompute_low(chain = True) before this function.  Must have self._low <= n < self._high
+        Postprocessing: this function ensures that self's variables are updated correctly
+        Errors: will raise a PrecisionLimitError if self cannot be found (ie cannot shrink one of the components from below) and self._low cannot be raised above n.  Note that this does not necessarily imply that self._lowflex = False.  self._high could have changed or there may be an internal limit point which would cause a halting error.
+        """
+        try:
+            if self._x._lowflex and self._y._lowflex:
+                if self._high is infinity:
+                    if self._x._high is infinity and self._y._high is infinity:
+                        try:
+                            self._x._shrink_from_low_to(self._x._low + (n - self._low) / 2)
+                        except PrecisionLimitError:
+                            pass
+                        try:
+                            self._y._shrink_from_low_to(n - self._x._low)
+                        except PrecisionLimitError:
+                            if self._x._lowflex:
+                                self._x._shrink_from_low_to(n - self._y._low)
+                            else:
+                                raise PrecisionLimitError
+                    elif self._x._high is infinity:
+                        try:
+                            self._x._shrink_from_low_to(n - self._y._low)
+                        except PrecisionLimitError:
+                            pass
+                        if n - self._x._low >= self._y._high:
+                            raise PrecisionLimitError #this is the annoying case where we leave lowflex True but have to throw a PrecisionLimitError.  This will not be very well dealt with in the current version of __cmp__
+                        else:
+                            self._y._shrink_from_low_to(n - self._x._low)
+        finally:
+            self._recompute(chain = False)
+
+    def _shrink_from_high_to(self, n):
+        pass
+
 class Valuation_sub(Valuation):
-    def __init__(self, x, y):
+    def __init__(self, parent, x, y):
+        CRE.__init__(self, parent)
         self._x = x
         self._y = y
         self._recompute()
@@ -368,6 +474,11 @@ class Valuation_sub(Valuation):
             self._y._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
+        if self._y._low == self._y._high:
+            self._y = self.parent()(self._y)
+
 
     def _recompute_low(self, chain = True):
         if chain:
@@ -387,7 +498,8 @@ class Valuation_sub(Valuation):
         return self._x._flex() or self._y._flex()
 
 class Valuation_mul(Valuation):
-    def __init__(self, x, y):
+    def __init__(self, parent, x, y):
+        CRE.__init__(self, parent)
         self._x = x
         self._y = y
         self._recompute()
@@ -404,6 +516,11 @@ class Valuation_mul(Valuation):
         self._recompute_signs()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
+        if self._y._low == self._y._high:
+            self._y = self.parent()(self._y)
+
 
     def _recompute_signs(self):
         if self._x._low > 0:
@@ -537,7 +654,8 @@ class Valuation_mul(Valuation):
         return self._x._flex() or self._y._flex()
 
 class Valuation_pow(Valuation):
-    def __init__(self, x, n):
+    def __init__(self, parent, x, n):
+        CRE.__init__(self, parent)
         self._n = n
         if self._n > 0:
             self._x = x
@@ -558,6 +676,8 @@ class Valuation_pow(Valuation):
         self._recompute_signs()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
     def _recompute_signs(self):
         if self._x._low > 0:
@@ -636,7 +756,8 @@ class Valuation_pow(Valuation):
         return self._x._flex()
 
 class Valuation_neg(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent, x):
+        CRE.__init__(self, parent)
         self._x = x
         self._recompute()
 
@@ -649,6 +770,8 @@ class Valuation_neg(Valuation):
             self._x._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
     def _recompute_low(self, chain = True):
         if chain:
@@ -666,7 +789,8 @@ class Valuation_neg(Valuation):
         return self._x._flex()
 
 class Valuation_invert(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent, x):
+        CRE.__init__(self, parent)
         self._x = x
         self._recompute()
 
@@ -679,6 +803,8 @@ class Valuation_invert(Valuation):
             self._x._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
 
     def _recompute_low(self, chain = True):
@@ -703,7 +829,8 @@ class Valuation_invert(Valuation):
         return self._x._flex()
 
 class Valuation_abs(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent, x):
+        CRE.__init__(self, parent)
         self._x = x
         self._recompute()
 
@@ -717,6 +844,8 @@ class Valuation_abs(Valuation):
         self._recompute_signs()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
     def _recompute_signs(self):
         if self._x._low > 0:
@@ -779,7 +908,8 @@ class Valuation_abs(Valuation):
         return self._x._flex()
 
 class Valuation_floor(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent, x):
+        CRE.__init__(self, parent)
         self._x = x
         self._recompute()
 
@@ -792,6 +922,8 @@ class Valuation_floor(Valuation):
             self._x._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
     def _recompute_low(self, chain = True):
         if chain:
@@ -809,7 +941,8 @@ class Valuation_floor(Valuation):
         return self._x._flex()
 
 class Valuation_ceil(Valuation):
-    def __init__(self, x):
+    def __init__(self, parent, x):
+        CRE.__init__(self, parent)
         self._x = x
         self._recompute()
 
@@ -822,6 +955,8 @@ class Valuation_ceil(Valuation):
             self._x._recompute()
         self._recompute_low(chain = False)
         self._recompute_high(chain = False)
+        if self._x._low == self._x._high:
+            self._x = self.parent()(self._x)
 
     def _recompute_low(self, chain = True):
         if chain:

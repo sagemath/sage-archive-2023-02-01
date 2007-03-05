@@ -280,6 +280,9 @@ class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
         """
         return self(self._p)
 
+    def _uniformizer_sym(self, do_latex = False):
+        return "%s"%(self._p)
+
     def has_pth_root(self):
         r"""
         Returns whether or not $\Z_p$ has a $p^{\mbox{th}}$ root of unity.

@@ -3174,12 +3174,6 @@ cdef class gen(sage.structure.element.RingElement):
         NOTE: This function works for any complex input (unlike in
         older version of PARI).
 
-	WARNING/TODO: This function is \emph{extremely slow} as
-        implemented when used from the C library.  If you use the GP
-        interpreter inteface it is vastly faster, so clearly this
-        issue could be fixed with a better understanding of GP/PARI.
-        Volunteers?
-
         INPUT:
             s, x, y -- gens
             precision -- option precision

@@ -1390,11 +1390,6 @@ cdef class ComplexDoubleElement(FieldElement):
             -0.00137813093622 + 0.00651982002312*I
             sage: CDF(2,0).gamma_inc(CDF(1,1))
             0.707092096346 - 0.42035364096*I
-
-        TODO: Weirdness -- if t is very close to 0 and self is 0, then
-        the PARI C library incomplete gamma (i.e., which this function
-        uses) is VERY slow, but the GP interpreter is fast.   If you're
-        having problems, consider using, e.g., \code{gp('incgam(0,0.001)')}.
         """
         cdef pari_sp sp
         sp = avma

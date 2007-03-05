@@ -556,6 +556,9 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def gens(self):
         raise NotImplementedError
 
+    def gen(self, i):
+        return self.gens()[i]
+
     def quadratic_twist(self, D):
         """
         Return the quadratic twist of this curve by D.

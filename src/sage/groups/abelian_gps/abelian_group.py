@@ -4,9 +4,9 @@ Multiplicative Abelian Groups
 AUTHOR:
     -- David Joyner (2006-03) (based on free abelian monoids by David Kohel)
     -- David Joyner (2006-05) several significant bug fixes
-    --      "       (2006-08) trivial changes to docs, added random,
+    -- David Joyner (2006-08) trivial changes to docs, added random,
                               fixed bug in how invariants are recorded
-    --      +       (2006-10) added dual_group method
+    -- David Joyner (2006-10) added dual_group method
 
 TODO:
    * additive abelian groups should also be supported
@@ -124,9 +124,6 @@ import weakref
 import copy
 
 from sage.rings.integer import Integer
-
-# TODO: get rid of the import *'s -- figure out exactly
-# what you use below and include only that.
 
 from sage.rings.infinity import infinity
 from sage.rings.arith import factor,is_prime_power

@@ -141,10 +141,10 @@ def attached_files():
 def load_startup_file(file):
     if os.path.exists(file):
         X = do_prefilter_paste('load "%s"'%file,False)
-        ipmagic(X)
+        _ip.magic(X)
     if os.path.exists('attach.sage'):
         X = do_prefilter_paste('attach "attach.sage"',False)
-        ipmagic(X)
+        _ip.magic(X)
 
 
 def do_prefilter_paste(line, continuation):
@@ -181,9 +181,9 @@ def do_prefilter_paste(line, continuation):
                 # Reload F.
                 try:
                     if F[-3:] == '.py':
-                        ipmagic('run -i "%s"'%F)
+                        _ip.magic('run -i "%s"'%F)
                     elif F[-5:] == '.sage':
-                        ipmagic('run -i "%s"'%process_file(F))
+                        _ip.magic('run -i "%s"'%process_file(F))
                     elif F[-5:] == '.spyx':
                         X = load_sagex(F)
                         __IPYTHON__.push(X)
@@ -243,7 +243,7 @@ def do_prefilter_paste(line, continuation):
                 log.offset -= 1
                 L = do_prefilter_paste(L, False)
                 if len(L.strip()) > 0:
-                    ipmagic(L)
+                    _ip.magic(L)
                 L = ''
             else:
                 L = preparser_ipython.preparse_ipython(L, not continuation)

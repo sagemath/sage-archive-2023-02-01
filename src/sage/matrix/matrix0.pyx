@@ -1610,13 +1610,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                 s = s + self.column(i, from_list=True)*v[i]
         return s
 
-    def iterates(self, v, n):
-        """
-        Let $A$ be this matrix and $v$ be a free module element.
-        Return a vector whose rows are the entries of the following
-        vectors:
+    def iterates(self, v, n, rows=True):
+        r"""
+        Let $A$ be this matrix and $v$ be a free module element.  If
+        rows is True, return a matrix whose rows are the entries of
+        the following vectors:
         $$
-           v, v A, v A^2, \ldots, v A^{n-1}.
+          v, v A, v A^2, \ldots, v A^{n-1}.
+        $$
+
+        If rows is False, return a matrix whose columns are the entries
+        of the following vectors:
+        $$
+          v, Av, A^2 v, \ldots, A^{n-1} v.
         $$
 
         INPUT:
@@ -1624,10 +1630,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             n -- nonnegative integer
 
         EXAMPLES:
-            sage: A = MatrixSpace(IntegerRing(), 2)([1,1,3,5]); A
+            sage: A = matrix(ZZ,2, [1,1,3,5]); A
             [1 1]
             [3 5]
-            sage: v = FreeModule(IntegerRing(), 2)([1,0])
+            sage: v = vector([1,0])
             sage: A.iterates(v,0)
             []
             sage: A.iterates(v,5)
@@ -1636,20 +1642,43 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  4   6]
             [ 22  34]
             [124 192]
+
+        Another example:
+            sage: a = matrix(ZZ,3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: v = vector([1,0,0])
+            sage: a.iterates(v,4)
+            [  1   0   0]
+            [  0   1   2]
+            [ 15  18  21]
+            [180 234 288]
+            sage: a.iterates(v,4,rows=False)
+            [  1   0  15 180]
+            [  0   3  42 558]
+            [  0   6  69 936]
         """
         n = int(n)
         if n >= 2 and self.nrows() != self.ncols():
             raise ArithmeticError, "matrix must be square if n >= 2."
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
+        m = self.nrows()
+        M = sage.modules.free_module.FreeModule(self._base_ring, m, sparse=self.is_sparse())
+        v = M(v)
         X = [v]
-        for _ in range(n-1):
-            X.append(X[len(X)-1]*self)
-        MS = self.matrix_space(n, self.ncols())
-        return MS(X)
+
+        if rows:
+            for _ in range(n-1):
+                X.append(X[len(X)-1]*self)
+            MS = self.matrix_space(n, m)
+            return MS(X)
+        else:
+            for _ in range(n-1):
+                X.append(self*X[len(X)-1])
+            MS = self.matrix_space(n, m)
+            return MS(X).transpose()
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """

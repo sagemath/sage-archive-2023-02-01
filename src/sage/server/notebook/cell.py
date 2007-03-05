@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 A Cell.
 
 A cell is a single input/output block.  Worksheets are built out of a
@@ -146,7 +146,7 @@ class Cell(Cell_generic):
             ncols = self.notebook().defaults()['word_wrap_cols']
         s = ''
 
-        input_lines = self.__in.strip()
+        input_lines = self.__in
         #if input_lines[:1] == '%':
         #    pr = '%s> '%(input_lines.split()[0])[1:]
         #else:
@@ -185,7 +185,7 @@ class Cell(Cell_generic):
                             in_loop = False
                         s += pr + v + '\n'
         else:
-            s += self.__in.strip()
+            s += self.__in
 
         if prompts:
             msg = 'Traceback (most recent call last):'
@@ -490,6 +490,7 @@ class Cell(Cell_generic):
     def files_html(self):
         dir = self.directory()
         D = os.listdir(dir)
+        D.sort()
         if len(D) == 0:
             return ''
         images = []
@@ -546,17 +547,18 @@ class Cell(Cell_generic):
         #r = '>'
         r = ''
         r += '&nbsp;'*(7-len(r))
-        if do_print:
-            btn = ""
-        else:
-            btn = """
-                <span class="hidden" id="evaluate_button_%s"><img
-                    src="/evaluate.png"
-                    onMouseOver="this.src='/evaluate_over.png'"
-                    onMouseOut="this.src='/evaluate.png'"
-                    onClick="evaluate_cell(%s,0);"></span>
-                  """%(self.__id,self.__id)
-        tbl = btn + """
+##         if do_print:
+##             btn = ""
+##         else:
+##             btn = """
+##                 <span class="hidden" id="evaluate_button_%s"><img
+##                     src="/evaluate.png"
+##                     onMouseOver="this.src='/evaluate_over.png'"
+##                     onMouseOut="this.src='/evaluate.png'"
+##                     onClick="evaluate_cell(%s,0);"></span>
+##                   """%(self.__id,self.__id)
+##        tbl = btn + """
+        tbl = """
                <table class="cell_output_box"><tr>
                <td class="cell_number" id="cell_number_%s" onClick="cycle_cell_output_type(%s);">
                  %s

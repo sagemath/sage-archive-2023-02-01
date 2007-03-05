@@ -58,27 +58,27 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
                 in which case x is a triple to be assigned directly.
 
         EXAMPLES:
-            sage: R = Zp(5, 20, 'capped-rel')
+            sage: R = Zp(5, 10, 'capped-rel')
 
         Construct from integers:
             sage: R(3)
-            3 + O(5^20)
+            3 + O(5^10)
             sage: R(75)
-            5^2 * 3 + O(5^22)
+            3*5^2 + O(5^12)
             sage: R(0)
             0
             sage: R(-1)
-            95367431640624 + O(5^20)
+            4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
             sage: R(-5)
-            5 * 95367431640624 + O(5^21)
+            4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + O(5^11)
             sage: R(-7*25)
-            5^2 * 95367431640618 + O(5^22)
+            3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + O(5^12)
 
         Construct from rationals:
             sage: R(1/2)
-            47683715820313 + O(5^20)
+            3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
             sage: R(-7875/874)
-            5^3 * 66451677195813 + O(5^23)
+            3*5^3 + 2*5^4 + 2*5^5 + 5^6 + 3*5^7 + 2*5^8 + 3*5^10 + 3*5^11 + 3*5^12 + O(5^13)
             sage: R(15/425)
             Traceback (most recent call last):
             ...
@@ -88,11 +88,11 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: R(Integers(125)(3))
             3 + O(5^3)
             sage: R(Integers(5)(3))
-            3 + O(5^1)
+            3 + O(5)
             sage: R(Integers(5^30)(3))
-            3 + O(5^20)
+            3 + O(5^10)
             sage: R(Integers(5^30)(1+5^23))
-            1 + O(5^20)
+            1 + O(5^10)
             sage: R(Integers(49)(3))
             Traceback (most recent call last):
             ...
@@ -109,7 +109,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
 
         Some other conversions:
             sage: R(R(5))
-            5 * 1 + O(5^21)
+            5 + O(5^11)
 
         # todo: doctests for converting from other types of p-adic rings
 
@@ -197,7 +197,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     def _neg_(self):
         """
         EXAMPLES:
-            sage: R = Zp(5, 20, 'capped-rel')
+            sage: R = Zp(5, 20, 'capped-rel', 'val-unit')
             sage: -R(1)
             95367431640624 + O(5^20)
             sage: -R(5)
@@ -478,7 +478,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: R = Zp(17,4,'capped-rel')
             sage: a = R(18*17)
             sage: a.unit_part()
-                18 + O(17^4)
+                1 + 17 + O(17^4)
             sage: type(a)
                 <class 'sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement'>
         """

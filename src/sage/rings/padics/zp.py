@@ -34,7 +34,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
        sage: S = Zp(5, 10, type = 'capped-abs'); b = S(2); b
             2 + O(5^10)
        sage: a + b
-            6 + O(5^10)
+            1 + 5 + O(5^10)
 
     NOTES:
          values of type:
@@ -66,7 +66,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
                 K.set_print_mode(print_mode)
             return K
     if print_mode == None:
-        print_mode = 'val-unit'
+        print_mode = 'series'
     if (type == 'capped-rel'):
         K = pAdicRingCappedRelative(p, prec, print_mode)
     elif (type == 'fixed-mod'):

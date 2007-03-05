@@ -157,7 +157,7 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
         EXAMPLES:
             sage: R = Zp(7,5,'fixed-mod')
             sage: R.get_print_mode()
-                'val-unit'
+            'series'
         """
         return self._print_mode
 
@@ -172,17 +172,17 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
         EXAMPLES:
             sage: R = Zp(3,5,'fixed-mod'); R.set_print_mode('val-unit')
             sage: a = R(117); a
-                3^2 * 13 + O(3^5)
+            3^2 * 13 + O(3^5)
             sage: R.set_print_mode('integer'); a
-                117 + O(3^5)
+            117 + O(3^5)
             sage: R.set_print_mode('series'); a
-                3^2 + 3^3 + 3^4 + O(3^5)
+            3^2 + 3^3 + 3^4 + O(3^5)
             sage: R.set_print_mode('val-unit-p'); a
-                p^2 * 13 + O(p^5)
+            p^2 * 13 + O(p^5)
             sage: R.set_print_mode('integer-p'); a
-                117 + O(p^5)
+            117 + O(p^5)
             sage: R.set_print_mode('series-p'); a
-                p^2 + p^3 + p^4 + O(p^5)
+            p^2 + p^3 + p^4 + O(p^5)
 
         NOTES:
             The options for print_mode are:

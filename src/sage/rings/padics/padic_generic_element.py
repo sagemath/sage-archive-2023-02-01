@@ -722,7 +722,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             field.)
 
         EXAMPLES:
-            sage: R = Zp(3,20,'capped-rel')
+            sage: R = Zp(3,20,'capped-rel', 'val-unit')
             sage: R(0).square_root()
                 0
             sage: R(1).square_root()
@@ -744,7 +744,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             sage: R2(1).square_root()
                 1 + O(2^19)
             sage: R2(4).square_root()
-                2 * 1 + O(2^20)
+                2 + O(2^20)
 
         # todo: the following doctest is currently disabled because the
         # second argument to the __call__ method is not yet implemented
@@ -753,7 +753,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 True
 
             sage: R2(17).square_root()
-                206569 + O(2^19)
+                1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
 
             sage: R3 = Zp(5,20,'capped-rel')
             sage: R3(0).square_root()
@@ -773,20 +773,20 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             sage: R(4).square_root() == R(-2)
                 True
             sage: R(9).square_root()
-                3 * 1 + O(3^21)
+                3 + O(3^21)
             sage: R(1/9).square_root()
-                3^-1 * 1 + O(3^19)
+                3^-1 + O(3^19)
             sage: R2 = Qp(2,20,'capped-rel')
             sage: R2(0).square_root()
                 0
             sage: R2(1).square_root()
                 1 + O(2^19)
             sage: R2(4).square_root()
-                2 * 1 + O(2^20)
+                2 + O(2^20)
             sage: R2(9).square_root() == R2(3,19) or R2(9).square_root() == R2(-3,19)
                 True
             sage: R2(17).square_root()
-                206569 + O(2^19)
+                1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
             sage: R3 = Qp(5,20,'capped-rel')
             sage: R3(0).square_root()
                 0

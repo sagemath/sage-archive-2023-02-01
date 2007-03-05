@@ -1552,12 +1552,12 @@ class Polynomial_padic_ring_dense(Polynomial_generic_dense, Polynomial_generic_d
     def _repr(self, name=None):
         r"""
         EXAMPLES:
-            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit')
-            sage: f = 24 + 4/3*w + w^4
+            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: f = 24 + R(4/3)*w + w^4
             sage: f._repr()
-            '(1 + O(5^5))*w^4 + (5 * 1 + O(5^6))*w + 24 + O(5^5)'
+            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + 24 + O(5^5)'
             sage: f._repr(name='z')
-            '(1 + O(5^5))*z^4 + (5 * 1 + O(5^6))*z + 24 + O(5^5)'
+            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + 24 + O(5^5)'
 
         AUTHOR:
             -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()
@@ -1611,12 +1611,12 @@ class Polynomial_padic_field_dense(Polynomial_generic_dense_field):
     def _repr(self, name=None):
         r"""
         EXAMPLES:
-            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit')
-            sage: f = 24 + 4/3*w + w^4
+            sage: R.<w> = PolynomialRing(Qp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: f = 24 + R(4/5)*w + w^4
             sage: f._repr()
-            '(1 + O(5^5))*w^4 + (5 * 1 + O(5^6))*w + 24 + O(5^5)'
+            '(1 + O(5^5))*w^4 + (5^-1 * 4 + O(5^4))*w + 24 + O(5^5)'
             sage: f._repr(name='z')
-            '(1 + O(5^5))*z^4 + (5 * 1 + O(5^6))*z + 24 + O(5^5)'
+            '(1 + O(5^5))*z^4 + (5^-1 * 4 + O(5^4))*z + 24 + O(5^5)'
 
         AUTHOR:
             -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()

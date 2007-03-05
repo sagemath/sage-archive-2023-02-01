@@ -25,7 +25,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
         sage: L = Qp(5, 10, type = 'lazy'); b = L(2); b
         2 + O(5^10)
         sage: a + b
-        6 + O(5^20)
+        1 + 5 + O(5^20)
 
     NOTES:
          values of type:
@@ -68,11 +68,19 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
 pAdicField = Qp # for backwards compatibility; and it's not hard.
 
 qadic_field_cache = {}
-def Qq(q, name=None, prec=20, type='capped-abs', print_mode=None, halt=40, modulus=None, check=True):
+def Qq(q, name=None, prec=20, type='capped-rel', print_mode=None, halt=40, modulus=None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
+
+    Currently, there's no code for unramified field extensions, so
+    we just return the UnramifiedRingExtension.
     """
+
+    from sage.rings.integer import Integer
+    from sage.rings.polynomial_ring import PolynomialRing
+    from sage.rings.padics.unramified_ring_extension import UnramifiedRingExtension
+    from sage.rings.integer_ring import ZZ
 
     if name is None:
         raise TypeError, "You must specify the name of the generator."
@@ -101,7 +109,7 @@ def Qq(q, name=None, prec=20, type='capped-abs', print_mode=None, halt=40, modul
         modulus = PolynomialRing(Qp(F[0][0], prec, type, print_mode, halt), name)(GF(q,name).modulus().change_ring(ZZ))
     if print_mode is None:
         print_mode = 'series'
-    K = UnramifiedFieldExtension(modulus, prec, print_mode, check)
+    K = UnramifiedRingExtension(modulus, prec, print_mode, check)
     qadic_field_cache[key] = weakref.ref(K)
 
     return K

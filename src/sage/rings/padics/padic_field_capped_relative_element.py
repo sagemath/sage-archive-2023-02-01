@@ -371,7 +371,7 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             sage: R = Qp(17,4,'capped-rel')
             sage: a = R(18*17)
             sage: a.unit_part()
-                18 + O(17^4)
+                1 + 17 + O(17^4)
             sage: type(a)
                 <class 'sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement'>
         """

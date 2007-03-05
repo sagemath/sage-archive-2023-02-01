@@ -108,7 +108,7 @@ class ExtendedRationalField_class(_uniq0, RationalField):
                 return self.gen2
             except AttributeError:
                 self.gen2 = RationalMinusInfinity()
-                return self.gen1
+                return self.gen2
         else:
             raise IndexError, "n must be 0, 1 or 2"
 
@@ -389,7 +389,7 @@ class RationalMinusInfinity(_uniq2, MinusInfinityElement):
         is by definition oo unless x is 0.
 
         EXAMPLES:
-            sage: moo = InfinityRing.gen(2)
+            sage: moo = ExtendedRationalField.gen(2)
             sage: moo.lcm(0)
             0
             sage: moo.lcm(oo)

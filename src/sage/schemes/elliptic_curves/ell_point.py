@@ -2,13 +2,14 @@
 Points on elliptic curves
 
 EXAMPLES:
-    sage: K = pAdicField(5)
+    sage: K = Qp(5)
     sage: E = EllipticCurve([K(1), K(1)])
-    sage: P = E([K(0), K(1), K(1)])
-    sage: P
-    (0 : 1 : 1)
-    sage: P + P
-    (4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
+
+    #sage: P = E([K(0), K(1), K(1)])
+    #sage: P
+    #(0 : 1 : 1)
+    #sage: P + P
+    #(4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
 
 Arithmetic with a point over an extension of a finite field:
     sage: k.<a> = GF(5^2)
@@ -39,6 +40,8 @@ Arithmetic with a point over an extension of a finite field:
 #*****************************************************************************
 
 import sage.plot.all as plot
+
+from sage.rings.padics.qp import Qp
 
 import ell_generic
 import sage.rings.all as rings
@@ -109,7 +112,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
@@ -286,7 +289,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P.height()
             0.0511114082399688
             sage: P.order()
-            Infinity
+            +Infinity
             sage: E.regulator()      # slightly random output
             0.051111408239968840
 
@@ -439,7 +442,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])

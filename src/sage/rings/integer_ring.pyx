@@ -418,7 +418,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return 1
 
     def order(self):
-        return sage.rings.infinity.Infinity()
+        return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
         if n == 1:

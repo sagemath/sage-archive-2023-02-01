@@ -172,7 +172,7 @@ class ModularFormElement(element.HeckeModuleElement):
         if self.__valuation != None:
             return self.__valuation
         v = self.qexp().valuation()
-        if v != rings.infinity:
+        if not (v is rings.infinity):
             self.__valuation = v
             return v
         v = self.qexp(self.parent().sturm_bound()).valuation()

@@ -27,7 +27,7 @@ import sage.plot.all as plot
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field
-from sage.rings.all import is_Infinity
+from sage.rings.all import is_Infinite
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 import sage.modular.modform as modform

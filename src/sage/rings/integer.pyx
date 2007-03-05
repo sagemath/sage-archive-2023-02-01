@@ -1412,7 +1412,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(0).additive_order()
             1
             sage: ZZ(1).additive_order()
-            Infinity
+            +Infinity
         """
         import sage.rings.infinity
         if self.is_zero():

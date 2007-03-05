@@ -299,7 +299,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
     def base_ring(self):
         r"""
-        Return the base base ring of the polynomial ring, of which
+        Return the base ring of the polynomial ring, of which
         this ring is a quotient.
 
         EXAMPLES:
@@ -366,7 +366,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         The discriminant of the quotient polynomial ring need not
         equal the discriminant of the corresponding number field,
         since the discriminant of a number field is by definition the
-        discriminant of the ring ring of integers of the number field:
+        discriminant of the ring of integers of the number field:
             sage: S = R.quotient(x^2 - 8)
             sage: S.number_field().discriminant()
             8
@@ -618,6 +618,12 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
     def __reduce__(self):
         return PolynomialQuotientRing_field, (self.polynomial_ring(),
                                         self.modulus(), self.variable_names())
+
+    def base_field(self):
+        r"""
+        Alias for base_ring, when we're defined over a field.
+        """
+        return self.base_ring()
 
     def complex_embeddings(self, prec=53):
         r"""

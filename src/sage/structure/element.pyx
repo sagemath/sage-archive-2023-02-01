@@ -32,6 +32,8 @@ SageObject
             AlgebraElement   (note -- can't derive from module, since no multiple inheritence)
                 CommutativeAlgebraElement
             InfinityElement
+                PlusInfinityElement
+                MinusInfinityElement
 \end{verbatim}
 
 \subsection{How to Define a New Element Class}
@@ -1738,6 +1740,12 @@ def is_InfinityElement(x):
 cdef class InfinityElement(RingElement):
     pass
 
+cdef class PlusInfinityElement(InfinityElement):
+    pass
+
+cdef class MinusInfinityElement(InfinityElement):
+    pass
+
 
 cdef int have_same_parent(left, right):
     """
@@ -1911,7 +1919,7 @@ cdef bin_op_c(x, y, op):
         x1, y1 = canonical_coercion_c(x, y)
         return op(x1,y1)
     except TypeError, msg:
-        # print msg  # this can be useful for debugging.
+        #print msg  # this can be useful for debugging.
         if not op is operator.mul:
             raise TypeError, arith_error_message(x,y,op)
 

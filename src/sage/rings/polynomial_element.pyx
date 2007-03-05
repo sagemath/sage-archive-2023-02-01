@@ -29,7 +29,7 @@ import integer_mod_ring
 import polynomial_pyx
 import rational_field
 import complex_field
-import padic_field
+#import padic_field
 from infinity import infinity
 import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
@@ -547,7 +547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         w = [sum([self[i]*right[k-i] for i in range(0,min(d1,k)+1) if \
                   i <= d1 and k-i <= d2 and self[i]!=0 and right[k-i]!=0]) \
                 for k in range(d+1)]
-        return Polynomial(self.parent(), w)
+        return self.parent()(w)
 
     def _mul_fateman(self, right):
         r"""
@@ -980,8 +980,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 G = self._pari_('x').factor()
 
-        elif padic_field.is_pAdicField(R):
-            G = list(self._pari_('x').factorpadic(R.prime(), R.prec()))
+        #elif padic_field.is_pAdicField(R):
+        #    G = list(self._pari_('x').factorpadic(R.prime(), R.prec()))
 
         if G is None:
             raise NotImplementedError
@@ -1547,7 +1547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: (x^3+1).valuation(infinity)
         -3
         sage: P(0).valuation()
-        Infinity
+        +Infinity
         """
         cdef int k
         if self.is_zero():

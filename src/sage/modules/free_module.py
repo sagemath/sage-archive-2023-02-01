@@ -1243,7 +1243,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span(ZZ, [[1,2]])
             sage: L1.index(L2)
-            Infinity
+            +Infinity
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError, "other must be a free module"

@@ -271,7 +271,7 @@ class RationalField(_uniq, field.Field):
         """
         EXAMPLES:
             sage: QQ.order()
-            Infinity
+            +Infinity
         """
         return infinity.infinity
 

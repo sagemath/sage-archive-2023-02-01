@@ -378,7 +378,7 @@ class Maxima(Expect):
     """
     def __call__(self, x):
         import sage.rings.all
-        if sage.rings.all.is_Infinity(x):
+        if sage.rings.all.is_Infinite(x):
             return Expect.__call__(self, 'inf')
         else:
             return Expect.__call__(self, x)

@@ -557,6 +557,45 @@ class HG:
         """
         self('%s --help | %s'%(cmd, pager()))
 
+    def outgoing(self, url=None, opts=''):
+        """
+        Use this to find changsets that are in your branch, but not in the
+        specified destination repository. If no destination is specified, the
+        official repository is used.
+
+        From the Mercurial documentation:
+            Show changesets not found in the specified destination repository or the
+            default push location. These are the changesets that would be pushed if
+            a push was requested.
+
+            See pull() for valid destination format details.
+
+        INPUT:
+            url:  default: self.url() -- the official repository
+                   * http://[user@]host[:port]/[path]
+                   * https://[user@]host[:port]/[path]
+                   * ssh://[user@]host[:port]/[path]
+                   * local directory (starting with a /)
+                   * name of a branch (for hg_sage); no /'s
+            options: (default: none)
+                 -M --no-merges     do not show merges
+                 -f --force         run even when remote repository is unrelated
+                 -p --patch         show patch
+                    --style         display using template map file
+                 -r --rev           a specific revision you would like to push
+                 -n --newest-first  show newest record first
+                    --template      display with template
+                 -e --ssh           specify ssh command to use
+                    --remotecmd     specify hg command to run on the remote side
+        """
+        if url is None:
+            url = self.__url
+
+        if not '/' in url:
+            url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
+
+        self('outgoing %s %s | %s' % (opts, url, pager()))
+
     def pull(self, url=None, options='-u'):
         """
         Pull all new patches from the repository at the given url,

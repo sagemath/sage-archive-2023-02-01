@@ -587,40 +587,43 @@ def lift(x):
     except AttributeError:
         raise ArithmeticError, "no lift defined."
 
-def log(x,b=None):
-    r"""
-    Return the log of x to the base b.  The default base is e.
+from sage.calculus.calculus import log as clog
+log = clog
 
-    INPUT:
-        x -- number
-        b -- base (default: None, which means natural log)
-
-    OUTPUT:
-        number
-
-    \note{In Magma, the order of arguments is reversed from in
-    \sage, i.e., the base is given first.  We use the opposite
-    ordering, so the base can be viewed as an optional second
-    argument.}
-
-    EXAMPLES:
-        sage: log(10,2)
-        3.32192809489
-        sage: log(8,2)
-        3.0
-        sage: log(10)
-        2.30258509299
-        sage: log(2.718)
-        0.999896315728951
-    """
-    if b is None:
-        if hasattr(x, 'log'):
-            return x.log()
-        return RDF(x)._log_base(1)
-    else:
-        if hasattr(x, 'log'):
-            return x.log(b)
-        return RDF(x).log(b)
+#def log(x,b=None):
+#    r"""
+#    Return the log of x to the base b.  The default base is e.
+#
+#    INPUT:
+#        x -- number
+#        b -- base (default: None, which means natural log)
+#
+#    OUTPUT:
+#        number
+#
+#    \note{In Magma, the order of arguments is reversed from in
+#    \sage, i.e., the base is given first.  We use the opposite
+#    ordering, so the base can be viewed as an optional second
+#    argument.}
+#
+#    EXAMPLES:
+#        sage: log(10,2)
+#        3.32192809489
+#        sage: log(8,2)
+#        3.0
+#        sage: log(10)
+#        2.30258509299
+#        sage: log(2.718)
+#        0.999896315728951
+#    """
+#    if b is None:
+#        if hasattr(x, 'log'):
+#            return x.log()
+#        return RDF(x)._log_base(1)
+#    else:
+#        if hasattr(x, 'log'):
+#            return x.log(b)
+#        return RDF(x).log(b)
 
 def minimal_polynomial(x):
     """

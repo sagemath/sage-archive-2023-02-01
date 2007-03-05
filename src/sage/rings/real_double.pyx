@@ -194,6 +194,10 @@ cdef class RealDoubleField_class(Field):
         Return a random element of this real double field in the interval [min, max].
 
         EXAMPLES:
+	    sage: RDF.random_element()
+	    -0.657233364114
+	    sage: RDF.random_element(min=100, max=110)
+	    106.592535785
         """
         return self._new_c((max-min)*random() + min)
 

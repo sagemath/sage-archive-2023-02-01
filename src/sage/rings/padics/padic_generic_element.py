@@ -103,7 +103,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         """
         import sage.rings.padics.padic_ring_generic
         if caprel and (self.valuation() == infinity):
-            return "0"
+                return "0"
         if mode == None:
             mode = self.parent().get_print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (isinstance(self.parent(), sage.rings.padics.padic_ring_generic.pAdicRingGeneric) and ((mode == 'integer') or (mode != 'integer-p')))):

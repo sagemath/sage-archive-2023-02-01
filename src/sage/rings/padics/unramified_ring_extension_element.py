@@ -7,8 +7,10 @@ import sage.rings.finite_field_element
 import sage.rings.polynomial_ring_constructor
 import sage.rings.padics.padic_ring_generic
 import sage.rings.polynomial_element
+import sage.rings.infinity
 import sys
 
+infinity = sage.rings.infinity.infinity
 PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
@@ -33,7 +35,7 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
                     raise NotImplementedError, "we have not yet implemented coercion between different unramified extensions"
             PQRElement.__init__(self, parent, x._polynomial, check = False)
             return
-        if isinstance(x, (int, long, Integer, Rational)) or is_IntegerMod(x) or is_FiniteFieldElement(x) or (isinstance(x, sage.structure.element) and (isinstance(x.parent(), pAdicRingBaseGeneric) or x.parent() is self.base_ring())):
+        if isinstance(x, (int, long, Integer, Rational)) or is_IntegerMod(x) or is_FiniteFieldElement(x) or (isinstance(x, sage.structure.element.Element) and (isinstance(x.parent(), pAdicRingBaseGeneric) or x.parent() is self.base_ring())):
             x = parent.base_ring()(x, prec = prec)
             PQRElement.__init__(self, parent, sage.rings.polynomial_ring_constructor.PolynomialRing(parent.base_ring(), parent.polynomial_ring().variable_name())(x), check=False)
             return
@@ -119,11 +121,12 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
             return "not-done"
         else:
             if mode == 'series':
-                p = self.parent().uniformizer()
+                p = self.parent()._uniformizer_sym(do_latex)
             else:
                 p = "p"
             selflist = self.list()
             triples = [(selflist[i], p, i) for i in range(2, self.precision_absolute())]
+            #print triples
             triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
             def addparen(c):
                 c = "%s"%c
@@ -131,6 +134,7 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
                     c = "(%s)"%c
                 return c
             triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
+            #return "bad"
             if do_latex:
                 s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(p, self.precision_absolute())
                 if self.precision_absolute() > 1 and selflist[1] != 0:
@@ -202,9 +206,14 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
         return self.list()[:n] + [0 for w in range(n, self.precision_absolute())]
 
     def precision_absolute(self):
+        if self._polynomial == 0:
+            return infinity
         return min(c.precision_absolute() for c in self._polynomial.list())
 
     def precision_relative(self):
+        val = self.valuation()
+        if val is infinity:
+            return Integer(0)
         return self.precision_absolute() - self.valuation()
 
     def rational_reconstruction(self):
@@ -226,7 +235,10 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
         raise TypeError, "Extension elements don't implement this function"
 
     def valuation(self):
-        return min([a.valuation() for a in self._polynomial.list()])
+        clist = self._polynomial.list()
+        if len(clist) == 0:
+            return infinity
+        return min([a.valuation() for a in clist])
 
     def norm(self, K = None):
         if K is None:

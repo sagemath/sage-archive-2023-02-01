@@ -326,6 +326,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if y is None:
             if x is None:
                 mpz_set_si(z.value, random()%5 - 2)
+##            elif (x == 0):
+
             else:
                 n_max = self(x)
                 mpz_urandomm(z.value, state, n_max.value)

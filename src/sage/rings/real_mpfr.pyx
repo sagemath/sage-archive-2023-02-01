@@ -797,6 +797,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         cdef int digits
         digits = len(t)
+        if t[0] == "-":
+            digits = digits - 1
 
         if no_sci is None:
             no_sci = not (<RealField>self._parent).sci_not

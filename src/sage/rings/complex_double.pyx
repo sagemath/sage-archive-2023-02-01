@@ -76,7 +76,6 @@ cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
 
-import infinity
 import  complex_number
 
 import complex_field
@@ -1378,6 +1377,7 @@ cdef class ComplexDoubleElement(FieldElement):
             Infinity
         """
         if self._complex.dat[0] == 0 and self._complex.dat[1] == 0:
+            import infinity
             return infinity.unsigned_infinity
         cdef pari_sp sp
         sp = avma

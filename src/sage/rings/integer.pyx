@@ -106,7 +106,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
 import sage.rings.infinity
 import sage.libs.pari.all
-import real_mpfr
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -805,6 +804,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
+        import real_mpfr
         R = real_mpfr.RealField(53)
         guess = R(self).log(base = m).floor()
         power = m ** guess
@@ -1576,6 +1576,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
+            import real_mpfr
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 

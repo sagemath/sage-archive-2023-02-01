@@ -4404,7 +4404,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 trace = self.ap(p)
 
             base_ring = rings.Integers(p**adjusted_prec)
-            output_ring = rings.pAdicField(p, prec)
+            output_ring = rings.Qp(p, prec)
 
             R, x = rings.PolynomialRing(base_ring, 'x').objgen()
             Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())

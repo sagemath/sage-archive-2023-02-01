@@ -24,6 +24,8 @@ include '../ext/stdsage.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
+gsl_set_error_handler_off()
+
 import math, operator
 
 cimport sage.libs.pari.gen
@@ -924,9 +926,7 @@ cdef class RealDoubleElement(FieldElement):
             9.3818445885e-15
 
             sage: RDF(1000).exp()
-            Traceback (most recent call last):
-            ...
-            RuntimeError
+            inf
         """
         _sig_on
         a = self._new_c(gsl_sf_exp(self._value))

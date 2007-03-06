@@ -82,6 +82,7 @@ import  complex_number
 import complex_field
 CC = complex_field.ComplexField()
 
+
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
 # are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
 #              log(2^64,10) = 19.265919722494793  < 28

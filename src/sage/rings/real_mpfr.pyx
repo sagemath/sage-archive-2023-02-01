@@ -68,6 +68,7 @@ from integer cimport Integer
 from rational import Rational
 from rational cimport Rational
 
+from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
@@ -544,6 +545,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef Integer _ix
         cdef RealField parent
         cdef gen _gen
+        cdef RealDoubleElement rd
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
@@ -558,6 +560,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, (int, long)):
             _ix = Integer(x)
             mpfr_set_z(self.value, _ix.value, parent.rnd)
+        elif isinstance(x, float):
+            mpfr_set_d(self.value, x, parent.rnd)
+        elif PY_TYPE_CHECK(x, RealDoubleElement):
+            rd = x
+            mpfr_set_d(self.value, rd._value, parent.rnd)
         #elif hasattr(x, '_mpfr_'):
         #    return x._mpfr_(self)
         else:
@@ -1150,6 +1157,88 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_frac(x.value, self.value, (<RealField>self._parent).rnd)
         return x
 
+    def nexttoward(self, other):
+        """
+        Returns the floating-point number adjacent to self which is
+        closer to other.  If self or other is NaN, returns NaN;
+        if self equals other, returns self.
+
+        EXAMPLES:
+            sage: (1.0).nexttoward(2).str(truncate=False)
+            '1.0000000000000002'
+            sage: (1.0).nexttoward(RR('-infinity')).str(truncate=False)
+            '0.99999999999999989'
+            sage: RR(infinity).nexttoward(0)
+            2.09857871646739e323228496
+            sage: RR(pi).str(truncate=False)
+            '3.1415926535897931'
+            sage: RR(pi).nexttoward(22/7).str(truncate=False)
+            '3.1415926535897936'
+            sage: RR(pi).nexttoward(21/7).str(truncate=False)
+            '3.1415926535897927'
+        """
+        cdef RealNumber other_rn
+        if PY_TYPE_CHECK(other, RealNumber):
+            other_rn = other
+        else:
+            other_rn = self._parent(other)
+
+        cdef RealNumber x
+        x = self._new()
+
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nexttoward(x.value, other_rn.value)
+
+        return x
+
+    def nextabove(self):
+        """
+        Returns the next floating-point number larger than self.
+
+        EXAMPLES:
+            sage: RR('-infinity').nextabove()
+            -2.09857871646739e323228496
+            sage: RR(0).nextabove()
+            2.38256490488795e-323228497
+            sage: RR('+infinity').nextabove()
+            +infinity
+            sage: RR(-sqrt(2)).str(truncate=False)
+            '-1.4142135623730951'
+            sage: RR(-sqrt(2)).nextabove().str(truncate=False)
+            '-1.4142135623730949'
+        """
+
+        cdef RealNumber x
+        x = self._new()
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nextabove(x.value)
+
+        return x
+
+    def nextbelow(self):
+        """
+        Returns the next floating-point number smaller than self.
+
+        EXAMPLES:
+            sage: RR('-infinity').nextbelow()
+            -infinity
+            sage: RR(0).nextbelow()
+            -2.38256490488795e-323228497
+            sage: RR('+infinity').nextbelow()
+            2.09857871646739e323228496
+            sage: RR(-sqrt(2)).str(truncate=False)
+            '-1.4142135623730951'
+            sage: RR(-sqrt(2)).nextbelow().str(truncate=False)
+            '-1.4142135623730954'
+        """
+
+        cdef RealNumber x
+        x = self._new()
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nextbelow(x.value)
+
+        return x
+
     ###########################################
     # Conversions
     ###########################################
@@ -1511,8 +1600,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = 16.0; r.log10()
             1.20411998265592
-            sage: r.log() / log(10)
-            1.20411998265804
+            sage: r.log() / log(10.0)
+            1.20411998265592
 
             sage: r = 39.9; r.log10()
             1.60097289568675
@@ -1955,8 +2044,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
              sage: r = sqrt(2); r
              1.41421356237310
              sage: r.algdep(5)
-             x^2 - 2                          # 32-bit
-             x^5 - x^4 - 2*x^3 + x^2 + 2    # 64-bit
+             x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 
@@ -1973,8 +2061,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
               sage: r = sqrt(2); r
               1.41421356237310
               sage: r.algdep(5)
-              x^2 - 2                        # 32-bit
-              x^5 - x^4 - 2*x^3 + x^2 + 2    # 64-bit
+              x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 

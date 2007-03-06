@@ -815,11 +815,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: z = (1/2)*(1 + sqrt(3) *C.0); z
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algdep(5); p
-            x^5 + x^2                         # 32-bit
-            x^5 - x^4 + x^3 + x^2 - x + 1     # 64-bit
+            x^5 + x^2
             sage: p.factor()
-            (x + 1) * x^2 * (x^2 - x + 1)     # 32-bit
-            (x + 1) * (x^2 - x + 1)^2         # 64-bit
+            (x + 1) * x^2 * (x^2 - x + 1)
             sage: z^2 - z + 1
             0.000000000000000111022302462516
         """

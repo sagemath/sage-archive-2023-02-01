@@ -922,16 +922,13 @@ pre.cell_input_pre {
 textarea.cell_input {
   color:#000000;
   background-color: #e8e8e8;
-  border: 0px solid white;
-  /* border-left: 2px solid green; */
+  border: 2px solid white;
   font-family: courier, monospace;
   font-size:12pt;
-/*  overflow:hidden; */
   overflow:auto;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-/*  margin:0px; */
   width: 100%;
   margin-bottom:0px;
   margin-top:0px;

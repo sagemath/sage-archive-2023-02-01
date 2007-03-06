@@ -68,7 +68,6 @@ import operator
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
-
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 
@@ -84,6 +83,8 @@ import sage.rings.arith
 
 from sage.rings.ring import is_Ring
 import sage.rings.integer_ring
+from sage.rings.real_double import RDF
+from sage.rings.complex_double import CDF
 
 #from sage.matrix.matrix cimport Matrix
 
@@ -98,6 +99,7 @@ def vector(arg0, arg1=None, sparse=None):
         1. vector(object)
         2. vector(ring, object)
         3. vector(object, ring)
+        4. vector(numpy_array)
 
     INPUT:
         elts -- entries of a vector (either a list or dict).
@@ -151,6 +153,17 @@ def vector(arg0, arg1=None, sparse=None):
     Make a vector mod 3 out of a vector over ZZ:
         sage: vector(vector([1,2,3]), GF(3))
         (1, 2, 0)
+
+    Any 1 dimensional numpy array of type float or complex may be passed to vector. The result
+    will vector in the appropriate dimensional vector space over the real double field or the
+    complex double field. The data in the array must be contiguous so columnwise slices of numpy matrices
+    will rase an exception.
+
+    sage: import numpy
+    sage: x=numpy.random.randn(10)
+    sage: y=vector(x)
+    sage: v=numpy.random.randn(10)*numpy.complex(0,1)
+    sage: w=vector(v)
     """
     if hasattr(arg0, '_vector_'):
         if arg1 is None:
@@ -173,6 +186,24 @@ def vector(arg0, arg1=None, sparse=None):
         if sparse is None:
             sparse = True
         v, R = prepare_dict(v, R)
+
+    from numpy import ndarray
+    from free_module import VectorSpace
+    if isinstance(v,ndarray):
+        if len(v.shape)==1:
+            if str(v.dtype).count('float')==1:
+                if v.flags.c_contiguous==True:
+                    V=VectorSpace(RDF,v.shape[0])
+                    _v=V.zero_vector()
+                    _v._replace_self_with_numpy(v)
+                    return _v
+            if str(v.dtype).count('complex')==1:
+                if v.flags.c_contiguous==True:
+                    V=VectorSpace(CDF,v.shape[0])
+                    _v=V.zero_vector()
+                    _v._replace_self_with_numpy(v)
+                    return _v
+
     else:
         if sparse is None:
             sparse = False

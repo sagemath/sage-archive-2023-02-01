@@ -488,16 +488,16 @@ class MPolynomialIdeal_singular_repr:
         return S.ideal(r)
 
     def integral_closure(self, p=0, r=True):
-        """
+        r"""
         Let I == self.
 
-        Returns the integral closure of I, ..., I^p, where sI
-        is an ideal in the polynomial ring R=k[x(1),...x(n)]. If p is
-        not given, or p==0, compute the closure of all powers up to
-        the maximum degree in t occurring in the closure of R[It] (so
+        Returns the integral closure of $I, \ldots, I^p$, where $sI$
+        is an ideal in the polynomial ring $R=k[x(1),...x(n)]$. If $p$ is
+        not given, or $p=0$, compute the closure of all powers up to
+        the maximum degree in t occurring in the closure of $R[It]$ (so
         this is the last power whose closure is not just the
-        sum/product of the smaller). If r is given and r is True,
-        I.integral_closure() starts with a check whether I is already a
+        sum/product of the smaller). If $r$ is given and \code{r is True},
+        \code{I.integral_closure()} starts with a check whether I is already a
         radical ideal.
 
         INPUT:

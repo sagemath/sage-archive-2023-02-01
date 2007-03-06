@@ -2,7 +2,7 @@ r"""
 Computation of Frobenius matrix on Monsky-Washnitzer cohomology.
 
 The most interesting functions to be exported here are matrix_of_frobenius()
-and adjusted_prec().
+and adjusted_prec(), and matrix_of_frobenius_alternate().
 
 Currently this code is limited to the case $p \geq 5$ (no $GF(p^n)$
 for $n > 1$), and only handles the elliptic curve case (not more
@@ -14,6 +14,8 @@ REFERENCES:
      no 4, 323--338
   -- Edixhoven, B., ``Point counting after Kedlaya'', EIDMA-Stieltjes graduate
      course, Lieden (lecture notes?).
+  -- Harvey, D. ``Kedlaya's algorithm in larger characteristic'',
+     http://arxiv.org/abs/math.NT/0610973
 
 AUTHORS:
     -- David Harvey and Robert Bradshaw (initial code developed at the 2006
@@ -22,6 +24,7 @@ AUTHORS:
     -- David Harvey (Aug/Sep 2006): cleaned up, rewrote some chunks, lots
        more documentation, added Newton iteration method, added more complete
        "trace trick", integrated better into SAGE.
+    -- David Harvey (Feb 2007): added algorithm with sqrt(p) complexity
 
 """
 
@@ -39,9 +42,10 @@ from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial
 from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
+from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.arith import binomial
-from sage.misc.functional import log, ceil
+from sage.rings.arith import binomial, floor
+from sage.misc.functional import log, ceil, sqrt
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -1253,6 +1257,638 @@ def matrix_of_frobenius(Q, p, M, trace=None):
 
   return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
                                   F0_reduced[1], F1_reduced[1]])
+
+
+
+#*****************************************************************************
+# From here on is an implementation of D. Harvey's modification of Kedlaya's
+# algorithm, ``Kedlaya's algorithm in larger characteristic'' (see arXiv).
+# Actually the algorithm implemented here is better than the one in the paper;
+# the $N^3$ contribution is reduced to $N^{5/2}$, and incorporates some ideas
+# from ``Linear recurrences with polynomial coefficients and application to
+# integer factorization and Cartier-Manin operator'' (Bostan, Gaudry, Schost)
+# to reduce the running time by another factor of $\log p$.
+#
+# todo: I haven't yet done the precision analysis (i.e. the analogue of
+# lemmas 2 and 3 from Kedlaya's original paper), so for now I'm playing it
+# safe, using more precision than is presumably necessary.
+#
+# AUTHOR:
+#    -- David Harvey (2007-02)
+#
+#*****************************************************************************
+
+
+def shift_evaluation_points(R, values, b, r, p, cache):
+    r"""
+    Given the values of a polynomial $P(x)$ on an arithmetic progression,
+    this function computes the values of $P(x)$ on a shift of that
+    arithmetic progression.
+
+    INPUT:
+      p -- a prime
+      R -- coefficient ring, of the form $\ZZ/p^m \ZZ$
+      values -- a list of $d+1$ values of a polynomial $P(x)$ of degree $d$,
+          at the $d+1$ points $x = 0, r, 2r, \ldots, dr$.
+      b -- an integer
+      r -- a nonzero integer
+      cache -- a dictionary
+
+    OUTPUT:
+      A list of $d+1$ values $P(b)$, $P(b+r)$, ..., $P(b+dr)$.
+      (Also the cache might get updated.)
+
+    NOTE: The polynomial $P$ is *not* part of the input.
+
+    PRECONDITIONS: $d$ must be less than $p$
+
+    EXAMPLES:
+    Run it on some random input, and compare to a naive implementation:
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import shift_evaluation_points
+        sage: R = Integers(7**3)
+        sage: S.<x> = PolynomialRing(R)
+        sage: r = 3
+        sage: for d in range(7):
+        ...      for b in range(50):
+        ...         p = S([R.random_element() for i in range(d+1)])
+        ...         L = [p(i*r) for i in range(d+1)]
+        ...         shifted = shift_evaluation_points(R, L, b, r, 7, {})
+        ...         if shifted != [p(b + i*r) for i in range(d+1)]:
+        ...            print "failed"
+
+    ALGORITHM:
+    The basic idea (as described in the Bostan/Gaudry/Schost paper) is as
+    follows. The Lagrange interpolation formula says that
+      $$ P(x) = \sum_{i=0}^d P(ir) \prod_{j \neq i} (x-jr)/(ir-jr). $$
+    We substitute $x = b+kr$, and rearrange to eventually obtain
+      $$ P(b+kr) = r^{-d} \prod_{j=0}^d (b+(k-j)r)
+        \sum_{i=0}^d [P(ir) \prod_{j \neq i} (i-j)^{-1}] \frac{1}{b+(k-i)r}. $$
+    The point is that the latter sum is a convolution and so can be
+    evaluated for all $k$ simultaneously by a single polynomial multiplication.
+
+    There are some complications related to non-invertible elements of $R$,
+    but we just deal with it :-)
+
+    """
+
+    d = len(values) - 1
+    assert p > d
+
+    try:
+        # try to retrieve some precomputed stuff from the cache
+        bad, input_scale, S, kernel, output_scale = cache[d, b, r]
+
+    except KeyError:
+        # that didn't work; need to compute all of it
+
+        # figure out for which i in [-d, d] is b+ir not invertible;
+        # put these i into a "bad" list
+        i = (-R(b)/r).lift() % p
+        bad = []
+        if i <= d:
+            bad.append(i)
+        if i >= p-d:
+            bad.append(i-p)
+
+        # compute inverse factorials [1/0!, 1/1!, 1/2!, ..., 1/d!] in R
+        total = R(1)
+        for k in range(2, d+1):
+            total = total * R(k)
+        inv = total**(-1)
+        inv_fac = [inv]
+        for k in range(d, 1, -1):
+            inv_fac.append(inv_fac[-1] * R(k))
+        inv_fac.append(R(1))
+        inv_fac.reverse()
+
+        # compute some coefficients to be used in the preprocessing step
+        scale = R(r)**(-d)
+        input_scale = [scale * inv_fac[i] * inv_fac[d-i] * \
+                       (-1 if (d-i) & 1 else 1) for i in range(d+1)]
+
+        # Let B_i = b+ir for each i in [-d, d], except we declare B_i = 1
+        # if i is "bad".
+        B = [(R(1) if i in bad else R(b + i*r)) for i in range(-d, d+1)]
+
+        # compute partial products of B_i
+        products = [R(1)]
+        for z in B:
+            products.append(products[-1] * z)
+
+        # compute partial products of inverses of B_i
+        inverse = ~(products[-1])
+        inv_products = [inverse]
+        for z in reversed(B):
+            inv_products.append(inv_products[-1] * z)
+        inv_products.reverse()
+
+        # compute inverses of each B_i
+        B_inv = [inv_products[i] * products[i-1] \
+                 for i in range(1, len(products))]
+
+        # replace the "bad" B_i with 0, so they don't contribute to the
+        # convolution at all
+        for i in bad:
+            B_inv[i+d] = R(0)
+
+        # kernel is the polynomial we need to multiply by in the convolution
+        S = PolynomialRing(R, "x")
+        kernel = S(B_inv, check=False)
+
+        # coefficients for postprocessing step
+        output_scale = [products[k+d+1] * inv_products[k] for k in range(d+1)]
+
+        # save everything useful to the cache
+        cache[d, b, r] = (bad, input_scale, S, kernel, output_scale)
+
+
+    # preprocessing step:
+    # multiply each P(ir) by \prod_{j \neq i} r (i-j)^{-1}
+    values = [values[i] * input_scale[i] for i in range(d+1)]
+
+    # do the convolution
+    H = S(values, check=False) * kernel
+    output = H.list()[d:(2*d+1)]
+    # (need to zero-pad output up to length d+1)
+    output.extend([R(0)] * (d+1 - len(output)))
+
+    # postprocessing:
+    # multiply each output by \prod_{j=0}^d B_{k-j}
+    output = [output[k] * output_scale[k] for k in range(d+1)]
+
+
+    # Now need to deal with "bad" indices. This shouldn't happen too often,
+    # especially when $d$ is much smaller than $p$.
+
+    # The first problem is that in the postprocessing step we left out
+    # multiplying by the bad factors. Now we put them back in.
+    for i in bad:
+        factor = b + i*r
+        for k in range(max(i, 0), min(d+i, d) + 1):
+            output[k] = output[k] * factor
+
+    # The second problem is that in the polynomial S(B_inv) the monomials
+    # corresponding to the bad i were completely wrong.
+    for i in bad:
+        if i >= 0:
+            correction = ([R(0)] * i) + [values[k-i] * output_scale[k] \
+                          for k in range(i, d+1)]
+        else:
+            correction = [values[k-i] * output_scale[k] \
+                          for k in range(0, i+d+1)] + ([R(0)] * (-i))
+
+        # again, we left out all the bad factors; put them back in
+        for ii in bad:
+            if ii != i:
+                factor = b + ii*r
+                for k in range(max(ii, 0), min(d+ii, d) + 1):
+                    correction[k] = correction[k] * factor
+
+        # add correction term to output
+        for k in range(d+1):
+            output[k] = output[k] + correction[k]
+
+    return output
+
+
+
+def naive_shift_evaluation_points(R, values, b, r, p):
+    r"""
+    Same as shift_evaluation_points, but uses naive algorithm (naive
+    Lagrange interpolation, followed by naive evaluation).
+
+    For testing/debugging purposes only.
+    """
+    d = len(values) - 1
+    S, x = PolynomialRing(R, "x").objgen()
+    total = S(0)
+    for j in range(d+1):
+        prod = S(1)
+        for i in range(d+1):
+            if i != j:
+                prod = prod * (x - i*r) / (r*(j-i))
+        total = total + values[j] * prod
+
+    return [total(b + i*r) for i in range(d+1)]
+
+
+
+def matrix_polys(A, R, n, b, r, q, p, cache):
+    r"""
+    INPUT:
+      p -- a prime
+      R -- coefficient ring, of the form $\ZZ/p^m \ZZ$
+      n -- a positive integer
+      A -- an $n \times n$ matrix of linear polys over $R$ (stored as a list
+           of lists)
+      b -- an integer
+      r -- a positive integer
+      q -- a positive integer
+      cache -- dictionary (passed through to shift_evaluation_points)
+
+    OUTPUT:
+      Let $B(x) = A(x+1) A(x+2) ... A(x+r-1) A(x+r)$, a matrix of degree
+      $r$ polynomials.
+
+      Output an $n \times n$ matrix, the $(i, j)$-entry is a list of the
+      $(i, j)$-entries of the evaluations $B(b), B(b+q), \ldots, B(b+rq)$;
+      i.e. it evaluates $B(x)$ at $r+1$ points spaced out by $q$.
+
+    ALGORITHM:
+      Umm, it's probably the one described in the Bostan/Gaudry/Schost paper,
+      although I haven't looked at that part of the paper too closely yet.
+
+    EXAMPLES:
+    Run it on some random input, and compare to a naive implementation:
+        sage: from sage.schemes.elliptic_curves.monsky_washnitzer import matrix_polys, naive_matrix_polys
+        sage: R = Integers(7**3)
+        sage: S.<x> = PolynomialRing(R, "x")
+        sage: b = 5
+        sage: for r in range(1, 14):
+        ...       A = [[R.random_element() * x + R.random_element() \
+        ...             for i in range(3)] for j in range(3)]
+        ...       X = matrix_polys(A, R, 3, b, r, 3, 7, {})
+        ...       Y = naive_matrix_polys(A, R, 3, b, r, 3, 7)
+        ...       if X != Y: print "failed"
+
+    """
+    assert r >= 1
+    assert r < 2*p
+
+    if r == 1:
+        # base case; i.e. evaluate original polys at x = b+1, b+q+1
+        return [[[A[j][i](b+1), A[j][i](b+q+1)] for i in range(n)]
+                for j in range(n)]
+
+    # let r' = floor(r/2)
+    half_r = r // 2
+
+    # evaluate A(x+1) A(x+2) ... A(x+r')
+    # at x = b, b + q, ..., b + r'q.
+    X = matrix_polys(A, R, n, b, half_r, q, p, cache)
+
+    # shift to obtain evaluations of A(x+r'+1) A(x+r'+2) ... A(x+2r')
+    # at x = b, b + q, ..., b + r'q.
+    shift1 = [[shift_evaluation_points(R, values, half_r, q, p, cache) \
+               for values in row] for row in X]
+
+    # shift to obtain evaluations of A(x+1) A(x+2) ... A(x+r')
+    # at x = b + (r'+1)q, b + (r'+2)q, ..., b + (2r'+1)q
+    shift2 = [[shift_evaluation_points(R, values, (half_r+1)*q, q, p, cache) \
+               for values in row] for row in X]
+
+    # shift to obtain evaluations of A(x+r'+1) A(x+r'+2) ... A(x+2r')
+    # at x = b + (r'+1)q, b + (r'+2)q, ..., b + (2r'+1)q
+    shift3 = [[shift_evaluation_points(R, values, half_r, q, p, cache) \
+               for values in row] for row in shift2]
+
+    # multiply matrices to obtain evaluations of A(x+1) A(x+2) ... A(x+2r')
+    # at x = b, b + q, ..., b + r'q.
+    prod1 = [[[sum([X[i][m][k] * shift1[m][j][k] for m in range(n)]) \
+               for k in range(half_r+1)] for j in range(n)] for i in range(n)]
+
+    # multiply matrices to obtain evaluations of A(x+1) A(x+2) ... A(x+2r')
+    # at x = b + (r'+1)q, ..., b + (2r'+1)q.
+    prod2 = [[[sum([shift2[i][m][k] * shift3[m][j][k] for m in range(n)]) \
+               for k in range(half_r+1)] for j in range(n)] for i in range(n)]
+
+    if r & 1 == 0:
+        # if r is even, then the polys are the right degree, but we have one
+        # extra evaluation point (namely x = b + (r+1)q). Throw it away.
+        for i in range(n):
+            for j in range(n):
+                prod2[i][j].pop()
+                prod1[i][j].extend(prod2[i][j])
+        output = prod1
+
+    else:
+        # if r is odd, then we have precisely the right number of evaluation
+        # points, but our polynomials are short by one term, namely A(x+r).
+        # Add in the effect of that term.
+        for i in range(n):
+            for j in range(n):
+                prod1[i][j].extend(prod2[i][j])
+
+        output = \
+               [[[sum([prod1[i][m][k] * A[m][j](b+k*q+r) for m in range(n)]) \
+                  for k in range(r+1)] for j in range(n)] for i in range(n)]
+
+    return output
+
+
+
+def naive_matrix_polys(A, R, n, b, r, q, p):
+    r"""
+    Same as matrix_polys, but uses a naive algorithm.
+
+    For testing/debugging purposes only.
+    """
+    result = [[[] for _ in range(n)] for _ in range(n)]
+    for i in range(r+1):
+        prod = MatrixSpace(R, n, n).identity_matrix()
+        for j in range(1, r+1):
+            A_eval = matrix(R, [[f(b+q*i+j) for f in row] for row in A])
+            prod = prod * A_eval
+        for k1 in range(n):
+            for k2 in range(n):
+                result[k1][k2].append(prod[k1][k2])
+    return result
+
+
+
+
+def reduce_one(T, s, n, M, D, R):
+    r"""
+    A single step reduction.
+
+    INPUT:
+      R -- coefficient ring, of the form $\ZZ/p^m \ZZ$
+      n -- a positive integer
+      T -- an $n$-tuple of elements of $R$.
+      M -- an $n \times n$ matrix of linear polys over $R$ (stored as a list
+           of lists)
+      D -- a linear polynomial over $R$.
+
+    OUTPUT:
+      Let $A(x) = M(x)/D(x)$.
+      Return value is the matrix-vector product $A(s) T$, as a list.
+
+    """
+    d = D(s).lift()
+    return [R(sum([M[i][j](s) * T[j] for j in range(n)]).lift() / d) \
+            for i in range(n)]
+
+
+
+def reduce_sequence(T, d, s, n, M, D, p, R):
+    r"""
+    Reduces a sequence of terms.
+
+    INPUT:
+      p -- a prime
+      R -- coefficient ring, of the form $\ZZ/p^m \ZZ$
+      T -- a nonempty list of $n$-tuples of elements of $R$. Denote by $L$
+           the length of $T$.
+      d -- a list of positive integers, of length $L$; they must be in
+           strictly ascending order
+      s -- an integer >= 0
+      n -- an integer >= 1
+      M -- an $n \times n$ matrix of linear polynomials over $R$,
+           stored as a list of lists
+      D -- a linear polynomial over $R$
+
+    PRECONDITIONS:
+       The largest $d_i$ must be less than $\sqrt p$.
+       (or something like that... todo: check this...)
+
+    OUTPUT:
+       Let $A(x) = M(x)/D(x)$, and let $B(t)$ denote the matrix product
+         $$ A(s+1) A(s+2) \cdots A(s+t). $$
+
+       This function returns the sum
+         $$ \sum_{i=1}^L  B(d_i) T_i. $$
+
+       In other words, treating each term $T_i$ as appearing in position
+       $s + d_i$, it applies the reduction matrices to reduce them all down to
+       a single $n$-tuple in position $s$.
+
+       Running time is something like
+          $O(M(e^{1/2}) + L M(e^{1/4}))$
+       where $e = \max(d_i)$, and where $M(k)$ is the time for degree $k$
+       polynomial multiplication over $R$.
+
+    """
+    # L = number of terms to reduce
+    L = len(T)
+    # e = total distance to reduce
+    e = d[-1]
+
+    if e <= 30:
+        # naive algorithm when the reduction length is small enough
+        output = [R(0)] * n
+        for i in range(L):
+            term = T[i]
+            for t in range(d[i], 0, -1):
+                term = reduce_one(term, s + t, n, M, D, R)
+            for j in range(n):
+                output[j] = output[j] + term[j]
+        return output
+
+    # We do the reduction by splitting into segments. There are $w+1$
+    # segments of length $w$, where $w$ is the smallest integer such
+    # that $w(w+1) \geq e$ (so in particular $w \approx \sqrt e$).
+    w = ceil(sqrt(e))
+    while w*(w+1) >= e:
+        w = w - 1
+    if w*(w+1) < e:
+        w = w + 1
+
+    # The BGS method only works if the terms are on segment boundaries.
+    # So first we (recursively) reduce each term separately to make it
+    # lie on a segment boundary.
+    # This is the step that takes time $O(L M(e^{1/4}))$.
+    new_T = []
+    new_d = []
+    for i in range(L):
+        this_d = d[i]
+        reduced_d = w * (this_d // w)
+        if reduced_d == this_d:
+            reduced_T = T[i]
+        else:
+            reduced_T = reduce_sequence([T[i]], [this_d - reduced_d],
+                                        s + reduced_d, n, M, D, p, R)
+        new_T.append(reduced_T)
+        new_d.append(reduced_d)
+    T = new_T
+    d = new_d
+
+    # Now all terms are on segment boundaries. Next we compute a reduction
+    # matrix for each segment, using BGS method.
+    cache = {}
+    M_segments = matrix_polys([[M[i][j] for j in range(n)] for i in range(n)],
+                              R, n, s, w, w, p, cache)
+    D_segments = matrix_polys([[D]], R, 1, s, w, w, p, cache)[0][0]
+
+    # Now we use the reduction matrices to sweep up all the terms.
+    total = [R(0), R(0), R(0)]
+    for segment in range(w+1, -1, -1):
+        # add in terms at the current segment boundary
+        while len(d) and (d[-1] == segment*w):
+            for j in range(n):
+                total[j] = total[j] + T[-1][j]
+            T.pop()
+            d.pop()
+
+        # apply reduction matrix
+        if segment > 0:
+            M_here = [[M_segments[i][j][segment-1] \
+                       for j in range(n)] for i in range(n)]
+            D_here = D_segments[segment-1].lift()
+            total = [R(sum([M_here[i][j] * total[j]
+                            for j in range(n)]).lift() / D_here) \
+                     for i in range(n)]
+
+    return total
+
+
+
+def starting_differentials(R, a, b, p, M):
+    r"""
+    Computes the initial terms in the expansion of $\sigma(x^i dx/y)$
+    (where $\sigma$ is frobenius) to which the cohomology reduction
+    algorithm will be applied.
+
+    INPUT:
+      p -- a prime $\geq 5$
+      R -- coefficient ring, of the form $\ZZ/p^m \ZZ$
+      a, b -- elements of $R$, coefficients of an elliptic curve
+              $y^2 = x^3 + ax + b$
+      M -- number of terms being computed (see ``Kedlaya's algorithm in
+           larger characteristic'' for the exact meaning)
+
+    OUTPUT:
+      A list of length $M$; the $j$th entry is a list of length $3j+1$;
+      its $m$th entry is the coefficient of
+         $ x^{p(m+i+1)-1} y^{-p(2j+1)+1} dx/y $
+      in the expansion of $\sigma(x^i dx/y)$.
+
+      Complexity is $O(M^2)$ operations in $R$.
+
+    """
+    # compute B[k][j] = binomial(k, j) in R, for 0 <= j <= k < 2M
+    B = [[R(1)]]
+    for k in range(1, 2*M):
+        B.append([R(1)] + [B[-1][j] + B[-1][j-1] for j in range(1,k)] + [R(1)])
+
+    # compute temp[k] = binomial(2k, k) / 4^k in R, for 0 <= k < M
+    four_to_minus_1 = R(4)**(-1)
+    four_to_minus_k = R(1)
+    temp = [R(1)]
+    for k in range(1, M):
+        four_to_minus_k = four_to_minus_k * four_to_minus_1
+        temp.append(four_to_minus_k * B[2*k][k])
+
+    # compute constants
+    # C[j] = (-1)^j p \sum_{k=j}^{M-1} 4^{-k} (2k \choose k) (k \choose j)
+    # in R, for 0 <= j < M
+    C = [p * sum([temp[k] * B[k][j] for k in range(j, M)]) for j in range(M)]
+    for j in range(1, M, 2):
+        C[j] = -C[j]
+
+    # compute A[j][m] = u^m coefficient of (u^3 + a*u + b)^j
+    # for 0 <= j < M
+    Ru, u = PolynomialRing(R, "u").objgen()
+    Q = u**3 + a*u + b
+    Q_to_j = Ru(1)
+    A = [[R(1)]]
+    for j in range(1, M):
+        Q_to_j = Q_to_j * Q
+        A.append(Q_to_j.list())
+
+    # compute products C[j] * A[j][m]
+    return [[C[j] * x for x in A[j]] for j in range(M)]
+
+
+
+
+def matrix_of_frobenius_alternate(a, b, p, N):
+    r"""
+    Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
+    with respect to the basis $(dx/y, x dx/y)$.
+
+    INPUT:
+        a, b -- rational numbers, coefficients of elliptic curve
+                $y^2 = x^3 + ax + b$
+        p -- a prime for which the curve has good reduction
+        N -- desired output precision for matrix (i.e. modulo $p^N$).
+
+    OUTPUT:
+        2x2 matrix of frobenius, with coefficients in Integers(p^N)
+
+    TODO:
+    Haven't yet checked yet exactly which combinations of $p$ and $N$ are
+    valid. If $p$ is much larger than $N$, there shouldn't be a problem.
+
+    EXAMPLES:
+        sage: from monsky_washnitzer import matrix_of_frobenius_alternate
+        sage: M = matrix_of_frobenius_alternate(-1, 1/4, 101, 3); M
+        [824362 606695]
+        [641451 205942]
+        sage: M.det()
+        101
+        sage: M.trace()
+        3
+
+    """
+    assert p > N    # todo: check this is the right condition....
+
+    # choose minimal M such that M >= floor(log_p(2M+1)) + N
+    M = N
+    while M < floor(log(2*M+1, p)) + N:
+      M = M + 1
+
+    # I haven't done the precision analysis properly yet, so for now
+    # we work to precision 3M, with M digits at the bottom and M spare
+    # digits at the top, which should be pretty safe.
+    R = Integers(p**(3*M))
+    R_output = Integers(p**N)
+    S, x = PolynomialRing(R, "x").objgen()
+    a = R(a)
+    b = R(b)
+
+    differentials = starting_differentials(R, a, b, p, M)
+
+    # multiply through by p^M for safety, need to come back and fix this...
+    differentials = [[item * p**M for item in row] for row in differentials]
+
+    output = []
+
+    for i in range(2):
+        column = []
+
+        for j in range(M):
+            t = p*(2*j+1)-1
+
+            terms = [R(0)] if i == 1 else []
+            terms.extend(differentials[j])
+            terms = [[y, R(0), R(0)] for y in terms]
+
+            # reduce this row to the left
+            triple = reduce_sequence(
+              terms, [p*(m+1)-1 for m in range(len(terms))],
+              0, 3,
+              [[S(0),            S(0),            -2*b*x          ],
+               [2*x - 3*t + 3,   S(0),            -a*(2*x - t + 1)],
+               [S(0),            2*x - 3*t + 3,   S(0)            ]],
+              2*x - 3*t + 3,
+              p, R)
+
+            # do one reduction to make it only two terms instead of three
+            triple = reduce_one(triple, t//2, 3,
+              [[ 9*b*(6*x-5), 2*a*a*(6*x-5), -3*a*b*(6*x-5)],
+               [-6*a*(6*x-7),   9*b*(6*x-7),  2*a*a*(6*x-7)],
+               [        S(0),          S(0),           S(0)]],
+              (27*b**2 + 4*a**3)*(2*x-1), R)
+
+            column.append([triple[0], triple[1]])
+
+        # reduce the column to the bottom
+        result = reduce_sequence(
+              column, [(p*(2*m+1)-3)//2 for m in range(len(column))],
+              0, 2,
+              [[ 9*b*(6*x-5), 2*a*a*(6*x-5)],
+               [-6*a*(6*x-7),   9*b*(6*x-7)]],
+              (27*b**2 + 4*a**3)*(2*x-1),
+              p, R)
+
+        # undo stupid p^M adjustment, and reduce down to Z/p^N
+        for k in range(2):
+            result[k] = R_output(result[k].lift() / p**M)
+
+        output.append(result)
+
+    return matrix(R_output, 2, 2, [output[0][0], output[1][0],
+                                   output[0][1], output[1][1]])
 
 
 ### end of file

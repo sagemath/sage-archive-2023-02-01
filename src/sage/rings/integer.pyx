@@ -10,6 +10,7 @@ AUTHORS:
                                    now very fast).
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
+    -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
 
 EXAMPLES:
    Add 2 integers:
@@ -912,7 +913,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         r = Integer()
 
         _sig_on
-        mpz_tdiv_qr(q.value, r.value, _self.value, _other.value)
+        if mpz_sgn(_other.value) == 1:
+            mpz_fdiv_qr(q.value, r.value, _self.value, _other.value)
+        else:
+            mpz_cdiv_qr(q.value, r.value, _self.value, _other.value)
         _sig_off
 
         return q, r

@@ -66,7 +66,6 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
 
     cdef mpz_vector* L_row
     cdef c_vector_modint* A_row
-    _sig_on
     for i from 0 <= i < A._nrows:
         L_row = &(L._matrix[i])
         A_row = &(A.rows[i])
@@ -83,43 +82,160 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
         for j from 0 <= j < A_row.num_nonzero:
             L_row.positions[j] = A_row.positions[j]
             mpz_init_set_si(L_row.entries[j], A_row.entries[j])
-    _sig_off
     return L
 
+
+## VERSION without denom trick -- vastly slower!
+##
+## def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
+##     cdef Matrix_rational_dense R
+##     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
+##                                       A.parent().change_ring(QQ), 0,0,0)
+##     #cdef mpz_t denom   # lcm of denoms so far
+##     for i from 0 <= i < A._nrows:
+##         for j from 0 <= j < A._ncols:
+##             mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+##     return R
 
 def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer N):
     cdef Matrix_rational_dense R
     R = Matrix_rational_dense.__new__(Matrix_rational_dense,
                                       A.parent().change_ring(QQ), 0,0,0)
 
-    # todo -- use lcm of denoms so far trick...
-    #cdef mpz_t denom   # lcm of denoms so far
+    cdef mpz_t a, bnd, other_bnd, one, denom
+    mpz_init_set_si(denom, 1)
+    mpz_init(a)
+    mpz_init_set_si(one, 1)
+    mpz_init(other_bnd)
+
+    cdef Integer _bnd
+    import math
+    _bnd = Integer(int((N//2).sqrt()))
+    mpz_init_set(bnd, _bnd.value)
+    mpz_sub(other_bnd, N.value, bnd)
+
+    cdef Py_ssize_t i, j
+    cdef int do_it
 
     for i from 0 <= i < A._nrows:
         for j from 0 <= j < A._ncols:
-            mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+            mpz_set(a, A._matrix[i][j])
+            if mpz_cmp(denom, one) != 0:
+                mpz_mul(a, a, denom)
+            mpz_fdiv_r(a, a, N.value)
+            do_it = 0
+            if mpz_cmp(a, bnd) <= 0:
+                do_it = 1
+            elif mpz_cmp(a, other_bnd) >= 0:
+                mpz_sub(a, a, N.value)
+                do_it = 1
+            if do_it:
+                mpz_set(mpq_numref(R._matrix[i][j]), a)
+                if mpz_cmp(denom, one) != 0:
+                    mpz_set(mpq_denref(R._matrix[i][j]), denom)
+                    mpq_canonicalize(R._matrix[i][j])
+                else:
+                    mpz_set_si(mpq_denref(R._matrix[i][j]), 1)
+            else:
+                # Otherwise have to do it the hard way
+                mpq_rational_reconstruction(R._matrix[i][j], A._matrix[i][j], N.value)
+                mpz_lcm(denom, denom, mpq_denref(R._matrix[i][j]))
+
+    mpz_clear(denom)
+    mpz_clear(a)
+    mpz_clear(one)
+    mpz_clear(other_bnd)
+    mpz_clear(bnd)
     return R
+
+## Old slow version
+## def xxx_matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
+##     cdef Matrix_rational_sparse R
+##     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
+##                                       A.parent().change_ring(QQ), 0,0,0)
+
+##     # todo -- use lcm of denoms so far trick...
+##     #cdef mpz_t denom   # lcm of denoms so far
+
+##     cdef mpq_t x
+##     mpq_init(x)
+##     cdef mpz_vector* A_row
+##     cdef mpq_vector* R_row
+##     for i from 0 <= i < A._nrows:
+##         A_row = &A._matrix[i]
+##         R_row = &R._matrix[i]
+##         for j from 0 <= j < A_row.num_nonzero:
+##             mpq_rational_reconstruction(x, A_row.entries[j], N.value)
+##             mpq_vector_set_entry(R_row, A_row.positions[j], x)
+
+##     mpq_clear(x)
+##     return R
 
 def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integer N):
     cdef Matrix_rational_sparse R
     R = Matrix_rational_sparse.__new__(Matrix_rational_sparse,
                                       A.parent().change_ring(QQ), 0,0,0)
 
-    # todo -- use lcm of denoms so far trick...
-    #cdef mpz_t denom   # lcm of denoms so far
+    cdef mpq_t t
+    mpq_init(t)
 
-    cdef mpq_t x
-    mpq_init(x)
+    cdef mpz_t a, bnd, other_bnd, one, denom
+    mpz_init_set_si(denom, 1)
+    mpz_init(a)
+    mpz_init_set_si(one, 1)
+    mpz_init(other_bnd)
+
+    cdef Integer _bnd
+    import math
+    _bnd = Integer(int((N//2).sqrt()))
+    mpz_init_set(bnd, _bnd.value)
+    mpz_sub(other_bnd, N.value, bnd)
+
+    cdef Py_ssize_t i, j
+    cdef int do_it
     cdef mpz_vector* A_row
     cdef mpq_vector* R_row
+
     for i from 0 <= i < A._nrows:
         A_row = &A._matrix[i]
         R_row = &R._matrix[i]
+        reallocate_mpq_vector(R_row, A_row.num_nonzero)
+        R_row.num_nonzero = A_row.num_nonzero
+        R_row.degree = A_row.degree
         for j from 0 <= j < A_row.num_nonzero:
-            mpq_rational_reconstruction(x, A_row.entries[j], N.value)
-            mpq_vector_set_entry(R_row, A_row.positions[j], x)
+            mpz_set(a, A_row.entries[j])
+            if mpz_cmp(denom, one) != 0:
+                mpz_mul(a, a, denom)
+            mpz_fdiv_r(a, a, N.value)
+            do_it = 0
+            if mpz_cmp(a, bnd) <= 0:
+                do_it = 1
+            elif mpz_cmp(a, other_bnd) >= 0:
+                mpz_sub(a, a, N.value)
+                do_it = 1
+            if do_it:
+                mpz_set(mpq_numref(t), a)
+                if mpz_cmp(denom, one) != 0:
+                    mpz_set(mpq_denref(t), denom)
+                    mpq_canonicalize(t)
+                else:
+                    mpz_set_si(mpq_denref(t), 1)
+                mpq_set(R_row.entries[j], t)
+                R_row.positions[j] = A_row.positions[j]
+            else:
+                # Otherwise have to do it the hard way
+                mpq_rational_reconstruction(t, A_row.entries[j], N.value)
+                mpq_set(R_row.entries[j], t)
+                R_row.positions[j] = A_row.positions[j]
+                mpz_lcm(denom, denom, mpq_denref(t))
 
-    mpq_clear(x)
+    mpq_clear(t)
+
+    mpz_clear(denom)
+    mpz_clear(a)
+    mpz_clear(one)
+    mpz_clear(other_bnd)
+    mpz_clear(bnd)
     return R
 
 
@@ -232,6 +348,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
     best_pivots = []
     prod = 1
     problem = 0
+    lifts = {}
     while True:
         p = previous_prime(p)
         while prod < M:
@@ -276,10 +393,16 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
         t = verbose("now comparing pivots and dropping any bad ones", level=2, t=t, caller_name="multimod echelon")
         for i in range(len(X)):
             if cmp_pivots(best_pivots, X[i].pivots()) <= 0:
-                t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
-                Y.append((matrix_modn_dense_lift(X[i]) if X[i].is_dense() else matrix_modn_sparse_lift(X[i]),
-                          X[i].base_ring().order()))
-                verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
+                p = X[i].base_ring().order()
+                if not lifts.has_key(p):
+                    t0 = verbose("Lifting a good matrix", level=2, caller_name = "multimod echelon")
+                    if X[i].is_dense():
+                        lift = matrix_modn_dense_lift(X[i])
+                    else:
+                        lift = matrix_modn_sparse_lift(X[i])
+                    lifts[p] = (lift, p)
+                    verbose("Finished lift", level=2, caller_name= "multimod echelon", t=t0)
+                Y.append(lifts[p])
                 prod = prod * X[i].base_ring().order()
         verbose("finished comparing pivots", level=2, t=t, caller_name="multimod echelon")
         try:
@@ -287,13 +410,15 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 raise ValueError, "not enough primes"
             t = verbose("start crt linear combination", level=2, caller_name="multimod echelon")
             a = CRT_basis([w[1] for w in Y])
+            t = verbose('got crt basis', level=2, t=t, caller_name="multimod echelon")
+
             # take the linear combination of the lifts of the elements
             # of Y times coefficients in a
             L = a[0]*(Y[0][0])
             assert Y[0][0].is_sparse() == L.is_sparse()
             for j in range(1,len(Y)):
                 L += a[j]*(Y[j][0])
-            verbose("crt time is",t, level=2, caller_name="multimod echelon")
+            verbose("time to take linear combination of matrices over ZZ is",t, level=2, caller_name="multimod echelon")
             t = verbose("now doing rational reconstruction", level=2, caller_name="multimod echelon")
             E = L.rational_reconstruction(prod)
             L = 0  # free memory

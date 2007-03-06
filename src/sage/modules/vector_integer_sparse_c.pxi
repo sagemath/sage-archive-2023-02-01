@@ -338,7 +338,7 @@ cdef int add_mpz_vector_init(mpz_vector* sum,
     mpz_clear(tmp)
     return 0
 
-cdef int scale_mpz_vector(mpz_vector* v, mpz_t scalar) except -1:
+cdef int mpz_vector_scale(mpz_vector* v, mpz_t scalar) except -1:
     if mpz_sgn(scalar) == 0:  # scalar = 0
         mpz_vector_clear(v)
         mpz_vector_init(v, v.degree, 0)
@@ -348,6 +348,33 @@ cdef int scale_mpz_vector(mpz_vector* v, mpz_t scalar) except -1:
         # v.entries[i] = scalar * v.entries[i]
         mpz_mul(v.entries[i], v.entries[i], scalar)
     return 0
+
+cdef int mpz_vector_scalar_multiply(mpz_vector* v, mpz_vector* w, mpz_t scalar) except -1:
+    """
+    v = w * scalar
+    """
+    cdef Py_ssize_t i
+    if v == w:
+        # rescale self
+        return mpz_vector_scale(v, scalar)
+    else:
+        mpz_vector_clear(v)
+        v.entries = <mpz_t*> sage_malloc(w.num_nonzero * sizeof(mpz_t))
+        if v.entries == NULL:
+            v.positions = NULL
+            raise MemoryError, "error allocating rational sparse vector mpz's"
+        v.positions = <Py_ssize_t*> sage_malloc(w.num_nonzero * sizeof(Py_ssize_t))
+        if v.positions == NULL:
+            sage_free(v.entries)
+            v.entries = NULL
+            raise MemoryError, "error allocating rational sparse vector positions"
+        v.num_nonzero = w.num_nonzero
+        v.degree = w.degree
+        for i from 0 <= i < v.num_nonzero:
+            mpz_init(v.entries[i])
+            mpz_mul(v.entries[i], w.entries[i], scalar)
+            v.positions[i] = w.positions[i]
+        return 0
 
 cdef int mpz_vector_cmp(mpz_vector* v, mpz_vector* w):
     if v.degree < w.degree:

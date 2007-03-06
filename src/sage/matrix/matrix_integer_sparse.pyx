@@ -185,9 +185,10 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         for i from 0 <= i < self._nrows:
             self_row = &self._matrix[i]
             M_row = &M._matrix[i]
-            for j from 0 <= j < self._matrix[i].num_nonzero:
-                mpz_vector_set_entry(M_row, self_row.positions[j], self_row.entries[j])
-                mpz_mul(M_row.entries[j], M_row.entries[j], _x.value)
+            mpz_vector_scalar_multiply(M_row, self_row, _x.value)
+            #for j from 0 <= j < self._matrix[i].num_nonzero:
+            #    mpz_vector_set_entry(M_row, self_row.positions[j], self_row.entries[j])
+            #    mpz_mul(M_row.entries[j], M_row.entries[j], _x.value)
         return M
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
@@ -198,6 +199,20 @@ cdef class Matrix_integer_sparse(matrix_sparse.Matrix_sparse):
         M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
         cdef mpz_t mul
         mpz_init_set_si(mul,1)
+        for i from 0 <= i < self._nrows:
+            mpz_vector_clear(&M._matrix[i])
+            add_mpz_vector_init(&M._matrix[i], &self._matrix[i], &(<Matrix_integer_sparse>right)._matrix[i], mul)
+        mpz_clear(mul)
+        return M
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t i, j
+        cdef mpz_vector* self_row, *M_row
+        cdef Matrix_integer_sparse M
+
+        M = Matrix_integer_sparse.__new__(Matrix_integer_sparse, self._parent, None, None, None)
+        cdef mpz_t mul
+        mpz_init_set_si(mul,-1)
         for i from 0 <= i < self._nrows:
             mpz_vector_clear(&M._matrix[i])
             add_mpz_vector_init(&M._matrix[i], &self._matrix[i], &(<Matrix_integer_sparse>right)._matrix[i], mul)

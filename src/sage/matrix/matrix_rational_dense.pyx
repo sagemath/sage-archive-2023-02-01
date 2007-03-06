@@ -58,9 +58,11 @@ from matrix_integer_dense import _lift_crt
 import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.finite_field import GF
+from sage.rings.integer_mod_ring import is_IntegerModRing
 from sage.rings.rational_field import QQ
+from sage.rings.arith import gcd
 
 import sage.ext.multi_modular
 from matrix2 import cmp_pivots
@@ -804,18 +806,68 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
     ################################################
     # Kernel
     ################################################
-    def kernel(self):
+    def kernel(self, algorithm='padic', **kwds):
         """
         Return the kernel of this matrix, as a vector space over QQ.
+
+        INPUT:
+           algorithm -- 'padic' (or 'default'): use IML's p-adic nullspace algorithm
+                       anything else -- passed on to the generic echelon-form based algorithm.
+                            **kwds -- passed onto to echelon form algorithm in the echelon case.
         """
         K = self.fetch('kernel')
         if not K is None:
             return K
-        A, _ = self.transpose()._clear_denom()
-        K = A._rational_kernel_iml().change_ring(QQ)
-        V = K.column_space()
-        self.cache('kernel', V)
-        return V
+        if algorithm == 'padic' or algorithm == 'default':
+            A, _ = self.transpose()._clear_denom()
+            K = A._rational_kernel_iml().change_ring(QQ)
+            V = K.column_space()
+            self.cache('kernel', V)
+            return V
+        else:
+            return matrix_dense.Matrix_dense.kernel(self, algorithm, **kwds)
+
+
+    ################################################
+    # Change ring
+    ################################################
+    def change_ring(self, R):
+        """
+        Create the matrix over R with entries the entries of self
+        coerced into R.
+
+        EXAMPLES:
+            sage: a = matrix(QQ,2,[1/2,-1,2,3])
+            sage: a.change_ring(GF(3))
+            [2 2]
+            [2 0]
+            sage: a.change_ring(ZZ)
+            Traceback (most recent call last):
+            ...
+            TypeError: matrix has denominators so can't change to ZZ.
+            sage: b = a.change_ring(QQ['x']); b
+            [1/2  -1]
+            [  2   3]
+            sage: b.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
+        """
+        from matrix_modn_dense import MAX_MODULUS
+        if R == self._base_ring:
+            return self
+        elif is_IntegerRing(R):
+            A, d = self._clear_denom()
+            if d != 1:
+                raise TypeError, "matrix has denominators so can't change to ZZ."
+        elif is_IntegerModRing(R) and R.order() < MAX_MODULUS:
+            b = R.order()
+            A, d = self._clear_denom()
+            if gcd(b,d) != 1:
+                raise TypeError, "matrix denominator not coprime to modulus"
+            B = A._mod_int(b)
+            return (1/(B.base_ring()(d))) * B
+        else:
+            return matrix_dense.Matrix_dense.change_ring(self, R)
+
 
 
     ################################################
@@ -1091,7 +1143,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return X
 
     def _decomposition_rational(self, is_diagonalizable = False,
-                                echelon_algorithm='default', **kwds):
+                                echelon_algorithm='default',
+                                kernel_algorithm='default',
+                                **kwds):
         """
         Returns the decomposition of the free module on which this
         matrix A acts from the right (i.e., the action is x goes to x
@@ -1145,7 +1199,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         V = ZZ**self.nrows()
         v = V.random_element()
-        num_iterates = max([f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
+        num_iterates = max([0] + [f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
 
         S = [ ]
 
@@ -1160,7 +1214,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     B[k,k] += g[0]
                 if m > 1 and not is_diagonalizable:
                     B = B**m
-                W = B.change_ring(QQ).kernel()
+                B = B.change_ring(QQ)
+                W = B.kernel(algorithm = kernel_algorithm, **kwds)
                 E.append((W, m==1))
                 continue
 
@@ -1510,45 +1565,50 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             else:
                 mpq_set_si(row_i[n], 0, 1)
 
-##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
-##                                                                  Py_ssize_t r, cols):
-##         """
-##         Set row i of self to -(row r of A), but where we only take
-##         the given column positions in that row of A:
+    def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
+                                                                 Py_ssize_t r, cols,
+                                                                 cols_index=None):
+        """
+        Set row i of self to -(row r of A), but where we only take
+        the given column positions in that row of A.  We do not
+        zero out the other entries of self's row i either.
 
-##         INPUT:
-##             i -- integer, index into the rows of self
-##             A -- a matrix
-##             r -- integer, index into rows of A
-##             cols -- a *sorted* list of integers.
+        INPUT:
+            i -- integer, index into the rows of self
+            A -- a matrix
+            r -- integer, index into rows of A
+            cols -- a *sorted* list of integers.
 
-##         EXAMPLES:
-##             sage: a = matrix(QQ,2,3,range(6)); a
-##             [0 1 2]
-##             [3 4 5]
-##             sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
-##             sage: a
-##             [-4 -5  2]
-##             [ 3  4  5]
-##         """
-##         cdef Matrix_rational_dense _A
-##         self.check_mutability()
-##         # this function exists just because it is useful for modular symbols presentations.
-##         cdef Py_ssize_t l
-##         l = 0
-##         cdef mpq_t minus_one
-##         mpq_init(minus_one)
-##         mpq_set_si(minus_one, -1, 0)
-##         if not A.base_ring() == QQ:
-##             A = A.change_ring(QQ)
-##         if A.is_dense():
-##             _A = A
-##             for k in cols:
-##                 mpq_mul(self._matrix[i][l], A._matrix[r][k], minus_one)   #self[i,l] = -A[r,k]
-##                 l += 1
-##         else:
+        EXAMPLES:
+            sage: a = matrix(QQ,2,3,range(6)); a
+            [0 1 2]
+            [3 4 5]
+            sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
+            sage: a
+            [-4 -5  2]
+            [ 3  4  5]
+        """
+        cdef Matrix_rational_dense _A
+        self.check_mutability()
+        # this function exists just because it is useful for modular symbols presentations.
+        cdef Py_ssize_t l
+        l = 0
 
-##         mpq_clear(minus_one)
+        cdef mpq_t minus_one
+        mpq_init(minus_one)
+        mpq_set_si(minus_one, -1, 1)
+
+        if not A.base_ring() == QQ:
+            A = A.change_ring(QQ)
+        if not A.is_dense():
+            A = A.dense_matrix()
+
+        _A = A
+        for k in cols:
+            mpq_mul(self._matrix[i][l], _A._matrix[r][k], minus_one)   #self[i,l] = -A[r,k]
+            l += 1
+
+        mpq_clear(minus_one)
 
 
 cdef decomp_seq(v):

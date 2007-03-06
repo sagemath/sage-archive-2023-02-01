@@ -28,9 +28,14 @@ from sage.rings.integer  cimport Integer
 from matrix cimport Matrix
 
 from sage.rings.integer_ring import ZZ
+from sage.rings.rational_field import QQ
+
+cimport sage.structure.element
+
 import sage.matrix.matrix_space
 
 from matrix_integer_sparse cimport Matrix_integer_sparse
+from matrix_rational_dense cimport Matrix_rational_dense
 
 cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 
@@ -154,6 +159,86 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     #   * _matrix_times_matrix_c_impl
     #   * _list -- list of underlying elements (need not be a copy)
     #   * x _dict -- sparse dictionary of underlying elements (need not be a copy)
+
+    cdef sage.structure.element.Matrix _matrix_times_matrix_c_impl(self, sage.structure.element.Matrix _right):
+        cdef Matrix_rational_sparse right, ans
+        right = _right
+
+        cdef mpq_vector* v
+
+        # Build a table that gives the nonzero positions in each column of right
+        nonzero_positions_in_columns = [set([])]*right._ncols
+        cdef Py_ssize_t i, j, k
+        for i from 0 <= i < right._nrows:
+            v = &(right._matrix[i])
+            for j from 0 <= j < right._matrix[i].num_nonzero:
+                nonzero_positions_in_columns[v.positions[j]].add(i)
+
+        ans = self.new_matrix(self._nrows, right._ncols)
+
+        # Now do the multiplication, getting each row completely before filling it in.
+        cdef mpq_t x, y, s
+        mpq_init(x)
+        mpq_init(y)
+        mpq_init(s)
+        for i from 0 <= i < self._nrows:
+            v = &self._matrix[i]
+            for j from 0 <= j < right._ncols:
+                mpq_set_si(s, 0, 1)
+                c = nonzero_positions_in_columns[j]
+                for k from 0 <= k < v.num_nonzero:
+                    if v.positions[k] in c:
+                        mpq_vector_get_entry(&y, &right._matrix[v.positions[k]], j)
+                        mpq_mul(x, v.entries[k], y)
+                        mpq_add(s, s, x)
+                mpq_vector_set_entry(&ans._matrix[i], j, s)
+        mpq_clear(x)
+        mpq_clear(y)
+        mpq_clear(s)
+        return ans
+
+    def _matrix_times_matrix_dense(self, sage.structure.element.Matrix _right):
+        """
+        Do the sparse matrix multiply, but return a dense matrix as the result.
+        """
+        cdef Matrix_rational_sparse right
+        cdef Matrix_rational_dense ans
+        right = _right
+
+        cdef mpq_vector* v
+
+        # Build a table that gives the nonzero positions in each column of right
+        nonzero_positions_in_columns = [set([])]*right._ncols
+        cdef Py_ssize_t i, j, k
+        for i from 0 <= i < right._nrows:
+            v = &(right._matrix[i])
+            for j from 0 <= j < right._matrix[i].num_nonzero:
+                nonzero_positions_in_columns[v.positions[j]].add(i)
+
+        ans = self.new_matrix(self._nrows, right._ncols, sparse=False)
+
+        # Now do the multiplication, getting each row completely before filling it in.
+        cdef mpq_t x, y, s
+        mpq_init(x)
+        mpq_init(y)
+        mpq_init(s)
+        for i from 0 <= i < self._nrows:
+            v = &self._matrix[i]
+            for j from 0 <= j < right._ncols:
+                mpq_set_si(s, 0, 1)
+                c = nonzero_positions_in_columns[j]
+                for k from 0 <= k < v.num_nonzero:
+                    if v.positions[k] in c:
+                        mpq_vector_get_entry(&y, &right._matrix[v.positions[k]], j)
+                        mpq_mul(x, v.entries[k], y)
+                        mpq_add(s, s, x)
+                mpq_set(ans._matrix[i][j], s)
+        mpq_clear(x)
+        mpq_clear(y)
+        mpq_clear(s)
+        return ans
+
+
     ########################################################################
     # def _pickle(self):
     # def _unpickle(self, data, int version):   # use version >= 0
@@ -467,16 +552,21 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
 ##             print "diff = \n", (self-B).str()
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
-                                                                 Py_ssize_t r, cols):
+                                                                 Py_ssize_t r, cols,
+                                                                 cols_index=None):
         """
-        Set row i of self to -(row r of A), but where we only take
-        the given column positions in that row of A:
+        Set row i of self to -(row r of A), but where we only take the
+        given column positions in that row of A.  Note that we *DO*
+        zero out the other entries of self's row i.
 
         INPUT:
             i -- integer, index into the rows of self
             A -- a sparse matrix
             r -- integer, index into rows of A
             cols -- a *sorted* list of integers.
+            cols_index -- (optional).  But set it to this to vastly speed up calls
+                       to this function:
+                               dict([(cols[i], i) for i in range(len(cols))])
 
         EXAMPLES:
             sage: a = matrix(QQ,2,3,range(6), sparse=True); a
@@ -490,6 +580,12 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # this function exists just because it is useful for modular symbols presentations.
         self.check_mutability()
 
+        if not A.is_sparse():
+            A = A.sparse_matrix()
+
+        if A.base_ring() != QQ:
+            A = A.change_ring(QQ)
+
         cdef Matrix_rational_sparse _A
         _A = A
 
@@ -499,19 +595,22 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         v = &self._matrix[i]
         w = &_A._matrix[r]
 
+
+        if cols_index is None:
+            cols_index = dict([(cols[i], i) for i in range(len(cols))])
+
         _cols = set(cols)
         pos = [i for i from 0 <= i < w.num_nonzero if w.positions[i] in _cols]
         n = len(pos)
 
-        #mpq_vector_clear(v)
+        mpq_vector_clear(v)
         allocate_mpq_vector(v, n)
         v.num_nonzero = n
         v.degree = self._ncols
 
-        cdef Rational z
-        z = Rational()
+
         for l from 0 <= l < n:
-            v.positions[l] = cols.index(w.positions[pos[l]])
+            v.positions[l] = cols_index[w.positions[pos[l]]]
             mpq_mul(v.entries[l], w.entries[pos[l]], minus_one)
 
 

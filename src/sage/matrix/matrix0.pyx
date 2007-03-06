@@ -1160,16 +1160,20 @@ cdef class Matrix(sage.structure.element.Matrix):
             self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
-                                                                 Py_ssize_t r, cols):
+                                                                 Py_ssize_t r, cols,
+                                                                 cols_index=None):
         """
         Set row i of self to -(row r of A), but where we only take
-        the given column positions in that row of A:
+        the given column positions in that row of A.  We do not
+        zero out the other entries of self's row i either.
+
 
         INPUT:
             i -- integer, index into the rows of self
             A -- a matrix
             r -- integer, index into rows of A
             cols -- a *sorted* list of integers.
+            (cols_index -- ignored)
 
         EXAMPLES:
             sage: a = matrix(QQ,2,3,range(6)); a

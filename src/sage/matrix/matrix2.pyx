@@ -1343,7 +1343,7 @@ cdef class Matrix(matrix1.Matrix):
 
         V = self.base_ring()**self.nrows()
         v = V.random_element()
-        num_iterates = max([f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
+        num_iterates = max([0] + [f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
 
         S = [ ]
 

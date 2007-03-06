@@ -493,10 +493,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
                         W[j,f] = W[j,f] + s*K(x)
             j += 1
         tm = misc.verbose("start matrix multiply",tm)
-        Tp = W * R
-        misc.verbose("done matrix multiply",tm)
-        Tp = Tp.dense_matrix()
-        misc.verbose("done making matrix",tm)
+        if hasattr(W, '_matrix_times_matrix_dense'):
+            Tp = W._matrix_times_matrix_dense(R)
+            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+        else:
+            Tp = W * R
+            tm = misc.verbose("done matrix multiply",tm)
+            Tp = Tp.dense_matrix()
+            misc.verbose("done making Hecke operator matrix dense",tm)
         self._hecke_matrices[p] = Tp
         return Tp
 
@@ -1371,10 +1375,14 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         tm = misc.verbose("done making non-reduced matrix",tm)
         misc.verbose("start matrix-matrix (%s x %s) times (%s x %s) multiply to get Tp"%(W.nrows(), W.ncols(),
                                                                                          R.nrows(), R.ncols()))
-        Tp = W * R
-        tm = misc.verbose("done multiplying",tm)
-        Tp = Tp.dense_matrix()
-        tm = misc.verbose("done making hecke operator dense",tm)
+        if hasattr(W, '_matrix_times_matrix_dense'):
+            Tp = W._matrix_times_matrix_dense(R)
+            misc.verbose("done matrix multiply and computing Hecke operator",tm)
+        else:
+            Tp = W * R
+            tm = misc.verbose("done multiplying",tm)
+            Tp = Tp.dense_matrix()
+            misc.verbose("done making hecke operator dense",tm)
         self._hecke_matrices[p] = Tp
         return Tp
 

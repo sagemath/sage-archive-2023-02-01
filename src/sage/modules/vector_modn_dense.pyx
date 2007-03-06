@@ -127,7 +127,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         cdef mod_int l, r
         for i from 0 <= i < left.degree():
             l = left._entries[i]
-            r = right._entries[i]
+            r = (<Vector_modn_dense>right)._entries[i]
             if l < r:
                 return -1
             elif l > r:

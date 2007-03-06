@@ -932,7 +932,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Matrix_modn_dense res
         cdef mpz_t* self_row
         cdef mod_int* res_row
-        res = Matrix_modn_dense.__new__(Matrix_modn_dense, matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
+        res = Matrix_modn_dense.__new__(Matrix_modn_dense,
+                        matrix_space.MatrixSpace(IntegerModRing(p), self._nrows, self._ncols, sparse=False), None, None, None)
         for i from 0 <= i < self._nrows:
             self_row = self._matrix[i]
             res_row = res._matrix[i]

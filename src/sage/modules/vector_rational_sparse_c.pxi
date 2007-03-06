@@ -16,6 +16,11 @@ include "../ext/stdsage.pxi"
 
 from sage.rings.rational cimport Rational
 
+cdef int reallocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
+    mpq_vector_clear(v)
+    allocate_mpq_vector(v, num_nonzero)
+    return 0
+
 cdef int allocate_mpq_vector(mpq_vector* v, Py_ssize_t num_nonzero) except -1:
     """
     Allocate memory for a mpq_vector -- most user code won't call this.

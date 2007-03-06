@@ -58,4 +58,4 @@ from calculus import (a,
 
 
 
-from functional import diff
+from functional import (diff, solve, integrate)

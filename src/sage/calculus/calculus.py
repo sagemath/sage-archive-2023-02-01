@@ -238,11 +238,11 @@ class SymbolicExpression(RingElement):
            sage: u = sin(x) + x*cos(y)
            sage: g = u.function(x,y)
            sage: g(x,y)
-           sin(x) + x*cos(y)
+           x*cos(y) + sin(x)
            sage: g(t,z)
-           sin(t) + t*cos(z)
+           t*cos(z) + sin(t)
            sage: g(x^2, x^y)
-           sin(x^2) + x^2*cos(x^y)
+           x^2*cos(x^y) + sin(x^2)
         """
         return CallableFunction(self, args)
 
@@ -392,14 +392,14 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: u = (x^3 - 3*y + 4*t)
             sage: u.substitute(x=y, y=t)
-            y^3 - 3*t + 4*t
+            y^3 + t
 
             sage: f = sin(x)^2 + 32*x^(y/2)
-            sage: f.substitute(x=2, y = 10)
+            sage: f(x=2, y = 10)
             sin(2)^2 + 1024
 
             sage: f(x=pi, y=t)
-            sin(pi)^2 + 32*pi^(t/2)
+            32*pi^(t/2)
 
         AUTHORS:
             -- Bobby Moretti: Initial version
@@ -652,10 +652,10 @@ class CallableFunction(RingElement):
         EXAMPLES:
             sage: f(x, y, z) = sin(x+y+z)
             sage: f
-            (x, y, z) |--> sin(x + y + z)
-            sage: g(x, y) = 2*x + y
+            (x, y, z) |--> sin(z + y + x)
+            sage: g(x, y) = y + 2*x
             sage: g
-            (x, y) |--> 2*x + y
+            (x, y) |--> y + 2*x
             sage: f._unify_varlists(g)
             (x, y, z)
             sage: g._unify_varlists(f)
@@ -670,14 +670,14 @@ class CallableFunction(RingElement):
 
             sage: f(x, y, t) = y*(x^2-t)
             sage: f
-            (x, y, t) |--> y*(x^2 - t)
+            (x, y, t) |--> (x^2 - t)*y
             sage: g(x, y, w) = x + y - cos(w)
             sage: f._unify_varlists(g)
             (x, y, t, w)
             sage: g._unify_varlists(f)
             (x, y, t, w)
             sage: f*g
-            (x, y, t, w) |--> y*(x^2 - t)*(x + y - cos(w))
+            (x, y, t, w) |--> (x^2 - t)*y*(y + x - cos(w))
 
             sage: f(x,y, t) = x+y
             sage: g(x, y, w) = w + t
@@ -686,7 +686,7 @@ class CallableFunction(RingElement):
             sage: g._unify_varlists(f)
             (x, y, t, w)
             sage: f + g
-            (x, y, t, w) |--> x + y + w + t
+            (x, y, t, w) |--> y + x + w + t
 
         AUTHORS:
             -- Bobby Moretti, thanks to William Stein for the rules

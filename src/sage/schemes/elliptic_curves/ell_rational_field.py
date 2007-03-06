@@ -807,8 +807,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         In this example Simon's program does not find any points, though
         it does correctly compute the rank of the 2-Selmer group.
-            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])     # long (0.6 seconds)
-            sage: E.simon_two_descent ()
+            sage: E = EllipticCurve([1, -1, 0, -751055859, -7922219731979])
+            sage: E.simon_two_descent () # long (0.6 seconds)
             (1, 1, [])
 
         The rest of these entries were taken from Tom Womack's page

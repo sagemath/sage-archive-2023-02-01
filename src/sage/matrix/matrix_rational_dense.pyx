@@ -1195,7 +1195,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if len(F) == 1:
             V = QQ**self.nrows()
             m = F[0][1]
-            return decomp_seq([(V,m==1)])
+            return decomp_seq([(V,bool(m==1))])
 
         V = ZZ**self.nrows()
         v = V.random_element()
@@ -1216,7 +1216,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     B = B**m
                 B = B.change_ring(QQ)
                 W = B.kernel(algorithm = kernel_algorithm, **kwds)
-                E.append((W, m==1))
+                E.append((W, bool(m==1)))
                 continue
 
             # General case, i.e., deg(g) > 1:
@@ -1253,7 +1253,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     W = W.change_ring(QQ)
                     t = verbose('now computing row space', level=2, caller_name='rational decomp')
                     W.echelonize(algorithm = echelon_algorithm, **kwds)
-                    E.append((W.row_space(), m==1))
+                    E.append((W.row_space(), bool(m==1)))
                     verbose('computed row space', level=2,t=t, caller_name='rational decomp')
                     break
                 else:

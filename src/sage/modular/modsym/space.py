@@ -170,8 +170,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             return 0
         if not S.is_simple():
             raise ArithmeticError, "S must be simple"
-        #if not self.is_anemic_hecke_module():
-        #    raise ArithmeticError, "S must be an anemic Hecke module"
         A = self.ambient_hecke_module()
         B = A.submodule_generated_by_images(S)
         C = self.intersection(B)

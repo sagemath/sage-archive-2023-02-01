@@ -221,44 +221,37 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     basis_set = basis_set.intersection(basis_mod2)
     basis = list(basis_set)
     basis.sort()
-    v = dict([(basis[i],i) for i in range(len(basis))])
-    w = dict([(pivots[i], i) for i in range(len(pivots))])
 
     ONE = field(1)
 
-    misc.verbose("done doing setup",tm)
+    tm = misc.verbose("done doing setup",tm)
 
 
-    M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=True)
-
-
-    tm = misc.verbose("Now making quotient matrix (this just involves moving around entries)...")
+    M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
 
     B = M(0)
     for i in basis_mod2:
-        if v.has_key(i):
-             B[i,v[i]] = ONE
+        t, l = search(basis, i)
+        if t:
+            B[i,l] = ONE
         else:
-            r = w[i]
+            _, r = search(pivots, i)    # so pivots[r] = i
             # Set row i to -(row r of A), but where we only take
             # the non-pivot columns of A:
             B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis)
 
-    misc.verbose("Finished making quotient matrix",tm)
+    misc.verbose("done making quotient matrix",tm)
 
-    tm = misc.verbose('Now filling in the rest of the matrix')
+    # The following is very fast (over Q at least).
+    tm = misc.verbose('now filling in the rest of the matrix')
     k = 0
     for i in range(len(mod)):
         j, s = mod[i]
         if j != i and s != 0:   # ignored in the above matrix
             k += 1
             B.set_row_to_multiple_of_row(i, j, s)
-    misc.verbose("Finished filling in rest of matrix (%s rows)"%k, tm)
-
-    if not sparse:
-        tm =misc.verbose("Densifying %s x %s matrix."%(B.nrows(), B.ncols()))
-        B = B.dense_matrix()
-        misc.verbose("Finished densifying.", tm)
+    misc.verbose("set %s rows"%k)
+    tm = misc.verbose("time to fill in rest of matrix", tm)
 
     return B, basis
 
@@ -317,13 +310,12 @@ def compute_presentation(syms, sign, field, weight):
 
     """
     R, mod = relation_matrix_wtk_g0(syms, sign, field, weight)
+    #if weight==2:
+        # heuristically the hecke operators are quite dense for weight > 2
+    #    sparse = True
+    #else:
+    #sparse = False
     sparse = True
-##     if weight==2:
-##         # heuristically the hecke operators are quite dense for weight > 2
-##         sparse = True
-##     else:
-##         sparse = False
-
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 

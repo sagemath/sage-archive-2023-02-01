@@ -436,12 +436,12 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             sage: a = matrix(QQ,2,3,range(6), sparse=True); a
             [0 1 2]
             [3 4 5]
-            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a.set_row_to_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 0 -3 -6]
         """
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i, j)
         cdef Rational _s
         _s = Rational(s)
         mpq_vector_scalar_multiply(&self._matrix[i], &self._matrix[j], _s.value)
@@ -449,6 +449,22 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
     def dense_matrix(self):
         import misc
         return misc.matrix_rational_sparse__dense_matrix(self)
+
+##     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
+##                                                                  Py_ssize_t r, cols):
+##         B = self.copy()
+##         B.x_set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, cols)
+##         cdef Py_ssize_t l
+##         l = 0
+##         for z in range(self.ncols()):
+##             self[i,z] = 0
+##         for k in cols:
+##             self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
+##             l += 1
+##         if self != B:
+##             print "correct =\n", self.str()
+##             print "wrong = \n", B.str()
+##             print "diff = \n", (self-B).str()
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
                                                                  Py_ssize_t r, cols):
@@ -463,7 +479,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             cols -- a *sorted* list of integers.
 
         EXAMPLES:
-            sage: a = matrix(QQ['x'],2,3,range(6), sparse=True); a
+            sage: a = matrix(QQ,2,3,range(6), sparse=True); a
             [0 1 2]
             [3 4 5]
             sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
@@ -477,16 +493,33 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         cdef Matrix_rational_sparse _A
         _A = A
 
-        cdef Py_ssize_t l
-        l = 0
+        cdef Py_ssize_t l, n
 
         cdef mpq_vector *v, *w
         v = &self._matrix[i]
         w = &_A._matrix[r]
-        cdef mpq_t x
-        mpq_init(x)
-        for k in cols:
-            mpq_vector_get_entry(&x, w, k)
-            mpq_vector_set_entry(v, l, x)
-            l += 1
-        mpq_clear(x)
+
+        _cols = set(cols)
+        pos = [i for i from 0 <= i < w.num_nonzero if w.positions[i] in _cols]
+        n = len(pos)
+
+        #mpq_vector_clear(v)
+        allocate_mpq_vector(v, n)
+        v.num_nonzero = n
+        v.degree = self._ncols
+
+        cdef Rational z
+        z = Rational()
+        for l from 0 <= l < n:
+            v.positions[l] = cols.index(w.positions[pos[l]])
+            mpq_mul(v.entries[l], w.entries[pos[l]], minus_one)
+
+
+
+#########################
+
+# used for a function above
+cdef mpq_t minus_one
+mpq_init(minus_one)
+mpq_set_si(minus_one, -1,1)
+

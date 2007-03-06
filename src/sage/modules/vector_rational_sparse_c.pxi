@@ -229,7 +229,7 @@ cdef int mpq_vector_set_entry(mpq_vector* v, Py_ssize_t n, mpq_t x) except -1:
         for i from ins < i < v.num_nonzero:
             mpq_set(v.entries[i], e[i-1])
             v.positions[i] = pos[i-1]
-        # Free the memory occupie by GMP rationals.
+        # Free the memory occupied by GMP rationals.
         # This -1 is because we incremented v.num_nonzero above.
         for i from 0 <= i < v.num_nonzero-1:
             mpq_clear(e[i])
@@ -364,17 +364,16 @@ cdef int mpq_vector_scalar_multiply(mpq_vector* v, mpq_vector* w, mpq_t scalar) 
         # rescale self
         return mpq_vector_scale(v, scalar)
     else:
-        # TODO
         mpq_vector_clear(v)
         v.entries = <mpq_t*> sage_malloc(w.num_nonzero * sizeof(mpq_t))
         if v.entries == NULL:
             v.positions = NULL
-            raise MemoryError, "error allocating rational sparse vector"
+            raise MemoryError, "error allocating rational sparse vector mpq's"
         v.positions = <Py_ssize_t*> sage_malloc(w.num_nonzero * sizeof(Py_ssize_t))
         if v.positions == NULL:
             sage_free(v.entries)
             v.entries = NULL
-            raise MemoryError, "error allocating rational sparse vector"
+            raise MemoryError, "error allocating rational sparse vector positions"
         v.num_nonzero = w.num_nonzero
         v.degree = w.degree
         for i from 0 <= i < v.num_nonzero:

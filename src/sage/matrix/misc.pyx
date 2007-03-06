@@ -64,28 +64,6 @@ def matrix_modn_sparse_lift(Matrix_modn_sparse A):
                                      A.parent().change_ring(ZZ),
                                      0, 0, 0)
 
-    cdef mpz_t z
-    mpz_init(z)
-
-    cdef mpz_vector* L_row
-    cdef c_vector_modint* A_row
-    for i from 0 <= i < A._nrows:
-        L_row = &(L._matrix[i])
-        A_row = &(A.rows[i])
-        for j from 0 <= j < A_row.num_nonzero:
-            mpz_set_si(z, A_row.entries[j])
-            mpz_vector_set_entry(L_row, A_row.positions[j], z)
-
-    mpz_clear(z)
-    return L
-
-def xxx_matrix_modn_sparse_lift(Matrix_modn_sparse A):
-    cdef Py_ssize_t i, j
-    cdef Matrix_integer_sparse L
-    L = Matrix_integer_sparse.__new__(Matrix_integer_sparse,
-                                     A.parent().change_ring(ZZ),
-                                     0, 0, 0)
-
     cdef mpz_vector* L_row
     cdef c_vector_modint* A_row
     _sig_on

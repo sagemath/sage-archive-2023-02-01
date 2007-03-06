@@ -625,6 +625,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         complex field with precision prec.
 
         EXAMPLES:
+            sage: x = polygen(QQ)
             sage: f = x^5 + x + 17
             sage: k = QQ['x'].quotient(f)
             sage: v = k.complex_embeddings(100)

@@ -459,6 +459,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -471,6 +472,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """

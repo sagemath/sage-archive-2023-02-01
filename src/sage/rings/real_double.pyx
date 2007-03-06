@@ -866,7 +866,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF('16.0'); r.log10()
             1.20411998266
-            sage: r.log() / log(10)
+            sage: r.log() / RDF(log(10))
             1.20411998266
             sage: r = RDF('39.9'); r.log10()
             1.60097289569
@@ -883,7 +883,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF(16); r.logpi()
             2.42204624559
-            sage: r.log() / log(pi)
+            sage: r.log() / RDF(log(pi))
             2.42204624559
             sage: r = RDF('39.9'); r.logpi()
             3.22030233461

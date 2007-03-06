@@ -1,7 +1,7 @@
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC)
-#import sage.rings.rational
+
 from sage.structure.element import RingElement
 from sage.structure.parent_base import ParentWithBase
 
@@ -20,10 +20,10 @@ import sage.functions.constants as c
 from sage.calculus.equations import SymbolicEquation
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
+from sage.rings.real_double import RealDoubleElement
+from sage.rings.real_mpfi import RealIntervalFieldElement
 
 import math
-
-import pdb
 
 # used for caching simplified states
 _all_simplified_ = False
@@ -49,7 +49,15 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return symbolic_expression_from_maxima_element(x)
         elif is_Polynomial(x):
             return SymbolicPolynomial(x)
-        elif isinstance(x, (RealNumber, float, Constant, Integer, int, Rational,ComplexNumber)):
+        elif isinstance(x, (RealNumber,
+                            RealDoubleElement,
+                            RealIntervalFieldElement,
+                            float,
+                            Constant,
+                            Integer,
+                            int,
+                            Rational,
+                            ComplexNumber)):
             return SymbolicConstant(x)
         elif isinstance(x, Constant):
             return SymbolicConstant(x)
@@ -258,7 +266,6 @@ class SymbolicExpression(RingElement):
         # check each time
         s = ""
         for i in range(len(args)):
-            #pdb.set_trace()
             if isinstance(args[i], SymbolicVariable):
                 s = s + '%s, ' %str(args[i])
                 # check to see if this is followed by an integer
@@ -291,16 +298,22 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # integral
     ###################################################################
-    def integral(self, v):
+    def integral(self, v, a=None, b=None):
         """
         EXAMPLES:
             sage: h = sin(x)/(cos(x))^2
             sage: h.integral(x)
             1/cos(x)
         """
+        if (a is None and (not b is None)) or (b is None and (not a is None)):
+            raise TypeError, 'only one endpoint given'
         if not isinstance(v, SymbolicVariable):
-            raise TypeError, "second argument to diff must be a variable"
-        return self.parent()(self._maxima_().integrate(v))
+            raise TypeError, 'must integrate with respect to a variable'
+
+        if a is None:
+            return self.parent()(self._maxima_().integrate(v))
+        else:
+            return self.parent()(self._maxima_().integrate(v, a, b))
 
 
     ###################################################################
@@ -432,31 +445,42 @@ class PrimitiveFunction(SymbolicExpression):
         return self._tex_needs_braces
 
     def __call__(self, x):
-        # if we're calling with a symbolic expression, do function composition
-        if isinstance(x, SymbolicExpression) and not isinstance(x, Constant):
-            return SymbolicComposition(self, x)
-
-        # if x is a polynomial object, first turn it into a function and
-        # compose self with x
-        elif is_Polynomial(x):
-            return SymbolicComposition(self, SymbolicPolynomial(x))
-
-        # if we can't figure out what x is, return the composition with a symbolic version of x
-        elif isinstance(x, (Integer, Rational, int, long)):
-            return self(SER(x))
-        elif isinstance(x, Constant):
-            return self(SER(x))
-        elif isinstance(x, (RealNumber, float)):
-            # try getting an approximation
+        if isinstance(x, (RealNumber, RealDoubleElement, float)):
             try:
                 r = self._approx_(x)
             except AttributeError:
-            # else return some constant object
                 r = self(SER(x))
             return r
 
-        else:
-            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
+        return SymbolicComposition(self, SER(x))
+
+        # if we're calling with a symbolic expression, do function composition
+#        if isinstance(x, SymbolicExpression) and not isinstance(x, Constant):
+#            return SymbolicComposition(self, x)
+#
+#        # if x is a polynomial object, first turn it into a function and
+#        # compose self with x
+#        elif is_Polynomial(x):
+#            return SymbolicComposition(self, SymbolicPolynomial(x))
+#
+#        # if we can't figure out what x is, return the composition with a symbolic version of x
+#        elif isinstance(x, (Integer, Rational, int, long)):
+#            return self(SER(x))
+#        elif isinstance(x, Constant):
+#            return self(SER(x))
+#        elif isinstance(x, (RealNumber, float)):
+#            # try getting an approximation
+#            try:
+#                r = self._approx_(x)
+#            except AttributeError:
+#            # else return some constant object
+#                r = self(SER(x))
+#            return r
+#
+#        else:
+#            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
+
+
 
 class CallableFunctionRing_class(CommutativeRing):
     def __init__(self):
@@ -888,7 +912,7 @@ class SymbolicArithmetic(SymbolicOperation):
         return self._operator(*fops)
 
     def _mpfr_(self, field):
-        rops = [op._mprf_(field) for op in self._operands]
+        rops = [op._mpfr_(field) for op in self._operands]
         return self._operator(*rops)
 
     def _is_atomic(self):
@@ -1146,6 +1170,15 @@ _syms['cos'] = cos
 class Function_sec(PrimitiveFunction):
     '''
     The secant function
+
+    sage: sec(pi/4)
+    sqrt(2)
+    sage: RR(sec(pi/4))
+    0.707106781186547
+    sage: sec(1/2)
+    sec(1/2)
+    sage: sec(0.5)
+    0.877582561890372
     '''
     def _repr_(self):
         return "sec"
@@ -1171,6 +1204,20 @@ _syms['sec'] = sec
 class Function_tan(PrimitiveFunction):
     '''
     The tangent function
+
+    EXAMPLES:
+        sage: tan(pi)
+        0
+        sage: tan(3.1415)
+        -0.0000926535900581913
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: tan(pi/4)
+        1
+        sage: tan(1/2)
+        tan(1/2)
+        sage: RR(tan(1/2))
+        0.546302489843790
     '''
     def _repr_(self):
         return "tan"
@@ -1196,6 +1243,15 @@ _syms['tan'] = tan
 class Function_asin(PrimitiveFunction):
     '''
     The arcsine function
+
+    EXAMPLES:
+        sage: asin(0.5)
+        0.523598775598298
+        sage: asin(1/2)
+        (pi/6)
+        sage: asin(1 + I*1.0)
+        0.666239432492515 + 1.06127506190503*I
+
     '''
     def _repr_(self):
         return "asin"
@@ -1221,6 +1277,15 @@ _syms['asin'] = asin
 class Function_acos(PrimitiveFunction):
     '''
     The arccosine function
+
+    EXAMPLES:
+        sage: acos(0.5)
+        1.04719755119659
+        sage: acos(1/2)
+        (pi/3)
+        sage: acos(1 + I*1.0)
+        0.904556894302381 - 1.06127506190503*I
+
     '''
     def _repr_(self):
         return "acos"
@@ -1246,7 +1311,15 @@ _syms['acos'] = acos
 
 class Function_atan(PrimitiveFunction):
     '''
-    The arctangent function
+    The arctangent function.
+
+    EXAMPLES:
+        sage: atan(1/2)
+        atan(1/2)
+        sage: RR(atan(1/2))
+        0.463647609001
+        sage: atan(1 + I)
+        1.01722196789785 + 0.402359478108525*I
     '''
     def _repr_(self):
         return "atan"
@@ -1273,6 +1346,9 @@ _syms['atan'] = atan
 class Function_log(PrimitiveFunction):
     '''
     The log function
+
+    EXAMPLES:
+    sage: log(10, 2)
     '''
     def _repr_(self):
         return "log"
@@ -1313,12 +1389,15 @@ class Function_sqrt(PrimitiveFunction):
 
     def _approx_(self, x):
         try:
-            return x.sqrt()
+            return x._obj.sqrt()
         except AttributeError:
-            if isinstance(x, float):
-                return math.sqrt(x)
-            else:
-                return SymbolicComposition(self, x)
+            try:
+                return x.sqrt()
+            except AttributeError:
+                if isinstance(x, float):
+                    return math.sqrt(x)
+                else:
+                    return SymbolicComposition(self, x)
 
 sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt

@@ -1318,8 +1318,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = 16.0; r.log10()
             1.20411998265592
-            sage: r.log() / log(10)
-            1.20411998265804
+            sage: r.log() / RR(log(10))
+			1.20411998265592
 
             sage: r = 39.9; r.log10()
             1.60097289568674
@@ -1759,7 +1759,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-             sage: r = sqrt(2); r
+             sage: r = RR(sqrt(2)); r
              1.41421356237309
              sage: r.algdep(5)
              x^5 - x^4 - 2*x^3 + x^2 + 2      # 32-bit
@@ -1777,7 +1777,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
          ALGORITHM: Uses the PARI C-library algdep command.
 
          EXAMPLE:
-              sage: r = sqrt(2); r
+              sage: r = RR(sqrt(2)); r
               1.41421356237309
               sage: r.algdep(5)
               x^5 - x^4 - 2*x^3 + x^2 + 2    # 32-bit

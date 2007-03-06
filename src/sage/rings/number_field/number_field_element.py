@@ -214,6 +214,7 @@ class NumberFieldElement(field_element.FieldElement):
             1.00000000000000
             sage: abs(z^2 + 17*z - 3)
             16.0604426799931
+            sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^3+17)
             sage: abs(a)
             2.57128159065823
@@ -314,6 +315,7 @@ class NumberFieldElement(field_element.FieldElement):
             sage: (2*z6).conjugate()
             -2*zeta6 + 2
 
+            sage: x = polygen(QQ)
             sage: K.<b> = NumberField(x^3 - 2)
             sage: b.conjugate()
             Traceback (most recent call last):
@@ -471,6 +473,7 @@ class NumberFieldElement(field_element.FieldElement):
         Return the minimal polynomial of this number field element.
 
         EXAMPLES:
+            sage: x = polygen(QQ)
             sage: K.<a> = NumberField(x^2+3)
             sage: a.minpoly('x')
             x^2 + 3

@@ -718,7 +718,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293726
+			0.099425429372582586
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
@@ -1427,7 +1427,7 @@ cdef class ComplexDoubleElement(FieldElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-            sage: z = (1/2)*(1 + sqrt(3) *CDF.0); z
+            sage: z = (1/2)*(1 + RR(sqrt(3)) *CDF.0); z
             0.5 + 0.866025388241*I
             sage: p = z.algdep(5); p
             x^5 + x^2

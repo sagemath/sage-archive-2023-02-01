@@ -430,7 +430,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             4
             sage: C(2).multiplicative_order()
             Infinity
-            sage: w = (1+sqrt(-3))/2; w
+            sage: w = (1+sqrt(RR(-3)))/2; w
             0.500000000000000 + 0.866025403784438*I
             sage: abs(w)
             0.999999999999999
@@ -817,7 +817,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLE:
             sage: C = ComplexField()
-            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+            sage: z = (1/2)*(1 + sqrt(RR(3)) *C.0); z
             0.500000000000000 + 0.866025403784438*I
             sage: p = z.algdep(5); p
             x^5 - x^4 + x^3 + x^2 - x + 1

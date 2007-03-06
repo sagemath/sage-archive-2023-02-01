@@ -2005,7 +2005,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(16.0); r.log10()
             [1.2041199826559245 ... 1.2041199826559248]
-            sage: r.log() / log(10)
+            sage: r.log() / RDF(log(10))
             [1.2041199826580402 ... 1.2041199826580409]
 
             sage: r = RIF(39.9); r.log10()

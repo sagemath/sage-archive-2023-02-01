@@ -71,10 +71,11 @@ def numerical_integral(func, a, b=None,
 
       To integrate the function $\sin(x)^3 + \sin(x)$ we do
          sage: numerical_integral(lambda x: sin(x)^3 + sin(x),  0, pi)
-         (3.3333333333314474, 3.7007434154150949e-14)
+		 (3.333333333333333, 3.7007434154171883e-14)
+
 
       We check this with a symbolic integration:
-         sage: maxima('sin(x)^3+sin(x)').integral(x,0,pi)
+         sage: (sin(x)^3+sin(x)).integral(x,0,pi)
          10/3
 
    INPUT:

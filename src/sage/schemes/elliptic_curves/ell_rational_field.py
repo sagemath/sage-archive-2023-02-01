@@ -980,6 +980,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             generators -- List of generators for the Mordell-Weil group.
 
         IMPLEMENTATION: Uses Cremona's mwrank C library.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.gens()
+            [(-1 : 1 : 1), (0 : 0 : 1)]
         """
         try:
             return list(self.__gens)  # return copy so not changed

@@ -1288,13 +1288,13 @@ cdef class Matrix(matrix1.Matrix):
             (Vector space of degree 6 and dimension 2 over Rational Field
             Basis matrix:
             [ 1  0 -1 -2 -3 -4]
-            [ 0  1  2  3  4  5], 1),
+            [ 0  1  2  3  4  5], True),
             (Vector space of degree 6 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -5  4]
             [ 0  1  0  0 -4  3]
             [ 0  0  1  0 -3  2]
-            [ 0  0  0  1 -2  1], 0)
+            [ 0  0  0  1 -2  1], False)
             ]
         """
         if algorithm == 'kernel' or not self.base_ring().is_field():
@@ -1479,10 +1479,10 @@ cdef class Matrix(matrix1.Matrix):
             [
             (Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
-            [0 0 1], 1),
+            [0 0 1], True),
             (Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
-            [0 1 0], 1)
+            [0 1 0], True)
             ]
             sage: t.restrict(D[0][0])
             [0]

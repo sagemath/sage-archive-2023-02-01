@@ -572,13 +572,17 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
             sage: a = matrix(QQ,2,3,range(6), sparse=True); a
             [0 1 2]
             [3 4 5]
+
+        Note that the row is zeroed out before being set in the sparse case.
             sage: a._set_row_to_negative_of_row_of_A_using_subset_of_columns(0,a,1,[1,2])
             sage: a
-            [-4 -5  2]
+            [-4 -5  0]
             [ 3  4  5]
         """
         # this function exists just because it is useful for modular symbols presentations.
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i,i)
+        if r < 0 or r >= A.nrows():
+            raise IndexError, "invalid row"
 
         if not A.is_sparse():
             A = A.sparse_matrix()

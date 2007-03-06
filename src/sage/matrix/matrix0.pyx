@@ -660,7 +660,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: matrix has denominators so can't change to ZZ.
         """
         if ring is self._base_ring:
             if self._mutability._is_immutable:
@@ -1140,7 +1140,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         for j from start_row <= j < self._nrows:
             self.set_unsafe(j, i, self.get_unsafe(j, i)*s)
 
-    def set_row_to_multiple_of_row(self, i, j, s):
+    def set_row_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """
         Set row i equal to s times row j.
 
@@ -1148,12 +1148,12 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(QQ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a.set_row_to_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 0 -3 -6]
         """
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i,j)
         cdef Py_ssize_t n
         s = self._base_ring(s)
         for n from 0 <= n < self._ncols:
@@ -1184,7 +1184,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             [-4 -5  2]
             [ 3  4  5]
         """
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i,i)
+        if r < 0 or r >= A.nrows():
+            raise IndexError, "invalid row"
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
         l = 0

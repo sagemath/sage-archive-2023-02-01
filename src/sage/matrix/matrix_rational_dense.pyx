@@ -858,6 +858,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             A, d = self._clear_denom()
             if d != 1:
                 raise TypeError, "matrix has denominators so can't change to ZZ."
+            return A
         elif is_IntegerModRing(R) and R.order() < MAX_MODULUS:
             b = R.order()
             A, d = self._clear_denom()
@@ -1539,7 +1540,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         self.cache('rank', r)
         return r
 
-    def set_row_to_multiple_of_row(self, i, j, s):
+    def set_row_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """
         Set row i equal to s times row j.
 
@@ -1547,12 +1548,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: a = matrix(QQ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a.set_row_to_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 0 -3 -6]
         """
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i,j)
         cdef Py_ssize_t n
         cdef Rational _s
         _s = Rational(s)
@@ -1589,7 +1590,9 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             [ 3  4  5]
         """
         cdef Matrix_rational_dense _A
-        self.check_mutability()
+        self.check_row_bounds_and_mutability(i,i)
+        if r < 0 or r >= A.nrows():
+            raise IndexError, "invalid row"
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
         l = 0

@@ -1,1 +1,1 @@
-sage -python "$@"
+sage -python $*

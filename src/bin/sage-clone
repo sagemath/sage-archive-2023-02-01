@@ -36,33 +36,30 @@ if os.system(cmd):
     print "Error cloning"
     sys.exit(1)
 
-if len(sys.argv) == 2:
-    # Just a straight clone, so we can use all the
-    # auto-generated code and pre-built code, hence
-    # saving lots of time.
+#if len(sys.argv) == 2:
 
-    print "Copying over all Pyrex auto-generated .c, .cpp and .h files..."
-    def cpdir(src, dest):
-        if not os.path.isdir(dest):
-            return
-        for F in os.listdir(src):
-            if os.path.isdir(src + '/' + F):
-                cpdir(src + '/' + F, dest + '/' + F)
-            else:
-                ext = os.path.splitext(F)[-1]
-                if ext in ['.h', '.c', '.cpp']:
-                    if 'Pyrex' in open(src + '/' + F).readline():
-                        shutil.copy(src + '/' + F, dest + '/' +F)
+print "Copying over all Pyrex auto-generated .c, .cpp and .h files..."
+def cpdir(src, dest):
+    if not os.path.isdir(dest):
+        return
+    for F in os.listdir(src):
+        if os.path.isdir(src + '/' + F):
+            cpdir(src + '/' + F, dest + '/' + F)
+        else:
+            ext = os.path.splitext(F)[-1]
+            if ext in ['.h', '.c', '.cpp']:
+                if 'Pyrex' in open(src + '/' + F).readline():
+                    shutil.copy(src + '/' + F, dest + '/' +F)
 
-    cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
+cpdir(os.path.abspath('sage/sage'), os.path.abspath(branch + '/sage'))
 
-    print "Copying over build directory."
-    cmd = 'cp -r sage/build %s'%branch
-    print cmd
-    if os.system(cmd):
-        print "Error copying build directory"
-        sys.exit(1)
-    # Done copying over build cache.
+print "Copying over build directory."
+cmd = 'cp -r sage/build %s'%branch
+print cmd
+if os.system(cmd):
+    print "Error copying build directory"
+    sys.exit(1)
+# Done copying over build cache.
 
 print "Building " + branch
 cmd = 'sage -b %s'%sys.argv[1]
@@ -71,10 +68,10 @@ if os.system(cmd):
     print "Error building SAGE"
 
 
-#print "** WARNING **"
-#print "If you are cloning a previous revision or have uncommited changes to"
-#print "pyrex files you may have to touch all the relevant .pyx files, then"
-#print "rebuild, which will take 5-10 minutes.  Otherwise SAGE will build"
-#print "using the wrong .c files."
+print "*** WARNING **"
+print "If you are cloning a previous revision or have uncommited changes to"
+print "pyrex files do "
+print "    sage -ba"
+print "Otherwise SAGE might build using the wrong .c files !!"
 
 

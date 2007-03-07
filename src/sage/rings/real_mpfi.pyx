@@ -278,9 +278,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: nearest = RIF(RR(1/10), RR(7/10)); nearest
         [0.10000000000000000 ... 0.69999999999999996]
         sage: nearest.lower() - outward.lower()
-        1.38777878078144e-17
+        0.0000000000000000138777878078144
         sage: outward.upper() - nearest.upper()
-        0.000000000000000111022302462516
+        0.000000000000000111022302462515
 
     Some examples with a real interval field of higher precision:
         sage: R = RealIntervalField(100)
@@ -943,9 +943,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: x = R(1.2,1.3); x
             [1.1999 ... 1.3001]
             sage: x.upper()
-            1.31
+            1.30
             sage: x.upper('RNDU')
-            1.31
+            1.30
             sage: x.upper('RNDN')
             1.30
             sage: x.upper('RNDD')
@@ -1002,23 +1002,23 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1, 2).diameter()
-            0.666666666666667
+            0.666666666666666
             sage: RIF(1, 2).absolute_diameter()
             1.00000000000000
             sage: RIF(1, 2).relative_diameter()
-            0.666666666666667
+            0.666666666666666
             sage: RIF(pi).diameter()
-            0.000000000000000141357985842823
+            0.000000000000000141357985842822
             sage: RIF(pi).absolute_diameter()
-            0.000000000000000444089209850063
+            0.000000000000000444089209850062
             sage: RIF(pi).relative_diameter()
-            0.000000000000000141357985842823
+            0.000000000000000141357985842822
             sage: (RIF(pi) - RIF(3, 22/7)).diameter()
-            0.142857142857144
+            0.142857142857143
             sage: (RIF(pi) - RIF(3, 22/7)).absolute_diameter()
-            0.142857142857144
+            0.142857142857143
             sage: (RIF(pi) - RIF(3, 22/7)).relative_diameter()
-            2.03604377705518
+            2.03604377705517
         """
         cdef RealNumber x
         x = (<RealIntervalField>self._parent).__middle_field._new()
@@ -1819,7 +1819,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(other, RealNumber):
             other_rn = other
             mpfi_set(x.value, self.value)
-            mpfi_put_fr(x.value, <mpfr_t> other_rn.value)
+            mpfi_put_fr(x.value, <mpfr_t> other.value)
         else:
             # Let type errors from _coerce_ propagate...
             other_intv = self._parent._coerce_(other)
@@ -2006,7 +2006,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: r = RIF(16.0); r.log10()
             [1.2041199826559245 ... 1.2041199826559248]
             sage: r.log() / log(10)
-            [1.2041199826559245 ... 1.2041199826559251]
+            [1.2041199826580402 ... 1.2041199826580409]
 
             sage: r = RIF(39.9); r.log10()
             [1.6009728956867481 ... 1.6009728956867484]
@@ -2392,55 +2392,6 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         _sig_off
         return x
 
-    def algdep(self, n):
-        """
-        Returns a polynomial of degree at most $n$ which is approximately
-        satisfied by this number.  Note that the returned polynomial
-        need not be irreducible, and indeed usually won't be if this number
-        is a good approximation to an algebraic number of degree less than $n$.
-
-        Pari needs to know the number of "known good bits" in the number;
-        we automatically get that from the interval width.
-
-        ALGORITHM: Uses the PARI C-library algdep command.
-
-
-        EXAMPLE:
-            sage: r = sqrt(RIF(2)); r
-            [1.4142135623730949 ... 1.4142135623730952]
-            sage: r.algdep(5)
-            x^2 - 2
-
-        If we compute a wrong, but precise, interval, we get a wrong answer.
-            sage: r = sqrt(RealIntervalField(200)(2)) + (1/2)^40; r
-            [1.4142135623740045435034616524476131176321718753769480731766796 ... 1.4142135623740045435034616524476131176321718753769480731766809]
-            sage: r.algdep(5)
-            7266488*x^5 + 22441629*x^4 - 90470501*x^3 + 23297703*x^2 + 45778664*x + 13681026
-
-        But if we compute an interval that includes the number we mean,
-        we're much more likely to get the right answer, even if the interval
-        is very imprecise.
-            sage: r = r.union(sqrt(2))
-            sage: r.algdep(5)
-            x^2 - 2
-
-        Even on this extremely imprecise interval we get an answer
-        which is technically correct.
-            sage: RIF(-1, 1).algdep(5)
-            x
-        """
-
-        # If 0 is in the interval, then we have no known bits!  But
-        # fortunately, there's a perfectly valid answer we can
-        # return anyway.
-        if 0 in self:
-            return sage.rings.polynomial_ring.polygen(
-                sage.rings.integer_ring.IntegerRing())
-
-        known_bits = -self.relative_diameter().log2()
-
-        return sage.rings.arith.algdep(self.center(), n, known_bits=known_bits)
-
 # MPFI does not have: agm, erf, gamma, zeta
 #     def agm(self, other):
 #         """
@@ -2540,6 +2491,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         _sig_off
 #         return x
 
+    # Removed algdep/algebraic_dependency...these don't really make sense
+    # for intervals
 
 RR = RealIntervalField()
 

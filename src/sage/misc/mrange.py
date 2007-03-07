@@ -18,6 +18,27 @@ AUTHORS:
 import misc
 
 def _xmrange_iter( iter_list, typ=list ):
+    """
+    This implements the logic for mrange_iter and xmrange_iter.
+
+    Note that with typ==list, we will be returning a new copy each
+    iteration.  This makes it OK to modified the returned list.  This
+    functionality is relied on in the polynomial iterators.  Here's
+    a doc-test to prove this:
+        sage: iter = sage.misc.mrange._xmrange_iter( [[1,2],[1,3]] )
+        sage: l1 = iter.next()
+        sage: l2 = iter.next()
+        sage: l1 is l2
+        False
+
+    However, if you would like to re-use the list object:
+        sage: iter = sage.misc.mrange._xmrange_iter( [[1,2],[1,3]], lambda x: x )
+        sage: l1 = iter.next()
+        sage: l2 = iter.next()
+        sage: l1 is l2  # eeek, this is freaky!
+        True
+    """
+
     if len(iter_list) == 0:
         return
     curr_iters = [i.__iter__() for i in iter_list]

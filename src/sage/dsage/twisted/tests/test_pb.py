@@ -35,8 +35,8 @@ class DSageTestCase(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseZODB(test=True)
         self.dsage_server = DSageServer(self.jobdb, log_level=5)
-        for job in self.createJobs(10):
-            self.dsage_server.jobdb.newJob(job)
+        for job in self.create_jobs(10):
+            self.dsage_server.jobdb.new_job(job)
 
     def tearDown(self):
         self.dsage_server.jobdb._shutdown()
@@ -44,84 +44,84 @@ class DSageTestCase(unittest.TestCase):
         for file in files:
             os.remove(file)
 
-    def testgetJob(self):
-        pickled_job = self.dsage_server.getJob()
+    def testget_job(self):
+        pickled_job = self.dsage_server.get_job()
         self.assertEquals(type(pickled_job), str)
         job = self.unpickle(pickled_job)
         self.assert_(isinstance(job, Job))
 
-    def testgetJobByID(self):
-        job = self.createJobs(1)
+    def testget_job_by_id(self):
+        job = self.create_jobs(1)
         for j in job:
-            jobID = self.jobdb.storeJob(j)
+            jobID = self.jobdb.store_job(j)
         self.assert_(isinstance(jobID, str))
 
-    def testgetJobResultsByID(self):
-        job = self.unpickle(self.dsage_server.getJob())
+    def testget_job_resultsByID(self):
+        job = self.unpickle(self.dsage_server.get_job())
         job.result = 'test'
         job.file = ''
-        id = self.dsage_server.submitJob(job.pickle())
-        self.assert_(self.dsage_server.getJobResultByID(id) == 'test')
+        id = self.dsage_server.submit_job(job.pickle())
+        self.assert_(self.dsage_server.get_job_result_by_id(id) == 'test')
 
-    def testgetJobsByAuthor(self):
+    def testget_jobs_by_author(self):
         self.assert_(isinstance(
-                     self.dsage_server.getJobsByAuthor('Yi Qiang',
+                     self.dsage_server.get_jobs_by_author('Yi Qiang',
                                                 'unittest',
                                                 True), list))
 
-        self.assert_(len(self.dsage_server.getJobsByAuthor('test',
+        self.assert_(len(self.dsage_server.get_jobs_by_author('test',
                                                     False,
                                                     None)) == 0)
 
-        job = self.unpickle(self.dsage_server.getJob())
+        job = self.unpickle(self.dsage_server.get_job())
         job.author = 'test'
         job.file = ''
-        id = self.dsage_server.submitJob(job.pickle())
-        self.assert_(self.dsage_server.getJobsByAuthor('test',
+        id = self.dsage_server.submit_job(job.pickle())
+        self.assert_(self.dsage_server.get_jobs_by_author('test',
                                                 False,
                                                 None)[0].author == 'test')
 
-    def testsubmitJob(self):
-        jobs = self.createJobs(10)
+    def testsubmit_job(self):
+        jobs = self.create_jobs(10)
         for job in jobs:
             job.file = ""
-            id = self.dsage_server.submitJob(job.pickle())
+            id = self.dsage_server.submit_job(job.pickle())
             self.assertEquals(type(id), str)
-            j = self.unpickle(self.dsage_server.getJobByID(id))
+            j = self.unpickle(self.dsage_server.get_job_by_id(id))
             self.assert_(isinstance(j, Job))
 
-    def testgetJobsList(self):
-        jobs = self.dsage_server.getJobsList()
+    def testget_jobs_list(self):
+        jobs = self.dsage_server.get_jobs_list()
         self.assertEquals(len(jobs), 10)
         for i in xrange(len(jobs)-1):
             self.assert_(isinstance(jobs[i], Job))
             self.assert_(jobs[i].num < jobs[i+1].num)
 
-    def testgetActiveJobs(self):
-        jobs = self.dsage_server.getJobsList()
+    def testget_active_jobs(self):
+        jobs = self.dsage_server.get_jobs_list()
         for job in jobs:
             job.status = 'processing'
-            id = self.dsage_server.submitJob(job.pickle())
-        jobs = self.dsage_server.getActiveJobs()
+            id = self.dsage_server.submit_job(job.pickle())
+        jobs = self.dsage_server.get_active_jobs()
         self.assert_(len(jobs) == 10)
         for job in jobs:
             self.assert_(isinstance(job, Job))
             self.assert_(job.status == 'processing')
             self.assert_(job.updated_time < datetime.datetime.now())
 
-    def testgetActiveClientsList(self):
+    def testget_active_clients_list(self):
         pass
 
-    def testgetKilledJobsList(self):
-        jobs = self.dsage_server.getKilledJobsList()
+    def testget_killed_jobs_list(self):
+        jobs = self.dsage_server.get_killed_jobs_list()
         self.assertEquals(len(jobs), 0)
 
-        jobs = self.dsage_server.getJobsList()
+        jobs = self.dsage_server.get_jobs_list()
         for job in jobs:
             job.killed = True
-            self.dsage_server.submitJob(job.pickle())
+            self.dsage_server.submit_job(job.pickle())
 
-        jobs = self.dsage_server.getKilledJobsList()
+        jobs = self.dsage_server.get_killed_jobs_list()
         self.assertEquals(len(jobs), 10)
 
         for job in jobs:
@@ -130,50 +130,50 @@ class DSageTestCase(unittest.TestCase):
             self.assertEquals(job.killed, True)
             self.assert_(job.updated_time < datetime.datetime.now())
 
-    def testgetNextJobID(self):
-        id = self.dsage_server.getNextJobID()
+    def testget_next_job_id(self):
+        id = self.dsage_server.get_next_job_id()
         self.assertEquals(type(id), str)
-        self.assert_(id != self.dsage_server.getNextJobID())
+        self.assert_(id != self.dsage_server.get_next_job_id())
 
-    def testjobDone(self):
-        job = self.unpickle(self.dsage_server.getJob())
+    def testjob_done(self):
+        job = self.unpickle(self.dsage_server.get_job())
         result = 'done'
         output = 'done '
         completed = True
-        id = self.dsage_server.jobDone(job.id, output, result, completed,
+        id = self.dsage_server.job_done(job.id, output, result, completed,
                                 ('yi@test', 'no info provided'))
-        job = self.unpickle(self.dsage_server.getJobByID(id))
+        job = self.unpickle(self.dsage_server.get_job_by_id(id))
         self.assertEquals(job.output, output)
         self.assertEquals(job.result, result)
         self.assertEquals(job.status, 'completed')
 
-        job = self.unpickle(self.dsage_server.getJob())
+        job = self.unpickle(self.dsage_server.get_job())
         result = ['testing', '123']
         output = 'testing'
         completed = False
-        id = self.dsage_server.jobDone(job.id, output, result, completed,
+        id = self.dsage_server.job_done(job.id, output, result, completed,
                                 ('yi@test', 'no info provided'))
-        job = self.unpickle(self.dsage_server.getJobByID(id))
+        job = self.unpickle(self.dsage_server.get_job_by_id(id))
         self.assert_(isinstance(job.output, str))
         self.assert_(job.status != 'completed')
 
-    def testjobFailed(self):
-        job = self.unpickle(self.dsage_server.getJob())
-        self.dsage_server.jobFailed(job.id)
-        job = self.unpickle(self.dsage_server.getJobByID(job.id))
+    def testjob_failed(self):
+        job = self.unpickle(self.dsage_server.get_job())
+        self.dsage_server.job_failed(job.id)
+        job = self.unpickle(self.dsage_server.get_job_by_id(job.id))
         self.assertEquals(job.failures, 1)
-        self.dsage_server.jobFailed(job.id)
-        job = self.unpickle(self.dsage_server.getJobByID(job.id))
+        self.dsage_server.job_failed(job.id)
+        job = self.unpickle(self.dsage_server.get_job_by_id(job.id))
         self.assertEquals(job.failures, 2)
 
-    def testkillJob(self):
-        job = self.unpickle(self.dsage_server.getJob())
+    def testkill_job(self):
+        job = self.unpickle(self.dsage_server.get_job())
         reason = 'test'
-        id = self.dsage_server.killJob(job.id, reason)
-        job = self.unpickle(self.dsage_server.getJobByID(id))
+        id = self.dsage_server.kill_job(job.id, reason)
+        job = self.unpickle(self.dsage_server.get_job_by_id(id))
         self.assertEquals(job.killed, True)
 
-    def createJobs(self, n):
+    def create_jobs(self, n):
         """This method creates n jobs. """
 
         jobs = []

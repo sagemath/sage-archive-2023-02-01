@@ -112,7 +112,7 @@ def setup_server():
     config.set('db', 'db_file', os.path.join(DB_DIR, 'jobdb.fs'))
     config.set('db', 'prune_in_days', 7)
     config.set('db', 'stale_in_days', 365)
-    config.set('db', 'failure_threshhold', 5)
+    config.set('db', 'job_failure_threshold', 2)
     config.set('ssl', 'privkey_file', os.path.join(DSAGE_DIR, 'cacert.pem'))
     config.set('ssl', 'cert_file', os.path.join(DSAGE_DIR, 'privkey.pem'))
 

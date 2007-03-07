@@ -138,89 +138,89 @@ class UserPerspective(DefaultPerspective):
 
         log.msg('%s connected' % self.avatarID)
 
-    def perspective_getJob(self):
-        return self.DSageServer.getJob()
+    def perspective_get_job(self):
+        return self.DSageServer.get_job()
 
-    def perspective_getNextJobID(self):
-        job_id = self.DSageServer.getNextJobID()
+    def perspective_get_next_job_id(self):
+        job_id = self.DSageServer.get_next_job_id()
 
         return job_id
 
-    def perspective_getJobByID(self, jobID):
+    def perspective_get_job_by_id(self, jobID):
         if not isinstance(jobID, str):
             raise BadTypeError()
-            print 'Bad jobID passed to getJobByID'
+            print 'Bad jobID passed to get_job_by_id'
         log.msg('Returning job %s to %s' % (jobID, self.avatarID))
-        job = self.DSageServer.getJobByID(jobID)
+        job = self.DSageServer.get_job_by_id(jobID)
 
         return job
 
-    def perspective_getJobsByAuthor(self, author, job_name, is_active):
+    def perspective_get_jobs_by_author(self, author, job_name, is_active):
         if not (isinstance(author, str) or
                 isinstance(is_active, bool) or
                 isinstance(job_name, str)):
-            print 'Bad jobID passed to perspective_getJobsByAuthor'
+            print 'Bad jobID passed to perspective_get_jobs_by_author'
             raise BadTypeError()
 
-        jobs = self.DSageServer.getJobsByAuthor(author, job_name, is_active)
+        jobs = self.DSageServer.get_jobs_by_author(author, job_name, is_active)
 
         return jobs
 
-    def perspective_getJobResultByID(self, jobID):
+    def perspective_get_job_result_by_id(self, jobID):
         if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_getJobResultByID'
+            print 'Bad jobID passed to perspective_get_job_result_by_id'
             raise BadTypeError()
 
-        return self.DSageServer.getJobResultByID(jobID)
+        return self.DSageServer.get_job_result_by_id(jobID)
 
-    def perspective_getJobOutputByID(self, jobID):
+    def perspective_get_job_output_by_id(self, jobID):
         if not isinstance(jobID, str):
-            print 'Bad jobID passed to getJobOutputByID'
+            print 'Bad jobID passed to get_job_output_by_id'
             raise BadTypeError()
 
-        return self.DSageServer.getJobOutputByID(jobID)
+        return self.DSageServer.get_job_output_by_id(jobID)
 
-    def perspective_syncJob(self, jobID):
+    def perspective_sync_job(self, jobID):
         if not isinstance(jobID, str):
             return None
 
-        return self.DSageServer.syncJob(jobID)
+        return self.DSageServer.sync_job(jobID)
 
-    def perspective_submitJob(self, pickled_job):
-        return self.DSageServer.submitJob(pickled_job)
+    def perspective_submit_job(self, pickled_job):
+        return self.DSageServer.submit_job(pickled_job)
 
-    def perspective_jobDone(self, jobID, output, result,
+    def perspective_job_done(self, jobID, output, result,
                             completed, worker_info):
         if not (isinstance(jobID, str) or isinstance(completed, bool)):
-            print 'Bad jobID passed to perspective_jobDone'
+            print 'Bad jobID passed to perspective_job_done'
             raise BadTypeError()
 
-        return self.DSageServer.jobDone(jobID, output, result,
+        return self.DSageServer.job_done(jobID, output, result,
                                   completed, worker_info)
 
-    def perspective_jobFailed(self, jobID):
+    def perspective_job_failed(self, jobID):
         if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_jobFailed'
+            print 'Bad jobID passed to perspective_job_failed'
             raise BadTypeError()
 
-        return self.DSageServer.jobFailed(jobID)
+        return self.DSageServer.job_failed(jobID)
 
-    def perspective_killJob(self, jobID, reason=None):
+    def perspective_kill_job(self, jobID, reason=None):
         if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_killJob'
+            print 'Bad jobID passed to perspective_kill_job'
             raise BadTypeError()
 
-        return self.DSageServer.killJob(jobID, reason)
+        return self.DSageServer.kill_job(jobID, reason)
 
-    def perspective_getClusterSpeed(self):
-        return self.DSageServer.getClusterSpeed()
+    def perspective_get_cluster_speed(self):
+        return self.DSageServer.get_cluster_speed()
 
-    def perspective_getWorkerList(self):
-        return [x[1:] for x in self.DSageServer.getWorkerList()]
+    def perspective_get_worker_list(self):
+        return [x[1:] for x in self.DSageServer.get_worker_list()]
 
-    def perspective_getClientList(self):
+    def perspective_get_client_list(self):
         return [avatar[0].avatarID for avatar in
-                self.DSageServer.getClientList()]
+                self.DSageServer.get_client_list()]
 
 class AdminPerspective(UserPerspective):
     r"""

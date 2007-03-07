@@ -41,7 +41,8 @@ def test_code():
 if __name__ ==  '__main__':
     import doctest, sys
     s = doctest.testmod(sys.modules[__name__],
-                   optionflags=doctest.NORMALIZE_WHITESPACE,
+                   optionflags=doctest.NORMALIZE_WHITESPACE
+                              |doctest.ELLIPSIS,
                    verbose=%s,
                    globs=globals())
     quit_sage(verbose=False)

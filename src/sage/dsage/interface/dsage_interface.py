@@ -232,7 +232,7 @@ class DSage(object):
 
         self.check_connected()
         if not job_name or not isinstance(job_name, str):
-            job_name = 'default_job'
+            job_name = 'default job'
 
         type_ = 'sage'
 

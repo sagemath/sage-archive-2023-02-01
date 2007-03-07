@@ -156,7 +156,7 @@ class DSageServer(pb.Root):
         if job.file is None:
             return False
         if job.name is None:
-            job.name = 'defaultjob'
+            job.name = 'default job'
         if job.id is None:
             job.id = self.jobdb.get_next_job_id()
 
@@ -164,6 +164,19 @@ class DSageServer(pb.Root):
             log.msg('[DSage, submit_job] Job (%s %s) submitted' % (job.id,
                                                                  job.name))
         return self.jobdb.store_job(job)
+
+    def submit_job(self, job_dict):
+        r"""
+        Clients and workers call this function to submit a job.
+
+        Parameters:
+        job_dict -- a dictionary containing the jobs parameters
+
+        """
+
+        job_id = job_dict['job_id']
+        data = job_dict['data']
+        code = job_dict['code']
 
     def get_jobs_list(self):
         r"""

@@ -371,55 +371,38 @@ class JobDatabaseSQLite(JobDatabase):
     r"""
     Implementation of DSage's database using SQLite.
 
-    Author: Alex Clemesha (clemesha@gmail.com)
-
     Parameters:
-    db_file -- filename of the database to use
     test -- set to true for unittesting purposes
 
     """
 
-    # Queries and other often reused vars go here
-    JOB_TABLE_COLUMNS = 12 #change this if more columns are added
-    JOB_ROW_STRING = "(" + "?,"*JOB_TABLE_COLUMNS + ")"
-
-    COLUMNS = ("num",
-               "id",
-               "file",
-               "author",
-               "data",
-               "output",
-               "worker_info",
-               "status",
-               "creation_time",
-               "update_time",
-               "finish_time")
-
+    # TODO: SQLite does *NOT* enforce foreign key constraints
+    # We must manually check for them.
     CREATE_NEW_TABLE = """CREATE TABLE jobs
     (id INTEGER PRIMARY KEY,
-     security_id text NOT NULL UNIQUE,
-     code text NOT NULL,
-     username text NOT NULL,
-     data text,
-     output text NOT NULL DEFAULT 'No output',
-     worker text,
-     status text NOT NULL,
-     priority integer NOT NULL,
+     job_id TEXT NOT NULL UNIQUE,
+     user_id INTEGER REFERENCES users(id),
+     code TEXT,
+     data BLOB,
+     output TEXT,
+     worker_id INTEGER REFERENCES workers(id),
+     status INTEGER NOT NULL,
+     priority INTEGER,
      creation_time timestamp NOT NULL,
-     update_time timestamp NOT NULL,
-     finish_time timestamp NOT NULL,
+     update_time timestamp,
+     finish_time timestamp
     );
     """
 
     INSERT_JOB = """INSERT INTO jobs
-    (num,
-     id,
-     file,
-     author,
+    (job_id,
+     user_id,
+     code,
      data,
      output,
-     worker_info,
+     worker_id,
      status,
+     priority,
      creation_time,
      update_time,
      finish_time
@@ -427,12 +410,10 @@ class JobDatabaseSQLite(JobDatabase):
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """
 
-    def __init__(self, db_file=None, test=False):
+    def __init__(self, test=False):
         JobDatabase.__init__(self)
         if test:
-            self.db_file = 'test_db.db'
-        elif db_file:
-            self.db_file = db_file
+            self.db_file = 'test_jobdb.db'
         else:
             self.db_file = 'jobdb.db'
 
@@ -440,153 +421,92 @@ class JobDatabaseSQLite(JobDatabase):
         self.con = sqlite.connect(
                    self.db_file,
                    detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
-        self.con.text_factory = str
+        self.con.text_factory = str # Don't want unicode objects back
         if not sql_functions.table_exists(self.con, self.tablename):
-            sql_functions.create_table(self. con,
+            sql_functions.create_table(self.con,
                                        self.tablename,
                                        self.CREATE_NEW_TABLE)
+    def __add_test_data(self):
+        dn = lambda: datetime.datetime.now() # short hand
+        D = [(self.random_string(), 1, None, None, None, 1,
+             0, 1, dn(), dn(), None),
+             (self.random_string(), 1, None, None, None, 1,
+             0, 1, dn(), dn(), None),
+             (self.random_string(), 1, None, None, None, 1,
+             0, 1, dn(), dn(), None)]
+
+        print 'Sleeping for 0.5 second to test timestamps...'
+        time.sleep(0.5)
+
+        D.extend([(self.random_string(), 1, None, None, None, 1,
+                   0, 1, dn(), dn(), None),
+                  (self.random_string(), 1, None, None, None, 1,
+                   0, 1, dn(), dn(), None),
+                  (self.random_string(), 1, None, None, None, 1,
+                   0, 1, dn(), dn(), None)])
+
+        self.con.executemany(self.INSERT_JOB, D)
+        self.con.commit()
 
     def _shutdown(self):
         self.con.commit()
         self.con.close()
 
-    def get_job_by_id(self, jobID, tablename=None):
-        if tablename is None:
-            tablename = self.tablename
-        query = "SELECT * FROM %s WHERE id = '%s'" % (tablename, jobID)
-        self.con.execute(query)
-        jobtuple = self.con.fetchall()[0]
-        return self.create_job(jobtuple)
+    def get_job(self):
+        r"""
+        Returns the first unprocessed job of the highest priority.
 
-    def get_job_by_num(self, num):
-        query = "SELECT * FROM ? WHERE num = ?"
-        self.con.execute(query, (self.tablename, num))
-        job_tuple = self.con.fetchall()[0]
-        # return self.create_job(jobtuple)
+        """
+
+        # pseudo code follows:
+        # SELECT FROM jobs where PRIORITY IS highest AND status = 'new'
+        raise NotImplementedError
+
+    def get_all_jobs(self):
+        query = "SELECT * from jobs"
+        cur = self.con.cursor()
+        cur.execute(query)
+        return cur.fetchall()
+
+    def get_job_by_id(self, id_):
+        query = "SELECT * FROM jobs WHERE id = ?"
+        cur = self.con.cursor()
+        cur.execute(query, (int(id_),)) # Need to cast it to int for SAGE
+        job_tuple = cur.fetchone()
         return job_tuple
 
-    # def create_job(self, jobtuple):
-    #     job = Job()
-    #     print jobtuple
-    #     for k,v in zip(self.COLUMNS, jobtuple):
-    #         print k,v
-    #         print type(v)
-    #         setattr(job, k, v)
-    #     return job
+    def get_job_by_uid(self, uid):
+        query = "SELECT * FROM jobs WHERE uid = ?"
+        cur = self.con.cursor()
+        cur.execute(query, (uid,))
+        job_tuple = cur.fetchone()
+        return job_tuple
 
-    def store_job(self, job_dict):
+    def get_job_by_keywords(self, **kwargs):
+        raise NotImplementedError
+
+    def insert_job(self, job_dict):
+        r"""
+        Inserts a new job into the jobs table.
+
+        """
+
+        raise NotImplementedError
+
+    def store_job(self, job):
         r"""
         Stores a job based on information from a dictionary.
         The keys of the dictionary should correspond to the columns in the
         'jobs' table.
 
         Parameters:
-        job_dict -- dictionary
+        job -- a sage.dsage.database.Job object
 
         """
 
         # TODO: Build a query from the job dictionary and store it in the
         # database
-
-    def make_job_tuple(self):
-        dn = lambda: datetime.datetime.now()
-        D = (None, 'a', 'aaa', 'alex', dn(), dn(), dn(), dn())
-        return D
-
-    def add_test_data(self):
-        dn = lambda: datetime.datetime.now()
-        D = [(None, self.random_string(), 'aaa', 'alex',
-              None, None, None, 'new', dn(), dn(), dn()),
-             (None, self.random_string(), 'aaa', 'alex',
-              None, None, None, 'new', dn(), dn(), dn()),
-             (None, self.random_string(), 'aaa', 'alex',
-              None, None, None, 'new', dn(), dn(), dn())]
-        time.sleep(1)
-        D.extend([(None, self.random_string(), 'aaa', 'alex',
-                   None, None, None, 'new', dn(), dn(), dn()),
-                  (None, self.random_string(), 'aaa', 'alex',
-                   None, None, None, 'new', dn(), dn(), dn()),
-                  (None, self.random_string(), 'aaa', 'alex',
-                   None, None, None, 'new', dn(), dn(), dn())])
-
-        query = self.INSERT_JOB % (self.tablename)
-        self.con.executemany(query, D)
-        self.con.commit()
-
-    def insert_new_row_from_dict(self, tbl, dvalues):
-        """
-        """
-
-        query = "INSERT INTO jobs VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        self.con.execute(query, dvalues)
-        self.con.commit()
-
-    def _general_select(self, table, condition, rowlist):
-        """Contsruct a general SQL query.
-
-        'SELECT *rows FROM table WHERE condition'
-
-        Is this function a good idea?? Maybe more error checking??
-        """
-        if not isinstance(rowlist, (list, tuple)):
-            return TypeError, "rowlist must be a list of a tuple"
-        rl = [s.replace(' ', '') for s in rowlist]
-        rl = ', '.join(rl)
-        query =  "SELECT %s FROM %s WHERE %s"%(rl, str(table), str(condition))
-        self.con.execute(query)
-        return self.con.fetchall()
-
-    def table_exists(self, table):
-        """Check if a given table exists.
-
-        If the below query is not None, then the table exists
-        """
-        query = """SELECT name FROM sqlite_master WHERE type = 'table' AND name = '%s' """ % (table)
-        self.con.execute(query)
-        cur = self.con.cursor()
-        result = cur.fetchone()
-        print "\n======= The status of '%s' is '%s' ========\n" % (table, result)
-        return result
-
-    def select_user_jobs(self, user):
-        query = "SELECT num, creation_time FROM jobs WHERE user = '%s'"%str(user)
-        self.con.execute(query)
-        print "\nQUERY: '%s' "%query
-        print "QUERY RESULTS: "
-        for j, t in self.con.fetchall():
-            print "job string: %s, timestamp: %s" % (str(j), str(t))
-
-    def select_job_number(self, num):
-        query = "SELECT num, creation_time FROM jobs WHERE %s > 2 " % str(num)
-        self.con.execute(query)
-        print "\nQUERY: '%s' "%query
-        print "QUERY RESULTS: "
-        for j, t in self.con.fetchall():
-            print "job string: %s, timestamp: %s" % (str(j), str(t))
-
-    def _newer_time_diff_seconds(self, older, newer, delta):
-        """time difference
-        find all time that are no older than 'delta' seconds.
-
-        """
-        d = datetime.timedelta(seconds=delta)
-        diff = newer - d
-        return older < diff
-
-    def _get_oldest_job_datetime(self):
-        query = "SELECT creation_time FROM jobs where num = 1"
-        self.con.execute(query)
-        return self.con.fetchone()[0]
-
-    def select_job_date(self):
-        OLDEST = self._get_oldest_job_datetime()
-        query = "SELECT num, user, creation_time as 'creation_time [timestamp]' FROM jobs"
-        self.con.execute(query)
-        print "\nQUERY: '%s' "%query
-        print "QUERY RESULTS: "
-        for n, u, t in self.con.fetchall():
-            if self._newer_time_diff_seconds(OLDEST, t, 2):
-                print " %s, %s, %s"%(str(n), str(u), str(t))
+        raise NotImplementedError
 
 class DatabasePruner(object):
     r"""

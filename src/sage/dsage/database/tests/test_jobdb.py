@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import unittest
@@ -21,7 +22,8 @@ import os
 import datetime
 from glob import glob
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
+from sage.dsage.database.jobdb import DatabasePruner
 from sage.dsage.database.job import Job
 
 class JobDatabaseZODBTestCase(unittest.TestCase):
@@ -106,6 +108,32 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
             jobs.append(Job(name='unittest', author='Yi Qiang'))
 
         return jobs
+
+class JobDatabaseSQLiteTestCase(unittest.TestCase):
+    def setUp(self):
+        self.jobdb = JobDatabaseSQLite(test=True)
+
+    def tearDown(self):
+        self.jobdb._shutdown()
+
+    def testinsert_job(self):
+        raise NotImplementedError
+
+    def testupdate_job(self):
+        raise NotImplementedError
+
+    def testget_all_jobs(self):
+        raise NotImplementedError
+
+    def testget_job_by_id(self):
+        raise NotImplementedError
+
+    def testget_job_by_uid(self):
+        raise NotImplementedError
+
+    def testget_job_by_keywords(self):
+        raise NotImplementedError
+
 
 class DatabasePrunerTestCase(unittest.TestCase):
     def setUp(self):

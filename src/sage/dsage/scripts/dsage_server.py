@@ -115,6 +115,7 @@ def main():
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
 
     # Create the PBServerFactory for workers
+    # Use this for unauthorized workers
     dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
     worker_factory = WorkerPBServerFactory(dsage_worker)
 

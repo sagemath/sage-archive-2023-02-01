@@ -75,7 +75,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return 1
 
-    def _repr_(self, mode = None, do_latex=False, caprel = False):
+    def _repr_(self, mode = None, do_latex = False, caprel = False):
         r"""
             Prints a string representation of the element.  See set_print_mode for more details.
 
@@ -104,16 +104,26 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         import sage.rings.padics.padic_ring_generic
         if caprel and (self.valuation() == infinity):
                 return "0"
-        if mode == None:
+        if mode is None:
             mode = self.parent().get_print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (isinstance(self.parent(), sage.rings.padics.padic_ring_generic.pAdicRingGeneric) and ((mode == 'integer') or (mode != 'integer-p')))):
             raise TypeError, "printing mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p', and 'integer-p'"
         if self._unit_part() == 0:
-            if mode == 'val-unit' or mode == 'series' or mode == 'integer':
+            if mode == 'val-unit' or mode == 'series':
                 if do_latex:
                     return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
                 else:
                     return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer':
+                if do_latex:
+                    return "0 + O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+                else:
+                    return "0 + O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer-p':
+                if do_latex:
+                    return "0 + O(p^{%s})"%(self.precision_absolute())
+                else:
+                    return "0 + O(p^%s)"%(self.precision_absolute())
             else:
                 if do_latex:
                     return "O(p^{%s})"%(self.precision_absolute())

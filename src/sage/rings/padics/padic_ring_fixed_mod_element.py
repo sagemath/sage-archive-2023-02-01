@@ -70,10 +70,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             sage: R(75)
             75 + O(5^20)
             sage: R(0)
-            O(5^20)
-
-        # todo: in the "integer" print mode, it would be better if the
-        # above case printed as "0 + O(5^20)" instead of just "O(5^20)"
+            0 + O(5^20)
 
             sage: R(-1)
             95367431640624 + O(5^20)
@@ -105,16 +102,12 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             sage: R(Integers(49)(3))
             Traceback (most recent call last):
             ...
-            TypeError: cannot change primes in creating p-adic elements
-
-        # todo: should the above TypeError be another type of error?
+            TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
 
             sage: R(Integers(48)(3))
             Traceback (most recent call last):
             ...
-            TypeError: cannot change primes in creating p-adic elements
-
-        # todo: the error message for the above TypeError is not quite accurate
+            TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
 
         Some other conversions:
             sage: R(R(5))
@@ -147,9 +140,12 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 x = QQ(t)
 
         if sage.rings.integer_mod.is_IntegerMod(x):
+            # todo: this is wildly inefficient. To check if it's a power of p,
+            # one should use logs or something to find k such that the modulus
+            # is about p^k, and then check if it is in fact equal to p^k
             k, p = pari(x.modulus()).ispower()
-            if not k or p != parent.prime():
-                raise TypeError, "cannot change primes in creating p-adic elements"
+            if p != parent.prime():
+                raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
             x = x.lift()
 
         if sage.rings.finite_field_element.is_FiniteFieldElement(x):
@@ -461,6 +457,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_relative()
             3
+            sage: a = R(0); a.precision_relative()
+            0
         """
         return self.parent().precision_cap() - self.valuation()
 
@@ -527,9 +525,9 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 True
             sage: R2(17).square_root()
                 1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
-            sage: R3 = Zp(5,20,'fixed-mod')
+            sage: R3 = Zp(5,20,'fixed-mod', 'integer')
             sage: R3(0).square_root()
-                O(5^20)
+                0 + O(5^20)
             sage: R3(1).square_root()
                 1 + O(5^20)
             sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)

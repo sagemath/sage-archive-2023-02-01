@@ -501,9 +501,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def _monics_degree( self, of_degree ):
         base = self.base_ring()
-        x = self.gen()
-        for lt1 in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
-            yield sum([x**i*lt1[of_degree-i] for i in range(len(lt1))])
+        for coeffs in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
+            coeffs.reverse()
+            yield self(coeffs)
 
     def _monics_max( self, max_degree ):
         for degree in xrange(max_degree + 1):
@@ -512,18 +512,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
 
     def _polys_degree( self, of_degree ):
         base = self.base_ring()
-        x = self.gen()
         for leading_coeff in base:
             if leading_coeff != base(0):
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
                     coeffs = [leading_coeff] + lt1
-                    yield sum([x**i*coeffs[of_degree-i] for i in range(len(coeffs))])
+                    coeffs.reverse()
+                    yield self(coeffs)
 
     def _polys_max( self, max_degree ):
         base = self.base_ring()
-        x = self.gen()
-        for lt1 in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
-            yield sum([x**i*lt1[max_degree-i] for i in range(len(lt1))])
+        for coeffs in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
+            coeffs.reverse()
+            yield self(coeffs)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """

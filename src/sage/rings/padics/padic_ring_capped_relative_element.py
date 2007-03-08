@@ -135,6 +135,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
                     pass
                 self._relprec = min(parent.precision_cap(), x.precision_relative())
             else:
+                relprec = min(relprec, parent.precision_cap())
                 try:
                     x.set_precision_relative(relprec)
                 except PrecisionError:
@@ -167,19 +168,21 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x):
-            if x.parent().order() != parent.prime():
-                raise TypeError, "can only create p-adic element out of finite field when order of field is p"
-            #prec = min(prec, 1)
-            x = x.lift()
+        #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
+        #    if x.parent().order() != parent.prime():
+        #        raise TypeError, "can only create p-adic element out of finite field when order of field is p"
+        #    #prec = min(prec, 1)
+        #    x = x.lift()
 
         elif sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
             x = x.lift()
-            k = k - x.valuation(p)
-            prec = min(prec, k)
+            if absprec is None:
+                absprec = k
+            else:
+                absprec = min(k, absprec)
 
             # We now use the code, below, so don't make the next line elif
         if isinstance(x, (int, long)):
@@ -191,12 +194,17 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         if self._ordp < 0:
             raise ValueError, "element not a p-adic integer."
         elif self._ordp == infinity:
-            self._unit = Mod(0, self.parent().prime_pow(prec))
-            self._relprec = prec
+            self._unit = Mod(0, 1)
+            self._relprec = 0
             return
         x = x / self.parent().prime_pow(self._ordp)
-        self._unit = Mod(x, self.parent().prime_pow(prec))
-        self._relprec = prec
+        if relprec is None:
+            self._relprec = min(absprec - self._ordp, parent.precision_cap())
+        elif absprec is None:
+            self._relprec = relprec
+        else:
+            self._relprec = min(relprec, absprec - self._ordp, parent.precision_cap())
+        self._unit = Mod(x, self.parent().prime_pow(self._relprec))
         return
 
     def _repr_(self, mode = None, do_latex = False):

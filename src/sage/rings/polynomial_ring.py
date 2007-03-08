@@ -174,7 +174,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if absprec is None:
             return C(self, x, check, is_gen, construct=construct)
         else:
-            return C(self, x, check, is_gen, construct=construct, absprec)
+            return C(self, x, check, is_gen, construct=construct, absprec = absprec)
 
     def _coerce_impl(self, x):
         """

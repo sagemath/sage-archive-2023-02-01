@@ -113,11 +113,11 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric):
     An implementation of the p-adic integers with capped absolute precision.
     """
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = None, relprec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingCappedAbsoluteElement.
         """
-        return pAdicRingCappedAbsoluteElement(self, x, prec = prec)
+        return pAdicRingCappedAbsoluteElement(self, x, absprec, relprec)
 
     def __cmp__(self, other):
         if isinstance(other, pAdicRingCappedAbsolute):

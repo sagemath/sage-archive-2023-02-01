@@ -46,29 +46,51 @@ infinity = sage.rings.infinity.infinity
 QQ = sage.rings.rational_field.QQ
 
 class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement):
-    def __init__(self, parent, x, prec=None, construct=False):
-        sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self,parent)
+    def __init__(self, parent, x, absprec=None, relprec=None, construct=False):
+        sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self, parent)
         if construct:
             (self._ordp, self._unit, self._relprec) = x
             return
-        if prec == None or prec > parent.precision_cap():
-            prec = parent.precision_cap()
+
+        if not absprec is None and not relprec is None:
+            raise ValueError, "can only specify one of absprec and relprec"
+        if absprec is None:
+            if relprec is None or relprec > parent.precision_cap():
+                relprec = parent.precision_cap()
+
         if isinstance(x, pAdicLazyElement):
-            try:
-                x.set_precision_relative(prec)
-            except PrecisionError:
-                pass
+            if relprec is None:
+                try:
+                    x.set_precision_absolute(absprec)
+                except PrecisionError:
+                    pass
+                self._relprec = min(parent.precision_cap(), x.precision_relative())
+            else:
+                relprec = min(relprec, parent.precision_cap())
+                try:
+                    x.set_precision_relative(relprec)
+                except PrecisionError:
+                    pass
+                self._relprec = min(relprec, x.precision_relative())
+            self._ordp = x._min_valuation()
+            self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
+            return
         if isinstance(x, pAdicGenericElement):
             if parent.prime() != x.parent().prime():
                 raise ValueError, "Cannot coerce between p-adic rings with different primes."
             self._ordp = x.valuation()
-            self._relprec = min(x.precision_relative(), prec)
-            self._unit = Mod(x._unit_part(), x.parent().prime_pow(self._relprec))
+            if relprec is None:
+                relprec = absprec - self._ordp
+            self._relprec = min(relprec, x.precision_relative(), parent.precision_cap())
+            self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                prec = min(x.padicprec(parent.prime()), prec)
+                if not absprec is None:
+                    absprec = min(x.padicprec(parent.prime()), absprec)
+                else:
+                    absprec = x.padicprec(parent.prime())
                 x = x.lift()
             if x.type() == "t_INT":
                 x = Integer(x)
@@ -77,19 +99,22 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             else:
                 raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x):
-            if x.parent().order() != parent.prime():
-                raise TypeError, "can only create p-adic element out of finite field when order of field is p"
-            #prec = min(prec, 1)
-            x = x.lift()
+        #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
+        #    if x.parent().order() != parent.prime():
+        #        raise TypeError, "can only create p-adic element out of finite field when order of field is p"
+        #
+        #    #prec = min(prec, 1)
+        #    x = x.lift()
 
         elif sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
             x = x.lift()
-            k = k - x.valuation(p)
-            prec = min(prec, k)
+            if absprec is None:
+                absprec = k
+            else:
+                absprec = min(k, absprec)
 
             # We now use the code, below, so don't make the next line elif
         if isinstance(x, (int, long)):
@@ -97,14 +122,19 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         elif isinstance(x, (Integer, Rational)):
             self._ordp = x.valuation(self.parent().prime())
         else:
-            raise TypeError, "unable to compute ordp"
+            raise TypeError, "cannot create a p-adic out of %s"%(type(x))
         if self._ordp == infinity:
             self._unit = Mod(0, 1)
-            self._relprec = prec
+            self._relprec = 0
             return
         x = x / self.parent().prime_pow(self._ordp)
-        self._unit = Mod(x, self.parent().prime_pow(prec))
-        self._relprec = prec
+        if relprec is None:
+            self._relprec = min(absprec - self._ordp, parent.precision_cap())
+        elif absprec is None:
+            self._relprec = relprec
+        else:
+            self._relprec = min(relprec, absprec - self._ordp, parent.precision_cap())
+        self._unit = Mod(x, self.parent().prime_pow(self._relprec))
         return
 
     def _repr_(self, mode = None, do_latex = False):

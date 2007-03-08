@@ -273,10 +273,11 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
 # set_precision_absolute, set_precision_relative, __init__, (copy)
 
 class pAdicLazy_integer(pAdicLazyElement):
-    def __init__(self, parent, x, prec): #cannot call with input zero
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity): #cannot call with input zero
         pAdicGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x // parent.prime_pow(self._base_valuation)
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
         self._set_cache(Mod(self._x, parent.prime_pow(prec)))
         self._set_cache_prec(prec)
 
@@ -292,10 +293,11 @@ class pAdicLazy_integer(pAdicLazyElement):
 
 
 class pAdicLazy_rational(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x / parent.prime_pow(self._base_valuation)
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
         self._set_cache(Mod(self._x, parent.prime_pow(prec)))
         self._set_cache_prec(prec)
 
@@ -311,12 +313,13 @@ class pAdicLazy_rational(pAdicLazyElement):
 
 
 class pAdicLazy_otherpadic(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation())
         self._x = x
-        self._set_cache_prec(min(prec, x.precision_relative()))
-        self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(self._cache_prec)))
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation, x.precision_relative())
+        self._set_cache_prec(prec)
+        self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(prec)))
 
     def set_precision_relative(self, n, halt = None):
         if n > self._cache_prec:
@@ -331,6 +334,10 @@ class pAdicLazy_otherpadic(pAdicLazyElement):
                 raise PrecisionLimitError, "Cannot compute more p-adic digits"
             self._set_cache_prec(n - self._base_valuation)
             self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(self._cache_prec)))
+
+class pAdicLazy_mod(pAdicLazyElement):
+    def __init__(self, parent, x, ppow):
+        raise NotImplementedError
 
 class pAdicLazy_zero(pAdicLazyElement):
     def __init__(self, parent):
@@ -355,14 +362,15 @@ class pAdicLazy_valpower(pAdicLazyElement):
         raise NotImplementedError
 
 class pAdicLazy_iterator(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         raise NotImplementedError
 
 class pAdicLazy_teichmuller(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         p = parent.prime()
+        prec = min(parent.precision_cap(), relprec, absprec)
         x = Mod(x,parent.prime_pow(prec))
         xnew = x**p
         while x != xnew:
@@ -386,7 +394,7 @@ class pAdicLazy_teichmuller(pAdicLazyElement):
         return self.set_precision_relative(n, halt)
 
 class pAdicLazy_root(pAdicLazyElement):
-    def __init__(self, parent, f, x, prec):
+    def __init__(self, parent, f, x, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         self._f = f
         self._x = x
@@ -394,7 +402,7 @@ class pAdicLazy_root(pAdicLazyElement):
 
 class pAdicLazy_integral(pAdicLazyElement):
     #I'm not sure exactly how this will work, but it's another way to get p-adics
-    def __init__(self, parent, f, X, prec):
+    def __init__(self, parent, f, X, absprec=infinity, relprec=infinity):
         pAdicGenericElement.__init__(self, parent)
         raise NotImplementedError
 

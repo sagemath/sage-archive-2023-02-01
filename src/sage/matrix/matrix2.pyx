@@ -16,15 +16,12 @@ For design documentation see matrix/docs.py.
 include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
-import strassen
-
 from   sage.structure.sequence import _combinations, Sequence
 from   sage.misc.misc import verbose, get_verbose
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
 
 import sage.modules.free_module
-import matrix_window
 import matrix_space
 import berlekamp_massey
 from sage.modules.free_module_element import is_FreeModuleElement
@@ -1118,6 +1115,14 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module()
 
+    def _row_ambient_module(self):
+        x = self.fetch('row_ambient_module')
+        if not x is None:
+            return x
+        x = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+        self.cache('row_ambient_module',x)
+        return x
+
     def row_module(self):
         """
         Return the free module over the base ring spanned by the rows
@@ -1131,7 +1136,7 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [0 2]
         """
-        M = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+        M = self._row_ambient_module()
         return M.span(self.rows())
 
     def row_space(self):
@@ -1151,6 +1156,15 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module()
 
+
+    def _column_ambient_module(self):
+        x = self.fetch('column_ambient_module')
+        if not x is None:
+            return x
+        x = sage.modules.free_module.FreeModule(self.base_ring(), self.nrows(),
+                                                sparse=self.is_sparse())
+        self.cache('column_ambient_module',x)
+        return x
 
     def column_module(self):
         """
@@ -1629,6 +1643,8 @@ cdef class Matrix(matrix1.Matrix):
 
             sage: # A = ModularSymbols(43, base_ring=GF(11), sign=1).T(2).matrix()
             sage: A = matrix(QQ, 4, [3, 9, 0, 0, 0, 9, 0, 1, 0, 10, 9, 2, 0, 9, 0, 2])
+            sage: A.charpoly()
+            x^4 - 23*x^3 + 168*x^2 - 405*x + 243
             sage: A.eigenspaces(var = 'beta')
             [
             (9, [
@@ -1737,10 +1753,9 @@ cdef class Matrix(matrix1.Matrix):
         base extend to the fraction field, if that is what you want.
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R, 2, [x,y,x,y])
-            sage: a.echelonize()
-            Traceback (most recent call last):
-            ...
-            ValueError: echelon form not implemented for elements of 'Full MatrixSpace of 2 by 2 dense matrices over Polynomial Ring in x, y over Rational Field'
+            sage: a.echelon_form()
+            [  1 y/x]
+            [  0   0]
             sage: b = a.change_ring(R.fraction_field())
             sage: b.echelon_form()
             [  1 y/x]
@@ -1809,7 +1824,14 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('echelon_form')
         if not x is None:
             return x
-        E = self.copy()
+        R = self.base_ring()
+        if not (R == ZZ or R.is_field()):
+            try:
+                E = self.matrix_over_field()
+            except TypeError:
+                raise NotImplementedError, "Echelon form not implemented over '%s'."%R
+        else:
+            E = self.copy()
         if algorithm == 'default':
             E.echelonize(cutoff=cutoff)
         else:
@@ -1851,7 +1873,7 @@ cdef class Matrix(matrix1.Matrix):
             return
 
         self.check_mutability()
-        cdef Matrix d
+        cdef Matrix A, d
 
         nr = self._nrows
         nc = self._ncols
@@ -1866,8 +1888,9 @@ cdef class Matrix(matrix1.Matrix):
                 self.cache('pivots', d.pivots())
                 return
             else:
-                raise ValueError, "echelon form not implemented for elements of '%s'"%self.parent()
-
+                A = self.matrix_over_field()
+        else:
+            A = self
 
         start_row = 0
         pivots = []
@@ -1875,21 +1898,24 @@ cdef class Matrix(matrix1.Matrix):
         for c from 0 <= c < nc:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for r from start_row <= r < nr:
-                if self.get_unsafe(r, c) != 0:
+                if A.get_unsafe(r, c) != 0:
                     pivots.append(c)
-                    a_inverse = ~self.get_unsafe(r,c)
-                    self.rescale_row(r, a_inverse, c)
-                    self.swap_rows(r, start_row)
+                    a_inverse = ~A.get_unsafe(r,c)
+                    A.rescale_row(r, a_inverse, c)
+                    A.swap_rows(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
-                            if self.get_unsafe(i,c) != 0:
-                                minus_b = -self.get_unsafe(i, c)
-                                self.add_multiple_of_row(i, start_row, minus_b, c)
+                            if A.get_unsafe(i,c) != 0:
+                                minus_b = -A.get_unsafe(i, c)
+                                A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
                     break
         self.cache('pivots', pivots)
-        self.cache('in_echelon_form', True)
-        verbose('done with gauss', tm)
+        A.cache('pivots', pivots)
+        A.cache('in_echelon_form', True)
+        self.cache('echelon_form', A)
+
+        verbose('done with gauss echelon form', tm)
 
     #####################################################################################
     # Windowed Strassen Matrix Multiplication and Echelon
@@ -1933,6 +1959,8 @@ cdef class Matrix(matrix1.Matrix):
         right_window  = right.matrix_window()
         output_window = output.matrix_window()
 
+
+        import strassen
         strassen.strassen_window_multiply(output_window, self_window, right_window, cutoff)
         return output
 
@@ -1970,6 +1998,7 @@ cdef class Matrix(matrix1.Matrix):
             self._echelon_in_place_classical()
             return
 
+        import strassen
         pivots = strassen.strassen_echelon(self.matrix_window(), cutoff)
         self._set_pivots(pivots)
         verbose('done with strassen', tm)
@@ -1991,6 +2020,7 @@ cdef class Matrix(matrix1.Matrix):
 
     cdef matrix_window_c(self, Py_ssize_t row, Py_ssize_t col,
                          Py_ssize_t nrows, Py_ssize_t ncols):
+        import matrix_window
         if nrows == -1:
             nrows = self._nrows - row
             ncols = self._ncols - col

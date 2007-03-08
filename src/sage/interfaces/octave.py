@@ -124,9 +124,9 @@ class Octave(Expect):
         'a =\n\n 1 1 2\n 3 5 8\n 13 21 33\n\n'
         sage: octave.eval("b = [ 1; 3; 13]")                         # optional
         'b =\n\n 1\n 3\n 13\n\n'
-        sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional
+        sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional random output
         'c =\n\n 1\n -0\n 0\n\n'
-        sage: print octave.eval("c")                                 # optional
+        sage: octave.eval("c")                                 # optional random output
         c =
         <BLANKLINE>
          1
@@ -256,7 +256,7 @@ class Octave(Expect):
             sage: A   = M33([1,2,3,4,5,6,7,8,0])
             sage: V3  = VectorSpace(QQ,3)
             sage: b   = V3([1,2,3])
-            sage: octave.solve_linear_system(A,b)    # requires optional octave
+            sage: octave.solve_linear_system(A,b)    # requires optional octave (and output is slightly random in low order bits)
             [-0.33333299999999999, 0.66666700000000001, 0]
 
         AUTHOR: David Joyner and William Stein

@@ -76,15 +76,27 @@ include "../ext/cdefs.pxi"
 include '../ext/stdsage.pxi'
 include '../ext/random.pxi'
 
-MAX_MODULUS = 46340
+import sage.ext.multi_modular
+
+MAX_MODULUS = sage.ext.multi_modular.MAX_MODULUS
+
+# TODO: DO NOT change this back until all the ints, etc., below are changed
+# and get_unsafe is rewritten to return the right thing.  E.g., with
+# the above uncommented, on 64-bit,
+# m =matrix(Integers(101^3),2,[824362, 606695, 641451, 205942])
+# m.det()
+#  --> gives 0, which is totally wrong.
 
 import matrix_window_modn_dense
 
 from sage.rings.arith import is_prime
+from sage.structure.element cimport ModuleElement
 
 cimport matrix_dense
 cimport matrix
 cimport matrix0
+cimport sage.structure.element
+
 
 from sage.libs.linbox.linbox cimport Linbox_modn_dense
 cdef Linbox_modn_dense linbox
@@ -93,8 +105,6 @@ linbox = Linbox_modn_dense()
 from sage.structure.element cimport Matrix
 
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
-
-from sage.structure.element import ModuleElement
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
@@ -114,7 +124,6 @@ ai = arith_int()
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
-
 cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
     ########################################################################
     # LEVEL 1 functionality
@@ -132,8 +141,8 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         cdef mod_int p
         p = self._base_ring.characteristic()
         self.p = p
-        if p >= MOD_INT_MAX:
-            raise OverflowError, "p (=%s) must be < %s"%(p, MOD_INT_MAX)
+        if p >= MAX_MODULUS:
+            raise OverflowError, "p (=%s) must be < %s"%(p, MAX_MODULUS)
         self.gather = MOD_INT_OVERFLOW/(p*p)
 
         _sig_on
@@ -254,7 +263,58 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         A.gather = self.gather
         return A
 
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        """
+        Add two dense matrices over Z/nZ
+
+        EXAMPLES:
+            sage: a = MatrixSpace(GF(19),3)(range(9))
+            sage: a+a
+            [ 0  2  4]
+            [ 6  8 10]
+            [12 14 16]
+            sage: b = MatrixSpace(GF(19),3)(range(9))
+            sage: b.swap_rows(1,2)
+            sage: a+b
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+            sage: b+a
+            [ 0  2  4]
+            [ 9 11 13]
+            [ 9 11 13]
+        """
+
+        cdef Py_ssize_t i,j
+        cdef long k
+        cdef Matrix_modn_dense M
+
+        M = Matrix_modn_dense.__new__(Matrix_modn_dense, self._parent,None,None,None)
+        Matrix.__init__(M, self._parent)
+
+        _sig_on
+        cdef mod_int *row_self, *row_right, *row_ans
+        for i from 0 <= i < self._nrows:
+            row_self = self._matrix[i]
+            row_right = (<Matrix_modn_dense> right)._matrix[i]
+            row_ans = M._matrix[i]
+            for j from 0<= j < self._ncols:
+                k = (row_self[j]+row_right[j])
+                # division is really slow, so we normalize only when it is necessary
+                if k>=self.p:
+                    row_ans[j]=k-self.p
+                else:
+                    row_ans[j]=k
+
+        _sig_off
+        return M;
+
+
     cdef Matrix _matrix_times_matrix_c_impl(self, Matrix right):
+        if get_verbose() >= 2:
+            verbose('mod-p multiply of %s x %s matrix by %s x %s matrix modulo %s'%(
+                self._nrows, self._ncols, right._nrows, right._ncols, self.p))
         if self._will_use_strassen(right):
             return self._multiply_strassen(right)
         else:

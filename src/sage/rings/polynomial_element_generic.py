@@ -1554,7 +1554,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
 
 class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen = False, construct=False, absprec=None):
-        Polynomial_generic_dense.__init__(self, parent, x, check, is_gen, absprec)
+        Polynomial_generic_dense.__init__(self, parent, x, check, is_gen, absprec=absprec)
 
     def _mul_(self, right):
         return self._mul_generic(right)

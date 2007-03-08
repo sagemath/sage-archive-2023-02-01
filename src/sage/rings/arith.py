@@ -60,7 +60,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         x^2 - 2
 
     This example involves a complex number.
-        sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
+        sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
         x^5 + x^2
@@ -2158,7 +2158,7 @@ def continued_fraction(x, partial_convergents=False):
     EXAMPLES:
         sage: continued_fraction(45/17)
         [2, 1, 1, 1, 5]
-        sage: continued_fraction(sqrt(2))
+        sage: continued_fraction(RR(sqrt(2)))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
@@ -2592,7 +2592,7 @@ def rising_factorial(x, a):
 
     See falling_factorial(I, 4).
 
-        sage: R = ZZ['x']
+        sage: x = polygen(ZZ)
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 

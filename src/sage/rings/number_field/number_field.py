@@ -212,6 +212,7 @@ class NumberField_generic(field.Field):
         complex field with precision prec.
 
         EXAMPLES:
+            sage: x = polygen(QQ)
             sage: f = x^5 + x + 17
             sage: k.<a> = NumberField(f)
             sage: v = k.complex_embeddings()

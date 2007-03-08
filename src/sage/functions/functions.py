@@ -112,8 +112,6 @@ class FunctionRing_class(CommutativeRing):
         return Function_gen(x)
 
     def _coerce_impl(self, x):
-        if is_Polynomial(x):
-            return self(x)
         return self(x)
 
     def characteristic(self):

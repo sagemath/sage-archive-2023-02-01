@@ -80,7 +80,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
                 raise ValueError, "Cannot coerce between p-adic rings with different primes."
             self._ordp = x.valuation()
             if relprec is None:
-                relprec = absprec - self._ordp
+                if self._ordp is infinity:
+                    relprec = 0
+                else:
+                    relprec = absprec - self._ordp
             self._relprec = min(relprec, x.precision_relative(), parent.precision_cap())
             self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
@@ -129,7 +132,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             return
         x = x / self.parent().prime_pow(self._ordp)
         if relprec is None:
-            self._relprec = min(absprec - self._ordp, parent.precision_cap())
+            if self._ordp is infinity:
+                self._relprec = 0
+            else:
+                self._relprec = min(absprec - self._ordp, parent.precision_cap())
         elif absprec is None:
             self._relprec = relprec
         else:
@@ -298,6 +304,12 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             return 0
         else:
             return self.parent().prime_pow(self.valuation()) * self._unit_part().lift()
+
+    def lift_to_precision(self, absprec):
+        if self.valuation() is infinity:
+            return self
+        newprec = min(absprec - self.valuation(), self.parent().precision_cap())
+        return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation(), Mod(self._unit_part(), self.parent().prime_pow(newprec)), newprec), construct = True)
 
     def list(self):
         """

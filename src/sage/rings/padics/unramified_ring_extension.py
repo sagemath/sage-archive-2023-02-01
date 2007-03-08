@@ -81,7 +81,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
             return True
         if isinstance(x, pAdicRingBaseGeneric) and x.parent().prime() == self.prime() and (not isinstance(x, pAdicRingFixedModElement) or isinstance(self.ground_ring_of_tower(), pAdicRingFixedMod)):
             return True
-        if isinstance(x, Polynomial) and x in self.polynomial_ring():
+        if isinstance(x, Polynomial) and x.parent() is self.polynomial_ring():
             return True
         #have not yet added support for coercion from other unramified extension rings
         return False

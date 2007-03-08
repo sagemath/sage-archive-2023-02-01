@@ -1062,10 +1062,9 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         prec = integer.Integer(prec)
         if prec <= 0:
             raise ValueError, "prec must be positive"
-        G = self._pari_().factorpadic(p, prec)
         K = Qp(p, prec, type='capped-rel')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
-        return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
+        return R(self).factor(absprec = prec)
 
     def list(self):
         """
@@ -1476,10 +1475,9 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         prec = integer.Integer(prec)
         if prec <= 0:
             raise ValueError, "prec must be positive"
-        G = self._pari_().factorpadic(p, prec)
         K = padics.zp.Zp(p, prec, type='capped-abs')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
-        return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
+        return R(self).factor()
 
     def list(self):
         """
@@ -1676,6 +1674,11 @@ class Polynomial_padic_field_dense(Polynomial_padic_generic_dense, Polynomial_ge
             return self.base_ring()(1)
         else:
             return self.base_ring()(0)
+
+    def _xgcd(self, other):
+        H = Polynomial_generic_dense_field._xgcd(self, other)
+        c = ~H[0].leading_coefficient()
+        return c * H[0], c * H[1], c * H[2]
 
 
 class Polynomial_padic_ring_lazy_dense(Polynomial_padic_ring_dense):

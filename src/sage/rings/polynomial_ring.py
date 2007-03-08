@@ -284,6 +284,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return "%s[%s]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
 
     def __set_polynomial_class(self, cls=None):
+        from padics.unramified_ring_extension import UnramifiedRingExtension #here for a hack.  Should be removed after hack is gone
         if not (cls is None):
             self.__polynomial_class = cls
             return
@@ -296,6 +297,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_lazy_dense
         elif isinstance(R, padics.padic_field_lazy.pAdicFieldLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_lazy_dense
+        elif isinstance(R, UnramifiedRingExtension) and R.ground_ring_of_tower().is_field():
+            #hack.  Should be removed after we fix inheretance structure
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_dense
         elif isinstance(R, padics.padic_ring_generic.pAdicRingGeneric):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_dense
         elif isinstance(R, padics.padic_field_generic.pAdicFieldGeneric):
@@ -720,8 +724,8 @@ class PolynomialRing_padic_ring(PolynomialRing_integral_domain):
 
 class PolynomialRing_padic_field(PolynomialRing_field):
     def __init__(self, base_ring, name=None):
-        if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
-            raise TypeError, "Base ring must be a p-adic field"
+        #if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
+        #    raise TypeError, "Base ring must be a p-adic field" #should be uncommented after hack is removed
         PolynomialRing_field.__init__(self, base_ring, name)
 
 class PolynomialRing_padic_ring_lazy(PolynomialRing_padic_ring):

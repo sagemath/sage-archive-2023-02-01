@@ -189,6 +189,10 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
     def lift(self):
         return self.parent().prime_pow(self._base_valuation) * self._cache.lift()
 
+    def lift_to_precision(self, absprec):
+        self.set_precision_absolute(absprec)
+        return copy.copy(self)
+
     def list(self):
         if isinstance(self, pAdicLazy_zero):
             return []

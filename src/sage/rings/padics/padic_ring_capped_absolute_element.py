@@ -209,6 +209,10 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def lift(self):
         return self._value.lift() % self.parent().prime_pow(self.precision_absolute())
 
+    def lift_to_precision(self, absprec):
+        absprec = min(absprec, self.parent().precision_cap())
+        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value, self.parent().prime_pow(absprec)), absprec), construct = True)
+
     def list(self):
         """
         Returns a list of coeficiants of p starting with $p^0$

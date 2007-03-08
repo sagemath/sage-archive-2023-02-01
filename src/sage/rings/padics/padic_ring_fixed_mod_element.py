@@ -384,6 +384,9 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         """
         return self._value.lift()
 
+    def lift_to_precision(self, absprec):
+        return self
+
     def list(self):
         r"""
         Returns a list of coefficients of p starting with $p^0$.

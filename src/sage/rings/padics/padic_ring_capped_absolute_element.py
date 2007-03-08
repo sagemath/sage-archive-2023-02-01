@@ -66,13 +66,16 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             self._value = Mod(Mod(x.lift(), self.parent().prime_pow(self._absprec)), self.parent().prime_pow(self.parent().precision_cap()))
             return
 
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            t = x.lift()
-            prec = min(x.padicprec(parent.prime()), prec)
-            if t.type() == 't_INT':
-                x = int(t)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                prec = min(x.padicprec(parent.prime()), prec)
+                x = x.lift()
+            if x.type() == "t_INT":
+                x = Integer(x)
+            elif x.type() == "t_FRAC":
+                x = Rational(x)
             else:
-                x = QQ(t)
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
         if sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
@@ -111,9 +114,9 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def __pow__(self, right):
         new = Integer(right) #Need to make sure that this works for p-adic exponents
         val = self.valuation()
-        if (val > 0) and (isinstance(right, pAdicRingGenericElement) or isinstance(right, sage.rings.padics.padic_field_element.pAdicFieldGenericElement)):
+        if (val > 0) and (isinstance(right, pAdicRingGenericElement) or isinstance(right, pAdicFieldGenericElement)):
             raise ValueError, "Can only have p-adic exponent if base is a unit"
-        return pAdicRingCappedAbsoluteElement(self.parent(), (self._value**right, min(self._absprec - val + right * val, self.parent().precision_cap())), construct = True)
+        return pAdicRingCappedAbsoluteElement(self.parent(), (self._value**new, min(self._absprec - val + new * val, self.parent().precision_cap())), construct = True)
 
     def _add_(self, right):
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._value + right._value, min(self.precision_absolute(), right.precision_absolute())), construct = True)

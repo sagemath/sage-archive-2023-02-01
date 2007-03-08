@@ -7,6 +7,8 @@ import ring
 import weakref
 import padics.padic_ring_generic
 import padics.padic_field_generic
+import padics.padic_ring_lazy
+import padics.padic_field_lazy
 
 _cache = {}
 
@@ -271,6 +273,12 @@ def _single_variate(base_ring, name, sparse):
                 R = m.PolynomialRing_dense_mod_n(base_ring, name)
             else:  # n == 1!
                 R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
+
+        elif isinstance(base_ring, padics.padic_ring_lazy.pAdicRingLazy):
+            R = m.PolynomialRing_padic_ring_lazy(base_ring, name)
+
+        elif isinstance(base_ring, padics.padic_field_lazy.pAdicFieldLazy):
+            R = m.PolynomialRing_padic_field_lazy(base_ring, name)
 
         elif isinstance(base_ring, padics.padic_ring_generic.pAdicRingGeneric):
             R = m.PolynomialRing_padic_ring(base_ring, name)

@@ -158,15 +158,22 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
             return lazy.pAdicLazy_mod(self, x, prec)
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            try:
-                val = x.valuation(parent.prime())
-            except PariError:
-                raise TypeError, "cannot change primes in creating p-adic elements"
-            if val < 0:
-                raise ValueError, "element not a p-adic integer"
-            prec = min(x.padicprec(parent.prime()) - val, prec)
-            return lazy.pAdicLazy_mod(self, Integer(x.lift()), prec)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                try:
+                    val = x.valuation(parent.prime())
+                except PariError:
+                    raise TypeError, "cannot change primes in creating p-adic elements"
+                if val < 0:
+                    raise ValueError, "element not a p-adic integer"
+                prec = min(x.padicprec(parent.prime()) - val, prec)
+                return lazy.pAdicLazy_mod(self, Integer(x.lift()), prec)
+            elif x.type() == "t_INT":
+                return lazy.pAdicLazy_integer(self,Integer(x))
+            elif x.type() == "t_FRAC":
+                return lazy.pAdicLazy_rational(self, Rational(x))
+            else:
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
         raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
 
     def __cmp__(self, other):

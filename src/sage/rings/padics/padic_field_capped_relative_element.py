@@ -66,16 +66,16 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             self._unit = Mod(x._unit_part(), x.parent().prime_pow(self._relprec))
             return
 
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            t = x.lift()
-            prec = min(x.padicprec(parent.prime()) - x.valuation(parent.prime()), prec)
-            if t.type() == 't_INT':
-                x = int(t)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                prec = min(x.padicprec(parent.prime()), prec)
+                x = x.lift()
+            if x.type() == "t_INT":
+                x = Integer(x)
+            elif x.type() == "t_FRAC":
+                x = Rational(x)
             else:
-                x = QQ(t)
-
-	if isinstance(x, pari_gen) and x.type() == "t_INT":
-	    x = int(x)
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
         if sage.rings.finite_field_element.is_FiniteFieldElement(x):
             if x.parent().order() != parent.prime():

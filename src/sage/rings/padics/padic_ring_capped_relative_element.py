@@ -46,7 +46,7 @@ Rational = sage.rings.rational.Rational
 infinity = sage.rings.infinity.infinity
 
 class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
-    def __init__(self, parent, x, prec=None, construct=False):
+    def __init__(self, parent, x, absprec=None, relprec=None, construct=False):
         """
         Constructs new element with given parent and value.
 
@@ -119,35 +119,53 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             (self._ordp, self._unit, self._relprec) = x
             return
 
-        if prec is None or prec > parent.precision_cap():
-            prec = parent.precision_cap()
+        if not absprec is None and not relprec is None:
+            raise ValueError, "can only specify one of absprec and relprec"
+        if absprec is None:
+            if relprec is None or relprec > parent.precision_cap():
+                relprec = parent.precision_cap()
 
         if isinstance(x, pAdicGenericElement) and x.parent().is_field() and x.valuation() < 0:
             raise ValueError, "element has negative valuation."
         if isinstance(x, pAdicLazyElement):
-            try:
-                x.set_precision_relative(prec)
-            except PrecisionError:
-                pass
+            if relprec is None:
+                try:
+                    x.set_precision_absolute(absprec)
+                except PrecisionError:
+                    pass
+                self._relprec = min(parent.precision_cap(), x.precision_relative())
+            else:
+                try:
+                    x.set_precision_relative(relprec)
+                except PrecisionError:
+                    pass
+                self._relprec = min(relprec, x.precision_relative())
             self._ordp = x._min_valuation()
-            self._relprec = min(prec, x.precision_relative())
             self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
         if isinstance(x, pAdicRingGenericElement) or isinstance(x, pAdicFieldGenericElement):
             if parent.prime() != x.parent().prime():
                 raise ValueError, "Cannot coerce between p-adic rings with different primes."
             self._ordp = x.valuation()
-            self._relprec = min(prec, x.precision_relative())
+            if relprec is None:
+                relprec = absprec - self._ordp
+            self._relprec = min(relprec, x.precision_relative(), parent.precision_cap())
             self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
 
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            t = x.lift()
-            prec = min(x.padicprec(parent.prime()) - x.valuation(parent.prime()), prec)
-            if t.type() == 't_INT':
-                x = Integer(t)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                if not absprec is None:
+                    absprec = min(x.padicprec(parent.prime()), absprec)
+                else:
+                    absprec = x.padicprec(parent.prime())
+                x = x.lift()
+            if x.type() == "t_INT":
+                x = Integer(x)
+            elif x.type() == "t_FRAC":
+                x = Rational(x)
             else:
-                raise ValueError, "element not a p-adic integer"
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
 
         if sage.rings.finite_field_element.is_FiniteFieldElement(x):
             if x.parent().order() != parent.prime():

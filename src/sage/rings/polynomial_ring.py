@@ -151,7 +151,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 (self.base_ring(), self.variable_name(), None, self.is_sparse()))
 
 
-    def __call__(self, x=None, check=True, is_gen = False, construct=False):
+    def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
@@ -171,7 +171,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         #    return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
-        return C(self, x, check, is_gen, construct=construct)
+        if absprec is None:
+            return C(self, x, check, is_gen, construct=construct)
+        else:
+            return C(self, x, check, is_gen, construct=construct, absprec)
 
     def _coerce_impl(self, x):
         """
@@ -289,6 +292,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
+        elif isinstance(R, padics.padic_ring_lazy.pAdicRingLazy):
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_lazy_dense
+        elif isinstance(R, padics.padic_field_lazy.pAdicFieldLazy):
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_lazy_dense
         elif isinstance(R, padics.padic_ring_generic.pAdicRingGeneric):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_dense
         elif isinstance(R, padics.padic_field_generic.pAdicFieldGeneric):
@@ -707,6 +714,12 @@ class PolynomialRing_padic_field(PolynomialRing_field):
         if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
             raise TypeError, "Base ring must be a p-adic field"
         PolynomialRing_field.__init__(self, base_ring, name)
+
+class PolynomialRing_padic_ring_lazy(PolynomialRing_padic_ring):
+    pass
+
+class PolynomialRing_padic_field_lazy(PolynomialRing_padic_field):
+    pass
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name="x"):

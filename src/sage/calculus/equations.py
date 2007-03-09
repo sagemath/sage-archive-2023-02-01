@@ -12,6 +12,9 @@ class SymbolicEquation(SageObject):
     def _repr_(self):
         return "%s == %s" %(self._left, self._right)
 
+    def _latex_(self):
+        return "%s = %s" %(self._left._latex_(), self._right._latex_())
+
     def __nonzero__(self):
         result = self._left.__cmp__(self._right)
 

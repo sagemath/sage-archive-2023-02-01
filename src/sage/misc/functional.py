@@ -824,7 +824,7 @@ def sqrt(x):
         3
     """
     try: return x.sqrt()
-    except (AttributeError, ValueError): return CDF(x).sqrt()
+    except (AttributeError, ValueError): return RDF(x).sqrt()
 
 def isqrt(x):
     """

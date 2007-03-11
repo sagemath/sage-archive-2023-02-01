@@ -49,8 +49,8 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
         pAdicRingGeneric.__init__(self, R.prime(), prec, print_mode)
 
-    def __call__(self, x, prec = None):
-        return UnramifiedRingExtensionElement(self, x, prec)
+    def __call__(self, x, prec = None, absprec = None, relprec = None):
+        return UnramifiedRingExtensionElement(self, x, prec, absprec, relprec)
     #        r"""
     #        This is currently unimplemented, as understanding how to
     #        embed one ring in another when appropriate is nontrivial.

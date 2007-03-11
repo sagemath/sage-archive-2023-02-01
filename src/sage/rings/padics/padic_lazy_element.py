@@ -64,7 +64,8 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
             return self
         return pAdicLazy_div(self, right)
 
-    def _floordiv_(self, right):
+    def __floordiv__(self, right):
+        right = self.parent()(right)
         if self.parent().is_field():
             return self._div_(right)
         if isinstance(right, pAdicLazy_zero):
@@ -590,7 +591,7 @@ class pAdicLazy_lshift(pAdicLazyElement):
         self._recompute()
 
     def set_precision_absolute(self, n, halt = None):
-        self._x.set_precision_absolute(n + self._shift)
+        self._x.set_precision_absolute(n + self._shift, halt)
 
 class pAdicLazy_rshift(pAdicLazyElement):
     def __init__(self, x, shift): #self is a ring element and shift is nonnegative
@@ -630,12 +631,12 @@ class pAdicLazy_rshift(pAdicLazyElement):
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_relative(n + self._suck)
+            self._x.set_precision_relative(n + self._suck, halt)
             self._recompute()
 
     def set_precision_absolute(self, n, halt = None):
         if n > self.precision_absolute():
-            self._x.set_precision_absolute(n + self._shift)
+            self._x.set_precision_absolute(n + self._shift, halt)
 
 class pAdicLazy_pow(pAdicLazyElement):
     def __init__(self, x, y):
@@ -733,12 +734,12 @@ class pAdicLazy_unitpart(pAdicLazyElement):
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_relative()
+            self._x.set_precision_relative(n)
             self._recompute()
 
     def set_precision_absolute(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_relative()
+            self._x.set_precision_relative(n)
             self._recompute()
 
     def valuation(self):
@@ -779,15 +780,15 @@ class pAdicLazy_log(pAdicLazyElement):
         self._set_base_valuation(val)
         self._set_cache_prec(prec - self._base_valuation)
 
-    def set_precision_absolute(self, n):
+    def set_precision_absolute(self, n, halt = None):
         if n > self.precision_absolute():
-            self._x.set_precision_absolute(n)
+            self._x.set_precision_absolute(n, halt)
             self._recompute()
 
-    def set_precision_relative(self, n):
+    def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
             v = self.valuation()
-            self._x.set_precision_absolute(v + n)
+            self._x.set_precision_absolute(v + n, halt)
             self._recompute()
 
 class pAdicLazy_exp(pAdicLazyElement):
@@ -823,12 +824,12 @@ class pAdicLazy_exp(pAdicLazyElement):
 
     def set_precision_absolute(self, n, halt = None):
         if n > self.precision_absolute():
-            self._x.set_precision_absolute(n) #need more when p == 2?
+            self._x.set_precision_absolute(n, halt) #need more when p == 2?
             self._recompute()
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_absolute(n) #need more when p == 2?
+            self._x.set_precision_absolute(n, halt) #need more when p == 2?
             self._recompute()
 
 class pAdicLazy_logah(pAdicLazyElement):

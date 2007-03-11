@@ -2,12 +2,13 @@ import weakref
 import sage.rings.padics.padic_field_capped_relative
 import sage.rings.padics.padic_field_lazy
 
+Integer = sage.rings.integer.Integer
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldLazy = sage.rings.padics.padic_field_lazy.pAdicFieldLazy
 
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
+def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check = True):
     """
     A creation function for p-adic fields.
 

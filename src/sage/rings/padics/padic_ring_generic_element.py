@@ -63,8 +63,8 @@ class pAdicRingGenericElement(pAdicGenericElement):
 
     def __floordiv__(self, right):
         if isinstance(right, Integer):
-            right = parent()(right)
-        return (self / right.unit_part()).__rshift__(right.valuation())
+            right = self.parent()(right)
+        return self.parent()(self / right.unit_part()).__rshift__(right.valuation())
 
     def __mod__(self, right):
         return self - right * self.__floordiv__(right)

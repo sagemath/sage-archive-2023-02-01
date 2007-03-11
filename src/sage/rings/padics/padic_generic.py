@@ -117,8 +117,6 @@ class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
         """
         if n is infinity:
             return 0
-        elif n < 0:
-            raise ValueError, "should not use prime_pow to compute negative powers of p.  Use 1 / prime_pow(-n) instead."
         else:
             return self._p ** n
 

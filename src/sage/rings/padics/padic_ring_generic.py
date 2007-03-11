@@ -128,8 +128,7 @@ import sage.rings.padics.padic_generic
 #import sage.rings.padics.padic_ring_capped_absolute
 #import sage.rings.padics.padic_ring_fixed_mod
 #import sage.rings.padics.padic_ring_lazy
-
-
+from sage.rings.integer import Integer
 
 
 def is_pAdicRing(R):

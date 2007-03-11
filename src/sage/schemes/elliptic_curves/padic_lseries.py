@@ -187,7 +187,7 @@ class pAdicLseries(SageObject):
         """
         K = self._Qp
         pn = self._p ** n
-        return [0] + [(K.teichmuller(a)%pn).lift() for a in range(1,self._p)]
+        return [0] + [(K.teichmuller(a).residue(n)).lift() for a in range(1,self._p)]
 
 class pAdicLseriesOrdinary(pAdicLseries):
     pass

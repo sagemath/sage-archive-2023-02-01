@@ -342,7 +342,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 term *=x
                 term //= working_ring(Integer(n))
                 ans += term
-            # Note that it is the absolute precision that is respected by exp
+            # Note that it is the absolute precision that is respected by exp: even when p == 2?
             return self.parent()(ans).add_bigoh(prec)
         else:
             raise ValueError, "series doesn't converge"

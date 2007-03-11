@@ -165,9 +165,9 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         self._base_valuation = base_valuation
 
     def exp(self):
-        if self._is_unit():
-            raise ValueError, "cannot take exp of a unit"
-        return pAdicLazy_exp(self)
+        if (self.valuation() > 0 and self.parent().prime() != 2) or self.valuation() > 1:
+            return pAdicLazy_exp(self)
+        raise ValueError, "cannot take exp of a unit (or x == 2 (mod 4))"
 
     def exp_artin_hasse(self):
         #Do valuation checking
@@ -724,10 +724,10 @@ class pAdicLazy_unitpart(pAdicLazyElement):
     def __init__(self, x):
         pAdicGenericElement.__init__(self, x.parent().integer_ring())
         self._x = x
+        self._set_base_valuation(Integer(0))
         self._recompute()
 
     def _recompute(self):
-        self._set_base_valuation(Integer(0))
         self._set_cache(self._x._cache)
         self._set_cache_prec(self._x._cache_prec)
 
@@ -752,7 +752,8 @@ class pAdicLazy_log(pAdicLazyElement):
             self._x = x
             self._n = Integer(1)
         else:
-            self._x = x.__pow__(x.parent().prime() - 1)
+            self._n = x.residue(1).multiplicative_order()
+            self._x = x.__pow__(self._n)
             self._n = x.parent().prime() - 1
         self._recompute()
 
@@ -793,7 +794,42 @@ class pAdicLazy_exp(pAdicLazyElement):
     def __init__(self, x):
         pAdicGenericElement.__init__(self, x.parent())
         self._x = x
-        raise NotImplementedError
+        self._set_base_valuation(Integer(0))
+        self._recompute()
+
+    def _recompute(self):
+        if self._x.precision_relative() == 0:
+            if self.parent().prime() == 2:
+                self._set_cache_prec(self._x.precision_absolute() - 1)
+            else:
+                self._set_cache_prec(self._x.precision_absolute())
+            self._set_cache(Mod(1, self.parent().prime_pow(self._cache_prec)))
+        else:
+            val = self._x.valuation()
+            p = self.parent().prime()
+            prec = self._x.precision_absolute()
+            max_term = ((p-1)*(prec-1)) // ((p-1) * val - 1) + 1
+            extra_prec = max_term // (p - 1)
+            from sage.rings.padics.zp import Zp
+            working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
+            x = working_ring(self._x.lift())
+            term = ans = working_ring(1)
+            for n in range(1, max_term):
+                term *= x
+                term //= working_ring(n)
+                ans += term
+            self._set_cache_prec(prec)
+            self._set_cache(ans.residue(prec))
+
+    def set_precision_absolute(self, n, halt = None):
+        if n > self.precision_absolute():
+            self._x.set_precision_absolute(n) #need more when p == 2?
+            self._recompute()
+
+    def set_precision_relative(self, n, halt = None):
+        if n > self.precision_relative():
+            self._x.set_precision_absolute(n) #need more when p == 2?
+            self._recompute()
 
 class pAdicLazy_logah(pAdicLazyElement):
     def __init__(self, x):

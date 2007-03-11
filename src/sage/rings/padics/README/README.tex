@@ -283,9 +283,10 @@ arise where the insolvability of the halting problem gives us problems.  For exa
 sage: a = R(16)
 sage: b = a.log().exp() - a
 sage: b
-
-sage b.valuation()
-
+O(5^10)
+sage: b.valuation()
+...
+<class 'sage.rings.padics.precision_error.HaltingError'>: Stopped computing sum: set halting paramter higher if you want computation to continue
 
 The second is \verb/halt/
 

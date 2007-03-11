@@ -20,6 +20,7 @@ AUTHOR:
 import sage.rings.padics.padic_generic_element
 #import sage.rings.padics.padic_ring_generic
 
+Integer = sage.rings.integer.Integer
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 infinity = sage.rings.infinity.infinity
@@ -62,7 +63,7 @@ class pAdicRingGenericElement(pAdicGenericElement):
 
     def __floordiv__(self, right):
         if isinstance(right, Integer):
-            right = pAdicRingCappedRelativeElement(self.parent(), right)
+            right = parent()(right)
         return (self / right.unit_part()).__rshift__(right.valuation())
 
     def __mod__(self, right):

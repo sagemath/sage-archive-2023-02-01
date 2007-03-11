@@ -216,15 +216,15 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     def _repr_(self, mode = None, do_latex = False):
         return sage.rings.padics.padic_generic_element.pAdicGenericElement._repr_(self, mode, do_latex, True)
 
-    def __mod__(self, right):
-        val = self.valuation()
-        rval = right.valuation()
-        if rval > val:
-            raise PrecisionError, "not enough precision to reduce"
-        if right == self.parent().prime_pow(rval):
-            return Mod(self.lift(), right)
-        else:
-            raise ValueError, "modulus must be a power of p"
+    #def __mod__(self, right):
+    #    val = self.valuation()
+    #    rval = right.valuation()
+    #    if rval > val:
+    #        raise PrecisionError, "not enough precision to reduce"
+    #    if right == self.parent().prime_pow(rval):
+    #        return Mod(self.lift(), right)
+    #    else:
+    #        raise ValueError, "modulus must be a power of p"
 
     def _neg_(self):
         """

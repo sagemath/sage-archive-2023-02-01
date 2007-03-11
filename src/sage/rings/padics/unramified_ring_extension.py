@@ -1,3 +1,19 @@
+"""
+Unramified extensions of the p-adic integers.
+
+AUTHORS:
+    -- David Roe
+"""
+
+########################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>, David Roe
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
 from sage.rings.padics.padic_ring_generic import pAdicRingGeneric
 from sage.rings.padics.padic_ring_generic import pAdicRingBaseGeneric
 from sage.rings.polynomial_quotient_ring import *
@@ -16,7 +32,7 @@ PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingE
 
 class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     r"""
-    Base class for extensions of Z_p.
+    Base class for unramified extensions of Z_p.
 
     As of right now, implemented in the simplest way possible:
     we just take a polynomial and a ring, and return the polynomial
@@ -28,6 +44,9 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     polynomial into a totally ramified and unramified part, and
     create two subextensions, so that the whole extension is
     given as a tower.
+
+    EXAMPLE:
+
     """
 
     def __init__(self, poly, prec = None, print_mode = None, check = True):

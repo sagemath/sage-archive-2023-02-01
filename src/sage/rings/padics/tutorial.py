@@ -1,32 +1,4 @@
-\documentclass[12pt]{article}
-
-\usepackage{amssymb, amsmath}
-
-\textwidth=6in
-\textheight=8.9in
-\topmargin=-0.5in
-\evensidemargin=0.25in
-\oddsidemargin=0.25in
-
-\newtheorem{theorem}{Theorem}[section]
-\newtheorem{definition}[theorem]{Definition}
-
-\title{Tutorial for p-adics in SAGE}
-\author{David Roe}
-\date{\today}
-
-\begin{document}
-
-\def\ZZ{\mathbb{Z}}
-\def\QQ{\mathbb{Q}}
-\def\Qp{\mathbb{Q}_p}
-\def\Zp{\mathbb{Z}_p}
-\def\Zpx{\mathbb{Z}_p^{\times}}
-\def\Zpn{\mathbb{Z} / p^n\mathbb{Z}}
-\def\OK{\mathcal{O}_K}
-
-\maketitle
-
+r"""
 \section{Introduction}
 
 $p$-adics in SAGE are currently undergoing a transformation.
@@ -131,6 +103,7 @@ As with all of the implementations of $\Zp$, one creates a new ring using the co
 sage: R = Zp(5, prec = 10, type = 'fixed-mod', print_mode = 'series')
 sage: R
 5-adic Ring of fixed modulus 5^10
+
 \end{verbatim}
 
 One can create elements as follows:
@@ -141,6 +114,7 @@ sage: a
 sage: b = R(105)
 sage: b
 5 + 4*5^2 + O(5^10)
+
 \end{verbatim}
 
 Now that we have some elements, we can do arithmetic in the ring.
@@ -151,6 +125,7 @@ sage: a * b
 3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
 sage: a // 5
 3*5^2 + O(5^10)
+
 \end{verbatim}
 
 Since elements don't actually store their actual precision, one can only divide by units:
@@ -158,14 +133,17 @@ Since elements don't actually store their actual precision, one can only divide 
 sage: a / 2
 4*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
 sage: a / b
+Traceback (most recent call last):
 ...
-<type 'exceptions.ValueError'>: cannot invert non-unit
+ValueError: cannot invert non-unit
+
 \end{verbatim}
 
 If you want to divide by a non-unit, do it using the \verb@//@ operator:
 \begin{verbatim}
 sage: a // b
 3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + O(5^10)
+
 \end{verbatim}
 
 \subsection{Capped Absolute Rings}
@@ -180,6 +158,7 @@ Once again, use \verb/Zp/ to create a capped absolute $p$-adic ring.
 sage: R = Zp(5, prec = 10, type = 'capped-abs', print_mode = 'series')
 sage: R
 5-adic Ring with capped absolute precision 10
+
 \end{verbatim}
 
 We can do similar things as in the fixed modulus case:
@@ -197,18 +176,21 @@ sage: a * b
 sage: c = a // 5
 sage: c
 3*5^2 + O(5^9)
+
 \end{verbatim}
 
 Note that when we divided by 5, the precision of \verb/c/ dropped.  This lower precision is now reflected in arithmetic.
 \begin{verbatim}
 sage: c + b
 5 + 2*5^2 + 5^3 + O(5^9)
+
 \end{verbatim}
 
 Division is allowed: the element that results is a capped relative field element, which is discussed in the next section:
 \begin{verbatim}
 sage: 1 / (c + b)
 5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + O(5^7)
+
 \end{verbatim}
 
 \subsection{Capped Relative Rings and Fields}
@@ -227,6 +209,7 @@ sage: R
 sage: K = Qp(5, prec = 10, type = 'capped-rel', print_mode = 'series')
 sage: K
 5-adic Field with capped relative precision 10
+
 \end{verbatim}
 
 We can do all of the same operations as in the other two cases, but precision works a bit differently:
@@ -247,18 +230,22 @@ sage: c
 3*5^2 + O(5^12)
 sage: c + 1
 1 + 3*5^2 + O(5^10)
+
 \end{verbatim}
 
 As with the capped absolute precision rings, we can divide, yielding a capped relative precision field element.
 \begin{verbatim}
 sage: 1 / (c + b)
 5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + 2*5^7 + 5^8 + O(5^9)
+
 \end{verbatim}
 
 \subsection{Lazy Rings and Fields}
-The model for lazy elements is quite different from any of the other types of $p$-adics.
-In addition to storing a finite approximation, one also stores a method for increasing
-the precision.  The interface supports two ways to do this: \verb/set_precision_relative/ and
+
+The model for lazy elements is quite different from any of the other
+types of $p$-adics.  In addition to storing a finite approximation,
+one also stores a method for increasing the precision.  The interface
+supports two ways to do this: \verb/set_precision_relative/ and
 \verb/set_precision_absolute/.
 
 \begin{verbatim}
@@ -274,23 +261,60 @@ sage: K.precision_cap()
 20
 sage: K.halting_parameter()
 40
+
 \end{verbatim}
 
-There are two parameters that are set at the creation of a lazy ring or field.  The first is \verb/prec/, which
-controls the precision to which elements are initially computed.  When computing with lazy rings, sometimes situations
-arise where the insolvability of the halting problem gives us problems.  For example,
+There are two parameters that are set at the creation of a lazy ring
+or field.  The first is \verb/prec/, which controls the precision to
+which elements are initially computed.  When computing with lazy
+rings, sometimes situations arise where the insolvability of the
+halting problem gives us problems.  For example,
+
 \begin{verbatim}
 sage: a = R(16)
 sage: b = a.log().exp() - a
 sage: b
 O(5^10)
 sage: b.valuation()
+Traceback (most recent call last):
 ...
-<class 'sage.rings.padics.precision_error.HaltingError'>: Stopped computing sum: set halting paramter higher if you want computation to continue
+HaltingError: Stopped computing sum: set halting parameter higher if you want computation to continue
+
+\end{verbatim}
 
 The second is \verb/halt/
+"""
 
-\begin{verbatim}
+def _view():
+    import os
+    import tutorial
+    from sage.misc.misc import tmp_filename
+    F = tmp_filename('tutorial')
+    T = """
+\\documentclass{article}
+\\newtheorem{theorem}{Theorem}[section]
+\\newtheorem{definition}[theorem]{Definition}
+
+\\title{Tutorial for p-adics in SAGE}
+\usepackage{amssymb, amsmath}
+\\author{David Roe}
+\\date{\\today}
+\\def\\ZZ{\\mathbb{Z}}
+\\def\\QQ{\\mathbb{Q}}
+\\def\\Qp{\\mathbb{Q}_p}
+\\def\\Zp{\\mathbb{Z}_p}
+\\def\\Zpx{\\mathbb{Z}_p^{\\times}}
+\\def\\Zpn{\\mathbb{Z} / p^n\\mathbb{Z}}
+\\def\\OK{\\mathcal{O}_K}
+\\begin{document}
+\\maketitle
+%s
+\\end{document}
+"""%tutorial.__doc__
+    os.chdir(os.path.split(F)[0])
+    open(F + '.tex', 'w').write(T)
+    os.system('latex %s.tex'%F)
+    print F + '.dvi'
+    os.system('xdvi %s.dvi'%F)
 
 
-\end{document}

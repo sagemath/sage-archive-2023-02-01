@@ -476,7 +476,7 @@ class pAdicLazy_addtype(pAdicLazyElement):
                         self._recompute()
                         break
                 if self.precision_relative() == 0:
-                    raise HaltingError, "Stopped computing sum: set halting paramter higher if you want computation to continue"
+                    raise HaltingError, "Stopped computing sum: set halting parameter higher if you want computation to continue"
 
 
 class pAdicLazy_add(pAdicLazy_addtype):

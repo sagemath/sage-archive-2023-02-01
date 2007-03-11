@@ -35,7 +35,7 @@ We compute a Hecker operator on a space of huge dimension!
 TESTS:
     sage: X = SupersingularModule(389)
     sage: T = X.T(2).matrix().change_ring(QQ)
-    sage: time d = T.decomposition()
+    sage: d = T.decomposition()
     boom right now -- fix this!
 """
 

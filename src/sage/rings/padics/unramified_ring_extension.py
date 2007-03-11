@@ -188,9 +188,6 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         from sage.groups.perm_gps.permgroup import CyclicPermutationGroup
         return CyclicPermutationGroup(self.modulus().degree())
 
-    def gen(self):
-        return self.polynomial_ring().gen()
-
     def is_abelian(self):
         return True
 

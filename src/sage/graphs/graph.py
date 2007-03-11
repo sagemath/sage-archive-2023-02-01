@@ -54,7 +54,7 @@ TUTORIAL:
 
                 sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
                 sage: G = Graph(d); G
-                Simple graph on 10 vertices (no loops, no multiple edges)
+                A graph on 10 vertices
                 sage: G.save('sage.png')
 
                     b. A NetworkX graph:
@@ -68,7 +68,7 @@ TUTORIAL:
 
                 sage: s = ':I`AKGsaOs`cI]Gb~'
                 sage: G = Graph(s); G
-                Simple graph on 10 vertices (with loops, with multiple edges)
+                A looped multi-graph on 10 vertices
                 sage: G.save('sage.png')
 
                 iii. adjacency matrix: In an adjacency matrix, each column and each row represent
@@ -87,7 +87,7 @@ TUTORIAL:
                 [0 0 0 1 0 1 1 0 0 0]
                 [0 0 0 0 1 0 1 1 0 0]
                 sage: G = Graph(M); G
-                Simple graph on 10 vertices (no loops, no multiple edges)
+                A graph on 10 vertices
                 sage: G.save('sage.png')
 
                 iv. incidence matrix: In an incidence matrix, each row represents a vertex
@@ -106,7 +106,7 @@ TUTORIAL:
                 [ 0  0  0  0  0  0  0  0  1 -1  0  0  0  1  0]
                 [ 0  0  0  0  0  0  1 -1  0  0  0  0  0  0  1]
                 sage: G = Graph(M); G
-                Simple graph on 10 vertices (no loops, no multiple edges)
+                A graph on 10 vertices
                 sage: G.save('sage.png')
 
         2. Generators
@@ -134,10 +134,10 @@ TUTORIAL:
             [0 0 0 1 0 1 1 0 0 0]
             [0 0 0 0 1 0 1 1 0 0]
 
-            sage: S = G.random_subgraph(.7)
+            sage: S = G.subgraph([0,1,2,3])
             sage: S.plot().save('sage.png')    # or S.show()
-            sage: S.density()         # random output (depends on choice of random graph)
-            0.33333333333333331
+            sage: S.density()
+            1/2
 
             sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
@@ -162,13 +162,13 @@ TUTORIAL:
 
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(),2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
-            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            Moebius-Kantor Graph: A graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
             sage: T.vertices()
             [0, 1, 2, 3]
             sage: T.associate(d)
             sage: T.obj(1)
-            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+            Flower Snark: A graph on 20 vertices
 
         4. Database
 
@@ -232,7 +232,7 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: g = Graph({0:[1,2,3], 2:[5]}); g
-            Simple graph on 5 vertices (no loops, no multiple edges)
+            A graph on 5 vertices
             sage: 2 in g
             True
             sage: 10 in g
@@ -263,7 +263,8 @@ class GenericGraph(SageObject):
         str(G) returns the name of the graph, unless it doesn't have one, in
         which case it returns the default refresentation.
         """
-        if self._nxg.name != "No Name":
+        name = self._nxg.name
+        if name != "No Name" and (not name is None):
             return self._nxg.name
         else: return repr(self)
 
@@ -319,6 +320,32 @@ class GenericGraph(SageObject):
 
     ### General properties
 
+    def name(self, new=None, set_to_none=False):
+        """
+        Returns the name of the (di)graph.
+
+        INPUT:
+        new -- if not None, then this becomes the new name of the (di)graph.
+        set_to_none -- if True, removes any name
+
+        EXAMPLE:
+            sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
+            sage: G = Graph(d); G
+            A graph on 10 vertices
+            sage: G.name("Petersen Graph"); G
+            'Petersen Graph'
+            Petersen Graph: A graph on 10 vertices
+            sage: G.name(set_to_none=True); G
+            A graph on 10 vertices
+        """
+        if not new is None:
+            if not isinstance(new, str):
+                raise TypeError, "New name must be a string."
+            self._nxg.name = new
+        if set_to_none:
+            self._nxg.name = None
+        return self._nxg.name
+
     def loops(self, new=None):
         """
         Returns whether loops are permitted in the graph.
@@ -328,16 +355,16 @@ class GenericGraph(SageObject):
 
         EXAMPLE:
             sage: G = Graph(); G
-            Simple graph on 0 vertices (no loops, no multiple edges)
+            A graph on 0 vertices
             sage: G.loops(True); G
             True
-            Simple graph on 0 vertices (with loops, no multiple edges)
+            A looped graph on 0 vertices
 
             sage: D = DiGraph(); D
-            Simple directed graph on 0 vertices (no loops, no multiple arcs)
+            A digraph on 0 vertices
             sage: D.loops(True); D
             True
-            Simple directed graph on 0 vertices (with loops, no multiple arcs)
+            A looped digraph on 0 vertices
         """
         if not new is None:
             if new:
@@ -350,9 +377,16 @@ class GenericGraph(SageObject):
         """
         Returns the density (number of edges divided by number of possible
         edges).
+
+        EXAMPLE:
+            sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7, 8], 6: [8,9], 7: [9]}
+            sage: G = Graph(d); G.density()
+            1/3
         """
-        import networkx
-        return networkx.density(self._nxg)
+        from sage.rings.rational import Rational
+        n = self.order()
+        n = (n**2 - n)/2
+        return Rational(self.size())/Rational(n)
 
     def order(self):
         """
@@ -389,10 +423,10 @@ class GenericGraph(SageObject):
 
         EXAMPLES:
             sage: G = Graph(); G.add_vertex(); G
-            Simple graph on 1 vertices (no loops, no multiple edges)
+            A graph on 1 vertex
 
             sage: D = DiGraph(); D.add_vertex(); D
-            Simple directed graph on 1 vertices (no loops, no multiple arcs)
+            A digraph on 1 vertex
         """
         if name is None: # then find an integer to use as a key
             i = 0
@@ -405,6 +439,16 @@ class GenericGraph(SageObject):
     def add_vertices(self, vertices):
         """
         Add vertices to the (di)graph from an iterable container of vertices.
+
+        EXAMPLES:
+            sage: d = {0: [1,4,5], 1: [2,6], 2: [3,7], 3: [4,8], 4: [9], 5: [7,8], 6: [8,9], 7: [9]}
+            sage: G = Graph(d)
+            sage: G.add_vertices([10,11,12])
+            sage: G.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+            sage: G.add_vertices(graphs.CycleGraph(25).vertices())
+            sage: G.vertices()
+            [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
         """
         self._nxg.add_nodes_from(vertices)
 
@@ -418,7 +462,7 @@ class GenericGraph(SageObject):
 
             sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
             sage: D.delete_vertex(0); D
-            Simple directed graph on 5 vertices (no loops, no multiple arcs)
+            A digraph on 5 vertices
         """
         self._nxg.delete_node(vertex)
 
@@ -430,7 +474,7 @@ class GenericGraph(SageObject):
         EXAMPLE:
             sage: D = DiGraph({0:[1,2,3,4,5],1:[2],2:[3],3:[4],4:[5],5:[1]})
             sage: D.delete_vertices([1,2,3,4,5]); D
-            Simple directed graph on 1 vertices (no loops, no multiple arcs)
+            A digraph on 1 vertex
         """
         self._nxg.delete_nodes_from(vertices)
 
@@ -464,13 +508,13 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
-            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            Moebius-Kantor Graph: A graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
             sage: T.vertices()
             [0, 1, 2, 3]
             sage: T.associate(d)
             sage: T.obj(1)
-            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+            Flower Snark: A graph on 20 vertices
         """
         for v in self.vertices():
             if not vertex_dict.has_key(v):
@@ -487,13 +531,13 @@ class GenericGraph(SageObject):
         EXAMPLES:
             sage: d = {0 : graphs.DodecahedralGraph(), 1 : graphs.FlowerSnark(), 2 : graphs.MoebiusKantorGraph(), 3 : graphs.PetersenGraph() }
             sage: d[2]
-            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            Moebius-Kantor Graph: A graph on 16 vertices
             sage: T = graphs.TetrahedralGraph()
             sage: T.vertices()
             [0, 1, 2, 3]
             sage: T.associate(d)
             sage: T.obj(1)
-            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+            Flower Snark: A graph on 20 vertices
         """
         return self._assoc[vertex]
 
@@ -783,11 +827,11 @@ class Graph(GenericGraph):
         sage: import networkx
         sage: g = networkx.Graph({0:[1,2,3], 2:[5]})
         sage: Graph(g)
-        Simple graph on 5 vertices (no loops, no multiple edges)
+        A graph on 5 vertices
 
     2. A dictionary of dictionaries:
         sage: g = Graph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
-        Simple graph on 5 vertices (no loops, no multiple edges)
+        A graph on 5 vertices
 
     The labels ('x', 'z', 'a', 'out') are labels for edges. For example, 'out' is
     the label for the edge on 2 and 5. Labels can be used as weights, if all the
@@ -795,26 +839,26 @@ class Graph(GenericGraph):
 
     3. A dictionary of lists:
         sage: g = Graph({0:[1,2,3], 2:[5]}); g
-        Simple graph on 5 vertices (no loops, no multiple edges)
+        A graph on 5 vertices
 
     4. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,1],[1,0,1],[1,1,0]])
         sage: Graph(A)
-        Simple graph on 3 vertices (no loops, no multiple edges)
+        A graph on 3 vertices
 
     5. A graph6 or sparse6 string:
     SAGE automatically recognizes whether a string is in graph6 or sage6 format:
 
         sage: s = ':I`AKGsaOs`cI]Gb~'
         sage: Graph(s)
-        Simple graph on 10 vertices (with loops, with multiple edges)
+        A looped multi-graph on 10 vertices
 
     There are also list functions to take care of lists of graphs:
 
         sage: s = ':IgMoqoCUOqeb\n:I`AKGsaOs`cI]Gb~\n:I`EDOAEQ?PccSsge\N\n'
         sage: graphs_list.from_sparse6(s)
-        [Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges), Simple graph on 10 vertices (with loops, with multiple edges)]
+        [A looped multi-graph on 10 vertices, A looped multi-graph on 10 vertices, A looped multi-graph on 10 vertices]
 
     6. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
@@ -834,7 +878,7 @@ class Graph(GenericGraph):
         [0 0 0 1 0 1 1 0 0 0]
         [0 0 0 0 1 0 1 1 0 0]
         sage: Graph(M)
-        Simple graph on 10 vertices (no loops, no multiple edges)
+        A graph on 10 vertices
 
         B. an incidence matrix:
 
@@ -846,7 +890,7 @@ class Graph(GenericGraph):
         [ 0  0  0  1 -1]
         [ 0  0  0  0  0]
         sage: Graph(M)
-        Simple graph on 6 vertices (no loops, no multiple edges)
+        A graph on 6 vertices
     """
     def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
         import networkx
@@ -985,18 +1029,20 @@ class Graph(GenericGraph):
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
             name = self._nxg.name
-            name = name + ": a s"
+            name = name + ": "
         else:
-            name = "S"
+            name = ""
+        name += "A "
         if self.loops():
-            loops = "with"
-        else:
-            loops = "no"
+            name += "looped "
         if self.multiple_edges():
-            multi = "with"
+            name += "multi-"
+        name += "graph on %d vert"%self.order()
+        if self.order() == 1:
+            name += "ex"
         else:
-            multi = "no"
-        return name + "imple graph on %d vertices (%s loops, %s multiple edges)"%(len(self._nxg.adj),loops,multi)
+            name += "ices"
+        return name
 
     def copy(self):
         """
@@ -1012,7 +1058,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: graphs.PetersenGraph().to_directed()
-            Simple directed graph on 10 vertices (no loops, no multiple arcs)
+            A digraph on 10 vertices
         """
         return DiGraph(self._nxg.to_directed(), pos=self._pos)
 
@@ -1022,7 +1068,7 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: graphs.PetersenGraph().to_undirected()
-            Petersen graph: a simple graph on 10 vertices (no loops, no multiple edges)
+            Petersen graph: A graph on 10 vertices
         """
         return self.copy()
 
@@ -1043,10 +1089,10 @@ class Graph(GenericGraph):
 
         EXAMPLE:
             sage: G = Graph(multiedges=True); G
-            Simple graph on 0 vertices (no loops, with multiple edges)
+            A multi-graph on 0 vertices
             sage: G.multiple_edges(False); G
             False
-            Simple graph on 0 vertices (no loops, no multiple edges)
+            A graph on 0 vertices
         """
         if not new is None:
             if new:
@@ -1115,7 +1161,7 @@ class Graph(GenericGraph):
             sage: G = graphs.DodecahedralGraph()
             sage: H = Graph()
             sage: H.add_edges( G.edge_iterator() ); H
-            Simple graph on 20 vertices (no loops, no multiple edges)
+            A graph on 20 vertices
         """
         self._nxg.add_edges_from( edges )
 
@@ -1729,13 +1775,13 @@ class Graph(GenericGraph):
         EXAMPLES:
             sage: G = graphs.CompleteGraph(9)
             sage: H = G.subgraph([0,1,2]); H
-            Simple graph on 3 vertices (no loops, no multiple edges)
+            A graph on 3 vertices
             sage: G
-            Complete graph: a simple graph on 9 vertices (no loops, no multiple edges)
+            Complete graph: A graph on 9 vertices
             sage: K = G.subgraph([0,1,2], inplace=True); K
-            Subgraph of (Complete graph): a simple graph on 3 vertices (no loops, no multiple edges)
+            Subgraph of (Complete graph): A graph on 3 vertices
             sage: G
-            Subgraph of (Complete graph): a simple graph on 3 vertices (no loops, no multiple edges)
+            Subgraph of (Complete graph): A graph on 3 vertices
             sage: G is K
             True
         """
@@ -1770,7 +1816,7 @@ class Graph(GenericGraph):
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=pos3d)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
         for u,v,l in self.edges():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
@@ -1910,11 +1956,11 @@ class DiGraph(GenericGraph):
         sage: import networkx
         sage: g = networkx.DiGraph({0:[1,2,3], 2:[5]})
         sage: DiGraph(g)
-        Simple directed graph on 5 vertices (no loops, no multiple arcs)
+        A digraph on 5 vertices
 
     2. A dictionary of dictionaries:
         sage: g = DiGraph({0:{1:'x',2:'z',3:'a'}, 2:{5:'out'}}); g
-        Simple directed graph on 5 vertices (no loops, no multiple arcs)
+        A digraph on 5 vertices
 
     The labels ('x', 'z', 'a', 'out') are labels for arcs. For example, 'out' is
     the label for the arc from 2 to 5. Labels can be used as weights, if all the
@@ -1922,13 +1968,13 @@ class DiGraph(GenericGraph):
 
     3. A dictionary of lists:
         sage: g = DiGraph({0:[1,2,3], 2:[5]}); g
-        Simple directed graph on 5 vertices (no loops, no multiple arcs)
+        A digraph on 5 vertices
 
     4. A numpy matrix or ndarray:
         sage: import numpy
         sage: A = numpy.array([[0,1,0],[1,0,0],[1,1,0]])
         sage: DiGraph(A)
-        Simple directed graph on 3 vertices (no loops, no multiple arcs)
+        A digraph on 3 vertices
 
     5. A SAGE matrix:
     Note: If format is not specified, then SAGE assumes a square matrix is an adjacency
@@ -1943,7 +1989,7 @@ class DiGraph(GenericGraph):
         [0 0 0 0 0]
         [0 0 0 0 0]
         sage: DiGraph(M)
-        Simple directed graph on 5 vertices (no loops, no multiple arcs)
+        A digraph on 5 vertices
 
         B. an incidence matrix:
 
@@ -1955,7 +2001,7 @@ class DiGraph(GenericGraph):
         [ 0  0  0  1 -1]
         [ 0  0  0  0  0]
         sage: DiGraph(M)
-        Simple directed graph on 6 vertices (no loops, no multiple arcs)
+        A digraph on 6 vertices
     """
 
     def __init__(self, data=None, pos=None, loops=False, format=None, boundary=None, **kwds):
@@ -2024,17 +2070,20 @@ class DiGraph(GenericGraph):
     def _repr_(self):
         if not self._nxg.name is None and not self._nxg.name == "":
             name = self._nxg.name
-            name = name + ": a s"
-        else: name = "S"
+            name = name + ": "
+        else:
+            name = ""
+        name += "A "
         if self.loops():
-            loops = "with"
-        else:
-            loops = "no"
+            name += "looped "
         if self.multiple_arcs():
-            multi = "with"
+            name += "multi-"
+        name += "digraph on %d vert"%self.order()
+        if self.order() == 1:
+            name += "ex"
         else:
-            multi = "no"
-        return name + "imple directed graph on %d vertices (%s loops, %s multiple arcs)"%(len(self._nxg.adj),loops,multi)
+            name += "ices"
+        return name
 
     def copy(self):
         """
@@ -2049,7 +2098,7 @@ class DiGraph(GenericGraph):
 
         EXAMPLE:
             sage: DiGraph({0:[1,2,3],4:[5,1]}).to_directed()
-            Simple directed graph on 6 vertices (no loops, no multiple arcs)
+            A digraph on 6 vertices
         """
         return self.copy()
 
@@ -2084,10 +2133,10 @@ class DiGraph(GenericGraph):
 
         EXAMPLE:
             sage: D = DiGraph(multiedges=True); D
-            Simple directed graph on 0 vertices (no loops, with multiple arcs)
+            A multi-digraph on 0 vertices
             sage: D.multiple_arcs(False); D
             False
-            Simple directed graph on 0 vertices (no loops, no multiple arcs)
+            A digraph on 0 vertices
         """
         if not new is None:
             if new:
@@ -2166,7 +2215,7 @@ class DiGraph(GenericGraph):
             sage: G = graphs.DodecahedralGraph().to_directed()
             sage: H = DiGraph()
             sage: H.add_arcs( G.arc_iterator() ); H
-            Simple directed graph on 20 vertices (no loops, no multiple arcs)
+            A digraph on 20 vertices
         """
         self._nxg.add_edges_from( arcs )
 
@@ -2782,13 +2831,13 @@ class DiGraph(GenericGraph):
         EXAMPLES:
             sage: D = graphs.CompleteGraph(9).to_directed()
             sage: H = D.subgraph([0,1,2]); H
-            Simple directed graph on 3 vertices (no loops, no multiple arcs)
+            A digraph on 3 vertices
             sage: D
-            Simple directed graph on 9 vertices (no loops, no multiple arcs)
+            A digraph on 9 vertices
             sage: K = D.subgraph([0,1,2], inplace=True); K
-            Subgraph of (None): a simple directed graph on 3 vertices (no loops, no multiple arcs)
+            Subgraph of (None): A digraph on 3 vertices
             sage: D
-            Subgraph of (None): a simple directed graph on 3 vertices (no loops, no multiple arcs)
+            Subgraph of (None): A digraph on 3 vertices
             sage: D is K
             True
         """
@@ -2831,7 +2880,7 @@ class DiGraph(GenericGraph):
             # However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=pos3d)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d)
         TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
         for u,v,l in self.arcs():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\

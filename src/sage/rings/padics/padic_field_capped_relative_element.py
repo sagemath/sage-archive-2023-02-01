@@ -233,6 +233,14 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
     def _integer_(self):
         return self._unit.lift() * self.parent().prime_pow(self.valuation())
 
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation() + shift, self._unit, self._relprec), construct = True)
+
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation() - shift, self._unit, self._relprec), construct = True)
+
     def _mul_(self, right):
         rprec = min(self._relprec, right._relprec)
         return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation() + right.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)) * Mod(right._unit, self.parent().prime_pow(rprec)), rprec), construct = True)

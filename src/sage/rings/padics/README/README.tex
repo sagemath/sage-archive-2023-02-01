@@ -77,14 +77,219 @@ approximations to elements.  Thus, just as in the case of floating point numbers
 representing reals, we have to store an element to a finite precision level.
 The different ways of doing this account for the different types of $p$-adics.
 
-We have the following definition of the $p$-adic integers:
+We can think of $p$-adics in two ways.  First, as a projective limit of finite groups:
 $$\Zp = \lim_{\leftarrow n} \Zpn.$$
-In order to store a $p$-adic integer to a given finite precision level,
-we can merely store it as an element of $\Zpn$ for some $n$.
+Secondly, as Cauchy sequences of rationals (or integers, in the case of $\Zp$, under the
+$p$-adic metric.  Since we only need to consider these sequences up to equivalence, this
+second way of thinking of the $p$-adics is the same as considering power series in $p$ with
+integral coefficients in the range $0$ to $p-1$.  If we only allow nonnegative powers of $p$
+then these power series converge to elements of $\Zp$, and if we allow bounded negative powers
+of $p$ then we get $\Qp$.
+
+Both of these representations give a natural way of thinking about finite approximations to a
+$p$-adic element.  In the first representation, we can just stop at some point
+in the projective limit, giving an element of $\Zpn$.  As $\Zp / p^n\Zp \cong \Zpn$,
+this is is equivalent to specifying our element modulo $p^n\Zp$.
 \begin{definition}
 The \emph{absolute precision} of a finite approximation $\bar{x} \in \Zpn$ to $x \in \Zp$
 is the non-negative integer $n$.
 \end{definition}
+In the second representation, we can achieve the same thing by truncating a series
+$$a_0 + a_1 p + a_2 p^2 + \cdots$$
+at $p^n$, yielding
+$$a_0 + a_1 p + \cdots + a_{n-1} p^{n-1} + O(p^n).$$
+As above, we call this $n$ the absolute precision of our element.
+
+Given any $x \in \Qp$ with $x \ne 0$, we can write $x = p^v u$ where $v \in \ZZ$ and $u \in Zpx$.
+We could thus also store an element of $\Qp$ (or $\Zp$) by storing $v$ and a finite approximation
+of $u$.  This motivates the following definition:
+\begin{definition}
+The \emph{relative precision} of an approximation to $x$ is defined as the absolute precision
+of the approximation minus the valuation of $x$.
+\end{definition}
+For example, if $x = a_k p^k + a_{k+1} p^{k+1} + \cdots + a_{n-1} p^{n-1} + O(p^n)$  then the
+absolute precision of $x$ is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
+is $n-k$.
+
+There are four different representations of $\Zp$ in Sage and two representations of $\Qp$:
+the fixed modulus ring, the capped absolute precision ring, the capped relative precision
+ring, the capped relative precision field, the lazy ring and the lazy field.
+
+\subsection{Fixed Modulus Rings}
+The first, and simplest, type of $\Zp$ is basically a wrapper around $\Zpn$, providing a
+unified interface with the rest of the $p$-adics.  You specify a precision, and all elements
+are stored to that absolute precision.  If you perform an operation that would normally lose
+precision, the element does not track that it no longer has full precision.
+
+The fixed modulus ring provide the lowest level of convenience, but it is also the one that
+has the lowest computational overhead.  Once we have ironed out some bugs, the fixed modulus
+elements will be those most optimized for speed.
+
+As with all of the implementations of $\Zp$, one creates a new ring using the constructor
+\verb/Zp/, and passing in \verb/'fixed-mod'/ for the \verb/type/ parameter.  For example,
+\begin{verbatim}
+sage: R = Zp(5, prec = 10, type = 'fixed-mod', print_mode = 'series')
+sage: R
+5-adic Ring of fixed modulus 5^10
+\end{verbatim}
+
+One can create elements as follows:
+\begin{verbatim}
+sage: a = R(375)
+sage: a
+3*5^3 + O(5^10)
+sage: b = R(105)
+sage: b
+5 + 4*5^2 + O(5^10)
+\end{verbatim}
+
+Now that we have some elements, we can do arithmetic in the ring.
+\begin{verbatim}
+sage: a + b
+5 + 4*5^2 + 3*5^3 + O(5^10)
+sage: a * b
+3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
+sage: a // 5
+3*5^2 + O(5^10)
+\end{verbatim}
+
+Since elements don't actually store their actual precision, one can only divide by units:
+\begin{verbatim}
+sage: a / 2
+4*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 2*5^8 + 2*5^9 + O(5^10)
+sage: a / b
+...
+<type 'exceptions.ValueError'>: cannot invert non-unit
+\end{verbatim}
+
+If you want to divide by a non-unit, do it using the \verb@//@ operator:
+\begin{verbatim}
+sage: a // b
+3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + O(5^10)
+\end{verbatim}
+
+\subsection{Capped Absolute Rings}
+The second type of implementation of $\Zp$ is similar to the fixed modulus implementation,
+except that individual elements track their known precision.
+The absolute precision of each element is limited to be less than the precision cap of the ring,
+even if mathematically the precision of the element would be known to greater precision
+(see Appendix A for the reasons for the existence of a precision cap).
+
+Once again, use \verb/Zp/ to create a capped absolute $p$-adic ring.
+\begin{verbatim}
+sage: R = Zp(5, prec = 10, type = 'capped-abs', print_mode = 'series')
+sage: R
+5-adic Ring with capped absolute precision 10
+\end{verbatim}
+
+We can do similar things as in the fixed modulus case:
+\begin{verbatim}
+sage: a = R(375)
+sage: a
+3*5^3 + O(5^10)
+sage: b = R(105)
+sage: b
+5 + 4*5^2 + O(5^10)
+sage: a + b
+5 + 4*5^2 + 3*5^3 + O(5^10)
+sage: a * b
+3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
+sage: c = a // 5
+sage: c
+3*5^2 + O(5^9)
+\end{verbatim}
+
+Note that when we divided by 5, the precision of \verb/c/ dropped.  This lower precision is now reflected in arithmetic.
+\begin{verbatim}
+sage: c + b
+5 + 2*5^2 + 5^3 + O(5^9)
+\end{verbatim}
+
+Division is allowed: the element that results is a capped relative field element, which is discussed in the next section:
+\begin{verbatim}
+sage: 1 / (c + b)
+5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + O(5^7)
+\end{verbatim}
+
+\subsection{Capped Relative Rings and Fields}
+Instead of restricting the absolute precision of elements (which doesn't make much sense when elements have negative
+valuations), one can cap the relative precision of elements.  This is analogous to floating point representations
+of real numbers.  As in the reals, multiplication works very well: the valuations add and the relative precision of
+the product is the minimum of the relative precisions of the inputs.   Addition, however, faces similar issues as
+floating point addition: relative precision is lost when lower order terms cancel.
+
+To create a capped relative precision ring, use \verb/Zp/ as before.  To create capped relative precision fields, use
+\verb/Qp/.
+\begin{verbatim}
+sage: R = Zp(5, prec = 10, type = 'capped-rel', print_mode = 'series')
+sage: R
+5-adic Ring with capped relative precision 10
+sage: K = Qp(5, prec = 10, type = 'capped-rel', print_mode = 'series')
+sage: K
+5-adic Field with capped relative precision 10
+\end{verbatim}
+
+We can do all of the same operations as in the other two cases, but precision works a bit differently:
+the maximum precision of an element is limited by the precision cap of the ring.
+\begin{verbatim}
+sage: a = R(375)
+sage: a
+3*5^3 + O(5^13)
+sage: b = K(105)
+sage: b
+5 + 4*5^2 + O(5^11)
+sage: a + b
+5 + 4*5^2 + 3*5^3 + O(5^11)
+sage: a * b
+3*5^4 + 2*5^5 + 2*5^6 + O(5^14)
+sage: c = a // 5
+sage: c
+3*5^2 + O(5^12)
+sage: c + 1
+1 + 3*5^2 + O(5^10)
+\end{verbatim}
+
+As with the capped absolute precision rings, we can divide, yielding a capped relative precision field element.
+\begin{verbatim}
+sage: 1 / (c + b)
+5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + 2*5^7 + 5^8 + O(5^9)
+\end{verbatim}
+
+\subsection{Lazy Rings and Fields}
+The model for lazy elements is quite different from any of the other types of $p$-adics.
+In addition to storing a finite approximation, one also stores a method for increasing
+the precision.  The interface supports two ways to do this: \verb/set_precision_relative/ and
+\verb/set_precision_absolute/.
+
+\begin{verbatim}
+sage: R = Zp(5, prec = 10, type = 'lazy', print_mode = 'series', halt = 30)
+sage: R
+Lazy 5-adic Ring
+sage: R.precision_cap()
+10
+sage: R.halting_parameter()
+30
+sage: K = Qp(5, type = 'lazy')
+sage: K.precision_cap()
+20
+sage: K.halting_parameter()
+40
+\end{verbatim}
+
+There are two parameters that are set at the creation of a lazy ring or field.  The first is \verb/prec/, which
+controls the precision to which elements are initially computed.  When computing with lazy rings, sometimes situations
+arise where the insolvability of the halting problem gives us problems.  For example,
+\begin{verbatim}
+sage: a = R(16)
+sage: b = a.log().exp() - a
+sage: b
+
+sage b.valuation()
+
+
+The second is \verb/halt/
+
+\begin{verbatim}
 
 
 \end{document}

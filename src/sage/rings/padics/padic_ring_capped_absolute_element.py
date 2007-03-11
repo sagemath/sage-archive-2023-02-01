@@ -142,6 +142,20 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
         return self.parent().fraction_field()(self).__invert__()
 
     def _neg_(self):
+        """
+        Returns -x.
+
+        INPUT:
+        x -- a p-adic capped absolute element
+        OUTPUT:
+        -x
+
+        EXAMPLES:
+        sage: R = Zp(5, prec=10, type='capped-abs')
+        sage: a = R(1)
+        sage: -a
+        4 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+        """
         return pAdicRingCappedAbsoluteElement(self.parent(), (-self._value, self._absprec), construct = True)
 
     def __pow__(self, right):
@@ -157,24 +171,38 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def _div_(self, right):
         return self * right.__invert__()
 
-    def __floordiv__(self, right):
-        #There is still a bug in here
-        if isinstance(right, Integer):
-            right = pAdicRingCappedAbsoluteElement(self.parent(), right)
-        rval = right.valuation()
-        ppow = self.parent().prime_pow(rval)
-        runit = right._unit_part()
-        prec = min(self.precision_absolute(), right.precision_relative() + self.valuation())
-        quotient = Mod(self._value.lift(), self.parent().prime_pow(prec)) / Mod(runit, self.parent().prime_pow(prec))
-        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(quotient.lift() // ppow, self.parent().prime_pow(self.parent().precision_cap())), min(self.precision_relative(), right.precision_relative()) + self.valuation() - rval), construct = True)
+    #def __floordiv__(self, right):
+    #    #There is still a bug in here
+    #    if isinstance(right, Integer):
+    #        right = pAdicRingCappedAbsoluteElement(self.parent(), right)
+    #    rval = right.valuation()
+    #    ppow = self.parent().prime_pow(rval)
+    #    runit = right._unit_part()
+    #    prec = min(self.precision_absolute(), right.precision_relative() + self.valuation())
+    #    #print "self = %s, right = %s, rval = %s, runit = %s, prec = %s"%(self, right, rval, runit, prec)
+    #    quotient = Mod(self._value.lift(), self.parent().prime_pow(prec)) / Mod(runit, self.parent().prime_pow(prec))
+    #    return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(quotient.lift() // ppow, self.parent().prime_pow(self.parent().precision_cap())), min(self.precision_relative(), right.precision_relative()) + self.valuation() - rval), construct = True)
 
-    def __mod__(self, right):
-        rval = right.valuation()
-        ppow = self.parent().prime_pow(rval)
-        runit = right.unit_part()
-        quotient = self / runit
-        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(quotient.lift() % ppow, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
+    #def __mod__(self, right):
+    #    rval = right.valuation()
+    #    ppow = self.parent().prime_pow(rval)
+    #    runit = right.unit_part()
+    #    quotient = self / runit
+    #    return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(quotient.lift() % ppow, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
 
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__rshift__(-shift)
+        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value.lift() *self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), self.precision_absolute() + shift), construct = True)
+
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__lshift__(-shift)
+        if shift > self.precision_absolute():
+            return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(0, self.parent().prime_pow(self.parent().precision_cap())), Integer(0)), construct = True)
+        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value.lift() // self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), self.precision_absolute() - shift), construct = True)
 
     def _mul_(self, right):
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._value * right._value, min(self.valuation() + right.valuation() + min(self.precision_relative(), right.precision_relative()), self.parent().precision_cap())), construct = True)

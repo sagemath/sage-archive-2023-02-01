@@ -567,7 +567,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             return self.parent()(ans).add_bigoh(prec)
         elif self.is_unit():
             z = self.unit_part()
-            return (z**Integer(p-1)).log()/Integer(p-1)
+            return (z**Integer(p-1)).log() // Integer(p-1)
         else:
             raise ValueError, "not a unit"
 

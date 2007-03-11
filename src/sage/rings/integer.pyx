@@ -1636,15 +1636,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    cdef _lshift(self, unsigned long int n):
+    cdef _lshift(self, long int n):
         """
         Shift self n bits to the left, i.e., quickly multiply by $2^n$.
         """
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
 
         _sig_on
-        mpz_mul_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_fdiv_q_2exp(x.value, self.value, -n)
+        else:
+            mpz_mul_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1664,11 +1667,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(Integer self, unsigned long int n):
+    cdef _rshift(Integer self, long int n):
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
+
         _sig_on
-        mpz_fdiv_q_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_mul_2exp(x.value, self.value, -n)
+        else:
+            mpz_fdiv_q_2exp(x.value, self.value, n)
         _sig_off
         return x
 

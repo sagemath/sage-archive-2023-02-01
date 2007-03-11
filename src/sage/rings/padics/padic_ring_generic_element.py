@@ -61,10 +61,15 @@ class pAdicRingGenericElement(pAdicGenericElement):
         return self.parent().fraction_field()(self).__invert__()
 
     def __floordiv__(self, right):
-        raise NotImplementedError
+        if isinstance(right, Integer):
+            right = pAdicRingCappedRelativeElement(self.parent(), right)
+        return (self / right.unit_part()).__rshift__(right.valuation())
+
+    def __mod__(self, right):
+        return self - right * self.__floordiv__(right)
 
     def _integer_(self):
-        raise NotImplementedError
+        return self.lift()
 
 
     def padded_list(self, n):

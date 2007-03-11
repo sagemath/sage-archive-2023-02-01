@@ -303,29 +303,61 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     def __floordiv__(self, right):
         if isinstance(right, Integer):
             right = pAdicRingCappedRelativeElement(self.parent(), right)
-        val = self.valuation()
-        rval = right.valuation()
-        if val >= rval:
-            prec = min(self.precision_absolute() - rval, right.precision_relative())
-            return pAdicRingCappedRelativeElement(self.parent(), (val - rval, Mod(self._unit.lift(), self.parent().prime_pow(prec)) / Mod(right._unit.lift(), self.parent().prime_pow(prec)), prec), construct = True)
-        else:
-            ppow = self.parent().prime_pow(rval - val)
-            u = (self._unit / right._unit).lift() // ppow
-            uval = u.valuation(self.parent().prime())
-            prec = min(self.precision_absolute() - rval - uval, right.precision_relative())
-            return pAdicRingCappedRelativeElement(self.parent(), (uval, Mod(u / self.parent().prime_pow(uval), self.parent().prime_pow(prec)), prec), construct = True)
+        return (self / right.unit_part()).__rshift__(right.valuation())
 
-    def __mod__(self, right):
-        if isinstance(right, Integer):
-            right = pAdicRingCappedRelativeElement(self.parent(), right)
+    #    val = self.valuation()
+    #    rval = right.valuation()
+    #    if val >= rval:
+    #        prec = min(self.precision_absolute() - rval, right.precision_relative())
+    #        return pAdicRingCappedRelativeElement(self.parent(), (val - rval, Mod(self._unit.lift(), self.parent().prime_pow(prec)) / Mod(right._unit.lift(), self.parent().prime_pow(prec)), prec), construct = True)
+    #    else:
+    #        ppow = self.parent().prime_pow(rval - val)
+    #        u = (self._unit / right._unit).lift() // ppow
+    #        uval = u.valuation(self.parent().prime())
+    #        prec = min(self.precision_absolute() - rval - uval, right.precision_relative())
+    #        return pAdicRingCappedRelativeElement(self.parent(), (uval, Mod(u / self.parent().prime_pow(uval), self.parent().prime_pow(prec)), prec), construct = True)
+
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__rshift__(-shift)
+        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation() + shift, self._unit_part(), self.precision_relative()), construct = True)
+
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__lshift__(-shift)
         val = self.valuation()
-        rval = right.valuation()
-        if val >= rval:
-            return pAdicRingCappedRelativeElement(self.parent(), 0)
+        if shift <= val:
+            val = val - shift
+            unit = self._unit_part()
+            rprec = self.precision_relative()
         else:
-            ppow = self.parent().prime_pow(rval - val)
-            u = (self._unit / right._unit).lift() % ppow
-            return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(u, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
+            unit = self._unit_part().lift() // self.parent().prime_pow(shift - val)
+            val = unit.valuation(self.parent().prime())
+            rprec = self.precision_relative() + self.valuation() - shift
+            if val is infinity:
+                unit = Mod(0, 1)
+                val = max(rprec, Integer(0))
+                rprec = Integer(0)
+            elif val > 0:
+                rprec = rprec - val
+                unit = Mod(unit // self.parent().prime_pow(val), self.parent().prime_pow(rprec))
+            else:
+                unit = Mod(unit, self.parent().prime_pow(rprec))
+        return pAdicRingCappedRelativeElement(self.parent(), (val, unit, rprec), construct = True)
+
+    #def __mod__(self, right):
+    #    if isinstance(right, Integer):
+    #        right = pAdicRingCappedRelativeElement(self.parent(), right)
+    #    val = self.valuation()
+    #    rval = right.valuation()
+    #    if val >= rval:
+    #        return pAdicRingCappedRelativeElement(self.parent(), 0)
+    #    else:
+    #        ppow = self.parent().prime_pow(rval - val)
+    #        u = (self._unit / right._unit).lift() % ppow
+    #        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(u, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
 
     def _integer_(self):
         return self._unit.lift() * self.parent().prime_pow(self.valuation())

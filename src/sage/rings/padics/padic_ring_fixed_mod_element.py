@@ -192,30 +192,43 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             inverse = 1 / self._value
             return pAdicRingFixedModElement(self.parent(), inverse, construct = True)
 
-    def __mod__(self, right):
-        r"""
-        Returns self modulo right.
+    #def __mod__(self, right):
+    #    r"""
+    #    Returns self modulo right.
+    #
+    #    This doesn't make a whole lot of sense :-) but things are defined so
+    #    that always (x // y) * y + (x % y) == x.
+    #
+    #    TODO:
+    #        -- write down a full and proper explanation of the exact semantics
+    #        of floordiv and mod for all padic rings/fields; this should go
+    #        in a single overall doc file somewhere, and a reference to it
+    #        plus a summary should go in this docstring
+    #        -- make this work when "right" is e.g. an Integer -- perhaps
+    #        the mod operator needs to be brought under the SAGE arithmetic
+    #        architecture umbrella
+    #
+    #    """
+    #    val = self.valuation()
+    #    rval = right.valuation()
+    #    quotient =  self / right._unit_part()
+    #    return pAdicRingFixedModElement(self.parent(),
+    #                 Mod(quotient.lift() % self.parent().prime_pow(rval),
+    #                 self.parent().prime_pow(self.parent().precision_cap())),
+    #                 construct = True)
 
-        This doesn't make a whole lot of sense :-) but things are defined so
-        that always (x // y) * y + (x % y) == x.
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__rshift__(-shift)
+        return pAdicRingFixedModElement(self.parent(), self._value * self.parent().prime_pow(shift), construct = True)
 
-        TODO:
-            -- write down a full and proper explanation of the exact semantics
-            of floordiv and mod for all padic rings/fields; this should go
-            in a single overall doc file somewhere, and a reference to it
-            plus a summary should go in this docstring
-            -- make this work when "right" is e.g. an Integer -- perhaps
-            the mod operator needs to be brought under the SAGE arithmetic
-            architecture umbrella
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__lshift__(-shift)
+        return pAdicRingFixedModElement(self.parent(), Mod(self._value.lift() // self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), construct = True)
 
-        """
-        val = self.valuation()
-        rval = right.valuation()
-        quotient =  self / right._unit_part()
-        return pAdicRingFixedModElement(self.parent(),
-                     Mod(quotient.lift() % self.parent().prime_pow(rval),
-                     self.parent().prime_pow(self.parent().precision_cap())),
-                     construct = True)
 
     def _neg_(self):
         r"""
@@ -273,21 +286,21 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             return pAdicRingFixedModElement(self.parent(),
                             self._value / right._value, construct = True)
 
-    def __floordiv__(self, right):
-        if isinstance(right, Integer):
-            right = pAdicRingFixedModElement(self.parent(), right)
-        ppow = self.parent().prime_pow(right.valuation())
-        runit = right._unit_part()
-        quotient = Mod((self._value / runit).lift() // ppow, self.parent().prime_pow(self.parent().precision_cap()))
-        return pAdicRingFixedModElement(self.parent(), quotient, construct = True)
+    #def __floordiv__(self, right):
+    #    if isinstance(right, Integer):
+    #        right = pAdicRingFixedModElement(self.parent(), right)
+    #    ppow = self.parent().prime_pow(right.valuation())
+    #    runit = right._unit_part()
+    #    quotient = Mod((self._value / runit).lift() // ppow, self.parent().prime_pow(self.parent().precision_cap()))
+    #    return pAdicRingFixedModElement(self.parent(), quotient, construct = True)
 
-    def _integer_(self):
-        r"""
-        Return an integer congruent to self modulo self's precision.
-
-        See the lift() method.
-        """
-        return self._value.lift()
+    #def _integer_(self):
+    #    r"""
+    #    Return an integer congruent to self modulo self's precision.
+    #
+    #    See the lift() method.
+    #    """
+    #    return self._value.lift()
 
     def _mul_(self, right):
         r"""

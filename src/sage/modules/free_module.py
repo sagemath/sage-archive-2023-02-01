@@ -579,8 +579,10 @@ class FreeModule_generic(module.Module):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def echelonized_basis_matrix(self):
         raise NotImplementedError
@@ -1214,8 +1216,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_field(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def index(self, other):
         """

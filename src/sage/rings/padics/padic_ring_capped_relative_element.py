@@ -244,13 +244,13 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         EXAMPLES:
             sage: R = Zp(19, 5, 'capped-rel','series')
             sage: a = R(-1); a
-                18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: a^2
-                1 + O(19^5)
+            1 + O(19^5)
             sage: a^3
-                18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: R(5)^30
-                11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
+            11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
         """
         right = Integer(right)
         if self == 0:
@@ -268,6 +268,16 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         return pAdicRingCappedRelativeElement(self.parent(), (ordp, unit, prec), construct = True)
 
     def _add_(self, right): #assumes both have the same parent (ie same p and same relative cap)
+        """
+        EXAMPLES:
+            sage: R = Zp(19, 5, 'capped-rel','series')
+            sage: a = R(-1); a
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+            sage: b=R(-5/2); b
+            7 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
+            sage: a+b
+            6 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
+        """
         if self.valuation() == infinity:
             return right
         if right.valuation() == infinity:
@@ -301,6 +311,15 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         return pAdicRingCappedRelativeElement(self.parent(), (min(self.valuation(), right.valuation()) + v, u, rprec), construct = True)
 
     def __floordiv__(self, right):
+        """
+        EXAMPLES:
+        sage: a = R(-1); a
+        18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+        sage: b=R(-2); b
+        17 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+        sage: a//b
+        10 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
+        """
         if isinstance(right, Integer):
             right = pAdicRingCappedRelativeElement(self.parent(), right)
         return (self / right.unit_part()).__rshift__(right.valuation())
@@ -557,6 +576,25 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         return pAdicRingCappedRelativeElement(self.parent(), (0, self._unit, self._relprec), construct = True)
 
     def _unit_part(self):
+        """
+        Returns the unit part of self.
+
+        INPUT:
+           self -- a p-adic element
+        OUTPUT:
+           the unit part of self -- a p-adic element
+
+        EXAMPLES:
+        sage: R = Zp(17, 4,'capped-rel')
+        sage: a = R(2*17^2); a
+        2*17^2 + O(17^6)
+        sage: a.unit_part()
+        2 + O(17^4)
+        sage: b=1/a; b
+        9*17^-2 + 8*17^-1 + 8 + 8*17 + O(17^2)
+        sage: b.unit_part()
+        9 + 8*17 + 8*17^2 + 8*17^3 + O(17^4)
+        """
         return self._unit
 
     def valuation(self):

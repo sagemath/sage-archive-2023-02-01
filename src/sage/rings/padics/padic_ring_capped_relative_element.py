@@ -312,13 +312,20 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
 
     def __floordiv__(self, right):
         """
+        If a,b are p-adic integers, then floordiv (//) satisfies the following equation:
+        a%b + b*(a//b) == a
+
+        FIX BUG!!!
+
         EXAMPLES:
+        sage: R = Zp(19, 5, 'capped-rel','series')
         sage: a = R(-1); a
         18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
-        sage: b=R(-2); b
-        17 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+        sage: b=R(-2*19^3); b
+        17*19^3 + 18*19^4 + 18*19^5 + 18*19^6 + 18*19^7 + O(19^8)
         sage: a//b
-        10 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
+        10*19^-3 + 9*19^-2 + 9*19^-1 + 9 + 9*19 + O(19^2)  #This is wrong!
+                                                           #Should be 9 + 9*19 + O(19^2)
         """
         if isinstance(right, Integer):
             right = pAdicRingCappedRelativeElement(self.parent(), right)

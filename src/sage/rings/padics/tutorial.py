@@ -1,86 +1,94 @@
 r"""
-\section{Introduction}
+\section{Warning}
 
-$p$-adics in SAGE are currently undergoing a transformation.
-Previously, SAGE has included a single class representing $\Qp$,
-and a single class representing elements of $\Qp$.
-Our goal is to create a rich structure of different options
-that will reflect the mathematical structures of the $p$-adics.
-This is very much a work in progress: some of the classes
-that we eventually intend to include have not yet been written,
-and some of the functionality for classes in existence has not yet been implemented.
-In addition, while we strive for perfect code,
-bugs (both subtle and not-so-subtle) continue to evade our clutches.
-As a user, you serve an important role.
-By writing non-trivial code that uses the $p$-adics,
-you both give us insight into what features are actually used
-and also expose problems in the code for us to fix.
+This tutorial outlines what you need to know in order to use $p$-adics
+in SAGE  effectively.
 
-Our design philosophy has been to get a robust,
-usable interface working first,
-with simpleminded implementations underneath.
-We want this interface to stabilize rapidly,
-so that users' code does not have to change.
-Once we get the framework in place,
-we can go back and work on the algorithms and implementations underneath.
-All of the current $p$-adic code is currently written in pure Python,
-which means that it does not have the speed advantage of compiled code.
-Thus our $p$-adics can be painfully slow at times when you're doing real computations.
-However, finding and fixing bugs in Python code is \emph{far} easier
-than finding and fixing errors in the compiled alternative within SAGE (SageX),
-and Python code is also faster and easier to write.
-We thus have significantly more functionality implemented and working
-than we would have if we had chosen to focus initially on speed.
-And at some point in the future, we will go back and improve the speed.
-Any code you have written on top of our $p$-adics will then
-get an immediate performance enhancement.
+The $p$-adics in SAGE are currently undergoing a transformation.
+Prior to SAGE-2.1, SAGE included a single class representing $\Qp$,
+and a single class representing elements of $\Qp$.  Our goal is to
+create a rich structure of different options that will reflect the
+mathematical structures of the $p$-adics.  This is very much a work in
+progress: some of the classes that we eventually intend to include
+have not yet been written, and some of the functionality for classes
+in existence has not yet been implemented.  In addition, while we
+strive for perfect code, bugs (both subtle and not-so-subtle) continue
+to evade our clutches.  As a user, you serve an important role.  By
+writing non-trivial code that uses the $p$-adics, you both give us
+insight into what features are actually used and also expose problems
+in the code for us to fix.
 
-If you do find bugs, have feature requests or general comments, please let me know
-at roed@math.harvard.edu.
+Our design philosophy has been to create a robust, usable interface
+working first, with simple-minded implementations underneath.  We want
+this interface to stabilize rapidly, so that users' code does not have
+to change.  Once we get the framework in place, we can go back and
+work on the algorithms and implementations underneath.  All of the
+current $p$-adic code is currently written in pure Python, which means
+that it does not have the speed advantage of compiled code.  Thus our
+$p$-adics can be painfully slow at times when you're doing real
+computations.  However, finding and fixing bugs in Python code is
+\emph{far} easier than finding and fixing errors in the compiled
+alternative within SAGE (SageX), and Python code is also faster and
+easier to write.  We thus have significantly more functionality
+implemented and working than we would have if we had chosen to focus
+initially on speed.  And at some point in the future, we will go back
+and improve the speed.  Any code you have written on top of our
+$p$-adics will then get an immediate performance enhancement.
 
-This tutorial attempts to outline what you need to know in order to use
-the $p$-adics effectively.  OUTLINE SECTIONS.
+If you do find bugs, have feature requests or general comments, please
+email {\tt sage-support@groups.google.com} or
+{\tt roed@math.harvard.edu}.
 
 \section{Terminology and types of $p$-adics}
 
-To write down a $p$-adic element completely would require an infinite amount of data.
-Since computers do not have infinite storage space, we must instead store finite
-approximations to elements.  Thus, just as in the case of floating point numbers for
-representing reals, we have to store an element to a finite precision level.
-The different ways of doing this account for the different types of $p$-adics.
+To write down a general $p$-adic element completely would require an infinite
+amount of data.  Since computers do not have infinite storage space,
+we must instead store finite approximations to elements.  Thus, just
+as in the case of floating point numbers for representing reals, we
+have to store an element to a finite precision level.  The different
+ways of doing this account for the different types of $p$-adics.
 
-We can think of $p$-adics in two ways.  First, as a projective limit of finite groups:
-$$\Zp = \lim_{\leftarrow n} \Zpn.$$
-Secondly, as Cauchy sequences of rationals (or integers, in the case of $\Zp$, under the
-$p$-adic metric.  Since we only need to consider these sequences up to equivalence, this
-second way of thinking of the $p$-adics is the same as considering power series in $p$ with
-integral coefficients in the range $0$ to $p-1$.  If we only allow nonnegative powers of $p$
-then these power series converge to elements of $\Zp$, and if we allow bounded negative powers
-of $p$ then we get $\Qp$.
+We can think of $p$-adics in two ways.  First, as a projective limit
+of finite groups: $$\Zp = \lim_{\leftarrow n} \Zpn.$$ Secondly, as
+Cauchy sequences of rationals (or integers, in the case of $\Zp$)
+under the $p$-adic metric.  Since we only need to consider these
+sequences up to equivalence, this second way of thinking of the
+$p$-adics is the same as considering power series in $p$ with integral
+coefficients in the range $0$ to $p-1$.  If we only allow nonnegative
+powers of $p$ then these power series converge to elements of $\Zp$,
+and if we allow bounded negative powers of $p$ then we get $\Qp$.
 
-Both of these representations give a natural way of thinking about finite approximations to a
-$p$-adic element.  In the first representation, we can just stop at some point
-in the projective limit, giving an element of $\Zpn$.  As $\Zp / p^n\Zp \cong \Zpn$,
+Both of these representations give a natural way of thinking about
+finite approximations to a $p$-adic element.  In the first
+representation, we can just stop at some point in the projective
+limit, giving an element of $\Zpn$.  As $\Zp / p^n\Zp \cong \Zpn$,
 this is is equivalent to specifying our element modulo $p^n\Zp$.
+
 \begin{definition}
 The \emph{absolute precision} of a finite approximation $\bar{x} \in \Zpn$ to $x \in \Zp$
 is the non-negative integer $n$.
 \end{definition}
-In the second representation, we can achieve the same thing by truncating a series
-$$a_0 + a_1 p + a_2 p^2 + \cdots$$
+
+In the second representation, we can achieve the same thing by
+truncating a series
+$$
+ a_0 + a_1 p + a_2 p^2 + \cdots
+$$
 at $p^n$, yielding
-$$a_0 + a_1 p + \cdots + a_{n-1} p^{n-1} + O(p^n).$$
+$$
+a_0 + a_1 p + \cdots + a_{n-1} p^{n-1} + O(p^n).
+$$
 As above, we call this $n$ the absolute precision of our element.
 
-Given any $x \in \Qp$ with $x \ne 0$, we can write $x = p^v u$ where $v \in \ZZ$ and $u \in Zpx$.
-We could thus also store an element of $\Qp$ (or $\Zp$) by storing $v$ and a finite approximation
-of $u$.  This motivates the following definition:
-\begin{definition}
-The \emph{relative precision} of an approximation to $x$ is defined as the absolute precision
-of the approximation minus the valuation of $x$.
-\end{definition}
-For example, if $x = a_k p^k + a_{k+1} p^{k+1} + \cdots + a_{n-1} p^{n-1} + O(p^n)$  then the
-absolute precision of $x$ is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
+Given any $x \in \Qp$ with $x \ne 0$, we can write $x = p^v u$ where
+$v \in \ZZ$ and $u \in \Zpx$.  We could thus also store an element of
+$\Qp$ (or $\Zp$) by storing $v$ and a finite approximation of $u$.
+This motivates the following definition: \begin{definition} The
+\emph{relative precision} of an approximation to $x$ is defined as the
+absolute precision of the approximation minus the valuation of $x$.
+\end{definition} For example, if $x = a_k p^k + a_{k+1} p^{k+1} +
+\cdots + a_{n-1} p^{n-1} + O(p^n)$ then the absolute precision of $x$
+is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
 is $n-k$.
 
 There are four different representations of $\Zp$ in Sage and two representations of $\Qp$:
@@ -285,11 +293,14 @@ HaltingError: Stopped computing sum: set halting parameter higher if you want co
 The second is \verb/halt/
 """
 
-def _view():
+F = None
+def _tex():
     import os
     import tutorial
     from sage.misc.misc import tmp_filename
-    F = tmp_filename('tutorial')
+    global F
+    if F is None:
+        F = tmp_filename('tutorial')
     T = """
 \\documentclass{article}
 \\newtheorem{theorem}{Theorem}[section]
@@ -315,6 +326,11 @@ def _view():
     open(F + '.tex', 'w').write(T)
     os.system('latex %s.tex'%F)
     print F + '.dvi'
-    os.system('xdvi %s.dvi'%F)
 
+
+def _view():
+    _tex()
+    global F
+    import os
+    os.system('xdvi %s.dvi &'%F)
 

@@ -91,19 +91,24 @@ absolute precision of the approximation minus the valuation of $x$.
 is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
 is $n-k$.
 
-There are four different representations of $\Zp$ in Sage and two representations of $\Qp$:
-the fixed modulus ring, the capped absolute precision ring, the capped relative precision
-ring, the capped relative precision field, the lazy ring and the lazy field.
+There are four different representations of $\Zp$ in SAGE and two
+representations of $\Qp$: the fixed modulus ring, the capped absolute
+precision ring, the capped relative precision ring, the capped
+relative precision field, the lazy ring and the lazy field.
 
 \subsection{Fixed Modulus Rings}
-The first, and simplest, type of $\Zp$ is basically a wrapper around $\Zpn$, providing a
-unified interface with the rest of the $p$-adics.  You specify a precision, and all elements
-are stored to that absolute precision.  If you perform an operation that would normally lose
-precision, the element does not track that it no longer has full precision.
 
-The fixed modulus ring provide the lowest level of convenience, but it is also the one that
-has the lowest computational overhead.  Once we have ironed out some bugs, the fixed modulus
-elements will be those most optimized for speed.
+The first, and simplest, type of $\Zp$ is basically a wrapper around
+$\Zpn$, providing a unified interface with the rest of the $p$-adics.
+You specify a precision, and all elements are stored to that absolute
+precision.  If you perform an operation that would normally lose
+precision, the element does not track that it no longer has full
+precision.
+
+The fixed modulus ring provides the lowest level of convenience, but
+it is also the one that has the lowest computational overhead.  Once
+we have ironed out some bugs, the fixed modulus elements will be those
+most optimized for speed.
 
 As with all of the implementations of $\Zp$, one creates a new ring using the constructor
 \verb/Zp/, and passing in \verb/'fixed-mod'/ for the \verb/type/ parameter.  For example,

@@ -92,9 +92,15 @@ is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
 is $n-k$.
 
 There are four different representations of $\Zp$ in SAGE and two
-representations of $\Qp$: the fixed modulus ring, the capped absolute
-precision ring, the capped relative precision ring, the capped
-relative precision field, the lazy ring and the lazy field.
+representations of $\Qp$:
+\begin{itemize}
+\item the fixed modulus ring
+\item the capped absolute precision ring
+\item the capped relative precision ring
+\item the capped relative precision field
+\item the lazy ring, and
+\item the lazy field.
+\end{itemize}
 
 \subsection{Fixed Modulus Rings}
 
@@ -136,10 +142,25 @@ sage: a + b
 5 + 4*5^2 + 3*5^3 + O(5^10)
 sage: a * b
 3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
+
+\end{verbatim}
+
+Floor division (//) divides even though the result
+isn't really known to the claimed precision; note that
+division isn't defined:
+\begin{verbatim}
 sage: a // 5
 3*5^2 + O(5^10)
 
+sage: a / 5
+Traceback (most recent call last):
+...
+ValueError: cannot invert non-unit
+
 \end{verbatim}
+
+
+
 
 Since elements don't actually store their actual precision, one can only divide by units:
 \begin{verbatim}

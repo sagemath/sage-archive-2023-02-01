@@ -1,4 +1,4 @@
-"""
+r"""
 p-Adic Rings with capped relative precision
 
 AUTHOR:
@@ -11,58 +11,75 @@ p-Adic Rings are examples of inexact structures, as the reals are.  That means t
 
 There are two types of precision for a p-adic element.  The first is relative precision, which gives the number of known p-adic digits.
     sage: R = Zp(5, 20, 'capped-rel', 'series'); a = R(675); a
-        2*5^2 + 5^4 + O(5^22)
+    2*5^2 + 5^4 + O(5^22)
     sage: a.precision_relative()
-        20
+    20
 
-The second type of precision is absolute precision, which gives the power of p that this element is stored modulo.
+The second type of precision is absolute precision, which gives the
+power of p that this element is stored modulo.
     sage: a.precision_absolute()
-        22
+    22
 
 The number of times that p divides the element is called the valuation, and can be accessed with the functions valuation() and ordp()
     sage: a.valuation()
-        2
+    2
 
 The following relationship holds: self.valuation() + self.precision_relative() == self.precision_absolute().
     sage: a.valuation() + a.precision_relative() == a.precision_absolute()
-        True
+    True
 
-In the capped relative case, the relative precision of an element is restricted to be at most a certain value, specified at the creation of the field.  Individual elements also store their own precision, so the effect of various arithmetic operations on precision is tracked.  When you cast an exact element into a capped relative field, it truncates it to the precision cap of the field.
+In the capped relative case, the relative precision of an element is
+restricted to be at most a certain value, specified at the creation of
+the field.  Individual elements also store their own precision, so the
+effect of various arithmetic operations on precision is tracked.  When
+you cast an exact element into a capped relative field, it truncates
+it to the precision cap of the field.
+
     sage: R = Zp(5, 5, 'capped-rel', 'series'); a = R(4006); a
-        1 + 5 + 2*5^3 + 5^4 + O(5^5)
+    1 + 5 + 2*5^3 + 5^4 + O(5^5)
     sage: b = R(17/3); b
-        4 + 2*5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
+    4 + 2*5 + 3*5^2 + 5^3 + 3*5^4 + O(5^5)
     sage: c = R(4025); c
-        5^2 + 2*5^3 + 5^4 + 5^5 + O(5^7)
+    5^2 + 2*5^3 + 5^4 + 5^5 + O(5^7)
     sage: a + b
-	4*5 + 3*5^2 + 3*5^3 + 4*5^4 + O(5^5)
+    4*5 + 3*5^2 + 3*5^3 + 4*5^4 + O(5^5)
     sage: a + b + c
-        4*5 + 4*5^2 + 5^4 + O(5^5)
+    4*5 + 4*5^2 + 5^4 + O(5^5)
 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')
-        17-adic Ring with capped relative precision 10
+    17-adic Ring with capped relative precision 10
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-        Lazy 7-adic Ring
+    Lazy 7-adic Ring
     sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'series'); R is S
-        True
+    True
     sage: Zp(2)
-        2-adic Ring with capped relative precision 20
+    2-adic Ring with capped relative precision 20
 
-Once one has a p-Adic ring, one can cast elements into it in the standard way.  Integers, ints, longs, Rationals, other p-Adic types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a p-Adic ring.
+Once one has a p-Adic ring, one can cast elements into it in the
+standard way.  Integers, ints, longs, Rationals, other p-Adic types,
+pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a
+p-Adic ring.
+
     sage: R = Zp(5, 5, 'capped-rel','series'); a = R(16); a
-        1 + 3*5 + O(5^5)
+    1 + 3*5 + O(5^5)
     sage: b = R(25/3); b
-        2*5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + O(5^7)
+    2*5^2 + 3*5^3 + 5^4 + 3*5^5 + 5^6 + O(5^7)
     sage: S = Zp(5, 5, 'fixed-mod','val-unit'); c = S(Mod(75,125)); c
-        5^2 * 3 + O(5^5)
+    5^2 * 3 + O(5^5)
     sage: R(c)
-        3*5^2 + O(5^5)
+    3*5^2 + O(5^5)
 
-Note that in the last example, since fixed-mod elements don't keep track of their precision, we assume that it has the full precision of the ring.  This is why you have to cast manually there.
+Note that in the last example, since fixed-mod elements don't keep
+track of their precision, we assume that it has the full precision of
+the ring.  This is why you have to cast manually there.
 
-While you can cast explicitly as above, the chains of automatic coercion are more restricted.  As always in SAGE, the following arrows are transitive and the diagram is commutative.
+While you can cast explicitly as above, the chains of automatic
+coercion are more restricted.  As always in SAGE, the following arrows
+are transitive and the diagram is commutative.
 
+(WARNING: This is wrong.)
+\begin{verbatim}
 int -> long -> Integer -> Rational -> Zp lazy -> pari p-adic -> Zp capped-rel -> Zp capped-abs
                                        /    \                          \          /
                                       /      \                          \        /
@@ -72,6 +89,7 @@ int -> long -> Integer -> Rational -> Zp lazy -> pari p-adic -> Zp capped-rel ->
                                                              \        /
                                                               V      V
                                                              IntegerMod
+\end{verbatim}
 
 In addition, there are arrows within each type from higher precision_cap to lower.
 """

@@ -301,9 +301,23 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         return pAdicRingCappedRelativeElement(self.parent(), (min(self.valuation(), right.valuation()) + v, u, rprec), construct = True)
 
     def __floordiv__(self, right):
+        """
+        EXAMPLES:
+            sage: r = Zp(19)
+            sage: a = r(1+19+17*19^3+5*19^4); b = r(19^3); a/b
+            19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
+            sage: a/b
+            19^-3 + 19^-2 + 17 + 5*19 + O(19^17)
+            sage: a//b
+            17 + 5*19 + O(19^17)
+        """
         if isinstance(right, Integer):
             right = pAdicRingCappedRelativeElement(self.parent(), right)
-        return (self / right.unit_part()).__rshift__(right.valuation())
+        # This is the same as computing self/right then taking the integral part,
+        # but is probably more efficient.   Note that it is important to
+        # coerce into the parent first before shifting, otherwise the wrong
+        # type of shift is used.
+        return self.parent()((self / right.unit_part())).__rshift__(right.valuation())
 
     #    val = self.valuation()
     #    rval = right.valuation()

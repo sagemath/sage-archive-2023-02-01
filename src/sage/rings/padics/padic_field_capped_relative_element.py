@@ -255,10 +255,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             element -- self with precision set to the minimum of  self's precision and prec
 
         EXAMPLES:
-            sage: R = Qp(7,4); R.set_print_mode('series'); a = R(8); a.add_bigoh(1)
-                1 + O(7)
+            sage: R = Qp(7,4); a = R(8); a.add_bigoh(1)
+            1 + O(7)
             sage: b = R(0); b.add_bigoh(3)
-                O(7^3)
+            O(7^3)
         """
         rprec = min(self._relprec, prec - self.valuation())
         if rprec <= 0:
@@ -304,9 +304,9 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             rational -- a rational equal to self upto our precision
         EXAMPLES:
             sage: R = Qp(7,4); a = R(8); a.lift()
-                8
+            8
             sage: R = Qp(7,4); a = R(8/7); a.lift()
-                8/7
+            8/7
         """
         if self.valuation() == infinity:
             return 0
@@ -326,9 +326,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             self -- a p-adic element
         OUTPUT:
             list -- the list of coeficients of self
+
         EXAMPLES:
             sage: R = Qp(7,4); a = R(2*7+7**2); a.list()
-                [2, 1, 0, 0]
+            [2, 1, 0, 0]
 
         NOTE:
             this differs from the list method of padic_ring_element
@@ -351,11 +352,12 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             n - an integer
         OUTPUT:
             list -- the list of coeficients of self
+
         EXAMPLES:
             sage: R = Qp(7,3); a = R(2*7+7**2); a.padded_list(5)
-                [2, 1, 0, 0]
+            [2, 1, 0, 0]
             sage: a.padded_list(3)
-                [2, 1]
+            [2, 1]
 
         NOTE:
             this differs from the padded_list method of padic_ring_element
@@ -371,9 +373,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             self -- a p-adic element
         OUTPUT:
             integer -- the absolute precision of self
+
         EXAMPLES:
             sage: R = Qp(7,3); a = R(7); a.precision_absolute()
-                4
+            4
        """
         return self._ordp + self._relprec
 
@@ -384,9 +387,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             self -- a p-adic element
         OUTPUT:
             integer -- the relative precision of self
+
         EXAMPLES:
             sage: R = Qp(7,3); a = R(7); a.precision_relative()
-                3
+            3
        """
         return self._relprec
 
@@ -398,9 +402,10 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             prec - an integer
         OUTPUT:
             element of Z/(p^prec Z) -- self reduced mod p^prec
+
         EXAMPLES:
             sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
-                1
+            1
         """
         if prec > self.precision_absolute():
             raise PrecisionError, "Not enough precision known in order to compute residue."
@@ -417,13 +422,14 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             self -- a p-adic element
         OUTPUT:
             p-adic element -- the unit part of self
+
         EXAMPLES:
             sage: R = Qp(17,4,'capped-rel')
             sage: a = R(18*17)
             sage: a.unit_part()
-                1 + 17 + O(17^4)
+            1 + 17 + O(17^4)
             sage: type(a)
-                <class 'sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement'>
+            <class 'sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement'>
         """
         if self.precision_relative() == 0:
             raise PrecisionError, "Not enough precision to compute unit part."
@@ -445,31 +451,31 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             sage: R = Qp(17, 4)
             sage: a = R(2*17^2)
             sage: a.valuation()
-                2
+            2
             sage: R = Qp(5, 4)
             sage: R(0).valuation()
-                +Infinity
+            +Infinity
             sage: R(1).valuation()
-                0
+            0
             sage: R(2).valuation()
-                0
+            0
             sage: R(5).valuation()
-                1
+            1
             sage: R(10).valuation()
-                1
+            1
             sage: R(25).valuation()
-                2
+            2
             sage: R(50).valuation()
-                2
+            2
             sage: R(1/2).valuation()
-                0
+            0
             sage: R(1/5).valuation()
-                -1
+            -1
             sage: R(1/10).valuation()
-                -1
+            -1
             sage: R(1/25).valuation()
-                -2
+            -2
             sage: R(1/50).valuation()
-                -2
+            -2
         """
         return self._ordp

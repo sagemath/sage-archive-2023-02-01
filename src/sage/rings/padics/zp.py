@@ -18,40 +18,112 @@ Integer = sage.rings.integer.Integer
 UnramifiedRingExtension = sage.rings.padics.unramified_ring_extension.UnramifiedRingExtension
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=True):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, check=True):
     """
-    A creation function for p-adic rings.
+    Return a model of the $p$-adic integer $\Z_p$.
+
     INPUT:
         p -- integer the p in Z_p
-        prec -- integer (default: 20) the precision cap of the ring.  Except for the fixed modulus case, individual elements keep track of their own precision.
-        type -- string (default: 'capped-rel') see Notes
-        print_mode -- string (default: None) the print mode
+        prec -- integer (default: 20) the precision cap of the ring.
+                Except for the fixed modulus case, individual elements keep
+                track of their own precision.
+        type -- string (default: 'capped-rel') see notes section below for options.
+        print_mode -- string (default: series) the print mode; see notes section
+                below for options.
+        halt -- integer (default: 40): only applicable for type='lazy'
+        check -- bool (default: True): wether to verify that the input is valid.
+
     OUTPUT:
         the corresponding p-adic ring
+
     EXAMPLES:
-       sage: R = Zp(5); a = R(4); a
-            4 + O(5^20)
-       sage: S = Zp(5, 10, type = 'capped-abs'); b = S(2); b
-            2 + O(5^10)
-       sage: a + b
-            1 + 5 + O(5^10)
+    We create rings with various parameters
+       sage: Zp(7)
+       7-adic Ring with capped relative precision 20
+       sage: Zp(9)
+       Traceback (most recent call last):
+       ...
+       ValueError: p must be prime
+       sage: Zp(17, 5)
+       17-adic Ring with capped relative precision 5
+       sage: Zp(17, 5)(-1)
+       16 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5)
+       sage: Zp(next_prime(10^50), 10000)
+       100000000000000000000000000000000000000000000000151-adic Ring with capped relative precision 10000
+
+    We create each type of ring:
+        sage: Zp(7, 20, 'capped-rel')
+        7-adic Ring with capped relative precision 20
+        sage: Zp(7, 20, 'fixed-mod')
+        7-adic Ring of fixed modulus 7^20
+        sage: Zp(7, 20, 'capped-abs')
+        7-adic Ring with capped absolute precision 20
+        sage: Zp(7, 20, 'lazy')
+        Lazy 7-adic Ring
+
+    We create a capped relative ring with each print mode:
+        sage: k = Zp(7, 8, print_mode='series'); k
+        7-adic Ring with capped relative precision 8
+        sage: k(7*(19))
+        5*7 + 2*7^2 + O(7^9)
+        sage: k(7*(-19))
+        2*7 + 4*7^2 + 6*7^3 + 6*7^4 + 6*7^5 + 6*7^6 + 6*7^7 + 6*7^8 + O(7^9)
+
+        sage: k = Zp(7, print_mode='val-unit'); k
+        7-adic Ring with capped relative precision 20
+        sage: k(7*(19))
+        7 * 19 + O(7^21)
+        sage: k(7*(-19))
+        7 * 79792266297611982 + O(7^21)
+
+        sage: k = Zp(7, print_mode='integer'); k
+        7-adic Ring with capped relative precision 20
+        sage: k(7*(19))
+        133 + O(7^21)
+        sage: k(7*(-19))
+        558545864083283874 + O(7^21)
+
+    Note that $p$-adic rings are cached (via weak references):
+        sage: a = Zp(7); b = Zp(7)
+        sage: a is b
+        True
+
+    We create some elements in various rings:
+        sage: R = Zp(5); a = R(4); a
+        4 + O(5^20)
+        sage: S = Zp(5, 10, type = 'capped-abs'); b = S(2); b
+        2 + O(5^10)
+        sage: a + b
+        1 + 5 + O(5^10)
 
     NOTES:
-         values of type:
-         'capped-rel' -> pAdicRingCappedRelative.  This is the default, considers precision as the precision of the unit part.  Tracks precision of individual elements, but bounds the precision of any element with a precision cap.
-        'fixed-mod'  -> pAdicRingFixedMod.  This is basically a wrapper around $\Z / p^n \Z$, adding functions appropriate to p-adics.  This is the fastest option.
-        'capped-abs' -> pAdicRingCappedAbsolute.  The same as pAdicRingFixedMod, but keeps track of precision.
-        'lazy' -> pAdicRingLazy.  Uses lazy elements so that additional precision can be requested during a computation.  There is some amount of performance penalty because of this ability.
+       type -- string (default: 'capped-rel'), the type of p-adic ring.
 
-        values of print_mode:
-        'val-unit' -- elements are displayed as p^k*u
-        'integer' -- elements are displayed as an integer
-        'series' -- elements are displayed as series in p
-        'val-unit-p' -- same as val-unit, except that p is written as "p"
-        'integer-p' -- same as integer, except that p is written as "p"
-        'series-p' -- same as series, except that p is written as "p"
+           'capped-rel' -- pAdicRingCappedRelative.  This is the
+                           default, considers precision as the
+                           precision of the unit part.  Tracks
+                           precision of individual elements, but
+                           bounds the precision of any element with a
+                           precision cap.
+           'fixed-mod' --  pAdicRingFixedMod.  This is basically a
+                           wrapper around $\Z / p^n \Z$, adding
+                           functions appropriate to p-adics.  This is
+                           the fastest option.
+           'capped-abs' -- pAdicRingCappedAbsolute.  The same as
+                           pAdicRingFixedMod, but keeps track of
+                           precision.
+           'lazy' -- pAdicRingLazy.  Uses lazy elements so that
+                     additional precision can be requested during a
+                     computation.  There is some amount of performance
+                     penalty because of this ability.
+
+       print_mode -- string (default: 'series', unless it has been
+                     previously specified for a cached version of this ring)
+           'val-unit' -- elements are displayed as p^k*u
+           'integer' -- elements are displayed as an integer
+           'series' -- elements are displayed as series in p
     """
-    # if such a ring already exists reset it's print mode and return it
+    # if such a ring already exists reset it's print mode (unless the input print mode is None) and return it
     if check:
         p = Integer(p)
         if not p.is_prime():
@@ -65,17 +137,13 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=Tr
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if type != 'lazy':
-        key = (p, prec, type)
+        key = (p, prec, type, print_mode)
     else:
-        key = (p, prec, halt)
+        key = (p, prec, halt, print_mode)
     if padic_ring_cache.has_key(key):
         K = padic_ring_cache[key]()
         if not (K is None):
-            if not (print_mode is None):
-                K.set_print_mode(print_mode)
             return K
-    if print_mode == None:
-        print_mode = 'series'
     if (type == 'capped-rel'):
         K = pAdicRingCappedRelative(p, prec, print_mode)
     elif (type == 'fixed-mod'):
@@ -90,9 +158,36 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=Tr
     return K
 
 qadic_ring_cache = {}
-def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode = None, halt = 40, check = True):
+def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
+          print_mode='series', halt = 40, check = True):
     r"""
-    The creation function for unramified extensions of $\Z_p$
+    Return an unramified extension of $\Z_p$.
+
+    INPUT:
+        q -- prime power
+        prec -- integer (default: 20)
+        type -- string (default: 'capped-abs'); see the documentation for Zq
+        modulus -- polynomial (default: None)
+        names -- tuple
+        print_mode -- string (default: 'series'); see the documentation for print_mode
+        halt -- integer (default: 40): only applicable for type='lazy'
+        check -- bool (default: True): wether to verify that the input is valid.
+
+    OUTPUT:
+        -- an unramified extension of Z_p
+
+    EXAMPLES:
+
+    TODO: This printing is all completely backwards -- a and x must be switched.
+    We
+        sage: k.<a> = Zq(4); k
+        Unramified Extension of 2-adic Ring with capped absolute precision 20
+        in x defined by (1 + O(2^20))*a^2 + (1 + O(2^20))*a + 1 + O(2^20)
+        sage: k.<a> = Zq(3^10); k
+        Unramified Extension of 3-adic Ring with capped absolute precision 20 in x
+        defined by (1 + O(3^20))*a^10 + O(3^20)*a^9 + O(3^20)*a^8 + O(3^20)*a^7 +
+        (2 + O(3^20))*a^6 + (2 + O(3^20))*a^5 + (2 + O(3^20))*a^4 + O(3^20)*a^3 +
+        O(3^20)*a^2 + (1 + O(3^20))*a + 2 + O(3^20)
     """
     if check:
         if names is None:
@@ -118,21 +213,18 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode
     if F[0][1] == 1:
         return Zp(q, prec, type, print_mode, halt)
     if type != 'lazy':
-        key = (q, names, prec, type, modulus)
+        key = (q, names, prec, type, modulus, print_mode)
     else:
-        key = (q, names, prec, halt, modulus)
+        key = (q, names, prec, halt, modulus, print_mode)
     if qadic_ring_cache.has_key(key):
         K = qadic_ring_cache[key]()
         if not (K is None):
-            if not (print_mode is None):
-                K.set_print_mode(print_mode)
             return K
     if modulus is None:
         check = False
         from sage.rings.finite_field import GF
         modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), names)(GF(q, names).modulus().change_ring(ZZ))
-    if print_mode is None:
-        print_mode = 'series'
+
     K = UnramifiedRingExtension(modulus, prec, print_mode, check)
     qadic_ring_cache[key] = weakref.ref(K)
     return K

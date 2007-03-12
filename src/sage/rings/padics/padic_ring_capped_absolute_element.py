@@ -191,12 +191,53 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     #    return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(quotient.lift() % ppow, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
 
     def __lshift__(self, shift):
+        """
+        EXAMPLES:
+        We create a capped relative field:
+            sage: R = Zp(5, 20, 'capped-rel'); a = R(1000); a
+            3*5^3 + 5^4 + O(5^23)
+
+        Shifting to the right is the same as dividing by a power of
+        the uniformizer $p$ of the $p$-adic ring.
+            sage: a >> 1
+            3*5^2 + 5^3 + O(5^22)
+
+        Shifting to the left is the same as multiplying by a power of $p$:
+            sage: a << 2
+            3*5^5 + 5^6 + O(5^25)
+            sage: a*5^2
+            3*5^5 + 5^6 + O(5^25)
+
+        Shifting by a negative integer to the left is the same as right shifting
+        by the absolute value:
+            sage: a << -3
+            3 + 5 + O(5^20)
+            sage: a >> 3
+            3 + 5 + O(5^20)
+        """
         shift = Integer(shift)
         if shift < 0:
             return self.__rshift__(-shift)
-        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value.lift() *self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), self.precision_absolute() + shift), construct = True)
+        return pAdicRingCappedAbsoluteElement(self.parent(),
+                                              (Mod(self._value.lift() *self.parent().prime_pow(shift),
+                                                   self.parent().prime_pow(self.parent().precision_cap())),
+                                               self.precision_absolute() + shift), construct = True)
 
     def __rshift__(self, shift):
+        """
+        EXAMPLES:
+            sage: R = Zp(997, 7, 'capped-rel'); a = R(123456878908); a
+            964*997 + 572*997^2 + 124*997^3 + O(997^8)
+
+        Shifting to the right divides by a power of p, but dropping terms with
+        negative valuation:
+            sage: a >> 3
+            124 + O(997^5)
+
+        Shifting to the left multiplies by that power of p.
+            sage: a << 3
+            964*997^4 + 572*997^5 + 124*997^6 + O(997^11)
+        """
         shift = Integer(shift)
         if shift < 0:
             return self.__lshift__(-shift)
@@ -205,6 +246,10 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
         return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value.lift() // self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), self.precision_absolute() - shift), construct = True)
 
     def _mul_(self, right):
+        """
+        EXAMPLES:
+
+        """
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._value * right._value, min(self.valuation() + right.valuation() + min(self.precision_relative(), right.precision_relative()), self.parent().precision_cap())), construct = True)
 
     def _sub_(self, right):
@@ -213,6 +258,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def add_bigoh(self, prec):
         """
         Returns a new element with absolute precision decreased to prec
+
         INPUT:
             self -- a p-adic element
             prec -- an integer

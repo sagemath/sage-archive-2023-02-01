@@ -7,13 +7,17 @@ AUTHOR:
     -- David Harvey: doctests
 
 EXAMPLES:
-p-Adic Rings are examples of inexact structures, as the reals are.  That means that elements cannot generally be stored exactly: to do so would take an infinite amount of storage.  Instead, we store an approximation to the elements with varying precision.
+p-Adic Rings are examples of inexact structures, as the reals are.
+That means that elements cannot generally be stored exactly: to do so
+would take an infinite amount of storage.  Instead, we store an
+approximation to the elements with varying precision.
 
-There are two types of precision for a p-adic element.  The first is relative precision, which gives the number of known p-adic digits.
+There are two types of precision for a p-adic element.  The first is
+relative precision, which gives the number of known p-adic digits.
     sage: R = Zp(5, 20, 'capped-rel', 'series'); a = R(675); a
-        2*5^2 + 5^4 + O(5^22)
+    2*5^2 + 5^4 + O(5^22)
     sage: a.precision_relative()
-        20
+    20
 
 The second type of precision is absolute precision, which gives the power of p that this element is stored modulo.
     sage: a.precision_absolute()
@@ -48,7 +52,7 @@ p-Adic rings should be created using the creation function Zp as above.  This wi
         17-adic Ring with capped relative precision 10
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
         Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'series'); R is S
+    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
         True
     sage: Zp(2)
         2-adic Ring with capped relative precision 20

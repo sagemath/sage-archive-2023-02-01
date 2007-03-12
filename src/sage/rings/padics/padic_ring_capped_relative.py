@@ -51,7 +51,7 @@ p-Adic rings should be created using the creation function Zp as above.  This wi
     17-adic Ring with capped relative precision 10
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
     Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'series'); R is S
+    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
     True
     sage: Zp(2)
     2-adic Ring with capped relative precision 20

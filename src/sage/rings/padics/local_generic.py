@@ -63,9 +63,6 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
     def get_print_mode(self):
         raise NotImplementedError
 
-    def set_print_mode(self):
-        raise NotImplementedError
-
     def is_atomic_repr(self):
         r"""
         Return False, since we want p-adics to be printed with parentheses around them

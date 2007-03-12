@@ -239,7 +239,10 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         raise NotImplementedError
 
     def random_element(self):
-        return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.base_ring().random_element() for _ in range(self.modulus().degree())],[self.gen()**i for i in range(self.modulus().degree())]),0)
+        return reduce(lambda x,y: x+y,
+                      map(lambda a,b:a*b,
+                       [self.base_ring().random_element() for _ in range(self.modulus().degree())],
+                       [self.gen()**i for i in range(self.modulus().degree())]), 0)
 
     def unit_group(self):
         raise NotImplementedError
@@ -255,9 +258,6 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
 
     def zeta_order(self):
         raise NotImplementedError
-
-    def set_print_mode(self, mode):
-        return self.base_ring().set_print_mode(mode)
 
     def get_print_mode(self):
         return self.base_ring().get_print_mode()

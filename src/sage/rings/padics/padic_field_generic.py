@@ -112,63 +112,8 @@ def is_pAdicField(R):
     return isinstance(R, pAdicFieldGeneric)
 
 class pAdicFieldGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
-
-    def __init__(self, p, prec, print_mode):
-        sage.rings.padics.padic_generic.pAdicGeneric.__init__(self, p, prec)
-        self.set_print_mode(print_mode)
-
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Field"%(self.prime())
-
-    def get_print_mode(self):
-        r"""
-        Returns the current print mode as a string.
-
-        INPUT:
-            self -- a p-adic field
-
-        OUTPUT:
-            string -- self's print mode
-
-        EXAMPLES:
-            sage: R = Qp(7,5, 'capped-rel')
-            sage: R.get_print_mode()
-            'series'
-        """
-        return self._print_mode
-
-    def set_print_mode(self, print_mode):
-        """
-        Sets the print mode.
-
-        INPUT:
-            self -- a p-adic field
-            print_mode -- string (see NOTES)
-
-        EXAMPLES:
-            sage: R = Qp(3,5,'capped-rel','val-unit')
-            sage: a = R(117); a
-                3^2 * 13 + O(3^7)
-            sage: R.set_print_mode('series'); a
-                3^2 + 3^3 + 3^4 + O(3^7)
-            sage: R.set_print_mode('val-unit-p'); a
-                p^2 * 13 + O(p^7)
-            sage: R.set_print_mode('series-p'); a
-                p^2 + p^3 + p^4 + O(p^7)
-
-        NOTES:
-            The options are:
-            'val-unit' -- elements are displayed as p^k*u
-            'integer' -- elements are displayed as an integer
-            'series' -- elements are displayed as series in p
-            'val-unit-p' -- same as val-unit, except that p is written as "p"
-            'integer-p' -- same as integer, except that p is written as "p"
-            'series-p' -- same as series, except that p is written as "p"
-        """
-        if (print_mode in ['val-unit', 'series', 'val-unit-p', 'series-p']):
-            self._print_mode = print_mode
-        else:
-            raise ValueError, "print_mode must be either val-unit, integer, series, val-unit-p, integer-p, or series-p"
 
     def krull_dimension(self):
         """

@@ -16,6 +16,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from __future__ import with_statement
 import sage.rings.padics.local_generic_element
 import sage.rings.rational_field
 
@@ -75,7 +76,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return 1
 
-    def _repr_(self, mode = None, do_latex = False, caprel = False):
+    def _is_exact_zero(self):
+        return False
+
+    def _repr_(self, mode = None, do_latex = False):
         r"""
             Prints a string representation of the element.  See set_print_mode for more details.
 
@@ -101,85 +105,71 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 sage: K.set_print_mode('series-p'); a
                     3*p + p^3 + O(p^5)
         """
-        import sage.rings.padics.padic_ring_generic
-        if caprel and (self.valuation() == infinity):
-                return "0"
+        if self._is_exact_zero():
+            return "0"
         if mode is None:
-            mode = self.parent().get_print_mode()
-        elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (isinstance(self.parent(), sage.rings.padics.padic_ring_generic.pAdicRingGeneric) and ((mode == 'integer') or (mode != 'integer-p')))):
-            raise TypeError, "printing mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p', and 'integer-p'"
+            mode = self.parent().print_mode()
+        elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
+            raise TypeError, "printing mode must be one of 'val-unit', 'series' or 'terse'"
+        pprint = self.parent().variable_name()
         if self._unit_part() == 0:
             if mode == 'val-unit' or mode == 'series':
                 if do_latex:
-                    return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+                    return "O(%s^{%s})"%(pprint, self.precision_absolute())
                 else:
-                    return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
-            elif mode == 'integer':
+                    return "O(%s^%s)"%(pprint, self.precision_absolute())
+            elif mode == 'terse':
                 if do_latex:
-                    return "0 + O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+                    return "0 + O(%s^{%s})"%(pprint, self.precision_absolute())
                 else:
-                    return "0 + O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
-            elif mode == 'integer-p':
-                if do_latex:
-                    return "0 + O(p^{%s})"%(self.precision_absolute())
-                else:
-                    return "0 + O(p^%s)"%(self.precision_absolute())
-            else:
-                if do_latex:
-                    return "O(p^{%s})"%(self.precision_absolute())
-                else:
-                    return "O(p^%s)"%(self.precision_absolute())
+                    return "0 + O(%s^%s)"%(pprint, self.precision_absolute())
         if mode == 'val-unit':
             if do_latex:
                 if self.valuation() == 0:
-                    return "%s + O(%s^{%s})"%(self._unit_part(), self.parent().prime(), self.precision_absolute())
+                    return "%s + O(%s^{%s})"%(self._unit_part(), pprint, self.precision_absolute())
                 if self.valuation() == 1:
-                    return "%s \\cdot %s + O(%s^{%s})"%(self.parent().prime(), self._unit_part(), self.parent().prime(), self.precision_absolute())
-                return "%s^{%s} \\cdot %s + O(%s^{%s})"%(self.parent().prime(), self.valuation(), self._unit_part(), self.parent().prime(), self.precision_absolute())
+                    return "%s \\cdot %s + O(%s^{%s})"%(pprint, self._unit_part(), pprint, self.precision_absolute())
+                return "%s^{%s} \\cdot %s + O(%s^{%s})"%(pprint, self.valuation(), self._unit_part(), pprint, self.precision_absolute())
             else:
                 if self.valuation() == 0:
-                    return "%s + O(%s^%s)"%(self._unit_part(), self.parent().prime(), self.precision_absolute())
+                    return "%s + O(%s^%s)"%(self._unit_part(), pprint, self.precision_absolute())
                 if self.valuation() == 1:
-                    return "%s * %s + O(%s^%s)"%(self.parent().prime(), self._unit_part(), self.parent().prime(), self.precision_absolute())
-                return "%s^%s * %s + O(%s^%s)"%(self.parent().prime(), self.valuation(), self._unit_part(), self.parent().prime(), self.precision_absolute())
-        elif mode == 'val-unit-p':
-            if do_latex:
-                if self.valuation() == 0:
-                    return "%s + O(p^{%s})"%(self._unit_part(), self.precision_absolute())
-                if self.valuation() == 1:
-                    return "p \\cdot %s + O(p^{%s})"%(self._unit_part(), self.precision_absolute())
-                return "p^{%s} * %s + O(p^{%s})"%(self.valuation(), self._unit_part(), self.precision_absolute())
+                    return "%s * %s + O(%s^%s)"%(pprint, self._unit_part(), pprint, self.precision_absolute())
+                return "%s^%s * %s + O(%s^%s)"%(pprint, self.valuation(), self._unit_part(), pprint, self.precision_absolute())
+        elif mode == 'terse':
+            if self.valuation() < 0:
+                ppow1 = str(self.prime() ** (-self.valuation()))
+                if do_latex:
+                    ppow2 = "%s^{%s}"%(pprint, -self.valuation())
+                    if len(ppow1) < len(ppow2):
+                        ppow = ppow1
+                    else:
+                        ppow = ppow2
+                    return "%s/%s + O(%s^{%s})"%(self.unit_part().lift(), ppow, pprint, self.precision_absolute())
+                else:
+                    ppow2 = "%s^%s"%(p, -self.valuation())
+                    if len(ppow1) < len(ppow2):
+                        ppow = ppow1
+                    else:
+                        ppow = ppow2
+                    return "%s/%s + O(%s^{%s})"%(self.unit_part().lift(), ppow, pprint, self.precision_absolute())
             else:
-                if self.valuation() == 0:
-                    return "%s + O(p^%s)"%(self._unit_part(), self.precision_absolute())
-                if self.valuation() == 1:
-                    return "p * %s + O(p^%s)"%(self._unit_part(), self.precision_absolute())
-                return "p^%s * %s + O(p^%s)"%(self.valuation(), self._unit_part(), self.precision_absolute())
-        elif mode == 'integer':
-            if do_latex:
-                return "%s + O(%s^{%s})"%(self.lift(), self.parent().prime(), self.precision_absolute())
-            else:
-                return "%s + O(%s^%s)"%(self.lift(), self.parent().prime(), self.precision_absolute())
-        elif mode == 'integer-p':
-            if do_latex:
-                return "%s + O(p^{%s})"%(self.lift(), self.precision_absolute())
-            else:
-                return "%s + O(p^%s)"%(self.lift(), self.precision_absolute())
+                if do_latex:
+                    return "%s + O(%s^{%s})"%(self.lift(), pprint, self.precision_absolute())
+                else:
+                    return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
         else:
             exp = self.valuation()
             p = self.parent().prime()
             v = self._unit_part().lift()
             s = ""
             while v != 0:
+                var = pprint
                 coeff = v % p
                 if coeff != 0:
                     if exp == 0:
                         s += "%s + "%coeff
                     else:
-                        if mode == 'series':
-                            var = "%s"%p
-                        else:
-                            var = "p"
                         if exp != 1:
                             if do_latex:
                                 var += "^{%s}"%exp
@@ -194,10 +184,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                             s += "%s + "%var
                 exp += 1
                 v = (v - coeff) / p
-            if mode == 'series':
-                s += "O(%s"%(p)
-            else:
-                s += "O(p"
+            s += "O(%s"%(pprint)
             if self.precision_absolute() == 1:
                 s += ")"
             else:

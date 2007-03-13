@@ -135,67 +135,8 @@ def is_pAdicRing(R):
     return isinstance(R, pAdicRingGeneric)
 
 class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
-
-    def __init__(self, p, prec, print_mode):
-        sage.rings.padics.padic_generic.pAdicGeneric.__init__(self, p, prec)
-        self.set_print_mode(print_mode)
-
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Ring"%(self.prime())
-
-    def get_print_mode(self):
-        r"""
-        Returns the current print mode as a string.
-
-        INPUT:
-            self -- a p-adic ring
-
-        OUTPUT:
-            string -- self's print mode
-
-        EXAMPLES:
-            sage: R = Zp(7,5,'fixed-mod')
-            sage: R.get_print_mode()
-            'series'
-        """
-        return self._print_mode
-
-    def set_print_mode(self, print_mode):
-        """
-        Sets the print mode.
-
-        INPUT:
-            self -- a p-adic ring
-            print_mode -- string (see NOTES)
-
-        EXAMPLES:
-            sage: R = Zp(3,5,'fixed-mod'); R.set_print_mode('val-unit')
-            sage: a = R(117); a
-            3^2 * 13 + O(3^5)
-            sage: R.set_print_mode('integer'); a
-            117 + O(3^5)
-            sage: R.set_print_mode('series'); a
-            3^2 + 3^3 + 3^4 + O(3^5)
-            sage: R.set_print_mode('val-unit-p'); a
-            p^2 * 13 + O(p^5)
-            sage: R.set_print_mode('integer-p'); a
-            117 + O(p^5)
-            sage: R.set_print_mode('series-p'); a
-            p^2 + p^3 + p^4 + O(p^5)
-
-        NOTES:
-            The options for print_mode are:
-            'val-unit' -- elements are displayed as p^k*u
-            'integer' -- elements are displayed as an integer
-            'series' -- elements are displayed as series in p
-            'val-unit-p' -- same as val-unit, except that p is written as "p"
-            'integer-p' -- same as integer, except that p is written as "p"
-            'series-p' -- same as series, except that p is written as "p"
-        """
-        if (print_mode in ['val-unit', 'integer', 'series', 'val-unit-p', 'integer-p', 'series-p']):
-            self._print_mode = print_mode
-        else:
-            raise ValueError, "print_mode must be either val-unit, integer, series, val-unit-p, integer-p, or series-p"
 
     def is_field(self):
         """

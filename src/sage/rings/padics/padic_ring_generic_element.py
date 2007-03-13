@@ -73,12 +73,14 @@ class pAdicRingGenericElement(pAdicGenericElement):
         return self.lift()
 
 
-    def padded_list(self, n):
+    def padded_list(self, absprec = infinity, relprec = infinity):
         """
-        Returns a list of coeficiants of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed)
+        Returns a list of coeficiants of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed), where n is the minimum of absprec and relprec + self.valuation()
+
         INPUT:
             self -- a p-adic element
-            n - an integer
+            absprec -- an integer
+            relprec -- an integer
         OUTPUT:
             list -- the list of coeficients of self
         EXAMPLES:
@@ -88,7 +90,16 @@ class pAdicRingGenericElement(pAdicGenericElement):
         NOTE:
             this differs from the padded_list method of padic_field_element
         """
-        return self.list()[:n] + [0 for w in range(self.precision_absolute(), n)]
+        if absprec is infinity and relprec is infinity:
+            raise ValueError, "must specify at least one of absprec and relprec"
+        if self.valuation() is infinity:
+            if absprec < infinity:
+                return [self.parent().residue_class_field()(0)]*absprec
+            else:
+                raise ValueError, "would return infinite list"
+        absprec = min(absprec, relprec + self.valuation())
+        return self.list()[:absprec] + [self.parent().residue_class_field()(0)]*(self.precision_absolute() - absprec)
+
 
     def residue(self, prec):
         raise NotImplementedError

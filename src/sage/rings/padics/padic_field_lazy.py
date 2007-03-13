@@ -115,8 +115,8 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
     r"""
     An implementation of p-adic fields using lazy evaluation.
     """
-    def __init__(self, p, prec, print_mode, halt):
-        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode)
+    def __init__(self, p, prec, print_mode, halt, names):
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names)
         self._halt = halt
 
     def __call__(self, x, absprec = infinity, relprec = infinity):
@@ -233,7 +233,7 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
             Returns the integer ring of self, i.e. an appropriate implementation of $\Z_p$.
         """
         from sage.rings.padics.zp import Zp
-        return Zp(self.prime(), self.precision_cap(), 'lazy', self.get_print_mode(), self.halting_parameter())
+        return Zp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def fraction_field(self):
         r"""

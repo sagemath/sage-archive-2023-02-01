@@ -101,6 +101,7 @@ pari = sage.libs.pari.gen.pari
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 Mod = sage.rings.integer_mod.Mod
+infinity = sage.rings.infinity.infinity
 pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
@@ -112,7 +113,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
     An implementation of p-adic fields with capped relative precision.
     """
 
-    def __call__(self, x, absprec = None, relprec = None):
+    def __call__(self, x, absprec = infinity, relprec = infinity):
         r"""
             Casts x into self.  Uses the constructor from pAdicFieldCappedRelativeElement.
         """
@@ -192,7 +193,7 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
 
         """
         from sage.rings.padics.zp import Zp
-        return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.get_print_mode())
+        return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def fraction_field(self):
         r"""

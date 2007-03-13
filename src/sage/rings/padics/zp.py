@@ -4,21 +4,28 @@ import sage.rings.padics.padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.integer
+import sage.rings.padics.unramified_ring_extension_capped_relative
+import sage.rings.padics.unramified_ring_extension_capped_absolute
+import sage.rings.padics.unramified_ring_extension_fixed_mod
+import sage.rings.padics.unramified_ring_extension_lazy
+
 
 from sage.rings.integer_ring import ZZ
 
 from sage.rings.polynomial_ring import PolynomialRing
-import sage.rings.padics.unramified_ring_extension
 
+UnramifiedRingExtensionCappedRelative = sage.rings.padics.unramified_ring_extension_capped_relative.UnramifiedRingExtensionCappedRelative
+UnramifiedRingExtensionCappedAbsolute = sage.rings.padics.unramified_ring_extension_capped_absolute.UnramifiedRingExtensionCappedAbsolute
+UnramifiedRingExtensionFixedMod = sage.rings.padics.unramified_ring_extension_fixed_mod.UnramifiedRingExtensionFixedMod
+UnramifiedRingExtensionLazy = sage.rings.padics.unramified_ring_extension_lazy.UnramifiedRingExtensionLazy
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 Integer = sage.rings.integer.Integer
-UnramifiedRingExtension = sage.rings.padics.unramified_ring_extension.UnramifiedRingExtension
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=True):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, names = None, check=True):
     """
     A creation function for p-adic rings.
     INPUT:
@@ -64,10 +71,12 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=Tr
             raise TypeError, "prec must be an integer"
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
+    if names is None:
+        names = str(p)
     if type != 'lazy':
-        key = (p, prec, type)
+        key = (p, prec, type, names)
     else:
-        key = (p, prec, halt)
+        key = (p, prec, halt, names)
     if padic_ring_cache.has_key(key):
         K = padic_ring_cache[key]()
         if not (K is None):
@@ -77,20 +86,19 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=Tr
     if print_mode == None:
         print_mode = 'series'
     if (type == 'capped-rel'):
-        K = pAdicRingCappedRelative(p, prec, print_mode)
+        K = pAdicRingCappedRelative(p, prec, print_mode, names)
     elif (type == 'fixed-mod'):
-        K = pAdicRingFixedMod(p, prec, print_mode)
+        K = pAdicRingFixedMod(p, prec, print_mode, names)
     elif (type == 'capped-abs'):
-        K = pAdicRingCappedAbsolute(p, prec, print_mode)
+        K = pAdicRingCappedAbsolute(p, prec, print_mode, names)
     elif (type == 'lazy'):
-        K = pAdicRingLazy(p, prec, print_mode, halt)
+        K = pAdicRingLazy(p, prec, print_mode, halt, names)
     else:
         raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
     padic_ring_cache[key] = weakref.ref(K)
     return K
 
-qadic_ring_cache = {}
-def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode = None, halt = 40, check = True):
+def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode = None, halt = 40, zp_name = None, check = True):
     r"""
     The creation function for unramified extensions of $\Z_p$
     """
@@ -116,24 +124,11 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode
     if len(F) != 1:
         raise ValueError, "q must be a prime power"
     if F[0][1] == 1:
-        return Zp(q, prec, type, print_mode, halt)
-    if type != 'lazy':
-        key = (q, names, prec, type, modulus)
-    else:
-        key = (q, names, prec, halt, modulus)
-    if qadic_ring_cache.has_key(key):
-        K = qadic_ring_cache[key]()
-        if not (K is None):
-            if not (print_mode is None):
-                K.set_print_mode(print_mode)
-            return K
+        return Zp(q, prec, type, print_mode, halt, names, check)
+    base = Zp(F[0][0], prec, type, print_mode, halt, zp_name, check = False)
     if modulus is None:
-        check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), names)(GF(q, names).modulus().change_ring(ZZ))
-    if print_mode is None:
-        print_mode = 'series'
-    K = UnramifiedRingExtension(modulus, prec, print_mode, check)
-    qadic_ring_cache[key] = weakref.ref(K)
-    return K
-
+        if zp_name is None:
+            zp_name = str(p)
+        modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
+    return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)

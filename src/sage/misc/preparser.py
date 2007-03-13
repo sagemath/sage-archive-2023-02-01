@@ -33,7 +33,7 @@ that in pure Python this would be a syntax error).
     sage: 87.factor()
     3 * 29
     sage: 15.10.sqrt()
-    3.88587184554508
+    3.88587184554509
     sage: preparse('87.sqrt()')
     'Integer(87).sqrt()'
     sage: preparse('15.10.sqrt()')

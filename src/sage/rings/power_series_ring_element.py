@@ -75,7 +75,7 @@ With power series the behavior is the same.
 
 import operator
 
-from infinity import infinity, is_Infinity
+from infinity import infinity, is_Infinite
 from polynomial_ring import PolynomialRing
 import polynomial_element_generic as polynomial
 import power_series_ring
@@ -245,7 +245,7 @@ class PowerSeries(ring_element.RingElement):
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
-        if prec != infinity:
+        if not (prec is infinity):
             x = x[:prec]
             y = y[:prec]
         return cmp(x,y)
@@ -347,7 +347,7 @@ class PowerSeries(ring_element.RingElement):
 
         """
         if self.is_zero():
-            if self.prec() == infinity:
+            if self.prec() is infinity:
                 return "0"
             else:
                 return "O(%s^%s)"%(self.parent().variable_name(),self.prec())
@@ -402,7 +402,7 @@ class PowerSeries(ring_element.RingElement):
             s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
         s = s.replace(" -1*", " -")
-        if self._prec != infinity:
+        if not (self._prec is infinity):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
@@ -426,7 +426,7 @@ class PowerSeries(ring_element.RingElement):
             -\frac{1}{2}t + \frac{2}{3}t^{2} - \frac{9}{7}t^{15} + O(\text{t}^{20})
         """
         if self.is_zero():
-            if self.prec() == infinity:
+            if self.prec() is infinity:
                 return "0"
             else:
                 return "0 + \\cdots"
@@ -461,7 +461,7 @@ class PowerSeries(ring_element.RingElement):
         s = s.replace(" -1|", " -")
         s = s.replace(" 1|"," ")
         s = s.replace("|","")
-        if self._prec != infinity:
+        if not (self._prec is infinity):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
@@ -485,7 +485,7 @@ class PowerSeries(ring_element.RingElement):
             sage: f.truncate(5)
             I^4 + I^3 + I^2 + I + 1
         """
-        if prec == infinity:
+        if prec is infinity:
             prec = self._prec
         a = self.list()
         v = [a[i] for i in range(min(prec, len(a)))]
@@ -503,7 +503,7 @@ class PowerSeries(ring_element.RingElement):
             sage: f.add_bigoh(3)
             1.0 + 5.0*A + 10.0*A^2 + O(A^3)
         """
-        if prec == infinity or prec >= self.prec():
+        if prec is infinity or prec >= self.prec():
             return self
         a = self.list()
         v = [a[i] for i in range(min(prec, len(a)))]
@@ -549,9 +549,9 @@ class PowerSeries(ring_element.RingElement):
         return c[n]
 
     def common_prec(self, f):
-        if self.prec() == infinity:
+        if self.prec() is infinity:
             return f.prec()
-        elif f.prec() == infinity:
+        elif f.prec() is infinity:
             return self.prec()
         return min(self.prec(), f.prec())
 
@@ -562,13 +562,13 @@ class PowerSeries(ring_element.RingElement):
             return right
         sp = self.prec()
         rp = right.prec()
-        if sp == infinity:
-            if rp == infinity:
+        if sp is infinity:
+            if rp is infinity:
                 prec = infinity
             else:
                 prec = rp + self.valuation()
         else:  # sp != infinity
-            if rp == infinity:
+            if rp is infinity:
                 prec = sp + right.valuation()
             else:
                 prec = min(rp + self.valuation(), sp + right.valuation())
@@ -806,7 +806,7 @@ class PowerSeries(ring_element.RingElement):
         Return this series plus $O(x^\text{prec})$.  Does not change
         self.
         """
-        if prec == infinity or prec >= self.prec():
+        if prec is infinity or prec >= self.prec():
             return self
         coeffs = self[:prec]
         return self.parent()(coeffs, prec)
@@ -995,7 +995,7 @@ class PowerSeries(ring_element.RingElement):
             sage: f.valuation()
             100000
             sage: R(0).valuation()
-            Infinity
+            +Infinity
 
         Dense examples:
             sage: R.<t> = PowerSeriesRing(ZZ)
@@ -1066,7 +1066,7 @@ class PowerSeries_poly(PowerSeries):
                 f = R(f, check=check)
 
         self.__f = f
-        if check and prec != infinity:
+        if check and not (prec is infinity):
             self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
@@ -1104,7 +1104,7 @@ class PowerSeries_poly(PowerSeries):
         """
         try:
             if x.parent() is self.parent():
-                if self.prec() != infinity:
+                if not (self.prec() is infinity):
                     x = x.add_bigoh(self.prec()*x.valuation())
         except AttributeError:
             pass
@@ -1262,13 +1262,13 @@ class PowerSeries_poly(PowerSeries):
         """
         sp = self.prec()
         rp = right.prec()
-        if is_Infinity(sp):
-            if is_Infinity(rp):
+        if is_Infinite(sp):
+            if is_Infinite(rp):
                 prec = infinity
             else:
                 prec = rp + self.valuation()
         else:  # sp != infinity
-            if is_Infinity(rp):
+            if is_Infinite(rp):
                 prec = sp + right.valuation()
             else:
                 prec = min(rp + self.valuation(), sp + right.valuation())
@@ -1388,7 +1388,7 @@ class PowerSeries_poly(PowerSeries):
         """
         if not isinstance(self.parent().base_ring(), rational_field.RationalField):
             raise NotImplementedError
-        if self.prec() == infinity:
+        if self.prec() is infinity:
             raise RuntimeError, "series must have finite precision for reversion."
         f = self._pari_()
         g = f.serreverse()
@@ -1413,7 +1413,7 @@ class PowerSeries_poly(PowerSeries):
         if not isinstance(self.parent().base_ring(),
                           (rational_field.RationalField, integer_ring.IntegerRing)):
             raise NotImplementedError
-        if self.prec() == infinity:
+        if self.prec() is infinity:
             raise RuntimeError, "series precision must be finite for conversion to pari object."
         return pari.pari(str(self))
 

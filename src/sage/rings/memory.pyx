@@ -20,6 +20,10 @@ cdef extern from "gmp.h":
 def pmem_malloc():
     """
     Use our own memory manager for for GMP memory management.
+
+
+    WARNING: Call this before the integer initialization or evil
+    things might happen.
     """
     mp_set_memory_functions(sage_malloc, pymem_realloc, pymem_free)
     #mp_set_memory_functions(PyMem_Malloc, pymem_realloc, pymem_free)

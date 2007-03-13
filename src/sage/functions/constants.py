@@ -79,7 +79,7 @@ by coercing into the real field with given precision.  For example, to
     3.1415926535897932384626433832795028841971693993751058209749
 
     sage: R(e)
-    2.7182818284590452353602874713526624977572470936999595749669
+    2.7182818284590452353602874713526624977572470936999595749670
 
     sage: R(NaN)
     NaN
@@ -88,16 +88,16 @@ by coercing into the real field with given precision.  For example, to
     1.6180339887498948482045868343656381177203091798057628621354
 
     sage: R(log2)
-    0.69314718055994530941723212145817656807550013436025525412067
+    0.69314718055994530941723212145817656807550013436025525412068
 
     sage: R(euler_gamma)
-    0.57721566490153286060651209008240243104215933593992359880576
+    0.57721566490153286060651209008240243104215933593992359880577
 
     sage: R(catalan)
-    0.91596559417721901505460351493238411077414937428167213426649
+    0.91596559417721901505460351493238411077414937428167213426650
 
     sage: R(khinchin)
-    2.6854520010653064453097148354817956938203822939944629530511
+    2.6854520010653064453097148354817956938203822939944629530512
 
 
 EXAMPLES: Arithmetic with constants
@@ -105,7 +105,7 @@ EXAMPLES: Arithmetic with constants
     sage: pp = pi+pi; pp
     (pi + pi)
     sage: R(pp)
-    6.2831853071795864769252867665590057683943387987502116419498
+    6.2831853071795864769252867665590057683943387987502116419499
 
     sage: s = (1 + e^pi);s
     (1 + (e^pi))
@@ -117,7 +117,7 @@ EXAMPLES: Arithmetic with constants
     sage: l = (1-log2)/(1+log2);l
     ((1 - log2)/(1 + log2))
     sage: R(l)
-    0.18123221829928249948761381864650311423330609774776013488055
+    0.18123221829928249948761381864650311423330609774776013488056
 
     sage: pim = maxima(pi)
     sage: maxima.eval('fpprec : 100')
@@ -282,7 +282,7 @@ class Pi(Constant):
         sage: pp = pi+pi; pp
         (pi + pi)
         sage: R(pp)
-        6.2831853071795864769252867665590057683943387987502116419498
+        6.2831853071795864769252867665590057683943387987502116419499
         sage: maxima(pi)
         %pi
         sage: maxima(pi).float()
@@ -335,15 +335,15 @@ class E(Constant):
 
     EXAMPLES:
         sage: RR(e)
-        2.71828182845904
+        2.71828182845905
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(e)
-        2.7182818284590452353602874713526624977572470936999595749669
+        2.7182818284590452353602874713526624977572470936999595749670
         sage: em = 1 + e^(1-e); em
         (1 + (e^(1 - e)))
         sage: R(em)
-        1.1793740787340171819619895873183164984596816017589156131573
+        1.1793740787340171819619895873183164984596816017589156131574
         sage: maxima(e).float()
         2.718281828459045
         sage: t = mathematica(e)               # optional
@@ -470,11 +470,11 @@ class Log2(Constant):
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(log2)
-        0.69314718055994530941723212145817656807550013436025525412067
+        0.69314718055994530941723212145817656807550013436025525412068
         sage: l = (1-log2)/(1+log2);l
         ((1 - log2)/(1 + log2))
         sage: R(l)
-        0.18123221829928249948761381864650311423330609774776013488055
+        0.18123221829928249948761381864650311423330609774776013488056
         sage: maxima(log2)
         log(2)
         sage: maxima(log2).float()
@@ -523,11 +523,11 @@ class EulerGamma(Constant):
     EXAMPLES:
         sage: R = RealField()
         sage: R(euler_gamma)
-        0.577215664901532
+        0.577215664901533
         sage: R = RealField(200); R
         Real Field with 200 bits of precision
         sage: R(euler_gamma)
-        0.57721566490153286060651209008240243104215933593992359880576
+        0.57721566490153286060651209008240243104215933593992359880577
         sage: eg = euler_gamma + euler_gamma;eg
         (euler_gamma + euler_gamma)
         sage: R(eg)
@@ -612,7 +612,7 @@ class Khinchin(Constant):
         sage: float(khinchin)
         2.6854520010653062
         sage: khinchin.str(100)
-        '2.6854520010653064453097148354'
+        '2.6854520010653064453097148355'
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
@@ -668,7 +668,7 @@ class TwinPrime(Constant):
         sage: R=RealField(200);R
         Real Field with 200 bits of precision
         sage: R(twinprime)
-        0.66016181584686957392781211001455577843262336028473341331944
+        0.66016181584686957392781211001455577843262336028473341331945
     """
     def __init__(self):
         Constant.__init__(self,{}) #Twin prime is not implemented in any other algebra systems.
@@ -745,7 +745,7 @@ class Merten(Constant):
             ...
             NotImplementedError: Merten's constant only available up to 320 bits
             sage: RealField(320)(merten)
-            0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434246
+            0.261497212847642783755426838608695859051566648261199206192064213924924510897368209714142631434247
         """
         if R.precision() <= self.__bits:
             return R(self.__value)

@@ -660,7 +660,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: A.change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: no coercion of this rational to integer
+            TypeError: matrix has denominators so can't change to ZZ.
         """
         if ring is self._base_ring:
             if self._mutability._is_immutable:
@@ -1140,7 +1140,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         for j from start_row <= j < self._nrows:
             self.set_unsafe(j, i, self.get_unsafe(j, i)*s)
 
-    def set_row_to_multiple_of_row(self, i, j, s):
+    def set_row_to_multiple_of_row(self, Py_ssize_t i, Py_ssize_t j, s):
         """
         Set row i equal to s times row j.
 
@@ -1148,24 +1148,32 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: a = matrix(QQ,2,3,range(6)); a
             [0 1 2]
             [3 4 5]
-            sage: a.set_row_to_multiple_of_row(1,2,-3)
+            sage: a.set_row_to_multiple_of_row(1,0,-3)
             sage: a
             [ 0  1  2]
             [ 0 -3 -6]
         """
-        self[i] = s*self[j]
+        self.check_row_bounds_and_mutability(i,j)
+        cdef Py_ssize_t n
+        s = self._base_ring(s)
+        for n from 0 <= n < self._ncols:
+            self.set_unsafe(i, n, s * self.get_unsafe(j, n))  # self[i] = s*self[j]
 
     def _set_row_to_negative_of_row_of_A_using_subset_of_columns(self, Py_ssize_t i, Matrix A,
-                                                                 Py_ssize_t r, cols):
+                                                                 Py_ssize_t r, cols,
+                                                                 cols_index=None):
         """
         Set row i of self to -(row r of A), but where we only take
-        the given column positions in that row of A:
+        the given column positions in that row of A.  We do not
+        zero out the other entries of self's row i either.
+
 
         INPUT:
             i -- integer, index into the rows of self
             A -- a matrix
             r -- integer, index into rows of A
             cols -- a *sorted* list of integers.
+            (cols_index -- ignored)
 
         EXAMPLES:
             sage: a = matrix(QQ,2,3,range(6)); a
@@ -1176,13 +1184,15 @@ cdef class Matrix(sage.structure.element.Matrix):
             [-4 -5  2]
             [ 3  4  5]
         """
+        self.check_row_bounds_and_mutability(i,i)
+        if r < 0 or r >= A.nrows():
+            raise IndexError, "invalid row"
         # this function exists just because it is useful for modular symbols presentations.
         cdef Py_ssize_t l
-        z = self._base_ring(0)
         l = 0
         for k in cols:
-            self[i,l] = -A[r,k]
-            l = l + 1
+            self.set_unsafe(i,l,-A.get_unsafe(r,k))               #self[i,l] = -A[r,k]
+            l += 1
 
     ###################################################
     # Matrix-vector multiply
@@ -1193,7 +1203,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         coefficients in the list v.
 
         INPUT:
-            v -- list
+            v -- list of length at most the number of rows of self.
 
         EXAMPLES:
             sage: a = matrix(QQ,2,3,range(6)); a
@@ -1207,17 +1217,17 @@ cdef class Matrix(sage.structure.element.Matrix):
         cdef Py_ssize_t i, n
         R = self.rows()
         n = len(R)
-        if len(v) != n:
-            raise ValueError, "length of v must equal number of rows."
+        if len(v) > n:
+            raise ValueError, "length of v (=%s) must be at most the number (=%s) of rows."%(len(v), n)
         zero = self._base_ring(0)
         s = None
-        for i from 0 <= i < n:
+        for i from 0 <= i < len(v):
             if v[i] != zero:
                 a = v[i] * R[i]
                 if s is None:
                     s = a
                 else:
-                    s = s + a
+                    s += a
         if s is None:
             return self.parent().row_space()(0)
         return s
@@ -1610,13 +1620,19 @@ cdef class Matrix(sage.structure.element.Matrix):
                 s = s + self.column(i, from_list=True)*v[i]
         return s
 
-    def iterates(self, v, n):
-        """
-        Let $A$ be this matrix and $v$ be a free module element.
-        Return a vector whose rows are the entries of the following
-        vectors:
+    def iterates(self, v, n, rows=True):
+        r"""
+        Let $A$ be this matrix and $v$ be a free module element.  If
+        rows is True, return a matrix whose rows are the entries of
+        the following vectors:
         $$
-           v, v A, v A^2, \ldots, v A^{n-1}.
+          v, v A, v A^2, \ldots, v A^{n-1}.
+        $$
+
+        If rows is False, return a matrix whose columns are the entries
+        of the following vectors:
+        $$
+          v, Av, A^2 v, \ldots, A^{n-1} v.
         $$
 
         INPUT:
@@ -1624,10 +1640,10 @@ cdef class Matrix(sage.structure.element.Matrix):
             n -- nonnegative integer
 
         EXAMPLES:
-            sage: A = MatrixSpace(IntegerRing(), 2)([1,1,3,5]); A
+            sage: A = matrix(ZZ,2, [1,1,3,5]); A
             [1 1]
             [3 5]
-            sage: v = FreeModule(IntegerRing(), 2)([1,0])
+            sage: v = vector([1,0])
             sage: A.iterates(v,0)
             []
             sage: A.iterates(v,5)
@@ -1636,20 +1652,43 @@ cdef class Matrix(sage.structure.element.Matrix):
             [  4   6]
             [ 22  34]
             [124 192]
+
+        Another example:
+            sage: a = matrix(ZZ,3,range(9)); a
+            [0 1 2]
+            [3 4 5]
+            [6 7 8]
+            sage: v = vector([1,0,0])
+            sage: a.iterates(v,4)
+            [  1   0   0]
+            [  0   1   2]
+            [ 15  18  21]
+            [180 234 288]
+            sage: a.iterates(v,4,rows=False)
+            [  1   0  15 180]
+            [  0   3  42 558]
+            [  0   6  69 936]
         """
         n = int(n)
         if n >= 2 and self.nrows() != self.ncols():
             raise ArithmeticError, "matrix must be square if n >= 2."
         if n == 0:
             return self.matrix_space(n, self.ncols())(0)
-        M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
+        m = self.nrows()
+        M = sage.modules.free_module.FreeModule(self._base_ring, m, sparse=self.is_sparse())
+        v = M(v)
         X = [v]
-        for _ in range(n-1):
-            X.append(X[len(X)-1]*self)
-        MS = self.matrix_space(n, self.ncols())
-        return MS(X)
+
+        if rows:
+            for _ in range(n-1):
+                X.append(X[len(X)-1]*self)
+            MS = self.matrix_space(n, m)
+            return MS(X)
+        else:
+            for _ in range(n-1):
+                X.append(self*X[len(X)-1])
+            MS = self.matrix_space(n, m)
+            return MS(X).transpose()
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """

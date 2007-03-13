@@ -218,11 +218,11 @@ class Function(RingElement):
         """
         EXAMPLES:
             sage: singular(e)
-            2.71828182845904
+            2.71828182845905
             sage: P = e.parent()
             sage: old_prec = P.set_precision(200)
             sage: singular(e)
-            2.7182818284590452353602874713526624977572470936999595749669
+            2.7182818284590452353602874713526624977572470936999595749670
             sage: _ = P.set_precision(old_prec)
         """
         try:
@@ -336,7 +336,7 @@ class Function_arith(Function):
         sage: s
         (((pi + pi)*e) + e)
         sage: RR(s)
-        19.7977502738061
+        19.7977502738062
         sage: maxima(s)
         2*%e*%pi + %e
 
@@ -349,7 +349,7 @@ class Function_arith(Function):
         sage: t^e
         ((((e^2) + pi) + 2/3)^e)
         sage: RR(t^e)
-        710.865247688857
+        710.865247688858
     """
     def __init__(self, x, y, op):
         if not isinstance(x, Function) or not isinstance(y, Function):
@@ -399,7 +399,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: gap(e + pi)
-            "5.85987448204883"
+            "5.85987448204884"
         """
         return '"%s"'%self.str()
 
@@ -468,7 +468,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: singular(e + pi)
-            5.85987448204883
+            5.85987448204884
         """
         return '"%s"'%self.str()
 
@@ -501,7 +501,7 @@ class Function_gen(Function):
         sage: maxima(b)
         %e + 5/7
         sage: RR(b)
-        3.43256754274475
+        3.43256754274476
     """
     def __init__(self, x):
         Function.__init__(self)

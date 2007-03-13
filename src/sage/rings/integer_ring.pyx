@@ -324,7 +324,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer z, n_max, n_min, n_width
         z = integer.Integer()
         if y is None:
-            if x is None:
+            if x is None or x == 0:
                 mpz_set_si(z.value, random()%5 - 2)
 ##            elif (x == 0):
 
@@ -332,6 +332,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
                 n_max = self(x)
                 mpz_urandomm(z.value, state, n_max.value)
         else:
+            if x >= y:
+                raise ValueError, "upper range must be larger than lower bound."
             n_min = self(x)
             n_width = self(y) - n_min
             mpz_urandomm(z.value, state, n_width.value)
@@ -418,7 +420,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return 1
 
     def order(self):
-        return sage.rings.infinity.Infinity()
+        return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
         if n == 1:

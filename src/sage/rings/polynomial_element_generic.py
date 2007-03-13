@@ -32,7 +32,6 @@ import integer
 import complex_field
 import arith
 import finite_field
-import padic_field
 
 import fraction_field_element
 import sage.rings.polynomial_ring
@@ -308,7 +307,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R(19).valuation()
             0
             sage: R(0).valuation()
-            Infinity
+            +Infinity
         """
         c = self.__coeffs.keys()
         if len(c) == 0:
@@ -954,7 +953,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: R.<x> = PolynomialRing(QQ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: f.complex_roots()[0]
-            0.713639173536900
+            0.713639173536901
         """
         R = self.__poly.polroots(flag)
         C = complex_field.ComplexField()
@@ -1046,6 +1045,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: f.factor_padic(5)
             ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
         """
+        from padics.qp import Qp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1053,7 +1053,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
-        K = padic_field.pAdicField(p)
+        K = Qp(p, prec, type='capped-rel')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
 
@@ -1370,7 +1370,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: R.<x> = PolynomialRing(ZZ)
             sage: f = 1 - x^2 - x^3 - x^4 + x^6
             sage: alpha = f.complex_roots()[0]; alpha
-            0.713639173536900
+            0.713639173536901
             sage: f(alpha)
             0
         """
@@ -1459,6 +1459,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         OUTPUT:
             factorization of self reduced modulo p.
         """
+        import padics.zp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1466,7 +1467,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         if prec <= 0:
             raise ValueError, "prec must be positive"
         G = self._pari_().factorpadic(p, prec)
-        K = padic_field.pAdicField(p)
+        K = padics.zp.Zp(p, prec, type='capped-abs')
         R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=K(self.leading_coefficient()))
 
@@ -1541,6 +1542,123 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         except AttributeError:
             pass
 
+class Polynomial_padic_ring_dense(Polynomial_generic_dense, Polynomial_generic_domain):
+    def __init__(self, parent, x=None, check=True, is_gen = False, construct=False):
+        Polynomial_generic_dense.__init__(self, parent, x, check, is_gen)
+
+    def _mul_(self, right):
+        return self._mul_generic(right)
+
+    def __pow__(self, right):
+        #computing f^p in this way loses precision
+        return self._pow(right)
+
+    def _repr(self, name=None):
+        r"""
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: f = 24 + R(4/3)*w + w^4
+            sage: f._repr()
+            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + 24 + O(5^5)'
+            sage: f._repr(name='z')
+            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + 24 + O(5^5)'
+
+        AUTHOR:
+            -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()
+        """
+        s = " "
+        n = m = self.degree()
+        if name is None:
+            name = self.parent().variable_name()
+        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        coeffs = self.list()
+        for x in reversed(coeffs):
+            if x.valuation() != infinity:
+                if n != m:
+                    s += " + "
+                x = str(x)
+                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                    x = "(%s)"%x
+                if n > 1:
+                    var = "*%s^%s"%(name,n)
+                elif n==1:
+                    var = "*%s"%name
+                else:
+                    var = ""
+                s += "%s%s"%(x,var)
+            n -= 1
+        if atomic_repr:
+            s = s.replace(" + -", " - ")
+        s = s.replace(" 1*"," ")
+        s = s.replace(" -1*", " -")
+        if s==" ":
+            return "0"
+        return s[1:]
+
+    def clear_zeros(self):
+        coeffs = self._Polynomial_generic_dense__coeffs
+        for n in range(len(coeffs)):
+            if coeffs[n] == 0:
+                self._Polynomial_generic_dense__coeffs[n] = self.base_ring()(0)
+
+class Polynomial_padic_field_dense(Polynomial_generic_dense_field):
+    def __init__(self, parent, x=None, check=True, is_gen = False, construct=False):
+        Polynomial_generic_dense_field.__init__(self, parent, x, check, is_gen)
+
+    def _mul_(self, right):
+        return self._mul_generic(right)
+
+    def __pow__(self, right):
+        #computing f^p in this way loses precision
+        return self._pow(right)
+
+    def _repr(self, name=None):
+        r"""
+        EXAMPLES:
+            sage: R.<w> = PolynomialRing(Qp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: f = 24 + R(4/5)*w + w^4
+            sage: f._repr()
+            '(1 + O(5^5))*w^4 + (5^-1 * 4 + O(5^4))*w + 24 + O(5^5)'
+            sage: f._repr(name='z')
+            '(1 + O(5^5))*z^4 + (5^-1 * 4 + O(5^4))*z + 24 + O(5^5)'
+
+        AUTHOR:
+            -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()
+        """
+        s = " "
+        n = m = self.degree()
+        if name is None:
+            name = self.parent().variable_name()
+        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        coeffs = self.list()
+        for x in reversed(coeffs):
+            if x.valuation() != infinity:
+                if n != m:
+                    s += " + "
+                x = str(x)
+                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
+                    x = "(%s)"%x
+                if n > 1:
+                    var = "*%s^%s"%(name,n)
+                elif n==1:
+                    var = "*%s"%name
+                else:
+                    var = ""
+                s += "%s%s"%(x,var)
+            n -= 1
+        if atomic_repr:
+            s = s.replace(" + -", " - ")
+        s = s.replace(" 1*"," ")
+        s = s.replace(" -1*", " -")
+        if s==" ":
+            return "0"
+        return s[1:]
+
+    def clear_zeros(self):
+        coeffs = self._Polynomial_generic_dense__coeffs
+        for n in range(len(coeffs)):
+            if coeffs[n] == 0:
+                self._Polynomial_generic_dense__coeffs[n] = self.base_ring()(0)
 
 class Polynomial_dense_mod_n(Polynomial):
     """

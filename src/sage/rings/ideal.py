@@ -28,7 +28,7 @@ import commutative_ring
 from sage.structure.sage_object import SageObject
 from sage.structure.element import MonoidElement
 from sage.interfaces.singular import singular as singular_default, is_SingularElement
-from sage.rings.infinity import Infinity
+import sage.rings.infinity
 from sage.structure.sequence import Sequence
 
 def Ideal(R, gens=[], coerce=True):
@@ -409,7 +409,7 @@ def FieldIdeal(R):
 
     q = R.base_ring().order()
 
-    if q == Infinity:
+    if q is sage.rings.infinity.infinity:
         raise TypeError, "Cannot construct field ideal for R.base_ring().order()==infinity"
 
     return R.ideal([x**q - x for x in R.gens() ])

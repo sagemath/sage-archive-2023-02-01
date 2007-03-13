@@ -67,7 +67,7 @@ From bigger to small does:
     sage: f(2.5)
     2.500
     sage: f(RR.pi())
-    3.141
+    3.142
 
 EXAMPLE: Inclusion map from the reals to the complexes:
     sage: i = RR.hom([CC(1)]); i
@@ -162,15 +162,15 @@ We next compose the inclusion with reduction from the integers to GF(2).
     Finite Field in a of size 2^2
 
 EXAMPLE: Inclusion from $\Q$ to the 3-adic field.
-    sage: phi = QQ.hom(pAdicField(3))
+    sage: phi = QQ.hom(Qp(3, print_mode = 'series'))
     sage: phi
     Coercion morphism:
       From: Rational Field
-      To:   3-adic Field
+      To:   3-adic Field with capped relative precision 20
     sage: phi.codomain()
-    3-adic Field
+    3-adic Field with capped relative precision 20
     sage: phi(394)
-    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + ... + O(3^Infinity)
+    1 + 2*3 + 3^2 + 2*3^3 + 3^4 + 3^5 + O(3^20)
 
 EXAMPLE: An automorphism of a quotient of a univariate polynomial ring.
     sage: R.<x> = PolynomialRing(QQ)
@@ -280,7 +280,7 @@ EXAMPLE: Embedding a number field into the reals.
     sage: i(beta^3)
     2.00000000000000
     sage: i(beta^2 + 1)
-    2.58740105196819
+    2.58740105196820
 """
 
 #*****************************************************************************

@@ -11,23 +11,22 @@ Numerical computation of newforms
 #########################################################################
 
 from sage.structure.sage_object import SageObject
-from sage.rings.complex_double  import CDF
-from sage.misc.misc             import verbose
+from sage.structure.sequence    import Sequence
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.congroup      import is_CongruenceSubgroup, Gamma0
-from sage.rings.integer         import Integer
-from sage.modular.dims          import dimension_new_cusp_forms_group
-from sage.rings.arith           import next_prime
+#from sage.modular.dims          import dimension_new_cusp_forms
 from sage.modules.all           import vector
+from sage.misc.misc             import verbose
+from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
 from random                     import randint
 
-
 class NumericalNewforms(SageObject):
-    def __init__(self, group, weight=2, eps=1e-10):
-        if not is_CongruenceSubgroup(group):
+    def __init__(self, group, weight=2, eps=1e-12, numtp=3):
+        if isinstance(group, (int, long, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
         self._weight = Integer(weight)
+        self._numtp = numtp
         if self._weight < 2:
             raise ValueError, "weight must be at least 2"
         self._eps = eps
@@ -39,35 +38,37 @@ class NumericalNewforms(SageObject):
         return self._weight
 
     def _repr_(self):
-        return "Numerical newforms for %s of weight %s"%(
+        return "Numerical Hecke eigenvalues for %s of weight %s"%(
             self._group, self._weight)
 
-    def _modular_symbols(self):
+    def modular_symbols(self):
         try:
             return self.__modular_symbols
         except AttributeError:
             M = ModularSymbols(self._group,
-                    self._weight, sign=1).cuspidal_submodule()
+                    self._weight, sign=1)
+            if M.base_ring() != QQ:
+                raise ValueError, "modular forms space must be defined over QQ"
             self.__modular_symbols = M
             return M
 
-    def __len__(self):
-        try:
-            return self.__len
-        except AttributeError:
-            pass
-        n = dimension_new_cusp_forms_group(self._group, self._weight)
-        self.__len = n
-        return n
+##     def __len__(self):
+##         try:
+##             return self.__len
+##         except AttributeError:
+##             pass
+##         n = dimension_new_cusp_forms(self._group, self._weight)
+##         self.__len = n
+##         return n
 
-    def _eigenvectors(self):
+    def _xxx_eigenvectors(self):
         try:
             return self.__eigenvectors
         except AttributeError:
             pass
         verbose('Finding eigenvector basis')
-        M = self._modular_symbols()
-        M_amb = M.ambient_module()
+        M = self.modular_symbols().cuspidal_submodule()
+        M_amb = self.modular_symbols()
         N = self.level()
         n = len(self)
 
@@ -85,8 +86,8 @@ class NumericalNewforms(SageObject):
 
         w = []
         while len(w) < n:
-            tm = verbose('computing eigenvectors (found %s of %s)'%(len(w),n))
-            evals, B = t.change_ring(CDF).eigen()
+            tm = verbose('computing complex eigenvectors of %s x %s matrix; found %s of %s so far'%(t.nrows(),t.nrows(), len(w), n))
+            evals, B = t.change_ring(CDF).eigen_left()
             verbose('done computing eigenvectors', t=tm)
             # Find the eigenvalues that occur with multiplicity 1 up
             # to the given eps.
@@ -103,7 +104,7 @@ class NumericalNewforms(SageObject):
                 p = next_p(p)
                 tt = M.T(p).matrix()
                 tt_amb = M_amb.T(p).matrix()
-                c = randint(1,5)
+                c = randint(-100,100)
                 if c > 1:
                     tt = c*tt
                     tt_amb = c*tt_amb
@@ -112,18 +113,126 @@ class NumericalNewforms(SageObject):
             #endif
         #end while
 
-        evals, B = t_amb.change_ring(CDF).eigen()
+        evals, B = t_amb.change_ring(CDF).eigen_left()
         z = []
         # match up the eigenvalues
         for e, _ in w:
             j = -1
             for i in range(len(evals)):
                 if abs(e - evals[i]) < eps:
+                    print e, evals[i], e-evals[i]
+                    if j != -1:
+                        raise RuntimeError, "Precision error -- try reducing eps from %s to something smaller"%eps
                     j = i
-                    break
             if j == -1:
-                raise RuntimeError, "Precision error."
+                raise RuntimeError, "Precision error -- try reducing eps from %s to something larger"%eps
             z.append(j)
+        self.__eigenvalues = evals
+        self.__eigenvectors = B.matrix_from_columns(z)
+        return self.__eigenvectors
+
+    def _eigenvectors(self):
+        try:
+            return self.__eigenvectors
+        except AttributeError:
+            pass
+        verbose('Finding eigenvector basis')
+        M = self.modular_symbols()
+        N = self.level()
+
+        p = 2
+        t = M.T(p).matrix()
+        for i in range(self._numtp-1):
+            p = next_prime(p)
+            t += randint(-50,50)*M.T(p).matrix()
+
+        self._hecke_matrix = t
+        evals, B = t.change_ring(CDF).eigen_left()
+
+        # Find the eigenvalues that occur with multiplicity 1 up
+        # to the given eps.
+        eps = self._eps
+        v = list(evals)
+        v.sort()
+        w = []
+        for i in range(len(v)):
+            e = v[i]
+            uniq = True
+            for j in range(len(v)):
+                if i != j and abs(e-v[j]) < eps:
+                    uniq = False
+            if uniq:
+                w.append(i)
+        self.__eigenvectors = B.matrix_from_columns(w)
+        return B
+
+    def _xxx_eigenvectors(self):
+        try:
+            return self.__eigenvectors
+        except AttributeError:
+            pass
+        verbose('Finding eigenvector basis')
+        M = self.modular_symbols().cuspidal_submodule()
+        M_amb = self.modular_symbols()
+        N = self.level()
+        n = len(self)
+
+        def next_p(p):
+            p = next_prime(p)
+            while N%p == 0:
+                p = next_prime(p)
+            return p
+
+        p = next_p(1)
+
+        t = M.T(p).matrix()
+        t_amb = M_amb.T(p).matrix()
+        eps = self._eps
+
+        w = []
+        while len(w) < n:
+            tm = verbose('computing complex eigenvectors of %s x %s matrix; found %s of %s so far'%(t.nrows(),t.nrows(), len(w), n))
+            evals, B = t.change_ring(CDF).eigen_left()
+            verbose('done computing eigenvectors', t=tm)
+            # Find the eigenvalues that occur with multiplicity 1 up
+            # to the given eps.
+            v = list(evals)
+            v.sort()
+            w = []
+            i = 0
+            while i < len(v):
+                e = v[i]
+                if i + 1 == len(v) or abs(e-v[i+1]) >= eps:
+                    w.append((e,i))
+                i += 1
+            if len(w) < n:
+                p = next_p(p)
+                tt = M.T(p).matrix()
+                tt_amb = M_amb.T(p).matrix()
+                c = randint(-100,100)
+                if c > 1:
+                    tt = c*tt
+                    tt_amb = c*tt_amb
+                t += tt
+                t_amb += tt_amb
+            #endif
+        #end while
+
+        evals, B = t_amb.change_ring(CDF).eigen_left()
+        z = []
+        # match up the eigenvalues
+        for e, _ in w:
+            j = -1
+            for i in range(len(evals)):
+                if abs(e - evals[i]) < eps:
+                    print e, evals[i], e-evals[i]
+                    if j != -1:
+                        raise RuntimeError, "Precision error -- try reducing eps from %s to something smaller"%eps
+                    j = i
+            if j == -1:
+                raise RuntimeError, "Precision error -- try reducing eps from %s to something larger"%eps
+            z.append(j)
+        self.__eigenvalues = evals
         self.__eigenvectors = B.matrix_from_columns(z)
         return self.__eigenvectors
 
@@ -156,6 +265,10 @@ class NumericalNewforms(SageObject):
             pass
         E = self._eigenvectors()
         eps = self._eps
+        x = (CDF**E.nrows()).zero_vector()
+        if E.nrows() == 0:
+            return x
+
 
 
         def best_row(M):
@@ -167,7 +280,6 @@ class NumericalNewforms(SageObject):
 
         i, e = best_row(E)
 
-        x = (CDF**E.nrows()).zero_vector()
         x[i] = 1
 
         while True:
@@ -183,15 +295,6 @@ class NumericalNewforms(SageObject):
 
         self.__easy_vector = x
         return x
-
-    def eigenvalues(self, p):
-        p = Integer(p)
-        try:
-            return self.__eigenvalues[p]
-        except AttributeError:
-            self.__eigenvalues = {}
-        except KeyError:
-            pass
 
     def _eigendata(self):
         try:
@@ -225,12 +328,24 @@ class NumericalNewforms(SageObject):
             return y.element() * B
 
         ans = []
-        m = self._modular_symbols().ambient_module()
+        m = self.modular_symbols().ambient_module()
         for p in primes:
             t = m._compute_hecke_matrix_prime(p, nzp)
             w = phi(x_nzp*t)
             ans.append([w[i]*phi_x_inv[i] for i in range(w.degree())])
         return ans
+
+    def systems_of_eigenvalues(self, bound):
+        P = prime_range(bound)
+        e = self.eigenvalues(P)
+        v = Sequence([], cr=True)
+        if len(e) == 0:
+            return v
+        for i in range(len(e[0])):
+            v.append([e[j][i] for j in range(len(e))])
+        v.sort()
+        v.set_immutable()
+        return v
 
 
 def support(v, eps):

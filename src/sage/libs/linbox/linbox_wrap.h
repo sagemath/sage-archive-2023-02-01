@@ -12,6 +12,11 @@
 #include<stddef.h>
 typedef size_t mod_int;
 
+extern "C" {
+#include "../m4ri/packedmatrix.h"
+}
+
+
 /*****************************************************************
 
   Dense modulo n.
@@ -28,10 +33,25 @@ EXTERN void linbox_modn_dense_minpoly(mod_int modulus, mod_int **mp, size_t* deg
 EXTERN void linbox_modn_dense_delete_array(mod_int *f);
 
 EXTERN int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod_int **A, mod_int **B,
-					     size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc);
+						    size_t A_nr, size_t A_nc, size_t B_nr, size_t B_nc);
 
 EXTERN int linbox_modn_dense_rank(mod_int modulus,
 				  mod_int** matrix, size_t nrows, size_t ncols);
+
+
+/*****************************************************************
+
+  Dense modulo 2.
+
+*****************************************************************/
+
+EXTERN int linbox_mod2_dense_echelonize(packedmatrix *m);
+
+EXTERN void linbox_mod2_dense_minpoly(mod_int **mp, size_t* degree, packedmatrix *matrix, int do_minpoly);
+
+EXTERN int linbox_mod2_dense_matrix_matrix_multiply(packedmatrix *ans, packedmatrix *A, packedmatrix *B);
+
+EXTERN int linbox_mod2_dense_rank(packedmatrix *m);
 
 /*****************************************************************
 

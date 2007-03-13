@@ -742,7 +742,6 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         cdef IntegerMod_gmp x
         x = self._new_c()
-        mpz_init(x.value)
         mpz_mul(x.value, self.value,  (<IntegerMod_gmp>right).value)
         mpz_fdiv_r(x.value, x.value, self.__modulus.sageInteger.value)
         return x

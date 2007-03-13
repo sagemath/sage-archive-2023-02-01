@@ -1,3 +1,6 @@
+cimport sage.structure.element
+cimport sage.rings.ring
+
 from sage.structure.element cimport RingElement, ModuleElement, Element, FieldElement
 from sage.rings.ring cimport Field
 

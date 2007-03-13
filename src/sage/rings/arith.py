@@ -30,12 +30,20 @@ import integer
 # Elementary Arithmetic
 ##################################################################
 
-def algdep(z, n):
+def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=None):
     """
     Returns a polynomial of degree at most $n$ which is approximately
     satisfied by the number $z$.  Note that the returned polynomial
     need not be irreducible, and indeed usually won't be if $z$ is a good
     approximation to an algebraic number of degree less than $n$.
+
+    You can specify the number of known bits or digits with known_bits=k
+    or known_digits=k; Pari is then told to compute the result
+    using .8*k of these bits/digits.  (The Pari documentation recommends
+    using a factor between .6 and .9, but internally defaults to .8.)
+    Or, you can specify the precision to use directly with use_bits=k
+    or use_digits=k.  If none of these are specified, then the precision
+    is taken from the input value.
 
     ALGORITHM: Uses the PARI C-library algdep command.
 
@@ -53,22 +61,37 @@ def algdep(z, n):
 
     This example involves a complex number.
         sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
-        0.500000000000000 + 0.866025403784438*I
+        0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
-        x^6 + 2*x^3 + 1                      # 32-bit
-        x^5 - x^4 + x^3 + x^2 - x + 1        # 64-bit
+        x^5 + x^2
         sage: p.factor()
-        (x + 1)^2 * (x^2 - x + 1)^2          # 32-bit
-        (x + 1) * (x^2 - x + 1)^2            # 64-bit
+        (x + 1) * x^2 * (x^2 - x + 1)
         sage: z^2 - z + 1
-        0.000000000000000111022302462515
+        0.000000000000000111022302462516
 
     This example involves a $p$-adic number.
-        sage: K = pAdicField(3)
+        sage: K = Qp(3, print_mode = 'series')
         sage: a = K(7/19); a
         1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
         sage: algdep(a, 1)
         19*x - 7
+
+    These examples show the importance of proper precision control.
+    We compute a 200-bit approximation to sqrt(2) which is wrong in the
+    33'rd bit.
+        sage: z = sqrt(RealField(200)(2)) + (1/2)^33
+        sage: p = algdep(z, 4); p
+        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        sage: factor(p)
+        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        sage: algdep(z, 4, known_bits=32)
+        x^2 - 2
+        sage: algdep(z, 4, known_digits=10)
+        x^2 - 2
+        sage: algdep(z, 4, use_bits=25)
+        x^2 - 2
+        sage: algdep(z, 4, use_digits=8)
+        x^2 - 2
     """
 
     # TODO -- change to use PARI C library???
@@ -89,12 +112,27 @@ def algdep(z, n):
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 
-    if misc.is_64_bit and isinstance(z, (sage.rings.real_mpfr.RealNumber,
-                                         sage.rings.complex_number.ComplexNumber)):
-        bits = int(float(z.prec()/3))
-        if bits == 0:
-            bits = 1
-        f = pari(z).algdep(n, bits)
+    if isinstance(z, (sage.rings.real_mpfr.RealNumber,
+                      sage.rings.complex_number.ComplexNumber)):
+        # We need to specify a precision.  Otherwise, Pari will default
+        # to using 80% of the bits in the Pari value; for certain precisions,
+        # this could be very wrong.  (On a 32-bit machine, a RealField(33)
+        # value gets translated to a 64-bit Pari value; so Pari would
+        # try to use about 51 bits of our 32-bit value.  Similarly
+        # bad things would happen on a 64-bit machine with RealField(65).)
+        log2 = 0.301029995665
+        digits = int(log2 * z.prec())
+        if known_bits is not None:
+            known_digits = log2 * known_bits
+        if known_digits is not None:
+            use_digits = known_digits * 0.8
+        if use_bits is not None:
+            use_digits = log2 * use_bits
+        if use_digits is not None:
+            digits = int(use_digits)
+        if digits == 0:
+            digits = 1
+        f = pari(z).algdep(n, digits)
     else:
         y = pari(z)
         f = y.algdep(n)
@@ -438,7 +476,7 @@ def valuation(m, p):
     Valuation of 0 is defined, but valuation with respect to 0 is not::
 
         sage: valuation(0,7)
-        Infinity
+        +Infinity
         sage: valuation(3,0)
         Traceback (most recent call last):
         ...
@@ -841,10 +879,7 @@ def random_prime(n):
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        previous_prime(random.randint(3,n))
-
-    return previous_prime(random.randint(3,n))
-
+        return previous_prime(random.randint(3,n+1))
 
 
 def divisors(n):
@@ -2483,13 +2518,13 @@ def falling_factorial(x, a):
         sage: falling_factorial(10, RR('3.0'))
         720.000000000000
         sage: falling_factorial(10, RR('3.3'))
-        1310.11633396600
+        1310.11633396601
         sage: falling_factorial(10, 10)
         3628800
         sage: factorial(10)
         3628800
         sage: falling_factorial(1+I, I)
-        0.652965496420166 + 0.343065839816545*I
+        0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
         2.00000000000000 + 4.00000000000000*I
         sage: falling_factorial(I, 4)
@@ -2550,7 +2585,7 @@ def rising_factorial(x, a):
         2826.38895824964
 
         sage: rising_factorial(1+I, I)
-        0.266816390637832 + 0.122783354006371*I
+        0.266816390637832 + 0.122783354006372*I
 
         sage: rising_factorial(I, 4)
         -10.0000000000000

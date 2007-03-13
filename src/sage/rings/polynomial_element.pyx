@@ -29,7 +29,7 @@ import integer_mod_ring
 import polynomial_pyx
 import rational_field
 import complex_field
-import padic_field
+#import padic_field
 from infinity import infinity
 import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
@@ -547,7 +547,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         w = [sum([self[i]*right[k-i] for i in range(0,min(d1,k)+1) if \
                   i <= d1 and k-i <= d2 and self[i]!=0 and right[k-i]!=0]) \
                 for k in range(d+1)]
-        return Polynomial(self.parent(), w)
+        return self.parent()(w)
 
     def _mul_fateman(self, right):
         r"""
@@ -586,9 +586,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: S.<y> = PolynomialRing(RR)
             sage: f = y^10 - 1.393493*y + 0.3
             sage: f._mul_karatsuba(f)
-            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 0.000000000000000111022302462515*y^8 - 0.000000000000000111022302462515*y^6 - 0.000000000000000111022302462515*y^3 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0899999999999999
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 0.000000000000000111022302462516*y^8 - 0.000000000000000111022302462516*y^6 - 0.000000000000000111022302462516*y^3 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0900000000000000
             sage: f._mul_fateman(f)
-            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.599999999999999*y^10 + 1.94182274104900*y^2 - 0.836095799999999*y + 0.0899999999999999
+            1.00000000000000*y^20 - 2.78698600000000*y^11 + 0.600000000000000*y^10 + 1.94182274104900*y^2 - 0.836095800000000*y + 0.0900000000000000
 
         Advantages:
 
@@ -804,7 +804,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         do not have a denominator method.
             sage: R.<x> = RR[]
             sage: f = x + RR('0.3'); f
-            1.00000000000000*x + 0.299999999999999
+            1.00000000000000*x + 0.300000000000000
             sage: f.denominator()
             Traceback (most recent call last):
             ...
@@ -980,8 +980,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
             else:
                 G = self._pari_('x').factor()
 
-        elif padic_field.is_pAdicField(R):
-            G = list(self._pari_('x').factorpadic(R.prime(), R.prec()))
+        #elif padic_field.is_pAdicField(R):
+        #    G = list(self._pari_('x').factorpadic(R.prime(), R.prec()))
 
         if G is None:
             raise NotImplementedError
@@ -1281,7 +1281,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: x = PolynomialRing(RealField(), 'x').gen()
             sage: f = x^2 - 2
             sage: f.newton_raphson(4, 1)
-            [1.50000000000000, 1.41666666666666, 1.41421568627450, 1.41421356237468]
+            [1.50000000000000, 1.41666666666667, 1.41421568627451, 1.41421356237469]
 
         AUTHORS: David Joyner and William Stein (2005-11-28)
         """
@@ -1496,6 +1496,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [(4, 1), (2, 1)]
             sage: g.roots(multiplicities=False)
             [4, 2]
+
+            sage: x = RR['x'].0
+            sage: f = x^2 - 1e100
+            sage: f.roots()
+            [-1.00000000000000e50, 1.00000000000000e50]
+            sage: f = x^10 - 2*(5*x-1)^2
+            sage: f.roots()
+            [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
+
+            sage: x = CC['x'].0
+            sage: f = (x-1)*(x-I)
+            sage: f.roots()
+            [1.00000000000000*I, 1.00000000000000]
         """
         seq = []
 
@@ -1507,8 +1520,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.get_real_precision()
             pari.set_real_precision(int(K.prec()/3.2)+1)
             r = pari(self).polroots()
-            r = str(r).rstrip('~')
-            seq = sage_eval(r, locals={'I':K.gen(), 'RealNumber':K._real_field()})
+            seq = [K(root) for root in r]
             pari.set_real_precision(n)
             return seq
 
@@ -1547,7 +1559,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: (x^3+1).valuation(infinity)
         -3
         sage: P(0).valuation()
-        Infinity
+        +Infinity
         """
         cdef int k
         if self.is_zero():

@@ -20,6 +20,8 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
     cdef gen ZERO, ONE, TWO
     cdef gen new_gen(self, GEN x)
     cdef gen new_gen_noclear(self, GEN x)
+    cdef gen double_to_gen_c(self, double)
+    cdef GEN double_to_GEN(self, double)
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address)
     cdef gen new_ref(self, GEN x, g)
     cdef gen adapt(self, s)

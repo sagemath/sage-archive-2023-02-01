@@ -407,7 +407,8 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             W = self._q_expansion_module()
             pr = W.degree()
             B = self.q_integral_basis(pr)
-            I = [self(W.coordinates(f.padded_list(pr))) for f in B]
+            I = [self.linear_combination_of_basis(
+                      W.coordinates(f.padded_list(pr))) for f in B]
             I = Sequence(I, cr=True, immutable=True)
             self.__integral_basis = I
             return I

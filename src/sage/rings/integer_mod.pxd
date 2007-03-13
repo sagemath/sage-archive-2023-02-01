@@ -6,16 +6,11 @@ cdef extern from "stdint.h":
     int_fast32_t INTEGER_MOD_INT32_LIMIT
     int_fast64_t INTEGER_MOD_INT64_LIMIT
 
-import sage.structure.element
 cimport sage.structure.element
-from sage.structure.element cimport RingElement
-
-import sage.rings.integer
-cimport sage.rings.integer
-
+from sage.rings.integer cimport Integer
 
 cdef class NativeIntStruct:
-    cdef sage.rings.integer.Integer sageInteger
+    cdef Integer sageInteger
     cdef int_fast32_t int32
     cdef int_fast64_t int64
     cdef object table # how much faster is unsafe access to a list than a c array?

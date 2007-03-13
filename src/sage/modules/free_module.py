@@ -98,6 +98,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
+import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
@@ -991,14 +992,13 @@ class FreeModule_generic(module.Module):
         """
         return FreeModule(self.base_ring(), self.rank())
 
-    def random_element(self, bound=2, prob=1.0):
+    def random_element(self, prob=1.0, **kwds):
         """
         Returns a random element of self.
 
         INPUT:
-            bound -- integer; coefficients of linear combination of basis are chosen
-                     from the closed interval [-bound,bound]
             prob -- float; probability that given coefficient is nonzero.
+            **kwds -- passed on to random_element function of base ring.
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
@@ -1015,7 +1015,7 @@ class FreeModule_generic(module.Module):
         prob = float(prob)
         for i in range(self.rank()):
             if random.random() <= prob:
-                v += self.gen(i) * R.random_element(bound)
+                v += self.gen(i) * R.random_element(**kwds)
         return v
 
     def rank(self):
@@ -1244,7 +1244,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span(ZZ, [[1,2]])
             sage: L1.index(L2)
-            Infinity
+            +Infinity
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError, "other must be a free module"
@@ -3503,6 +3503,9 @@ def element_class(R, is_sparse):
     elif sage.rings.rational_field.is_RationalField(R) and not is_sparse:
         from vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
+    elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
+        from vector_modn_dense import Vector_modn_dense
+        return Vector_modn_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

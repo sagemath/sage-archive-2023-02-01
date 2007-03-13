@@ -9,7 +9,7 @@ cdef class Integer(EuclideanDomainElement):
 
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
-    cdef object _pari
+    #cdef object _pari
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right)
     cdef ModuleElement _sub_c_impl(self, ModuleElement right)

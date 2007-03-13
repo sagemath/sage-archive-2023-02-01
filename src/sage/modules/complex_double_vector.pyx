@@ -8,14 +8,14 @@ numbers. The underlying arithmetic is implemented by the GSL library.
 EXAMPLES:
     sage: v = vector(CDF,[(1,-1), (2,pi), (3,5)])
     sage: v
-    (1.0 - 1.0*I, 2.0 + 3.14159274101*I, 3.0 + 5.0*I)
+    (1.0 - 1.0*I, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)
     sage: type(v)
     <type 'sage.modules.complex_double_vector.ComplexDoubleVectorSpaceElement'>
     sage: parent(v)
     Vector space of dimension 3 over Complex Double Field
     sage: v[0] = 5
     sage: v
-    (5.0, 2.0 + 3.14159274101*I, 3.0 + 5.0*I)
+    (5.0, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)
 
 
 AUTHORS:

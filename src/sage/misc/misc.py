@@ -128,6 +128,10 @@ def cputime(t=0):
         sage: walltime(w)         # somewhat random
         0.8823847770690918
     """
+    try:
+        t = float(t)
+    except TypeError:
+        t = 0.0
     return time.clock() - t
 
 def walltime(t=0):

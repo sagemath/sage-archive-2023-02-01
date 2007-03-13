@@ -592,7 +592,7 @@ def inverse_QQ(n=100, min=0, max=9, system='sage'):
     if system == 'sage':
         A = random_matrix(ZZ, n, n, x=min, y=max+1).change_ring(QQ)
         t = cputime()
-        v = A**(-1)
+        v = ~A
         return cputime(t)
     elif system == 'magma':
         code = """

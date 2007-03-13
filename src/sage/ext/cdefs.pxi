@@ -96,11 +96,16 @@ cdef extern from "gmp.h":
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)
 
+    void mpz_import (mpz_t rop, size_t count, int order, int size, int endian, size_t nails, void *op)
+    void *mpz_export (void *, size_t *, int, size_t, int, size_t, mpz_t)
+
     void mpz_urandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void mpz_urandomm(mpz_t rop, gmp_randstate_t state, mpz_t n)
     void mpz_rrandomb (mpz_t rop, gmp_randstate_t state, unsigned long int n)
     void gmp_randseed (gmp_randstate_t state, mpz_t seed)
     void gmp_randseed_ui (gmp_randstate_t state, unsigned long int seed)
+    void mpz_realloc2 (mpz_t z, unsigned long int size) # in bits
+    void * _mpz_realloc (mpz_t z, unsigned long int size) # in limbs
 
     int mpz_tstbit(mpz_t rop, unsigned long int bit_index)
     void mpz_mul_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)

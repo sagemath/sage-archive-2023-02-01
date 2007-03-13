@@ -86,14 +86,10 @@ class DegeneracyMap(morphism.HeckeModuleMorphism_matrix):
 
     def image(self):
         V = morphism.HeckeModuleMorphism_matrix.image(self)
-        if self.domain().is_anemic_hecke_module():
-            V._is_anemic_hecke_module = True
         return V
 
     def kernel(self):
         V = morphism.HeckeModuleMorphism_matrix.kernel(self)
-        if self.domain().is_anemic_hecke_module():
-            V._is_anemic_hecke_module = True
         return V
 
 

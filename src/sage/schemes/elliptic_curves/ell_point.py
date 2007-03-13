@@ -206,9 +206,9 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
+            sage: P = E([-1,1]); Q = E([0,0])
             sage: P + Q
-            (-3/4 : -15/8 : 1)
+            (1 : 0 : 1)
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
         if self.is_zero():
@@ -235,9 +235,9 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         """
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
+            sage: P = E([-1,1]); Q = E([0,0])
             sage: P - Q
-            (0 : -1 : 1)
+            (4 : 8 : 1)
             sage: (P - Q) + Q
             (-1 : 1 : 1)
             sage: P

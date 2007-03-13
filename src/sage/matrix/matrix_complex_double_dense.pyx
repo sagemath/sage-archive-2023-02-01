@@ -303,7 +303,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as a list
+             corresponding eigenvectors -- as a matrix whose COLUMNS are the eigenvectors
 
         These are still formated via numpy, but this will change.
 

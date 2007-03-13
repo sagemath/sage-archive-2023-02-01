@@ -119,8 +119,7 @@ def QuaternionAlgebra(K, a, b, names, denom=1):
         denom -- (optional, default 1)
 
     EXAMPLES:
-        sage: A = QuaternionAlgebra(QQ, -1,-1, names=list('ijk'))
-        sage: i, j, k = A.gens()
+        sage: A.<i,j,k> = QuaternionAlgebra(QQ, -1,-1)
         sage: i^2
         -1
         sage: j^2
@@ -358,6 +357,15 @@ class QuaternionAlgebra_generic(FreeAlgebraQuotient):
 
     def inner_product_matrix(self):
         return self.gram_matrix()
+
+    def is_commutative(self):
+        """
+        EXAMPLES:
+            sage: Q.<i,j,k> = QuaternionAlgebra(QQ, -3,-7)
+            sage: Q.is_commutative()
+            False
+        """
+        return False
 
     def _set_ramified_primes(self, prms):
         self.__ramified_primes = prms

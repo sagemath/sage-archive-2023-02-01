@@ -58,7 +58,10 @@ import sage.rings.padics.local_generic
 
 infinity = sage.rings.infinity.infinity
 
-class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
+from sage.rings.ring import IntegralDomain
+
+class pAdicGeneric(IntegralDomain,
+                   sage.rings.padics.local_generic.LocalGeneric):
 
     def __init__(self, p, prec):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec)

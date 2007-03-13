@@ -1640,6 +1640,26 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return G, U, V
 
     def is_irreducible(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: (x^3 + 1).is_irreducible()
+            True
+            sage: (x^2 - 1).is_irreducible()
+            False
+            sage: R(0).is_irreducible()
+            ..?
+
+        $4$ is irreducible as a polynomial, since as a polynomial
+        it doesn't factor:
+            sage: R(4).is_irreducible()
+            True
+        """
+        if self.is_zero():
+            raise ValueError, "self must be nonzero"
+        if self.degree() == 0:
+            return True
+
         F = self.factor()
         if len(F) > 1 or F[0][1] > 1:
             return False

@@ -127,3 +127,40 @@ def Qq(q, names=None, prec=20, type='capped-rel', print_mode='series', halt=40, 
 
     return K
 
+
+######################################################
+# Short constructor names for different types
+######################################################
+
+def QpCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-rel')
+
+def QpCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-abs')
+
+def QpFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'fixed-mod')
+
+def QpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'lazy')
+
+
+def QqCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-rel')
+
+def QqCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-abs')
+
+def QqFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'fixed-mod')
+
+def QqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Qq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'lazy')

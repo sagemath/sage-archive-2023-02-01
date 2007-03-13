@@ -345,6 +345,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         except TypeError:
             return False
 
+    def is_noetherian(self):
+        return True
+
     def is_atomic_repr(self):
         """
         Return True, since elements of the integers do not have

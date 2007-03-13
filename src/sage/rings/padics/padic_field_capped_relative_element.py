@@ -268,7 +268,7 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
     def copy(self):
         return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation(), self._unit, self._relprec), construct = True)
 
-    def is_zero(self, prec):
+    def is_zero(self, prec=None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -278,6 +278,9 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         OUTPUT:
             boolean -- whether self is zero
         """
+        if prec is None:
+            return self == self.parent().zero_element()
+
         return (self._relprec <= 0) or (self.valuation() >= prec)
 
     def is_equal_to(self, right, prec):

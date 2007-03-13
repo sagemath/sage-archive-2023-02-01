@@ -229,3 +229,40 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
     qadic_ring_cache[key] = weakref.ref(K)
     return K
 
+
+######################################################
+# Short constructor names for different types
+######################################################
+
+def ZpCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-rel')
+
+def ZpCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-abs')
+
+def ZpFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'fixed-mod')
+
+def ZpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zp(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'lazy')
+
+
+def ZqCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-rel')
+
+def ZqCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'capped-abs')
+
+def ZqFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'fixed-mod')
+
+def ZqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
+    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+              type = 'lazy')

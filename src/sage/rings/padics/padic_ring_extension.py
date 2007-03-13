@@ -33,7 +33,7 @@ class pAdicRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
 
     def __init__(self, poly):
         R = poly.base_ring()
-        pAdicRingGeneric.__init__(self, R.prime(), R.precision_cap(), R.get_print_mode())
+        pAdicRingGeneric.__init__(self, R.prime(), R.precision_cap(), R.print_mode())
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
 
     def __call__(self, x):

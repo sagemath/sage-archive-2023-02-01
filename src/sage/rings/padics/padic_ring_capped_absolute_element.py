@@ -46,21 +46,21 @@ PrecisionError = sage.rings.padics.precision_error.PrecisionError
 
 class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
 
-    def __init__(self, parent, x, absprec=None, relprec = None, construct=False):
+    def __init__(self, parent, x, absprec=infinity, relprec = infinity, construct=False):
         sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self,parent)
         if construct:
             (self._value, self._absprec) = x
             return
-        if not absprec is None and not relprec is None:
+        if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
-        if relprec is None:
-            if absprec is None or absprec > parent.precision_cap():
+        if relprec is infinity:
+            if absprec > parent.precision_cap():
                 absprec = parent.precision_cap()
 
         if isinstance(x, pAdicGenericElement) and x.valuation() < 0:
             raise ValueError, "element valuation cannot be negative."
         if isinstance(x, pAdicLazyElement):
-            if relprec is None:
+            if relprec is infinity:
                 absprec = min(absprec, parent.precision_cap())
                 try:
                     x.set_precision_absolute(absprec)
@@ -76,7 +76,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             self._value = Mod(x.residue(self._absprec), self.parent().prime_pow(self.parent().precision_cap()))
             return
         if isinstance(x, pAdicGenericElement):
-            if relprec is None:
+            if relprec is infinity:
                 self._absprec = min(x.precision_absolute(), absprec)
             else:
                 self._absprec = min(x.precision_absolute(), x.valuation() + relprec)
@@ -85,10 +85,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                if not absprec is None:
-                    absprec = min(x.padicprec(parent.prime()), absprec)
-                else:
-                    absprec = x.padicprec(parent.prime())
+                absprec = min(x.padicprec(parent.prime()), absprec)
                 x = x.lift()
             if x.type() == "t_INT":
                 x = Integer(x)
@@ -101,11 +98,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-
-            if absprec is None:
-                absprec = k
-            else:
-                absprec = min(absprec, k)
+            absprec = min(absprec, k)
             x = x.lift()
 
         #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
@@ -128,12 +121,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             if val < 0:
                 raise ValueError, "p divides the denominator"
         if isinstance(x, (int, long, Integer, Rational)):
-            if absprec is None:
-                self._absprec = min(val + relprec, parent.precision_cap())
-            elif relprec is None:
-                self._absprec = absprec
-            else:
-                self._absprec = min(absprec, val + relprec, parent.precision_cap())
+            self._absprec = min(absprec, val + relprec, parent.precision_cap())
             self._value = Mod(Mod(x, parent.prime_pow(self._absprec)), parent.prime_pow(parent.precision_cap()))
         else:
             raise TypeError, "unable to create p-adic element"

@@ -93,7 +93,6 @@ import sage.rings.padics.padic_ring_generic_element
 import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_field_generic
-import sage.rings.padics.qp
 import sage.rings.infinity
 import copy
 
@@ -104,7 +103,6 @@ infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
-Qp = sage.rings.padics.qp.Qp
 pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
@@ -114,8 +112,8 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     r"""
     An implementation of the p-adic integers with lazily evaluated elements.
     """
-    def __init__(self, p, prec, print_mode, halt):
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode)
+    def __init__(self, p, prec, print_mode, halt, names):
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names)
         self._halt = halt
 
     def __call__(self, x, absprec = infinity, relprec = infinity):
@@ -169,6 +167,7 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 try:
+                    from sage.rings.padics.qp import Qp
                     return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
                 except PariError:
                     raise TypeError, "cannot change primes in creating p-adic elements"
@@ -246,7 +245,8 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
         r"""
         Returns the fraction field of self.
         """
-        return Qp(self.prime(), self.precision_cap(), 'lazy', self.get_print_mode(), self.halting_parameter())
+        from sage.rings.padics.qp import Qp
+        return Qp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def random_element(self):
         """

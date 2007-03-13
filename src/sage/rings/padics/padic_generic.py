@@ -63,12 +63,58 @@ from sage.rings.ring import IntegralDomain
 class pAdicGeneric(IntegralDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
 
-    def __init__(self, p, prec):
-        sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec)
+    def __init__(self, p, prec, print_mode, names):
+        sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
         self._p = p
+        if (print_mode in ['val-unit', 'terse', 'series']):
+            self._print_mode = print_mode
+        else:
+            raise ValueError, "print_mode must be either val-unit, terse, series"
 
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Parent."%(self.prime())
+
+    def print_mode(self):
+        r"""
+        Returns the current print mode as a string.
+
+        INPUT:
+            self -- a p-adic field
+
+        OUTPUT:
+            string -- self's print mode
+
+        EXAMPLES:
+            sage: R = Qp(7,5, 'capped-rel')
+            sage: R.print_mode()
+            'series'
+        """
+        return self._print_mode
+
+    #def set_print_mode(self, print_mode):
+    #    """
+    #    Sets the print mode.
+    #
+    #    INPUT:
+    #        self -- a p-adic ring
+    #        print_mode -- string (see NOTES)
+    #
+    #    EXAMPLES:
+    #        sage: R = Zp(3,5,'fixed-mod'); R.set_print_mode('val-unit')
+    #        sage: a = R(117); a
+    #        3^2 * 13 + O(3^5)
+    #        sage: R.set_print_mode('terse'); a
+    #        117 + O(3^5)
+    #        sage: R.set_print_mode('series'); a
+    #        3^2 + 3^3 + 3^4 + O(3^5)
+    #
+    #    NOTES:
+    #        The options for print_mode are:
+    #        'val-unit' -- elements are displayed as p^k*u
+    #        'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
+    #        'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
+    #    """
+
 
     def characteristic(self):
         r"""
@@ -138,7 +184,7 @@ class pAdicGeneric(IntegralDomain,
             sage: R.residue_characteristic()
                 3
         """
-        return self.prime()
+
 
     def residue_class_field(self):
         """
@@ -372,5 +418,8 @@ class pAdicGeneric(IntegralDomain,
         else:
             return self.prime() - 1
 
+    def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
+        from sage.rings.padics.extension_factory import ExtensionFactory
+        return ExtensionFactory(self, modulus, prec, names, print_mode, halt, check)
 
-
+    ext = extension

@@ -1,15 +1,15 @@
-import sage.rings.padics.padic_generic_element
+import sage.rings.padics.padic_lazy_generic_element
 import sys
 
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
-pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
+pAdicLazyGenericElement = sage.rings.padics.padic_lazy_generic_element.pAdicLazyGenericElement
 infinity = sage.rings.infinity.infinity
 HaltingError = sage.rings.padics.precision_error.HaltingError
 PrecisionLimitError = sage.rings.padics.precision_error.PrecisionLimitError
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 
-class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericElement):
+class pAdicLazyElement(pAdicLazyGenericElement):
     def _add_(self, right):
         if isinstance(self, pAdicLazy_zero):
             return right
@@ -234,6 +234,26 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         #Do valuation checking
         return pAdic_logah(self)
 
+    def padded_list(self, absprec = infinity, relprec = infinity):
+        if absprec is infinity and relprec is infinity:
+            raise ValueError, "must specify at least one of absprec and relprec"
+        if self.parent().is_field():
+            if self.valuation() is infinity:
+                if relprec < infinity:
+                    return [self.parent().residue_class_field()(0)]*relprec
+                else:
+                    return []
+            relprec = min(relprec, absprec - self.valuation())
+            return self.list()[:relprec] + [self.parent().residue_class_field()(0)]*(self.precision_relative() - relprec)
+        if self.valuation() is infinity:
+            if absprec < infinity:
+                return [self.parent().residue_class_field()(0)]*absprec
+            else:
+                raise ValueError, "would return infinite list"
+        absprec = min(absprec, relprec + self.valuation())
+        return self.list()[:absprec] + [self.parent().residue_class_field()(0)]*(self.precision_absolute() - absprec)
+
+
     def precision_absolute(self):
         return self._cache_prec + self._base_valuation
 
@@ -292,6 +312,8 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
             return self._base_valuation
         return self._base_valuation + self._cache_prec
 
+    def _is_exact_zero(self):
+        return False
 
 # The following subclasses are used to create pAdicLazyElements from other data
 # They need to implement the following methods:
@@ -380,6 +402,9 @@ class pAdicLazy_zero(pAdicLazyElement):
 
     def set_precision_absolute(self, n, halt = None):
         pass
+
+    def _is_exact_zero(self):
+        return True
 
 class pAdicLazy_valpower(pAdicLazyElement):
     def __init__(self, parent, v):

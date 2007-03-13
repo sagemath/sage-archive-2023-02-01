@@ -45,7 +45,7 @@ pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
 
 class pAdicRingFixedModElement(pAdicRingGenericElement):
-    def __init__(self, parent, x, absprec = None, relprec = None, construct=False):
+    def __init__(self, parent, x, construct=False):
         r"""
         INPUT:
             parent -- a pAdicRingFixedMod object.

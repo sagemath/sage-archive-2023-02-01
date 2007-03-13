@@ -112,13 +112,13 @@ import sage.rings.padics.padic_field_generic
 import sage.rings.padics.padic_ring_capped_relative_element
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_lazy_element
-import sage.rings.padics.qp
+import sage.rings.infinity
 
 from sage.rings.integer_ring import ZZ
 
 Integer = sage.rings.integer.Integer
 Mod = sage.rings.integer_mod.Mod
-Qp = sage.rings.padics.qp.Qp
+infinity = sage.rings.infinity.infinity
 pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
 pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
@@ -130,7 +130,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
     An implementation of the p-adic integers with capped relative precision.
     """
 
-    def __call__(self, x, absprec = None, relprec = None):
+    def __call__(self, x, absprec = infinity, relprec = infinity):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingCappedRelativeElement.
         """
@@ -211,7 +211,8 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
             the p-adic field that is the fraction field of this ring
 
         """
-        return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.get_print_mode())
+        from sage.rings.padics.qp import Qp
+        return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def random_element(self, algorithm='default'):
         r"""

@@ -316,7 +316,7 @@ HaltingError: Stopped computing sum: set halting parameter higher if you want co
 
 \end{verbatim}
 
-The second is \verb/halt/
+Setting the halting parameter controls to what absolute precision one computes in such a situation.
 """
 
 F = None
@@ -359,4 +359,9 @@ def _view():
     global F
     import os
     os.system('xdvi %s.dvi &'%F)
+sage: quit
+localhost:~$ sage
+sage: run code that generated bug.
+\end{verbatim}
+If you want a slightly more stable but older version, use \verb/semistable-version.hg/ instead.
 

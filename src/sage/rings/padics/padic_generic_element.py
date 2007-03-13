@@ -89,7 +89,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         EXAMPLES:
             sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a
             7 * 52 + O(7^5)
-            sage: print a.str('integer')
+            sage: print a.str('terse')
             364 + O(7^5)
             sage: print a.str('series')
             3*7 + 7^3 + O(7^5)
@@ -104,7 +104,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             mode = self.parent().print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
             raise TypeError, "printing mode must be one of 'val-unit', 'series' or 'terse'"
-        pprint = self.parent().variable_name()
+        pprint = self.parent().variable_name()[0]
         if self._unit_part() == 0:
             if mode == 'val-unit' or mode == 'series':
                 if do_latex:
@@ -575,7 +575,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         R = sage.rings.polynomial_ring.PolynomialRing(self.parent(), name)
         return R.gen() - R(self)
 
-    def multiplicative_order(self, prec): #needs to be rewritten for lazy elements
+    def multiplicative_order(self, prec = None): #needs to be rewritten for lazy elements
         r"""
         Returns the multiplicative order of self, where self is considered to be one if it is one modulo $p^{\mbox{prec}}$.
 
@@ -628,6 +628,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         if self.valuation() != 0:
             return infinity
         res = self.residue(1)
+        if prec is None:
+            if self == self.parent().teichmuller(res):
+                return res.multiplicative_order()
+            else:
+                return infinity
         if self.is_equal_to(self.parent().teichmuller(res),prec): #should this be made more efficient?
             return res.multiplicative_order()
         else:

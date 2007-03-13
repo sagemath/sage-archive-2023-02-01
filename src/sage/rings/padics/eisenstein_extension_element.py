@@ -27,7 +27,7 @@ pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRing
 Polynomial = sage.rings.polynomial_element.Polynomial
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
-pAdicExtensionGenericElement = sage.rings.padics.padic_extension_element.pAdicExtensionGenericElement
+pAdicExtensionGenericElement = sage.rings.padics.padic_extension_generic_element.pAdicExtensionGenericElement
 
 class EisensteinExtensionElement(pAdicExtensionGenericElement):
     def __init__(self, parent, x, absprec = None, relprec = None, check = True, construct = False):

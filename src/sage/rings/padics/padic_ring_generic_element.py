@@ -98,7 +98,7 @@ class pAdicRingGenericElement(pAdicGenericElement):
             else:
                 raise ValueError, "would return infinite list"
         absprec = min(absprec, relprec + self.valuation())
-        return self.list()[:absprec] + [self.parent().residue_class_field()(0)]*(self.precision_absolute() - absprec)
+        return self.list()[:absprec] + [self.parent().residue_class_field()(0)]*(absprec - self.precision_absolute())
 
 
     def residue(self, prec):

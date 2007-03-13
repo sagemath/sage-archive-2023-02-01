@@ -4,7 +4,7 @@ import sage.rings.padics.padic_lazy_generic
 import sage.rings.infinity
 
 infinity = sage.rings.infinity.infinity
-pAdicLazyGeneric = sage.rings.padic_lazy_generic.pAdicLazyGeneric
+pAdicLazyGeneric = sage.rings.padics.padic_lazy_generic.pAdicLazyGeneric
 pAdicRingExtensionGeneric = sage.rings.padics.padic_ring_extension_generic.pAdicRingExtensionGeneric
 EisensteinExtensionGeneric = sage.rings.padics.eisenstein_extension_generic.EisensteinExtensionGeneric
 

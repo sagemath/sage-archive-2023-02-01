@@ -74,6 +74,14 @@ class pAdicGeneric(IntegralDomain,
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Parent."%(self.prime())
 
+    def ngens(self):
+        return 1
+
+    def gen(self, n = 0):
+        if n != 0:
+            raise IndexError, "only one generator"
+        return self(self.prime())
+
     def print_mode(self):
         r"""
         Returns the current print mode as a string.
@@ -91,29 +99,26 @@ class pAdicGeneric(IntegralDomain,
         """
         return self._print_mode
 
-    #def set_print_mode(self, print_mode):
-    #    """
-    #    Sets the print mode.
-    #
-    #    INPUT:
-    #        self -- a p-adic ring
-    #        print_mode -- string (see NOTES)
-    #
-    #    EXAMPLES:
-    #        sage: R = Zp(3,5,'fixed-mod'); R.set_print_mode('val-unit')
-    #        sage: a = R(117); a
-    #        3^2 * 13 + O(3^5)
-    #        sage: R.set_print_mode('terse'); a
-    #        117 + O(3^5)
-    #        sage: R.set_print_mode('series'); a
-    #        3^2 + 3^3 + 3^4 + O(3^5)
-    #
-    #    NOTES:
-    #        The options for print_mode are:
-    #        'val-unit' -- elements are displayed as p^k*u
-    #        'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
-    #        'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
-    #    """
+    def __set_print_mode(self, print_mode):
+        """
+        Sets the print mode.
+
+        WARNING: You should not use this function.
+
+        INPUT:
+            self -- a p-adic ring
+            print_mode -- string (see NOTES)
+
+        NOTES:
+            The options for print_mode are:
+            'val-unit' -- elements are displayed as p^k*u
+            'terse' -- elements are displayed as an integer if positive valuation, as u/ppow or u/p^k if negative valuation
+            'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
+        """
+        if (print_mode in ['val-unit', 'terse', 'series']):
+            self._print_mode = print_mode
+        else:
+            raise ValueError, "print_mode must be either val-unit, terse, series"
 
 
     def characteristic(self):
@@ -184,7 +189,7 @@ class pAdicGeneric(IntegralDomain,
             sage: R.residue_characteristic()
                 3
         """
-
+        return self.prime()
 
     def residue_class_field(self):
         """
@@ -235,7 +240,7 @@ class pAdicGeneric(IntegralDomain,
             list of elements -- a list of teichmuller representatives for the invertible elements of $\Z / p\Z$
 
         EXAMPLES:
-            sage: R = Zp(3, 5,'fixed-mod', 'integer')
+            sage: R = Zp(3, 5,'fixed-mod', 'terse')
             sage: R.teichmuller_system()
                 [1 + O(3^5), 242 + O(3^5)]
         """
@@ -329,9 +334,6 @@ class pAdicGeneric(IntegralDomain,
                 3 + O(3^5)
         """
         return self(self._p)
-
-    def _uniformizer_sym(self, do_latex = False):
-        return "%s"%(self._p)
 
     def has_pth_root(self):
         r"""

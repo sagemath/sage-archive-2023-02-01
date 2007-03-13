@@ -423,7 +423,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     def _is_exact_zero(self):
         return self.valuation() is infinity
 
-    def is_zero(self, prec):
+    def is_zero(self, prec = None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -434,9 +434,11 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             boolean -- whether self is zero
 
         """
-        return (self._relprec <= 0) or (self.valuation() >= prec)
+        if prec is None:
+            return self == 0
+        return (self.valuation() >= prec)
 
-    def is_equal_to(self, right, prec):
+    def is_equal_to(self, right, prec=None):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
 

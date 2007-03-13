@@ -147,7 +147,7 @@ class pAdicLazyElement(pAdicLazyGenericElement):
 
     def _repr_(self, mode = None, do_latex = False):
         self._recompute()
-        return pAdicGenericElement._repr_(self, mode, do_latex)
+        return pAdicLazyGenericElement._repr_(self, mode, do_latex)
 
     def _sub_(self, right):
         if isinstance(right, pAdicLazy_zero):
@@ -321,7 +321,7 @@ class pAdicLazyElement(pAdicLazyGenericElement):
 
 class pAdicLazy_integer(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity): #cannot call with input zero
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x // parent.prime_pow(self._base_valuation)
         prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
@@ -341,7 +341,7 @@ class pAdicLazy_integer(pAdicLazyElement):
 
 class pAdicLazy_rational(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x / parent.prime_pow(self._base_valuation)
         prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
@@ -361,7 +361,7 @@ class pAdicLazy_rational(pAdicLazyElement):
 
 class pAdicLazy_otherpadic(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         self._set_base_valuation(x.valuation())
         self._x = x
         prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation, x.precision_relative())
@@ -388,7 +388,7 @@ class pAdicLazy_mod(pAdicLazyElement):
 
 class pAdicLazy_zero(pAdicLazyElement):
     def __init__(self, parent):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         self._set_base_valuation(infinity)
         self._set_cache(Mod(0,1))
         self._set_cache_prec(0)
@@ -408,17 +408,17 @@ class pAdicLazy_zero(pAdicLazyElement):
 
 class pAdicLazy_valpower(pAdicLazyElement):
     def __init__(self, parent, v):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         raise NotImplementedError
 
 class pAdicLazy_iterator(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         raise NotImplementedError
 
 class pAdicLazy_teichmuller(pAdicLazyElement):
     def __init__(self, parent, x, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         p = parent.prime()
         prec = min(parent.precision_cap(), relprec, absprec)
         x = Mod(x,parent.prime_pow(prec))
@@ -445,7 +445,7 @@ class pAdicLazy_teichmuller(pAdicLazyElement):
 
 class pAdicLazy_root(pAdicLazyElement):
     def __init__(self, parent, f, x, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         self._f = f
         self._x = x
         raise NotImplementedError
@@ -453,7 +453,7 @@ class pAdicLazy_root(pAdicLazyElement):
 class pAdicLazy_integral(pAdicLazyElement):
     #I'm not sure exactly how this will work, but it's another way to get p-adics
     def __init__(self, parent, f, X, absprec=infinity, relprec=infinity):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyGenericElement.__init__(self, parent)
         raise NotImplementedError
 
 
@@ -462,7 +462,7 @@ class pAdicLazy_integral(pAdicLazyElement):
 
 class pAdicLazy_bintype(pAdicLazyElement):
     def __init__(self, x, y, op):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._op = op
@@ -471,7 +471,7 @@ class pAdicLazy_bintype(pAdicLazyElement):
 
 class pAdicLazy_addtype(pAdicLazyElement):
     def __init__(self, x, y): #neither x nor y should be exact zero
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._recompute()
@@ -537,7 +537,7 @@ class pAdicLazy_sub(pAdicLazy_addtype):
 
 class pAdicLazy_multype(pAdicLazyElement):
     def __init__(self, x, y):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._recompute()
@@ -585,7 +585,7 @@ class pAdicLazy_mul(pAdicLazy_multype):
 
 class pAdicLazy_div(pAdicLazy_multype):
     def __init__(self, x, y, halt = None):
-        pAdicGenericElement.__init__(self, x.parent().fraction_field())
+        pAdicLazyGenericElement.__init__(self, x.parent().fraction_field())
         self._x = x
         self._y = y
         try:
@@ -601,7 +601,7 @@ class pAdicLazy_div(pAdicLazy_multype):
 
 class pAdicLazy_lshift(pAdicLazyElement):
     def __init__(self, x, shift): #self can be a ring or field element, shift positive or negative integer.  If a ring element, shift is positive
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._shift = shift
         self._recompute()
@@ -620,7 +620,7 @@ class pAdicLazy_lshift(pAdicLazyElement):
 
 class pAdicLazy_rshift(pAdicLazyElement):
     def __init__(self, x, shift): #self is a ring element and shift is nonnegative
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         x.set_precision_relative(shift + 1) #I'm being a bit lazy here, so that the code in recompute is simpler
         self._x = x
         self._shift = shift
@@ -665,21 +665,21 @@ class pAdicLazy_rshift(pAdicLazyElement):
 
 class pAdicLazy_pow(pAdicLazyElement):
     def __init__(self, x, y):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         raise NotImplementedError
 
 class pAdicLazy_uni(pAdicLazyElement):
     def __init__(self, x, op):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._op = op
         raise NotImplementedError
 
 class pAdicLazy_neg(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._recompute()
 
@@ -700,7 +700,7 @@ class pAdicLazy_neg(pAdicLazyElement):
 
 class pAdicLazy_invert(pAdicLazyElement):
     def __init__(self, x, halt = None):
-        pAdicGenericElement.__init__(self, x.parent().fraction_field())
+        pAdicLazyGenericElement.__init__(self, x.parent().fraction_field())
         self._x = x
         try:
             x.set_precision_relative(1, halt)
@@ -725,7 +725,7 @@ class pAdicLazy_invert(pAdicLazyElement):
 
 class pAdicLazy_slice(pAdicLazyElement):
     def __init__(self, x, i, j, k):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         if not (i is None):
             self._i = i
@@ -748,7 +748,7 @@ class pAdicLazy_slice(pAdicLazyElement):
 
 class pAdicLazy_unitpart(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent().integer_ring())
+        pAdicLazyGenericElement.__init__(self, x.parent().integer_ring())
         self._x = x
         self._set_base_valuation(Integer(0))
         self._recompute()
@@ -773,7 +773,7 @@ class pAdicLazy_unitpart(pAdicLazyElement):
 
 class pAdicLazy_log(pAdicLazyElement):
     def __init__(self, x): #x must be a unit
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         if x.residue(1) == 1:
             self._x = x
             self._n = Integer(1)
@@ -818,7 +818,7 @@ class pAdicLazy_log(pAdicLazyElement):
 
 class pAdicLazy_exp(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         self._set_base_valuation(Integer(0))
         self._recompute()
@@ -859,18 +859,18 @@ class pAdicLazy_exp(pAdicLazyElement):
 
 class pAdicLazy_logah(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError
 
 class pAdicLazy_expah(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError
 
 class pAdicLazy_sqrt(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyGenericElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError

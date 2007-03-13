@@ -317,6 +317,72 @@ HaltingError: Stopped computing sum: set halting parameter higher if you want co
 \end{verbatim}
 
 Setting the halting parameter controls to what absolute precision one computes in such a situation.
+\begin{verbatim}
+
+The interesting feature of lazy elements is that one can perform
+computations with them, discover that the answer does not have the
+desired precision, and then ask for more precision.  For example,
+
+\begin{verbatim}
+sage: a = R(6).log() * 15
+sage: b = a.exp()
+sage: c = b / R(15).exp()
+sage: c
+1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + O(5^11)
+sage: c.set_precision_absolute(15)
+sage: c
+1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + 4*5^11 + 2*5^12 + 4*5^13 + 3*5^14 + O(5^15)
+
+\end{verbatim}
+
+There can be a performance penalty to using lazy $p$-adics in this
+way.  When one does computations with them, the computer construct an
+expression tree.  As you compute, values of these elements are cached,
+and the overhead is reasonably low (though obviously higher than for a
+fixed modulus element for example).  But when you set the precision,
+the computer has to reset precision throughout the expression tree for
+that element, and thus setting precision can take the same order of
+magnitude of time as doing the initial computation.  However, lazy
+$p$-adics can be quite useful when experimenting.
+
+\subsection{Unramified Extensions}
+
+One can create unramified extensions of $\Zp$ and $\Qp$ using the
+functions \verb/Zq/ and \verb/Qq/.  These extensions are still in a
+relatively primitive state, so I would suggest the following options
+when creating such extensions (more are available but may not
+currently work as well).
+
+In addition to requiring a prime power as the first argument,
+\verb/Zq/ also requires a name for the generator of the residue field.
+One can specify this name as follows:
+
+\begin{verbatim}
+sage: R.<c> = Zq(125, prec = 20)
+sage: R
+Unramified Extension of 5-adic Ring with capped absolute precision 20 in c
+defined by (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
+
+\end{verbatim}
+
+\section{New Versions of the $p$-adics}
+
+The code for $p$-adics is fairly rapidly changing.  If there's a bug
+you want fixed, let me know and I'll try to fix it.  Once I do, you'll
+need to get the latest version of $p$-adics with the bug fixed.  If
+you don't want to wait for the next version of SAGE to come out, you
+can do the following to get the most recent version:
+
+\begin{verbatim}
+sage.: hg_sage.pull()
+sage.: hg_sage.apply('http://sage.math.washington.edu/home/padicgroup/development-version.hg')
+sage.: quit
+
+localhost:~$ sage
+sage.: run code that generated bug.
+
+\end{verbatim}
+If you want a slightly more stable but older version, use \verb/semistable-version.hg/ instead.
 """
 
 F = None
@@ -359,9 +425,4 @@ def _view():
     global F
     import os
     os.system('xdvi %s.dvi &'%F)
-sage: quit
-localhost:~$ sage
-sage: run code that generated bug.
-\end{verbatim}
-If you want a slightly more stable but older version, use \verb/semistable-version.hg/ instead.
 

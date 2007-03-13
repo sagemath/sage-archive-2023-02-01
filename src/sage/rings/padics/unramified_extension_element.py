@@ -84,12 +84,9 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
         elif mode == 'integer-p':
             return "set the print mode to series"
         else:
-            if mode == 'series':
-                p = self.parent()._uniformizer_sym(do_latex)
-            else:
-                p = "p"
+            pprint = self.base_ring().uniformizer()
             selflist = self.list()
-            triples = [(selflist[i], p, i) for i in range(2, self.precision_absolute())]
+            triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
             #print triples
             triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
             def addparen(c):
@@ -100,18 +97,18 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
             triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
             #return "bad"
             if do_latex:
-                s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(p, self.precision_absolute())
+                s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(pprint, self.precision_absolute())
                 if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s\\cdot%s + "%(addparen(selflist[1]), p) + s
+                    s = "%s\\cdot%s + "%(addparen(selflist[1]), pprint) + s
                 s = s.replace(" 1\\cdot", " ")
                 if s.startswith("1\\cdot"):
                     s = s.replace("1\\cdot", "", 1)
                 if self.precision_absolute() > 0 and selflist[0] != 0:
                     s = "%s + "%(addparen(selflist[0])) + s
             else:
-                s = " + ".join(["%s*%s^%s"%(a) for a in triples]) + " + O(%s^%s)"%(p, self.precision_absolute())
+                s = " + ".join(["%s*%s^%s"%(a) for a in triples]) + " + O(%s^%s)"%(pprint, self.precision_absolute())
                 if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s*%s + "%(addparen(selflist[1]), p) + s
+                    s = "%s*%s + "%(addparen(selflist[1]), pprint) + s
                 s = s.replace(" 1*", " ")
                 if s.startswith("1*"):
                     s = s.replace("1*", "", 1)
@@ -137,6 +134,8 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
 
     def list(self):
         #Need to change this to allow for base_rings that are not Zp
+
+
         K = self.parent().residue_class_field()
         a = K.gen()
         polylist = self._polynomial.list()

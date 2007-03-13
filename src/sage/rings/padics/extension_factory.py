@@ -19,7 +19,7 @@ import sage.rings.padics.unramified_ring_extension_lazy
 
 from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative
 from sage.rings.padics.padic_ring_capped_absolute import pAdicRingCappedAbsolute
-from sage.rings.padics.padic_ring_fixe_mod import pAdicRingFixedMod
+from sage.rings.padics.padic_ring_fixed_mod import pAdicRingFixedMod
 from sage.rings.padics.padic_ring_lazy import pAdicRingLazy
 from sage.rings.padics.padic_field_capped_relative import pAdicFieldCappedRelative
 from sage.rings.padics.padic_field_lazy import pAdicFieldLazy
@@ -61,7 +61,7 @@ def ExtensionFactory(base, modulus, prec = None, names = None, print_mode = None
                 modulus = modulus / modulus.leading_coefficient()
                 base = base.fraction_field()
         #Now modulus is monic
-        if not krasner_check(poly, prec):
+        if not krasner_check(modulus, prec):
             raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision."
     if print_mode is None:
         print_mode = base.print_mode()
@@ -69,27 +69,27 @@ def ExtensionFactory(base, modulus, prec = None, names = None, print_mode = None
         raise ValueError, "must specify name of generator of extension"
     # We now decide on the extension class: unramified, eisenstein or general (padic)
     polytype = 'p'
-    if unram or is_unramified(poly):
+    if unram or is_unramified(modulus):
         polytype = 'u'
         if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = base.halting_paramter()
         elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = None
         if prec is None:
-            prec = min([c.precision_absolute() for c in poly.list()].append(base.precision_cap()))
+            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()])
         else:
-            prec = min([c.precision_absolute() for c in poly.list()].append(base.precision_cap()).append(prec))
-    elif is_eisenstein(poly):
+            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()] + [prec])
+    elif is_eisenstein(modulus):
         polytype = 'e'
-        e = poly.degree()
+        e = modulus.degree()
         if halt is None and isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = base.halting_paramter() * e
         elif not isinstance(base.ground_ring_of_tower(), (pAdicRingLazy, pAdicFieldLazy)):
             halt = None
         if prec is None:
-            prec = min([c.precision_absolute() for c in poly.list()].append(base.precision_cap())) * e
+            prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()]) * e
         else:
-            prec = min([c.precision_absolute() * e for c in poly.list()].append(base.precision_cap() * e).append(prec))
+            prec = min([c.precision_absolute() * e for c in modulus.list()] + [base.precision_cap() * e] + [prec])
     if polytype != 'p':
         modulus = truncate_to_prec(modulus, prec)
         key = (base, modulus, names, prec, halt, print_mode)
@@ -115,7 +115,7 @@ def split(poly, prec):
     raise NotImplementedError, "Extensions by general polynomials not yet supported.  Please use an unramified or eisenstein polynomial."
 
 def truncate_to_prec(poly, absprec):
-    return modulus.parent()(modulus, absprec = prec) # Is this quite right?  We don't want flat necessarily...
+    return poly.parent()(poly, absprec = absprec) # Is this quite right?  We don't want flat necessarily...
 
 def krasner_check(poly, prec):
     return True #This needs to be implemented

@@ -3,14 +3,16 @@ import sage.rings.padics.padic_generic_element
 import sage.rings.padics.padic_extension_element
 import sage.rings.polynomial_element
 import sage.rings.padics.eisenstein_extension_element
+import sage.rings.infinity
 
+infinity = sage.rings.infinity.infinity
 Polynomial = sage.rings.polynomial_element.Polynomial
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicExtensionElement = sage.rings.padics.padic_extension_element.pAdicExtensionElement
 EisensteinExtensionElement = sage.rings.padics.eisenstein_extension_element.EisensteinExtensionElement
 
-class EisensteinRingExtensionCappedRelativeElement(pAdicRingGenericElement):
+class EisensteinExtensionCappedRelativeElement(pAdicRingGenericElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, check = True, construct = False):
         raise NotImplementedError
         if construct:

@@ -13,7 +13,7 @@ UnramifiedFieldExtensionLazy = sage.rings.padics.unramified_field_extension_lazy
 
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, check = True):
+def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check = True):
     """
     A creation function for p-adic fields.
 
@@ -56,7 +56,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if names is None:
-        names = str(p)
+        names = (str(p),)
     if type != 'lazy':
         key = (p, prec, type, names, print_mode)
     else:
@@ -114,6 +114,8 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None, print_mo
     if modulus is None:
         from sage.rings.finite_field import GF
         from sage.rings.integer_ring import ZZ
+        if qp_name is None:
+            qp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
     return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)
 

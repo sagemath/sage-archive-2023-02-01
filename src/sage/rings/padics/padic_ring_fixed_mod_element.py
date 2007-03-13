@@ -62,7 +62,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             Elements of IntegerModRing(p^k) for k less than or equal to the modulus
 
         EXAMPLES:
-            sage: R = Zp(5, 20, 'fixed-mod', 'integer')
+            sage: R = Zp(5, 20, 'fixed-mod', 'terse')
 
         Construct from integers:
             sage: R(3)
@@ -354,7 +354,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
     def gamma(self):
         raise NotImplementedError
 
-    def is_zero(self, prec):
+    def is_zero(self, prec = None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -365,9 +365,11 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             boolean -- whether self is zero
 
         """
+        if prec is None:
+            return self._value == 0
         return Mod(self._value, self.parent().prime_pow(prec)) == 0
 
-    def is_equal_to(self, right, prec): #assumes they have the same parent
+    def is_equal_to(self, right, prec = None): #assumes they have the same parent
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
 
@@ -379,6 +381,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             boolean -- whether self is equal to right
 
         """
+        if prec is None:
+            return self._value == right._value
         return Mod(self._value, self.parent().prime_pow(prec)) == Mod(right._value, self.parent().prime_pow(prec))
 
     def lift(self):
@@ -541,7 +545,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 True
             sage: R2(17).square_root()
                 1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
-            sage: R3 = Zp(5,20,'fixed-mod', 'integer')
+            sage: R3 = Zp(5,20,'fixed-mod', 'terse')
             sage: R3(0).square_root()
                 0 + O(5^20)
             sage: R3(1).square_root()

@@ -255,8 +255,6 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         return pAdicFieldCappedRelativeElement(self.parent(), (self.valuation(), self._unit, self._relprec), construct = True)
 
     def is_zero(self, prec=None):
-        return self.valuation() is infinity
-
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -268,10 +266,12 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         """
         if prec is None:
             return self == self.parent().zero_element()
+        return (self.valuation() >= prec)
 
-        return (self._relprec <= 0) or (self.valuation() >= prec)
+    def _is_exact_zero(self):
+        return self.valuation() is infinity
 
-    def is_equal_to(self, right, prec):
+    def is_equal_to(self, right, prec = None):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
 
@@ -335,7 +335,7 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
                     return [n % p] + plist(n // p, p, prec - 1)
             return plist(self._unit.lift(), self.parent().prime(), self.precision_relative())
 
-    def padded_list(self, n):
+    def padded_list(self, absprec = infinity, relprec = infinity):
         """
         Returns a list of coeficiants of p starting with the lowest power with non-zero coeficient up to $p^n$ exclusive (padded with zeros if needed)
         INPUT:
@@ -363,7 +363,7 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             else:
                 return []
         relprec = min(relprec, absprec - self.valuation())
-        return self.list()[:relprec] + [self.parent().residue_class_field()(0)]*(self.precision_relative() - relprec)
+        return self.list()[:relprec] + [self.parent().residue_class_field()(0)]*(relprec - self.precision_relative())
 
     def precision_absolute(self):
         """

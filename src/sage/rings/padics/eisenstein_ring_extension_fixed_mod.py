@@ -4,14 +4,13 @@ from sage.rings.polynomial_quotient_ring import *
 from sage.rings.integer import Integer
 from sage.rings.finite_field import GF
 from sage.rings.polynomial_ring import PolynomialRing
-from sage.rings.padics.eisenstein_ring_extension_element import EisensteinRingExtensionElement
 import sage.rings.polynomial_quotient_ring_element
 import sage.rings.padics.padic_ring_generic
 import sage.rings.polynomial_element
 import sage.rings.padics.eisenstein_extension_generic
 import sage.rings.padics.padic_ring_extension_generic
 import sage.rings.padics.padic_ring_fixed_mod
-import sage.rings.padics.eisenstein_ring_extension_element
+import sage.rings.padics.eisenstein_extension_element
 import sage.rings.infinity
 
 infinity = sage.rings.infinity.infinity

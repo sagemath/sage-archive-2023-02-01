@@ -8,7 +8,7 @@ import sage.rings.padics.unramified_ring_extension_capped_relative
 import sage.rings.padics.unramified_ring_extension_capped_absolute
 import sage.rings.padics.unramified_ring_extension_fixed_mod
 import sage.rings.padics.unramified_ring_extension_lazy
-
+import sage.rings.padics.extension_factory
 
 from sage.rings.integer_ring import ZZ
 
@@ -23,9 +23,10 @@ pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRing
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 Integer = sage.rings.integer.Integer
+ExtensionFactory = sage.rings.padics.extension_factory.ExtensionFactory
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, check=True):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check=True):
     """
     Return a model of the $p$-adic integer $\Z_p$.
 
@@ -83,7 +84,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
         sage: k(7*(-19))
         7 * 79792266297611982 + O(7^21)
 
-        sage: k = Zp(7, print_mode='integer'); k
+        sage: k = Zp(7, print_mode='terse'); k
         7-adic Ring with capped relative precision 20
         sage: k(7*(19))
         133 + O(7^21)
@@ -127,7 +128,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
        print_mode -- string (default: 'series', unless it has been
                      previously specified for a cached version of this ring)
            'val-unit' -- elements are displayed as p^k*u
-           'integer' -- elements are displayed as an integer
+           'terse' -- elements are displayed as an integer
            'series' -- elements are displayed as series in p
     """
     # if such a ring already exists reset it's print mode (unless the input print mode is None) and return it
@@ -144,7 +145,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if names is None:
-        names = str(p)
+        names = (str(p),)
     if type != 'lazy':
         key = (p, prec, type, names, print_mode)
     else:
@@ -191,12 +192,12 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
     We
         sage: k.<a> = Zq(4); k
         Unramified Extension of 2-adic Ring with capped absolute precision 20
-        in x defined by (1 + O(2^20))*a^2 + (1 + O(2^20))*a + 1 + O(2^20)
+        in a defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20)
         sage: k.<a> = Zq(3^10); k
-        Unramified Extension of 3-adic Ring with capped absolute precision 20 in x
-        defined by (1 + O(3^20))*a^10 + O(3^20)*a^9 + O(3^20)*a^8 + O(3^20)*a^7 +
-        (2 + O(3^20))*a^6 + (2 + O(3^20))*a^5 + (2 + O(3^20))*a^4 + O(3^20)*a^3 +
-        O(3^20)*a^2 + (1 + O(3^20))*a + 2 + O(3^20)
+        Unramified Extension of 3-adic Ring with capped absolute precision 20 in a
+        defined by (1 + O(3^20))*x^10 + O(3^20)*x^9 + O(3^20)*x^8 + O(3^20)*x^7 +
+        (2 + O(3^20))*x^6 + (2 + O(3^20))*x^5 + (2 + O(3^20))*x^4 + O(3^20)*x^3 +
+        O(3^20)*x^2 + (1 + O(3^20))*x + 2 + O(3^20)
     """
     if check:
         if names is None:
@@ -225,7 +226,7 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
     if modulus is None:
         from sage.rings.finite_field import GF
         if zp_name is None:
-            zp_name = str(p)
+            zp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
     return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)
 

@@ -1728,7 +1728,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             m = B._ncols
             P = self.matrix_space(n, m)
             if self._nrows == 0 or self._ncols == 0:
-                return P.zero_matrix()
+                return P.zero_matrix(), Integer(1)
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
@@ -1748,7 +1748,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             P = self.matrix_space(m, n)
             if self._nrows == 0 or self._ncols == 0:
-                return P.zero_matrix()
+                return P.zero_matrix(), Integer(1)
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = m, ncols = n), Integer(1)

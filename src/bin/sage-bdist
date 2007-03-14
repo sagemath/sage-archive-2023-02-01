@@ -11,9 +11,9 @@ PKGDIR=spkg
 CUR=`pwd`
 
 if [ $UNAME = "Darwin" ]; then
-    OPT="R"
+    OPT="Rp"
 else
-    OPT="r"
+    OPT="ra"
 fi
 
 if [ $# -ne 2 ]; then

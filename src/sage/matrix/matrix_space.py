@@ -26,6 +26,9 @@ import matrix_generic_sparse
 import matrix_modn_dense
 import matrix_modn_sparse
 
+import matrix_mod2_dense
+#import matrix_mod2_sparse
+
 import matrix_integer_dense
 import matrix_integer_sparse
 
@@ -410,6 +413,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
             elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
+                if R.order() == 2:
+                    return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense

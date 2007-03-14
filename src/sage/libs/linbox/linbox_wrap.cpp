@@ -1,9 +1,7 @@
 #include <iostream>
 #include <gmp.h>
+
 #include "linbox_wrap.h"
-
-
-
 
 /*************************************************************************
    dense modulo Z/nZ
@@ -226,6 +224,118 @@ int linbox_modn_dense_matrix_matrix_multiply(mod_int modulus, mod_int **ans, mod
 
     return 0;
 }
+
+/*************************************************************************
+   dense GF(2)
+*************************************************************************/
+
+static DenseMatrix<ModInt> linbox_new_mod2_matrix(packedmatrix *m);
+static void linbox_set_mod2_matrix(packedmatrix *m, DenseMatrix<ModInt>& A);
+
+int linbox_mod2_dense_echelonize(packedmatrix *m) {
+
+    int i,j;
+
+    ModInt F((double)2);
+    EchelonFormDomain< ModInt > EF(F);
+    BlasMatrix<ModInt::Element> A( m->rows, m->cols );
+    BlasMatrix<ModInt::Element> E( m->rows, m->cols);
+
+    for(i=0 ; i < m->rows ; i++) {
+      for(j=0 ; j < m->cols ; j++) {
+	A.setEntry(i, j, (double)readPackedCell(m, i, j));
+      }
+    }
+
+    int rank = EF.rowReducedEchelon(E, A);
+
+    for(i=0 ; i < m->rows ; i++) {
+      for(j=0 ; j < m->cols ; j++) {
+	writePackedCell(m, i, j, (int)E.getEntry(i,j));
+      }
+    }
+
+
+    return rank;
+}
+
+int linbox_mod2_dense_rank(packedmatrix *m) {
+
+    ModInt F((double)2);
+    EchelonFormDomain< ModInt > EF(F);
+    DenseMatrix<ModInt> A( linbox_new_mod2_matrix(m) );
+
+    unsigned long r;
+    rank(r, A);
+    return r;
+}
+
+void linbox_mod2_dense_minpoly(mod_int **mp, size_t* degree,
+			       packedmatrix *matrix, int do_minpoly) {
+
+    ModInt F( (double)2);
+
+    DenseMatrix<ModInt> A(linbox_new_mod2_matrix( matrix ));
+
+    GivPolynomial<ModInt::Element> m_A;
+
+    if (do_minpoly)
+	minpoly(m_A, A);
+    else
+        charpoly(m_A, A);
+
+    (*mp) = new mod_int[m_A.size()];
+    *degree = m_A.size() - 1;
+    for (size_t i=0; i <= *degree; i++) {
+	(*mp)[i] = (mod_int)m_A[i];
+    }
+
+}
+
+static DenseMatrix<ModInt> linbox_new_mod2_matrix(packedmatrix *matrix) {
+
+    ModInt F((double)2);
+
+    DenseMatrix<ModInt> A ( F, matrix->rows, matrix->cols);
+
+    size_t i, j, k;
+    for (i=0; i < matrix->rows; i++) {
+	for (j=0; j < matrix->cols; j++) {
+	    A.setEntry(i, j, (double)readPackedCell(matrix, i, j));
+	}
+    }
+    return A;
+};
+
+static void linbox_set_mod2_matrix(packedmatrix* matrix, BlasMatrix<ModInt::Element>& A) {
+    size_t i, j, k;
+    for (i=0; i < matrix->rows; i++) {
+	for (j=0; j < matrix->cols; j++) {
+	    writePackedCell(matrix, i, j, (int)A.getEntry(i,j));
+	}
+    }
+};
+
+int linbox_mod2_dense_matrix_matrix_multiply(packedmatrix *ans, packedmatrix *A, packedmatrix *B)
+{
+
+    ModInt F((double)2);
+
+    BlasMatrix<ModInt::Element> AA(linbox_new_mod2_matrix(A));
+    BlasMatrix<ModInt::Element> BB(linbox_new_mod2_matrix(B));
+    if (A->cols != B->rows)
+	return -1;   // error
+    BlasMatrix<ModInt::Element> CC( A->rows, B->cols);
+
+    BlasMatrixDomain<ModInt> MD(F);
+
+    MD.mul(CC, AA, BB);
+
+    linbox_set_mod2_matrix(ans, CC);
+
+    return 0;
+}
+
 
 
 
@@ -508,3 +618,5 @@ void linbox_integer_dense_smithform(mpz_t **v,
     mpz_set((*v)[i], spy.get_mpz(w[i]));
   }
 }
+
+

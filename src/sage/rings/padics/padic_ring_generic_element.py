@@ -20,6 +20,7 @@ AUTHOR:
 import sage.rings.padics.padic_generic_element
 #import sage.rings.padics.padic_ring_generic
 
+Integer = sage.rings.integer.Integer
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 infinity = sage.rings.infinity.infinity
@@ -61,10 +62,15 @@ class pAdicRingGenericElement(pAdicGenericElement):
         return self.parent().fraction_field()(self).__invert__()
 
     def __floordiv__(self, right):
-        raise NotImplementedError
+        if isinstance(right, Integer):
+            right = self.parent()(right)
+        return self.parent()(self / right.unit_part()).__rshift__(right.valuation())
+
+    def __mod__(self, right):
+        return self - right * self.__floordiv__(right)
 
     def _integer_(self):
-        raise NotImplementedError
+        return self.lift()
 
 
     def padded_list(self, n):

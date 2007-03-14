@@ -76,13 +76,8 @@ from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotie
 from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # p-adic field
-#from padic_field import pAdicField, Qp, is_pAdicField
-#from padic import pAdic
-# To turn on the new p-adics, comment out the above two lines and uncomment the two below.
-from padics.zp import Zp, Zq, Zp as pAdicRing
-from padics.qp import Qp, Qq, Qp as pAdicField
 
-from padics.padic_ring_extension import pAdicRingExtension
+from padics.all import *
 
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,

@@ -63,9 +63,6 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
     def get_print_mode(self):
         raise NotImplementedError
 
-    def set_print_mode(self):
-        raise NotImplementedError
-
     def is_atomic_repr(self):
         r"""
         Return False, since we want p-adics to be printed with parentheses around them
@@ -232,12 +229,6 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         return self.uniformizer()
 
     def has_root_of_unity(self, n):
-        raise NotImplementedError
-
-    def hom(self, ring):
-        r"""
-        Returns the set of homomorphisms from $\Z_p$ into another ring.
-        """
         raise NotImplementedError
 
     def is_isomorphic(self, ring):

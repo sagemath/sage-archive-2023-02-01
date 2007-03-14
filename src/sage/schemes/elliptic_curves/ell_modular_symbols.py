@@ -22,6 +22,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
+from sage.rings.arith import next_prime
 
 def modular_symbol_space(E, sign, base_ring, bound=None):
     """
@@ -51,6 +52,7 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
         t = V.T(p)
         ap = E.ap(p)
         V = (t - ap).kernel()
+        p = next_prime(p)
 
     return V
 

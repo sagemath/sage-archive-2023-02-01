@@ -515,9 +515,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
 
 
         AUTHORS:
+            -- William Stein: initial version
             -- David Harvey (2006-09-13): corrected subtle precision bug
                (need to take denominators into account! -- see trac \#53)
-            -- Genya Zaytman (2007-02-14): addapted to new p-adic class
+            -- Genya Zaytman (2007-02-14): adapted to new p-adic class
 
         TODO:
             -- Currently implemented as $O(N^2)$. This can be improved to
@@ -553,13 +554,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             for n in range(1, prec + extra_prec):
                 ans -= xpow//working_ring(Integer(n))
                 xpow *= x
-            #Note that it is the absolute precision that is respected by log
-            return self.parent()(ans).add_bigoh(prec)
-        elif self.is_unit():
+            # Note that it is the absolute precision that is respected by log
+            return self.parent()(ans.lift()).add_bigoh(prec)
+        else:
             z = self.unit_part()
             return (z**Integer(p-1)).log()/Integer(p-1)
-        else:
-            raise ValueError, "not a unit"
 
     def log_artin_hasse(self):
         raise NotImplementedError

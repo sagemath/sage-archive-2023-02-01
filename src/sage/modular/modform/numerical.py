@@ -82,9 +82,15 @@ class NumericalEigenforms(SageObject):
         self._delta = delta
 
     def level(self):
+        """
+        Return the level of this set of modular eigenforms.
+        """
         return self._group.level()
 
     def weight(self):
+        """
+        Return the weight of this set of modular eigenforms.
+        """
         return self._weight
 
     def _repr_(self):
@@ -92,6 +98,10 @@ class NumericalEigenforms(SageObject):
             self._group, self._weight)
 
     def modular_symbols(self):
+        """
+        Return the space of modular symbols used for computing this
+        set of modular eigenforms.
+        """
         try:
             return self.__modular_symbols
         except AttributeError:
@@ -218,6 +228,29 @@ class NumericalEigenforms(SageObject):
         return self.__eigendata
 
     def ap(self, p):
+        """
+        Return a list of the eigenvalues of the Hecke operator $T_p$
+        on all the computed eigenforms.  The eigenvalues match up
+        between one prime and the next.
+
+        INPUT:
+            p -- integer, a prime number
+
+        OUTPUT:
+            list -- a list of double precision complex numbers
+
+        EXAMPLES:
+            sage: n = numerical_eigenforms(11,4)
+            sage: n.ap(2)
+            [9.0, 9.0, 2.73205080757, -0.732050807569]
+            sage: n.ap(3)
+            [28.0, 28.0, -7.92820323028, 5.92820323028]
+            sage: m = n.modular_symbols()
+            sage: m.T(2).charpoly(x).factor()
+            (x - 9)^2 * (x^2 - 2*x - 2)
+            sage: m.T(3).charpoly(x).factor()
+            (x - 28)^2 * (x^2 + 2*x - 47)
+        """
         p = Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be a prime"
@@ -227,13 +260,31 @@ class NumericalEigenforms(SageObject):
             self._ap = {}
         except KeyError:
             pass
-        a = self.eigenvalues([p])[0]
+        a = Sequence(self.eigenvalues([p])[0], immutable=True)
         self._ap[p] = a
         return a
 
     def eigenvalues(self, primes):
-        if isinstance(primes, (int, long, Integer)):
-            primes = [Integer(primes)]
+        """
+        Return the eigenvalues of the Hecke operators corresponding
+        to the primes in the input list of primes.   The eigenvalues
+        match up between one prime and the next.
+
+        INPUT:
+            primes -- a list of primes
+
+        OUTPUT:
+            list of lists of eigenvalues.
+
+        EXAMPLES:
+            sage: n = numerical_eigenforms(1,12)
+            sage: n.eigenvalues([3,5,13])
+            [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.99999]]
+        """
+        primes = [Integer(p) for p in primes]
+        for p in primes:
+            if not p.is_prime():
+                raise ValueError, 'each element of primes must be prime.'
         phi_x, phi_x_inv, nzp, x_nzp = self._eigendata()
         B = self._eigenvectors()
         def phi(y):

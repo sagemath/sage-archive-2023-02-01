@@ -59,7 +59,7 @@ import sage.categories.all
 import sage.algebras.quaternion_algebra
 
 def trivial_character(N, base_ring=rings.RationalField()):
-    return DirichletGroup(N, base_ring)(1)
+    return DirichletGroup(N, base_ring, zeta=base_ring(1), zeta_order=1)(1)
 
 TrivialCharacter = trivial_character
 

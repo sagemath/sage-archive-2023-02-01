@@ -1,7 +1,9 @@
 from sage.structure.parent_gens cimport ParentWithGens
 
 cdef class Ring(ParentWithGens):
-    pass
+    cdef public object _zero_element
+    cdef public object _zero_ideal
+    cdef public object _unit_ideal
 
 cdef class CommutativeRing(Ring):
     cdef public object __fraction_field

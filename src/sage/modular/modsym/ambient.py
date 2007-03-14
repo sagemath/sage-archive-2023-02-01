@@ -460,8 +460,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
+        # note -- p doesn't have to be prime despite the function name
         p = int(p)
-        assert arith.is_prime(p), "p must be prime."
         if isinstance(rows, list):
             rows = tuple(rows)
         try:
@@ -1335,7 +1335,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^5 + x^4 - 8*x^3 - 12*x^2
         """
-        assert arith.is_prime(p), "p must be prime."
+        # note -- p doesn't have to be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:

@@ -294,19 +294,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_xor(x.value, self.value, other.value)
         return x
 
-    def __xor__(x, y):
+    def xor(x, y):
         """
         Compute the exclusive or of x and y.
 
         EXAMPLES:
             sage: n = ZZ(2); m = ZZ(3)
-            sage: n.__xor__(m)
+            sage: n.xor(m)
             1
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return x._xor(y)
         return bin_op(x, y, operator.xor)
 
+    def __xor__(self, right):
+        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
+              "in Python, and has the wrong precedence.  Use x.xor(y) for the xor of x and y."
 
     def __richcmp__(left, right, int op):
         return (<sage.structure.element.Element>left)._richcmp(right, op)

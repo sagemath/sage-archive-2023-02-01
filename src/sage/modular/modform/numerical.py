@@ -21,19 +21,61 @@ from random                     import randint
 
 class NumericalEigenforms(SageObject):
     """
-    numerical_eigenforms(group, weight=2, eps=1e-20, delta=1e-2, numtp=2)
+    numerical_eigenforms(group, weight=2, eps=1e-20,
+                         delta=1e-2, tp=[2,3,5])
 
     INPUT:
-        group -- a congruence subgroup of a Dirichlet character of order 1 or 2
+        group -- a congruence subgroup of a Dirichlet character of
+                 order 1 or 2
         weight -- an integer >= 2
-        eps -- a small float
+        eps -- a small float; abs( ) < eps is what "equal to zero" is
+               interpreted as for floating point numbers.
+        delta -- a small-ish float; eigenvalues are considered distinct
+                 if their difference has absolute value at least delta
+        tp -- use the Hecke operators T_p for p in tp when searching
+              for a random Hecke operator with distinct Hecke eigenvalues.
+
+    OUTPUT:
+        a numerical eigenforms object, with the following useful methods:
+            * ap(p) -- return all eigenvalues of $T_p$
+            * eigenvalues(primes) -- list of eigenvalues corresponding
+                    to the given list of primes, e.g.,:
+                        [[eigenvalues of T_2],
+                         [eigenvalues of T_3],
+                         [eigenvalues of T_5], ...]
+            * systems_of_eigenvalues -- a list of the systems of
+                 eigenvalues of eigenforms such that the chosen
+                 random linear combination of Hecke operators has
+                 multiplicity 1 eigenvalues.
+
+    EXAMPLES:
+        sage: n = numerical_eigenforms(23)
+        sage: n.ap(2)
+        [3.0, 0.61803398875, -1.61803398875]
+        sage: n.systems_of_eigenvalues(7)
+        [
+        [-1.61803398875, 2.2360679775, -3.2360679775],
+        [0.61803398875, -2.2360679775, 1.2360679775],
+        [3.0, 4.0, 6.0]
+        ]
+        sage: n.systems_of_abs(7)
+        [
+        [0.61803398874989446, 2.2360679774997911, 1.2360679774997889],
+        [1.6180339887498947, 2.2360679774997894, 3.2360679774997894],
+        [3.0, 4.0, 6.0]
+        ]
+        sage: n.eigenvalues([2,3,5])
+        [[3.0, 0.61803398875, -1.61803398875],
+         [4.0, -2.2360679775, 2.2360679775],
+         [6.0, 1.2360679775, -3.2360679775]]
     """
-    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2):
+    def __init__(self, group, weight=2, eps=1e-20,
+                 delta=1e-2, tp=[2,3,5]):
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
         self._weight = Integer(weight)
-        self._numtp = numtp
+        self._tp = tp
         if self._weight < 2:
             raise ValueError, "weight must be at least 2"
         self._eps = eps
@@ -69,10 +111,10 @@ class NumericalEigenforms(SageObject):
         M = self.modular_symbols()
         N = self.level()
 
-        p = 2
+        tp = self._tp
+        p = tp[0]
         t = M.T(p).matrix()
-        for i in range(self._numtp-1):
-            p = next_prime(p)
+        for p in tp[1:]:
             t += randint(-50,50)*M.T(p).matrix()
 
         self._hecke_matrix = t
@@ -231,3 +273,6 @@ class NumericalEigenforms(SageObject):
 
 def support(v, eps):
     return [i for i in range(v.degree()) if abs(v[i]) > eps]
+
+
+

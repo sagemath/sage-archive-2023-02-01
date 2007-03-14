@@ -1,3 +1,19 @@
+"""
+Unramified extensions of the p-adic integers.
+
+AUTHORS:
+    -- David Roe
+"""
+
+########################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>, David Roe
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#  The full text of the GPL is available at:
+#
+#                  http://www.gnu.org/licenses/
+########################################################################
+
 from sage.rings.padics.padic_ring_generic import pAdicRingGeneric
 from sage.rings.padics.padic_ring_generic import pAdicRingBaseGeneric
 from sage.rings.polynomial_quotient_ring import *
@@ -16,7 +32,7 @@ PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingE
 
 class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     r"""
-    Base class for extensions of Z_p.
+    Base class for unramified extensions of Z_p.
 
     As of right now, implemented in the simplest way possible:
     we just take a polynomial and a ring, and return the polynomial
@@ -28,6 +44,9 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
     polynomial into a totally ramified and unramified part, and
     create two subextensions, so that the whole extension is
     given as a tower.
+
+    EXAMPLE:
+
     """
 
     def __init__(self, poly, prec = None, print_mode = None, check = True):
@@ -49,8 +68,8 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         PolynomialQuotientRing_domain.__init__(self, poly.parent(), poly)
         pAdicRingGeneric.__init__(self, R.prime(), prec, print_mode)
 
-    def __call__(self, x, prec = None):
-        return UnramifiedRingExtensionElement(self, x, prec)
+    def __call__(self, x, prec = None, absprec = None, relprec = None):
+        return UnramifiedRingExtensionElement(self, x, prec, absprec, relprec)
     #        r"""
     #        This is currently unimplemented, as understanding how to
     #        embed one ring in another when appropriate is nontrivial.
@@ -81,7 +100,7 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
             return True
         if isinstance(x, pAdicRingBaseGeneric) and x.parent().prime() == self.prime() and (not isinstance(x, pAdicRingFixedModElement) or isinstance(self.ground_ring_of_tower(), pAdicRingFixedMod)):
             return True
-        if isinstance(x, Polynomial) and x in self.polynomial_ring():
+        if isinstance(x, Polynomial) and x.parent() is self.polynomial_ring():
             return True
         #have not yet added support for coercion from other unramified extension rings
         return False
@@ -188,9 +207,6 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         from sage.groups.perm_gps.permgroup import CyclicPermutationGroup
         return CyclicPermutationGroup(self.modulus().degree())
 
-    def gen(self):
-        return self.polynomial_ring().gen()
-
     def is_abelian(self):
         return True
 
@@ -223,7 +239,10 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
         raise NotImplementedError
 
     def random_element(self):
-        return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.base_ring().random_element() for _ in range(self.modulus().degree())],[self.gen()**i for i in range(self.modulus().degree())]),0)
+        return reduce(lambda x,y: x+y,
+                      map(lambda a,b:a*b,
+                       [self.base_ring().random_element() for _ in range(self.modulus().degree())],
+                       [self.gen()**i for i in range(self.modulus().degree())]), 0)
 
     def unit_group(self):
         raise NotImplementedError
@@ -239,9 +258,6 @@ class UnramifiedRingExtension(pAdicRingGeneric, PolynomialQuotientRing_domain):
 
     def zeta_order(self):
         raise NotImplementedError
-
-    def set_print_mode(self, mode):
-        return self.base_ring().set_print_mode(mode)
 
     def get_print_mode(self):
         return self.base_ring().get_print_mode()

@@ -39,3 +39,11 @@ class pAdicFieldGenericElement(sage.rings.padics.padic_generic_element.pAdicGene
             return 0
         else:
             return self.list()[n - v]
+
+    def __floordiv__(self, right):
+        return self / right
+
+    def __mod__(self, right):
+        if right == 0:
+            raise ZeroDivisionError
+        return self.parent()(0)

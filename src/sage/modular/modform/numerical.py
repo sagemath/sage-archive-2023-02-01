@@ -14,14 +14,21 @@ from sage.structure.sage_object import SageObject
 from sage.structure.sequence    import Sequence
 from sage.modular.modsym.all    import ModularSymbols
 from sage.modular.congroup      import is_CongruenceSubgroup, Gamma0
-#from sage.modular.dims          import dimension_new_cusp_forms
 from sage.modules.all           import vector
 from sage.misc.misc             import verbose
 from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
 from random                     import randint
 
-class NumericalNewforms(SageObject):
-    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2_sa):
+class NumericalEigenforms(SageObject):
+    """
+    numerical_eigenforms(group, weight=2, eps=1e-20, delta=1e-2, numtp=2)
+
+    INPUT:
+        group -- a congruence subgroup of a Dirichlet character of order 1 or 2
+        weight -- an integer >= 2
+        eps -- a small float
+    """
+    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2):
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
@@ -87,76 +94,6 @@ class NumericalNewforms(SageObject):
                 w.append(i)
         self.__eigenvectors = B.matrix_from_columns(w)
         return B
-
-    def _xxx_eigenvectors(self):
-        try:
-            return self.__eigenvectors
-        except AttributeError:
-            pass
-        verbose('Finding eigenvector basis')
-        M = self.modular_symbols().cuspidal_submodule()
-        M_amb = self.modular_symbols()
-        N = self.level()
-        n = len(self)
-
-        def next_p(p):
-            p = next_prime(p)
-            while N%p == 0:
-                p = next_prime(p)
-            return p
-
-        p = next_p(1)
-
-        t = M.T(p).matrix()
-        t_amb = M_amb.T(p).matrix()
-        eps = self._eps
-
-        w = []
-        while len(w) < n:
-            tm = verbose('computing complex eigenvectors of %s x %s matrix; found %s of %s so far'%(t.nrows(),t.nrows(), len(w), n))
-            evals, B = t.change_ring(CDF).eigen_left()
-            verbose('done computing eigenvectors', t=tm)
-            # Find the eigenvalues that occur with multiplicity 1 up
-            # to the given eps.
-            v = list(evals)
-            v.sort()
-            w = []
-            i = 0
-            while i < len(v):
-                e = v[i]
-                if i + 1 == len(v) or abs(e-v[i+1]) >= eps:
-                    w.append((e,i))
-                i += 1
-            if len(w) < n:
-                p = next_p(p)
-                tt = M.T(p).matrix()
-                tt_amb = M_amb.T(p).matrix()
-                c = randint(-100,100)
-                if c > 1:
-                    tt = c*tt
-                    tt_amb = c*tt_amb
-                t += tt
-                t_amb += tt_amb
-            #endif
-        #end while
-
-        evals, B = t_amb.change_ring(CDF).eigen_left()
-        z = []
-        # match up the eigenvalues
-        for e, _ in w:
-            j = -1
-            for i in range(len(evals)):
-                if abs(e - evals[i]) < eps:
-                    print e, evals[i], e-evals[i]
-                    if j != -1:
-                        raise RuntimeError, "Precision error -- try reducing eps from %s to something smaller"%eps
-                    j = i
-            if j == -1:
-                raise RuntimeError, "Precision error -- try reducing eps from %s to something larger"%eps
-            z.append(j)
-        self.__eigenvalues = evals
-        self.__eigenvectors = B.matrix_from_columns(z)
-        return self.__eigenvectors
 
     def _easy_vector(self):
         """
@@ -240,6 +177,8 @@ class NumericalNewforms(SageObject):
 
     def ap(self, p):
         p = Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p must be a prime"
         try:
             return self._ap[p]
         except AttributeError:

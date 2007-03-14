@@ -15,4 +15,4 @@ from vm_basis import victor_miller_basis, delta_qexp
 from hecke_operator_on_qexp import (hecke_operator_on_qexp,
                                     hecke_operator_on_basis)
 
-from numerical import NumericalNewforms as numerical_newforms
+from numerical import NumericalEigenforms as numerical_eigenforms

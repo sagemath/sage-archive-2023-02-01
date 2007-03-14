@@ -84,7 +84,7 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
         elif mode == 'integer-p':
             return "set the print mode to series"
         else:
-            pprint = self.base_ring().uniformizer()
+            pprint = self.base_ring()._uniformizer_print()
             selflist = self.list()
             triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
             #print triples
@@ -133,13 +133,15 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
         raise NotImplementedError
 
     def list(self):
-        #Need to change this to allow for base_rings that are not Zp
-
-
-        K = self.parent().residue_class_field()
-        a = K.gen()
-        polylist = self._polynomial.list()
-        return [sum(polylist[i][j] * (a ** i) for i in range(len(polylist))) for j in range(self.precision_absolute())]
+        #Need to change this to allow for base_rings that are not Zp.  Also, this is slow.
+        answer = []
+        me = self
+        while me != 0:
+            answer.append(me.residue(1))
+            me = me >> 1
+        zero = self.parent().residue_class_field()(0)
+        answer = answer + [zero]*(self.precision_absolute() - len(answer))
+        return answer
 
     def log(self):
         raise NotImplementedError
@@ -154,6 +156,21 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
             else:
                 return self.parent().precision_cap()
         return min(c.precision_absolute() for c in self._polynomial.list())
+
+    def residue(self, n):
+        if n == 1:
+            # will currently only work over Zp and Qp, need to implement conway reduction model for finite fields.
+            K = self.parent().residue_class_field()
+            a = K.gen()
+            polylist = self._polynomial.list()
+            apow = K(1)
+            ans = K(0)
+            for i in range(len(polylist)):
+                ans += polylist[i].residue(1) * apow
+                apow *= a
+            return ans
+        else:
+            raise NotImplementedError, "Need to think about extensions of finite rings first."
 
     def valuation(self):
         clist = self._polynomial.list()

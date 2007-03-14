@@ -227,7 +227,7 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         from sage.rings.finite_field import GF
         if zp_name is None:
             zp_name = (str(F[0][0]),)
-        modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
+        modulus = PolynomialRing(base, 's')(GF(q, names).modulus().change_ring(ZZ))
     return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)
 
 ######################################################
@@ -251,18 +251,18 @@ def ZpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
               type = 'lazy')
 
 
-def ZqCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqCR(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def ZqCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqCA(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-abs')
 
-def ZqFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqFM(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'fixed-mod')
 
-def ZqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqL(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')

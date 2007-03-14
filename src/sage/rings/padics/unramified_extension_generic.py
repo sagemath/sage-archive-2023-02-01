@@ -89,6 +89,7 @@ class UnramifiedExtensionGeneric(pAdicGeneric, PolynomialQuotientRing_domain):
         raise NotImplementedError
 
     def residue_class_field(self):
+        #should eventually take advantage of finite field \code{extension} or finite field \code{unramified_extension_of_degree} over the automatic coercion base.
         return GF(self.prime_pow(self.modulus().degree()), name = self.polynomial_ring().variable_name(), modulus = PolynomialRing(self.base_ring().residue_class_field(), self.polynomial_ring().variable_name())(self.modulus()))
 
     def residue_system(self):
@@ -156,6 +157,9 @@ class UnramifiedExtensionGeneric(pAdicGeneric, PolynomialQuotientRing_domain):
 
     def uniformizer(self):
         return self(self.ground_ring().uniformizer())
+
+    def _uniformizer_print(self):
+        return self.base_ring()._uniformizer_print()
 
     def has_pth_root(self):
         return self.base_ring().has_pth_root()

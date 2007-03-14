@@ -438,7 +438,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
-    def log(self):
+    def log(self, branch = None):
         r"""
         Compute the p-adic logarithm of any unit in $\Z_p$.
         (See below for normalization.)
@@ -554,6 +554,9 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         elif self.is_unit():
             z = self.unit_part()
             return (z**Integer(p-1)).log() // Integer(p-1)
+        elif self.parent().__contains__(branch):
+            branch = self.parent()(branch)
+            return self.unit_part().log() + branch*self.valuation()
         else:
             raise ValueError, "not a unit"
 

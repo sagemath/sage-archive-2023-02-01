@@ -112,11 +112,11 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
     An implementation of the p-adic integers with capped relative precision.
     """
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = None, relprec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingCappedRelativeElement.
         """
-        return pAdicRingCappedRelativeElement(self, x, prec = prec)
+        return pAdicRingCappedRelativeElement(self, x, absprec, relprec)
 
     def __cmp__(self, other):
         if isinstance(other, pAdicRingCappedRelative):

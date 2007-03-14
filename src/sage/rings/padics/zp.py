@@ -18,7 +18,7 @@ Integer = sage.rings.integer.Integer
 UnramifiedRingExtension = sage.rings.padics.unramified_ring_extension.UnramifiedRingExtension
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check=True):
     """
     A creation function for p-adic rings.
     INPUT:
@@ -52,9 +52,18 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
         'series-p' -- same as series, except that p is written as "p"
     """
     # if such a ring already exists reset it's print mode and return it
-    p = Integer(p)
-    if not p.is_prime():
-        raise ValueError, "p must be prime"
+    if check:
+        p = Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p must be prime"
+        if not isinstance(prec, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(prec, (int, long)):
+            prec = Integer(prec)
+        if not isinstance(halt, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(halt, (int, long)):
+            halt = Integer(halt)
     if type != 'lazy':
         key = (p, prec, type)
     else:
@@ -81,13 +90,27 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
     return K
 
 qadic_ring_cache = {}
-def Zq(q, name=None, prec = 20, type = 'capped-abs', modulus = None, print_mode = None, halt = 40, check = True):
+def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None, print_mode = None, halt = 40, check = True):
     r"""
     The creation function for unramified extensions of $\Z_p$
     """
-    if name is None:
-        raise TypeError, "You must specify the name of the generator."
-
+    if check:
+        if names is None:
+            raise TypeError, "You must specify the name of the generator."
+        if isinstance(names, (list, tuple)):
+            names = names[0]
+        if not isinstance(prec, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(prec, (int, long)):
+            prec = Integer(prec)
+        if not (modulus is None or isinstance(modulus, Polynomial)):
+            raise TypeError, "modulus must be a polynomial"
+        if not isinstance(names, str):
+            raise TypeError, "names must be a string"
+        if not isinstance(halt, (int, long, Integer)):
+            raise TypeError, "halt must be an integer"
+        elif isinstance(halt, (int, long)):
+            halt = Integer(halt)
     q = Integer(q)
     F = q.factor()
     if len(F) != 1:
@@ -95,9 +118,9 @@ def Zq(q, name=None, prec = 20, type = 'capped-abs', modulus = None, print_mode 
     if F[0][1] == 1:
         return Zp(q, prec, type, print_mode, halt)
     if type != 'lazy':
-        key = (q, name, prec, type, modulus)
+        key = (q, names, prec, type, modulus)
     else:
-        key = (q, name, prec, halt, modulus)
+        key = (q, names, prec, halt, modulus)
     if qadic_ring_cache.has_key(key):
         K = qadic_ring_cache[key]()
         if not (K is None):
@@ -107,7 +130,7 @@ def Zq(q, name=None, prec = 20, type = 'capped-abs', modulus = None, print_mode 
     if modulus is None:
         check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), name)(GF(q, name).modulus().change_ring(ZZ))
+        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), names)(GF(q, names).modulus().change_ring(ZZ))
     if print_mode is None:
         print_mode = 'series'
     K = UnramifiedRingExtension(modulus, prec, print_mode, check)

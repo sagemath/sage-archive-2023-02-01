@@ -1033,7 +1033,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         f = self*other
         g = self.gcd(other)
         q = f//g
-        return ~(q[q.degree()])*q  # make monic  (~ is inverse in python)
+        return ~(q.leading_coefficient())*q  # make monic  (~ is inverse in python)
 
     def is_constant(self):
         return self.degree() <= 0

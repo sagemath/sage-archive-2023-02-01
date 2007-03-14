@@ -101,11 +101,11 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric):
     An implementation of the p-adic integers using fixed modulus.
     """
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = None, relprec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingFixedModElement.
         """
-        return pAdicRingFixedModElement(self, x)
+        return pAdicRingFixedModElement(self, x, absprec, relprec)
 
     def __cmp__(self, other):
         if isinstance(other, pAdicRingFixedMod):

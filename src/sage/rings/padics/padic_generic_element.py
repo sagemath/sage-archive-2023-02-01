@@ -75,7 +75,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return 1
 
-    def _repr_(self, mode = None, do_latex=False, caprel = False):
+    def _repr_(self, mode = None, do_latex = False, caprel = False):
         r"""
             Prints a string representation of the element.  See set_print_mode for more details.
 
@@ -104,16 +104,26 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         import sage.rings.padics.padic_ring_generic
         if caprel and (self.valuation() == infinity):
                 return "0"
-        if mode == None:
+        if mode is None:
             mode = self.parent().get_print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (isinstance(self.parent(), sage.rings.padics.padic_ring_generic.pAdicRingGeneric) and ((mode == 'integer') or (mode != 'integer-p')))):
             raise TypeError, "printing mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p', and 'integer-p'"
         if self._unit_part() == 0:
-            if mode == 'val-unit' or mode == 'series' or mode == 'integer':
+            if mode == 'val-unit' or mode == 'series':
                 if do_latex:
                     return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
                 else:
                     return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer':
+                if do_latex:
+                    return "0 + O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+                else:
+                    return "0 + O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer-p':
+                if do_latex:
+                    return "0 + O(p^{%s})"%(self.precision_absolute())
+                else:
+                    return "0 + O(p^%s)"%(self.precision_absolute())
             else:
                 if do_latex:
                     return "O(p^{%s})"%(self.precision_absolute())
@@ -332,7 +342,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 term *=x
                 term //= working_ring(Integer(n))
                 ans += term
-            # Note that it is the absolute precision that is respected by exp
+            # Note that it is the absolute precision that is respected by exp: even when p == 2?
             return self.parent()(ans).add_bigoh(prec)
         else:
             raise ValueError, "series doesn't converge"
@@ -515,9 +525,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
 
 
         AUTHORS:
+            -- William Stein: initial version
             -- David Harvey (2006-09-13): corrected subtle precision bug
                (need to take denominators into account! -- see trac \#53)
-            -- Genya Zaytman (2007-02-14): addapted to new p-adic class
+            -- Genya Zaytman (2007-02-14): adapted to new p-adic class
 
         TODO:
             -- Currently implemented as $O(N^2)$. This can be improved to
@@ -553,13 +564,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             for n in range(1, prec + extra_prec):
                 ans -= xpow//working_ring(Integer(n))
                 xpow *= x
-            #Note that it is the absolute precision that is respected by log
-            return self.parent()(ans).add_bigoh(prec)
-        elif self.is_unit():
-            z = self.unit_part()
-            return (z**Integer(p-1)).log()/Integer(p-1)
+            # Note that it is the absolute precision that is respected by log
+            return self.parent()(ans.lift()).add_bigoh(prec)
         else:
-            raise ValueError, "not a unit"
+            z = self.unit_part()
+            return (z**Integer(p-1)).log() // Integer(p-1)
 
     def log_artin_hasse(self):
         raise NotImplementedError

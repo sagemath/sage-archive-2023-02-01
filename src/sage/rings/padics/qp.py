@@ -2,12 +2,13 @@ import weakref
 import sage.rings.padics.padic_field_capped_relative
 import sage.rings.padics.padic_field_lazy
 
+Integer = sage.rings.integer.Integer
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldLazy = sage.rings.padics.padic_field_lazy.pAdicFieldLazy
 
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
+def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40, check = True):
     """
     A creation function for p-adic fields.
 
@@ -40,8 +41,18 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
         'integer-p' -- same as integer, except that p is written as "p"
         'series-p' -- same as series, except that p is written as "p"
     """
-    if not p.is_prime():
-        raise ValueError, "p must be prime"
+    if check:
+        p = Integer(p)
+        if not p.is_prime():
+            raise ValueError, "p must be prime"
+        if not isinstance(prec, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(prec, (int, long)):
+            prec = Integer(prec)
+        if not isinstance(halt, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(halt, (int, long)):
+            halt = Integer(halt)
     if type != 'lazy':
         key = (p, prec, type)
     else:
@@ -68,7 +79,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = None, halt = 40):
 pAdicField = Qp # for backwards compatibility; and it's not hard.
 
 qadic_field_cache = {}
-def Qq(q, name=None, prec=20, type='capped-rel', print_mode=None, halt=40, modulus=None, check=True):
+def Qq(q, names=None, prec=20, type='capped-rel', print_mode=None, halt=40, modulus=None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
@@ -82,8 +93,23 @@ def Qq(q, name=None, prec=20, type='capped-rel', print_mode=None, halt=40, modul
     from sage.rings.padics.unramified_ring_extension import UnramifiedRingExtension
     from sage.rings.integer_ring import ZZ
 
-    if name is None:
-        raise TypeError, "You must specify the name of the generator."
+    if check:
+        if names is None:
+            raise TypeError, "You must specify the name of the generator."
+        if isinstance(names, (list, tuple)):
+            names = names[0]
+        if not isinstance(prec, (int, long, Integer)):
+            raise TypeError, "prec must be an integer"
+        elif isinstance(prec, (int, long)):
+            prec = Integer(prec)
+        if not (modulus is None or isinstance(modulus, Polynomial)):
+            raise TypeError, "modulus must be a polynomial"
+        if not isinstance(names, str):
+            raise TypeError, "names must be a string"
+        if not isinstance(halt, (int, long, Integer)):
+            raise TypeError, "halt must be an integer"
+        elif isinstance(halt, (int, long)):
+            halt = Integer(halt)
 
     q = Integer(q)
     F = q.factor()
@@ -93,9 +119,9 @@ def Qq(q, name=None, prec=20, type='capped-rel', print_mode=None, halt=40, modul
         return Qp(q, prec, type, print_mode, halt)
 
     if type != 'lazy':
-        key = (q, name, prec, type)
+        key = (q, names, prec, type)
     else:
-        key = (q, name, prec, halt)
+        key = (q, names, prec, halt)
     if qadic_field_cache.has_key(key):
         K = qadic_field_cache[key]()
         if not (K is None):
@@ -106,7 +132,7 @@ def Qq(q, name=None, prec=20, type='capped-rel', print_mode=None, halt=40, modul
     if modulus is None:
         check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Qp(F[0][0], prec, type, print_mode, halt), name)(GF(q,name).modulus().change_ring(ZZ))
+        modulus = PolynomialRing(Qp(F[0][0], prec, type, print_mode, halt), names)(GF(q,names).modulus().change_ring(ZZ))
     if print_mode is None:
         print_mode = 'series'
     K = UnramifiedRingExtension(modulus, prec, print_mode, check)

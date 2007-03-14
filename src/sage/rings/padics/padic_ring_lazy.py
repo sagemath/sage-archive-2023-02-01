@@ -93,11 +93,14 @@ import sage.rings.padics.padic_ring_generic_element
 import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_field_generic
+import sage.rings.padics.qp
+import sage.rings.infinity
 import copy
 
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
+infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
@@ -115,22 +118,23 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
         pAdicRingBaseGeneric.__init__(self, p, prec, print_mode)
         self._halt = halt
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = infinity, relprec = infinity):
         r"""
             Casts x into self.
         """
         if x == 0:
             return lazy.pAdicLazy_zero(self)
-        if prec is None:
-            prec = self.precision_cap()
         if isinstance(x, (int, long)):
             x = Integer(x)
+
+        if absprec < infinity and relprec < infinity:
+            raise ValueError, "only one of absprec and relprec may be specified"
         if isinstance(x, Integer):
-            return lazy.pAdicLazy_integer(self, x, prec)
+            return lazy.pAdicLazy_integer(self, x, absprec, relprec)
         if isinstance(x, Rational):
             if x.valuation(self.prime()) < 0:
                 raise ValueError, "element not a p-adic integer"
-            return lazy.pAdicLazy_rational(self, x, prec)
+            return lazy.pAdicLazy_rational(self, x, absprec, relprec)
         if isinstance(x, lazy.pAdicLazyElement):
             if x.parent().prime() != self.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
@@ -140,33 +144,40 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
             # and have pAdicLazy_**** accept a pAdicLazy_**** as an argument in addition to ****
             y = copy.copy(x)
             y._set_parent(self)
+            if absprec < infinity:
+                y.set_precision_absolute(absprec)
+            elif relprec < infinity:
+                y.set_precision_relative(relprec)
             return y
         if isinstance(x, pAdicRingGenericElement):
             if x.parent().prime() == self.prime():
-                return lazy.pAdicLazy_otherpadic(self, x, prec)
+                return lazy.pAdicLazy_otherpadic(self, x, absprec, relprec)
             raise TypeError, "cannot change primes in creating p-adic elements"
         if isinstance(x, pAdicFieldGenericElement):
             if x.valuation() < 0:
                 raise ValueError, "element not a p-adic integer"
-            return lazy.pAdicLazy_otherpadic(self, x, prec)
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x):
-            if x.parent().order() == self.prime():
-                return lazy.pAdicLazy_integer(self, x.lift(), prec) #Note that this is cast in with full precision.  This may not be the desired behavior.
-            raise TypeError, "cannot change primes in creating p-adic elements"
+            return lazy.pAdicLazy_otherpadic(self, x, absprec, relprec)
+        #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
+        #    if x.parent().order() == self.prime():
+        #        return lazy.pAdicLazy_integer(self, x.lift(), absprec, relprec) #Note that this is cast in with full precision.  This may not be the desired behavior.
+        #    raise TypeError, "cannot change primes in creating p-adic elements"
         if sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-            return lazy.pAdicLazy_mod(self, x, prec)
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            try:
-                val = x.valuation(parent.prime())
-            except PariError:
-                raise TypeError, "cannot change primes in creating p-adic elements"
-            if val < 0:
-                raise ValueError, "element not a p-adic integer"
-            prec = min(x.padicprec(parent.prime()) - val, prec)
-            return lazy.pAdicLazy_mod(self, Integer(x.lift()), prec)
+            return lazy.pAdicLazy_mod(self, x.lift(), min(absprec, k), relprec)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                try:
+                    return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
+                except PariError:
+                    raise TypeError, "cannot change primes in creating p-adic elements"
+            elif x.type() == "t_INT":
+                return lazy.pAdicLazy_integer(self,Integer(x), absprec, relprec)
+            elif x.type() == "t_FRAC":
+                return lazy.pAdicLazy_rational(self, Rational(x), absprec, relprec)
+            else:
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
         raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
 
     def __cmp__(self, other):

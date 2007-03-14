@@ -112,11 +112,11 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
     An implementation of p-adic fields with capped relative precision.
     """
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = None, relprec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicFieldCappedRelativeElement.
         """
-        return pAdicFieldCappedRelativeElement(self, x, prec = prec)
+        return pAdicFieldCappedRelativeElement(self, x, absprec, relprec)
 
     def __cmp__(self, other):
         if isinstance(other, pAdicFieldCappedRelative):

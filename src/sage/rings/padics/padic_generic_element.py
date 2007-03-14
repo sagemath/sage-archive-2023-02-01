@@ -75,45 +75,48 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return 1
 
-    def _repr_(self, mode = None, do_latex=False, caprel = False):
-        r"""
-            Prints a string representation of the element.  See set_print_mode for more details.
+    def str(self, mode=None):
+        return self._repr_(mode=mode)
 
-            EXAMPLES:
-                sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a
-                    7 * 52 + O(7^5)
-                sage: R.set_print_mode('integer'); a
-                    364 + O(7^5)
-                sage: R.set_print_mode('integer-p'); a
-                    364 + O(p^5)
-                sage: R.set_print_mode('val-unit-p'); a
-                    p * 52 + O(p^5)
-                sage: R.set_print_mode('series'); a
-                    3*7 + 7^3 + O(7^5)
-                sage: R.set_print_mode('series-p'); a
-                    3*p + p^3 + O(p^5)
-                sage: K = Qp(7,4,'capped-rel','val-unit'); a = K(364); a
-                    7 * 52 + O(7^5)
-                sage: K.set_print_mode('val-unit-p'); a
-                    p * 52 + O(p^5)
-                sage: K.set_print_mode('series'); a
-                    3*7 + 7^3 + O(7^5)
-                sage: K.set_print_mode('series-p'); a
-                    3*p + p^3 + O(p^5)
+    def _repr_(self, mode = None, do_latex = False, caprel = False):
+        r"""
+        Prints a string representation of the element.  See set_print_mode for more details.
+
+        EXAMPLES:
+            sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a
+            7 * 52 + O(7^5)
+            sage: print a.str('integer')
+            364 + O(7^5)
+            sage: print a.str('series')
+            3*7 + 7^3 + O(7^5)
+            sage: K = Qp(7,4,'capped-rel','val-unit'); a = K(364); a
+            7 * 52 + O(7^5)
+            sage: print a.str('series')
+            3*7 + 7^3 + O(7^5)
         """
         import sage.rings.padics.padic_ring_generic
         if caprel and (self.valuation() == infinity):
                 return "0"
-        if mode == None:
+        if mode is None:
             mode = self.parent().get_print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (isinstance(self.parent(), sage.rings.padics.padic_ring_generic.pAdicRingGeneric) and ((mode == 'integer') or (mode != 'integer-p')))):
             raise TypeError, "printing mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p', and 'integer-p'"
         if self._unit_part() == 0:
-            if mode == 'val-unit' or mode == 'series' or mode == 'integer':
+            if mode == 'val-unit' or mode == 'series':
                 if do_latex:
                     return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
                 else:
                     return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer':
+                if do_latex:
+                    return "0 + O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+                else:
+                    return "0 + O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+            elif mode == 'integer-p':
+                if do_latex:
+                    return "0 + O(p^{%s})"%(self.precision_absolute())
+                else:
+                    return "0 + O(p^%s)"%(self.precision_absolute())
             else:
                 if do_latex:
                     return "O(p^{%s})"%(self.precision_absolute())
@@ -288,7 +291,9 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             sage: e.exp()*K.teichmuller(4)
                 4 + 2*5 + 3*5^3 + O(5^10)
 
+        TESTS:
         Check that results are consistent over a range of precision:
+
             sage: max_prec = 40
             sage: p = 3
             sage: K = Zp(p, max_prec)
@@ -332,7 +337,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 term *=x
                 term //= working_ring(Integer(n))
                 ans += term
-            # Note that it is the absolute precision that is respected by exp
+            # Note that it is the absolute precision that is respected by exp: even when p == 2?
             return self.parent()(ans).add_bigoh(prec)
         else:
             raise ValueError, "series doesn't converge"
@@ -351,87 +356,91 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             self -- a p-adic element
         OUTPUT:
             boolean -- whether self is a square
+
         EXAMPLES:
             sage: R = Zp(3,20,'capped-rel')
             sage: R(0).is_square()
-                True
+            True
             sage: R(1).is_square()
-                True
+            True
             sage: R(2).is_square()
-                False
+            False
             sage: R(3).is_square()
-                False
+            False
             sage: R(4).is_square()
-                True
+            True
             sage: R(6).is_square()
-                False
+            False
             sage: R(9).is_square()
-                True
+            True
+
             sage: R2 = Zp(2,20,'capped-rel')
             sage: R2(0).is_square()
-                True
+            True
             sage: R2(1).is_square()
-                True
+            True
             sage: R2(2).is_square()
-                False
+            False
             sage: R2(3).is_square()
-                False
+            False
             sage: R2(4).is_square()
-                True
+            True
             sage: R2(5).is_square()
-                False
+            False
             sage: R2(6).is_square()
-                False
+            False
             sage: R2(7).is_square()
-                False
+            False
             sage: R2(8).is_square()
-                False
+            False
             sage: R2(9).is_square()
-                True
+            True
+
             sage: K = Qp(3,20,'capped-rel')
             sage: K(0).is_square()
-                True
+            True
             sage: K(1).is_square()
-                True
+            True
             sage: K(2).is_square()
-                False
+            False
             sage: K(3).is_square()
-                False
+            False
             sage: K(4).is_square()
-                True
+            True
             sage: K(6).is_square()
-                False
+            False
             sage: K(9).is_square()
-                True
+            True
             sage: K(1/3).is_square()
-                False
+            False
             sage: K(1/9).is_square()
-                True
+            True
+
             sage: K2 = Qp(2,20,'capped-rel')
             sage: K2(0).is_square()
-                True
+            True
             sage: K2(1).is_square()
-                True
+            True
             sage: K2(2).is_square()
-                False
+            False
             sage: K2(3).is_square()
-                False
+            False
             sage: K2(4).is_square()
-                True
+            True
             sage: K2(5).is_square()
-                False
+            False
             sage: K2(6).is_square()
-                False
+            False
             sage: K2(7).is_square()
-                False
+            False
             sage: K2(8).is_square()
-                False
+            False
             sage: K2(9).is_square()
-                True
+            True
             sage: K2(1/2).is_square()
-                False
+            False
             sage: K2(1/4).is_square()
-                True
+            True
        """
         if self.valuation() == infinity:
             return True
@@ -515,9 +524,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
 
 
         AUTHORS:
+            -- William Stein: initial version
             -- David Harvey (2006-09-13): corrected subtle precision bug
                (need to take denominators into account! -- see trac \#53)
-            -- Genya Zaytman (2007-02-14): addapted to new p-adic class
+            -- Genya Zaytman (2007-02-14): adapted to new p-adic class
 
         TODO:
             -- Currently implemented as $O(N^2)$. This can be improved to
@@ -553,13 +563,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             for n in range(1, prec + extra_prec):
                 ans -= xpow//working_ring(Integer(n))
                 xpow *= x
-            #Note that it is the absolute precision that is respected by log
-            return self.parent()(ans).add_bigoh(prec)
-        elif self.is_unit():
-            z = self.unit_part()
-            return (z**Integer(p-1)).log()/Integer(p-1)
+            # Note that it is the absolute precision that is respected by log
+            return self.parent()(ans.lift()).add_bigoh(prec)
         else:
-            raise ValueError, "not a unit"
+            z = self.unit_part()
+            return (z**Integer(p-1)).log() // Integer(p-1)
 
     def log_artin_hasse(self):
         raise NotImplementedError
@@ -591,42 +599,43 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         EXAMPLES:
             sage: K = Qp(5,20,'capped-rel')
             sage: K(-1).multiplicative_order(20)
-                2
+            2
             sage: K(1).multiplicative_order(20)
-                1
+            1
             sage: K(2).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(3).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(4).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(5).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(25).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(1/5).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K(1/25).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: K.zeta().multiplicative_order(20)
-                4
+            4
+
             sage: R = Zp(5,20,'capped-rel')
             sage: R(-1).multiplicative_order(20)
-                2
+            2
             sage: R(1).multiplicative_order(20)
-                1
+            1
             sage: R(2).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: R(3).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: R(4).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: R(5).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: R(25).multiplicative_order(20)
-                +Infinity
+            +Infinity
             sage: R.zeta().multiplicative_order(20)
-                4
+            4
         """
         if self.valuation() != 0:
             return infinity
@@ -724,76 +733,78 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         EXAMPLES:
             sage: R = Zp(3,20,'capped-rel', 'val-unit')
             sage: R(0).square_root()
-                0
+            0
             sage: R(1).square_root()
-                1 + O(3^20)
+            1 + O(3^20)
             sage: R(2).square_root()
             Traceback (most recent call last):
             ...
             ValueError: element is not a square
             sage: R(4).square_root() == R(-2)
-                True
+            True
             sage: R(9).square_root()
-                3 * 1 + O(3^21)
+            3 * 1 + O(3^21)
 
         When p = 2, the precision of the square root is one less than the
         input:
             sage: R2 = Zp(2,20,'capped-rel')
             sage: R2(0).square_root()
-                0
+            0
             sage: R2(1).square_root()
-                1 + O(2^19)
+            1 + O(2^19)
             sage: R2(4).square_root()
-                2 + O(2^20)
+            2 + O(2^20)
 
         # todo: the following doctest is currently disabled because the
         # second argument to the __call__ method is not yet implemented
 
-            sage.: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)
-                True
+            sage.: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)   # WARNING -- this is not implemented yet!
+            True
 
             sage: R2(17).square_root()
-                1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
 
             sage: R3 = Zp(5,20,'capped-rel')
             sage: R3(0).square_root()
-                0
+            0
             sage: R3(1).square_root()
-                1 + O(5^20)
+            1 + O(5^20)
             sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
-                True
+            True
 
 
         Tests for fields:
             sage: R = Qp(3,20,'capped-rel')
             sage: R(0).square_root()
-                0
+            0
             sage: R(1).square_root()
-                1 + O(3^20)
+            1 + O(3^20)
             sage: R(4).square_root() == R(-2)
-                True
+            True
             sage: R(9).square_root()
-                3 + O(3^21)
+            3 + O(3^21)
             sage: R(1/9).square_root()
-                3^-1 + O(3^19)
+            3^-1 + O(3^19)
+
             sage: R2 = Qp(2,20,'capped-rel')
             sage: R2(0).square_root()
-                0
+            0
             sage: R2(1).square_root()
-                1 + O(2^19)
+            1 + O(2^19)
             sage: R2(4).square_root()
-                2 + O(2^20)
+            2 + O(2^20)
             sage: R2(9).square_root() == R2(3,19) or R2(9).square_root() == R2(-3,19)
-                True
+            True
             sage: R2(17).square_root()
-                1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^19)
+
             sage: R3 = Qp(5,20,'capped-rel')
             sage: R3(0).square_root()
-                0
+            0
             sage: R3(1).square_root()
-                1 + O(5^20)
+            1 + O(5^20)
             sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
-                True
+            True
         """
         # need special case for zero since pari(self) is the *integer* zero
         # whose square root is a real number....!
@@ -820,7 +831,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             element -- the trace of this p-adic element over the ground ring
         """
         if (ground != None) and (ground != self.parent()):
-            raise ValueError, "Ground Ring not a subring"
+            raise ValueError, "Ground ring not a subring"
         else:
             return self
 

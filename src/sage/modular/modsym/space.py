@@ -39,6 +39,8 @@ import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence
 
+def is_ModularSymbolsSpace(x):
+    return isinstance(x, ModularSymbolsSpace)
 
 class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def __init__(self, group, weight, character, sign, base_ring):
@@ -1290,5 +1292,12 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                   int(math.ceil((self.weight() + dims.idxG0(self.level()))/12.0))
         return self.__sturm_bound
 
-
+    def abelian_variety(self):
+        try:
+            return self.__modabvar
+        except AttributeError:
+            from sage.modular.abvar.modabvar_modsym import ModAbVar_modsym_plus
+            A = ModAbVar_modsym_plus(self, check=True)
+            self.__modabvar = A
+            return A
 

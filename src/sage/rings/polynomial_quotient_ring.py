@@ -496,6 +496,43 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         return PolynomialQuotientRing_domain, (self.polynomial_ring(),
                                          self.modulus(), self.variable_names())
 
+    def is_finite(self):
+        """
+        Return whether or not this quotient ring is finite.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: R.quo(1).is_finite()
+            True
+            sage: R.quo(2).is_finite()
+            False
+            sage: R.quo(x^3-1).is_finite()
+            False
+
+            sage: R.<x> = GF(9,'a')[]
+            sage: R.quo(2*x^3+1).is_finite()
+            True
+            sage: R.quo(2).is_finite()
+            True
+        """
+        f = self.modulus()
+        if f.degree() < 0:
+            return False
+        if f.degree() == 0:
+            if f[0].is_unit():
+                return True
+            else:
+                # definitely infinite, since poly ring over
+                # a nonzero ring.
+                return False
+        # when the degree is at least 1, the quotient is finite
+        # if and only if the base ring is finite:  why?  If base
+        # ring infinite, clearly quotient isn't in this case, since
+        # quotient embeds in.  If base ring is finite, then since
+        # it is a domain it is a field, so this is a field mod a poly
+        # of degree at least 1, hence it is also a finite field.
+        return self.base_ring().is_finite()
+
     def field_extension(self, names):
         r"""
         Takes a polynomial defined in a quotient ring, and returns

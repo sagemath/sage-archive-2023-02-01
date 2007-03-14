@@ -978,6 +978,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             generators -- List of generators for the Mordell-Weil group.
 
         IMPLEMENTATION: Uses Cremona's mwrank C library.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.gens()     # output can be slightly random because of choice of basis.
         """
         try:
             return list(self.__gens)  # return copy so not changed
@@ -3953,7 +3957,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
           A case that works the division polynomial code a little harder:
             sage: E.padic_height(5, 10)(5*P)
-             2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
 
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
@@ -4018,7 +4022,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if check:
                 assert answer.big_oh() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
-            return K(answer.lift(), prec)
+            return K(answer.lift(), absprec = prec)
 
 
         # (man... I love python's local function definitions...)
@@ -4081,7 +4085,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
@@ -4400,7 +4404,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 trace = self.ap(p)
 
             base_ring = rings.Integers(p**adjusted_prec)
-            output_ring = rings.pAdicField(p, prec)
+            output_ring = rings.Qp(p, prec)
 
             R, x = rings.PolynomialRing(base_ring, 'x').objgen()
             Q = x**3 + base_ring(X.a4()) * x + base_ring(X.a6())

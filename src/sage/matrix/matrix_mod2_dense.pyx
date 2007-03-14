@@ -291,6 +291,26 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         INPUT:
             right -- Matrix
 
+        EXAMPLE:
+              sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
+              sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0] )
+              sage: A
+              [0 0 0]
+              [0 1 0]
+              [0 1 1]
+              [0 0 1]
+              sage: B
+              [0 0 1 0]
+              [1 0 0 1]
+              [1 1 0 0]
+              sage: A._multiply_linbox(B)
+              [0 0 0 0]
+              [1 0 0 1]
+              [0 1 0 1]
+              [1 1 0 0]
+
+        ALGORITHM: Uses LinBox
+
         """
         if get_verbose() >= 2:
             verbose('linbox multiply of %s x %s matrix by %s x %s matrix'%(
@@ -311,9 +331,29 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Classical n^3 multiplication.
 
+
+        EXAMPLE:
+              sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
+              sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0] )
+              sage: A
+              [0 0 0]
+              [0 1 0]
+              [0 1 1]
+              [0 0 1]
+              sage: B
+              [0 0 1 0]
+              [1 0 0 1]
+              [1 1 0 0]
+              sage: A._multiply_classical(B)
+              [0 0 0 0]
+              [1 0 0 1]
+              [0 1 0 1]
+              [1 1 0 0]
+
         """
         cdef Matrix_mod2_dense A
-        A = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc=False)
+        A = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+        destroyPackedMatrix(A._entries)
 
         A._entries = matrixTimesMatrixPacked(self._entries,(<Matrix_mod2_dense>right)._entries)
         return A
@@ -335,6 +375,20 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Inverts self using M4RI.
 
         If self is not invertible a ZeroDivisionError is raised.
+
+        EXAMPLE:
+              sage: A = Matrix(GF(2),3,3, [0, 0, 1, 0, 1, 1, 1, 0, 1])
+              sage: MS = A.parent()
+              sage: A
+              [0 0 1]
+              [0 1 1]
+              [1 0 1]
+              sage: ~A
+              [1 0 1]
+              [1 1 0]
+              [1 0 0]
+              sage: A * ~A == ~A * A == MS(1)
+              True
 
         ALGORITHM: Uses M4RI.
         """
@@ -392,6 +446,18 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return A
 
     def _list(self):
+        """
+        Returns list of the elements of self in row major ordering.
+
+        EXAMPLE:
+            sage: A = Matrix(GF(2),2,2,[1,0,1,1])
+            sage: A
+            [1 0]
+            [1 1]
+            sage: A.list()
+            [1, 0, 1, 1]
+
+        """
         cdef int i,j
         l = []
         for i from 0 <= i < self._nrows:
@@ -423,6 +489,15 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             k --  the parameter 'k' of the M4RI algorithm. It MUST be between
                   1 and 16 (inclusive). If it is not specified it will be calculated as
                   3/4 * log_2( min(nrows, ncols) ) as suggested in the M4RI paper.
+
+        EXAMPLE:
+             sage: A = random_matrix(GF(2), 10, 10)
+             sage: B = A.copy(); B.echelonize() # fastest
+             sage: C = A.copy(); C.echelonize(k=2) # force k
+             sage: D = A.copy(); D.echelonize(algorithm='linbox') # force LinBox
+             sage: E = A.copy(); E.echelonize(algorithm='classical') # force Gaussian elimination
+             sage: B == C == D == E
+             True
 
         ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
                    LinBox.
@@ -564,6 +639,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 ##         pass
 
     def _magma_init_(self):
+        """
+        Returns a string of self in MAGMA form. Does not return MAGMA
+        object but string.
+        """
         cdef int i,j
         K = self._base_ring._magma_init_()
         if self._nrows == self._ncols:
@@ -577,7 +656,28 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         return s + '![%s]'%(','.join(v))
 
     def transpose(self):
-        cdef Matrix_mod2_dense A  = Matrix_mod2_dense.__new__(Matrix_mod2_dense, self._parent, 0, 0, 0, alloc=False)
+        """
+        Returns transpose of self and leaves self untouched.
+
+        EXAMPLE:
+            sage: A = Matrix(GF(2),3,5,[1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0])
+            sage: A
+            [1 0 1 0 0]
+            [0 1 1 0 0]
+            [1 1 0 1 0]
+            sage: B = A.transpose(); B
+            [1 0 1]
+            [0 1 1]
+            [1 1 0]
+            [0 0 1]
+            [0 0 0]
+            sage: B.transpose() == A
+            True
+
+        """
+        cdef Matrix_mod2_dense A = self.new_matrix(ncols = self._nrows,  nrows = self._ncols)
+        destroyPackedMatrix(A._entries)
+
         A._entries = transposePacked(self._entries)
         return A
 
@@ -586,6 +686,33 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
     def augment(self, Matrix_mod2_dense right):
+        """
+        Augements self with right.
+
+        EXAMPLE:
+            sage: MS = MatrixSpace(GF(2),3,3)
+            sage: A = MS([0, 1, 0, 1, 1, 0, 1, 1, 1]); A
+            [0 1 0]
+            [1 1 0]
+            [1 1 1]
+            sage: B = A.augment(MS(1)); B
+            [0 1 0 1 0 0]
+            [1 1 0 0 1 0]
+            [1 1 1 0 0 1]
+            sage: B.echelonize(); B
+            [1 0 0 1 1 0]
+            [0 1 0 1 0 0]
+            [0 0 1 0 1 1]
+            sage: C = B.matrix_from_columns([3,4,5]); C
+            [1 1 0]
+            [1 0 0]
+            [0 1 1]
+            sage: C == ~A
+            True
+            sage: C*A == MS(1)
+            True
+
+        """
         cdef Matrix_mod2_dense A
 
         A = self.new_matrix(ncols = self._ncols + right._ncols)

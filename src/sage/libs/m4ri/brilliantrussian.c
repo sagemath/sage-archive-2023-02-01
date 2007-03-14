@@ -298,9 +298,7 @@ int fourRussiansPackedFlex(packedmatrix *m, int full, int k,
     rank += submatrixrank;
   }
 
-  printf("\aHuh? Why am I here?\n");
-
-  return 0;
+  return rank;
 }
 
 int simpleFourRussiansPackedFlex(packedmatrix *m, int full, int k) {

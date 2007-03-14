@@ -183,7 +183,7 @@ returns (perhaps)
 \\
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 
-debug_group=2;
+debug_group=0;
 
 \\ Utility function: given positive integers m,n returns [l,m',n']
 \\ where gcd(m',n')=1, lcm(m',n')=m'n'=lcm(m,n), m'|m, n'|n:
@@ -251,7 +251,7 @@ ellzpmerge1(ellzp,P1,n1,P2)=
 {
 ellzpmerge2(ellzp,P1,n1,P2,n2,n2target,Q)=
 local(Q1,Q2,P1n1,a,w,m,l,ordQ,lmn);
-\\print("merge2 called with ",[P1,n1,P2,n2,Q,n2target]);
+if(debug_group>2,print("merge2 called with ",[P1,n1,P2,n2,Q,n2target]));
 if(n2==0,print("Error: n2=0 at place A");1/0);
 Q1 = ellpow(ellzp,Q,n2);
 if(Q1==[0], if(debug_group>1,print("Order(Q) divides n2"));
@@ -297,15 +297,15 @@ a = bg_algorithm(ellzp,Q2,Q1,0,n1/n2target);
       print("order((n1/n2target)*P1) = ",Q1," is ",ellzppointorder(ellzp,Q1));
       print("order(Q) =                ",Q," is ",ellzppointorder(ellzp,Q))
     );
+  if(debug_group,print("Computing Weil pairing of those two points..."));
   w = ellweilpairing(ellzp,Q1,Q,n2target);
   m = znorder(w);
   if(debug_group, print("w = ", w," of order ", m ));
   \\ Compare this with n2 to see if we have gained:
   l = lcm(n2,m);
-  if(l==n2,
-return([P1,n1,P2,n2])
-    ); \\ no gain
+  if(l==n2, return([P1,n1,P2,n2])    ); \\ no gain
   ordQ = ellzppointorder(ellzp,Q);
+  if(debug_group, print("ordQ = ", ordQ, "; ordQ/m = ",ordQ/m));
   Q1 = ellpow(ellzp,Q,ordQ/m);   \\ of order m
   if(l==m, \\ replace P2, n2 by Q1, m
       P2 = Q1;
@@ -336,6 +336,7 @@ if(debug_group,
  fN=ellzp.factoredgrouporder;      \\ factorization of the order
  N=ellzp.grouporder; \\ the order
 if(debug_group,print("N = ", N, " is the group order"));
+if(N==1,return([[],[]]));
  fN[,2]\=2;
  n2max = gcd(factorback(fN),p-1);
  iscyclic=(n2max==1);  \\ 0 means we don't yet know
@@ -393,7 +394,12 @@ if(debug_group, if(iscyclic,print("Group must be cyclic")));
     Q = ellzprandompoint(ellzp);
     if(debug_group, print("Using Q = ",Q));
     P1n1P2n2=ellzpmerge2(ellzp,P1,n1,P2,n2,n2target,Q);
-    P1=P1n1P2n2[1]; n1=P1n1P2n2[2];
+    P1=P1n1P2n2[1]; newn1=P1n1P2n2[2];
+    if(newn1>n1,
+    n2target=n2target*n1/newn1;
+    if(debug_group,
+    print("Increased n1 to ",newn1,"; decreased n2target to ",n2target));
+    n1=newn1);
     P2=P1n1P2n2[3]; n2=P1n1P2n2[4];
    if(n2==0,print("Error: n2=0 at place D");1/0);
     if(debug_group, print("Group order now ",(n1*n2)))

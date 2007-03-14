@@ -382,7 +382,7 @@ def gp_console():
 def gp_version():
     """
     EXAMPLES:
-        sage: gp.version()
+        sage: gp.version()    # random output
         ((2, 3, 1), 'GP/PARI CALCULATOR Version 2.3.1 (0)')
     """
     v = gp.eval(r'\v')

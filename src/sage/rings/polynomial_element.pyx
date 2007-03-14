@@ -1644,11 +1644,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
         EXAMPLES:
             sage: R.<x> = ZZ[]
             sage: (x^3 + 1).is_irreducible()
-            True
+            False
             sage: (x^2 - 1).is_irreducible()
             False
+            sage: (x^3 + 2).is_irreducible()
+            True
             sage: R(0).is_irreducible()
-            ..?
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be nonzero
 
         $4$ is irreducible as a polynomial, since as a polynomial
         it doesn't factor:

@@ -327,7 +327,7 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         self._require_mutable()
         list.insert(self, index, self.__universe(object))
 
-    def pop(self, index):
+    def pop(self, index=-1):
         """
         remove and return item at index (default last)
 

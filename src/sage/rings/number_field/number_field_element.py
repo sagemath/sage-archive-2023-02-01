@@ -511,8 +511,11 @@ class NumberFieldElement(field_element.FieldElement):
         Relative number field:
             sage: L.<b> = K.extension(K['x'].0^2 - 2)
             sage: 1*b, b*b, b**3, b**6
+            (b, b^2, b^3, 6*b^4 - 10*b^3 - 12*b^2 - 60*b - 17)
             sage: L.pari_rnf().rnfeltabstorel(b._pari_())
+            x - y
             sage: L.pari_rnf().rnfeltabstorel((b**2)._pari_())
+            2
             sage: M = b.matrix(); M
             [0 1]
             [3 0]

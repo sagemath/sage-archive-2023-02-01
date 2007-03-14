@@ -21,7 +21,7 @@ from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
 from random                     import randint
 
 class NumericalNewforms(SageObject):
-    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2):
+    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2_sa):
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
@@ -52,85 +52,6 @@ class NumericalNewforms(SageObject):
                 raise ValueError, "modular forms space must be defined over QQ"
             self.__modular_symbols = M
             return M
-
-##     def __len__(self):
-##         try:
-##             return self.__len
-##         except AttributeError:
-##             pass
-##         n = dimension_new_cusp_forms(self._group, self._weight)
-##         self.__len = n
-##         return n
-
-    def _xxx_eigenvectors(self):
-        try:
-            return self.__eigenvectors
-        except AttributeError:
-            pass
-        verbose('Finding eigenvector basis')
-        M = self.modular_symbols().cuspidal_submodule()
-        M_amb = self.modular_symbols()
-        N = self.level()
-        n = len(self)
-
-        def next_p(p):
-            p = next_prime(p)
-            while N%p == 0:
-                p = next_prime(p)
-            return p
-
-        p = next_p(1)
-
-        t = M.T(p).matrix()
-        t_amb = M_amb.T(p).matrix()
-        eps = self._eps
-
-        w = []
-        while len(w) < n:
-            tm = verbose('computing complex eigenvectors of %s x %s matrix; found %s of %s so far'%(t.nrows(),t.nrows(), len(w), n))
-            evals, B = t.change_ring(CDF).eigen_left()
-            verbose('done computing eigenvectors', t=tm)
-            # Find the eigenvalues that occur with multiplicity 1 up
-            # to the given eps.
-            v = list(evals)
-            v.sort()
-            w = []
-            i = 0
-            while i < len(v):
-                e = v[i]
-                if i + 1 == len(v) or abs(e-v[i+1]) >= eps:
-                    w.append((e,i))
-                i += 1
-            if len(w) < n:
-                p = next_p(p)
-                tt = M.T(p).matrix()
-                tt_amb = M_amb.T(p).matrix()
-                c = randint(-100,100)
-                if c > 1:
-                    tt = c*tt
-                    tt_amb = c*tt_amb
-                t += tt
-                t_amb += tt_amb
-            #endif
-        #end while
-
-        evals, B = t_amb.change_ring(CDF).eigen_left()
-        z = []
-        # match up the eigenvalues
-        for e, _ in w:
-            j = -1
-            for i in range(len(evals)):
-                if abs(e - evals[i]) < eps:
-                    print e, evals[i], e-evals[i]
-                    if j != -1:
-                        raise RuntimeError, "Precision error -- try reducing eps from %s to something smaller"%eps
-                    j = i
-            if j == -1:
-                raise RuntimeError, "Precision error -- try reducing eps from %s to something larger"%eps
-            z.append(j)
-        self.__eigenvalues = evals
-        self.__eigenvectors = B.matrix_from_columns(z)
-        return self.__eigenvectors
 
     def _eigenvectors(self):
         try:

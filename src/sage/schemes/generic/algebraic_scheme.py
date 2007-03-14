@@ -293,8 +293,9 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         I = self.defining_ideal()
         P = I.associated_primes()
         A = self.ambient_space()
-        C = Sequence([A.subscheme(X) for X in P], check=False, immutable=True, cr=True)
+        C = Sequence([A.subscheme(X) for X in P], check=False, cr=True)
         C.sort()
+        C.set_immutable()
         self.__irreducible_components = C
         return C
 

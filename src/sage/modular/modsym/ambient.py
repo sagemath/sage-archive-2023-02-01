@@ -461,7 +461,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
         p = int(p)
-        assert arith.is_prime(p), "p must be prime."
+        # NOTE -- it is actually NOT necessary that p be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:

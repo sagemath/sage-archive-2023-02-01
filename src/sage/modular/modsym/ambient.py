@@ -462,13 +462,14 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         p = int(p)
         assert arith.is_prime(p), "p must be prime."
-        if rows is None:
-            try:
-                return self._hecke_matrices[p]
-            except AttributeError:
-                self._hecke_matrices = {}
-            except KeyError:
-                pass
+        if isinstance(rows, list):
+            rows = tuple(rows)
+        try:
+            return self._hecke_matrices[(p,rows)]
+        except AttributeError:
+            self._hecke_matrices = {}
+        except KeyError:
+            pass
         tm = misc.verbose("Computing Hecke operator T_%s"%p)
 
         if arith.is_prime(p):
@@ -505,8 +506,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             tm = misc.verbose("done matrix multiply",tm)
             Tp = Tp.dense_matrix()
             misc.verbose("done making Hecke operator matrix dense",tm)
-        if rows is None:
-            self._hecke_matrices[p] = Tp
+        self._hecke_matrices[(p,rows)] = Tp
         return Tp
 
 
@@ -1336,13 +1336,14 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             x^5 + x^4 - 8*x^3 - 12*x^2
         """
         assert arith.is_prime(p), "p must be prime."
-        if rows is None:
-            try:
-                return self._hecke_matrices[p]
-            except AttributeError:
-                self._hecke_matrices = {}
-            except KeyError:
-                pass
+        if isinstance(rows, list):
+            rows = tuple(rows)
+        try:
+            return self._hecke_matrices[(p,rows)]
+        except AttributeError:
+            self._hecke_matrices = {}
+        except KeyError:
+            pass
         tm = misc.verbose("Computing Hecke operator T_%s"%p)
 
         H = heilbronn.HeilbronnCremona(p)
@@ -1393,7 +1394,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             Tp = Tp.dense_matrix()
             misc.verbose("done making hecke operator dense",tm)
         if rows is None:
-            self._hecke_matrices[p] = Tp
+            self._hecke_matrices[(p,rows)] = Tp
         return Tp
 
     def boundary_space(self):

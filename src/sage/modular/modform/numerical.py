@@ -21,7 +21,7 @@ from sage.rings.all             import CDF, Integer, QQ, next_prime, prime_range
 from random                     import randint
 
 class NumericalNewforms(SageObject):
-    def __init__(self, group, weight=2, eps=1e-12, numtp=3):
+    def __init__(self, group, weight=2, eps=1e-20, delta=1e-2, numtp=2):
         if isinstance(group, (int, long, Integer)):
             group = Gamma0(Integer(group))
         self._group  = group
@@ -30,6 +30,7 @@ class NumericalNewforms(SageObject):
         if self._weight < 2:
             raise ValueError, "weight must be at least 2"
         self._eps = eps
+        self._delta = delta
 
     def level(self):
         return self._group.level()
@@ -264,7 +265,7 @@ class NumericalNewforms(SageObject):
         except AttributeError:
             pass
         E = self._eigenvectors()
-        eps = self._eps
+        delta = self._delta
         x = (CDF**E.nrows()).zero_vector()
         if E.nrows() == 0:
             return x
@@ -273,7 +274,7 @@ class NumericalNewforms(SageObject):
 
         def best_row(M):
             R = M.rows()
-            v = [len(support(r, eps)) for r in R]
+            v = [len(support(r, delta)) for r in R]
             m = max(v)
             i = v.index(m)
             return i, R[i]
@@ -283,7 +284,7 @@ class NumericalNewforms(SageObject):
         x[i] = 1
 
         while True:
-            s = set(support(e, eps))
+            s = set(support(e, delta))
             zp = [i for i in range(e.degree()) if not i in s]
             if len(zp) == 0:
                 break
@@ -317,7 +318,16 @@ class NumericalNewforms(SageObject):
         return self.__eigendata
 
     def ap(self, p):
-        return self.eigenvalues([p])[0]
+        p = Integer(p)
+        try:
+            return self._ap[p]
+        except AttributeError:
+            self._ap = {}
+        except KeyError:
+            pass
+        a = self.eigenvalues([p])[0]
+        self._ap[p] = a
+        return a
 
     def eigenvalues(self, primes):
         if isinstance(primes, (int, long, Integer)):
@@ -347,6 +357,17 @@ class NumericalNewforms(SageObject):
         v.set_immutable()
         return v
 
+    def systems_of_abs(self, bound):
+        P = prime_range(bound)
+        e = self.eigenvalues(P)
+        v = Sequence([], cr=True)
+        if len(e) == 0:
+            return v
+        for i in range(len(e[0])):
+            v.append([abs(e[j][i]) for j in range(len(e))])
+        v.sort()
+        v.set_immutable()
+        return v
 
 def support(v, eps):
     return [i for i in range(v.degree()) if abs(v[i]) > eps]

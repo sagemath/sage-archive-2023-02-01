@@ -309,7 +309,6 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         else:
             raise ValueError,"Error computing LU decomposition"
 
-
     def eigen_left(self):
         """
         Computes the eigenvalues and eigenvectors of this matrix acting
@@ -317,16 +316,68 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
 
         OUTPUT:
              eigenvalues -- as a list
-             corresponding eigenvectors -- as a matrix whose COLUMNS are the eigenvectors of
-                       self acting from the left.
+             corresponding eigenvectors -- as a matrix whose ** COLUMNS ** are the eigenvectors of
+                       self acting from the ** LEFT **
 
         EXAMPLES:
             sage: m = I*Matrix(CDF, 3, range(9))
-            sage: m.eigen_left()           # random-ish platform-dependent output (low order digits)
-	    ([1.7763568394e-15 + 13.3484687805*I, 2.20293602535e-16 - 1.34846925735*I, 1.92354583789e-17 + 6.13973102367e-16*I],
- 	     [0.164763817282 - 2.92873499974e-16*I     0.799699663112             -0.408248290464 + 9.71445146547e-17*I]
-  	     [0.505774475901 + 2.00967003978e-17*I     0.104205787719 - 5.06539254985e-16*I              0.816496580928]
-	     [0.846785134519 -0.591288087674 + 7.21644966006e-16*I -0.408248290464 - 2.22044604925e-16*I])
+            sage: vals, vecs = m.eigen_left()
+            sage: m*vecs      # random precision
+
+            [    -2.18763583539e-17 + 2.19934474494*I      2.22220787778e-16 - 1.07837038763*I                       -1.28830323146e-16]
+            [    -5.79030412929e-16 + 6.75131502804*I     2.46412048752e-16 - 0.140518298155*I -3.67002435386e-16 + 1.66533453694e-16*I]
+            [     -1.1361844675e-15 + 11.3032853111*I     2.70603309725e-16 + 0.797333791317*I -6.05174547627e-16 + 3.33066907388e-16*I]
+            sage: vals[0] * vecs.column(0)  # random precision
+            (-2.45441964831e-15 + 2.19934474494*I, -1.11280381694e-15 + 6.75131502804*I, -1.37419154761e-15 + 11.3032853111*I)
+            sage: vals[1] * vecs.column(1)  # random precision
+            (3.94205510736e-18 - 1.07837038763*I, 2.78424120914e-16 - 0.140518298155*I, -2.91698877571e-16 + 0.797333791317*I)
+            sage: vals[2] * vecs.column(2)  # random precision
+            (-5.48020775807e-17 - 3.30603810196e-17*I, 1.09604155161e-16 + 6.61207620392e-17*I, -5.48020775807e-17 - 3.30603810196e-17*I)
+
+        """
+        vals, vecs = self.__eigen_numpy()
+        return vals, vecs
+
+    def eigen(self):
+        """
+        Computes the eigenvalues and eigenvectors of this matrix acting
+        from the right on row vectors.
+
+        OUTPUT:
+             eigenvalues -- as a list
+             corresponding eigenvectors -- as a matrix whose ** ROWS ** are the eigenvectors of
+                       self acting from the ** RIGHT **.
+
+        EXAMPLES:
+            sage: m = I*Matrix(CDF, 3, range(9))
+            sage: vals, vecs = m.eigen()
+            sage: vecs*m                 # random lower order precision
+
+            [     -1.89705341075e-16 + 5.8765683663*I     -6.97325864178e-16 + 7.58017348024*I     -1.20494638728e-15 + 9.28377859418*I]
+            [     6.14132768077e-17 - 1.21076184124*I    -1.67915811464e-17 - 0.375459730779*I    -9.49964391005e-17 + 0.459842379686*I]
+            [                       1.27807107345e-16 -1.57183904022e-17 - 2.22044604925e-16*I   -1.5924388815e-16 - 4.4408920985e-16*I]
+            sage: vals[0] * vecs[0]      # random lower order precision
+            (-4.98105891507e-15 + 5.8765683663*I, 3.82350801489e-16 + 7.58017348024*I, 1.50207949354e-15 + 9.28377859418*I)
+            sage: vals[1] * vecs[1]      # random lower order precision
+            (1.68567839964e-16 - 1.21076184124*I, 2.90791559893e-16 - 0.375459730779*I, -1.97082856458e-16 + 0.459842379686*I)
+            sage: vals[2] * vecs[2]      # random lower order precision
+            (-1.68884954068e-16 + 1.33212740043e-16*I, 3.37769908136e-16 - 2.66425480087e-16*I, -1.68884954068e-16 + 1.33212740043e-16*I)
+
+
+        """
+        vals, vecs = self.transpose().__eigen_numpy()
+        vecs = vecs.transpose()
+        return vals, vecs
+
+    def __eigen_numpy(self):
+        """
+        Computes the eigenvalues and eigenvectors of this matrix acting
+        from the left on column vectors.
+
+        OUTPUT:
+             eigenvalues -- as a list
+             corresponding eigenvectors -- as a matrix whose ** ROWS ** are the eigenvectors of
+                       self acting from the ** LEFT ** (which is really weird!)
 
         IMPLEMENTATION:
             Uses numpy.

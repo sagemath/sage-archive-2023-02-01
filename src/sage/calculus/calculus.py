@@ -115,9 +115,13 @@ class SymbolicExpression(RingElement):
         except KeyError:
             if isinstance(self.simplify(), SymbolicConstant):
                 return plot(self.simplify()._obj)
-            else:
-                raise TypeError, "Must give an explicit parameter to plot this"\
-                + " expression."
+
+            vars = list(self._get_vars())
+            if len(vars) == 1:
+                return plot(self.function(vars[0]), **kwds)
+
+            raise TypeError, "Must give an explicit parameter to plot this"\
+                            + " expression."
 
         del kwds['param']
         return plot(self.function(param), **kwds)
@@ -190,6 +194,11 @@ class SymbolicExpression(RingElement):
     def __pow__(self, right):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
+
+    def _get_vars(self, vars=None):
+        if vars is None:
+            vars = set([])
+        return vars
 
     def _has_op(self, operator):
         """
@@ -270,6 +279,15 @@ class SymbolicExpression(RingElement):
         """
         # check each time
         s = ""
+        # see if we can implicitly supply a variable name
+        try:
+            a = args[0]
+        except IndexError:
+            a = 1
+        if a is None or isinstance(a, (int, long, Integer)):
+            vars = list(self._get_vars())
+            if len(vars) == 1:
+                s = "%s, %s" % (vars[0], a)
         for i in range(len(args)):
             if isinstance(args[i], SymbolicVariable):
                 s = s + '%s, ' %str(args[i])
@@ -303,18 +321,34 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # integral
     ###################################################################
-    def integral(self, v, a=None, b=None):
+    def integral(self, v=None, a=None, b=None):
         """
+
+        Returns the definite integral with respect to the variable $v$, ignoring
+        the constant of integration. Or, if endpoints $a$ and $b$ are specified,
+        returns the definite integral over the interval $[a, b]$. If \code{self}
+        has only one variable, then it returns the integral with respect to that
+        variable.
+
         EXAMPLES:
             sage: h = sin(x)/(cos(x))^2
             sage: h.integral(x)
             1/cos(x)
+
+            sage: f = x*cos(x^2)
+            sage: f.integral(x, 0, sqrt(pi))
+            0
+            sage: f.integral(a=-pi, b=pi)
+            0
         """
-        if (a is None and (not b is None)) or (b is None and (not a is None)):
-            raise TypeError, 'only one endpoint given'
+        if v is None:
+            vars = self._get_vars()
+            if len(vars) == 1:
+                v = list(vars)[0]
         if not isinstance(v, SymbolicVariable):
             raise TypeError, 'must integrate with respect to a variable'
-
+        if (a is None and (not b is None)) or (b is None and (not a is None)):
+            raise TypeError, 'only one endpoint given'
         if a is None:
             return self.parent()(self._maxima_().integrate(v))
         else:
@@ -406,11 +440,23 @@ class SymbolicExpression(RingElement):
             sage: f(x=pi, y=t)
             32*pi^(t/2)
 
+            sage: f = 2*x^2 - sin(x)
+            sage: f(pi)
+            2*pi^2
+
         AUTHORS:
             -- Bobby Moretti: Initial version
         """
-        if not (isinstance(in_dict, dict) or in_dict is None):
-            raise TypeError, "Must give explicit variable names for subsitution of a SymbolicExpression"
+        if not isinstance(in_dict, (dict, SymbolicExpression)):
+            in_dict = SER(in_dict)
+
+        if isinstance(in_dict, SymbolicExpression):
+            vars = list(self._get_vars())
+            if len(vars) == 1:
+                in_dict = {vars[0]: in_dict}
+
+        elif not (isinstance(in_dict, dict) or in_dict is None):
+           raise TypeError, "Must give explicit variable names to substitute for"
 
         if in_dict is not None:
             for k, v in in_dict.iteritems():
@@ -458,34 +504,6 @@ class PrimitiveFunction(SymbolicExpression):
             return r
 
         return SymbolicComposition(self, SER(x))
-
-        # if we're calling with a symbolic expression, do function composition
-#        if isinstance(x, SymbolicExpression) and not isinstance(x, Constant):
-#            return SymbolicComposition(self, x)
-#
-#        # if x is a polynomial object, first turn it into a function and
-#        # compose self with x
-#        elif is_Polynomial(x):
-#            return SymbolicComposition(self, SymbolicPolynomial(x))
-#
-#        # if we can't figure out what x is, return the composition with a symbolic version of x
-#        elif isinstance(x, (Integer, Rational, int, long)):
-#            return self(SER(x))
-#        elif isinstance(x, Constant):
-#            return self(SER(x))
-#        elif isinstance(x, (RealNumber, float)):
-#            # try getting an approximation
-#            try:
-#                r = self._approx_(x)
-#            except AttributeError:
-#            # else return some constant object
-#                r = self(SER(x))
-#            return r
-#
-#        else:
-#            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
-
-
 
 class CallableFunctionRing_class(CommutativeRing):
     def __init__(self):
@@ -839,6 +857,15 @@ class SymbolicOperation(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._operands = [SER(op) for op in operands]
 
+    def _get_vars(self, vars=None):
+        if vars is None:
+            vars = set([])
+        for op in self._operands:
+            opvars = op._get_vars(vars)
+            for v in opvars:
+                vars.add(v)
+        return vars
+
 class SymbolicComposition(SymbolicOperation):
     r'''
     Represents the symbolic composition of $f \circ g$.
@@ -1012,6 +1039,12 @@ class SymbolicVariable(SymbolicExpression):
         self._name = name
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
+
+    def _get_vars(self, vars=None):
+        if vars is None:
+            vars = set([])
+        vars.add(self)
+        return vars
 
     def __cmp__(self, right):
         return cmp(self._repr_(), right._repr_())

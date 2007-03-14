@@ -1722,14 +1722,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 8; m = 4
             sage: n.__or__(m)
             12
-
-        On the command line use eval to evaluate the or using the
-        caret notation (which is normally exponentiation because
-        of the preprocessor).
-            sage: eval('n ^ m')
-            12
-            sage: eval('Integer(8) ^ Integer(4)')
-            12
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return (<Integer>x)._or(y)

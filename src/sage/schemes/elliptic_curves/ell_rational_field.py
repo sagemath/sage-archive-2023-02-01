@@ -983,6 +983,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
             sage: E.gens()     # output can be slightly random because of choice of basis.
             [(-1 : 1 : 1), (0 : 0 : 1)]
         """

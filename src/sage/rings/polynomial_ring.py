@@ -419,6 +419,26 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.gen()
 
+    def is_finite(self):
+        """
+        Return False since polynomial rings are not finite (unless
+        the base ring is 0.)
+
+        EXAMPLES:
+            sage: R = Integers(1)['x']
+            sage: R.is_finite()
+            True
+            sage: R = GF(7)['x']
+            sage: R.is_finite()
+            False
+            sage: R['x']['y'].is_finite()
+            False
+        """
+        R = self.base_ring()
+        if R.is_finite() and R.order() == 1:
+            return True
+        return False
+
     def is_field(self):
         """
         Return False, since polynomial rings are never fields.

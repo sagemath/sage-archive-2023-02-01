@@ -43,7 +43,7 @@ There is some performance penalty for carrying the function around, but it is mi
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
         Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'lazy', print_mode = 'series'); R is S
+    sage: R = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); R is S
         True
     sage: Zp(2)
         2-adic Ring with capped relative precision 20

@@ -280,7 +280,9 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         TypeError: K must be a field
     """
 
-    if not field.is_Field(K):
+    if not ring.is_Ring(K):
+        raise TypeError, "K must be a field"
+    if not K.is_field():
         raise TypeError, "K must be a field"
     return FreeModule(K, dimension, sparse, inner_product_matrix)
 

@@ -39,6 +39,10 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
             from sage.rings.padics.unramified_extension_generic import UnramifiedExtensionGeneric
             if not isinstance(parent, UnramifiedExtensionGeneric):
                 raise TypeError, "parent must be an UnramifiedExtensionGeneric"
+        if is_FiniteFieldElement(x):
+            #This currently only works for relative extensions of Zp
+            x = x.polynomial()
+            x = x.parent().change_ring(parent.base_ring())(x)
         pAdicExtensionGenericElement.__init__(self, parent, x, absprec, relprec, check, construct)
 
     def _add_(self, right):
@@ -59,63 +63,63 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
     def _neg_(self):
         return UnramifiedExtensionElement(self.parent(), -self._polynomial, check = False, construct = True)
 
-    def _repr_(self, mode = None, do_latex = False, caprel = False):
-        if mode is None:
-            mode = self.parent().print_mode()
-        elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (mode == 'integer') or (mode == 'integer-p')):
-            raise TypeError, "printing-mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p' or 'integer-p'"
-        if self._polynomial == 0:
-            if mode == 'val-unit' or mode == 'series' or mode == 'integer':
-                if do_latex:
-                    return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
-                else:
-                    return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
-            else:
-                if do_latex:
-                    return "O(p^{%s})"%(self.precision_absolute())
-                else:
-                    return "O(p^%s)"%(self.precision_absolute())
-        if mode == 'val-unit':
-            return "set the print mode to series"
-        elif mode == 'val-unit-p':
-            return "set the print mode to series"
-        elif mode == 'integer':
-            return "set the print mode to series"
-        elif mode == 'integer-p':
-            return "set the print mode to series"
-        else:
-            pprint = self.base_ring()._uniformizer_print()
-            selflist = self.list()
-            triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
-            #print triples
-            triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
-            def addparen(c):
-                c = "%s"%c
-                if c.find("+") != -1:
-                    c = "(%s)"%c
-                return c
-            triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
-            #return "bad"
-            if do_latex:
-                s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(pprint, self.precision_absolute())
-                if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s\\cdot%s + "%(addparen(selflist[1]), pprint) + s
-                s = s.replace(" 1\\cdot", " ")
-                if s.startswith("1\\cdot"):
-                    s = s.replace("1\\cdot", "", 1)
-                if self.precision_absolute() > 0 and selflist[0] != 0:
-                    s = "%s + "%(addparen(selflist[0])) + s
-            else:
-                s = " + ".join(["%s*%s^%s"%(a) for a in triples]) + " + O(%s^%s)"%(pprint, self.precision_absolute())
-                if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s*%s + "%(addparen(selflist[1]), pprint) + s
-                s = s.replace(" 1*", " ")
-                if s.startswith("1*"):
-                    s = s.replace("1*", "", 1)
-                if self.precision_absolute() > 0 and selflist[0] != 0:
-                    s = "%s + "%(addparen(selflist[0])) + s
-            s = s.replace(" +  + ", " + ")
-            return s
+#    def _repr_(self, mode = None, do_latex = False, caprel = False):
+#        if mode is None:
+#            mode = self.parent().print_mode()
+#        elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'val-unit-p') or (mode == 'series-p') or (mode == 'integer') or (mode == 'integer-p')):
+#            raise TypeError, "printing-mode must be one of 'val-unit', 'series', 'integer', 'val-unit-p', 'series-p' or 'integer-p'"
+#        if self._polynomial == 0:
+#            if mode == 'val-unit' or mode == 'series' or mode == 'integer':
+#                if do_latex:
+#                    return "O(%s^{%s})"%(self.parent().prime(), self.precision_absolute())
+#                else:
+#                    return "O(%s^%s)"%(self.parent().prime(), self.precision_absolute())
+#            else:
+#                if do_latex:
+#                    return "O(p^{%s})"%(self.precision_absolute())
+#                else:
+#                    return "O(p^%s)"%(self.precision_absolute())
+#        if mode == 'val-unit':
+#            return "set the print mode to series"
+#        elif mode == 'val-unit-p':
+#            return "set the print mode to series"
+#        elif mode == 'integer':
+#            return "set the print mode to series"
+#        elif mode == 'integer-p':
+#            return "set the print mode to series"
+#        else:
+#            pprint = self.base_ring()._uniformizer_print()
+#            selflist = self.list()
+#            triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
+#            #print triples
+#            triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
+#            def addparen(c):
+#                c = "%s"%c
+#                if c.find("+") != -1:
+#                    c = "(%s)"%c
+#                return c
+#            triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
+#            #return "bad"
+#            if do_latex:
+#                s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(pprint, self.precision_absolute())
+#                if self.precision_absolute() > 1 and selflist[1] != 0:
+#                    s = "%s\\cdot%s + "%(addparen(selflist[1]), pprint) + s
+#                s = s.replace(" 1\\cdot", " ")
+#                if s.startswith("1\\cdot"):
+#                    s = s.replace("1\\cdot", "", 1)
+#                if self.precision_absolute() > 0 and selflist[0] != 0:
+#                    s = "%s + "%(addparen(selflist[0])) + s
+#            else:
+#                s = " + ".join(["%s*%s^%s"%(a) for a in triples]) + " + O(%s^%s)"%(pprint, self.precision_absolute())
+#                if self.precision_absolute() > 1 and selflist[1] != 0:
+#                    s = "%s*%s + "%(addparen(selflist[1]), pprint) + s
+#                s = s.replace(" 1*", " ")
+#                if s.startswith("1*"):
+#                    s = s.replace("1*", "", 1)
+#                if self.precision_absolute() > 0 and selflist[0] != 0:
+#                    s = "%s + "%(addparen(selflist[0])) + s
+#            s = s.replace(" +  + ", " + ")
+#            return s
 
     def _sub_(self, right):
         return UnramifiedExtensionElement(self.parent(), self._polynomial - right._polynomial, check = False, construct = True)
@@ -134,10 +138,13 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
 
     def list(self):
         #Need to change this to allow for base_rings that are not Zp.  Also, this is slow.
+        if self.valuation() < 0:
+            return self.unit_part().valuation()
         answer = []
         me = self
         while me != 0:
-            answer.append(me.residue(1))
+            print type(me)
+            answer.append(self.parent()(me.residue(1), self.parent().precision_cap()))
             me = me >> 1
         zero = self.parent().residue_class_field()(0)
         answer = answer + [zero]*(self.precision_absolute() - len(answer))
@@ -179,7 +186,7 @@ class UnramifiedExtensionElement(pAdicExtensionGenericElement):
                 return infinity
             else:
                 return self.parent().precision_cap()
-        return min([a.valuation() for a in clist])
+        return min(a.valuation() for a in clist)
 
     def _val_unit(self):
         return self.valuation(), self.unit_part()

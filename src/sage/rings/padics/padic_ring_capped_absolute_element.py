@@ -98,7 +98,8 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-            absprec = min(absprec, k)
+            if absprec is infinity and relprec is infinity: #this allows you to lift integer_mod elements to higher precision than they are actually defined.
+                absprec = min(absprec, k)
             x = x.lift()
 
         #if sage.rings.finite_field_element.is_FiniteFieldElement(x):

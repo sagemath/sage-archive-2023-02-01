@@ -35,7 +35,7 @@ class EisensteinRingExtensionCappedAbsolute(EisensteinExtensionGeneric, pAdicRin
     """
 
     def __init__(self, base, poly, names, prec, halt, print_mode):
-        EisensteinExtensionGeneric.__init__(self, poly, names, prec, print_mode)
+        EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names)
 
     def __call__(self, x, absprec = infinity, relprec = infinity):
         return EisensteinExtensionElement(self, x, absprec, relprec)

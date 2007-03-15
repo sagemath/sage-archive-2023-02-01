@@ -145,7 +145,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
     if names is None:
-        names = (str(p),)
+        names = str(p)
     if type != 'lazy':
         key = (p, prec, type, names, print_mode)
     else:

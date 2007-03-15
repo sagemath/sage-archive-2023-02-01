@@ -111,7 +111,8 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
             x = x.lift()
-            absprec = min(k, absprec)
+            if absprec is infinity and relprec == parent.precision_cap(): #this allows you to lift integer_mod elements to higher precision than they are actually defined.
+                absprec = min(k, absprec)
 
             # We now use the code, below, so don't make the next line elif
         if isinstance(x, (int, long)):
@@ -123,6 +124,8 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
         if self._ordp is infinity:
             self._unit = Mod(0, 1)
             self._relprec = Integer(0)
+            if not absprec is infinity:
+                self._ordp = absprec
             return
         x = x / self.parent().prime_pow(self._ordp)
         if self._ordp is infinity:

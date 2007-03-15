@@ -104,7 +104,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             mode = self.parent().print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
             raise TypeError, "printing mode must be one of 'val-unit', 'series' or 'terse'"
-        pprint = self.parent().variable_name()[0]
+        pprint = self.parent().variable_name()
         if self._unit_part() == 0:
             if mode == 'val-unit' or mode == 'series':
                 if do_latex:

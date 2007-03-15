@@ -65,6 +65,7 @@ def ExtensionFactory(base, modulus, prec = None, names = None, print_mode = None
             raise ValueError, "polynomial does not determine a unique extension.  Please specify more precision."
     if print_mode is None:
         print_mode = base.print_mode()
+        print print_mode
     if names is None:
         raise ValueError, "must specify name of generator of extension"
     # We now decide on the extension class: unramified, eisenstein or general (padic)
@@ -120,7 +121,7 @@ def truncate_to_prec(poly, absprec):
 def krasner_check(poly, prec):
     return True #This needs to be implemented
 
-def is_eisnstein(poly):
+def is_eisenstein(poly):
     if poly[0].valuation() != 1:
         return False
     if reduce(lambda a, b: a or b, [(c.valuation() < 1) for c in poly.list()[1:poly.degree()]]):

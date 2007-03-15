@@ -45,7 +45,7 @@ class EisensteinExtensionCappedRelativeElement(pAdicRingGenericElement):
         if isinstance(x, list):
             if len(x) == parent.degree():
                 #should probably be wrapped in a try block, but I'm not sure what types of exceptions I'm worried about.  TypeError?
-                absprec = min([v.precision_absolute() for v in x].append(absprec))
+                absprec = min([v.precision_absolute() for v in x] + [absprec])
                 val = min([v.valuation() for v in x])
                 absprec = min(absprec, relprec + val)
                 x = [parent.base_ring()(v, absprec = absprec).__rshift__(val) for v in x]

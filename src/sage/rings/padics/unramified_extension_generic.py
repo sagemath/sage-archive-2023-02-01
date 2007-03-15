@@ -98,16 +98,13 @@ class UnramifiedExtensionGeneric(pAdicGeneric, PolynomialQuotientRing_domain):
     def teichmuller(self, x, prec = None):
         if prec is None:
             prec = self.precision_cap()
-        q = self.prime_pow(self.modulus().degree())
+        q = self.residue_class_field().order()
         x = self(x, prec)
         xnew = x**q
         while x != xnew:
             x = xnew
             xnew = x**q
         return x
-
-    def teichmuller_system(self):
-        return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
 
     def absolute_discriminant(self):
         r"""
@@ -134,7 +131,7 @@ class UnramifiedExtensionGeneric(pAdicGeneric, PolynomialQuotientRing_domain):
         if self.is_field():
             return self
         K = self.base_ring().fraction_field()
-        return K.extend(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), names = self.variable_name())
+        return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), names = self.variable_name())
 
 
     def galois_group(self):

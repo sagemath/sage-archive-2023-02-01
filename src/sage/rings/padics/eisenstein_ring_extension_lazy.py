@@ -16,7 +16,7 @@ class EisensteinRingExtensionLazy(EisensteinExtensionGeneric, pAdicRingExtension
     """
 
     def __init__(self, base, poly, names, prec, halt, print_mode):
-        EisensteinExtensionGeneric.__init__(self, poly, names, prec, print_mode)
+        EisensteinExtensionGeneric.__init__(self, poly, prec, print_mode, names)
         pAdicLazyGeneric.__init__(self, poly.base_ring().prime(), prec, print_mode, names, halt)
 
     def __call__(self, x, absprec = infinity, relprec = infinity):

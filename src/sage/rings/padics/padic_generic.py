@@ -66,10 +66,7 @@ class pAdicGeneric(IntegralDomain,
     def __init__(self, p, prec, print_mode, names):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
         self._p = p
-        if (print_mode in ['val-unit', 'terse', 'series']):
-            self._print_mode = print_mode
-        else:
-            raise ValueError, "print_mode must be either val-unit, terse, series"
+        self.__set_print_mode(print_mode)
 
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Parent."%(self.prime())
@@ -116,9 +113,14 @@ class pAdicGeneric(IntegralDomain,
             'series' -- elements are displayed as series in p, where p is self.variable_name() (default, e.g., "5")
         """
         if (print_mode in ['val-unit', 'terse', 'series']):
-            self._print_mode = print_mode
+            try:
+                old = self._print_mode
+                self._print_mode = print_mode
+                return old
+            except AttributeError:
+                self._print_mode = print_mode
         else:
-            raise ValueError, "print_mode must be either val-unit, terse, series"
+            raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
 
 
     def characteristic(self):
@@ -244,7 +246,7 @@ class pAdicGeneric(IntegralDomain,
             sage: R.teichmuller_system()
                 [1 + O(3^5), 242 + O(3^5)]
         """
-        return [self.teichmuller(i) for i in range(1, self.prime())]
+        return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
 
     def absolute_discriminant(self):
         """
@@ -273,6 +275,9 @@ class pAdicGeneric(IntegralDomain,
             return 1
         else:
             raise ValueError, "Ground Ring must be a subring of self"
+
+    def different(self):
+        raise NotImplementedError
 
     def automorphisms(self):
         r"""
@@ -425,6 +430,32 @@ class pAdicGeneric(IntegralDomain,
 
     def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
         from sage.rings.padics.extension_factory import ExtensionFactory
-        return ExtensionFactory(self, modulus, prec, names, print_mode, halt, check)
+        return ExtensionFactory(self, modulus, prec, names, print_mode, halt, check = True)
 
     ext = extension
+
+class local_print_mode:
+    r"""
+    Context manager for safely temporarily changing the print_mode
+    of a p-adic ring/field.
+
+    EXAMPLES:
+        sage: R = Zp(5)
+        sage: R(45)
+        4*5 + 5^2 + O(5^21)
+        sage: with local_print_mode(R, 'val-unit'):
+        ...       print R(45)
+        ...
+        5 * 9 + O(5^21)
+
+    NOTES:  For more documentation see localvars in parent_gens.pyx
+    """
+    def __init__(self, obj, print_mode):
+        self._obj = obj
+        self._print_mode = print_mode
+
+    def __enter__(self):
+        self._orig = self._obj.__set_print_mode(self._print_mode)
+
+    def __exit__(self, type, value, traceback):
+        self._obj.__set_print_mode(self._orig)

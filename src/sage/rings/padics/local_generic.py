@@ -172,7 +172,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         OUTPUT:
             integer -- the ramification index of this ring, i.e., 1
         """
-        return ramification_index(self)
+        return self.ramification_index()
 
     def inertia_degree(self):
         r"""
@@ -196,7 +196,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         OUTPUT:
             integer -- the inertia degree of this ring, i.e., 1
         """
-        return inertia_degree(self)
+        return self.inertia_degree()
 
     def inertia_subring(self):
         r"""

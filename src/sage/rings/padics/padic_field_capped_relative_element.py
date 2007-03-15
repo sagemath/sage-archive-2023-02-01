@@ -63,8 +63,7 @@ class pAdicFieldCappedRelativeElement(sage.rings.padics.padic_field_generic_elem
                 raise ValueError, "Cannot coerce between p-adic rings with different primes."
             self._ordp = x.valuation()
             self._relprec = min(x.precision_relative(), prec)
-            modulus = x.parent().prime_pow(self._relprec)
-            self._unit = Mod(x._unit_part(), modulus)
+            self._unit = Mod(x._unit_part(), x.parent().prime_pow(self._relprec))
             return
 
         if isinstance(x, pari_gen) and x.type() == "t_PADIC":

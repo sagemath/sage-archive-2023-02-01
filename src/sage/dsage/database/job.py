@@ -33,7 +33,7 @@ class Job(Persistent):
     """
 
     def __init__(self, id=None, name=None, file=None, parent=None,
-                 author=None, type='sage'):
+                 author=None, type_='sage'):
         r"""
         Creates a new job.
 
@@ -51,28 +51,29 @@ class Job(Persistent):
         self.jdict = {}
 
         # Job keywords
-        self.jdict['name'] = name
-        self.jdict['id'] = id
         self.jdict['num'] = None
+        self.jdict['id'] = id
+        self.jdict['name'] = name
         self.jdict['file'] = file
-        self.jdict['parent'] = parent
         self.jdict['author'] = author
-        self.jdict['creation_time'] = datetime.datetime.now()
-        self.jdict['finish_time'] = None
-        self.jdict['updated_time'] = None
-
-        # Valid status keywords:
-        # new, completed, incomplete, processing
-        self.jdict['status'] = 'new'
-
-        self.jdict['children'] = []
-        self.jdict['type'] = type
-        self.jdict['result'] = None # result should be a pickled object
-        self.jdict['failures'] = 0
-        self.jdict['killed'] = False
         self.jdict['data'] = []
         self.jdict['output'] = ''
         self.jdict['worker_info'] = None
+        # Valid status keywords:
+        # new, completed, incomplete, processing
+        self.jdict['status'] = 'new'
+        self.jdict['creation_time'] = datetime.datetime.now()
+        self.jdict['updated_time'] = None
+        self.jdict['finish_time'] = None
+        self.jdict['killed'] = False
+        self.jdict['type'] = type_
+        self.jdict['result'] = None # result should be a pickled object
+        self.jdict['failures'] = 0
+
+
+        # These might become deprecated
+        self.jdict['parent'] = parent
+        self.jdict['children'] = []
 
     def __str__(self):
         return str(self.jdict)
@@ -100,8 +101,8 @@ class Job(Persistent):
     def get_id(self):
         return self.jdict['id']
     def set_id(self, value):
-        if not isinstance(value, str):
-            raise TypeError
+#        if not isinstance(value, str):
+#            raise TypeError
         self.jdict['id'] = value
     id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
 
@@ -110,18 +111,18 @@ class Job(Persistent):
             return None
         s = self.id.find('_') + 1
         return int(self.id[s:])
-    def set_num(self):
+    def set_num(self, value):
         pass
     num = property(fget=get_num, fset=set_num, fdel=None, doc='Job Number')
 
     def get_status(self):
         return self.jdict['status']
     def set_status(self, value):
-        statuses = ['new', 'completed', 'incomplete', 'processing']
-        if not value in statuses:
-            raise TypeError
-        if value == 'completed':
-            self.finish_time = datetime.datetime.now()
+        # statuses = ['new', 'completed', 'incomplete', 'processing']
+        # if not value in statuses:
+        #    raise TypeError
+        #if value == 'completed':
+        #    self.finish_time = datetime.datetime.now()
         self.jdict['status'] = value
     status = property(fget=get_status, fset=set_status, fdel=None,
                       doc='Job status')
@@ -186,7 +187,9 @@ class Job(Persistent):
 
     def get_creation_time(self):
         return self.jdict['creation_time']
+
     def set_creation_time(self, value):
+        print type(value)
         if not isinstance(value, datetime.datetime):
             raise TypeError
         self.jdict['creation_time'] = value
@@ -256,7 +259,7 @@ class Job(Persistent):
                 s = cPickle.dumps(obj, 2)
                 s = zlib.compress(s)
             except PicklingError:
-                print 'Unable to attach yor object.'
+                print 'Unable to attach your object.'
                 return
         self.jdict['data'].append((var, s, 'object'))
 

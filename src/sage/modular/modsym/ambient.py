@@ -396,7 +396,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def _compute_dual_hecke_matrix(self, n):
         return self.hecke_matrix(n).transpose()
 
-    def _compute_hecke_matrix_prime(self, p, rows=None):
+    def _compute_hecke_matrix_prime(self, p):
         """
         Compute and return the matrix of the p-th Hecke operator.
 
@@ -460,12 +460,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
-        # note -- p doesn't have to be prime despite the function name
         p = int(p)
-        if isinstance(rows, list):
-            rows = tuple(rows)
         try:
-            return self._hecke_matrices[(p,rows)]
+            return self._hecke_matrices[p]
         except AttributeError:
             self._hecke_matrices = {}
         except KeyError:
@@ -478,8 +475,6 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             H = heilbronn.HeilbronnMerel(p)
 
         B = self.manin_basis()
-        if not rows is None:
-            B = [B[i] for i in rows]
         cols = []
         N = self.level()
         mod2term = self._mod2term
@@ -506,7 +501,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             tm = misc.verbose("done matrix multiply",tm)
             Tp = Tp.dense_matrix()
             misc.verbose("done making Hecke operator matrix dense",tm)
-        self._hecke_matrices[(p,rows)] = Tp
+        self._hecke_matrices[p] = Tp
         return Tp
 
 
@@ -1327,7 +1322,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             raise NotImplementedError
 
 
-    def _compute_hecke_matrix_prime(self, p, rows=None):
+    def _compute_hecke_matrix_prime(self, p):
         """
         Compute and return the matrix of the p-th Hecke operator.
         EXAMPLES:
@@ -1335,11 +1330,9 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^5 + x^4 - 8*x^3 - 12*x^2
         """
-        # note -- p doesn't have to be prime.
-        if isinstance(rows, list):
-            rows = tuple(rows)
+        assert arith.is_prime(p), "p must be prime."
         try:
-            return self._hecke_matrices[(p,rows)]
+            return self._hecke_matrices[p]
         except AttributeError:
             self._hecke_matrices = {}
         except KeyError:
@@ -1349,9 +1342,6 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
         H = heilbronn.HeilbronnCremona(p)
         ##H = heilbronn.HeilbronnMerel(p)
         B = self.manin_basis()
-        if not rows is None:
-            B = [B[i] for i in rows]
-
         cols = []
         N = self.level()
         P1 = self.p1list()
@@ -1393,8 +1383,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             tm = misc.verbose("done multiplying",tm)
             Tp = Tp.dense_matrix()
             misc.verbose("done making hecke operator dense",tm)
-        if rows is None:
-            self._hecke_matrices[(p,rows)] = Tp
+        self._hecke_matrices[p] = Tp
         return Tp
 
     def boundary_space(self):

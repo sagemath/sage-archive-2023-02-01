@@ -502,20 +502,93 @@ class LaurentSeries(ring_element.RingElement):
             raise ArithmeticError, "division not defined"
 
 
-    def __cmp__(self, right):
-        """
+    def common_prec(self, f):
+        r"""
+        Returns minimum precision of $f$ and self.
+
         EXAMPLES:
-            sage: x = Frac(QQ[['x']]).0
-            sage: f = x + x^2 + 3*x^4 + O(x^7)
-            sage: g = 1/x^7 - x + x^2 - x^4 + O(x^8)
-            sage: f<g
+            sage: R.<t> = LaurentSeriesRing(QQ)
+
+            sage: f = t^(-1) + t + t^2 + O(t^3)
+            sage: g = t + t^3 + t^4 + O(t^4)
+            sage: f.common_prec(g)
+            3
+            sage: g.common_prec(f)
+            3
+
+            sage: f = t + t^2 + O(t^3)
+            sage: g = t^(-3) + t^2
+            sage: f.common_prec(g)
+            3
+            sage: g.common_prec(f)
+            3
+
+            sage: f = t + t^2
+            sage: f = t^2
+            sage: f.common_prec(g)
+            +Infinity
+
+            sage: f = t^(-3) + O(t^(-2))
+            sage: g = t^(-5) + O(t^(-1))
+            sage: f.common_prec(g)
+            -2
+        """
+        if self.prec() is infinity:
+            return f.prec()
+        elif f.prec() is infinity:
+            return self.prec()
+        return min(self.prec(), f.prec())
+
+    def __cmp__(self, right):
+        r"""
+        Comparison of self and right.
+
+        We say two approximate laurent series are equal, if they agree
+        for all coefficients up to the *minimum* of the precisions of
+        each. Comparison is done in dictionary order from lowest degree to
+        highest degree coefficients (this is different than
+        polynomials).
+
+        See power_series_ring_element.__cmp__() for more information.
+
+        EXAMPLES:
+            sage: R.<x> = LaurentSeriesRing(QQ)
+            sage: f = x^(-1) + 1 + x + O(x^2)
+            sage: g = x^(-1) + 1 + O(x)
+            sage: f == g
+            True
+
+            sage: f = x^(-1) + 1 + x + O(x^2)
+            sage: g = x^(-1) + 2 + O(x)
+            sage: f == g
             False
-            sage: f>g
+            sage: f < g
+            True
+            sage: f > g
+            False
+
+            sage: f = x^(-2) + 1 + x + O(x^2)
+            sage: g = x^(-1) + 2 + O(x)
+            sage: f == g
+            False
+            sage: f < g
+            False
+            sage: f > g
             True
         """
-        c = cmp(self.__n, right.__n)
-        if c: return c
-        return cmp(self.__u, right.__u)
+        prec = self.common_prec(right)
+        n = min(self.__n, right.__n)
+
+        # zero pad coefficients on the left, to line them up for comparison
+        zero = self.base_ring()(0)
+        x = [zero] * (self.__n - n) + self.__u.list()
+        y = [zero] * (right.__n - n) + right.__u.list()
+
+        if not (prec is infinity):
+            x = x[:(prec-n)]
+            y = y[:(prec-n)]
+
+        return cmp(x,y)
 
     def valuation_zero_part(self):
         """

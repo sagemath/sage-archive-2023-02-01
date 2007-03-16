@@ -933,5 +933,19 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
+    def _magma_init_(self):
+        """
+        Returns a string of self in MAGMA form.
 
-
+        NOTE: Does not return MAGMA object but string.
+        """
+        cdef int i,j
+        K = self._base_ring._magma_init_()
+        if self._nrows == self._ncols:
+            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
+        else:
+            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
+        v = []
+        for i from 0 <= i < self._nrows*self._ncols:
+                v.append(str(self._entries[i]))
+        return s + '![%s]'%(','.join(v))

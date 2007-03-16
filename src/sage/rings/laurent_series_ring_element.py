@@ -584,6 +584,15 @@ class LaurentSeries(ring_element.RingElement):
         x = [zero] * (self.__n - n) + self.__u.list()
         y = [zero] * (right.__n - n) + right.__u.list()
 
+        # zero pad on right to make the lists the same length
+        # (this is necessary since the power series list() function just
+        # returns the coefficients of the underlying polynomial, which may
+        # have zeroes in the high coefficients)
+        if len(x) < len(y):
+            x.extend([zero] * (len(y) - len(x)))
+        elif len(y) < len(x):
+            y.extend([zero] * (len(x) - len(y)))
+
         if not (prec is infinity):
             x = x[:(prec-n)]
             y = y[:(prec-n)]

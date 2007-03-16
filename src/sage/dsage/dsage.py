@@ -11,9 +11,9 @@ class DistributedSage(object):
     r"""
     DistributedSage allows you to do distributed computing in SAGE.
 
-    To get up and running quickly, run dsage.setup() to run the configuration
-    utility.
-    Note that configuration files will be stored in DOT_SAGE/dsage
+    To get up and running quickly, run dsage.setup() to run the
+    configuration utility.
+    Note that configuration files will be stored in $DOT_SAGE/dsage
 
     There are three distinct parts of Distributed SAGE:
         Server
@@ -30,14 +30,12 @@ class DistributedSage(object):
         sage: dsage.server()
         This is currently blocking
 
-        Open another sage instance and type
-
+        Open another sage instance and type:
         sage: dsage.worker()
 
         This starts a worker connecting the localhost
 
         Open yet another terminal and type:
-
         sage: D = DSage()
 
         This creates a connection to the remote server.  To do a simple
@@ -111,10 +109,8 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py'
-        if isinstance(server, str):
-            cmd += ' %s' % server
-        if isinstance(port, int):
-            cmd += ' %s' % port
+        cmd += ' %s' % server
+        cmd += ' %s' % port
 
         if not blocking:
             cmd += '&'

@@ -24,12 +24,12 @@ from sage.dsage.database.job import Job
 
 class JobTestCase(unittest.TestCase):
 
-    def testcreateJob(self):
+    def testcreate_job(self):
         job = Job()
         self.assert_(isinstance(job, Job))
 
         job = Job(id=10, name='test', file='test', parent='test',
-                  author='test', type='test')
+                  author='test', type_='test')
         self.assert_(isinstance(job, Job))
 
     def testjobID(self):

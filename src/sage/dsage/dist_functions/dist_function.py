@@ -26,7 +26,7 @@ from twisted.spread import pb
 
 from sage.dsage.database.job import Job
 from sage.dsage.interface.dsage_interface import JobWrapper, blockingJobWrapper
-from sage.dsage.twisted.misc import blockingCallFromThread
+from sage.dsage.twisted.misc import blocking_call_from_thread
 
 class DistributedFunction(object):
     r"""
@@ -128,22 +128,22 @@ class DistributedFunction(object):
     def start(self):
         self.start_time = datetime.datetime.now()
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
-        self.checker_task = blockingCallFromThread(task.LoopingCall,
-                                                   self.check_results)
+        self.checker_task = blocking_call_from_thread(task.LoopingCall,
+                                                      self.check_results)
         reactor.callFromThread(self.checker_task.start,
                                1.0, now=True)
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
             if isinstance(wrapped_job, JobWrapper):
                 try:
-                    wrapped_job.getJob()
+                    wrapped_job.get_job()
                 except pb.DeadReferenceError:
                     print 'Got pb.DeadReferenceError.'
                     print 'This will be handled in the future.'
                     reactor.callFromThread(self.checker_task.stop)
                     break
             else:
-                wrapped_job.async_getJob()
+                wrapped_job.async_get_job()
             if wrapped_job.status == 'completed':
                 self.waiting_jobs.remove(wrapped_job)
                 self.process_result(wrapped_job)

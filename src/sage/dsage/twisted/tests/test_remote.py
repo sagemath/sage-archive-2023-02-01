@@ -110,7 +110,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         return self.r.stopListening()
 
     def testremoteGetJobEmptyQueue(self):
-        """Tests perspective_getJob on an empty database"""
+        """Tests perspective_get_job on an empty database"""
         factory = ClientPBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
@@ -120,7 +120,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         return d
 
     def _LoginConnected(self, remoteobj):
-        d = remoteobj.callRemote('getJob')
+        d = remoteobj.callRemote('get_job')
         d.addCallback(self._gotNoJob)
         return d
 
@@ -128,10 +128,10 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.assertEquals(job, None)
 
     def testremoteGetJob(self):
-        """Tests perspective_getJob"""
-        jobs = self.createJobs(10)
+        """Tests perspective_get_job"""
+        jobs = self.create_jobs(10)
         for job in jobs:
-            self.jobdb.newJob(job)
+            self.jobdb.new_job(job)
 
         factory = ClientPBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
@@ -142,19 +142,19 @@ class ClientRemoteCallsTest(unittest.TestCase):
         return d
 
     def _LoginConnected1(self, remoteobj):
-        d = remoteobj.callRemote('getJob')
-        d.addCallback(self._gotJob)
+        d = remoteobj.callRemote('get_job')
+        d.addCallback(self._got_job)
         return d
 
-    def _gotJob(self, job):
+    def _got_job(self, job):
         self.assert_(isinstance(job, str))
         import cPickle, zlib
         job = self.unpickle(job)
         self.assert_(isinstance(job, Job))
 
     def testremoteSubmitJob(self):
-        """tests perspective_submitJob"""
-        jobs = self.createJobs(1)
+        """tests perspective_submit_job"""
+        jobs = self.create_jobs(1)
 
         factory = ClientPBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
@@ -167,15 +167,15 @@ class ClientRemoteCallsTest(unittest.TestCase):
     def _LoginConnected2(self, remoteobj, jobs):
         job = jobs[0]
         job.file = ""
-        d = remoteobj.callRemote('submitJob', job.pickle())
-        d.addCallback(self._gotJobID)
+        d = remoteobj.callRemote('submit_job', job.pickle())
+        d.addCallback(self._got_job_id)
         return d
 
-    def _gotJobID(self, jobID):
+    def _got_job_id(self, jobID):
         self.assertEquals(type(jobID), str)
 
     def testremoteSubmitBadJob(self):
-        """tests perspective_submitJob"""
+        """tests perspective_submit_job"""
 
         factory = ClientPBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
@@ -186,14 +186,14 @@ class ClientRemoteCallsTest(unittest.TestCase):
         return d
 
     def _LoginConnected3(self, remoteobj):
-        d = remoteobj.callRemote('submitJob', None)
+        d = remoteobj.callRemote('submit_job', None)
         d.addErrback(self._gotNoJobID)
         return d
 
     def _gotNoJobID(self, failure):
         self.assertEquals(BadJobError, failure.check(BadJobError))
 
-    def createJobs(self, n):
+    def create_jobs(self, n):
         """This method creates n jobs. """
 
         jobs = []

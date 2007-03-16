@@ -234,6 +234,12 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
     def has_root_of_unity(self, n):
         raise NotImplementedError
 
+    def hom(self, ring):
+        r"""
+        Returns the set of homomorphisms from $\Z_p$ into another ring.
+        """
+        raise NotImplementedError
+
     def is_isomorphic(self, ring):
         raise NotImplementedError
 

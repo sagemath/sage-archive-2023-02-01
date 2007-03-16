@@ -51,6 +51,7 @@ try:
     SERVER = config.get('general', 'server')
     PORT = config.getint('general', 'port')
     DELAY = config.getint('general', 'delay')
+    NICE_LEVEL = config.getint('general', 'nice_level')
 except:
     print "Error reading %s, please fix manually or run dsage.setup()" % \
     conf_file
@@ -91,18 +92,18 @@ class Worker(object):
         self.sage.eval('import os')
 
         # Initialize getting of jobs
-        self.getJob()
+        self.get_job()
 
-    def getJob(self):
+    def get_job(self):
         # print 'Ok so far.'
         try:
-            d = self.remoteobj.callRemote('getJob')
+            d = self.remoteobj.callRemote('get_job')
         except Exception, msg:
             print 'Error getting job.'
             print msg
-            log.msg('[Worker: %s, getJob] Disconnected from remote server.'\
+            log.msg('[Worker: %s, get_job] Disconnected from remote server.'\
                     % self.id)
-            reactor.callLater(DELAY, self.getJob)
+            reactor.callLater(DELAY, self.get_job)
             return
         d.addCallback(self.gotJob)
         d.addErrback(self.noJob)
@@ -111,10 +112,10 @@ class Worker(object):
 
     def gotJob(self, job):
         r"""
-        gotJob is a callback for the remoteobj's getJob method.
+        gotJob is a callback for the remoteobj's get_job method.
 
         Parameters:
-        job -- Job object returned by remote's 'getJob' method
+        job -- Job object returned by remote's 'get_job' method
 
         """
 
@@ -131,9 +132,9 @@ class Worker(object):
             print e
             raise
 
-    def jobDone(self, output, result, completed, worker_info):
+    def job_done(self, output, result, completed, worker_info):
         r"""
-        jobDone is a callback for doJob.  Called when a job completes.
+        job_done is a callback for doJob.  Called when a job completes.
 
         Parameters:
         output -- the output of the command
@@ -144,7 +145,7 @@ class Worker(object):
         """
 
         try:
-            d = self.remoteobj.callRemote('jobDone',
+            d = self.remoteobj.callRemote('job_done',
                                           self.job.id,
                                           output,
                                           result,
@@ -152,9 +153,9 @@ class Worker(object):
                                           worker_info)
         except Exception, msg:
             log.msg(msg)
-            log.msg('[Worker: %s, jobDone] Disconnected, reconnecting in %s'\
+            log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
                     % (self.id, DELAY))
-            reactor.callLater(DELAY, self.jobDone, output,
+            reactor.callLater(DELAY, self.job_done, output,
                               result, completed, worker_info)
             d = defer.Deferred()
             d.errback(error.ConnectionLost())
@@ -178,7 +179,7 @@ class Worker(object):
 
         sleep_time = 5.0
         if failure.check(NoJobException):
-            reactor.callLater(5.0, self.getJob)
+            reactor.callLater(5.0, self.get_job)
 
     def setupTempDir(self, job):
         # change to a temporary directory
@@ -295,7 +296,7 @@ class Worker(object):
             self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
         else:
             self.sage = Sage()
-        self.getJob()
+        self.get_job()
 
     def restart(self):
         log.msg('[Worker: %s] Restarting...' % (self.id))
@@ -315,7 +316,12 @@ class Monitor(object):
     """
 
     def __init__(self, hostname, port):
+        if hostname is None:
+            print SERVER
+            hostname = SERVER
         self.hostname = hostname
+        if port is None:
+            port = PORT
         self.port = port
         self.remoteobj = None
         self.connected = False
@@ -351,7 +357,7 @@ class Monitor(object):
         else:
             for worker in self.workers:
                 worker.remoteobj = self.remoteobj # Update workers
-        self.submitHostInfo()
+        self.submit_host_info()
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')
@@ -400,6 +406,11 @@ class Monitor(object):
 
         factory = pb.PBClientFactory()
 
+        log.msg('--------------------------')
+        log.msg('DSAGE Worker')
+        log.msg('Connecting to %s:%s' % (self.hostname, self.port))
+        log.msg('--------------------------')
+
         if SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
@@ -420,7 +431,7 @@ class Monitor(object):
         """
 
         self.workers = [Worker(remoteobj, x) for x in range(WORKERS)]
-        log.msg('Initialized ' + str(len(self.workers)) + ' workers.')
+        log.msg('[Monitor] Initialized ' + str(WORKERS) + ' workers.')
 
     def checkForJobOutput(self):
         r"""
@@ -440,7 +451,8 @@ class Monitor(object):
             if worker.free == True:
                 continue
 
-            # log.msg('[Monitor] Checking for job output')
+            if LOG_LEVEL > 1:
+                log.msg('[Monitor] Checking for job output')
             try:
                 done, output, new = worker.sage._so_far()
             except Exception, msg:
@@ -452,19 +464,15 @@ class Monitor(object):
                 # Checks to see if the job created a result var
                 sobj = worker.sage.get('DSAGE_RESULT')
                 if sobj == '' or sobj.isspace():
-                    if LOG_LEVEL > 1:
-                        log.msg('Something went wrong, it should not be empty.')
-                    worker.sage._get()
                     sobj = worker.sage.get('DSAGE_RESULT')
                     if sobj == '' or sobj.isspace():
-                        worker.sage._get()
                         sobj = worker.sage.get('DSAGE_RESULT')
                     else:
                         if LOG_LEVEL > 1:
                             log.msg('Got DSAGE_RESULT second time')
 
                 # DSAGE_RESULT does not exist
-                if 'Traceback' in sobj or 'NameError' in sobj:
+                if 'Error: name \'DSAGE_RESULT\' is not defined' in sobj:
                     if LOG_LEVEL > 1:
                         log.msg('DSAGE_RESULT does not exist')
                     result = cPickle.dumps('No result saved.', 2)
@@ -479,19 +487,23 @@ class Monitor(object):
                 worker.free = True
                 log.msg("Job '%s' finished" % worker.job.name)
             else:
-                result = 'No result yet.'
+                result = cPickle.dumps('Job not done yet.', 2)
 
             worker_info = (os.getenv('USER') + '@' + os.uname()[1],
                            ' '.join(os.uname()[2:]))
+
             sanitized_output = self.sanitizeOutput(new)
 
             if self.checkOutputForFailure(sanitized_output):
-                log.msg('[Monitor] Error in result for job %s %s done by \
-Worker: %s ' % (worker.job.name, worker.job.id, worker.id))
+                s = ['[Monitor] Error in result for ',
+                     'job %s %s done by ' % (worker.job.name, worker.job.id),
+                     'Worker %s' % worker.id
+                     ]
+                log.msg(''.join(s))
                 log.msg('[Monitor] Traceback: \n%s' % sanitized_output)
-                d = self.remoteobj.callRemote('jobFailed', worker.job.id)
+                d = self.remoteobj.callRemote('job_failed', worker.job.id)
 
-            d = worker.jobDone(sanitized_output, result, done, worker_info)
+            d = worker.job_done(sanitized_output, result, done, worker_info)
             d.addErrback(self._catchConnectionFailure)
 
     def checkOutputForFailure(self, sage_output):
@@ -515,12 +527,7 @@ Worker: %s ' % (worker.job.name, worker.job.id, worker.id))
 
         if not self.connected:
             return
-        # try:
-        killed_jobs = self.remoteobj.callRemote('getKilledJobsList')
-#        except:
-#            if not self.reconnecting:
-#                self._retryConnect()
-#            return
+        killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
         killed_jobs.addCallback(self._gotKilledJobsList)
 
     def jobUpdated(self, id):
@@ -562,11 +569,11 @@ Worker: %s ' % (worker.job.name, worker.job.id, worker.id))
         # HostInfo().get_host_info
         h['uuid'] = self.identifier
 
-        d = self.remoteobj.callRemote("submitHostInfo", h)
+        d = self.remoteobj.callRemote("submit_host_info", h)
         d.addErrback(self._catchConnectionFailure)
-        log.msg('Submitted host info')
+        log.msg('[Monitor] Submitted host info')
 
-    def submitHostInfo(self):
+    def submit_host_info(self):
         r"""
         Sends the workers hardware specs to the server.
 
@@ -606,20 +613,24 @@ def main():
 
     """
 
-    if len(sys.argv) == 1:
-        monitor = Monitor(SERVER, PORT)
-    if len(sys.argv) == 2:
-        monitor = Monitor(sys.argv[1], PORT)
-    if len(sys.argv) == 3:
-        try:
-            port = int(sys.argv[2])
-        except Exception, e:
-            print e
-            port = PORT
-        monitor = Monitor(sys.argv[1], port)
+    hostname, port = sys.argv[1:]
+    # print hostname, port
+    # print type(hostname), type(port)
+    try:
+        port = int(port)
+    except:
+        port = None
+    try:
+        if hostname == 'None':
+            hostname = None
+    except:
+        hostname = None
+
+    monitor = Monitor(hostname, port)
 
     monitor.connect()
     monitor.startLoopingCalls()
+
     try:
         reactor.run()
     except:

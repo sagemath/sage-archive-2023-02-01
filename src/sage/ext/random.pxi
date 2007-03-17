@@ -29,4 +29,3 @@ cdef void mpq_randomize_entry_as_int(mpq_t x, mpz_t bound):
     mpz_set_si(mpq_denref(x), 1)
     if random() % 2:
         mpz_mul_si(mpq_numref(x), mpq_numref(x), -1)
-

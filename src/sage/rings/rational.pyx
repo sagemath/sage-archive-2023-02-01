@@ -123,9 +123,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         3/2
         sage: Rational('9/6')
         3/2
-        sage: Rational((2^99,2^100)):
+        sage: Rational((2^99,2^100))
         1/2
-        sage: Rational(("2", "10"), 16):
+        sage: Rational(("2", "10"), 16)
         1/8
 
     """

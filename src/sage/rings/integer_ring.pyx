@@ -49,7 +49,6 @@ sense.
 
 ##########################################################################################
 
-include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
 
@@ -73,8 +72,14 @@ from random import randrange
 cdef extern from "stdlib.h":
     long random()
     void srandom(unsigned int seed)
+
+    int RAND_MAX
+    int rand()
+    void srand(unsigned int seed)
+
 k = randrange(0,int(2)**int(32))
 srandom(k)
+srand(randrange(0,int(2)**int(32)))
 
 cdef gmp_randstate_t state
 gmp_randinit_mt(state)
@@ -295,19 +300,26 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         else:
             return False
 
-    def random_element(self, x=None, y=None):
+    def random_element(self, x=None, y=None, distribution=None):
         """
         Return a random integer.
 
-            ZZ.random_element() -- random integer [-2,-1,0,1,2].
-            ZZ.random_element(n) -- return an integer between 0 and n-1, inclusive.
-            ZZ.random_element(min, max) -- return an integer between min and max-1, inclusive.
+            ZZ.random_element() -- return an integer over the natrual distribution $Pr(n) = 1/2|n|(|n|+1)$.
+                                   This has infinite expected value, but in practice these will always
+                                   be single machine words, heavily concentrated around $\pm 1$.
+            ZZ.random_element(n) -- return an integer uniformly distributed between 0 and n-1, inclusive.
+            ZZ.random_element(min, max) -- return an integer uniformly destributed between min and max-1, inclusive.
 
         EXAMPLES:
-        The default is integers between -2 and 2 inclusive:
+        The default distribution is on average 50% $\pm 1$:
             sage: [ZZ.random_element() for _ in range(10)]
+            [-1, -4, 1, -1, -1, 3, 8, 100, -2, -4]
+
+        The default uniform distribution is integers between -2 and 2 inclusive:
+            sage: [ZZ.random_element(distribution="uniform") for _ in range(10)]
             [-2, -2, 1, 1, 0, 1, 2, -2, 1, -2]
 
+        If a range is given, the distribution is uniform in that range:
             sage: ZZ.random_element(-10,10)
             -6
             sage: ZZ.random_element(10)
@@ -321,21 +333,35 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             sage: [ZZ.random_element(-2,2) for _ in range(10)]
             [1, 0, -1, 1, 0, -2, 0, -1, 1, 0]
         """
-        cdef integer.Integer z, n_max, n_min, n_width
-        z = integer.Integer()
-        if y is None:
-            if x is None:
-                mpz_set_si(z.value, random()%5 - 2)
-            else:
-                n_max = self(x)
-                mpz_urandomm(z.value, state, n_max.value)
-        else:
-            n_min = self(x)
-            n_width = self(y) - n_min
-            mpz_urandomm(z.value, state, n_width.value)
-            mpz_add(z.value, z.value, n_min.value)
-        #end if
+        cdef integer.Integer z
+        z = <integer.Integer>PY_NEW(integer.Integer)
+        self._randomize_mpz(z.value, x, y, distribution)
         return z
+
+    cdef int _randomize_mpz(self, mpz_t value, x, y, distribution) except -1:
+        cdef integer.Integer n_max, n_min, n_width
+        if (distribution is None and x is None) or distribution == "1/n":
+            mpz_set_si(value, (RAND_MAX/2) / (rand()-RAND_MAX/2))
+        elif distribution is None or distribution == "uniform":
+            if y is None:
+                if x is None:
+                    mpz_set_si(value, rand()%5 - 2)
+                else:
+                    n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
+                    mpz_urandomm(value, state, n_max.value)
+            else:
+                n_min = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
+                n_max = y if PY_TYPE_CHECK(y, integer.Integer) else self(y)
+                n_width = n_max - n_min
+                if mpz_sgn(n_width.value) <= 0:
+                    n_min = self(-2)
+                    n_width = self(5)
+                mpz_urandomm(value, state, n_width.value)
+                mpz_add(value, value, n_min.value)
+        elif distribution == "mpz_rrandomb":
+            mpz_rrandomb(value, state, int(x))
+        else:
+            raise ValueError, "Unknown distribution for the integers: %s"%distribution
 
     def _is_valid_homomorphism_(self, codomain, im_gens):
         try:

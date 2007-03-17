@@ -433,13 +433,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return 1
 
-    def random_element(self, prec, bound=0):
+    def random_element(self, prec, bound=None):
         """
         Return a random power series.
 
         INPUT:
             prec -- an integer
-            bound -- an integer (default: 0, which tries to spread choice across
+            bound -- an integer (default: None, which tries to spread choice across
                          ring, if implemented)
 
         OUTPUT:

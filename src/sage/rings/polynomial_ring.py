@@ -466,7 +466,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return 1
 
-    def random_element(self, degree, bound=0):
+    def random_element(self, degree, bound=None):
         """
         Return a random polynomial.
 

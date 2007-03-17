@@ -1058,9 +1058,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
     def randomize(self, density=1, num_bound=2, den_bound=2):
         """
-        Randomize density proportion of the entries of this matrix to
-        be rationals with numerators and denominators at most the
-        given bounds.
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        The parameters are passed on to the integer ring's random_element function.
+
+        If x and y are given, randomized entries of this matrix have numerators and denominators
+        between x and y and have density 1.
         """
         density = float(density)
         if density == 0:

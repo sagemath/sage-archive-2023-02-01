@@ -11,6 +11,7 @@ AUTHORS:
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
 
 EXAMPLES:
    Add 2 integers:

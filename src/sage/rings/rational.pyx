@@ -123,13 +123,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         3/2
         sage: Rational('9/6')
         3/2
+        sage: Rational((2^99,2^100)):
+        1/2
+        sage: Rational(("2", "10"), 16):
+        1/8
+
     """
     def __new__(self, x=None, int base=0):
         global the_rational_ring
         mpq_init(self.value)
         self._parent = the_rational_ring
 
-    def __init__(self, x=None, int base=0):
+    def __init__(self, x=None, unsigned int base=0):
         if not (x is None):
             self.__set_value(x, base)
 
@@ -156,7 +161,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def _reduce_set(self, s):
         mpq_set_str(self.value, s, 32)
 
-    def __set_value(self, x, int base):
+    def __set_value(self, x, unsigned int base):
         cdef int n
 
         if isinstance(x, Rational):
@@ -214,12 +219,19 @@ cdef class Rational(sage.structure.element.FieldElement):
             set_from_Rational(self, x._rational_())
 
         elif isinstance(x, tuple) and len(x) == 2:
-            s = "%s/%s"%x
-            if x[1] == 0:
+            num = x[0]
+            denom = x[1]
+            if isinstance(num, int) and isinstance(denom, int):
+                mpq_set_si(self.value, num, denom)
+            else:
+                if not isinstance(num, integer.Integer):
+                    num = integer.Integer(num, base)
+                if not isinstance(denom, integer.Integer):
+                    denom = integer.Integer(denom, base)
+                mpz_set(mpq_numref(self.value), (<integer.Integer>num).value)
+                mpz_set(mpq_denref(self.value), (<integer.Integer>denom).value)
+            if mpz_sgn(mpq_denref(self.value)) == 0:
                 raise ValueError, "denominator must not be 0"
-            n = mpq_set_str(self.value, s, 0)
-            if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                raise TypeError, "unable to convert %s to a rational"%s
             mpq_canonicalize(self.value)
 
         elif isinstance(x, list) and len(x) == 1:

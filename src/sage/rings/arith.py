@@ -854,12 +854,18 @@ def previous_prime_power(n):
         n -= 1
     return n
 
-def random_prime(n):
+def random_prime(n, pseudo=False):
     """
-    Returns a random prime p satisfying between 2 and p (i.e. 2 <= p <= n).
+    Returns a random prime p between 2 and n (i.e. 2 <= p <= n).
+    The returned prime is chosen uniformly at random from the
+    set of prime numbers less than or equal to n.
 
     INPUT:
         n -- an integer >= 2.
+        pseudo -- bool (default: False) If True, the function uses
+                a pseudo-primality test, which is much faster for
+                really big numbers but does not provide a proof
+                of primality.
 
     EXAMPLES:
         sage: random_prime(100000)
@@ -870,6 +876,7 @@ def random_prime(n):
 
     AUTHOR:
         -- Jon Hanke: 2006-08-08  (with standard Stein cleanup)
+        -- Jonathan Bober: 2007-03-17
     """
     import random    # since we don't want random to get
                      # pulled when you say "from sage.arith import *".
@@ -879,7 +886,20 @@ def random_prime(n):
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        return previous_prime(random.randint(3,n+1))
+        if pseudo:
+            prime_test = is_pseudoprime
+        else:
+            prime_test = is_prime
+        while(1):
+            # In order to ensure that the returned prime is chosen
+            # uniformly from the set of primes it is necessary to
+            # choose a random number and then test for primality.
+            # The method of choosing a random number and then returning
+            # the closest prime smaller than it would typically not,
+            # for example, return the first of a pair of twin primes.
+            p = random.randint(2,n)
+            if prime_test(p):
+                return p
 
 
 def divisors(n):
@@ -984,12 +1004,12 @@ def gcd(a, b=0, integer=False):
         10
     """
     if integer:
-        if isinstance(a,list):
+        if isinstance(a,(list,tuple)):
             return sage.rings.integer.GCD_list(a)
         else:
             return integer_ring.ZZ(a).gcd(\
                 integer_ring.ZZ(b))
-    if isinstance(a,list):
+    if isinstance(a,(list,tuple)):
         return __GCD_list(a)
     if not isinstance(a, RingElement):
         a = integer_ring.ZZ(a)
@@ -1028,12 +1048,12 @@ def lcm(a, b=None, integer=False):
         4349
     """
     if integer:
-        if isinstance(a,list):
+        if isinstance(a,(list,tuple)):
             return sage.rings.integer.LCM_list(a)
         else:
             return integer_ring.ZZ(a).lcm(\
                 integer_ring.ZZ(b))
-    if isinstance(a, list):
+    if isinstance(a, (list,tuple)):
         return __LCM_list(a)
     if not isinstance(a, RingElement):
         a = integer_ring.ZZ(a)

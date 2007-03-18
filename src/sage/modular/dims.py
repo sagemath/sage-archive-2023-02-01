@@ -792,8 +792,8 @@ def dimension_eis(X, k=2):
 def dimension_modular_forms(X, k=2):
     r"""
     The dimension of the space of cusp forms for the given congruence
-    subgroup (either $\Gamma_0(N)$ or $\Gamma_1(N)$) or Dirichlet
-    character.
+    subgroup (either $\Gamma_0(N)$, $\Gamma_1(N)$, or $\Gamma_H(N)$)
+    or Dirichlet character.
 
     INPUT:
         X -- congruence subgroup or Dirichlet character

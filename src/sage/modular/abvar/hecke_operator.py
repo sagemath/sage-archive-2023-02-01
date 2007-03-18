@@ -1,0 +1,2 @@
+class HeckeOperator:
+    pass

@@ -70,6 +70,10 @@ class CongruenceSubgroup(Group):
     def __hash__(self):
         return hash(str(self))
 
+    def modular_abelian_variety(self):
+        from sage.abvar.abvar_ambient_jacobian import ModAbVar_ambient_jacobian
+        return ModAbVar_ambient_jacobian(self)
+
     def are_equivalent(self, x, y):
         raise NotImplementedError
 

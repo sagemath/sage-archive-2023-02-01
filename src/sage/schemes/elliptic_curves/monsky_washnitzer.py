@@ -619,20 +619,22 @@ def reduce_positive(Q, coeffs, offset, exact_form=None):
         a = next_a
         next_a = coeffs[i-1]
 
-        a[0] = a[0] - Qa*a[2]/3   # subtract d(y^j + 1)
+        a[0] = a[0] - Qa*a[2]/3   # subtract d(y^j + 3)
         if exact_form is not None:
-            exact_form += Q.base_ring()(a[2] / 3) * y**(j+1)
+            exact_form += Q.base_ring()(a[2].lift() / (3*j+9)) * y**(j+3)
 
         # todo: see comments about pAdicInteger in reduceNegative()
 
         # subtract off c1 of d(x y^j + 1)
-        c1 = base_ring(a[0].lift() * (j+1) / (3*j + 5))
+        c1 = base_ring(a[0].lift() / (3*j + 5))
         # subtract off c2 of d(x^2 y^j + 1)
-        c2 = base_ring(a[1].lift() * (j+1) / (3*j + 7))
+        c2 = base_ring(a[1].lift() / (3*j + 7))
 
-        next_a[0] = next_a[0] + B*c1
-        next_a[1] = next_a[1] + A*c1 + B*c2
-        next_a[2] = next_a[2]        + A*c2
+        j_plus_1 = base_ring(j+1)
+
+        next_a[0] = next_a[0] + B*c1*j_plus_1
+        next_a[1] = next_a[1] + A*c1*j_plus_1 + B*c2*j_plus_1
+        next_a[2] = next_a[2]                 + A*c2*j_plus_1
 
         if exact_form is not None:
             exact_form += (c1*x + c2 * x**2) * y**(j+1)

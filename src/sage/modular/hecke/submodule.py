@@ -69,15 +69,27 @@ class HeckeSubmodule(module.HeckeModule_free_module):
         M = self.free_module() + other.free_module()
         return self.ambient().submodule(M)
 
-    def __call__(self, x, check=False):
+    def __call__(self, x, check=True):
         """
         Coerce x into the ambient module and checks that x is in this submodule.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(37)
+            sage: S = M.cuspidal_submodule()
+            sage: M([0,oo])
+            -(1,0)
+            sage: S([0,oo])
+            Traceback (most recent call last):
+            ...
+            TypeError: x does not coerce to an element of this Hecke module
+            sage: S([-1/23,0])
+            (1,23)
         """
+        z = self.ambient_hecke_module()(x)
         if check:
-            y = self.__submodule(x)
-        else:
-            y = x
-        return self.ambient_hecke_module()(y)
+            if not z.element() in self.__submodule:
+                raise TypeError, "x does not coerce to an element of this Hecke module"
+        return z
 
     def __cmp__(self, other):
         if not isinstance(other, module.HeckeModule_free_module) or self.ambient() != other.ambient():

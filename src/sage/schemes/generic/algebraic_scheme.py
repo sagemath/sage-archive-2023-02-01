@@ -157,6 +157,23 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
     def rational_points(self, F=None, B=0):
         """
         Return the set of rational points over its base ring.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a')
+            sage: Etilde = E.base_extend(GF(3))
+            sage: Etilde.rational_points()
+            [(0 : 0 : 1),
+             (0 : 0 : 1),
+             (1 : 0 : 1),
+             (2 : 0 : 1),
+             (0 : 0 : 1),
+             (1 : 0 : 1),
+             (2 : 0 : 1),
+             (0 : 2 : 1),
+             (1 : 2 : 1),
+             (2 : 2 : 1),
+             (0 : 1 : 0),
+             (0 : 1 : 0)]
         """
         if F is None:
             F = self.base_ring()

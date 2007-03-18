@@ -1,4 +1,46 @@
-from sage.modules.module        import Module
+"""
+Finite subgroups of modular abelian varieties
+
+EXAMPLES:
+
+    sage: for N in range(11,40): print N, J0(N).cuspidal_subgroup().order()
+    ...
+    11 5
+    12 1
+    13 1
+    14 6
+    15 8
+    16 1
+    17 4
+    18 1
+    19 3
+    20 6
+    21 8
+    22 25
+    23 11
+    24 8
+    25 1
+    26 21
+    27 9
+    28 36
+    29 7
+    30 192
+    31 5
+    32 8
+    33 100
+    34 48
+    35 48
+    36 12
+    37 3
+    38 135
+    39 56
+"""
+
+
+from sage.modules.module      import Module
+from sage.structure.element   import ModuleElement
+from sage.structure.sequence  import Sequence
+from sage.rings.all           import lcm, ZZ
 
 class FiniteSubgroup(Module):
     def __init__(self, abvar):
@@ -21,17 +63,102 @@ class FiniteSubgroup(Module):
         return "Finite subgroup of %s"%self._abvar
 
     def order(self):
-        raise NotImplementedError, "unable to compute order of this group"
+        try:
+            return self.__order
+        except AttributeError:
+            if self._abvar.dimension() == 0:
+                self.__order = ZZ(1)
+                return self.__order
+            W, d = self._rescaled_module()
+            # compute the order
+            s = ZZ(W.index_in_saturation())
+            o = (d**W.rank())//s
+            self.__order = o
+            return o
+
+    def _rescaled_module(self):
+        r"""
+        Return d * gens as a module, where gens is a list of generators
+        of self modulo the $\ZZ^n$.
+        """
+        try:
+            return self.__rescaled_module, self.__denom
+        except AttributeError:
+            pass
+        G = self._generators()
+        A = self._abvar
+        V = ZZ**(2*A.dimension())
+        if len(G) == 0:
+            self.__rescaled_module = V
+            self.__denom = ZZ(1)
+            return self.__rescaled_module, self.__denom
+
+        d = lcm([v.denominator() for v in G])
+        self.__denom = d
+
+        if d == 1:
+            B = G
+        else:
+            B = [d*v for v in G]
+
+        W = V.span(B)
+        self.__rescaled_module = W
+        return W, d
 
     def gens(self):
         try:
             return self.__gens
         except AttributeError:
             pass
-        G = self._generators()
 
+        W, d = self._rescaled_module()
+
+        e = 1/d
+        B = [FiniteSubgroupElement(self, e*v) for
+                 v in W.basis() if v.denominator() % d != 0]
+
+        #endif
+        self.__gens = Sequence(B, immutable=True)
+        return self.__gens
 
     def gen(self, n):
         return self.gens()[n]
 
+    def __call__(self, x):
+        if isinstance(x, FiniteSubgroupElement) and x.parent() == self:
+            return x
+        raise TypeError
 
+
+class FiniteSubgroupElement(ModuleElement):
+    def __init__(self, parent, element):
+        ModuleElement.__init__(self, parent)
+        self._element = element
+
+    def _repr_(self):
+        return '%s + ZZ^%s'%(self._element, self._element.degree())
+
+    def _add_(self, other):
+        return FiniteSubgroupElement(self.parent(), self._element + other._element)
+
+    def _sub_(self, other):
+        return FiniteSubgroupElement(self.parent(), self._element - other._element)
+
+    def _neg_(self):
+        return FiniteSubgroupElement(self.parent(), -self._element)
+
+    def _rmul_(self, left):
+        return FiniteSubgroupElement(self.parent(), left * self._element)
+
+    def _lmul_(self, right):
+        return FiniteSubgroupElement(self.parent(), self._element * right)
+
+    def __cmp__(self, right):
+        v = self._element - right._element
+        if v.denominator() == 1:
+            # two elements are equal modulo the lattice
+            return 0
+        return cmp(self._element, right._element)
+
+    def additive_order(self):
+        return self._element.denominator()

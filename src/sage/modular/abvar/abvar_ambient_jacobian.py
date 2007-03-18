@@ -76,7 +76,7 @@ class ModAbVar_ambient_jacobian(ModularAbelianVariety):
             self._modular_symbols = {}
         except KeyError:
             pass
-        M = self._group.modular_symbols(sign, weight=2, base_ring=QQ)
+        M = self._group.modular_symbols(sign=sign, weight=2, base_ring=QQ)
         S = M.cuspidal_submodule()
         self._modular_symbols[sign] = S
         return S

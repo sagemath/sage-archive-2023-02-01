@@ -30,6 +30,7 @@ import weakref
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 import sage.modules.free_module_morphism as free_module_morphism
+from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
@@ -37,7 +38,7 @@ import sage.modular.modsym.element
 import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
-from   sage.structure.all import Sequence
+from   sage.structure.all import Sequence, SageObject
 
 def is_ModularSymbolsSpace(x):
     return isinstance(x, ModularSymbolsSpace)
@@ -1322,3 +1323,133 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             self.__modular_abelian_variety = A
             return A
 
+    def rational_period_mapping(self):
+        r"""
+        Return the rational period mapping associated to self.
+
+        This is a homomorphism to a vector space whose kernel is the
+        same as the kernel of the period mapping associated to self.
+        For this to exist, self must be Hecke equivariant.
+
+        Use \code{integral_period_mapping} to obtain a homomorphism to
+        a $\ZZ$-module, normalized so the image of integral modular
+        symbols is exactly $\ZZ^n$.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(37)
+            sage: A = M[1]; A
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r = A.rational_period_mapping(); r
+            Rational period mapping associated to Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r(M.0)
+            (0, 0)
+            sage: r(M.1)
+            (1, 0)
+            sage: r.matrix()
+            [ 0  0]
+            [ 1  0]
+            [ 0  1]
+            [-1 -1]
+            [ 0  0]
+            sage: r.domain()
+            Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r.codomain()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+        """
+        try:
+            return self.__rational_period_mapping
+        except AttributeError:
+            pass
+        V = self.dual_free_module()
+        # the rational period mapping is just dotting with
+        # each element of V.
+        A = V.basis_matrix().transpose()
+        A.set_immutable()
+        R = RationalPeriodMapping(self, A)
+        self.__rational_period_mapping = R
+        return R
+
+
+    def integral_period_mapping(self):
+        r"""
+        Return the integral period mapping associated to self.
+
+        This is a homomorphism to a vector space whose kernel is the
+        same as the kernel of the period mapping associated to self,
+        normalized so the image of integral modular symbols is
+        exactly $\ZZ^n$.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(23).cuspidal_submodule()
+            sage: i = m.integral_period_mapping()
+            sage: i
+            Integral period mapping associated to Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
+            sage: i.matrix()
+            [-1/11  1/11     0  3/11]
+            [    1     0     0     0]
+            [    0     1     0     0]
+            [    0     0     1     0]
+            [    0     0     0     1]
+            sage: [i(b) for b in m.integral_structure().basis()]
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+            sage: [i(b) for b in m.ambient_module().basis()]
+            [(-1/11, 1/11, 0, 3/11),
+             (1, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 0, 1, 0),
+             (0, 0, 0, 1)]
+        """
+        try:
+            return self.__integral_period_mapping
+        except AttributeError:
+            pass
+        if self.base_ring() != QQ:
+            raise ValueError, "modular symbols space must be defined over QQ."
+        D = self.dual_free_module().basis_matrix().transpose()
+        I = self.ambient_module().cuspidal_submodule().integral_structure().basis_matrix()
+        # image of cuspidal integral submodule
+        C = I * D
+        if not C.is_one():
+            D = D * C**(-1)
+        D.set_immutable()
+        R = IntegralPeriodMapping(self, D)
+        self.__integral_period_mapping = R
+        return R
+
+
+class PeriodMapping(SageObject):
+    def __init__(self, modsym, A):
+        self.__modsym = modsym
+        self.__domain = modsym.ambient_module()
+        self.__A = A
+
+    def modular_symbols_space(self):
+        return self.__modsym
+
+    def __call__(self, x):
+        if is_FreeModuleElement(x):
+            v = x
+        else:
+            v = self.__domain(x).element()
+        return v*self.__A
+
+    def matrix(self):
+        return self.__A
+
+    def domain(self):
+        return self.__domain
+
+    def codomain(self):
+        return self.__A.row_module()
+
+class RationalPeriodMapping(PeriodMapping):
+    def _repr_(self):
+        return "Rational period mapping associated to %s"%self.modular_symbols_space()
+
+
+class IntegralPeriodMapping(PeriodMapping):
+    def _repr_(self):
+        return "Integral period mapping associated to %s"%self.modular_symbols_space()

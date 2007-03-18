@@ -11,6 +11,7 @@ Base class for modular abelian varieties
 from sage.structure.sage_object import SageObject
 from hecke_operator             import HeckeOperator
 from torsion_subgroup           import TorsionSubgroup
+from cuspidal_subgroup          import CuspidalSubgroup, RationalCuspidalSubgroup
 from sage.rings.all             import ZZ, QQ
 
 import homology
@@ -23,11 +24,9 @@ class ModularAbelianVariety(SageObject):
         self._level = level
         self._base_ring = base_ring
 
+
     def _repr_(self):
         return "Modular abelian variety of level %s over %s"%(self._level, self._base_ring)
-
-    def dimension(self):
-        raise NotImplementedError
 
     def level(self):
         """
@@ -45,9 +44,6 @@ class ModularAbelianVariety(SageObject):
 
     def base_ring(self):
         return self._base_ring
-
-    def change_ring(self, R):
-        raise NotImplementedError
 
     def homology(self, base_ring=ZZ):
         """
@@ -80,11 +76,11 @@ class ModularAbelianVariety(SageObject):
         self._homology[base_ring] = H
         return H
 
-    def _integral_hecke_matrix(self, n):
-        raise NotImplementedError
+    def integral_homology(self):
+        return self.homology(ZZ)
 
-    def _rational_hecke_matrix(self, n):
-        raise NotImplementedError
+    def rational_homology(self):
+        return self.homology(QQ)
 
     def hecke_operator(self, n):
         try:
@@ -96,6 +92,33 @@ class ModularAbelianVariety(SageObject):
         Tn = HeckeOperator(self, n)
         self._hecke_operator[n] = Tn
         return Tn
+
+    def hecke_polynomial(self, n, var='x'):
+        """
+        Return the characteristic polynomial of the n-th Hecke
+        operator on self.
+
+        NOTE: If self has dimension d, then this is a polynomial of
+        degree d.  It is not of degree 2*d, so it is the square root
+        of the characteristic polynomial of the Hecke operator on
+        integral or rational homology (which has degree degree 2*d).
+
+        EXAMPLES:
+            sage: factor(J0(11).hecke_polynomial(2))
+            x + 2
+            sage: factor(J0(23).hecke_polynomial(2))
+            x^2 + x - 1
+            sage: factor(J1(13).hecke_polynomial(2))
+            x^2 + 3*x + 3
+            sage: factor(J0(43).hecke_polynomial(2))
+            (x + 2) * (x^2 - 2)
+
+        The Hecke polynomial is the square root of the characteristic
+        polynomial:
+            sage: factor(J0(43).hecke_operator(2).charpoly())
+            (x + 2)^2 * (x^2 - 2)^2
+        """
+        return self.modular_symbols(sign=1).hecke_polynomial(n, var)
 
     def torsion_subgroup(self):
         try:
@@ -121,7 +144,31 @@ class ModularAbelianVariety(SageObject):
             self._rational_cuspidal_subgroup = T
             return T
 
-    def modular_symbols(self, sign=0):
+
+    ####################################################
+    # Derived classes must overload these:
+    def dimension(self):
         raise NotImplementedError
 
+    ####################################################
+    # Derived class should overload these
+    def change_ring(self, R):
+        raise NotImplementedError
+
+    def modular_symbols(self, sign=0):
+        """
+        Return the modular symbols space associated to self.
+
+        This raises a ValueError if there is no associated modular
+        symbols space.
+        """
+        raise ValueError, "no associated modular symbols space"
+
+    def _integral_hecke_matrix(self, n):
+        # this is allowed to raise an error if
+        # associated modular symbols space.
+        raise ValueError, "no action of Hecke operators over ZZ"
+
+    def _rational_hecke_matrix(self, n):
+        raise ValueError, "no action of Hecke operators over QQ"
 

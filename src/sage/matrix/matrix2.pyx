@@ -2205,6 +2205,61 @@ cdef class Matrix(matrix1.Matrix):
                 for j from 0 <= j < num_per_row:
                     self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
 
+    def is_one(self):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_one()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_one()
+            False
+        """
+        return self.is_scalar(1)
+
+    def is_scalar(self, a):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_scalar(5)
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_scalar(5)
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_scalar(1)
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_scalar(1)
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+        a = self.base_ring()(a)
+        zero = self.base_ring()(0)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if i != j:
+                    if self.get_unsafe(i,j) != zero:
+                        return False
+                else:
+                    if self.get_unsafe(i, i) != a:
+                        return False
+        return True
+
+
+
 
 cdef decomp_seq(v):
     return Sequence(v, universe=tuple, check=False, cr=True)

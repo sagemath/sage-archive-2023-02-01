@@ -777,7 +777,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         """
         return self.hecke_operator(n)
 
-    def hecke_polynomial(self, n):
+    def hecke_polynomial(self, n, var='x'):
         """
         Return the characteristic polynomial of the n-th Hecke operator
         acting on this space.
@@ -787,7 +787,7 @@ class HeckeModule_free_module(HeckeModule_generic):
         OUTPUT:
             a polynomial
         """
-        return self.hecke_operator(n).charpoly('x')
+        return self.hecke_operator(n).charpoly(var)
 
     def is_simple(self):
         raise NotImplementedError

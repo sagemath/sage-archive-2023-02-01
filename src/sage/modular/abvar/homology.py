@@ -11,6 +11,10 @@ class Homology(HeckeModule_free_module):
     def hecke_matrix(self, n):
         raise NotImplementedError
 
+    def hecke_polynomial(self, n, var):
+        return self.hecke_matrix(n).charpoly(var)
+
+
 class IntegralHomology(Homology):
     def _repr_(self):
         return "Integral Homology of %s"%self._abvar
@@ -18,11 +22,22 @@ class IntegralHomology(Homology):
     def hecke_matrix(self, n):
         return self._abvar._integral_hecke_matrix(n)
 
+    def hecke_polynomial(self, n, var):
+        M = self._abvar.modular_symbols(sign=1)
+        f = M.hecke_polynomial(n, var)**2
+        return f
+
 class RationalHomology(Homology):
     def _repr_(self):
         return "Rational Homology of %s"%self._abvar
+
     def hecke_matrix(self, n):
         return self._abvar._rational_hecke_matrix(n)
+
+    def hecke_polynomial(self, n, var='x'):
+        M = self._abvar.modular_symbols(sign=1)
+        f = M.hecke_polynomial(n, var)**2
+        return f
 
 
 class Homology_over_base(Homology):

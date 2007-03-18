@@ -1296,6 +1296,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            LLL -- bool (default: False); if True the basis is an LLL
                   reduced basis; otherwise, it is an echelon basis.
 
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
+
         EXAMPLES:
             sage: M = MatrixSpace(ZZ,4,2)(range(8))
             sage: M.kernel()
@@ -1306,7 +1309,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:    # from a 0 space
             M = sage.modules.free_module.FreeModule(ZZ, self._nrows)
-            return M.zero_subspace()
+            return M.zero_submodule()
 
         elif self._ncols == 0:  # to a 0 space
             return sage.modules.free_module.FreeModule(ZZ, self._nrows)

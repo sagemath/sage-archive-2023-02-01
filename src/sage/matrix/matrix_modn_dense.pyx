@@ -184,11 +184,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             _sig_on
             for i from 0 <= i < self._nrows*self._ncols:
                 self._entries[i] = 0
-            e = entries   # coerce to an unsigned int
-            if e != 0:
-                for i from 0 <= i < self._nrows:
-                    self._matrix[i][i] = e
             _sig_off
+            if entries is None:
+                # zero matrix
+                pass
+            else:
+                e = entries   # coerce to an unsigned int
+                if e != 0:
+                    for i from 0 <= i < self._nrows:
+                        self._matrix[i][i] = e
             return
 
         # all entries are given as a long list

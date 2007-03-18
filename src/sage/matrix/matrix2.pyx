@@ -874,6 +874,9 @@ cdef class Matrix(matrix1.Matrix):
             -- all additional arguments to the kernel function
                are passed directly onto the echelon call.
 
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
+
         \algorithm{Elementary row operations don't change the kernel,
         since they are just right multiplication by an invertible
         matrix, so we instead compute kernel of the column echelon
@@ -949,13 +952,13 @@ cdef class Matrix(matrix1.Matrix):
             return K
         R = self._base_ring
 
-        if self._nrows == 0:    # from a 0 space
+        if self._nrows == 0:    # from a degree-0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
             Z = V.zero_subspace()
             self.cache('kernel', Z)
             return Z
 
-        elif self._ncols == 0:  # to a 0 space
+        elif self._ncols == 0:  # to a degree-0 space
             Z = sage.modules.free_module.VectorSpace(R, self._nrows)
             self.cache('kernel', Z)
             return Z

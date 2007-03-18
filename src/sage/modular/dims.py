@@ -353,10 +353,6 @@ def dimension_cusp_forms_gamma1(N,k=2):
         return Z(0)
     if k == 1:
         raise NotImplementedError, "computation of dimensions of spaces of weight 1 modular forms not implemented in general."
-    #if k == 1:
-    #    print "WARNING: Returning *FAKE* dimension 0 for weight 1 cusp forms for testing!!!"
-    #    print "(This message is on line 264 of dims.py.)"
-    #    return 0
     return Z(S1(N,k))
 
 
@@ -544,16 +540,19 @@ def lambda3(k):
 def dimension_cusp_forms_H(G,k):
     N = G.level()
     H = G._list_of_elements_in_H()
-    if k%Integer(2) == Integer(1) and N-Integer(1) in H: return Integer(0)
+    if k%Integer(2) == Integer(1) and N-Integer(1) in H:
+        return Integer(0)
     dim = Integer(0)
-    if k == Integer(2): dim = Integer(12)
-    dim+= (k-Integer(1))*muH(N,H)
-    if k%Integer(2) == Integer(0): dim+= lambda4(k)*nu2H(N,H)
-    dim+= lambda3(k)*nu3H(N,H)
+    if k == Integer(2):
+        dim = Integer(12)
+    dim += (k-Integer(1))*muH(N,H)
     if k%Integer(2) == Integer(0):
-        dim+= - Integer(6)*nuinfH(N,H)
+        dim += lambda4(k)*nu2H(N,H)
+    dim += lambda3(k)*nu3H(N,H)
+    if k%Integer(2) == Integer(0):
+        dim += -Integer(6)*nuinfH(N,H)
     else:
-        dim+= - Integer(6)*nuinfHreg(N,H)
+        dim += -Integer(6)*nuinfHreg(N,H)
     return dim//Integer(12)
 
 def dimension_eis_H(G,k):

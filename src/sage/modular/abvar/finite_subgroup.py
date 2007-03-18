@@ -40,7 +40,7 @@ EXAMPLES:
 from sage.modules.module      import Module
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
-from sage.rings.all           import lcm, ZZ
+from sage.rings.all           import gcd, lcm, ZZ
 
 class FiniteSubgroup(Module):
     def __init__(self, abvar):
@@ -106,6 +106,21 @@ class FiniteSubgroup(Module):
         return W, d
 
     def gens(self):
+        """
+        Return generators for this finite subgroup.
+
+        EXAMPLES:
+        We list generators for several cuspidal subgroups:
+            sage: J0(11).cuspidal_subgroup().gens()
+            [[(0, 1/5)]]
+            sage: J0(37).cuspidal_subgroup().gens()
+            [[(0, 0, 0, 1/3)]]
+            sage: J0(43).cuspidal_subgroup().gens()
+            [[(0, 1/7, 0, -1/7, 0, -2/7)]]
+            sage: J1(13).cuspidal_subgroup().gens()
+            [[(1/19, 0, 0, 9/19)], [(0, 1/19, 1/19, 18/19)]]
+        """
+
         try:
             return self.__gens
         except AttributeError:
@@ -115,7 +130,7 @@ class FiniteSubgroup(Module):
 
         e = 1/d
         B = [FiniteSubgroupElement(self, e*v) for
-                 v in W.basis() if v.denominator() % d != 0]
+                 v in W.basis() if gcd(v.list()) % d != 0]
 
         #endif
         self.__gens = Sequence(B, immutable=True)
@@ -125,9 +140,31 @@ class FiniteSubgroup(Module):
         return self.gens()[n]
 
     def __call__(self, x):
-        if isinstance(x, FiniteSubgroupElement) and x.parent() == self:
-            return x
-        raise TypeError
+        if isinstance(x, FiniteSubgroupElement):
+            if x.parent() is self:
+                return x
+            elif x.parent() == self:
+                return FiniteSubgroupElement(self, x._element)
+            elif x.parent()._abvar == self._abvar:
+                return self(x._element)
+            else:
+                raise TypeError, "no known way to coerce x yet."
+        else:
+            W, d = self._rescaled_module()
+            x = W.ambient_vector_space(x)
+            if d * x in W:
+                return FiniteSubgroupElement(self, x)
+            else:
+                raise TypeError, "x does not define an element of self."
+
+    def subgroup(self, gens):
+        """
+        Return the subgroup of self spanned by the given generators,
+        which all must be elements of self.
+        """
+        gens = [self(g) for g in gens]
+
+
 
 
 class FiniteSubgroupElement(ModuleElement):
@@ -136,7 +173,7 @@ class FiniteSubgroupElement(ModuleElement):
         self._element = element
 
     def _repr_(self):
-        return '%s + ZZ^%s'%(self._element, self._element.degree())
+        return '[%s]'%self._element
 
     def _add_(self, other):
         return FiniteSubgroupElement(self.parent(), self._element + other._element)

@@ -703,7 +703,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
 
     cdef rescale_row_c(self, Py_ssize_t row, multiple, Py_ssize_t start_col):
-        if (multiple%2) == 0:
+        if (int(multiple)%2) == 0:
             rowClearPackedOffset(self._entries, row, start_col);
 
 ##     cdef rescale_col_c(self, Py_ssize_t col, multiple, Py_ssize_t start_row):
@@ -711,7 +711,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     cdef add_multiple_of_row_c(self,  Py_ssize_t row_to, Py_ssize_t row_from, multiple,
                                Py_ssize_t start_col):
-        if (multiple%2) != 0:
+        if (int(multiple)%2) != 0:
             rowAddPackedOffset(self._entries, row_from, row_to, start_col)
 
 ##     cdef add_multiple_of_column_c(self, Py_ssize_t col_to, Py_ssize_t col_from, s,

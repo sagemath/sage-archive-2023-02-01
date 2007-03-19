@@ -1110,11 +1110,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Elementary divisors
 
-    def elementary_divisors(self, algorithm='linbox'):
+    def elementary_divisors(self, algorithm='pari'):
         """
         Return the elementary divisors of self, in order.
 
-        IMPLEMENTATION: Uses linbox.
+        IMPLEMENTATION: Uses linbox, except sometimes linbox doesn't
+        work (errors about pre-conditioning), in which case PARI is
+        used.
 
         WARNING: This is MUCH faster than the smith_form function.
 
@@ -1124,7 +1126,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             self -- matrix
-            algorithm -- 'linbox' or 'pari'
+            algorithm -- (default: 'pari')
+                 'pari': works robustless, but is slower.
+                 'linbox' -- use linbox; faster, but sometimes fails.  If it
+                          fails, then a warning is printed and PARI is called.
 
         OUTPUT:
             list of int's
@@ -1147,13 +1152,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             d = []
         else:
             if algorithm == 'linbox':
-                d = self._elementary_divisors_linbox()
-            elif algorithm == 'pari':
+                # This fails in linbox: a = matrix(ZZ,2,[1, 1, -1, 0, 0, 0, 0, 1])
+                try:
+                    d = self._elementary_divisors_linbox()
+                except RuntimeError:
+                    import sys
+                    sys.stderr.write("DONT PANIC -- switching to using PARI (which will work fine)\n")
+                    algorithm = 'pari'
+            if algorithm == 'pari':
                 d = self._pari_().matsnf(0).python()
                 i = d.count(0)
+                d.sort()
                 if i > 0:
-                    d = list(reversed(d[i:])) + [d[0]]*i
-            else:
+                    d = d[i:] + [d[0]]*i
+            elif not (algorithm in ['pari', 'linbox']):
                 raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
         return d

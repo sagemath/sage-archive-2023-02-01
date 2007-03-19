@@ -52,7 +52,7 @@ class HeckeModule_generic(sage.modules.module.Module):
             raise TypeError, "base_ring must be commutative ring"
         ParentWithGens.__init__(self, base_ring)
 
-        level = int(level)
+        level = sage.rings.all.ZZ(level)
         if level <= 0:
             raise ValueError, "level (=%s) must be positive"%level
         self.__level = level

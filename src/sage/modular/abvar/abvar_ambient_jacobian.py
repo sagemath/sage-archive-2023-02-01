@@ -1,3 +1,7 @@
+"""
+Ambient Jacobian Abelian Variety
+"""
+
 from abvar             import ModularAbelianVariety
 from sage.rings.all    import QQ
 from sage.modular.dims import dimension_cusp_forms
@@ -7,6 +11,11 @@ class ModAbVar_ambient_jacobian(ModularAbelianVariety):
     def __init__(self, group):
         self._group = group
         ModularAbelianVariety.__init__(self, level = group.level(), base_ring = QQ)
+
+    def __cmp__(self, other):
+        if not isinstance(other, ModAbVar_ambient_jacobian):
+            return cmp(type(self), type(other))
+        return cmp((self._group, self.base_ring()), (other._group, other.base_ring()))
 
     def _repr_(self):
         g = str(self._group)

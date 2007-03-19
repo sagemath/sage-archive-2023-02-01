@@ -1359,7 +1359,10 @@ class FreeModule_generic_pid(FreeModule_generic):
         elif other == other.ambient_vector_space():
             return self
         elif self.rank() == 0 or other.rank() == 0:
-            return self.zero_submodule()
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
 
         # standard algorithm for computing intersection of general submodule
         if self.dimension() <= other.dimension():
@@ -1872,11 +1875,11 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         if self.ambient_vector_space() != other.ambient_vector_space():
             raise ArithmeticError, "self and other must have the same ambient space."
 
-        if self.rank() == 0:
-            return self
-
-        if other.rank() == 0:
-            return other
+        if self.rank() == 0 or other.rank() == 0:
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
 
         if self.base_ring() != other.base_ring():
             # Now other is over a ring R whose fraction field K is the base field of V = self.

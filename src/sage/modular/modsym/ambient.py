@@ -641,6 +641,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             self.__boundary_map = H(A, "boundary map")
             return self.__boundary_map
 
+    def cusps(self):
+        try:
+            return self.__cusps
+        except AttributeError:
+            f = self.boundary_map()
+            B = f.codomain()
+            C = B._known_cusps()
+            self.__cusps = C
+            return C
+
     def boundary_space(self):
         raise NotImplementedError
 

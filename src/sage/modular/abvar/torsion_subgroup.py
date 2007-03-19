@@ -1,5 +1,5 @@
 from finite_subgroup            import FiniteSubgroup
-from sage.rings.all             import gcd, ZZ, prime_range
+from sage.rings.all             import divisors, gcd, ZZ, prime_range
 from sage.sets.primes           import Primes
 from sage.modular.congroup      import is_Gamma0
 
@@ -17,15 +17,29 @@ class TorsionSubgroup(FiniteSubgroup):
             return self._order
         except AttributeError:
             pass
+        O = self.possible_orders()
+        if len(O) == 1:
+            n = O[0]
+            self._order = n
+            return n
+        raise RuntimeError, "Unable to compute order of torsion subgroup (it is in %s)"%O
+
+    def possible_orders(self):
+        try:
+            return self._possible_orders
+        except AttributeError:
+            pass
         u = self.multiple_of_order()
         l = self.divisor_of_order()
-        if l == u:
-            self._order = l
-            return l
-        raise RuntimeError, "Unable to compute order of torsion subgroup (it is a multiple of %s and divides %s)"%(l, u)
+        assert u % l == 0
+        O = [l * d for d in divisors(u//l)]
+        self._possible_orders = O
+        return O
 
     def divisor_of_order(self):
         A = self.abelian_variety()
+        if A.dimension() == 0:
+            return ZZ(1)
         R = A.rational_cuspidal_subgroup()
         return R.order()
 
@@ -61,6 +75,8 @@ class TorsionSubgroup(FiniteSubgroup):
         """
         bnd = ZZ(0)
         A = self.abelian_variety()
+        if A.dimension() == 0:
+            return ZZ(1)
         N = A.level()
         if not is_Gamma0(A.group()):
             # to generalize to this case, you'll need to

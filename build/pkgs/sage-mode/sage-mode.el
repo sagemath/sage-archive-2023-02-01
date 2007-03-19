@@ -227,6 +227,7 @@ module-qualified names."
 
 (defun python-send-receive-multiline (command)
   "Send COMMAND to inferior Python (if any) and return result as a string.
+
 This is an alternate `python-send-receive' that uses temporary buffers and
 `comint-redirect-send-command-to-process'.
 This implementation handles multi-line output strings gracefully.  At this
@@ -246,6 +247,11 @@ time, it does not handle multi-line input strings at all."
 	(message output))
       output)))
 
+(defun python-current-word ()
+  "Return python symbol at point."
+  (with-syntax-table python-dotty-syntax-table
+    (current-word)))
+
 ;;; `ipython-completing-read-symbol' is `completing-read' for python symbols
 ;;; using IPython's *? mechanism
 
@@ -253,7 +259,7 @@ time, it does not handle multi-line input strings at all."
   "List of Python symbols recently queried.")
 
 (defvar ipython-completing-read-symbol-pred nil
-  "Predicate for filtering queried Python symbols.")
+  "Default predicate for filtering queried Python symbols.")
 
 (defvar ipython-completing-read-symbol-command "%s*?"
   "IPython command for generating completions.
@@ -269,6 +275,7 @@ Each completion should appear separated by whitespace.")
 
 (defun ipython-completing-read-symbol-make-completions (string)
   "Query IPython for completions of STRING.
+
 Return a list of completion strings.
 Uses `ipython-completing-read-symbol-command' to query IPython."
   (let* ((command (format ipython-completing-read-symbol-command string))
@@ -279,6 +286,7 @@ Uses `ipython-completing-read-symbol-command' to query IPython."
 
 (defun ipython-completing-read-symbol-function (string predicate action)
   "A `completing-read' programmable completion function for querying IPython.
+
 See `try-completion' and `all-completions' for interface details."
   (let ((cached-string (first ipython-completing-read-symbol-cache))
 	(completions (second ipython-completing-read-symbol-cache)))
@@ -297,15 +305,22 @@ See `try-completion' and `all-completions' for interface details."
       (try-completion string completions predicate) ; action is nil
 )))
 
-(defun ipython-completing-read-symbol (default)
-  "Read a Python symbol from user, using IPython for completion."
-  (let ((prompt (if (null default) "IPython symbol: "
-		  (format "IPython symbol (default %s): " default)))
-	(func 'ipython-completing-read-symbol-function)
-	(pred ipython-completing-read-symbol-pred)
-	(hist 'ipython-completing-read-symbol-history))
+(defun ipython-completing-read-symbol (&optional def require-match predicate)
+  "Read a Python symbol (default: DEF) from user, completing with IPython.
+
+Return a single element list, suitable for use in `interactive' forms.
+If DEF is nil, default is `python-current-word'.
+PREDICATE returns non-nil for potential completions.
+See `completing-read' for REQUIRE-MATCH."
+  (let* ((default (or def (python-current-word)))
+	 (prompt (if (null default) "IPython symbol: "
+		   (format "IPython symbol (default %s): " default)))
+	 (func 'ipython-completing-read-symbol-function)
+	 (pred (or predicate ipython-completing-read-symbol-pred))
+	 (hist 'ipython-completing-read-symbol-history)
+	 (enable-recursive-minibuffers t))
     (ipython-completing-read-symbol-clear-cache)
-    (completing-read prompt func pred nil nil hist default)))
+    (list (completing-read prompt func pred require-match nil hist default))))
 
 ;;; `ipython-describe-symbol' is `find-function' for python symbols using
 ;;; IPython's ? magic mechanism.
@@ -332,13 +347,9 @@ See `try-completion' and `all-completions' for interface details."
 Interactively, prompt for SYMBOL."
   ;; Note that we do this in the inferior process, not a separate one, to
   ;; ensure the environment is appropriate.
-  (interactive
-   (let ((symbol (with-syntax-table python-dotty-syntax-table
-		   (current-word)))
-	 (enable-recursive-minibuffers t))
-     (list (ipython-completing-read-symbol symbol))))
-  (if (equal symbol "")
-      (error "No symbol"))
+  (interactive (ipython-completing-read-symbol nil t))
+  (when (or (null symbol) (equal "" symbol))
+    (error "No symbol"))
   (let* ((command (format ipython-describe-symbol-command symbol))
 	 (raw-contents (python-send-receive-multiline command))
 	 (help-contents
@@ -354,7 +365,7 @@ Interactively, prompt for SYMBOL."
     (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
 	;; Fixme: Is this actually useful?
-	(help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
+	(help-setup-xref (list 'ipython-describe-symbol symbol) (interactive-p))
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
 	(print-help-return-message)
 	;; Finally, display help contents
@@ -386,7 +397,7 @@ definition can't be found in the buffer, returns (BUFFER)."
   (let* ((command (sage-find-symbol-command symbol))
 	 (raw-contents (python-send-receive-multiline command)))
     (unless (string-match sage-find-symbol-regexp raw-contents)
-      (error "Symbol not found"))
+      (error "Symbol source not found"))
     (let ((filename (match-string 1 raw-contents))
 	  (line-num (string-to-number (match-string 2 raw-contents))))
       (with-current-buffer (find-file-noselect filename)
@@ -414,19 +425,34 @@ buffer."
 	  ;; (run-hooks 'find-function-after-hook)
 	  )))
 
+;;;###autoload
 (defun sage-find-symbol (symbol)
   "Find the definition of the SYMBOL near point.
 
 Finds the source file containing the defintion of the SYMBOL near point and
 places point before the definition.
-
 Set mark before moving, if the buffer already existed."
-  (interactive
-   (let ((symbol (with-syntax-table python-dotty-syntax-table
-		   (current-word)))
-	 (enable-recursive-minibuffers t))
-     (list (ipython-completing-read-symbol symbol))))
-  (when (not symbol)
-      (error "No symbol"))
-  (sage-find-symbol-do-it symbol 'switch-to-buffer-other-window) ; XXX
-)
+  (interactive (ipython-completing-read-symbol nil t))
+  (when (or (null symbol) (equal "" symbol))
+    (error "No symbol"))
+  (sage-find-symbol-do-it symbol 'switch-to-buffer))
+
+;;;###autoload
+(defun sage-find-symbol-other-window (symbol)
+  "Find, in another window, the definition of SYMBOL near point.
+
+See `sage-find-symbol' for details."
+  (interactive (ipython-completing-read-symbol nil t))
+  (when (or (null symbol) (equal "" symbol))
+    (error "No symbol"))
+  (sage-find-symbol-do-it symbol 'switch-to-buffer-other-window))
+
+;;;###autoload
+(defun sage-find-symbol-other-frame (symbol)
+  "Find, in another frame, the definition of SYMBOL near point.
+
+See `sage-find-symbol' for details."
+  (interactive (ipython-completing-read-symbol nil t))
+  (when (or (null symbol) (equal "" symbol))
+    (error "No symbol"))
+  (sage-find-symbol-do-it symbol 'switch-to-buffer-other-frame))

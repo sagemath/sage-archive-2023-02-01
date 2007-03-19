@@ -42,13 +42,6 @@
   (setq comint-prompt-regexp
 	(rx line-start (1+ (and (or "sage:" "....." ">>>" "...") " "))))
   (setq comint-redirect-finished-regexp "sage:") ; comint-prompt-regexp)
-  ; ansi color doesn't play well with redirect
-  ; (ansi-color-for-comint-mode-on)
-  ; XXX what should be done here?
-  ; (setq python-buffer sage-buffer)
-
-  (define-key inferior-sage-mode-map
-    [(control h) (control f)] 'ipython-describe-symbol)
 )
 
 (defcustom sage-command (expand-file-name "~/bin/sage")
@@ -159,14 +152,22 @@ buffer for a list of commands.)"
   python-mode
   "SAGE"
   "Major mode for editing SAGE files."
-
-  (define-key sage-mode-map [(control h) (control f)] 'ipython-describe-symbol)
 )
 
 ;;;###autoload
 (add-to-list 'interpreter-mode-alist '("sage" . sage-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.sage\\'" . sage-mode))
+
+;;;###autoload
+(defun sage-bindings ()
+  "Install SAGE bindings locally."
+  (interactive)
+  (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
+  (local-set-key [(control h) (control shift f)] 'sage-find-symbol-other-window))
+
+(add-hook 'sage-mode 'sage-bindings)
+(add-hook 'inferior-sage-mode 'sage-bindings)
 
 (defun python-qualified-module-name (file)
   "Find the qualified module name for filename FILE.
@@ -300,10 +301,9 @@ See `try-completion' and `all-completions' for interface details."
     (if action
 	(let ((all (all-completions string completions predicate)))
 	  (if (eq action 'lambda)
-	    (member string all)		; action is lambda
-	    all))			; action is t
-      (try-completion string completions predicate) ; action is nil
-)))
+	      (test-completion string completions) ; action is lambda
+	    all))				   ; action is t
+      (try-completion string completions predicate)))) ; action is nil
 
 (defun ipython-completing-read-symbol (&optional def require-match predicate)
   "Read a Python symbol (default: DEF) from user, completing with IPython.

@@ -25,6 +25,7 @@
 ;;; Code:
 
 (require 'python)
+(require 'comint)
 (require 'ansi-color)
 
 ;;; Use icicles for completing-read if possible
@@ -42,7 +43,82 @@
   (setq comint-prompt-regexp
 	(rx line-start (1+ (and (or "sage:" "....." ">>>" "...") " "))))
   (setq comint-redirect-finished-regexp "sage:") ; comint-prompt-regexp)
+
+  (setq comint-input-sender 'ipython-input-sender)
+  ;; I type x? a lot
+  (set 'comint-input-filter 'sage-input-filter)
 )
+
+(defun sage-input-filter (string)
+  "A `comint-input-filter' that keeps all input in the history."
+  t)
+
+(defcustom ipython-input-handle-magic-p t
+  "Non-nil means handle IPython magic commands specially."
+  :group 'ipython
+  :type 'boolean)
+
+(defvar ipython-input-string-is-magic-regexp
+  "[^?]\\(\\?\\??\\)\\'"
+  "Regexp matching IPython magic input.
+
+The first match group is used to dispatch handlers in
+`ipython-input-handle-magic'.")
+
+(defun ipython-input-string-is-magic-p (string)
+  "Return non-nil if STRING is IPython magic."
+  (string-match ipython-input-string-is-magic-regexp string))
+
+(defvar ipython-input-magic-handlers '(("?"  . ipython-handle-magic-?)
+				       ("??" . ipython-handle-magic-??))
+  "Association list (STRING . FUNCTION) of IPython magic handlers.
+
+Each FUNCTION should take arguments (PROC STRING MATCH) and
+return non-nil if magic input was handled, nil if input should be
+sent normally.")
+
+(defun ipython-handle-magic-? (proc string &optional match)
+  "Handle IPYthon magic ?."
+  (when (string-match "\\(.*?\\)\\?" string)
+    (ipython-describe-symbol (match-string 1 string))))
+
+(defun ipython-handle-magic-?? (proc string &optional match)
+  "Handle IPYthon magic ??."
+  (when (string-match "\\(.*?\\)\\?\\?" string)
+    (sage-find-symbol-other-window (match-string 1 string))))
+
+(defun ipython-input-handle-magic (proc string)
+  "Handle IPython magic input STRING in process PROC.
+
+Return non-nil if input was handled; nil if input should be sent
+normally."
+  (when (string-match ipython-input-string-is-magic-regexp string)
+    (let* ((match (match-string 1 string))
+	   (handler (cdr (assoc match ipython-input-magic-handlers))))
+      (when handler
+	(condition-case ()
+	    ;; I can't explain why, but this seems to work perfectly with ??
+	    (save-excursion
+	      (funcall handler proc string match))
+	  ;; XXX print error message?
+	  (error nil))))))
+
+(defun ipython-input-sender (proc string)
+  "Function for sending to process PROC input STRING.
+
+When `ipython-input-handle-magic-p' is non-nil, this uses
+`ipython-input-string-is-magic-p' to look for ipython magic
+commands, such as %prun, etc, and magic suffixes, such as ? and
+??, and handles them... magically?  It hands them off to
+`ipython-input-handle-magic' for special treatment.
+
+Otherwise, `comint-simple-send' just sends STRING plus a newline."
+  (if (and ipython-input-handle-magic-p ; must want to handle magic
+	       (ipython-input-string-is-magic-p string) ; ... be magic
+	       (ipython-input-handle-magic proc string)) ; and be handled
+      ;; To have just an input history creating, clearing new line entered
+	(comint-simple-send proc "")
+    (comint-simple-send proc string)))	; otherwise, you're sent
 
 (defcustom sage-command (expand-file-name "~/bin/sage")
   "Actual command used to run SAGE.
@@ -378,7 +454,7 @@ Interactively, prompt for SYMBOL."
   "Return SAGE command to fetch position of SYMBOL."
   (format
    (concat "sage.misc.sageinspect.sage_getfile(%s), "
-	   "sage.misc.sageinspect.sage_getsourcelines(%s)[-1]")
+	   "sage.misc.sageinspect.sage_getsourcelines(%s)[-1] + 1")
    symbol symbol))
 
 (defvar sage-find-symbol-regexp "('\\(.*?\\)',[ \t\n]+\\([0-9]+\\))"
@@ -424,7 +500,7 @@ buffer."
 	  (when new-point (goto-char new-point))
 	  (recenter find-function-recenter-line)
 	  ;; (run-hooks 'find-function-after-hook)
-	  )))
+	  t)))
 
 ;;;###autoload
 (defun sage-find-symbol (symbol)

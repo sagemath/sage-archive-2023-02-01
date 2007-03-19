@@ -31,6 +31,11 @@ operations with it.
     [1 0 0]
     [0 1 0]
     [0 0 1]
+
+TESTS:
+    sage: a = matrix(QQ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ##############################################################################

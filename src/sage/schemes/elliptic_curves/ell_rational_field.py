@@ -3961,7 +3961,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
           A case that works the division polynomial code a little harder:
             sage: E.padic_height(5, 10)(5*P)
-             2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
 
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time

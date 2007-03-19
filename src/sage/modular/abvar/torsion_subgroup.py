@@ -1,3 +1,12 @@
+"""
+Torsion subgroup of modular abelian variety
+
+TESTS:
+    sage: T = J0(54).torsion_subgroup()
+    sage: loads(dumps(T)) == T
+    True
+"""
+
 from finite_subgroup            import FiniteSubgroup
 from sage.rings.all             import divisors, gcd, ZZ, prime_range
 from sage.sets.primes           import Primes

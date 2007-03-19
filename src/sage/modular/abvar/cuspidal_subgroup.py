@@ -1,3 +1,15 @@
+"""
+Cuspidal subgroups of modular abelian varieties
+
+TESTS:
+    sage: C = J0(54).cuspidal_subgroup()
+    sage: loads(dumps(C)) == C
+    True
+    sage: D = J0(54).rational_cuspidal_subgroup()
+    sage: loads(dumps(D)) == D
+    True
+"""
+
 from finite_subgroup         import FiniteSubgroup
 from sage.rings.all          import infinity, QQ, gcd
 from sage.matrix.all         import matrix

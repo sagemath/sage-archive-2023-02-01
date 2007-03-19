@@ -16,6 +16,8 @@ EXAMPLES:
     sage: v[0] = 5
     sage: v
     (5.0, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)
+    sage: loads(dumps(v)) == v
+    True
 
 
 AUTHORS:

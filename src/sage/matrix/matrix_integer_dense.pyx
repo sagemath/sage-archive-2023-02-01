@@ -21,6 +21,11 @@ EXAMPLES:
     False
     sage: b < a
     True
+
+TESTS:
+    sage: a = matrix(ZZ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ########## *** IMPORTANT ***

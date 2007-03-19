@@ -1,5 +1,11 @@
 """
 Ambient Jacobian Abelian Variety
+
+TESTS:
+    sage: loads(dumps(J0(37))) == J0(37)
+    True
+    sage: loads(dumps(J1(13))) == J1(13)
+    True
 """
 
 from abvar             import ModularAbelianVariety

@@ -27,6 +27,9 @@
 (require 'python)
 (require 'ansi-color)
 
+;;; Use icicles for completing-read if possible
+(require 'icicles nil t)
+
 ;;; Inferior SAGE major mode
 
 (define-derived-mode
@@ -357,5 +360,73 @@ Interactively, prompt for SYMBOL."
 	;; Finally, display help contents
 	(princ help-contents)))))
 
-;;; Use icicles for completing-read if possible
-(require 'icicles nil t)
+;;; `sage-find-symbol' is `find-function' for SAGE.
+
+(defun sage-find-symbol-command (symbol)
+  "Return SAGE command to fetch position of SYMBOL."
+  (format
+   (concat "sage.misc.sageinspect.sage_getfile(%s), "
+	   "sage.misc.sageinspect.sage_getsourcelines(%s)[-1]")
+   symbol symbol))
+
+(defvar sage-find-symbol-regexp "('\\(.*?\\)',[ \t\n]+\\([0-9]+\\))"
+  "Match (FILENAME . LINE) from `sage-find-symbol-command'.")
+
+(defun sage-find-symbol-noselect (symbol)
+  "Return a pair (BUFFER . POINT) pointing to the definition of SYMBOL.
+
+Queries SAGE to find the source file containing the definition of
+FUNCTION in a buffer and the point of the definition.  The buffer
+is not selected.
+
+At this time, there is no error checking.  Later, if the function
+definition can't be found in the buffer, returns (BUFFER)."
+  (when (not symbol)
+    (error "You didn't specify a symbol"))
+  (let* ((command (sage-find-symbol-command symbol))
+	 (raw-contents (python-send-receive-multiline command)))
+    (unless (string-match sage-find-symbol-regexp raw-contents)
+      (error "Symbol not found"))
+    (let ((filename (match-string 1 raw-contents))
+	  (line-num (string-to-number (match-string 2 raw-contents))))
+      (with-current-buffer (find-file-noselect filename)
+	(goto-line line-num) ; XXX error checking?
+	(cons (current-buffer) (point))))))
+
+(defun sage-find-symbol-do-it (symbol switch-fn)
+  "Find definition of SYMBOL in a buffer and display it.
+
+SWITCH-FN is the function to call to display and select the
+buffer."
+      (let* ((orig-point (point))
+	     (orig-buf (window-buffer))
+	     (orig-buffers (buffer-list))
+	     (buffer-point (save-excursion
+			     (sage-find-symbol-noselect symbol)))
+	     (new-buf (car buffer-point))
+	     (new-point (cdr buffer-point)))
+	(when buffer-point
+	  (when (memq new-buf orig-buffers)
+	    (push-mark orig-point))
+	  (funcall switch-fn new-buf)
+	  (when new-point (goto-char new-point))
+	  (recenter find-function-recenter-line)
+	  ;; (run-hooks 'find-function-after-hook)
+	  )))
+
+(defun sage-find-symbol (symbol)
+  "Find the definition of the SYMBOL near point.
+
+Finds the source file containing the defintion of the SYMBOL near point and
+places point before the definition.
+
+Set mark before moving, if the buffer already existed."
+  (interactive
+   (let ((symbol (with-syntax-table python-dotty-syntax-table
+		   (current-word)))
+	 (enable-recursive-minibuffers t))
+     (list (ipython-completing-read-symbol symbol))))
+  (when (not symbol)
+      (error "No symbol"))
+  (sage-find-symbol-do-it symbol 'switch-to-buffer-other-window) ; XXX
+)

@@ -129,7 +129,8 @@ buffer for a list of commands.)"
 	(inferior-sage-mode)
 	(accept-process-output (get-buffer-process sage-buffer) 5)
 	;; Ensure we're at a prompt before loading the functions we use
-	(python-send-receive "import emacs; print '_emacs_out ()'"))))
+	;; XXX error-checking
+	(python-send-receive-multiline "import emacs"))))
 
   ;; If we're coming from a sage-mode buffer, update inferior buffer
   (when (derived-mode-p 'sage-mode)
@@ -249,20 +250,26 @@ time, it does not handle multi-line input strings at all."
 (defvar ipython-completing-read-symbol-pred nil
   "Predicate for filtering queried Python symbols.")
 
-(defvar ipython-completing-read-symbol-command "emacs.ipython_complete('%s')"
-  "IPython command for generating completions.")
+(defvar ipython-completing-read-symbol-command "%s*?"
+  "IPython command for generating completions.
+Each completion should appear separated by whitespace.")
 
 (defvar ipython-completing-read-symbol-cache ()
   "A list (last-queried-string string-completions).")
+
+(defun ipython-completing-read-symbol-clear-cache ()
+  "Clear the IPython completing read cache."
+  (interactive)
+  (setq ipython-completing-read-symbol-cache ()))
 
 (defun ipython-completing-read-symbol-make-completions (string)
   "Query IPython for completions of STRING.
 Return a list of completion strings.
 Uses `ipython-completing-read-symbol-command' to query IPython."
   (let* ((command (format ipython-completing-read-symbol-command string))
-	 (output (python-send-receive command)))
+	 (output (python-send-receive-multiline command)))
     (condition-case ()
-	(car (read-from-string output))
+	(split-string output)
       (error nil))))
 
 (defun ipython-completing-read-symbol-function (string predicate action)
@@ -292,8 +299,11 @@ See `try-completion' and `all-completions' for interface details."
 	(func 'ipython-completing-read-symbol-function)
 	(pred ipython-completing-read-symbol-pred)
 	(hist 'ipython-completing-read-symbol-history))
+    (ipython-completing-read-symbol-clear-cache)
     (completing-read prompt func pred nil nil hist default)))
 
+;;; `find-function' and `find-variable' for python symbols using IPython's ?
+;;; magic mechanism
 (defvar ipython-symbol-not-found "Object `.*?` not found."
   "Regexp that matches IPython's 'symbol not found' warning.")
 

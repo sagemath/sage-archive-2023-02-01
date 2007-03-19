@@ -164,7 +164,7 @@ buffer for a list of commands.)"
   "Install SAGE bindings locally."
   (interactive)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
-  (local-set-key [(control h) (control shift f)] 'sage-find-symbol-other-window))
+  (local-set-key [(control h) (control s)] 'sage-find-symbol-other-window))
 
 (add-hook 'sage-mode 'sage-bindings)
 (add-hook 'inferior-sage-mode 'sage-bindings)
@@ -305,16 +305,18 @@ See `try-completion' and `all-completions' for interface details."
 	    all))				   ; action is t
       (try-completion string completions predicate)))) ; action is nil
 
-(defun ipython-completing-read-symbol (&optional def require-match predicate)
+(defun ipython-completing-read-symbol
+  (&optional prompt def require-match predicate)
   "Read a Python symbol (default: DEF) from user, completing with IPython.
 
 Return a single element list, suitable for use in `interactive' forms.
+PROMPT is the prompt to display, without colon or space.
 If DEF is nil, default is `python-current-word'.
 PREDICATE returns non-nil for potential completions.
 See `completing-read' for REQUIRE-MATCH."
   (let* ((default (or def (python-current-word)))
-	 (prompt (if (null default) "IPython symbol: "
-		   (format "IPython symbol (default %s): " default)))
+	 (prompt (if (null default) (concat prompt ": ")
+		   (concat prompt (format " (default %s): " default))))
 	 (func 'ipython-completing-read-symbol-function)
 	 (pred (or predicate ipython-completing-read-symbol-pred))
 	 (hist 'ipython-completing-read-symbol-history)
@@ -347,7 +349,7 @@ See `completing-read' for REQUIRE-MATCH."
 Interactively, prompt for SYMBOL."
   ;; Note that we do this in the inferior process, not a separate one, to
   ;; ensure the environment is appropriate.
-  (interactive (ipython-completing-read-symbol nil t))
+  (interactive (ipython-completing-read-symbol "Describe symbol" nil t))
   (when (or (null symbol) (equal "" symbol))
     (error "No symbol"))
   (let* ((command (format ipython-describe-symbol-command symbol))
@@ -432,7 +434,7 @@ buffer."
 Finds the source file containing the defintion of the SYMBOL near point and
 places point before the definition.
 Set mark before moving, if the buffer already existed."
-  (interactive (ipython-completing-read-symbol nil t))
+  (interactive (ipython-completing-read-symbol "Find symbol" nil t))
   (when (or (null symbol) (equal "" symbol))
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer))
@@ -442,7 +444,7 @@ Set mark before moving, if the buffer already existed."
   "Find, in another window, the definition of SYMBOL near point.
 
 See `sage-find-symbol' for details."
-  (interactive (ipython-completing-read-symbol nil t))
+  (interactive (ipython-completing-read-symbol "Find symbol" nil t))
   (when (or (null symbol) (equal "" symbol))
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer-other-window))
@@ -452,7 +454,7 @@ See `sage-find-symbol' for details."
   "Find, in another frame, the definition of SYMBOL near point.
 
 See `sage-find-symbol' for details."
-  (interactive (ipython-completing-read-symbol nil t))
+  (interactive (ipython-completing-read-symbol "Find symbol" nil t))
   (when (or (null symbol) (equal "" symbol))
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer-other-frame))

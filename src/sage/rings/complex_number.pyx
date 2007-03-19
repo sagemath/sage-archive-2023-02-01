@@ -101,6 +101,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def _repr_(self):
         return self.str(10)
 
+    def __hash__(self):
+        return hash(self.str())
+
     def __getitem__(self, i):
         if i == 0:
             return self.real()

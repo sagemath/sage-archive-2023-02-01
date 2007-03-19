@@ -1,15 +1,17 @@
-import sage.rings.padics.padic_lazy_generic_element
+import sage.rings.integer_mod
+import padic_base_generic_element
 import sys
 
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
-pAdicLazyGenericElement = sage.rings.padics.padic_lazy_generic_element.pAdicLazyGenericElement
+#pAdicLazyGenericElement = sage.rings.padics.padic_lazy_generic_element.pAdicLazyGenericElement
 infinity = sage.rings.infinity.infinity
 HaltingError = sage.rings.padics.precision_error.HaltingError
 PrecisionLimitError = sage.rings.padics.precision_error.PrecisionLimitError
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
+pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 
-class pAdicLazyElement(pAdicLazyGenericElement):
+class pAdicLazyElement(pAdicBaseGenericElement):
     def _add_(self, right):
         if isinstance(self, pAdicLazy_zero):
             return right

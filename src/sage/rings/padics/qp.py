@@ -1,15 +1,16 @@
 import weakref
 import sage.rings.padics.padic_field_capped_relative
 import sage.rings.padics.padic_field_lazy
-import sage.rings.padics.unramified_field_extension_capped_relative
-import sage.rings.padics.unramified_field_extension_lazy
+#import sage.rings.padics.unramified_field_extension_capped_relative
+#import sage.rings.padics.unramified_field_extension_lazy
 
+from extension_factory import ExtensionFactory
 
 Integer = sage.rings.integer.Integer
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldLazy = sage.rings.padics.padic_field_lazy.pAdicFieldLazy
-UnramifiedFieldExtensionCappedRelative = sage.rings.padics.unramified_field_extension_capped_relative.UnramifiedFieldExtensionCappedRelative
-UnramifiedFieldExtensionLazy = sage.rings.padics.unramified_field_extension_lazy.UnramifiedFieldExtensionLazy
+#UnramifiedFieldExtensionCappedRelative = sage.rings.padics.unramified_field_extension_capped_relative.UnramifiedFieldExtensionCappedRelative
+#UnramifiedFieldExtensionLazy = sage.rings.padics.unramified_field_extension_lazy.UnramifiedFieldExtensionLazy
 
 
 padic_field_cache = {}
@@ -117,7 +118,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None, print_mo
         if qp_name is None:
             qp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
-    return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)
+    return ExtensionFactory(modulus, prec, print_mode, halt, names, check, unram = True)
 
 
 ######################################################

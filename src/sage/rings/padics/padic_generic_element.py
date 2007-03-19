@@ -76,6 +76,64 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return 1
 
+    def __floordiv__(self, right):
+        if self.parent().is_field():
+            return self.__div__(right)
+        else:
+            right = self.parent()(right)
+            v, u = right._val_unit()
+            return self.parent()(self / u).__rshift__(v)
+
+    def __getitem__(self, n):
+        r"""
+        Returns the coefficient of $p^n$ in the series expansion of self, as an integer in the range $0$ to $p-1$.
+
+        EXAMPLE:
+            sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
+            5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
+            sage: a[0]
+            5 + O(7^4)
+            sage: a[1]
+            4 + O(7^4)
+        """
+        if isinstance(n, slice):
+            if n.start == 0:
+                raise ValueError, "due to limitations in Python 2.5, you must call the slice() function rather than using the [:] syntax in this case"
+            if n.stop == sys.MAXINT:
+                return self.slice(n.start, None, n.step)
+            return self.slice(n.start, n.stop, n.step)
+        if n < self.valuation():
+            return self.parent()(0)
+        if self.parent().is_field():
+            return self.list()[n - self.valuation()]
+        return self.list()[n]
+
+    def __invert__(self, relprec=infinity):
+        r"""
+        Returns the multiplicative inverse of self.
+
+        EXAMPLE:
+            sage: R = Zp(7,4,'capped-rel','series'); a = R(3); a
+            3 + O(7^4)
+            sage: ~a
+            5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
+
+        NOTES:
+        The element returned is an element of the fraction field.
+        """
+        return self.parent().fraction_field()(self, relprec = relprec).__invert__()
+
+    def __mod__(self, right):
+        if right == 0:
+            raise ZeroDivisionError
+        if self.parent().is_field():
+            return self.parent()(0)
+        else:
+            return self - (self // right) * right
+
+    def _integer_(self):
+        return Integer(self.lift())
+
     def _is_exact_zero(self):
         return False
 
@@ -834,3 +892,5 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
     def _unit_part(self):
         raise NotImplementedError
 
+    def _val_unit(self):
+        return self.valuation(), self.unit_part()

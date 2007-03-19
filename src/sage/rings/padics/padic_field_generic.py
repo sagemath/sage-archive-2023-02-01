@@ -134,7 +134,8 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 
 
 #import weakref
-import sage.rings.padics.padic_generic
+import padic_generic
+import sage.rings.ring
 #import sage.rings.padics.padic_field_capped_relative
 #import sage.rings.padics.padic_field_lazy
 
@@ -144,53 +145,15 @@ import sage.rings.padics.padic_generic
 def is_pAdicField(R):
     return isinstance(R, pAdicFieldGeneric)
 
-class pAdicFieldGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
+class pAdicFieldGeneric(padic_generic.pAdicGeneric, sage.rings.ring.Field):
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Field"%(self.prime())
 
-
-
-    def krull_dimension(self):
-        """
-        Returns the Krull dimension of $\Q_p$, i.e. 0.
-
-        INPUT:
-            self -- a p-adic field
-
-        OUTPUT:
-            integer -- self's krull dimension, i.e., 0
-
-        EXAMPLES:
-            sage: K = Qp(3, 10,'capped-rel'); K.krull_dimension()
-            0
-        """
-        return 0
-
-    def is_field(self):
-        """
-        Returns whether this p-adic field is a field, i.e. True.
-
-        INPUT:
-            self -- a p-adic field
-
-        OUTPUT:
-            boolean -- whether self is a field, i.e., True
-
-        """
-        return True
-
-    def is_isomorphic(self, ring):
+    def fraction_field(self):
         r"""
-        Returns whether self and ring are isomorphic, i.e. whether ring is an implementation of $\Q_p$ for the same prime as self.
-
-        INPUT:
-            self -- a p-adic field
-            ring -- a ring
-
-        OUTPUT:
-            boolean -- whether ring is an implementation of $\Q_p$ for the same prime as self.
+        Returns the fraction field of self, i.e. self
         """
-        return is_instance(ring, pAdicFieldGeneric) and self.prime() == ring.prime()
+        return self
 
     def class_field(self, group=None, map=None, generators=None):
         raise NotImplementedError
@@ -207,6 +170,7 @@ class pAdicFieldGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
         OUTPUT:
             subfield -- the composite of subfield1 and subfield2
         """
+        #should be overridden for extension fields
         if (subfield1 is self) and (subfield2 is self):
             return self
         raise ValueError, "Arguments must be subfields of self."
@@ -260,6 +224,3 @@ class pAdicFieldGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
             return 1
         else:
             return 0
-
-class pAdicFieldBaseGeneric(pAdicFieldGeneric):
-    pass

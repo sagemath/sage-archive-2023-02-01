@@ -29,8 +29,23 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
     def __contains__(self, x):
         raise NotImplementedError
 
+    def is_capped_relative(self):
+        return False
+
+    def is_capped_absolute(self):
+        return False
+
+    def is_fixed_mod(self):
+        return False
+
+    def is_lazy(self):
+        return False
+
     def _coerce_impl(self, x):
-        raise NotImplementedError
+        if self.__contains__(x):
+            return self.__call__(x)
+        else:
+            raise TypeError, "cannot coerce %s of type %s into %s"%(x, type(x), self)
 
     def _repr_(self, do_latex = False, mode = None):
         return "Generic Local Ring"

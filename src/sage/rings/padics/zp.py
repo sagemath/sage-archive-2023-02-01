@@ -4,20 +4,20 @@ import sage.rings.padics.padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.integer
-import sage.rings.padics.unramified_ring_extension_capped_relative
-import sage.rings.padics.unramified_ring_extension_capped_absolute
-import sage.rings.padics.unramified_ring_extension_fixed_mod
-import sage.rings.padics.unramified_ring_extension_lazy
+#import sage.rings.padics.unramified_ring_extension_capped_relative
+#import sage.rings.padics.unramified_ring_extension_capped_absolute
+#import sage.rings.padics.unramified_ring_extension_fixed_mod
+#import sage.rings.padics.unramified_ring_extension_lazy
 import sage.rings.padics.extension_factory
 
 from sage.rings.integer_ring import ZZ
 
 from sage.rings.polynomial_ring import PolynomialRing
 
-UnramifiedRingExtensionCappedRelative = sage.rings.padics.unramified_ring_extension_capped_relative.UnramifiedRingExtensionCappedRelative
-UnramifiedRingExtensionCappedAbsolute = sage.rings.padics.unramified_ring_extension_capped_absolute.UnramifiedRingExtensionCappedAbsolute
-UnramifiedRingExtensionFixedMod = sage.rings.padics.unramified_ring_extension_fixed_mod.UnramifiedRingExtensionFixedMod
-UnramifiedRingExtensionLazy = sage.rings.padics.unramified_ring_extension_lazy.UnramifiedRingExtensionLazy
+#UnramifiedRingExtensionCappedRelative = sage.rings.padics.unramified_ring_extension_capped_relative.UnramifiedRingExtensionCappedRelative
+#UnramifiedRingExtensionCappedAbsolute = sage.rings.padics.unramified_ring_extension_capped_absolute.UnramifiedRingExtensionCappedAbsolute
+#UnramifiedRingExtensionFixedMod = sage.rings.padics.unramified_ring_extension_fixed_mod.UnramifiedRingExtensionFixedMod
+#UnramifiedRingExtensionLazy = sage.rings.padics.unramified_ring_extension_lazy.UnramifiedRingExtensionLazy
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
@@ -227,8 +227,8 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         from sage.rings.finite_field import GF
         if zp_name is None:
             zp_name = (str(F[0][0]),)
-        modulus = PolynomialRing(base, 's')(GF(q, names).modulus().change_ring(ZZ))
-    return ExtensionFactory(base, modulus, prec, names, print_mode, halt, check, unram = True)
+        modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
+    return ExtensionFactory(modulus, prec, print_mode, halt, names, check, unram = True)
 
 ######################################################
 # Short constructor names for different types

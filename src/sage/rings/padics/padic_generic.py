@@ -54,22 +54,59 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 import sage.rings.infinity
 import sage.rings.finite_field
 import sage.rings.padics.local_generic
-#from sage.rings.padics.hack_infinity import plusinfinity
+import sage.rings.integer_mod
+import sage.rings.ring
 
 infinity = sage.rings.infinity.infinity
+Mod = sage.rings.integer_mod.Mod
 
-from sage.rings.ring import IntegralDomain
-
-class pAdicGeneric(IntegralDomain,
+class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
 
-    def __init__(self, p, prec, print_mode, names):
+    def __init__(self, p, prec, print_mode, names, element_class):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
         self._p = p
         self.__set_print_mode(print_mode)
+        self._element_class = element_class
 
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Parent."%(self.prime())
+
+    def __call__(self, x, absprec = infinity, relprec = infinity):
+        r"""
+            Casts x into self.  Uses the constructor of self._element_class.
+        """
+        return self._element_class(self, x, absprec, relprec)
+
+    def _coerce_impl(self, x):
+        if self.__contains__(x):
+            return self.__call__(x)
+        else:
+            raise TypeError, "no canonical coercion of %s of type %s into %s"%(x, type(x), self)
+
+
+
+    def __cmp__(self, other):
+        if isinstance(other, type(self)):
+            if self.prime() < other.prime():
+                return -1
+            elif self.prime() > other.prime():
+                return 1
+            try:
+                if self.halting_parameter() < other.halting_parameter():
+                    return -1
+                elif self.halting_parameter() > other.halting_parameter():
+                    return 1
+            except AttributeError:
+                pass
+            if self.precision_cap() < other.precision_cap():
+                return -1
+            elif self.precision_cap() > other.precision_cap():
+                return 1
+            else:
+                return 0
+        else:
+            return cmp(type(self), type(other))
 
     def ngens(self):
         return 1
@@ -122,6 +159,8 @@ class pAdicGeneric(IntegralDomain,
         else:
             raise ValueError, "print_mode=%s must be either val-unit, terse, series"%print_mode
 
+    def _element_class(self):
+        return self._element_class
 
     def characteristic(self):
         r"""
@@ -176,6 +215,11 @@ class pAdicGeneric(IntegralDomain,
         else:
             return self._p ** n
 
+    def uniformizer_pow(self, n):
+        if n is infinity:
+            return self(0)
+        return self.uniformizer()**n
+
     def residue_characteristic(self):
         """
         Returns the prime, i.e., the characteristic of the residue field.
@@ -226,10 +270,40 @@ class pAdicGeneric(IntegralDomain,
             sage: R.residue_system()
                 [O(3^5), 1 + O(3^5), 2 + O(3^5)]
         """
-        return [self(i) for i in range(self.prime())]
+        return [self(i) for i in self.residue_class_field()]
 
-    def teichmuller(self, x):
-        raise NotImplementedError
+    def teichmuller(self, x, prec = None):
+        r"""
+        Returns the teichmuller representative of x.
+
+        INPUT:
+            self -- a p-adic ring
+            x -- an integer or element of $\Z / p\Z$ that is not divisible by $p$
+        OUTPUT:
+            element -- the teichmuller lift of x
+        EXAMPLES:
+            sage: R = Zp(5, 10, 'capped-rel', 'series')
+            sage: R.teichmuller(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: R = Qp(5, 10,'capped-rel','series')
+            sage: R.teichmuller(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: R = Zp(5, 10, 'capped-abs', 'series')
+            sage: R.teichmuller(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+            sage: R = Zp(5, 10, 'fixed-mod', 'series')
+            sage: R.teichmuller(2)
+            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+        """
+        if prec is None:
+            prec = self.precision_cap()
+        p = self.prime()
+        x = Mod(x,self.prime_pow(prec))
+        xnew = x**p
+        while x != xnew:
+            x = xnew
+            xnew = x**p
+        return self._element_class(self, x)
 
     def teichmuller_system(self):
         r"""
@@ -244,7 +318,10 @@ class pAdicGeneric(IntegralDomain,
         EXAMPLES:
             sage: R = Zp(3, 5,'fixed-mod', 'terse')
             sage: R.teichmuller_system()
-                [1 + O(3^5), 242 + O(3^5)]
+            [1 + O(3^5), 242 + O(3^5)]
+
+        NOTES:
+            Should this return 0 as well?
         """
         return [self.teichmuller(i) for i in self.residue_class_field() if i != 0]
 
@@ -430,7 +507,7 @@ class pAdicGeneric(IntegralDomain,
 
     def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
         from sage.rings.padics.extension_factory import ExtensionFactory
-        return ExtensionFactory(self, modulus, prec, names, print_mode, halt, check = True)
+        return ExtensionFactory(modulus, prec, print_mode, halt, names, check = True)
 
     ext = extension
 
@@ -455,7 +532,7 @@ class local_print_mode:
         self._print_mode = print_mode
 
     def __enter__(self):
-        self._orig = self._obj.__set_print_mode(self._print_mode)
+        self._orig = self._obj._pAdicGeneric__set_print_mode(self._print_mode)
 
     def __exit__(self, type, value, traceback):
-        self._obj.__set_print_mode(self._orig)
+        self._obj._pAdicGeneric__set_print_mode(self._orig)

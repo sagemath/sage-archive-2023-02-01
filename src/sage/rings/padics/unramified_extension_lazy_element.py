@@ -1,7 +1,8 @@
-import sage.rings.padics.padic_lazy_generic_element
+import padic_extension_lazy_generic_element
+from sage.rings.infinity import infinity
 
-pAdicLazyGenericElement = sage.rings.padics.padic_lazy_generic_element.pAdicLazyGenericElement
+pAdicExtensionLazyGenericElement = padic_extension_lazy_generic_element.pAdicExtensionLazyGenericElement
 
-class UnramifiedExtensionLazyElement(pAdicLazyGenericElement):
+class UnramifiedExtensionLazyElement(pAdicExtensionLazyGenericElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, check = True, construct = False):
         raise NotImplementedError

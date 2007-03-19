@@ -14,6 +14,8 @@ import sage.rings.polynomial_element
 import sage.rings.infinity
 import sys
 import padic_generic
+import padic_ring_base_generic
+import sage.rings.arith
 
 infinity = sage.rings.infinity.infinity
 PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
@@ -21,56 +23,82 @@ Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
 is_FiniteFieldElement = sage.rings.finite_field_element.is_FiniteFieldElement
-pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 Polynomial = sage.rings.polynomial_element.Polynomial
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 local_print_mode = sage.rings.padics.padic_generic.local_print_mode
 
-class pAdicExtensionGenericElement(PQRElement):
+class pAdicExtensionGenericElement(pAdicGenericElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, check = True, construct = False):
+        pAdicGenericElement.__init__(self, parent)
         if construct:
-            PQRElement.__init__(self, parent, x, check=False)
+            self._value = PQRElement(parent._PQR, x, check=False)
             return
+        if check:
+            #should add type_checking here.
+            pass
         if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
-        if isinstance(x, PQRElement):
+        if isinstance(x, pAdicExtensionGenericElement):
             if x.parent() is parent:
                 if absprec is infinity and relprec is infinity:
-                    PQRElement.__init__(self, parent, x._polynomial, check = False)
+                    self._value = x._value
                 elif absprec is infinity:
-                    PQRElement.__init__(self, parent, x.add_bigoh(relprec + x.valuation())._polynomial, check = False) #not the fastest method
+                    self._value = (x.add_bigoh(relprec + x.valuation()))._value
                 else:
-                    PQRElement.__init__(self, parent, x.add_bigoh(absprec)._polynomial, check = False) #not the fastest method
+                    self._value = (x.add_bigoh(absprec))._value
+                #We will add more coercion support soon.
                 return
-            elif parent.base_ring().has_coerce_map_from(x.parent().base_ring()) and parent._coerce_(x.parent().defining_polynomial()) == parent.defining_polynomial(): #has_coerce_map should maybe be is_isomorphic? or fraction_field?
+        if isinstance(x, PQRElement):
+            if x.parent() is parent._PQR:
                 if absprec is infinity and relprec is infinity:
-                    PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.base_ring())(x._polynomial), check = False)
+                    self._value = x
                 elif absprec is infinity:
-                    PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.base_ring())(x.add_bigoh(relprec + x.valuation())._polynomial), check = False)
+                    raise NotImplementedError
                 else:
-                    PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.base_ring())(x.add_bigoh(absprec)._polynomial), check = False)
+                    raise NotImplementedError
                 return
+        #    elif parent.ground_ring().has_coerce_map_from(x.parent().ground_ring()) and parent._coerce_(x.parent().defining_polynomial()) == parent.defining_polynomial(): #has_coerce_map should maybe be is_isomorphic? or fraction_field?
+        #        if absprec is infinity and relprec is infinity:
+        #            PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.ground_ring())(x._polynomial), check = False)
+        #        elif absprec is infinity:
+        #            PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.ground_ring())(x.add_bigoh(relprec + x.valuation())._polynomial), check = False)
+        #        else:
+        #            PQRElement.__init__(self, parent, x.parent().polynomial_ring().base_extend(parent.ground_ring())(x.add_bigoh(absprec)._polynomial), check = False)
+        #        return
         elif isinstance(x, Polynomial):
-            if x.parent() is parent.polynomial_ring():
-                PQRElement.__init__(self, parent, x, check = False)
+            if x.parent() is parent._PQR.polynomial_ring():
+                if absprec is infinity and relprec is infinity:
+                    self._value = parent._PQR(x)
+                else:
+                    if not absprec is infinity:
+                        absprec = absprec // parent.e()
+                    if not relprec is infinity:
+                        relprec = relprec // parent.e()
+                    self._value = parent._PQR(x.parent()([x.base_ring()(c, absprec = absprec, relprec = relprec) for c in x.list()]))
                 return
         if isinstance(x, list):
-            if len(x) == parent.degree(): #don't do this with length checking.  I don't remember what William and I decided
+            #if len(x) == parent.degree(): #don't do this with length checking.  I don't remember what William and I decided
                 #should probably be wrapped in a try block, but I'm not sure what types of exceptions I'm worried about.  TypeError?
-                absprec = min([v.precision_absolute() for v in x] + [absprec])
-                val = min([v.valuation() for v in x])
-                absprec = min(absprec, relprec + val)
-                x = [parent.base_ring()(v, absprec = absprec) for v in x]
-                PQRElement.__init__(self, parent, parent.polynomial_ring()(x), check=False)
-                return
-        #We now try casting into the base ring
+            x = [parent.ground_ring()(v) for v in x]
+            absprec = min([v.precision_absolute() for v in x] + [absprec // parent.e()])
+            val = min([v.valuation() for v in x])
+            absprec = min(absprec, relprec // parent.e() + val)
+            x = [v.add_bigoh(absprec) for v in x]
+            self._value = parent._PQR(parent._PQR.polynomial_ring()(x))
+            return
+        #We now try casting into the ground ring
         try:
-            x = parent.base_ring()(x, absprec = absprec, relprec = relprec)
-            PQRElement.__init__(self, parent, parent.polynomial_ring()(x), check=False)
+            if not absprec is infinity:
+                absprec = absprec // parent.e()
+            if not relprec is infinity:
+                relprec = relprec // parent.e()
+            x = parent.ground_ring()(x, absprec = absprec, relprec = relprec)
+            self._value = parent._PQR(x)
         except TypeError:
             raise TypeError, "cannot create element of %s out of %s of type %s"%(parent, x, type(x))
 
@@ -81,8 +109,8 @@ class pAdicExtensionGenericElement(PQRElement):
             mode = self.parent().print_mode()
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
             raise TypeError, "printing-mode must be one of 'val-unit', 'series', or 'terse'"
-        pprint = self.parent().variable_name()
-        if self._polynomial == 0:
+        pprint = self.parent()._uniformizer_print()
+        if self._polynomial() == 0:
             if mode == 'val-unit' or mode == 'series':
                 if do_latex:
                     return "O(%s^{%s})"%(pprint, self.precision_absolute())
@@ -97,18 +125,18 @@ class pAdicExtensionGenericElement(PQRElement):
             if self.valuation() == 0:
                 return self._repr_(mode = 'terse', do_latex = do_latex)
             elif self.valution() == 1:
-                return "%s + %s"%(self._uniformizer_print(), self._repr_(mode = 'terse', do_latex = do_latex))
+                return "%s * %s"%(self._uniformizer_print(), self.__rshift__(1)._repr_(mode = 'terse', do_latex = do_latex))
             else:
                 if do_latex:
-                    return "%s^{%s} + %s"%(self._uniformizer_print(), self.valuation(), self._repr_(mode = 'terse', do_latex = do_latex))
+                    return "%s^{%s} * %s"%(self._uniformizer_print(), self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
                 else:
-                    return "%s^%s + %s"%(self._uniformizer_print(), self.valuation(), self._repr_(mode = 'terse', do_latex = do_latex))
+                    return "%s^%s * %s"%(self._uniformizer_print(), self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
         elif mode == 'terse':
-            with local_print_mode(self.base_ring(), 'terse'):
+            with local_print_mode(self.ground_ring(), 'terse'):
                 if do_latex:
-                    return self._polynomial._latex_(name = self.parent().variable_name())
+                    return self._polynomial()._latex_(name = self.parent().variable_name())
                 else:
-                    return self._polynomial._repr(name = self.parent().variable_name())
+                    return self._polynomial()._repr(name = self.parent().variable_name())
         else:
             pprint = self.parent()._uniformizer_print()
             selflist = [a.residue(1) for a in self.padded_list(self.precision_absolute())]
@@ -142,30 +170,64 @@ class pAdicExtensionGenericElement(PQRElement):
             s = s.replace(" +  + ", " + ")
             return s
 
+    def __cmp__(self, other):
+        m = min(self.precision_absolute(), other.precision_absolute())
+        x_ordp = self.valuation()
+        if x_ordp >= m :
+            x_ordp = infinity
+        y_ordp = other.valuation()
+        if y_ordp >= m :
+            y_ordp = infinity
+        if x_ordp < y_ordp:
+            return -1
+        elif x_ordp > y_ordp:
+            return 1
+        else:  # equal ordp
+            if x_ordp == infinity:
+                return 0 # since both are zero
+        return cmp(self._value, other._value)
+
+
+    def _polynomial(self):
+        return self._value._polynomial
+
+    def _add_(self, right):
+        return self.parent()._element_class(self.parent(), self._value._polynomial + right._value._polynomial, construct = True)
+
     def _div_(self, right):
         return self * right.__invert__()
 
-    def __floordiv__(self, right):
-        if self.parent().is_field():
-            return self._div_(right)
-        right = self.parent()(right)
-        return self.parent()(self / right.unit_part()).__rshift__(right.valuation())
+    def _mul_(self, right):
+        return self.parent()._element_class(self.parent(), self._value._polynomial * right._value._polynomial, construct = True)
+
+    def _neg_(self):
+        return self.parent()._element_class(self.parent(), -self._value._polynomial, construct = True)
+
+    def _sub_(self, right):
+        return self.parent()._element_class(self.parent(), self._value._polynomial - right._value._polynomial, construct = True)
+
+    def exp(self):
+        raise NotImplementedError
+
+    def exp_artin_hasse(self):
+        raise NotImplementedError
+
+    def gamma(self):
+        raise NotImplementedError
+
+    def log(self):
+        raise NotImplementedError
+
+    def log_artin_hasse(self):
+        raise NotImplementedError
 
     def __mod__(self, right):
         if self.parent().is_field():
             return self.parent()(0)
         return self - right * (self // right)
 
-    def __getitem__(self, n):
-        if isinstance(n, slice):
-            if n.start == 0:
-                raise ValueError, "due to limitations in Python 2.5, you must call the slice() function rather than using the [:] syntax in this case"
-            if n.stop == sys.MAXINT:
-                return self.slice(n.start, None, n.step)
-            return self.slice(n.start, n.stop, n.step)
-        if n < 0:
-            return self.parent().residue_class_field()(0)
-        return self.list()[n]
+    def copy(self):
+        return self.parent()._element_class(self.parent(), self._value._polynomial, construct = True)
 
     def __len__(self):
         return 0 #this is so that __getitem__ with negative inputs works.  It may also have the consequence of having p-adics evaluate to False in a Boolean context.
@@ -185,7 +247,15 @@ class pAdicExtensionGenericElement(PQRElement):
     def _pari_init_(self):
         raise TypeError, "Pari does not support p-adic extension rings"
 
-    #def __pow__(self, right):  #Using PQRElement's
+    def __pow__(self, nn):
+        n = int(nn)
+        if n != nn:
+            raise ValueError, "exponent must be an integer"
+        if n < 0:
+            x = self.__invert__()
+            n *= -1
+            return sage.rings.arith.generic_power(x, n, one=self.parent()(1))
+        return sage.rings.arith.generic_power(self, n, one=self.parent()(1))
 
     def is_square(self): #is this implementation still correct in the eisenstein case?
         if self._polynomial == 0:
@@ -204,10 +274,10 @@ class pAdicExtensionGenericElement(PQRElement):
         return (self - right).is_zero(prec)
 
     def minimal_polynomial(self, name):
-        return self.minpoly()
+        return self._value.minpoly()
 
     def ordp(self):
-        return self.valuation()
+        return self.valuation() / self.parent()(self.parent().prime()).valuation()
 
     def padded_list(self, absprec = infinity, relprec = infinity):
         if absprec is infinity and relprec is infinity:
@@ -215,7 +285,7 @@ class pAdicExtensionGenericElement(PQRElement):
         if self.parent().is_field():
             if self.valuation() is infinity:
                 if relprec < infinity:
-                    return [self.parent().residue_class_field()(0)]*relprec
+                    return [self.parent()(0)]*relprec
                 else:
                     return []
             relprec = min(relprec, absprec - self.valuation())
@@ -247,12 +317,12 @@ class pAdicExtensionGenericElement(PQRElement):
 
     def norm(self, K = None):
         if K is None:
-            return PQRElement.norm(self)
+            return self._value.norm()
         else:
             raise NotImplementedError
 
     def trace(self, K = None):
         if K is None:
-            return PQRElement.trace(self)
+            return self._value.norm()
         else:
             raise NotImplementedError

@@ -54,7 +54,7 @@ In the capped absolute type, instead of having a cap on the relative precision o
     sage: (a * b) / 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) / 5^3)
-    <class 'sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement'>
+    <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 The fixed modulus type is the leanest of the p-adic rings: it is basically just a wrapper around $\Z / p^n \Z$ providing a unified interface with the rest of the p-adics.  This is the type you should use if your primary interest is in speed.  It does not track precision of elements.
     sage: R = Zp(5,5,'fixed-mod','series'); a = R(4005); a
@@ -131,6 +131,7 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 
 #import weakref
 import sage.rings.padics.padic_generic
+import sage.rings.ring
 #import sage.rings.padics.padic_ring_capped_relative
 #import sage.rings.padics.padic_ring_capped_absolute
 #import sage.rings.padics.padic_ring_fixed_mod
@@ -141,37 +142,18 @@ from sage.rings.integer import Integer
 def is_pAdicRing(R):
     return isinstance(R, pAdicRingGeneric)
 
-class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
+class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric, sage.rings.ring.EuclideanDomain):
+    def is_field(self):
+        return False
+
     def _repr_(self, do_latex = False):
         return "Generic %s-adic Ring"%(self.prime())
 
-
-
-    def is_field(self):
-        """
-        Returns whether this p-adic ring is a field, i.e. False.
-
-        INPUT:
-            self -- a p-adic ring
-
-        OUTPUT:
-            boolean -- whether self is a field, i.e., False
-
-        """
-        return False
-
-    def is_isomorphic(self, ring):
+    def integer_ring(self):
         r"""
-        Returns whether self and ring are isomorphic, i.e. whether ring is an implementation of $\Z_p$ for the same prime as self.
-
-        INPUT:
-            self -- a p-adic ring
-            ring -- a ring
-
-        OUTPUT:
-            boolean -- whether ring is an implementation of $\Z_p$ for the same prime as self.
+        Returns the integer ring of self, i.e. self.
         """
-        return is_instance(ring, pAdicRingGeneric) and self.prime() == ring.prime()
+        return self
 
     def krull_dimension(self):
         r"""
@@ -183,6 +165,3 @@ class pAdicRingGeneric(sage.rings.padics.padic_generic.pAdicGeneric):
             the Krull dimension of self.  Since self is a p-adic ring, this is 1.
         """
         return 1
-
-class pAdicRingBaseGeneric(pAdicRingGeneric):
-    pass

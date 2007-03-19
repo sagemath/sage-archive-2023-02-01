@@ -35,7 +35,7 @@ infinity = sage.rings.infinity.infinity
 #Zp = sage.rings.padics.padic_ring.Zp
 pAdicRingFixedModElement = sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+pAdicBaseGenericElement = sage.rings.padics.padic_base_generic_element.pAdicBaseGenericElement
 pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 #pAdicFieldCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element
@@ -75,7 +75,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
                 self._absprec = min(parent.precision_cap(), x.precision_absolute())
             self._value = Mod(x.residue(self._absprec), self.parent().prime_pow(self.parent().precision_cap()))
             return
-        if isinstance(x, pAdicGenericElement):
+        if isinstance(x, pAdicBaseGenericElement):
             if relprec is infinity:
                 self._absprec = min(x.precision_absolute(), absprec)
             else:
@@ -125,7 +125,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             self._absprec = min(absprec, val + relprec, parent.precision_cap())
             self._value = Mod(Mod(x, parent.prime_pow(self._absprec)), parent.prime_pow(parent.precision_cap()))
         else:
-            raise TypeError, "unable to create p-adic element"
+            raise TypeError, "unable to create p-adic element from %s of type %s"%(x, type(x))
 
     def __invert__(self):
         return self.parent().fraction_field()(self).__invert__()
@@ -150,7 +150,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def __pow__(self, right):
         new = Integer(right) #Need to make sure that this works for p-adic exponents
         val = self.valuation()
-        if (val > 0) and (isinstance(right, pAdicRingGenericElement) or isinstance(right, pAdicFieldGenericElement)):
+        if (val > 0) and isinstance(right, pAdicBaseGenericElement):
             raise ValueError, "Can only have p-adic exponent if base is a unit"
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._value**new, min(self._absprec - val + new * val, self.parent().precision_cap())), construct = True)
 
@@ -429,3 +429,10 @@ self -- a p-adic element
                 <class 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
         """
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._unit_part(), self.precision_relative()), construct = True)
+
+    def valuation(self):
+        val = sage.rings.arith.valuation(self.lift(),self.parent().prime())
+        if val is infinity:
+            return self._absprec
+        else:
+            return val

@@ -1,4 +1,5 @@
 include "../ext/cdefs.pxi"
+include "../libs/ntl/decl.pxi"
 
 import sage.structure.element
 cimport sage.structure.element
@@ -7,6 +8,7 @@ from sage.structure.element cimport EuclideanDomainElement, RingElement, ModuleE
 cdef class Integer(EuclideanDomainElement):
     cdef mpz_t value
 
+    cdef void _to_ZZ(self, ntl_c_ZZ *z)
     cdef void set_from_mpz(self, mpz_t value)
     cdef mpz_t* get_value(self)
     #cdef object _pari
@@ -20,7 +22,4 @@ cdef class Integer(EuclideanDomainElement):
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
 
-
-
 cdef extern int set_mpz(Integer self, mpz_t value)
-

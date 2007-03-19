@@ -100,7 +100,7 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
 ntl = Extension('sage.libs.ntl.ntl',
-                 sources = ["sage/libs/ntl/ntl.pyx", "sage/libs/ntl/ntl_wrap.cc"],
+                 sources = ["sage/libs/ntl/ntl.pyx"],
                  libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 

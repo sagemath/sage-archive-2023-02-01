@@ -52,6 +52,7 @@ sense.
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -239,6 +240,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             -2
         """
         return integer_ring_python.iterator(self)
+
+    cdef Integer _coerce_ZZ(self, ntl_c_ZZ *z):
+        cdef integer.Integer i
+        i = PY_NEW(integer.Integer)
+        _sig_on
+        ZZ_to_mpz(&i.value, z)
+        _sig_off
+        return i
 
     cdef _coerce_c_impl(self, x):
         """

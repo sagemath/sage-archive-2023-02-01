@@ -40,6 +40,10 @@ TESTS:
     6
     sage: [a[0].dimension() for a in d]
     [1, 1, 2, 3, 6, 20]
+    sage: loads(dumps(X)) == X
+    True
+    sage: loads(dumps(d)) == d
+    True
 """
 
 #*****************************************************************************

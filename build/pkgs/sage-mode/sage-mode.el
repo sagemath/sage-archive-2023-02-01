@@ -243,7 +243,9 @@ time, it does not handle multi-line input strings at all."
 	(message output))
       output)))
 
-;;; completing-read for symbols using IPython's *? mechanism
+;;; `ipython-completing-read-symbol' is `completing-read' for python symbols
+;;; using IPython's *? mechanism
+
 (defvar ipython-completing-read-symbol-history ()
   "List of Python symbols recently queried.")
 
@@ -302,19 +304,25 @@ See `try-completion' and `all-completions' for interface details."
     (ipython-completing-read-symbol-clear-cache)
     (completing-read prompt func pred nil nil hist default)))
 
-;;; `find-function' and `find-variable' for python symbols using IPython's ?
-;;; magic mechanism
-(defvar ipython-symbol-not-found "Object `.*?` not found."
+;;; `ipython-describe-symbol' is `find-function' for python symbols using
+;;; IPython's ? magic mechanism.
+
+(defvar ipython-describe-symbol-not-found-regexp "Object `.*?` not found."
   "Regexp that matches IPython's 'symbol not found' warning.")
 
-(defvar ipython-symbol-describing-buffer-name "*IPython Symbol*"
-  "Temporary buffer for describing symbols.")
+(defvar ipython-describe-symbol-command "%s?")
 
-(defun ipython-get-symbol-describing-buffer ()
-  "Return a temporary buffer.  Create one if necessary."
-  (let ((buf (get-buffer-create ipython-symbol-describing-buffer-name)))
-    (set-buffer buf)
-    buf))
+(defvar ipython-describe-symbol-temp-buffer-show-hook
+  (lambda ()				; avoid xref stuff
+    (toggle-read-only 1)
+    (setq view-return-to-alist
+	  (list (cons (selected-window) help-return-method))))
+  "`temp-buffer-show-hook' installed for `ipython-describe-symbol' output.")
+
+(defun ipython-describe-symbol-markup-function (string)
+  "Markup IPython's inspection (?) for display."
+  (when (string-match "[ \t\n]+\\'" string)
+    (concat (substring string 0 (match-beginning 0)) "\n")))
 
 (defun ipython-describe-symbol (symbol)
   "Get help on SYMBOL using IPython's inspection (?).
@@ -326,44 +334,28 @@ Interactively, prompt for SYMBOL."
 		   (current-word)))
 	 (enable-recursive-minibuffers t))
      (list (ipython-completing-read-symbol symbol))))
-  (if (equal symbol "") (error "No symbol"))
-  ;; Try to handle symbol not found gracefully
-  (save-excursion
-    ;; Clean slate
-    (set-buffer (ipython-get-symbol-describing-buffer))
-    (delete-region (point-min) (point-max))
-    ;; Grab what IPython has to say
-    (comint-redirect-send-command-to-process
-     (format "%s?" symbol)
-     (buffer-name (ipython-get-symbol-describing-buffer)) (python-proc) nil t)
-    ;; Wait for the process to complete
-    (set-buffer (process-buffer (python-proc)))
-    (while (null comint-redirect-completed)
-      (accept-process-output nil 1))
-    ;; When looking at symbol not found, say so
-    (set-buffer (ipython-get-symbol-describing-buffer))
-    (goto-char (point-min))
-    (when (looking-at ipython-symbol-not-found)
-      (error "Symbol `%s' not found" symbol))
+  (if (equal symbol "")
+      (error "No symbol"))
+  (let* ((command (format ipython-describe-symbol-command symbol))
+	 (raw-contents (python-send-receive-multiline command))
+	 (help-contents
+	  (or (ipython-describe-symbol-markup-function raw-contents)
+	      raw-contents))
+	 (temp-buffer-show-hook ipython-describe-symbol-temp-buffer-show-hook))
+    ;; Handle symbol not found gracefully
+    (when (string-match ipython-describe-symbol-not-found-regexp raw-contents)
+      (error "Symbol not found"))
+    (when (= 0 (length help-contents))
+      (error "Symbol has no description"))
     ;; Ensure we have a suitable help buffer.
-    ;; Fixme: Maybe process `Related help topics' a la help xrefs and
-    ;; allow C-c C-f in help buffer.
-    (let* ((help-contents (buffer-substring (point-min) (point-max)))
-	   (temp-buffer-show-hook	; avoid xref stuff
-	    (lambda ()
-	      (toggle-read-only 1)
-	      (setq view-return-to-alist
-		    (list (cons (selected-window) help-return-method))))))
-      (with-output-to-temp-buffer (help-buffer)
-	(with-current-buffer standard-output
-	  ;; Fixme: Is this actually useful?
+    (with-output-to-temp-buffer (help-buffer)
+      (with-current-buffer standard-output
+	;; Fixme: Is this actually useful?
 	(help-setup-xref (list 'python-describe-symbol symbol) (interactive-p))
 	(set (make-local-variable 'comint-redirect-subvert-readonly) t)
-	;; (print-help-return-message)
+	(print-help-return-message)
 	;; Finally, display help contents
-	(princ help-contents)
-	)))
-    ))
+	(princ help-contents)))))
 
 ;;; Use icicles for completing-read if possible
 (require 'icicles nil t)

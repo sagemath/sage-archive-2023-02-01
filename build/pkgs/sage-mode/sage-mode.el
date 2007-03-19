@@ -175,8 +175,8 @@ buffer for a list of commands.)"
 This recurses down the directory tree as long as there are __init__.py
 files there, signalling that we are inside a package.
 
-Returns a list of two elements.  The first is the top level package
-directory; the second is the dotted Python module name.
+Returns a pair (PACKAGE . MODULE).  The first is the top level
+package directory; the second is the dotted Python module name.
 
 Adapted from a patch posted to the python-mode trac."
   (let ((rec #'(lambda (d f)
@@ -267,7 +267,7 @@ time, it does not handle multi-line input strings at all."
 Each completion should appear separated by whitespace.")
 
 (defvar ipython-completing-read-symbol-cache ()
-  "A list (last-queried-string string-completions).")
+  "A pair (LAST-QUERIED-STRING . COMPLETIONS).")
 
 (defun ipython-completing-read-symbol-clear-cache ()
   "Clear the IPython completing read cache."
@@ -289,21 +289,20 @@ Uses `ipython-completing-read-symbol-command' to query IPython."
   "A `completing-read' programmable completion function for querying IPython.
 
 See `try-completion' and `all-completions' for interface details."
-  (let ((cached-string (first ipython-completing-read-symbol-cache))
-	(completions (second ipython-completing-read-symbol-cache)))
+  (let ((cached-string (car ipython-completing-read-symbol-cache))
+	(completions (cdr ipython-completing-read-symbol-cache)))
     ;; Recompute table using IPython if neccessary
     (when (or (null completions)
 	      (not (equal string cached-string)))
       (setq ipython-completing-read-symbol-cache
-	    (list string (ipython-completing-read-symbol-make-completions string)))
-      (setq completions (second ipython-completing-read-symbol-cache)))
+	    (cons string (ipython-completing-read-symbol-make-completions string)))
+      (setq completions
+	    (cdr ipython-completing-read-symbol-cache)))
     ;; Complete as necessary
-    (if action
-	(let ((all (all-completions string completions predicate)))
-	  (if (eq action 'lambda)
-	      (test-completion string completions) ; action is lambda
-	    all))				   ; action is t
-      (try-completion string completions predicate)))) ; action is nil
+    (cond
+      ((eq action 'lambda) (test-completion string completions)) ; 'lambda
+      (action (all-completions string completions predicate))	 ; t
+      (t (try-completion string completions predicate)))))	 ; nil
 
 (defun ipython-completing-read-symbol
   (&optional prompt def require-match predicate)

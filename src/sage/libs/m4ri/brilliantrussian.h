@@ -83,10 +83,11 @@ void combineFlex( packedmatrix * s1, int row1, int startblock1,
  *     k -- the k parameter of M4RI
  *     tablepacked -- prealloced matrix of dimension 2^k x m->cols
  *     lookuppacked -- prealloced table of length 2^k
+ *     full -- touch columns before ai?
  *
  */
 
-void makeTablePackedFlex( packedmatrix *m, int ai, int k, packedmatrix *tablepacked, int *lookuppacked);
+void makeTablePackedFlex( packedmatrix *m, int ai, int k, packedmatrix *tablepacked, int *lookuppacked, int full);
 
 /**
  * returns k bits/entries starting at m[x,y].
@@ -146,5 +147,7 @@ int simpleFourRussiansPackedFlex(packedmatrix *m, int full, int k);
 
 packedmatrix *invertPackedFlexRussian(packedmatrix *m, packedmatrix *identity, int k);
 
+
+packedmatrix *m4rmPacked(packedmatrix *A, packedmatrix *B, int k);
 
 #endif //BRILLIANTRUSSIAN_H

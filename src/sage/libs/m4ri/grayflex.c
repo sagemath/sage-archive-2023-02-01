@@ -24,6 +24,8 @@
 ******************************************************************************/
 
 #include "grayflex.h"
+#include <stdlib.h>
+#include <stdio.h>
 
 code **codebook;
 const int MAXKAY = 16;

@@ -271,18 +271,25 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: A*A == A._multiply_linbox(A)
             True
 
-        ALGORITHM: Uses LinBox for some cases.
+        ALGORITHM: Uses the 'Method of the Four Russians
+        Multiplication', see self._multiply_m4rm.
 
         """
         if get_verbose() >= 2:
             verbose('matrix multiply of %s x %s matrix by %s x %s matrix'%(
                 self._nrows, self._ncols, right._nrows, right._ncols))
 
-        if self._ncols < 1000 and right.nrows() < 1000:
-             return self._multiply_classical(right)
-        else:
-            # uses way more RAM but is faster
-             return self._multiply_linbox(right)
+##         if self._ncols < 1000 and right.nrows() < 1000:
+##              return self._multiply_classical(right)
+##         else:
+##             # uses way more RAM but is faster
+##              return self._multiply_linbox(right)
+
+
+        cdef int n = self._ncols
+        cdef int k = round(min(0.75 * log(n,2), 16))
+
+        return self._multiply_m4rm_c(right,k)
 
     def _multiply_linbox(Matrix_mod2_dense self, Matrix_mod2_dense right):
         """
@@ -326,6 +333,82 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         linbox.matrix_matrix_multiply(ans._entries, right._entries)
         _sig_off
         return ans
+
+    def _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, k=0):
+        """
+        Multiply matrices using the 'Method of the Four Russians Multiplication' (M4RM).
+
+        The algorithm is based on an algorithm by Arlazarov, Dinic,
+        Kronrod, and Faradzev [ADKF70] and appeared in [AHU]. This
+        implementation is based on a description given in Gregory
+        Bard's 'Method of the Four Russians Inversion' paper [B06].
+
+        INPUT:
+            right -- Matrix
+            k -- parameter k for the Gray Code table size. If k=0 a suitable value is
+                chosen by the function. (0<= k <= 16, default: 0)
+
+        EXAMPLE:
+              sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
+              sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0] )
+              sage: A
+              [0 0 0]
+              [0 1 0]
+              [0 1 1]
+              [0 0 1]
+              sage: B
+              [0 0 1 0]
+              [1 0 0 1]
+              [1 1 0 0]
+              sage: A._multiply_m4rm(B)
+              [0 0 0 0]
+              [1 0 0 1]
+              [0 1 0 1]
+              [1 1 0 0]
+
+        ALGORITHM: Uses M4RM
+
+        REFERENCES:
+            [AHU]    A. Aho, J. Hopcroft, and J. Ullman. 'Chapter 6: Matrix Multiplication and Related Oper-
+                     ations.' The Design and Analysis of Computer Algorithms. Addison-Wesley, 1974.
+
+            [ADKF70] V. Arlazarov, E. Dinic, M. Kronrod, and I. Faradzev. 'On Economical Construction of
+                     the Transitive Closure of a Directed Graph.' Dokl. Akad. Nauk. SSSR No. 194 (in Russian),
+                     English Translation in Soviet Math Dokl. No. 11, 1970.
+
+            [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of Four Russians'. Cryptography
+                     E-Print Archive (http://eprint.iacr.org/2006/251.pdf), 2006.
+
+        """
+
+
+        if k == 0:
+            n = self._ncols
+            k = round(min(0.75 * log(n,2), 16))
+
+        if k<1 or k>16:
+            raise RuntimeError,"k must be between 1 and 16 or 0"
+        k = round(k)
+
+        if self._ncols != right._nrows:
+            raise ArithmeticError, "left ncols must match right nrows"
+
+        return self._multiply_m4rm_c(right, k)
+
+    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k):
+        if get_verbose() >= 2:
+            verbose('m4rm multiply of %s x %s matrix by %s x %s matrix'%(
+                self._nrows, self._ncols, right._nrows, right._ncols))
+
+        cdef Matrix_mod2_dense ans
+
+        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+        destroyPackedMatrix(ans._entries)
+
+        ans._entries = m4rmPacked(self._entries, right._entries, k)
+
+        return ans
+
 
     def _multiply_classical(Matrix_mod2_dense self, Matrix_mod2_dense right):
         """
@@ -502,6 +585,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
                    LinBox.
 
+        REFERENCES:
+            [Bard06] G. Bard. 'Accelerating Cryptanalysis with the Method of Four Russians'. Cryptography
+                     E-Print Archive (http://eprint.iacr.org/2006/251.pdf), 2006.
         """
         cdef int k, n
 

@@ -77,6 +77,10 @@ cdef extern from "../libs/m4ri/m4ri.h":
     # naiv matrix multiply
     cdef packedmatrix *matrixTimesMatrixPacked(packedmatrix *, packedmatrix *)
 
+    # M4RM matrix multiply
+    cdef packedmatrix *m4rmPacked(packedmatrix *, packedmatrix *, int k)
+
+
     # matrix addition
     cdef packedmatrix *addPacked(packedmatrix *, packedmatrix *)
 
@@ -106,3 +110,5 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):
     cdef object _one
     cdef object _zero
 
+
+    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k)

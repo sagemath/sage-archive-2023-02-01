@@ -17,6 +17,9 @@
 ******************************************************************************/
 
 #include "watch.h"
+#include "matrix.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 clock_t watchstart;
 clock_t watchstop;

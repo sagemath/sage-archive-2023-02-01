@@ -475,8 +475,9 @@ definition can't be found in the buffer, returns (BUFFER)."
 	 (raw-contents (python-send-receive-multiline command)))
     (unless (string-match sage-find-symbol-regexp raw-contents)
       (error "Symbol source not found"))
-    (let ((filename (match-string 1 raw-contents))
-	  (line-num (string-to-number (match-string 2 raw-contents))))
+    (let* ((raw-filename (match-string 1 raw-contents))
+	   (filename (sage-development-version raw-filename))
+	   (line-num (string-to-number (match-string 2 raw-contents))))
       (with-current-buffer (find-file-noselect filename)
 	(goto-line line-num) ; XXX error checking?
 	(cons (current-buffer) (point))))))
@@ -533,3 +534,43 @@ See `sage-find-symbol' for details."
   (when (or (null symbol) (equal "" symbol))
     (error "No symbol"))
   (sage-find-symbol-do-it symbol 'switch-to-buffer-other-frame))
+
+;; It's annoying to get lost in sage/.../site-packages version of files when
+;; `sage-find-symbol' and friends jump to files.  It's even more annoying when
+;; the file is not correctly recognized as sage source!
+
+(add-to-list 'auto-mode-alist '("devel/sage.*?\\.py\\'" . sage-mode))
+
+(defvar sage-site-packages-regexp "\\(local.*?site-packages.*?\\)/sage"
+  "Regexp to match sage site-packages files.
+
+Match group 1 will be replaced with devel/sage-branch")
+
+(add-hook 'find-file-hook 'sage-warn-if-site-packages-file)
+(defun sage-warn-if-site-packages-file()
+  "Warn if sage FILE is in site-packages and offer to find current branch version."
+  (let ((f (buffer-file-name (current-buffer))))
+    (and f (string-match sage-site-packages-regexp f)
+         (if (y-or-n-p "This is a sage site-packages file, open the real file? ")
+             (sage-jump-to-development-version)
+           (push '(:propertize "SAGE-SITE-PACKAGES-FILE:" face font-lock-warning-face)
+                 mode-line-buffer-identification)))))
+
+(defun sage-development-version (filename)
+  "If FILENAME is in site-packages, current branch version, else FILENAME."
+  (save-match-data
+    (let* ((match (string-match sage-site-packages-regexp filename)))
+      (if (and filename match)
+	  ;; handle current branch somewhat intelligiently
+	  (let* ((base (concat (substring filename 0 (match-beginning 1)) "devel/"))
+		 (branch (or (file-symlink-p (concat base "sage")) "sage")))
+	    (concat base branch (substring filename (match-end 1))))
+	filename))))
+
+(defun sage-jump-to-development-version ()
+  "Jump to current branch version of current FILE if we're in site-packages version."
+  (interactive)
+  (let ((filename (sage-development-version (buffer-file-name (current-buffer))))
+	(maybe-buf (find-buffer-visiting filename)))
+    (if maybe-buf (pop-to-buffer maybe-buf)
+      (find-alternate-file filename))))

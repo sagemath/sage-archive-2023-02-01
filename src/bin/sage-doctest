@@ -124,7 +124,7 @@ def doc_preparse(s):
             t.append(line)
 
         elif begin[:3] == '...':
-            t.append(preparse_line_with_prompt(L))
+            t.append('...' + sage.misc.preparser.preparse(L[3:]))
         else:
             t.append(L)
     return '\n'.join(t)

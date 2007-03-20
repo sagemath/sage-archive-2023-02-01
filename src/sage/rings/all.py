@@ -94,6 +94,11 @@ from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleEl
 # Quad double
 #from real_qdrf import RealQuadDoubleField, RQDF
 
+# Algebraic reals (the intersection of the algebraic closure of the rationals
+# with the reals)
+from algebraic import (AlgebraicField, is_AlgebraicField, Alg,
+                       AlgebraicNumber, is_AlgebraicNumber)
+
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
                        is_RealIntervalFieldElement, RIF,

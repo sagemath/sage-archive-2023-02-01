@@ -48,6 +48,9 @@ class DistributedFactor(DistributedFunction):
                 n = n // d
         if n == 1:
             self.done = True
+        if is_prime(n): # The last value might be prime
+            self.done = True
+            self.prime_factors.append(n)
         else:
             self.composite_factors = [n]
             self.outstanding_jobs = [self.qsieve_job()]

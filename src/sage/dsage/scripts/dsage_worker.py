@@ -15,6 +15,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import sys
@@ -124,6 +125,7 @@ class Worker(object):
             log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
 
         self.job = expand_job(jdict)
+
         if not isinstance(self.job, Job):
             raise NoJobException
 
@@ -379,15 +381,17 @@ class Monitor(object):
     def _gotKilledJobsList(self, killed_jobs):
         if killed_jobs == None:
             return
+        # reconstruct the Job objects from the jdicts
+        killed_jobs = [expand_job(jdict) for jdict in killed_jobs]
+        print killed_jobs[0].id
         for worker in self.workers:
             if worker.job is None:
                 continue
             if worker.free:
                 continue
             for job in killed_jobs:
-                if job == None or worker.job == None:
+                if job is None or worker.job is None:
                     continue
-                job = unpickle(job)
                 if worker.job.id == job.id:
                     log.msg('[Worker: %s] Processing a killed job, \
                             restarting...' % worker.id)
@@ -402,11 +406,16 @@ class Monitor(object):
         #if failure.check(error.ConnectionRefusedError,
         #                 error.ConnectionLost,
         #                 pb.DeadReferenceError):
+
         self.connected = False
         self._retryConnect()
-        # else:
-       #      log.msg("Error: ", failure.getErrorMessage())
-       #      log.msg("Traceback: ", failure.printTraceback())
+
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
+
+    def _catchFailure(self, failure):
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
 
     def connect(self):
         r"""
@@ -539,8 +548,10 @@ class Monitor(object):
 
         if not self.connected:
             return
+
         killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
         killed_jobs.addCallback(self._gotKilledJobsList)
+        killed_jobs.addErrback(self._catchFailure)
 
     def jobUpdated(self, id):
         r"""

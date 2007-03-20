@@ -183,11 +183,11 @@ class DSageServer(pb.Root):
 
     def get_killed_jobs_list(self):
         r"""
-        Returns a list of killed jobs.
+        Returns a list of killed job jdicts.
         """
 
         killed_jobs = self.jobdb.get_killed_jobs_list()
-        return [job.pickle() for job in killed_jobs]
+        return killed_jobs
 
     def get_next_job_id(self):
         r"""
@@ -270,14 +270,14 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.unpickle(self.get_job_by_id(jobID))
-        if job == None:
+        jdict = self.get_job_by_id(jobID)
+        if jdict == None:
             if self.LOG_LEVEL > 0:
-                log.msg('[DSage, kill_job] No such job id')
+                log.msg('[DSage, kill_job] No such job id %s' % jobID)
             return None
         else:
-            job.killed = True
-            self.jobdb.store_job(job)
+            jdict['killed'] = True
+            self.jobdb.store_job(jdict)
             if self.LOG_LEVEL > 0:
                 log.msg('Job %s was killed because %s ' % (jobID, reason))
 

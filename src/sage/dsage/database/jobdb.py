@@ -466,7 +466,7 @@ class JobDatabaseSQLite(JobDatabase):
         """
 
         # returns the first job whose status is new
-        query = "SELECT * FROM jobs where status = 'new'"
+        query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
         cur = self.con.cursor()
         cur.execute(query)
         jtuple = cur.fetchone()
@@ -570,6 +570,10 @@ class JobDatabaseSQLite(JobDatabase):
         columns = [desc[0] for desc in row_description]
         jdict = dict(zip(columns, jtuple))
 
+        # Convert 0/1 into python booleans
+        jdict['killed'] = bool(jdict['killed'])
+        jdict['verifiable'] = bool(jdict['verifiable'])
+
         # Convert buffer objects back to string
         jdict['data'] = str(jdict['data'])
         jdict['result'] = str(jdict['result'])
@@ -581,11 +585,12 @@ class JobDatabaseSQLite(JobDatabase):
         Returns a list of jobs which have been marked as killed.
 
         """
-        query = "SELECT * from jobs where status = 'killed'"
+        query = "SELECT * from jobs where killed = 1 AND status <> 'completed'"
         cur = self.con.cursor()
         cur.execute(query)
         killed_jobs = cur.fetchall()
-        return killed_jobs
+        return [self.create_jdict(jdict, cur.description)
+                for jdict in killed_jobs]
 
     def get_jobs_by_user_id(self, user_id):
         r"""

@@ -175,6 +175,7 @@ DSAGE_RESULT = 'result.sobj'
                 print "factors:", self.prime_factors, self.composite_factors
 
         if len(self.composite_factors) == 0:
+            self.prime_factors.sort()
             self.result = self.prime_factors
             self.done = True
         else:

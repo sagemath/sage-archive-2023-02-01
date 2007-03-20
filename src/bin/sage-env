@@ -88,7 +88,7 @@ LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 
 if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://sage.math.washington.edu/sage/"
+    SAGE_SERVER="http://www.sagemath.org/"
     export SAGE_SERVER
 fi
 

@@ -59,7 +59,7 @@
   :type 'boolean)
 
 (defvar ipython-input-string-is-magic-regexp
-  "[^?]\\(\\?\\??\\)\\'"
+  "[^*?]\\(\\?\\??\\)\\'"
   "Regexp matching IPython magic input.
 
 The first match group is used to dispatch handlers in
@@ -240,7 +240,7 @@ buffer for a list of commands.)"
   "Install SAGE bindings locally."
   (interactive)
   (local-set-key [(control h) (control f)] 'ipython-describe-symbol)
-  (local-set-key [(control h) (control s)] 'sage-find-symbol-other-window))
+  (local-set-key [(control h) (control g)] 'sage-find-symbol-other-window))
 
 (add-hook 'sage-mode 'sage-bindings)
 (add-hook 'inferior-sage-mode 'sage-bindings)

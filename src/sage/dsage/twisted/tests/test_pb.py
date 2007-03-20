@@ -59,32 +59,32 @@ class DSageTestCase(unittest.TestCase):
     def testget_job_resultsByID(self):
         job = self.unpickle(self.dsage_server.get_job())
         job.result = 'test'
-        job.file = ''
+        job.code = ''
         id = self.dsage_server.submit_job(job.pickle())
         self.assert_(self.dsage_server.get_job_result_by_id(id) == 'test')
 
-    def testget_jobs_by_author(self):
+    def testget_jobs_by_user_id(self):
         self.assert_(isinstance(
-                     self.dsage_server.get_jobs_by_author('Yi Qiang',
+                     self.dsage_server.get_jobs_by_user_id('Yi Qiang',
                                                 'unittest',
                                                 True), list))
 
-        self.assert_(len(self.dsage_server.get_jobs_by_author('test',
+        self.assert_(len(self.dsage_server.get_jobs_by_user_id('test',
                                                     False,
                                                     None)) == 0)
 
         job = self.unpickle(self.dsage_server.get_job())
-        job.author = 'test'
-        job.file = ''
+        job.user_id = 'test'
+        job.code = ''
         id = self.dsage_server.submit_job(job.pickle())
-        self.assert_(self.dsage_server.get_jobs_by_author('test',
+        self.assert_(self.dsage_server.get_jobs_by_user_id('test',
                                                 False,
-                                                None)[0].author == 'test')
+                                                None)[0].user_id == 'test')
 
     def testsubmit_job(self):
         jobs = self.create_jobs(10)
         for job in jobs:
-            job.file = ""
+            job.code = ""
             id = self.dsage_server.submit_job(job.pickle())
             self.assertEquals(type(id), str)
             j = self.unpickle(self.dsage_server.get_job_by_id(id))
@@ -107,7 +107,7 @@ class DSageTestCase(unittest.TestCase):
         for job in jobs:
             self.assert_(isinstance(job, Job))
             self.assert_(job.status == 'processing')
-            self.assert_(job.updated_time < datetime.datetime.now())
+            self.assert_(job.update_time < datetime.datetime.now())
 
     def testget_active_clients_list(self):
         pass
@@ -128,7 +128,7 @@ class DSageTestCase(unittest.TestCase):
             job = self.unpickle(job)
             self.assert_(isinstance(job, Job))
             self.assertEquals(job.killed, True)
-            self.assert_(job.updated_time < datetime.datetime.now())
+            self.assert_(job.update_time < datetime.datetime.now())
 
     def testget_next_job_id(self):
         id = self.dsage_server.get_next_job_id()
@@ -178,7 +178,7 @@ class DSageTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 

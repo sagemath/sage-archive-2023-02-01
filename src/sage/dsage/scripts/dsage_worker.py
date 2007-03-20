@@ -31,6 +31,7 @@ from twisted.python import log
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
+from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.errors.exceptions import NoJobException
 
@@ -95,12 +96,12 @@ class Worker(object):
         self.get_job()
 
     def get_job(self):
-        # print 'Ok so far.'
         try:
+            if LOG_LEVEL > 3:
+                log.msg('Worker %s: Getting job...' % (self.id))
             d = self.remoteobj.callRemote('get_job')
         except Exception, msg:
-            print 'Error getting job.'
-            print msg
+            log.msg(msg)
             log.msg('[Worker: %s, get_job] Disconnected from remote server.'\
                     % self.id)
             reactor.callLater(DELAY, self.get_job)
@@ -110,7 +111,7 @@ class Worker(object):
 
         return d
 
-    def gotJob(self, job):
+    def gotJob(self, jdict):
         r"""
         gotJob is a callback for the remoteobj's get_job method.
 
@@ -119,10 +120,13 @@ class Worker(object):
 
         """
 
-        if not isinstance(job, str):
+        if LOG_LEVEL > 3:
+            log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
+
+        self.job = expand_job(jdict)
+        if not isinstance(self.job, Job):
             raise NoJobException
 
-        self.job = unpickle(job)
         log.msg('[Worker: %s] Got job (%s, %s)' % (self.id,
                                                    self.job.name,
                                                    self.job.id))
@@ -179,7 +183,13 @@ class Worker(object):
 
         sleep_time = 5.0
         if failure.check(NoJobException):
+            if LOG_LEVEL > 3:
+                log.msg('[Worker %s, noJob] Sleeping for %s seconds\
+                ' % (self.id, sleep_time))
             reactor.callLater(5.0, self.get_job)
+        else:
+            print "Error: ", failure.getErrorMessage()
+            print "Traceback: ", failure.printTraceback()
 
     def setupTempDir(self, job):
         # change to a temporary directory
@@ -234,7 +244,7 @@ class Worker(object):
         Writes out the job file to be executed to disk.
 
         """
-        parsed_file = preparse_file(job.file, magic=False,
+        parsed_file = preparse_file(job.code, magic=False,
                                     do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
@@ -261,6 +271,8 @@ class Worker(object):
 
         """
 
+        if LOG_LEVEL > 3:
+            log.msg('[Worker %s, doJob] Beginning job execution...' % (self.id))
         self.free = False
         d = defer.Deferred()
 

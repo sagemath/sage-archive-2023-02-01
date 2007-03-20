@@ -155,14 +155,12 @@ class UserPerspective(DefaultPerspective):
 
         return job
 
-    def perspective_get_jobs_by_author(self, author, job_name, is_active):
-        if not (isinstance(author, str) or
-                isinstance(is_active, bool) or
-                isinstance(job_name, str)):
-            print 'Bad jobID passed to perspective_get_jobs_by_author'
+    def perspective_get_jobs_by_user_id(self, user_id):
+        if not (isinstance(user_id, str)):
+            print 'Bad jobID passed to perspective_get_jobs_by_user_id'
             raise BadTypeError()
 
-        jobs = self.DSageServer.get_jobs_by_author(author, job_name, is_active)
+        jobs = self.DSageServer.get_jobs_by_user_id(user_id)
 
         return jobs
 

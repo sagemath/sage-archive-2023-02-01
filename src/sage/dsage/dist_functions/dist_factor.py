@@ -61,7 +61,7 @@ class DistributedFactor(DistributedFunction):
         n = max(self.composite_factors)
         if n < 10**40:
             return self.ecm_job()
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
     result = [[n], [True], {}, 'primality']
@@ -82,7 +82,7 @@ else:
             self.i = 0
         n = self.composite_factors[self.i % len(self.composite_factors)]
         rate_multiplier = float(self.concurrent / len(self.composite_factors))
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
     result = [[n], [True], {}, 'primality']

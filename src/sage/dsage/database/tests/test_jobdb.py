@@ -75,11 +75,11 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
             self.assert_(self.jobdb.get_job_by_id(job_id).updated_time <
                          datetime.datetime.now())
 
-    def testget_jobs_by_author(self):
-        jobs = self.jobdb.get_jobs_by_author('Yi Qiang', True)
+    def testget_jobs_by_user_id(self):
+        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', True)
         self.assert_(len(jobs) == 0)
 
-        jobs = self.jobdb.get_jobs_by_author('Yi Qiang', False, 'unittest')
+        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', False, 'unittest')
         self.assert_(len(jobs) > 0)
 
     def testget_active_jobs(self):
@@ -105,7 +105,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 
@@ -153,9 +153,9 @@ class DatabasePrunerTestCase(unittest.TestCase):
     def testclean_old_jobs(self):
         jobs = self.jobdb.get_jobs_list()
         for job in jobs:
-            job.updated_time -= datetime.timedelta(10)
+            job.update_time -= datetime.timedelta(10)
             # directly accessing the database because store_job
-            # automatically updates the updated_time
+            # automatically updates the update_time
             self.jobdb.jobdb[job.id] = job
 
         self.pruner.clean_old_jobs()
@@ -178,7 +178,7 @@ class DatabasePrunerTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 

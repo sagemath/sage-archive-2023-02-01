@@ -166,7 +166,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
     def _LoginConnected2(self, remoteobj, jobs):
         job = jobs[0]
-        job.file = ""
+        job.code = ""
         d = remoteobj.callRemote('submit_job', job.pickle())
         d.addCallback(self._got_job_id)
         return d
@@ -198,7 +198,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 

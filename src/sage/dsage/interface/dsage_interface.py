@@ -33,7 +33,7 @@ from twisted.internet import reactor, defer, error, task
 from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
-from sage.dsage.database.job import Job
+from sage.dsage.database.job import Job, expand_job
 from sage.dsage.twisted.pb import ClientPBClientFactory
 from sage.dsage.twisted.misc import blocking_call_from_thread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
@@ -236,8 +236,8 @@ class DSage(object):
 
         type_ = 'sage'
 
-        job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name,
+                  user_id=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
         if globals_ is not None:
@@ -259,8 +259,8 @@ class DSage(object):
 
         type_ = 'file'
         cmd = open(fname).read()
-        job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name,
+                  user_id=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
 
@@ -279,7 +279,7 @@ class DSage(object):
 
     def _got_job_id(self, id, job):
         job.id = id
-        job.author = self.username
+        job.user_id = self.username
 
         self.jobs.append(job)
 
@@ -332,7 +332,7 @@ class DSage(object):
 
         self.check_connected()
 
-        d = self.remoteobj.callRemote('get_jobs_by_author',
+        d = self.remoteobj.callRemote('get_jobs_by_user_id',
                                       self.username,
                                       is_active,
                                       job_name)
@@ -467,8 +467,8 @@ class BlockingDSage(DSage):
 
         type_ = 'sage'
 
-        job = Job(id=None, file=cmd, name=job_name,
-                  author=self.username, type_=type_)
+        job = Job(id_=None, code=cmd, name=job_name,
+                  user_id=self.username, type_=type_)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():
@@ -499,6 +499,27 @@ class BlockingDSage(DSage):
             wrapped_job = blockingJobWrapper(self.remoteobj, job)
 
         return wrapped_job
+
+    def get_my_jobs(self):
+        r"""
+        This method returns a list of jobs that belong to you.
+
+        Parameters:
+        is_active -- set to true to get only active jobs (bool)
+
+        Use this method if you get disconnected from the server and wish to
+        retrieve your old jobs back.
+
+        """
+
+        self.check_connected()
+
+        jdicts = blocking_call_from_thread(self.remoteobj.callRemote,
+                                           'get_jobs_by_user_id',
+                                           self.username)
+
+        return [expand_job(jdict) for jdict in jdicts]
+
 
     def cluster_speed(self):
         r"""
@@ -702,6 +723,12 @@ class JobWrapper(object):
         #         print str(jobID) + ' was successfully killed.\r'
 
 class blockingJobWrapper(JobWrapper):
+    r"""
+    Blocking version of the JobWrapper object.  This is to be used
+    interactively.
+
+    """
+
     def __init__(self, remoteobj, job):
         self.remoteobj = remoteobj
         self._job = job
@@ -714,13 +741,14 @@ class blockingJobWrapper(JobWrapper):
         # This is kind of stupid, why not just set the job ID when
         # submitting the job?
 
-        jobID = blocking_call_from_thread(self.remoteobj.callRemote,
-                                          'get_next_job_id')
+        # jobID = blocking_call_from_thread(self.remoteobj.callRemote,
+        #                                           'get_next_job_id')
 
-        self._job.id = jobID
-        pickled_job = self._job.pickle()
-        d = blocking_call_from_thread(self.remoteobj.callRemote,
-                                   'submit_job', pickled_job)
+        # self._job.id = jobID
+        # pickled_job = self._job.pickle()
+        jdict = blocking_call_from_thread(self.remoteobj.callRemote,
+                                          'submit_job', job.reduce())
+        self._job = expand_job(jdict)
 
     def __repr__(self):
         self.get_job()
@@ -740,7 +768,8 @@ class blockingJobWrapper(JobWrapper):
         job = blocking_call_from_thread(self.remoteobj.callRemote,
                                      'get_job_by_id', self._job.id)
 
-        self._update_job(self.unpickle(job))
+        print job
+        self._update_job(expand_job(job))
 
     def async_get_job(self):
         return JobWrapper.get_job(self)

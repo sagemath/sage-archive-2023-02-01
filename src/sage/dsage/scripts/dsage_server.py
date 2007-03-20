@@ -28,7 +28,8 @@ from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
+from sage.dsage.database.jobdb import DatabasePruner
 from sage.dsage.database.userdb import UserDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
@@ -95,7 +96,7 @@ def main():
     # start logging
     startLogging(LOG_FILE)
 
-    jobdb = JobDatabaseZODB()
+    jobdb = JobDatabaseSQLite()
 
     # Start to prune out old jobs
     # jobdb_pruner = DatabasePruner(jobdb)

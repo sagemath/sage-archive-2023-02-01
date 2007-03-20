@@ -27,6 +27,7 @@ import sage.dsage.server.worker_tracker as worker_tracker
 import sage.dsage.server.client_tracker as client_tracker
 from sage.dsage.server.hostinfo_tracker import hostinfo_list
 from sage.dsage.errors.exceptions import BadTypeError
+from sage.dsage.database.job import Job, expand_job
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -48,7 +49,7 @@ class DSageServer(pb.Root):
         """
 
         self.jobdb = jobdb
-        self.log_level = log_level
+        self.LOG_LEVEL = log_level
 
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
@@ -62,21 +63,22 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job()
+        jdict = self.jobdb.get_job()
 
-        if job == None:
-            if self.log_level > 2:
+        if jdict == None:
+            if self.LOG_LEVEL > 2:
                 log.msg('[DSage, get_job]' + ' Job db is empty.')
             return None
         else:
-            if self.log_level > 3:
+            if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Returning Job %s to client'
-                        % (job.id))
-                job.status = 'processing'
-            self.jobdb.store_job(job)
-        return job.pickle()
+                        % (jdict['id']))
+            jdict['status'] = 'processing'
+            self.jobdb.store_job(jdict)
 
-    def get_job_by_id(self, jobID):
+        return jdict
+
+    def get_job_by_id(self, job_id):
         r"""
         Returns a job by the job id.
 
@@ -85,8 +87,8 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(jobID)
-        return job.pickle()
+        job = self.jobdb.get_job_by_id(job_id)
+        return job
 
     def get_job_result_by_id(self, jobID):
         """Returns the job result.
@@ -116,67 +118,47 @@ class DSageServer(pb.Root):
         # new_job = copy.deepcopy(job)
         # print new_job
         # # Set file, data to 'Omitted' so we don't need to transfer it
-        # new_job.file = 'Omitted...'
+        # new_job.code = 'Omitted...'
         # new_job.data = 'Omitted...'
 
         return job.pickle()
 
-    def get_jobs_by_author(self, author, is_active, job_name):
+    def get_jobs_by_user_id(self, user_id):
         r"""
-        Returns jobs created by author.
+        Returns jobs created by user_id.
 
         Parameters:
-        author -- the author name (str)
+        user_id -- the username (str)
         is_active -- when set to True, only return active jobs (bool)
         job_name -- the job name (optional)
 
         """
 
-        jobs = self.jobdb.get_jobs_by_author(author, is_active, job_name)
+        jobs = self.jobdb.get_jobs_by_user_id(user_id)
 
-        if self.log_level > 3:
+        if self.LOG_LEVEL > 3:
             log.msg(jobs)
         return jobs
 
-    def submit_job(self, pickled_job):
+    def submit_job(self, jdict):
         r"""
         Submits a job to the job database.
 
         Parameters:
-        pickled_job -- a pickled_Job object
+        jdict -- the internal dictionary of a Job object
 
         """
 
-        try:
-            if self.log_level > 3:
-                log.msg('[DSage, submit_job] Trying to unpickle job')
-            job = self.unpickle(pickled_job)
-        except:
+
+        if self.LOG_LEVEL > 3:
+            log.msg('[DSage, submit_job] %s' % (jdict))
+
+        if jdict['code'] is None:
             return False
-        if job.file is None:
-            return False
-        if job.name is None:
-            job.name = 'default job'
-        if job.id is None:
-            job.id = self.jobdb.get_next_job_id()
+        if jdict['name'] is None:
+            jdict['name'] = 'No name specified'
 
-        if self.log_level > 0:
-            log.msg('[DSage, submit_job] Job (%s %s) submitted' % (job.id,
-                                                                 job.name))
-        return self.jobdb.store_job(job)
-
-    def submit_job(self, job_dict):
-        r"""
-        Clients and workers call this function to submit a job.
-
-        Parameters:
-        job_dict -- a dictionary containing the jobs parameters
-
-        """
-
-        job_id = job_dict['job_id']
-        data = job_dict['data']
-        code = job_dict['code']
+        return self.jobdb.store_job(jdict)
 
     def get_jobs_list(self):
         r"""
@@ -213,7 +195,7 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.log_level > 0:
+        if self.LOG_LEVEL > 0:
             log.msg('[DSage, get_next_job_id] Returning next job ID')
 
         return self.jobdb.get_next_job_id()
@@ -232,30 +214,30 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.log_level > 0:
+        if self.LOG_LEVEL > 0:
             log.msg('[DSage, job_done] Job %s called back' % (jobID))
-        if self.log_level > 2:
+        if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] Output: %s ' % output)
             log.msg('[DSage, job_done] Result: Some binary data...')
             log.msg('[DSage, job_done] completed: %s ' % completed)
             log.msg('[DSage, job_done] worker_info: %s ' % str(worker_info))
 
-        job = self.unpickle(self.get_job_by_id(jobID))
+        jdict = self.get_job_by_id(jobID)
 
-        if self.log_level > 3:
+        if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] result type' , type(result))
 
         output = str(output)
-        if job.output is not None: # Append new output to existing output
-            job.output = job.output + output
+        if jdict['output'] is not None: # Append new output to existing output
+            jdict['output'] += output
         else:
-            job.output = output
+            jdict['output'] = output
         if completed:
-            job.result = result
-            job.status = 'completed'
-            job.worker_info = worker_info
+            jdict['result'] = result
+            jdict['status'] = 'completed'
+            jdict['worker_info'] = str(worker_info)
 
-        return self.jobdb.store_job(job)
+        return self.jobdb.store_job(jdict)
 
     def job_failed(self, jobID):
         r"""
@@ -274,7 +256,7 @@ class DSageServer(pb.Root):
         else:
             job.status = 'new' # Put job back in the queue
 
-        if self.log_level > 1:
+        if self.LOG_LEVEL > 1:
             s = ['[DSage, job_failed] Job %s failed ' % (jobID),
                  '%s times. ' % (job.failures)]
             log.msg(''.join(s))
@@ -290,13 +272,13 @@ class DSageServer(pb.Root):
 
         job = self.unpickle(self.get_job_by_id(jobID))
         if job == None:
-            if self.log_level > 0:
+            if self.LOG_LEVEL > 0:
                 log.msg('[DSage, kill_job] No such job id')
             return None
         else:
             job.killed = True
             self.jobdb.store_job(job)
-            if self.log_level > 0:
+            if self.LOG_LEVEL > 0:
                 log.msg('Job %s was killed because %s ' % (jobID, reason))
 
         return jobID
@@ -328,7 +310,7 @@ class DSageServer(pb.Root):
         """
 
         cluster_speed = 0
-        if self.log_level > 3:
+        if self.LOG_LEVEL > 3:
             log.msg(hostinfo_list)
             log.msg(len(hostinfo_list))
         for h in hostinfo_list:
@@ -345,7 +327,7 @@ class DSageServer(pb.Root):
 
         """
 
-        if self.log_level > 0:
+        if self.LOG_LEVEL > 0:
             log.msg(h)
         if len(hostinfo_list) == 0:
             hostinfo_list.append(h)

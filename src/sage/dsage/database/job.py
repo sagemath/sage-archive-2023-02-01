@@ -21,8 +21,7 @@ import cPickle
 import zlib
 import bz2
 import os
-
-from twisted.spread import pb
+import copy
 
 from persistent import Persistent
 
@@ -32,17 +31,17 @@ class Job(Persistent):
 
     """
 
-    def __init__(self, id=None, name=None, file=None, parent=None,
-                 author=None, type_='sage'):
+    def __init__(self, id_=None, name=None, code=None, parent=None,
+                 user_id=None, type_='sage'):
         r"""
         Creates a new job.
 
         Parameters:
         name -- job name
         id -- job id (must be unique)
-        file -- job file
+        code -- job code
         parent -- sets if the job is a parent job
-        author -- author of the job (not neccesarily unique)
+        user_id -- author of the job (not neccesarily unique)
         type -- the type of the job (file, string, generator)
                 defaults to string
 
@@ -51,11 +50,10 @@ class Job(Persistent):
         self.jdict = {}
 
         # Job keywords
-        self.jdict['num'] = None
-        self.jdict['id'] = id
+        self.jdict['id'] = id_
         self.jdict['name'] = name
-        self.jdict['file'] = file
-        self.jdict['author'] = author
+        self.jdict['code'] = code
+        self.jdict['user_id'] = user_id
         self.jdict['data'] = []
         self.jdict['output'] = ''
         self.jdict['worker_info'] = None
@@ -63,13 +61,13 @@ class Job(Persistent):
         # new, completed, incomplete, processing
         self.jdict['status'] = 'new'
         self.jdict['creation_time'] = datetime.datetime.now()
-        self.jdict['updated_time'] = None
+        self.jdict['update_time'] = None
         self.jdict['finish_time'] = None
         self.jdict['killed'] = False
         self.jdict['type'] = type_
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
-
+        self.jdict['verifiable'] = False # is this job easily verified?
 
         # These might become deprecated
         self.jdict['parent'] = parent
@@ -89,14 +87,14 @@ class Job(Persistent):
         self.jdict['name'] = value
     name = property(fget=get_name, fset=set_name, fdel=None, doc='Job name')
 
-    def get_file(self):
-        return self.jdict['file']
-    def set_file(self, value):
+    def get_code(self):
+        return self.jdict['code']
+    def set_code(self, value):
         if not isinstance(value, str):
             raise TypeError
-        self.jdict['file'] = value
-    file = property(fget=get_file, fset=set_file, fdel=None,
-                    doc='Job file')
+        self.jdict['code'] = value
+    code = property(fget=get_code, fset=set_code, fdel=None,
+                    doc='Job code')
 
     def get_id(self):
         return self.jdict['id']
@@ -105,15 +103,6 @@ class Job(Persistent):
 #            raise TypeError
         self.jdict['id'] = value
     id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
-
-    def get_num(self):
-        if self.id is None:
-            return None
-        s = self.id.find('_') + 1
-        return int(self.id[s:])
-    def set_num(self, value):
-        pass
-    num = property(fget=get_num, fset=set_num, fdel=None, doc='Job Number')
 
     def get_status(self):
         return self.jdict['status']
@@ -159,12 +148,11 @@ class Job(Persistent):
     output = property(fget=get_output, fset=set_output, fdel=None,
                       doc='Job output')
 
-    def get_author(self):
-        return self.jdict['author']
-    def set_author(self, value):
-
-        self.jdict['author'] = value
-    author = property(fget=get_author, fset=set_author, fdel=None,
+    def get_user_id(self):
+        return self.jdict['user_id']
+    def set_user_id(self, value):
+        self.jdict['user_id'] = value
+    user_id = property(fget=get_user_id, fset=set_user_id, fdel=None,
                       doc='Job author')
 
     def get_finish_time(self):
@@ -176,13 +164,13 @@ class Job(Persistent):
     finish_time = property(fget=get_finish_time, fset=set_finish_time,
                            fdel=None, doc='Job finish time')
 
-    def get_updated_time(self):
-        return self.jdict['updated_time']
-    def set_updated_time(self, value):
+    def get_update_time(self):
+        return self.jdict['update_time']
+    def set_update_time(self, value):
         if not isinstance(value, datetime.datetime):
             raise TypeError
-        self.jdict['updated_time'] = value
-    updated_time = property(fget=get_updated_time, fset=set_updated_time,
+        self.jdict['update_time'] = value
+    update_time = property(fget=get_update_time, fset=set_update_time,
                             fdel=None, doc='Job updated time')
 
     def get_creation_time(self):
@@ -232,9 +220,12 @@ class Job(Persistent):
     worker_info = property(fget=get_worker_info, fset=set_worker_info,
                            fdel=None, doc='Worker info')
 
-    def get_data(self):
-        return self.jdict['data']
-    data = property(fget=get_data, fset=None, fdel=None, doc='Job data.')
+    def get_verifiable(self):
+        return self.jdict['verifiable']
+    def set_verifiable(self, value):
+        if not isinstance(value, bool):
+            raise TypeError
+        self.jdict['verifiable'] = value
 
     def attach(self, var, obj, file_name=None):
         r"""
@@ -250,7 +241,7 @@ class Job(Persistent):
         if file_name:
             try:
                 s = open(file_name, 'rb').read()
-                s = zlib.compress(f)
+                s = zlib.compress(s)
             except:
                 print 'Unable to load %s. ' % file_name
                 return
@@ -304,3 +295,38 @@ class Job(Persistent):
         """
 
         return cPickle.loads(zlib.decompress(pickled_job))
+
+    def reduce(self):
+        r"""
+        Returns a reduced form of Job.jdict to be sent over the network.
+
+        """
+
+        # TODO: Figure out what attributes are safe to delete
+
+        # dump and compress the data of the job
+        jdict = copy.deepcopy(self.jdict)
+        jdict['data'] = cPickle.dumps(self.jdict['data'], 2)
+        # jdict['data'] = zlib.compress(jdict['data'])
+
+        return jdict
+
+def expand_job(jdict):
+    r"""
+    This method recreates a Job object given a jdict.
+
+    """
+
+    if jdict is None:
+        return None
+
+    job = Job()
+
+    # decompress and load data
+    # jdict['data'] = zlib.decompress(jdict['data'])
+    jdict['data'] = cPickle.loads(jdict['data'])
+
+    # swap the jdicts, easy eh?
+    job.jdict = jdict
+
+    return job

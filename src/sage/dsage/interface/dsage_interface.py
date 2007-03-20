@@ -570,13 +570,10 @@ class JobWrapper(object):
         self._update_job(job)
         self.worker_info = self._job.worker_info
 
-        d = self.remoteobj.callRemote('get_next_job_id')
-        d.addCallback(self._got_id)
+        # d = self.remoteobj.callRemote('get_next_job_id')
+        d = self.remoteobj.callRemote('submit_job', job.reduce())
+        d.addCallback(self._got_jdict)
         d.addErrback(self._catch_failure)
-
-        # hack to try and fetch a result after submitting the job
-        # self.sync_job_task = task.LoopingCall(self.sync_job)
-        # self.sync_job_task.start(2.0, now=True)
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
@@ -628,15 +625,12 @@ class JobWrapper(object):
     def _got_job(self, job):
         if job == None:
             return
-        self._job = self.unpickle(job)
+        self._job = expand_job(job)
         self._update_job(self._job)
 
-    def _got_id(self, id_):
-        self._job.id = id_
-        self.id = id_
-        pickled_job = self._job.pickle()
-        d = self.remoteobj.callRemote('submit_job', pickled_job)
-        d.addErrback(self._catch_failure)
+    def _got_jdict(self, jdict):
+        self._job = expand_job(jdict)
+        self.id = jdict['id']
 
     def get_job(self):
         if self.remoteobj is None:

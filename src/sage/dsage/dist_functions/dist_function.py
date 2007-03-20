@@ -158,7 +158,7 @@ class DistributedFunction(object):
             self.waiting_jobs = []
             reactor.callFromThread(self.checker_task.stop)
 
-        self.done = len(self.waiting_jobs) == 0
+        # self.done = len(self.waiting_jobs) == 0
 
 class DistributedFunctionTest(DistributedFunction):
     def __init__(self, DSage, n, name='DistributedFunctionTest'):

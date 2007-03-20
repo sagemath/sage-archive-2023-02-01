@@ -184,8 +184,8 @@ class UserPerspective(DefaultPerspective):
 
         return self.DSageServer.sync_job(jobID)
 
-    def perspective_submit_job(self, pickled_job):
-        return self.DSageServer.submit_job(pickled_job)
+    def perspective_submit_job(self, jdict):
+        return self.DSageServer.submit_job(jdict)
 
     def perspective_job_done(self, jobID, output, result,
                             completed, worker_info):

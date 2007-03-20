@@ -515,7 +515,11 @@ class JobDatabaseSQLite(JobDatabase):
         WHERE id=?
         """ % (tuple_[0])
         cur = self.con.cursor()
-        cur.execute(query, tuple_[1:])
+        if tuple_[0] == 'data' or tuple_[0] == 'result': # Binary objects
+            if tuple_[1] is not None:
+                cur.execute(query, (sqlite3.Binary(tuple_[1]), tuple_[2]))
+        else:
+            cur.execute(query, tuple_[1:])
         self.con.commit()
 
     def store_job(self, jdict):
@@ -565,6 +569,11 @@ class JobDatabaseSQLite(JobDatabase):
 
         columns = [desc[0] for desc in row_description]
         jdict = dict(zip(columns, jtuple))
+
+        # Convert buffer objects back to string
+        jdict['data'] = str(jdict['data'])
+        jdict['result'] = str(jdict['result'])
+
         return jdict
 
     def get_killed_jobs_list(self):

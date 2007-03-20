@@ -13,7 +13,8 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari
+from sage.libs.pari.all import pari, PariError
+
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.complex_field
@@ -268,7 +269,11 @@ def prime_pi(x):
     """
     if x < 2:
         return integer_ring.ZZ(0)
-    return integer_ring.ZZ(pari(x).primepi())
+    try:
+        return integer_ring.ZZ(pari(x).primepi())
+    except PariError:
+        pari.init_primes(pari(x)+1)
+        return integer_ring.ZZ(pari(x).primepi())
 
 number_of_primes = prime_pi
 
@@ -1687,16 +1692,21 @@ def euler_phi(n):
     return integer_ring.ZZ(pari(n).phi())
     #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 
-def crt(a,b=0,m=1,n=1):
+def crt(a,b,m,n):
     """
     Use the Chinese Remainder Theorem to find some integer x such
     that x=a (mod m) and x=b (mod n).   Note that x is only well-defined
     modulo m*n.
 
-    sage: crt(2, 1, 3, 5)
-    -4
-    sage: crt(13,20,100,301)
-    -2087
+    EXAMPLES:
+        sage: crt(2, 1, 3, 5)
+        -4
+        sage: crt(13,20,100,301)
+        -2087
+
+    You can also use upper case:
+        sage: CRT(2,3, 3, 5)
+        8
     """
     if isinstance(a,list):
         return CRT_list(a,b)
@@ -1708,6 +1718,15 @@ def crt(a,b=0,m=1,n=1):
 CRT = crt
 
 def CRT_list(v, moduli):
+    """
+    Given a list v of integers and a list of corresponding
+    moduli, find a single integer that reduces to each
+    element of v modulo the corresponding moduli.
+
+    EXAMPLES:
+        sage: CRT_list([2,3,2], [3,5,7])
+        23
+    """
     if len(v) == 0:
         return 0
     x = v[0]

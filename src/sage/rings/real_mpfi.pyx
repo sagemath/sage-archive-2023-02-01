@@ -397,6 +397,8 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         bounds equal; otherwise, the upper and lower bounds will typically
         be adjacent floating-point numbers that surround the given value.
         """
+        import sage.rings.algebraic
+
         if isinstance(x, real_mpfr.RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
@@ -409,7 +411,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational)):
+        if isinstance(x, (Integer, Rational, sage.rings.algebraic.AlgebraicNumber)):
             return self(x)
         cdef RealNumber lower, upper
         try:
@@ -675,6 +677,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             RealIntervalField?
         for many more examples.
         """
+        import sage.rings.algebraic
+
         self.init = 0
         if parent is None:
             raise TypeError
@@ -733,6 +737,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 rn = self._parent._lower_field()(a)
                 rn1 =self._parent._upper_field()(b)
                 mpfi_interv_fr(self.value, <mpfr_t> rn.value, <mpfr_t> rn1.value)
+
+        elif isinstance(x, sage.rings.algebraic.AlgebraicNumber):
+            d = x.interval(self._parent)
+            mpfi_set(self.value, d.value)
 
         else:
             if isinstance(x, str):

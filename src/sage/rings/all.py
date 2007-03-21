@@ -132,6 +132,9 @@ from fraction_field import FractionField, is_FractionField
 Frac = FractionField
 from fraction_field_element import is_FractionFieldElement
 
+# continued fractions
+from contfrac import continued_fraction, CFF, ContinuedFractionField
+
 # Arithmetic
 from arith import *
 
@@ -145,3 +148,4 @@ from homset import is_RingHomset
 
 CC = ComplexField()
 I = CC.gen()
+

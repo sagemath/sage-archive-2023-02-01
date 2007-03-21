@@ -319,7 +319,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
         QQ = rings.Rational
-        v = arith.continued_fraction(QQ(alpha))
+        v = arith.continued_fraction_list(QQ(alpha))
         c = [QQ(0), QQ(1)] + arith.convergents(v)
         a = self(0)
         if self.weight() > 2:

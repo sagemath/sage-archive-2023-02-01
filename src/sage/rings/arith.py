@@ -2201,9 +2201,26 @@ def partitions(n):
         if p and (len(p) < 2 or p[1] > p[0]):
             yield (p[0] + 1,) + p[1:]
 
-def continued_fraction(x, partial_convergents=False):
+
+
+## def convergents_pnqn(x):
+##     """
+##     Return the pairs (pn,qn) that are the numerators and denominators
+##     of the partial convergents of the continued fraction of x.  We
+##     include (0,1) and (1,0) at the beginning of the list (these are
+##     the -2 and -1 th convergents).
+##     """
+##     v = pari(x).contfrac()
+##     w = [(0,1), (1,0)]
+##     for n in range(len(v)):
+##         pn = w[n+1][0]*v[n] + w[n][0]
+##         qn = w[n+1][1]*v[n] + w[n][1]
+##         w.append(int(pn), int(qn))
+##     return w
+
+def continued_fraction_list(x, partial_convergents=False):
     r"""
-    Returns the continued fraction of x.
+    Returns the continued fraction of x as a list.
 
     \begin{note}
     This may be slow since it's implemented in pure
@@ -2212,11 +2229,13 @@ def continued_fraction(x, partial_convergents=False):
     \end{note}
 
     EXAMPLES:
-        sage: continued_fraction(45/17)
+        sage: continued_fraction_list(45/17)
         [2, 1, 1, 1, 5]
-        sage: continued_fraction(sqrt(2))
+        sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
-        sage: continued_fraction(RR(pi), partial_convergents=True)
+        sage: continued_fraction_list(sqrt(4/19))
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+        sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
           (22, 7),
@@ -2232,14 +2251,15 @@ def continued_fraction(x, partial_convergents=False):
           (5419351, 1725033),
           (80143857, 25510582),
           (245850922, 78256779)])
-        sage: continued_fraction(e)
+        sage: continued_fraction_list(e)
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-        sage: continued_fraction(RR(e))
+        sage: continued_fraction_list(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-        sage: print continued_fraction(RealField(200)(e))
+        sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
-    if isinstance(x, (integer.Integer, sage.rings.rational.Rational,
+    if not partial_convergents and \
+           isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()
     x_in = x
@@ -2248,6 +2268,7 @@ def continued_fraction(x, partial_convergents=False):
     start = x
     i = 0
     try:
+        last = None
         while True:
             i += 1
             a = integer_ring.ZZ(int(x.floor()))
@@ -2257,12 +2278,14 @@ def continued_fraction(x, partial_convergents=False):
             qn = v[n]*w[n+1][1] + w[n][1]
             w.append((pn, qn))
             x -= a
-            if abs(start - pn/qn) == 0:
+            s = start - pn/qn
+            if abs(s) == 0 or (not last is None  and last == s):
                 del w[0]; del w[0]
                 if partial_convergents:
                     return v, w
                 else:
                     return v
+            last = s
             x = 1/x
     except (AttributeError, NotImplementedError, TypeError), msg:
         raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
@@ -2307,23 +2330,6 @@ def convergent(v, n):
     return x
 
 
-
-## def convergents_pnqn(x):
-##     """
-##     Return the pairs (pn,qn) that are the numerators and denominators
-##     of the partial convergents of the continued fraction of x.  We
-##     include (0,1) and (1,0) at the beginning of the list (these are
-##     the -2 and -1 th convergents).
-##     """
-##     v = pari(x).contfrac()
-##     w = [(0,1), (1,0)]
-##     for n in range(len(v)):
-##         pn = w[n+1][0]*v[n] + w[n][0]
-##         qn = w[n+1][1]*v[n] + w[n][1]
-##         w.append(int(pn), int(qn))
-##     return w
-
-
 def convergents(v):
     """
     Return all the partial convergents of a continued fraction
@@ -2353,7 +2359,6 @@ def convergents(v):
         qn = w[n+1][1]*v[n] + w[n][1]
         w.append((pn, qn))
     return [Q(x) for x in w[2:]]
-
 
 
 ## def continuant(v, n=None):

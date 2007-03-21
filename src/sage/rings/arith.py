@@ -13,7 +13,7 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari
+from sage.libs.pari.all import pari, PariError
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.complex_field
@@ -268,7 +268,11 @@ def prime_pi(x):
     """
     if x < 2:
         return integer_ring.ZZ(0)
-    return integer_ring.ZZ(pari(x).primepi())
+    try:
+        return integer_ring.ZZ(pari(x).primepi())
+    except PariError:
+        pari.init_primes(pari(x)+1)
+        return integer_ring.ZZ(pari(x).primepi())
 
 number_of_primes = prime_pi
 

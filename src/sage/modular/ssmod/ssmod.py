@@ -31,6 +31,12 @@ We compute a Hecker operator on a space of huge dimension!
     sage: t = X.T(2).matrix()            # long time (but still less than a minute!)
     sage: t.nrows()                      # long time
     8334
+
+TESTS:
+    sage: X = SupersingularModule(389)
+    sage: T = X.T(2).matrix().change_ring(QQ)
+    sage: d = T.decomposition()
+    boom right now -- fix this!
 """
 
 #*****************************************************************************

@@ -462,6 +462,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         """
         # note -- p doesn't have to be prime despite the function name
         p = int(p)
+        # NOTE -- it is actually NOT necessary that p be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:

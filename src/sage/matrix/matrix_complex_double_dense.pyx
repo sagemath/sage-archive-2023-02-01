@@ -424,7 +424,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
  	    [1.0*I             2.0*I               -1.0*I]
             sage: b = vector(CDF,[1,2,3])+I*vector(CDF,[1,2,3])
             sage: x = A.solve_left(b); x
-            (-0.113695090439 + 0.113695090439*I, 1.39018087855 - 1.39018087855*I, -0.333333333333 + 0.333333333333*I)
+             (-0.113695090439 + 0.113695090439*I, 1.39018087855 - 1.39018087855*I, -0.333333333333 + 0.333333333333*I)
             sage: A*x
             (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
         """
@@ -443,7 +443,6 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         p = <double *>_result.data
         memcpy(ans.v.data,_result.data,_result.dimensions[0]*sizeof(double)*2)
         return ans
-
 
 
     def solve_left_LU(self, vec):

@@ -452,10 +452,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             0
             1
             2
+            sage: L = [i for i in R]
+            sage: L[0].parent()
+            Ring of integers modulo 3
         """
-        i = integer.Integer(0)
-        while i < self.__order:
-            yield i
+        i = 0
+        order = int(self.__order)
+        while i < order:
+            yield self(i)
             i = i + 1
 
     def _coerce_impl(self, x):

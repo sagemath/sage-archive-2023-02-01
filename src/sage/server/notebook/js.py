@@ -773,12 +773,12 @@ function cell_blur(id) {
         current_cell = -1; */
 
     var display_cell = get_element('cell_display_' + id)
-    set_class('cell_display_' + id, 'cell_input')  // %hide -- deal
+    set_class('cell_display_' + id, 'cell_input')  // TODO: %hide -- deal with later
     var t = e.value;
     if (t.length == 0) {
         t = ' ';
     }
-    display_cell.innerHTML = t.replace('<','&lt;');
+    display_cell.innerHTML = t.replace(/</g,'&lt;');
 
     return true;
 }

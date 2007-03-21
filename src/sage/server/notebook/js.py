@@ -803,12 +803,12 @@ function debug_blur() {
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     // make_cell_input_active(id);
+    current_cell = id;
 
     var cell = get_cell(id);
-
-    if (cell && cell.focus) {
+    if (cell) {
         cell.focus();
-        set_class('cell_display_' + id, 'hidden')
+        set_class('cell_display_' + id, 'hidden');
         cell.className="cell_input_active";
         cell_input_resize(cell);
         if (!bottom)

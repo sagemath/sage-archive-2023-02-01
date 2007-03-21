@@ -1853,6 +1853,8 @@ def kronecker_symbol(x,y):
 
     IMPLEMENTATION: Using Pari.
     """
+    x = integer_ring.ZZ(x)
+    y = integer_ring.ZZ(y)
     return integer_ring.ZZ(pari(x).kronecker(y).python())
 
 def kronecker(x,y):
@@ -1860,6 +1862,41 @@ def kronecker(x,y):
     Synonym for \code{kronecker_symbol}.
     """
     return kronecker_symbol(x,y)
+
+def legendre_symbol(x,p):
+    r"""
+    The Legendre symbol (x|p), for $p$ prime.
+
+    NOTE: The \code{kronecker_symbol} command extends the
+    Legendre symbol to composite moduli and $p=2$.
+
+    INPUT:
+        x -- integer
+        p -- an odd prime number
+
+    EXAMPLES:
+        sage: legendre_symbol(2,3)
+        -1
+        sage: legendre_symbol(1,3)
+        1
+        sage: legendre_symbol(1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: p must be odd
+        sage: legendre_symbol(2,15)
+        Traceback (most recent call last):
+        ...
+        ValueError: p must be a prime
+        sage: kronecker_symbol(2,15)
+        1
+    """
+    x = integer_ring.ZZ(x)
+    p = integer_ring.ZZ(p)
+    if not p.is_prime():
+        raise ValueError, "p must be a prime"
+    if p == 2:
+        raise ValueError, "p must be odd"
+    return integer_ring.ZZ(pari(x).kronecker(p).python())
 
 def primitive_root(n):
     """

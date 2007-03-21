@@ -19,6 +19,7 @@ list of cells.
 #       print "hello world"
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
+
 MAX_OUTPUT = 65536
 
 TRACEBACK = 'Traceback (most recent call last):'
@@ -27,6 +28,8 @@ TRACEBACK = 'Traceback (most recent call last):'
 import os, shutil
 
 from   sage.misc.misc import word_wrap
+
+from colorize import colorize
 
 import notebook
 
@@ -486,12 +489,15 @@ class Cell(Cell_generic):
               onBlur  = 'return cell_blur(%s)'
            >%s</textarea>
         """%('hidden', r, id, id, id, t)
+
+        t_colorize = colorize(t)
         s += """
            <pre class="%s" rows=%s cols=100000 columns=100000
               id         = 'cell_display_%s'
               onClick  = 'return cell_focus(%s, false);'
            >%s</pre>
-        """%(cls, r, id, id, t.replace('<','&lt;'))
+        """%(cls, r, id, id, t_colorize)
+        #(cls, r, id, id, t.replace('<','&lt;'))
         return s
 
     def files_html(self):

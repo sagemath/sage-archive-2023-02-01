@@ -1186,7 +1186,7 @@ span.red{
 
 .token_number
 {
-	color: #0080C0;
+	color: #004040;
 }
 .token_op
 {

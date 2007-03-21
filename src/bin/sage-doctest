@@ -124,7 +124,8 @@ def doc_preparse(s):
             t.append(line)
 
         elif begin[:3] == '...':
-            t.append('...' + sage.misc.preparser.preparse(L[3:]))
+            i = L.find('.')
+            t.append(L[:i+3] + sage.misc.preparser.preparse(L[i+3:]))
         else:
             t.append(L)
     return '\n'.join(t)
@@ -140,8 +141,13 @@ def extract_doc(file_name, module):
     # Put line numbers on every input line
     v = []
     i = 1
-    for L in F:
-        L = L.rstrip()
+    j = 0
+    while j < len(F):
+        L = F[j].rstrip()
+        while j < len(F) and L.endswith('\\'):
+            j += 1
+            L = L[:-1] + F[j].lstrip().lstrip('...').rstrip()
+        j += 1
         if L.lstrip()[:5] == 'sage:':
             #L += '\t\t#<--- "LINE %s of %s"'%(i, file_name)
             L += '###_sage"line %s:_sage_    %s_sage"'%(i, L[4:].strip())

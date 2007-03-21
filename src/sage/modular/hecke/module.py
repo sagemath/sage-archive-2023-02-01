@@ -839,6 +839,21 @@ class HeckeModule_free_module(HeckeModule_generic):
             with 1's in the $n$ through $m$ positions, so projection
             with respect to the standard basis is given by $P\cdot
             B^{-1}$, which is just rows $n$ through $m$ of $B^{-1}$.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('34a')
+            sage: m = ModularSymbols(34); s = m.cuspidal_submodule()
+            sage: d = s.decomposition(7)
+            sage: d
+            [
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(34) of weight 2 with sign 0 over Rational Field,
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(34) of weight 2 with sign 0 over Rational Field
+            ]
+            sage: a = d[0]; a
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(34) of weight 2 with sign 0 over Rational Field
+            sage: pi = a.projection()
+            sage: pi(m([0,oo]))
+            boom!
         """
 
         # Compute the Hecke-stable projection map pi from the ambient

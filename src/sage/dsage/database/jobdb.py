@@ -509,7 +509,6 @@ class JobDatabaseSQLite(JobDatabase):
             if value is not None:
                 cur.execute(query, (sqlite3.Binary(value), id))
         else:
-            print (value, key)
             cur.execute(query, (value, id))
         self.con.commit()
 

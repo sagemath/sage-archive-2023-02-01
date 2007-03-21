@@ -45,6 +45,7 @@ import Cookie
 import cPickle
 import base64
 from urllib import splittag
+from colorize import colorize
 
 #SAGE notebook libraries
 import css, js
@@ -560,6 +561,11 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     #  End editing functionality
     #######################################################################
 
+    def colorize(self):
+        C = self.get_postvars()
+        input_text = C['input']
+        id = C['id']
+        self.wfile.write("%s%s%s"%(id,SEP,colorize(input_text)))
 
     def plain_text_worksheet(self, filename, prompts=True):
         self.send_head()
@@ -924,7 +930,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
                           'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
-                          'insert_wiki_cells', 'delete_cell_all']:
+                          'insert_wiki_cells', 'delete_cell_all', 'colorize']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':

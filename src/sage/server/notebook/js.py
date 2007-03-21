@@ -779,8 +779,28 @@ function cell_blur(id) {
         t = ' ';
     }
     display_cell.innerHTML = t.replace('<','&lt;');
+    cell_colorize(id,t)
 
     return true;
+}
+
+function cell_colorize(id, text) {
+    var input = escape0(text);
+
+    async_request('/colorize', cell_colorize_callback,
+            'id=' + id + '&input='+input);
+}
+
+function cell_colorize_callback(status, response_text) {
+    if (status == "failure") {
+        return;
+    }
+    var X = response_text.split(SEP);
+    var id = X[0];
+    var text = X[1];
+
+    var display_cell = get_element('cell_display_' + id)
+    display_cell.innerHTML = text;
 }
 
 function debug_focus() {

@@ -33,6 +33,14 @@ div.fivepix {
   height:5px;
 }
 
+textarea.hidden {
+   display:none;
+}
+
+pre.hidden {
+   display:none;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -934,6 +942,24 @@ textarea.cell_input {
   margin-top:0px;
 }
 
+pre.cell_input {
+  color:#000000;
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  width: 100%;
+  margin-bottom:0px;
+  margin-top:0px;
+
+}
+pre.cell_input:hover {
+  cursor:pointer;
+}
 
 textarea.cell_input_hide {
   background-color: white;
@@ -1079,7 +1105,7 @@ pre.cell_output_hide {
 }
 
 a.file_link {
-  text_decoration:underline;
+  text-decoration:underline;
 }
 
 
@@ -1155,10 +1181,41 @@ span.red{
 
 
 /***********************************************************/
-/*                     wiki css styling                    */
+/*               syntax highlighting css styling           */
 /***********************************************************/
 
-
+.token_number
+{
+	color: #0080C0;
+}
+.token_op
+{
+	color: #005500;
+}
+.token_string
+{
+	color: #aa5544;
+}
+.token_comment
+{
+	color: #770000;
+}
+.token_name
+{
+	color: #000000;
+}
+.token_error
+{
+	color: #FF8080;
+}
+.keyword
+{
+	color: #990099;
+}
+.text
+{
+	color: #000000;
+}
 
 """
     if color == 'gmail':

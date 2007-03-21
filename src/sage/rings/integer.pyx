@@ -122,6 +122,8 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+MAX_UNSIGNED_LONG = 2 * sys.maxint
+
 # This crashes SAGE:
 #  s = 2003^100300000
 # The problem is related to realloc moving all the memory
@@ -658,6 +660,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9536.7431640625
             sage: 'sage'^3
             'sagesagesage'
+
+
+        The exponent must first in an unsigned long.
+            sage: x = 2^1000000000000000
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294
         """
         cdef Integer _self, _n
         cdef unsigned int _nval
@@ -672,6 +681,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
         if _n < 0:
             return Integer(1)/(self**(-_n))
+        if _n > MAX_UNSIGNED_LONG:
+            raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
         _self = integer(self)
         cdef Integer x
         x = Integer()
@@ -1010,23 +1021,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: z.powermodm_ui(2, 14)
             2
-            sage: z.powermodm_ui(2^31-1, 14)
-            4
-            sage: z.powermodm_ui(2^31, 14)
+            sage: z.powermodm_ui(2^32-2, 14)
+            2
+            sage: z.powermodm_ui(2^32-1, 14)
             Traceback (most recent call last):                              # 32-bit
             ...                                                             # 32-bit
-            OverflowError: exp (=2147483648) must be <= 2147483647   # 32-bit
-            2              # 64-bit
-            sage: z.powermodm_ui(2^63, 14)
+            OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
+            8              # 64-bit
+            sage: z.powermodm_ui(2^65, 14)
             Traceback (most recent call last):
             ...
-            OverflowError: exp (=9223372036854775808) must be <= 2147483647           # 32-bit
-            OverflowError: exp (=9223372036854775808) must be <= 9223372036854775807  # 64-bit
+            OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
+            OverflowError: exp (=9223372036854775808) must be <= 18446744065119617024  # 64-bit
         """
         if exp < 0:
             raise ValueError, "exp (=%s) must be nonnegative"%exp
-        elif exp > sys.maxint:
-            raise OverflowError, "exp (=%s) must be <= %s"%(exp, sys.maxint)
+        elif exp > MAX_UNSIGNED_LONG:
+            raise OverflowError, "exp (=%s) must be <= %s"%(exp, MAX_UNSIGNED_LONG)
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()

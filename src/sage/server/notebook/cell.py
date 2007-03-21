@@ -478,8 +478,6 @@ class Cell(Cell_generic):
               """%(id, id)
 
         r = len(t.splitlines())
-        if r == 0:
-            t += ' '
 
         s += """
            <textarea class="%s" rows=%s cols=100000 columns=100000
@@ -490,7 +488,8 @@ class Cell(Cell_generic):
            >%s</textarea>
         """%('hidden', r, id, id, id, t)
 
-        if len(t.strip()) == 0:
+        if r == 0:
+            t = ' '
             t_colorize = t
         else:
             t_colorize = colorize(t)

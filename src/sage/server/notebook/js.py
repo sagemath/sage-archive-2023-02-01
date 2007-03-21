@@ -190,11 +190,15 @@ var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a v
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
 var one_word_pat = "([a-zA-Z_][a-zA-Z._0-9]*)";
+
+var whitespace_pat = "(\\s*)";
+
 try{
   non_word = new RegExp(non_word);
   command_pat = new RegExp(command_pat);
   function_pat = new RegExp(function_pat);
   one_word_pat = new RegExp(one_word_pat);
+  whitespace_pat = new RegExp(whitespace_pat);
 } catch(e){}
 
 var after_cursor, before_cursor, before_replacing_word;
@@ -358,6 +362,11 @@ function time_now() {
 // Misc page functions -- for making the page work nicely
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
+
+function is_whitespace(s) {
+    m = whitespace_pat.exec(s);
+    return (m[1] == s);
+}
 
 function trim(s) {
     m = one_word_pat.exec(s);
@@ -794,19 +803,18 @@ function debug_blur() {
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     // make_cell_input_active(id);
-    debug_append('i am focus ' + id);
 
     var cell = get_cell(id);
 
     if (cell && cell.focus) {
+        cell.focus();
         set_class('cell_display_' + id, 'hidden')
         cell.className="cell_input_active";
-        cell.focus();
         cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
         current_cell = id;
-        move_cursor_to_top_of_cell(cell);
+        cell.focus();
     }
     return true;
 }
@@ -998,7 +1006,7 @@ function cell_input_key_event(id, e) {
     e = new key_event(e);
     if (e==null) return;
 
-    if (key_delete_cell(e) && cell_input.value == '') {
+    if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
         cell_delete(id);
         return false;
     }

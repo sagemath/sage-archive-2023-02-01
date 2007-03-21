@@ -342,6 +342,24 @@ packedmatrix *invertPackedFlexRussian(packedmatrix *m,
   return answer;
 }
 
+packedmatrix *m4rmTransposePacked(packedmatrix *A, packedmatrix *B, int k) {
+  packedmatrix *AT, *BT, *CT, *C;
+
+  if(A->cols != B->rows) die("A cols need to match B rows");
+
+  AT = transposePacked(A);
+  BT = transposePacked(B);
+
+  CT = m4rmPacked(BT,AT,k);
+
+  destroyPackedMatrix(AT);
+  destroyPackedMatrix(BT);
+
+  C = transposePacked(CT);
+  destroyPackedMatrix(CT);
+  return C;
+}
+
 
 packedmatrix *m4rmPacked(packedmatrix *A, packedmatrix *B, int k) {
   int i,j;
@@ -389,6 +407,7 @@ packedmatrix *m4rmPacked(packedmatrix *A, packedmatrix *B, int k) {
       combineFlex(C,j,0, T,x,0,  C,j,0);
     }
   }
-
+  destroyPackedMatrix(T);
+  free(lookuppacked);
   return C;
 }

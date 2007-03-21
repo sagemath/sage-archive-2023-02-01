@@ -80,6 +80,8 @@ cdef extern from "../libs/m4ri/m4ri.h":
     # M4RM matrix multiply
     cdef packedmatrix *m4rmPacked(packedmatrix *, packedmatrix *, int k)
 
+    # M4RM matrix multiply
+    cdef packedmatrix *m4rmTransposePacked(packedmatrix *, packedmatrix *, int k)
 
     # matrix addition
     cdef packedmatrix *addPacked(packedmatrix *, packedmatrix *)
@@ -111,4 +113,4 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):
     cdef object _zero
 
 
-    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k)
+    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k, int transpose)

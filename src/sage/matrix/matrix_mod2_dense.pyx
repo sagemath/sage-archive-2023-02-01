@@ -289,7 +289,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int n = self._ncols
         cdef int k = round(min(0.75 * log(n,2), 16))
 
-        return self._multiply_m4rm_c(right,k)
+##         if ( self.nrows() < right.ncols() ):
+##             return self._multiply_m4rm_c(right,k,1) # transpose
+##         else:
+        return self._multiply_m4rm_c(right,k,0)
 
     def _multiply_linbox(Matrix_mod2_dense self, Matrix_mod2_dense right):
         """
@@ -334,7 +337,7 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _sig_off
         return ans
 
-    def _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, k=0):
+    def _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, k=0, transpose=False):
         """
         Multiply matrices using the 'Method of the Four Russians Multiplication' (M4RM).
 
@@ -344,9 +347,11 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Bard's 'Method of the Four Russians Inversion' paper [B06].
 
         INPUT:
-            right -- Matrix
-            k -- parameter k for the Gray Code table size. If k=0 a suitable value is
-                chosen by the function. (0<= k <= 16, default: 0)
+            right     -- Matrix
+            k         -- parameter k for the Gray Code table size. If k=0 a suitable value is
+                         chosen by the function. (0<= k <= 16, default: 0)
+            transpose -- Calculate C = [B^T * A^T]^T which equals A * B. This might safe memory for large k
+                         if B.ncols() > A.nrows() and might also be faster (default:False)
 
         EXAMPLE:
               sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
@@ -393,9 +398,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if self._ncols != right._nrows:
             raise ArithmeticError, "left ncols must match right nrows"
 
-        return self._multiply_m4rm_c(right, k)
+        return self._multiply_m4rm_c(right, k, transpose)
 
-    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k):
+    cdef Matrix_mod2_dense _multiply_m4rm_c(Matrix_mod2_dense self, Matrix_mod2_dense right, int k, int transpose):
         if get_verbose() >= 2:
             verbose('m4rm multiply of %s x %s matrix by %s x %s matrix'%(
                 self._nrows, self._ncols, right._nrows, right._ncols))
@@ -405,8 +410,10 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
         destroyPackedMatrix(ans._entries)
 
-        ans._entries = m4rmPacked(self._entries, right._entries, k)
-
+        if not transpose:
+            ans._entries = m4rmPacked(self._entries, right._entries, k)
+        else:
+            ans._entries = m4rmTransposePacked(self._entries, right._entries, k)
         return ans
 
 

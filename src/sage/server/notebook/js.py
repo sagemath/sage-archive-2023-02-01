@@ -755,21 +755,22 @@ function get_cell(id) {
     return get_element('cell_input_'+ id);
 }
 
-function cell_focus(id) {
-    e = get_cell(id);
-    current_cell = id;
-    if(e == null) return;
-    e.className="cell_input_active";
-    cell_input_resize(e);
-    return true;
-}
 function cell_blur(id) {
+    var e = get_cell(id);
+    if(e == null) return;
+    e.className="hidden";
+
    /* if(!in_slide_mode)
         current_cell = -1; */
-    e = get_cell(id);
-    if(e == null) return;
-    e.className="cell_input";
-    cell_input_minimize_size(e);
+
+    var display_cell = get_element('cell_display_' + id)
+    set_class('cell_display_' + id, 'cell_input')  // %hide -- deal
+    var t = e.value;
+    if (t.length == 0) {
+        t = ' ';
+    }
+    display_cell.innerHTML = t.replace('<','&lt;');
+
     return true;
 }
 
@@ -791,14 +792,23 @@ function debug_blur() {
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.  Safari also has this problem.
-function focus(id, bottom) {
+function cell_focus(id, bottom) {
     // make_cell_input_active(id);
+    debug_append('i am focus ' + id);
+
     var cell = get_cell(id);
+
     if (cell && cell.focus) {
+        set_class('cell_display_' + id, 'hidden')
+        cell.className="cell_input_active";
         cell.focus();
+        cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
+        current_cell = id;
+        move_cursor_to_top_of_cell(cell);
     }
+    return true;
 }
 
 function move_cursor_to_top_of_cell(cell) {
@@ -810,9 +820,9 @@ function move_cursor_to_top_of_cell(cell) {
 
 function focus_delay(id,bottom) {
     if(!bottom)
-         setTimeout('focus('+id+')', 10);
+         setTimeout('cell_focus('+id+',false)', 10);
     else
-         setTimeout('focus('+id+',true)', 10);
+         setTimeout('cell_focus('+id+',true)', 10);
 }
 
 
@@ -826,6 +836,10 @@ function cell_input_resize(cell_input) {
       /* to avoid bottom chop off */
 /*      rows = rows + 1; */
     }
+    if (rows >= 25) {
+      rows = 25;
+    }
+
     try {
         cell_input.style.height = rows + 'em'; // this sort of works in konqueror...
     } catch(e) {}
@@ -862,6 +876,9 @@ function cell_input_minimize_size(cell_input) {
     var rows = v.split('\n').length ;
     if (rows < 1) {
       rows = 1;
+    }
+    if (rows >= 25) {
+      rows = 25;
     }
     cell_input.rows = rows;
     if (rows == 1) {
@@ -1125,7 +1142,7 @@ function jump_to_cell(id, delta, bottom) {
     if(in_slide_mode) {
         jump_to_slide(id);
     } else {
-        focus(id, bottom);
+        cell_focus(id, bottom);
     }
 }
 
@@ -1540,7 +1557,7 @@ function slide_show() {
         input = get_cell(current_cell);
         if(input != null) {
             s = lstrip(input.value).slice(0,5)
-            focus(current_cell);
+            cell_focus(current_cell, false);
             if (s == '%hide') {
                 slide_hidden = true;
                 input.className = 'cell_input_hide';

@@ -844,7 +844,7 @@ cdef class Matrix(matrix1.Matrix):
             Py_INCREF(o); PyList_SET_ITEM(v, i, o)
 
         R = self._base_ring[var]    # polynomial ring over the base ring
-        return R(v)
+        return R(v, check=False)
 
     #####################################################################################
     # Decomposition: kernel, image, decomposition

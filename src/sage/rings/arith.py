@@ -2218,7 +2218,7 @@ def partitions(n):
 ##         w.append(int(pn), int(qn))
 ##     return w
 
-def continued_fraction_list(x, partial_convergents=False):
+def continued_fraction_list(x, partial_convergents=False, bits=None):
     r"""
     Returns the continued fraction of x as a list.
 
@@ -2231,6 +2231,10 @@ def continued_fraction_list(x, partial_convergents=False):
     EXAMPLES:
         sage: continued_fraction_list(45/17)
         [2, 1, 1, 1, 5]
+        sage: continued_fraction_list(e, bits=20)
+        [2, 1, 2, 1, 1, 4, 1, 1, 6]
+        sage: continued_fraction_list(e, bits=30)
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1]
         sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction_list(sqrt(4/19))
@@ -2258,7 +2262,9 @@ def continued_fraction_list(x, partial_convergents=False):
         sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
-    if not partial_convergents and \
+    if not bits is None:
+        x = sage.rings.real_mpfr.RealField(bits)(x)
+    elif not partial_convergents and \
            isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()

@@ -1,5 +1,19 @@
-"""
+r"""
 Continued Fractions
+
+\sage implements the field code{ContinuedFractionField} (or \code{CFF}
+for short) of finite simple continued fractions.  This is really
+isomorphic to the field $\QQ$ of rational numbers, but with different
+printing and semantics.  It should be possible to use this field in
+most cases where one could use $\QQ$, except arithmetic is slower.
+
+The \code{continued\_fraction(x)} command returns an element of
+\code{CFF} that defines a continued fraction expansion to $x$.  The
+command \code{continued\_fraction(x,bits)} computes the continued
+fraction expansion of an approximation to $x$ with given bits of
+precision.  Use \code{show(c)} to see a continued fraction nicely
+typeset, and \code{latex(c)} to obtain the typeset version, e.g., for
+inclusion in a paper.
 
 EXAMPLES:
 We create some example elements of the continued fraction field.
@@ -19,12 +33,14 @@ We create some example elements of the continued fraction field.
 
 We can also create matrices, polynomials, vectors, etc., over the continued
 fraction field.
-    sage: a = random_matrix(CFF, 4); a
+    sage: a = random_matrix(CFF, 4)
+    sage: a                            # random entries
     [   [-2]  [0, 2] [-1, 2]    [-1]]
     [   [-1]     [1]    [-1]     [1]]
     [    [0]     [1]     [2] [-1, 2]]
     [    [1]     [0]     [2]     [1]]
-    sage: f = a.charpoly(); f          # random -- depends on a
+    sage: f = a.charpoly()
+    sage: f                     # random -- depends on a
     [1]*x^4 + ([-2])*x^3 + [0, 2]*x^2 + [2, 4]*x + [-8, 2]
     sage: f(a)
     [[0] [0] [0] [0]]
@@ -288,6 +304,10 @@ class ContinuedFraction(FieldElement):
         if isinstance(x, ContinuedFraction):
             self._x = list(x._x)
         elif isinstance(x, (list, tuple)):
+            x = [ZZ(a) for a in x]
+            for i in range(1,len(x)):
+                if x[i] <= 0:
+                    raise ValueError, "each entry except the first must be positive"
             self._x = list(x)
         else:
             self._x = [ZZ(a) for a in continued_fraction_list(x)]
@@ -377,6 +397,70 @@ class ContinuedFraction(FieldElement):
             103993/33102
         """
         return convergent(self._x, n)
+
+    def __len__(self):
+        """
+        Return the number of terms in this continued fraction.
+
+        EXAMPLES:
+            sage: len(continued_fraction([1,2,3,4,5]) )
+            5
+        """
+        return len(self._x)
+
+    def pn(self, n):
+        """
+        Return the number of the n-th partial convergent, computed
+        using the recurrence.
+
+        EXAMPLES:
+            sage: c = continued_fraction(pi); c
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            sage: c.pn(0), c.qn(0)
+            (3, 1)
+            sage: len(c)
+            14
+            sage: c.pn(13), c.qn(13)
+            (245850922, 78256779)
+        """
+        n = ZZ(n)
+        if n < -2:
+            raise ValueError, "n must be at least -2"
+        if n > len(self._x):
+            raise ValueError, "n must be at most %s"%len(self._x)
+        try:
+            return self.__pn[n+2]
+        except AttributeError:
+            self.__pn = [0, 1, self._x[0]]
+            self.__qn = [1, 0, 1]
+        except IndexError:
+            pass
+        for k in range(len(self.__pn), n+3):
+            self.__pn.append(self._x[k-2]*self.__pn[k-1] + self.__pn[k-2])
+            self.__qn.append(self._x[k-2]*self.__qn[k-1] + self.__qn[k-2])
+        return self.__pn[n+2]
+
+    def qn(self, n):
+        """
+        Return the denominator of the n-th partial convergent, computed
+        using the recurrence.
+
+        EXAMPLES:
+            sage: c = continued_fraction(pi); c
+            [3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3]
+            sage: c.pn(0), c.qn(0)
+            (3, 1)
+            sage: len(c)
+            14
+            sage: c.pn(13), c.qn(13)
+            (245850922, 78256779)
+        """
+        n = ZZ(n)
+        if n < -2:
+            raise ValueError, "n must be >= -2"
+        if len(self.__qn) < n+3:
+            self.pn(n)
+        return self.__qn[n+2]
 
     def _rational_(self):
         """

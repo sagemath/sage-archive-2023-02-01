@@ -762,7 +762,6 @@ class blockingJobWrapper(JobWrapper):
         job = blocking_call_from_thread(self.remoteobj.callRemote,
                                      'get_job_by_id', self._job.id)
 
-        print job
         self._update_job(expand_job(job))
 
     def async_get_job(self):

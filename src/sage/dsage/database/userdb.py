@@ -40,11 +40,10 @@ class UserDatabase(object):
      id integer PRIMARY KEY,
      username text NOT NULL UNIQUE,
      public_key text NOT NULL UNIQUE,
-     email text,
      creation_time timestamp,
      access_time timestamp,
      last_login timestamp,
-     status integer NOT NULL
+     disabled BOOL DEFAULT 0
     )
     """ % TABLENAME
 
@@ -61,6 +60,10 @@ class UserDatabase(object):
             self.db_file = 'userdb_test.db'
         else:
             self.db_file = self.DB_FILE
+            if not os.path.exists(self.db_file):
+                dir, file = os.path.split(self.db_file)
+                if not os.path.isdir(dir):
+                    os.mkdir(dir)
         self.con = sqlite.connect(self.db_file,
                     detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
         self.con.text_factory = str
@@ -122,15 +125,15 @@ class UserDatabase(object):
 
         return result
 
-    def add_user(self, username, pubkey, email):
+    def add_user(self, username, pubkey):
         r"""
         Adds a user to the database.
 
         """
 
         query = """INSERT INTO users
-                   (username, public_key, email, creation_time)
-                   VALUES (?, ?, ?, ?)
+                   (username, public_key, creation_time)
+                   VALUES (?, ?, ?)
                 """
 
         f = open(pubkey)
@@ -140,8 +143,7 @@ class UserDatabase(object):
             raise TypeError
 
         cur = self.con.cursor()
-        cur.execute(query, (username, key, email, datetime.datetime.now()))
-        self.set_user_status(username, 1) # Enable the account when we add it
+        cur.execute(query, (username, key, datetime.datetime.now()))
         self.con.commit()
 
     def del_user(self, username):
@@ -172,6 +174,20 @@ class UserDatabase(object):
         """
 
         self.con.execute(query, (status, username))
+        self.con.commit()
+
+    def set_parameter(self, username, parameter, value):
+        r"""
+        Sets a particular parameter for the given username.
+
+        """
+
+        query = """UPDATE users
+        SET %s = ?
+        WHERE username = ?
+        """ % (parameter)
+
+        self.con.execute(query, (value, parameter))
         self.con.commit()
 
     def update_login_time(self, username):

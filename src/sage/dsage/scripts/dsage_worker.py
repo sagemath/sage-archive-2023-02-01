@@ -383,7 +383,6 @@ class Monitor(object):
             return
         # reconstruct the Job objects from the jdicts
         killed_jobs = [expand_job(jdict) for jdict in killed_jobs]
-        print killed_jobs[0].id
         for worker in self.workers:
             if worker.job is None:
                 continue

@@ -397,7 +397,7 @@ class JobDatabaseSQLite(JobDatabase):
      update_time timestamp,
      finish_time timestamp,
      verifiable BOOL,
-     killed BOOL
+     killed BOOL DEFAULT 0
     );
     """
 
@@ -406,17 +406,22 @@ class JobDatabaseSQLite(JobDatabase):
         if test:
             self.db_file = 'test_jobdb.db'
         else:
-            self.db_file = 'jobdb.db'
+            self.db_file = self.DB_FILE
+            if not os.path.exists(self.db_file):
+                dir, file = os.path.split(self.db_file)
+                if not os.path.isdir(dir):
+                    os.mkdir(dir)
 
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
                    self.db_file,
                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        self.con.text_factory = str # Don't want unicode objects back
+        self.con.text_factory = str # Don't want unicode objects
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,
                                        self.CREATE_NEW_TABLE)
+
     def __add_test_data(self):
         INSERT_JOB = """INSERT INTO jobs
         (uid,
@@ -486,40 +491,26 @@ class JobDatabaseSQLite(JobDatabase):
         jtuple = cur.fetchone()
         return self.create_jdict(jtuple, cur.description)
 
-    def get_job_by_uid(self, uid):
-        query = "SELECT * FROM jobs WHERE uid = ?"
-        cur = self.con.cursor()
-        cur.execute(query, (uid,))
-        jtuple = cur.fetchone()
-
-        return self.create_jdict(jtuple, cur.description)
-
     def get_job_by_keywords(self, **kwargs):
         raise NotImplementedError
 
-    def update_value(self, tuple_):
+    def update_value(self, id, key, value):
         r"""
         Sets the appropriate value for a job in the database.
-        tuple_[0] = uid
-        tuple_[1] = column name
-        tuple_[2] = value
 
         """
-
-        # only accept job tules of the right form
-        assert len(tuple_) == 3
-        # TODO: Filter the column name for security reasons
 
         query = """UPDATE jobs
         SET %s=?
         WHERE id=?
-        """ % (tuple_[0])
+        """ % (key)
         cur = self.con.cursor()
-        if tuple_[0] == 'data' or tuple_[0] == 'result': # Binary objects
-            if tuple_[1] is not None:
-                cur.execute(query, (sqlite3.Binary(tuple_[1]), tuple_[2]))
+        if key == 'data' or key == 'result': # Binary objects
+            if value is not None:
+                cur.execute(query, (sqlite3.Binary(value), id))
         else:
-            cur.execute(query, tuple_[1:])
+            print (value, key)
+            cur.execute(query, (value, id))
         self.con.commit()
 
     def store_job(self, jdict):
@@ -547,7 +538,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         for k, v in jdict.iteritems():
             try:
-                self.update_value((k, v, id))
+                self.update_value(id, k, v)
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:

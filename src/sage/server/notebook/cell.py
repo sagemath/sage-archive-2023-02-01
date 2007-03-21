@@ -490,7 +490,10 @@ class Cell(Cell_generic):
            >%s</textarea>
         """%('hidden', r, id, id, id, t)
 
-        t_colorize = colorize(t)
+        if len(t.strip()) == 0:
+            t_colorize = t
+        else:
+            t_colorize = colorize(t)
         s += """
            <pre class="%s" rows=%s cols=100000 columns=100000
               id         = 'cell_display_%s'

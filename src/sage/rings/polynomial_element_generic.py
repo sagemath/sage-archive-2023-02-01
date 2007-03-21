@@ -56,6 +56,13 @@ class Polynomial_generic_dense(Polynomial):
             self.__coeffs = []
             return
         R = parent.base_ring()
+
+        if fraction_field_element.is_FractionFieldElement(x):
+            if x.denominator() != 1:
+                raise TypeError, "denominator must be 1"
+            else:
+                x = x.numerator()
+
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():
                 x = list(x.list())

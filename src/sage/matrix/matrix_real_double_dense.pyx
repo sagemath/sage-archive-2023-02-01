@@ -8,6 +8,11 @@ EXAMPLES:
     sage: b[0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
+
+We deal with the case of zero rows or zero columns:
+    sage: m = MatrixSpace(RDF,0,3)
+    sage: m.zero_matrix()
+    []
 """
 
 ##############################################################################

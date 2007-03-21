@@ -794,19 +794,17 @@ function debug_blur() {
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     // make_cell_input_active(id);
-    debug_append('i am focus ' + id);
+    current_cell = id;
 
     var cell = get_cell(id);
-
-    if (cell && cell.focus) {
-        set_class('cell_display_' + id, 'hidden')
-        cell.className="cell_input_active";
+    if (cell) {
         cell.focus();
+        set_class('cell_display_' + id, 'hidden');
+        cell.className="cell_input_active";
         cell_input_resize(cell);
+        cell.focus();
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
-        current_cell = id;
-        move_cursor_to_top_of_cell(cell);
     }
     return true;
 }

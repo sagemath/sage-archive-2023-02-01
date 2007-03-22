@@ -156,7 +156,9 @@ class DistributedFunction(object):
                 else:
                     wrapped_job.async_kill()
             self.waiting_jobs = []
-            reactor.callFromThread(self.checker_task.stop)
+
+            if self.checker_task.running:
+                reactor.callFromThread(self.checker_task.stop)
 
 class DistributedFunctionTest(DistributedFunction):
     def __init__(self, DSage, n, name='DistributedFunctionTest'):

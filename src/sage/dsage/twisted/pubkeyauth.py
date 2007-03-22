@@ -21,6 +21,7 @@ import base64
 from twisted.conch import error
 from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
+from twisted.cred.credentials import IAnonymous
 from zope.interface import implements
 from twisted.internet import defer
 from twisted.python import log
@@ -33,12 +34,15 @@ class PublicKeyCredentialsChecker(object):
     """
 
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, pubkeydb):
         self.authorizedKeys = self.getAuthorizedKeys(pubkeydb)
 
     def requestAvatarId(self, credentials):
+        if IAnonymous.providedBy(credentials):
+             return 'Anonymous'
+
         # read the authentication table to make sure we have a fresh copy
         self.authorizedKeys = self.getAuthorizedKeys(self.file_name)
 
@@ -81,8 +85,8 @@ class PublicKeyCredentialsCheckerDB(object):
         self.userdb = userdb
 
     def requestAvatarId(self, credentials):
-        # if anonymous:
-        #     return 'anonymous'
+        if IAnonymous.providedBy(credentials):
+            return 'Anonymous'
         try:
             user, key = self.get_user(credentials.username)
         except TypeError:

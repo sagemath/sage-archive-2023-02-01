@@ -31,7 +31,7 @@ import twisted.conch
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
-from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.database.jobdb import JobDatabaseZODB
 
@@ -104,7 +104,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
 
     def testLogin(self):
         """Tests the login method. """
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
 
         d = factory.login(self.creds, None)
@@ -115,7 +115,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.assert_(isinstance(remoteobj, pb.RemoteReference))
 
     def testBadLogin(self):
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
 
         d = factory.login(None, None)
@@ -124,7 +124,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         return d
 
     def testBadLogin2(self):
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
         bad_creds = credentials.SSHPrivateKey('this user name should not exit',
                                                self.alg_name,
@@ -139,7 +139,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.assertEquals(failure.type, str(twisted.conch.error.ConchError))
 
     def testBadLogin3(self):
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
         bad_creds = credentials.SSHPrivateKey(self.username,
                                               self.alg_name,

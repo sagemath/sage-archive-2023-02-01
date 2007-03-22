@@ -34,7 +34,7 @@ from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.misc import blocking_call_from_thread
 from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
@@ -200,7 +200,7 @@ class DSage(object):
 
         # TODO: Send a useful 'mind' object with the login request!
         # factory = pb.PBClientFactory()
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
 
         if self.SSL == 1:
             from twisted.internet import ssl
@@ -431,7 +431,7 @@ class BlockingDSage(DSage):
 
         # TODO: Send a useful 'mind' object with the login request!
         # factory = pb.PBClientFactory()
-        self.factory = ClientPBClientFactory()
+        self.factory = PBClientFactory()
 
         if self.SSL == 1:
             from twisted.internet import ssl

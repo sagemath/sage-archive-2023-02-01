@@ -35,7 +35,7 @@ from sage.misc.preparser import preparse_file
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
-from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.pb import WorkerMind
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
@@ -489,35 +489,25 @@ class Monitor(object):
         log.msg('Connecting to %s:%s' % (self.hostname, self.port))
         log.msg(DELIMITER)
 
+        self.factory = PBClientFactory()
+        if SSL == 1:
+            from twisted.internet import ssl
+            contextFactory = ssl.ClientContextFactory()
+            reactor.connectSSL(self.hostname, self.port,
+                               self.factory, contextFactory)
+        else:
+            reactor.connectTCP(self.hostname, self.port, self.factory)
+
+        hf = ClassicHostInfo().host_info
+        hf['uuid'] = self.uuid
         if AUTHENTICATE:
             log.msg('Connecting as authenticated worker...\n')
-            self.factory = ClientPBClientFactory()
-            if SSL == 1:
-                from twisted.internet import ssl
-                contextFactory = ssl.ClientContextFactory()
-                reactor.connectSSL(self.hostname, self.port,
-                                   self.factory, contextFactory)
-            else:
-                reactor.connectTCP(self.hostname, self.port, self.factory)
-
-            # create a useful mind object
-            # mind = WorkerMind(ClassicHostInfo().host_info)
-            hf = ClassicHostInfo().host_info
-            hf['uuid'] = self.uuid
             d = self.factory.login(self.creds, (pb.Referenceable(), hf))
-            d.addCallback(self._connected)
-            d.addErrback(self._catchConnectionFailure)
         else:
-            if SSL == 1:
-                from twisted.internet import ssl
-                contextFactory = ssl.ClientContextFactory()
-                reactor.connectSSL(self.hostname, self.port,
-                                   factory, contextFactory)
-            else:
-                reactor.connectTCP(self.hostname, self.port, factory)
-            d = factory.getRootObject()
-            d.addCallback(self._connected)
-            d.addErrback(self._catchConnectionFailure)
+            log.msg('Connecting as anonymous worker...\n')
+            d = self.factory.login('Anonymous', (pb.Referenceable(), hf))
+        d.addCallback(self._connected)
+        d.addErrback(self._catchConnectionFailure)
 
         return d
 

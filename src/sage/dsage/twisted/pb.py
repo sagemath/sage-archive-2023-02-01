@@ -19,6 +19,8 @@
 from twisted.spread import pb
 from zope.interface import implements
 from twisted.cred import portal, credentials
+from twisted.cred.credentials import ISSHPrivateKey, IAnonymous
+from twisted.cred.credentials import Anonymous
 from twisted.spread.interfaces import IJellyable
 from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
@@ -54,33 +56,39 @@ class WorkerPBServerFactory(pb.PBServerFactory):
             if broker.transport.disconnected:
                 worker_tracker.remove((broker, host, port))
 
-class ClientPBClientFactory(pb.PBClientFactory):
+class PBClientFactory(pb.PBClientFactory):
     r"""
     Custom implementation of the PBClientFactory that supports logging in
-    with public key credentials.
+    with public key as well as anonymous credentials.
 
     """
 
-    def login(self, creds, client=None):
-        if not isinstance(creds, credentials.SSHPrivateKey):
-            return defer.fail(TypeError())
+    def login(self, creds, mind=None):
+        if ISSHPrivateKey.providedBy(creds):
+            d = self.getRootObject()
+            d.addCallback(self._cbSendUsername,
+                          creds.username,
+                          creds.algName,
+                          creds.blob,
+                          creds.sigData,
+                          creds.signature,
+                          mind)
 
-        d = self.getRootObject()
-        d.addCallback(self._cbSendUsername,
-                      creds.username,
-                      creds.algName,
-                      creds.blob,
-                      creds.sigData,
-                      creds.signature,
-                      client)
-
-        return d
+            return d
+        else:
+            d = self.getRootObject()
+            d.addCallback(self._cbAnonymousLogin, mind)
+            return d
 
     def _cbSendUsername(self, root, username, alg_name, blob, sig_data,
-                        signature, client):
-
+                        signature, mind):
         d = root.callRemote("login", username, alg_name, blob, sig_data,
-                                signature, client)
+                                signature, mind)
+        return d
+
+    def _cbAnonymousLogin(self, root, mind):
+        d = root.callRemote("login_anonymous", mind)
+
         return d
 
 class _SSHKeyPortalRoot(pb._PortalRoot):
@@ -96,6 +104,12 @@ class _SSHKeyPortalWrapper(pb._PortalWrapper):
                                                 signature)
 
         d = self.portal.login(pubkey_cred, mind, IPerspective)
+        d.addCallback(self._loggedIn)
+
+        return d
+
+    def remote_login_anonymous(self, mind):
+        d = self.portal.login(Anonymous(), mind, IPerspective)
         d.addCallback(self._loggedIn)
 
         return d
@@ -276,6 +290,8 @@ class Realm(object):
         else:
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer)
+            elif avatarID == 'Anonymous':
+                avatar = UserPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)

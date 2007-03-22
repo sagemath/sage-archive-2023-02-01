@@ -32,7 +32,7 @@ from twisted.conch.ssh import keys
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
-from sage.dsage.twisted.pb import ClientPBClientFactory
+from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.database.jobdb import JobDatabaseZODB
 from sage.dsage.database.job import Job
@@ -111,7 +111,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
     def testremoteGetJobEmptyQueue(self):
         """Tests perspective_get_job on an empty database"""
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
 
@@ -133,7 +133,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         for job in jobs:
             self.jobdb.new_job(job)
 
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
 
@@ -156,7 +156,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         """tests perspective_submit_job"""
         jobs = self.create_jobs(1)
 
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
 
@@ -177,7 +177,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
     def testremoteSubmitBadJob(self):
         """tests perspective_submit_job"""
 
-        factory = ClientPBClientFactory()
+        factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,
                                              factory)
 

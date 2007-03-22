@@ -2,8 +2,9 @@
 Dense matrice over GF(2) based on code by Gregory Bard.
 
 This implementation uses a packed representation of boolean matrices
-and provides a quite fast echelon form implemenation (M4RI). For some
-solutions LinBox is used.
+and provides a quite fast echelon form implemenation (M4RI).
+
+#For some solutions LinBox is used.
 
 AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
@@ -84,9 +85,9 @@ from sage.misc.functional import log
 
 from sage.misc.misc import verbose, get_verbose, cputime
 
-from sage.libs.linbox.linbox cimport Linbox_mod2_dense
-cdef Linbox_mod2_dense linbox
-linbox = Linbox_mod2_dense()
+## from sage.libs.linbox.linbox cimport Linbox_mod2_dense
+## cdef Linbox_mod2_dense linbox
+## linbox = Linbox_mod2_dense()
 
 cdef object called
 
@@ -260,15 +261,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Matrix multiplication.
 
-        If the dimension of the matrix is below 1000x1000 a naiv
-        matrix multiplication is performed. If the dimension is larger
-        LinBox's Strassen implementation is used. This uses much more
-        memory but is significantly faster roughly starting at those
-        sizes.
-
         EXAMPLES:
             sage: A = random_matrix(GF(2),200,200)
-            sage: A*A == A._multiply_linbox(A)
+            sage: A*A == A._multiply_linbox(A) # optional
             True
 
         ALGORITHM: Uses the 'Method of the Four Russians
@@ -294,48 +289,48 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 ##         else:
         return self._multiply_m4rm_c(right,k,0)
 
-    def _multiply_linbox(Matrix_mod2_dense self, Matrix_mod2_dense right):
-        """
-        Multiply matrices using LinBox.
+##     def _multiply_linbox(Matrix_mod2_dense self, Matrix_mod2_dense right):
+##         """
+##         Multiply matrices using LinBox.
 
-        INPUT:
-            right -- Matrix
+##         INPUT:
+##             right -- Matrix
 
-        EXAMPLE:
-              sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
-              sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0] )
-              sage: A
-              [0 0 0]
-              [0 1 0]
-              [0 1 1]
-              [0 0 1]
-              sage: B
-              [0 0 1 0]
-              [1 0 0 1]
-              [1 1 0 0]
-              sage: A._multiply_linbox(B)
-              [0 0 0 0]
-              [1 0 0 1]
-              [0 1 0 1]
-              [1 1 0 0]
+##         EXAMPLE:
+##               sage: A = Matrix(GF(2), 4, 3, [0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1] )
+##               sage: B = Matrix(GF(2), 3, 4, [0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0] )
+##               sage: A
+##               [0 0 0]
+##               [0 1 0]
+##               [0 1 1]
+##               [0 0 1]
+##               sage: B
+##               [0 0 1 0]
+##               [1 0 0 1]
+##               [1 1 0 0]
+##               sage: A._multiply_linbox(B)
+##               [0 0 0 0]
+##               [1 0 0 1]
+##               [0 1 0 1]
+##               [1 1 0 0]
 
-        ALGORITHM: Uses LinBox
+##         ALGORITHM: Uses LinBox
 
-        """
-        if get_verbose() >= 2:
-            verbose('linbox multiply of %s x %s matrix by %s x %s matrix'%(
-                self._nrows, self._ncols, right._nrows, right._ncols))
-        cdef int e
-        cdef Matrix_mod2_dense ans
+##         """
+##         if get_verbose() >= 2:
+##             verbose('linbox multiply of %s x %s matrix by %s x %s matrix'%(
+##                 self._nrows, self._ncols, right._nrows, right._ncols))
+##         cdef int e
+##         cdef Matrix_mod2_dense ans
 
-        ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
+##         ans = self.new_matrix(nrows = self.nrows(), ncols = right.ncols())
 
-        linbox.set(self._entries)
+##         linbox.set(self._entries)
 
-        _sig_on
-        linbox.matrix_matrix_multiply(ans._entries, right._entries)
-        _sig_off
-        return ans
+##         _sig_on
+##         linbox.matrix_matrix_multiply(ans._entries, right._entries)
+##         _sig_off
+##         return ans
 
     def _multiply_m4rm(Matrix_mod2_dense self, Matrix_mod2_dense right, k=0, transpose=False):
         """
@@ -584,9 +579,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: A = random_matrix(GF(2), 10, 10)
              sage: B = A.copy(); B.echelonize() # fastest
              sage: C = A.copy(); C.echelonize(k=2) # force k
-             sage: D = A.copy(); D.echelonize(algorithm='linbox') # force LinBox
+             sage: D = A.copy(); D.echelonize(algorithm='linbox') # optional for LinBox
              sage: E = A.copy(); E.echelonize(algorithm='classical') # force Gaussian elimination
-             sage: B == C == D == E
+             sage: B == C == E
              True
 
         ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
@@ -626,7 +621,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         elif algorithm == 'linbox':
 
-            self._echelonize_linbox()
+            #self._echelonize_linbox()
+            raise NotImplementedError
 
         elif algorithm == 'classical':
 
@@ -635,23 +631,23 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         else:
             raise ValueError, "no algorithm '%s'"%algorithm
 
-    def _echelonize_linbox(self):
-        """
-        Puts self in row echelon form using LinBox.
-        """
-        self.check_mutability()
-        self.clear_cache()
+##     def _echelonize_linbox(self):
+##         """
+##         Puts self in row echelon form using LinBox.
+##         """
+##         self.check_mutability()
+##         self.clear_cache()
 
-        t = verbose('calling linbox echelonize')
-        _sig_on
-        linbox.set(self._entries)
-        r = linbox.echelonize()
-        _sig_off
-        verbose('done with linbox echelonize',t)
+##         t = verbose('calling linbox echelonize')
+##         _sig_on
+##         linbox.set(self._entries)
+##         r = linbox.echelonize()
+##         _sig_off
+##         verbose('done with linbox echelonize',t)
 
-        self.cache('in_echelon_form',True)
-        self.cache('rank', r)
-        #self.cache('pivots', self._pivots())
+##         self.cache('in_echelon_form',True)
+##         self.cache('rank', r)
+##         #self.cache('pivots', self._pivots())
 
     def _pivots(self):
         """

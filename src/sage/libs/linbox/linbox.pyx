@@ -96,64 +96,64 @@ cdef class Linbox_modn_dense:
 ## Dense matrices GF(2)
 ##########################################################################
 
-cdef extern from "linbox_wrap.h":
-    ctypedef struct packedmatrix
+## cdef extern from "linbox_wrap.h":
+##     ctypedef struct packedmatrix
 
-    cdef int linbox_mod2_dense_echelonize(packedmatrix *m)
+##     cdef int linbox_mod2_dense_echelonize(packedmatrix *m)
 
-    cdef void linbox_mod2_dense_minpoly(mod_int **mp, size_t* degree, packedmatrix *matrix, int do_minpoly)
+##     cdef void linbox_mod2_dense_minpoly(mod_int **mp, size_t* degree, packedmatrix *matrix, int do_minpoly)
 
-    cdef int linbox_mod2_dense_matrix_matrix_multiply(packedmatrix *ans, packedmatrix *A, packedmatrix *B)
+##     cdef int linbox_mod2_dense_matrix_matrix_multiply(packedmatrix *ans, packedmatrix *A, packedmatrix *B)
 
-    cdef int linbox_mod2_dense_rank(packedmatrix *m)
+##     cdef int linbox_mod2_dense_rank(packedmatrix *m)
 
-cdef class Linbox_mod2_dense:
-    cdef set(self, packedmatrix *matrix):
-        self.matrix = matrix
+## cdef class Linbox_mod2_dense:
+##     cdef set(self, packedmatrix *matrix):
+##         self.matrix = matrix
 
-    cdef int echelonize(self):
-        cdef int r
-        r = linbox_mod2_dense_echelonize(self.matrix)
-        return r
+##     cdef int echelonize(self):
+##         cdef int r
+##         r = linbox_mod2_dense_echelonize(self.matrix)
+##         return r
 
-    def minpoly(self):
-        return self._poly(True)
+##     def minpoly(self):
+##         return self._poly(True)
 
-    def charpoly(self):
-        return self._poly(False)
+##     def charpoly(self):
+##         return self._poly(False)
 
-    def _poly(self, minpoly):
-        """
-        INPUT:
-            as given
+##     def _poly(self, minpoly):
+##         """
+##         INPUT:
+##             as given
 
-        OUTPUT:
-            coefficients of charpoly or minpoly as a Python list
-        """
-        cdef mod_int *f
-        cdef size_t degree
-        linbox_mod2_dense_minpoly(&f, &degree, self.matrix, minpoly)
+##         OUTPUT:
+##             coefficients of charpoly or minpoly as a Python list
+##         """
+##         cdef mod_int *f
+##         cdef size_t degree
+##         linbox_mod2_dense_minpoly(&f, &degree, self.matrix, minpoly)
 
-        v = []
-        cdef Py_ssize_t i
-        for i from 0 <= i <= degree:
-            v.append(f[i])
-        linbox_modn_dense_delete_array(f)
-        return v
+##         v = []
+##         cdef Py_ssize_t i
+##         for i from 0 <= i <= degree:
+##             v.append(f[i])
+##         linbox_modn_dense_delete_array(f)
+##         return v
 
-    cdef matrix_matrix_multiply(self,
-                                packedmatrix *ans,
-                                packedmatrix *B):
-        cdef int e
+##     cdef matrix_matrix_multiply(self,
+##                                 packedmatrix *ans,
+##                                 packedmatrix *B):
+##         cdef int e
 
-        e = linbox_mod2_dense_matrix_matrix_multiply(ans, self.matrix,  B)
-        if e:
-            raise RuntimeError, "error doing matrix matrix multiply mod2 using linbox"
+##         e = linbox_mod2_dense_matrix_matrix_multiply(ans, self.matrix,  B)
+##         if e:
+##             raise RuntimeError, "error doing matrix matrix multiply mod2 using linbox"
 
-    cdef unsigned long rank(self) except -1:
-        cdef unsigned long r
-        r = linbox_mod2_dense_rank(self.matrix)
-        return r
+##     cdef unsigned long rank(self) except -1:
+##         cdef unsigned long r
+##         r = linbox_mod2_dense_rank(self.matrix)
+##         return r
 
 
 ##########################################################################

@@ -19,13 +19,13 @@ cdef class Linbox_modn_dense:
     cdef unsigned long rank(self) except -1
 
 
-cdef class Linbox_mod2_dense:
-    cdef packedmatrix *matrix
+## cdef class Linbox_mod2_dense:
+##     cdef packedmatrix *matrix
 
-    cdef set(self, packedmatrix *matrix)
-    cdef int echelonize(self)
-    cdef matrix_matrix_multiply(self, packedmatrix *ans, packedmatrix *B)
-    cdef unsigned long rank(self) except -1
+##     cdef set(self, packedmatrix *matrix)
+##     cdef int echelonize(self)
+##     cdef matrix_matrix_multiply(self, packedmatrix *ans, packedmatrix *B)
+##     cdef unsigned long rank(self) except -1
 
 cdef class Linbox_integer_dense:
     cdef mpz_t** matrix

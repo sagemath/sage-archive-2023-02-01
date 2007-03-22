@@ -316,8 +316,11 @@ class Cell(Cell_generic):
             self.__introspect_html = ''
             return ''
 
-    def output_text(self, ncols=0, html=True):
+    def output_text(self, ncols=0, html=True, raw=False):
         s = self.__out
+
+        if raw:
+            return s
 
         if html:
             def format(x):

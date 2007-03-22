@@ -368,6 +368,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             inter = 'true'
         else:
             inter = 'false'
+
+        raw = cell.output_text(raw=True).split("\n")
+        if len(raw) == 13 and raw[4][:17] == "Unhandled SIGSEGV":
+            inter = 'restart'
+            print "segfault!"
+
         msg = '%s%s %s'%(status, cell.id(),
                           SEP.join([cell.output_text(html=True),
                                     cell.output_text(cols, html=True),

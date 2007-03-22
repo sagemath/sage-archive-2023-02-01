@@ -773,7 +773,10 @@ function sync_active_cell_list() {
 
 function sync_active_cell_list_callback(status, response_text) {
     if(status == 'success') {
+        if(response_text == "")
+            return;
         active_cell_list = response_text.split(",");
+        debug_append(">"+response_text+"<");
         for(var i = 0; i < active_cell_list.length; i++)
             cell_set_running(active_cell_list[i]);
         start_update_check();
@@ -1540,7 +1543,9 @@ function check_for_cell_update_callback(status, response_text) {
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
 
-        if (interrupted == 'false') {
+        if (interrupted == 'restart') {
+            restart_sage();
+        } else if (interrupted == 'false') {
             cell_set_evaluated(id);
         } else {
             halt_active_cells();

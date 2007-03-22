@@ -9,6 +9,13 @@ AUTHORS:
     -- William Stein and Naqi Jaffery (2006-03-06): height, sqrt examples,
           and improve behavior of sqrt.
     -- David Harvey (2006-09-15): added nth_root
+
+TESTS:
+    sage: a = -2/3
+    sage: a == loads(dumps(a))
+    True
+
+
 """
 
 

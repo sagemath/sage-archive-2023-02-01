@@ -2,6 +2,11 @@
 Free algebra elements
 
 AUTHOR: David Kohel, 2005-09
+
+TESTS:
+    sage: R.<x,y> = FreeAlgebra(QQ,2)
+    sage: x == loads(dumps(x))
+
 """
 
 #*****************************************************************************

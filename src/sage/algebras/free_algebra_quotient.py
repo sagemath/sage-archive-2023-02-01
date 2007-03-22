@@ -1,5 +1,20 @@
 """
 Free algebra quotients
+
+TESTS:
+    sage: n = 2
+    sage: A = FreeAlgebra(QQ,n,'x')
+    sage: F = A.monoid()
+    sage: i, j = F.gens()
+    sage: mons = [ F(1), i, j, i*j ]
+    sage: r = len(mons)
+    sage: M = MatrixSpace(QQ,r)
+    sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]), M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]) ]
+    sage: H2.<i,j> = A.quotient(mons,mats)
+    sage: H2 == loads(dumps(H2))
+    True
+    sage: i == loads(dumps(i))
+    True
 """
 
 #*****************************************************************************

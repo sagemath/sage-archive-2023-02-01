@@ -281,6 +281,22 @@ EXAMPLE: Embedding a number field into the reals.
     2.00000000000000
     sage: i(beta^2 + 1)
     2.58740105196820
+
+TESTS:
+    sage: H = Hom(ZZ, QQ)
+    sage: H == loads(dumps(H))
+    True
+
+    sage: K.<zeta7> = CyclotomicField(7)
+    sage: c = K.hom([1/zeta7])
+    sage: c == loads(dumps(c))
+    True
+
+    sage: R.<t> = PowerSeriesRing(GF(5))
+    sage: f = R.hom([t^5])
+    sage: f == loads(dumps(f))
+    True
+
 """
 
 #*****************************************************************************

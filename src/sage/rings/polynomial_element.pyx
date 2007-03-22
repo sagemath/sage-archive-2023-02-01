@@ -4,6 +4,13 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1); f
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################

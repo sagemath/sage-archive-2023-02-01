@@ -3,6 +3,15 @@ Number Field Ideals
 
 AUTHOR:
    -- Steven Sivek (2005-05-16)
+
+TESTS:
+    sage: R.<x> = PolynomialRing(QQ)
+    sage: K.<a> = NumberField(x^2 - 5)
+    sage: I = K.ideal(2/(5+a))
+    sage: I == loads(dumps(I))
+    True
+
+
 """
 
 #*****************************************************************************

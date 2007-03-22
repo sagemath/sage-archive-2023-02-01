@@ -55,6 +55,16 @@ We make a sparse Laurent series from a power series generator:
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
+
+TESTS:
+    sage: R.<t> = PowerSeriesRing(QQ)
+    sage: R == loads(dumps(R))
+    True
+
+    sage: R.<x> = PowerSeriesRing(QQ, sparse=True)
+    sage: R == loads(dumps(R))
+    True
+
 """
 
 import weakref

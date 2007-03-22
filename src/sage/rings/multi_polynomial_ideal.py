@@ -60,6 +60,13 @@ Working with a polynomial ring over ZZ:
     True
     sage: 0 in j                                                # optional
     True
+
+TESTS:
+    sage: x,y,z = QQ['x,y,z'].gens()
+    sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
+    sage: I == dumps(loads(I))
+    True
+
 """
 
 #*****************************************************************************

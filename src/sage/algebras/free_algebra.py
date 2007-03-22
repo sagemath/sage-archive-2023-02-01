@@ -12,6 +12,28 @@ EXAMPLES:
     Free Algebra on 2 generators (m, n) over Free Algebra on 3 generators (x, y, z) over Integer Ring
     sage: G.base_ring()
     Free Algebra on 3 generators (x, y, z) over Integer Ring
+
+TESTS:
+    sage: F = FreeAlgebra(GF(5),3,'x')
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(GF(5),3, 'abc')
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
+    sage: F == loads(dumps(F))
+    True
+
 """
 
 #*****************************************************************************

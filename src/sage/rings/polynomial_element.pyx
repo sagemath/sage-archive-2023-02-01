@@ -7,7 +7,7 @@ AUTHORS:
 
 TESTS:
      sage: R.<x> = ZZ[]
-     sage: f = x^5 + 2*x^2 + (-1); f
+     sage: f = x^5 + 2*x^2 + (-1)
      sage: f == loads(dumps(f))
      True
 

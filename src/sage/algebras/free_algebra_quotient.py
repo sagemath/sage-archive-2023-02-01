@@ -103,6 +103,15 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__monomial_basis = mons # elements of free monoid
         ParentWithGens.__init__(self, R, names, normalize=False)
 
+    def __eq__(self,right):
+        return type(self) == type(right) and \
+               self.ngens() == right.ngens() and \
+               self.rank() == right.rank() and \
+               self.module() == right.module() and \
+               self.matrix_action() == right.matrix_action() and \
+               self.monomial_basis() == right.monomial_basis()
+
+
     def __call__(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
             return x
@@ -152,6 +161,12 @@ class FreeAlgebraQuotient(Algebra, object):
         The rank of the algebra (as a free module).
         """
         return self.__dim
+
+    def matrix_action(self):
+        return self.__matrix_action
+
+    def monomial_basis(self):
+        return self.__monomial_basis
 
     def rank(self):
         """

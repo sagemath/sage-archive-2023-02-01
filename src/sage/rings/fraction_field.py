@@ -13,11 +13,11 @@ TESTS:
     sage: F == loads(dumps(F))
     True
 
-    sage: F == FractionField(PolynomialRing(IntegerRing(),'x'))
+    sage: F = FractionField(PolynomialRing(IntegerRing(),'x'))
     sage: F == loads(dumps(F))
     True
 
-    sage: FractionField(MPolynomialRing(RationalField(),2,'x'))
+    sage: F = FractionField(MPolynomialRing(RationalField(),2,'x'))
     sage: F == loads(dumps(F))
     True
 

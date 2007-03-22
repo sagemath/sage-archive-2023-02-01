@@ -57,6 +57,12 @@ class WorkerPBServerFactory(pb.PBServerFactory):
 
 
 class ClientPBClientFactory(pb.PBClientFactory):
+    r"""
+    Custom implementation of the PBClientFactory that supports logging in
+    with public key credentials.
+
+    """
+
     def login(self, creds, client=None):
         if not isinstance(creds, credentials.SSHPrivateKey):
             return defer.fail(TypeError())
@@ -219,6 +225,26 @@ class UserPerspective(DefaultPerspective):
     def perspective_get_client_list(self):
         return [avatar[0].avatarID for avatar in
                 self.DSageServer.get_client_list()]
+
+    def perspective_submit_host_info(self, hostinfo):
+        if not isinstance(hostinfo, dict):
+            raise BadTypeError()
+        return self.DSageServer.submit_host_info(hostinfo)
+
+    def perspective_job_done(self, jobID, output, result, completed,
+                             worker_info):
+        return self.DSageServer.job_done(jobID, output, result,
+                                         completed, worker_info)
+
+    def perspective_job_failed(self, jobID):
+        if not isinstance(jobID, str):
+            log.msg('BadType in remote_job_failed')
+            raise BadTypeError()
+
+        return self.DSageServer.job_failed(jobID)
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
 
 class AdminPerspective(UserPerspective):
     r"""

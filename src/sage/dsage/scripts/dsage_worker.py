@@ -35,28 +35,34 @@ from sage.misc.preparser import preparse_file
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo
 from sage.dsage.errors.exceptions import NoJobException
+from sage.dsage.twisted.pb import ClientPBClientFactory
+
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
+DELIMITER = '-' * 75
+
 # Begin reading configuration
 try:
-    conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
+    CONF_FILE = os.path.join(DSAGE_DIR, 'worker.conf')
+    CONFIG = ConfigParser.ConfigParser()
+    CONFIG.read(CONF_FILE)
 
-    LOG_FILE = config.get('log', 'log_file')
-    LOG_LEVEL = config.getint('log','log_level')
-    SSL = config.getint('ssl', 'ssl')
-    WORKERS = config.getint('general', 'workers')
-    SERVER = config.get('general', 'server')
-    PORT = config.getint('general', 'port')
-    DELAY = config.getint('general', 'delay')
-    NICE_LEVEL = config.getint('general', 'nice_level')
-except:
+    LOG_FILE = CONFIG.get('log', 'log_file')
+    LOG_LEVEL = CONFIG.getint('log','log_level')
+    SSL = CONFIG.getint('ssl', 'ssl')
+    WORKERS = CONFIG.getint('general', 'workers')
+    SERVER = CONFIG.get('general', 'server')
+    PORT = CONFIG.getint('general', 'port')
+    DELAY = CONFIG.getint('general', 'delay')
+    NICE_LEVEL = CONFIG.getint('general', 'nice_level')
+    AUTHENTICATE = CONFIG.getboolean('general', 'authenticate')
+except Exception, msg:
+    print msg
     print "Error reading %s, please fix manually or run dsage.setup()" % \
-    conf_file
+    CONF_FILE
     sys.exit(-1)
 # End reading configuration
 
@@ -345,12 +351,37 @@ class Monitor(object):
         # Start twisted logging facility
         self._startLogging(LOG_FILE)
 
-        if len(config.get('uuid', 'id')) != 36:
-            config.set('uuid', 'id', str(uuid.uuid1()))
-            f = open(conf_file, 'w')
-            config.write(f)
+        if len(CONFIG.get('uuid', 'id')) != 36:
+            CONFIG.set('uuid', 'id', str(uuid.uuid1()))
+            f = open(CONF_FILE, 'w')
+            CONFIG.write(f)
+        self.identifier = CONFIG.get('uuid', 'id')
 
-        self.identifier = config.get('uuid', 'id')
+        if AUTHENTICATE:
+            from twisted.cred import credentials
+            from twisted.conch.ssh import keys
+            self._get_auth_info()
+            # public key authentication information
+            self.pubkey_str =keys.getPublicKeyString(filename=self.pubkey_file)
+            # try getting the private key object without a passphrase first
+            try:
+                self.priv_key = keys.getPrivateKeyObject(
+                                    filename=self.privkey_file)
+            except keys.BadKeyError:
+                passphrase = self._getpassphrase()
+                self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file,
+                                passphrase=passphrase)
+            self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
+            self.alg_name = 'rsa'
+            self.blob = keys.makePublicKeyBlob(self.pub_key)
+            self.data = self.DATA
+            self.signature = keys.signData(self.priv_key, self.data)
+            self.creds = credentials.SSHPrivateKey(self.username,
+                                                   self.alg_name,
+                                                   self.blob,
+                                                   self.data,
+                                                   self.signature)
 
     def _startLogging(self, log_file):
         if log_file == 'stdout':
@@ -359,6 +390,33 @@ class Monitor(object):
             print "Logging to file: ", log_file
             server_log = open(log_file, 'a')
             log.startLogging(server_log)
+
+    def _get_auth_info(self):
+        import random
+        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
+                        range(500)]])
+        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+        # Begin reading configuration
+        try:
+            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
+            config = ConfigParser.ConfigParser()
+            config.read(conf_file)
+
+            self.port = config.getint('general', 'port')
+            self.username = config.get('auth', 'username')
+            self.privkey_file = os.path.expanduser(config.get('auth',
+                                                              'privkey_file'))
+            self.pubkey_file = os.path.expanduser(config.get('auth',
+                                                             'pubkey_file'))
+        except Exception, msg:
+            print msg
+            raise
+
+    def _getpassphrase(self):
+        import getpass
+        passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
+
+        return passphrase
 
     def _connected(self, remoteobj):
         self.remoteobj = remoteobj
@@ -402,7 +460,7 @@ class Monitor(object):
 
     def _catchConnectionFailure(self, failure):
         # If we lost the connection to the server somehow
-        #if failure.check(error.ConnectionRefusedError,
+        # if failure.check(error.ConnectionRefusedError,
         #                 error.ConnectionLost,
         #                 pb.DeadReferenceError):
 
@@ -426,22 +484,38 @@ class Monitor(object):
 
         factory = pb.PBClientFactory()
 
-        log.msg('--------------------------')
+        log.msg(DELIMITER)
         log.msg('DSAGE Worker')
         log.msg('Connecting to %s:%s' % (self.hostname, self.port))
-        log.msg('--------------------------')
+        log.msg(DELIMITER)
 
-        if SSL == 1:
-            from twisted.internet import ssl
-            contextFactory = ssl.ClientContextFactory()
-            reactor.connectSSL(self.hostname, self.port,
-                               factory, contextFactory)
+        if AUTHENTICATE:
+            # TODO: Send a useful 'mind' object with the login request!
+            # factory = pb.PBClientFactory()
+            log.msg('\nConnecting as authenticated worker...\n')
+            self.factory = ClientPBClientFactory()
+            if SSL == 1:
+                from twisted.internet import ssl
+                contextFactory = ssl.ClientContextFactory()
+                reactor.connectSSL(self.hostname, self.port,
+                                   self.factory, contextFactory)
+            else:
+                reactor.connectTCP(self.hostname, self.port, self.factory)
+            d = self.factory.login(self.creds, None)
+            d.addCallback(self._connected)
+            d.addErrback(self._catchConnectionFailure)
         else:
-            reactor.connectTCP(self.hostname, self.port, factory)
+            if SSL == 1:
+                from twisted.internet import ssl
+                contextFactory = ssl.ClientContextFactory()
+                reactor.connectSSL(self.hostname, self.port,
+                                   factory, contextFactory)
+            else:
+                reactor.connectTCP(self.hostname, self.port, factory)
+            d = factory.getRootObject()
+            d.addCallback(self._connected)
+            d.addErrback(self._catchConnectionFailure)
 
-        d = factory.getRootObject()
-        d.addCallback(self._connected)
-        d.addErrback(self._catchConnectionFailure)
         return d
 
     def poolWorkers(self, remoteobj):

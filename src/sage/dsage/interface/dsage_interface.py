@@ -148,6 +148,7 @@ class DSage(object):
             self.SERVER = config.get('general', 'server')
             self.PORT = config.getint('general', 'port')
         except Exception, msg:
+            print msg
             raise
 
     def _getpassphrase(self):
@@ -727,19 +728,9 @@ class blockingJobWrapper(JobWrapper):
         self.remoteobj = remoteobj
         self._job = job
 
-        # TODO Make this more complete
         self._update_job(job)
         self.worker_info = self._job.worker_info
 
-
-        # This is kind of stupid, why not just set the job ID when
-        # submitting the job?
-
-        # jobID = blocking_call_from_thread(self.remoteobj.callRemote,
-        #                                           'get_next_job_id')
-
-        # self._job.id = jobID
-        # pickled_job = self._job.pickle()
         jdict = blocking_call_from_thread(self.remoteobj.callRemote,
                                           'submit_job', job.reduce())
         self._job = expand_job(jdict)

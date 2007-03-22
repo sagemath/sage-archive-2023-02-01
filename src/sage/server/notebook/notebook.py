@@ -857,6 +857,7 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
         #head += '<script language=javascript>' + js.javascript() + '</script>\n'
         return head
 
@@ -940,6 +941,10 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
+#        TODO: send in highlight.js patch & related stuff
+#        head +=' <script src="/highlight/highlight.js"></script>\n'
+
         #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head

@@ -39,6 +39,7 @@ from sage.misc.misc import verbose, get_verbose, cputime
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
+include "../ext/random.pxi"
 
 ctypedef unsigned int uint
 
@@ -1438,7 +1439,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        The parameters are passed on to the integer ring's random_element function.
+        The parameters are the same as the integer ring's random_element function.
 
         If x and y are given, randomized entries of this matrix to be between x and y
         and have density 1.
@@ -1457,9 +1458,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         if density == 1:
             for i from 0 <= i < self._nrows*self._ncols:
                 the_integer_ring._randomize_mpz(self._entries[i], x, y, distribution)
-#                mpz_urandomm(self._entries[i], state, n_width.value)
-#                if min_is_nonzero:
-#                    mpz_add(self._entries[i], self._entries[i], n_min.value)
+
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
@@ -1467,9 +1466,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 for j from 0 <= j < num_per_row:
                     k = random()%nc
                     the_integer_ring._randomize_mpz(self._matrix[i][k], x, y, distribution)
-#                    mpz_urandomm(self._matrix[i][k], state, n_width.value)
-#                    if min_is_nonzero:
-#                        mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
+
         _sig_off
 
     #### Rank

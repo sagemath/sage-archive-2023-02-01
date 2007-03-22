@@ -51,6 +51,7 @@ sense.
 
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/random.pxi"
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -66,25 +67,6 @@ cimport integer
 cimport rational
 
 import ring
-
-###########
-from random import randrange
-cdef extern from "stdlib.h":
-    long random()
-    void srandom(unsigned int seed)
-
-    int RAND_MAX
-    int rand()
-    void srand(unsigned int seed)
-
-k = randrange(0,int(2)**int(32))
-srandom(k)
-srand(randrange(0,int(2)**int(32)))
-
-cdef gmp_randstate_t state
-gmp_randinit_mt(state)
-gmp_randseed_ui(state,k)
-###########
 
 def is_IntegerRing(x):
     return PY_TYPE_CHECK(x, IntegerRing_class)
@@ -341,11 +323,11 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
     cdef int _randomize_mpz(self, mpz_t value, x, y, distribution) except -1:
         cdef integer.Integer n_max, n_min, n_width
         if (distribution is None and x is None) or distribution == "1/n":
-            mpz_set_si(value, (RAND_MAX/2) / (rand()-RAND_MAX/2))
+            mpz_set_si(value, (RAND_MAX/2) / (random()-RAND_MAX/2))
         elif distribution is None or distribution == "uniform":
             if y is None:
                 if x is None:
-                    mpz_set_si(value, rand()%5 - 2)
+                    mpz_set_si(value, random()%5 - 2)
                 else:
                     n_max = x if PY_TYPE_CHECK(x, integer.Integer) else self(x)
                     mpz_urandomm(value, state, n_max.value)

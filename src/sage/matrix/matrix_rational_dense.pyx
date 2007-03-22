@@ -1056,15 +1056,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return QA
 
 
-    def randomize(self, density=1, num_bound=2, den_bound=2):
+    def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
         """
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        The parameters are passed on to the integer ring's random_element function.
-
         If x and y are given, randomized entries of this matrix have numerators and denominators
-        between x and y and have density 1.
+        bounded by x and y and have density 1.
         """
         density = float(density)
         if density == 0:
@@ -1086,7 +1084,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         _sig_on
         if density == 1:
-            if mpz_cmp_si(C.value, 2):   # denom is > 1
+            if distribution == "1/n":
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry_recip_uniform(self._entries[i])
+            elif mpz_cmp_si(C.value, 2):   # denom is > 1
                 for i from 0 <= i < self._nrows*self._ncols:
                     mpq_randomize_entry(self._entries[i], B.value, C.value)
             else:
@@ -1095,7 +1096,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
-            if mpz_cmp_si(C.value, 2):   # denom is > 1
+            if distribution == "1/n":
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry_recip_uniform(self._matrix[i][k])
+            elif mpz_cmp_si(C.value, 2):   # denom is > 1
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
                         k = random()%nc

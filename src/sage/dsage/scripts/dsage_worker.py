@@ -33,16 +33,16 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.misc.hostinfo import HostInfo
+from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import ClientPBClientFactory
-
+from sage.dsage.twisted.pb import WorkerMind
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
-DELIMITER = '-' * 75
+DELIMITER = '-' * 50
 
 # Begin reading configuration
 try:
@@ -355,7 +355,7 @@ class Monitor(object):
             CONFIG.set('uuid', 'id', str(uuid.uuid1()))
             f = open(CONF_FILE, 'w')
             CONFIG.write(f)
-        self.identifier = CONFIG.get('uuid', 'id')
+        self.uuid = CONFIG.get('uuid', 'id')
 
         if AUTHENTICATE:
             from twisted.cred import credentials
@@ -490,9 +490,7 @@ class Monitor(object):
         log.msg(DELIMITER)
 
         if AUTHENTICATE:
-            # TODO: Send a useful 'mind' object with the login request!
-            # factory = pb.PBClientFactory()
-            log.msg('\nConnecting as authenticated worker...\n')
+            log.msg('Connecting as authenticated worker...\n')
             self.factory = ClientPBClientFactory()
             if SSL == 1:
                 from twisted.internet import ssl
@@ -501,7 +499,12 @@ class Monitor(object):
                                    self.factory, contextFactory)
             else:
                 reactor.connectTCP(self.hostname, self.port, self.factory)
-            d = self.factory.login(self.creds, None)
+
+            # create a useful mind object
+            # mind = WorkerMind(ClassicHostInfo().host_info)
+            hf = ClassicHostInfo().host_info
+            hf['uuid'] = self.uuid
+            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
             d.addCallback(self._connected)
             d.addErrback(self._catchConnectionFailure)
         else:
@@ -663,7 +666,7 @@ class Monitor(object):
 
         # attach the workers uuid to the dictionary returned by
         # HostInfo().get_host_info
-        h['uuid'] = self.identifier
+        h['uuid'] = self.uuid
 
         d = self.remoteobj.callRemote("submit_host_info", h)
         d.addErrback(self._catchConnectionFailure)

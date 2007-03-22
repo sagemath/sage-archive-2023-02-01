@@ -54,8 +54,6 @@ class WorkerPBServerFactory(pb.PBServerFactory):
             if broker.transport.disconnected:
                 worker_tracker.remove((broker, host, port))
 
-
-
 class ClientPBClientFactory(pb.PBClientFactory):
     r"""
     Custom implementation of the PBClientFactory that supports logging in
@@ -125,12 +123,23 @@ class DefaultPerspective(pb.Avatar):
 
     def attached(self, avatar, mind):
         self.current_connections += 1
-        client_tracker.add((avatar, mind))
+        if mind:
+            worker_tracker.add((mind[0].broker,
+                                mind[0].broker.transport.getPeer().host,
+                                mind[0].broker.transport.getPeer().port,
+                                mind[1]))
+        else:
+            client_tracker.add((avatar, mind))
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
-        client_tracker.remove((avatar, mind))
-
+        if mind:
+            pass
+            # for broker, host, port, mind in worker_tracker.worker_list:
+            #     if broker.transport.disconnected:
+            #         worker_tracker.remove((broker, host, port, mind))
+        else:
+            client_tracker.remove((avatar, mind))
 
 class UserPerspective(DefaultPerspective):
     r"""
@@ -272,3 +281,16 @@ class Realm(object):
         avatar.attached(avatar, mind)
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)
+
+class WorkerMind(pb.Referenceable, pb.Copyable):
+    r"""
+    This is the 'mind' object that we pass to the remote server when we
+    login.
+
+    """
+
+    def __init__(self, host_info):
+        self.host_info = host_info
+
+    def remote_get_host_info(self):
+        return self.host_info

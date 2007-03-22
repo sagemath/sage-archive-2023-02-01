@@ -75,12 +75,14 @@ class PublicKeyCredentialsChecker(object):
 
 class PublicKeyCredentialsCheckerDB(object):
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, userdb):
         self.userdb = userdb
 
     def requestAvatarId(self, credentials):
+        # if anonymous:
+        #     return 'anonymous'
         try:
             user, key = self.get_user(credentials.username)
         except TypeError:

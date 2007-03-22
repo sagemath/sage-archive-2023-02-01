@@ -304,11 +304,13 @@ cdef class Matrix(matrix1.Matrix):
         return tmp
 
 
-    def determinant(self):
+    def determinant(self, algorithm="hessenberg"):
         r"""
         Return the determinant of self.
 
-        ALGORITHM: This is computed using the very stupid expansion by
+        ALGORITHM: For small matrices (n<4), this is computed using the naive formula
+        For integral domains, the charpoly is computed (using hessenberg form)
+        Otherwise his is computed using the very stupid expansion by
         minors stupid \emph{naive generic algorithm}.  For matrices
         over more most rings more sophisticated algorithms can be
         used.  (Type \code{A.determinant?} to see what is done for a
@@ -358,9 +360,30 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # if over an exact integral domain, get the det by computing charpoly.
+        n = self._ncols
         R = self._base_ring
-        if R.is_integral_domain() and R.is_exact():
+
+        # For small matrices, you can't beat the naive formula
+        if n <= 3:
+            if n == 0:
+                d = R(1)
+            elif n == 1:
+                d = self.get_unsafe(0,0)
+            elif n == 2:
+                d = self.get_unsafe(0,0)*self.get_unsafe(1,1) - self.get_unsafe(1,0)*self.get_unsafe(0,1)
+            elif n == 3:
+                d = self.get_unsafe(0,0) * (self.get_unsafe(1,1)*self.get_unsafe(2,2) - self.get_unsafe(1,2)*self.get_unsafe(2,1))    \
+                    - self.get_unsafe(1,0) * (self.get_unsafe(0,1)*self.get_unsafe(2,2) - self.get_unsafe(0,2)*self.get_unsafe(2,1))  \
+                    + self.get_unsafe(2,0) * (self.get_unsafe(0,1)*self.get_unsafe(1,2) - self.get_unsafe(0,2)*self.get_unsafe(1,1))
+            self.cache('det', d)
+            return d
+
+        # if over an exact integral domain, we could get the det by computing charpoly.
+        # Generic fraction field implementation is so slow that the naive algorithm is
+        # is much faster in practice despite asymptotics.
+        # TODO: find reasonable cutoff (Field specific, but seems to be quite large for Q[x])
+        # if R.is_integral_domain() and R.is_exact() and algorithm == "hessenberg":
+        if  R.is_field() and algorithm == "hessenberg":
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -371,35 +394,27 @@ cdef class Matrix(matrix1.Matrix):
         # fall back to very very stupid algorithm -- expansion by minors.
         # TODO: surely there is something much better, even in total generality...
         # this is ridiculous.
+        d = self._det_by_minors(R(0))
+        self.cache('det', d)
+        return d
+
+    cdef _det_by_minors(self, zero):
         n = self._ncols
-        R = self.parent().base_ring()
-        if n == 0:
-            d = R(1)
-            self.cache('det', d)
-            return d
-
-        elif n == 1:
-            d = self.get_unsafe(0,0)
-            self.cache('det', d)
-            return d
-
-        elif n == 2:
-            d = self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1)*self.get_unsafe(1,0)
-            self.cache('det', d)
-            return d
-
-        d = R(0)
-        s = R(1)
+        if n == 3:
+            return self.get_unsafe(0,0) * (self.get_unsafe(1,1)*self.get_unsafe(2,2) - self.get_unsafe(1,2)*self.get_unsafe(2,1))    \
+                - self.get_unsafe(1,0) * (self.get_unsafe(0,1)*self.get_unsafe(2,2) - self.get_unsafe(0,2)*self.get_unsafe(2,1))  \
+                + self.get_unsafe(2,0) * (self.get_unsafe(0,1)*self.get_unsafe(1,2) - self.get_unsafe(0,2)*self.get_unsafe(1,1))
+        d = zero
         A = self.matrix_from_rows(range(1, n))
-        sgn = R(-1)
         for i from 0 <= i < n:
             v = range(0,i) + range(i+1,n)
             B = A.matrix_from_columns(v)
-            d = d + s*self.get_unsafe(0,i) * B.determinant()
-            s = s*sgn
-
-        self.cache('det', d)
+            if i % 2:
+                d -= self.get_unsafe(0,i) * (<Matrix>B)._det_by_minors(zero)
+            else:
+                d += self.get_unsafe(0,i) * (<Matrix>B)._det_by_minors(zero)
         return d
+
 
 
     # shortcuts

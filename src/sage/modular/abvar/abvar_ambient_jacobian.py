@@ -8,12 +8,26 @@ TESTS:
     True
 """
 
+import weakref
+
 from abvar             import ModularAbelianVariety_modsym
 from sage.rings.all    import QQ
 from sage.modular.dims import dimension_cusp_forms
 
+_cache = {}
 
-class ModAbVar_ambient_jacobian(ModularAbelianVariety_modsym):
+def ModAbVar_ambient_jacobian(group):
+    try:
+        X = _cache[group]()
+        if not X is None:
+            return X
+    except KeyError:
+        pass
+    X = ModAbVar_ambient_jacobian_class(group)
+    _cache[group] = weakref.ref(X)
+    return X
+
+class ModAbVar_ambient_jacobian_class(ModularAbelianVariety_modsym):
     def __init__(self, group):
         self._group = group
         ModularAbelianVariety_modsym.__init__(self, level = group.level(), base_ring = QQ)

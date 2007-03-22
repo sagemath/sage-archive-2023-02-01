@@ -110,6 +110,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
         matrix_dense.Matrix_dense.__init__(self,parent)
+        if self._nrows == 0 or self._ncols == 0:
+            self._matrix = NULL
+            return
         _sig_on
         self._matrix= <gsl_matrix *> gsl_matrix_calloc(self._nrows, self._ncols)
         _sig_off
@@ -120,6 +123,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def __dealloc__(self):
+        if self._matrix == NULL:
+            return
         gsl_matrix_free(self._matrix)
         if self._LU != NULL:
             gsl_matrix_free(self._LU)
@@ -181,6 +186,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     #   * def _pickle
     #   * def _unpickle
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        if self._nrows == 0 or self._ncols == 0: return self
         cdef Matrix_real_double_dense M,_right,_left
         _right = right
         _left = self
@@ -198,6 +204,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right): #matrix.Matrix right):
+        if self._nrows == 0 or self._ncols == 0: return self
+
         cdef Matrix_real_double_dense M,_right,_left
         _right = right
         _left = self
@@ -214,6 +222,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return M
 
     def __neg__(self):
+        if self._nrows == 0 or self._ncols == 0: return self
+
         cdef Matrix_real_double_dense M
         cdef int result_neg, result_copy
         parent = self.matrix_space(self._matrix.size1,self._matrix.size2)
@@ -240,6 +250,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             raise IndexError, "Number of columns of self must equal number of rows of right"
 
         parent = self.matrix_space(self._nrows,right._ncols)
+        if self._nrows == 0 or self._ncols == 0: return parent.zero_matrix()
+
         cdef Matrix_real_double_dense M,_right,_left
         _right = right
         _left = self
@@ -250,6 +262,8 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     # cdef int _cmp_c_impl(self, Matrix right) except -2:
     def __invert__(self):
+        if self._nrows == 0 or self._ncols == 0: return self
+
         cdef int result_LU, result_invert
         if self.fetch('LU_valid')!=True:
             self._c_compute_LU()
@@ -298,10 +312,15 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     def LU(self):
         """
-        Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
+        Computes the LU decomposition of a matrix.
 
-        P*A = L*U
-        for P a permutation matrix, L lower triangular and U upper triangular. The routines returns P,L, and U as a tuple
+        For and square matrix A we can find matrices P,L, and U. s.t.
+           P*A = L*U
+        where P is a permutation matrix, L is lower triangular and U is upper triangular.
+
+        OUTPUT:
+            P, L, U -- as a tuple
+
         EXAMPLES:
             sage: m = matrix(RDF,4,range(16))
             sage: P,L,U = m.LU()
@@ -317,9 +336,12 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [ 4.0  5.0  6.0  7.0]
         """
 
-
         if self._ncols!=self._nrows:
             raise TypeError,"LU decomposition only works for square matrix"
+
+        if self._ncols == 0:
+            return self, self, self
+
         if self.fetch('LU_valid')!=True:
             self._c_compute_LU()
         cdef Py_ssize_t i,j,k,l,copy_result
@@ -338,7 +360,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
                 U.set_unsafe(l,i,gsl_matrix_get(self._LU,l,i))
 
 
-        return [P,L,U]
+        return P, L, U
 
 
     def eigen(self):
@@ -348,8 +370,6 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         OUTPUT:
              eigenvalues -- as a list
              corresponding eigenvectors -- as an RDF matrix whose columns are the eigenvectors.
-
-
 
         EXAMPLES:
             sage: m = Matrix(RDF, 3, range(9))
@@ -362,6 +382,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         IMPLEMENTATION:
             Uses numpy.
         """
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return [], self
+
         import numpy
         v_,m_=numpy.linalg.eig(self.numpy())
         return ([sage.rings.complex_double.CDF(x) for x in v_],matrix(m_))
@@ -388,9 +413,21 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 ##             _result_matrix._matrix.data[i] = p[i]
 ##         return ([sage.rings.complex_double.CDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
 
-    def solve_left_LU(self, vec):
+    def solve_left_LU(self, b):
         """
-        Solve the equation A*x = b, where
+        Solve the equation A*x = b.
+
+        INPUT:
+           self -- an invertible matrix
+           b -- a vector
+
+        NOTES: This method precomputes and stores the LU decomposition
+        before solving. If many equations of the form Ax=b need to be
+        solved for a singe matrix A, then this method should be used
+        instead of solve. The first time this method is called it will
+        compute the LU decomposition.  If the matrix has not changed
+        then subsequent calls will be very fast as the precomputed LU
+        decomposition will be reused.
 
         EXAMPLES:
             sage: A = matrix(RDF, 3,3, [1,2,5,7.6,2.3,1,1,2,-1]); A
@@ -403,15 +440,22 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: A*x
             (1.0, 2.0, 3.0)
 
-        This method precomputes and stores the LU decomposition before solving. If many equations of the form Ax=b need to
-        be solved for a singe matrix A, then this method should be used instead of solve.The first time this method is called
-        it will compute the LU decomposition.
-        If the matrix hs not changed then subsequent calls will be very fast as the precomputed LU decomposition will be reused.
+        TESTS:
+        We test two degenerate cases:
+            sage: A = matrix(RDF, 0, 3, [])
+            sage: A.solve_left_LU(vector(RDF,[]))
+            ()
+            sage: A = matrix(RDF, 3, 0, [])
+            sage: A.solve_left_LU(vector(RDF,3, [1,2,3]))
+            ()
 
         """
-
+        if self._nrows != b.degree():
+            raise ValueError, "number of rows of self must equal degree of b"
+        if self._nrows == 0 or self._ncols == 0:
+            return self._row_ambient_module().zero_vector()
         import solve
-        return solve.solve_matrix_real_double_dense(self, vec)
+        return solve.solve_matrix_real_double_dense(self, b)
 
     def solve_left(self,vec):
         """
@@ -427,8 +471,16 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             (-0.113695090439, 1.39018087855, -0.333333333333)
             sage: A*x
             (1.0, 2.0, 3.0)
-        """
 
+        TESTS:
+        We test two degenerate cases:
+            sage: A = matrix(RDF, 0, 3, [])
+            sage: A.solve_left(vector(RDF,[]))
+            ()
+            sage: A = matrix(RDF, 3, 0, [])
+            sage: A.solve_left(vector(RDF,3, [1,2,3]))
+            ()
+        """
         import numpy
         cdef double *p
         cdef RealDoubleVectorSpaceElement _vec,ans

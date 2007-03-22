@@ -1,7 +1,15 @@
 """
-Abelian Variety that is defined by a Hecke stable factor of
-an ambient modular symbols space.
+Optimal abelian variety quotients of modular jacobians.
+
+AUTHOR:
+    -- William Stein (2007-03)
 """
+
+###########################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
+#  Distributed under the terms of the GNU General Public License (GPL)    #
+#                  http://www.gnu.org/licenses/                           #
+###########################################################################
 
 from abvar             import ModularAbelianVariety_modsym
 from sage.rings.all    import QQ
@@ -26,6 +34,26 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
             Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
         """
         return self._ambient
+
+    def factor_number(self):
+        """
+        Return the factor number of this modular abelian variety.
+        This is the position of this factor in the sorted list
+        of factors of the ambient variety.
+
+        EXAMPLES:
+            sage: J = J0(37)
+
+        Set a and b to be the two factors of $J_0(37)$:
+            sage: a,b = J
+
+        Now get their factor numbers.
+            sage: a.factor_number()
+            0
+            sage: b.factor_number()
+            1
+        """
+        return self.modular_symbols(sign=1).factor_number()
 
     def modular_symbols(self, sign=0):
         """
@@ -56,7 +84,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
         return A
 
     def _repr_(self):
-        return "Modular abelian quotient variety of dimension %s and level %s"%(\
+        return "Modular abelian variety quotient of dimension %s and level %s"%(\
             self.dimension(), self.level())
 
 ##     def is_subvariety(self, other):
@@ -81,5 +109,5 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
 ## class ModAbVar_modsym_simple_new_factor(ModAbVar_modsym_factor):
 
 ##     def _repr_(self):
-##         return "New simple modular abelian quotient variety of dimension %s and level %s"%(\
+##         return "New simple modular abelian variety quotient of dimension %s and level %s"%(\
 ##             self.dimension(), self.level())

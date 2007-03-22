@@ -362,6 +362,86 @@ class FreeModule_generic(module.Module):
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
 
+    def dense_module(self):
+        """
+        Return corresponding dense module.
+
+        EXAMPLES:
+        We first illustrate conversion with ambient spaces:
+            sage: M = FreeModule(QQ,3)
+            sage: S = FreeModule(QQ,3, sparse=True)
+            sage: M.sparse_module()
+            Sparse vector space of dimension 3 over Rational Field
+            sage: S.dense_module()
+            Vector space of dimension 3 over Rational Field
+            sage: M.sparse_module() is S
+            True
+            sage: S.dense_module() is M
+            True
+            sage: M.dense_module() is M
+            True
+            sage: S.sparse_module() is S
+            True
+
+        Next we convert a subspace:
+            sage: M = FreeModule(QQ,3, sparse=True)
+            sage: V = M.span([ [1,2,3] ] ); V
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            sage: V.sparse_module()
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+        """
+        if self.__is_sparse:
+            return self._dense_module()
+        return self
+
+    def _dense_module(self):
+        A = self.ambient_module().dense_module()
+        return A.span(self.basis())
+
+    def sparse_module(self):
+        """
+        Return corresponding sparse module.
+
+        EXAMPLES:
+        We first illustrate conversion with ambient spaces:
+            sage: M = FreeModule(Integers(8),3)
+            sage: S = FreeModule(Integers(8),3, sparse=True)
+            sage: M.sparse_module()
+            Ambient sparse free module of rank 3 over Ring of integers modulo 8
+            sage: S.dense_module()
+            Ambient free module of rank 3 over Ring of integers modulo 8
+            sage: M.sparse_module() is S
+            True
+            sage: S.dense_module() is M
+            True
+            sage: M.dense_module() is M
+            True
+            sage: S.sparse_module() is S
+            True
+
+        Next we convert a subspace:
+            sage: M = FreeModule(QQ,3)
+            sage: V = M.span([ [1,2,3] ] ); V
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            sage: V.sparse_module()
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+        """
+        if self.__is_sparse:
+            return self
+        return self._sparse_module()
+
+    def _sparse_module(self):
+        A = self.ambient_module().sparse_module()
+        return A.span(self.basis())
+
     def _an_element_impl(self):
         return self.zero_vector()
 
@@ -2159,6 +2239,16 @@ class FreeModule_ambient(FreeModule_generic):
         FreeModule_generic.__init__(self, base_ring, rank,
                                     rank, sparse, inner_product_matrix)
 
+    def _dense_module(self):
+        return FreeModule(base_ring=self.base_ring(),
+                          rank = self.rank(), sparse=False,
+                          inner_product_matrix = self._inner_product_matrix)
+
+    def _sparse_module(self):
+        return FreeModule(base_ring = self.base_ring(),
+                          rank = self.rank(),
+                          sparse=True,
+                          inner_product_matrix = self._inner_product_matrix)
 
     def echelonized_basis_matrix(self):
         return self.basis_matrix()

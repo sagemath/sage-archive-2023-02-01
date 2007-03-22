@@ -73,6 +73,11 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         y.v = v
         return y
 
+    cdef int is_dense_c(self):
+        return True
+    cdef int is_sparse_c(self):
+        return False
+
     cdef gsl_vector_complex* gsl_vector_complex_copy(self) except NULL:
         """
         Return a copy of the underlying GSL vector of self.

@@ -64,6 +64,11 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         y.v = v
         return y
 
+    cdef int is_dense_c(self):
+        return True
+    cdef int is_sparse_c(self):
+        return False
+
     cdef gsl_vector* gsl_vector_copy(self) except NULL:
         """
         Return a copy of the underlying GSL vector of self.

@@ -1,5 +1,19 @@
-"""
+r"""
 Finite subgroups of modular abelian varieties
+
+\sage can compute with fairly general finite subgroups of modular
+abelian varieties.  Elements of finite order are represented by
+equivalence classes of elements in $H_1(A,\QQ)$ modulo $H_1(A,\ZZ)$.
+A finite subgroup can be defined by giving generators and via various
+other constructions.  Given a finite subgroup, one can compute
+generators, the structure as an abstract group.  Arithmetic on
+subgroups is also supported, including adding two subgroups together,
+checking inclusion, etc.
+
+TODO: Intersection, action of Hecke operators.
+
+AUTHOR:
+    -- William Stein (2007-03)
 
 EXAMPLES:
     sage: J = J0(33)
@@ -62,6 +76,11 @@ few levels:
     39 56
 """
 
+###########################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
+#  Distributed under the terms of the GNU General Public License (GPL)    #
+#                  http://www.gnu.org/licenses/                           #
+###########################################################################
 
 from sage.modules.module      import Module
 from sage.structure.element   import ModuleElement

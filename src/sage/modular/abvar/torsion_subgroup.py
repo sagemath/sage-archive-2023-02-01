@@ -1,13 +1,82 @@
 """
-Torsion subgroup of modular abelian variety
+Torsion subgroups of modular abelian varieties.
+
+\sage can compute information about the structure of the torsion
+subgroup of a modular abelian variety.  \sage computes a multiple of
+the order by computing the greatest common divisor of the orders of
+the torsion subgroup of the reduction of the abelian variety modulo p
+for various primes p.  \sage computes a divisor of the order by
+computing the rational cuspidal subgroup.  When these two bounds agree
+(which is often the case), we determine the exact structure of the
+torsion subgroup.
+
+AUTHOR:
+    -- William Stein (2007-03)
+
+EXAMPLES:
+First we consider $J_0(50)$ where everything works out nicely:
+    sage: J = J0(50)
+    sage: T = J.torsion_subgroup(); T
+    Torsion subgroup of Jacobian of the modular curve associated to the congruence subgroup Gamma0(50)
+    sage: T.multiple_of_order()
+    15
+    sage: T.divisor_of_order()
+    15
+    sage: T.gens()
+    [[(1/15, 3/5, -3/5, -1/15)]]
+    sage: T.invariants()
+    [15]
+    sage: d = J.decomposition(); d
+    [
+    Modular abelian variety quotient of dimension 1 and level 50,
+    Modular abelian variety quotient of dimension 1 and level 50
+    ]
+    sage: d[0].torsion_subgroup().order()
+    5
+    sage: d[1].torsion_subgroup().order()
+    3
+
+Next we make a table of the upper and lower bounds for each new factor.
+    sage: for N in range(1,38):
+    ...    for A in J0(N).new_quotient().decomposition():
+    ...        T = A.torsion_subgroup()
+    ...        print '%-5s%-5s%-5s%-5s%-5s'%(N, A.dimension(), A.factor_number(), T.divisor_of_order(), T.multiple_of_order())
+    11   1    0    5    5
+    14   1    0    6    6
+    15   1    0    8    8
+    17   1    0    4    4
+    19   1    0    3    3
+    20   1    0    6    6
+    21   1    0    8    8
+    23   2    0    11   11
+    24   1    0    8    8
+    26   1    0    3    3
+    26   1    1    7    7
+    27   1    0    3    3
+    29   2    0    7    7
+    30   1    0    6    12
+    31   2    0    5    5
+    32   1    0    4    4
+    33   1    0    4    4
+    34   1    0    3    6
+    35   1    0    3    3
+    35   2    1    16   16
+    36   1    0    6    6
+    37   1    0    3    3
+    37   1    1    1    1
 
 TESTS:
     sage: T = J0(54).torsion_subgroup()
     sage: loads(dumps(T)) == T
     True
-
-
 """
+
+###########################################################################
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
+#  Distributed under the terms of the GNU General Public License (GPL)    #
+#                  http://www.gnu.org/licenses/                           #
+###########################################################################
+
 
 from finite_subgroup            import FiniteSubgroup
 from sage.rings.all             import divisors, gcd, ZZ, prime_range
@@ -24,6 +93,25 @@ class TorsionSubgroup(FiniteSubgroup):
         return "Torsion subgroup of %s"%self.abelian_variety()
 
     def order(self):
+        """
+        Return the order of the torsion subgroup of this modular
+        abelian variety.
+
+        This may fail if the multiple obtained by counting points
+        modulo $p$ exceeds the divisor obtained from the rational
+        cuspidal subgroup.
+
+        EXAMPLES:
+            sage: a = J0(11)
+            sage: a.torsion_subgroup().order()
+            5
+            sage: a = J0(23)
+            sage: a.torsion_subgroup().order()
+            11
+            sage: t = J0(37)[0].torsion_subgroup()
+            sage: t.order()
+            3
+        """
         try:
             return self._order
         except AttributeError:
@@ -46,6 +134,12 @@ class TorsionSubgroup(FiniteSubgroup):
             raise ValueError, "no explicit presentation of this finite subgroup is known (unable to compute explicitly)"
 
     def possible_orders(self):
+        """
+        Return the possible orders of this torsion subgroup, computed from
+        the divisor and multiple of the order.
+
+        EXAMPLES:
+        """
         try:
             return self._possible_orders
         except AttributeError:
@@ -58,6 +152,15 @@ class TorsionSubgroup(FiniteSubgroup):
         return O
 
     def divisor_of_order(self):
+        """
+        Return a divisor of the order of this torsion subgroup of a
+        modular abelian variety.
+
+        EXAMPLES:
+           sage: t = J0(37)[0].torsion_subgroup()
+           sage: t.divisor_of_order()
+           3
+        """
         A = self.abelian_variety()
         if A.dimension() == 0:
             return ZZ(1)

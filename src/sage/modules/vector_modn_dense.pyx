@@ -69,6 +69,11 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         y._init(self._degree, self._parent, self._p)
         return y
 
+    cdef int is_dense_c(self):
+        return True
+    cdef int is_sparse_c(self):
+        return False
+
     def __copy__(self):
         cdef Vector_modn_dense y
         y = self._new_c()

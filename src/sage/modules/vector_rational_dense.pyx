@@ -54,6 +54,12 @@ cimport free_module_element
 
 
 cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
+    cdef int is_dense_c(self):
+        return True
+
+    cdef int is_sparse_c(self):
+        return False
+
     cdef _new_c(self):
         cdef Vector_rational_dense y
         y = PY_NEW(Vector_rational_dense)

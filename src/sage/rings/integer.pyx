@@ -136,6 +136,9 @@ from sage.structure.element import  bin_op
 import integer_ring
 the_integer_ring = integer_ring.ZZ
 
+def is_Integer(x):
+    return bool(PY_TYPE_CHECK(x, Integer))
+
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
     The \class{Integer} class represents arbitrary precision

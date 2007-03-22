@@ -51,7 +51,7 @@ from extended_integer_ring import ExtendedIntegerRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
-from integer import Integer
+from integer import Integer, is_Integer
 
 # Rational numbers
 from rational_field import RationalField, QQ, is_RationalField

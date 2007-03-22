@@ -1,11 +1,14 @@
 """
 Base class for modular abelian varieties
+
+AUTHOR:
+    -- William Stein (2007-03)
 """
 
 ###########################################################################
-#       Copyright (C) 2004,2007 William Stein <wstein@gmail.com>
-#  Distributed under the terms of the GNU General Public License (GPL)
-#                  http://www.gnu.org/licenses/
+#       Copyright (C) 2007 William Stein <wstein@gmail.com>               #
+#  Distributed under the terms of the GNU General Public License (GPL)    #
+#                  http://www.gnu.org/licenses/                           #
 ###########################################################################
 
 from sage.categories.all        import ModularAbelianVarieties
@@ -54,7 +57,24 @@ class ModularAbelianVariety(SageObject):
         return self._level
 
     def base_ring(self):
+        """
+        Return the ring that this modular abelian varety is defined over.
+
+        EXAMPLES:
+            sage: J0(11).base_ring()
+            Rational Field
+        """
         return self._base_ring
+
+    def base_field(self):
+        r"""
+        Synonym for \code{self.base_ring()}.
+
+        EXAMPLES:
+            sage: J0(11).base_field()
+            Rational Field
+        """
+        return self.base_ring()
 
     def homology(self, base_ring=ZZ):
         """
@@ -88,12 +108,70 @@ class ModularAbelianVariety(SageObject):
         return H
 
     def integral_homology(self):
+        """
+        Return the integral homology of this modular abelian variety.
+
+        EXAMPLES:
+            sage: H = J0(43).integral_homology(); H
+            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(43)
+            sage: H.rank()
+            6
+            sage: H = J1(17).integral_homology(); H
+            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma1(17)
+            sage: H.rank()
+            10
+
+        If you just ask for the rank of the homology, no serious calculations are done, so the
+        following is fast:
+            sage: H = J0(50000).integral_homology(); H
+            Integral Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(50000)
+            sage: H.rank()
+            14702
+        """
         return self.homology(ZZ)
 
     def rational_homology(self):
+        """
+        Return the rational homology of this modular abelian variety.
+
+        EXAMPLES:
+            sage: H = J0(37).rational_homology(); H
+            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            sage: H.rank()
+            4
+            sage: H.base_ring()
+            Rational Field
+            sage: H = J1(17).rational_homology(); H
+            Rational Homology of Jacobian of the modular curve associated to the congruence subgroup Gamma1(17)
+            sage: H.rank()
+            10
+            sage: H.base_ring()
+            Rational Field
+        """
         return self.homology(QQ)
 
     def hecke_operator(self, n):
+        """
+        Return the n-th Hecke operator on the modular abelian variety.
+
+        EXAMPLES:
+        We compute $T_2$ on $J_0(37)$.
+            sage: t2 = J0(37).hecke_operator(2); t2
+            Hecke operator T_2 on Jacobian of the modular curve associated to the congruence subgroup Gamma0(37)
+            sage: t2.charpoly().factor()
+            x^2 * (x + 2)^2
+            sage: t2.index()
+            2
+
+        Note that there is no matrix associated to Hecke operators on
+        modular abelian varieties.  For a matrix, instead consider, e.g.,
+        the Hecke operator on integral or rational homology.
+            sage: t2.action_on_homology().matrix()
+            [-1  1  1 -1]
+            [ 1 -1  1  0]
+            [ 0  0 -2  1]
+            [ 0  0  0  0]
+        """
         try:
             return self._hecke_operator[n]
         except AttributeError:

@@ -389,6 +389,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         """
         if self._nrows != self._ncols:
             raise ValueError, "self must be square"
+        if self._nrows == 0:
+            return [], self
 
         import numpy
         import_array() #This must be called before using the numpy C/api or you will get segfault
@@ -432,6 +434,16 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
              (-0.113695090439 + 0.113695090439*I, 1.39018087855 - 1.39018087855*I, -0.333333333333 + 0.333333333333*I)
             sage: A*x
             (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
+
+
+        TESTS:
+        We test two degenerate cases:
+            sage: A = matrix(CDF, 0, 3, [])
+            sage: A.solve_left(vector(CDF,[]))
+            ()
+            sage: A = matrix(CDF, 3, 0, [])
+            sage: A.solve_left(vector(CDF,3, [1,2,3]))
+            ()
         """
         cdef double *p
         cdef ComplexDoubleVectorSpaceElement _vec,ans
@@ -466,6 +478,15 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: A*x
             (1.0 + 1.0*I, 2.0 + 2.0*I, 3.0 + 3.0*I)
 
+        TESTS:
+        We test two degenerate cases:
+            sage: A = matrix(CDF, 0, 3, [])
+            sage: A.solve_left_LU(vector(CDF,[]))
+            ()
+            sage: A = matrix(CDF, 3, 0, [])
+            sage: A.solve_left_LU(vector(CDF,3, [1,2,3]))
+            ()
+
         This method precomputes and stores the LU decomposition before
         solving. If many equations of the form Ax=b need to be solved
         for a singe matrix A, then this method should be used instead
@@ -486,8 +507,10 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
          """
          Compute the determinant.
 
-         ALGORITHM:
-           Use GSL (LU decompositon)
+         ALGORITHM: Use GSL (LU decompositon)
+
+         EXAMPLES:
+
          """
          if self._nrows == 0 or self._ncols == 0:
              return sage.rings.complex_double.CDF(1)
@@ -526,9 +549,15 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         return trans
 
     def LU(self):
-        """Computes the LU decomposition of a matrix. For and square matrix A we can find matrices P,L, and U. s.t.
-        P*A = L*U
-        for P a permutation matrix, L lower triangular and U upper triangular. The routines routines P,L, and U as a tuple
+        """
+        Computes the LU decomposition of a matrix.
+
+        For and square matrix A we can find matrices P,L, and U. s.t.
+           P*A = L*U
+        where P is a permutation matrix, L is lower triangular and U is upper triangular.
+
+        OUTPUT:
+            P, L, U -- as a tuple
 
         EXAMPLES:
             sage: m=matrix(CDF,4,range(16))
@@ -546,6 +575,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         """
         if self._ncols!=self._nrows:
             raise TypeError,"LU decomposition only works for square matrix"
+        if self._ncols == 0:
+            return self, self, self
         if self.fetch('LU_valid') != True:
             self._c_compute_LU()
         cdef Py_ssize_t i,j,k,l,copy_result
@@ -568,7 +599,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
                 z = gsl_matrix_complex_get(self._LU,l,i)
                 gsl_matrix_complex_set(U._matrix,l,i,z)
 
-        return [P,L,U]
+        return P, L, U
 
     def numpy(self):
         r"""

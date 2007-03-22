@@ -83,34 +83,73 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def cuspidal_subspace(self):
         """
         Synonym for cuspidal_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.cuspidal_subspace().new_subspace().dimension()
+            2
         """
         return self.cuspidal_submodule()
 
     def new_subspace(self, p=None):
         """
         Synonym for new_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(5),12); m.dimension()
+            12
+            sage: m.new_subspace().dimension()
+            6
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.new_subspace().dimension()
+            2
         """
         return self.new_submodule(p)
 
     def old_subspace(self, p=None):
         """
-        Synonym for new_submodule.
+        Synonym for old_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.old_subspace().dimension()
+            6
         """
         return self.old_submodule(p)
 
     def eisenstein_subspace(self):
         """
         Synonym for eisenstein_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.eisenstein_subspace().dimension()
+            2
+            sage: m.cuspidal_subspace().dimension()
+            6
         """
         return self.eisenstein_submodule()
 
     def dimension_of_associated_cuspform_space(self):
         """
-        Return the dimension of the corresponding space
-        of cusp forms.
+        Return the dimension of the corresponding space of cusp forms.
 
-        The input space must be cuspidal, otherwise there
-        is no corresponding space of cusp forms.
+        The input space must be cuspidal, otherwise there is no
+        corresponding space of cusp forms.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(389),2).cuspidal_subspace(); m.dimension()
+            64
+            sage: m.dimension_of_associated_cuspform_space()
+            32
+            sage: m = ModularSymbols(Gamma0(389),2,sign=1).cuspidal_subspace(); m.dimension()
+            32
+            sage: m.dimension_of_associated_cuspform_space()
+            32
         """
         if not self.is_cuspidal():
             raise ArithmeticError, "space must be cuspidal"
@@ -151,11 +190,28 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         raise NotImplementedError
 
     def is_simple(self):
+        """
+        Return whether not this modular symbols space is simple as a module
+        over the anemic Hecke algebra adjoin *.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(33),2,sign=1)
+            sage: m.is_simple()
+            False
+            sage: o = m.old_subspace()
+            sage: o.is_simple()
+            False
+            sage: o.decomposition()
+            [
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
+            ]
+        """
         try:
             return self._is_simple
         except AttributeError:
             D = self.factorization()
-            if len(D) <= 0 or len(D) == 1 and D[0][1] == 1:
+            if len(D) == 0 or len(D) == 1 and D[0][1] == 1:
                 self._is_simple = True
             else:
                 self._is_simple = False
@@ -1095,7 +1151,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         #raise NotImplementedError, "code past this point is broken / not done"  # todo
         A = self.ambient_hecke_module()
         T = A.hecke_matrix(n)
-        S = T.restrict(self.integral_structure())
+        S = T.restrict(self.integral_structure()).change_ring(ZZ)
         self.__integral_hecke_matrix[n] = S
         return S
 
@@ -1401,6 +1457,14 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
              (0, 1, 0, 0),
              (0, 0, 1, 0),
              (0, 0, 0, 1)]
+
+        We compute the image of the winding element:
+            sage: m = ModularSymbols(37,sign=1)
+            sage: a = m[1]
+            sage: f = a.integral_period_mapping()
+            sage: e = m([0,oo])
+            sage: f(e)
+            boom
         """
         try:
             return self.__integral_period_mapping

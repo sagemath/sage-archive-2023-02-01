@@ -219,6 +219,18 @@ var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
+var original_title;
+
+//var title_spinner = ['    ', '.   ', '..  ', '... '];
+//var title_spinner = ['[ ] ', '[.] ', '[:] ', '[.] '];
+var title_spinner = ['S ', 'SA ', 'SAG ', 'SAGE '];
+//var title_spinner = ['/ ', '\\ '];
+//var title_spinner = ['[   ] ', '[.  ] ', '[.. ] ', '[...] '];
+//var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
+var title_spinner_i = 0;
+try{
+    original_title = document.title;
+} catch(e) {}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -1378,6 +1390,10 @@ function check_for_cell_update() {
     async_request('/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
+    try{
+        title_spinner_i = (title_spinner_i+1)%title_spinner.length;
+        document.title = title_spinner[title_spinner_i] + original_title;
+    } catch(e){}
 }
 
 function start_update_check() {
@@ -1391,6 +1407,7 @@ function cancel_update_check() {
     updating = false;
     clearTimeout(update_timeout);
     set_class('interrupt', 'interrupt_grey')
+    document.title = original_title;
 }
 
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {

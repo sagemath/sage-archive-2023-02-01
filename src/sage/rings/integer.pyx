@@ -122,6 +122,8 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+MAX_UNSIGNED_LONG = 2 * sys.maxint
+
 # This crashes SAGE:
 #  s = 2003^100300000
 # The problem is related to realloc moving all the memory
@@ -294,19 +296,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_xor(x.value, self.value, other.value)
         return x
 
-    def __xor__(x, y):
+    def xor(x, y):
         """
         Compute the exclusive or of x and y.
 
         EXAMPLES:
             sage: n = ZZ(2); m = ZZ(3)
-            sage: n.__xor__(m)
+            sage: n.xor(m)
             1
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return x._xor(y)
         return bin_op(x, y, operator.xor)
 
+    def __xor__(self, right):
+        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
+              "in Python, and has the wrong precedence.  Use x.xor(y) for the xor of x and y."
 
     def __richcmp__(left, right, int op):
         return (<sage.structure.element.Element>left)._richcmp(right, op)
@@ -655,6 +660,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9536.7431640625
             sage: 'sage'^3
             'sagesagesage'
+
+
+        The exponent must first in an unsigned long.
+            sage: x = 2^1000000000000000
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294
         """
         cdef Integer _n
         cdef unsigned int _nval
@@ -673,13 +685,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         if _n < 0:
             return Integer(1)/(self**(-_n))
-        if _n > 2147483647:
-            # if anyone tries an exponent this large, then they probably don't
-            # know what they're doing anyway, but we'll just fall back on
-            # generic powering code, since GMP's mpz_pow_ui won't work
-            # (at least on 32-bit machines... whatever....)
-            return RingElement.__pow__(self, _n)
-
+        if _n > MAX_UNSIGNED_LONG:
+            raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
+        _self = self
         cdef Integer x
         x = PY_NEW(Integer)
         _nval = _n
@@ -1017,23 +1025,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: z.powermodm_ui(2, 14)
             2
-            sage: z.powermodm_ui(2^31-1, 14)
-            4
-            sage: z.powermodm_ui(2^31, 14)
+            sage: z.powermodm_ui(2^32-2, 14)
+            2
+            sage: z.powermodm_ui(2^32-1, 14)
             Traceback (most recent call last):                              # 32-bit
             ...                                                             # 32-bit
-            OverflowError: exp (=2147483648) must be <= 2147483647   # 32-bit
-            2              # 64-bit
-            sage: z.powermodm_ui(2^63, 14)
+            OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
+            8              # 64-bit
+            sage: z.powermodm_ui(2^65, 14)
             Traceback (most recent call last):
             ...
-            OverflowError: exp (=9223372036854775808) must be <= 2147483647           # 32-bit
-            OverflowError: exp (=9223372036854775808) must be <= 9223372036854775807  # 64-bit
+            OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
+            OverflowError: exp (=9223372036854775808) must be <= 18446744065119617024  # 64-bit
         """
         if exp < 0:
             raise ValueError, "exp (=%s) must be nonnegative"%exp
-        elif exp > sys.maxint:
-            raise OverflowError, "exp (=%s) must be <= %s"%(exp, sys.maxint)
+        elif exp > MAX_UNSIGNED_LONG:
+            raise OverflowError, "exp (=%s) must be <= %s"%(exp, MAX_UNSIGNED_LONG)
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()
@@ -1646,15 +1654,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    cdef _lshift(self, unsigned long int n):
+    cdef _lshift(self, long int n):
         """
         Shift self n bits to the left, i.e., quickly multiply by $2^n$.
         """
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
 
         _sig_on
-        mpz_mul_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_fdiv_q_2exp(x.value, self.value, -n)
+        else:
+            mpz_mul_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1674,11 +1685,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(Integer self, unsigned long int n):
+    cdef _rshift(Integer self, long int n):
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
+
         _sig_on
-        mpz_fdiv_q_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_mul_2exp(x.value, self.value, -n)
+        else:
+            mpz_fdiv_q_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1721,14 +1736,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES:
             sage: n = 8; m = 4
             sage: n.__or__(m)
-            12
-
-        On the command line use eval to evaluate the or using the
-        caret notation (which is normally exponentiation because
-        of the preprocessor).
-            sage: eval('n ^ m')
-            12
-            sage: eval('Integer(8) ^ Integer(4)')
             12
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
@@ -1870,15 +1877,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
 ONE = Integer(1)
-
-
-# Why does the following function exist? It was used in Integer.__pow__(),
-# but was unnecessary, so I removed it, and it doesn't look like it's used
-# by anything else. And surely it should be cdef'd anyway?  -- dmharvey
-def integer(x):
-    if PY_TYPE_CHECK(x, Integer):
-        return x
-    return Integer(x)
 
 
 def LCM_list(v):
@@ -2290,3 +2288,8 @@ def time_alloc(n):
 def pool_stats():
     print "Used pool %s / %s times" % (use_pool, total_alloc)
     print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)
+
+cdef integer(x):
+    if PY_TYPE_CHECK(x, Integer):
+        return x
+    return Integer(x)

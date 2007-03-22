@@ -1373,7 +1373,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            raise RuntimeError, "bug in matrix pivots functions, matrix parent = '%s'"%self.parent()
+            print self
+            print self.nrows()
+            print self.dict()
+            self.save('/home/was/a')
+            raise RuntimeError, "BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent()
         return x
 
     def rank(self):

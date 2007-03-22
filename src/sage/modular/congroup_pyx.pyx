@@ -168,6 +168,10 @@ def degeneracy_coset_representatives_gamma1(int N, int M, int t):
             d \con d' \pmod{N/t}.
            $$
 
+    EXAMPLES:
+        sage: import sage.modular.congroup as congroup
+        sage: congroup.degeneracy_coset_representatives_gamma1(13, 1, 1)
+        [hangs]
     """
     import sage.modular.dims
 

@@ -27,6 +27,11 @@ We make a large zero vector:
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+TESTS:
+    sage: v = vector(ZZ, [1,2,3,4])
+    sage: loads(dumps(v)) == v
+    True
 """
 
 ###############################################################################

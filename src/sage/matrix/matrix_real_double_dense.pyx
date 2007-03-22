@@ -8,6 +8,11 @@ EXAMPLES:
     sage: b[0]
     [1.0 0.0 0.0]
     [0.0 0.0 0.0]
+
+TESTS:
+    sage: a = matrix(RDF,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ##############################################################################

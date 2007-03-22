@@ -61,6 +61,17 @@ Base ring:
 
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
+
+TESTS:
+We intersect a zero-dimensional vector space with
+a 1-dimension submodule.
+    sage: V = (QQ^1).span([])
+    sage: W = ZZ^1
+    sage: V.intersection(W)
+    Free module of degree 1 and rank 0 over Integer Ring
+    Echelon basis matrix:
+    []
+
 """
 
 ####################################################################################
@@ -280,7 +291,9 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         TypeError: K must be a field
     """
 
-    if not field.is_Field(K):
+    if not ring.is_Ring(K):
+        raise TypeError, "K must be a field"
+    if not K.is_field():
         raise TypeError, "K must be a field"
     return FreeModule(K, dimension, sparse, inner_product_matrix)
 
@@ -579,8 +592,10 @@ class FreeModule_generic(module.Module):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def echelonized_basis_matrix(self):
         raise NotImplementedError
@@ -1214,8 +1229,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_field(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def index(self, other):
         """
@@ -1342,7 +1359,10 @@ class FreeModule_generic_pid(FreeModule_generic):
         elif other == other.ambient_vector_space():
             return self
         elif self.rank() == 0 or other.rank() == 0:
-            return self.zero_submodule()
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
 
         # standard algorithm for computing intersection of general submodule
         if self.dimension() <= other.dimension():
@@ -1854,6 +1874,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
 
         if self.ambient_vector_space() != other.ambient_vector_space():
             raise ArithmeticError, "self and other must have the same ambient space."
+
+        if self.rank() == 0 or other.rank() == 0:
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
 
         if self.base_ring() != other.base_ring():
             # Now other is over a ring R whose fraction field K is the base field of V = self.

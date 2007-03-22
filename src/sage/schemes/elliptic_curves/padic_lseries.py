@@ -24,6 +24,8 @@ AUTHORS:
 from sage.rings.integer_ring import ZZ
 from sage.rings.padics.qp import Qp
 
+from sage.rings.integer import Integer
+
 from sage.structure.sage_object import SageObject
 
 class pAdicLseries(SageObject):
@@ -186,8 +188,9 @@ class pAdicLseries(SageObject):
             the Teichmuller lifts to precision p^n as integers.
         """
         K = self._Qp
-        pn = self._p ** n
-        return [0] + [(K.teichmuller(a)%pn).lift() for a in range(1,self._p)]
+        return [Integer(0)] + \
+               [a.residue(n).lift() for a in K.teichmuller_system()]
+
 
 class pAdicLseriesOrdinary(pAdicLseries):
     pass

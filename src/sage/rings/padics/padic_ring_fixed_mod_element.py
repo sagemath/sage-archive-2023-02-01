@@ -45,7 +45,7 @@ pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
 
 class pAdicRingFixedModElement(pAdicRingGenericElement):
-    def __init__(self, parent, x, construct=False):
+    def __init__(self, parent, x, absprec = None, relprec = None, construct=False):
         r"""
         INPUT:
             parent -- a pAdicRingFixedMod object.
@@ -70,10 +70,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             sage: R(75)
             75 + O(5^20)
             sage: R(0)
-            O(5^20)
-
-        # todo: in the "integer" print mode, it would be better if the
-        # above case printed as "0 + O(5^20)" instead of just "O(5^20)"
+            0 + O(5^20)
 
             sage: R(-1)
             95367431640624 + O(5^20)
@@ -105,16 +102,12 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             sage: R(Integers(49)(3))
             Traceback (most recent call last):
             ...
-            TypeError: cannot change primes in creating p-adic elements
-
-        # todo: should the above TypeError be another type of error?
+            TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
 
             sage: R(Integers(48)(3))
             Traceback (most recent call last):
             ...
-            TypeError: cannot change primes in creating p-adic elements
-
-        # todo: the error message for the above TypeError is not quite accurate
+            TypeError: cannot coerce from the given integer mod ring (not a power of the same prime)
 
         Some other conversions:
             sage: R(R(5))
@@ -147,9 +140,12 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 x = QQ(t)
 
         if sage.rings.integer_mod.is_IntegerMod(x):
+            # todo: this is wildly inefficient. To check if it's a power of p,
+            # one should use logs or something to find k such that the modulus
+            # is about p^k, and then check if it is in fact equal to p^k
             k, p = pari(x.modulus()).ispower()
-            if not k or p != parent.prime():
-                raise TypeError, "cannot change primes in creating p-adic elements"
+            if p != parent.prime():
+                raise TypeError, "cannot coerce from the given integer mod ring (not a power of the same prime)"
             x = x.lift()
 
         if sage.rings.finite_field_element.is_FiniteFieldElement(x):
@@ -196,30 +192,43 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             inverse = 1 / self._value
             return pAdicRingFixedModElement(self.parent(), inverse, construct = True)
 
-    def __mod__(self, right):
-        r"""
-        Returns self modulo right.
+    #def __mod__(self, right):
+    #    r"""
+    #    Returns self modulo right.
+    #
+    #    This doesn't make a whole lot of sense :-) but things are defined so
+    #    that always (x // y) * y + (x % y) == x.
+    #
+    #    TODO:
+    #        -- write down a full and proper explanation of the exact semantics
+    #        of floordiv and mod for all padic rings/fields; this should go
+    #        in a single overall doc file somewhere, and a reference to it
+    #        plus a summary should go in this docstring
+    #        -- make this work when "right" is e.g. an Integer -- perhaps
+    #        the mod operator needs to be brought under the SAGE arithmetic
+    #        architecture umbrella
+    #
+    #    """
+    #    val = self.valuation()
+    #    rval = right.valuation()
+    #    quotient =  self / right._unit_part()
+    #    return pAdicRingFixedModElement(self.parent(),
+    #                 Mod(quotient.lift() % self.parent().prime_pow(rval),
+    #                 self.parent().prime_pow(self.parent().precision_cap())),
+    #                 construct = True)
 
-        This doesn't make a whole lot of sense :-) but things are defined so
-        that always (x // y) * y + (x % y) == x.
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__rshift__(-shift)
+        return pAdicRingFixedModElement(self.parent(), self._value * self.parent().prime_pow(shift), construct = True)
 
-        TODO:
-            -- write down a full and proper explanation of the exact semantics
-            of floordiv and mod for all padic rings/fields; this should go
-            in a single overall doc file somewhere, and a reference to it
-            plus a summary should go in this docstring
-            -- make this work when "right" is e.g. an Integer -- perhaps
-            the mod operator needs to be brought under the SAGE arithmetic
-            architecture umbrella
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0:
+            return self.__lshift__(-shift)
+        return pAdicRingFixedModElement(self.parent(), Mod(self._value.lift() // self.parent().prime_pow(shift), self.parent().prime_pow(self.parent().precision_cap())), construct = True)
 
-        """
-        val = self.valuation()
-        rval = right.valuation()
-        quotient =  self / right._unit_part()
-        return pAdicRingFixedModElement(self.parent(),
-                     Mod(quotient.lift() % self.parent().prime_pow(rval),
-                     self.parent().prime_pow(self.parent().precision_cap())),
-                     construct = True)
 
     def _neg_(self):
         r"""
@@ -277,21 +286,21 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             return pAdicRingFixedModElement(self.parent(),
                             self._value / right._value, construct = True)
 
-    def __floordiv__(self, right):
-        if isinstance(right, Integer):
-            right = pAdicRingFixedModElement(self.parent(), right)
-        ppow = self.parent().prime_pow(right.valuation())
-        runit = right._unit_part()
-        quotient = Mod((self._value / runit).lift() // ppow, self.parent().prime_pow(self.parent().precision_cap()))
-        return pAdicRingFixedModElement(self.parent(), quotient, construct = True)
+    #def __floordiv__(self, right):
+    #    if isinstance(right, Integer):
+    #        right = pAdicRingFixedModElement(self.parent(), right)
+    #    ppow = self.parent().prime_pow(right.valuation())
+    #    runit = right._unit_part()
+    #    quotient = Mod((self._value / runit).lift() // ppow, self.parent().prime_pow(self.parent().precision_cap()))
+    #    return pAdicRingFixedModElement(self.parent(), quotient, construct = True)
 
-    def _integer_(self):
-        r"""
-        Return an integer congruent to self modulo self's precision.
-
-        See the lift() method.
-        """
-        return self._value.lift()
+    #def _integer_(self):
+    #    r"""
+    #    Return an integer congruent to self modulo self's precision.
+    #
+    #    See the lift() method.
+    #    """
+    #    return self._value.lift()
 
     def _mul_(self, right):
         r"""
@@ -388,6 +397,9 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         """
         return self._value.lift()
 
+    def lift_to_precision(self, absprec):
+        return self
+
     def list(self):
         r"""
         Returns a list of coefficients of p starting with $p^0$.
@@ -461,6 +473,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(7); a.precision_relative()
             3
+            sage: a = R(0); a.precision_relative()
+            0
         """
         return self.parent().precision_cap() - self.valuation()
 
@@ -527,9 +541,9 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 True
             sage: R2(17).square_root()
                 1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
-            sage: R3 = Zp(5,20,'fixed-mod')
+            sage: R3 = Zp(5,20,'fixed-mod', 'integer')
             sage: R3(0).square_root()
-                O(5^20)
+                0 + O(5^20)
             sage: R3(1).square_root()
                 1 + O(5^20)
             sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)

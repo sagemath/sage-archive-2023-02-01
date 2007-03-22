@@ -4,6 +4,10 @@ Real double vectors
 AUTHOR:
     -- Josh Kantor (2006-10)
     -- William Stein (2006) rewrite
+
+TESTS:
+    sage: v = vector(RDF, [1,2,3,4])
+    sage: loads(dumps(v)) == v
 """
 ###############################################################################
 #   SAGE: System for Algebra and Geometry Experimentation

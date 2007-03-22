@@ -844,7 +844,7 @@ cdef class Matrix(matrix1.Matrix):
             Py_INCREF(o); PyList_SET_ITEM(v, i, o)
 
         R = self._base_ring[var]    # polynomial ring over the base ring
-        return R(v)
+        return R(v, check=False)
 
     #####################################################################################
     # Decomposition: kernel, image, decomposition
@@ -873,6 +873,9 @@ cdef class Matrix(matrix1.Matrix):
         INPUT:
             -- all additional arguments to the kernel function
                are passed directly onto the echelon call.
+
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
 
         \algorithm{Elementary row operations don't change the kernel,
         since they are just right multiplication by an invertible
@@ -949,13 +952,13 @@ cdef class Matrix(matrix1.Matrix):
             return K
         R = self._base_ring
 
-        if self._nrows == 0:    # from a 0 space
+        if self._nrows == 0:    # from a degree-0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
             Z = V.zero_subspace()
             self.cache('kernel', Z)
             return Z
 
-        elif self._ncols == 0:  # to a 0 space
+        elif self._ncols == 0:  # to a degree-0 space
             Z = sage.modules.free_module.VectorSpace(R, self._nrows)
             self.cache('kernel', Z)
             return Z
@@ -2201,6 +2204,61 @@ cdef class Matrix(matrix1.Matrix):
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
                     self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+
+    def is_one(self):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_one()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_one()
+            False
+        """
+        return self.is_scalar(1)
+
+    def is_scalar(self, a):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_scalar(5)
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_scalar(5)
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_scalar(1)
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_scalar(1)
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+        a = self.base_ring()(a)
+        zero = self.base_ring()(0)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if i != j:
+                    if self.get_unsafe(i,j) != zero:
+                        return False
+                else:
+                    if self.get_unsafe(i, i) != a:
+                        return False
+        return True
+
+
 
 
 cdef decomp_seq(v):

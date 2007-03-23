@@ -42,16 +42,7 @@ def create_table(con, tablename, query):
     """
 
     log.msg('Creating table %s...' % tablename)
-    if LOG_LEVEL > 1:
-        print '-' * 50
-        print "CREATE TABLE: "
-        print '-' * 50
     con.execute(query)
 
 def add_trigger(con, trigger):
-    if LOG_LEVEL > 1:
-        print '-' * 50
-        print "ADD TRIGGER: "
-        print trigger
-        print '-' * 50
     con.execute(trigger)

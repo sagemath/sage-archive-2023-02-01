@@ -55,7 +55,7 @@ class UserDatabase(object):
         """
 
         self._getconf()
-        self.tablename = 'users'
+        self.tablename = self.TABLENAME
         if test:
             self.db_file = 'userdb_test.db'
         else:

@@ -23,7 +23,7 @@ import os
 from optparse import OptionParser
 import ConfigParser
 
-from twisted.internet import reactor, task, error, ssl
+from twisted.internet import reactor, error, ssl
 from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
@@ -31,6 +31,7 @@ from twisted.cred import portal
 from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
 from sage.dsage.database.jobdb import DatabasePruner
 from sage.dsage.database.userdb import UserDatabase
+from sage.dsage.database.workerdb import WorkerDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
@@ -97,15 +98,14 @@ def main():
     # start logging
     startLogging(LOG_FILE)
 
+    # Job database
     jobdb = JobDatabaseSQLite()
 
-    # Start to prune out old jobs
-    # jobdb_pruner = DatabasePruner(jobdb)
-    # prune_db = task.LoopingCall(jobdb_pruner.prune)
-    # prune_db.start(60*60*24.0, now=True) # start now, interval is one day
+    # Worker database
+    workerdb = WorkerDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, workerdb, log_level=LOG_LEVEL)
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Get authorized keys
@@ -150,7 +150,7 @@ def main():
                 reactor.listenTCP(CLIENT_PORT, client_factory)
                 break
             except error.CannotListenError:
-                atmpts += 1
+                attempts += 1
                 CLIENT_PORT += 1
 
     log.msg(DELIMITER)

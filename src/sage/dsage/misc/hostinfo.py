@@ -56,6 +56,9 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             elif l[0] == 'hw.usermem':
                 host_info['MemFree'] = (host_info['MemTotal'] -
                                            int(l[1])) / 1024 / 1024
+            elif l[0] == 'machdep.cpu.brand_string':
+                host_info['cpu model'] = l[1]
+
         self.canonical_info(host_info)
         d.callback(self.host_info)
         return d
@@ -119,10 +122,11 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
 
         unify_info = {'model name': 'cpu_name',
                           'cpu Mhz': 'cpu_speed',
-                          'MemTotal': 'total_mem',
-                          'MemFree': 'free_mem',
+                          'MemTotal': 'mem_total',
+                          'MemFree': 'mem_free',
                           'kernel_version': 'os',
-                          'cpu family': 'cpu_family',
+                          'cpu family': 'cpu_model',
+                          'cpu model': 'cpu_model',
                           'cache size': 'cpu_cache_size',
                           'fpu': 'fpu',
                           'hostname': 'hostname',
@@ -206,7 +210,7 @@ class ClassicHostInfo(object):
         if platform == 'darwin':
             try:
                 # os
-                for line in os.popen('sysctl -a hw').readlines():
+                for line in os.popen('sysctl -a hw machdep').readlines():
                     l = line.strip()
                     if '=' in l:
                         l = l.split('=')
@@ -223,6 +227,8 @@ class ClassicHostInfo(object):
                     elif l[0] == 'hw.usermem':
                         host_info['MemFree'] = int(int(host_info['MemTotal']) -
                                                int(l[1]) / int(1024*2))
+                    elif l[0] == 'machdep.cpu.brand_string':
+                        host_info['cpu model'] = l[1]
 
                 # hostname
                 hostname = os.popen('hostname').readline().strip()
@@ -245,11 +251,11 @@ class ClassicHostInfo(object):
 
         unify_info = {'model name': 'cpu_name',
                           'cpu Mhz': 'cpu_speed',
-                          'MemTotal': 'total_mem',
-                          'MemFree': 'free_mem',
-                          'kernel_version': 'os',
+                          'MemTotal': 'mem_total',
+                          'MemFree': 'mem_free',
+                          'kernel_version': 'kernel_version',
                           'processor': 'processors',
-                          'cpu family': 'cpu_family',
+                          'cpu model': 'cpu_model',
                           'cache size': 'cpu_cache_size',
                           'fpu': 'fpu',
                           'hostname': 'hostname',

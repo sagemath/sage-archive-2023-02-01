@@ -38,7 +38,7 @@ class DSageServer(pb.Root):
     submissions.
 
     """
-    def __init__(self, jobdb, log_level=0):
+    def __init__(self, jobdb, workerdb, log_level=0):
         r"""
         Initializes the Distributed Sage PB Server.
 
@@ -49,6 +49,7 @@ class DSageServer(pb.Root):
         """
 
         self.jobdb = jobdb
+        self.workerdb = workerdb
         self.LOG_LEVEL = log_level
 
     def unpickle(self, pickled_job):

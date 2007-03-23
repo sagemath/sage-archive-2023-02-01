@@ -127,6 +127,12 @@ class DefaultPerspective(pb.Avatar):
 
     current_connections = 0
 
+    def __init__(self, DSageServer, avatarID):
+        self.DSageServer = DSageServer
+        self.avatarID = avatarID
+
+        log.msg('%s connected' % self.avatarID)
+
     def perspectiveMessageReceived(self, broker, message, args, kw):
         self.broker = broker
 
@@ -140,6 +146,10 @@ class DefaultPerspective(pb.Avatar):
             host_info['ip'] = mind[0].broker.transport.getPeer().host
             host_info['port'] = mind[0].broker.transport.getPeer().port
             worker_tracker.add((mind[0].broker, host_info))
+            if self.DSageServer.workerdb.get_worker(host_info['uuid']) is None:
+                self.DSageServer.workerdb.add_worker(host_info)
+            self.DSageServer.workerdb.set_connected(host_info['uuid'],
+                                                    connected=True)
         else:
             client_tracker.add((avatar, mind))
 
@@ -151,6 +161,8 @@ class DefaultPerspective(pb.Avatar):
             for broker, host_info in worker_tracker.worker_list:
                 if broker.transport.disconnected:
                     worker_tracker.remove((broker, host_info))
+            self.DSageServer.workerdb.set_connected(host_info['uuid'],
+                                                    connected=False)
         else:
             client_tracker.remove((avatar, mind))
 
@@ -159,12 +171,8 @@ class UserPerspective(DefaultPerspective):
     Defines the perspective of a regular user to the server.
 
     """
-
     def __init__(self, DSageServer, avatarID):
-        self.DSageServer = DSageServer
-        self.avatarID = avatarID
-
-        log.msg('%s connected' % self.avatarID)
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def perspective_get_job(self):
         return self.DSageServer.get_job()
@@ -272,9 +280,7 @@ class AnonymousPerspective(DefaultPerspective):
     """
 
     def __init__(self, DSageServer, avatarID):
-        self.DSageServer = DSageServer
-        self.avatarID = avatarID
-        log.msg('Anonymous worker connected...')
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def perspective_get_job(self):
         r"""

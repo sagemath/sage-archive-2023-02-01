@@ -853,7 +853,7 @@ class HeckeModule_free_module(HeckeModule_generic):
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 9 for Gamma_0(34) of weight 2 with sign 0 over Rational Field
             sage: pi = a.projection()
             sage: pi(m([0,oo]))
-            boom!
+            -1/6*(2,7) + 1/6*(2,13) - 1/6*(2,31) + 1/6*(2,33)
         """
 
         # Compute the Hecke-stable projection map pi from the ambient

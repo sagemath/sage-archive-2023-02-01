@@ -100,6 +100,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 + O(q^6)
             ]
             sage: S.prec(8)
+            8
             sage: S.basis()
             [
             q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^8)
@@ -137,8 +138,8 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M.basis()
             [
             q + O(q^2),
-            1 + 2/3*q + O(q^2),
-            O(q^2)
+            O(q^2),
+            1 + 2/3*q + O(q^2)
             ]
 
         The precision must be nonnegative:

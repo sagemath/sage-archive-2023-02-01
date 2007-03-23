@@ -58,7 +58,7 @@ class NumericalEigenforms(SageObject):
         [0.61803398875, -2.2360679775, 1.2360679775],
         [3.0, 4.0, 6.0]
         ]
-        sage: n.systems_of_abs(7)
+        sage: n.systems_of_abs(7)   # random low order bits
         [
         [0.61803398874989446, 2.2360679774997911, 1.2360679774997889],
         [1.6180339887498947, 2.2360679774997894, 3.2360679774997894],
@@ -160,15 +160,15 @@ class NumericalEigenforms(SageObject):
               and add appropriate multiple.  Repeat.
 
         EXAMPLES:
-            sage: n = numerical_newforms(37)
+            sage: n = numerical_eigenforms(37)
             sage: n._easy_vector()
-            (1.0, 1.0)
-            sage: n = numerical_newforms(43)
+            (1.0, 1.0, 0)
+            sage: n = numerical_eigenforms(43)
             sage: n._easy_vector()
-            (0, 1.0, 0)
-            sage: n = numerical_newforms(125)
+            (1.0, 0, 1.0, 0)
+            sage: n = numerical_eigenforms(125)
             sage: n._easy_vector()
-            (1.0, 0, 0, 0, 0, 0, 0, 0)
+            (0, 0, 0, 1.0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
         """
         try:
             return self.__easy_vector
@@ -241,9 +241,9 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(11,4)
-            sage: n.ap(2)
+            sage: n.ap(2)  # random low order bits
             [9.0, 9.0, 2.73205080757, -0.732050807569]
-            sage: n.ap(3)
+            sage: n.ap(3)  # random low order bits
             [28.0, 28.0, -7.92820323028, 5.92820323028]
             sage: m = n.modular_symbols()
             sage: m.T(2).charpoly(x).factor()

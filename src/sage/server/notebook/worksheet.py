@@ -1263,7 +1263,8 @@ class Worksheet:
         s += '<div class="worksheet_bottom_padding"></div>\n'
 
         if not do_print:
-            s += '<script language=javascript>cell_id_list=%s;</script>\n'%self.compute_cell_id_list()
+            s += '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
+            s += 'for(i=0;i<cell_id_list.length;i++) cell_blur(cell_id_list[i]);</script>\n'
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s

@@ -943,8 +943,8 @@ class Notebook(SageObject):
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
 
-#        TODO: send in highlight.js patch & related stuff
-#        head +=' <script src="/highlight/highlight.js"></script>\n'
+        head +=' <script src="/highlight/prettify.js"></script>\n'
+        head += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
 
         #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
@@ -1444,7 +1444,7 @@ Output
                     lists.append([])
                 cell = """
    <li id='completion%s_%s_%s' class='completion_menu_two'>
-    <a onClick='do_replacement(%s, "%s")'
+    <a onClick='do_replacement(%s, "%s"); return false;'
        onMouseOver='this.focus(); select_replacement(%s,%s);'
     >%s</a>
    </li>"""%(cell_id, i, j, cell_id, row[j], i,j,

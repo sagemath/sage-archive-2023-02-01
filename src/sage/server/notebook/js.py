@@ -484,6 +484,7 @@ function handle_replacement_controls(cell_input, event) {
 
 function do_replacement(id, word,do_trim) {
     var cell_input = get_cell(id);
+    cell_focus(id, false);
 
     if(do_trim) //optimization 'cause Opera has a slow regexp engine
         word = trim(word);
@@ -806,32 +807,9 @@ function cell_blur(id) {
     if (t.length == 0) {
         t = ' ';
     }
-    display_cell.innerHTML = t.replace('<','&lt;');
-    cell_colorize(id,t)
+    display_cell.innerHTML = prettyPrintOne(t);
 
     return true;
-}
-
-function cell_colorize(id, text) {
-    var input = escape0(text);
-
-    async_request('/colorize', cell_colorize_callback,
-            'id=' + id + '&input='+input);
-}
-
-function cell_colorize_callback(status, response_text) {
-    if (status == "failure") {
-        return;
-    }
-    var X = response_text.split(SEP);
-    var id = X[0];
-    var text = X[1];
-    if(is_whitespace(text))
-        text = ' ';
-
-    var display_cell = get_element('cell_display_' + id)
-
-    display_cell.innerHTML = text;
 }
 
 function debug_focus() {

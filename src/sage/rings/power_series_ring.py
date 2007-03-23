@@ -398,7 +398,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R.base_extend(QuadraticField(3,'a'))
             Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
         """
-        return PowerSeriesRing(R, name = self.variable_name())
+        return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 
     def is_exact(self):
         return False

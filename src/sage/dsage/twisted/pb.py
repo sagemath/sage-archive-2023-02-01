@@ -19,15 +19,13 @@
 from twisted.spread import pb
 from zope.interface import implements
 from twisted.cred import portal, credentials
-from twisted.cred.credentials import ISSHPrivateKey, IAnonymous
+from twisted.cred.credentials import ISSHPrivateKey
 from twisted.cred.credentials import Anonymous
 from twisted.spread.interfaces import IJellyable
 from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
-from twisted.internet import defer
 
 from sage.dsage.misc.hostinfo import HostInfo
-from sage.dsage.server.server import DSageServer
 import sage.dsage.server.client_tracker as client_tracker
 import sage.dsage.server.worker_tracker as worker_tracker
 from sage.dsage.errors.exceptions import BadTypeError
@@ -255,18 +253,6 @@ class UserPerspective(DefaultPerspective):
             raise BadTypeError()
         return self.DSageServer.submit_host_info(hostinfo)
 
-    def perspective_job_done(self, jobID, output, result, completed,
-                             worker_info):
-        return self.DSageServer.job_done(jobID, output, result,
-                                         completed, worker_info)
-
-    def perspective_job_failed(self, jobID):
-        if not isinstance(jobID, str):
-            log.msg('BadType in remote_job_failed')
-            raise BadTypeError()
-
-        return self.DSageServer.job_failed(jobID)
-
     def perspective_get_killed_jobs_list(self):
         return self.DSageServer.get_killed_jobs_list()
 
@@ -278,6 +264,22 @@ class AdminPerspective(UserPerspective):
 
     def __init__(self, DSageServer, avatarID):
         UserPerspective.__init__(self, DSageServer, avatarID)
+
+class AnonymousPerspective(DefaultPerspective):
+    r"""
+    Defines the perspective of an anonymous user.
+
+    """
+
+    def perspective_get_job(self):
+        r"""
+        Returns jobs only marked as doable by anonymous workers.
+
+        """
+        raise NotImplementedError
+
+    def perspective_submit_job(self, jdict):
+        return self.DSageServer.submit_job(jdict)
 
 class Realm(object):
     implements(portal.IRealm)

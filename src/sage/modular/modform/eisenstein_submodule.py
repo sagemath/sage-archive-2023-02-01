@@ -209,17 +209,25 @@ class EisensteinSubmodule_eps(EisensteinSubmodule_params):
 	6
 
 	sage: M.eisenstein_series()
-	[
-	1/3*zeta6 - 2/3 + q + (-2*zeta6 + 1)*q^2 + (2*zeta6 - 3)*q^4 + (5*zeta6 - 4)*q^5 + O(q^6),
-	1/3*zeta6 - 2/3 + q^3 + O(q^6),
-	q + (2*zeta6 - 1)*q^2 + (2*zeta6 - 3)*q^4 + (-5*zeta6 + 4)*q^5 + O(q^6),
-	q + (zeta6 + 1)*q^2 + (zeta6 + 2)*q^4 + (-zeta6 + 5)*q^5 + O(q^6),
-	q^3 + O(q^6),
-	q + (-zeta6 - 1)*q^2 + (zeta6 + 2)*q^4 + (zeta6 - 5)*q^5 + O(q^6)
-	]
+        [
+        1/3*zeta6 - 2/3 + q + (-2*zeta6 + 1)*q^2 + q^3 + (2*zeta6 - 3)*q^4 + (5*zeta6 - 4)*q^5 + O(q^6),
+        1/3*zeta6 - 2/3 + q^3 + O(q^6),
+        q + (2*zeta6 - 1)*q^2 + (2*zeta6 - 3)*q^4 + (-5*zeta6 + 4)*q^5 + O(q^6),
+        q + (zeta6 + 1)*q^2 + 3*q^3 + (zeta6 + 2)*q^4 + (-zeta6 + 5)*q^5 + O(q^6),
+        q^3 + O(q^6),
+        q + (-zeta6 - 1)*q^2 + (zeta6 + 2)*q^4 + (zeta6 - 5)*q^5 + O(q^6)
+        ]
 
 	sage: M.basis()
-        ???
+        [
+        1 + O(q^10),
+        q + O(q^10),
+        q^2 + O(q^10),
+        q^3 + O(q^10),
+        q^4 + O(q^10),
+        q^5 + O(q^10)
+        ]
+
     """
     # TODO
     #def _compute_q_expansion_basis(self, prec):

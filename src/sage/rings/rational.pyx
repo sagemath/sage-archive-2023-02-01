@@ -1031,10 +1031,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ArithmeticError, "no power of %s is a unit"%self
 
     def is_one(self):
-        return mpz_cmp_si(mpq_numref(self.value), 1) == 0
+        return bool(mpz_cmp_si(mpq_numref(self.value), 1) == 0)
 
     def is_zero(self):
-        return mpz_cmp_si(mpq_numref(self.value), 0) == 0
+        return bool(mpz_cmp_si(mpq_numref(self.value), 0) == 0)
 
     cdef _lshift(self, long int exp):
         r"""

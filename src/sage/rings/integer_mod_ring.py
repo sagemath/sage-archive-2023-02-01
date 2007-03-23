@@ -23,6 +23,11 @@ direction.
     sage: parent(r(1) + s(1))
     Finite Field of size 7
 
+We list the elements of $\Z/3\Z$
+    sage: R = Integers(3)
+    sage: list(R)
+    [0, 1, 2]
+
 AUTHORS
     -- William Stein (initial code)
     -- David Joyner (2005-12-22): most examples
@@ -225,6 +230,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         H = [i for i in range(N) if gcd(i, N) == 1]
         return H
 
+    def multiplicative_subgroups(self):
+        r"""
+        Return generators for each subgroup of $(\ZZ/N\ZZ)^*$.
+
+        EXAMPLES:
+            sage: Integers(5).multiplicative_subgroups()
+            [[2], [4], [1]]
+            sage: Integers(15).multiplicative_subgroups()
+            [[11, 7], [11, 4], [11, 1], [1, 7], [1, 4], [1, 1]]
+        """
+        from sage.rings.arith import divisors
+        from sage.misc.mrange import cartesian_product_iterator
+        U = self.unit_gens()
+        D = [divisors(u.multiplicative_order()) for u in U]
+        a = []
+        for exps in cartesian_product_iterator(D):
+           a.append([integer_ring.ZZ(U[i]**exps[i]) for i in range(len(exps))])
+        return a
+
     def is_finite(self):
         """
         Return True since Z/NZ is finite for all positive N.
@@ -423,6 +447,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
 
     def order(self):
         return self.__order
+
+    def cardinality(self):
+        return self.order()
 
     def _pari_order(self):
         try:

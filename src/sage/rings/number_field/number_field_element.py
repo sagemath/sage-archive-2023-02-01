@@ -9,7 +9,7 @@ of integers, etc., easier.
 """
 
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -234,6 +234,13 @@ class NumberFieldElement(field_element.FieldElement):
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
+
+    def complex_embeddings(self, prec=53):
+        phi = self.parent().complex_embeddings(prec)
+        return [f(self) for f in phi]
+
+    def complex_embedding(self, prec=53, i=0):
+        return self.parent().complex_embeddings(prec)[i](self)
 
     def __pow__(self, r):
         right = int(r)

@@ -83,6 +83,7 @@ import sage.rings.arith
 
 from sage.rings.ring import is_Ring
 import sage.rings.integer_ring
+import sage.rings.integer
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 
@@ -91,7 +92,7 @@ from sage.rings.complex_double import CDF
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None, sparse=None):
+def vector(arg0, arg1=None, arg2=None, sparse=None):
     r"""
     Return a vector over R with given entries.
 
@@ -100,6 +101,8 @@ def vector(arg0, arg1=None, sparse=None):
         2. vector(ring, object)
         3. vector(object, ring)
         4. vector(numpy_array)
+
+    In each case, give sparse=[True|False] as an option.
 
     INPUT:
         elts -- entries of a vector (either a list or dict).
@@ -172,6 +175,14 @@ def vector(arg0, arg1=None, sparse=None):
 
     if hasattr(arg1, '_vector_'):
         return arg1._vector_(arg0)
+
+    if sage.rings.integer.is_Integer(arg1):
+        if arg2 is None:
+            arg1 = [0]*arg1
+        else:
+            if len(arg2) != arg1:
+                raise ValueError, "incompatible degrees in vector constructor"
+            arg1 = arg2
 
     if is_Ring(arg0):
         R = arg0
@@ -592,9 +603,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return A.linear_combination_of_rows(v).dot_product(w)
 
     def is_dense(self):
+        return bool(self.is_dense_c())
+
+    cdef int is_dense_c(self):
         return self.parent().is_dense()
 
     def is_sparse(self):
+        return bool(self.is_sparse_c())
+
+    cdef int is_sparse_c(self):
         return self.parent().is_sparse()
 
     def is_vector(self):
@@ -638,6 +655,18 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
 
+    def dense_vector(self):
+        if self.is_dense():
+            return self
+        else:
+            return self.parent().ambient_module().dense_module()(self.list())
+
+    def sparse_vector(self):
+        if self.is_sparse():
+            return self
+        else:
+            return self.parent().ambient_module().sparse_module()(self.list())
+
 
 #############################################
 # Generic dense element
@@ -673,6 +702,12 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x._entries = v
         x._degree = self._degree
         return x
+
+    cdef int is_dense_c(self):
+        return 1
+
+    cdef int is_sparse_c(self):
+        return 0
 
     def _hash(self):
         return hash(tuple(list(self)))
@@ -884,6 +919,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         x._entries = v
         x._degree = self._degree
         return x
+
+    cdef int is_dense_c(self):
+        return 0
+
+    cdef int is_sparse_c(self):
+        return 1
 
     def __copy__(self):
         return self._new_c(dict(self._entries))

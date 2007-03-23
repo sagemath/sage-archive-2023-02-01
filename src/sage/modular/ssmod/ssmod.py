@@ -36,7 +36,14 @@ TESTS:
     sage: X = SupersingularModule(389)
     sage: T = X.T(2).matrix().change_ring(QQ)
     sage: d = T.decomposition()
-    boom right now -- fix this!
+    sage: len(d)
+    6
+    sage: [a[0].dimension() for a in d]
+    [1, 1, 2, 3, 6, 20]
+    sage: loads(dumps(X)) == X
+    True
+    sage: loads(dumps(d)) == d
+    True
 """
 
 #*****************************************************************************

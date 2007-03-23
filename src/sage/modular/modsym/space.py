@@ -30,6 +30,7 @@ import weakref
 import sage.modules.free_module as free_module
 import sage.matrix.matrix_space as matrix_space
 import sage.modules.free_module_morphism as free_module_morphism
+from   sage.modules.free_module_element  import is_FreeModuleElement
 import sage.misc.misc as misc
 import sage.modular.dims as dims
 import sage.modular.hecke.all as hecke
@@ -37,7 +38,7 @@ import sage.modular.modsym.element
 import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
-from   sage.structure.all import Sequence
+from   sage.structure.all import Sequence, SageObject
 
 def is_ModularSymbolsSpace(x):
     return isinstance(x, ModularSymbolsSpace)
@@ -82,34 +83,73 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def cuspidal_subspace(self):
         """
         Synonym for cuspidal_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.cuspidal_subspace().new_subspace().dimension()
+            2
         """
         return self.cuspidal_submodule()
 
     def new_subspace(self, p=None):
         """
         Synonym for new_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(5),12); m.dimension()
+            12
+            sage: m.new_subspace().dimension()
+            6
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.new_subspace().dimension()
+            2
         """
         return self.new_submodule(p)
 
     def old_subspace(self, p=None):
         """
-        Synonym for new_submodule.
+        Synonym for old_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.old_subspace().dimension()
+            6
         """
         return self.old_submodule(p)
 
     def eisenstein_subspace(self):
         """
         Synonym for eisenstein_submodule.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma1(3),12); m.dimension()
+            8
+            sage: m.eisenstein_subspace().dimension()
+            2
+            sage: m.cuspidal_subspace().dimension()
+            6
         """
         return self.eisenstein_submodule()
 
     def dimension_of_associated_cuspform_space(self):
         """
-        Return the dimension of the corresponding space
-        of cusp forms.
+        Return the dimension of the corresponding space of cusp forms.
 
-        The input space must be cuspidal, otherwise there
-        is no corresponding space of cusp forms.
+        The input space must be cuspidal, otherwise there is no
+        corresponding space of cusp forms.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(389),2).cuspidal_subspace(); m.dimension()
+            64
+            sage: m.dimension_of_associated_cuspform_space()
+            32
+            sage: m = ModularSymbols(Gamma0(389),2,sign=1).cuspidal_subspace(); m.dimension()
+            32
+            sage: m.dimension_of_associated_cuspform_space()
+            32
         """
         if not self.is_cuspidal():
             raise ArithmeticError, "space must be cuspidal"
@@ -150,11 +190,26 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         raise NotImplementedError
 
     def is_simple(self):
+        """
+        Return whether not this modular symbols space is simple as a module
+        over the anemic Hecke algebra adjoin *.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(Gamma0(33),2,sign=1)
+            sage: m.is_simple()
+            False
+            sage: o = m.old_subspace()
+            sage: o.decomposition()
+            [
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field
+            ]
+        """
         try:
             return self._is_simple
         except AttributeError:
             D = self.factorization()
-            if len(D) <= 0 or len(D) == 1 and D[0][1] == 1:
+            if len(D) == 0 or len(D) == 1 and D[0][1] == 1:
                 self._is_simple = True
             else:
                 self._is_simple = False
@@ -1094,7 +1149,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         #raise NotImplementedError, "code past this point is broken / not done"  # todo
         A = self.ambient_hecke_module()
         T = A.hecke_matrix(n)
-        S = T.restrict(self.integral_structure())
+        S = T.restrict(self.integral_structure()).change_ring(ZZ)
         self.__integral_hecke_matrix[n] = S
         return S
 
@@ -1292,12 +1347,242 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
                   int(math.ceil((self.weight() + dims.idxG0(self.level()))/12.0))
         return self.__sturm_bound
 
-    def abelian_variety(self):
+    def modular_abelian_variety(self):
+        """
+        Return the corresponding modular abelian variety.
+
+        INPUT:
+            self -- modular symbols space of weight 2 for a congruence subgroup
+                    such as Gamma0, Gamma1 or GammaH.
+
+        EXAMPLES:
+            sage: ModularSymbols(Gamma0(11)).modular_abelian_variety()
+            Jacobian of the modular curve associated to the congruence subgroup Gamma0(11)
+            sage: ModularSymbols(Gamma1(11)).modular_abelian_variety()
+            Jacobian of the modular curve associated to the congruence subgroup Gamma1(11)
+            sage: ModularSymbols(GammaH(11,[3])).modular_abelian_variety()
+            Jacobian of the modular curve associated to the congruence subgroup Gamma_H(11) with H generated by [3]
+        """
         try:
-            return self.__modabvar
+            return self.__modular_abelian_variety
         except AttributeError:
-            from sage.modular.abvar.modabvar_modsym import ModAbVar_modsym_plus
-            A = ModAbVar_modsym_plus(self, check=True)
-            self.__modabvar = A
+            eps = self.character()
+            if not (eps is None or eps.is_trivial()):
+                raise ValueError, "self must have trivial character"
+            if self.weight() != 2:
+                raise ValueError, "self must have weight 2"
+            A = self.group().modular_abelian_variety()
+            if self.base_ring() != QQ:
+                A = A.change_ring(self.base_ring())
+            self.__modular_abelian_variety = A
             return A
 
+    def rational_period_mapping(self):
+        r"""
+        Return the rational period mapping associated to self.
+
+        This is a homomorphism to a vector space whose kernel is the
+        same as the kernel of the period mapping associated to self.
+        For this to exist, self must be Hecke equivariant.
+
+        Use \code{integral_period_mapping} to obtain a homomorphism to
+        a $\ZZ$-module, normalized so the image of integral modular
+        symbols is exactly $\ZZ^n$.
+
+        EXAMPLES:
+            sage: M = ModularSymbols(37)
+            sage: A = M[1]; A
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r = A.rational_period_mapping(); r
+            Rational period mapping associated to Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r(M.0)
+            (0, 0)
+            sage: r(M.1)
+            (1, 0)
+            sage: r.matrix()
+            [ 0  0]
+            [ 1  0]
+            [ 0  1]
+            [-1 -1]
+            [ 0  0]
+            sage: r.domain()
+            Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
+            sage: r.codomain()
+            Vector space of degree 2 and dimension 2 over Rational Field
+            Basis matrix:
+            [1 0]
+            [0 1]
+        """
+        try:
+            return self.__rational_period_mapping
+        except AttributeError:
+            pass
+        V = self.dual_free_module()
+        # the rational period mapping is just dotting with
+        # each element of V.
+        A = V.basis_matrix().transpose()
+        A.set_immutable()
+        R = RationalPeriodMapping(self, A)
+        self.__rational_period_mapping = R
+        return R
+
+
+    def integral_period_mapping(self):
+        r"""
+        Return the integral period mapping associated to self.
+
+        This is a homomorphism to a vector space whose kernel is the
+        same as the kernel of the period mapping associated to self,
+        normalized so the image of integral modular symbols is
+        exactly $\ZZ^n$.
+
+        EXAMPLES:
+            sage: m = ModularSymbols(23).cuspidal_submodule()
+            sage: i = m.integral_period_mapping()
+            sage: i
+            Integral period mapping associated to Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 2 with sign 0 over Rational Field
+            sage: i.matrix()
+            [-1/11  1/11     0  3/11]
+            [    1     0     0     0]
+            [    0     1     0     0]
+            [    0     0     1     0]
+            [    0     0     0     1]
+            sage: [i(b) for b in m.integral_structure().basis()]
+            [(1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)]
+            sage: [i(b) for b in m.ambient_module().basis()]
+            [(-1/11, 1/11, 0, 3/11),
+             (1, 0, 0, 0),
+             (0, 1, 0, 0),
+             (0, 0, 1, 0),
+             (0, 0, 0, 1)]
+
+        We compute the image of the winding element:
+            sage: m = ModularSymbols(37,sign=1)
+            sage: a = m[1]
+            sage: f = a.integral_period_mapping()
+            sage: e = m([0,oo])
+            sage: f(e)
+            (0)
+        """
+        try:
+            return self.__integral_period_mapping
+        except AttributeError:
+            pass
+        if self.base_ring() != QQ:
+            raise ValueError, "modular symbols space must be defined over QQ."
+        D = self.dual_free_module().basis_matrix().transpose()
+        I = self.ambient_module().cuspidal_submodule().integral_structure().basis_matrix()
+        # image of cuspidal integral submodule
+        C = I * D
+        if not C.is_one():
+            if not C.is_square():
+                C = (ZZ**C.ncols()).span(C.rows()).basis_matrix()
+            D = D * C**(-1)
+        D.set_immutable()
+        R = IntegralPeriodMapping(self, D)
+        self.__integral_period_mapping = R
+        return R
+
+    def modular_symbols_of_sign(self, sign, bound=None):
+        """
+        Returns a space of modular symbols with the same defining
+        properties (weight, level, etc.) and Hecke eigenvalues as this
+        space except with given sign.
+
+        INPUT:
+            self -- a cuspidal space of modular symbols
+            sign -- an integer, one of -1, 0, or 1
+            bound -- integer (default: None); if specified only use
+                 Hecke operators up to the given bound.
+
+        EXAMPLES:
+            sage: S = ModularSymbols(Gamma0(11),2,sign=0).cuspidal_subspace()
+            sage: S
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
+            sage: S.modular_symbols_of_sign(-1)
+            Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Rational Field
+
+            sage: S = ModularSymbols(43,2,sign=1)[2]; S
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field
+            sage: S.modular_symbols_of_sign(-1)
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(43) of weight 2 with sign -1 over Rational Field
+
+            sage: S.modular_symbols_of_sign(0)
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 7 for Gamma_0(43) of weight 2 with sign 0 over Rational Field
+
+
+            sage: S = ModularSymbols(389,sign=1)[3]; S
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 33 for Gamma_0(389) of weight 2 with sign 1 over Rational Field
+            sage: S.modular_symbols_of_sign(-1)
+            Modular Symbols subspace of dimension 3 of Modular Symbols space of dimension 32 for Gamma_0(389) of weight 2 with sign -1 over Rational Field
+            sage: S.modular_symbols_of_sign(0)
+            Modular Symbols subspace of dimension 6 of Modular Symbols space of dimension 65 for Gamma_0(389) of weight 2 with sign 0 over Rational Field
+
+            sage: S = ModularSymbols(23,sign=1,weight=4)[2]; S
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 7 for Gamma_0(23) of weight 4 with sign 1 over Rational Field
+            sage: S.modular_symbols_of_sign(1) is S
+            True
+            sage: S.modular_symbols_of_sign(0)
+            Modular Symbols subspace of dimension 8 of Modular Symbols space of dimension 12 for Gamma_0(23) of weight 4 with sign 0 over Rational Field
+            sage: S.modular_symbols_of_sign(-1)
+            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 5 for Gamma_0(23) of weight 4 with sign -1 over Rational Field
+        """
+        if sign == self.sign():
+            return self
+        if not self.is_cuspidal():
+            raise ValueError, "self must be cuspidal for modular symbols space with given sign to be defined."
+        d = self.dimension()
+        if sign != 0:
+            if self.sign() == 0:
+                d = d//2
+        elif sign == 0:      # self has nonzero sign
+            d = 2*d
+        B = self.ambient_module().modular_symbols_of_sign(sign)
+        p = 2
+        if bound is None:
+            bound = self.hecke_bound()
+        while B.dimension() > d and p <= bound:
+            while self.level() % p == 0:
+                p = arith.next_prime(p)
+            f = self.hecke_polynomial(p)
+            g = misc.prod(g for g,_ in f.factor())   # square free part
+            t = B.hecke_operator(p)
+            s = g(t)
+            B = s.kernel()
+            p = arith.next_prime(p)
+        return B
+
+
+class PeriodMapping(SageObject):
+    def __init__(self, modsym, A):
+        self.__modsym = modsym
+        self.__domain = modsym.ambient_module()
+        self.__A = A
+
+    def modular_symbols_space(self):
+        return self.__modsym
+
+    def __call__(self, x):
+        if is_FreeModuleElement(x):
+            v = x
+        else:
+            v = self.__domain(x).element()
+        return v*self.__A
+
+    def matrix(self):
+        return self.__A
+
+    def domain(self):
+        return self.__domain
+
+    def codomain(self):
+        return self.__A.row_module()
+
+class RationalPeriodMapping(PeriodMapping):
+    def _repr_(self):
+        return "Rational period mapping associated to %s"%self.modular_symbols_space()
+
+
+class IntegralPeriodMapping(PeriodMapping):
+    def _repr_(self):
+        return "Integral period mapping associated to %s"%self.modular_symbols_space()

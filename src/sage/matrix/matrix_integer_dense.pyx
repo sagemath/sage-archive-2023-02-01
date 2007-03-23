@@ -21,6 +21,11 @@ EXAMPLES:
     False
     sage: b < a
     True
+
+TESTS:
+    sage: a = matrix(ZZ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ########## *** IMPORTANT ***
@@ -1110,11 +1115,13 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Elementary divisors
 
-    def elementary_divisors(self, algorithm='linbox'):
+    def elementary_divisors(self, algorithm='pari'):
         """
         Return the elementary divisors of self, in order.
 
-        IMPLEMENTATION: Uses linbox.
+        IMPLEMENTATION: Uses linbox, except sometimes linbox doesn't
+        work (errors about pre-conditioning), in which case PARI is
+        used.
 
         WARNING: This is MUCH faster than the smith_form function.
 
@@ -1124,7 +1131,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             self -- matrix
-            algorithm -- 'linbox' or 'pari'
+            algorithm -- (default: 'pari')
+                 'pari': works robustless, but is slower.
+                 'linbox' -- use linbox; faster, but sometimes fails.  If it
+                          fails, then a warning is printed and PARI is called.
 
         OUTPUT:
             list of int's
@@ -1147,13 +1157,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             d = []
         else:
             if algorithm == 'linbox':
-                d = self._elementary_divisors_linbox()
-            elif algorithm == 'pari':
+                # This fails in linbox: a = matrix(ZZ,2,[1, 1, -1, 0, 0, 0, 0, 1])
+                try:
+                    d = self._elementary_divisors_linbox()
+                except RuntimeError:
+                    import sys
+                    sys.stderr.write("DONT PANIC -- switching to using PARI (which will work fine)\n")
+                    algorithm = 'pari'
+            if algorithm == 'pari':
                 d = self._pari_().matsnf(0).python()
                 i = d.count(0)
+                d.sort()
                 if i > 0:
-                    d = list(reversed(d[i:])) + [d[0]]*i
-            else:
+                    d = d[i:] + [d[0]]*i
+            elif not (algorithm in ['pari', 'linbox']):
                 raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
         return d
@@ -1296,6 +1313,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            LLL -- bool (default: False); if True the basis is an LLL
                   reduced basis; otherwise, it is an echelon basis.
 
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
+
         EXAMPLES:
             sage: M = MatrixSpace(ZZ,4,2)(range(8))
             sage: M.kernel()
@@ -1306,7 +1326,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:    # from a 0 space
             M = sage.modules.free_module.FreeModule(ZZ, self._nrows)
-            return M.zero_subspace()
+            return M.zero_submodule()
 
         elif self._ncols == 0:  # to a 0 space
             return sage.modules.free_module.FreeModule(ZZ, self._nrows)

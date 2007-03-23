@@ -304,11 +304,13 @@ cdef class Matrix(matrix1.Matrix):
         return tmp
 
 
-    def determinant(self):
+    def determinant(self, algorithm="hessenberg"):
         r"""
         Return the determinant of self.
 
-        ALGORITHM: This is computed using the very stupid expansion by
+        ALGORITHM: For small matrices (n<4), this is computed using the naive formula
+        For integral domains, the charpoly is computed (using hessenberg form)
+        Otherwise his is computed using the very stupid expansion by
         minors stupid \emph{naive generic algorithm}.  For matrices
         over more most rings more sophisticated algorithms can be
         used.  (Type \code{A.determinant?} to see what is done for a
@@ -339,6 +341,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
             x*y^2 - x^2*y
+
+        TEST:
+            sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
+            sage: B = MatrixSpace(ZZ['x'], 5, 5)(A)
+            sage: A.det() - B.det()
+            0
         """
         if self._nrows != self._ncols:
             raise ValueError, "self must be square"
@@ -358,9 +366,30 @@ cdef class Matrix(matrix1.Matrix):
             self.cache('det', d)
             return d
 
-        # if over an exact integral domain, get the det by computing charpoly.
+        n = self._ncols
         R = self._base_ring
-        if R.is_integral_domain() and R.is_exact():
+
+        # For small matrices, you can't beat the naive formula
+        if n <=  3:
+            if n == 0:
+                d = R(1)
+            elif n == 1:
+                d = self.get_unsafe(0,0)
+            elif n == 2:
+                d = self.get_unsafe(0,0)*self.get_unsafe(1,1) - self.get_unsafe(1,0)*self.get_unsafe(0,1)
+            elif n == 3:
+                d = self.get_unsafe(0,0) * (self.get_unsafe(1,1)*self.get_unsafe(2,2) - self.get_unsafe(1,2)*self.get_unsafe(2,1))    \
+                    - self.get_unsafe(1,0) * (self.get_unsafe(0,1)*self.get_unsafe(2,2) - self.get_unsafe(0,2)*self.get_unsafe(2,1))  \
+                    + self.get_unsafe(2,0) * (self.get_unsafe(0,1)*self.get_unsafe(1,2) - self.get_unsafe(0,2)*self.get_unsafe(1,1))
+            self.cache('det', d)
+            return d
+
+        # if over an exact integral domain, we could get the det by computing charpoly.
+        # Generic fraction field implementation is so slow that the naive algorithm is
+        # is much faster in practice despite asymptotics.
+        # TODO: find reasonable cutoff (Field specific, but seems to be quite large for Q[x])
+        # if R.is_integral_domain() and R.is_exact() and algorithm == "hessenberg":
+        if  R.is_field() and algorithm == "hessenberg":
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -371,35 +400,33 @@ cdef class Matrix(matrix1.Matrix):
         # fall back to very very stupid algorithm -- expansion by minors.
         # TODO: surely there is something much better, even in total generality...
         # this is ridiculous.
-        n = self._ncols
-        R = self.parent().base_ring()
-        if n == 0:
-            d = R(1)
-            self.cache('det', d)
-            return d
-
-        elif n == 1:
-            d = self.get_unsafe(0,0)
-            self.cache('det', d)
-            return d
-
-        elif n == 2:
-            d = self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1)*self.get_unsafe(1,0)
-            self.cache('det', d)
-            return d
-
-        d = R(0)
-        s = R(1)
-        A = self.matrix_from_rows(range(1, n))
-        sgn = R(-1)
-        for i from 0 <= i < n:
-            v = range(0,i) + range(i+1,n)
-            B = A.matrix_from_columns(v)
-            d = d + s*self.get_unsafe(0,i) * B.determinant()
-            s = s*sgn
-
+        d = self._det_by_minors(self._ncols)
         self.cache('det', d)
         return d
+
+    cdef _det_by_minors(self, Py_ssize_t level):
+        """
+        Compute the determinent of the upper-left level x level submatrix of self.
+        Does not handle degenerate cases, level MUST be >= 2
+        """
+        cdef Py_ssize_t n, i
+        if level == 2:
+            return self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1) * self.get_unsafe(1,0)
+        else:
+            level -= 1
+            d = self.get_unsafe(level,level) * self._det_by_minors(level)
+            # on each iteration, row i will be missing in the first (level) rows
+            # swapping is much faster than taking submatrices
+            for i from level > i >= 0:
+                self.swap_rows(level, i)
+                if (level - i) % 2:
+                    d -= self.get_unsafe(level,level) * self._det_by_minors(level)
+                else:
+                     d += self.get_unsafe(level,level) * self._det_by_minors(level)
+            # undo all our permutations to get us back to where we started
+            for i from 0 <= i < level:
+                self.swap_rows(level, i)
+            return d
 
 
     # shortcuts

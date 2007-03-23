@@ -42,17 +42,17 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
     def testhas_job(self):
         job = self.create_jobs(1)
-        jobID = self.jobdb.store_job(job[0])
-        self.assertEquals(self.jobdb.has_job(jobID), True)
+        job_id = self.jobdb.store_job(job[0])
+        self.assertEquals(self.jobdb.has_job(job_id), True)
         self.assert_(self.jobdb.has_job('GLOBALS') > 0)
 
     def testget_next_job_id(self):
         """Attempt to increment Job ID by one. """
 
-        jobID = self.jobdb.get_next_job_id()
-        jobID1 = self.jobdb.get_next_job_id()
+        job_id = self.jobdb.get_next_job_id()
+        job_id1 = self.jobdb.get_next_job_id()
 
-        self.assert_(int(jobID[11:]) < int(jobID1[11:]))
+        self.assert_(int(job_id[11:]) < int(job_id1[11:]))
 
     def testget_job(self):
         job = self.jobdb.get_job()

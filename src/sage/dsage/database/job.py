@@ -50,7 +50,7 @@ class Job(Persistent):
         self.jdict = {}
 
         # Job keywords
-        self.jdict['id'] = id_
+        self.jdict['job_id'] = id_
         self.jdict['name'] = name
         self.jdict['code'] = code
         self.jdict['user_id'] = user_id
@@ -97,11 +97,11 @@ class Job(Persistent):
                     doc='Job code')
 
     def get_id(self):
-        return self.jdict['id']
+        return self.jdict['job_id']
     def set_id(self, value):
 #        if not isinstance(value, str):
 #            raise TypeError
-        self.jdict['id'] = value
+        self.jdict['job_id'] = value
     id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
 
     def get_status(self):

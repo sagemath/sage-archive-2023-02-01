@@ -32,7 +32,7 @@ class JobTestCase(unittest.TestCase):
                   user_id='test', type_='test')
         self.assert_(isinstance(job, Job))
 
-    def testjobID(self):
+    def testjob_id(self):
         job = Job()
         self.assertRaises(TypeError, job.id, 5)
 

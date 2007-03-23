@@ -171,8 +171,8 @@ class ClientRemoteCallsTest(unittest.TestCase):
         d.addCallback(self._got_job_id)
         return d
 
-    def _got_job_id(self, jobID):
-        self.assertEquals(type(jobID), str)
+    def _got_job_id(self, job_id):
+        self.assertEquals(type(job_id), str)
 
     def testremoteSubmitBadJob(self):
         """tests perspective_submit_job"""

@@ -181,10 +181,10 @@ class DSage(object):
             return [JobWrapper(self.remoteobj, job)
                     for job in jobs if job.name == job_name]
 
-    def _killed_job(self, jobID):
-        if jobID:
+    def _killed_job(self, job_id):
+        if job_id:
             if self.LOG_LEVEL > 2:
-                print str(jobID) + ' was successfully killed.'
+                print str(job_id) + ' was successfully killed.'
 
     def restore(self, remoteobj):
         r"""
@@ -306,16 +306,16 @@ class DSage(object):
         d_list = defer.DeferredList(deferreds)
         return d_list
 
-    def kill(self, jobID):
+    def kill(self, job_id):
         r"""
         Kills a job given the job id.
 
         Parameters:
-        jobID -- job id
+        job_id -- job id
 
         """
 
-        d = self.remoteobj.callRemote('kill_job', jobID)
+        d = self.remoteobj.callRemote('kill_job', job_id)
         d.addCallback(self._killed_job)
         d.addErrback(self._catch_failure)
 
@@ -631,7 +631,7 @@ class JobWrapper(object):
 
     def _got_jdict(self, jdict):
         self._job = expand_job(jdict)
-        self.id = jdict['id']
+        self.id = jdict['job_id']
 
     def get_job(self):
         if self.remoteobj is None:
@@ -711,11 +711,11 @@ class JobWrapper(object):
         d.addErrback(self._catch_failure)
         return d
 
-    def _killed_job(self, jobID):
+    def _killed_job(self, job_id):
         return
-        # if jobID:
+        # if job_id:
         #     if self.LOG_LEVEL > 2:
-        #         print str(jobID) + ' was successfully killed.\r'
+        #         print str(job_id) + ' was successfully killed.\r'
 
 class blockingJobWrapper(JobWrapper):
     r"""
@@ -764,9 +764,9 @@ class blockingJobWrapper(JobWrapper):
 
         """
 
-        jobID = blocking_call_from_thread(self.remoteobj.callRemote,
+        job_id = blocking_call_from_thread(self.remoteobj.callRemote,
                                    'kill_job', self._job.id)
-        return jobID
+        return job_id
 
     def async_kill(self):
         r"""

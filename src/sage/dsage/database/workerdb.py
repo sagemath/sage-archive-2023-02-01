@@ -130,6 +130,17 @@ class WorkerDatabase(object):
 
         return cur.fetchone()
 
+    def get_worker_list(self):
+        r"""
+        Returns a list of connected workers.
+
+        """
+        query = """SELECT * FROM workers WHERE connected"""
+        cur = self.con.cursor()
+        cur.execute(query)
+
+        return cur.fetchall()
+
     def set_connected(self, uuid, connected=True):
         cur = self.con.cursor()
         if connected:

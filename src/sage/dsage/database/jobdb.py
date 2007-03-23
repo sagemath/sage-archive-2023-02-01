@@ -145,19 +145,19 @@ class JobDatabaseZODB(JobDatabase):
 
     def get_next_job_id(self):
         r"""
-        Increments jobID by one and returns the current jobID
+        Increments job_id by one and returns the current job_id
 
         """
 
         gdict = self.__retrieve_globals()
         jobNUM = gdict['next_job_num']
         gdict['next_job_num'] += 1
-        jobID = self.random_string(10) + '_' + '%s' % jobNUM
+        job_id = self.random_string(10) + '_' + '%s' % jobNUM
         self.store_job(gdict)
         if self.LOG_LEVEL > 1:
             log.msg('[DB] Incremented job num to: ', jobNUM)
 
-        return jobID
+        return job_id
 
     def __retrieve_globals(self):
         return self.get_job_by_id('GLOBALS')
@@ -175,25 +175,25 @@ class JobDatabaseZODB(JobDatabase):
         that jobs are always processed in the right order.
 
         """
-        for jobID, job in self.jobdb.iteritems():
+        for job_id, job in self.jobdb.iteritems():
             try:
                 if isinstance(job, Job) and job.status == 'new':
                     return job
             except(KeyError):
                 return None
 
-    def get_job_by_id(self, jobID):
+    def get_job_by_id(self, job_id):
         r"""
         Returns a job given a job id.
 
         Parameters:
-        jobID -- the job id (int)
+        job_id -- the job id (int)
 
         """
-        if not self.has_job(jobID):
+        if not self.has_job(job_id):
             return None
         else:
-            return self.jobdb[jobID]
+            return self.jobdb[job_id]
 
     def get_jobs_by_user_id(self, user_id, is_active, job_name=None):
         r"""
@@ -242,44 +242,44 @@ class JobDatabaseZODB(JobDatabase):
         # is the GLOBAL dictionary which keeps track of our job ids
         if isinstance(job, dict):
             if job.has_key('next_job_num'):
-                # log.msg('[DB, store_job] Setting jobID to GLOBALS')
-                jobID = 'GLOBALS'
+                # log.msg('[DB, store_job] Setting job_id to GLOBALS')
+                job_id = 'GLOBALS'
         elif isinstance(job, Job):
-            jobID = job.id
-            if not isinstance(jobID, str):
-                jobID = self.get_next_job_id()
+            job_id = job.id
+            if not isinstance(job_id, str):
+                job_id = self.get_next_job_id()
             job.update_time = datetime.datetime.now()
         else:
             raise TypeError
 
-        self.jobdb[jobID] = job
+        self.jobdb[job_id] = job
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # Need this hack to notify ZODB that the dict was modified
         # WITHOUT IT CHANGES WILL NOT BE WRITTEN BACK TO DISK
-        if jobID != 'GLOBALS':
+        if job_id != 'GLOBALS':
             job._p_changed = True
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         transaction.commit()
         if self.LOG_LEVEL > 0:
-            log.msg("[DB] Stored job %s" % (jobID))
+            log.msg("[DB] Stored job %s" % (job_id))
 
-        return jobID
+        return job_id
 
-    def remove_job(self, jobID):
+    def remove_job(self, job_id):
         r"""
         Removes a job from the database.
 
         Parameters:
-         jobID -- job id (int)
+         job_id -- job id (int)
 
         """
 
         try:
-            del self.jobdb[jobID]
+            del self.jobdb[job_id]
             if self.LOG_LEVEL > 0:
-                log.msg('[JobDB] Removed job %s from jobdb' % (jobID))
+                log.msg('[JobDB] Removed job %s from jobdb' % (job_id))
             transaction.commit()
-            return jobID
+            return job_id
         except:
             log.msg('[JobDB] Failure removing a job.')
             raise
@@ -294,17 +294,17 @@ class JobDatabaseZODB(JobDatabase):
         return [job for job in self.get_jobs_list()
                 if job.status == 'processing']
 
-    def has_job(self, jobID):
+    def has_job(self, job_id):
         r"""
         Checks if the database contains a job corresponding to job id.
 
         Parameters:
-        jobID -- the job id (int)
+        job_id -- the job id (int)
 
         """
 
         # For some reason has_key returns 0/1 versus True/False
-        b = self.jobdb.has_key(jobID)
+        b = self.jobdb.has_key(job_id)
         if b > 0:
             return True
         else:
@@ -319,8 +319,8 @@ class JobDatabaseZODB(JobDatabase):
 
         sorted_list = []
 
-        for jobID, job in self.jobdb.iteritems():
-            if jobID == 'GLOBALS': # Skip the GLOBALS job
+        for job_id, job in self.jobdb.iteritems():
+            if job_id == 'GLOBALS': # Skip the GLOBALS job
                 continue
             sorted_list.append((job.num, job))
         sorted_list.sort()
@@ -362,8 +362,8 @@ class JobDatabaseZODB(JobDatabase):
 
         """
 
-        jobID = self.get_next_job_id()
-        job.id = jobID
+        job_id = self.get_next_job_id()
+        job.id = job_id
 
         return self.store_job(job)
 
@@ -380,7 +380,7 @@ class JobDatabaseSQLite(JobDatabase):
     # Must do manual checking.
 
     CREATE_JOBS_TABLE = """CREATE TABLE jobs
-    (id TEXT NOT NULL UNIQUE,
+    (job_id TEXT NOT NULL UNIQUE,
      name TEXT,
      user_id INTEGER REFERENCES users(id),
      worker_id INTEGER REFERENCES workers(id),
@@ -480,6 +480,12 @@ class JobDatabaseSQLite(JobDatabase):
 
         return self.create_jdict(jtuple, cur.description)
 
+    def set_job_uuid(self, job_id, uuid):
+        query = "UPDATE jobs SET worker_id=? WHERE job_id=?"
+        cur = self.con.cursor()
+        cur.execute(query, (uuid, job_id))
+        self.con.commit()
+
     def get_all_jobs(self):
         query = "SELECT * from jobs"
         cur = self.con.cursor()
@@ -487,7 +493,7 @@ class JobDatabaseSQLite(JobDatabase):
         return cur.fetchall()
 
     def get_job_by_id(self, job_id):
-        query = "SELECT * FROM jobs WHERE id = ?"
+        query = "SELECT * FROM jobs WHERE job_id = ?"
         cur = self.con.cursor()
         cur.execute(query, (job_id,)) # Need to cast it to int for SAGE
         jtuple = cur.fetchone()
@@ -496,7 +502,7 @@ class JobDatabaseSQLite(JobDatabase):
     def get_job_by_keywords(self, **kwargs):
         raise NotImplementedError
 
-    def update_value(self, id, key, value):
+    def update_value(self, job_id, key, value):
         r"""
         Sets the appropriate value for a job in the database.
 
@@ -504,14 +510,14 @@ class JobDatabaseSQLite(JobDatabase):
 
         query = """UPDATE jobs
         SET %s=?
-        WHERE id=?
+        WHERE job_id=?
         """ % (key)
         cur = self.con.cursor()
         if key == 'data' or key == 'result': # Binary objects
             if value is not None:
-                cur.execute(query, (sqlite3.Binary(value), id))
+                cur.execute(query, (sqlite3.Binary(value), job_id))
         else:
-            cur.execute(query, (value, id))
+            cur.execute(query, (value, job_id))
         self.con.commit()
 
     def store_job(self, jdict):
@@ -525,21 +531,21 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        id = jdict['id']
+        job_id = jdict['job_id']
 
-        if id is None:
-            id = self.random_string()
+        if job_id is None:
+            job_id = self.random_string()
             if self.LOG_LEVEL > 3:
-                log.msg('[JobDB] Creating a new job with id:', id)
+                log.msg('[JobDB] Creating a new job with id:', job_id)
             query = """INSERT INTO jobs
-                    (id, status, creation_time) VALUES (?, ?, ?)"""
+                    (job_id, status, creation_time) VALUES (?, ?, ?)"""
             cur = self.con.cursor()
-            cur.execute(query, (id, 'new', datetime.datetime.now()))
+            cur.execute(query, (job_id, 'new', datetime.datetime.now()))
             self.con.commit()
 
         for k, v in jdict.iteritems():
             try:
-                self.update_value(id, k, v)
+                self.update_value(job_id, k, v)
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
@@ -548,7 +554,7 @@ class JobDatabaseSQLite(JobDatabase):
                     print msg
                 continue
 
-        return self.get_job_by_id(id)
+        return self.get_job_by_id(job_id)
 
     def create_jdict(self, jtuple, row_description):
         r"""
@@ -596,13 +602,13 @@ class JobDatabaseSQLite(JobDatabase):
 
         return [self.create_jdict(jtuple, cur.description) for jtuple in cur]
 
-    def has_job(self, id):
+    def has_job(self, job_id):
         r"""
         Checks if the database contains a job with the given uid.
 
         """
 
-        job = self.get_job_by_id(id)
+        job = self.get_job_by_id(job_id)
         if job is None:
             return False
         else:

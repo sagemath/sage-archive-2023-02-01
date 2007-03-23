@@ -53,8 +53,8 @@ class DSageTestCase(unittest.TestCase):
     def testget_job_by_id(self):
         job = self.create_jobs(1)
         for j in job:
-            jobID = self.jobdb.store_job(j)
-        self.assert_(isinstance(jobID, str))
+            job_id = self.jobdb.store_job(j)
+        self.assert_(isinstance(job_id, str))
 
     def testget_job_resultsByID(self):
         job = self.unpickle(self.dsage_server.get_job())

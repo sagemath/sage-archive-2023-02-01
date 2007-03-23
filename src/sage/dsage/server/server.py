@@ -55,7 +55,7 @@ class DSageServer(pb.Root):
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
 
-    def get_job(self, anonymous=False):
+    def get_job(self, anonymous=False, uuid=None):
         r"""
         Returns a job to the client.
 
@@ -67,7 +67,7 @@ class DSageServer(pb.Root):
         if anonymous:
             jdict = self.jobdb.get_job(anonymous=True)
         else:
-            jdict = self.jobdb.get_job()
+            jdict = self.jobdb.get_job(anonymous=False)
         if jdict == None:
             if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Job db is empty.')
@@ -75,11 +75,14 @@ class DSageServer(pb.Root):
         else:
             if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Returning Job %s to client'
-                        % (jdict['id']))
+                        % (jdict['job_id']))
             jdict['status'] = 'processing'
             self.jobdb.store_job(jdict)
 
         return jdict
+
+    def set_job_uuid(self, job_id, uuid):
+        return self.jobdb.set_job_uuid(job_id, uuid)
 
     def get_job_by_id(self, job_id):
         r"""
@@ -93,7 +96,7 @@ class DSageServer(pb.Root):
         job = self.jobdb.get_job_by_id(job_id)
         return job
 
-    def get_job_result_by_id(self, jobID):
+    def get_job_result_by_id(self, job_id):
         """Returns the job result.
 
         Parameters:
@@ -101,10 +104,10 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(jobID)
+        job = self.jobdb.get_job_by_id(job_id)
         return job.result
 
-    def get_job_output_by_id(self, jobID):
+    def get_job_output_by_id(self, job_id):
         """Returns the job output.
 
         Parameters:
@@ -112,12 +115,12 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(jobID)
+        job = self.jobdb.get_job_by_id(job_id)
 
         return job.output
 
-    def sync_job(self, jobID):
-        job = self.jobdb.get_job_by_id(jobID)
+    def sync_job(self, job_id):
+        job = self.jobdb.get_job_by_id(job_id)
         # new_job = copy.deepcopy(job)
         # print new_job
         # # Set file, data to 'Omitted' so we don't need to transfer it
@@ -203,12 +206,12 @@ class DSageServer(pb.Root):
 
         return self.jobdb.get_next_job_id()
 
-    def job_done(self, jobID, output, result, completed, worker_info):
+    def job_done(self, job_id, output, result, completed, worker_info):
         r"""
         job_done is called by the workers checkForJobOutput method.
 
         Parameters:
-        jobID -- job id (str)
+        job_id -- job id (str)
         output -- the stdout from the worker (string)
         result -- the result from the client (compressed pickle string)
                   result could be 'None'
@@ -218,14 +221,14 @@ class DSageServer(pb.Root):
         """
 
         if self.LOG_LEVEL > 0:
-            log.msg('[DSage, job_done] Job %s called back' % (jobID))
+            log.msg('[DSage, job_done] Job %s called back' % (job_id))
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] Output: %s ' % output)
             log.msg('[DSage, job_done] Result: Some binary data...')
             log.msg('[DSage, job_done] completed: %s ' % completed)
             log.msg('[DSage, job_done] worker_info: %s ' % str(worker_info))
 
-        jdict = self.get_job_by_id(jobID)
+        jdict = self.get_job_by_id(job_id)
 
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] result type' , type(result))
@@ -242,16 +245,16 @@ class DSageServer(pb.Root):
 
         return self.jobdb.store_job(jdict)
 
-    def job_failed(self, jobID):
+    def job_failed(self, job_id):
         r"""
         job_failed is called when a remote job fails.
 
         Parameters:
-        jobID -- the job id (str)
+        job_id -- the job id (str)
 
         """
 
-        job = self.jobdb.get_job_by_id(jobID)
+        job = self.jobdb.get_job_by_id(job_id)
         job.failures += 1
 
         if job.failures > self.jobdb.JOB_FAILURE_THRESHOLD:
@@ -260,12 +263,12 @@ class DSageServer(pb.Root):
             job.status = 'new' # Put job back in the queue
 
         if self.LOG_LEVEL > 1:
-            s = ['[DSage, job_failed] Job %s failed ' % (jobID),
+            s = ['[DSage, job_failed] Job %s failed ' % (job_id),
                  '%s times. ' % (job.failures)]
             log.msg(''.join(s))
         self.jobdb.store_job(job)
 
-    def kill_job(self, jobID, reason):
+    def kill_job(self, job_id, reason):
         r"""
         Kills a job.
 
@@ -273,18 +276,18 @@ class DSageServer(pb.Root):
 
         """
 
-        jdict = self.get_job_by_id(jobID)
+        jdict = self.get_job_by_id(job_id)
         if jdict == None:
             if self.LOG_LEVEL > 0:
-                log.msg('[DSage, kill_job] No such job id %s' % jobID)
+                log.msg('[DSage, kill_job] No such job id %s' % job_id)
             return None
         else:
             jdict['killed'] = True
             self.jobdb.store_job(jdict)
             if self.LOG_LEVEL > 0:
-                log.msg('Job %s was killed because %s ' % (jobID, reason))
+                log.msg('Job %s was killed because %s ' % (job_id, reason))
 
-        return jobID
+        return job_id
 
     def get_worker_list(self):
         r"""
@@ -295,7 +298,7 @@ class DSageServer(pb.Root):
         tuple[2] = port
 
         """
-
+        return self.workerdb.get_worker_list()
         return worker_tracker.worker_list
 
     def get_client_list(self):
@@ -357,20 +360,20 @@ class DSageWorkerServer(DSageServer):
     def remote_get_job(self):
         return DSageServer.get_job(self)
 
-    def remote_job_done(self, jobID, output, result, completed, worker_info):
-        if not (isinstance(jobID, str) or isinstance(completed, bool)):
+    def remote_job_done(self, job_id, output, result, completed, worker_info):
+        if not (isinstance(job_id, str) or isinstance(completed, bool)):
             log.msg('BadType in remote_job_done')
             raise BadTypeError()
 
-        return DSageServer.job_done(self, jobID, output, result,
+        return DSageServer.job_done(self, job_id, output, result,
                              completed, worker_info)
 
-    def remote_job_failed(self, jobID):
-        if not isinstance(jobID, str):
+    def remote_job_failed(self, job_id):
+        if not isinstance(job_id, str):
             log.msg('BadType in remote_job_failed')
             raise BadTypeError()
 
-        return DSageServer.job_failed(self, jobID)
+        return DSageServer.job_failed(self, job_id)
 
     def remote_get_killed_jobs_list(self):
         return DSageServer.get_killed_jobs_list(self)

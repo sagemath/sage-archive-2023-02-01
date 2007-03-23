@@ -38,6 +38,8 @@ from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer, DSageWorkerServer
 
+DELIMITER = '-' * 50
+
 def usage():
     """Prints usage help."""
 
@@ -117,15 +119,10 @@ def main():
 
     # Create the PBServerFactory for workers
     # Use this for unauthorized workers
-    dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
-    worker_factory = WorkerPBServerFactory(dsage_worker)
+    # dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
+    # worker_factory = WorkerPBServerFactory(dsage_worker)
 
     dsage_server.client_factory = client_factory
-    dsage_server.worker_factory = worker_factory
-
-    # We will listen on 2 ports
-    # One port that is authenticated so clients can submit new jobs
-    # One port for workers to connect to to receive and submit jobs
 
     attempts = 0
     err_msg = """Could not find two open ports after 50 attempts."""
@@ -136,40 +133,31 @@ def main():
         while True:
             if attempts > 50:
                 print err_msg
-                print 'Last attempted ports: %s, %s' % (CLIENT_PORT,
-                                                        WORKER_PORT)
+                print 'Last attempted port: %s' % (CLIENT_PORT)
             try:
                 reactor.listenSSL(CLIENT_PORT,
                                   client_factory,
-                                  contextFactory = ssl_context)
-                reactor.listenSSL(WORKER_PORT,
-                                  worker_factory,
                                   contextFactory = ssl_context)
                 break
             except error.CannotListenError:
                 attempts += 1
                 CLIENT_PORT += 1
-                WORKER_PORT += 1
     else:
         while True:
             if attempts > 50:
                 print err_msg
-                print 'Last attempted ports: %s, %s' % (CLIENT_PORT,
-                                                        WORKER_PORT)
+                print 'Last attempted ports: %s' % (CLIENT_PORT)
             try:
                 reactor.listenTCP(CLIENT_PORT, client_factory)
-                reactor.listenTCP(WORKER_PORT, worker_factory)
                 break
             except error.CannotListenError:
                 atmpts += 1
                 CLIENT_PORT += 1
-                WORKER_PORT += 1
 
-    seperator = '-' * 50
-    log.msg(seperator)
+    log.msg(DELIMITER)
     log.msg('DSAGE Server')
-    log.msg('Listening on %s and %s' % (CLIENT_PORT, WORKER_PORT))
-    log.msg(seperator)
+    log.msg('Listening on %s' % (CLIENT_PORT))
+    log.msg(DELIMITER)
 
     reactor.run()
 

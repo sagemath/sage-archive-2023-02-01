@@ -138,20 +138,21 @@ class DefaultPerspective(pb.Avatar):
     def attached(self, avatar, mind):
         self.current_connections += 1
         if mind:
-            worker_tracker.add((mind[0].broker,
-                                mind[0].broker.transport.getPeer().host,
-                                mind[0].broker.transport.getPeer().port,
-                                mind[1]))
+            host_info = mind[1]
+            host_info['ip'] = mind[0].broker.transport.getPeer().host
+            host_info['port'] = mind[0].broker.transport.getPeer().port
+            worker_tracker.add((mind[0].broker, host_info))
         else:
             client_tracker.add((avatar, mind))
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
         if mind:
-            pass
-            # for broker, host, port, mind in worker_tracker.worker_list:
-            #     if broker.transport.disconnected:
-            #         worker_tracker.remove((broker, host, port, mind))
+            # This will remove all disconnected clients, not just the one that
+            # just disconnected.
+            for broker, host_info in worker_tracker.worker_list:
+                if broker.transport.disconnected:
+                    worker_tracker.remove((broker, host_info))
         else:
             client_tracker.remove((avatar, mind))
 
@@ -243,7 +244,7 @@ class UserPerspective(DefaultPerspective):
         return self.DSageServer.get_cluster_speed()
 
     def perspective_get_worker_list(self):
-        return [x[1:] for x in self.DSageServer.get_worker_list()]
+        return [x[1] for x in self.DSageServer.get_worker_list()]
 
     def perspective_get_client_list(self):
         return [avatar[0].avatarID for avatar in

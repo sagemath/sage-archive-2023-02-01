@@ -139,7 +139,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
                 pass
 
         import sage.version
-        canonical_info['sage'] = sage.version.version
+        canonical_info['sage_version'] = sage.version.version
 
         self.host_info = canonical_info
         return self.host_info
@@ -266,7 +266,7 @@ class ClassicHostInfo(object):
                 pass
 
         import sage.version
-        canonical_info['sage'] = sage.version.version
+        canonical_info['sage_version'] = sage.version.version
 
         return canonical_info
 

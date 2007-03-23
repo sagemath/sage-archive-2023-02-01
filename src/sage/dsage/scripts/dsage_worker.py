@@ -36,12 +36,11 @@ from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
+from sage.dsage.misc.constants import delimiter as DELIMITER
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-
-DELIMITER = '-' * 50
 
 # Begin reading configuration
 try:

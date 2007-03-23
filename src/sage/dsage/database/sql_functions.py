@@ -19,7 +19,6 @@
 
 from twisted.python import log
 
-LOG_LEVEL = 5
 def table_exists(con, tablename):
     """
     Check if a given table exists.
@@ -46,7 +45,6 @@ def create_table(con, tablename, query):
     if LOG_LEVEL > 1:
         print '-' * 50
         print "CREATE TABLE: "
-        print query
         print '-' * 50
     con.execute(query)
 

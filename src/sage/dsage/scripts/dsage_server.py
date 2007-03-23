@@ -37,8 +37,7 @@ from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer, DSageWorkerServer
-
-DELIMITER = '-' * 50
+from sage.dsage.misc.constants import delimiter as DELIMITER
 
 def usage():
     """Prints usage help."""

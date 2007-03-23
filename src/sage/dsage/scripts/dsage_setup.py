@@ -24,15 +24,12 @@ import subprocess
 import sys
 
 from sage.dsage.database.userdb import UserDatabase
+from sage.dsage.misc.constants import delimiter as DELIMITER
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-PUBKEY_DATABASE = os.path.abspath(os.path.join(DSAGE_DIR,
-                                  'db/authorized_keys.db'))
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
 DSAGE_VERSION = '0.1'
-
-DELIMITER = '-' * 50
 
 def check_dsage_dir():
     if os.path.exists(DSAGE_DIR):
@@ -116,8 +113,8 @@ def setup_server():
     config.set('server_log', 'log_level', '0')
     config.set('db_log', 'log_file', 'stdout')
     config.set('db_log', 'log_level', '0')
-    config.set('auth', 'pubkey_database', PUBKEY_DATABASE)
-    config.set('db', 'db_file', os.path.join(DB_DIR, 'jobs.db'))
+    config.set('auth', 'pubkey_database', os.path.join(DB_DIR, 'dsage.db'))
+    config.set('db', 'db_file', os.path.join(DB_DIR, 'dsage.db'))
     config.set('db', 'prune_in_days', 7)
     config.set('db', 'stale_in_days', 365)
     config.set('db', 'job_failure_threshold', 2)
@@ -147,15 +144,7 @@ def setup_server():
     pubkey_file = c.get('auth', 'pubkey_file')
     userdb = UserDatabase()
     userdb.add_user(username, pubkey_file)
-    print 'Adding user %s\n' % (username)
-
-def add_user(username, pubkey_file):
-    f = open(pubkey_file)
-    type, key = f.readlines()[0].split()[:2]
-    f.close()
-    f1 = open(PUBKEY_DATABASE, 'a')
-    f1.write(':'.join([username, key]) + '\n')
-    f1.close()
+    print 'Added user %s\n' % (username)
 
 def setup():
     setup_client()

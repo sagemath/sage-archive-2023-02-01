@@ -379,7 +379,7 @@ class JobDatabaseSQLite(JobDatabase):
     # TODO: SQLite does *NOT* enforce foreign key constraints
     # Must do manual checking.
 
-    CREATE_NEW_TABLE = """CREATE TABLE jobs
+    CREATE_JOBS_TABLE = """CREATE TABLE jobs
     (id TEXT NOT NULL UNIQUE,
      name TEXT,
      user_id INTEGER REFERENCES users(id),
@@ -420,7 +420,7 @@ class JobDatabaseSQLite(JobDatabase):
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,
-                                       self.CREATE_NEW_TABLE)
+                                       self.CREATE_JOBS_TABLE)
 
     def __add_test_data(self):
         INSERT_JOB = """INSERT INTO jobs

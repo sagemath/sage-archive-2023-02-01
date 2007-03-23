@@ -676,11 +676,13 @@ def primes(start, stop=None):
     proves correctness.
 
     EXAMPLES:
-        sage.: for p in primes(5,10):
+        sage: for p in primes(5,10):
         ...     print p
         ...
         5
         7
+        sage: list(primes(11))
+        [2, 3, 5, 7]
         sage: list(primes(10000000000, 10000000100))
         [10000000019, 10000000033, 10000000061, 10000000069, 10000000097]
     """

@@ -127,6 +127,9 @@ class GroebnerFan(SageObject):
         self.__ideal = I
         self.__ring = S
 
+    def __eq__(self,right):
+        return type(self) == type(right) and self.ideal() == right.ideal()
+
     def ideal(self):
         """
         Return the ideal the was used to define this Groebner fan.

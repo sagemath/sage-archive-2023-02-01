@@ -694,7 +694,7 @@ def primes(start, stop=None):
     n = start - 1
     while True:
         n = next_prime(n)
-        if n <= stop:
+        if n < stop:
             yield n
         else:
             return

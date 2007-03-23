@@ -1317,7 +1317,7 @@ class ModularAbelianVarieties(Category_over_base):
 
     EXAMPLES:
         sage: ModularAbelianVarieties(QQ)
-        Category of modular abelian varieties over Rational field
+        Category of modular abelian varieties over Rational Field
     """
     def __init__(self, Y):
         assert Y.is_field()

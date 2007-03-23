@@ -199,8 +199,6 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: m.is_simple()
             False
             sage: o = m.old_subspace()
-            sage: o.is_simple()
-            False
             sage: o.decomposition()
             [
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 6 for Gamma_0(33) of weight 2 with sign 1 over Rational Field,
@@ -1464,7 +1462,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f = a.integral_period_mapping()
             sage: e = m([0,oo])
             sage: f(e)
-            boom
+            (0)
         """
         try:
             return self.__integral_period_mapping
@@ -1502,7 +1500,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: S
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 3 for Gamma_0(11) of weight 2 with sign 0 over Rational Field
             sage: S.modular_symbols_of_sign(-1)
-            M.odular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Rational Field
+            Modular Symbols space of dimension 1 for Gamma_0(11) of weight 2 with sign -1 over Rational Field
 
             sage: S = ModularSymbols(43,2,sign=1)[2]; S
             Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 for Gamma_0(43) of weight 2 with sign 1 over Rational Field

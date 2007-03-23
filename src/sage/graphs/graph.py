@@ -16,6 +16,8 @@ AUTHOR:
                         (2007-02-25): display a partition
                         (2007-02-28): associate arbitrary objects to vertices,
         edge and arc label display (in 2d), edge coloring
+                        (2007-03-21): Automorphism group, isomorphism check,
+        canonical label
 
 TUTORIAL:
 
@@ -218,6 +220,58 @@ class GenericGraph(SageObject):
     """
     Base class for graphs and digraphs.
     """
+
+    def __cmp__(self, other):
+        """
+        Comparison of self and other. Must be in the same class, have the same
+        settings for loops and multiedges, output the same vertex list (in order)
+        and the same adjacency matrix.
+
+        EXAMPLES:
+            sage: G = graphs.EmptyGraph()
+            sage: H = Graph()
+            sage: G == H
+            True
+            sage: G.to_directed() == H.to_directed()
+            True
+            sage: G = graphs.RandomGNP(8,.9999)
+            sage: H = graphs.CompleteGraph(8)
+            sage: G == H # (quasi-) random output (most often true)
+            True
+            sage: G = Graph( {0:[1,2,3,4,5,6,7]} )
+            sage: H = Graph( {1:[0], 2:[0], 3:[0], 4:[0], 5:[0], 6:[0], 7:[0]} )
+            sage: G == H
+            True
+            sage: G.loops(True)
+            True
+            sage: G == H
+            False
+            sage: G = graphs.RandomGNP(9,.3).to_directed()
+            sage: H = graphs.RandomGNP(9,.3).to_directed()
+            sage: G == H # random output (most often false)
+            False
+        """
+        if type(self) != type(other):
+            return 1
+        elif self.loops() != other.loops():
+            return 1
+        else:
+            try:
+                if self.multiple_arcs() != other.multiple_arcs():
+                    return 1
+            except AttributeError:
+                if self.multiple_edges() != other.multiple_edges():
+                    return 1
+        if self.vertices() != other.vertices():
+            return 1
+        comp = enum(self) - enum(other)
+        if comp < 0:
+            return -1
+        elif comp == 0:
+            return 0
+        elif comp > 0:
+            return 1
+
 
     def __contains__(self, vertex):
         """
@@ -589,6 +643,82 @@ class GenericGraph(SageObject):
         """
         return self._nxg.nodes()
 
+    def relabel(self, perm, inplace=True):
+        r"""
+        Uses a dictionary or permutation to relabel the (di)graph.
+        If perm is a dictionary, each old vertex v is a key in the
+        dictionary, and its new label is d[v]. If perm is a permuta-
+        tion, the permutation is simply applied to the graph, under
+        the assumption that V = {0,1,...,n-1} is the vertex set, and
+        the permutation acts on the set {1,2,...,n}, where we think
+        of n = 0.
+        """
+        from sage.groups.perm_gps.permgroup import SymmetricGroup
+        S = SymmetricGroup(2)
+        if type(perm) == type(S('(1,2)')):
+            n = self.order()
+            dict = {}
+            list = perm.list()
+            for i in range(1,n):
+                dict[i] = list[i-1]%n
+            if n > 0:
+                dict[0] = list[n-1]%n
+            perm = dict
+        if type(perm) == type({}):
+            keys = perm.keys()
+            verts = self.vertices()
+            for v in verts:
+                if v not in keys:
+                    perm[v] = v
+            for v in perm.iterkeys():
+                if v in verts:
+                    try:
+                        ddddd = {perm[v]:0}
+                    except TypeError:
+                        raise ValueError, "perm dictionary must be of the format {a:a1, b:b1, ...} where a,b,... are vertices and a1,b1,... are hashable"
+            if isinstance(self, Graph):
+                oldd = self._nxg.adj
+                newd = {}
+                for v in oldd.iterkeys():
+                    oldtempd = oldd[v]
+                    newtempd = {}
+                    for w in oldtempd.iterkeys():
+                        newtempd[perm[w]] = oldtempd[w]
+                    newd[perm[v]] = newtempd
+                if inplace:
+                    self._nxg.adj = newd
+                else:
+                    G = self.copy()
+                    G._nxg.adj = newd
+                    return G
+            else: # DiGraph
+                oldsucc = self._nxg.succ
+                oldpred = self._nxg.pred
+                newsucc = {}
+                newpred = {}
+                for v in oldsucc.iterkeys():
+                    oldtempsucc = oldsucc[v]
+                    newtempsucc = {}
+                    for w in oldtempsucc.iterkeys():
+                        newtempsucc[perm[w]] = oldtempsucc[w]
+                    newsucc[perm[v]] = newtempsucc
+                for v in oldpred.iterkeys():
+                    oldtemppred = oldpred[v]
+                    newtemppred = {}
+                    for w in oldtemppred.iterkeys():
+                        newtemppred[perm[w]] = oldtemppred[w]
+                    newpred[perm[v]] = newtemppred
+                if inplace:
+                    self._nxg.adj = newsucc
+                    self._nxg.succ = self._nxg.adj
+                    self._nxg.pred = newpred
+                else:
+                    D = self.copy()
+                    D._nxg.adj = newsucc
+                    D._nxg.succ = D._nxg.adj
+                    D._nxg.pred = newpred
+                    return D
+
     ### Constructors
 
     def am(self):
@@ -694,6 +824,10 @@ class GenericGraph(SageObject):
             pos = None
         if pos is None:
             pos = networkx.drawing.spring_layout(self._nxg)
+        else:
+            for v in pos:
+                for a in range(len(pos[v])):
+                    pos[v][a] = float(pos[v][a])
         G = networkx_plot(self._nxg, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, scaling_term=scaling_term)
         if edge_labels:
             from sage.plot.plot import text
@@ -708,7 +842,7 @@ class GenericGraph(SageObject):
 
     def show(self, pos=None, layout=None, vertex_labels=True, edge_labels=False, node_size=200,
              graph_border=False, color_dict=None, edge_colors=None, partition=None,
-             scaling_term=0.05, **kwds):
+             scaling_term=0.05, talk=False, **kwds):
         """
         Shows the (di)graph.
 
@@ -732,6 +866,7 @@ class GenericGraph(SageObject):
             scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
                 is too small, decrease. should be positive, but values much bigger than
                 1/8 won't be useful unless the nodes are huge
+            talk -- if true, prints large nodes with white backgrounds so that labels are legible on slies
 
         EXAMPLES:
             sage: from math import sin, cos, pi
@@ -777,6 +912,10 @@ class GenericGraph(SageObject):
             ...            edge_colors[R[i]].append((u,v,l))
             sage: C.plot(vertex_labels=False, node_size=0, edge_colors=edge_colors).save('sage.png')
         """
+        if talk:
+            node_size = 500
+            if partition is None:
+                color_dict = {'#FFFFFF':self.vertices()}
         self.plot(pos=pos, layout=layout, vertex_labels=vertex_labels, edge_labels=edge_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, graph_border=graph_border, partition=partition, scaling_term=scaling_term).show(**kwds)
 
 class Graph(GenericGraph):
@@ -1048,7 +1187,7 @@ class Graph(GenericGraph):
         """
         Creates a copy of the graph.
         """
-        G = Graph(self._nxg, name=self._nxg.name)
+        G = Graph(self._nxg, name=self._nxg.name, pos=self._pos, loops=self.loops(), boundary=self._boundary)
         return G
 
     def to_directed(self):
@@ -1917,6 +2056,108 @@ class Graph(GenericGraph):
         import networkx
         return networkx.component.node_connected_component(self._nxg, vertex)
 
+    ### Automorphism and isomorphism
+
+    def automorphism_group(self, partition=None, translation=False):
+        """
+        Returns the largest subgroup of the automorphism group of the graph
+        whose orbit partition is finer than the partition given. If no
+        partition is given, the unit partition is used and the entire
+        automorphism group is given.
+
+        INPUT:
+            translation -- if True, then output is the tuple (group, dict),
+        where dict is a dictionary translating from keys == vertices to
+        entries == elements of {1,2,...,n} (since permutation groups can
+        currently only act on positive integers).
+
+        EXAMPLES:
+            sage: L = graphs_query.get_list_of_graphs(nodes=4)
+            sage.: graphs_list.show_graphs(L)
+            sage: for g in L:
+            ...    G = g.automorphism_group()
+            ...    G.order(), G.gens()
+            (24, ((2,3), (1,2), (1,4)))
+            (4, ((2,3), (1,4)))
+            (2, ((1,2),))
+            (8, ((2,3), (1,4), (1,3)(2,4)))
+            (6, ((2,3), (1,2)))
+            (6, ((1,2), (1,4)))
+            (2, ((1,4)(2,3),))
+            (2, ((1,2),))
+            (8, ((1,3), (1,4)(2,3)))
+            (4, ((2,4), (1,3)))
+            (24, ((2,3), (1,2), (1,4)))
+
+            sage: C = graphs.CubeGraph(4)
+            sage: G = C.automorphism_group()
+            sage: M = G.character_table()
+            sage: M.determinant()
+            712483534798848
+            sage: G.order()
+            384
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: G = D.automorphism_group()
+            sage: A5 = AlternatingGroup(5)
+            sage: Z2 = CyclicPermutationGroup(2)
+            sage: H = A5.direct_product(Z2)[0] #see documentation for direct_product to explain the [0]
+            sage: G.is_isomorphic(H)
+            True
+        """
+        if self.multiple_edges():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        else:
+            from sage.graphs.graph_isom import search_tree
+            from sage.groups.perm_gps.permgroup import PermutationGroup
+            if partition is None:
+                partition = [self.vertices()]
+            if translation:
+                a,b = search_tree(self, partition, dict=True, lab=False)
+            else:
+                a = search_tree(self, partition, dict=False, lab=False)
+            a = PermutationGroup(a)
+            if translation:
+                return a,b
+            else:
+                return a
+
+    def is_isomorphic(self, other):
+        """
+        Tests for isomorphism between self and other.
+
+        TODO: with proof
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: E = D.copy()
+            sage: gamma = SymmetricGroup(20).random_element()
+            sage: E.relabel(gamma)
+            sage: D.is_isomorphic(E)
+            True
+        """
+        if self.multiple_edges():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        else:
+            from sage.graphs.graph_isom import search_tree
+            b = self.canonical_label()
+            d = other.canonical_label()
+            return enum(b) == enum(d)
+
+    def canonical_label(self, partition=None):
+        """
+        Returns the canonical label with respect to the partition. If no
+        partition is given, uses the unit partition.
+        """
+        if self.multiple_edges():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        else:
+            from sage.graphs.graph_isom import search_tree
+            if partition is None:
+                partition = [self.vertices()]
+            a,b = search_tree(self, partition)
+            return b
+
 class DiGraph(GenericGraph):
     """
     Directed graph.
@@ -2089,7 +2330,7 @@ class DiGraph(GenericGraph):
         """
         Creates a copy of the graph.
         """
-        G = DiGraph(self._nxg, name=self._nxg.name)
+        G = DiGraph(self._nxg, name=self._nxg.name, pos=self._pos, loops=self.loops(), boundary=self._boundary)
         return G
 
     def to_directed(self):
@@ -2922,6 +3163,10 @@ class DiGraph(GenericGraph):
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
 
+    ### TODO: Connected components?
+
+    ### TODO: Automorphism and isomorphism
+
 def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     import networkx
     from math import sqrt
@@ -2961,5 +3206,18 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     for v in verts:
         TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
     return TT, pos3d
+
+def enum(graph):
+    """
+    Used for isomorphism checking.
+    """
+    from sage.rings.integer import Integer
+    M = graph.am()
+    string = ''
+    for r in M.rows():
+        for c in r:
+            string += str(c)
+    if string=='': string='0'
+    return Integer(string,2)
 
 

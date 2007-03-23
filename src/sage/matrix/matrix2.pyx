@@ -364,7 +364,7 @@ cdef class Matrix(matrix1.Matrix):
         R = self._base_ring
 
         # For small matrices, you can't beat the naive formula
-        if n <= 3:
+        if n <  3:
             if n == 0:
                 d = R(1)
             elif n == 1:
@@ -398,23 +398,29 @@ cdef class Matrix(matrix1.Matrix):
         self.cache('det', d)
         return d
 
-    cdef _det_by_minors(self, zero):
-        n = self._ncols
-        if n == 3:
-            return self.get_unsafe(0,0) * (self.get_unsafe(1,1)*self.get_unsafe(2,2) - self.get_unsafe(1,2)*self.get_unsafe(2,1))    \
-                - self.get_unsafe(1,0) * (self.get_unsafe(0,1)*self.get_unsafe(2,2) - self.get_unsafe(0,2)*self.get_unsafe(2,1))  \
-                + self.get_unsafe(2,0) * (self.get_unsafe(0,1)*self.get_unsafe(1,2) - self.get_unsafe(0,2)*self.get_unsafe(1,1))
-        d = zero
-        A = self.matrix_from_rows(range(1, n))
-        for i from 0 <= i < n:
-            v = range(0,i) + range(i+1,n)
-            B = A.matrix_from_columns(v)
-            if i % 2:
-                d -= self.get_unsafe(0,i) * (<Matrix>B)._det_by_minors(zero)
-            else:
-                d += self.get_unsafe(0,i) * (<Matrix>B)._det_by_minors(zero)
-        return d
-
+    cdef _det_by_minors(self, Py_ssize_t level):
+        """
+        Compute the determinent of the upper-left level x level submatrix of self.
+        Does not handle degenerate cases, level MUST be >= 2
+        """
+        cdef Py_ssize_t n, i
+        if level == 2:
+            return self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1) * self.get_unsafe(1,0)
+        else:
+            level -= 1
+            d = self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+            # on each iteration, row i will be missing in the first (level) rows
+            # swapping is much faster than taking submatrices
+            for i from level > i >= 0:
+                self.swap_rows(level, i)
+                if (level - i) % 2:
+                    d -= self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+                else:
+                     d += self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+            # undo all our permutations to get us back to where we started
+            for i from 0 <= i < level:
+                self.swap_rows(level, i)
+            return d
 
 
     # shortcuts

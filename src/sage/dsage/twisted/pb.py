@@ -141,7 +141,8 @@ class DefaultPerspective(pb.Avatar):
 
     def attached(self, avatar, mind):
         self.current_connections += 1
-        if mind:
+        self.mind = mind
+        if self.mind:
             host_info = mind[1]
             host_info['ip'] = mind[0].broker.transport.getPeer().host
             host_info['port'] = mind[0].broker.transport.getPeer().port
@@ -166,9 +167,37 @@ class DefaultPerspective(pb.Avatar):
         else:
             client_tracker.remove((avatar, mind))
 
-class UserPerspective(DefaultPerspective):
+class AnonymousWorkerPerspective(DefaultPerspective):
     r"""
-    Defines the perspective of a regular user to the server.
+    Defines the perspective of an anonymous worker.
+
+    """
+
+    def __init__(self, DSageServer, avatarID):
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
+
+    def perspective_get_job(self):
+        r"""
+        Returns jobs only marked as doable by anonymous workers.
+
+        """
+        return self.DSageServer.get_job(anonymous=True)
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
+
+    def perspective_job_done(self, jobID, output,
+                             result, completed, worker_info):
+        if not (isinstance(jobID, str) or isinstance(completed, bool)):
+            print 'Bad jobID passed to perspective_job_done'
+            raise BadTypeError()
+
+        return self.DSageServer.job_done(jobID, output, result,
+                                         completed, worker_info)
+
+class WorkerPerspective(DefaultPerspective):
+    r"""
+    Defines the perspective of an authenticated worker to the server.
 
     """
     def __init__(self, DSageServer, avatarID):
@@ -177,10 +206,37 @@ class UserPerspective(DefaultPerspective):
     def perspective_get_job(self):
         return self.DSageServer.get_job()
 
-    def perspective_get_next_job_id(self):
-        job_id = self.DSageServer.get_next_job_id()
+    def perspective_job_done(self, jobID, output, result,
+                            completed, worker_info):
+        if not (isinstance(jobID, str) or isinstance(completed, bool)):
+            print 'Bad jobID passed to perspective_job_done'
+            raise BadTypeError()
 
-        return job_id
+        return self.DSageServer.job_done(jobID, output, result,
+                                  completed, worker_info)
+
+    def perspective_job_failed(self, jobID):
+        if not isinstance(jobID, str):
+            print 'Bad jobID passed to perspective_job_failed'
+            raise BadTypeError()
+
+        return self.DSageServer.job_failed(jobID)
+
+    def perspective_submit_host_info(self, hostinfo):
+        if not isinstance(hostinfo, dict):
+            raise BadTypeError()
+        return self.DSageServer.submit_host_info(hostinfo)
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
+
+class UserPerspective(DefaultPerspective):
+    r"""
+    Defines the perspective of a regular user to the server.
+
+    """
+    def __init__(self, DSageServer, avatarID):
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def perspective_get_job_by_id(self, jobID):
         if not isinstance(jobID, str):
@@ -223,22 +279,6 @@ class UserPerspective(DefaultPerspective):
     def perspective_submit_job(self, jdict):
         return self.DSageServer.submit_job(jdict)
 
-    def perspective_job_done(self, jobID, output, result,
-                            completed, worker_info):
-        if not (isinstance(jobID, str) or isinstance(completed, bool)):
-            print 'Bad jobID passed to perspective_job_done'
-            raise BadTypeError()
-
-        return self.DSageServer.job_done(jobID, output, result,
-                                  completed, worker_info)
-
-    def perspective_job_failed(self, jobID):
-        if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_job_failed'
-            raise BadTypeError()
-
-        return self.DSageServer.job_failed(jobID)
-
     def perspective_kill_job(self, jobID, reason=None):
         if not isinstance(jobID, str):
             print 'Bad jobID passed to perspective_kill_job'
@@ -273,35 +313,6 @@ class AdminPerspective(UserPerspective):
     def __init__(self, DSageServer, avatarID):
         UserPerspective.__init__(self, DSageServer, avatarID)
 
-class AnonymousPerspective(DefaultPerspective):
-    r"""
-    Defines the perspective of an anonymous worker.
-
-    """
-
-    def __init__(self, DSageServer, avatarID):
-        DefaultPerspective.__init__(self, DSageServer, avatarID)
-
-    def perspective_get_job(self):
-        r"""
-        Returns jobs only marked as doable by anonymous workers.
-
-        """
-        return self.DSageServer.get_job(anonymous=True)
-
-    def perspective_get_killed_jobs_list(self):
-        return self.DSageServer.get_killed_jobs_list()
-
-    def perspective_job_done(self, jobID, output,
-                             result, completed, worker_info):
-        if not (isinstance(jobID, str) or isinstance(completed, bool)):
-            print 'Bad jobID passed to perspective_job_done'
-            raise BadTypeError()
-        result = None
-
-        return self.DSageServer.job_done(jobID, output, result,
-                                  completed, worker_info)
-
 class Realm(object):
     implements(portal.IRealm)
 
@@ -314,8 +325,10 @@ class Realm(object):
         else:
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer, avatarID)
-            elif avatarID == 'Anonymous':
-                avatar = AnonymousPerspective(self.DSageServer, avatarID)
+            elif avatarID == 'Anonymous' and mind:
+                avatar = AnonymousWorkerPerspective(self.DSageServer, avatarID)
+            elif mind:
+                avatar = WorkerPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)

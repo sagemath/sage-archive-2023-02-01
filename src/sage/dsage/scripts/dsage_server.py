@@ -124,7 +124,7 @@ def main():
     dsage_server.client_factory = client_factory
 
     attempts = 0
-    err_msg = """Could not find two open ports after 50 attempts."""
+    err_msg = """Could not find an open port after 50 attempts."""
     if SSL == 1:
         ssl_context = ssl.DefaultOpenSSLContextFactory(
                     SSL_PRIVKEY,

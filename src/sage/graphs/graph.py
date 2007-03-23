@@ -2113,49 +2113,93 @@ class Graph(GenericGraph):
             if partition is None:
                 partition = [self.vertices()]
             if translation:
-                a,b = search_tree(self, partition, dict=True, lab=False)
+                a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops())
             else:
-                a = search_tree(self, partition, dict=False, lab=False)
+                a = search_tree(self, partition, dict=False, lab=False, dig=self.loops())
             a = PermutationGroup(a)
             if translation:
                 return a,b
             else:
                 return a
 
-    def is_isomorphic(self, other):
+    def is_isomorphic(self, other, proof=False):
         """
         Tests for isomorphism between self and other.
 
-        TODO: with proof
+        INPUT:
+            proof -- if True, then output is (a,b), where a is a boolean and b is either a map or
+        None.
 
-        EXAMPLE:
+        EXAMPLES:
             sage: D = graphs.DodecahedralGraph()
             sage: E = D.copy()
             sage: gamma = SymmetricGroup(20).random_element()
             sage: E.relabel(gamma)
             sage: D.is_isomorphic(E)
             True
+
+            sage: D = graphs.DodecahedralGraph()
+            sage: S = SymmetricGroup(20)
+            sage: gamma = S.random_element()
+            sage: E = D.copy()
+            sage: E.relabel(gamma)
+            sage: a,b = D.is_isomorphic(E, proof=True); a
+            True
+            sage: import networkx
+            sage: from sage.plot.plot import GraphicsArray
+            sage: position_D = networkx.spring_layout(D._nxg)
+            sage: position_E = {}
+            sage: for vert in position_D:
+            ...    position_E[b[vert]] = position_D[vert]
+            sage.: GraphicsArray([D.plot(pos=position_D), E.plot(pos=position_E)]).show()
         """
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        from sage.graphs.graph_isom import search_tree
+        if proof:
+            b,a = self.canonical_label(proof=True)
+            d,c = other.canonical_label(proof=True)
+            map = {}
+            cc = c.items()
+            for vert in self.vertices():
+                for aa,bb in cc:
+                    if bb == a[vert]:
+                        map[vert] = aa
+                        break
+            if enum(b) == enum(d):
+                return True, map
+            else:
+                return False, None
         else:
             from sage.graphs.graph_isom import search_tree
             b = self.canonical_label()
             d = other.canonical_label()
             return enum(b) == enum(d)
 
-    def canonical_label(self, partition=None):
+    def canonical_label(self, partition=None, proof=False):
         """
         Returns the canonical label with respect to the partition. If no
         partition is given, uses the unit partition.
+
+        EXAMPLE:
+            sage: D = graphs.DodecahedralGraph()
+            sage: E = D.canonical_label(); E
+            Dodecahedron: A graph on 20 vertices
+            sage: D.canonical_label(proof=True)
+            (Dodecahedron: A graph on 20 vertices, {0: 0, 1: 19, 2: 16, 3: 15, 4: 9, 5: 1, 6: 10, 7: 8, 8: 14, 9: 12, 10: 17, 11: 11, 12: 5, 13: 6, 14: 2, 15: 4, 16: 3, 17: 7, 18: 13, 19: 18})
+            sage: D.is_isomorphic(E)
+            True
         """
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        from sage.graphs.graph_isom import search_tree
+        if partition is None:
+            partition = [self.vertices()]
+        if proof:
+            a,b,c = search_tree(self, partition, proof=True, dig=self.loops())
+            return b,c
         else:
-            from sage.graphs.graph_isom import search_tree
-            if partition is None:
-                partition = [self.vertices()]
-            a,b = search_tree(self, partition)
+            a,b = search_tree(self, partition, dig=self.loops())
             return b
 
 class DiGraph(GenericGraph):
@@ -2688,7 +2732,21 @@ class DiGraph(GenericGraph):
             l -- the new label
 
         EXAMPLE:
-            TODO
+            sage: SD = DiGraph( { 1:[18,2], 2:[5,3], 3:[4,6], 4:[7,2], 5:[4], 6:[13,12], 7:[18,8,10], 8:[6,9,10], 9:[6], 10:[11,13], 11:[12], 12:[13], 13:[17,14], 14:[16,15], 15:[2], 16:[13], 17:[15,13], 18:[13] } )
+            sage: SD.set_arc_label(1, 18, 'discrete')
+            sage: SD.set_arc_label(4, 7, 'discrete')
+            sage: SD.set_arc_label(2, 5, 'h = 0')
+            sage: SD.set_arc_label(7, 18, 'h = 0')
+            sage: SD.set_arc_label(7, 10, 'aut')
+            sage: SD.set_arc_label(8, 10, 'aut')
+            sage: SD.set_arc_label(8, 9, 'label')
+            sage: SD.set_arc_label(8, 6, 'no label')
+            sage: SD.set_arc_label(13, 17, 'k > h')
+            sage: SD.set_arc_label(13, 14, 'k = h')
+            sage: SD.set_arc_label(17, 15, 'v_k finite')
+            sage: SD.set_arc_label(14, 15, 'v_k m.c.r.')
+            sage: posn = {1:[ 3,-3],  2:[0,2],  3:[0, 13],  4:[3,9],  5:[3,3],  6:[16, 13], 7:[6,1],  8:[6,6],  9:[6,11], 10:[9,1], 11:[10,6], 12:[13,6], 13:[16,2], 14:[10,-6], 15:[0,-10], 16:[14,-6], 17:[16,-10], 18:[6,-4]}
+            sage: SD.plot(pos=posn, node_size=400, color_dict={'#FFFFFF':range(1,19)}, edge_labels=True).save('search_tree.png')
         """
         if self.has_arc(u, v):
             self._nxg.adj[u][v] = l
@@ -3165,7 +3223,94 @@ class DiGraph(GenericGraph):
 
     ### TODO: Connected components?
 
-    ### TODO: Automorphism and isomorphism
+    ### Automorphism and isomorphism
+
+    def automorphism_group(self, partition=None, translation=False):
+        """
+        Returns the largest subgroup of the automorphism group of the digraph
+        whose orbit partition is finer than the partition given. If no
+        partition is given, the unit partition is used and the entire
+        automorphism group is given.
+
+        INPUT:
+            translation -- if True, then output is the tuple (group, dict),
+        where dict is a dictionary translating from keys == vertices to
+        entries == elements of {1,2,...,n} (since permutation groups can
+        currently only act on positive integers).
+
+        EXAMPLES:
+            TODO
+        """
+        if self.multiple_arcs():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        else:
+            from sage.graphs.graph_isom import search_tree
+            from sage.groups.perm_gps.permgroup import PermutationGroup
+            if partition is None:
+                partition = [self.vertices()]
+            if translation:
+                a,b = search_tree(self, partition, dict=True, lab=False, dig=True)
+            else:
+                a = search_tree(self, partition, dict=False, lab=False, dig=True)
+            a = PermutationGroup(a)
+            if translation:
+                return a,b
+            else:
+                return a
+
+    def is_isomorphic(self, other, proof=False):
+        """
+        Tests for isomorphism between self and other.
+
+        INPUT:
+            proof -- if True, then output is (a,b), where a is a boolean and b is either a map or
+        None.
+
+        EXAMPLES:
+            TODO
+        """
+        if self.multiple_arcs():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        from sage.graphs.graph_isom import search_tree
+        if proof:
+            b,a = self.canonical_label(proof=True)
+            d,c = other.canonical_label(proof=True)
+            map = {}
+            cc = c.items()
+            for vert in self.vertices():
+                for aa,bb in cc:
+                    if bb == a[vert]:
+                        map[vert] = aa
+                        break
+            if enum(b) == enum(d):
+                return True, map
+            else:
+                return False, None
+        else:
+            from sage.graphs.graph_isom import search_tree
+            b = self.canonical_label()
+            d = other.canonical_label()
+            return enum(b) == enum(d)
+
+    def canonical_label(self, partition=None, proof=False):
+        """
+        Returns the canonical label with respect to the partition. If no
+        partition is given, uses the unit partition.
+
+        EXAMPLE:
+            TODO
+        """
+        if self.multiple_arcs():
+            raise NotImplementedError, "Search algorithm does not support multiple edges yet."
+        from sage.graphs.graph_isom import search_tree
+        if partition is None:
+            partition = [self.vertices()]
+        if proof:
+            a,b,c = search_tree(self, partition, proof=True, dig=True)
+            return b,c
+        else:
+            a,b = search_tree(self, partition, dig=True)
+            return b
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     import networkx

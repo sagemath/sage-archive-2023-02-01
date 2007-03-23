@@ -183,14 +183,14 @@ class IntegralHomology(Homology_abvar):
         n = Integer(n)
         return self.abelian_variety()._integral_hecke_matrix(n)
 
-    def hecke_polynomial(self, n, var):
+    def hecke_polynomial(self, n, var='x'):
         """
         Return the n-th Hecke polynomial on this rational homology group.
 
         EXAMPLES:
             sage: f = J0(43).integral_homology().hecke_polynomial(2)
             sage: f.base_ring()
-            Integer ring
+            Integer Ring
             sage: factor(f)
             (x + 2)^2 * (x^2 - 2)^2
         """
@@ -237,7 +237,7 @@ class RationalHomology(Homology_abvar):
         EXAMPLES:
             sage: f = J0(43).rational_homology().hecke_polynomial(2)
             sage: f.base_ring()
-            Rational field
+            Rational Field
             sage: factor(f)
             (x + 2)^2 * (x^2 - 2)^2
         """

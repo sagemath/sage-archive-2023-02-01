@@ -213,9 +213,9 @@ class ModularAbelianVariety(SageObject):
         """
         EXAMPLES:
             sage: J = J0(33)
-            sage: A = J.new_subvariety()
+            sage: A = J.new_quotient()
             sage: A
-            Modular abelian subvariety of dimension 1 and level 33
+            Modular abelian variety quotient of dimension 1 and level 33
             sage: t = A.torsion_subgroup()
             sage: t.multiple_of_order()
             4
@@ -226,7 +226,7 @@ class ModularAbelianVariety(SageObject):
             sage: t.gens()
             [[(1/2, 0)], [(0, 1/2)]]
             sage: t
-            Torsion subgroup of Modular abelian subvariety of dimension 1 and level 33
+            Torsion subgroup of Modular abelian variety quotient of dimension 1 and level 33
         """
         try:
             return self._torsion_subgroup
@@ -330,7 +330,7 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
     def __cmp__(self, other):
         if not isinstance(other, ModularAbelianVariety_modsym):
             return cmp(type(self), type(other))
-        return cmp(self._modsym, other._modsym)
+        return cmp(self.modular_symbols(1), other.modular_symbols(1))
 
     def _integral_hecke_matrix(self, n, sign=0):
         """
@@ -412,11 +412,11 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
 
         EXAMPLES:
             sage: J0(33).new_quotient()
-            Modular abelian quotient variety of dimension 1 and level 33
+            Modular abelian variety quotient of dimension 1 and level 33
             sage: J0(100).new_quotient()
-            Modular abelian quotient variety of dimension 1 and level 100
+            Modular abelian variety quotient of dimension 1 and level 100
             sage: J1(13).new_quotient()
-            Modular abelian quotient variety of dimension 2 and level 13
+            Modular abelian variety quotient of dimension 2 and level 13
         """
         try:
             return self.__new_quotient[p]
@@ -444,11 +444,11 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
 
         EXAMPLES:
             sage: J0(33).old_quotient()
-            Modular abelian quotient variety of dimension 2 and level 33
+            Modular abelian variety quotient of dimension 2 and level 33
             sage: J0(100).old_quotient()
-            Modular abelian quotient variety of dimension 6 and level 100
-            sage: J1(13).old_quotient()'
-            Modular abelian quotient variety of dimension 0 and level 13
+            Modular abelian variety quotient of dimension 6 and level 100
+            sage: J1(13).old_quotient()
+            Modular abelian variety quotient of dimension 0 and level 13
         """
         try:
             return self.__old_quotient[p]
@@ -477,13 +477,13 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
             sage: J = J0(33)
             sage: J.decomposition()
             [
-            Modular abelian subvariety of dimension 1 and level 33,
-            Modular abelian subvariety of dimension 2 and level 33
+            Modular abelian variety quotient of dimension 1 and level 33,
+            Modular abelian variety quotient of dimension 2 and level 33
             ]
             sage: J1(17).decomposition()
             [
-            Modular abelian subvariety of dimension 1 and level 17,
-            Modular abelian subvariety of dimension 4 and level 17
+            Modular abelian variety quotient of dimension 1 and level 17,
+            Modular abelian variety quotient of dimension 4 and level 17
             ]
         """
         try:
@@ -505,16 +505,16 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
             sage: J = J0(389)
             sage: J.decomposition()
             [
-            Modular abelian subvariety of dimension 1 and level 389,
-            Modular abelian subvariety of dimension 2 and level 389,
-            Modular abelian subvariety of dimension 3 and level 389,
-            Modular abelian subvariety of dimension 6 and level 389,
-            Modular abelian subvariety of dimension 20 and level 389
+            Modular abelian variety quotient of dimension 1 and level 389,
+            Modular abelian variety quotient of dimension 2 and level 389,
+            Modular abelian variety quotient of dimension 3 and level 389,
+            Modular abelian variety quotient of dimension 6 and level 389,
+            Modular abelian variety quotient of dimension 20 and level 389
             ]
             sage: J[2]
-            Modular abelian subvariety of dimension 3 and level 389
+            Modular abelian variety quotient of dimension 3 and level 389
             sage: J[-1]
-            Modular abelian subvariety of dimension 20 and level 389
+            Modular abelian variety quotient of dimension 20 and level 389
         """
         return self.decomposition()[i]
 
@@ -523,19 +523,19 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
         EXAMPLES:
             sage: J = J0(125); J.decomposition()
             [
-            Modular abelian subvariety of dimension 2 and level 125,
-            Modular abelian subvariety of dimension 2 and level 125,
-            Modular abelian subvariety of dimension 4 and level 125
+            Modular abelian variety quotient of dimension 2 and level 125,
+            Modular abelian variety quotient of dimension 2 and level 125,
+            Modular abelian variety quotient of dimension 4 and level 125
             ]
             sage: J[:2]
             [
-            Modular abelian subvariety of dimension 2 and level 125,
-            Modular abelian subvariety of dimension 2 and level 125
+            Modular abelian variety quotient of dimension 2 and level 125,
+            Modular abelian variety quotient of dimension 2 and level 125
             ]
             sage: J[1:]
             [
-            Modular abelian subvariety of dimension 2 and level 125,
-            Modular abelian subvariety of dimension 4 and level 125
+            Modular abelian variety quotient of dimension 2 and level 125,
+            Modular abelian variety quotient of dimension 4 and level 125
             ]
         """
         return self.decomposition()[i:j]

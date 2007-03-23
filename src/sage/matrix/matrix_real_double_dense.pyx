@@ -13,6 +13,10 @@ TESTS:
     sage: a = matrix(RDF,2,range(4), sparse=False)
     sage: loads(dumps(a)) == a
     True
+
+AUTHORS:
+    -- Josh Kantor
+    -- William Stein: many bug fixes and touch ups.
 """
 
 ##############################################################################
@@ -134,13 +138,16 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
+
     def __hash__(self):
         return self._hash()
-    def LU_valid(self):
-        return self.fetch('LU_valid')
 
+    def LU_valid(self):
+        return self.fetch('LU_valid') == True
 
     def __init__(self, parent, entries, copy, coerce):
+        if self._matrix == NULL:
+            return
         cdef double z
         cdef Py_ssize_t i,j
         if isinstance(entries,list):
@@ -162,11 +169,14 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
         else:
-            try:
-                z=float(entries)
-                gsl_matrix_set_zero(self._matrix)
-            except TypeError:
-                raise TypeError, "entries must to coercible to list or real double "
+            if entries is None:
+                z = 0.0
+            else:
+                try:
+                    z = float(entries)
+                    gsl_matrix_set_zero(self._matrix)
+                except TypeError:
+                    raise TypeError, "entries must be coercible to a list or float"
             if z != 0:
                 if self._nrows != self._ncols:
                     raise TypeError, "scalar matrix must be square"
@@ -176,9 +186,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
     cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
         cdef double z
         z = float(value)
-        gsl_matrix_set(self._matrix,i,j,z) #sig on here ?
+        gsl_matrix_set(self._matrix,i,j,z)
+
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
-        return sage.rings.real_double.RDF(gsl_matrix_get(self._matrix,i,j)) #sig on here?
+        return sage.rings.real_double.RDF(gsl_matrix_get(self._matrix,i,j))
 
 
     ########################################################################
@@ -265,7 +276,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         if self._nrows == 0 or self._ncols == 0: return self
 
         cdef int result_LU, result_invert
-        if self.fetch('LU_valid')!=True:
+        if self.fetch('LU_valid') != True:
             self._c_compute_LU()
         cdef Matrix_real_double_dense M
         parent = self.matrix_space(self._nrows,self._ncols)
@@ -444,7 +455,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         We test two degenerate cases:
             sage: A = matrix(RDF, 0, 3, [])
             sage: A.solve_left_LU(vector(RDF,[]))
-            ()
+            (0.0, 0.0, 0.0)
             sage: A = matrix(RDF, 3, 0, [])
             sage: A.solve_left_LU(vector(RDF,3, [1,2,3]))
             ()
@@ -479,38 +490,103 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             ()
             sage: A = matrix(RDF, 3, 0, [])
             sage: A.solve_left(vector(RDF,3, [1,2,3]))
-            ()
+            (0.0, 0.0, 0.0)
         """
-        import numpy
+        cdef RealDoubleVectorSpaceElement _vec, ans
         cdef double *p
-        cdef RealDoubleVectorSpaceElement _vec,ans
-        _vec=vec
         cdef ndarray _result
+
+        M = self._column_ambient_module()
+        ans = M.zero_vector()
+        if self._nrows == 0 or self._ncols == 0:
+            return ans
+
+
+        _vec=vec
+
+        import numpy
         _result=numpy.linalg.solve(self.numpy(),_vec.numpy())
-        M=self._column_ambient_module()
-        ans=M.zero_vector()
+
         p = <double *>_result.data
-#        cdef gsl_vector* result
-#        result=gsl_vector_alloc(_result.dimension[0])
-        memcpy(ans.v.data,_result.data,_result.dimensions[0]*sizeof(double))
+
+        memcpy(ans.v.data, _result.data, _result.dimensions[0]*sizeof(double))
+
         return ans
 
     def determinant(self):
-         """compute the determinant using GSL (LU decompositon)"""
-         if self.fetch('LU_valid')!=True:
-             self._c_compute_LU()
-         return gsl_linalg_LU_det(self._LU, self._signum)
+        """
+        Return the determinant of self.
+
+        ALGORITHM: Use GSL (LU decompositon)
+
+        EXAMPLES:
+            sage: m = matrix(RDF,2,range(4)); m.det()
+            -2.0
+            sage: m = matrix(RDF,0,[]); m.det()
+            1.0
+            sage: m = matrix(RDF, 2, range(6)); m.det()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be square
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return sage.rings.real_double.RDF(1)
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self.fetch('LU_valid')!=True:
+            self._c_compute_LU()
+        return gsl_linalg_LU_det(self._LU, self._signum)
 
     def log_determinant(self):
-         """compute the log of the determinant using GSL(LU decomposition)
-           useful if the determinant overlows"""
-         if self.fetch('LU_valid')!=True:
-             self._c_compute_LU()
-         return gsl_linalg_LU_lndet(self._LU)
+        """
+        Compute the log of the absolute value of the determinant
+        using GSL (LU decomposition).
+
+        NOTE: This is useful if the usual determinant overlows.
+
+        EXAMPLES:
+            sage: m = matrix(RDF,2,2,range(4)); m
+            [0.0 1.0]
+            [2.0 3.0]
+            sage: log(abs(m.determinant()))
+            0.69314718056
+            sage: m.log_determinant()
+            0.69314718056
+            sage: m = matrix(RDF,0,0,range(4)); m
+            []
+            sage: m.log_determinant()
+            0.0
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return sage.rings.real_double.RDF(0)
+        if self.fetch('LU_valid')!=True:
+            self._c_compute_LU()
+        return sage.rings.real_double.RDF(gsl_linalg_LU_lndet(self._LU))
+
     def transpose(self):
+        """
+        Return the transpose of this matrix.
+
+        EXAMPLES:
+            sage: m = matrix(RDF,2,3,range(6)); m
+            [0.0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: m.transpose()
+            [0.0 3.0]
+            [1.0 4.0]
+            [2.0 5.0]
+            sage: m = matrix(RDF,0,3); m
+            []
+            sage: m.transpose()
+            []
+            sage: m.transpose().parent()
+            Full MatrixSpace of 3 by 0 dense matrices over Real Double Field
+        """
         cdef Matrix_real_double_dense trans
         cdef int result_copy
         parent  = self.matrix_space(self._ncols,self._nrows)
+        if self._nrows == 0 or self._ncols == 0:
+            return self.new_matrix(self._ncols, self._nrows)
         trans = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent,None,None,None)
         result_copy = gsl_matrix_transpose_memcpy(trans._matrix,self._matrix)
         if result_copy !=GSL_SUCCESS:
@@ -518,100 +594,161 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return trans
 
     def SVD(self):
-         r"""
-         Compute the singular value decomposition of a matrix. That is
-         factors a matrix A as $A = USV^T$, for U, V orthogonal matrices
-         and S diagonal. This function returns a tuple containing the
-         matrices U,S, and V.
+        r"""
+        Return the singular value decomposition of this matrix.
 
-         EXAMPLES:
-             sage: m = matrix(RDF,4,range(16))
-             sage: U,S,V = m.SVD()
-             sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
-             [3.45569519412e-16               1.0               2.0               3.0]
-             [4.0               5.0               6.0               7.0]
-             [8.0               9.0              10.0              11.0]
-             [12.0              13.0              14.0              15.0]
+        INPUT:
+            A -- a matrix
+        OUTPUT:
+            U, S, V -- matrices such that A = U * S * V^t, where
+                       U and V are orthogonal and S is diagonal.
 
-         """
-         if self._ncols > self._nrows:
-             m = self.transpose()
-             V_t,S_t,U_t=m.SVD()
-             return [U_t,S_t,V_t]
-         cdef Matrix_real_double_dense A,V,_S
-         cdef gsl_vector* S
-         cdef gsl_vector* work_space
-         cdef int result_copy, result_svd, i
-         parent_A = self.matrix_space(self._nrows,self._ncols)
-         A=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_A,None,None,None)
-         parent_V = self.matrix_space(self._ncols,self._ncols)
-         V = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_V,None,None,None)
-         result_copy = gsl_matrix_memcpy(A._matrix,self._matrix)
-         S = <gsl_vector *> gsl_vector_alloc(self._ncols)
-         work_space = <gsl_vector *> gsl_vector_alloc(self._ncols)
-         _sig_on
-         result_svd  = gsl_linalg_SV_decomp(A._matrix, V._matrix, S, work_space)
-         _sig_off
-         parent_S = self.matrix_space(self._ncols,self._ncols)
-         _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
-         for i from 0<=i<self._ncols:
-             _S.set_unsafe(i,i,gsl_vector_get(S,i))
-#            _S[i,i] = gsl_vector_get(S,i)
-         gsl_vector_free(S)
-         gsl_vector_free(work_space)
-         return [A,_S,V]
+
+        EXAMPLES:
+            sage: m = matrix(RDF,4,range(16))
+            sage: U,S,V = m.SVD()
+            sage: U*S*V.transpose()    # slightly random output (due to computer architecture)
+            [3.45569519412e-16               1.0               2.0               3.0]
+            [4.0               5.0               6.0               7.0]
+            [8.0               9.0              10.0              11.0]
+            [12.0              13.0              14.0              15.0]
+
+        A non-square example:
+            sage: m = matrix(RDF, 2, range(6)); m
+            [0.0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: U, S, V = m.SVD()
+            sage: U
+            [-0.274721127897 -0.961523947641]
+            [-0.961523947641  0.274721127897]
+            sage: S
+            [7.34846922835           0.0]
+            [          0.0           1.0]
+            sage: V
+            [-0.392540507864  0.824163383692]
+            [-0.560772154092  0.137360563949]
+            [ -0.72900380032 -0.549442255795]
+            sage: U*S*V.transpose()
+            [7.62194127257e-17               1.0               2.0]
+            [              3.0               4.0               5.0]
+            sage: m = matrix(RDF,3,2,range(6)); m
+            [0.0 1.0]
+            [2.0 3.0]
+            [4.0 5.0]
+            sage: U,S,V = m.SVD()
+            sage: U*S*V.transpose()
+            [-8.13151629364e-19                1.0]
+            [               2.0                3.0]
+            [               4.0                5.0]
+
+        TESTS:
+            sage: m = matrix(RDF, 3, 0, []); m
+            []
+            sage: m.SVD()
+            ([], [], [])
+            sage: m = matrix(RDF, 0, 3, []); m
+            []
+            sage: m.SVD()
+            ([], [], [])
+        """
+        if self._ncols > self._nrows:
+            m = self.transpose()
+            V_t,S_t,U_t = m.SVD()
+            return U_t,S_t,V_t
+        if self._nrows == 0 or self._ncols == 0:
+            U_t = self.new_matrix(self._nrows, self._ncols)
+            S_t = self.new_matrix(self._ncols, self._ncols)
+            V_t = self.new_matrix(self._ncols, self._nrows)
+            return U_t, S_t, V_t
+
+        cdef Matrix_real_double_dense A,V,_S
+        cdef gsl_vector* S
+        cdef gsl_vector* work_space
+        cdef int result_copy, result_svd, i
+        parent_A = self.matrix_space(self._nrows,self._ncols)
+        A=Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_A,None,None,None)
+        parent_V = self.matrix_space(self._ncols,self._ncols)
+        V = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_V,None,None,None)
+        result_copy = gsl_matrix_memcpy(A._matrix,self._matrix)
+        S = <gsl_vector *> gsl_vector_alloc(self._ncols)
+        work_space = <gsl_vector *> gsl_vector_alloc(self._ncols)
+        _sig_on
+        result_svd  = gsl_linalg_SV_decomp(A._matrix, V._matrix, S, work_space)
+        _sig_off
+        parent_S = self.matrix_space(self._ncols,self._ncols)
+        _S = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_S,None,None,None)
+        for i from 0<=i<self._ncols:
+            _S.set_unsafe(i,i,gsl_vector_get(S,i))
+        gsl_vector_free(S)
+        gsl_vector_free(work_space)
+        return A,_S,V
 
     def QR(self):
-         """Computes the Q,R factorization of a matrix A. That is, it finds matrices Q and R
-         s.t. A= Q*R.
+        """
+        Return the Q,R factorization of a real matrix A.
 
-         sage: m = matrix(RDF,3,range(12)); m
-         [ 0.0  1.0  2.0  3.0]
-         [ 4.0  5.0  6.0  7.0]
-         [ 8.0  9.0 10.0 11.0]
-         sage: Q,R = m.QR()
-         sage: Q*R
-         [ 0.0  1.0  2.0  3.0]
-         [ 4.0  5.0  6.0  7.0]
-         [ 8.0  9.0 10.0 11.0]
+        INPUT:
+           self -- a real matrix A
 
-         Note that the columns of Q
-         will be an orthogonal
+        OUTPUT:
+           Q, R -- matrices such that A = Q*R such that the columns of Q are
+                   orthogonal (i.e., Q^t*Q = I), and R is upper triangular.
 
-         sage: Q*Q.transpose()           # slightly random output.
-         [1.0                   5.55111512313e-17 -1.11022302463e-16]
-         [ 5.55111512313e-17    1.0               -5.55111512313e-17]
-         [-1.11022302463e-16    -5.55111512313e-17               1.0]
-         """
-         cdef gsl_matrix* A
-         cdef gsl_vector* v
-         cdef Matrix_real_double_dense Q,R
+        EXAMPLES:
+            sage: m = matrix(RDF,3,range(12)); m
+            [ 0.0  1.0  2.0  3.0]
+            [ 4.0  5.0  6.0  7.0]
+            [ 8.0  9.0 10.0 11.0]
+            sage: Q,R = m.QR()
+            sage: Q*R
+            [ 0.0  1.0  2.0  3.0]
+            [ 4.0  5.0  6.0  7.0]
+            [ 8.0  9.0 10.0 11.0]
 
-         A = <gsl_matrix *> gsl_matrix_alloc(self._nrows,self._ncols)
-         v = <gsl_vector *> gsl_vector_alloc(min(self._nrows,self._ncols))
-         cdef int result
-         result = gsl_matrix_memcpy(A, self._matrix)
-         if result !=GSL_SUCCESS:
-             gsl_matrix_free(A)
-             gsl_vector_free(v)
-             raise ValueError,"Error copying"
-         _sig_on
-         result = gsl_linalg_QR_decomp(A,v)
-         _sig_off
-         parent_Q = self.matrix_space(self._nrows,self._nrows)
-         parent_R = self.matrix_space(self._nrows,self._ncols)
-         Q = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_Q,None,None,None)
-         R = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_R,None,None,None)
-         _sig_on
-         result = gsl_linalg_QR_unpack(A,v,Q._matrix,R._matrix)
-         _sig_off
-         gsl_matrix_free(A)
-         gsl_vector_free(v)
-         if result!=GSL_SUCCESS:
-             raise ValueError,"Error computing QR factorization"
-         return [Q,R]
+        Note that the columns of Q will be an orthogonal
+
+            sage: Q*Q.transpose()           # slightly random output.
+            [1.0                   5.55111512313e-17 -1.11022302463e-16]
+            [ 5.55111512313e-17    1.0               -5.55111512313e-17]
+            [-1.11022302463e-16    -5.55111512313e-17               1.0]
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return self.new_matrix(self._nrows, self._nrows), self.new_matrix()
+
+        cdef gsl_matrix* A
+        cdef gsl_vector* v
+        cdef Matrix_real_double_dense Q,R
+
+        A = <gsl_matrix *> gsl_matrix_alloc(self._nrows,self._ncols)
+        v = <gsl_vector *> gsl_vector_alloc(min(self._nrows,self._ncols))
+        cdef int result
+        result = gsl_matrix_memcpy(A, self._matrix)
+        if result !=GSL_SUCCESS:
+            gsl_matrix_free(A)
+            gsl_vector_free(v)
+            raise ValueError,"Error copying"
+        _sig_on
+        result = gsl_linalg_QR_decomp(A,v)
+        _sig_off
+        parent_Q = self.matrix_space(self._nrows,self._nrows)
+        parent_R = self.matrix_space(self._nrows,self._ncols)
+        Q = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_Q,None,None,None)
+        R = Matrix_real_double_dense.__new__(Matrix_real_double_dense,parent_R,None,None,None)
+        _sig_on
+        result = gsl_linalg_QR_unpack(A,v,Q._matrix,R._matrix)
+        _sig_off
+        gsl_matrix_free(A)
+        gsl_vector_free(v)
+        if result!=GSL_SUCCESS:
+            raise ValueError,"Error computing QR factorization"
+        return Q,R
 
     def _cholesky_gsl(self,check_symmetry=True):
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:   # special case
+            return self
+
         cdef gsl_matrix *A
         cdef Matrix_real_double_dense result
         cdef int i,j
@@ -633,43 +770,71 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         return result
 
 
-    def is_symmetric(self,tol=1e-12):
-        cdef int i
-        cdef int j
-        bool=self.fetch('symmetric')
-        if bool!=None:
-            return bool
-        if self._nrows!=self._ncols:
-            self.cache('symmetric',False)
+    def is_symmetric(self, tol = 1e-12):
+        """
+        Return whether this matrix is symmetric, to the given tolerance.
+
+        EXAMPLES:
+            sage: m = matrix(RDF,2,2,range(4)); m
+            [0.0 1.0]
+            [2.0 3.0]
+            sage: m.is_symmetric()
+            False
+            sage: m[1,0] = 1.1; m
+            [0.0 1.0]
+            [1.1 3.0]
+            sage: m.is_symmetric()
+            False
+
+        The tolerance inequality is strict:
+            sage: m.is_symmetric(tol=0.1)
+            False
+            sage: m.is_symmetric(tol=0.11)
+            True
+        """
+        cdef Py_ssize_t i, j
+        tol = float(tol)
+        key = 'symmetric_%s'%tol
+        b = self.fetch(key)
+        if not b is None:
+            return b
+        if self._nrows != self._ncols:
+            self.cache(key, False)
             return False
-        self.cache('symmetric',True)
-        for i from 0<i<self._nrows:
-            for j from 0<=j<i:
-#                print("%d,%d,%d"%fabs(self.get_unsafe(i,j)-self.get_unsafe(j,i) ),i,j)
-                if fabs(self.get_unsafe(i,j)-self.get_unsafe(j,i))>float(tol):
-                    self.cache('symmetric',False)
+        b = True
+        for i from 0 < i < self._nrows:
+            for j from 0 <= j < i:
+                if fabs(self.get_unsafe(i,j) - self.get_unsafe(j,i)) > tol:
+                    b = False
                     break
-        return self.fetch('symmetric')
+        self.cache(key, b)
+        return b
 
 
     def cholesky(self):
         r"""
-        Computes the cholesky factorization of matrix. The matrix must be symmetric
-        and positive definite or an
-        exception will be raised.
-        sage: M=MatrixSpace(RDF,5)
-        sage: r=matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
+        Return the cholesky factorization of this matrix.  The input
+        matrix must be symmetric and positive definite or an exception
+        will be raised.
 
-        sage: m=r*M(1)*r.transpose()
-        sage: c=m.cholesky()
-        sage: c*c.transpose()
-         [ 1.0     1.0     1.0     1.0     1.0]
-         [ 1.0     5.0    31.0   121.0   341.0]
-         [ 1.0    31.0   341.0  1555.0  4681.0]
-         [ 1.0   121.0  1555.0  7381.0 22621.0]
-         [ 1.0   341.0  4681.0 22621.0 69905.0]
+        EXAMPLES:
+            sage: M = MatrixSpace(RDF,5)
+            sage: r = matrix(RDF,[[   0.,    0.,    0.,    0.,    1.],[   1.,    1.,    1.,    1.,    1.],[  16.,    8.,    4.,    2.,    1.],[  81.,   27.,    9.,    3.,    1.],[ 256.,   64.,   16.,    4.,    1.]])
 
+            sage: m = r*M(1)*r.transpose()
+            sage: c = m.cholesky()
+            sage: c*c.transpose()
+            [ 1.0     1.0     1.0     1.0     1.0]
+            [ 1.0     5.0    31.0   121.0   341.0]
+            [ 1.0    31.0   341.0  1555.0  4681.0]
+            [ 1.0   121.0  1555.0  7381.0 22621.0]
+            [ 1.0   341.0  4681.0 22621.0 69905.0]
         """
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        if self._nrows == 0:   # special case
+            return self
+
         cdef Matrix_real_double_dense _M,_result_matrix
         _M=self
         cdef int i
@@ -685,12 +850,10 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
         if numpy.isfortran(_m)==True:
             return _result_matrix.transpose()
         return _result_matrix
-#        return ([sage.rings.complex_double.CDF(x) for x in v], _result_matrix)   #todo: make the result a real double matrix
-
-
-
 
     cdef Vector _vector_times_matrix_c_impl(self,Vector v):
+        if self._nrows == 0 or self._ncols == 0:
+            return self._row_ambient_module().zero_vector()
         cdef RealDoubleVectorSpaceElement v_,ans
         cdef gsl_vector *vec
         cdef Py_ssize_t i,j
@@ -703,6 +866,9 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     cdef Vector _matrix_times_vector_c_impl(self,Vector v):
+        if self._nrows == 0 or self._ncols == 0:
+            return self._column_ambient_module().zero_vector()
+
         cdef RealDoubleVectorSpaceElement v_,ans
         cdef gsl_vector *vec
         cdef Py_ssize_t i,j
@@ -715,14 +881,39 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
     def numpy(self):
         """
-        This method returns a copy of the matrix as a numpy array. It uses the numpy C/api so is
-        very fast
-        sage: import numpy
-        sage: m=matrix(RDF,[[1,2],[3,4]])
-        sage: n=m.numpy()
-        sage: e=numpy.linalg.eig(n)
+        This method returns a copy of the matrix as a numpy array. It
+        uses the numpy C/api so is very fast.
 
+        EXAMPLES:
+            sage: m = matrix(RDF,[[1,2],[3,4]])
+            sage: n = m.numpy()
+            sage: import numpy
+            sage: numpy.linalg.eig(n)
+            (array([-0.37228132,  5.37228132]), array([[-0.82456484, -0.41597356],
+                   [ 0.56576746, -0.90937671]]))
+            sage: m = matrix(RDF, 2, range(6)); m
+            [0.0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: m.numpy()
+            array([[ 0.,  1.,  2.],
+                   [ 3.,  4.,  5.]])
+
+        TESTS:
+            sage: m = matrix(RDF,0,5,[]); m
+            []
+            sage: m.numpy()
+            array([], shape=(0, 5), dtype=float64)
+            sage: m = matrix(RDF,5,0,[]); m
+            []
+            sage: m.numpy()
+            array([], shape=(5, 0), dtype=float64)
         """
+        if self._ncols == 0:
+            import numpy
+            return numpy.array([[]]*self._nrows)
+        elif self._nrows == 0:
+            import numpy
+            return numpy.array([[]]*self._ncols).transpose()
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef Matrix_real_double_dense _M,_result_matrix
         _M=self
@@ -743,9 +934,11 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
 
 
     def _replace_self_with_numpy(self,numpy_matrix):
+        if self._nrows == 0 or self._ncols == 0:
+            return
         cdef ndarray n
         cdef double *p
-        n=numpy_matrix
+        n = numpy_matrix
         p=<double *>n.data
         memcpy(self._matrix.data,p,sizeof(double)*self._nrows*self._ncols)
 

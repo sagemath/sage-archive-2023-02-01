@@ -390,7 +390,7 @@ class FreeModule_generic(module.Module):
             Basis matrix:
             [1 2 3]
             sage: V.sparse_module()
-            Vector space of degree 3 and dimension 1 over Rational Field
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
             [1 2 3]
         """

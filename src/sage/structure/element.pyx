@@ -393,7 +393,7 @@ cdef class Element(sage_object.SageObject):
     # This is simply how Python works.
     #
     # For a *Python* class just define __cmp__ as always.
-    # But note that when this get called you can assume that
+    # But note that when this gets called you can assume that
     # both inputs have identical parents.
     ####################################################################
     def __richcmp__(left, right, int op):

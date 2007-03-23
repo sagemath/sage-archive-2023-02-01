@@ -842,7 +842,7 @@ function cell_input_resize(cell_input) {
       rows = 2;
     } else {
       /* to avoid bottom chop off */
-      rows = rows + 3;
+      rows = rows + 2;
     }
     if (rows >= 30) {
       rows = 30;

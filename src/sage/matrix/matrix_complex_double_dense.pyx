@@ -142,6 +142,8 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
     def __init__(self, parent, entries, copy, coerce):
         cdef ComplexDoubleElement z
         cdef Py_ssize_t i,j
+        if self._matrix == NULL:
+            return
         if isinstance(entries,list):
             if len(entries)!=self._nrows*self._ncols:
                     raise TypeError, "entries has wrong length"
@@ -443,7 +445,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             ()
             sage: A = matrix(CDF, 3, 0, [])
             sage: A.solve_left(vector(CDF,3, [1,2,3]))
-            ()
+            (0, 0, 0)
         """
         cdef double *p
         cdef ComplexDoubleVectorSpaceElement _vec,ans
@@ -458,6 +460,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         _vec=vec
         _result=numpy.linalg.solve(self.numpy(),_vec.numpy())
         p = <double *>_result.data
+
         memcpy(ans.v.data,_result.data,_result.dimensions[0]*sizeof(double)*2)
         return ans
 
@@ -485,7 +488,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             ()
             sage: A = matrix(CDF, 3, 0, [])
             sage: A.solve_left_LU(vector(CDF,3, [1,2,3]))
-            ()
+            (0, 0, 0)
 
         This method precomputes and stores the LU decomposition before
         solving. If many equations of the form Ax=b need to be solved
@@ -504,44 +507,84 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         return solve.solve_matrix_complex_double_dense(self, vec)
 
     def determinant(self):
-         """
-         Compute the determinant.
+        """
+        Return the determinant of self.
 
-         ALGORITHM: Use GSL (LU decompositon)
+        ALGORITHM: Use GSL (LU decompositon)
 
-         EXAMPLES:
-
-         """
-         if self._nrows == 0 or self._ncols == 0:
-             return sage.rings.complex_double.CDF(1)
-
-         cdef gsl_complex z
-         if(self.fetch('LU_valid') !=True):
-             self._c_compute_LU()
-         z=gsl_linalg_complex_LU_det(self._LU, self._signum)
-         return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
+        EXAMPLES:
+            sage: m = matrix(CDF,2,range(4)); m.det()
+            -2.0
+            sage: m = matrix(CDF,0,[]); m.det()
+            1.0
+            sage: m = matrix(CDF, 2, range(6)); m.det()
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be square
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return sage.rings.complex_double.CDF(1)
+        if not self.is_square():
+            raise ValueError, "self must be square"
+        cdef gsl_complex z
+        if(self.fetch('LU_valid') !=True):
+            self._c_compute_LU()
+        z = gsl_linalg_complex_LU_det(self._LU, self._signum)
+        return sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z))
 
     def log_determinant(self):
-         """
-         Compute the log of the absolute value of the determinant
-         using GSL(LU decomposition) useful if the determinant
-         overlows.
-         """
-         if self._nrows == 0 or self._ncols == 0:
-             return sage.rings.complex_double.CDF(1)
+        """
+        Compute the log of the absolute value of the determinant
+        using GSL (LU decomposition).
 
-         cdef double z
-         if(self.fetch('LU_valid') !=True):
-             self._c_compute_LU()
-         z=gsl_linalg_complex_LU_lndet(self._LU)
-         return sage.rings.real_double.RDF(z)
+        NOTE: This is useful if the usual determinant overlows.
+
+        EXAMPLES:
+            sage: m = matrix(CDF,2,2,range(4)); m
+            [  0 1.0]
+            [2.0 3.0]
+            sage: log(abs(m.determinant()))
+            0.69314718056
+            sage: m.log_determinant()
+            0.69314718056
+            sage: m = matrix(CDF,0,0,range(4)); m
+            []
+            sage: m.log_determinant()
+            0.0
+        """
+        if self._nrows == 0 or self._ncols == 0:
+            return sage.rings.real_double.RDF(0)
+        if not self.is_square():
+            raise ValueError, "self must be square"
+
+        cdef double z
+        if(self.fetch('LU_valid') !=True):
+            self._c_compute_LU()
+        z = gsl_linalg_complex_LU_lndet(self._LU)
+        return sage.rings.real_double.RDF(z)
 
     def transpose(self):
+        """
+        Return the transpose of this matrix.
+
+        EXAMPLES:
+            sage: m = matrix(CDF,2,3,range(6)); m
+            [  0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: m.transpose()
+            [  0 3.0]
+            [1.0 4.0]
+            [2.0 5.0]
+            sage: m = matrix(CDF,0,3); m
+            []
+            sage: m.transpose().parent()
+            Full MatrixSpace of 3 by 0 dense matrices over Complex Double Field
+        """
         cdef Matrix_complex_double_dense trans
         cdef int result_copy
         parent  = self.matrix_space(self._ncols,self._nrows)
         if self._nrows == 0 or self._ncols == 0:
-            return parent.zero_matrix()
+            return self.new_matrix(self._ncols, self._nrows)
         trans = Matrix_complex_double_dense.__new__(Matrix_complex_double_dense,parent,None,None,None)
         result_copy = gsl_matrix_complex_transpose_memcpy(trans._matrix,self._matrix)
         if result_copy !=GSL_SUCCESS:
@@ -573,7 +616,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             [ 8.0  9.0 10.0 11.0]
             [ 4.0  5.0  6.0  7.0]
         """
-        if self._ncols!=self._nrows:
+        if not self.is_square():
             raise TypeError,"LU decomposition only works for square matrix"
         if self._ncols == 0:
             return self, self, self
@@ -607,12 +650,35 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
         is fast as the copy is done using the numpy C/api.
 
         EXAMPLES:
+            sage: m = matrix(CDF,[[1,2],[3,4]])
+            sage: m = I*m
+            sage: n = m.numpy()
             sage: import numpy
-            sage: m=matrix(CDF,[[1,2],[3,4]])
-            sage: m=I*m
-            sage: n=m.numpy()
-            sage: e=numpy.linalg.eig(n)
+            sage: numpy.linalg.eig(n)
+            (array([  0.00000000e+00-0.37228132j,  -8.03393810e-17+5.37228132j]), array([[ 0.82456484 +0.00000000e+00j,  0.41597356 +8.77187320e-17j],
+                   [-0.56576746 -0.00000000e+00j,  0.90937671 +0.00000000e+00j]]))
+
+        TESTS:
+            sage: m = matrix(CDF, 2, range(6)); m
+            [  0 1.0 2.0]
+            [3.0 4.0 5.0]
+            sage: m.numpy()
+            array([[ 0.+0.j,  1.+0.j,  2.+0.j],
+                   [ 3.+0.j,  4.+0.j,  5.+0.j]])
+            sage: m = matrix(CDF,0,5,[]); m
+            []
+            sage: m.numpy()
+            array([], shape=(0, 5), dtype=complex128)
+            sage: m = matrix(CDF,5,0,[]); m
+            []
         """
+        if self._ncols == 0:
+            import numpy
+            return numpy.array([[]]*self._nrows, dtype='complex128')
+        elif self._nrows == 0:
+            import numpy
+            return numpy.array([[]]*self._ncols, dtype='complex128').transpose()
+
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef Matrix_complex_double_dense _M,_result_matrix
         _M=self

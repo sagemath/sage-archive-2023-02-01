@@ -59,9 +59,9 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         return y
 
     cdef int is_dense_c(self):
-        return True
+        return 1
     cdef int is_sparse_c(self):
-        return False
+        return 0
 
     def __copy__(self):
         cdef Vector_integer_dense y

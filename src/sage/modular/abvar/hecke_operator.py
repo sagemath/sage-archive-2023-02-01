@@ -18,9 +18,9 @@ EXAMPLES:
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2 * x^4
     sage: B = A.new_quotient(); B
-    Modular abelian quotient variety of dimension 2 and level 54
+    Modular abelian variety quotient of dimension 2 and level 54
     sage: t5 = B.hecke_operator(5); t5
-    Hecke operator T_5 on Modular abelian quotient variety of dimension 2 and level 54
+    Hecke operator T_5 on Modular abelian variety quotient of dimension 2 and level 54
     sage: t5.charpoly().factor()
     (x - 3)^2 * (x + 3)^2
     sage: t5.action_on_homology().matrix()
@@ -77,9 +77,9 @@ class HeckeOperator(Morphism):
 
         EXAMPLES:
             sage: A = J0(43)[1]; A
-            Modular abelian quotient variety of dimension 2 and level 43
+            Modular abelian variety quotient of dimension 2 and level 43
             sage: t2 = A.hecke_operator(2); t2
-            Hecke operator T_2 on Modular abelian quotient variety of dimension 2 and level 43
+            Hecke operator T_2 on Modular abelian variety quotient of dimension 2 and level 43
             sage: f = t2.characteristic_polynomial(); f
             x^4 - 4*x^2 + 4
             sage: f.factor()

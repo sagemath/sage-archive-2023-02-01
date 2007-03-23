@@ -29,7 +29,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
 
         EXAMPLES:
             sage: A = J0(33)[1]; A
-            Modular abelian subvariety of dimension 2 and level 33
+            Modular abelian variety quotient of dimension 2 and level 33
             sage: A.ambient_variety()
             Jacobian of the modular curve associated to the congruence subgroup Gamma0(33)
         """
@@ -65,7 +65,7 @@ class ModAbVar_modsym_factor(ModularAbelianVariety_modsym):
 
         EXAMPLES:
             sage: A = J0(33)[1]; A
-            Modular abelian subvariety of dimension 2 and level 33
+            Modular abelian variety quotient of dimension 2 and level 33
             sage: A.modular_symbols()
             Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 9 for Gamma_0(33) of weight 2 with sign 0 over Rational Field
             sage: A.modular_symbols(1)

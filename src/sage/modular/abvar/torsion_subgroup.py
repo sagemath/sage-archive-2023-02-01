@@ -92,6 +92,11 @@ class TorsionSubgroup(FiniteSubgroup):
     def _repr_(self):
         return "Torsion subgroup of %s"%self.abelian_variety()
 
+    def __cmp__(self, other):
+        if isinstance(other, TorsionSubgroup):
+            return cmp(self.abelian_variety(), other.abelian_variety())
+        return FiniteSubgroup.__cmp__(self, other)
+
     def order(self):
         """
         Return the order of the torsion subgroup of this modular

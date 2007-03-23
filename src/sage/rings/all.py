@@ -79,6 +79,7 @@ from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 #from padic_field import pAdicField, Qp, is_pAdicField
 #from padic import pAdic
 # To turn on the new p-adics, comment out the above two lines and uncomment the two below.
+from padics.padic_generic import is_pAdicField, is_pAdicRing
 from padics.zp import Zp, Zq, Zp as pAdicRing
 from padics.qp import Qp, Qq, Qp as pAdicField
 

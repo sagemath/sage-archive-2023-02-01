@@ -36,7 +36,6 @@ from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
-from sage.dsage.twisted.pb import WorkerMind
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 

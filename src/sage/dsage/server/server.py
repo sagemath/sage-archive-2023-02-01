@@ -54,7 +54,7 @@ class DSageServer(pb.Root):
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
 
-    def get_job(self):
+    def get_job(self, anonymous=False):
         r"""
         Returns a job to the client.
 
@@ -63,10 +63,12 @@ class DSageServer(pb.Root):
 
         """
 
-        jdict = self.jobdb.get_job()
-
+        if anonymous:
+            jdict = self.jobdb.get_job(anonymous=True)
+        else:
+            jdict = self.jobdb.get_job()
         if jdict == None:
-            if self.LOG_LEVEL > 2:
+            if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Job db is empty.')
             return None
         else:

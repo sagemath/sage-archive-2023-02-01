@@ -464,14 +464,16 @@ class JobDatabaseSQLite(JobDatabase):
         self.con.commit()
         self.con.close()
 
-    def get_job(self):
+    def get_job(self, anonymous=False):
         r"""
         Returns the first unprocessed job of the highest priority.
 
         """
 
-        # returns the first job whose status is new
-        query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+        if anonymous:
+            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+        else:
+            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
         cur = self.con.cursor()
         cur.execute(query)
         jtuple = cur.fetchone()

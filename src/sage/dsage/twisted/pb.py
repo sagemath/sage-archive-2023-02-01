@@ -267,19 +267,34 @@ class AdminPerspective(UserPerspective):
 
 class AnonymousPerspective(DefaultPerspective):
     r"""
-    Defines the perspective of an anonymous user.
+    Defines the perspective of an anonymous worker.
 
     """
+
+    def __init__(self, DSageServer, avatarID):
+        self.DSageServer = DSageServer
+        self.avatarID = avatarID
+        log.msg('Anonymous worker connected...')
 
     def perspective_get_job(self):
         r"""
         Returns jobs only marked as doable by anonymous workers.
 
         """
-        raise NotImplementedError
+        return self.DSageServer.get_job(anonymous=True)
 
-    def perspective_submit_job(self, jdict):
-        return self.DSageServer.submit_job(jdict)
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
+
+    def perspective_job_done(self, jobID, output,
+                             result, completed, worker_info):
+        if not (isinstance(jobID, str) or isinstance(completed, bool)):
+            print 'Bad jobID passed to perspective_job_done'
+            raise BadTypeError()
+        result = None
+
+        return self.DSageServer.job_done(jobID, output, result,
+                                  completed, worker_info)
 
 class Realm(object):
     implements(portal.IRealm)
@@ -292,24 +307,11 @@ class Realm(object):
             raise NotImplementedError, "No supported avatar interface."
         else:
             if avatarID == 'admin':
-                avatar = AdminPerspective(self.DSageServer)
+                avatar = AdminPerspective(self.DSageServer, avatarID)
             elif avatarID == 'Anonymous':
-                avatar = UserPerspective(self.DSageServer, avatarID)
+                avatar = AnonymousPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)
-
-class WorkerMind(pb.Referenceable, pb.Copyable):
-    r"""
-    This is the 'mind' object that we pass to the remote server when we
-    login.
-
-    """
-
-    def __init__(self, host_info):
-        self.host_info = host_info
-
-    def remote_get_host_info(self):
-        return self.host_info

@@ -776,7 +776,6 @@ function sync_active_cell_list_callback(status, response_text) {
         if(response_text == "")
             return;
         active_cell_list = response_text.split(",");
-        debug_append(">"+response_text+"<");
         for(var i = 0; i < active_cell_list.length; i++)
             cell_set_running(active_cell_list[i]);
         start_update_check();
@@ -1540,6 +1539,7 @@ function check_for_cell_update_callback(status, response_text) {
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);
+
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
 

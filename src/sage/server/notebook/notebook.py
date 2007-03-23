@@ -921,10 +921,11 @@ class Notebook(SageObject):
 
         if worksheet.computing():
             # Set the update checking back in motion.
-            body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check(); </script>\n'
+            # body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
+            # body += 'for(var i = 0; i < active_cell_list.length; i++)'
+            # body += '    cell_set_running(active_cell_list[i]); \n'
+            # body += 'start_update_check(); </script>\n'
+            body += '<script language=javascript>sync_active_cell_list();</script>'
         return body
 
     def _html_head(self, worksheet_id):
@@ -1382,16 +1383,19 @@ Output
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
+
         if authorized:
             body = self._html_body(worksheet_id, show_debug=show_debug,
                                    worksheet_authorized=worksheet_authorized)
         else:
             body = self._html_authorize()
 
-        if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
+
+        if worksheet_id is not None:
+            head += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+
         return """
         <html>
         <head>%s</head>

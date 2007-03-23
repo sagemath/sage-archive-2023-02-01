@@ -693,7 +693,7 @@ def reduce_zero(Q, coeffs, offset, exact_form=None):
 
 
 
-def reduce_all(Q, p, coeffs, offset, compute_exact_form=True):
+def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
     """
     Applies cohomology relations to reduce all terms to a linear combination
     of $dx/y$ and $x dx/y$.

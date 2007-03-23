@@ -4,6 +4,7 @@ Elliptic curves over padic fields
 
 #*****************************************************************************
 #       Copyright (C) 2007 Robert Bradshaw <robertwb@math.washington.edu>
+#                          William Stein   <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -160,10 +161,10 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         """
         Return the coleman integral of dx/y and x dx/y from P to Q
 
-        sage: K = pAdicField(p, prec)
+        sage: K = pAdicField(13, 7)
         sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
         sage: P = E(K(14/3), K(11/2))
-        sage: res = E.coleman_integrals_on_basis(); res
+        sage: res = E.coleman_integrals_on_basis(P, 2*P); res
         (7*13^6 + O(13^7), 2 + 7*13 + 2*13^2 + 5*13^3 + 10*13^4 + 7*13^5 + 8*13^6 + O(13^7))
 
         As the Coleman integral of dx/y is in invariant under translation, it should

@@ -80,7 +80,8 @@ function async_callback(id) {
                 callback('success', "empty");
             }
     } catch(e) {
-        async_release(id);      //release immediately
+        if(async_oblist[id] != null) //release immediately
+            async_release(id);
         callback("failure", e);
     }
 }
@@ -218,6 +219,18 @@ var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
+var original_title;
+
+//var title_spinner = ['    ', '.   ', '..  ', '... '];
+//var title_spinner = ['[ ] ', '[.] ', '[:] ', '[.] '];
+var title_spinner = ['S ', 'SA ', 'SAG ', 'SAGE '];
+//var title_spinner = ['/ ', '\\ '];
+//var title_spinner = ['[   ] ', '[.  ] ', '[.. ] ', '[...] '];
+//var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
+var title_spinner_i = 0;
+try{
+    original_title = document.title;
+} catch(e) {}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -754,6 +767,21 @@ function unlock_worksheet_callback(status, response_text) {
     }
 }
 
+function sync_active_cell_list() {
+    async_request('/get_queue', sync_active_cell_list_callback, 'worksheet_id='+worksheet_id);
+}
+
+function sync_active_cell_list_callback(status, response_text) {
+    if(status == 'success') {
+        if(response_text == "")
+            return;
+        active_cell_list = response_text.split(",");
+        for(var i = 0; i < active_cell_list.length; i++)
+            cell_set_running(active_cell_list[i]);
+        start_update_check();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 //
 // CELL functions -- for the individual cells
@@ -779,8 +807,31 @@ function cell_blur(id) {
         t = ' ';
     }
     display_cell.innerHTML = t.replace(/</g,'&lt;');
+    cell_colorize(id,t)
 
     return true;
+}
+
+function cell_colorize(id, text) {
+    var input = escape0(text);
+
+    async_request('/colorize', cell_colorize_callback,
+            'id=' + id + '&input='+input);
+}
+
+function cell_colorize_callback(status, response_text) {
+    if (status == "failure") {
+        return;
+    }
+    var X = response_text.split(SEP);
+    var id = X[0];
+    var text = X[1];
+    if(is_whitespace(text))
+        text = ' ';
+
+    var display_cell = get_element('cell_display_' + id)
+
+    display_cell.innerHTML = text;
 }
 
 function debug_focus() {
@@ -803,12 +854,12 @@ function debug_blur() {
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     // make_cell_input_active(id);
+    current_cell = id;
 
     var cell = get_cell(id);
-
-    if (cell && cell.focus) {
+    if (cell) {
         cell.focus();
-        set_class('cell_display_' + id, 'hidden')
+        set_class('cell_display_' + id, 'hidden');
         cell.className="cell_input_active";
         cell_input_resize(cell);
         if (!bottom)
@@ -1341,6 +1392,10 @@ function check_for_cell_update() {
     async_request('/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
+    try{
+        title_spinner_i = (title_spinner_i+1)%title_spinner.length;
+        document.title = title_spinner[title_spinner_i] + original_title;
+    } catch(e){}
 }
 
 function start_update_check() {
@@ -1354,6 +1409,7 @@ function cancel_update_check() {
     updating = false;
     clearTimeout(update_timeout);
     set_class('interrupt', 'interrupt_grey')
+    document.title = original_title;
 }
 
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
@@ -1483,10 +1539,13 @@ function check_for_cell_update_callback(status, response_text) {
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);
+
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
 
-        if (interrupted == 'false') {
+        if (interrupted == 'restart') {
+            restart_sage();
+        } else if (interrupted == 'false') {
             cell_set_evaluated(id);
         } else {
             halt_active_cells();
@@ -1808,6 +1867,7 @@ function restart_sage_callback(status, response_text) {
     link.className = "restart_sage";
     link.innerHTML = "Restart";
     set_variable_list('');
+    sync_active_cell_list();
 }
 
 function restart_sage() {

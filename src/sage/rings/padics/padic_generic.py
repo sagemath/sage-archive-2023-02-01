@@ -58,6 +58,12 @@ import sage.rings.padics.local_generic
 
 infinity = sage.rings.infinity.infinity
 
+def is_pAdicRing(K):
+    return isinstance(K, pAdicGeneric)
+
+def is_pAdicField(K):
+    return isinstance(K, pAdicGeneric) and K.is_field()
+
 class pAdicGeneric(sage.rings.padics.local_generic.LocalGeneric):
 
     def __init__(self, p, prec):

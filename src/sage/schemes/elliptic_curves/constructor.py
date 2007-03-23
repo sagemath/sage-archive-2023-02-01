@@ -89,12 +89,14 @@ def EllipticCurve(x, y=None):
         #...
         #ArithmeticError: Point (1/4, -5/8) is not on curve.
     #
-    import ell_generic, ell_finite_field, ell_rational_field  # here to avoid circular includes
+    import ell_generic, ell_finite_field, ell_rational_field, ell_padic_field  # here to avoid circular includes
     if rings.is_Ring(x):
         if rings.is_RationalField(x):
             return ell_rational_field.EllipticCurve_rational_field(x, y)
         elif rings.is_FiniteField(x):
             return ell_finite_field.EllipticCurve_finite_field(x, y)
+        elif rings.is_pAdicField(x):
+            return ell_padic_field.EllipticCurve_padic_field(x, y)
         else:
             return ell_generic.EllipticCurve_generic(x, y)
 

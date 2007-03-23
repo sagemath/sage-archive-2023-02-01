@@ -32,7 +32,7 @@ DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
 DSAGE_VERSION = '0.1'
 
-DELIMITER = '-' * 75
+DELIMITER = '-' * 50
 
 def check_dsage_dir():
     if os.path.exists(DSAGE_DIR):
@@ -93,7 +93,7 @@ def setup_worker():
     config = get_config('worker')
 
     config.set('general', 'server', 'localhost')
-    config.set('general', 'port', 8082)
+    config.set('general', 'port', 8081)
     config.set('general', 'nice_level', 20)
     config.set('general', 'workers', 2)
     config.set('uuid', 'id', '')

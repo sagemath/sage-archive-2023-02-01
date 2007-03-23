@@ -341,6 +341,12 @@ cdef class Matrix(matrix1.Matrix):
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
             x*y^2 - x^2*y
+
+        TEST:
+            sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
+            sage: B = MatrixSpace(ZZ['x'], 5, 5)(A)
+            sage: A.det() - B.det()
+            0
         """
         if self._nrows != self._ncols:
             raise ValueError, "self must be square"
@@ -364,7 +370,7 @@ cdef class Matrix(matrix1.Matrix):
         R = self._base_ring
 
         # For small matrices, you can't beat the naive formula
-        if n <  3:
+        if n <=  3:
             if n == 0:
                 d = R(1)
             elif n == 1:
@@ -394,7 +400,7 @@ cdef class Matrix(matrix1.Matrix):
         # fall back to very very stupid algorithm -- expansion by minors.
         # TODO: surely there is something much better, even in total generality...
         # this is ridiculous.
-        d = self._det_by_minors(R(0))
+        d = self._det_by_minors(self._ncols)
         self.cache('det', d)
         return d
 
@@ -408,15 +414,15 @@ cdef class Matrix(matrix1.Matrix):
             return self.get_unsafe(0,0) * self.get_unsafe(1,1) - self.get_unsafe(0,1) * self.get_unsafe(1,0)
         else:
             level -= 1
-            d = self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+            d = self.get_unsafe(level,level) * self._det_by_minors(level)
             # on each iteration, row i will be missing in the first (level) rows
             # swapping is much faster than taking submatrices
             for i from level > i >= 0:
                 self.swap_rows(level, i)
                 if (level - i) % 2:
-                    d -= self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+                    d -= self.get_unsafe(level,level) * self._det_by_minors(level)
                 else:
-                     d += self.get_unsafe(level,level) * self._det_by_minors_fast(level)
+                     d += self.get_unsafe(level,level) * self._det_by_minors(level)
             # undo all our permutations to get us back to where we started
             for i from 0 <= i < level:
                 self.swap_rows(level, i)

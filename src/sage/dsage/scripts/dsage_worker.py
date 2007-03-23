@@ -429,7 +429,7 @@ class Monitor(object):
         else:
             for worker in self.workers:
                 worker.remoteobj = self.remoteobj # Update workers
-        self.submit_host_info()
+        # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')

@@ -39,6 +39,8 @@ import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
+from sage.rings.padics.zp import Zp
+from sage.rings.padics.qp import Qp
 
 # Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
@@ -978,6 +980,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             generators -- List of generators for the Mordell-Weil group.
 
         IMPLEMENTATION: Uses Cremona's mwrank C library.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('389a')
+            sage: E.gens()
+            [(-1 : 1 : 1), (0 : 0 : 1)]
         """
         try:
             return list(self.__gens)  # return copy so not changed
@@ -1430,8 +1437,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.period_lattice ()
-            (2.993458646231959629832009, 2.45138938198999*I)           # 32-bit
-            (2.993458646231959629832009979452508, 2.45138938198999*I)   # 64-bit
+            (2.993458646231959629832009979452508177797583791370132985340523378563250356987, 2.451389381986790060854224831866525225349617289144796614656471406129152899999*I)    # 32-bit
+            (2.99345864623195962983200997945250817779758379137013298534052337856325035698668290412039406739705147343584052710494728819414438723737202525437537667109326, 2.45138938198679006085422483186652522534961728914479661465647140612915289999925689289113212802918108871268421886966184797547519986661675580167893816478303*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
 
@@ -1447,22 +1454,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.omega()
-            5.986917292463919259664019               # 32-bit
-            5.986917292463919259664019958905016      # 64-bit
+            5.986917292463919259664019958905016355595167582740265970681046757126500713973     # 32-bit
+            5.98691729246391925966401995890501635559516758274026597068104675712650071397336580824078813479410294687168105420989457638828877447474405050875075334218652        # 64-bit
 
 
         This is not a minimal model.
             sage: E = EllipticCurve([0,-432*6^2])
             sage: E.omega()
-            0.48610938571005642989723045             # 32-bit
-            0.48610938571005642989723045617382554    # 64-bit
+            0.4861093857100564298972304561738255425526098601923921971195408561181781048715    # 32-bit
+            0.486109385710056429897230456173825542552609860192392197119540856118178104871498709353307487730842084963451161261340032305532890657753313985258848453458110       # 64-bit
 
         If you were to plug the above omega into the BSD conjecture, you
         would get nonsense.   The following works though:
             sage: F = E.minimal_model()
             sage: F.omega()
-            0.97221877142011285979446091             # 32-bit
-            0.97221877142011285979446091234765108    # 64-bit
+            0.9722187714201128597944609123476510851052197203847843942390817122363562097430    # 32-bit
+             0.972218771420112859794460912347651085105219720384784394239081712236356209742997418706614975461684169926902322522680064611065781315506627970517696906916220      # 64-bit
         """
         return self.period_lattice()[0] * self.real_components()
 
@@ -1474,7 +1481,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.complex_area()
-            7.33813274079918
+            7.338132740789576739070721003332305588006176586123733717543180156079096606979     # 32-bit
+            7.33813274078957673907072100333230558800617658612373371754318015607909660697945809438214607592923817142863798604406024044503049908233884534256274529672707        # 64-bit
         """
         w1,w2 = self.period_lattice()
         return (w1*w2.imag()).real()
@@ -1628,7 +1636,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_zeros_in_interval(6, 10, 0.1)      # long
-            [(6.87039121, 0.248922780), (8.01433080, -0.140168533), (9.93309835, -0.129943029)]
+            [(6.87039122, 0.248922780), (8.01433081, -0.140168533), (9.93309835, -0.129943029)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.zeros_in_interval(x, y, stepsize, L=self)
@@ -1713,7 +1721,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_twist_zeros(3, -4, -3)         # long
-            {-4: [1.60813782, 2.96144840, 3.89751747], -3: [2.06170899, 3.48216880, 4.45853218]}
+            {-4: [1.60813783, 2.96144840, 3.89751747], -3: [2.06170900, 3.48216881, 4.45853219]}
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.twist_zeros(n, dmin, dmax, L=self)
@@ -1765,7 +1773,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37b')
             sage: E.Lseries_at1(100)
-            (0.725681061936000, 0.00000000000000000000000000000000000000000000152437502288999)
+            (0.725681061936153, 1.52437502288743e-45)
         """
         if self.root_number() == -1:
             return 0
@@ -1829,7 +1837,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('37a')
             sage: E.Lseries_deriv_at1(100)
-            (0.305999773834999, 0.00000000000000000000000000000000000000000000152437502288999)
+            (0.305999773834879, 1.52437502288740e-45)
         """
         if self.root_number() == 1: return 0
         k = int(k)
@@ -1891,7 +1899,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lambda(1.4+0.5*I, 50)
-            -0.354172680515554 + 0.874518681718912*I
+            -0.354172680517671 + 0.874518681720170*I
         """
         s = C(s)
         N = self.conductor()
@@ -1922,9 +1930,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: E = EllipticCurve('389a')
             sage: E.Lseries_extended(1 + I, 50)
-            -0.638409959098255 + 0.715495262191407*I
+            -0.638409959099589 + 0.715495262192901*I
             sage: E.Lseries_extended(1 + 0.1*I, 50)
-            -0.00761216538769246 + 0.000434885704642074*I
+            -0.00761216538818315 + 0.000434885704670107*I
 
         NOTE: You might also want to use Tim Dokchitser's
         L-function calculator, which is available by typing
@@ -3599,16 +3607,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         A rank zero example:
             sage: EllipticCurve('11a').padic_regulator(3)
-            1
+            1 + O(3^20)
 
         An anomalous case:
             sage: E.padic_regulator(53, 10)
-            26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + 17*53^8 + 48*53^9 + O(53^10)
+            26*53^-2 + 30*53^-1 + 20 + 47*53 + 10*53^2 + 32*53^3 + 9*53^4 + 22*53^5 + 35*53^6 + 30*53^7 + O(53^8)
 
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
             sage: E.padic_regulator(5, 10)
-            5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^8)
+            5^-2 + 5^-1 + 4 + 2*5 + 2*5^2 + 2*5^3 + 4*5^4 + 2*5^5 + 5^6 + O(5^7)
 
         Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
@@ -3678,7 +3686,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
-        K = rings.pAdicField(p, prec=prec)
+        K = Qp(p, prec=prec)
 
         rank = self.rank()
         M = matrix.matrix(K, rank, rank, 0)
@@ -3945,7 +3953,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
           An anomalous case:
             sage: h = E.padic_height(53, 10)
             sage: h(P)
-             40*53^-2 + 37*53^-1 + 42 + 2*53 + 21*53^2 + 10*53^3 + 48*53^4 + 41*53^5 + 8*53^6 + 11*53^7 + 44*53^8 + 28*53^9 + O(53^10)
+             40*53^-2 + 37*53^-1 + 42 + 2*53 + 21*53^2 + 10*53^3 + 48*53^4 + 41*53^5 + 8*53^6 + 11*53^7 + O(53^8)
 
           Boundary case:
             sage: E.padic_height(5, 1)(P)
@@ -3984,7 +3992,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sigma = self.padic_sigma(p, adjusted_prec, check_hypotheses=False)
 
         # K is the field for the final result
-        K = rings.pAdicField(p, prec)
+        K = Qp(p, prec=prec)
         E = self
 
 
@@ -4010,15 +4018,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 total = total + t_power * R(sigma[k].lift())
                 t_power = t_power * t
 
-            L = rings.pAdicField(p, adjusted_prec)
+            L = Qp(p, prec=adjusted_prec)
             total = (-alpha / beta) * total
-            total = L(total.lift())   # yuck... get rid of this lift!
+            total = L(total.lift(), adjusted_prec)   # yuck... get rid of this lift!
             answer = total.log() / n**2 / p
 
             if check:
-                assert answer.big_oh() >= prec, "we should have got an " \
+                assert answer.precision_absolute() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
-            return K(answer.lift(), prec)
+            return K(answer.lift(), prec - answer.valuation())
 
 
         # (man... I love python's local function definitions...)
@@ -4077,17 +4085,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
+            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-             t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + 4*5^2 + O(5^3))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
-             t + O(t^2)
+             (1 + O(5^20))*t + O(t^2)
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
-             t + (3 + O(5))*t^2 + O(t^3)
+             (1 + O(5^20))*t + (3 + O(5))*t^2 + O(t^3)
 
           Check that sigma is ``weight 1''. [This test is disabled until
           trac \#254 is addressed. The lines f(2*t)/2 and g should return
@@ -4097,6 +4105,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage.: t = f.parent().gen()
             sage.: f(2*t)/2
             sage.: g
+             (1 + O(5^20))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + 2*5^8 + O(5^9))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + 3*5^6 + 2*5^7 + 3*5^8 + O(5^9))*t^5 + (4 + 5 + 3*5^3 + 2*5^4 + 2*5^5 + 5^6 + O(5^7))*t^7 + (4 + 2*5 + 4*5^2 + 2*5^4 + 4*5^5 + 5^6 + O(5^7))*t^9 + O(t^11)
 
           Test that it returns consistent results over a range of precision:
           [NOTE: this test currently FAILS due to trac \#255. It seems to be
@@ -4129,7 +4138,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if N < 1:
                 raise ValueError, "N (=%s) must be at least 1" % prec
 
-            K = rings.pAdicField(p)
+            K = Qp(p)
 
             if N == 1:
                 # return simply t + O(t^2)
@@ -4227,7 +4236,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         INPUT:
             p -- prime (>= 5) for which $E$ is good and ordinary
-            prec -- p-adic precision (>= 1) for result
+            prec -- (relative) p-adic precision (>= 1) for result
             check -- boolean, whether to perform a consistency check.
                  This will slow down the computation by a constant factor < 2.
                  (The consistency check is to compute the whole matrix of
@@ -4278,7 +4287,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
             2 + O(5)
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-            O(5^1)
+            5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
             2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
@@ -4447,9 +4456,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
         # makes it crash. I haven't figured out exactly what the bug
         # is yet, but for now I use the following workaround:
-        fudge_factor_inverse = \
-                    rings.pAdicField(p, E2_of_X.prec() + 1)(1 / fudge_factor)
-        return E2_of_X * fudge_factor_inverse
+        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
+        return output_ring(E2_of_X * fudge_factor_inverse)
 
 
     # This is the old version of padic_E2 that requires MAGMA:

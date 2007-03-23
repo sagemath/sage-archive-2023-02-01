@@ -308,6 +308,7 @@ cdef class Matrix_sparse(matrix.Matrix):
         return A
 
 
+
 ##     def _echelon_in_place_classical(self):
 ##         """
 ##         Replace this matrix by its echelon form.

@@ -267,7 +267,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
 
             sage: v = vector([1,2,3])
             sage: v.additive_order()
-            Infinity
+            +Infinity
 
             sage: v = vector(Integers(30), [6, 15]); v
             (6, 15)
@@ -554,6 +554,21 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         self[i] = x
 
+
+    def normalize(self):
+        """
+        Return this vector divided through by the first nonzero entry of this vector.
+
+        EXAMPLES:
+            sage: v = vector(QQ,[0,4/3,5,1,2])
+            sage: v.normalize()
+            (0, 1, 15/4, 3/4, 3/2)
+        """
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._degree:
+            if self[i] != 0:
+                return (~self[i]) * self
+        return self
 
     def inner_product(self, right):
         """

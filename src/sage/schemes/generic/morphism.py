@@ -331,7 +331,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
     EXAMPLES:
         sage: P = ProjectiveSpace(3, RR)
         sage: P(2,3,4,5)
-        (0.400000000000000 : 0.599999999999999 : 0.800000000000000 : 1.00000000000000)
+        (0.400000000000000 : 0.600000000000000 : 0.800000000000000 : 1.00000000000000)
 
         sage: P = ProjectiveSpace(3, QQ)
         sage: P(0,0,0,0)

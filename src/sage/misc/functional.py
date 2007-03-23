@@ -147,9 +147,9 @@ def acos(x):
 
     EXAMPLES:
         sage: acos(0.5)
-        1.04719755119659
+        1.04719755119660
         sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190503*I
+        0.904556894302381 - 1.06127506190504*I
     """
     try: return x.acos()
     except AttributeError: return RDF(x).acos()
@@ -160,9 +160,9 @@ def asin(x):
 
     EXAMPLES:
         sage: asin(0.5)
-        0.523598775598298
+        0.523598775598299
         sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190503*I
+        0.666239432492515 + 1.06127506190504*I
     """
     try: return x.asin()
     except AttributeError: return RDF(x).asin()
@@ -300,7 +300,7 @@ def eta(x):
 
     EXAMPLES:
         sage: eta(1+I)
-        0.742048775836564 + 0.198831370229910*I
+        0.742048775836565 + 0.198831370229911*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -611,7 +611,7 @@ def log(x,b=None):
         sage: log(10)
         2.30258509299
         sage: log(2.718)
-        0.999896315728951
+        0.999896315728952
     """
     if b is None:
         if hasattr(x, 'log'):

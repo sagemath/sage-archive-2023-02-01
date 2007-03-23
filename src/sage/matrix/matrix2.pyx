@@ -593,6 +593,11 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.denominator()
             210
 
+        A trivial example:
+            sage: A = matrix(QQ, 0,2)
+            sage: A.denominator()
+            1
+
         Denominators are note defined for real numbers:
             sage: A = MatrixSpace(RealField(),2)([1,2,3,4])
             sage: A.denominator()
@@ -619,7 +624,7 @@ cdef class Matrix(matrix1.Matrix):
             3
         """
         if self.nrows() == 0 or self.ncols() == 0:
-            return integer.Integer(1)
+            return ZZ(1)
         R = self.base_ring()
         x = self.list()
         try:
@@ -981,7 +986,7 @@ cdef class Matrix(matrix1.Matrix):
             B = A.matker()
             n = self._nrows
             V = sage.modules.free_module.VectorSpace(R, n)
-            basis = eval('[V([R(x) for x in b]) for b in B]', {'V':V, 'B':B, 'R':R})
+            basis = [V([R(x) for x in b]) for b in B]
             Z = V.subspace(basis)
             self.cache('kernel', Z)
             return Z
@@ -1158,7 +1163,10 @@ cdef class Matrix(matrix1.Matrix):
             [0 2]
         """
         M = self._row_ambient_module()
-        return M.span(self.rows())
+        if self.fetch('in_echelon_form') and self.rank() == self.nrows():
+            return M.span(self.rows(), already_echelonized=True)
+        else:
+            return M.span(self.rows(), already_echelonized=False)
 
     def row_space(self):
         """
@@ -1233,13 +1241,15 @@ cdef class Matrix(matrix1.Matrix):
 
 
 
-    def decomposition(self, is_diagonalizable=False, dual=False):
+    def decomposition(self, algorithm='spin',
+                      is_diagonalizable=False, dual=False):
         """
         Returns the decomposition of the free module on which this
-        matrix acts from the right, along with whether this matrix
-        acts irreducibly on each factor.  The factors are guaranteed
-        to be sorted in the same way as the corresponding factors of
-        the characteristic polynomial.
+        matrix A acts from the right (i.e., the action is x goes to x
+        A), along with whether this matrix acts irreducibly on each
+        factor.  The factors are guaranteed to be sorted in the same
+        way as the corresponding factors of the characteristic
+        polynomial.
 
         Let A be the matrix acting from the on the vector space V of
         column vectors.  Assume that A is square.  This function
@@ -1252,9 +1262,21 @@ cdef class Matrix(matrix1.Matrix):
         let W_i = ker(g(A)), since then we know that ker(g(A)) =
         $ker(g(A)^n)$.
 
-        If dual is True, also returns the corresponding decomposition
-        of V under the action of the transpose of A.  The factors are
-        guarenteed to correspond.
+        INPUT:
+            self -- a matrix
+            algorithm -- 'spin' (default): algorithm involves iterating the action
+                                   of self on a vector.
+                         'kernel': naively just compute ker f_i(A)
+                                   for each factor f_i.
+            dual -- bool (default: False): If True, also returns the
+                           corresponding decomposition of V under the action of
+                           the transpose of A.  The factors are guaranteed
+                           to correspond.
+            is_diagonalizable -- if the matrix is known to be diagonalizable, set this to True,
+                           which might speed up the algorithm in some cases.
+
+
+        NOTE: If the base ring is not a field, the kernel algorithm is used.
 
         OUTPUT:
             Sequence -- list of pairs (V,t), where V is a vector spaces
@@ -1271,31 +1293,143 @@ cdef class Matrix(matrix1.Matrix):
             sage: MS2 = MatrixSpace(QQ,6)
             sage: A = MS1.matrix([3,4,5,6,7,3,8,10,14,5,6,7,2,2,10,9])
             sage: B = MS2(range(36))
-            sage: B*11   # random output
-            [-11  22 -11 -11 -11 -11]
-            [ 11 -22 -11 -22  11  11]
-            [-11 -11 -11 -22 -22 -11]
-            [-22  22 -22  22 -11  11]
-            [ 22 -11  11 -22  11  22]
-            [ 11  11  11 -22  22  22]
-            sage: decomposition(A)
+            sage: B*11
+            [  0  11  22  33  44  55]
+            [ 66  77  88  99 110 121]
+            [132 143 154 165 176 187]
+            [198 209 220 231 242 253]
+            [264 275 286 297 308 319]
+            [330 341 352 363 374 385]
+            sage: A.decomposition()
             [
-            (Ambient free module of rank 4 over the principal ideal domain Integer Ring, 1)
+            (Ambient free module of rank 4 over the principal ideal domain Integer Ring, True)
             ]
-            sage: decomposition(B)
+            sage: B.decomposition()
             [
             (Vector space of degree 6 and dimension 2 over Rational Field
             Basis matrix:
             [ 1  0 -1 -2 -3 -4]
-            [ 0  1  2  3  4  5], 1),
+            [ 0  1  2  3  4  5], True),
             (Vector space of degree 6 and dimension 4 over Rational Field
             Basis matrix:
             [ 1  0  0  0 -5  4]
             [ 0  1  0  0 -4  3]
             [ 0  0  1  0 -3  2]
-            [ 0  0  0  1 -2  1], 0)
+            [ 0  0  0  1 -2  1], False)
             ]
         """
+        if algorithm == 'kernel' or not self.base_ring().is_field():
+            return self._decomposition_using_kernels(is_diagonalizable = is_diagonalizable, dual=dual)
+        elif algorithm == 'spin':
+            X = self._decomposition_spin_generic(is_diagonalizable = is_diagonalizable)
+            if dual:
+                Y = self.transpose()._decomposition_spin_generic(is_diagonalizable = is_diagonalizable)
+                return X, Y
+            return X
+        else:
+            raise ValueError, "no algorithm '%s'"%algorithm
+
+    def _decomposition_spin_generic(self, is_diagonalizable=False):
+        r"""
+        Compute the decomposition of this matrix using the spin algorithm.
+
+        INPUT:
+            self -- a matrix with integer entries
+
+        OUTPUT:
+            a list of reduced row echelon form basis
+
+        AUTHOR:
+           -- William Stein
+        """
+        if not self.is_square():
+            raise ArithmeticError, "self must be a square matrix"
+
+        if not self.base_ring().is_field():
+            raise TypeError, "self must be over a field."
+
+        if self.nrows() == 0:
+            return decomp_seq([])
+
+        f = self.charpoly('x')
+        E = decomp_seq([])
+
+        t = verbose('factoring the characteristic polynomial', level=2, caller_name='generic spin decomp')
+        F = f.factor()
+        verbose('done factoring', t=t, level=2, caller_name='generic spin decomp')
+
+        if len(F) == 1:
+            V = self.base_ring()**self.nrows()
+            return decomp_seq([(V,F[0][1]==1)])
+
+        V = self.base_ring()**self.nrows()
+        v = V.random_element()
+        num_iterates = max([0] + [f.degree() - g.degree() for g, _ in F if g.degree() > 1]) + 1
+
+        S = [ ]
+
+        F.sort()
+        for i in range(len(F)):
+            g, m = F[i]
+
+            if g.degree() == 1:
+                # Just use kernel -- much easier.
+                B = self.copy()
+                for k from 0 <= k < self.nrows():
+                    B[k,k] += g[0]
+                if m > 1 and not is_diagonalizable:
+                    B = B**m
+                W = B.kernel()
+                E.append((W, bool(m==1)))
+                continue
+
+            # General case, i.e., deg(g) > 1:
+            W = None
+            tries = m
+            while True:
+
+                # Compute the complementary factor.
+                h = f // (g**m)
+                v = h.list()
+
+                while len(S) < tries:
+                    t = verbose('%s-spinning %s-th random vector'%(num_iterates, len(S)), level=2, caller_name='generic spin decomp')
+                    S.append(self.iterates(V.random_element(), num_iterates))
+                    verbose('done spinning', level=2, t=t, caller_name='generic spin decomp')
+
+                for j in range(0 if W is None else W.nrows() // g.degree(), len(S)):
+                    # Compute one element of the kernel of g(A)**m.
+                    t = verbose('compute element of kernel of g(A), for g of degree %s'%g.degree(),level=2,
+                                caller_name='generic spin decomp')
+                    w = S[j].linear_combination_of_rows(h.list())
+                    t = verbose('done computing element of kernel of g(A)', t=t,level=2, caller_name='generic spin decomp')
+
+                    # Get the rest of the kernel.
+                    t = verbose('fill out rest of kernel',level=2, caller_name='generic spin decomp')
+                    if W is None:
+                        W = self.iterates(w, g.degree())
+                    else:
+                        W = W.stack(self.iterates(w, g.degree()))
+                    t = verbose('finished filling out more of kernel',level=2, t=t, caller_name='generic spin decomp')
+
+                if W.rank() == m * g.degree():
+                    t = verbose('now computing row space', level=2, caller_name='generic spin decomp')
+                    W.echelonize()
+                    E.append((W.row_space(), bool(m==1)))
+                    verbose('computed row space', level=2,t=t, caller_name='generic spin decomp')
+                    break
+                else:
+                    verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
+                        W.rank(), m*g.degree()), level=2, caller_name='generic spin decomp')
+                    tries += 1
+                    if tries > 5*m:
+                        raise RuntimeError, "likely bug in decomposition"
+                # end if
+            #end while
+        #end for
+        return E
+
+    def _decomposition_using_kernels(self, is_diagonalizable=False, dual=False):
         if not self.is_square():
             raise ArithmeticError, "self must be a square matrix"
 
@@ -1317,28 +1451,38 @@ cdef class Matrix(matrix1.Matrix):
                               self.base_ring(), self.nrows(), sparse=self.is_sparse())
             m = F[0][1]
             if dual:
-                return decomp_seq([(V,m==1)]), decomp_seq([(V,m==1)])
+                return decomp_seq([(V, bool(m==1))]), decomp_seq([(V, bool(m==1))])
             else:
-                return decomp_seq([(V,m==1)])
+                return decomp_seq([(V, bool(m==1))])
         F.sort()
         for g, m in f.factor():
+            t = verbose('decomposition -- Computing g(self) for an irreducible factor g of degree %s'%g.degree(),level=2)
             if is_diagonalizable:
                 B = g(self)
             else:
-                B = g(self) ** m
-            E.append((B.kernel(), m==1))
+                B = g(self)
+                t2 = verbose('decomposition -- raising g(self) to the power %s'%m,level=2)
+                B = B ** m
+                verbose('done powering',t2)
+            t = verbose('decomposition -- done computing g(self)', level=2, t=t)
+            E.append((B.kernel(), bool(m==1)))
+            t = verbose('decomposition -- time to compute kernel', level=2, t=t)
             if dual:
-                Edual.append((B.transpose().kernel(), m==1))
+                Edual.append((B.transpose().kernel(), bool(m==1)))
+                verbose('decomposition -- time to compute dual kernel', level=2, t=t)
         if dual:
             return E, Edual
         return E
 
-    def decomposition_of_subspace(self, M, is_diagonalizable=False):
+    def decomposition_of_subspace(self, M, **kwds):
         """
         Suppose the right action of self on M leaves M
         invariant. Return the decomposition of M as a list of pairs
         (W, is_irred) where is_irred is True if the charpoly of self
         acting on the factor W is irreducible.
+
+        Additional inputs besides M are passed onto the decomposition
+        command.
 
         EXAMPLES:
             sage: t = matrix(QQ, 3, [3, 0, -2, 0, -2, 0, 0, 0, 0]); t
@@ -1356,10 +1500,10 @@ cdef class Matrix(matrix1.Matrix):
             [
             (Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
-            [0 0 1], 1),
+            [0 0 1], True),
             (Vector space of degree 3 and dimension 1 over Rational Field
             Basis matrix:
-            [0 1 0], 1)
+            [0 1 0], True)
             ]
             sage: t.restrict(D[0][0])
             [0]
@@ -1380,27 +1524,26 @@ cdef class Matrix(matrix1.Matrix):
 
         # 1. Restrict
         B = self.restrict(M)
-
         time0 = verbose("decompose restriction -- ", time)
 
         # 2. Decompose restriction
-        D = B.decomposition(is_diagonalizable=is_diagonalizable, dual=False)
+        D = B.decomposition(**kwds)
 
-        assert sum(eval('[A.dimension() for A,_ in D]',{'D':D})) == M.dimension(), \
+        sum_dim = sum([A.dimension() for A,_ in D])
+        assert sum_dim == M.dimension(), \
                "bug in decomposition; " + \
-               "the sum of the dimensions of the factors must equal the dimension of the acted on space:\nFactors found: %s\nSpace: %s"%(D, M)
+               "the sum of the dimensions (=%s) of the factors must equal the dimension (%s) of the acted on space:\nFactors found: %s\nSpace: %s"%(sum_dim, M.dimension(), D, M)
 
         # 3. Lift decomposition to subspaces of ambient vector space.
-        # Each basis vector for an element of D defines a linear combination
-        # of the basis of W, and these linear combinations define the
-        # corresponding subspaces of the ambient space M.
+        # Each basis vector for an element of D defines a linear
+        # combination of the basis of W, and these linear combinations
+        # define the corresponding subspaces of the ambient space M.
 
         verbose("decomposition -- ", time0)
         C = M.basis_matrix()
         Z = M.ambient_vector_space()
 
-        D = eval('[(Z.subspace([x*C for x in W.basis()]), is_irred) for W, is_irred in D]',\
-                 {'C':C, 'D':D, 'Z':Z})
+        D = [((W.basis_matrix() * C).row_space(), is_irred) for W, is_irred in D]
         D = decomp_seq(D)
 
         verbose(t=time)
@@ -1467,7 +1610,7 @@ cdef class Matrix(matrix1.Matrix):
             n = V.rank()
             try:
                 # todo optimize so only involves matrix multiplies ?
-                C = eval('[V.coordinate_vector(b*self) for b in V.basis()]',{'V':V, 'self':self})
+                C = [V.coordinate_vector(b*self) for b in V.basis()]
             except ArithmeticError:
                 raise ArithmeticError, "subspace is not invariant under matrix"
             return self.new_matrix(n, n, C, sparse=False)
@@ -1497,7 +1640,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  2  0]
             [ 7 10  0]
         """
-        e = eval('[b*self for b in V.basis()]', {'self':self, 'V':V})
+        e = [b*self for b in V.basis()]
         return self.new_matrix(V.dimension(), self.ncols(), e)
 
     def maxspin(self, v):
@@ -2079,8 +2222,6 @@ cdef class Matrix(matrix1.Matrix):
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
                     self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
-
-
 
 
 cdef decomp_seq(v):

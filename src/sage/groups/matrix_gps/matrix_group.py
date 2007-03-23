@@ -284,7 +284,7 @@ class MatrixGroup_gap(MatrixGroup_generic):
             480
             sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
             sage: G.order()
-            Infinity
+            +Infinity
         """
         g = self._gap_()
         if g.IsFinite().bool():
@@ -411,7 +411,7 @@ class MatrixGroup_gap_finite_field(MatrixGroup_gap):
             480
             sage: G = MatrixGroup([matrix(ZZ,2,[1,1,0,1])])
             sage: G.order()
-            Infinity
+            +Infinity
         """
         return integer.Integer(gap(self).Size())
 

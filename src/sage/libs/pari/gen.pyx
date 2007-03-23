@@ -466,6 +466,9 @@ cdef class gen(sage.structure.element.RingElement):
             v[k-i] = self[k]
         return v
 
+    def gen_length(gen self):
+        return lg(self.g)
+
     def __setitem__(gen self, n, y):
         r"""
         Set the nth entry to a reference to y.
@@ -1076,6 +1079,9 @@ cdef class gen(sage.structure.element.RingElement):
         sign(x): Return the sign of x, where x is of type integer, real
             or fraction.
         """
+        # Pari throws an error if you attempt to take the sign of
+        # a complex number.
+        _sig_on
         return gsigne(x.g)
 
     def vecmax(gen x):
@@ -3167,12 +3173,6 @@ cdef class gen(sage.structure.element.RingElement):
 
         NOTE: This function works for any complex input (unlike in
         older version of PARI).
-
-	WARNING/TODO: This function is \emph{extremely slow} as
-        implemented when used from the C library.  If you use the GP
-        interpreter inteface it is vastly faster, so clearly this
-        issue could be fixed with a better understanding of GP/PARI.
-        Volunteers?
 
         INPUT:
             s, x, y -- gens
@@ -5310,6 +5310,62 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         """
         return _new_gen(x)
 
+    def double_to_gen(self, x):
+        cdef double dx
+        dx = float(x)
+        return self.double_to_gen_c(dx)
+
+    cdef gen double_to_gen_c(self, double x):
+        """
+        Create a new gen with the value of the double x, using Pari's
+        dbltor.
+
+        EXAMPLES:
+            sage: pari.double_to_gen(1)
+            1.0000000000000000000
+            sage: pari.double_to_gen(1e30)
+            1.0000000000000000199 E30
+            sage: pari.double_to_gen(0)
+            0.E-15
+            sage: pari.double_to_gen(-sqrt(RDF(2)))
+            -1.4142135623730951455
+        """
+        # Pari has an odd concept where it attempts to track the accuracy
+        # of floating-point 0; a floating-point zero might be 0.0e-20
+        # (meaning roughly that it might represent any number in the
+        # range -1e-20 <= x <= 1e20).
+
+        # Pari's dbltor converts a floating-point 0 into the Pari real
+        # 0.0e-307; Pari treats this as an extremely precise 0.  This
+        # can cause problems; for instance, the Pari incgam() function can
+        # be very slow if the first argument is very precise.
+
+        # So we translate 0 into a floating-point 0 with 53 bits
+        # of precision (that's the number of mantissa bits in an IEEE
+        # double).
+
+        if x == 0:
+            return self.new_gen(real_0_bit(-53))
+        else:
+            return self.new_gen(dbltor(x))
+
+    cdef GEN double_to_GEN(self, double x):
+        if x == 0:
+            return real_0_bit(-53)
+        else:
+            return dbltor(x)
+
+    def complex(self, re, im):
+        """
+        Create a new complex number, initialized from re and im.
+        """
+        t0GEN(re)
+        t1GEN(im)
+        cdef GEN cp
+        cp = cgetg(3, t_COMPLEX)
+        __set_lvalue__(gel(cp, 1), t0)
+        __set_lvalue__(gel(cp, 2), t1)
+        return self.new_gen(cp)
 
     cdef GEN deepcopy_to_python_heap(self, GEN x, pari_sp* address):
         return deepcopy_to_python_heap(x, address)

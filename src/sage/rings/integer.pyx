@@ -107,7 +107,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
 import sage.rings.infinity
 import sage.libs.pari.all
-import real_mpfr
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -782,9 +781,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
            sage: x = 3^100000
            sage: log(RR(x), 3)
-           99999.9999999999
+           100000.000000000
            sage: log(RR(x + 100000), 3)
-           99999.9999999999
+           100000.000000000
 
            sage: x.exact_log(3)
            100000
@@ -806,6 +805,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
+        import real_mpfr
         R = real_mpfr.RealField(53)
         guess = R(self).log(base = m).floor()
         power = m ** guess
@@ -1413,7 +1413,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(0).additive_order()
             1
             sage: ZZ(1).additive_order()
-            Infinity
+            +Infinity
         """
         import sage.rings.infinity
         if self.is_zero():
@@ -1549,7 +1549,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(4).sqrt(53)
             2.00000000000000
             sage: Z(2).sqrt(53)
-            1.41421356237309
+            1.41421356237310
             sage: Z(2).sqrt(100)
             1.4142135623730950488016887242
             sage: n = 39188072418583779289; n.square_root()
@@ -1559,11 +1559,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.00000000000000*I
             sage: sqrt(-2)
-            1.41421356237309*I
+            1.41421356237310*I
             sage: sqrt(97)
             9.84885780179610
             sage: n = 97; n.sqrt(200)
-            9.8488578017961047217462114149176244816961362874427641717231
+            9.8488578017961047217462114149176244816961362874427641717232
         """
         if bits is None:
             try:
@@ -1577,6 +1577,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
+            import real_mpfr
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 
@@ -2214,7 +2215,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     PyObject_FREE(o)
 
-hook_fast_tp_functions()
+#hook_fast_tp_functions()
 
 def hook_fast_tp_functions():
     """

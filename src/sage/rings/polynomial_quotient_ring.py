@@ -299,7 +299,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
     def base_ring(self):
         r"""
-        Return the base base ring of the polynomial ring, of which
+        Return the base ring of the polynomial ring, of which
         this ring is a quotient.
 
         EXAMPLES:
@@ -366,7 +366,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         The discriminant of the quotient polynomial ring need not
         equal the discriminant of the corresponding number field,
         since the discriminant of a number field is by definition the
-        discriminant of the ring ring of integers of the number field:
+        discriminant of the ring of integers of the number field:
             sage: S = R.quotient(x^2 - 8)
             sage: S.number_field().discriminant()
             8
@@ -619,6 +619,12 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         return PolynomialQuotientRing_field, (self.polynomial_ring(),
                                         self.modulus(), self.variable_names())
 
+    def base_field(self):
+        r"""
+        Alias for base_ring, when we're defined over a field.
+        """
+        return self.base_ring()
+
     def complex_embeddings(self, prec=53):
         r"""
         Return all homomorphisms of this ring into the approximate
@@ -629,7 +635,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
             sage: k = QQ['x'].quotient(f)
             sage: v = k.complex_embeddings(100)
             sage: [phi(k.0^2) for phi in v]
-            [2.9757207403766761469671194565, 0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I]
+            [0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I, 2.9757207403766761469671194565, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I]
         """
         CC = complex_field.ComplexField(prec)
         f = self.modulus().base_extend(CC)

@@ -526,7 +526,7 @@ def legendre_Q(n,x):
         sage: legendre_Q(3,0.5)
         -0.198654771479
         sage: legendre_Q(4,2)
-        0.00116107583163 + 86.9828491211*I
+        0.00116107583163 + 86.9828465963*I
     """
     _init()
     n0 = ZZ(n) # n must be an integer

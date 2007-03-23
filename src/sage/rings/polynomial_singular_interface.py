@@ -4,6 +4,11 @@ Polynomial Interfaces to Singular
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
 
+TESTS:
+    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+    sage: R == loads(dumps(R))
+    True
+
 """
 
 #*****************************************************************************

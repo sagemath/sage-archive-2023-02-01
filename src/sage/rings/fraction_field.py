@@ -3,6 +3,25 @@ Fraction Field of Integral Domains
 
 AUTHOR: William Stein (with input from David Joyner, David Kohel, and
         Joe Wetherell)
+
+TESTS:
+    sage: F = FractionField(IntegerRing())
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(PolynomialRing(RationalField(),'x'))
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(PolynomialRing(IntegerRing(),'x'))
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(MPolynomialRing(RationalField(),2,'x'))
+    sage: F == loads(dumps(F))
+    True
+
+
 """
 
 #*****************************************************************************

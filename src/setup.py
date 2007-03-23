@@ -579,7 +579,7 @@ def is_older(file1, file2):
         return False
     if not os.path.exists(file2):
         return True
-    if os.path.getctime(file2) < os.path.getctime(file1):
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
         return True
     return False
 

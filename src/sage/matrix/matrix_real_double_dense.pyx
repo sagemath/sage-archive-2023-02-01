@@ -14,6 +14,7 @@ We deal with the case of zero rows or zero columns:
     sage: m = MatrixSpace(RDF,0,3)
     sage: m.zero_matrix()
     []
+
 TESTS:
     sage: a = matrix(RDF,2,range(4), sparse=False)
     sage: loads(dumps(a)) == a

@@ -1527,7 +1527,7 @@ def notebook(dir         ='sage_notebook',
     \item Figure out the external address of your server, say
           'sage.math.washington.edu', for example.
     \item On your server, type
-       server_http1('mysession', address='sage.math.washington.edu')
+        notebook('mysession', address='sage.math.washington.edu')
     \item Assuming you have permission to open a port on that
        machine, it will startup and display a URL, e.g.,
            \url{http://sage.math.washington.edu:8000}

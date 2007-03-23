@@ -45,8 +45,13 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         """
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is A:
             return x
+
         AlgebraElement.__init__(self, A)
         Q = self.parent()
+
+        if isinstance(x, FreeAlgebraQuotientElement) and x.parent() == Q:
+            self.__vector = Q.module()(x.vector())
+            return
         if isinstance(x, (int, long, Integer)):
             self.__vector = Q.module().gen(0) * x
             return
@@ -106,6 +111,9 @@ class FreeAlgebraQuotientElement(AlgebraElement):
 
     def vector(self):
         return self.__vector
+
+    def __cmp__(self, right):
+        return cmp(self.vector(),right.vector())
 
     def __neg__(self):
         y = self.parent()(0)

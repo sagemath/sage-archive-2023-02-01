@@ -120,7 +120,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
     def canonical_info(self, platform_host_info):
         """Standarize host info so we can parse it easily"""
 
-        unify_info = {'model name': 'cpu_name',
+        unify_info = {'model name': 'cpu_model',
                           'cpu Mhz': 'cpu_speed',
                           'MemTotal': 'mem_total',
                           'MemFree': 'mem_free',
@@ -249,7 +249,7 @@ class ClassicHostInfo(object):
     def canonical_info(self, platform_host_info):
         """Standarize host info so we can parse it easily"""
 
-        unify_info = {'model name': 'cpu_name',
+        unify_info = {'model name': 'cpu_model',
                           'cpu MHz': 'cpu_speed',
                           'MemTotal': 'mem_total',
                           'MemFree': 'mem_free',

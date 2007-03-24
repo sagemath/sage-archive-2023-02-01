@@ -29,8 +29,6 @@ import os, shutil
 
 from   sage.misc.misc import word_wrap
 
-from colorize import colorize
-
 import notebook
 
 import worksheet
@@ -493,15 +491,13 @@ class Cell(Cell_generic):
 
         if r == 0:
             t = ' '
-            t_colorize = t
-        else:
-            t_colorize = colorize(t)
+
         s += """
            <pre class="%s"
               id         = 'cell_display_%s'
               onClick  = 'cell_focus(%s, false); return true;'
            >%s</pre>
-        """%(cls, id, id, t_colorize)
+        """%(cls, id, id, t)
         return s
 
     def files_html(self):

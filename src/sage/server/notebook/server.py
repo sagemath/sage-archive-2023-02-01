@@ -45,7 +45,6 @@ import Cookie
 import cPickle
 import base64
 from urllib import splittag
-from colorize import colorize
 
 #SAGE notebook libraries
 import css, js
@@ -567,12 +566,6 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     #  End editing functionality
     #######################################################################
 
-    def colorize(self):
-        C = self.get_postvars()
-        input_text = C['input']
-        id = C['id']
-        self.wfile.write("%s%s%s"%(id,SEP,colorize(input_text)))
-
     def get_queue(self):
         C = self.get_postvars()
         W = notebook.get_worksheet_with_filename(C['worksheet_id'])
@@ -685,9 +678,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
             path = path[1:]
-        if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path:
-#      TODO: highlight.js patch
-#       if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
+        if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
                 self.input_history_text()
@@ -731,9 +722,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         try:
             if path in static_images: #this list is defined at the top of this file
                 binfile = self.image(path)
-#        TODO: highlight.js patch
-#            elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
-            elif path[:7] == 'jsmath/':
+            elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
                 binfile = open(SAGE_EXTCODE + "/notebook/javascript/" + path, 'rb').read()
             else:
                 binfile = open(path, 'rb').read()
@@ -946,7 +935,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
                           'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
-                          'insert_wiki_cells', 'delete_cell_all', 'colorize', 'get_queue']:
+                          'insert_wiki_cells', 'delete_cell_all', 'get_queue']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':

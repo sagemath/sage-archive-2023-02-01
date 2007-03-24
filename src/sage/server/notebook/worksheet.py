@@ -650,8 +650,8 @@ class Worksheet:
         else:
             C.set_output_text(out, C.files_html(), sage=self.sage())
             C.set_introspect_html('')
-            history = "# Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
-            history += C.plain_text(ncols=HISTORY_NCOLS, prompts=True,
+            history = "Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
+            history += C.edit_text(ncols=HISTORY_NCOLS, prompts=False,
                                     max_out=HISTORY_MAX_OUTPUT)
             self.notebook().add_to_history(history)
 
@@ -1263,7 +1263,8 @@ class Worksheet:
         s += '<div class="worksheet_bottom_padding"></div>\n'
 
         if not do_print:
-            s += '<script language=javascript>cell_id_list=%s;</script>\n'%self.compute_cell_id_list()
+            s += '<script language=javascript>cell_id_list=%s;\n'%self.compute_cell_id_list()
+            s += 'for(i=0;i<cell_id_list.length;i++) cell_blur(cell_id_list[i]);</script>\n'
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
         return s

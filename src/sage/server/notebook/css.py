@@ -1180,43 +1180,6 @@ span.red{
 }
 
 
-/***********************************************************/
-/*               syntax highlighting css styling           */
-/***********************************************************/
-
-.token_number
-{
-	color: #004040;
-}
-.token_op
-{
-	color: #005500;
-}
-.token_string
-{
-	color: #aa5544;
-}
-.token_comment
-{
-	color: #770000;
-}
-.token_name
-{
-	color: #000000;
-}
-.token_error
-{
-	color: #FF8080;
-}
-.keyword
-{
-	color: #990099;
-}
-.text
-{
-	color: #000000;
-}
-
 """
     if color == 'gmail':
         color1 = '#c3d9ff'

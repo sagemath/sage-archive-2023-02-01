@@ -498,6 +498,7 @@ class Monitor(object):
 
         hf = ClassicHostInfo().host_info
         hf['uuid'] = self.uuid
+        hf['workers'] = WORKERS
         if AUTHENTICATE:
             log.msg('Connecting as authenticated worker...\n')
             d = self.factory.login(self.creds, (pb.Referenceable(), hf))

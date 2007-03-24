@@ -31,7 +31,7 @@ from twisted.cred import portal
 from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
 from sage.dsage.database.jobdb import DatabasePruner
 from sage.dsage.database.userdb import UserDatabase
-from sage.dsage.database.workerdb import WorkerDatabase
+from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
@@ -102,10 +102,10 @@ def main():
     jobdb = JobDatabaseSQLite()
 
     # Worker database
-    workerdb = WorkerDatabase()
+    monitordb = MonitorDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, workerdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb, log_level=LOG_LEVEL)
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Get authorized keys

@@ -146,11 +146,11 @@ class DefaultPerspective(pb.Avatar):
             host_info = mind[1]
             host_info['ip'] = mind[0].broker.transport.getPeer().host
             host_info['port'] = mind[0].broker.transport.getPeer().port
+            uuid = host_info['uuid']
             worker_tracker.add((mind[0].broker, host_info))
-            if self.DSageServer.workerdb.get_worker(host_info['uuid']) is None:
-                self.DSageServer.workerdb.add_worker(host_info)
-            self.DSageServer.workerdb.set_connected(host_info['uuid'],
-                                                    connected=True)
+            if self.DSageServer.monitordb.get_monitor(uuid) is None:
+                self.DSageServer.monitordb.add_monitor(host_info)
+            self.DSageServer.monitordb.set_connected(uuid, connected=True)
         else:
             client_tracker.add((avatar, mind))
 
@@ -162,7 +162,7 @@ class DefaultPerspective(pb.Avatar):
             for broker, host_info in worker_tracker.worker_list:
                 if broker.transport.disconnected:
                     worker_tracker.remove((broker, host_info))
-            self.DSageServer.workerdb.set_connected(host_info['uuid'],
+            self.DSageServer.monitordb.set_connected(host_info['uuid'],
                                                     connected=False)
         else:
             client_tracker.remove((avatar, mind))
@@ -293,9 +293,9 @@ class UserPerspective(DefaultPerspective):
     def perspective_get_cluster_speed(self):
         return self.DSageServer.get_cluster_speed()
 
-    def perspective_get_worker_list(self):
+    def perspective_get_monitor_list(self):
         # return [x[1] for x in self.DSageServer.get_worker_list()]
-        return self.DSageServer.get_worker_list()
+        return self.DSageServer.get_monitor_list()
 
     def perspective_get_client_list(self):
         return [avatar[0].avatarID for avatar in

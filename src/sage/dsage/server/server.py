@@ -38,7 +38,7 @@ class DSageServer(pb.Root):
     submissions.
 
     """
-    def __init__(self, jobdb, workerdb, log_level=0):
+    def __init__(self, jobdb, monitordb, log_level=0):
         r"""
         Initializes the Distributed Sage PB Server.
 
@@ -49,7 +49,7 @@ class DSageServer(pb.Root):
         """
 
         self.jobdb = jobdb
-        self.workerdb = workerdb
+        self.monitordb = monitordb
         self.LOG_LEVEL = log_level
 
     def unpickle(self, pickled_job):
@@ -289,7 +289,7 @@ class DSageServer(pb.Root):
 
         return job_id
 
-    def get_worker_list(self):
+    def get_monitor_list(self):
         r"""
         Returns a list of workers as a 3 tuple.
 
@@ -298,8 +298,8 @@ class DSageServer(pb.Root):
         tuple[2] = port
 
         """
-        return self.workerdb.get_worker_list()
-        return worker_tracker.worker_list
+        return self.monitordb.get_monitor_list()
+        # return worker_tracker.worker_list
 
     def get_client_list(self):
         r"""

@@ -341,12 +341,7 @@ class MonitorDatabase(object):
             return doc, workingMegaHertz
 
         def add_availableProcessorCount(doc, gauge):
-            availableProcessorCount = doc.createElement(
-                                                'availableProcessorCount')
-            gauge.appendChild(availableProcessorCount)
-            cpu_count = (self.get_cpu_count(connected=True) +
-                         self.get_cpu_count(connected=False))
-
+            pass
         def add_unavailableProcessorCount(doc, gauge):
             pass
 

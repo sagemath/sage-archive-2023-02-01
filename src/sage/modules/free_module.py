@@ -61,6 +61,17 @@ Base ring:
 
     sage: VectorSpace(QQ, 10).base_ring()
     Rational Field
+
+TESTS:
+We intersect a zero-dimensional vector space with
+a 1-dimension submodule.
+    sage: V = (QQ^1).span([])
+    sage: W = ZZ^1
+    sage: V.intersection(W)
+    Free module of degree 1 and rank 0 over Integer Ring
+    Echelon basis matrix:
+    []
+
 """
 
 ####################################################################################
@@ -98,6 +109,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
+import sage.rings.integer_mod_ring
 import sage.rings.infinity
 import sage.rings.integer
 import sage.structure.parent_gens as gens
@@ -279,7 +291,9 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         TypeError: K must be a field
     """
 
-    if not field.is_Field(K):
+    if not ring.is_Ring(K):
+        raise TypeError, "K must be a field"
+    if not K.is_field():
         raise TypeError, "K must be a field"
     return FreeModule(K, dimension, sparse, inner_product_matrix)
 
@@ -347,6 +361,86 @@ class FreeModule_generic(module.Module):
         self.__is_sparse = sparse
         self._inner_product_matrix = inner_product_matrix
         self.element_class()
+
+    def dense_module(self):
+        """
+        Return corresponding dense module.
+
+        EXAMPLES:
+        We first illustrate conversion with ambient spaces:
+            sage: M = FreeModule(QQ,3)
+            sage: S = FreeModule(QQ,3, sparse=True)
+            sage: M.sparse_module()
+            Sparse vector space of dimension 3 over Rational Field
+            sage: S.dense_module()
+            Vector space of dimension 3 over Rational Field
+            sage: M.sparse_module() is S
+            True
+            sage: S.dense_module() is M
+            True
+            sage: M.dense_module() is M
+            True
+            sage: S.sparse_module() is S
+            True
+
+        Next we convert a subspace:
+            sage: M = FreeModule(QQ,3, sparse=True)
+            sage: V = M.span([ [1,2,3] ] ); V
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            sage: V.sparse_module()
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+        """
+        if self.__is_sparse:
+            return self._dense_module()
+        return self
+
+    def _dense_module(self):
+        A = self.ambient_module().dense_module()
+        return A.span(self.basis())
+
+    def sparse_module(self):
+        """
+        Return corresponding sparse module.
+
+        EXAMPLES:
+        We first illustrate conversion with ambient spaces:
+            sage: M = FreeModule(Integers(8),3)
+            sage: S = FreeModule(Integers(8),3, sparse=True)
+            sage: M.sparse_module()
+            Ambient sparse free module of rank 3 over Ring of integers modulo 8
+            sage: S.dense_module()
+            Ambient free module of rank 3 over Ring of integers modulo 8
+            sage: M.sparse_module() is S
+            True
+            sage: S.dense_module() is M
+            True
+            sage: M.dense_module() is M
+            True
+            sage: S.sparse_module() is S
+            True
+
+        Next we convert a subspace:
+            sage: M = FreeModule(QQ,3)
+            sage: V = M.span([ [1,2,3] ] ); V
+            Vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+            sage: V.sparse_module()
+            Sparse vector space of degree 3 and dimension 1 over Rational Field
+            Basis matrix:
+            [1 2 3]
+        """
+        if self.__is_sparse:
+            return self
+        return self._sparse_module()
+
+    def _sparse_module(self):
+        A = self.ambient_module().sparse_module()
+        return A.span(self.basis())
 
     def _an_element_impl(self):
         return self.zero_vector()
@@ -578,8 +672,10 @@ class FreeModule_generic(module.Module):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_ring(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def echelonized_basis_matrix(self):
         raise NotImplementedError
@@ -991,14 +1087,13 @@ class FreeModule_generic(module.Module):
         """
         return FreeModule(self.base_ring(), self.rank())
 
-    def random_element(self, bound=2, prob=1.0):
+    def random_element(self, prob=1.0, **kwds):
         """
         Returns a random element of self.
 
         INPUT:
-            bound -- integer; coefficients of linear combination of basis are chosen
-                     from the closed interval [-bound,bound]
             prob -- float; probability that given coefficient is nonzero.
+            **kwds -- passed on to random_element function of base ring.
 
         EXAMPLES:
             sage: M = FreeModule(ZZ, 2).span([[1,1]])
@@ -1015,7 +1110,7 @@ class FreeModule_generic(module.Module):
         prob = float(prob)
         for i in range(self.rank()):
             if random.random() <= prob:
-                v += self.gen(i) * R.random_element(bound)
+                v += self.gen(i) * R.random_element(**kwds)
         return v
 
     def rank(self):
@@ -1214,8 +1309,10 @@ class FreeModule_generic_pid(FreeModule_generic):
             MAT = sage.matrix.matrix_space.MatrixSpace(self.base_field(),
                             len(self.basis()), self.degree(),
                             sparse = self.is_sparse())
-            self.__basis_matrix = MAT(self.basis())
-            return self.__basis_matrix
+            A = MAT(self.basis())
+            A.set_immutable()
+            self.__basis_matrix = A
+            return A
 
     def index(self, other):
         """
@@ -1244,7 +1341,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: L1 = FreeModule(ZZ, 2)
             sage: L2 = span(ZZ, [[1,2]])
             sage: L1.index(L2)
-            Infinity
+            +Infinity
         """
         if not isinstance(other, FreeModule_generic):
             raise TypeError, "other must be a free module"
@@ -1342,7 +1439,10 @@ class FreeModule_generic_pid(FreeModule_generic):
         elif other == other.ambient_vector_space():
             return self
         elif self.rank() == 0 or other.rank() == 0:
-            return self.zero_submodule()
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
 
         # standard algorithm for computing intersection of general submodule
         if self.dimension() <= other.dimension():
@@ -1588,7 +1688,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: W.span_of_basis([ [1,2,0], [2,4,0] ])
             Traceback (most recent call last):
             ...
-            ArithmeticError: basis vectors must be linearly independent.
+            ValueError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_pid(
                                     self.ambient_module(), basis, check=check,
@@ -1855,6 +1955,12 @@ class FreeModule_generic_field(FreeModule_generic_pid):
         if self.ambient_vector_space() != other.ambient_vector_space():
             raise ArithmeticError, "self and other must have the same ambient space."
 
+        if self.rank() == 0 or other.rank() == 0:
+            if self.base_ring().is_field():
+                return other.zero_submodule()
+            else:
+                return self.zero_submodule()
+
         if self.base_ring() != other.base_ring():
             # Now other is over a ring R whose fraction field K is the base field of V = self.
             # We compute the intersection using the following algorithm:
@@ -1988,7 +2094,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: W.span_of_basis([[2,2,2], [3,3,3]])
             Traceback (most recent call last):
             ...
-            ArithmeticError: basis vectors must be linearly independent.
+            ValueError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_field(
                                     self.ambient_module(), basis, check=check,
@@ -2133,6 +2239,16 @@ class FreeModule_ambient(FreeModule_generic):
         FreeModule_generic.__init__(self, base_ring, rank,
                                     rank, sparse, inner_product_matrix)
 
+    def _dense_module(self):
+        return FreeModule(base_ring=self.base_ring(),
+                          rank = self.rank(), sparse=False,
+                          inner_product_matrix = self._inner_product_matrix)
+
+    def _sparse_module(self):
+        return FreeModule(base_ring = self.base_ring(),
+                          rank = self.rank(),
+                          sparse=True,
+                          inner_product_matrix = self._inner_product_matrix)
 
     def echelonized_basis_matrix(self):
         return self.basis_matrix()
@@ -2623,7 +2739,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
                 self.__echelonized_basis = basis_seq(self, w)
 
         if check and len(basis) != len(self.__echelonized_basis):
-            raise ArithmeticError, "basis vectors must be linearly independent."
+            raise ValueError, "basis vectors must be linearly independent."
 
     def echelonized_basis_matrix(self):
         """
@@ -3503,6 +3619,9 @@ def element_class(R, is_sparse):
     elif sage.rings.rational_field.is_RationalField(R) and not is_sparse:
         from vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
+    elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
+        from vector_modn_dense import Vector_modn_dense
+        return Vector_modn_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

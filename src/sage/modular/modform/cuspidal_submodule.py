@@ -87,13 +87,13 @@ class CuspidalSubmodule(submodule.ModularFormsSubmodule):
             sage: S = CuspForms(eps^2, 2)
 
             sage: S.modular_symbols(sign=0)
-            Modular Symbols subspace of dimension 4 of Modular Symbols space of dimension 15 for Gamma_1(13) of weight 2 with sign 0 and over Rational Field
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 4 and level 13, weight 2, character [zeta6], sign 0, over Cyclotomic Field of order 6 and degree 2
 
             sage: S.modular_symbols(sign=1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 13 for Gamma_1(13) of weight 2 with sign 1 and over Rational Field
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 and level 13, weight 2, character [zeta6], sign 1, over Cyclotomic Field of order 6 and degree 2
 
             sage: S.modular_symbols(sign=-1)
-            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 2 for Gamma_1(13) of weight 2 with sign -1 and over Rational Field
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 1 and level 13, weight 2, character [zeta6], sign -1, over Cyclotomic Field of order 6 and degree 2
         """
         try:
             return self.__modular_symbols[sign]
@@ -139,7 +139,7 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
 
     EXAMPLES:
         sage: S = CuspForms(DirichletGroup(5).0,5); S
-        Cuspidal subspace of dimension 2 of Modular Forms space of dimension 3, character [zeta4] and weight 5 over Rational Field
+        Cuspidal subspace of dimension 1 of Modular Forms space of dimension 3, character [zeta4] and weight 5 over Cyclotomic Field of order 4 and degree 2
 
         sage: S.basis()              # long time
         (q + (-zeta4 - 1)*q^2 + (6*zeta4 - 6)*q^3 + -14*zeta4*q^4 + (15*zeta4 + 20)*q^5 + O(q^6),)
@@ -153,7 +153,7 @@ class CuspidalSubmodule_eps(CuspidalSubmodule_modsym_qexp):
         sage: f.qexp(2)
         q + O(q^2)
         sage: f.qexp(1)
-        O(q)
+        O(q^1)
     """
 
     #def _repr_(self):

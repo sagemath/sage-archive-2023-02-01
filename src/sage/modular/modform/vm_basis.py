@@ -201,9 +201,9 @@ def delta_qexp(prec=10, var='q'):
 
     EXAMPLES:
         sage: delta_qexp(7)
-        q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 - 16744*q^7 + O(q^7)
+        q - 24*q^2 + 252*q^3 - 1472*q^4 + 4830*q^5 - 6048*q^6 + O(q^7)
         sage: delta_qexp(7,'z')
-        z - 24*z^2 + 252*z^3 - 1472*z^4 + 4830*z^5 - 6048*z^6 - 16744*z^7 + O(z^7)
+        z - 24*z^2 + 252*z^3 - 1472*z^4 + 4830*z^5 - 6048*z^6 + O(z^7)
         sage: delta_qexp(-3)
         Traceback (most recent call last):
         ...

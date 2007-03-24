@@ -23,20 +23,14 @@ import matrix
 import matrix_generic_dense
 import matrix_generic_sparse
 
-## import matrix_domain_dense
-## import matrix_domain_sparse
-
-## import matrix_pid_dense
-## import matrix_pid_sparse
-
-## import matrix_field_dense
-## import matrix_field_sparse
-
 import matrix_modn_dense
 import matrix_modn_sparse
 
+import matrix_mod2_dense
+#import matrix_mod2_sparse
+
 import matrix_integer_dense
-## import matrix_integer_sparse
+import matrix_integer_sparse
 
 import matrix_rational_dense
 import matrix_rational_sparse
@@ -404,7 +398,7 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             sage: MS1._get_matrix_class()
             <type 'sage.matrix.matrix_rational_dense.Matrix_rational_dense'>
             sage: MS2._get_matrix_class()
-            <type 'sage.matrix.matrix_generic_sparse.Matrix_generic_sparse'>
+            <type 'sage.matrix.matrix_integer_sparse.Matrix_integer_sparse'>
         """
         R = self.base_ring()
         if self.is_dense():
@@ -419,6 +413,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 import matrix_complex_double_dense
                 return matrix_complex_double_dense.Matrix_complex_double_dense
             elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_dense.MAX_MODULUS:
+                if R.order() == 2:
+                    return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense
@@ -429,6 +425,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
             # the default
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_sparse.Matrix_rational_sparse
+            elif sage.rings.integer_ring.is_IntegerRing(R):
+                return matrix_integer_sparse.Matrix_integer_sparse
             return matrix_generic_sparse.Matrix_generic_sparse
 
 

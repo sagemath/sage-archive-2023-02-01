@@ -44,12 +44,14 @@ from ideal import Ideal, is_Ideal
 # Quotient
 from quotient_ring import QuotientRing
 
-# Class Infinity containing the one element infinity
-from infinity import infinity, is_Infinity, InfinityRing
+# Infinities
+from infinity import infinity, Infinity, is_Infinite, InfinityRing, unsigned_infinity, UnsignedInfinityRing
+from extended_rational_field import ExtendedRationalField
+from extended_integer_ring import ExtendedIntegerRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
-from integer import Integer
+from integer import Integer, is_Integer
 
 # Rational numbers
 from rational_field import RationalField, QQ, is_RationalField
@@ -74,8 +76,8 @@ from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotie
 from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # p-adic field
-from padic_field import pAdicField, Qp, is_pAdicField
-from padic import pAdic
+
+from padics.all import *
 
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
@@ -130,6 +132,9 @@ from fraction_field import FractionField, is_FractionField
 Frac = FractionField
 from fraction_field_element import is_FractionFieldElement
 
+# continued fractions
+from contfrac import continued_fraction, CFF, ContinuedFractionField
+
 # Arithmetic
 from arith import *
 
@@ -143,3 +148,4 @@ from homset import is_RingHomset
 
 CC = ComplexField()
 I = CC.gen()
+

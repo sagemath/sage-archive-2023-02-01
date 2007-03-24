@@ -19,8 +19,7 @@ Relation matrices for ambient modular symbols spaces.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-SPARSE = True
-#SPARSE = False
+SPARSE=True
 
 import sage.matrix.matrix_space as matrix_space
 import sage.matrix.all
@@ -134,7 +133,7 @@ def modI_relations(syms, sign):
     misc.verbose("finished creating I relations",tm)
     return rels
 
-def T_relation_matrix_wtk_g0(syms, mod, field, weight):
+def T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse):
     """
     Compute a matrix whose echelon form gives the quotient by
     3-term T relations.
@@ -164,7 +163,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight):
         for j, s in iT_plus_iTT:
             if weight==2: already_seen.add(j)
             j0, s0 = mod[j]
-            s0 = field(s)*s0
+            s0 = s*s0
             if v.has_key(j0):
                 v[j0] += s0
             else:
@@ -176,7 +175,7 @@ def T_relation_matrix_wtk_g0(syms, mod, field, weight):
     MAT = matrix_space.MatrixSpace(field, row,
                                 len(syms), sparse=True)
     R = MAT(entries)
-    if not SPARSE:
+    if not sparse:
         R = R.dense_matrix()
     misc.verbose("finished (number of rows=%s)"%row, tm)
     return R
@@ -207,11 +206,23 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
         raise TypeError, "mod must be a list"
 
     misc.verbose(str(relation_matrix.parent()))
-    tm = misc.verbose("putting relation matrix in echelon form")
-    A = relation_matrix.echelon_form()
-    A.set_immutable()
 
-    tm = misc.verbose("echelon done, now creating gens --> basis mapping", tm)
+    try:
+        h = relation_matrix.height()
+    except AttributeError:
+        h = 9999999
+    tm = misc.verbose("putting relation matrix in echelon form (height = %s)"%h)
+    if h < 10:
+        algorithm = 'multimodular'
+        height_guess = 1
+    else:
+        algorithm = 'default'
+        height_guess = None
+    A = relation_matrix.echelon_form(algorithm=algorithm, height_guess=None)
+    A.set_immutable()
+    tm = misc.verbose('finished echelon', tm)
+
+    tm = misc.verbose("Now creating gens --> basis mapping")
 
     basis_set = set(A.nonpivots())
     pivots = A.pivots()
@@ -224,12 +235,15 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
 
     ONE = field(1)
 
-    tm = misc.verbose("done doing setup",tm)
+    misc.verbose("done doing setup",tm)
 
 
+    tm = misc.verbose("now forming quotient matrix")
     M = matrix_space.MatrixSpace(field, len(syms), len(basis), sparse=sparse)
 
     B = M(0)
+    cols_index = dict([(basis[i], i) for i in range(len(basis))])
+
     for i in basis_mod2:
         t, l = search(basis, i)
         if t:
@@ -238,7 +252,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
             _, r = search(pivots, i)    # so pivots[r] = i
             # Set row i to -(row r of A), but where we only take
             # the non-pivot columns of A:
-            B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis)
+            B._set_row_to_negative_of_row_of_A_using_subset_of_columns(i, A, r, basis, cols_index)
 
     misc.verbose("done making quotient matrix",tm)
 
@@ -256,7 +270,7 @@ def gens_to_basis_matrix(syms, relation_matrix, mod, field, sparse):
     return B, basis
 
 
-def compute_presentation(syms, sign, field, weight):
+def compute_presentation(syms, sign, field, weight, sparse=None):
     r"""
     Compute the presentation for self, as a quotient of Manin symbols
     modulo relations.
@@ -309,22 +323,22 @@ def compute_presentation(syms, sign, field, weight):
     \end{enumerate}
 
     """
-    R, mod = relation_matrix_wtk_g0(syms, sign, field, weight)
-    #if weight==2:
-        # heuristically the hecke operators are quite dense for weight > 2
-    #    sparse = True
-    #else:
-    sparse = False
+    if sparse is None:
+        if weight >= 6:
+            sparse = False
+        else:
+            sparse = True
+    R, mod = relation_matrix_wtk_g0(syms, sign, field, weight, sparse)
     B, basis = gens_to_basis_matrix(syms, R, mod, field, sparse)
     return B, basis, mod
 
-def relation_matrix_wtk_g0(syms, sign, field, weight):
+def relation_matrix_wtk_g0(syms, sign, field, weight, sparse):
     rels = modS_relations(syms)
     if sign != 0:
         # Let rels = rels union I relations.
         rels.update(modI_relations(syms,sign))
     mod = sparse_2term_quotient(rels, len(syms), field)
-    R = T_relation_matrix_wtk_g0(syms, mod, field, weight)
+    R = T_relation_matrix_wtk_g0(syms, mod, field, weight, sparse)
     return R, mod
 
 def sparse_2term_quotient(rels, n, F):
@@ -421,222 +435,222 @@ def sparse_2term_quotient(rels, n, F):
 ## historical reasons, and can probably be safely deleted.
 #############################################################
 
-def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
-    r"""
-    Create the sparse relation matrix over $\Q$ for Manin symbols of
-    weight 2 on $\Gamma_0(N)$, with given sign.
+## def sparse_relation_matrix_wt2_g0n(list, field, sign=0):
+##     r"""
+##     Create the sparse relation matrix over $\Q$ for Manin symbols of
+##     weight 2 on $\Gamma_0(N)$, with given sign.
 
-    INPUT:
-        list -- sage.modular.modsym.p1list.List
-    OUTPUT:
-        A -- a sparse matrix that gives the 2-term and 3-term
-             relations between Manin symbols.
+##     INPUT:
+##         list -- sage.modular.modsym.p1list.List
+##     OUTPUT:
+##         A -- a sparse matrix that gives the 2-term and 3-term
+##              relations between Manin symbols.
 
-    MORE DETAILS:
-    \begin{enumerate}
-      \item Create an empty sparse matrix.
+##     MORE DETAILS:
+##     \begin{enumerate}
+##       \item Create an empty sparse matrix.
 
-      \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
+##       \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
 
-      \item Enter the T relations:
-           $$
-                   x + x T = 0.
-           $$
-           Remove x and x*T from reps to consider.
+##       \item Enter the T relations:
+##            $$
+##                    x + x T = 0.
+##            $$
+##            Remove x and x*T from reps to consider.
 
-      \item If sign $\neq 0$, enter the I relations:
-           $$
-                   x - sign\cdot x\cdot I = 0.
-           $$
+##       \item If sign $\neq 0$, enter the I relations:
+##            $$
+##                    x - sign\cdot x\cdot I = 0.
+##            $$
 
-      \item Enter the S relations in the matrix:
-           $$
-                   x + x S + x S^2 = 0
-           $$
-           by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
-           Remove $x$, $x S$, and $x S^2$ from list of reps to consider.
-    \end{enumerate}
-    """
-    ZERO = field(0)
-    ONE =  field(1)
-    TWO =  field(2)
+##       \item Enter the S relations in the matrix:
+##            $$
+##                    x + x S + x S^2 = 0
+##            $$
+##            by putting 1s at cols corresponding to $x$, $x S$, and $x S^2$.
+##            Remove $x$, $x S$, and $x S^2$ from list of reps to consider.
+##     \end{enumerate}
+##     """
+##     ZERO = field(0)
+##     ONE =  field(1)
+##     TWO =  field(2)
 
-    # This will be a dict of the entries of the sparse matrix, where
-    # the notation is entries[(i,j)]=x.
-    entries = {}
+##     # This will be a dict of the entries of the sparse matrix, where
+##     # the notation is entries[(i,j)]=x.
+##     entries = {}
 
-    # The current row
-    row = 0
+##     # The current row
+##     row = 0
 
-    ##  The S relations
-    already_seen= set([])
-    for i in range(len(list)):
-        if i in already_seen:
-            continue
-        u,v = list[i]
-        j = list.index(v,-u)
-        already_seen.add(j)
-        if i != j:
-            entries[(row,i)] = ONE
-            entries[(row,j)] = ONE
-        else:
-            entries[(row,i)] = TWO
-        row += 1
-    number_of_S_relations = row
-    misc.verbose("There were %s S relations"%(number_of_S_relations))
+##     ##  The S relations
+##     already_seen= set([])
+##     for i in range(len(list)):
+##         if i in already_seen:
+##             continue
+##         u,v = list[i]
+##         j = list.index(v,-u)
+##         already_seen.add(j)
+##         if i != j:
+##             entries[(row,i)] = ONE
+##             entries[(row,j)] = ONE
+##         else:
+##             entries[(row,i)] = TWO
+##         row += 1
+##     number_of_S_relations = row
+##     misc.verbose("There were %s S relations"%(number_of_S_relations))
 
-    ##  The eta relations:
-    ##    eta((u,v)) = -(-u,v)
-    if sign != 0:
-        SIGN = field(sign)
-        already_seen= set([])
-        for i in range(len(list)):
-            if i in already_seen:
-                continue
-            u, v = list[i]
-            j = list.index(-u,v)
-            already_seen.add(j)
-            if i != j:
-                entries[(row,i)] = ONE
-                entries[(row,j)] = SIGN*ONE
-            else:
-                entries[(row,i)] = ONE + SIGN
-            row += 1
-    number_of_I_relations = row - number_of_S_relations
-    misc.verbose("There were %s I relations"%(number_of_I_relations))
+##     ##  The eta relations:
+##     ##    eta((u,v)) = -(-u,v)
+##     if sign != 0:
+##         SIGN = field(sign)
+##         already_seen= set([])
+##         for i in range(len(list)):
+##             if i in already_seen:
+##                 continue
+##             u, v = list[i]
+##             j = list.index(-u,v)
+##             already_seen.add(j)
+##             if i != j:
+##                 entries[(row,i)] = ONE
+##                 entries[(row,j)] = SIGN*ONE
+##             else:
+##                 entries[(row,i)] = ONE + SIGN
+##             row += 1
+##     number_of_I_relations = row - number_of_S_relations
+##     misc.verbose("There were %s I relations"%(number_of_I_relations))
 
-    ## The three-term T relations
-    already_seen = set([])
-    for i in range(len(list)):
-        if i in already_seen:
-            continue
-        u,v = list[i]
-        j1 = list.index(v,-u-v)
-        already_seen.add(j1)
-        j2 = list.index(-u-v,u)
-        already_seen.add(j2)
-        v = {i:ZERO, j1:ZERO, j2:ZERO}
-        v[i] = ONE
-        v[j1] += ONE
-        v[j2] += ONE
-        for x in v.keys():
-            entries[(row,x)] = v[x]
-        row += 1
+##     ## The three-term T relations
+##     already_seen = set([])
+##     for i in range(len(list)):
+##         if i in already_seen:
+##             continue
+##         u,v = list[i]
+##         j1 = list.index(v,-u-v)
+##         already_seen.add(j1)
+##         j2 = list.index(-u-v,u)
+##         already_seen.add(j2)
+##         v = {i:ZERO, j1:ZERO, j2:ZERO}
+##         v[i] = ONE
+##         v[j1] += ONE
+##         v[j2] += ONE
+##         for x in v.keys():
+##             entries[(row,x)] = v[x]
+##         row += 1
 
-    number_of_T_relations = row - number_of_I_relations - number_of_S_relations
-    misc.verbose("There were %s T relations"%(number_of_T_relations))
+##     number_of_T_relations = row - number_of_I_relations - number_of_S_relations
+##     misc.verbose("There were %s T relations"%(number_of_T_relations))
 
-    M = matrix_space.MatrixSpace(RationalField(), row,
-                    len(list), sparse=True)
-    if not SPARSE:
-        M = M.dense_matrix()
+##     M = matrix_space.MatrixSpace(RationalField(), row,
+##                     len(list), sparse=True)
+##     if not sparse:
+##         M = M.dense_matrix()
 
-    return M(entries)
+##     return M(entries)
 
-def sparse_relation_matrix_wtk_g0n(M, field, sign=0):
-    r"""
-    Create the sparse relation matrix over $\Q$ for Manin symbols of
-    given weight on $\Gamma_0(N)$, with given sign.
+## def sparse_relation_matrix_wtk_g0n(M, field, sign=0):
+##     r"""
+##     Create the sparse relation matrix over $\Q$ for Manin symbols of
+##     given weight on $\Gamma_0(N)$, with given sign.
 
-    INPUT:
-        M -- manin_symbols.ManinSymbolList
-        field -- base field
-        weight -- the weight, an integer > 2
-        sign -- element of [-1,0,1]
+##     INPUT:
+##         M -- manin_symbols.ManinSymbolList
+##         field -- base field
+##         weight -- the weight, an integer > 2
+##         sign -- element of [-1,0,1]
 
-    OUTPUT:
-        A -- a SparseMatrix that gives the 2-term and 3-term relations
-             between Manin symbols.
+##     OUTPUT:
+##         A -- a SparseMatrix that gives the 2-term and 3-term relations
+##              between Manin symbols.
 
-    MORE DETAILS:
-    \begin{enumerate}
-       \item Create an empty sparse matrix.
+##     MORE DETAILS:
+##     \begin{enumerate}
+##        \item Create an empty sparse matrix.
 
-        \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
+##         \item Let $S = [0,-1; 1,0]$, $T = [0,-1; 1,-1]$, $I = [-1,0; 0,1]$.
 
-        \item Enter the $T$ relations:
-                 $$  x + x*T = 0  $$
-           Remove $x$ and $x T$ from reps to consider.
+##         \item Enter the $T$ relations:
+##                  $$  x + x*T = 0  $$
+##            Remove $x$ and $x T$ from reps to consider.
 
-        \item If sign $\neq 0$, enter the I relations:
-        $$
-                   x + sign x I = 0.
-        $$
+##         \item If sign $\neq 0$, enter the I relations:
+##         $$
+##                    x + sign x I = 0.
+##         $$
 
-        \item Enter the $S$ relations in the matrix:
-           $$
-                   x + x S + x S^2 = 0
-           $$
-           by putting 1's at cols corresponding to $x$, $x S$, and $x S^2$.
-           Remove x from list of reps to consider.
-    \end{enumerate}
-    """
-    weight = M.weight()
-    if not (isinstance(weight, int) and weight > 2):
-        raise TypeError, "weight must be an int > 2"
+##         \item Enter the $S$ relations in the matrix:
+##            $$
+##                    x + x S + x S^2 = 0
+##            $$
+##            by putting 1's at cols corresponding to $x$, $x S$, and $x S^2$.
+##            Remove x from list of reps to consider.
+##     \end{enumerate}
+##     """
+##     weight = M.weight()
+##     if not (isinstance(weight, int) and weight > 2):
+##         raise TypeError, "weight must be an int > 2"
 
-    ZERO = field(0)
-    ONE =  field(1)
-    TWO =  field(2)
+##     ZERO = field(0)
+##     ONE =  field(1)
+##     TWO =  field(2)
 
-    # This will be a dict of the entries of the sparse matrix, where
-    # the notation is entries[(i,j)]=x.
-    entries = {}
+##     # This will be a dict of the entries of the sparse matrix, where
+##     # the notation is entries[(i,j)]=x.
+##     entries = {}
 
-    # The current row
-    row = 0
+##     # The current row
+##     row = 0
 
-    # The list of Manin symbol triples (i,u,v)
-    n = len(M)
+##     # The list of Manin symbol triples (i,u,v)
+##     n = len(M)
 
-    ##  The S relations
-    already_seen= set([])
-    for i in xrange(n):
-        if i in already_seen:
-            continue
-        j, s = M.apply_S(i)
-        already_seen.add(j)
-        if i != j:
-            entries[(row,i)] = ONE
-            entries[(row,j)] = field(s)
-        else:
-            entries[(row,i)] = ONE+field(s)
-        row += 1
-    number_of_S_relations = row
-    misc.verbose("There were %s S relations"%(number_of_S_relations))
-    cnt = row
-    ##  The I relations
-    if sign != 0:
-        SIGN = field(sign)
-        already_seen= set([])
-        for i in xrange(n):
-            if i in already_seen:
-                continue
-            j, s = M.apply_I(i)
-            already_seen.add(j)
-            if i != j:
-                entries[(row,i)] = ONE
-                entries[(row,j)] = -SIGN*field(s)
-            else:
-                entries[(row,i)] = ONE-SIGN*field(s)
-            row += 1
-    number_of_I_relations = row - number_of_S_relations
-    misc.verbose("There were %s I relations"%(number_of_I_relations))
-    cnt = row
+##     ##  The S relations
+##     already_seen= set([])
+##     for i in xrange(n):
+##         if i in already_seen:
+##             continue
+##         j, s = M.apply_S(i)
+##         already_seen.add(j)
+##         if i != j:
+##             entries[(row,i)] = ONE
+##             entries[(row,j)] = field(s)
+##         else:
+##             entries[(row,i)] = ONE+field(s)
+##         row += 1
+##     number_of_S_relations = row
+##     misc.verbose("There were %s S relations"%(number_of_S_relations))
+##     cnt = row
+##     ##  The I relations
+##     if sign != 0:
+##         SIGN = field(sign)
+##         already_seen= set([])
+##         for i in xrange(n):
+##             if i in already_seen:
+##                 continue
+##             j, s = M.apply_I(i)
+##             already_seen.add(j)
+##             if i != j:
+##                 entries[(row,i)] = ONE
+##                 entries[(row,j)] = -SIGN*field(s)
+##             else:
+##                 entries[(row,i)] = ONE-SIGN*field(s)
+##             row += 1
+##     number_of_I_relations = row - number_of_S_relations
+##     misc.verbose("There were %s I relations"%(number_of_I_relations))
+##     cnt = row
 
-    ## The T relations
-    already_seen = set([])
-    for i in xrange(n):
-        if i in already_seen:
-            continue
-        iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
-        v = {i:ONE}
-        for j, s in iT_plus_iTT:
-            if v.has_key(j):
-                v[j] += field(s)
-            else:
-                v[j] = field(s)
-        for j in v.keys():
-            entries[(row, j)] = v[j]
-        row += 1
+##     ## The T relations
+##     already_seen = set([])
+##     for i in xrange(n):
+##         if i in already_seen:
+##             continue
+##         iT_plus_iTT = M.apply_T(i) + M.apply_TT(i)
+##         v = {i:ONE}
+##         for j, s in iT_plus_iTT:
+##             if v.has_key(j):
+##                 v[j] += field(s)
+##             else:
+##                 v[j] = field(s)
+##         for j in v.keys():
+##             entries[(row, j)] = v[j]
+##         row += 1
 

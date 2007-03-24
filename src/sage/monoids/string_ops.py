@@ -59,7 +59,7 @@ def coincidence_index(S,n=1):
     EXAMPLES:
 	sage: S = strip_encoding("The cat in the hat.")
 	sage: coincidence_index(S)
-	0.120879120879120
+	0.120879120879121
     """
     if not isinstance(S,str):
         try:

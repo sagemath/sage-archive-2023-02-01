@@ -333,13 +333,14 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
         return other  # since self is ambient, so the intersection must equal other.
 
     def is_ambient(self):
-        """
+        r"""
         Returns True if and only if self is an ambient Hecke module.
 
-        WARNING: self can be ambient by virtue of being equal to an
-        ambient space, even if it is not of type AmbientHeckeModule.
+        WARNING: self can only be ambient by being of type
+        AmbientHeckeModule.
+
         For example, decomposing a simple ambient space yields a
-        single factor, and that factor \emph{is} also considered an
+        single factor, and that factor is \emph{not} considered an
         ambient space.
 
         EXAMPLES:
@@ -351,7 +352,7 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
             sage: a == m
             True
             sage: a.is_ambient()
-            True
+            False
         """
         return True
 
@@ -595,8 +596,6 @@ class AmbientHeckeModule(module.HeckeModule_free_module):
 
         if self.is_full_hecke_module(compute=False):
             S._is_full_hecke_module = True
-        elif self.is_anemic_hecke_module():
-            S._is_anemic_hecke_module = True
 
         return S
 

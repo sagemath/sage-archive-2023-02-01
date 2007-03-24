@@ -216,7 +216,7 @@ class NumberField_generic(field.Field):
             sage: k.<a> = NumberField(f)
             sage: v = k.complex_embeddings()
             sage: [phi(k.0^2) for phi in v]
-            [2.97572074037667, 0.921039066973047 - 3.07553311884577*I, 0.921039066973047 + 3.07553311884577*I, -2.40889943716138 + 1.90254105303505*I, -2.40889943716138 - 1.90254105303505*I]
+            [0.921039066973047 - 3.07553311884578*I, 0.921039066973047 + 3.07553311884578*I, 2.97572074037668, -2.40889943716139 - 1.90254105303505*I, -2.40889943716139 + 1.90254105303505*I]
         """
         try:
             return self.__complex_embeddings[prec]
@@ -1305,7 +1305,7 @@ class NumberField_cyclotomic(NumberField_generic):
             Ring morphism:
               From: Cyclotomic Field of order 4 and degree 2
               To:   Complex Field with 53 bits of precision
-              Defn: zeta4 |--> 0.0000000000000000612323399573676 + 1.00000000000000*I
+              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I
 
         Note in the example above that the way zeta is computed (using
         sin and cosine in MPFR) means that only the prec bits of the
@@ -1314,7 +1314,7 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: K = CyclotomicField(3)
             sage: phi = K.complex_embedding (10)
             sage: phi(K.0)
-            -0.49 + 0.86*I
+            -0.50 + 0.87*I
             sage: phi(K.0^3)
             1.0
             sage: phi(K.0^3 - 1)
@@ -1334,12 +1334,12 @@ class NumberField_cyclotomic(NumberField_generic):
             sage: C = CyclotomicField(4)
             sage: C.complex_embeddings()
             [Ring morphism:
-                  From: Cyclotomic Field of order 4 and degree 2
-                  To:   Complex Field with 53 bits of precision
-                  Defn: zeta4 |--> 0.0000000000000000612323399573676 + 1.00000000000000*I, Ring morphism:
-                  From: Cyclotomic Field of order 4 and degree 2
-                  To:   Complex Field with 53 bits of precision
-                  Defn: zeta4 |--> -0.000000000000000183697019872102 - 1.00000000000000*I]
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta4 |--> 6.12323399573677e-17 + 1.00000000000000*I, Ring morphism:
+              From: Cyclotomic Field of order 4 and degree 2
+              To:   Complex Field with 53 bits of precision
+              Defn: zeta4 |--> -0.000000000000000183697019872103 - 1.00000000000000*I]
         """
         CC = sage.rings.complex_field.ComplexField(prec)
         n = self.zeta_order()

@@ -15,13 +15,13 @@ EXAMPLES:
     [
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  0  0  1 96 96  1  0 95  1  1  1  1 95  2 96  0  0 96 96  0  0 96  2 96 96  2  0  0  1  1 95  0], 1),
+    [ 0  0  0  1 96 96  1  0 95  1  1  1  1 95  2 96  0  0 96 96  0  0 96  2 96 96  2  0  0  1  1 95  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 16 75 22 81  0  0 17 17 80 80  0  0 16  1 40 74 23 57 96 81  0 23 74  0  0  0 24 73  0  0], 1),
+    [ 0  1 96 16 75 22 81  0  0 17 17 80 80  0  0 16  1 40 74 23 57 96 81  0 23 74  0  0  0 24 73  0  0], True),
     (Vector space of degree 33 and dimension 1 over Finite Field of size 97
     Basis matrix:
-    [ 0  1 96 90 90  7  7  0  0  6 91  6 91  0  0  7 13  0 91  6  0 84 90  0 91  6  0  0  0 90  7  0  0], 1)
+    [ 0  1 96 90 90  7  7  0  0  6 91  6 91  0  0  7 13  0 91  6  0 84 90  0 91  6  0  0  0 90  7  0  0], True)
     ]
     sage: len(D)
     9
@@ -31,6 +31,19 @@ We compute a Hecker operator on a space of huge dimension!
     sage: t = X.T(2).matrix()            # long time (but still less than a minute!)
     sage: t.nrows()                      # long time
     8334
+
+TESTS:
+    sage: X = SupersingularModule(389)
+    sage: T = X.T(2).matrix().change_ring(QQ)
+    sage: d = T.decomposition()
+    sage: len(d)
+    6
+    sage: [a[0].dimension() for a in d]
+    [1, 1, 2, 3, 6, 20]
+    sage: loads(dumps(X)) == X
+    True
+    sage: loads(dumps(d)) == d
+    True
 """
 
 #*****************************************************************************

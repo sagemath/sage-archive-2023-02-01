@@ -27,6 +27,10 @@ if [ ! -d "$DEVEL/old" ]; then
     mkdir "$DEVEL/old"
 fi
 
+if [ ! -f "$DEVEL/sage-main"/.hg/00changelog.i ]; then
+   mv "$DEVEL/sage-main" "$DEVEL/old/sage-bad_delete_me"
+fi
+
 if [ -d "$DEVEL/sage-main" ]; then
     cd "$DEVEL/sage-main"
     #hg pull "$SAGE_SERVER"/hg/sage-main

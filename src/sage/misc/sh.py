@@ -18,7 +18,7 @@ class Sh:
         w.write(x)
         w.write('\npwd\n')
         w.close()
-        os.system('source t > out')
+        os.system('chmod +x t; ./t > out')
         s = open('out').read()
         os.system('rm t out')
         t = s.split('\n')

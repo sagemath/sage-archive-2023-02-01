@@ -29,10 +29,10 @@ Compute the same basis but to higher precision:
     sage: n.basis()
     [
     1 + 10*q^10 + 20*q^15 + O(q^20),
-    q + 2*q^6 + 12*q^11 + 11*q^16 + O(q^20),
-    q^2 + 6*q^7 + 6*q^12 + 16*q^17 + O(q^20),
-    q^3 + 5/2*q^8 + 6*q^13 + 7/2*q^18 + O(q^20),
-    q^4 + 7/3*q^9 + 2*q^14 + 20/3*q^19 + O(q^20),
+    q + 5*q^6 + q^9 + 12*q^11 - 3*q^14 + 17*q^16 + 8*q^19 + O(q^20),
+    q^2 + 4*q^7 - q^8 + 8*q^12 + 2*q^13 + 10*q^17 - 5*q^18 + O(q^20),
+    q^3 + q^7 + 3*q^8 - q^12 + 5*q^13 + 3*q^17 + 6*q^18 + O(q^20),
+    q^4 - q^6 + 2*q^9 + 3*q^14 - 2*q^16 + 4*q^19 + O(q^20),
     q^5 + q^10 + 2*q^15 + O(q^20)
     ]
 """
@@ -112,7 +112,9 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             sage: M3 = M.change_ring(GF(3))
             sage: M3.basis()
             [
-            ?????
+            1 + q^3 + q^4 + 2*q^5 + O(q^6),
+            q + q^3 + q^4 + O(q^6),
+            q^2 + 2*q^3 + q^4 + q^5 + O(q^6)
             ]
         """
         import constructor
@@ -204,6 +206,7 @@ class ModularFormsAmbient(space.ModularFormsSpace,
             ]
 
             sage: M.prec(5)
+            5
             sage: M.basis()
             [
             q - 24*q^2 + 252*q^3 - 1472*q^4 + O(q^5),
@@ -368,16 +371,16 @@ class ModularFormsAmbient(space.ModularFormsSpace,
 
             sage: ModularForms(Gamma1(5),3).eisenstein_series()
             [
-            -1/5*zeta4 - 2/5 + q + (4*zeta4 + 1)*q^2 + (-9*zeta4 + 1)*q^3 + (4*zeta4 - 15)*q^4 + O(q^6),
-            q + (zeta4 + 4)*q^2 + (-zeta4 + 9)*q^3 + (4*zeta4 + 15)*q^4 + O(q^6),
-            1/5*zeta4 - 2/5 + q + (-4*zeta4 + 1)*q^2 + (9*zeta4 + 1)*q^3 + (-4*zeta4 - 15)*q^4 + O(q^6),
-            q + (-zeta4 + 4)*q^2 + (zeta4 + 9)*q^3 + (-4*zeta4 + 15)*q^4 + O(q^6)
+            -1/5*zeta4 - 2/5 + q + (4*zeta4 + 1)*q^2 + (-9*zeta4 + 1)*q^3 + (4*zeta4 - 15)*q^4 + q^5 + O(q^6),
+            q + (zeta4 + 4)*q^2 + (-zeta4 + 9)*q^3 + (4*zeta4 + 15)*q^4 + 25*q^5 + O(q^6),
+            1/5*zeta4 - 2/5 + q + (-4*zeta4 + 1)*q^2 + (9*zeta4 + 1)*q^3 + (-4*zeta4 - 15)*q^4 + q^5 + O(q^6),
+            q + (-zeta4 + 4)*q^2 + (zeta4 + 9)*q^3 + (-4*zeta4 + 15)*q^4 + 25*q^5 + O(q^6)
             ]
 
             sage: eps = DirichletGroup(13).0^2
             sage: ModularForms(eps,2).eisenstein_series()
             [
-            7/13*zeta6 - 18/13 + q + (-2*zeta6 + 3)*q^2 + (3*zeta6 - 2)*q^3 + (-6*zeta6 + 3)*q^4 + -4*q^5 + O(q^6),
+            -7/13*zeta6 - 11/13 + q + (2*zeta6 + 1)*q^2 + (-3*zeta6 + 1)*q^3 + (6*zeta6 - 3)*q^4 + -4*q^5 + O(q^6),
             q + (zeta6 + 2)*q^2 + (-zeta6 + 3)*q^3 + (3*zeta6 + 3)*q^4 + 4*q^5 + O(q^6)
             ]
         """

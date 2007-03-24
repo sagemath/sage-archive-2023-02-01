@@ -27,7 +27,7 @@ import sage.plot.all as plot
 import sage.rings.arith as arith
 import sage.rings.all as rings
 import sage.rings.number_field as number_field
-from sage.rings.all import is_Infinity
+from sage.rings.all import is_Infinite
 import sage.misc.misc as misc
 import sage.misc.latex as latex
 import sage.modular.modform as modform
@@ -295,6 +295,15 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             (a : 0 : 1)
             sage: P+P
             (0 : 1 : 0)
+
+        We can create points that aren't really on the curve (but we
+        must use the point command):
+            sage: E = EllipticCurve('37a').change_ring(Qp(5))
+            sage: P = E.point([1,2,3],check=False)
+            sage: P
+            (1 : 2 : 3)
+            sage: P+P
+            (4*5^-2 + 3 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + 4*5^16 + O(5^17) : 2*5^-3 + 3*5^-2 + 3 + 4*5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + 4*5^10 + 4*5^11 + 4*5^12 + 4*5^13 + 4*5^14 + 4*5^15 + O(5^16) : 1)
         """
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()

@@ -49,16 +49,16 @@ def LaurentSeriesRing(base_ring, name=None, names=None, sparse=False):
 
     Laurent series rings are determined by their variable and the base ring,
     and are globally unique.
-        sage: K = pAdicField(5, prec = 5)
-        sage: L = pAdicField(5, prec = 200)
+        sage: K = Qp(5, prec = 5)
+        sage: L = Qp(5, prec = 200)
         sage: R.<x> = LaurentSeriesRing(K)
         sage: S.<y> = LaurentSeriesRing(L)
         sage: R is S
         False
-        sage: T.<y> = LaurentSeriesRing(pAdicField(5,prec=200))
+        sage: T.<y> = LaurentSeriesRing(Qp(5,prec=200))
         sage: S is T
         True
-        sage: W.<y> = LaurentSeriesRing(pAdicField(5,prec=199))
+        sage: W.<y> = LaurentSeriesRing(Qp(5,prec=199))
         sage: W is T
         False
     """
@@ -118,10 +118,10 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
     def __call__(self, x, n=0):
         """
         EXAMPLES:
-            sage: R.<u> = LaurentSeriesRing(pAdicField(5, 10))
+            sage: R.<u> = LaurentSeriesRing(Qp(5, 10))
             sage: S.<t> = LaurentSeriesRing(RationalField())
             sage: print R(t + t^2 + O(t^3))
-            u + u^2 + O(u^3)
+            (1 + O(5^10))*u + (1 + O(5^10))*u^2 + O(u^3)
 
         Note that coercing an element into its own parent just produces
         that element again (since Laurent series are immutable):

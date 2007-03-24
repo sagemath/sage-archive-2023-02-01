@@ -5366,7 +5366,7 @@ class A001333(SloaneSequence):
             self._precompute(n - len(self._b) + 1)
         # Alternatively:
         # precompute:
-        # self._b = arith.continued_fraction(RealField(400)(sqrt(2)), partial_convergents=True)
+        # self._b = arith.continued_fraction_list(RealField(400)(sqrt(2)), partial_convergents=True)
         # return self._b[1][n][0]
         return self._b[n]
 
@@ -5480,7 +5480,7 @@ class A000129(SloaneSequence):
             self._precompute(n - len(self._b) + 1)
         # Alternatively:
         # precompute:
-        # self._b = arith.continued_fraction(RealField(400)(sqrt(2)), partial_convergents=True)
+        # self._b = arith.continued_fraction_list(RealField(400)(sqrt(2)), partial_convergents=True)
         # return self._b[1][n][1]
         return self._b[n]
 

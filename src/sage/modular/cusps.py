@@ -24,7 +24,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from sage.rings.all import infinity, is_Infinity, Rational, Integer, ZZ, QQ
+from sage.rings.all import unsigned_infinity, is_Infinite, Rational, Integer, ZZ, QQ
 from sage.rings.integer_ring import IntegerRing
 from sage.rings.rational_field import RationalField
 from sage.structure.parent_base import ParentWithBase
@@ -32,6 +32,7 @@ from sage.structure.element import Element
 
 import congroup
 
+infinity = unsigned_infinity
 
 class Cusps_class(ParentWithBase):
     """
@@ -118,7 +119,7 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(GF(7)(3))
             3
         """
-        if is_Infinity(x):
+        if is_Infinite(x):
             return Cusp(x, parent=self)
         else:
             return self._coerce_try(x, QQ)
@@ -180,7 +181,7 @@ class Cusp(Element):
             self.__a = a; self.__b = b
             return
 
-        if is_Infinity(a):
+        if is_Infinite(a):
             self.__a = ZZ(1)
             self.__b = ZZ(0)
             return

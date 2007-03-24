@@ -30,7 +30,8 @@ from category import   (is_Category,
                         AlgebraModules,
                         AlgebraIdeals,
                         CommutativeAlgebraIdeals,
-                        Schemes)
+                        Schemes,
+                        ModularAbelianVarieties)
 
 
 from functor  import (is_Functor,

@@ -13,7 +13,8 @@ import math
 
 import sage.misc.misc as misc
 import sage.misc.search
-from sage.libs.pari.all import pari
+from sage.libs.pari.all import pari, PariError
+
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.complex_field
@@ -30,12 +31,20 @@ import integer
 # Elementary Arithmetic
 ##################################################################
 
-def algdep(z, n):
+def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=None):
     """
     Returns a polynomial of degree at most $n$ which is approximately
     satisfied by the number $z$.  Note that the returned polynomial
     need not be irreducible, and indeed usually won't be if $z$ is a good
     approximation to an algebraic number of degree less than $n$.
+
+    You can specify the number of known bits or digits with known_bits=k
+    or known_digits=k; Pari is then told to compute the result
+    using .8*k of these bits/digits.  (The Pari documentation recommends
+    using a factor between .6 and .9, but internally defaults to .8.)
+    Or, you can specify the precision to use directly with use_bits=k
+    or use_digits=k.  If none of these are specified, then the precision
+    is taken from the input value.
 
     ALGORITHM: Uses the PARI C-library algdep command.
 
@@ -53,22 +62,37 @@ def algdep(z, n):
 
     This example involves a complex number.
         sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
-        0.500000000000000 + 0.866025403784438*I
+        0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
-        x^6 + 2*x^3 + 1                      # 32-bit
-        x^5 - x^4 + x^3 + x^2 - x + 1        # 64-bit
+        x^5 + x^2
         sage: p.factor()
-        (x + 1)^2 * (x^2 - x + 1)^2          # 32-bit
-        (x + 1) * (x^2 - x + 1)^2            # 64-bit
+        (x + 1) * x^2 * (x^2 - x + 1)
         sage: z^2 - z + 1
-        0.000000000000000111022302462515
+        0.000000000000000111022302462516
 
     This example involves a $p$-adic number.
-        sage: K = pAdicField(3)
+        sage: K = Qp(3, print_mode = 'series')
         sage: a = K(7/19); a
         1 + 2*3 + 3^2 + 3^3 + 2*3^4 + 2*3^5 + 3^8 + 2*3^9 + 3^11 + 3^12 + 2*3^15 + 2*3^16 + 3^17 + 2*3^19 + O(3^20)
         sage: algdep(a, 1)
         19*x - 7
+
+    These examples show the importance of proper precision control.
+    We compute a 200-bit approximation to sqrt(2) which is wrong in the
+    33'rd bit.
+        sage: z = sqrt(RealField(200)(2)) + (1/2)^33
+        sage: p = algdep(z, 4); p
+        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        sage: factor(p)
+        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        sage: algdep(z, 4, known_bits=32)
+        x^2 - 2
+        sage: algdep(z, 4, known_digits=10)
+        x^2 - 2
+        sage: algdep(z, 4, use_bits=25)
+        x^2 - 2
+        sage: algdep(z, 4, use_digits=8)
+        x^2 - 2
     """
 
     # TODO -- change to use PARI C library???
@@ -89,12 +113,27 @@ def algdep(z, n):
     elif isinstance(z, complex):
         z = sage.rings.complex_field.ComplexField()(z)
 
-    if misc.is_64_bit and isinstance(z, (sage.rings.real_mpfr.RealNumber,
-                                         sage.rings.complex_number.ComplexNumber)):
-        bits = int(float(z.prec()/3))
-        if bits == 0:
-            bits = 1
-        f = pari(z).algdep(n, bits)
+    if isinstance(z, (sage.rings.real_mpfr.RealNumber,
+                      sage.rings.complex_number.ComplexNumber)):
+        # We need to specify a precision.  Otherwise, Pari will default
+        # to using 80% of the bits in the Pari value; for certain precisions,
+        # this could be very wrong.  (On a 32-bit machine, a RealField(33)
+        # value gets translated to a 64-bit Pari value; so Pari would
+        # try to use about 51 bits of our 32-bit value.  Similarly
+        # bad things would happen on a 64-bit machine with RealField(65).)
+        log2 = 0.301029995665
+        digits = int(log2 * z.prec())
+        if known_bits is not None:
+            known_digits = log2 * known_bits
+        if known_digits is not None:
+            use_digits = known_digits * 0.8
+        if use_bits is not None:
+            use_digits = log2 * use_bits
+        if use_digits is not None:
+            digits = int(use_digits)
+        if digits == 0:
+            digits = 1
+        f = pari(z).algdep(n, digits)
     else:
         y = pari(z)
         f = y.algdep(n)
@@ -230,7 +269,11 @@ def prime_pi(x):
     """
     if x < 2:
         return integer_ring.ZZ(0)
-    return integer_ring.ZZ(pari(x).primepi())
+    try:
+        return integer_ring.ZZ(pari(x).primepi())
+    except PariError:
+        pari.init_primes(pari(x)+1)
+        return integer_ring.ZZ(pari(x).primepi())
 
 number_of_primes = prime_pi
 
@@ -438,7 +481,7 @@ def valuation(m, p):
     Valuation of 0 is defined, but valuation with respect to 0 is not::
 
         sage: valuation(0,7)
-        Infinity
+        +Infinity
         sage: valuation(3,0)
         Traceback (most recent call last):
         ...
@@ -633,11 +676,13 @@ def primes(start, stop=None):
     proves correctness.
 
     EXAMPLES:
-        sage.: for p in primes(5,10):
+        sage: for p in primes(5,10):
         ...     print p
         ...
         5
         7
+        sage: list(primes(11))
+        [2, 3, 5, 7]
         sage: list(primes(10000000000, 10000000100))
         [10000000019, 10000000033, 10000000061, 10000000069, 10000000097]
     """
@@ -651,7 +696,7 @@ def primes(start, stop=None):
     n = start - 1
     while True:
         n = next_prime(n)
-        if n <= stop:
+        if n < stop:
             yield n
         else:
             return
@@ -841,10 +886,7 @@ def random_prime(n):
     elif n == 2:
         return integer_ring.ZZ(n)
     else:
-        previous_prime(random.randint(3,n))
-
-    return previous_prime(random.randint(3,n))
-
+        return previous_prime(random.randint(3,n+1))
 
 
 def divisors(n):
@@ -1652,16 +1694,21 @@ def euler_phi(n):
     return integer_ring.ZZ(pari(n).phi())
     #return misc.mul([(p-1)*p**(r-1) for p, r in factor(n)])
 
-def crt(a,b=0,m=1,n=1):
+def crt(a,b,m,n):
     """
     Use the Chinese Remainder Theorem to find some integer x such
     that x=a (mod m) and x=b (mod n).   Note that x is only well-defined
     modulo m*n.
 
-    sage: crt(2, 1, 3, 5)
-    -4
-    sage: crt(13,20,100,301)
-    -2087
+    EXAMPLES:
+        sage: crt(2, 1, 3, 5)
+        -4
+        sage: crt(13,20,100,301)
+        -2087
+
+    You can also use upper case:
+        sage: CRT(2,3, 3, 5)
+        8
     """
     if isinstance(a,list):
         return CRT_list(a,b)
@@ -1673,6 +1720,15 @@ def crt(a,b=0,m=1,n=1):
 CRT = crt
 
 def CRT_list(v, moduli):
+    """
+    Given a list v of integers and a list of corresponding
+    moduli, find a single integer that reduces to each
+    element of v modulo the corresponding moduli.
+
+    EXAMPLES:
+        sage: CRT_list([2,3,2], [3,5,7])
+        23
+    """
     if len(v) == 0:
         return 0
     x = v[0]
@@ -1799,6 +1855,8 @@ def kronecker_symbol(x,y):
 
     IMPLEMENTATION: Using Pari.
     """
+    x = integer_ring.ZZ(x)
+    y = integer_ring.ZZ(y)
     return integer_ring.ZZ(pari(x).kronecker(y).python())
 
 def kronecker(x,y):
@@ -1806,6 +1864,41 @@ def kronecker(x,y):
     Synonym for \code{kronecker_symbol}.
     """
     return kronecker_symbol(x,y)
+
+def legendre_symbol(x,p):
+    r"""
+    The Legendre symbol (x|p), for $p$ prime.
+
+    NOTE: The \code{kronecker_symbol} command extends the
+    Legendre symbol to composite moduli and $p=2$.
+
+    INPUT:
+        x -- integer
+        p -- an odd prime number
+
+    EXAMPLES:
+        sage: legendre_symbol(2,3)
+        -1
+        sage: legendre_symbol(1,3)
+        1
+        sage: legendre_symbol(1,2)
+        Traceback (most recent call last):
+        ...
+        ValueError: p must be odd
+        sage: legendre_symbol(2,15)
+        Traceback (most recent call last):
+        ...
+        ValueError: p must be a prime
+        sage: kronecker_symbol(2,15)
+        1
+    """
+    x = integer_ring.ZZ(x)
+    p = integer_ring.ZZ(p)
+    if not p.is_prime():
+        raise ValueError, "p must be a prime"
+    if p == 2:
+        raise ValueError, "p must be odd"
+    return integer_ring.ZZ(pari(x).kronecker(p).python())
 
 def primitive_root(n):
     """
@@ -2110,9 +2203,26 @@ def partitions(n):
         if p and (len(p) < 2 or p[1] > p[0]):
             yield (p[0] + 1,) + p[1:]
 
-def continued_fraction(x, partial_convergents=False):
+
+
+## def convergents_pnqn(x):
+##     """
+##     Return the pairs (pn,qn) that are the numerators and denominators
+##     of the partial convergents of the continued fraction of x.  We
+##     include (0,1) and (1,0) at the beginning of the list (these are
+##     the -2 and -1 th convergents).
+##     """
+##     v = pari(x).contfrac()
+##     w = [(0,1), (1,0)]
+##     for n in range(len(v)):
+##         pn = w[n+1][0]*v[n] + w[n][0]
+##         qn = w[n+1][1]*v[n] + w[n][1]
+##         w.append(int(pn), int(qn))
+##     return w
+
+def continued_fraction_list(x, partial_convergents=False, bits=None):
     r"""
-    Returns the continued fraction of x.
+    Returns the continued fraction of x as a list.
 
     \begin{note}
     This may be slow since it's implemented in pure
@@ -2121,11 +2231,17 @@ def continued_fraction(x, partial_convergents=False):
     \end{note}
 
     EXAMPLES:
-        sage: continued_fraction(45/17)
+        sage: continued_fraction_list(45/17)
         [2, 1, 1, 1, 5]
-        sage: continued_fraction(sqrt(2))
+        sage: continued_fraction_list(e, bits=20)
+        [2, 1, 2, 1, 1, 4, 1, 1, 6]
+        sage: continued_fraction_list(e, bits=30)
+        [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1]
+        sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
-        sage: continued_fraction(RR(pi), partial_convergents=True)
+        sage: continued_fraction_list(sqrt(4/19))
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+        sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
           (22, 7),
@@ -2141,14 +2257,17 @@ def continued_fraction(x, partial_convergents=False):
           (5419351, 1725033),
           (80143857, 25510582),
           (245850922, 78256779)])
-        sage: continued_fraction(e)
+        sage: continued_fraction_list(e)
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-        sage: continued_fraction(RR(e))
+        sage: continued_fraction_list(RR(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 11]
-        sage: print continued_fraction(RealField(200)(e))
+        sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
-    if isinstance(x, (integer.Integer, sage.rings.rational.Rational,
+    if not bits is None:
+        x = sage.rings.real_mpfr.RealField(bits)(x)
+    elif not partial_convergents and \
+           isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
         return pari(x).contfrac().python()
     x_in = x
@@ -2157,6 +2276,7 @@ def continued_fraction(x, partial_convergents=False):
     start = x
     i = 0
     try:
+        last = None
         while True:
             i += 1
             a = integer_ring.ZZ(int(x.floor()))
@@ -2166,12 +2286,14 @@ def continued_fraction(x, partial_convergents=False):
             qn = v[n]*w[n+1][1] + w[n][1]
             w.append((pn, qn))
             x -= a
-            if abs(start - pn/qn) == 0:
+            s = start - pn/qn
+            if abs(s) == 0 or (not last is None  and last == s):
                 del w[0]; del w[0]
                 if partial_convergents:
                     return v, w
                 else:
                     return v
+            last = s
             x = 1/x
     except (AttributeError, NotImplementedError, TypeError), msg:
         raise NotImplementedError, "%s\ncomputation of continued fraction of x not implemented; try computing continued fraction of RR(x) instead."%msg
@@ -2216,23 +2338,6 @@ def convergent(v, n):
     return x
 
 
-
-## def convergents_pnqn(x):
-##     """
-##     Return the pairs (pn,qn) that are the numerators and denominators
-##     of the partial convergents of the continued fraction of x.  We
-##     include (0,1) and (1,0) at the beginning of the list (these are
-##     the -2 and -1 th convergents).
-##     """
-##     v = pari(x).contfrac()
-##     w = [(0,1), (1,0)]
-##     for n in range(len(v)):
-##         pn = w[n+1][0]*v[n] + w[n][0]
-##         qn = w[n+1][1]*v[n] + w[n][1]
-##         w.append(int(pn), int(qn))
-##     return w
-
-
 def convergents(v):
     """
     Return all the partial convergents of a continued fraction
@@ -2262,7 +2367,6 @@ def convergents(v):
         qn = w[n+1][1]*v[n] + w[n][1]
         w.append((pn, qn))
     return [Q(x) for x in w[2:]]
-
 
 
 ## def continuant(v, n=None):
@@ -2483,13 +2587,13 @@ def falling_factorial(x, a):
         sage: falling_factorial(10, RR('3.0'))
         720.000000000000
         sage: falling_factorial(10, RR('3.3'))
-        1310.11633396600
+        1310.11633396601
         sage: falling_factorial(10, 10)
         3628800
         sage: factorial(10)
         3628800
         sage: falling_factorial(1+I, I)
-        0.652965496420166 + 0.343065839816545*I
+        0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
         2.00000000000000 + 4.00000000000000*I
         sage: falling_factorial(I, 4)
@@ -2550,7 +2654,7 @@ def rising_factorial(x, a):
         2826.38895824964
 
         sage: rising_factorial(1+I, I)
-        0.266816390637832 + 0.122783354006371*I
+        0.266816390637832 + 0.122783354006372*I
 
         sage: rising_factorial(I, 4)
         -10.0000000000000

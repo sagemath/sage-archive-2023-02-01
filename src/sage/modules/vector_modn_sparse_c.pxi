@@ -5,61 +5,47 @@
 #                  http://www.gnu.org/licenses/
 #############################################################################
 
-cdef int allocate_c_vector_modint(c_vector_modint* v, int num_nonzero) except -1:
+include 'vector_modn_sparse_h.pxi'
+
+cdef int allocate_c_vector_modint(c_vector_modint* v, Py_ssize_t num_nonzero) except -1:
     """
     Allocate memory for a c_vector_modint -- most user code won't call this.
     """
     v.entries = <int*>sage_malloc(num_nonzero*sizeof(int))
-    if v.entries == <int*> 0:
+    if v.entries == NULL:
         raise MemoryError, "Error allocating memory"
-    v.positions = <int*>sage_malloc(num_nonzero*sizeof(int))
-    if v.positions == <int*> 0:
+    v.positions = <Py_ssize_t*>sage_malloc(num_nonzero*sizeof(Py_ssize_t))
+    if v.positions == NULL:
         raise MemoryError, "Error allocating memory"
     return 0
 
-cdef int init_c_vector_modint(c_vector_modint* v, int p, int degree,
-                              int num_nonzero) except -1:
+cdef int init_c_vector_modint(c_vector_modint* v, int p, Py_ssize_t degree,
+                              Py_ssize_t num_nonzero) except -1:
     """
-    Initialize a c_vector_modint -- most user code *will* call this.
+    Initialize a c_vector_modint.
     """
     if (allocate_c_vector_modint(v, num_nonzero) == -1):
-        return -1
+        raise MemoryError, "Error allocating memory for sparse vector."
     if p > 46340:
         raise OverflowError, "The prime must be <= 46340."
     v.num_nonzero = num_nonzero
     v.degree = degree
     v.p = p
+    return 0
 
 cdef void clear_c_vector_modint(c_vector_modint* v):
     sage_free(v.entries)
     sage_free(v.positions)
 
-cdef int linear_search0(int* v, int n, int x):
+cdef Py_ssize_t binary_search0_modn(Py_ssize_t* v, Py_ssize_t n, int x):
     """
-    Find the position of the integer x in the array v, which has length n.
-    Returns -1 if x is not in the array v.
-
-    (This is a drop-in replacement for binary_search0, which we do
-    not use in practice.  I just wrote it to make sure binary_search0
-    was working correctly.)
-    """
-    if n == 0:
-        return -1
-    cdef int k
-    for k from 0 <= k < n:
-        if v[k] == x:
-            return k
-    return -1
-
-cdef int binary_search0(int* v, int n, int x):
-    """
-    Find the position of the integer x in the array v, which has length n.
+    Find the position of the int x in the array v, which has length n.
     Returns -1 if x is not in the array v.
     """
     if n == 0:
         return -1
 
-    cdef int i, j, k
+    cdef Py_ssize_t i, j, k
     i = 0
     j = n-1
     while i<=j:
@@ -76,34 +62,7 @@ cdef int binary_search0(int* v, int n, int x):
             return k
     return -1
 
-
-cdef int linear_search(int* v, int n, int x, int* ins):
-    """
-    Find the position of the integer x in the array v, which has length n.
-    Returns -1 if x is not in the array v, and in this case ins is
-    set equal to the position where x should be inserted in order to
-    get the array ordered.
-
-    (This is a drop-in replacement for binary_search, which we do
-    not use in practice.  I just wrote it to make sure binary_search
-    was working.)
-    """
-    if n == 0:
-        ins[0] = 0
-        return -1
-
-    cdef int k
-    for k from 0 <= k < n:
-        if v[k] >= x:
-            ins[0] = k
-            if v[k] == x:
-                return k
-            else:
-                return -1
-    ins[0] = n
-    return -1
-
-cdef int binary_search(int* v, int n, int x, int* ins):
+cdef Py_ssize_t binary_search_modn(Py_ssize_t* v, Py_ssize_t n, int x, Py_ssize_t* ins):
     """
     Find the position of the integer x in the array v, which has length n.
     Returns -1 if x is not in the array v, and in this case ins is
@@ -114,7 +73,7 @@ cdef int binary_search(int* v, int n, int x, int* ins):
         ins[0] = 0
         return -1
 
-    cdef int i, j, k
+    cdef Py_ssize_t i, j, k
     i = 0
     j = n-1
     while i<=j:
@@ -139,20 +98,7 @@ cdef int binary_search(int* v, int n, int x, int* ins):
     ins[0] = j+1
     return -1
 
-def bs(v, x):
-    cdef int* w
-    w = <int*>sage_malloc(sizeof(int)*len(v))
-    for i from 0 <= i < len(v):
-        w[i] = v[i]
-    cdef int ins, b
-    b = binary_search(w, len(v), x, &ins)
-    s1 = (b, ins)
-    b = linear_search(w, len(v), x, &ins)
-    s2 = (b, ins)
-    sage_free(w)
-    return s1, s2
-
-cdef int get_entry(c_vector_modint* v, int n) except -1:
+cdef int get_entry(c_vector_modint* v, Py_ssize_t n) except -1:
     """
     Returns the n-th entry of the sparse vector v.  This
     would be v[n] in Python syntax.
@@ -160,9 +106,8 @@ cdef int get_entry(c_vector_modint* v, int n) except -1:
     if n >= v.degree or n < 0:
         raise IndexError, "Index must be between 0 and the degree minus 1."
         return -1
-    cdef int m
-    m = binary_search0(v.positions, v.num_nonzero, n)
-    #m = linear_search0(v.positions, v.num_nonzero, n)
+    cdef Py_ssize_t m
+    m = binary_search0_modn(v.positions, v.num_nonzero, n)
     if m == -1:
         return 0
     return v.entries[m]
@@ -173,27 +118,28 @@ cdef object to_list(c_vector_modint* v):
     through the nonzero elements of x, in order.
     """
     cdef object X
-    cdef int i
+    cdef Py_ssize_t i
     X = []
     for i from 0 <= i < v.num_nonzero:
         X.append( (v.positions[i], v.entries[i]) )
     return X
 
-cdef int set_entry(c_vector_modint* v, int n, int x) except -1:
+cdef int set_entry(c_vector_modint* v, Py_ssize_t n, int x) except -1:
     """
     Set the n-th component of the sparse vector v equal to x.
     This would be v[n] = x in Python syntax.
     """
-    if n >= v.degree:
-        raise IndexError, "Index must be between 0 and the degree minus 1."
+    if n < 0 or n >= v.degree:
+        raise IndexError, "Index (=%s) must be between 0 and %s."%(n, v.degree-1)
         return -1
-    cdef int i, m, ins
-    cdef int m2, ins2
-    cdef int *e, *pos
+    cdef Py_ssize_t i, m, ins
+    cdef Py_ssize_t m2, ins2
+    cdef Py_ssize_t *pos
+    cdef int *e
 
     x = x % v.p
     if x<0: x = x + v.p
-    m = binary_search(v.positions, v.num_nonzero, n, &ins)
+    m = binary_search_modn(v.positions, v.num_nonzero, n, &ins)
 
     if m != -1:
         # The position n was found in the array of positions.
@@ -255,7 +201,8 @@ cdef int add_c_vector_modint_init(c_vector_modint* sum, c_vector_modint* v,
         raise ArithmeticError, "The vectors must have the same degree."
         return -1
 
-    cdef int nz, i, j, k, s
+    cdef int s
+    cdef Py_ssize_t nz, i, j, k
     cdef c_vector_modint* z
 
     multiple = multiple % v.p    # need this to avoid overflow.
@@ -326,7 +273,7 @@ cdef int scale_c_vector_modint(c_vector_modint* v, int scalar) except -1:
         return 0
     if scalar < 0:
         scalar = scalar + v.p
-    cdef int i
+    cdef Py_ssize_t i
     for i from 0 <= i < v.num_nonzero:
         v.entries[i] = (v.entries[i] * scalar) % v.p
     return 0

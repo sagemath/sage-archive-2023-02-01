@@ -68,12 +68,13 @@ def __find_eisen_chars(character, k):
     if character.is_trivial():
         if k%2 != 0:
             return []
-        V = [(character, character, t) for t in divisors(N) if t>1]
+        char_inv = ~character
+        V = [(character, char_inv, t) for t in divisors(N) if t>1]
         if k != 2:
-            V.insert(0,(character, character, 1))
+            V.insert(0,(character, char_inv, 1))
         if is_squarefree(N):
             return V
-        # Now include all pairs (chi,chi) such that cond(chi)^2 divides N:
+        # Now include all pairs (chi,chi^(-1)) such that cond(chi)^2 divides N:
         # TODO: Optimize -- this is presumably way too hard work below.
         G = dirichlet.DirichletGroup(N)
         for chi in G:
@@ -81,8 +82,9 @@ def __find_eisen_chars(character, k):
                 f = chi.conductor()
                 if N % (f**2) == 0:
                     chi = chi.minimize_base_ring()
+                    chi_inv = ~chi
                     for t in divisors(N//(f**2)):
-                        V.insert(0, (chi, chi, t))
+                        V.insert(0, (chi, chi_inv, t))
         return V
 
 
@@ -126,7 +128,7 @@ def __find_eisen_chars(character, k):
             GR = C[R]
             for chi in GL:
                 for psi in GR:
-                    if chi == eps*psi:
+                    if chi*psi == eps:
                         chi, psi = __common_minimal_basering(chi, psi)
                         for t in divisors(N/(R*L)):
                             params.append( (chi,psi,t) )
@@ -175,7 +177,7 @@ def compute_eisenstein_params(character, k):
     $\chi(-1)*\psi(-1) =(-1)^k$.
     """
 
-    if isinstance(character, (int,long)):
+    if isinstance(character, (int,long,Integer)):
         N = character
         character = None
     else:

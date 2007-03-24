@@ -202,10 +202,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if isinstance(a, tuple):
             a = a[0]
         d = self.degree()
-        try:
-            result = a.parent()(1) * self[d]
-        except (AttributeError,TypeError):
-            result = self[d]
+        result = self[d]
+        if d == 0:
+            return a.parent()(1) * result
         i = d - 1
         while i >= 0:
             result = result * a + self[i]

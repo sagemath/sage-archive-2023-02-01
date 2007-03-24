@@ -219,7 +219,7 @@ class ClassicHostInfo(object):
 
                     l = [li.strip() for li in l]
                     if l[0] == 'hw.cpufrequency':
-                        host_info['cpu Mhz'] = str(int(l[1]) / 1000000)
+                        host_info['cpu MHz'] = str(int(l[1]) / 1000000)
                     elif l[0] == 'hw.availcpu':
                         host_info['cpus'] = int(l[1])
                     elif l[0] == 'hw.physmem':
@@ -228,7 +228,7 @@ class ClassicHostInfo(object):
                         host_info['MemFree'] = int(int(host_info['MemTotal']) -
                                                int(l[1]) / int(1024*2))
                     elif l[0] == 'machdep.cpu.brand_string':
-                        host_info['cpu model'] = l[1]
+                        host_info['model name'] = l[1]
 
                 # hostname
                 hostname = os.popen('hostname').readline().strip()
@@ -250,12 +250,11 @@ class ClassicHostInfo(object):
         """Standarize host info so we can parse it easily"""
 
         unify_info = {'model name': 'cpu_name',
-                          'cpu Mhz': 'cpu_speed',
+                          'cpu MHz': 'cpu_speed',
                           'MemTotal': 'mem_total',
                           'MemFree': 'mem_free',
                           'kernel_version': 'kernel_version',
                           'processor': 'processors',
-                          'cpu model': 'cpu_model',
                           'cache size': 'cpu_cache_size',
                           'fpu': 'fpu',
                           'hostname': 'hostname',

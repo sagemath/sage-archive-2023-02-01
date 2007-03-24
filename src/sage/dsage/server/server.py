@@ -84,6 +84,9 @@ class DSageServer(pb.Root):
     def set_job_uuid(self, job_id, uuid):
         return self.jobdb.set_job_uuid(job_id, uuid)
 
+    def set_busy(self, uuid, busy):
+        return self.monitordb.set_busy(uuid, busy=busy)
+
     def get_job_by_id(self, job_id):
         r"""
         Returns a job by the job id.

@@ -49,6 +49,7 @@ class MonitorDatabase(object):
      mem_total INTEGER,
      mem_free INTEGER,
      connected BOOL,
+     busy BOOL,
      last_connection timestamp
     )
     """
@@ -168,16 +169,36 @@ class MonitorDatabase(object):
 
         self.con.commit()
 
-    def get_worker_count(self, connected=True):
+    def set_busy(self, uuid, busy):
+        r"""
+        Sets whether or not a worker is doing a job.
+
+        """
+
+        if busy:
+            query = """UPDATE monitors SET busy=1 WHERE uuid=?"""
+        else:
+            query = """UPDATE monitors SET busy=0 WHERE uuid=?"""
+
+        cur = self.con.cursor()
+        cur.execute(query, (uuid,))
+        self.con.commit()
+
+    def get_worker_count(self, connected, busy):
         r"""
         Returns the number of workers.
 
         Parameters:
         connected -- bool
-
+        busy -- bool
         """
 
-        if connected:
+        if connected and not busy:
+            query = """SELECT workers FROM monitors
+            WHERE connected AND NOT busy"""
+        elif connected and busy:
+            query = """SELECT workers FROM monitors WHERE connected AND busy"""
+        elif connected:
             query = """SELECT workers FROM monitors WHERE connected"""
         else:
             query = "SELECT workers FROM monitors WHERE NOT connected"
@@ -251,9 +272,14 @@ class MonitorDatabase(object):
         def add_totalAgentCount(doc, gauge):
             totalAgentCount = doc.createElement('totalAgentCount')
             gauge.appendChild(totalAgentCount)
-            worker_count = (self.get_worker_count(connected=False) +
-                            self.get_worker_count(connected=True))
-            count = doc.createTextNode(str(worker_count))
+            working_workers = self.get_worker_count(connected=True, busy=True)
+            free_workers = self.get_worker_count(connected=True, busy=False)
+            disconnected_workers = self.get_worker_count(connected=False,
+                                                         busy=False)
+            total_workers = (working_workers +
+                             free_workers +
+                             disconnected_workers)
+            count = doc.createTextNode(str(total_workers))
             totalAgentCount.appendChild(count)
 
             return doc, totalAgentCount
@@ -261,8 +287,9 @@ class MonitorDatabase(object):
         def add_onlineAgentCount(doc, gauge):
             onlineAgentCount = doc.createElement('onlineAgentCount')
             gauge.appendChild(onlineAgentCount)
-            worker_count = self.get_worker_count(connected=True)
-            count = doc.createTextNode(str(worker_count))
+            free_workers = self.get_worker_count(connected=True, busy=False)
+            busy_workers = self.get_worker_count(connected=True, busy=True)
+            count = doc.createTextNode(str(free_workers + busy_workers))
             onlineAgentCount.appendChild(count)
 
             return doc, onlineAgentCount
@@ -270,7 +297,7 @@ class MonitorDatabase(object):
         def add_offlineAgentCount(doc, gauge):
             offlineAgentCount = doc.createElement('offlineAgentCount')
             gauge.appendChild(offlineAgentCount)
-            worker_count = self.get_worker_count(connected=False)
+            worker_count = self.get_worker_count(connected=False, busy=False)
             count = doc.createTextNode(str(worker_count))
             offlineAgentCount.appendChild(count)
 
@@ -279,7 +306,7 @@ class MonitorDatabase(object):
         def add_workingAgentCount(doc, gauge):
             workingAgentCount = doc.createElement('workingAgentCount')
             gauge.appendChild(workingAgentCount)
-            worker_count = self.get_worker_count(connected=True)
+            worker_count = self.get_worker_count(connected=True, busy=True)
             count = doc.createTextNode(str(worker_count))
             workingAgentCount.appendChild(count)
 
@@ -288,7 +315,8 @@ class MonitorDatabase(object):
         def add_availableAgentCount(doc, gauge):
             availableAgentCount = doc.createElement('availableAgentCount')
             gauge.appendChild(availableAgentCount)
-            worker_count = self.get_worker_count(connected=True)
+            # worker_count = self.get_worker_count(connected=True)
+            worker_count = self.get_worker_count(connected=True, busy=False)
             count = doc.createTextNode(str(worker_count))
             availableAgentCount.appendChild(count)
 
@@ -297,7 +325,7 @@ class MonitorDatabase(object):
         def add_unavailableAgentCount(doc, gauge):
             unavailableAgentCount = doc.createElement('unavailableAgentCount')
             gauge.appendChild(unavailableAgentCount)
-            worker_count = self.get_worker_count(connected=False)
+            worker_count = self.get_worker_count(connected=True, busy=True)
             count = doc.createTextNode(str(worker_count))
             unavailableAgentCount.appendChild(count)
 
@@ -306,33 +334,66 @@ class MonitorDatabase(object):
         def add_workingMegaHertz(doc, gauge):
             workingMegaHertz = doc.createElement('workingMegaHertz')
             gauge.appendChild(workingMegaHertz)
-            cpu_speed = self.get_cpu_speed(connected=False)
+            cpu_speed = self.get_cpu_speed(connected=True)
             mhz = doc.createTextNode(str(cpu_speed))
             workingMegaHertz.appendChild(mhz)
 
             return doc, workingMegaHertz
 
+        def add_availableProcessorCount(doc, gauge):
+            availableProcessorCount = doc.createElement(
+                                                'availableProcessorCount')
+            gauge.appendChild(availableProcessorCount)
+            cpu_count = (self.get_cpu_count(connected=True) +
+                         self.get_cpu_count(connected=False))
+
+        def add_unavailableProcessorCount(doc, gauge):
+            pass
+
+        def add_onlineProcessorCount(doc, gauge):
+            onlineProcessorCount = doc.createElement('onlineProcessorCount')
+            gauge.appendChild(onlineProcessorCount)
+            cpu_count = self.get_cpu_count(connected=True)
+            c = doc.createTextNode(str(cpu_count))
+            onlineProcessorCount.appendChild(c)
+
+            return doc, onlineProcessorCount
+
+        def add_offlineProcessorCount(doc, gauge):
+            offlineProcessorCount = doc.createElement('offlineProcessorCount')
+            gauge.appendChild(offlineProcessorCount)
+            cpu_count = self.get_cpu_count(connected=False)
+            c = doc.createTextNode(str(cpu_count))
+            offlineProcessorCount.appendChild(c)
+
+            return doc, offlineProcessorCount
+
         def add_workingProcessorCount(doc, gauge):
             workingProcessorCount = doc.createElement('workingProcessorCount')
             gauge.appendChild(workingProcessorCount)
-            worker_count = self.get_cpu_count(connected=False)
+            worker_count = self.get_cpu_count(connected=True)
             pcount = doc.createTextNode(str(worker_count))
             workingProcessorCount.appendChild(pcount)
 
             return doc, workingProcessorCount
 
         def add_workingAgentPercentage(doc, gauge):
-            workingAgentPercent = doc.createElement('workingAgentPercentage')
-            gauge.appendChild(workingAgentPercent)
-            connected_workers = self.get_worker_count(connected=True)
-            disconnected_workers = self.get_worker_count(connected=False)
-            total_workers = connected_workers + disconnected_workers
+            workingAgentPercentage = doc.createElement(
+                                                    'workingAgentPercentage')
+            gauge.appendChild(workingAgentPercentage)
+            working_workers = self.get_worker_count(connected=True, busy=True)
+            free_workers = self.get_worker_count(connected=True, busy=False)
+            disconnected_workers = self.get_worker_count(connected=False,
+                                                         busy=False)
+            total_workers = (working_workers +
+                             free_workers +
+                             disconnected_workers)
 
-            worker_percentage = float(connected_workers / total_workers) * 100
+            worker_percentage = float(working_workers / total_workers) * 100
             percentage = doc.createTextNode(str(worker_percentage))
-            workingAgentPercent.appendChild(percentage)
+            workingAgentPercentage.appendChild(percentage)
 
-            return doc, workingAgentPercent
+            return doc, workingAgentPercentage
 
         def add_date(doc, gauge):
             date = datetime.datetime.now()
@@ -362,6 +423,10 @@ class MonitorDatabase(object):
         add_workingAgentCount(doc, gauge)
         add_workingAgentPercentage(doc, gauge)
 
+        add_onlineProcessorCount(doc, gauge)
+        add_offlineAgentCount(doc, gauge)
+        add_availableProcessorCount(doc, gauge)
+        add_unavailableProcessorCount(doc, gauge)
         add_workingProcessorCount(doc, gauge)
         add_workingMegaHertz(doc, gauge)
 

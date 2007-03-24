@@ -167,7 +167,7 @@ class DefaultPerspective(pb.Avatar):
         else:
             client_tracker.remove((avatar, mind))
 
-class AnonymousWorkerPerspective(DefaultPerspective):
+class AnonymousMonitorPerspective(DefaultPerspective):
     r"""
     Defines the perspective of an anonymous worker.
 
@@ -181,6 +181,15 @@ class AnonymousWorkerPerspective(DefaultPerspective):
         Returns jobs only marked as doable by anonymous workers.
 
         """
+
+        uuid = self.mind[1]['uuid']
+        jdict = self.DSageServer.get_job(anonymous=True)
+        if jdict is not None:
+            self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
+            self.DSageServer.set_busy(uuid, busy=True)
+        else:
+            self.DSageServer.set_busy(uuid, busy=False)
+
         return self.DSageServer.get_job(anonymous=True)
 
     def perspective_get_killed_jobs_list(self):
@@ -195,7 +204,7 @@ class AnonymousWorkerPerspective(DefaultPerspective):
         return self.DSageServer.job_done(job_id, output, result,
                                          completed, worker_info)
 
-class WorkerPerspective(DefaultPerspective):
+class MonitorPerspective(DefaultPerspective):
     r"""
     Defines the perspective of an authenticated worker to the server.
 
@@ -204,10 +213,18 @@ class WorkerPerspective(DefaultPerspective):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
 
     def perspective_get_job(self):
+        r"""
+        Returns jobs to authenticated workers.
+
+        """
+
         uuid = self.mind[1]['uuid']
-        jdict = self.DSageServer.get_job(uuid=uuid)
+        jdict = self.DSageServer.get_job(anonymous=False, uuid=uuid)
         if jdict is not None:
             self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
+            self.DSageServer.set_busy(uuid, busy=True)
+        else:
+            self.DSageServer.set_busy(uuid, busy=False)
         return jdict
 
     def perspective_job_done(self, job_id, output, result,
@@ -331,9 +348,9 @@ class Realm(object):
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer, avatarID)
             elif avatarID == 'Anonymous' and mind:
-                avatar = AnonymousWorkerPerspective(self.DSageServer, avatarID)
+                avatar = AnonymousMonitorPerspective(self.DSageServer, avatarID)
             elif mind:
-                avatar = WorkerPerspective(self.DSageServer, avatarID)
+                avatar = MonitorPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)

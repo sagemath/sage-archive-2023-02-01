@@ -1136,7 +1136,8 @@ Output
         <style type="text/css">
 
         textarea.edit {
-            font-family: monospace;
+            font-family: courier, monospace;
+            font-size:12pt;
             border: 1px solid #8cacbb;
             color: black;
             background-color: white;

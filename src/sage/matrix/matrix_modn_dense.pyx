@@ -115,7 +115,6 @@ from sage.rings.integer import Integer
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
 ################
-# TODO: change this to use extern cdef's methods.
 from sage.ext.arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
@@ -158,6 +157,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self._matrix = <mod_int **> sage_malloc(sizeof(mod_int*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
+            self._entries = NULL
             raise MemoryError, "Error allocating memory"
 
         cdef mod_int k
@@ -168,7 +168,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             k = k + self._ncols
 
     def __dealloc__(self):
-        if self._matrix == NULL: # TODO: should never happen now, right
+        if self._entries == NULL:
             return
         sage_free(self._entries)
         sage_free(self._matrix)

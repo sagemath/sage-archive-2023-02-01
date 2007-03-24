@@ -48,6 +48,7 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.arith import previous_prime
+from sage.structure.element import is_Element
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
@@ -274,11 +275,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int is_list
         cdef Integer x
 
-        if not isinstance(entries, (list,tuple)):
-            # Try to coerce entries to a scalar (an integer)
-            x = ZZ(entries)
+        if entries is None:
+            x = ZZ(0)
+            is_list = 0
+        elif isinstance(entries, (int,long)) or is_Element(entries):
+            try:
+                x = ZZ(entries)
+            except TypeError:
+                self._initialized = False
+                raise TypeError, "unable to coerce entry to an integer"
             is_list = 0
         else:
+            entries = list(entries)
             is_list = 1
 
         if is_list:

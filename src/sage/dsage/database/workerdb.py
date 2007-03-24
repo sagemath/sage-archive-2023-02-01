@@ -316,6 +316,19 @@ class WorkerDatabase(object):
 
             return doc, workingProcessorCount
 
+        def add_workingAgentPercentage(doc, gauge):
+            workingAgentPercent = doc.createElement('workingAgentPercentage')
+            gauge.appendChild(workingAgentPercent)
+            connected_workers = self.get_worker_count(connected=True)
+            disconnected_workers = self.get_worker_count(connected=False)
+            total_workers = connected_workers + disconnected_workers
+
+            worker_percentage = float(connected_workers / total_workers) * 100
+            percentage = doc.createTextNode(str(worker_percentage))
+            workingAgentPercent.appendChild(percentage)
+
+            return doc, workingAgentPercent
+
         def add_date(doc, gauge):
             date = datetime.datetime.now()
 
@@ -342,9 +355,9 @@ class WorkerDatabase(object):
         add_availableAgentCount(doc, gauge)
         add_unavailableAgentCount(doc, gauge)
         add_workingAgentCount(doc, gauge)
+        add_workingAgentPercentage(doc, gauge)
 
         add_workingProcessorCount(doc, gauge)
-
         add_workingMegaHertz(doc, gauge)
 
         add_date(doc, gauge)

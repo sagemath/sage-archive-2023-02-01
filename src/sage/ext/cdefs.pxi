@@ -42,6 +42,7 @@ cdef extern from "gmp.h":
     # The mpz type
     void mpz_abs (mpz_t rop, mpz_t op)
     void mpz_add (mpz_t rop, mpz_t op1, mpz_t op2)
+    void mpz_add_ui (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_and (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)

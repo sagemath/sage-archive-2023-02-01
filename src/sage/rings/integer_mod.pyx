@@ -323,7 +323,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: a.log(b)
             Traceback (most recent call last):
             ...
-            ValueError: base (=4) must be a unit that generates the multiplicative group
+            ValueError:  (8)
+            PARI failed to compute discrete log (perhaps base is not a generator or is too large)
             sage: discrete_log_generic(a,b)
             Traceback (most recent call last):
             ...

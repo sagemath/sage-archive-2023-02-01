@@ -223,8 +223,8 @@ var original_title;
 
 //var title_spinner = ['    ', '.   ', '..  ', '... '];
 //var title_spinner = ['[ ] ', '[.] ', '[:] ', '[.] '];
-var title_spinner = ['S ', 'SA ', 'SAG ', 'SAGE '];
-//var title_spinner = ['/ ', '\\ '];
+//var title_spinner = ['S ', 'SA ', 'SAG ', 'SAGE '];
+var title_spinner = ['/ ', '\\ '];
 //var title_spinner = ['[   ] ', '[.  ] ', '[.. ] ', '[...] '];
 //var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
 var title_spinner_i = 0;

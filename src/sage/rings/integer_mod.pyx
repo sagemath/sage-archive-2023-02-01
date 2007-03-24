@@ -285,6 +285,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         OUTPUT:
             Integer $x$ such that $b^x = a$.
 
+        NOTE: The base must not be too big or the current
+        implementation, which is in PARI, will fail.
+
         EXAMPLES:
             sage: r = Integers(125)
             sage: b = r.multiplicative_generator()^3
@@ -342,8 +345,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             if n == -1:
                 raise ValueError, "base (=%s) for discrete log must generate multiplicative group"%b
             return n
-        except PariError:
-            raise ValueError, "base (=%s) must be a unit that generates the multiplicative group"%b
+        except PariError, msg:
+            raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
 
     def modulus(IntegerMod_abstract self):

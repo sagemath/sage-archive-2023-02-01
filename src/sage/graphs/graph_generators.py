@@ -317,7 +317,7 @@ class GraphGenerators():
             # Inspect a Claw graph
             sage: G = graphs.ClawGraph()
             sage: G
-            Claw graph: a simple graph on 4 vertices (no loops, no multiple edges)
+            Claw graph: A graph on 4 vertices
         """
         pos_dict = {0:[0,1],1:[-1,0],2:[0,0],3:[1,0]}
         import networkx
@@ -479,7 +479,7 @@ class GraphGenerators():
         """
         import networkx
         G = networkx.dodecahedral_graph()
-        return graph.Graph(G, name="Dodecahedral")
+        return graph.Graph(G, name="Dodecahedron")
 
     def EmptyGraph(self):
         """
@@ -1135,7 +1135,7 @@ class GraphGenerators():
             # Inspect a flower snark:
             sage: F = graphs.FlowerSnark()
             sage: F
-            Flower Snark: a simple graph on 20 vertices (no loops, no multiple edges)
+            Flower Snark: A graph on 20 vertices
             sage: F.graph6_string()
             'ShCGHC@?GGg@?@?Gp?K??C?CA?G?_G?Cc'
 
@@ -1177,7 +1177,7 @@ class GraphGenerators():
         EXAMPLES:
             sage: FRUCHT = graphs.FruchtGraph()
             sage: FRUCHT
-            Frucht graph: a simple graph on 12 vertices (no loops, no multiple edges)
+            Frucht graph: A graph on 12 vertices
             sage: FRUCHT.graph6_string()
             'KhCKM?_EGK?L'
             sage.: (graphs.FruchtGraph()).show()
@@ -1219,7 +1219,7 @@ class GraphGenerators():
         EXAMPLES:
             sage: H = graphs.HeawoodGraph()
             sage: H
-            Heawood graph: a simple graph on 14 vertices (no loops, no multiple edges)
+            Heawood graph: A graph on 14 vertices
             sage: H.graph6_string()
             'MhEGHC@AI?_PC@_G_'
             sage.: (graphs.HeawoodGraph()).show()
@@ -1258,7 +1258,7 @@ class GraphGenerators():
         EXAMPLES:
             sage: MK = graphs.MoebiusKantorGraph()
             sage: MK
-            Moebius-Kantor Graph: a simple graph on 16 vertices (no loops, no multiple edges)
+            Moebius-Kantor Graph: A graph on 16 vertices
             sage: MK.graph6_string()
             'OhCGKE?O@?ACAC@I?Q_AS'
             sage.: (graphs.MoebiusKantorGraph()).show()
@@ -1331,7 +1331,7 @@ class GraphGenerators():
         EXAMPLES:
             sage: T = graphs.ThomsenGraph()
             sage: T
-            Thomsen graph: a simple graph on 6 vertices (no loops, no multiple edges)
+            Thomsen graph: A graph on 6 vertices
             sage: T.graph6_string()
             'EFz_'
             sage.: (graphs.ThomsenGraph()).show()

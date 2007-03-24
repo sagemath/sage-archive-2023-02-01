@@ -4,6 +4,8 @@ from modform.all import *
 
 from ssmod.all import *
 
+from abvar.all import *
+
 from dirichlet import (DirichletGroup, is_DirichletGroup, is_DirichletCharacter,
                        kronecker_character, kronecker_character_upside_down,
                        trivial_character)
@@ -19,4 +21,6 @@ from dims import (dimension_cusp_forms,
                   dimension_new_cusp_forms)
 
 from buzzard import buzzard_tpslopes
+
+from abvar.all import *
 

@@ -101,7 +101,7 @@ def enum_projective_finite_field(X):
                 except:
                     pass
                 j = 0
-                m = Z(0)
+                m = sage.rings.integer_ring.ZZ(0)
             except StopIteration:
                 iters[j] = iter(R)  # reset
                 iters[j].next() # put at zero

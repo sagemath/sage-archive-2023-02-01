@@ -151,7 +151,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 (self.base_ring(), self.variable_name(), None, self.is_sparse()))
 
 
-    def __call__(self, x=None, check=True, is_gen = False, construct=False):
+    def __call__(self, x=None, check=True, is_gen = False, construct=False, absprec = None):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
@@ -171,7 +171,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         #    return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
-        return C(self, x, check, is_gen, construct=construct)
+        if absprec is None:
+            return C(self, x, check, is_gen, construct=construct)
+        else:
+            return C(self, x, check, is_gen, construct=construct, absprec = absprec)
 
     def _coerce_impl(self, x):
         """
@@ -281,6 +284,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return "%s[%s]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
 
     def __set_polynomial_class(self, cls=None):
+        from padics.unramified_ring_extension import UnramifiedRingExtension #here for a hack.  Should be removed after hack is gone
         if not (cls is None):
             self.__polynomial_class = cls
             return
@@ -289,6 +293,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
+        elif isinstance(R, padics.padic_ring_lazy.pAdicRingLazy):
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_lazy_dense
+        elif isinstance(R, padics.padic_field_lazy.pAdicFieldLazy):
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_lazy_dense
+        elif isinstance(R, UnramifiedRingExtension) and R.ground_ring_of_tower().is_field():
+            #hack.  Should be removed after we fix inheretance structure
+            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_dense
         elif isinstance(R, padics.padic_ring_generic.pAdicRingGeneric):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_dense
         elif isinstance(R, padics.padic_field_generic.pAdicFieldGeneric):
@@ -408,6 +419,26 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         """
         return self.gen()
 
+    def is_finite(self):
+        """
+        Return False since polynomial rings are not finite (unless
+        the base ring is 0.)
+
+        EXAMPLES:
+            sage: R = Integers(1)['x']
+            sage: R.is_finite()
+            True
+            sage: R = GF(7)['x']
+            sage: R.is_finite()
+            False
+            sage: R['x']['y'].is_finite()
+            False
+        """
+        R = self.base_ring()
+        if R.is_finite() and R.order() == 1:
+            return True
+        return False
+
     def is_field(self):
         """
         Return False, since polynomial rings are never fields.
@@ -500,59 +531,99 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return self([R.random_element(*args, **kwds) for _ in xrange(degree+1)])
 
     def _monics_degree( self, of_degree ):
+        """
+        Refer to monics() for full documentation.
+        """
         base = self.base_ring()
-        x = self.gen()
-        for lt1 in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
-            yield sum([x**i*lt1[of_degree-i] for i in range(len(lt1))])
+        for coeffs in sage.misc.mrange.xmrange_iter([[base(1)]]+[base]*of_degree):
+            # Each iteration returns a *new* list!
+            # safe to mutate the return
+            coeffs.reverse()
+            yield self(coeffs)
 
     def _monics_max( self, max_degree ):
+        """
+        Refer to monics() for full documentation.
+        """
         for degree in xrange(max_degree + 1):
             for m in self._monics_degree( degree ):
                 yield m
 
     def _polys_degree( self, of_degree ):
+        """
+        Refer to polynomials() for full documentation.
+        """
         base = self.base_ring()
-        x = self.gen()
         for leading_coeff in base:
             if leading_coeff != base(0):
                 for lt1 in sage.misc.mrange.xmrange_iter([base]*(of_degree)):
+                    # Each iteration returns a *new* list!
+                    # safe to mutate the return
                     coeffs = [leading_coeff] + lt1
-                    yield sum([x**i*coeffs[of_degree-i] for i in range(len(coeffs))])
+                    coeffs.reverse()
+                    yield self(coeffs)
 
     def _polys_max( self, max_degree ):
+        """
+        Refer to polynomials() for full documentation.
+        """
         base = self.base_ring()
-        x = self.gen()
-        for lt1 in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
-            yield sum([x**i*lt1[max_degree-i] for i in range(len(lt1))])
+        for coeffs in sage.misc.mrange.xmrange_iter([base]*(max_degree+1)):
+            # Each iteration returns a *new* list!
+            # safe to mutate the return
+            coeffs.reverse()
+            yield self(coeffs)
 
     def polynomials( self, of_degree = None, max_degree = None ):
         """
-        Return an iterator over the monic polynomials of specified degree.
+        Return an iterator over the polynomials of specified degree.
 
         INPUT:
             Pass exactly one of:
-            max_degree -- an int; the iterator will generate all monic polynomials which have degree less than or equal to max_degree
-            of_degree -- an int; the iterator will generate all monic polynomials which have degree of_degree
+            max_degree -- an int; the iterator will generate all polynomials which have degree less than or equal to max_degree
+            of_degree -- an int; the iterator will generate all polynomials which have degree of_degree
 
         OUTPUT:
             an iterator
 
         EXAMPLES:
-            sage: P = PolynomialRing(GF(2),'y')
+            sage: P = PolynomialRing(GF(3),'y')
             sage: for p in P.polynomials( of_degree = 2 ): print p
             y^2
             y^2 + 1
+            y^2 + 2
             y^2 + y
             y^2 + y + 1
+            y^2 + y + 2
+            y^2 + 2*y
+            y^2 + 2*y + 1
+            y^2 + 2*y + 2
+            2*y^2
+            2*y^2 + 1
+            2*y^2 + 2
+            2*y^2 + y
+            2*y^2 + y + 1
+            2*y^2 + y + 2
+            2*y^2 + 2*y
+            2*y^2 + 2*y + 1
+            2*y^2 + 2*y + 2
             sage: for p in P.polynomials( max_degree = 1 ): print p
             0
             1
+            2
             y
             y + 1
+            y + 2
+            2*y
+            2*y + 1
+            2*y + 2
             sage: for p in P.polynomials( max_degree = 1, of_degree = 3 ): print p
             Traceback (most recent call last):
             ...
-            ValueError
+            ValueError: you should pass exactly one of of_degree and max_degree
+
+        AUTHOR:
+            Joel B. Mohler
         """
 
         if self.base_ring().order() is sage.rings.infinity.infinity:
@@ -561,7 +632,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return self._polys_degree( of_degree )
         if max_degree is not None and of_degree is None:
             return self._polys_max( max_degree )
-        raise ValueError # You should pass exactly one of of_degree and max_degree
+        raise ValueError, "you should pass exactly one of of_degree and max_degree"
 
     def monics( self, of_degree = None, max_degree = None ):
         """
@@ -603,7 +674,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             sage: for p in P.monics( max_degree = 1, of_degree = 3 ): print p
             Traceback (most recent call last):
             ...
-            ValueError
+            ValueError: you should pass exactly one of of_degree and max_degree
+
+        AUTHOR:
+            Joel B. Mohler
         """
 
         if self.base_ring().order() is sage.rings.infinity.infinity:
@@ -612,7 +686,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return self._monics_degree( of_degree )
         if max_degree is not None and of_degree is None:
             return self._monics_max( max_degree )
-        raise ValueError # You should pass exactly one of of_degree and max_degree
+        raise ValueError, "you should pass exactly one of of_degree and max_degree"
 
 class PolynomialRing_commutative(PolynomialRing_general, commutative_algebra.CommutativeAlgebra):
     """
@@ -713,9 +787,15 @@ class PolynomialRing_padic_ring(PolynomialRing_integral_domain):
 
 class PolynomialRing_padic_field(PolynomialRing_field):
     def __init__(self, base_ring, name=None):
-        if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
-            raise TypeError, "Base ring must be a p-adic field"
+        #if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
+        #    raise TypeError, "Base ring must be a p-adic field" #should be uncommented after hack is removed
         PolynomialRing_field.__init__(self, base_ring, name)
+
+class PolynomialRing_padic_ring_lazy(PolynomialRing_padic_ring):
+    pass
+
+class PolynomialRing_padic_field_lazy(PolynomialRing_padic_field):
+    pass
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):
     def __init__(self, base_ring, name="x"):

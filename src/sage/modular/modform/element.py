@@ -307,7 +307,7 @@ class EisensteinSeries(ModularFormElement):
         We have $MLt \mid N$, and
         $$
           E_k(chi,psi,t) =
-           c_0 + sum_{m \geq 1}[sum_{n|m}psi(n)n^{k-1}chi(m/n)] q^{mt},
+           c_0 + sum_{m \geq 1}[sum_{n|m} psi(n) * chi(m/n) * n^(k-1)] q^{mt},
         $$
         with $c_0=0$ if $L>1$,
          and
@@ -322,7 +322,7 @@ class EisensteinSeries(ModularFormElement):
             if i%t != 0:
                 v.append(zero)
             else:
-                m = i/t
+                m = i//t
                 v.append(sum([psi(n)*chi(m/n)*n**(k-1) for \
                                n in rings.divisors(m)]))
         return v

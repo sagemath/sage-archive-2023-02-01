@@ -16,6 +16,13 @@ EXAMPLES:
     sage: e.order()
     12
 
+This illustrates a canonical coercion.
+
+    sage: e = DirichletGroup(5, QQ).0
+    sage: f = DirichletGroup(5,CyclotomicField(4)).0
+    sage: e*f
+    [-zeta4]
+
 AUTHORS:
     -- William Stein (2005-09-02): Fixed bug in comparison of Dirichlet characters.
                      It was checking that their values were the same, but not checking
@@ -59,7 +66,7 @@ import sage.categories.all
 import sage.algebras.quaternion_algebra
 
 def trivial_character(N, base_ring=rings.RationalField()):
-    return DirichletGroup(N, base_ring)(1)
+    return DirichletGroup(N, base_ring, zeta=base_ring(1), zeta_order=1)(1)
 
 TrivialCharacter = trivial_character
 
@@ -852,7 +859,8 @@ class DirichletCharacter(MultiplicativeGroupElement):
         small a subfield (or subring) of the base ring as possible.
 
         \note{This function is currently only implemented when the
-        base ring is a number field.}
+        base ring is a number field.  It's the identity function in
+        characteristic p.}
 
         EXAMPLES:
             sage: G = DirichletGroup(13)
@@ -871,7 +879,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
         if isinstance(self.base_ring(),rings.RationalField):
             return self
 
-        if self.is_trivial():
+        if self.is_trivial() and self.base_ring().characteristic() == 0:
             return self.change_ring(rings.QQ)
 
         if isinstance(self.base_ring(),number_field.NumberField_generic):
@@ -882,8 +890,9 @@ class DirichletCharacter(MultiplicativeGroupElement):
             K = rings.CyclotomicField(self.order())
             return self.change_ring(K)
 
-        raise NotImplementedError, "minimize_base_ring is currently " + \
-              "only implemented when the base ring is a number field."
+        #raise NotImplementedError, "minimize_base_ring is currently " + \
+        #      "only implemented when the base ring is a number field."
+        return self
 
     def modulus(self):
         """
@@ -1315,7 +1324,8 @@ class DirichletGroup_class(parent_gens.ParentWithMultiplicativeAbelianGens):
         return self(a)
 
     def _coerce_impl(self, x):
-        if isinstance(x, DirichletCharacter) and x.modulus() % self.modulus() == 0:
+        if isinstance(x, DirichletCharacter) and x.modulus() % self.modulus() == 0 and \
+               self.base_ring().has_coerce_map_from(x.base_ring()):
             return self._coerce_in_dirichlet_character(x)
         raise TypeError
 

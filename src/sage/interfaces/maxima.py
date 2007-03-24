@@ -327,6 +327,16 @@ is much less robust, and is not recommended.}
 
     sage: t = '"%s"'%10^10000   # ten thousand character string.
     sage: a = maxima(t)
+
+TESTS:
+This working tests that a subtle bug has been fixed:
+    sage: f = maxima.function('x','gamma(x)')
+    sage: g = f(1/7)
+    sage: g
+    gamma(1/7)
+    sage: del f
+    sage: maxima(sin(x))
+    sin(x)
 """
 
 #*****************************************************************************
@@ -650,6 +660,8 @@ class Maxima(Expect):
             0.90929742682568171
             sage: loads(t.dumps())
             gamma(x)*sin(x)
+
+
         """
         name = self._next_var_name()
         defn = str(defn)
@@ -678,14 +690,17 @@ class Maxima(Expect):
         s = self._eval_line('%s'%var)
         return s
 
-    #def clear(self, var):
-    #    """
-    #    Clear the variable named var.
-    #    """
-    #    if self._expect is None:
-    #        return
-    #    self._expect.sendline('kill(%s);'%var)
-    #    self._expect.expect(self._prompt)
+    def clear(self, var):
+        """
+        Clear the variable named var.
+        """
+        if self._expect is None:
+            return
+        try:
+            self._expect.sendline('kill(%s);'%var)
+            self._expect.expect(self._prompt)
+        except:  # program around weirdness in pexpect
+            pass
 
     def console(self):
         maxima_console()

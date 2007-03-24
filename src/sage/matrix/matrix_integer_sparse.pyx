@@ -4,6 +4,11 @@ Sparse integer matrices.
 AUTHORS:
     -- William Stein (2007-02-21)
     -- Soroosh Yazdani (2007-02-21)
+
+TESTS:
+    sage: a = matrix(ZZ,2,range(4), sparse=True)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ##############################################################################

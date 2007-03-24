@@ -6,6 +6,7 @@ import sage.rings.integer_mod
 import sage.rings.finite_field_element
 import sage.rings.polynomial_ring_constructor
 import sage.rings.padics.padic_ring_generic
+import sage.rings.padics.padic_ring_lazy
 import sage.rings.polynomial_element
 import sage.rings.infinity
 import sys
@@ -22,9 +23,10 @@ pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 Polynomial = sage.rings.polynomial_element.Polynomial
 pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 
 class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
-    def __init__(self, parent, x, prec = None, check = True, construct = False):
+    def __init__(self, parent, x, absprec = None, relprec = None, check = True, construct = False):
         if construct:
             PQRElement.__init__(self, parent, x, check=False)
             return
@@ -39,11 +41,11 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
             PQRElement.__init__(self, parent, x._polynomial, check = False)
             return
         if isinstance(x, (int, long, Integer, Rational)) or is_IntegerMod(x) or is_FiniteFieldElement(x) or (isinstance(x, sage.structure.element.Element) and (isinstance(x.parent(), pAdicRingBaseGeneric) or x.parent() is parent.base_ring())):
-            x = parent.base_ring()(x, prec = prec)
+            x = parent.base_ring()(x, absprec = absprec)
             PQRElement.__init__(self, parent, sage.rings.polynomial_ring_constructor.PolynomialRing(parent.base_ring(), parent.polynomial_ring().variable_name())(x), check=False)
             return
         if isinstance(x, list):
-            x = [parent.base_ring()(v, prec = prec) for v in x]
+            x = [parent.base_ring()(v, absprec = absprec) for v in x]
             PQRElement.__init__(self, parent, sage.rings.polynomial_ring_constructor.PolynomialRing(parent.base_ring(), parent.polynomial_ring().variable_name())(x), check=False)
         if isinstance(x, Polynomial):
             if x in parent.polynomial_ring():
@@ -79,6 +81,12 @@ class UnramifiedRingExtensionElement(PQRElement, pAdicRingGenericElement):
         raise NotImplementedError
 
     def __invert__(self):
+        #The following is a hack to get inverses to work until we fix the inheritance structure
+        if self == 0:
+            raise ZeroDivisionError
+        g = self._polynomial._xgcd(self.parent().defining_polynomial())
+        return self.parent()((~g[0].leading_coefficient())*g[1])
+        #this is what we should be returning
         return self.parent().fraction_field()(self).__invert__()
 
     def _latex_(self, mode = None):

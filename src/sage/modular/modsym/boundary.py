@@ -153,6 +153,12 @@ class BoundarySpace(hecke.HeckeModule_generic):
         self._is_zero = []
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
 
+    def _known_cusps(self):
+        """
+        Return cusps found so far.
+        """
+        return list(self._known_gens)
+
     def is_ambient(self):
         return True
 

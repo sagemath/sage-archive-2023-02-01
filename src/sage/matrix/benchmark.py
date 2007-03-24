@@ -2,7 +2,7 @@ from sage.all import *
 
 verbose = False
 
-timeout = 10
+timeout = 60
 
 def report(F, title):
     systems = ['sage', 'magma']
@@ -42,18 +42,19 @@ def report_ZZ():
     TODO: Probably I should start report_QQ as well.
     """
     F = [vecmat_ZZ, rank_ZZ, rank2_ZZ, charpoly_ZZ, smithform_ZZ,
-         det_ZZ, det_QQ, matrix_multiply_ZZ, nullspace_ZZ]
+         det_ZZ, det_QQ, matrix_multiply_ZZ, matrix_add_ZZ,
+         nullspace_ZZ]
 
     title = 'Dense benchmarks over ZZ'
     report(F, title)
 
 # Integer Nullspace
 
-def nullspace_ZZ(n=300, min=0, max=10, system='sage'):
+def nullspace_ZZ(n=300, min=0, max=2**16, system='sage'):
     """
     Nullspace over ZZ:
     Given a n+1 x n (with n=300) matrix over ZZ with random entries
-    between min=0 and max=10, compute the nullspace.
+    with 16 bits, compute the nullspace.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(QQ)
@@ -126,11 +127,11 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
-def rank2_ZZ(n=500, min=0, max=9, system='sage'):
+def rank2_ZZ(n=200, min=0, max=2**64, system='sage'):
     """
-    Rank over ZZ:
-    Given a (n + 10) x n (with n=500) matrix over ZZ with random entries
-    between min=0 and max=9, compute the rank.
+    Rank 2 over ZZ:
+    Given a (n + 10) x n (with n=200) matrix over ZZ with random entries
+    between with 64 bits, compute the rank.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n+10, n, x=min, y=max+1)
@@ -209,10 +210,10 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
-def matrix_add_ZZ(n=200, min=-9, max=9, system='sage', times=10):
+def matrix_add_ZZ(n=500, min=-9, max=9, system='sage', times=10):
     """
     Matrix addition over ZZ
-    Given an n x n (with n=200) matrix A and B over ZZ with random entries
+    Given an n x n (with n=500) matrix A and B over ZZ with random entries
     between min=-9 and max=9, inclusive, compute A + B.
     """
     if system == 'sage':

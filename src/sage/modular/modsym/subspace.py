@@ -57,16 +57,16 @@ class ModularSymbolsSubspace(sage.modular.modsym.space.ModularSymbolsSpace, heck
         return "Modular Symbols subspace of dimension %s of %s"%(
                     self.rank(), self.ambient_module())
 
-    def __cmp__(self, other):
-        if isinstance(other, ModularSymbolsSubspace):
-            return cmp((self.__ambient_hecke_module, self.free_module()),
-                       (other.__ambient_hecke_module, other.free_module()))
-        if not isinstance(other, sage.modular.modsym.space.ModularSymbolsSpace):
-            return cmp(type(self), type(other))
-        c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
-        if c:
-            return c
-        return cmp(self.free_module(), other.free_module())
+##     def __cmp__(self, other):
+##         if isinstance(other, ModularSymbolsSubspace):
+##             return cmp((self.__ambient_hecke_module, self.free_module()),
+##                        (other.__ambient_hecke_module, other.free_module()))
+##         if not isinstance(other, sage.modular.modsym.space.ModularSymbolsSpace):
+##             return cmp(type(self), type(other))
+##         c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
+##         if c:
+##             return c
+##         return cmp(self.free_module(), other.free_module())
 
 
     ################################

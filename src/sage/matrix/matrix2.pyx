@@ -1406,7 +1406,7 @@ cdef class Matrix(matrix1.Matrix):
                     verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
                         W.rank(), m*g.degree()), level=2, caller_name='generic spin decomp')
                     tries += 1
-                    if tries > 5*m:
+                    if tries > 1000*m:  # avoid an insanely long infinite loop
                         raise RuntimeError, "likely bug in decomposition"
                 # end if
             #end while

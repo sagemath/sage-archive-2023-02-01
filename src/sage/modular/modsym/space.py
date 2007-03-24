@@ -1487,7 +1487,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: f = a.integral_period_mapping()
             sage: e = m([0,oo])
             sage: f(e)
-            (0)
+            (-2/3)
 
         The input space must be cuspidal:
             sage: m = ModularSymbols(37,2,sign=1)

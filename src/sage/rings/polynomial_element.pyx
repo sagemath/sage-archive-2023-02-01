@@ -204,7 +204,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
         d = self.degree()
         result = self[d]
         if d == 0:
-            return a.parent()(1) * result
+            try:
+                return a.parent()(1) * result
+            except AttributeError:
+                return result
         i = d - 1
         while i >= 0:
             result = result * a + self[i]

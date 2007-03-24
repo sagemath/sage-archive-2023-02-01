@@ -72,7 +72,7 @@ class DSageServer(pb.Root):
             if self.log_level > 3:
                 log.msg('[DSage, getJob]' + ' Returning Job (%s, %s) to client'
                 % (job.id, job.name))
-                job.status = 'processing'
+            job.status = 'processing'
             self.jobdb.storeJob(job)
         return job.pickle()
 

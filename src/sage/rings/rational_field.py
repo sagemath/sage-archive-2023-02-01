@@ -143,19 +143,19 @@ class RationalField(_uniq, field.Field):
             sage: 6530219459687219.0/281474976710656
             23.199999999999999
             sage: a = 23.2; a
-            23.1999999999999
+            23.2000000000000
             sage: QQ(a, 10)
-            231999999999999/10000000000000
+            116/5
 
         Here's a nice example involving elliptic curves:
             sage: E = EllipticCurve('11a')
             sage: L = E.Lseries_at1(300)[0]; L
-            0.253841860856000
+            0.253841860855911
             sage: O = E.omega(); O
-            1.269209304279553421688794              # 32-bit
-            1.269209304279553421688794616754547     # 64-bit
+            1.269209304279553421688794616754547305219492241830608667967136921230408338613     # 32-bit
+            1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075        # 64-bit
             sage: t = L/O; t
-            0.200000000000070
+            0.200000000000000
             sage: QQ(t)
             1/5
         """
@@ -164,7 +164,8 @@ class RationalField(_uniq, field.Field):
         return sage.rings.rational.Rational(x, base)
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer)):
+        if isinstance(x, (int, long, sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
@@ -271,7 +272,7 @@ class RationalField(_uniq, field.Field):
         """
         EXAMPLES:
             sage: QQ.order()
-            Infinity
+            +Infinity
         """
         return infinity.infinity
 
@@ -286,6 +287,24 @@ class RationalField(_uniq, field.Field):
                              random.randrange(1,den_bound+1)))
 
     def zeta(self, n=2):
+        """
+        Return a root of unity in self.
+
+        INPUT:
+            n -- integer (default: 2) order of the root of unity
+
+        EXAMPLES:
+            sage: QQ.zeta()
+            -1
+            sage: QQ.zeta(2)
+            -1
+            sage: QQ.zeta(1)
+            1
+            sage: QQ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in rational field
+        """
         if n == 1:
             return sage.rings.rational.Rational(1)
         elif n == 2:

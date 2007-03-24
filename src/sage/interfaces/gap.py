@@ -270,6 +270,15 @@ class Gap(Expect):
         if x == 'fail':
             raise RuntimeError, 'Error loading Gap package %s'%pkg
 
+    def cputime(self, t=None):
+        if t:
+            s = self.cputime()
+            return s - t
+        else:
+            self.eval('_r_ := Runtimes();')
+            r = sum(eval(self.eval('[_r_.user_time, _r_.system_time, _r_.user_time_children, _r_.system_time_children]')))
+            return r/1000.0
+
     def save_workspace(self):
         self.eval('SaveWorkspace("%s");'%WORKSPACE)
 

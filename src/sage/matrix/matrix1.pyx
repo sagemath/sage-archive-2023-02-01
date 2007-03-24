@@ -533,6 +533,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: a.column(-1)
             (2, 5)
         """
+        if self._ncols == 0:
+            raise IndexError, "matrix has no rows"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -572,6 +574,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: a.row(-1)  # last row
             (3, 4, 5)
         """
+        if self._nrows == 0:
+            raise IndexError, "matrix has no rows"
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows
@@ -609,7 +613,7 @@ cdef class Matrix(matrix0.Matrix):
             raise TypeError, "other must be a matrix"
 
         if not (self._base_ring is other.base_ring()):
-            raise TypeError, "base rings must be the same"
+            other = other.change_ring(self._base_ring)
         if self._ncols != other.ncols():
             raise TypeError, "number of columns must be the same"
 

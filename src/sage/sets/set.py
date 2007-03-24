@@ -346,9 +346,9 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: Set(ZZ).cardinality()
-            Infinity
+            +Infinity
             sage: Primes().cardinality()
-            Infinity
+            +Infinity
             sage: Set(GF(5)).cardinality()
             5
             sage: Set(GF(5^2,'a')).cardinality()
@@ -618,7 +618,7 @@ class Set_object_union(Set_object):
 
             sage: X = Set(GF(3)).union(Set(ZZ))
             sage: X.cardinality()
-            Infinity
+            +Infinity
         """
         return self.__X.cardinality() + self.__Y.cardinality()
 
@@ -732,8 +732,14 @@ class Set_object_intersection(Set_object):
             True
             sage: ComplexField().0 in X
             False
+
+            Floating-point numbers are rational.
+
             sage: sqrt(2) in X
-            False
+            True
+
+            Real constants are not rational.
+
             sage: pi in X
             False
             sage: pi in RR

@@ -52,6 +52,7 @@ sense.
 include "../ext/cdefs.pxi"
 include "../ext/gmp.pxi"
 include "../ext/stdsage.pxi"
+include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 
 import sage.rings.infinity
 import sage.rings.rational
@@ -240,6 +241,14 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         """
         return integer_ring_python.iterator(self)
 
+    cdef Integer _coerce_ZZ(self, ntl_c_ZZ *z):
+        cdef integer.Integer i
+        i = PY_NEW(integer.Integer)
+        _sig_on
+        ZZ_to_mpz(&i.value, z)
+        _sig_off
+        return i
+
     cdef _coerce_c_impl(self, x):
         """
         Return canonical coercion of x into the integers ZZ.
@@ -324,12 +333,16 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         cdef integer.Integer z, n_max, n_min, n_width
         z = integer.Integer()
         if y is None:
-            if x is None:
+            if x is None or x == 0:
                 mpz_set_si(z.value, random()%5 - 2)
+##            elif (x == 0):
+
             else:
                 n_max = self(x)
                 mpz_urandomm(z.value, state, n_max.value)
         else:
+            if x >= y:
+                raise ValueError, "upper range must be larger than lower bound."
             n_min = self(x)
             n_width = self(y) - n_min
             mpz_urandomm(z.value, state, n_width.value)
@@ -342,6 +355,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return im_gens[0] == codomain._coerce_(self.gen(0))
         except TypeError:
             return False
+
+    def is_noetherian(self):
+        return True
 
     def is_atomic_repr(self):
         """
@@ -416,7 +432,7 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         return 1
 
     def order(self):
-        return sage.rings.infinity.Infinity()
+        return sage.rings.infinity.infinity
 
     def zeta(self, n=2):
         if n == 1:

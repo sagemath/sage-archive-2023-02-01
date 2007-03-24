@@ -2,13 +2,14 @@
 Points on elliptic curves
 
 EXAMPLES:
-    sage: K = pAdicField(5)
+    sage: K = Qp(5)
     sage: E = EllipticCurve([K(1), K(1)])
-    sage: P = E([K(0), K(1), K(1)])
-    sage: P
-    (0 : 1 : 1)
-    sage: P + P
-    (4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
+
+    #sage: P = E([K(0), K(1), K(1)])
+    #sage: P
+    #(0 : 1 : 1)
+    #sage: P + P
+    #(4 + 3*5 + 3*5^2 + 3*5^3 + 3*5^4 + 3*5^5 + 3*5^6 + 3*5^7 + 3*5^8 + 3*5^9 + 3*5^10 + 3*5^11 + 3*5^12 + 3*5^13 + 3*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 3*5^18 + 3*5^19 + O(5^20) : 2 + 3*5^2 + 3*5^4 + 3*5^6 + 3*5^8 + 3*5^10 + 3*5^12 + 3*5^14 + 3*5^16 + 3*5^18 + O(5^20) : 1)
 
 Arithmetic with a point over an extension of a finite field:
     sage: k.<a> = GF(5^2)
@@ -39,6 +40,8 @@ Arithmetic with a point over an extension of a finite field:
 #*****************************************************************************
 
 import sage.plot.all as plot
+
+from sage.rings.padics.qp import Qp
 
 import ell_generic
 import sage.rings.all as rings
@@ -109,7 +112,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])
@@ -203,9 +206,9 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
+            sage: P = E([-1,1]); Q = E([0,0])
             sage: P + Q
-            (-3/4 : -15/8 : 1)
+            (1 : 0 : 1)
         """
         # Use Prop 7.1.7 of Cohen "A Course in Computational Algebraic Number Theory"
         if self.is_zero():
@@ -232,9 +235,9 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         """
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: P,Q = E.gens()
+            sage: P = E([-1,1]); Q = E([0,0])
             sage: P - Q
-            (0 : -1 : 1)
+            (4 : 8 : 1)
             sage: (P - Q) + Q
             (-1 : 1 : 1)
             sage: P
@@ -286,7 +289,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P.height()
             0.0511114082399688
             sage: P.order()
-            Infinity
+            +Infinity
             sage: E.regulator()      # slightly random output
             0.051111408239968840
 
@@ -296,7 +299,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: y = 19575260230015313702261379022151675961965157108920263594545223
             sage: d = 2254020761884782243
             sage: E([ x / d^2,  y / d^3 ]).height()
-            86.7406561381274
+            86.7406561381275
 
             sage: E = EllipticCurve([17, -60, -120, 0, 0]); E
             Elliptic Curve defined by y^2 + 17*x*y - 120*y = x^3 - 60*x^2 over Rational Field
@@ -439,7 +442,7 @@ class EllipticCurvePoint_finite_field(EllipticCurvePoint_field):
             sage: P = E([0,0]); P
             (0 : 0 : 1)
             sage: P.order()
-            Infinity
+            +Infinity
 
             sage: E = EllipticCurve([0,1])
             sage: P = E([-1,0])

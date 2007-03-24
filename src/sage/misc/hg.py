@@ -295,7 +295,7 @@ class HG:
         if filename.startswith("http://") or filename.startswith("https://"):
             filename = get_remote_file(filename, verbose=True)
         self._ensure_safe()
-        self('import "%s" %s'%(os.path.abspath(filename),options))
+        self('import  %s "%s"'%(options, os.path.abspath(filename)))
 
     patch = import_patch
 
@@ -529,7 +529,7 @@ class HG:
          -n --dry-run    do not perform actions, just print output
         """
         if not rev is None:
-            options = ' '.join(['-r %s'%r for r in rev]) + '  ' + files
+            options = ' -r %s %s'%(rev, files)
         else:
             options = files
         self('revert %s'%options)

@@ -468,7 +468,7 @@ cdef class QuadDoubleElement(FieldElement):
             1
             sage: w=RQDF(0)
             sage: w.multiplicative_order()
-            Infinity
+            +Infinity
 
         """
         if self == 1: return 1

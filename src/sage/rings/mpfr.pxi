@@ -43,9 +43,13 @@ cdef extern from "mpfr.h":
     void mpfr_set_nan (mpfr_t x)
     int mpfr_set_z (mpfr_t rop, mpz_t op, mp_rnd_t rnd)
     int mpfr_set_q (mpfr_t rop, mpq_t op, mp_rnd_t rnd)
+    int mpfr_set_d (mpfr_t rop, double op, mp_rnd_t rnd)
 
     char * mpfr_get_str (char *str, mp_exp_t *expptr, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
     size_t mpfr_out_str (int *stream, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
+    void mpfr_free_str (char *str)
+
+    mp_exp_t mpfr_get_z_exp(mpz_t rop, mpfr_t op)
 
     # Arithmetic
     int mpfr_add (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
@@ -54,6 +58,7 @@ cdef extern from "mpfr.h":
     int mpfr_div (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)
     int mpfr_mul_2exp (mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
     int mpfr_div_2exp(mpfr_t rop, mpfr_t op1, unsigned long int op2,mp_rnd_t rnd)
+    int mpfr_mul_2si (mpfr_t top, mpfr_t op1, long int opt2, mp_rnd_t rnd)
 
     # constants
     int mpfr_const_log2 (mpfr_t rop, mp_rnd_t rnd)
@@ -125,6 +130,12 @@ cdef extern from "mpfr.h":
 
     double mpfr_get_d (mpfr_t op, mp_rnd_t rnd)
 
+    # Miscellaneous
+    void mpfr_nexttoward (mpfr_t X, mpfr_t Y)
+    void mpfr_nextabove (mpfr_t X)
+    void mpfr_nextbelow (mpfr_t X)
+
+    int mpfr_set_exp (mpfr_t op, mp_exp_t E)
 
     # Operators
 

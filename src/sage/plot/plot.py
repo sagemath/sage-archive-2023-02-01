@@ -481,7 +481,8 @@ class Graphics(SageObject):
 
     def append(self, primitive):
         """
-        Append an arbitrary GraphicPrimitive to a Graphics object
+        Append an arbitrary GraphicPrimitive to a Graphics object. Low level- only
+        appends the primitive to the objects list, that's it.
         """
         if not isinstance(primitive, GraphicPrimitive):
             raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
@@ -1275,7 +1276,12 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         vertex_labels -- determines whether labels for nodes are plotted
         node_size -- node size
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
-        matplotlib, and each entry is a list of vertices.
+                        matplotlib, and each entry is a list of vertices.
+        edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of edges.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -1308,64 +1314,82 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.append(NGP)
         sage: g.axes(False)
         sage: g.save('sage.png')
+
+        sage: from sage.plot.plot import rainbow
+        sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: import networkx
+        sage: C = graphs.CubeGraph(5)
+        sage: pos = C.__get_pos__()
+        sage: G = C.networkx_graph()
+        sage: R = rainbow(5)
+        sage: edge_colors = {}
+        sage: for i in range(5):
+        ...    edge_colors[R[i]] = []
+        sage: for u,v,l in C.edges():
+        ...    for i in range(5):
+        ...        if u[i] != v[i]:
+        ...            edge_colors[R[i]].append((u,v,l))
+        sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, node_size=0, edge_colors=edge_colors)
+        sage: G = Graphics()
+        sage: G.append(NGP)
+        sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
+        sage: G.axes(False)
+        sage: G.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None):
+    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None, edge_colors=None, scaling_term=0.05):
         self.__nxg = graph
         self.__node_size = node_size
         self.__vertex_labels = vertex_labels
         self.__color_dict = color_dict
+        self.__edge_colors = edge_colors
         if len(self.__nxg) != 0:
             import networkx as NX
             if pos is None:
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
                 self.__pos = pos
-                for v in self.__nxg.nodes():
-                    if not v in self.__pos:
-                        from random import random
-                        self.__pos[v] = [random(),random()]
+
+            nodelist=self.__nxg.nodes()
+
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            dx = xmax - xmin
+            dy = ymax - ymin
+
+            if not pos is None:
+                missing = []
+                for e in nodelist:
+                    if not e in self.__pos:
+                        missing.append(e)
+                for e in missing:
+                    from random import random
+                    self.__pos[v] = [xmin + dx*random(),ymin + dy*random()]
 
             # adjust the plot
-            # TODO: right now, the bounds are assumed to be +-1
-            nodelist=self.__nxg.nodes()
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            st = float(0.125) # scaling term: looks better, maybe should
-                              # depend on node_size?
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
-            for v in nodelist:
-                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
-                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
+            xmin -= scaling_term*dx
+            xmax += scaling_term*dx
+            ymin -= scaling_term*dy
+            ymax += scaling_term*dy
+
             self._xmin = xmin
             self._xmax = xmax
             self._ymin = ymin
             self._ymax = ymax
         else:
             self.__pos = {}
-            self._xmin = 0
+            self._xmin = -1
             self._xmax = 1
-            self._ymin = 0
+            self._ymin = -1
             self._ymax = 1
 
     def _render_on_subplot(self, subplot):
@@ -1377,7 +1401,11 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             else:
                 for i in self.__color_dict:
                     NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=node_size)
-            NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            if self.__edge_colors is None:
+                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            else:
+                for i in self.__edge_colors:
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i], edge_color=i, ax=subplot, node_size=node_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -2442,6 +2470,85 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
         P.show(**kwargs)
     return P
 
+def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict=None,
+                  edge_colors=None, graph_border=False, scaling_term=0.05):
+    """
+    Creates a graphics object ready to display a NetworkX graph.
+
+    INPUT:
+        graph -- a NetworkX graph
+        pos -- an optional positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+            {   0: [-0.91679746, 0.88169588,],
+                1: [ 0.47294849, 1.125     ,],
+                2: [ 1.125     ,-0.12867615,],
+                3: [ 0.12743933,-1.125     ,],
+                4: [-1.125     ,-0.50118505,]   }
+        vertex_labels -- determines whether labels for nodes are plotted
+        node_size -- node size
+        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of vertices.
+        edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of edges.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
+
+    EXAMPLES:
+        sage: import networkx
+        sage: D = networkx.dodecahedral_graph()
+        sage: g = networkx_plot(D)
+        sage: g.save('sage.png')
+
+        sage: import networkx
+        sage: from math import sin, cos, pi
+        sage: P = networkx.petersen_graph()
+        sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+        sage: pos_dict = {}
+        sage: for i in range(5):
+        ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: for i in range(10)[5:]:
+        ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: g = networkx_plot(graph=P, color_dict=d, pos=pos_dict)
+        sage: g.save('sage.png')
+
+        sage: C = graphs.CubeGraph(5)
+        sage: from sage.plot.plot import rainbow
+        sage: R = rainbow(5)
+        sage: edge_colors = {}
+        sage: for i in range(5):
+        ...    edge_colors[R[i]] = []
+        sage: for u,v,l in C.edges():
+        ...    for i in range(5):
+        ...        if u[i] != v[i]:
+        ...            edge_colors[R[i]].append((u,v,l))
+        sage: P = networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, node_size=0)
+        sage: P.save('sage.png')
+    """
+    g = Graphics()
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, scaling_term=scaling_term)
+    g.append(NGP)
+    xmin = NGP._xmin
+    xmax = NGP._xmax
+    ymin = NGP._ymin
+    ymax = NGP._ymax
+    g.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    if graph_border:
+        from sage.plot.plot import line
+        dx = (xmax - xmin)/10
+        dy = (ymax - ymin)/10
+        border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+        g = g + border
+    g.axes(False)
+    return g
+
 def to_float_list(v):
     return [float(x) for x in v]
 
@@ -2671,9 +2778,59 @@ def graphics_array(array, n=None, m=None):
         array = reshape(array, n, m)
     return GraphicsArray(array)
 
-"""
-Clean up the png's left laying around during the test process:
+def float_to_html(r,g,b):
+    """
+    This is a function to present tuples of RGB floats as HTML-happy hex
+    for matplotlib. This may not seem necessary, but there are some odd
+    cases where matplotlib is just plain schizophrenic- for an example, do
 
-   sage: os.system('rm *.png')
-   0
-"""
+    sage.: color_dict = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+    sage.: graphs.DodecahedralGraph().show(color_dict=color_dict)
+
+    Notice how the colors don't respect the partition at all.....
+    """ # TODO: figure out WTF
+    from sage.rings.integer import Integer
+    from sage.rings.arith import floor
+    rr = Integer(floor(r*255)).str(base=16)
+    gg = Integer(floor(g*255)).str(base=16)
+    bb = Integer(floor(b*255)).str(base=16)
+    rr = '0'*(2-len(rr)) + rr
+    gg = '0'*(2-len(gg)) + gg
+    bb = '0'*(2-len(bb)) + bb
+    return '#' + rr\
+               + gg\
+               + bb
+
+def rainbow(n):
+    """
+    Given an integer n, returns a list of colors, represented in HTML hex,
+    that changes smoothly in hue from one end of the spectrum to the other.
+    Written in order to easily represent vertex partitions on graphs.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLE:
+        sage: from sage.plot.plot import rainbow
+        sage: rainbow(7)
+        ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
+    """
+    from sage.rings.arith import floor
+    R = []
+    for i in range(n):
+        r = 6*float(i)/n
+        h = floor(r)
+        r = float(r - h)
+        if h == 0:#RED
+            R.append(float_to_html(1.,r,0.))
+        elif h == 1:
+            R.append(float_to_html(1. - r,1.,0.))
+        elif h == 2:#GREEN
+            R.append(float_to_html(0.,1.,r))
+        elif h == 3:
+            R.append(float_to_html(0.,1. - r,1.))
+        elif h == 4:#BLUE
+            R.append(float_to_html(r,0.,1.))
+        elif h == 5:
+            R.append(float_to_html(1.,0.,1. - r))
+    return R
+

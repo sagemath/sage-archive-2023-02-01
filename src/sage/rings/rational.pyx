@@ -397,13 +397,13 @@ cdef class Rational(sage.structure.element.FieldElement):
             1.33333333333333
             sage: x = 9837/2
             sage: x.sqrt()
-            70.1320183653657
+            70.1320183653658
             sage: x = 645373/45
             sage: x.sqrt()
-            119.756512233039
+            119.756512233040
             sage: x = -12/5
             sage: x.sqrt()
-            1.54919333848296*I
+            1.54919333848297*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
@@ -1007,7 +1007,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: QQ(0).additive_order()
             1
             sage: QQ(1).additive_order()
-            Infinity
+            +Infinity
         """
         import sage.rings.infinity
         if self.is_zero():
@@ -1043,41 +1043,47 @@ cdef class Rational(sage.structure.element.FieldElement):
             raise ArithmeticError, "no power of %s is a unit"%self
 
     def is_one(self):
-        return mpz_cmp_si(mpq_numref(self.value), 1) == 0
+        return bool(mpz_cmp_si(mpq_numref(self.value), 1) == 0)
 
     def is_zero(self):
-        return mpz_cmp_si(mpq_numref(self.value), 0) == 0
+        return bool(mpz_cmp_si(mpq_numref(self.value), 0) == 0)
 
-    cdef _lshift(self, unsigned long int exp):
+    cdef _lshift(self, long int exp):
         r"""
-        Return $self/2^exp$
+        Return $self*2^exp$
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         _sig_on
-        mpq_mul_2exp(x.value,self.value,exp)
+        if exp < 0:
+            mpq_div_2exp(x.value,self.value,-exp)
+        else:
+            mpq_mul_2exp(x.value,self.value,exp)
         _sig_off
         return x
 
     def __lshift__(x,y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x._lshift(y)
+        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer)):
+            return (<Rational>x)._lshift(y)
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(self, unsigned long int exp):
+    cdef _rshift(self, long int exp):
         r"""
         Return $self/2^exp$
         """
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
         _sig_on
-        mpq_div_2exp(x.value,self.value,exp)
+        if exp < 0:
+            mpq_mul_2exp(x.value,self.value,-exp)
+        else:
+            mpq_div_2exp(x.value,self.value,exp)
         _sig_off
         return x
 
     def __rshift__(x,y):
-        if isinstance(x, Rational) and isinstance(y, Rational):
-            return x._rshift(y)
+        if isinstance(x, Rational) and isinstance(y, (int, long, integer.Integer)):
+            return (<Rational>x)._rshift(y)
         return bin_op(x, y, operator.rshift)
 
     ##################################################

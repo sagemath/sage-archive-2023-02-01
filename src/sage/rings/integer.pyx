@@ -106,7 +106,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement)
 
 import sage.rings.infinity
 import sage.libs.pari.all
-import real_mpfr
 
 cdef mpz_t mpz_tmp
 mpz_init(mpz_tmp)
@@ -123,6 +122,8 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+MAX_UNSIGNED_LONG = 2 * sys.maxint
+
 # This crashes SAGE:
 #  s = 2003^100300000
 # The problem is related to realloc moving all the memory
@@ -134,6 +135,9 @@ from sage.structure.element import  bin_op
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
+
+def is_Integer(x):
+    return bool(PY_TYPE_CHECK(x, Integer))
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -295,19 +299,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_xor(x.value, self.value, other.value)
         return x
 
-    def __xor__(x, y):
+    def xor(x, y):
         """
         Compute the exclusive or of x and y.
 
         EXAMPLES:
             sage: n = ZZ(2); m = ZZ(3)
-            sage: n.__xor__(m)
+            sage: n.xor(m)
             1
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
             return x._xor(y)
         return bin_op(x, y, operator.xor)
 
+    def __xor__(self, right):
+        raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
+              "in Python, and has the wrong precedence.  Use x.xor(y) for the xor of x and y."
 
     def __richcmp__(left, right, int op):
         return (<sage.structure.element.Element>left)._richcmp(right, op)
@@ -532,6 +539,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
+    cdef void _to_ZZ(self, ntl_c_ZZ *z):
+        _sig_on
+        mpz_to_ZZ(z, &self.value)
+        _sig_off
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
@@ -565,7 +577,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
-        x = Integer()
+        x = PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
 
@@ -578,9 +590,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = PY_NEW(Integer)
-        if  mpz_sizeinbase(self.value, 2) > 1000000:  # some lack of symmetry
-            # We only use the signal handler (to enable ctrl-c out) in case
-            # self is huge, so the product might actually take a while to compute.
+        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) when the
+            # product might take a while to compute
             _sig_on
             mpz_mul(x.value, self.value, (<Integer>right).value)
             _sig_off
@@ -656,27 +668,40 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9536.7431640625
             sage: 'sage'^3
             'sagesagesage'
+
+
+        The exponent must first in an unsigned long.
+            sage: x = 2^1000000000000000
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294
         """
-        cdef Integer _self, _n
+        cdef Integer _n
         cdef unsigned int _nval
         if not PY_TYPE_CHECK(self, Integer):
             if isinstance(self, str):
                 return self * n
             else:
                 return self.__pow__(int(n))
+
         try:
+            # todo: should add a fast pathway to deal with n being
+            # an Integer or python int
             _n = Integer(n)
         except TypeError:
             raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+
         if _n < 0:
             return Integer(1)/(self**(-_n))
-        _self = integer(self)
+        if _n > MAX_UNSIGNED_LONG:
+            raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
+        _self = self
         cdef Integer x
-        x = Integer()
+        x = PY_NEW(Integer)
         _nval = _n
 
         _sig_on
-        mpz_pow_ui(x.value, _self.value, _nval)
+        mpz_pow_ui(x.value, (<Integer>self).value, _nval)
         _sig_off
 
         return x
@@ -781,9 +806,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
            sage: x = 3^100000
            sage: log(RR(x), 3)
-           99999.9999999999
+           100000.000000000
            sage: log(RR(x + 100000), 3)
-           99999.9999999999
+           100000.000000000
 
            sage: x.exact_log(3)
            100000
@@ -805,6 +830,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
+        import real_mpfr
         R = real_mpfr.RealField(53)
         guess = R(self).log(base = m).floor()
         power = m ** guess
@@ -1007,23 +1033,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: z.powermodm_ui(2, 14)
             2
-            sage: z.powermodm_ui(2^31-1, 14)
-            4
-            sage: z.powermodm_ui(2^31, 14)
+            sage: z.powermodm_ui(2^32-2, 14)
+            2
+            sage: z.powermodm_ui(2^32-1, 14)
             Traceback (most recent call last):                              # 32-bit
             ...                                                             # 32-bit
-            OverflowError: exp (=2147483648) must be <= 2147483647   # 32-bit
-            2              # 64-bit
-            sage: z.powermodm_ui(2^63, 14)
+            OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
+            8              # 64-bit
+            sage: z.powermodm_ui(2^65, 14)
             Traceback (most recent call last):
             ...
-            OverflowError: exp (=9223372036854775808) must be <= 2147483647           # 32-bit
-            OverflowError: exp (=9223372036854775808) must be <= 9223372036854775807  # 64-bit
+            OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
+            OverflowError: exp (=9223372036854775808) must be <= 18446744065119617024  # 64-bit
         """
         if exp < 0:
             raise ValueError, "exp (=%s) must be nonnegative"%exp
-        elif exp > sys.maxint:
-            raise OverflowError, "exp (=%s) must be <= %s"%(exp, sys.maxint)
+        elif exp > MAX_UNSIGNED_LONG:
+            raise OverflowError, "exp (=%s) must be <= %s"%(exp, MAX_UNSIGNED_LONG)
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()
@@ -1412,7 +1438,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(0).additive_order()
             1
             sage: ZZ(1).additive_order()
-            Infinity
+            +Infinity
         """
         import sage.rings.infinity
         if self.is_zero():
@@ -1548,7 +1574,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Z(4).sqrt(53)
             2.00000000000000
             sage: Z(2).sqrt(53)
-            1.41421356237309
+            1.41421356237310
             sage: Z(2).sqrt(100)
             1.4142135623730950488016887242
             sage: n = 39188072418583779289; n.square_root()
@@ -1558,11 +1584,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.00000000000000*I
             sage: sqrt(-2)
-            1.41421356237309*I
+            1.41421356237310*I
             sage: sqrt(97)
             9.84885780179610
             sage: n = 97; n.sqrt(200)
-            9.8488578017961047217462114149176244816961362874427641717231
+            9.8488578017961047217462114149176244816961362874427641717232
         """
         if bits is None:
             try:
@@ -1576,6 +1602,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
         else:
+            import real_mpfr
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 
@@ -1635,15 +1662,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    cdef _lshift(self, unsigned long int n):
+    cdef _lshift(self, long int n):
         """
         Shift self n bits to the left, i.e., quickly multiply by $2^n$.
         """
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
 
         _sig_on
-        mpz_mul_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_fdiv_q_2exp(x.value, self.value, -n)
+        else:
+            mpz_mul_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1663,11 +1693,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(Integer self, unsigned long int n):
+    cdef _rshift(Integer self, long int n):
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
+
         _sig_on
-        mpz_fdiv_q_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_mul_2exp(x.value, self.value, -n)
+        else:
+            mpz_fdiv_q_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1710,14 +1744,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         EXAMPLES:
             sage: n = 8; m = 4
             sage: n.__or__(m)
-            12
-
-        On the command line use eval to evaluate the or using the
-        caret notation (which is normally exponentiation because
-        of the preprocessor).
-            sage: eval('n ^ m')
-            12
-            sage: eval('Integer(8) ^ Integer(4)')
             12
         """
         if PY_TYPE_CHECK(x, Integer) and PY_TYPE_CHECK(y, Integer):
@@ -1859,11 +1885,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
 ONE = Integer(1)
-
-def integer(x):
-    if PY_TYPE_CHECK(x, Integer):
-        return x
-    return Integer(x)
 
 
 def LCM_list(v):
@@ -2213,7 +2234,7 @@ cdef void fast_tp_dealloc(PyObject* o):
 
     PyObject_FREE(o)
 
-hook_fast_tp_functions()
+#hook_fast_tp_functions()
 
 def hook_fast_tp_functions():
     """
@@ -2275,3 +2296,8 @@ def time_alloc(n):
 def pool_stats():
     print "Used pool %s / %s times" % (use_pool, total_alloc)
     print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)
+
+cdef integer(x):
+    if PY_TYPE_CHECK(x, Integer):
+        return x
+    return Integer(x)

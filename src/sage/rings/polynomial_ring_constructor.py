@@ -5,6 +5,10 @@
 from sage.structure.parent_gens import normalize_names
 import ring
 import weakref
+import padics.padic_ring_generic
+import padics.padic_field_generic
+import padics.padic_ring_lazy
+import padics.padic_field_lazy
 
 _cache = {}
 
@@ -177,7 +181,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: (x2 + x41 + x71)^2
         x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
 
-    You can also call \code{injvar}, which is a convenient shortcut fro \code{inject_variables()}.
+    You can also call \code{injvar}, which is a convenient shortcut for \code{inject_variables()}.
         sage: R = PolynomialRing(GF(7),15,'w'); R
         Polynomial Ring in w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14 over Finite Field of size 7
         sage: R.injvar()
@@ -255,6 +259,7 @@ def _save_in_cache(key, R):
 
 def _single_variate(base_ring, name, sparse):
     import polynomial_ring as m
+    import padics.unramified_ring_extension #needed for hack; should be deleted after hack is removed
     name = normalize_names(1, name)
     key = (base_ring, name, sparse)
     R = _get_from_cache(key)
@@ -269,6 +274,22 @@ def _single_variate(base_ring, name, sparse):
                 R = m.PolynomialRing_dense_mod_n(base_ring, name)
             else:  # n == 1!
                 R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
+
+        elif isinstance(base_ring, padics.padic_ring_lazy.pAdicRingLazy):
+            R = m.PolynomialRing_padic_ring_lazy(base_ring, name)
+
+        elif isinstance(base_ring, padics.padic_field_lazy.pAdicFieldLazy):
+            R = m.PolynomialRing_padic_field_lazy(base_ring, name)
+
+        elif isinstance(base_ring, padics.unramified_ring_extension.UnramifiedRingExtension) and base_ring.ground_ring_of_tower().is_field():
+            # Hack to get unramified field extension polynomials working in the short term.
+            R = m.PolynomialRing_padic_field(base_ring, name)
+
+        elif isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
+            R = m.PolynomialRing_padic_field(base_ring, name)
+
+        elif isinstance(base_ring, padics.padic_ring_generic.pAdicRingGeneric):
+            R = m.PolynomialRing_padic_ring(base_ring, name)
 
         elif base_ring.is_field():
             R = m.PolynomialRing_field(base_ring, name, sparse)

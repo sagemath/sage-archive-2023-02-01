@@ -11,11 +11,17 @@ AUTHORS:
 
 EXAMPLES:
 
+
+
 A difficult conversion:
 
     sage: RR(sys.maxint)
-    9223372036854770000     # 64-bit
+    9223372036854780000     # 64-bit
     2147483647.00000        # 32-bit
+
+TESTS:
+    sage: -1e30
+    -1.00000000000000e30
 """
 
 #*****************************************************************************
@@ -36,17 +42,6 @@ A difficult conversion:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#*****************************************************************************
-# general TODOs:
-#
-# more type conversions and coercion. examples:
-# sage: R(1/2)
-# TypeError: Unable to convert x (='1/2') to mpfr.
-#
-# sage: 1 + R(42)
-# _49 = 1
-#*****************************************************************************
-
 import math # for log
 import sys
 
@@ -60,14 +55,20 @@ cimport sage.structure.element
 from sage.structure.element cimport RingElement, Element, ModuleElement
 import  sage.structure.element
 
+import sage.misc.misc as misc
+
 import sage.structure.coerce
 import operator
+
+from sage.libs.pari.gen import PariInstance, gen
+from sage.libs.pari.gen cimport PariInstance, gen
 
 from integer import Integer
 from integer cimport Integer
 from rational import Rational
 from rational cimport Rational
 
+from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
 
 import sage.rings.complex_field
@@ -129,8 +130,10 @@ cdef class RealField(sage.rings.ring.Field):
                 and mpfr_prec_max(). In the current implementation,
                 mpfr_prec_min() is equal to 2.
 
-        sci_not -- (default: False) whether or not to display
-                using scientific notation
+        sci_not -- (default: False) if True, always display
+                using scientific notation; if False, display
+                using scientific notation only for very large or
+                very small numbers
 
         rnd -- (string) the rounding mode
                 RNDN -- (default) round to nearest: Knuth says this is
@@ -148,7 +151,7 @@ cdef class RealField(sage.rings.ring.Field):
         sage: RealField(100000)
         Real Field with 100000 bits of precision
 
-    NOTE: The default precision is 53, since according to the GMP
+    NOTE: The default precision is 53, since according to the MPFR
        manual: 'mpfr should be able to exactly reproduce all
        computations with double-precision machine floating-point
        numbers (double type in C), except the default exponent
@@ -201,7 +204,7 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealField(20)
             sage: R('1.234')
-            1.2339
+            1.2340
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
@@ -354,12 +357,12 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealField(100)
             sage: R.pi()
-            3.1415926535897932384626433832
+            3.1415926535897932384626433833
             sage: R.pi().sqrt()/2
             0.88622692545275801364908374167
             sage: R = RealField(150)
             sage: R.pi().sqrt()/2
-            0.88622692545275801364908374167057259139877472
+            0.88622692545275801364908374167057259139877473
         """
         cdef RealNumber x
         x = self._new()
@@ -403,9 +406,9 @@ cdef class RealField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R=RealField(100)
             sage: R.log2()
-            0.69314718055994530941723212145
+            0.69314718055994530941723212146
             sage: R(2).log()
-            0.69314718055994530941723212145
+            0.69314718055994530941723212146
         """
         cdef RealNumber x
         x = self._new()
@@ -541,6 +544,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         cdef RealNumber _x, n, d
         cdef Integer _ix
         cdef RealField parent
+        cdef gen _gen
+        cdef RealDoubleElement rd
         parent = self._parent
         if PY_TYPE_CHECK(x, RealNumber):
             _x = x  # so we can get at x.value
@@ -549,9 +554,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
             mpfr_set_z(self.value, (<Integer>x).value, parent.rnd)
         elif PY_TYPE_CHECK(x, Rational):
             mpfr_set_q(self.value, (<Rational>x).value, parent.rnd)
+        elif PY_TYPE_CHECK(x, gen) and x.type() == "t_REAL":
+            _gen = x
+            self._set_from_GEN_REAL(_gen.g)
         elif isinstance(x, (int, long)):
             _ix = Integer(x)
             mpfr_set_z(self.value, _ix.value, parent.rnd)
+        elif isinstance(x, float):
+            mpfr_set_d(self.value, x, parent.rnd)
+        elif PY_TYPE_CHECK(x, RealDoubleElement):
+            rd = x
+            mpfr_set_d(self.value, rd._value, parent.rnd)
         #elif hasattr(x, '_mpfr_'):
         #    return x._mpfr_(self)
         else:
@@ -565,6 +578,58 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     mpfr_set_inf(self.value, -1)
                 else:
                     raise TypeError, "Unable to convert x (='%s') to real number."%s
+
+    cdef _set_from_GEN_REAL(self, GEN g):
+        """
+        EXAMPLES:
+            sage: rt2 = sqrt(pari('2.0'))
+            sage: rt2
+            1.414213562373095048801688724              # 32-bit
+            1.4142135623730950488016887242096980786    # 64-bit
+            sage: rt2.python()
+            1.414213562373095048801688724              # 32-bit
+            1.4142135623730950488016887242096980786    # 64-bit
+            sage: rt2.python().prec()
+            96                                         # 32-bit
+            128                                        # 64-bit
+            sage: pari(rt2.python()) == rt2
+            True
+            sage: for i in xrange(1, 1000):
+            ...       assert(sqrt(pari(i)) == pari(sqrt(pari(i)).python()))
+            sage: (-3.1415)._pari_().python()
+            -3.14150000000000018
+        """
+        cdef int sgn
+        sgn = signe(g)
+
+        if sgn == 0:
+            mpfr_set_ui(self.value, 0, GMP_RNDN)
+            return
+
+        cdef int wordsize
+
+        if sage.misc.misc.is_64_bit:
+            wordsize = 64
+        else:
+            wordsize = 32
+
+        cdef mpz_t mantissa
+        mpz_init(mantissa)
+
+        mpz_import(mantissa, lg(g) - 2, 1, wordsize/8, 0, 0, &g[2])
+
+        cdef int exponent
+        exponent = expo(g)
+
+        # Round to nearest for best results when setting a low-precision
+        # MPFR from a high-precision GEN
+        mpfr_set_z(self.value, mantissa, GMP_RNDN)
+        mpfr_mul_2si(self.value, self.value, exponent - wordsize * (lg(g) - 2) + 1, GMP_RNDN)
+
+        if sgn < 0:
+            mpfr_neg(self.value, self.value, GMP_RNDN)
+
+        mpz_clear(mantissa)
 
     def __reduce__(self):
         """
@@ -601,8 +666,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def _interface_init_(self):
         """
-        Return string representation of self in base 10 with
-        no scientific notation.
+        Return string representation of self in base 10, avoiding
+        scientific notation except for very large or very small numbers.
 
         This is most likely to make sense in other computer algebra
         systems (this function is the default for exporting to other
@@ -611,7 +676,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: n = 1.3939494594
             sage: n._interface_init_()
-            '1.39394945939999'
+            '1.39394945940000'
         """
         return self.str(10, no_sci=True)
 
@@ -639,15 +704,19 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         return self._parent
 
-    def str(self, int base=10, no_sci=None, e='e', int truncate=1):
+    def str(self, int base=10, no_sci=None, e=None, int truncate=1):
         """
         INPUT:
              base -- base for output
-             no_sci -- if True do not print using scientific notation; if False
-                       print with scientific notation; if None (the default), print how the parent prints.
-             e - symbol used in scientific notation
-             truncate -- if True, truncate the last digits in printing to avoid confusing base-2
-                         roundoff issues.
+             no_sci -- if 2, never print using scientific notation;
+                       if 1 or True, print using scientific notation only
+                       for very large or very small numbers;
+                       if 0 or False always print with scientific notation;
+                       if None (the default), print how the parent prints.
+             e - symbol used in scientific notation; defaults to 'e' for
+                       base<=10, and '@' otherwise
+             truncate -- if True, round off the last digits in printing to
+                       lessen confusing base-2 roundoff issues.
 
         EXAMPLES:
             sage: a = 61/3.0; a
@@ -658,6 +727,28 @@ cdef class RealNumber(sage.structure.element.RingElement):
             '10100.010101010101010101010101010101010101010101010101'
             sage: a.str(no_sci=False)
             '2.03333333333333e1'
+            sage: a.str(16, no_sci=False)
+            '1.4555555555555@1'
+            sage: b = 2.0^99
+            sage: b.str()
+            '633825300114115000000000000000'
+            sage: b.str(no_sci=False)
+            '6.33825300114115e29'
+            sage: b.str(no_sci=True)
+            '633825300114115000000000000000'
+            sage: c = 2.0^100
+            sage: c.str()
+            '1.26765060022823e30'
+            sage: c.str(no_sci=False)
+            '1.26765060022823e30'
+            sage: c.str(no_sci=True)
+            '1.26765060022823e30'
+            sage: c.str(no_sci=2)
+            '1267650600228230000000000000000'
+            sage: 0.5^53
+            0.000000000000000111022302462516
+            sage: 0.5^54
+            5.55111512312578e-17
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
@@ -672,47 +763,73 @@ cdef class RealNumber(sage.structure.element.RingElement):
             else:
                 return "-infinity"
 
+        if e is None:
+            if base > 10:
+                e = '@'
+            else:
+                e = 'e'
+
         cdef char *s
         cdef mp_exp_t exponent
 
+        cdef int reqdigits
+
+        reqdigits = 0
+
+        if base == 10 and truncate:
+
+            # This computes reqdigits == floor(log_{10}(2^(b-1))),
+            # which is the number of *decimal* digits that are
+            # "right", given that the last binary bit of the binary
+            # number can be off.  That is, if this real is within a
+            # relative error of 2^(-b) of an exact decimal with
+            # reqdigits digits, that decimal will be returned.
+            # This is equivalent to saying that exact decimals with
+            # reqdigits digits differ by at least 2*2^(-b) (relative).
+
+            # (Depending on the precision and the exact number involved,
+            # adjacent exact decimals can differ by far more than 2*2^(-b)
+            # (relative).)
+
+            # This avoids the confusion a lot of people have with the last
+            # 1-2 binary digits being wrong due to rounding coming from
+            # representating numbers in binary.
+
+            reqdigits = ((<RealField>self._parent).__prec - 1) * 0.3010299956
+            if reqdigits <= 1: reqdigits = 2
+
         _sig_on
-        s = mpfr_get_str(<char*>0, &exponent, base, 0,
+        s = mpfr_get_str(<char*>0, &exponent, base, reqdigits,
                          self.value, (<RealField>self._parent).rnd)
         _sig_off
         if s == <char*> 0:
             raise RuntimeError, "Unable to convert an mpfr number to a string."
         t = str(s)
-        free(s)
+        mpfr_free_str(s)
 
-        cdef int i
 
-        # This is log_{10}(2^(b-1)), which is the number of *decimal*
-        # digits that are "right", given that the last binary bit of the
-        # binary number can be off.  I.e., the number that corresponds to an
-        # exact real number, which written in binary, is right except that
-        # the last digit could be wrong.  This changes the number by
-        # a relative error of 2^(-b). Thus a guaranteed number of digits
-        # that are right is
-        # This avoids the confusion a lot of people have with the last
-        # 1-2 binary digits being wrong due to rounding coming from
-        # representating numbers in binary.
+        cdef int digits
+        digits = len(t)
+        if t[0] == "-":
+            digits = digits - 1
 
-        if base == 10 and truncate:
-            i = ((<RealField>self._parent).__prec - 1) * 0.3010299956
-            if len(t) == 0 or t[0] == '-': i = i + 1  # to compensate for minus sign.
-            if i > 0:
-                t = t[:i]
+        if no_sci is None:
+            no_sci = not (<RealField>self._parent).sci_not
 
-        if no_sci==False or ((<RealField>self._parent).sci_not and not (no_sci==True)):
+        if no_sci==True and (-exponent > digits or exponent > 2*digits):
+            no_sci = False
+
+        if no_sci==False:
             if t[0] == "-":
                 return "-%s.%s%s%s"%(t[1:2], t[2:], e, exponent-1)
             return "%s.%s%s%s"%(t[0], t[1:], e, exponent-1)
 
-        n = abs(exponent)
         lpad = ''
         if exponent <= 0:
             n = len(t)
             lpad = '0.' + '0'*abs(exponent)
+        else:
+            n = exponent
         if t[0] == '-':
             lpad = '-' + lpad
             t = t[1:]
@@ -720,7 +837,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         w = t[n:]
         if len(w) > 0:
             z = z + ".%s"%w
-        elif lpad == '':
+        elif exponent > 0:
             z = z + '0'*(n-len(t))
         return z
 
@@ -817,9 +934,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b
             393.39028340283450000000000000
             sage: a*b
-            154750
+            154760
             sage: b*a
-            154750
+            154760
             sage: parent(b*a)
             Real Field with 20 bits of precision
         """
@@ -841,7 +958,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: R = RealField()
             sage: R(-1.5) / R(2.5)
-            -0.599999999999999
+            -0.600000000000000
         """
         cdef RealNumber x
         x = self._new()
@@ -930,7 +1047,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R(22.454)
             22.454
             sage: R(22.491)
-            22.490
+            22.491
 
             RNDZ -- round towards zero:
             sage: R = RealField(20,False,'RNDZ')
@@ -942,9 +1059,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             RNDU -- round towards plus infinity:
             sage: R = RealField(20,False,'RNDU')
             sage: R(22.454)
-            22.454
+            22.455
             sage: R(22.491)
-            22.491
+            22.492
 
             RNDU -- round towards minus infinity:
             sage: R = RealField(20,False,'RNDD')
@@ -1040,6 +1157,88 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_frac(x.value, self.value, (<RealField>self._parent).rnd)
         return x
 
+    def nexttoward(self, other):
+        """
+        Returns the floating-point number adjacent to self which is
+        closer to other.  If self or other is NaN, returns NaN;
+        if self equals other, returns self.
+
+        EXAMPLES:
+            sage: (1.0).nexttoward(2).str(truncate=False)
+            '1.0000000000000002'
+            sage: (1.0).nexttoward(RR('-infinity')).str(truncate=False)
+            '0.99999999999999989'
+            sage: RR(infinity).nexttoward(0)
+            2.09857871646739e323228496
+            sage: RR(pi).str(truncate=False)
+            '3.1415926535897931'
+            sage: RR(pi).nexttoward(22/7).str(truncate=False)
+            '3.1415926535897936'
+            sage: RR(pi).nexttoward(21/7).str(truncate=False)
+            '3.1415926535897927'
+        """
+        cdef RealNumber other_rn
+        if PY_TYPE_CHECK(other, RealNumber):
+            other_rn = other
+        else:
+            other_rn = self._parent(other)
+
+        cdef RealNumber x
+        x = self._new()
+
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nexttoward(x.value, other_rn.value)
+
+        return x
+
+    def nextabove(self):
+        """
+        Returns the next floating-point number larger than self.
+
+        EXAMPLES:
+            sage: RR('-infinity').nextabove()
+            -2.09857871646739e323228496
+            sage: RR(0).nextabove()
+            2.38256490488795e-323228497
+            sage: RR('+infinity').nextabove()
+            +infinity
+            sage: RR(-sqrt(2)).str(truncate=False)
+            '-1.4142135623730951'
+            sage: RR(-sqrt(2)).nextabove().str(truncate=False)
+            '-1.4142135623730949'
+        """
+
+        cdef RealNumber x
+        x = self._new()
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nextabove(x.value)
+
+        return x
+
+    def nextbelow(self):
+        """
+        Returns the next floating-point number smaller than self.
+
+        EXAMPLES:
+            sage: RR('-infinity').nextbelow()
+            -infinity
+            sage: RR(0).nextbelow()
+            -2.38256490488795e-323228497
+            sage: RR('+infinity').nextbelow()
+            2.09857871646739e323228496
+            sage: RR(-sqrt(2)).str(truncate=False)
+            '-1.4142135623730951'
+            sage: RR(-sqrt(2)).nextbelow().str(truncate=False)
+            '-1.4142135623730954'
+        """
+
+        cdef RealNumber x
+        x = self._new()
+        mpfr_set(x.value, self.value, GMP_RNDN)
+        mpfr_nextbelow(x.value)
+
+        return x
+
     ###########################################
     # Conversions
     ###########################################
@@ -1070,8 +1269,91 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return sage.rings.complex_field.ComplexField(self.prec())(self)
 
     def _pari_(self):
-        return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField>self._parent).__prec)
+        """
+        Returns self as a Pari floating-point number.
 
+        EXAMPLES:
+            sage: RR(2.0)._pari_()
+            2.000000000000000000
+
+        The current Pari precision affects the printing of this number, but
+        Pari does maintain the same 250-bit number on both 32-bit and 64-bit
+        platforms.
+
+            sage: RealField(250).pi()._pari_()
+            3.141592653589793238462643383               # 32-bit
+            3.1415926535897932384626433832795028842     # 64-bit
+            sage: RR(0.0)._pari_()
+            0.E-19
+            sage: RR(-1.234567)._pari_()
+            -1.2345669999999999700
+            sage: RR(2.0).sqrt()._pari_()
+            1.4142135623730951455
+            sage: RR(2.0).sqrt()._pari_().python()
+            1.41421356237309515
+            sage: RR(2.0).sqrt()._pari_().python().prec()
+            64
+            sage: RealField(70)(pi)._pari_().python().prec()
+            96                                         # 32-bit
+            128                                        # 64-bit
+            sage: for i in xrange(1, 1000):
+            ...       assert(RR(i).sqrt() == RR(i).sqrt()._pari_().python())
+        """
+        # return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealField>self._parent).__prec)
+
+        # This uses interfaces of MPFR and Pari which are documented
+        # (and not marked subject-to-change).  It could be faster
+        # by using internal interfaces of MPFR, which are documented
+        # as subject-to-change.
+
+        if mpfr_nan_p(self.value) or mpfr_inf_p(self.value):
+            raise ValueError, 'Cannot convert NaN or infinity to Pari float'
+
+        cdef int wordsize
+
+        if sage.misc.misc.is_64_bit:
+            wordsize = 64
+        else:
+            wordsize = 32
+
+        cdef int prec
+        prec = (<RealField>self._parent).__prec
+
+        # We round up the precision to the nearest multiple of wordsize.
+        cdef int rounded_prec
+        rounded_prec = (self.prec() + wordsize - 1) & ~(wordsize - 1)
+
+        # Yes, assigning to self works fine, even in Pyrex.
+        if rounded_prec > prec:
+            self = RealField(rounded_prec)(self)
+
+        # Now we can extract the mantissa, and it will be normalized
+        # (the most significant bit of the most significant word will be 1).
+        cdef mpz_t mantissa
+        cdef mp_exp_t exponent
+        mpz_init(mantissa)
+
+        exponent = mpfr_get_z_exp(mantissa, self.value)
+
+        cdef GEN pari_float
+        pari_float = cgetr(2 + rounded_prec / wordsize)
+
+        mpz_export(&pari_float[2], NULL, 1, wordsize/8, 0, 0, mantissa)
+
+        if mpfr_zero_p(self.value):
+            setexpo(pari_float, -rounded_prec)
+        else:
+            setexpo(pari_float, exponent + rounded_prec - 1)
+        setsigne(pari_float, mpfr_sgn(self.value))
+
+        cdef PariInstance P
+        P = sage.libs.pari.all.pari
+
+        gen = P.new_gen(pari_float)
+
+        mpz_clear(mantissa)
+
+        return gen
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
@@ -1181,7 +1463,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = -2.0
             sage: r.sqrt()
-            1.41421356237309*I
+            1.41421356237310*I
             """
         if self >= 0:
             return self.square_root()
@@ -1200,7 +1482,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r.square_root()
             NaN
             sage: r.sqrt()
-            1.41421356237309*I
+            1.41421356237310*I
         """
         cdef RealNumber x
         x = self._new()
@@ -1253,11 +1535,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a^20
             67.646297
             sage: a^a
-            1.2971114
+            1.2971115
             sage: b = R(-1)
             sage: b^(1/2)
-            1.0000000*I                   # 32-bit
-            -0.00000000000000000010842021 + 1.0000000*I   # 64-bit
+            1.0000000*I                    # 32-bit
+            -1.0842022e-19 + 1.0000000*I   # 64-bit
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):
@@ -1298,7 +1580,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             4.00000000000000
 
             sage: r = 31.9; r.log2()
-            4.99548451887750
+            4.99548451887751
 
             sage: r = 0.0
             sage: r.log2()
@@ -1318,11 +1600,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = 16.0; r.log10()
             1.20411998265592
-            sage: r.log() / log(10)
-            1.20411998265804
+            sage: r.log() / log(10.0)
+            1.20411998265592
 
             sage: r = 39.9; r.log10()
-            1.60097289568674
+            1.60097289568675
 
             sage: r = 0.0
             sage: r.log10()
@@ -1353,11 +1635,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a = r.exp(); a
             106588847274864
             sage: a.log()
-            32.2999999999999
+            32.3000000000000
 
             sage: r = -32.3
             sage: r.exp()
-            0.00000000000000938184458849868
+            0.00000000000000938184458849869
         """
         cdef RealNumber x
         x = self._new()
@@ -1381,7 +1663,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = -32.3
             sage: r.exp2()
-            0.000000000189117248253020
+            0.000000000189117248253021
 
         """
         cdef RealNumber x
@@ -1402,11 +1684,11 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 32.0
             sage: r.exp10()
-            100000000000000000000000000000000
+            1.00000000000000e32
 
             sage: r = -32.3
             sage: r.exp10()
-            0.00000000000000000000000000000000501187233627275
+            5.01187233627276e-33
         """
         cdef RealNumber x
         x = self._new()
@@ -1422,7 +1704,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: t=RR.pi()/2
             sage: t.cos()
-            0.0000000000000000612323399573676
+            6.12323399573677e-17
         """
         cdef RealNumber x
         x = self._new()
@@ -1463,10 +1745,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RR.pi()/3
             sage: q.tan()
-            1.73205080756887
+            1.73205080756888
             sage: q = RR.pi()/6
             sage: q.tan()
-            0.577350269189625
+            0.577350269189626
         """
         cdef RealNumber x
         x = self._new()
@@ -1483,7 +1765,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: R = RealField()
             sage: t = R.pi()/6
             sage: t.sincos()
-            (0.499999999999999, 0.866025403784438)
+            (0.500000000000000, 0.866025403784439)
         """
         cdef RealNumber x,y
         x = self._new()
@@ -1574,7 +1856,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RR.pi()/12
             sage: q.sinh()
-            0.264800227602270
+            0.264800227602271
         """
         cdef RealNumber x
         x = self._new()
@@ -1606,7 +1888,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RR.pi()/2
             sage: i = q.cosh() ; i
-            2.50917847865805
+            2.50917847865806
         """
         cdef RealNumber x
         x = self._new()
@@ -1622,7 +1904,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RR.pi()/7
             sage: i = q.sinh() ; i
-            0.464017630492990
+            0.464017630492991
             sage: i.asinh() - q
             0.000000000000000
         """
@@ -1640,7 +1922,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RR.pi()/7
             sage: i = q.tanh() ; i
-            0.420911241048534
+            0.420911241048535
             sage: i.atanh() - q
             0.000000000000000
         """
@@ -1717,9 +1999,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealField()
             sage: R(2).zeta()
-            1.64493406684822
+            1.64493406684823
             sage: R.pi()^2/6
-            1.64493406684822
+            1.64493406684823
             sage: R(-2).zeta()
             0.000000000000000
             sage: R(1).zeta()
@@ -1740,7 +2022,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
              sage: type(z)
              <type 'sage.libs.pari.gen.gen'>
              sage: R(z)
-             1.64493406684822
+             1.64493406684823
         """
         cdef RealNumber x
         x = self._new()
@@ -1760,10 +2042,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLE:
              sage: r = sqrt(2); r
-             1.41421356237309
+             1.41421356237310
              sage: r.algdep(5)
-             x^5 - x^4 - 2*x^3 + x^2 + 2      # 32-bit
-             x^4 - 4*x^2 + 4                  # 64-bit
+             x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 
@@ -1778,10 +2059,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
          EXAMPLE:
               sage: r = sqrt(2); r
-              1.41421356237309
+              1.41421356237310
               sage: r.algdep(5)
-              x^5 - x^4 - 2*x^3 + x^2 + 2    # 32-bit
-              x^4 - 4*x^2 + 4                # 64-bit
+              x^2 - 2
         """
         return sage.rings.arith.algdep(self,n)
 
@@ -1860,7 +2140,7 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
 
     EXAMPLES:
         sage: RealNumber('2.3')
-        2.29999999999999
+        2.30000000000000
         sage: RealNumber(10)
         10.0000000000000
         sage: RealNumber('1.0000000000000000000000000000000000')

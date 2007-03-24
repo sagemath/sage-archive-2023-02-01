@@ -470,6 +470,7 @@ class EllipticCurveFormalGroup(SageObject):
 
         AUTHOR:
             -- Nick Alexander: minor fixes, docstring
+            -- David Harvey (2007-03): faster algorithm for char 0 field case
 
         EXAMPLES:
             sage: e = EllipticCurve([1, 2, 3, 4, 6])
@@ -488,6 +489,32 @@ class EllipticCurveFormalGroup(SageObject):
             sage: ntwo - two(none)
              O(t^5)
         """
+        if self.curve().base_ring().is_field() and self.curve().base_ring().characteristic() == 0 and n != 0:
+            # The following algorithm only works over a field of
+            # characteristic zero. I don't know whether something similar
+            # can be done over a general ring. It would be nice if it did,
+            # since it's much faster than using the formal group law.
+            # -- dmharvey
+
+            # Create a "formal point" on the original curve E.
+            # Our anwer only needs prec-1 coefficients (since lowest term
+            # is t^1), and x(t) = t^(-2) + ... and y(t) = t^(-3) + ...,
+            # so we only need x(t) mod t^(prec-3) and y(t) mod t^(prec-4)
+            x = self.x(prec-3)
+            y = self.y(prec-4)
+            R = x.parent()    # the laurent series ring over the base ring
+            X = self.curve().change_ring(R)
+            P = X(x, y)
+
+            # and multiply it by n, using the group law on E
+            Q = n*P
+
+            # express it in terms of the formal parameter
+            return -Q[0] / Q[1]
+
+
+        # Now the general case, not necessarily over a field.
+
         # For unknown reasons, this seems to lose one place of precision:
         # the coefficient of t**(prec-1) seems off.  So we apply the easy fix.
         orig_prec = max(prec, 0)

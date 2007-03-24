@@ -342,6 +342,7 @@ class MonitorDatabase(object):
 
         def add_availableProcessorCount(doc, gauge):
             pass
+
         def add_unavailableProcessorCount(doc, gauge):
             pass
 

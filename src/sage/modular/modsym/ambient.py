@@ -1052,8 +1052,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def submodule(self, M, dual_free_module=None, check=True):
         if check:
             if not free_module.is_FreeModule(M):
-                raise TypeError, "M must be a free module."
-            if not M.is_submodule(self.free_module()):
+                V = self.free_module()
+                if isinstance(M, (list,tuple)):
+                    M = V.span([V(x.element()) for x in M])
+                else:
+                    M = V.span(M)
+            elif not M.is_submodule(self.free_module()):
                 raise ArithmeticError, "M must be a submodule of the free module of self."
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
 

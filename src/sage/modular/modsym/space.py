@@ -39,6 +39,7 @@ import sage.structure.parent_gens as gens
 import sage.rings.arith as arith
 from   sage.rings.all import PowerSeriesRing, Integer, O, QQ, ZZ, is_NumberField
 from   sage.structure.all import Sequence, SageObject
+import sage.modular.modsym.ambient
 
 def is_ModularSymbolsSpace(x):
     return isinstance(x, ModularSymbolsSpace)
@@ -53,12 +54,16 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
     def __cmp__(self, other):
         """
         Compare self and other.
+
+        When spaces are in a common ambient space, we order
+        lexicographically by the sequence of traces of Hecke operators
+        $T_p$, for all primes $p$.
         """
         if not isinstance(other, ModularSymbolsSpace):
             return cmp(type(self), type(other))
         c = cmp(self.__group,other.__group)
         if c: return c
-        c = cmp(self.__weight, other.__weight)
+        c = cmp(self.weight(), other.weight())
         if c: return c
         c = cmp(self.__character, other.__character)
         if c: return c
@@ -66,13 +71,30 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
         if c: return c
         c = cmp(self.base_ring(), other.base_ring())
         if c: return c
-        if self.is_ambient() and other.is_ambient():
-            return 0
+        if self.is_ambient() or other.is_ambient():
+            # if one is ambient they are equal iff they have same dimension at this point,
+            # since all defining properties are the same, so they are in the same ambient space.
+            return cmp(self.dimension(), other.dimension())
+
         c = cmp(self.ambient_hecke_module(), other.ambient_hecke_module())
         if c: return c
+        c = cmp(self.dimension(), other.dimension())
+        if c: return c
+        d = cmp(self.free_module(), other.free_module())
+        if d == 0:
+            return d
+        # distinguish using Hecke operators, if possible.
+        try:
+            for p in arith.prime_range(self.hecke_bound()):
+                ap = self.hecke_matrix(p).trace()
+                bp = other.hecke_matrix(p).trace()
+                c = cmp(ap, bp)
+                if c: return c
+        except ArithmeticError:
+            pass
+        # fallback on subspace comparison
+        return d
 
-        # ambients same and at most one of the two spaces is ambient
-        return cmp(self.free_module(), other.free_module())
 
     def character(self):
         return self.__character
@@ -185,6 +207,9 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             Congruence Subgroup Gamma0(20)
         """
         return self.__group
+
+    def is_ambient(self):
+        return isinstance(self, sage.modular.modsym.ambient.ModularSymbolsAmbient)
 
     def is_cuspidal(self):
         raise NotImplementedError
@@ -1463,13 +1488,22 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             sage: e = m([0,oo])
             sage: f(e)
             (0)
+
+        The input space must be cuspidal:
+            sage: m = ModularSymbols(37,2,sign=1)
+            sage: m.integral_period_mapping()
+            Traceback (most recent call last):
+            ...
+            ValueError: integral mapping only defined for cuspidal spaces
         """
         try:
             return self.__integral_period_mapping
         except AttributeError:
             pass
         if self.base_ring() != QQ:
-            raise ValueError, "modular symbols space must be defined over QQ."
+            raise ValueError, "integral mapping only defined for spaces over QQ"
+        if not self.is_cuspidal():
+            raise ValueError, "integral mapping only defined for cuspidal spaces"
         D = self.dual_free_module().basis_matrix().transpose()
         I = self.ambient_module().cuspidal_submodule().integral_structure().basis_matrix()
         # image of cuspidal integral submodule

@@ -152,7 +152,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             sage: M = ModularForms(DirichletGroup(13).0^2)
             sage: M.set_precision(10)
             sage: M.cuspidal_subspace().0
-            ???
+            q + (-zeta6 - 1)*q^2 + (2*zeta6 - 2)*q^3 + zeta6*q^4 + (-2*zeta6 + 1)*q^5 + (-2*zeta6 + 4)*q^6 + (2*zeta6 - 1)*q^8 + -zeta6*q^9 + O(q^10)
         """
         self.ambient().set_precision(new_prec)
 
@@ -306,17 +306,17 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
             [
             q - 2*q^2 - 3*q^3 + 4*q^4 + 6*q^5 + O(q^6),
             1 + O(q^6),
-            q + 126*q^5 + O(q^6),
-            q^2 + O(q^6),
+            q - 8*q^4 + 126*q^5 + O(q^6),
+            q^2 + 9*q^4 + O(q^6),
             q^3 + O(q^6)
             ]
             sage: M.echelon_form().basis()
             [
             1 + O(q^6),
-            q + 126*q^5 + O(q^6),
-            q^2 + O(q^6),
+            q + 94*q^5 + O(q^6),
+            q^2 + 36*q^5 + O(q^6),
             q^3 + O(q^6),
-            q^4 - 30*q^5 + O(q^6)
+            q^4 - 4*q^5 + O(q^6)
             ]
 
         We create a space with a funny basis then compute the corresponding
@@ -729,13 +729,22 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         """
         EXAMPLES:
             sage: M = ModularForms(11,2)
+            sage: M._compute_hecke_matrix_prime(2)
+            [-2  0]
+            [ 0  3]
+
+            sage: M = ModularForms(11,2)
             sage: M2 = M.span([M.0 + M.1])
             sage: M2.hecke_matrix(2)
-               should raise arithmetic error since not invariant.
+            Traceback (most recent call last):
+            ...
+            ArithmeticError: vector is not in free module
         """
         if prec is None:
             # Initial guess -- will increase if need be.
-            prec = p*self.dimension() + 1
+            # We add on a few dimensions, so we are likely to
+            # detect non-invariant subspaces (if they accidently occur).
+            prec = p*self.dimension() + 8
         try:
             cur, _ = self.__q_expansion_basis
         except AttributeError:
@@ -750,7 +759,7 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         try:
             return hecke_operator_on_qexp.hecke_operator_on_basis(B, p,
                        self.weight(), eps, already_echelonized=False)
-        except ArithmeticError:
+        except ValueError:
             # Double the precision.
             return self._compute_hecke_matrix_prime(p, prec = 2*prec+1)
 
@@ -827,6 +836,19 @@ class ModularFormsSpace(hecke.HeckeModule_generic):
         return self.__sturm_bound
 
     def character(self):
+        """
+        Return the Dirichlet character of this space.
+
+        EXAMPLES:
+            sage: M = ModularForms(DirichletGroup(11).0, 3)
+            sage: M.character()
+            [zeta10]
+            sage: s = M.cuspidal_submodule()
+            sage: s.character()
+            [zeta10]
+            sage: CuspForms(DirichletGroup(11).0,3).character()
+            [zeta10]
+        """
         return self.__character
 
     def cuspidal_submodule(self):

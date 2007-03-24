@@ -274,17 +274,10 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int is_list
         cdef Integer x
 
-        if not isinstance(entries, list):
-            try:
-                entries = list(entries)
-                is_list = 1
-            except TypeError:
-                try:
-                    # Try to coerce entries to a scalar (an integer)
-                    x = ZZ(entries)
-                    is_list = 0
-                except TypeError:
-                    raise TypeError, "entries must be coercible to a list or integer"
+        if not isinstance(entries, (list,tuple)):
+            # Try to coerce entries to a scalar (an integer)
+            x = ZZ(entries)
+            is_list = 0
         else:
             is_list = 1
 
@@ -298,7 +291,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise TypeError, "entries has the wrong length"
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
-                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     x = ZZ(entries[i])
                     # todo -- see integer.pyx and the TODO there; perhaps this could be
                     # sped up by creating a mpz_init_set_sage function.
@@ -306,7 +298,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 self._initialized = True
             else:
                 for i from 0 <= i < self._nrows * self._ncols:
-                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     mpz_init_set(self._entries[i], (<Integer> entries[i]).value)
                 self._initialized = True
         else:

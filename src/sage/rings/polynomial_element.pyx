@@ -171,16 +171,41 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: w = i+j+1; i*j*w^5 - 13*i*w^2 + (i+j)*w + i
             24 + 26*i - 10*j - 25*k
 
+        The parent ring of the answer always "starts" with the parent
+        of the object at which we are evaluating.  Thus, e.g., if
+        we input a matrix, we are guaranteed to get a matrix out,
+        though the base ring of that matrix may change depending on
+        the base of the polynomial ring.
+            sage: R.<x> = QQ[]
+            sage: f = R(2/3)
+            sage: a = matrix(ZZ,2)
+            sage: b = f(a); b
+            [2/3   0]
+            [  0 2/3]
+            sage: b.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+            sage: f = R(1)
+            sage: b = f(a); b
+            [1 0]
+            [0 1]
+            sage: b.parent()
+            Full MatrixSpace of 2 by 2 dense matrices over Rational Field
+
+
         AUTHORS:
             -- David Joyner, 2005-04-10
             -- William Stein, 2006-01-22; change so parent
                is determined by the arithmetic
+            -- William Stein, 2007-03-24: fix parent being determined in the constant case!
         """
         a = a[0]
         if isinstance(a, tuple):
             a = a[0]
         d = self.degree()
-        result = self[d]
+        try:
+            result = a.parent()(1) * self[d]
+        except (AttributeError,TypeError):
+            result = self[d]
         i = d - 1
         while i >= 0:
             result = result * a + self[i]

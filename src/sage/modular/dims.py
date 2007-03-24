@@ -638,10 +638,13 @@ def dimension_cusp_forms(X, k=2):
     subgroup or Dirichlet character.
 
     INPUT:
-        X -- congruence subgroup or Dirichlet character
+        X -- congruence subgroup or Dirichlet character or integer
         k -- weight (integer)
 
     EXAMPLES:
+        sage: dimension_cusp_forms(5,4)
+        1
+
         sage: dimension_cusp_forms(Gamma0(11),2)
         1
         sage: dimension_cusp_forms(Gamma1(13),2)
@@ -703,17 +706,19 @@ def dimension_cusp_forms(X, k=2):
     """
     if isinstance(X, dirichlet.DirichletCharacter):
         return dimension_cusp_forms_eps(X, k)
-    if not isinstance(X, congroup.CongruenceSubgroup):
-        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
-    if isinstance(X, congroup.Gamma0):
+    elif isinstance(X, congroup.Gamma0):
         return dimension_cusp_forms_gamma0(X.level(),k)
+    elif isinstance(X, (Integer,int,long)):
+        return dimension_cusp_forms_gamma0(Integer(X),k)
     elif isinstance(X, congroup.Gamma1):
         return dimension_cusp_forms_gamma1(X.level(),k)
     elif congroup.is_GammaH(X):
         return dimension_cusp_forms_H(X,k)
+    elif not isinstance(X, congroup.CongruenceSubgroup):
+        raise TypeError, "Argument 1 must be a congruence subgroup or Dirichlet character"
     else:
         raise NotImplementedError, "Computing of dimensions for congruence subgroups besides \
-        Gamma0 and Gamma1 is not yet implemented."
+        Gamma0, Gamma1, and GammaH is not yet implemented."
 
 def dimension_eis(X, k=2):
     """
@@ -721,10 +726,13 @@ def dimension_eis(X, k=2):
     congruence subgroup.
 
     INPUT:
-        X -- congruence subgroup or Dirichlet character
+        X -- congruence subgroup or Dirichlet character or integer
         k -- weight (integer)
 
     EXAMPLES:
+        sage: dimension_eis(5,4)
+        2
+
         sage: dimension_eis(Gamma0(11),2)
         1
         sage: dimension_eis(Gamma1(13),2)
@@ -768,6 +776,11 @@ def dimension_eis(X, k=2):
     if k <= 1:
         # TODO
         raise NotImplementedError, "Dimension of weight <= 1 Eisenstein series not yet implemented."
+    if isinstance(X, (int,long,Integer)):
+        if k%2 == 1: return 0
+        d = c0(Integer(X))
+        if k==2: d -= 1
+        return Z(d)
     if isinstance(X, dirichlet.DirichletCharacter):
         return dimension_eis_eps(X, k)
     if isinstance(X, congroup.Gamma0):

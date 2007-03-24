@@ -1688,7 +1688,7 @@ class FreeModule_generic_pid(FreeModule_generic):
             sage: W.span_of_basis([ [1,2,0], [2,4,0] ])
             Traceback (most recent call last):
             ...
-            ArithmeticError: basis vectors must be linearly independent.
+            ValueError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_pid(
                                     self.ambient_module(), basis, check=check,
@@ -2094,7 +2094,7 @@ class FreeModule_generic_field(FreeModule_generic_pid):
             sage: W.span_of_basis([[2,2,2], [3,3,3]])
             Traceback (most recent call last):
             ...
-            ArithmeticError: basis vectors must be linearly independent.
+            ValueError: basis vectors must be linearly independent.
         """
         return FreeModule_submodule_with_basis_field(
                                     self.ambient_module(), basis, check=check,
@@ -2739,7 +2739,7 @@ class FreeModule_submodule_with_basis_pid(FreeModule_generic_pid):
                 self.__echelonized_basis = basis_seq(self, w)
 
         if check and len(basis) != len(self.__echelonized_basis):
-            raise ArithmeticError, "basis vectors must be linearly independent."
+            raise ValueError, "basis vectors must be linearly independent."
 
     def echelonized_basis_matrix(self):
         """

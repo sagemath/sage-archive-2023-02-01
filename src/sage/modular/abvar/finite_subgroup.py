@@ -86,6 +86,7 @@ from sage.modules.module      import Module
 from sage.structure.element   import ModuleElement
 from sage.structure.sequence  import Sequence
 from sage.rings.all           import gcd, lcm, QQ, ZZ, CC
+from sage.misc.misc           import prod
 
 class FiniteSubgroup(Module):
     def __init__(self, abvar, base_field=QQ):
@@ -191,10 +192,7 @@ class FiniteSubgroup(Module):
             if self._abvar.dimension() == 0:
                 self.__order = ZZ(1)
                 return self.__order
-            W, d = self._rescaled_module()
-            # compute the order
-            s = ZZ(W.index_in_saturation())
-            o = (d**W.rank())//s
+            o = prod(self.invariants())
             self.__order = o
             return o
 
@@ -321,7 +319,13 @@ class FiniteSubgroup(Module):
         W, d = self._rescaled_module()
         B = W.basis_matrix().change_ring(ZZ)
         E = B.elementary_divisors()
-        I = Sequence([d // e for e in E if d != e and e % d != 0])
+        # That the formula below is right is a somewhat tricky diagram change
+        # involving the snake lemma and commutative algebra over ZZ.
+        # The key conclusion is that the structure of the group is
+        # realized as the kernel of a natural map
+        #   (Z^n)/(d*Z^n) ---> (Z^n)/(d*Lambda + d*Z^n)
+        #
+        I = Sequence([d // gcd(e,d) for e in E if e != 0 and e != d])
         I.sort()
         I.set_immutable()
         self._invariants = I

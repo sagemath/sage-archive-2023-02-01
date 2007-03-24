@@ -32,9 +32,9 @@ First we consider $J_0(50)$ where everything works out nicely:
     Modular abelian variety quotient of dimension 1 and level 50
     ]
     sage: d[0].torsion_subgroup().order()
-    5
-    sage: d[1].torsion_subgroup().order()
     3
+    sage: d[1].torsion_subgroup().order()
+    5
 
 Next we make a table of the upper and lower bounds for each new factor.
     sage: for N in range(1,38):
@@ -62,8 +62,8 @@ Next we make a table of the upper and lower bounds for each new factor.
     35   1    0    3    3
     35   2    1    16   16
     36   1    0    6    6
-    37   1    0    3    3
-    37   1    1    1    1
+    37   1    0    1    1
+    37   1    1    3    3
 
 TESTS:
     sage: T = J0(54).torsion_subgroup()
@@ -113,7 +113,7 @@ class TorsionSubgroup(FiniteSubgroup):
             sage: a = J0(23)
             sage: a.torsion_subgroup().order()
             11
-            sage: t = J0(37)[0].torsion_subgroup()
+            sage: t = J0(37)[1].torsion_subgroup()
             sage: t.order()
             3
         """
@@ -162,7 +162,7 @@ class TorsionSubgroup(FiniteSubgroup):
         modular abelian variety.
 
         EXAMPLES:
-           sage: t = J0(37)[0].torsion_subgroup()
+           sage: t = J0(37)[1].torsion_subgroup()
            sage: t.divisor_of_order()
            3
         """

@@ -84,11 +84,17 @@ SAGE_PACKAGES="$SAGE_ROOT/spkg" && export SAGE_PACKAGES
 SAGE_LOCAL="$SAGE_ROOT/local"   && export SAGE_LOCAL
 SAGE_DATA="$SAGE_ROOT/data"     && export SAGE_DATA
 PATH="$SAGE_ROOT:$SAGE_LOCAL/bin:$PATH" && export PATH
-LIBRARY_PATH="$SAGE_LOCAL/lib:$LIBRARY_PATH"  && export LIBRARY_PATH
+
+# For a framework Python build on OS X, Python's bin directory is not local/bin
+if [ `uname` = "Darwin" ]; then
+    PATH="$SAGE_LOCAL/Frameworks/Python.framework/Versions/2.5/bin:$PATH" && export PATH
+fi
+
+LIBRARY_PATH="$SAGE_LOCAL/lib/:$LIBRARY_PATH"  && export LIBRARY_PATH
 GP_DATA_DIR="$SAGE_LOCAL/share/pari" && export GP_DATA_DIR
 
 if [ "$SAGE_SERVER" = "" ]; then
-    SAGE_SERVER="http://sage.math.washington.edu/sage/"
+    SAGE_SERVER="http://www.sagemath.org/"
     export SAGE_SERVER
 fi
 
@@ -109,11 +115,14 @@ if [ -d "$SAGE_ROOT/local/lib/python" ]; then
     PYTHONHOME="$SAGE_ROOT/local" && export PYTHONHOME
 fi
 
-LD_LIBRARY_PATH="$SAGE_ROOT/local/lib:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
+LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
+# This following is needed for openmpi:
+LD_LIBRARY_PATH="$SAGE_ROOT/local/lib/openmpi:$LD_LIBRARY_PATH" && export LD_LIBRARY_PATH
 # The following is needed for OS X (especially for the
 # Singular install).
-DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" && export DYLD_LIBRARY_PATH
-
+if [ `uname` = "Darwin" ]; then
+    DYLD_LIBRARY_PATH="$LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH" && export DYLD_LIBRARY_PATH
+fi
 
 if [ "$1" = "-short" ]; then
     exit 0

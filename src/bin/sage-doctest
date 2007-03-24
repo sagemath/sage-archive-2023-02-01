@@ -144,8 +144,9 @@ def extract_doc(file_name, module):
     j = 0
     while j < len(F):
         L = F[j].rstrip()
-        while j < len(F) and L.endswith('\\'):
+        while j < len(F) and L.endswith('\\') and not L.endswith('\\\\'):
             j += 1
+            i += 1
             L = L[:-1] + F[j].lstrip().lstrip('...').rstrip()
         j += 1
         if L.lstrip()[:5] == 'sage:':

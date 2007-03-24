@@ -164,7 +164,8 @@ class RationalField(_uniq, field.Field):
         return sage.rings.rational.Rational(x, base)
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer)):
+        if isinstance(x, (int, long, sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
@@ -286,6 +287,24 @@ class RationalField(_uniq, field.Field):
                              random.randrange(1,den_bound+1)))
 
     def zeta(self, n=2):
+        """
+        Return a root of unity in self.
+
+        INPUT:
+            n -- integer (default: 2) order of the root of unity
+
+        EXAMPLES:
+            sage: QQ.zeta()
+            -1
+            sage: QQ.zeta(2)
+            -1
+            sage: QQ.zeta(1)
+            1
+            sage: QQ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in rational field
+        """
         if n == 1:
             return sage.rings.rational.Rational(1)
         elif n == 2:

@@ -549,6 +549,31 @@ class PowerSeries(ring_element.RingElement):
         return c[n]
 
     def common_prec(self, f):
+        r"""
+        Returns minimum precision of $f$ and self.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ)
+
+            sage: f = t + t^2 + O(t^3)
+            sage: g = t + t^3 + t^4 + O(t^4)
+            sage: f.common_prec(g)
+            3
+            sage: g.common_prec(f)
+            3
+
+            sage: f = t + t^2 + O(t^3)
+            sage: g = t^2
+            sage: f.common_prec(g)
+            3
+            sage: g.common_prec(f)
+            3
+
+            sage: f = t + t^2
+            sage: f = t^2
+            sage: f.common_prec(g)
+            +Infinity
+        """
         if self.prec() is infinity:
             return f.prec()
         elif f.prec() is infinity:

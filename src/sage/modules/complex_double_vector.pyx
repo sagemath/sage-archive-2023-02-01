@@ -16,6 +16,8 @@ EXAMPLES:
     sage: v[0] = 5
     sage: v
     (5.0, 2.0 + 3.14159265359*I, 3.0 + 5.0*I)
+    sage: loads(dumps(v)) == v
+    True
 
 
 AUTHORS:
@@ -71,10 +73,18 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         y.v = v
         return y
 
+    cdef int is_dense_c(self):
+        return 1
+
+    cdef int is_sparse_c(self):
+        return 0
+
     cdef gsl_vector_complex* gsl_vector_complex_copy(self) except NULL:
         """
         Return a copy of the underlying GSL vector of self.
         """
+        if self.v == NULL:
+            return NULL
         cdef gsl_vector_complex* v
         v = <gsl_vector_complex*> gsl_vector_complex_calloc(self.v.size)
         if v is NULL:
@@ -84,7 +94,12 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return v
 
     def __copy__(self, copy=True):
+        if self._degree == 0:
+            return self
         return self._new_c(self.gsl_vector_complex_copy())
+
+    def __reduce__(self):
+        return (unpickle_v0, (self._parent, self.list(), self._degree))
 
     def __init__(self,parent,x, coerce = True, copy = True):
         """
@@ -100,8 +115,14 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         cdef ComplexDoubleElement z
         n = parent.rank()
         cdef int length
+        if self._degree == 0:
+            self.v = NULL
+            return
 
         self.v = gsl_vector_complex_calloc(n)
+        if self.v == NULL:
+            raise MemoryError, "error allocating vector"
+
         try:
             length=len(x)
         except TypeError:
@@ -133,16 +154,17 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
 
 
     def __dealloc__(self):
-        gsl_vector_complex_free(self.v)
+        if self.v:
+            gsl_vector_complex_free(self.v)
 
 
     def __len__(self):
-        return self.v.size
+        return self._degree
 
     def __setitem__(self,size_t i,x):
         cdef gsl_complex z_temp
 
-        if i < 0 or i >= self.v.size:
+        if i < 0 or i >= self._degree:
             raise IndexError
         else:
             z_temp =<gsl_complex> (<ComplexDoubleElement> CDF(x))._complex
@@ -164,7 +186,7 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         """
         cdef gsl_complex z_temp
         cdef ComplexDoubleElement x
-        if i < 0 or i >= self.v.size:
+        if i < 0 or i >= self._degree:
             raise IndexError, 'index out of range'
         else:
             x = new_ComplexDoubleElement()
@@ -172,6 +194,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
             return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        if self._degree == 0:
+            return self
         cdef gsl_vector_complex *v, *w
         cdef gsl_vector_view v_real, v_imag, w_real, w_imag
         v = self.gsl_vector_complex_copy()
@@ -185,6 +209,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._new_c(v)
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        if self._degree == 0:
+            return self
         cdef gsl_vector_complex *v, *w
         cdef gsl_vector_view v_real, v_imag, w_real, w_imag
         v = self.gsl_vector_complex_copy()
@@ -198,12 +224,16 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return self._new_c(v)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        if self._degree == 0:
+            return self
         cdef gsl_vector_complex* v
         v = self.gsl_vector_complex_copy()
         gsl_blas_zscal(<gsl_complex> (<ComplexDoubleElement>left)._complex, v)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        if self._degree == 0:
+            return self
         cdef gsl_vector_complex* v
         v = self.gsl_vector_complex_copy()
         gsl_blas_zscal(<gsl_complex> (<ComplexDoubleElement>right)._complex, v)
@@ -212,35 +242,37 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
     def inv_fft(self,algorithm="radix2", inplace=False):
         """
         This performs the inverse fast fourier transform on the vector.
-        sage: v = vector(CDF,[1,2,3,4])
-        sage: w = v.fft()
-        sage: v - w.inv_fft()    # random -- should be very close to 0.
-        (0, 0, 0, 0)
 
         The fourier transform can be done in place using the keyword
         inplace=True
 
         This will be fastest if the vector's length is a power of 2.
 
+        EXAMPLES:
+            sage: v = vector(CDF,[1,2,3,4])
+            sage: w = v.fft()
+            sage: v - w.inv_fft()    # random -- should be very close to 0.
+            (0, 0, 0, 0)
         """
         return self.fft(direction="backward",algorithm=algorithm,inplace=inplace)
 
-    def fft(self,direction = "forward",algorithm = "radix2",inplace=False):
+    def fft(self, direction = "forward", algorithm = "radix2", inplace=False):
         """
         This performs a fast fourier transform on the vector.
-        By default a forward transform is performed.
-        To perform the inverse fourier transform use the the keyword
-        direction='backward', or use the method inv_fft.
 
-        sage: v = vector(CDF,[1,2,3,4])
-        sage: w = v.fft()
-        sage: v2 = w.fft(direction='backward')
+        INPUT:
+           direction -- 'forward' (default) or 'backward'
+           inplace -- bool (default: False), use True to do an in-place Fourier transform
 
-        To perform the transform in place use the keyword
-        inplace=True
+        This function is fastest if the vector's length is a power of 2.
 
-        This will be fastest if the vector's length is a power of 2.
+        EXAMPLES:
+            sage: v = vector(CDF,[1,2,3,4])
+            sage: w = v.fft()
+            sage: v2 = w.fft(direction='backward')
         """
+        if self._degree == 0:
+            return self
         gsl_set_error_handler_off()
         cdef gsl_fft_complex_wavetable* wavetable
         cdef gsl_fft_complex_workspace* workspace
@@ -297,6 +329,20 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
 
 
     def numpy(self):
+        """
+        Return numpy array corresponding to this vector.
+
+        EXAMPLES:
+            sage: v = vector(CDF,4,range(4))
+            sage: v.numpy()
+            array([ 0.+0.j,  1.+0.j,  2.+0.j,  3.+0.j])
+            sage: v = vector(CDF,0)
+            sage: v.numpy()
+            array([], dtype=complex128)
+        """
+        if self._degree == 0:
+            import numpy
+            return numpy.array([], dtype='complex128')
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef ComplexDoubleVectorSpaceElement _V,_result_vector
         _V=self
@@ -315,6 +361,8 @@ cdef class ComplexDoubleVectorSpaceElement(free_module_element.FreeModuleElement
         return _n
 
     def _replace_self_with_numpy(self,numpy_array):
+        if self._degree == 0:
+            return
         cdef double* p
         cdef ndarray n
         n=numpy_array
@@ -327,3 +375,9 @@ cdef int ispow(int n):
         n = n>>1
     return n == 1
 
+def unpickle_v0(parent, entries, degree):
+    # If you think you want to change this function, don't.
+    # Instead make a new version with a name like
+    #    make_FreeModuleElement_generic_dense_v1
+    # and changed the reduce method below.
+    return parent(entries)

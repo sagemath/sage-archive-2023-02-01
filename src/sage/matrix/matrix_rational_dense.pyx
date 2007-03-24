@@ -31,6 +31,11 @@ operations with it.
     [1 0 0]
     [0 1 0]
     [0 0 1]
+
+TESTS:
+    sage: a = matrix(QQ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ##############################################################################
@@ -818,7 +823,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         K = self.fetch('kernel')
         if not K is None:
             return K
-        if algorithm == 'padic' or algorithm == 'default':
+        if self._nrows > 0 and self._ncols > 0 and  \
+            (algorithm == 'padic' or algorithm == 'default'):
             A, _ = self.transpose()._clear_denom()
             K = A._rational_kernel_iml().change_ring(QQ)
             V = K.column_space()

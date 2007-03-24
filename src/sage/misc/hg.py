@@ -295,7 +295,7 @@ class HG:
         if filename.startswith("http://") or filename.startswith("https://"):
             filename = get_remote_file(filename, verbose=True)
         self._ensure_safe()
-        self('import "%s" %s'%(os.path.abspath(filename),options))
+        self('import  %s "%s"'%(options, os.path.abspath(filename)))
 
     patch = import_patch
 

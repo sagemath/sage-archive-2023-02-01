@@ -326,6 +326,8 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
         if y is None:
             if x is None or x == 0:
                 mpz_set_si(z.value, random()%5 - 2)
+##            elif (x == 0):
+
             else:
                 n_max = self(x)
                 mpz_urandomm(z.value, state, n_max.value)
@@ -344,6 +346,9 @@ cdef class IntegerRing_class(PrincipalIdealDomain):
             return im_gens[0] == codomain._coerce_(self.gen(0))
         except TypeError:
             return False
+
+    def is_noetherian(self):
+        return True
 
     def is_atomic_repr(self):
         """

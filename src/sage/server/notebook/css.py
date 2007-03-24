@@ -33,6 +33,14 @@ div.fivepix {
   height:5px;
 }
 
+textarea.hidden {
+   display:none;
+}
+
+pre.hidden {
+   display:none;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -934,6 +942,24 @@ textarea.cell_input {
   margin-top:0px;
 }
 
+pre.cell_input {
+  color:#000000;
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  width: 100%;
+  margin-bottom:0px;
+  margin-top:0px;
+
+}
+pre.cell_input:hover {
+  cursor:pointer;
+}
 
 textarea.cell_input_hide {
   background-color: white;
@@ -1079,7 +1105,7 @@ pre.cell_output_hide {
 }
 
 a.file_link {
-  text_decoration:underline;
+  text-decoration:underline;
 }
 
 
@@ -1152,12 +1178,6 @@ textarea.debug_input {
 span.red{
   color:red;
 }
-
-
-/***********************************************************/
-/*                     wiki css styling                    */
-/***********************************************************/
-
 
 
 """

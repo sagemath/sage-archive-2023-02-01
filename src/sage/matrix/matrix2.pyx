@@ -844,7 +844,7 @@ cdef class Matrix(matrix1.Matrix):
             Py_INCREF(o); PyList_SET_ITEM(v, i, o)
 
         R = self._base_ring[var]    # polynomial ring over the base ring
-        return R(v)
+        return R(v, check=False)
 
     #####################################################################################
     # Decomposition: kernel, image, decomposition
@@ -873,6 +873,9 @@ cdef class Matrix(matrix1.Matrix):
         INPUT:
             -- all additional arguments to the kernel function
                are passed directly onto the echelon call.
+
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
 
         \algorithm{Elementary row operations don't change the kernel,
         since they are just right multiplication by an invertible
@@ -949,13 +952,13 @@ cdef class Matrix(matrix1.Matrix):
             return K
         R = self._base_ring
 
-        if self._nrows == 0:    # from a 0 space
+        if self._nrows == 0:    # from a degree-0 space
             V = sage.modules.free_module.VectorSpace(R, self._nrows)
             Z = V.zero_subspace()
             self.cache('kernel', Z)
             return Z
 
-        elif self._ncols == 0:  # to a 0 space
+        elif self._ncols == 0:  # to a degree-0 space
             Z = sage.modules.free_module.VectorSpace(R, self._nrows)
             self.cache('kernel', Z)
             return Z
@@ -1120,15 +1123,17 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.row_module()
 
-    def _row_ambient_module(self):
-        x = self.fetch('row_ambient_module')
+    def _row_ambient_module(self, base_ring=None):
+        if base_ring is None:
+            base_ring = self.base_ring()
+        x = self.fetch('row_ambient_module_%s'%base_ring)
         if not x is None:
             return x
-        x = sage.modules.free_module.FreeModule(self.base_ring(), self.ncols(), sparse=self.is_sparse())
+        x = sage.modules.free_module.FreeModule(base_ring, self.ncols(), sparse=self.is_sparse())
         self.cache('row_ambient_module',x)
         return x
 
-    def row_module(self):
+    def row_module(self, base_ring=None):
         """
         Return the free module over the base ring spanned by the rows
         of self.
@@ -1141,13 +1146,13 @@ cdef class Matrix(matrix1.Matrix):
             [1 0]
             [0 2]
         """
-        M = self._row_ambient_module()
+        M = self._row_ambient_module(base_ring = base_ring)
         if self.fetch('in_echelon_form') and self.rank() == self.nrows():
             return M.span(self.rows(), already_echelonized=True)
         else:
             return M.span(self.rows(), already_echelonized=False)
 
-    def row_space(self):
+    def row_space(self, base_ring=None):
         """
         Return the row space of this matrix.  (Synonym for self.row_module().)
 
@@ -1162,7 +1167,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 1  0 -1]
             [ 0  1  2]
         """
-        return self.row_module()
+        return self.row_module(base_ring=base_ring)
 
 
     def _column_ambient_module(self):
@@ -1401,7 +1406,7 @@ cdef class Matrix(matrix1.Matrix):
                     verbose('we have not yet generated all the kernel (rank so far=%s, target rank=%s)'%(
                         W.rank(), m*g.degree()), level=2, caller_name='generic spin decomp')
                     tries += 1
-                    if tries > 5*m:
+                    if tries > 1000*m:  # avoid an insanely long infinite loop
                         raise RuntimeError, "likely bug in decomposition"
                 # end if
             #end while
@@ -1488,13 +1493,30 @@ cdef class Matrix(matrix1.Matrix):
             [0]
             sage: t.restrict(D[1][0])
             [-2]
+
+        We do a decomposition over ZZ:
+            sage: a = matrix(ZZ,6,[0, 0, -2, 0, 2, 0, 2, -4, -2, 0, 2, 0, 0, 0, -2, -2, 0, 0, 2, 0, -2, -4, 2, -2, 0, 2, 0, -2, -2, 0, 0, 2, 0, -2, 0, 0])
+            sage: a.decomposition_of_subspace(ZZ^6)
+            [
+            (Free module of degree 6 and rank 2 over Integer Ring
+            Echelon basis matrix:
+            [ 1  0  1 -1  1 -1]
+            [ 0  1  0 -1  2 -1], False),
+            (Free module of degree 6 and rank 4 over Integer Ring
+            Echelon basis matrix:
+            [ 1  0 -1  0  1  0]
+            [ 0  1  0  0  0  0]
+            [ 0  0  0  1  0  0]
+            [ 0  0  0  0  0  1], False)
+            ]
         """
         if not sage.modules.free_module.is_FreeModule(M):
             raise TypeError, "M must be a free module."
         if not self.is_square():
             raise ArithmeticError, "matrix must be square"
         if M.base_ring() != self.base_ring():
-            raise ArithmeticError, "base rings are incompatible"
+            raise ArithmeticError, "base rings must be the same, but self is over %s and module is over %s"%(
+                self.base_ring(), M.base_ring())
         if M.degree() != self.ncols():
             raise ArithmeticError, \
                "M must be a subspace of an %s-dimensional space"%self.ncols()
@@ -1520,9 +1542,8 @@ cdef class Matrix(matrix1.Matrix):
 
         verbose("decomposition -- ", time0)
         C = M.basis_matrix()
-        Z = M.ambient_vector_space()
 
-        D = [((W.basis_matrix() * C).row_space(), is_irred) for W, is_irred in D]
+        D = [((W.basis_matrix() * C).row_module(self.base_ring()), is_irred) for W, is_irred in D]
         D = decomp_seq(D)
 
         verbose(t=time)
@@ -1572,13 +1593,13 @@ cdef class Matrix(matrix1.Matrix):
             ArithmeticError: subspace is not invariant under matrix
         """
         if not isinstance(V, sage.modules.free_module.FreeModule_generic):
-            raise TypeError, "V must be a Vector Space"
-        if V.base_field() != self.base_ring():
-            raise TypeError, "base rings must be the same"
+            raise TypeError, "V must be a free module"
+        #if V.base_ring() != self.base_ring():
+        #     raise ValueError, "matrix and module must have the same base ring, but matrix is over %s and module is over %s"%(self.base_ring(), V.base_ring())
         if V.degree() != self.nrows():
             raise IndexError, "degree of V (=%s) must equal number of rows of self (=%s)"%(\
                 V.degree(), self.nrows())
-        if V.rank() == 0:
+        if V.rank() == 0 or V.degree() == 0:
             return self.new_matrix(nrows=0, ncols=0)
 
         if not check and V.base_ring().is_field() and not V.has_user_basis():
@@ -2201,6 +2222,61 @@ cdef class Matrix(matrix1.Matrix):
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
                     self.set_unsafe(i, randint(0,nc-1), R.random_element(*args, **kwds))
+
+    def is_one(self):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_one()
+            False
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_one()
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_one()
+            False
+        """
+        return self.is_scalar(1)
+
+    def is_scalar(self, a):
+        """
+        Return True if this matrix is the identity matrix.
+
+        EXAMPLES:
+            sage: m = matrix(QQ,2,range(4))
+            sage: m.is_scalar(5)
+            False
+            sage: m = matrix(QQ,2,[5,0,0,5])
+            sage: m.is_scalar(5)
+            True
+            sage: m = matrix(QQ,2,[1,0,0,1])
+            sage: m.is_scalar(1)
+            True
+            sage: m = matrix(QQ,2,[1,1,1,1])
+            sage: m.is_scalar(1)
+            False
+        """
+        if not self.is_square():
+            return False
+        cdef Py_ssize_t i, j
+        a = self.base_ring()(a)
+        zero = self.base_ring()(0)
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                if i != j:
+                    if self.get_unsafe(i,j) != zero:
+                        return False
+                else:
+                    if self.get_unsafe(i, i) != a:
+                        return False
+        return True
+
+
 
 
 cdef decomp_seq(v):

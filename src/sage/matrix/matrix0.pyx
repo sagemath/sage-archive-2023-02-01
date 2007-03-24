@@ -1373,7 +1373,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            raise RuntimeError, "bug in matrix pivots functions, matrix parent = '%s'"%self.parent()
+            print self
+            print self.nrows()
+            print self.dict()
+            self.save('/home/was/a')
+            raise RuntimeError, "BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent()
         return x
 
     def rank(self):
@@ -1596,19 +1600,40 @@ cdef class Matrix(sage.structure.element.Matrix):
             (9, 17)
             sage: -1*B.column(0) + 5*B.column(1)
             (9, 17)
+
+        We mix dense and sparse over different rings:
+            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
+            sage: m = matrix(QQ,3,range(9))
+            sage: v*m
+            (24, 30, 36)
+            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
+            sage: m = matrix(QQ,3,range(9), sparse=True)
+            sage: v*m
+            (24, 30, 36)
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
         if self.nrows() != v.degree():
             raise ArithmeticError, "number of rows of matrix must equal degree of vector"
         s = M(0)
-        for i in xrange(self.nrows()):
-            if v[i] != 0:
-                s = s + v[i]*self.row(i)
+        zero = self.base_ring()(0)
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._nrows:
+            if v[i] != zero:
+                s += v[i]*self.row(i)
         return s
 
     cdef Vector _matrix_times_vector_c_impl(self, Vector v):
+        """
+        EXAMPLES:
+            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
+            sage: m = matrix(QQ,3,range(9))
+            sage: m*v
+            (8, 26, 44)
+            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
+            sage: m = matrix(QQ,3,range(9), sparse=True)
+            sage: m*v
+            (8, 26, 44)
+        """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)

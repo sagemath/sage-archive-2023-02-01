@@ -35,13 +35,13 @@ The fixed modulus type is the leanest of the p-adic rings: it is basically just 
 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')
-        17-adic Ring with capped relative precision 10
+    17-adic Ring with capped relative precision 10
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-        Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'series'); R is S
-        True
+    Lazy 7-adic Ring
+    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
+    True
     sage: Zp(2)
-        2-adic Ring with capped relative precision 20
+    2-adic Ring with capped relative precision 20
 
 Once one has a p-Adic ring, one can cast elements into it in the standard way.  Integers, ints, longs, Rationals, other p-Adic types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a p-Adic ring.
     sage: R = Zp(5, 5, 'capped-rel','series'); a = R(16); a
@@ -101,11 +101,11 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric):
     An implementation of the p-adic integers using fixed modulus.
     """
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = None, relprec = None):
         r"""
             Casts x into self.  Uses the constructor from pAdicRingFixedModElement.
         """
-        return pAdicRingFixedModElement(self, x)
+        return pAdicRingFixedModElement(self, x, absprec, relprec)
 
     def __cmp__(self, other):
         if isinstance(other, pAdicRingFixedMod):

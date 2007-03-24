@@ -21,6 +21,8 @@ import datetime
 import os
 import ConfigParser
 import sqlite3 as sqlite
+import cStringIO
+import xml.dom.minidom
 
 from twisted.python import log
 
@@ -135,13 +137,23 @@ class WorkerDatabase(object):
         Returns a list of connected workers.
 
         """
-        query = """SELECT * FROM workers WHERE connected"""
+        query = """SELECT uuid FROM workers WHERE connected"""
+
         cur = self.con.cursor()
         cur.execute(query)
 
         return cur.fetchall()
 
     def set_connected(self, uuid, connected=True):
+        r"""
+        Sets the connected status of a worker.
+
+        Parameters:
+        uuid -- string
+        connected -- bool
+
+        """
+
         cur = self.con.cursor()
         if connected:
             query = """UPDATE workers SET connected=1, last_connection=?
@@ -152,3 +164,191 @@ class WorkerDatabase(object):
             cur.execute(query, (uuid,))
 
         self.con.commit()
+
+    def get_worker_count(self, connected=True):
+        r"""
+        Returns the number of workers.
+
+        Parameters:
+        connected -- bool
+
+        """
+
+        if connected:
+            return len(self.get_worker_list())
+        else:
+            query = "SELECT uuid FROM workers WHERE NOT connected"
+
+        cur = self.con.cursor()
+        cur.execute(query)
+
+        return len(cur.fetchall())
+
+    def get_cpu_speed(self, connected=True):
+        r"""
+        Returns the aggregate cpu speed in Mhz.
+
+        Parameters:
+        connected -- bool
+
+        """
+
+        if connected:
+            query = """SELECT cpu_speed FROM workers WHERE connected"""
+        else:
+            query = """SELECT cpu_speed FROM workers"""
+
+        cur = self.con.cursor()
+        cur.execute(query)
+
+        result = cur.fetchall()
+
+        cpu_speed = sum([s[0] for s in result])
+
+        return cpu_speed
+
+    def get_cpu_count(self, connected=True):
+        r"""
+        Returns the number of cpus that are available.
+
+        Parameters:
+        connected -- bool
+
+        """
+
+        if connected:
+            query = """SELECT cpus FROM workers WHERE connected"""
+        else:
+            query = """SELECT cpus FROM workers"""
+
+        cur = self.con.cursor()
+        cur.execute(query)
+
+        result = cur.fetchall()
+
+        cpu_count = sum(s[0] for s in result)
+
+        return cpu_count
+
+    def widget_xml(self):
+        r"""
+        This method returns a well formed XML document consisting of all
+        relevant data of the workers.
+
+        """
+
+        def create_gauge(doc):
+            gauge = doc.createElement('gauge')
+            doc.appendChild(gauge)
+
+            return doc, gauge
+
+        def add_totalAgentCount(doc, gauge):
+            totalAgentCount = doc.createElement('totalAgentCount')
+            gauge.appendChild(totalAgentCount)
+            worker_count = (self.get_worker_count(connected=False) +
+                            self.get_worker_count(connected=True))
+            count = doc.createTextNode(str(worker_count))
+            totalAgentCount.appendChild(count)
+
+            return doc, totalAgentCount
+
+        def add_onlineAgentCount(doc, gauge):
+            onlineAgentCount = doc.createElement('onlineAgentCount')
+            gauge.appendChild(onlineAgentCount)
+            worker_count = self.get_worker_count(connected=True)
+            count = doc.createTextNode(str(worker_count))
+            onlineAgentCount.appendChild(count)
+
+            return doc, onlineAgentCount
+
+        def add_offlineAgentCount(doc, gauge):
+            offlineAgentCount = doc.createElement('offlineAgentCount')
+            gauge.appendChild(offlineAgentCount)
+            worker_count = self.get_worker_count(connected=False)
+            count = doc.createTextNode(str(worker_count))
+            offlineAgentCount.appendChild(count)
+
+            return doc, offlineAgentCount
+
+        def add_workingAgentCount(doc, gauge):
+            workingAgentCount = doc.createElement('workingAgentCount')
+            gauge.appendChild(workingAgentCount)
+            worker_count = self.get_worker_count(connected=True)
+            count = doc.createTextNode(str(worker_count))
+            workingAgentCount.appendChild(count)
+
+            return doc, workingAgentCount
+
+        def add_availableAgentCount(doc, gauge):
+            availableAgentCount = doc.createElement('availableAgentCount')
+            gauge.appendChild(availableAgentCount)
+            worker_count = self.get_worker_count(connected=True)
+            count = doc.createTextNode(str(worker_count))
+            availableAgentCount.appendChild(count)
+
+            return doc, availableAgentCount
+
+        def add_unavailableAgentCount(doc, gauge):
+            unavailableAgentCount = doc.createElement('unavailableAgentCount')
+            gauge.appendChild(unavailableAgentCount)
+            worker_count = self.get_worker_count(connected=False)
+            count = doc.createTextNode(str(worker_count))
+            unavailableAgentCount.appendChild(count)
+
+            return doc, unavailableAgentCount
+
+        def add_workingMegaHertz(doc, gauge):
+            workingMegaHertz = doc.createElement('workingMegaHertz')
+            gauge.appendChild(workingMegaHertz)
+            cpu_speed = self.get_cpu_speed(connected=False)
+            mhz = doc.createTextNode(str(cpu_speed))
+            workingMegaHertz.appendChild(mhz)
+
+            return doc, workingMegaHertz
+
+        def add_workingProcessorCount(doc, gauge):
+            workingProcessorCount = doc.createElement('workingProcessorCount')
+            gauge.appendChild(workingProcessorCount)
+            worker_count = self.get_cpu_count(connected=False)
+            pcount = doc.createTextNode(str(worker_count))
+            workingProcessorCount.appendChild(pcount)
+
+            return doc, workingProcessorCount
+
+        def add_date(doc, gauge):
+            date = datetime.datetime.now()
+
+            year = doc.createElement('Year')
+            gauge.appendChild(year)
+            year.appendChild(doc.createTextNode(str(date.year)))
+
+            seconds = doc.createElement('Seconds')
+            gauge.appendChild(seconds)
+            seconds.appendChild(doc.createTextNode(str(date.second)))
+
+            minutes = doc.createElement('Minutes')
+            gauge.appendChild(minutes)
+            minutes.appendChild(doc.createTextNode(str(date.minute)))
+
+            return doc, year, seconds, minutes
+
+        doc = xml.dom.minidom.Document()
+        doc, gauge = create_gauge(doc)
+
+        add_totalAgentCount(doc, gauge)
+        add_onlineAgentCount(doc, gauge)
+        add_offlineAgentCount(doc, gauge)
+        add_availableAgentCount(doc, gauge)
+        add_unavailableAgentCount(doc, gauge)
+        add_workingAgentCount(doc, gauge)
+
+        add_workingProcessorCount(doc, gauge)
+
+        add_workingMegaHertz(doc, gauge)
+
+        add_date(doc, gauge)
+        s = cStringIO.StringIO()
+        doc.writexml(s, newl='\n')
+
+        return s.getvalue()

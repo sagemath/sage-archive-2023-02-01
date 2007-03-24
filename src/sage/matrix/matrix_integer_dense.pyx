@@ -1114,7 +1114,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     #### Elementary divisors
 
-    def elementary_divisors(self, algorithm='pari'):
+    def elementary_divisors(self, algorithm='linbox'):
         """
         Return the elementary divisors of self, in order.
 
@@ -1130,10 +1130,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             self -- matrix
-            algorithm -- (default: 'pari')
+            algorithm -- (default: 'linbox')
                  'pari': works robustless, but is slower.
-                 'linbox' -- use linbox; faster, but sometimes fails.  If it
-                          fails, then a warning is printed and PARI is called.
+                 'linbox' -- use linbox
 
         OUTPUT:
             list of int's

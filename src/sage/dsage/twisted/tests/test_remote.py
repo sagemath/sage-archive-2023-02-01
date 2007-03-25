@@ -36,6 +36,7 @@ from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
 
@@ -86,8 +87,9 @@ class ClientRemoteCallsTest(unittest.TestCase):
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
+        self.clientdb = ClientDatabase(test=True)
         self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(PUBKEY_DATABASE))
+        PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.port = CLIENT_PORT
@@ -110,6 +112,11 @@ class ClientRemoteCallsTest(unittest.TestCase):
                                                self.blob,
                                                self.data,
                                                self.signature)
+        c = ConfigParser.ConfigParser()
+        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
+        username = c.get('auth', 'username')
+        pubkey_file = c.get('auth', 'pubkey_file')
+        self.clientdb.add_user(username, pubkey_file)
 
     def tearDown(self):
         self.connection.disconnect()
@@ -118,48 +125,6 @@ class ClientRemoteCallsTest(unittest.TestCase):
         for file in files:
             os.remove(file)
         return self.r.stopListening()
-
-    def testremoteGetJobEmptyQueue(self):
-        """Tests perspective_get_job on an empty database"""
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port,
-                                             factory)
-
-        d = factory.login(self.creds, None)
-        d.addCallback(self._LoginConnected)
-        return d
-
-    def _LoginConnected(self, remoteobj):
-        d = remoteobj.callRemote('get_job')
-        d.addCallback(self._gotNoJob)
-        return d
-
-    def _gotNoJob(self, job):
-        self.assertEquals(job, None)
-
-    def testremoteGetJob(self):
-        jobs = self.create_jobs(10)
-        for job in jobs:
-            self.dsage_server.submit_job(job.reduce())
-
-        factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port,
-                                             factory)
-
-        d = factory.login(self.creds, None)
-        d.addCallback(self._LoginConnected1)
-        return d
-
-    def _LoginConnected1(self, remoteobj):
-        d = remoteobj.callRemote('get_job')
-        d.addCallback(self._got_job)
-        return d
-
-    def _got_job(self, job):
-        self.assert_(isinstance(job, str))
-        import cPickle, zlib
-        job = self.unpickle(job)
-        self.assert_(isinstance(job, Job))
 
     def testremoteSubmitJob(self):
         """tests perspective_submit_job"""
@@ -175,19 +140,21 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
     def _LoginConnected2(self, remoteobj, jobs):
         job = jobs[0]
-        job.code = ""
-        d = remoteobj.callRemote('submit_job', job.pickle())
-        d.addCallback(self._got_job_id)
+        job.code = "2+2"
+        d = remoteobj.callRemote('submit_job', job.reduce())
+        d.addCallback(self._got_jdict)
         return d
 
-    def _got_job_id(self, job_id):
-        self.assertEquals(type(job_id), str)
+    def _got_jdict(self, jdict):
+        self.assertEquals(type(jdict), dict)
+        self.assertEquals(type(jdict['job_id']), str)
 
     def testremoteSubmitBadJob(self):
         """tests perspective_submit_job"""
 
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port,
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
                                              factory)
 
         d = factory.login(self.creds, None)

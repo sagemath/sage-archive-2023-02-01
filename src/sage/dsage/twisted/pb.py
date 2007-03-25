@@ -28,7 +28,7 @@ from twisted.python import log
 from sage.dsage.misc.hostinfo import HostInfo
 import sage.dsage.server.client_tracker as client_tracker
 import sage.dsage.server.worker_tracker as worker_tracker
-from sage.dsage.errors.exceptions import BadTypeError
+from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -298,6 +298,8 @@ class UserPerspective(DefaultPerspective):
         return self.DSageServer.sync_job(job_id)
 
     def perspective_submit_job(self, jdict):
+        if jdict is None:
+            raise BadJobError()
         return self.DSageServer.submit_job(jdict)
 
     def perspective_kill_job(self, job_id, reason=None):

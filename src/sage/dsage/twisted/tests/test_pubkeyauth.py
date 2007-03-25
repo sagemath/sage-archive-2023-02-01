@@ -102,6 +102,11 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                                self.blob,
                                                self.data,
                                                self.signature)
+        c = ConfigParser.ConfigParser()
+        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
+        username = c.get('auth', 'username')
+        pubkey_file = c.get('auth', 'pubkey_file')
+        self.clientdb.add_user(username, pubkey_file)
 
     def tearDown(self):
         self.connection.disconnect()
@@ -112,12 +117,6 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         return self.r.stopListening()
 
     def testLogin(self):
-        c = ConfigParser.ConfigParser()
-        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
-        username = c.get('auth', 'username')
-        pubkey_file = c.get('auth', 'pubkey_file')
-        self.clientdb.add_user(username, pubkey_file)
-
         factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
 

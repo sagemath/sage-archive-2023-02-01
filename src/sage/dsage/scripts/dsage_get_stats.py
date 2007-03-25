@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##############################################################################
 #
 #  DSAGE: Distributed SAGE
@@ -22,11 +23,10 @@ from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
 
 def main():
-    self.jobdb = JobDatabaseSQLite()
-    self.monitordb = MonitorDatabase()
-    self.dsage_server = DSageServer(self.jobdb, self.monitordb)
-
-    return self.dsage_server.generate_xml_stats()
+    jobdb = JobDatabaseSQLite()
+    monitordb = MonitorDatabase()
+    dsage_server = DSageServer(jobdb, monitordb)
+    print dsage_server.generate_xml_stats()
 
 if __name__ == '__main__':
     main()

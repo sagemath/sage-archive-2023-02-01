@@ -796,23 +796,30 @@ function get_cell(id) {
 function cell_blur(id) {
     var e = get_cell(id);
     if(e == null) return;
-    e.className="hidden";
+
+    e.className= "hidden";
 
    /* if(!in_slide_mode)
         current_cell = -1; */
 
-    var display_cell = get_element('cell_display_' + id)
-    set_class('cell_display_' + id, 'cell_input')  // TODO: %hide -- deal with later
     var t = e.value;
     if (t.length == 0) {
         t = ' ';
     }
 
+    var display_cell = get_element('cell_display_' + id)
+    if (t.indexOf('%hide') == -1) {
+        set_class('cell_display_' + id, 'cell_input')
     // This is nasty, but is seems like the only way to get
     // the notation R.<x,y> = blah that we use in SAGE to not
     // result in R. = blah after highlighting.
-    t = t.replace('<','<span class=pun><</span>')
-    display_cell.innerHTML = prettyPrintOne(t)
+        t = t.replace('<','<span class=pun><</span>')
+        display_cell.innerHTML = prettyPrintOne(t)
+    } else {
+        set_class('cell_display_' + id, 'cell_input_hide')
+        display_cell.innerHTML = '<font color="grey">' + t.replace('<','&lt') + '</font>'
+    }
+
 
     return true;
 }

@@ -976,6 +976,24 @@ textarea.cell_input_hide {
 }
 
 
+pre.cell_input_hide {
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: courier, monospace;
+  font-size:12pt;
+  overflow:hidden;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+  height:1em;
+  margin:0px;
+}
+
+pre.cell_input_hide:hover {
+  cursor:pointer;
+}
+
 textarea.cell_input_active {
   background-color: white;
   border: 2px solid  #8888fe;

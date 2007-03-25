@@ -1,5 +1,5 @@
 r"""
-Ambient Spaces of Modular Forms
+Ambient Spaces of Modular Forms.
 
 EXAMPLES:
 

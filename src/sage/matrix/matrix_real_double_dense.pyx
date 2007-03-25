@@ -634,7 +634,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [-0.392540507864  0.824163383692]
             [-0.560772154092  0.137360563949]
             [ -0.72900380032 -0.549442255795]
-            sage: U*S*V.transpose()
+            sage: U*S*V.transpose()           # random low bits
             [7.62194127257e-17               1.0               2.0]
             [              3.0               4.0               5.0]
             sage: m = matrix(RDF,3,2,range(6)); m
@@ -642,7 +642,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             [2.0 3.0]
             [4.0 5.0]
             sage: U,S,V = m.SVD()
-            sage: U*S*V.transpose()
+            sage: U*S*V.transpose()   # random low order bits
             [-8.13151629364e-19                1.0]
             [               2.0                3.0]
             [               4.0                5.0]

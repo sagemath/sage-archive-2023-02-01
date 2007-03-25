@@ -284,7 +284,7 @@ class EisensteinSeries(ModularFormElement):
 
     def __compute_weight2_trivial_character(self, X):
         """
-        Compute E_2 - t*E_2(q^t)
+        Compute $E_2 - t*E_2(q^t)$.
         """
         F = self.base_ring()
         v = []

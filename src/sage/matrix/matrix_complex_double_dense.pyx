@@ -654,7 +654,7 @@ cdef class Matrix_complex_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: m = I*m
             sage: n = m.numpy()
             sage: import numpy
-            sage: numpy.linalg.eig(n)
+            sage: numpy.linalg.eig(n)       # random low bits
             (array([  0.00000000e+00-0.37228132j,  -8.03393810e-17+5.37228132j]), array([[ 0.82456484 +0.00000000e+00j,  0.41597356 +8.77187320e-17j],
                    [-0.56576746 -0.00000000e+00j,  0.90937671 +0.00000000e+00j]]))
 

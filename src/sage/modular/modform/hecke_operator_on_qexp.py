@@ -1,3 +1,7 @@
+"""
+Hecke Operators on $q$-expansions.
+"""
+
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
 #

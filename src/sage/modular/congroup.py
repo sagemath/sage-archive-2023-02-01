@@ -1,13 +1,17 @@
 r"""
 Congruence subgroups of $\SL_2(\Z)$
 
+\sage can compute with the congruence subgroups $\Gamma_0(N)$,
+$\Gamma_1(N)$, and $\Gamma_H(N)$.
+
 AUTHOR:
     -- William Stein
-
-TODO:
-    -- added "gens" functions for each subgroup (since this is such a
-       frequently requested features).
 """
+
+
+#TODO:
+#    -- added "gens" functions for each subgroup (since this is such a
+#       frequently requested features).
 
 ################################################################################
 #

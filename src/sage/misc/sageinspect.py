@@ -1,4 +1,4 @@
-r"""
+r"""nodoctest
 Inspect Python, Sage, and Sagex objects.
 
 This module extends parts of Python's inspect module to Sagex objects.

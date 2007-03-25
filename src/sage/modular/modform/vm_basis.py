@@ -27,7 +27,7 @@ def victor_miller_basis(k, prec=10, cusp_only=False, var='q'):
     r"""
     Compute and return the Victor-Miller basis for
     modular forms of weight k and level 1 to precision
-    O(q^prec).  if \code{cusp_only} is True, return
+    $O(q^prec)$.  if \code{cusp\_only} is True, return
     only a basis for the cuspidal subspace.
 
     INPUT:

@@ -29,7 +29,7 @@ Test introspection of modules defined in Python and Sagex files:
         '.../sageinspect.py'
 
         sage: sage_getdoc(sage.misc.sageinspect).lstrip()
-        "Inspect Python, Sage, and Sagex objects..."
+        'Inspect Python, Sage, and Sagex objects...'
 
         sage: sage_getsource(sage.misc.sageinspect).lstrip()[5:-1]
         'Inspect Python, Sage, and Sagex objects...'

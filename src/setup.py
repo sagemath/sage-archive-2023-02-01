@@ -169,7 +169,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
-                   libraries = ['linboxwrap', 'linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro'],
+                   libraries = ['linboxwrap', 'linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
 
                    language = 'c++')
 

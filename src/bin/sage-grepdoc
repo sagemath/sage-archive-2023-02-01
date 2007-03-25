@@ -1,0 +1,15 @@
+#!/bin/sh
+
+cd $SAGE_ROOT/doc/
+
+
+grep -i "$@" *.html  2>/dev/null
+grep -i "$@" */*.html 2>/dev/null
+grep -i "$@" */*/*.html  2>/dev/null
+grep -i "$@" */*/*/*.html  2>/dev/null
+grep -i "$@" */*/*/*/*.html  2>/dev/null
+grep -i "$@" */*/*/*/*/*.html  2>/dev/null
+grep -i "$@" */*/*/*/*/*/*.html  2>/dev/null
+grep -i "$@" */*/*/*/*/*/*/*.html  2>/dev/null
+grep -i "$@" */*/*/*/*/*/*/*/*.html  2>/dev/null
+

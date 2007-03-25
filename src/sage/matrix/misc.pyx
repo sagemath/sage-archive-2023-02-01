@@ -382,8 +382,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 prod = prod * p
             else:
                 # do not save A since it is bad.
-                if LEVEL > 1:
-                    verbose("Excluding this prime (bad pivots).", caller_name="multimod echelon")
+                verbose("Excluding this prime (bad pivots).", caller_name="multimod echelon")
             t = verbose("time for pivot compare", t, level=2, caller_name="multimod echelon")
             p = previous_prime(p)
         # Find set of best matrices.

@@ -807,7 +807,12 @@ function cell_blur(id) {
     if (t.length == 0) {
         t = ' ';
     }
-    display_cell.innerHTML = prettyPrintOne(t);
+
+    // This is nasty, but is seems like the only way to get
+    // the notation R.<x,y> = blah that we use in SAGE to not
+    // result in R. = blah after highlighting.
+    t = t.replace('<','<span class=pun><</span>')
+    display_cell.innerHTML = prettyPrintOne(t)
 
     return true;
 }

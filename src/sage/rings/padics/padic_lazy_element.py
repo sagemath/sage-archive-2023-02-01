@@ -29,9 +29,9 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         elif self.valuation() is infinity and right.valuation() is infinity:
             return 0
         #comparing valuations can throw an exception if self and right are both congruent to zero modulo p^halt, but we want this to be passed upstream.  We now know that the valuations are equal and both less than halt, so both have type Integer now rather than Valuation.
-        if self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) < right._cache % self.parent().prime_pow(halt - right.valuation()):
+        if self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) < right._cache.lift() % self.parent().prime_pow(halt - right.valuation()):
             return -1
-        elif self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) > right._cache % self.parent().prime_pow(halt - right.valuation()):
+        elif self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) > right._cache.lift() % self.parent().prime_pow(halt - right.valuation()):
             return 1
         if self._cache != right._cache:
             #According to spec, we only compare up to halt.  We now know that self and right are equal up to halt, but unequal above.  In order to maintain consistency with previous calls to __cmp__, we throw an exception here.

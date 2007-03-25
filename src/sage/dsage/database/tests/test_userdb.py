@@ -19,11 +19,13 @@
 
 import unittest
 
-from sage.dsage.database.userdb import UserDatabase
+import datetime
 
-class UserDatabaseTestCase(unittest.TestCase):
+from sage.dsage.database.clientdb import ClientDatabase
+
+class ClientDatabaseTestCase(unittest.TestCase):
     r"""
-    Test cases for DSAGE's UserDatabase
+    Test cases for DSAGE's ClientDatabase
 
     """
 
@@ -32,14 +34,41 @@ class UserDatabaseTestCase(unittest.TestCase):
     TEST_KEYS = ['1', '2', '3', '4', '5', '6']
 
     def setUp(self):
-        self.userdb = UserDatabase(test=True)
+        self.clientdb = ClientDatabase(test=True)
 
     def tearDown(self):
-        self.userdb._shutdown()
+        query = """DELETE FROM users"""
+        cur = self.clientdb.con.cursor()
+        cur.execute(query)
+        self.clientdb.con.commit()
+        self.clientdb._shutdown()
 
     def testadd_user(self):
-        for user, key, email in zip(self.TEST_USERNAMES, self.TEST_KEYS, self.TEST_EMAILS):
-            self.userdb.add_user(user, key, email)
+        for user, key in zip(self.TEST_USERNAMES, self.TEST_KEYS):
+            self.clientdb.add_user(user, key)
+            self.assert_(self.clientdb.get_user(user) is not None)
+
+    def testdel_user(self):
+        for user in self.TEST_USERNAMES:
+            self.clientdb.del_user(user)
+            self.assert_(self.clientdb.get_user(user) is None)
+
+    def testset_enabled(self):
+        username = self.TEST_USERNAMES[0]
+        self.clientdb.add_user(username, self.TEST_KEYS[0])
+        self.clientdb.set_enabled(username, enabled=True)
+        self.assertEquals(self.clientdb.get_enabled(username), True)
+        self.clientdb.set_enabled(username, enabled=False)
+        self.assertEquals(self.clientdb.get_enabled(username), False)
+
+    def testupdate_login_time(self):
+        username = self.TEST_USERNAMES[0]
+        self.clientdb.add_user(username, self.TEST_KEYS[0])
+        pre_login_time = self.clientdb.get_parameter(username, 'last_login')
+        self.assertEquals(pre_login_time, None)
+        self.clientdb.update_login_time(username)
+        post_login_time = self.clientdb.get_parameter(username, 'last_login')
+        self.assert_(datetime.datetime.now() > post_login_time)
 
 if __name__ == '__main__':
 	unittest.main()

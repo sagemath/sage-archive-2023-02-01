@@ -23,7 +23,7 @@ import ConfigParser
 import subprocess
 import sys
 
-from sage.dsage.database.userdb import UserDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.misc.constants import delimiter as DELIMITER
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
@@ -143,8 +143,8 @@ def setup_server():
     c.read(os.path.join(DSAGE_DIR, 'client.conf'))
     username = c.get('auth', 'username')
     pubkey_file = c.get('auth', 'pubkey_file')
-    userdb = UserDatabase()
-    userdb.add_user(username, pubkey_file)
+    clientdb = ClientDatabase()
+    clientdb.add_user(username, pubkey_file)
     print 'Added user %s\n' % (username)
 
 def setup():

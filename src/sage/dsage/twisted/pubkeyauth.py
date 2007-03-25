@@ -81,8 +81,8 @@ class PublicKeyCredentialsCheckerDB(object):
     implements(checkers.ICredentialsChecker)
     credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
-    def __init__(self, userdb):
-        self.userdb = userdb
+    def __init__(self, clientdb):
+        self.clientdb = clientdb
 
     def requestAvatarId(self, credentials):
         if IAnonymous.providedBy(credentials):
@@ -104,7 +104,7 @@ class PublicKeyCredentialsCheckerDB(object):
                                     credentials.sigData):
                 # If we get to this stage, it means the user is already
                 # logged in
-                self.userdb.update_login_time(credentials.username)
+                self.clientdb.update_login_time(credentials.username)
                 return credentials.username
             else:
                 log.msg('Invalid signature.')
@@ -114,7 +114,7 @@ class PublicKeyCredentialsCheckerDB(object):
             return defer.fail(AuthenticationError('Login failed.'))
 
     def get_user(self, username):
-        return self.userdb.get_user_and_key(username)
+        return self.clientdb.get_user_and_key(username)
 
 class AuthenticationError(pb.Error):
     r"""

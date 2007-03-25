@@ -26,9 +26,9 @@ from twisted.python import log
 
 import sage.dsage.database.sql_functions as sql_functions
 
-class UserDatabase(object):
+class ClientDatabase(object):
     r"""
-    This class defines the UserDatabase which is used to store user
+    This class defines the ClientDatabase which is used to store user
     authentication credentials and other information.
 
     """
@@ -43,7 +43,7 @@ class UserDatabase(object):
      creation_time timestamp,
      access_time timestamp,
      last_login timestamp,
-     disabled BOOL DEFAULT 0
+     enabled BOOL DEFAULT 1
     )
     """ % TABLENAME
 
@@ -57,7 +57,7 @@ class UserDatabase(object):
         self._getconf()
         self.tablename = self.TABLENAME
         if test:
-            self.db_file = 'userdb_test.db'
+            self.db_file = 'clientdb_test.db'
         else:
             self.db_file = self.DB_FILE
             if not os.path.exists(self.db_file):
@@ -136,11 +136,14 @@ class UserDatabase(object):
                    VALUES (?, ?, ?)
                 """
 
-        f = open(pubkey)
-        type_, key = f.readlines()[0].split()[:2]
-        f.close()
-        if not type_ == 'ssh-rsa':
-            raise TypeError
+        try:
+            f = open(pubkey)
+            type_, key = f.readlines()[0].split()[:2]
+            f.close()
+            if not type_ == 'ssh-rsa':
+                raise TypeError
+        except IOError:
+            key = pubkey
 
         cur = self.con.cursor()
         cur.execute(query, (username, key, datetime.datetime.now()))
@@ -156,25 +159,35 @@ class UserDatabase(object):
         self.con.execute(query, (username,))
         self.con.commit()
 
-    def set_user_status(self, username, status):
+    def set_enabled(self, username, enabled=True):
         r"""
         Enables/Disables a users account.
 
         Parameters:
-        username -- obvious
-        status -- 1 or 0 (enabled/disabled)
+        username -- str
+        enabled -- bool
         """
 
-        if status != 0 or status != 1:
-            raise TypeError
-
         query = """UPDATE users
-        SET status = ?
+        SET enabled = ?
         WHERE username = ?
         """
 
-        self.con.execute(query, (status, username))
+        self.con.execute(query, (enabled, username))
         self.con.commit()
+
+    def get_enabled(self, username):
+        r"""
+        Returns whether or not a user account is enabled.
+
+        """
+
+        query = """SELECT enabled FROM users WHERE username = ?"""
+        cur = self.con.cursor()
+        cur.execute(query, (username,))
+        result = cur.fetchone()
+
+        return bool(result[0])
 
     def set_parameter(self, username, parameter, value):
         r"""
@@ -189,6 +202,19 @@ class UserDatabase(object):
 
         self.con.execute(query, (value, parameter))
         self.con.commit()
+
+    def get_parameter(self, username, parameter):
+        r"""
+        Returns a particular parameter for the given username.
+
+        """
+
+        query = """SELECT %s FROM users WHERE username = ?""" % parameter
+        cur = self.con.cursor()
+        cur.execute(query, (username,))
+        result = cur.fetchone()
+
+        return result[0]
 
     def update_login_time(self, username):
         r"""

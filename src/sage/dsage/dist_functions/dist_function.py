@@ -140,7 +140,7 @@ class DistributedFunction(object):
                 except pb.DeadReferenceError:
                     print 'Got pb.DeadReferenceError.'
                     print 'This will be handled in the future.'
-                    if not self.checker_task.running:
+                    if self.checker_task.running:
                         reactor.callFromThread(self.checker_task.stop)
                     break
             else:

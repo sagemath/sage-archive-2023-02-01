@@ -30,7 +30,7 @@ from twisted.cred import portal
 
 from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
 from sage.dsage.database.jobdb import DatabasePruner
-from sage.dsage.database.userdb import UserDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
@@ -110,8 +110,8 @@ def main():
 
     # Get authorized keys
     # p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
-    userdb = UserDatabase()
-    p.portal.registerChecker(PublicKeyCredentialsCheckerDB(userdb))
+    clientdb = ClientDatabase()
+    p.portal.registerChecker(PublicKeyCredentialsCheckerDB(clientdb))
 
     # HACK: unsafeTracebacks should eventually be TURNED off
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)

@@ -1842,10 +1842,13 @@ cdef class Matrix(matrix1.Matrix):
         x = self.fetch('eigenvectors')
         if not x is None:
             return x
-        try:
-            G = self.minpoly().factor()  # can be computed faster when available.
-        except NotImplementedError:
-            G = self.fcp()   # factored charpoly of self.
+
+        # minpoly is rarely implemented and is unreliable (leading to hangs) via linbox when implemented
+        # as of 2007-03-25.
+        #try:
+        #    G = self.minpoly().factor()  # can be computed faster when available.
+        #except NotImplementedError:
+        G = self.fcp()   # factored charpoly of self.
         V = []
         i = 0
         for h, e in G:

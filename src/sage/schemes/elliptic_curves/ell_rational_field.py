@@ -675,7 +675,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.analytic_rank(algorithm='ec')
+            sage.: E.analytic_rank(algorithm='ec')
             2
             sage: E.analytic_rank(algorithm='cremona')
             2
@@ -685,7 +685,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional
             2
-            sage: E.analytic_rank(algorithm='all')
+            sage.: E.analytic_rank(algorithm='all')
             2
         """
         if algorithm == 'ec' and misc.is_64_bit:

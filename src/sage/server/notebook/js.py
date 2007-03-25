@@ -208,7 +208,7 @@ var update_timeout = -1;
 
 var updating = false; var update_time = -1;
 
-var jsmath_font_msg = '<a href="SAGE_URL/jsmath">jsMath temporarily disabled while we resolve a windows firefox hang bug</a><br>'; /*var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>'; */
+var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
 
 var cell_id_list; // this gets set in worksheet.py
 

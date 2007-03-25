@@ -241,10 +241,13 @@ def quit_sage(verbose=True):
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 
-    # stop the twisted reactor
-    from twisted.internet import reactor
-    if reactor.running:
-        reactor.callFromThread(reactor.stop)
+    try:
+       # stop the twisted reactor
+       from twisted.internet import reactor
+       if reactor.running:
+          reactor.callFromThread(reactor.stop)
+    except ImportError:
+       pass
 
 def _quit_sage_(self):
     import sage.misc.preparser_ipython

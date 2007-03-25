@@ -335,15 +335,15 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
     def _integral_hecke_matrix(self, n, sign=0):
         """
         EXAMPLES:
-            sage: J1(13)._integral_hecke_matrix(2)
+            sage: J1(13)._integral_hecke_matrix(2)     # slightly random choice of basis
             [-2  0 -1  1]
             [ 1 -1  0 -1]
             [ 1  1 -2  0]
             [ 0  1 -1 -1]
-            sage: J1(13)._integral_hecke_matrix(2,sign=1)
+            sage: J1(13)._integral_hecke_matrix(2,sign=1)  # slightly random choice of basis
             [-1  1]
             [-1 -2]
-            sage: J1(13)._integral_hecke_matrix(2,sign=-1)
+            sage: J1(13)._integral_hecke_matrix(2,sign=-1)  # slightly random choice of basis
             [-2 -1]
             [ 1 -1]
         """
@@ -352,12 +352,12 @@ class ModularAbelianVariety_modsym(ModularAbelianVariety):
     def _rational_hecke_matrix(self, n, sign=0):
         """
         EXAMPLES:
-            sage: J1(13)._rational_hecke_matrix(2)
+            sage: J1(13)._rational_hecke_matrix(2)    # slightly random choice of basis
             [-2  0 -1  1]
             [ 1 -1  0 -1]
             [ 1  1 -2  0]
             [ 0  1 -1 -1]
-            sage: J0(43)._rational_hecke_matrix(2,sign=1)
+            sage: J0(43)._rational_hecke_matrix(2,sign=1)  # slightly random choice of basis
             [-2  0  1]
             [-1 -2  2]
             [-2  0  2]

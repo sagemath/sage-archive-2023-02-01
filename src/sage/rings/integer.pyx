@@ -670,11 +670,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             'sagesagesage'
 
 
-        The exponent must first in an unsigned long.
-            sage: x = 2^1000000000000000
+        The exponent must fit in an unsigned long.
+            sage: x = 2^100000000000000000000000
             Traceback (most recent call last):
             ...
-            RuntimeError: exponent must be at most 4294967294
+            RuntimeError: exponent must be at most 4294967294  # 32-bit
+            RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
         """
         cdef Integer _n
         cdef unsigned int _nval
@@ -1044,7 +1045,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
-            OverflowError: exp (=9223372036854775808) must be <= 18446744065119617024  # 64-bit
+            OverflowError: exp (=36893488147419103232) must be <= 18446744073709551614     # 64-bit
         """
         if exp < 0:
             raise ValueError, "exp (=%s) must be nonnegative"%exp

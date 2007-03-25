@@ -278,7 +278,7 @@ class NumericalEigenforms(SageObject):
 
         EXAMPLES:
             sage: n = numerical_eigenforms(1,12)
-            sage: n.eigenvalues([3,5,13])
+            sage: n.eigenvalues([3,5,13])            # random low-order bits
             [[177148.0, 252.0], [48828126.0, 4830.0], [1.79216039404e+12, -577737.99999]]
         """
         primes = [Integer(p) for p in primes]

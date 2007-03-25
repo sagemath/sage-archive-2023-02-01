@@ -47,7 +47,7 @@ class DSageTestCase(unittest.TestCase):
             os.remove(file)
 
     def testget_job(self):
-        job = self.create_jobs(1)
+        job = self.create_jobs(1)[0]
         self.dsage_server.store_job(job.jdict)
         jdict = self.dsage_server.get_job()
         self.assertEquals(type(jdict), dict)

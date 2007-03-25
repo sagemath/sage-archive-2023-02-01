@@ -1,7 +1,8 @@
 """
 Sets
 
-AUTHOR:
+AUTHORS:
+    -- Mike Hansen (2007-3-25) -- added differences and symmetric differences; fixed operators
     -- William Stein (2005) -- first version
     -- William Stein (2006-02-16) -- large number of documentation and examples; improved code
 """

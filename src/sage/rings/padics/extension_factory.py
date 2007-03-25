@@ -79,7 +79,7 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
             prec = min([c.precision_absolute() for c in modulus.list()] + [base.precision_cap()]) * e
         else:
             prec = min([c.precision_absolute() * e for c in modulus.list()] + [base.precision_cap() * e] + [prec])
-    print "polytype = %s"%polytype
+    #print "polytype = %s"%polytype
     if polytype != 'p':
         modulus = truncate_to_prec(modulus, prec)
         key = (modulus, names, prec, halt, print_mode)

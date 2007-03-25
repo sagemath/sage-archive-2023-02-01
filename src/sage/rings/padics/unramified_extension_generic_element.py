@@ -60,10 +60,10 @@ class UnramifiedExtensionGenericElement(pAdicExtensionGenericElement):
 
     def list(self):
         #Need to change this to allow for base_rings that are not Zp.  Also, this is slow.
-        if self.valuation() < 0:
-            return self.unit_part().valuation()
+        if self.parent().is_field() and self.valuation() != 0:
+            return self.unit_part().list()
         answer = []
-        me = self
+        me = self.parent().integer_ring()(self)
         while me != 0:
             #print type(me)
             answer.append(self.parent()(me.residue(1), self.parent().precision_cap()))

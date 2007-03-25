@@ -6,6 +6,7 @@ import sage.rings.padics.unramified_extension_generic_element
 import sage.rings.infinity
 from sage.rings.padics.misc import min
 
+Integer = sage.rings.integer.Integer
 infinity = sage.rings.infinity.infinity
 Polynomial = sage.rings.polynomial_element.Polynomial
 #pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
@@ -20,8 +21,8 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
             UnramifiedExtensionGenericElement.__init__(self, parent, unit, construct = True)
             return
         if check:
-            from sage.rings.padics.padic_extension_leaves import UnramifiedExtensionCappedRelative
-            if not isinstance(parent, UnramifiedExtensionGeneric):
+            from sage.rings.padics.padic_extension_leaves import UnramifiedExtensionRingCappedRelative, UnramifiedExtensionFieldCappedRelative
+            if not isinstance(parent, (UnramifiedExtensionRingCappedRelative, UnramifiedExtensionFieldCappedRelative)):
                 raise TypeError, "parent must be an UnramifiedExtensionGeneric"
         if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
@@ -51,8 +52,8 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
                     unit = unit.add_bigoh(relprec)
                 unit = parent._PQR.polynomial_ring()(unit._value)
         UnramifiedExtensionGenericElement.__init__(self, parent, x)
-        self._ordp = self.valuation()
-        self._value = self.__rshift__(self._ordp)._value
+        self._ordp = UnramifiedExtensionGenericElement.valuation(self)
+        UnramifiedExtensionGenericElement.__init__(self, parent, self._value._polynomial // parent.ground_ring().uniformizer_pow(self._ordp))
 
     def _normalize(self):
         c = UnramifiedExtensionGenericElement.valuation(self)
@@ -61,7 +62,7 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
 
     def _polynomial(self):
         #Note that self._value._polynomial should have capped-relative coefficients
-        return self._value._polynomial * self.ground_ring().uniformizer()**self._ordp
+        return self._value._polynomial * self.parent().ground_ring().uniformizer()**self._ordp
 
     def __lshift__(self, shift):
         shift = Integer(shift)
@@ -84,8 +85,8 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
 
     def _add_(self, right):
         mordp = min(self._ordp, right._ordp)
-        sshift = self.ground_ring().uniformizer() ** (max(Integer(0), self._ordp - right._ordp))
-        rshift = self.ground_ring().uniformizer() ** (max(Integer(0), right._ordp - self._ordp))
+        sshift = self.parent().ground_ring().uniformizer() ** (max(Integer(0), self._ordp - right._ordp))
+        rshift = self.parent().ground_ring().uniformizer() ** (max(Integer(0), right._ordp - self._ordp))
         return UnramifiedExtensionCappedRelativeElement(self.parent(), (mordp, self._value._polynomial * sshift + right._value._polynomial * rshift), construct = True)
 
     def _mul_(self, right):
@@ -96,8 +97,8 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
 
     def _sub_(self, right):
         mordp = min(self._ordp, right._ordp)
-        sshift = self.ground_ring().uniformizer() ** (max(Integer(0), self._ordp - right._ordp))
-        rshift = self.ground_ring().uniformizer() ** (max(Integer(0), right._ordp - self._ordp))
+        sshift = self.parent().ground_ring().uniformizer() ** (max(Integer(0), self._ordp - right._ordp))
+        rshift = self.parent().ground_ring().uniformizer() ** (max(Integer(0), right._ordp - self._ordp))
         return UnramifiedExtensionCappedRelativeElement(self.parent(), (mordp, self._value._polynomial * sshift - right._value._polynomial * rshift), construct = True)
 
     def copy(self):
@@ -115,13 +116,22 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
         return self._value._polynomial == 0
 
     def residue(self, n):
+        self._normalize()
         if self._ordp == 0:
             return UnramifiedExtensionGenericElement.residue(self, n)
+        elif self._ordp < 0:
+            raise ValueError, "cannot take residue of a non-integral p-adic"
+        elif n <= self._ordp:
+            return self.parent()(0)
         else:
             raise NotImplementedError
 
     def precision_absolute(self):
         return self._ordp + UnramifiedExtensionGenericElement.precision_absolute(self)
+
+    def unit_part(self):
+        self._normalize()
+        return UnramifiedExtensionCappedRelativeElement(self.parent(), (Integer(0), self._value._polynomial), construct = True)
 
     def valuation(self):
         self._normalize()

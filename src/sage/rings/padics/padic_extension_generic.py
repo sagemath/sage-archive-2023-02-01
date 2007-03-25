@@ -84,7 +84,10 @@ class pAdicExtensionGeneric(pAdicGeneric):
         if self.is_field():
             return self
         K = self.ground_ring().fraction_field()
-        return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), names = self.variable_name())
+	if self.is_lazy():
+            return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = self.print_mode(), halt = self.halting_parameter(), names = self.variable_name())
+        else:
+            return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = self.print_mode(), names = self.variable_name())
 
     #def hasGNB(self):
     #    raise NotImplementedError

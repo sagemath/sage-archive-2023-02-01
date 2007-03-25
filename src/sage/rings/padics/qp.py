@@ -77,7 +77,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, name
 
 pAdicField = Qp # for backwards compatibility; and it's not hard.
 
-def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None, print_mode="series", halt=40, qp_name = None, check=True):
+def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode="series", halt=40, qp_name = None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
@@ -115,6 +115,7 @@ def Qq(q, prec = None, type = 'capped-rel', modulus = None, names=None, print_mo
     if modulus is None:
         from sage.rings.finite_field import GF
         from sage.rings.integer_ring import ZZ
+	from sage.rings.polynomial_ring import PolynomialRing
         if qp_name is None:
             qp_name = (str(F[0][0]),)
         modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))

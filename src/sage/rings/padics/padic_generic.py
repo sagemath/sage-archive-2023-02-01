@@ -417,9 +417,6 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return self(self._p)
 
-    def _uniformizer_print(self):
-        return self.variable_name()[0]
-
     def has_pth_root(self):
         r"""
         Returns whether or not $\Z_p$ has a $p^{\mbox{th}}$ root of unity.

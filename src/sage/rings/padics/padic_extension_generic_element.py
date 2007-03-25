@@ -128,9 +128,9 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
                 return "%s * %s"%(self._uniformizer_print(), self.__rshift__(1)._repr_(mode = 'terse', do_latex = do_latex))
             else:
                 if do_latex:
-                    return "%s^{%s} * %s"%(self._uniformizer_print(), self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
+                    return "%s^{%s} * %s"%(pprint, self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
                 else:
-                    return "%s^%s * %s"%(self._uniformizer_print(), self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
+                    return "%s^%s * %s"%(pprint, self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
         elif mode == 'terse':
             with local_print_mode(self.ground_ring(), 'terse'):
                 if do_latex:
@@ -138,7 +138,6 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
                 else:
                     return self._polynomial()._repr(name = self.parent().variable_name())
         else:
-            pprint = self.parent()._uniformizer_print()
             selflist = [a.residue(1) for a in self.padded_list(self.precision_absolute())]
             triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
             #print triples

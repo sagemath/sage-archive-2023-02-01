@@ -119,6 +119,11 @@ class EisensteinExtensionGeneric(pAdicExtensionGeneric):
     def is_normal(self):
         raise NotImplementedError
 
+    def uniformizer_pow(self, n):
+        if n is infinity:
+            return self(0)
+        return self(self._PQR.polynomial_ring().gen() ** n)
+
     def uniformizer(self):
         return self.gen()
 

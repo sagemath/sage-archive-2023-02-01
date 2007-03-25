@@ -2,7 +2,7 @@ import padic_ring_base_generic
 import sage.rings.finite_field
 import sage.rings.polynomial_ring
 import sage.rings.polynomial_quotient_ring as pqr
-import sage.rings.padics.unramified_extension_element
+import sage.rings.padics.unramified_extension_generic_element
 #import sage.rings.polynomial_quotient_ring_element
 #import sage.rings.padics.padic_ring_generic
 #import sage.rings.polynomial_element
@@ -15,7 +15,7 @@ import padic_extension_generic
 
 pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicExtensionGeneric = padic_extension_generic.pAdicExtensionGeneric
-UnramifiedExtensionElement = sage.rings.padics.unramified_extension_element.UnramifiedExtensionElement
+UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_generic_element.UnramifiedExtensionGenericElement
 PolynomialRing = sage.rings.polynomial_ring.PolynomialRing
 GF = sage.rings.finite_field.GF
 pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
@@ -81,6 +81,11 @@ class UnramifiedExtensionGeneric(pAdicExtensionGeneric):
 
     def is_normal(self):
         return True
+
+    def uniformizer_pow(self, n):
+        if n is infinity:
+            return self(0)
+        return self.uniformizer() ** n
 
     def uniformizer(self):
         return self(self.ground_ring().uniformizer())

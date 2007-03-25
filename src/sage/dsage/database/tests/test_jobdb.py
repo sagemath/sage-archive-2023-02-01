@@ -72,7 +72,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         for job in jobs:
             job_id = self.jobdb.new_job(job)
             self.assertEquals(job, self.jobdb.get_job_by_id(job_id))
-            self.assert_(self.jobdb.get_job_by_id(job_id).updated_time <
+            self.assert_(self.jobdb.get_job_by_id(job_id).update_time <
                          datetime.datetime.now())
 
     def testget_jobs_by_user_id(self):
@@ -96,9 +96,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
     def testget_jobs_list(self):
         jobs = self.jobdb.get_jobs_list()
-
-        for i in xrange(len(jobs)-1):
-            self.assert_(jobs[i].num < jobs[i+1].num)
+        self.assertEquals(len(jobs), 10)
 
     def create_jobs(self, n):
         """This method creates n jobs. """
@@ -110,30 +108,51 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         return jobs
 
 class JobDatabaseSQLiteTestCase(unittest.TestCase):
+    r"""
+    Unit tests for the SQLite based JobDatabase go here.
+
+    """
+
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
 
     def tearDown(self):
+        query = """DELETE FROM jobs"""
+        cur = self.jobdb.con.cursor()
+        cur.execute(query)
         self.jobdb._shutdown()
 
-    def testinsert_job(self):
-        raise NotImplementedError
+    def testget_job(self):
+        job = Job()
+        job.status = 'new'
+        job.killed = False
+        jdict = self.jobdb.store_job(job.jdict)
+        self.assertEquals(jdict['job_id'], self.jobdb.get_job()['job_id'])
 
-    def testupdate_job(self):
-        raise NotImplementedError
-
-    def testget_all_jobs(self):
-        raise NotImplementedError
+    def teststore_job(self):
+        job = Job()
+        self.assert_(isinstance(self.jobdb.store_job(job.jdict), dict))
 
     def testget_job_by_id(self):
-        raise NotImplementedError
+        job = Job()
+        jdict = self.jobdb.store_job(job.jdict)
+        self.assert_(self.jobdb.get_job_by_id(jdict['job_id']) is not None)
 
-    def testget_job_by_uid(self):
-        raise NotImplementedError
+    def testhas_job(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.jdict)
+        self.assertEquals(self.jobdb.has_job(jdict['job_id']), True)
 
-    def testget_job_by_keywords(self):
-        raise NotImplementedError
+    def testcreate_jdict(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.jdict)
+        self.assert_(isinstance(jdict, dict))
 
+    def testget_killed_jobs_list(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.jdict)
+        self.jobdb.set_killed(jdict['job_id'], killed=True)
+        self.assertEquals(len(self.jobdb.get_killed_jobs_list()), 1)
 
 class DatabasePrunerTestCase(unittest.TestCase):
     def setUp(self):

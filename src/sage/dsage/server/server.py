@@ -279,16 +279,14 @@ class DSageServer(pb.Root):
 
         """
 
-        jdict = self.get_job_by_id(job_id)
         if jdict == None:
             if self.LOG_LEVEL > 0:
                 log.msg('[DSage, kill_job] No such job id %s' % job_id)
             return None
         else:
-            jdict['killed'] = True
-            self.jobdb.store_job(jdict)
+            self.jobdb.set_killed(job_id, killed=True)
             if self.LOG_LEVEL > 0:
-                log.msg('Job %s was killed because %s ' % (job_id, reason))
+                log.msg('Killed job %s' % (job_id))
 
         return job_id
 

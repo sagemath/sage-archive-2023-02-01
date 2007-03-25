@@ -322,7 +322,7 @@ class JobDatabaseZODB(JobDatabase):
         for job_id, job in self.jobdb.iteritems():
             if job_id == 'GLOBALS': # Skip the GLOBALS job
                 continue
-            sorted_list.append((job.num, job))
+            sorted_list.append((job.id, job))
         sorted_list.sort()
 
         return [job[1] for job in sorted_list]
@@ -515,7 +515,10 @@ class JobDatabaseSQLite(JobDatabase):
         cur = self.con.cursor()
         if key == 'data' or key == 'result': # Binary objects
             if value is not None:
-                cur.execute(query, (sqlite3.Binary(value), job_id))
+                try:
+                    cur.execute(query, (sqlite3.Binary(value), job_id))
+                except TypeError:
+                    pass
         else:
             cur.execute(query, (value, job_id))
         self.con.commit()
@@ -613,6 +616,17 @@ class JobDatabaseSQLite(JobDatabase):
             return False
         else:
             return True
+
+    def set_killed(self, job_id, killed=True):
+        r"""
+        Sets the killed status of a job.
+
+        """
+
+        query = """UPDATE jobs SET killed = ? WHERE job_id = ?"""
+        cur = self.con.cursor()
+        cur.execute(query, (killed, job_id))
+        self.con.commit()
 
 class DatabasePruner(object):
     r"""

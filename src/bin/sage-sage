@@ -35,6 +35,7 @@ usage_advanced() {
     echo "  -gp <..>      -- run SAGE's GP (Pari) with given arguments"
     echo "  -f [packages] -- force build of the given SAGE package (even if already installed)"
     echo "  -grep <string>-- grep through all the SAGE library code for string"
+    echo "  -grepdoc <string>-- grep through all the SAGE documentation for string"
     echo "  -h, -?        -- print help message"
     echo "  -i [packages] -- install the given SAGE packages"
     echo "                   if no packages given, print a list of all installed"
@@ -343,6 +344,13 @@ if [ $1 = '-grep' -o $1 = "--grep" ]; then
    sage_setup
    shift
    sage-grep "$*"
+   exit 0
+fi
+
+if [ $1 = '-grepdoc' -o $1 = "--grepdoc" ]; then
+   sage_setup
+   shift
+   sage-grepdoc "$*"
    exit 0
 fi
 

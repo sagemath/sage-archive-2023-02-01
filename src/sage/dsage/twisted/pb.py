@@ -141,7 +141,7 @@ class DefaultPerspective(pb.Avatar):
 
     def attached(self, avatar, mind):
         self.current_connections += 1
-        if mind:
+        if isinstance(mind, tuple):
             self.mind = mind
             host_info = mind[1]
             host_info['ip'] = mind[0].broker.transport.getPeer().host
@@ -350,7 +350,8 @@ class Realm(object):
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer, avatarID)
             elif avatarID == 'Anonymous' and mind:
-                avatar = AnonymousMonitorPerspective(self.DSageServer, avatarID)
+                avatar = AnonymousMonitorPerspective(self.DSageServer,
+                                                     avatarID)
             elif mind:
                 avatar = MonitorPerspective(self.DSageServer, avatarID)
             else:

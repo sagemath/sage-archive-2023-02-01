@@ -22,6 +22,7 @@ import random
 from glob import glob
 import cPickle
 import zlib
+import uuid
 
 from twisted.trial import unittest
 from twisted.spread import pb
@@ -39,6 +40,7 @@ from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
+from sage.dsage.misc.hostinfo import ClassicHostInfo
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
@@ -63,9 +65,24 @@ try:
     USERNAME = config.get('auth', 'username')
     PRIVKEY_FILE = os.path.expanduser(config.get('auth', 'privkey_file'))
     PUBKEY_FILE = os.path.expanduser(config.get('auth', 'pubkey_file'))
-except:
+
+    conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
+    config = ConfigParser.ConfigParser()
+    config.read(conf_file)
+    if len(config.get('uuid', 'id')) != 36:
+        config.set('uuid', 'id', str(uuid.uuid1()))
+        f = open(conf_file, 'w')
+        config.write(f)
+    UUID = config.get('uuid', 'id')
+    WORKERS = config.getint('general', 'workers')
+
+except Exception, msg:
+    print msg
     raise
 # End reading configuration
+hf = ClassicHostInfo().host_info
+hf['uuid'] = UUID
+hf['workers'] = WORKERS
 
 Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                 range(500)]])
@@ -93,7 +110,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.port = CLIENT_PORT
-        self.r = reactor.listenTCP(CLIENT_PORT, self.client_factory)
+        self.server = reactor.listenTCP(CLIENT_PORT, self.client_factory)
 
         # public key authentication information
         self.username = USERNAME
@@ -124,14 +141,15 @@ class ClientRemoteCallsTest(unittest.TestCase):
         files = glob('*.db*')
         for file in files:
             os.remove(file)
-        return self.r.stopListening()
+        return self.server.stopListening()
 
     def testremoteSubmitJob(self):
         """tests perspective_submit_job"""
         jobs = self.create_jobs(1)
 
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port,
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
                                              factory)
 
         d = factory.login(self.creds, None)
@@ -177,6 +195,170 @@ class ClientRemoteCallsTest(unittest.TestCase):
             jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
+
+class MonitorRemoteCallsTest(unittest.TestCase):
+    r"""
+    Tests remote calls for monitors.
+
+    """
+
+    def setUp(self):
+        self.jobdb = JobDatabaseSQLite(test=True)
+        self.monitordb = MonitorDatabase(test=True)
+        self.dsage_server = DSageServer(self.jobdb,
+                                        self.monitordb,
+                                        log_level=5)
+        self.realm = Realm(self.dsage_server)
+        self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
+        self.clientdb = ClientDatabase(test=True)
+        self.p.portal.registerChecker(
+        PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.client_factory = pb.PBServerFactory(self.p)
+        self.hostname = 'localhost'
+        self.port = CLIENT_PORT
+        self.server = reactor.listenTCP(CLIENT_PORT, self.client_factory)
+
+        # public key authentication information
+        self.username = USERNAME
+        self.pubkey_file = PUBKEY_FILE
+        self.privkey_file = PRIVKEY_FILE
+        self.public_key_string = keys.getPublicKeyString(
+                                 filename=self.pubkey_file)
+        self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
+        self.public_key = keys.getPublicKeyObject(self.public_key_string)
+        self.alg_name = 'rsa'
+        self.blob = keys.makePublicKeyBlob(self.public_key)
+        self.data = Data
+        self.signature = keys.signData(self.private_key, self.data)
+        self.creds = credentials.SSHPrivateKey(self.username,
+                                               self.alg_name,
+                                               self.blob,
+                                               self.data,
+                                               self.signature)
+        c = ConfigParser.ConfigParser()
+        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
+        username = c.get('auth', 'username')
+        pubkey_file = c.get('auth', 'pubkey_file')
+        self.clientdb.add_user(username, pubkey_file)
+
+    def tearDown(self):
+        self.connection.disconnect()
+        self.jobdb._shutdown()
+        files = glob('*.db*')
+        for file in files:
+            os.remove(file)
+        return self.server.stopListening()
+
+    def testremote_get_job(self):
+        job = Job()
+        job.code = "2+2"
+        self.dsage_server.submit_job(job.reduce())
+        factory = PBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
+        d = factory.login(self.creds, (pb.Referenceable(), hf))
+        d.addCallback(self._logged_in)
+        d.addCallback(self._get_job)
+
+        return d
+
+    def _logged_in(self, remoteobj):
+        self.assert_(remoteobj is not None)
+
+        return remoteobj
+
+    def _get_job(self, remoteobj):
+        d = remoteobj.callRemote('get_job')
+        d.addCallback(self._got_job)
+
+        return d
+
+    def _got_job(self, jdict):
+        self.assertEquals(type(jdict), dict)
+
+    def testremote_job_done(self):
+        factory = PBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
+        d = factory.login(self.creds, (pb.Referenceable(), hf))
+        job = Job()
+        job.code = "2+2"
+        jdict = self.dsage_server.submit_job(job.reduce())
+        d.addCallback(self._logged_in)
+        d.addCallback(self._job_done, jdict)
+
+        return d
+
+    def _job_done(self, remoteobj, jdict):
+        job_id = jdict['job_id']
+        result = jdict['result']
+        d = remoteobj.callRemote('job_done',
+                                 job_id,
+                                 'Nothing.',
+                                 result,
+                                 False,
+                                 'lalal')
+        d.addCallback(self._done_job)
+
+        return d
+
+    def _done_job(self, jdict):
+        self.assertEquals(type(jdict), dict)
+        self.assertEquals(jdict['status'], 'new')
+        self.assertEquals(jdict['output'], 'Nothing.')
+
+    def testremote_job_failed(self):
+        factory = PBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
+        job = Job()
+        job.code = "2+2"
+        jdict = self.dsage_server.submit_job(job.reduce())
+        d = factory.login(self.creds, (pb.Referenceable(), hf))
+        d.addCallback(self._logged_in)
+        d.addCallback(self._job_failed, jdict)
+
+        return d
+
+    def _job_failed(self, remoteobj, jdict):
+        d = remoteobj.callRemote('job_failed', jdict['job_id'])
+        d.addCallback(self._failed_job)
+
+        return d
+
+    def _failed_job(self, jdict):
+        self.assertEquals(type(jdict), dict)
+        self.assertEquals(jdict['failures'], 1)
+
+    def testget_killed_jobs_list(self):
+        factory = PBClientFactory()
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
+
+        job = Job()
+        job.code = "2+2"
+        job.killed = True
+        jdict = self.dsage_server.submit_job(job.reduce())
+        d = factory.login(self.creds, (pb.Referenceable(), hf))
+        d.addCallback(self._logged_in)
+        d.addCallback(self._get_killed_jobs_list)
+        d.addCallback(self._got_killed_jobs_list, jdict)
+
+        return d
+
+    def _get_killed_jobs_list(self, remoteobj):
+        d = remoteobj.callRemote('get_killed_jobs_list')
+
+        return d
+
+    def _got_killed_jobs_list(self, killed_jobs_list, jdict):
+        self.assertEquals(len(killed_jobs_list), 1)
+        self.assertEquals(killed_jobs_list[0]['job_id'], jdict['job_id'])
+
 
 if __name__ == 'main':
     unittest.main()

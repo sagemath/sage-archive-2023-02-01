@@ -24,19 +24,21 @@ from random import randint
 from cPickle import dumps, loads
 import zlib
 
-from sage.dsage.database.job import Job
-from sage.dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.database.job import Job, expand_job
+from sage.dsage.database.jobdb import JobDatabaseSQLite
+from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.server.server import DSageServer
 
 class DSageTestCase(unittest.TestCase):
-    def unpickle(self, pickled_job):
-        return loads(zlib.decompress(pickled_job))
+    r"""
+    Tests for DSageServer go here.
+
+    """
 
     def setUp(self):
-        self.jobdb = JobDatabaseZODB(test=True)
+        self.jobdb = JobDatabaseSQLite(test=True)
+        self.clientdb = ClientDatabase(test=True)
         self.dsage_server = DSageServer(self.jobdb, log_level=5)
-        for job in self.create_jobs(10):
-            self.dsage_server.jobdb.new_job(job)
 
     def tearDown(self):
         self.dsage_server.jobdb._shutdown()
@@ -45,9 +47,11 @@ class DSageTestCase(unittest.TestCase):
             os.remove(file)
 
     def testget_job(self):
-        pickled_job = self.dsage_server.get_job()
-        self.assertEquals(type(pickled_job), str)
-        job = self.unpickle(pickled_job)
+        job = self.create_jobs(1)
+        self.dsage_server.store_job(job.jdict)
+        jdict = self.dsage_server.get_job()
+        self.assertEquals(type(jdict), dict)
+        job = expand_job(jdit)
         self.assert_(isinstance(job, Job))
 
     def testget_job_by_id(self):
@@ -178,7 +182,7 @@ class DSageTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='yqiang'))
 
         return jobs
 

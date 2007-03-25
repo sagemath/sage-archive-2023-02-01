@@ -205,7 +205,7 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 # TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp', 'iml', 'm', BLAS])
+                                  libraries = ['iml', 'gmp', 'm', BLAS])  # order matters for cygwin!!
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
@@ -579,7 +579,7 @@ def is_older(file1, file2):
         return False
     if not os.path.exists(file2):
         return True
-    if os.path.getctime(file2) < os.path.getctime(file1):
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
         return True
     return False
 

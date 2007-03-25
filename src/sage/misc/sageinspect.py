@@ -41,7 +41,7 @@ Test introspection of classes defined in Python and Sagex files:
         '.../rational.pyx'
 
         sage: sage_getdoc(sage.rings.rational.Rational).lstrip()
-        "A Rational number..."
+        'A Rational number...'
 
         sage: sage_getsource(sage.rings.rational.Rational)
         'cdef class Rational...'

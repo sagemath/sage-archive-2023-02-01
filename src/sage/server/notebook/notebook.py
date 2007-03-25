@@ -1003,10 +1003,10 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Toggle Panel</a>' + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Left Panel</a>' + vbar
         #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
-        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
@@ -1212,6 +1212,7 @@ Output
 
     def help_window(self):
         help = [
+            ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),

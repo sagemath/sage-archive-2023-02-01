@@ -467,11 +467,43 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
 
     #######################################################################
+    #  Source -browser functionality
+    #######################################################################
+
+    def src_browser(self, path):
+        self.send_head()
+        i = path.find('?')
+        if i == -1:
+            return self.file_not_found(path)
+        filename = path[i+1:]
+        file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
+        s = ''
+        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+        s += '<h1 align=center>SAGE Source Browser</h1>\n'
+        s += '<h2 align=center>devel/sage/sage%s</h2>\n'%filename
+        s += '<br><hr><br>\n'
+        s += '<pre id="code">%s</pre>\n'%file
+        s += '<br><hr><br>\n'
+        s += '<script src="/highlight/prettify.js"></script>\n'
+        s += """<script>
+function get_element(id) {
+  if(document.getElementById)
+    return document.getElementById(id);
+  if(document.all)
+    return document.all[id];
+  if(document.layers)
+    return document.layers[id];
+}
+
+var x = get_element("code");
+x.innerHTML = prettyPrintOne(x.innerHTML);
+</script>
+"""
+        return self.wfile.write(s)
+
+    #######################################################################
     #  Doc-browser functionality
     #######################################################################
-    # TODO: this will not work right on a multi-user system, since if
-    # multiple people viewer the browser at the same time and eval cells,
-    # this will conflict.
 
     def doc_browser(self, path):
         """
@@ -811,9 +843,12 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         self.get_cookie()
 
         # Catch any doc_browser requests here
-        if self.path[1:12] == 'doc_browser':
-            if self.path[-5:] == '.html':
+        if self.path.startswith('/doc_browser'):
+            if self.path.endswith('.html'):
                 return self.doc_browser(self.path)
+
+        if self.path.startswith('/src_browser'):
+            return self.src_browser(self.path)
 
         # The question mark trick here is so that images will be reloaded when
         # the async request requests the output text for a computation.
@@ -856,7 +891,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if path == '':
             return self.show_page(worksheet_id=worksheet_id,show_debug=show_debug)
         else:
-            self.file_not_found()
+            self.file_not_found(path)
 
     def get_cookie(self):
         """

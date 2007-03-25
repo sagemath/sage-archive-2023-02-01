@@ -32,8 +32,11 @@ from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pb import PBClientFactory
-from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
-from sage.dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
+from sage.dsage.database.jobdb import JobDatabaseSQLite
+from sage.dsage.database.monitordb import MonitorDatabase
+from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.errors.exceptions import AuthenticationError
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
@@ -67,11 +70,16 @@ Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
 
 class PublicKeyCredentialsCheckerTest(unittest.TestCase):
     def setUp(self):
-        self.jobdb = JobDatabaseZODB(test=True)
-        self.dsage = DSageServer(self.jobdb, log_level=5)
-        self.realm = Realm(self.dsage)
-        self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage)))
-        self.p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
+        self.jobdb = JobDatabaseSQLite(test=True)
+        self.monitordb = MonitorDatabase(test=True)
+        self.dsage_server = DSageServer(self.jobdb,
+                                        self.monitordb,
+                                        log_level=5)
+        self.realm = Realm(self.dsage_server)
+        self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))
+        self.clientdb = ClientDatabase(test=True)
+        self.p.portal.registerChecker(
+        PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.port = CLIENT_PORT
@@ -81,7 +89,8 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.username = USERNAME
         self.pubkey_file = PUBKEY_FILE
         self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(filename=self.pubkey_file)
+        self.public_key_string = keys.getPublicKeyString(
+                                 filename=self.pubkey_file)
         self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
         self.public_key = keys.getPublicKeyObject(self.public_key_string)
         self.alg_name = 'rsa'
@@ -103,12 +112,18 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         return self.r.stopListening()
 
     def testLogin(self):
-        """Tests the login method. """
+        c = ConfigParser.ConfigParser()
+        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
+        username = c.get('auth', 'username')
+        pubkey_file = c.get('auth', 'pubkey_file')
+        self.clientdb.add_user(username, pubkey_file)
+
         factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port, factory)
 
         d = factory.login(self.creds, None)
         d.addCallback(self._LoginConnected)
+
         return d
 
     def _LoginConnected(self, remoteobj):
@@ -136,7 +151,7 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         return d
 
     def _BadLoginFailure(self, failure):
-        self.assertEquals(failure.type, str(twisted.conch.error.ConchError))
+        self.assertEquals(failure.type, str(AuthenticationError))
 
     def testBadLogin3(self):
         factory = PBClientFactory()

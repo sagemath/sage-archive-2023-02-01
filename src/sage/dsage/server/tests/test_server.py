@@ -29,7 +29,7 @@ from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.server.server import DSageServer
 
-class DSageTestCase(unittest.TestCase):
+class DSageServerTestCase(unittest.TestCase):
     r"""
     Tests for DSageServer go here.
 

@@ -27,6 +27,9 @@ from twisted.internet import defer
 from twisted.python import log
 from twisted.spread import pb
 
+from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.errors.exceptions import AuthenticationError
+
 class PublicKeyCredentialsChecker(object):
     r"""
     This class provides authentication checking using ssh public keys.
@@ -82,6 +85,8 @@ class PublicKeyCredentialsCheckerDB(object):
     credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, clientdb):
+        if not isinstance(clientdb, ClientDatabase):
+            raise TypeError
         self.clientdb = clientdb
 
     def requestAvatarId(self, credentials):
@@ -90,7 +95,7 @@ class PublicKeyCredentialsCheckerDB(object):
         try:
             user, key = self.get_user(credentials.username)
         except TypeError:
-            log.msg("Invalid username '%s'" % credentials.username)
+            log.msg("Invalid username: '%s'" % credentials.username)
             return defer.fail(AuthenticationError('Login failed.'))
         if user:
             if not credentials.blob == base64.decodestring(key):
@@ -115,14 +120,3 @@ class PublicKeyCredentialsCheckerDB(object):
 
     def get_user(self, username):
         return self.clientdb.get_user_and_key(username)
-
-class AuthenticationError(pb.Error):
-    r"""
-    Return this when credential checking has failed.
-
-    """
-
-    def __init__(self, value, data=None):
-        Exception.__init__(self, value, data)
-        self.value = value
-        self.data = data

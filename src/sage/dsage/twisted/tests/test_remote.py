@@ -33,11 +33,11 @@ from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pb import PBClientFactory
-from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
-from sage.dsage.database.jobdb import JobDatabaseZODB
+from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
+from sage.dsage.database.jobdb import JobDatabaseSQLite
+from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
-
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
@@ -70,15 +70,24 @@ Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                 range(500)]])
 
 class ClientRemoteCallsTest(unittest.TestCase):
+    r"""
+    Tests of remote procedure calls go here.
+
+    """
+
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
 
     def setUp(self):
-        self.jobdb = JobDatabaseZODB(test=True)
-        self.dsage = DSageServer(self.jobdb, log_level=5)
-        self.realm = Realm(self.dsage)
-        self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage)))
-        self.p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
+        self.jobdb = JobDatabaseSQLite(test=True)
+        self.monitordb = MonitorDatabase(test=True)
+        self.dsage_server = DSageServer(self.jobdb,
+                                        self.monitordb,
+                                        log_level=5)
+        self.realm = Realm(self.dsage_server)
+        self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
+        self.p.portal.registerChecker(
+        PublicKeyCredentialsCheckerDB(PUBKEY_DATABASE))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.port = CLIENT_PORT
@@ -88,7 +97,8 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.username = USERNAME
         self.pubkey_file = PUBKEY_FILE
         self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(filename=self.pubkey_file)
+        self.public_key_string = keys.getPublicKeyString(
+                                 filename=self.pubkey_file)
         self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
         self.public_key = keys.getPublicKeyObject(self.public_key_string)
         self.alg_name = 'rsa'
@@ -128,10 +138,9 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.assertEquals(job, None)
 
     def testremoteGetJob(self):
-        """Tests perspective_get_job"""
         jobs = self.create_jobs(10)
         for job in jobs:
-            self.jobdb.new_job(job)
+            self.dsage_server.submit_job(job.reduce())
 
         factory = PBClientFactory()
         self.connection = reactor.connectTCP(self.hostname, self.port,

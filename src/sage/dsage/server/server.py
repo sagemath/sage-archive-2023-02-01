@@ -18,6 +18,7 @@
 
 import zlib
 import cPickle
+import datetime
 
 from twisted.spread import pb
 from twisted.python import log
@@ -107,7 +108,8 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(job_id)
+        jdict = self.jobdb.get_job_by_id(job_id)
+        job = expand_job(jdict)
         return job.result
 
     def get_job_output_by_id(self, job_id):
@@ -166,15 +168,16 @@ class DSageServer(pb.Root):
             return False
         if jdict['name'] is None:
             jdict['name'] = 'No name specified'
+        jdict['update_time'] = datetime.datetime.now()
 
         return self.jobdb.store_job(jdict)
 
-    def get_jobs_list(self):
+    def get_all_jobs(self):
         r"""
-        Returns an ordered list of jobs in the database.
+        Returns a list of all jobs in the database.
 
         """
-        return self.jobdb.get_jobs_list()
+        return self.jobdb.get_all_jobs()
 
     def get_active_jobs(self):
         r"""
@@ -246,6 +249,8 @@ class DSageServer(pb.Root):
             jdict['status'] = 'completed'
             jdict['worker_info'] = str(worker_info)
 
+        jdict['update_time'] = datetime.datetime.now()
+
         return self.jobdb.store_job(jdict)
 
     def job_failed(self, job_id):
@@ -257,7 +262,7 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(job_id)
+        job = expand_job(self.jobdb.get_job_by_id(job_id))
         job.failures += 1
 
         if job.failures > self.jobdb.JOB_FAILURE_THRESHOLD:
@@ -269,7 +274,8 @@ class DSageServer(pb.Root):
             s = ['[DSage, job_failed] Job %s failed ' % (job_id),
                  '%s times. ' % (job.failures)]
             log.msg(''.join(s))
-        self.jobdb.store_job(job)
+
+        return self.jobdb.store_job(job.reduce())
 
     def kill_job(self, job_id, reason):
         r"""
@@ -279,7 +285,7 @@ class DSageServer(pb.Root):
 
         """
 
-        if jdict == None:
+        if job_id == None:
             if self.LOG_LEVEL > 0:
                 log.msg('[DSage, kill_job] No such job id %s' % job_id)
             return None

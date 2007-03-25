@@ -58,7 +58,7 @@ class MonitorDatabase(object):
         self._getconf()
         self.tablename = 'monitors'
         if test:
-            pass
+            self.db_file = 'monitordb-test.db'
         else:
             self.db_file = self.DB_FILE
             if not os.path.exists(self.db_file):

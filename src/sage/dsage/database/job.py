@@ -99,8 +99,8 @@ class Job(Persistent):
     def get_id(self):
         return self.jdict['job_id']
     def set_id(self, value):
-#        if not isinstance(value, str):
-#            raise TypeError
+        if not isinstance(value, str):
+            raise TypeError
         self.jdict['job_id'] = value
     id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
 
@@ -323,9 +323,11 @@ def expand_job(jdict):
     job = Job()
 
     # decompress and load data
-    jdict['data'] = zlib.decompress(jdict['data'])
-    jdict['data'] = cPickle.loads(jdict['data'])
-
+    try:
+        jdict['data'] = zlib.decompress(jdict['data'])
+        jdict['data'] = cPickle.loads(jdict['data'])
+    except:
+        jdict['data'] = None
     # swap the jdicts, easy eh?
     job.jdict = jdict
 

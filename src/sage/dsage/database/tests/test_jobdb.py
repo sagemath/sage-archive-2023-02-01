@@ -126,31 +126,31 @@ class JobDatabaseSQLiteTestCase(unittest.TestCase):
         job = Job()
         job.status = 'new'
         job.killed = False
-        jdict = self.jobdb.store_job(job.jdict)
+        jdict = self.jobdb.store_job(job.reduce())
         self.assertEquals(jdict['job_id'], self.jobdb.get_job()['job_id'])
 
     def teststore_job(self):
         job = Job()
-        self.assert_(isinstance(self.jobdb.store_job(job.jdict), dict))
+        self.assert_(isinstance(self.jobdb.store_job(job.reduce()), dict))
 
     def testget_job_by_id(self):
         job = Job()
-        jdict = self.jobdb.store_job(job.jdict)
+        jdict = self.jobdb.store_job(job.reduce())
         self.assert_(self.jobdb.get_job_by_id(jdict['job_id']) is not None)
 
     def testhas_job(self):
         job = Job()
-        jdict = self.jobdb.store_job(job.jdict)
+        jdict = self.jobdb.store_job(job.reduce())
         self.assertEquals(self.jobdb.has_job(jdict['job_id']), True)
 
     def testcreate_jdict(self):
         job = Job()
-        jdict = self.jobdb.store_job(job.jdict)
+        jdict = self.jobdb.store_job(job.reduce())
         self.assert_(isinstance(jdict, dict))
 
     def testget_killed_jobs_list(self):
         job = Job()
-        jdict = self.jobdb.store_job(job.jdict)
+        jdict = self.jobdb.store_job(job.reduce())
         self.jobdb.set_killed(jdict['job_id'], killed=True)
         self.assertEquals(len(self.jobdb.get_killed_jobs_list()), 1)
 

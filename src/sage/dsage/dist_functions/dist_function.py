@@ -162,6 +162,12 @@ class DistributedFunction(object):
                 reactor.callFromThread(self.checker_task.stop)
 
 class DistributedFunctionTest(DistributedFunction):
+    r"""
+    This is a very simple DistributedFunction.
+    Only for educational purposes.
+
+    """
+
     def __init__(self, DSage, n, name='DistributedFunctionTest'):
         DistributedFunction.__init__(self, DSage)
         self.n = n

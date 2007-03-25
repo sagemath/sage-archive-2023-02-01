@@ -490,7 +490,10 @@ class JobDatabaseSQLite(JobDatabase):
         query = "SELECT * from jobs"
         cur = self.con.cursor()
         cur.execute(query)
-        return cur.fetchall()
+        result = cur.fetchall()
+
+        return [self.create_jdict(jtuple, cur.description)
+                for jtuple in result]
 
     def get_job_by_id(self, job_id):
         query = "SELECT * FROM jobs WHERE job_id = ?"
@@ -499,10 +502,22 @@ class JobDatabaseSQLite(JobDatabase):
         jtuple = cur.fetchone()
         return self.create_jdict(jtuple, cur.description)
 
-    def get_job_by_keywords(self, **kwargs):
-        raise NotImplementedError
+    def _get_jobs_by_parameter(self, key, value):
+        r"""
+        Returns a particular result given a key and value.
 
-    def update_value(self, job_id, key, value):
+        """
+
+        query = """SELECT * FROM jobs where %s = ?""" % (key)
+        cur = self.con.cursor()
+        cur.execute(query, (value,))
+        result = cur.fetchall()
+
+        return [self.create_jdict(jtuple, cur.description)
+                for jtuple in result]
+
+
+    def _update_value(self, job_id, key, value):
         r"""
         Sets the appropriate value for a job in the database.
 
@@ -514,11 +529,8 @@ class JobDatabaseSQLite(JobDatabase):
         """ % (key)
         cur = self.con.cursor()
         if key == 'data' or key == 'result': # Binary objects
-            if value is not None:
-                try:
-                    cur.execute(query, (sqlite3.Binary(value), job_id))
-                except TypeError:
-                    pass
+            if value != None:
+                cur.execute(query, (sqlite3.Binary(value), job_id))
         else:
             cur.execute(query, (value, job_id))
         self.con.commit()
@@ -548,7 +560,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         for k, v in jdict.iteritems():
             try:
-                self.update_value(job_id, k, v)
+                self._update_value(job_id, k, v)
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
@@ -618,15 +630,10 @@ class JobDatabaseSQLite(JobDatabase):
             return True
 
     def set_killed(self, job_id, killed=True):
-        r"""
-        Sets the killed status of a job.
+        self._update_value(job_id, 'killed', killed)
 
-        """
-
-        query = """UPDATE jobs SET killed = ? WHERE job_id = ?"""
-        cur = self.con.cursor()
-        cur.execute(query, (killed, job_id))
-        self.con.commit()
+    def get_active_jobs(self):
+        return self._get_jobs_by_parameter('status', 'processing')
 
 class DatabasePruner(object):
     r"""

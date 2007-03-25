@@ -871,6 +871,8 @@ setup(name        = 'sage',
                      'sage.dsage.database.tests',
                      'sage.dsage.server',
                      'sage.dsage.server.tests',
+                     'sage.dsage.interface',
+                     'sage.dsage.interface.tests',
                      'sage.dsage.errors',
                      'sage.dsage.twisted',
                      'sage.dsage.twisted.tests',
@@ -878,8 +880,6 @@ setup(name        = 'sage',
                      'sage.dsage.dist_functions.tests',
                      'sage.dsage.misc',
                      'sage.dsage.misc.tests',
-                     'sage.dsage.interface',
-                     'sage.dsage.interface.tests'
                      'sage.dsage.scripts'
                      ],
 

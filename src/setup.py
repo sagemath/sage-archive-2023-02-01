@@ -101,7 +101,7 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
 
 ntl = Extension('sage.libs.ntl.ntl',
                  sources = ["sage/libs/ntl/ntl.pyx"],
-                 libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
 mwrank =  Extension("sage.libs.mwrank.mwrank",
@@ -169,8 +169,7 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
-                   libraries = ['linboxwrap', 'linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro'],
-
+                   libraries = ['ntl', 'linboxwrap', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
@@ -446,11 +445,11 @@ ext_modules = [ \
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
@@ -474,7 +473,7 @@ ext_modules = [ \
                          'sage/ext/arith.pyx', \
                          'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.sparse_poly',
               sources = ['sage/rings/sparse_poly.pyx'],
@@ -563,7 +562,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries += ['csage']
+    m.libraries = ['csage'] + m.libraries + ['stdc++']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 

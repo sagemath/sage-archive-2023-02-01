@@ -691,16 +691,15 @@ class Maxima(Expect):
         return s
 
     def clear(self, var):
-        """
-        Clear the variable named var.
-        """
-        if self._expect is None:
-            return
-        try:
-            self._expect.sendline('kill(%s);'%var)
-            self._expect.expect(self._prompt)
-        except:  # program around weirdness in pexpect
-            pass
+         """
+         Clear the variable named var.
+         """
+         if self._expect is None:
+             return
+         try:
+             self._expect.sendline('kill(%s);\n'%var)
+         except:  # program around weirdness in pexpect
+             pass
 
     def console(self):
         maxima_console()

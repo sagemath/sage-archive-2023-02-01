@@ -1,12 +1,15 @@
 """
 Number Field Elements
 
-TODO / QUESTION: Shouldn't all the number field arithmetic below be directly
-wrapping PARI number field objects?  I'm confused why they don't.  I.e.,
-shouldn't __element by a Mod object in PARI?  Why do we avoid that below?
-Doing that would likely be much faster, easier, and make adding rings
-of integers, etc., easier.
 """
+
+# TODO -- relative extensions need to be completely rewritten, so one
+# can get easy access to representation of elements in their relative
+# form.  Functions like matrix below can't be done until relative
+# extensions are re-written this way.  Also there needs to be class
+# hierarchy for number field elements, integers, etc.  This is a
+# nontrivial project, and it needs somebody to attack it.  I'm amazed
+# how long this has gone unattacked.
 
 #*****************************************************************************
 #       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
@@ -34,6 +37,8 @@ import sage.rings.rational as rational
 import sage.rings.integer_ring as integer_ring
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+
+import sage.rings.number_field.number_field
 
 import number_field
 
@@ -473,7 +478,7 @@ class NumberFieldElement(field_element.FieldElement):
 ##             return R(nf.rnfcharpoly(prp, elt))
 ##         # return self.matrix().charpoly('x')
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this number field element.
 
@@ -493,7 +498,7 @@ class NumberFieldElement(field_element.FieldElement):
         # the characteristic polynomial.
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
-        f = polynomial_ring.PolynomialRing(QQ, var)(1)
+        f = polynomial_ring.PolynomialRing(QQ, str(var))(1)
         for g, _ in self.charpoly(var).factor():
             f *= g
         return f
@@ -515,19 +520,20 @@ class NumberFieldElement(field_element.FieldElement):
             sage: M.base_ring() is QQ
             True
 
-        Relative number field:
-            sage: L.<b> = K.extension(K['x'].0^2 - 2)
-            sage: 1*b, b*b, b**3, b**6
-            (b, b^2, b^3, 6*b^4 - 10*b^3 - 12*b^2 - 60*b - 17)
-            sage: L.pari_rnf().rnfeltabstorel(b._pari_())
-            x - y
-            sage: L.pari_rnf().rnfeltabstorel((b**2)._pari_())
-            2
-            sage: M = b.matrix(); M
-            [0 1]
-            [3 0]
-            sage: M.base_ring() is K
-            True
+        """
+##         Relative number field:
+##             sage: L.<b> = K.extension(K['x'].0^2 - 2)
+##             sage: 1*b, b*b, b**3, b**6
+##             (b, b^2, b^3, 6*b^4 - 10*b^3 - 12*b^2 - 60*b - 17)
+##             sage: L.pari_rnf().rnfeltabstorel(b._pari_())
+##             x - y
+##             sage: L.pari_rnf().rnfeltabstorel((b**2)._pari_())
+##             2
+##             sage: M = b.matrix(); M
+##             [0 1]
+##             [3 0]
+##             sage: M.base_ring() is K
+##             True
 
 #         Absolute number field:
 #             sage: M = L.absolute_field().gen().matrix(); M
@@ -549,7 +555,6 @@ class NumberFieldElement(field_element.FieldElement):
 #             sage: M.base_ring()
 #             sage: M.base_ring() is K
 #             True
-        """
         # Mutiply each power of field generator on
         # the left by this element; make matrix
         # whose rows are the coefficients of the result,
@@ -583,6 +588,11 @@ class NumberFieldElement(field_element.FieldElement):
             sage: K(3).list()
             [3, 0]
         """
+        P = self.parent()
+        # The algorithm below is total nonsense, unless the parent of self is an
+        # absolute extension.
+        if isinstance(P, sage.rings.number_field.number_field.NumberField_extension):
+            raise NotImplementedError
         n = self.parent().degree()
         v = self.__element.list()[:n]
         z = rational.Rational(0)

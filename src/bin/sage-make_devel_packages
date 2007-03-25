@@ -37,11 +37,6 @@ if [ -d $SAGE_ROOT/devel/doc-main ]; then
    hg diff
    hg status
    hg commit
-   # ./sage-push
-   if [ $? -ne 0 ]; then
-       echo "Documenation push cancelled."
-       exit 1
-   fi
    chmod +x scripts/spkg-dist
    scripts/spkg-dist $SAGE_VERSION
    if [ $? -ne 0 ]; then

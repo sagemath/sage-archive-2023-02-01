@@ -99,9 +99,11 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                          "sage/libs/hanke/GMP_class_extras/vectors.cc" ],
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
+# NOTE: It is *very* important (for cygwin) that csage be the first library
+# listed below for ntl.
 ntl = Extension('sage.libs.ntl.ntl',
                  sources = ["sage/libs/ntl/ntl.pyx"],
-                 libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
 mwrank =  Extension("sage.libs.mwrank.mwrank",

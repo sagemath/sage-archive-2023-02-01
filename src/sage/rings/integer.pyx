@@ -1585,9 +1585,15 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.00000000000000*I
             sage: sqrt(-2)
+<<<<<<< /home/moretti/sage-1.5/devel/sage-temp/sage/rings/integer.pyx.orig.192518280
+			sqrt(2)*1.00000000000000*I
+||||||| /tmp/integer.pyx~base.kBliBJ
+            1.41421356237309*I
+=======
             1.41421356237310*I
+>>>>>>> /tmp/integer.pyx~other.87lkdz
             sage: sqrt(97)
-            9.84885780179610
+			sqrt(97)
             sage: n = 97; n.sqrt(200)
             9.8488578017961047217462114149176244816961362874427641717232
         """

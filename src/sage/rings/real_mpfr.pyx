@@ -2041,8 +2041,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
+<<<<<<< /home/moretti/sage-1.5/devel/sage-temp/sage/rings/real_mpfr.pyx.orig.2870513383
+             sage: r = RR(sqrt(2)); r
+             1.41421356237309
+||||||| /tmp/real_mpfr.pyx~base.G8BANX
+             sage: r = sqrt(2); r
+             1.41421356237309
+=======
              sage: r = sqrt(2); r
              1.41421356237310
+>>>>>>> /tmp/real_mpfr.pyx~other.vpVP68
              sage: r.algdep(5)
              x^2 - 2
         """
@@ -2058,8 +2066,16 @@ cdef class RealNumber(sage.structure.element.RingElement):
          ALGORITHM: Uses the PARI C-library algdep command.
 
          EXAMPLE:
+<<<<<<< /home/moretti/sage-1.5/devel/sage-temp/sage/rings/real_mpfr.pyx.orig.2870513383
+              sage: r = RR(sqrt(2)); r
+              1.41421356237309
+||||||| /tmp/real_mpfr.pyx~base.G8BANX
+              sage: r = sqrt(2); r
+              1.41421356237309
+=======
               sage: r = sqrt(2); r
               1.41421356237310
+>>>>>>> /tmp/real_mpfr.pyx~other.vpVP68
               sage: r.algdep(5)
               x^2 - 2
         """

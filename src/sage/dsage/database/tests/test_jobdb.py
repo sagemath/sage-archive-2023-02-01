@@ -42,17 +42,17 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
     def testhas_job(self):
         job = self.create_jobs(1)
-        jobID = self.jobdb.store_job(job[0])
-        self.assertEquals(self.jobdb.has_job(jobID), True)
+        job_id = self.jobdb.store_job(job[0])
+        self.assertEquals(self.jobdb.has_job(job_id), True)
         self.assert_(self.jobdb.has_job('GLOBALS') > 0)
 
     def testget_next_job_id(self):
         """Attempt to increment Job ID by one. """
 
-        jobID = self.jobdb.get_next_job_id()
-        jobID1 = self.jobdb.get_next_job_id()
+        job_id = self.jobdb.get_next_job_id()
+        job_id1 = self.jobdb.get_next_job_id()
 
-        self.assert_(int(jobID[11:]) < int(jobID1[11:]))
+        self.assert_(int(job_id[11:]) < int(job_id1[11:]))
 
     def testget_job(self):
         job = self.jobdb.get_job()
@@ -72,14 +72,14 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         for job in jobs:
             job_id = self.jobdb.new_job(job)
             self.assertEquals(job, self.jobdb.get_job_by_id(job_id))
-            self.assert_(self.jobdb.get_job_by_id(job_id).updated_time <
+            self.assert_(self.jobdb.get_job_by_id(job_id).update_time <
                          datetime.datetime.now())
 
-    def testget_jobs_by_author(self):
-        jobs = self.jobdb.get_jobs_by_author('Yi Qiang', True)
+    def testget_jobs_by_user_id(self):
+        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', True)
         self.assert_(len(jobs) == 0)
 
-        jobs = self.jobdb.get_jobs_by_author('Yi Qiang', False, 'unittest')
+        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', False, 'unittest')
         self.assert_(len(jobs) > 0)
 
     def testget_active_jobs(self):
@@ -96,44 +96,63 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
     def testget_jobs_list(self):
         jobs = self.jobdb.get_jobs_list()
-
-        for i in xrange(len(jobs)-1):
-            self.assert_(jobs[i].num < jobs[i+1].num)
+        self.assertEquals(len(jobs), 10)
 
     def create_jobs(self, n):
         """This method creates n jobs. """
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 
 class JobDatabaseSQLiteTestCase(unittest.TestCase):
+    r"""
+    Unit tests for the SQLite based JobDatabase go here.
+
+    """
+
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
 
     def tearDown(self):
+        query = """DELETE FROM jobs"""
+        cur = self.jobdb.con.cursor()
+        cur.execute(query)
         self.jobdb._shutdown()
 
-    def testinsert_job(self):
-        raise NotImplementedError
+    def testget_job(self):
+        job = Job()
+        job.status = 'new'
+        job.killed = False
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assertEquals(jdict['job_id'], self.jobdb.get_job()['job_id'])
 
-    def testupdate_job(self):
-        raise NotImplementedError
-
-    def testget_all_jobs(self):
-        raise NotImplementedError
+    def teststore_job(self):
+        job = Job()
+        self.assert_(isinstance(self.jobdb.store_job(job.reduce()), dict))
 
     def testget_job_by_id(self):
-        raise NotImplementedError
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assert_(self.jobdb.get_job_by_id(jdict['job_id']) is not None)
 
-    def testget_job_by_uid(self):
-        raise NotImplementedError
+    def testhas_job(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assertEquals(self.jobdb.has_job(jdict['job_id']), True)
 
-    def testget_job_by_keywords(self):
-        raise NotImplementedError
+    def testcreate_jdict(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assert_(isinstance(jdict, dict))
 
+    def testget_killed_jobs_list(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.jobdb.set_killed(jdict['job_id'], killed=True)
+        self.assertEquals(len(self.jobdb.get_killed_jobs_list()), 1)
 
 class DatabasePrunerTestCase(unittest.TestCase):
     def setUp(self):
@@ -153,9 +172,9 @@ class DatabasePrunerTestCase(unittest.TestCase):
     def testclean_old_jobs(self):
         jobs = self.jobdb.get_jobs_list()
         for job in jobs:
-            job.updated_time -= datetime.timedelta(10)
+            job.update_time -= datetime.timedelta(10)
             # directly accessing the database because store_job
-            # automatically updates the updated_time
+            # automatically updates the update_time
             self.jobdb.jobdb[job.id] = job
 
         self.pruner.clean_old_jobs()
@@ -178,7 +197,7 @@ class DatabasePrunerTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
 
         return jobs
 

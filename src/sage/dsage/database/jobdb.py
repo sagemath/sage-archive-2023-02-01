@@ -23,7 +23,7 @@ import ConfigParser
 import random
 import string
 import time
-import sqlite3 as sqlite
+import sqlite3
 
 from twisted.python import log
 
@@ -145,19 +145,19 @@ class JobDatabaseZODB(JobDatabase):
 
     def get_next_job_id(self):
         r"""
-        Increments jobID by one and returns the current jobID
+        Increments job_id by one and returns the current job_id
 
         """
 
         gdict = self.__retrieve_globals()
         jobNUM = gdict['next_job_num']
         gdict['next_job_num'] += 1
-        jobID = self.random_string(10) + '_' + '%s' % jobNUM
+        job_id = self.random_string(10) + '_' + '%s' % jobNUM
         self.store_job(gdict)
         if self.LOG_LEVEL > 1:
             log.msg('[DB] Incremented job num to: ', jobNUM)
 
-        return jobID
+        return job_id
 
     def __retrieve_globals(self):
         return self.get_job_by_id('GLOBALS')
@@ -175,32 +175,32 @@ class JobDatabaseZODB(JobDatabase):
         that jobs are always processed in the right order.
 
         """
-        for jobID, job in self.jobdb.iteritems():
+        for job_id, job in self.jobdb.iteritems():
             try:
                 if isinstance(job, Job) and job.status == 'new':
                     return job
             except(KeyError):
                 return None
 
-    def get_job_by_id(self, jobID):
+    def get_job_by_id(self, job_id):
         r"""
         Returns a job given a job id.
 
         Parameters:
-        jobID -- the job id (int)
+        job_id -- the job id (int)
 
         """
-        if not self.has_job(jobID):
+        if not self.has_job(job_id):
             return None
         else:
-            return self.jobdb[jobID]
+            return self.jobdb[job_id]
 
-    def get_jobs_by_author(self, author, is_active, job_name=None):
+    def get_jobs_by_user_id(self, user_id, is_active, job_name=None):
         r"""
         Returns jobs created by author.
 
         Parameters:
-        author -- the author name (str)
+        user_id -- the user_id name (str)
         is_active -- when set to true, only return active jobs (bool)
         job_name -- the job name to return (default=None)
 
@@ -209,21 +209,21 @@ class JobDatabaseZODB(JobDatabase):
         if is_active:
             if job_name:
                 jobs = [job for job in self.get_active_jobs()
-                        if (job.author == author and job.name == job_name)]
+                        if (job.user_id == user_id and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_active_jobs()
-                        if job.author == author]
+                        if job.user_id == user_id]
 
         else:
             if job_name:
                 jobs = [job for job in self.get_jobs_list()
-                        if (job.author == author and job.name == job_name)]
+                        if (job.user_id == user_id and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_jobs_list()
-                        if job.author == author]
+                        if job.user_id == user_id]
 
         if self.LOG_LEVEL > 3:
-            log.msg('[JobDatabaseZODB, get_jobs_by_author] ', jobs)
+            log.msg('[JobDatabaseZODB, get_jobs_by_user_id] ', jobs)
         return jobs
 
     def store_job(self, job):
@@ -242,44 +242,44 @@ class JobDatabaseZODB(JobDatabase):
         # is the GLOBAL dictionary which keeps track of our job ids
         if isinstance(job, dict):
             if job.has_key('next_job_num'):
-                # log.msg('[DB, store_job] Setting jobID to GLOBALS')
-                jobID = 'GLOBALS'
+                # log.msg('[DB, store_job] Setting job_id to GLOBALS')
+                job_id = 'GLOBALS'
         elif isinstance(job, Job):
-            jobID = job.id
-            if not isinstance(jobID, str):
-                jobID = self.get_next_job_id()
-            job.updated_time = datetime.datetime.now()
+            job_id = job.id
+            if not isinstance(job_id, str):
+                job_id = self.get_next_job_id()
+            job.update_time = datetime.datetime.now()
         else:
             raise TypeError
 
-        self.jobdb[jobID] = job
+        self.jobdb[job_id] = job
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         # Need this hack to notify ZODB that the dict was modified
         # WITHOUT IT CHANGES WILL NOT BE WRITTEN BACK TO DISK
-        if jobID != 'GLOBALS':
+        if job_id != 'GLOBALS':
             job._p_changed = True
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         transaction.commit()
         if self.LOG_LEVEL > 0:
-            log.msg("[DB] Stored job %s" % (jobID))
+            log.msg("[DB] Stored job %s" % (job_id))
 
-        return jobID
+        return job_id
 
-    def remove_job(self, jobID):
+    def remove_job(self, job_id):
         r"""
         Removes a job from the database.
 
         Parameters:
-         jobID -- job id (int)
+         job_id -- job id (int)
 
         """
 
         try:
-            del self.jobdb[jobID]
+            del self.jobdb[job_id]
             if self.LOG_LEVEL > 0:
-                log.msg('[JobDB] Removed job %s from jobdb' % (jobID))
+                log.msg('[JobDB] Removed job %s from jobdb' % (job_id))
             transaction.commit()
-            return jobID
+            return job_id
         except:
             log.msg('[JobDB] Failure removing a job.')
             raise
@@ -294,17 +294,17 @@ class JobDatabaseZODB(JobDatabase):
         return [job for job in self.get_jobs_list()
                 if job.status == 'processing']
 
-    def has_job(self, jobID):
+    def has_job(self, job_id):
         r"""
         Checks if the database contains a job corresponding to job id.
 
         Parameters:
-        jobID -- the job id (int)
+        job_id -- the job id (int)
 
         """
 
         # For some reason has_key returns 0/1 versus True/False
-        b = self.jobdb.has_key(jobID)
+        b = self.jobdb.has_key(job_id)
         if b > 0:
             return True
         else:
@@ -319,10 +319,10 @@ class JobDatabaseZODB(JobDatabase):
 
         sorted_list = []
 
-        for jobID, job in self.jobdb.iteritems():
-            if jobID == 'GLOBALS': # Skip the GLOBALS job
+        for job_id, job in self.jobdb.iteritems():
+            if job_id == 'GLOBALS': # Skip the GLOBALS job
                 continue
-            sorted_list.append((job.num, job))
+            sorted_list.append((job.id, job))
         sorted_list.sort()
 
         return [job[1] for job in sorted_list]
@@ -362,8 +362,8 @@ class JobDatabaseZODB(JobDatabase):
 
         """
 
-        jobID = self.get_next_job_id()
-        job.id = jobID
+        job_id = self.get_next_job_id()
+        job.id = job_id
 
         return self.store_job(job)
 
@@ -377,37 +377,28 @@ class JobDatabaseSQLite(JobDatabase):
     """
 
     # TODO: SQLite does *NOT* enforce foreign key constraints
-    # We must manually check for them.
-    CREATE_NEW_TABLE = """CREATE TABLE jobs
-    (id INTEGER PRIMARY KEY,
-     job_id TEXT NOT NULL UNIQUE,
+    # Must do manual checking.
+
+    CREATE_JOBS_TABLE = """CREATE TABLE jobs
+    (job_id TEXT NOT NULL UNIQUE,
+     name TEXT,
      user_id INTEGER REFERENCES users(id),
+     worker_id INTEGER REFERENCES workers(id),
+     worker_info TEXT,
      code TEXT,
      data BLOB,
      output TEXT,
-     worker_id INTEGER REFERENCES workers(id),
-     status INTEGER NOT NULL,
-     priority INTEGER,
+     result BLOB,
+     status TEXT NOT NULL,
+     priority TEXT,
+     type TEXT,
+     failures INTEGER DEFAULT 0,
      creation_time timestamp NOT NULL,
      update_time timestamp,
-     finish_time timestamp
+     finish_time timestamp,
+     verifiable BOOL,
+     killed BOOL DEFAULT 0
     );
-    """
-
-    INSERT_JOB = """INSERT INTO jobs
-    (job_id,
-     user_id,
-     code,
-     data,
-     output,
-     worker_id,
-     status,
-     priority,
-     creation_time,
-     update_time,
-     finish_time
-    )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """
 
     def __init__(self, test=False):
@@ -415,21 +406,42 @@ class JobDatabaseSQLite(JobDatabase):
         if test:
             self.db_file = 'test_jobdb.db'
         else:
-            self.db_file = 'jobdb.db'
+            self.db_file = self.DB_FILE
+            if not os.path.exists(self.db_file):
+                dir, file = os.path.split(self.db_file)
+                if not os.path.isdir(dir):
+                    os.mkdir(dir)
 
         self.tablename = 'jobs'
-        self.con = sqlite.connect(
+        self.con = sqlite3.connect(
                    self.db_file,
-                   detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
-        self.con.text_factory = str # Don't want unicode objects back
+                   detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        self.con.text_factory = str # Don't want unicode objects
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,
-                                       self.CREATE_NEW_TABLE)
+                                       self.CREATE_JOBS_TABLE)
+
     def __add_test_data(self):
+        INSERT_JOB = """INSERT INTO jobs
+        (uid,
+         user_id,
+         code,
+         data,
+         output,
+         worker_id,
+         status,
+         priority,
+         creation_time,
+         update_time,
+         finish_time
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """
+
         dn = lambda: datetime.datetime.now() # short hand
         D = [(self.random_string(), 1, None, None, None, 1,
-             0, 1, dn(), dn(), None),
+             'new', 1, dn(), dn(), None),
              (self.random_string(), 1, None, None, None, 1,
              0, 1, dn(), dn(), None),
              (self.random_string(), 1, None, None, None, 1,
@@ -445,57 +457,87 @@ class JobDatabaseSQLite(JobDatabase):
                   (self.random_string(), 1, None, None, None, 1,
                    0, 1, dn(), dn(), None)])
 
-        self.con.executemany(self.INSERT_JOB, D)
+        self.con.executemany(INSERT_JOB, D)
         self.con.commit()
 
     def _shutdown(self):
         self.con.commit()
         self.con.close()
 
-    def get_job(self):
+    def get_job(self, anonymous=False):
         r"""
         Returns the first unprocessed job of the highest priority.
 
         """
 
-        # pseudo code follows:
-        # SELECT FROM jobs where PRIORITY IS highest AND status = 'new'
-        raise NotImplementedError
+        if anonymous:
+            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+        else:
+            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+        cur = self.con.cursor()
+        cur.execute(query)
+        jtuple = cur.fetchone()
+
+        return self.create_jdict(jtuple, cur.description)
+
+    def set_job_uuid(self, job_id, uuid):
+        query = "UPDATE jobs SET worker_id=? WHERE job_id=?"
+        cur = self.con.cursor()
+        cur.execute(query, (uuid, job_id))
+        self.con.commit()
 
     def get_all_jobs(self):
         query = "SELECT * from jobs"
         cur = self.con.cursor()
         cur.execute(query)
-        return cur.fetchall()
+        result = cur.fetchall()
 
-    def get_job_by_id(self, id_):
-        query = "SELECT * FROM jobs WHERE id = ?"
+        return [self.create_jdict(jtuple, cur.description)
+                for jtuple in result]
+
+    def get_job_by_id(self, job_id):
+        query = "SELECT * FROM jobs WHERE job_id = ?"
         cur = self.con.cursor()
-        cur.execute(query, (int(id_),)) # Need to cast it to int for SAGE
-        job_tuple = cur.fetchone()
-        return job_tuple
+        cur.execute(query, (job_id,)) # Need to cast it to int for SAGE
+        jtuple = cur.fetchone()
+        return self.create_jdict(jtuple, cur.description)
 
-    def get_job_by_uid(self, uid):
-        query = "SELECT * FROM jobs WHERE uid = ?"
-        cur = self.con.cursor()
-        cur.execute(query, (uid,))
-        job_tuple = cur.fetchone()
-        return job_tuple
-
-    def get_job_by_keywords(self, **kwargs):
-        raise NotImplementedError
-
-    def insert_job(self, job_dict):
+    def _get_jobs_by_parameter(self, key, value):
         r"""
-        Inserts a new job into the jobs table.
+        Returns a particular result given a key and value.
 
         """
 
-        raise NotImplementedError
+        query = """SELECT * FROM jobs where %s = ?""" % (key)
+        cur = self.con.cursor()
+        cur.execute(query, (value,))
+        result = cur.fetchall()
 
-    def store_job(self, job):
+        return [self.create_jdict(jtuple, cur.description)
+                for jtuple in result]
+
+
+    def _update_value(self, job_id, key, value):
         r"""
-        Stores a job based on information from a dictionary.
+        Sets the appropriate value for a job in the database.
+
+        """
+
+        query = """UPDATE jobs
+        SET %s=?
+        WHERE job_id=?
+        """ % (key)
+        cur = self.con.cursor()
+        if key == 'data' or key == 'result': # Binary objects
+            if value != None:
+                cur.execute(query, (sqlite3.Binary(value), job_id))
+        else:
+            cur.execute(query, (value, job_id))
+        self.con.commit()
+
+    def store_job(self, jdict):
+        r"""
+        Stores a job based on information from Job.jdict.
         The keys of the dictionary should correspond to the columns in the
         'jobs' table.
 
@@ -504,9 +546,94 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        # TODO: Build a query from the job dictionary and store it in the
-        # database
-        raise NotImplementedError
+        job_id = jdict['job_id']
+
+        if job_id is None:
+            job_id = self.random_string()
+            if self.LOG_LEVEL > 3:
+                log.msg('[JobDB] Creating a new job with id:', job_id)
+            query = """INSERT INTO jobs
+                    (job_id, status, creation_time) VALUES (?, ?, ?)"""
+            cur = self.con.cursor()
+            cur.execute(query, (job_id, 'new', datetime.datetime.now()))
+            self.con.commit()
+
+        for k, v in jdict.iteritems():
+            try:
+                self._update_value(job_id, k, v)
+            except (sqlite3.InterfaceError,
+                    sqlite3.OperationalError,
+                    sqlite3.IntegrityError), msg:
+                if self.LOG_LEVEL > 3:
+                    print k, v
+                    print msg
+                continue
+
+        return self.get_job_by_id(job_id)
+
+    def create_jdict(self, jtuple, row_description):
+        r"""
+        Creates a jdict out of a job_tuple.
+
+        """
+
+        if jtuple is None:
+            return None
+
+        columns = [desc[0] for desc in row_description]
+        jdict = dict(zip(columns, jtuple))
+
+        # Convert 0/1 into python booleans
+        jdict['killed'] = bool(jdict['killed'])
+        jdict['verifiable'] = bool(jdict['verifiable'])
+
+        # Convert buffer objects back to string
+        jdict['data'] = str(jdict['data'])
+        jdict['result'] = str(jdict['result'])
+
+        return jdict
+
+    def get_killed_jobs_list(self):
+        r"""
+        Returns a list of jobs which have been marked as killed.
+
+        """
+        query = "SELECT * from jobs where killed = 1 AND status <> 'completed'"
+        cur = self.con.cursor()
+        cur.execute(query)
+        killed_jobs = cur.fetchall()
+        return [self.create_jdict(jdict, cur.description)
+                for jdict in killed_jobs]
+
+    def get_jobs_by_user_id(self, user_id):
+        r"""
+        Returns a list of jobs belonging to 'user_id'
+
+        """
+
+        query = """SELECT * from jobs where user_id = ? """
+        cur = self.con.cursor()
+        cur.execute(query, (user_id,))
+
+        return [self.create_jdict(jtuple, cur.description) for jtuple in cur]
+
+    def has_job(self, job_id):
+        r"""
+        Checks if the database contains a job with the given uid.
+
+        """
+
+        job = self.get_job_by_id(job_id)
+        if job is None:
+            return False
+        else:
+            return True
+
+    def set_killed(self, job_id, killed=True):
+        self._update_value(job_id, 'killed', killed)
+
+    def get_active_jobs(self):
+        return self._get_jobs_by_parameter('status', 'processing')
 
 class DatabasePruner(object):
     r"""
@@ -531,7 +658,7 @@ class DatabasePruner(object):
         log.msg('[DatabasePruner] Cleaning out old jobs...')
         jobs = self.jobdb.get_jobs_list()
         for job in jobs:
-            delta =  datetime.datetime.now() - job.updated_time
+            delta =  datetime.datetime.now() - job.update_time
             if delta > datetime.timedelta(self.jobdb.PRUNE_IN_DAYS):
                 self.jobdb.remove_job(job.id)
                 log.msg('[DatabasePruner, clean_old_jobs] Deleted job ',

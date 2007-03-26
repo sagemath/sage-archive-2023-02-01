@@ -19,16 +19,16 @@
 from twisted.spread import pb
 from zope.interface import implements
 from twisted.cred import portal, credentials
+from twisted.cred.credentials import ISSHPrivateKey
+from twisted.cred.credentials import Anonymous
 from twisted.spread.interfaces import IJellyable
 from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
-from twisted.internet import defer
 
 from sage.dsage.misc.hostinfo import HostInfo
-from sage.dsage.server.server import DSageServer
 import sage.dsage.server.client_tracker as client_tracker
 import sage.dsage.server.worker_tracker as worker_tracker
-from sage.dsage.errors.exceptions import BadTypeError
+from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -54,29 +54,39 @@ class WorkerPBServerFactory(pb.PBServerFactory):
             if broker.transport.disconnected:
                 worker_tracker.remove((broker, host, port))
 
+class PBClientFactory(pb.PBClientFactory):
+    r"""
+    Custom implementation of the PBClientFactory that supports logging in
+    with public key as well as anonymous credentials.
 
+    """
 
-class ClientPBClientFactory(pb.PBClientFactory):
-    def login(self, creds, client=None):
-        if not isinstance(creds, credentials.SSHPrivateKey):
-            return defer.fail(TypeError())
+    def login(self, creds, mind=None):
+        if ISSHPrivateKey.providedBy(creds):
+            d = self.getRootObject()
+            d.addCallback(self._cbSendUsername,
+                          creds.username,
+                          creds.algName,
+                          creds.blob,
+                          creds.sigData,
+                          creds.signature,
+                          mind)
 
-        d = self.getRootObject()
-        d.addCallback(self._cbSendUsername,
-                      creds.username,
-                      creds.algName,
-                      creds.blob,
-                      creds.sigData,
-                      creds.signature,
-                      client)
-
-        return d
+            return d
+        else:
+            d = self.getRootObject()
+            d.addCallback(self._cbAnonymousLogin, mind)
+            return d
 
     def _cbSendUsername(self, root, username, alg_name, blob, sig_data,
-                        signature, client):
-
+                        signature, mind):
         d = root.callRemote("login", username, alg_name, blob, sig_data,
-                                signature, client)
+                                signature, mind)
+        return d
+
+    def _cbAnonymousLogin(self, root, mind):
+        d = root.callRemote("login_anonymous", mind)
+
         return d
 
 class _SSHKeyPortalRoot(pb._PortalRoot):
@@ -96,6 +106,12 @@ class _SSHKeyPortalWrapper(pb._PortalWrapper):
 
         return d
 
+    def remote_login_anonymous(self, mind):
+        d = self.portal.login(Anonymous(), mind, IPerspective)
+        d.addCallback(self._loggedIn)
+
+        return d
+
     def _loggedIn(self, (interface, perspective, logout)):
         if not IJellyable.providedBy(perspective):
             perspective = AsReferenceable(perspective, "perspective")
@@ -111,6 +127,12 @@ class DefaultPerspective(pb.Avatar):
 
     current_connections = 0
 
+    def __init__(self, DSageServer, avatarID):
+        self.DSageServer = DSageServer
+        self.avatarID = avatarID
+
+        log.msg('%s connected' % self.avatarID)
+
     def perspectiveMessageReceived(self, broker, message, args, kw):
         self.broker = broker
 
@@ -119,108 +141,198 @@ class DefaultPerspective(pb.Avatar):
 
     def attached(self, avatar, mind):
         self.current_connections += 1
-        client_tracker.add((avatar, mind))
+        if isinstance(mind, tuple):
+            self.mind = mind
+            host_info = mind[1]
+            host_info['ip'] = mind[0].broker.transport.getPeer().host
+            host_info['port'] = mind[0].broker.transport.getPeer().port
+            uuid = host_info['uuid']
+            worker_tracker.add((mind[0].broker, host_info))
+            if self.DSageServer.monitordb.get_monitor(uuid) is None:
+                self.DSageServer.monitordb.add_monitor(host_info)
+            self.DSageServer.monitordb.set_connected(uuid, connected=True)
+        else:
+            client_tracker.add((avatar, mind))
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
-        client_tracker.remove((avatar, mind))
+        if mind:
+            # This will remove all disconnected clients, not just the one that
+            # just disconnected.
+            for broker, host_info in worker_tracker.worker_list:
+                if broker.transport.disconnected:
+                    worker_tracker.remove((broker, host_info))
+            self.DSageServer.monitordb.set_connected(host_info['uuid'],
+                                                    connected=False)
+        else:
+            client_tracker.remove((avatar, mind))
 
+class AnonymousMonitorPerspective(DefaultPerspective):
+    r"""
+    Defines the perspective of an anonymous worker.
+
+    """
+
+    def __init__(self, DSageServer, avatarID):
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
+
+    def perspective_get_job(self):
+        r"""
+        Returns jobs only marked as doable by anonymous workers.
+
+        """
+
+        uuid = self.mind[1]['uuid']
+        jdict = self.DSageServer.get_job(anonymous=True)
+        if jdict is not None:
+            self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
+            self.DSageServer.set_busy(uuid, busy=True)
+        else:
+            self.DSageServer.set_busy(uuid, busy=False)
+
+        return jdict
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
+
+    def perspective_job_done(self, job_id, output,
+                             result, completed, worker_info):
+        if not (isinstance(job_id, str) or isinstance(completed, bool)):
+            print 'Bad job_id passed to perspective_job_done'
+            raise BadTypeError()
+
+        return self.DSageServer.job_done(job_id, output, result,
+                                         completed, worker_info)
+
+class MonitorPerspective(DefaultPerspective):
+    r"""
+    Defines the perspective of an authenticated worker to the server.
+
+    """
+    def __init__(self, DSageServer, avatarID):
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
+
+    def perspective_get_job(self):
+        r"""
+        Returns jobs to authenticated workers.
+
+        """
+
+        uuid = self.mind[1]['uuid']
+        jdict = self.DSageServer.get_job(anonymous=False, uuid=uuid)
+        if jdict is not None:
+            self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
+            self.DSageServer.set_busy(uuid, busy=True)
+        else:
+            self.DSageServer.set_busy(uuid, busy=False)
+
+        return jdict
+
+    def perspective_job_done(self, job_id, output, result,
+                            completed, worker_info):
+        if not (isinstance(job_id, str) or isinstance(completed, bool)):
+            print 'Bad job_id passed to perspective_job_done'
+            print 'job_id: %s' % (job_id)
+            print 'output: %s' % (output)
+            print 'result: %s' % (result)
+            print 'completed: %s' % (completed)
+            print 'worker_info: %s' % (worker_info)
+            raise BadTypeError()
+
+        return self.DSageServer.job_done(job_id, output, result,
+                                  completed, worker_info)
+
+    def perspective_job_failed(self, job_id):
+        if not isinstance(job_id, str):
+            print 'Bad job_id passed to perspective_job_failed'
+            raise BadTypeError()
+
+        return self.DSageServer.job_failed(job_id)
+
+    def perspective_submit_host_info(self, hostinfo):
+        if not isinstance(hostinfo, dict):
+            raise BadTypeError()
+        return self.DSageServer.submit_host_info(hostinfo)
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
 
 class UserPerspective(DefaultPerspective):
     r"""
     Defines the perspective of a regular user to the server.
 
     """
-
     def __init__(self, DSageServer, avatarID):
-        self.DSageServer = DSageServer
-        self.avatarID = avatarID
+        DefaultPerspective.__init__(self, DSageServer, avatarID)
 
-        log.msg('%s connected' % self.avatarID)
-
-    def perspective_get_job(self):
-        return self.DSageServer.get_job()
-
-    def perspective_get_next_job_id(self):
-        job_id = self.DSageServer.get_next_job_id()
-
-        return job_id
-
-    def perspective_get_job_by_id(self, jobID):
-        if not isinstance(jobID, str):
+    def perspective_get_job_by_id(self, job_id):
+        if not isinstance(job_id, str):
             raise BadTypeError()
-            print 'Bad jobID passed to get_job_by_id'
-        log.msg('Returning job %s to %s' % (jobID, self.avatarID))
-        job = self.DSageServer.get_job_by_id(jobID)
+            print 'Bad job_id passed to get_job_by_id'
+        # log.msg('Returning job %s to %s' % (job_id, self.avatarID))
+        job = self.DSageServer.get_job_by_id(job_id)
 
         return job
 
-    def perspective_get_jobs_by_author(self, author, job_name, is_active):
-        if not (isinstance(author, str) or
-                isinstance(is_active, bool) or
-                isinstance(job_name, str)):
-            print 'Bad jobID passed to perspective_get_jobs_by_author'
+    def perspective_get_jobs_by_user_id(self, user_id):
+        if not (isinstance(user_id, str)):
+            print 'Bad job_id passed to perspective_get_jobs_by_user_id'
             raise BadTypeError()
 
-        jobs = self.DSageServer.get_jobs_by_author(author, job_name, is_active)
+        jobs = self.DSageServer.get_jobs_by_user_id(user_id)
 
         return jobs
 
-    def perspective_get_job_result_by_id(self, jobID):
-        if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_get_job_result_by_id'
+    def perspective_get_job_result_by_id(self, job_id):
+        if not isinstance(job_id, str):
+            print 'Bad job_id passed to perspective_get_job_result_by_id'
             raise BadTypeError()
 
-        return self.DSageServer.get_job_result_by_id(jobID)
+        return self.DSageServer.get_job_result_by_id(job_id)
 
-    def perspective_get_job_output_by_id(self, jobID):
-        if not isinstance(jobID, str):
-            print 'Bad jobID passed to get_job_output_by_id'
+    def perspective_get_job_output_by_id(self, job_id):
+        if not isinstance(job_id, str):
+            print 'Bad job_id passed to get_job_output_by_id'
             raise BadTypeError()
 
-        return self.DSageServer.get_job_output_by_id(jobID)
+        return self.DSageServer.get_job_output_by_id(job_id)
 
-    def perspective_sync_job(self, jobID):
-        if not isinstance(jobID, str):
+    def perspective_sync_job(self, job_id):
+        if not isinstance(job_id, str):
             return None
 
-        return self.DSageServer.sync_job(jobID)
+        return self.DSageServer.sync_job(job_id)
 
-    def perspective_submit_job(self, pickled_job):
-        return self.DSageServer.submit_job(pickled_job)
+    def perspective_submit_job(self, jdict):
+        if jdict is None:
+            raise BadJobError()
+        return self.DSageServer.submit_job(jdict)
 
-    def perspective_job_done(self, jobID, output, result,
-                            completed, worker_info):
-        if not (isinstance(jobID, str) or isinstance(completed, bool)):
-            print 'Bad jobID passed to perspective_job_done'
+    def perspective_kill_job(self, job_id, reason=None):
+        if not isinstance(job_id, str):
+            print 'Bad job_id passed to perspective_kill_job'
             raise BadTypeError()
 
-        return self.DSageServer.job_done(jobID, output, result,
-                                  completed, worker_info)
-
-    def perspective_job_failed(self, jobID):
-        if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_job_failed'
-            raise BadTypeError()
-
-        return self.DSageServer.job_failed(jobID)
-
-    def perspective_kill_job(self, jobID, reason=None):
-        if not isinstance(jobID, str):
-            print 'Bad jobID passed to perspective_kill_job'
-            raise BadTypeError()
-
-        return self.DSageServer.kill_job(jobID, reason)
+        return self.DSageServer.kill_job(job_id, reason)
 
     def perspective_get_cluster_speed(self):
         return self.DSageServer.get_cluster_speed()
 
-    def perspective_get_worker_list(self):
-        return [x[1:] for x in self.DSageServer.get_worker_list()]
+    def perspective_get_monitor_list(self):
+        # return [x[1] for x in self.DSageServer.get_worker_list()]
+        return self.DSageServer.get_monitor_list()
 
     def perspective_get_client_list(self):
         return [avatar[0].avatarID for avatar in
                 self.DSageServer.get_client_list()]
+
+    def perspective_submit_host_info(self, hostinfo):
+        if not isinstance(hostinfo, dict):
+            raise BadTypeError()
+        return self.DSageServer.submit_host_info(hostinfo)
+
+    def perspective_get_killed_jobs_list(self):
+        return self.DSageServer.get_killed_jobs_list()
 
 class AdminPerspective(UserPerspective):
     r"""
@@ -242,7 +354,12 @@ class Realm(object):
             raise NotImplementedError, "No supported avatar interface."
         else:
             if avatarID == 'admin':
-                avatar = AdminPerspective(self.DSageServer)
+                avatar = AdminPerspective(self.DSageServer, avatarID)
+            elif avatarID == 'Anonymous' and mind:
+                avatar = AnonymousMonitorPerspective(self.DSageServer,
+                                                     avatarID)
+            elif mind:
+                avatar = MonitorPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)

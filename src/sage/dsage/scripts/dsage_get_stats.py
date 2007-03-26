@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ##############################################################################
 #
 #  DSAGE: Distributed SAGE
@@ -17,32 +18,20 @@
 #
 ##############################################################################
 
-from twisted.python import log
+from sage.dsage.server.server import DSageServer
+from sage.dsage.database.jobdb import JobDatabaseSQLite
+from sage.dsage.database.monitordb import MonitorDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 
-def table_exists(con, tablename):
-    """
-    Check if a given table exists.
-    If the below query is not None, then the table exists
+def main():
+    jobdb = JobDatabaseSQLite()
+    monitordb = MonitorDatabase()
+    clientdb = ClientDatabase()
+    dsage_server = DSageServer(jobdb, monitordb, clientdb)
+    f = open('dsage.xml', 'w')
+    f.write(dsage_server.generate_xml_stats())
+    f.close()
+    print 'Wrote dsage.xml...'
 
-    """
-
-    query = """SELECT name FROM sqlite_master
-    WHERE type = 'table' AND name = ?;
-    """
-
-    cur = con.cursor()
-    cur.execute(query, (tablename,))
-    result = cur.fetchone()
-    return result
-
-def create_table(con, tablename, query):
-    r"""
-    Creates a table given the connection.
-
-    """
-
-    log.msg('Creating table %s...' % tablename)
-    con.execute(query)
-
-def add_trigger(con, trigger):
-    con.execute(trigger)
+if __name__ == '__main__':
+    main()

@@ -15,6 +15,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import sys
@@ -31,8 +32,11 @@ from twisted.python import log
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
-from sage.dsage.misc.hostinfo import HostInfo
+from sage.dsage.database.job import Job, expand_job
+from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
+from sage.dsage.twisted.pb import PBClientFactory
+from sage.dsage.misc.constants import delimiter as DELIMITER
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -40,21 +44,23 @@ DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 # Begin reading configuration
 try:
-    conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
+    CONF_FILE = os.path.join(DSAGE_DIR, 'worker.conf')
+    CONFIG = ConfigParser.ConfigParser()
+    CONFIG.read(CONF_FILE)
 
-    LOG_FILE = config.get('log', 'log_file')
-    LOG_LEVEL = config.getint('log','log_level')
-    SSL = config.getint('ssl', 'ssl')
-    WORKERS = config.getint('general', 'workers')
-    SERVER = config.get('general', 'server')
-    PORT = config.getint('general', 'port')
-    DELAY = config.getint('general', 'delay')
-    NICE_LEVEL = config.getint('general', 'nice_level')
-except:
+    LOG_FILE = CONFIG.get('log', 'log_file')
+    LOG_LEVEL = CONFIG.getint('log','log_level')
+    SSL = CONFIG.getint('ssl', 'ssl')
+    WORKERS = CONFIG.getint('general', 'workers')
+    SERVER = CONFIG.get('general', 'server')
+    PORT = CONFIG.getint('general', 'port')
+    DELAY = CONFIG.getint('general', 'delay')
+    NICE_LEVEL = CONFIG.getint('general', 'nice_level')
+    AUTHENTICATE = CONFIG.getboolean('general', 'authenticate')
+except Exception, msg:
+    print msg
     print "Error reading %s, please fix manually or run dsage.setup()" % \
-    conf_file
+    CONF_FILE
     sys.exit(-1)
 # End reading configuration
 
@@ -95,12 +101,12 @@ class Worker(object):
         self.get_job()
 
     def get_job(self):
-        # print 'Ok so far.'
         try:
+            if LOG_LEVEL > 3:
+                log.msg('Worker %s: Getting job...' % (self.id))
             d = self.remoteobj.callRemote('get_job')
         except Exception, msg:
-            print 'Error getting job.'
-            print msg
+            log.msg(msg)
             log.msg('[Worker: %s, get_job] Disconnected from remote server.'\
                     % self.id)
             reactor.callLater(DELAY, self.get_job)
@@ -110,7 +116,7 @@ class Worker(object):
 
         return d
 
-    def gotJob(self, job):
+    def gotJob(self, jdict):
         r"""
         gotJob is a callback for the remoteobj's get_job method.
 
@@ -119,10 +125,14 @@ class Worker(object):
 
         """
 
-        if not isinstance(job, str):
+        if LOG_LEVEL > 3:
+            log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
+
+        self.job = expand_job(jdict)
+
+        if not isinstance(self.job, Job):
             raise NoJobException
 
-        self.job = unpickle(job)
         log.msg('[Worker: %s] Got job (%s, %s)' % (self.id,
                                                    self.job.name,
                                                    self.job.id))
@@ -179,7 +189,13 @@ class Worker(object):
 
         sleep_time = 5.0
         if failure.check(NoJobException):
+            if LOG_LEVEL > 3:
+                log.msg('[Worker %s, noJob] Sleeping for %s seconds\
+                ' % (self.id, sleep_time))
             reactor.callLater(5.0, self.get_job)
+        else:
+            print "Error: ", failure.getErrorMessage()
+            print "Traceback: ", failure.printTraceback()
 
     def setupTempDir(self, job):
         # change to a temporary directory
@@ -234,7 +250,7 @@ class Worker(object):
         Writes out the job file to be executed to disk.
 
         """
-        parsed_file = preparse_file(job.file, magic=False,
+        parsed_file = preparse_file(job.code, magic=False,
                                     do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
@@ -261,6 +277,8 @@ class Worker(object):
 
         """
 
+        if LOG_LEVEL > 3:
+            log.msg('[Worker %s, doJob] Beginning job execution...' % (self.id))
         self.free = False
         d = defer.Deferred()
 
@@ -331,12 +349,37 @@ class Monitor(object):
         # Start twisted logging facility
         self._startLogging(LOG_FILE)
 
-        if len(config.get('uuid', 'id')) != 36:
-            config.set('uuid', 'id', str(uuid.uuid1()))
-            f = open(conf_file, 'w')
-            config.write(f)
+        if len(CONFIG.get('uuid', 'id')) != 36:
+            CONFIG.set('uuid', 'id', str(uuid.uuid1()))
+            f = open(CONF_FILE, 'w')
+            CONFIG.write(f)
+        self.uuid = CONFIG.get('uuid', 'id')
 
-        self.identifier = config.get('uuid', 'id')
+        if AUTHENTICATE:
+            from twisted.cred import credentials
+            from twisted.conch.ssh import keys
+            self._get_auth_info()
+            # public key authentication information
+            self.pubkey_str =keys.getPublicKeyString(filename=self.pubkey_file)
+            # try getting the private key object without a passphrase first
+            try:
+                self.priv_key = keys.getPrivateKeyObject(
+                                    filename=self.privkey_file)
+            except keys.BadKeyError:
+                passphrase = self._getpassphrase()
+                self.priv_key = keys.getPrivateKeyObject(
+                                filename=self.privkey_file,
+                                passphrase=passphrase)
+            self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
+            self.alg_name = 'rsa'
+            self.blob = keys.makePublicKeyBlob(self.pub_key)
+            self.data = self.DATA
+            self.signature = keys.signData(self.priv_key, self.data)
+            self.creds = credentials.SSHPrivateKey(self.username,
+                                                   self.alg_name,
+                                                   self.blob,
+                                                   self.data,
+                                                   self.signature)
 
     def _startLogging(self, log_file):
         if log_file == 'stdout':
@@ -345,6 +388,33 @@ class Monitor(object):
             print "Logging to file: ", log_file
             server_log = open(log_file, 'a')
             log.startLogging(server_log)
+
+    def _get_auth_info(self):
+        import random
+        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
+                        range(500)]])
+        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+        # Begin reading configuration
+        try:
+            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
+            config = ConfigParser.ConfigParser()
+            config.read(conf_file)
+
+            self.port = config.getint('general', 'port')
+            self.username = config.get('auth', 'username')
+            self.privkey_file = os.path.expanduser(config.get('auth',
+                                                              'privkey_file'))
+            self.pubkey_file = os.path.expanduser(config.get('auth',
+                                                             'pubkey_file'))
+        except Exception, msg:
+            print msg
+            raise
+
+    def _getpassphrase(self):
+        import getpass
+        passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
+
+        return passphrase
 
     def _connected(self, remoteobj):
         self.remoteobj = remoteobj
@@ -357,7 +427,7 @@ class Monitor(object):
         else:
             for worker in self.workers:
                 worker.remoteobj = self.remoteobj # Update workers
-        self.submit_host_info()
+        # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')
@@ -367,15 +437,16 @@ class Monitor(object):
     def _gotKilledJobsList(self, killed_jobs):
         if killed_jobs == None:
             return
+        # reconstruct the Job objects from the jdicts
+        killed_jobs = [expand_job(jdict) for jdict in killed_jobs]
         for worker in self.workers:
             if worker.job is None:
                 continue
             if worker.free:
                 continue
             for job in killed_jobs:
-                if job == None or worker.job == None:
+                if job is None or worker.job is None:
                     continue
-                job = unpickle(job)
                 if worker.job.id == job.id:
                     log.msg('[Worker: %s] Processing a killed job, \
                             restarting...' % worker.id)
@@ -387,14 +458,19 @@ class Monitor(object):
 
     def _catchConnectionFailure(self, failure):
         # If we lost the connection to the server somehow
-        #if failure.check(error.ConnectionRefusedError,
+        # if failure.check(error.ConnectionRefusedError,
         #                 error.ConnectionLost,
         #                 pb.DeadReferenceError):
+
         self.connected = False
         self._retryConnect()
-        # else:
-       #      log.msg("Error: ", failure.getErrorMessage())
-       #      log.msg("Traceback: ", failure.printTraceback())
+
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
+
+    def _catchFailure(self, failure):
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
 
     def connect(self):
         r"""
@@ -406,22 +482,32 @@ class Monitor(object):
 
         factory = pb.PBClientFactory()
 
-        log.msg('--------------------------')
+        log.msg(DELIMITER)
         log.msg('DSAGE Worker')
         log.msg('Connecting to %s:%s' % (self.hostname, self.port))
-        log.msg('--------------------------')
+        log.msg(DELIMITER)
 
+        self.factory = PBClientFactory()
         if SSL == 1:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.hostname, self.port,
-                               factory, contextFactory)
+                               self.factory, contextFactory)
         else:
-            reactor.connectTCP(self.hostname, self.port, factory)
+            reactor.connectTCP(self.hostname, self.port, self.factory)
 
-        d = factory.getRootObject()
+        hf = ClassicHostInfo().host_info
+        hf['uuid'] = self.uuid
+        hf['workers'] = WORKERS
+        if AUTHENTICATE:
+            log.msg('Connecting as authenticated worker...\n')
+            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
+        else:
+            log.msg('Connecting as anonymous worker...\n')
+            d = self.factory.login('Anonymous', (pb.Referenceable(), hf))
         d.addCallback(self._connected)
         d.addErrback(self._catchConnectionFailure)
+
         return d
 
     def poolWorkers(self, remoteobj):
@@ -527,8 +613,10 @@ class Monitor(object):
 
         if not self.connected:
             return
+
         killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
         killed_jobs.addCallback(self._gotKilledJobsList)
+        killed_jobs.addErrback(self._catchFailure)
 
     def jobUpdated(self, id):
         r"""
@@ -567,7 +655,7 @@ class Monitor(object):
 
         # attach the workers uuid to the dictionary returned by
         # HostInfo().get_host_info
-        h['uuid'] = self.identifier
+        h['uuid'] = self.uuid
 
         d = self.remoteobj.callRemote("submit_host_info", h)
         d.addErrback(self._catchConnectionFailure)

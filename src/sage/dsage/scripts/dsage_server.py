@@ -23,19 +23,24 @@ import os
 from optparse import OptionParser
 import ConfigParser
 
-from twisted.internet import reactor, task, error, ssl
+from twisted.internet import reactor, error, ssl, task
 from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
-from sage.dsage.database.userdb import UserDatabase
+from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
+from sage.dsage.database.jobdb import DatabasePruner
+from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer, DSageWorkerServer
+from sage.dsage.misc.constants import delimiter as DELIMITER
+
+DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 def usage():
     """Prints usage help."""
@@ -59,6 +64,12 @@ def usage():
 #     sys.path.append(os.path.abspath(options.dir))
     return options
 
+def write_stats(dsage_server):
+    fname = os.path.join(DSAGE_DIR, 'dsage.xml')
+    f = open(fname, 'w')
+    f.write(dsage_server.generate_xml_stats())
+    f.close()
+
 def startLogging(log_file):
     """This method initializes the logging facilities for the server. """
     if log_file == 'stdout':
@@ -71,7 +82,6 @@ def startLogging(log_file):
 def main():
     """Main execution loop of the server."""
 
-    DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
     # Begin reading configuration
     try:
         conf_file = os.path.join(DSAGE_DIR, 'server.conf')
@@ -95,39 +105,38 @@ def main():
     # start logging
     startLogging(LOG_FILE)
 
-    jobdb = JobDatabaseZODB()
+    # Job database
+    jobdb = JobDatabaseSQLite()
 
-    # Start to prune out old jobs
-    # jobdb_pruner = DatabasePruner(jobdb)
-    # prune_db = task.LoopingCall(jobdb_pruner.prune)
-    # prune_db.start(60*60*24.0, now=True) # start now, interval is one day
+    # Worker database
+    monitordb = MonitorDatabase()
+
+    # Client database
+    clientdb = ClientDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb, clientdb, log_level=LOG_LEVEL)
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
-    # Get authorized keys
-    # p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
-    userdb = UserDatabase()
-    p.portal.registerChecker(PublicKeyCredentialsCheckerDB(userdb))
+    # Credentials checker
+    p.portal.registerChecker(PublicKeyCredentialsCheckerDB(clientdb))
 
     # HACK: unsafeTracebacks should eventually be TURNED off
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
 
+    # Create the looping call that will output the XML file for Dashboard
+    tsk1 = task.LoopingCall(write_stats, dsage_server)
+    tsk1.start(10.0, now=False)
+
     # Create the PBServerFactory for workers
     # Use this for unauthorized workers
-    dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
-    worker_factory = WorkerPBServerFactory(dsage_worker)
+    # dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
+    # worker_factory = WorkerPBServerFactory(dsage_worker)
 
     dsage_server.client_factory = client_factory
-    dsage_server.worker_factory = worker_factory
-
-    # We will listen on 2 ports
-    # One port that is authenticated so clients can submit new jobs
-    # One port for workers to connect to to receive and submit jobs
 
     attempts = 0
-    err_msg = """Could not find two open ports after 50 attempts."""
+    err_msg = """Could not find an open port after 50 attempts."""
     if SSL == 1:
         ssl_context = ssl.DefaultOpenSSLContextFactory(
                     SSL_PRIVKEY,
@@ -135,40 +144,31 @@ def main():
         while True:
             if attempts > 50:
                 print err_msg
-                print 'Last attempted ports: %s, %s' % (CLIENT_PORT,
-                                                        WORKER_PORT)
+                print 'Last attempted port: %s' % (CLIENT_PORT)
             try:
                 reactor.listenSSL(CLIENT_PORT,
                                   client_factory,
-                                  contextFactory = ssl_context)
-                reactor.listenSSL(WORKER_PORT,
-                                  worker_factory,
                                   contextFactory = ssl_context)
                 break
             except error.CannotListenError:
                 attempts += 1
                 CLIENT_PORT += 1
-                WORKER_PORT += 1
     else:
         while True:
             if attempts > 50:
                 print err_msg
-                print 'Last attempted ports: %s, %s' % (CLIENT_PORT,
-                                                        WORKER_PORT)
+                print 'Last attempted ports: %s' % (CLIENT_PORT)
             try:
                 reactor.listenTCP(CLIENT_PORT, client_factory)
-                reactor.listenTCP(WORKER_PORT, worker_factory)
                 break
             except error.CannotListenError:
-                atmpts += 1
+                attempts += 1
                 CLIENT_PORT += 1
-                WORKER_PORT += 1
 
-    seperator = '-' * 50
-    log.msg(seperator)
+    log.msg(DELIMITER)
     log.msg('DSAGE Server')
-    log.msg('Listening on %s and %s' % (CLIENT_PORT, WORKER_PORT))
-    log.msg(seperator)
+    log.msg('Listening on %s' % (CLIENT_PORT))
+    log.msg(DELIMITER)
 
     reactor.run()
 

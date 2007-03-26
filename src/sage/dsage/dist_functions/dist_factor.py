@@ -48,6 +48,9 @@ class DistributedFactor(DistributedFunction):
                 n = n // d
         if n == 1:
             self.done = True
+        if is_prime(n): # The last value might be prime
+            self.done = True
+            self.prime_factors.append(n)
         else:
             self.composite_factors = [n]
             self.outstanding_jobs = [self.qsieve_job()]
@@ -61,7 +64,7 @@ class DistributedFactor(DistributedFunction):
         n = max(self.composite_factors)
         if n < 10**40:
             return self.ecm_job()
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
     result = [[n], [True], {}, 'primality']
@@ -82,7 +85,7 @@ else:
             self.i = 0
         n = self.composite_factors[self.i % len(self.composite_factors)]
         rate_multiplier = float(self.concurrent / len(self.composite_factors))
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
     result = [[n], [True], {}, 'primality']
@@ -120,8 +123,9 @@ DSAGE_RESULT = 'result.sobj'
         # If result is unexpected...
         try:
             factors, primality, params, algorithm = result
-        except:
+        except Exception, msg:
             print 'Error in processing result.'
+            print msg
             return
         try:
             self.cur_B1 = max(self.cur_B1, int(params['B1']))
@@ -171,6 +175,7 @@ DSAGE_RESULT = 'result.sobj'
                 print "factors:", self.prime_factors, self.composite_factors
 
         if len(self.composite_factors) == 0:
+            self.prime_factors.sort()
             self.result = self.prime_factors
             self.done = True
         else:

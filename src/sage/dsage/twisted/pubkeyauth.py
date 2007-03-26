@@ -21,10 +21,14 @@ import base64
 from twisted.conch import error
 from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
+from twisted.cred.credentials import IAnonymous
 from zope.interface import implements
 from twisted.internet import defer
 from twisted.python import log
 from twisted.spread import pb
+
+from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.errors.exceptions import AuthenticationError
 
 class PublicKeyCredentialsChecker(object):
     r"""
@@ -33,12 +37,15 @@ class PublicKeyCredentialsChecker(object):
     """
 
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, pubkeydb):
         self.authorizedKeys = self.getAuthorizedKeys(pubkeydb)
 
     def requestAvatarId(self, credentials):
+        if IAnonymous.providedBy(credentials):
+             return 'Anonymous'
+
         # read the authentication table to make sure we have a fresh copy
         self.authorizedKeys = self.getAuthorizedKeys(self.file_name)
 
@@ -75,16 +82,20 @@ class PublicKeyCredentialsChecker(object):
 
 class PublicKeyCredentialsCheckerDB(object):
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
-    def __init__(self, userdb):
-        self.userdb = userdb
+    def __init__(self, clientdb):
+        if not isinstance(clientdb, ClientDatabase):
+            raise TypeError
+        self.clientdb = clientdb
 
     def requestAvatarId(self, credentials):
+        if IAnonymous.providedBy(credentials):
+            return 'Anonymous'
         try:
             user, key = self.get_user(credentials.username)
         except TypeError:
-            log.msg("Invalid username '%s'" % credentials.username)
+            log.msg("Invalid username: '%s'" % credentials.username)
             return defer.fail(AuthenticationError('Login failed.'))
         if user:
             if not credentials.blob == base64.decodestring(key):
@@ -98,7 +109,7 @@ class PublicKeyCredentialsCheckerDB(object):
                                     credentials.sigData):
                 # If we get to this stage, it means the user is already
                 # logged in
-                self.userdb.update_login_time(credentials.username)
+                self.clientdb.update_login_time(credentials.username)
                 return credentials.username
             else:
                 log.msg('Invalid signature.')
@@ -108,15 +119,4 @@ class PublicKeyCredentialsCheckerDB(object):
             return defer.fail(AuthenticationError('Login failed.'))
 
     def get_user(self, username):
-        return self.userdb.get_user_and_key(username)
-
-class AuthenticationError(pb.Error):
-    r"""
-    Return this when credential checking has failed.
-
-    """
-
-    def __init__(self, value, data=None):
-        Exception.__init__(self, value, data)
-        self.value = value
-        self.data = data
+        return self.clientdb.get_user_and_key(username)

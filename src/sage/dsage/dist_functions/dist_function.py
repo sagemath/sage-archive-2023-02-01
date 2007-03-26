@@ -93,7 +93,6 @@ class DistributedFunction(object):
     def restore(self, dsage):
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
-            from twisted.internet import reactor
             reactor.callLater(1.0, self.restore, dsage)
             return
         self.DSage = dsage
@@ -105,6 +104,7 @@ class DistributedFunction(object):
         self.checker_task.start(2.0, now=True)
 
     def submit_job(self, job, job_name='job', async=False):
+        # print 'Submitting job [%s]: %s' % (datetime.datetime.now(), job)
         if async:
             if isinstance(job, Job):
                 self.waiting_jobs.append(self.DSage.send_job(job,
@@ -140,7 +140,8 @@ class DistributedFunction(object):
                 except pb.DeadReferenceError:
                     print 'Got pb.DeadReferenceError.'
                     print 'This will be handled in the future.'
-                    reactor.callFromThread(self.checker_task.stop)
+                    if self.checker_task.running:
+                        reactor.callFromThread(self.checker_task.stop)
                     break
             else:
                 wrapped_job.async_get_job()
@@ -156,11 +157,17 @@ class DistributedFunction(object):
                 else:
                     wrapped_job.async_kill()
             self.waiting_jobs = []
-            reactor.callFromThread(self.checker_task.stop)
 
-        self.done = len(self.waiting_jobs) == 0
+            if self.checker_task.running:
+                reactor.callFromThread(self.checker_task.stop)
 
 class DistributedFunctionTest(DistributedFunction):
+    r"""
+    This is a very simple DistributedFunction.
+    Only for educational purposes.
+
+    """
+
     def __init__(self, DSage, n, name='DistributedFunctionTest'):
         DistributedFunction.__init__(self, DSage)
         self.n = n

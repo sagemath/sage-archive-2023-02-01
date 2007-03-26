@@ -190,7 +190,7 @@ class AnonymousMonitorPerspective(DefaultPerspective):
         else:
             self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.get_job(anonymous=True)
+        return jdict
 
     def perspective_get_killed_jobs_list(self):
         return self.DSageServer.get_killed_jobs_list()
@@ -225,12 +225,18 @@ class MonitorPerspective(DefaultPerspective):
             self.DSageServer.set_busy(uuid, busy=True)
         else:
             self.DSageServer.set_busy(uuid, busy=False)
+
         return jdict
 
     def perspective_job_done(self, job_id, output, result,
                             completed, worker_info):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
             print 'Bad job_id passed to perspective_job_done'
+            print 'job_id: %s' % (job_id)
+            print 'output: %s' % (output)
+            print 'result: %s' % (result)
+            print 'completed: %s' % (completed)
+            print 'worker_info: %s' % (worker_info)
             raise BadTypeError()
 
         return self.DSageServer.job_done(job_id, output, result,
@@ -263,7 +269,7 @@ class UserPerspective(DefaultPerspective):
         if not isinstance(job_id, str):
             raise BadTypeError()
             print 'Bad job_id passed to get_job_by_id'
-        log.msg('Returning job %s to %s' % (job_id, self.avatarID))
+        # log.msg('Returning job %s to %s' % (job_id, self.avatarID))
         job = self.DSageServer.get_job_by_id(job_id)
 
         return job

@@ -99,8 +99,10 @@ class ClientRemoteCallsTest(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
         self.monitordb = MonitorDatabase(test=True)
+        self.clientdb = ClientDatabase(test=True)
         self.dsage_server = DSageServer(self.jobdb,
                                         self.monitordb,
+                                        self.clientdb,
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
@@ -205,12 +207,13 @@ class MonitorRemoteCallsTest(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
         self.monitordb = MonitorDatabase(test=True)
+        self.clientdb = ClientDatabase(test=True)
         self.dsage_server = DSageServer(self.jobdb,
                                         self.monitordb,
+                                        self.clientdb,
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
-        self.clientdb = ClientDatabase(test=True)
         self.p.portal.registerChecker(
         PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)

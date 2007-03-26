@@ -20,13 +20,11 @@ import unittest
 import datetime
 import os
 from glob import glob
-from random import randint
-from cPickle import dumps, loads
-import zlib
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.server.server import DSageServer
 
 class DSageServerTestCase(unittest.TestCase):
@@ -38,8 +36,10 @@ class DSageServerTestCase(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
         self.monitordb = MonitorDatabase(test=True)
+        self.clientdb = ClientDatabase(test=True)
         self.dsage_server = DSageServer(self.jobdb,
                                         self.monitordb,
+                                        self.clientdb,
                                         log_level=5)
         for job in self.create_jobs(10):
             self.dsage_server.submit_job(job.reduce())

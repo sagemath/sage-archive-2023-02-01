@@ -26,7 +26,6 @@ from twisted.spread import pb
 from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from twisted.conch.ssh import keys
-import twisted.conch
 
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
@@ -72,8 +71,10 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseSQLite(test=True)
         self.monitordb = MonitorDatabase(test=True)
+        self.clientdb = ClientDatabase(test=True)
         self.dsage_server = DSageServer(self.jobdb,
                                         self.monitordb,
+                                        self.clientdb,
                                         log_level=5)
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))

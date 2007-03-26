@@ -104,13 +104,14 @@ def main():
     # Worker database
     monitordb = MonitorDatabase()
 
+    # Client database
+    clientdb = ClientDatabase()
+
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, monitordb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb, clientdb, log_level=LOG_LEVEL)
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
-    # Get authorized keys
-    # p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
-    clientdb = ClientDatabase()
+    # Credentials checker
     p.portal.registerChecker(PublicKeyCredentialsCheckerDB(clientdb))
 
     # HACK: unsafeTracebacks should eventually be TURNED off

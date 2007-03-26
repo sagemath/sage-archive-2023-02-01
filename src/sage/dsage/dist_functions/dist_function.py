@@ -93,7 +93,6 @@ class DistributedFunction(object):
     def restore(self, dsage):
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
-            from twisted.internet import reactor
             reactor.callLater(1.0, self.restore, dsage)
             return
         self.DSage = dsage
@@ -105,6 +104,7 @@ class DistributedFunction(object):
         self.checker_task.start(2.0, now=True)
 
     def submit_job(self, job, job_name='job', async=False):
+        # print 'Submitting job [%s]: %s' % (datetime.datetime.now(), job)
         if async:
             if isinstance(job, Job):
                 self.waiting_jobs.append(self.DSage.send_job(job,

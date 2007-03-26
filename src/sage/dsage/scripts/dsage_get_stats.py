@@ -21,12 +21,17 @@
 from sage.dsage.server.server import DSageServer
 from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
+from sage.dsage.database.clientdb import ClientDatabase
 
 def main():
     jobdb = JobDatabaseSQLite()
     monitordb = MonitorDatabase()
-    dsage_server = DSageServer(jobdb, monitordb)
-    print dsage_server.generate_xml_stats()
+    clientdb = ClientDatabase()
+    dsage_server = DSageServer(jobdb, monitordb, clientdb)
+    f = open('dsage.xml', 'w')
+    f.write(dsage_server.generate_xml_stats())
+    f.close()
+    print 'Wrote dsage.xml...'
 
 if __name__ == '__main__':
     main()

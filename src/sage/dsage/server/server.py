@@ -40,7 +40,7 @@ class DSageServer(pb.Root):
     submissions.
 
     """
-    def __init__(self, jobdb, monitordb, log_level=0):
+    def __init__(self, jobdb, monitordb, clientdb, log_level=0):
         r"""
         Initializes the Distributed Sage PB Server.
 
@@ -52,6 +52,7 @@ class DSageServer(pb.Root):
 
         self.jobdb = jobdb
         self.monitordb = monitordb
+        self.clientdb = clientdb
         self.LOG_LEVEL = log_level
 
     def unpickle(self, pickled_job):
@@ -126,14 +127,15 @@ class DSageServer(pb.Root):
         return job.output
 
     def sync_job(self, job_id):
-        job = self.jobdb.get_job_by_id(job_id)
+        raise NotImplementedError
+        # job = self.jobdb.get_job_by_id(job_id)
         # new_job = copy.deepcopy(job)
         # print new_job
         # # Set file, data to 'Omitted' so we don't need to transfer it
         # new_job.code = 'Omitted...'
         # new_job.data = 'Omitted...'
 
-        return job.pickle()
+        # return job.pickle()
 
     def get_jobs_by_user_id(self, user_id):
         r"""

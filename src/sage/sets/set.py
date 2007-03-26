@@ -336,7 +336,7 @@ class Set_object(Set_generic):
 
     def __xor__(self, X):
         """
-        Return the intersection of self and X.
+        Return the xor of self and X.
         """
         return self.intersection(X)
 

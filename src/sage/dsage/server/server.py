@@ -418,7 +418,6 @@ class DSageServer(pb.Root):
         def add_availableAgentCount(doc, gauge):
             availableAgentCount = doc.createElement('availableAgentCount')
             gauge.appendChild(availableAgentCount)
-            # worker_count = self.monitordb.get_worker_count(connected=True)
             worker_count = self.monitordb.get_worker_count(connected=True,
                                                            busy=False)
             count = doc.createTextNode(str(worker_count))

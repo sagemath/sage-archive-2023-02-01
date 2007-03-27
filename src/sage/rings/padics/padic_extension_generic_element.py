@@ -132,7 +132,7 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
                 else:
                     return "%s^%s * %s"%(pprint, self.valuation(), self.__rshift__(self.valuation())._repr_(mode = 'terse', do_latex = do_latex))
         elif mode == 'terse':
-            with local_print_mode(self.ground_ring(), 'terse'):
+            with local_print_mode(self.parent().ground_ring(), 'terse'):
                 if do_latex:
                     return self._polynomial()._latex_(name = self.parent().variable_name())
                 else:

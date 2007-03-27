@@ -610,10 +610,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 xpow *= x
             # Note that it is the absolute precision that is respected by log
             return self.parent()(ans.lift()).add_bigoh(prec)
-        else:
+        elif self.is_unit():
             z = self.unit_part()
             return (z**Integer(p-1)).log() // Integer(p-1)
-        elif self.parent().__contains__(branch):
+        elif not branch is None and self.parent().__contains__(branch):
             branch = self.parent()(branch)
             return self.unit_part().log() + branch*self.valuation()
         else:

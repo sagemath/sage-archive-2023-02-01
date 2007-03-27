@@ -75,7 +75,7 @@ class UnramifiedExtensionGenericElement(pAdicExtensionGenericElement):
                 return infinity
             else:
                 return self.parent().precision_cap()
-        return min(c.precision_absolute() for c in self._value._polynomial.list())
+        return min([c.precision_absolute() for c in self._value._polynomial.list()])
 
     def residue(self, n):
         if n == 1:
@@ -99,4 +99,4 @@ class UnramifiedExtensionGenericElement(pAdicExtensionGenericElement):
                 return infinity
             else:
                 return self.parent().precision_cap()
-        return min(a.valuation() for a in clist)
+        return min([a.valuation() for a in clist])

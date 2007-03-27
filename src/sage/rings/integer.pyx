@@ -1689,7 +1689,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             128
             sage: int(32) << 2
             128
+            sage: 1 >> 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for >>
         """
+        try:
+            if not PY_TYPE_CHECK(x, Integer):
+                x = Integer(x)
+            elif not PY_TYPE_CHECK(y, Integer):
+                y = Integer(y)
+            return (<Integer>x)._lshift(long(y))
+        except TypeError:
+            raise TypeError, "unsupported operands for <<"
         if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
@@ -1715,10 +1727,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             8
             sage: int(32) >> 2
             8
+            sage: 1<< 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for <<
         """
-        if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+        try:
+            if not PY_TYPE_CHECK(x, Integer):
+                x = Integer(x)
+            elif not PY_TYPE_CHECK(y, Integer):
+                y = Integer(y)
             return (<Integer>x)._rshift(long(y))
-        return bin_op(x, y, operator.rshift)
+        except TypeError:
+            raise TypeError, "unsupported operands for >>"
+
+        #if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+        #    return (<Integer>x)._rshift(long(y))
+        #return bin_op(x, y, operator.rshift)
 
     cdef _and(Integer self, Integer other):
         cdef Integer x

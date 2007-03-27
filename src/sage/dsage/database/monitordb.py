@@ -209,7 +209,7 @@ class MonitorDatabase(object):
 
         return sum(w[0] for w in result)
 
-    def get_cpu_speed(self, connected=True):
+    def get_cpu_speed(self, connected=True, busy=True):
         r"""
         Returns the aggregate cpu speed in Mhz.
 
@@ -219,8 +219,8 @@ class MonitorDatabase(object):
         """
 
         if connected:
-            query = """SELECT cpu_speed, workers FROM monitors WHERE
-            connected"""
+            query = """SELECT cpu_speed, workers FROM monitors
+            WHERE connected AND busy"""
         else:
             query = """SELECT cpu_speed, workers FROM monitors"""
 

@@ -65,10 +65,15 @@ def usage():
     return options
 
 def write_stats(dsage_server):
-    fname = os.path.join(DSAGE_DIR, 'dsage.xml')
-    f = open(fname, 'w')
-    f.write(dsage_server.generate_xml_stats())
-    f.close()
+    # Put this entire thing in a try block, should not cause the server to die in any way.
+    try:
+        fname = os.path.join(DSAGE_DIR, 'dsage.xml')
+        f = open(fname, 'w')
+        f.write(dsage_server.generate_xml_stats())
+        f.close()
+    except Exception, msg:
+        print 'Error writing stats: %s' % (msg)
+        return
 
 def startLogging(log_file):
     """This method initializes the logging facilities for the server. """

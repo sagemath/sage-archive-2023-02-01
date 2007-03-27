@@ -55,10 +55,15 @@ import sage.rings.infinity
 import sage.rings.finite_field
 import sage.rings.padics.local_generic
 #from sage.rings.padics.hack_infinity import plusinfinity
+from sage.rings.ring import IntegralDomain
 
 infinity = sage.rings.infinity.infinity
 
-from sage.rings.ring import IntegralDomain
+def is_pAdicRing(K):
+    return isinstance(K, pAdicGeneric)
+
+def is_pAdicField(K):
+    return isinstance(K, pAdicGeneric) and K.is_field()
 
 class pAdicGeneric(IntegralDomain,
                    sage.rings.padics.local_generic.LocalGeneric):

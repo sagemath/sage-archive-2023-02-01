@@ -4,6 +4,5 @@
 from padic_generic import is_pAdicField, is_pAdicRing
 from zp import Zp, Zq, Zp as pAdicRing, ZpCR, ZpCA, ZpFM, ZpL, ZqCR, ZqCA, ZqFM, ZqL
 from qp import Qp, Qq, Qp as pAdicField, QpCR, QpCA, QpFM, QpL, QqCR, QqCA, QqFM, QqL
-
-from padic_ring_extension import pAdicRingExtension
+from padic_generic import local_print_mode
 

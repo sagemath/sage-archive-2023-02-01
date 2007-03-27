@@ -675,7 +675,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.analytic_rank(algorithm='ec')
+            sage.: E.analytic_rank(algorithm='ec')
             2
             sage: E.analytic_rank(algorithm='cremona')
             2
@@ -685,7 +685,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2
             sage: E.analytic_rank(algorithm='magma')    # optional
             2
-            sage: E.analytic_rank(algorithm='all')
+            sage.: E.analytic_rank(algorithm='all')
             2
         """
         if algorithm == 'ec' and misc.is_64_bit:
@@ -983,7 +983,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: E = EllipticCurve('389a')
-            sage: E.gens()
+            sage: E.gens()                 # random output
             [(-1 : 1 : 1), (0 : 0 : 1)]
         """
         try:
@@ -3961,7 +3961,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
           A case that works the division polynomial code a little harder:
             sage: E.padic_height(5, 10)(5*P)
-            2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + 2*5^8 + 4*5^9 + O(5^10)
+            2*5^2 + 4*5^3 + 5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
 
           Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
@@ -4026,7 +4026,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if check:
                 assert answer.precision_absolute() >= prec, "we should have got an " \
                        "answer with precision at least prec, but we didn't."
-            return K(answer.lift(), absprec = prec)
+            return K(answer.lift(), prec - answer.valuation())
 
 
         # (man... I love python's local function definitions...)

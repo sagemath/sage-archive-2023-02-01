@@ -4,6 +4,12 @@ Sparse rational matrices.
 AUTHORS:
     -- William Stein (2007-02-21)
     -- Soroosh Yazdani (2007-02-21)
+
+TESTS:
+    sage: a = matrix(QQ,2,range(4), sparse=True)
+    sage: loads(dumps(a)) == a
+    True
+
 """
 
 ##############################################################################
@@ -276,8 +282,8 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         d = {}
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._matrix[i].num_nonzero:
-                x = Integer()
-                mpz_set((<Integer>x).value, self._matrix[i].entries[j])
+                x = Rational()
+                mpq_set((<Rational>x).value, self._matrix[i].entries[j])
                 d[(int(i),int(self._matrix[i].positions[j]))] = x
         self.cache('dict', d)
         return d
@@ -497,6 +503,7 @@ cdef class Matrix_rational_sparse(matrix_sparse.Matrix_sparse):
         # Make sure that E's destructure doesn't delete self's data.
         E._matrix = NULL
         E._initialized = False
+        return E.pivots()
 
 
     def _echelon_form_multimodular(self, height_guess=None, proof=True):

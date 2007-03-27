@@ -38,7 +38,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial
+from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial, PowerSeriesRing, Rationals
 from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
@@ -430,6 +430,22 @@ def helper_matrix(Q):
                               6*a   , -9*b    , -2*a**2 ])
 
 
+def lift(x):
+    r"""
+    Tries to call x.lift(), presumably from the p-adics to ZZ.
+
+    If this fails, it assumes the input is a power series, and tries to
+    lift it to a power series over QQ.
+
+    This function is just a very kludgy solution to the problem of trying
+    to make the reduction code (below) work over both Zp and Zp[[t]].
+    """
+    try:
+        return x.lift()
+    except AttributeError:
+        return PowerSeriesRing(Rationals(), "t")(x.list(), x.prec())
+
+
 
 def reduce_negative(Q, p, coeffs, offset):
     """
@@ -491,9 +507,16 @@ def reduce_negative(Q, p, coeffs, offset):
             # nicely with pAdicField, we should reimplement this stuff
             # using pAdicInteger.
 
-            a[0] = base_ring(a[0].lift() / (j+1))
-            a[1] = base_ring(a[1].lift() / (j+1))
-            a[2] = base_ring(a[2].lift() / (j+1))
+            if (p.divides(j+1)):
+               # need to lift here to perform the division
+               a[0] = base_ring(lift(a[0]) / (j+1))
+               a[1] = base_ring(lift(a[1]) / (j+1))
+               a[2] = base_ring(lift(a[2]) / (j+1))
+            else:
+               j_plus_1_inv = ~base_ring(j+1)
+               a[0] = a[0] * j_plus_1_inv
+               a[1] = a[1] * j_plus_1_inv
+               a[2] = a[2] * j_plus_1_inv
 
             c1 = m[3]*a[0] + m[4]*a[1] + m[5]*a[2]
             c2 = m[6]*a[0] + m[7]*a[1] + m[8]*a[2]
@@ -512,7 +535,7 @@ def reduce_negative(Q, p, coeffs, offset):
 
 
 
-def reduce_positive(Q, coeffs, offset):
+def reduce_positive(Q, p, coeffs, offset):
     """
     Applies cohomology relations to incorporate positive powers of $y$
     into the $y^0$ term.
@@ -534,13 +557,13 @@ def reduce_positive(Q, coeffs, offset):
 
         sage: coeffs = [[1, 2, 3], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
-        sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
+        sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
          [16, 102, 88]
 
         sage: coeffs = [[9, 8, 7], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
-        sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
+        sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
          [24, 108, 92]
 
@@ -555,6 +578,8 @@ def reduce_positive(Q, coeffs, offset):
     A = 2*Qa
     B = 3*Qb
 
+    offset = Integer(offset)
+
     for i in range(len(coeffs)-1, offset, -1):
         j = 2*(i-offset) - 2
         a = next_a
@@ -564,10 +589,17 @@ def reduce_positive(Q, coeffs, offset):
 
         # todo: see comments about pAdicInteger in reduceNegative()
 
-        # subtract off c1 of d(x y^j + 1)
-        c1 = base_ring(a[0].lift() * (j+1) / (3*j + 5))
+        # subtract off c1 of d(x y^j + 1), and
+        if p.divides(3*j + 5):
+            c1 = base_ring(lift(a[0]) * (j+1) / (3*j + 5))
+        else:
+            c1 = a[0] * (j+1) / (3*j + 5)
+
         # subtract off c2 of d(x^2 y^j + 1)
-        c2 = base_ring(a[1].lift() * (j+1) / (3*j + 7))
+        if p.divides(3*j + 7):
+            c2 = base_ring(lift(a[1]) * (j+1) / (3*j + 7))
+        else:
+            c2 = a[1] * (j+1) / (3*j + 7)
 
         next_a[0] = next_a[0] + B*c1
         next_a[1] = next_a[1] + A*c1 + B*c2
@@ -651,7 +683,7 @@ def reduce_all(Q, p, coeffs, offset):
         coeffs.append([R(0), R(0), R(0)])
 
     reduce_negative(Q, p, coeffs, offset)
-    reduce_positive(Q, coeffs, offset)
+    reduce_positive(Q, p, coeffs, offset)
     reduce_zero(Q, coeffs, offset)
 
     return coeffs[int(offset)][0], coeffs[int(offset)][1]

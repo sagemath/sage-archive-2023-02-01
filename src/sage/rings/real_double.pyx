@@ -375,8 +375,7 @@ cdef class RealDoubleElement(FieldElement):
         return self.str()
 
     def __hash__(self):
-        return 1455926870
-        #return hash(self.str())
+        return hash(self.str())
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1

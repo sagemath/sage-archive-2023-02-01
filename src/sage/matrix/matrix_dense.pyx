@@ -1,5 +1,11 @@
 r"""
 Base class for dense matrices
+
+TESTS:
+    sage: R.<a,b> = QQ[]
+    sage: m = matrix(R,2,[0,a,b,b^2])
+    sage: loads(dumps(m)) == m
+    True
 """
 
 cimport matrix

@@ -4,6 +4,17 @@ Univariate Polynomials
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+
+TESTS:
+
+We test coercion in a particularly complicated situation:
+    sage: W.<w>=QQ['w']
+    sage: WZ.<z>=W['z']
+    sage: m = matrix(WZ,2,2,[1,z,z,z^2])
+    sage: a = m.charpoly()
+    sage: R.<x> = WZ[]
+    sage: R(a)
+    x^2 + ((-1)*z^2 + -1)*x
 """
 
 ################################################################################

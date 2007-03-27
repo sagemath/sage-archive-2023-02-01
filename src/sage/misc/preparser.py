@@ -133,6 +133,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     if len(L) > 0 and L[0] in ['#', '!']:
         return line
 
+    if L.startswith('...'):
+        i = line.find('...')
+        return line[:i+3] + preparse(line[i+3:], reset=reset, do_time=do_time, ignore_prompts=ignore_prompts)
+
     # Wrap integers with ZZ() and reals with RR().
     def wrap_num(i, line, is_real, num_start):
         zz = line[num_start:i]
@@ -307,6 +311,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                     sep = ','
                 else:
                     sep = ''
+
                 line_new = '%s%snames=%s); (%s,) = %s.gens()'%(
                     line[:i] + line[gen_end+1:c0], sep, gen_names,
                     gen_vars, gen_obj)

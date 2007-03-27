@@ -1,4 +1,4 @@
-"""nodoctest
+"""
 Creating Spaces of Modular Forms
 
 EXAMPLES:
@@ -47,7 +47,11 @@ def canonical_parameters(group, weight, base_ring):
     if not rings.is_CommutativeRing(base_ring):
         raise TypeError, "base_ring (=%s) must be a commutative ring"%base_ring
 
-    return group, weight, base_ring
+    # it is *very* important to include the level as part of the data
+    # that defines the key, since dirichlet characters of different
+    # levels can compare equal, but define much different modular
+    # forms spaces.
+    return group.level(), group, weight, base_ring
 
 _cache = {}
 
@@ -84,42 +88,40 @@ def ModularForms(group  = 1,
         sage: ModularForms(1,12).dimension()
         2
         sage: ModularForms(11,4)
-        ???
+        Modular Forms space of dimension 4 for Congruence Subgroup Gamma0(11) of weight 4 over Rational Field
 
     We create some spaces for $\Gamma_1(N)$.
         sage: ModularForms(Gamma1(13),2)
-        ???
+        Modular Forms space of dimension 13 for Congruence Subgroup Gamma1(13) of weight 2 over Rational Field
         sage: ModularForms(Gamma1(13),2).dimension()
-        ???
-        sage: ModularForms(Gamma1(13),2).dimension()
-        ???
+        13
         sage: [ModularForms(Gamma1(7),k).dimension() for k in [2,3,4,5]]
-        [???]
+        [5, 7, 9, 11]
         sage: ModularForms(Gamma1(5),11).dimension()
-        ???
+        12
 
     We create a space with character:
         sage: e = (DirichletGroup(13).0)^2
         sage: e.order()
         6
         sage: M = ModularForms(e, 2); M
-        ???
+        Modular Forms space of dimension 3, character [zeta6] and weight 2 over Cyclotomic Field of order 6 and degree 2
         sage: f = M.T(2).charpoly('x'); f
-        ???
+        x^3 + (-2*zeta6 - 2)*x^2 + (-2*zeta6)*x + 14*zeta6 - 7
         sage: f.factor()
-        ???
+        (x + -2*zeta6 - 1) * (x + -zeta6 - 2) * (x + zeta6 + 1)
 
     More examples of spaces with character:
         sage: e = DirichletGroup(5, RationalField()).gen(); e
         [-1]
         sage: m = ModularForms(e, 2); m
-        ???
+        Modular Forms space of dimension 2, character [-1] and weight 2 over Rational Field
         sage: m.T(2).charpoly('x')
         x^2 - 1
         sage: m = ModularForms(e, 6); m.dimension()
-        6
+        4
         sage: m.T(2).charpoly('x')
-        x^6 - 873*x^4 - 82632*x^2 - 1860496
+        x^4 - 917*x^2 - 42284
     """
     if isinstance(group, dirichlet.DirichletCharacter):
         if base_ring is None:
@@ -135,7 +137,7 @@ def ModularForms(group  = 1,
              M.set_precision(prec)
              return M
 
-    (group, weight, base_ring) = key
+    (level, group, weight, base_ring) = key
 
     M = None
     if isinstance(group, congroup.Gamma0):
@@ -170,7 +172,7 @@ def ModularForms(group  = 1,
 
 def CuspForms(group  = 1,
               weight = 2,
-              base_ring = rings.RationalField(),
+              base_ring = None,
               use_cache = True,
               prec = defaults.DEFAULT_PRECISION):
     """
@@ -185,7 +187,7 @@ def CuspForms(group  = 1,
 
 def EisensteinForms(group  = 1,
               weight = 2,
-              base_ring = rings.RationalField(),
+              base_ring = None,
               use_cache = True,
               prec = defaults.DEFAULT_PRECISION):
     """

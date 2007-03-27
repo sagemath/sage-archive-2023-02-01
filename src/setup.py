@@ -9,18 +9,14 @@ from distutils.core import setup, Extension
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
-    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
-    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
-    LINBOX_BLAS='gslcblas'   # linbox can only use a CBLAS and Cygwin doesn't have one.
 else:
     # This is very slow  (?), but *guaranteed* to be available.
     BLAS='gslcblas'
-    LINBOX_BLAS=BLAS
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
@@ -103,9 +99,11 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                          "sage/libs/hanke/GMP_class_extras/vectors.cc" ],
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
+# NOTE: It is *very* important (for cygwin) that csage be the first library
+# listed below for ntl.
 ntl = Extension('sage.libs.ntl.ntl',
-                 sources = ["sage/libs/ntl/ntl.pyx", "sage/libs/ntl/ntl_wrap.cc"],
-                 libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
+                 sources = ["sage/libs/ntl/ntl.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
 mwrank =  Extension("sage.libs.mwrank.mwrank",
@@ -172,13 +170,20 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  libraries = ['gmp'])
 
 linbox = Extension('sage.libs.linbox.linbox',
-                   ['sage/libs/linbox/linbox.pyx',
-                    'sage/libs/linbox/linbox_wrap.cpp'],
-                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', LINBOX_BLAS],
+                   ['sage/libs/linbox/linbox.pyx'],
+                   libraries = ['ntl', 'linboxwrap', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
+                              libraries = ['gmp'])
+
+matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
+                              ['sage/matrix/matrix_mod2_dense.pyx',
+                               'sage/libs/m4ri/packedmatrix.c',
+                               'sage/libs/m4ri/matrix.c',
+                               'sage/libs/m4ri/brilliantrussian.c',
+                               'sage/libs/m4ri/grayflex.c',],
                               libraries = ['gmp'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
@@ -205,7 +210,7 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 # TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp', 'iml', 'm', BLAS])
+                                  libraries = ['iml', 'gmp', 'm', BLAS])  # order matters for cygwin!!
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
@@ -355,6 +360,7 @@ ext_modules = [ \
      linbox,
      matrix_modn_dense,
      matrix_modn_sparse,
+     matrix_mod2_dense,
      givaro_gfq, \
 
 ##     matrix_rational_sparse,
@@ -441,11 +447,11 @@ ext_modules = [ \
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
@@ -469,7 +475,7 @@ ext_modules = [ \
                          'sage/ext/arith.pyx', \
                          'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.sparse_poly',
               sources = ['sage/rings/sparse_poly.pyx'],
@@ -558,7 +564,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries += ['csage']
+    m.libraries = ['csage'] + m.libraries + ['stdc++']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -579,7 +585,7 @@ def is_older(file1, file2):
         return False
     if not os.path.exists(file2):
         return True
-    if os.path.getctime(file2) < os.path.getctime(file1):
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
         return True
     return False
 

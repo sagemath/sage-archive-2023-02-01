@@ -504,13 +504,11 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
             sage: R.<x> = ZZ[]
             sage: R.quo(1).is_finite()
             True
-            sage: R.quo(2).is_finite()
-            False
-            sage: R.quo(x^3-1).is_finite()
+            sage: R.quo(x^3-2).is_finite()
             False
 
             sage: R.<x> = GF(9,'a')[]
-            sage: R.quo(2*x^3+1).is_finite()
+            sage: R.quo(2*x^3+x+1).is_finite()
             True
             sage: R.quo(2).is_finite()
             True

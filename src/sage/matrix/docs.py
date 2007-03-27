@@ -95,8 +95,8 @@ Class Diagram (an x means that class is currently supported):
 x Matrix
 x   Matrix_sparse
 x     Matrix_generic_sparse
-*     Matrix_integer_sparse
-*     Matrix_rational_sparse
+x     Matrix_integer_sparse
+x     Matrix_rational_sparse
       Matrix_cyclo_sparse
 x     Matrix_modn_sparse
       Matrix_RR_sparse

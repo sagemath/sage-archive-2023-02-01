@@ -29,8 +29,8 @@ exit = quit
 
 import os, sys
 
-if sys.version_info[:2] < (2, 4):
-    print >>sys.stderr, "SAGE requires Python 2.4 or newer"
+if sys.version_info[:2] < (2, 5):
+    print >>sys.stderr, "SAGE requires Python 2.5 or newer"
     sys.exit(1)
 
 try:
@@ -38,11 +38,9 @@ try:
     if os.environ.has_key('LD_LIBRARY_PATH'):
         if not _l in os.environ['LD_LIBRARY_PATH']:
             raise KeyError
-        elif not _l in os.environ['DYLD_LIBRARY_PATH']:
-            raise KeyError
     del _l
-except KeyError:
-     raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
+except KeyError, msg:
+    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
 
 ###################################################################
@@ -243,10 +241,13 @@ def quit_sage(verbose=True):
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 
-    # stop the twisted reactor
-    from twisted.internet import reactor
-    if reactor.running:
-        reactor.callFromThread(reactor.stop)
+    try:
+       # stop the twisted reactor
+       from twisted.internet import reactor
+       if reactor.running:
+          reactor.callFromThread(reactor.stop)
+    except ImportError:
+       pass
 
 def _quit_sage_(self):
     import sage.misc.preparser_ipython

@@ -1,26 +1,14 @@
-cdef extern from "gmp.h":
-    struct mpz_t
-
-cdef extern from "ntl_wrap.h":
-    struct ZZ
-    cdef int ZZ_to_int(ZZ* x)
-    cdef ZZ* int_to_ZZ(int value)
-    cdef void ZZ_set_from_int(ZZ* x, int value)
+# here's all the C/C++ definitions need to make NTL go from pyrex
+include "decl.pxi"
 
 cdef class ntl_ZZ:
-    cdef ZZ* x
+    cdef ntl_c_ZZ* x
     cdef set(self, void *y)
     cdef public int get_as_int(ntl_ZZ self)
     cdef public void set_from_int(ntl_ZZ self, int value)
 
-cdef extern from "ntl_wrap.h":
-    struct ZZX
-    cdef void ZZX_setitem_from_int(ZZX* x, long i, int value)
-    cdef int ZZX_getitem_as_int(ZZX* x, long i)
-    cdef void ZZX_getitem_as_mpz(mpz_t* output, ZZX* x, long i)
-
 cdef class ntl_ZZX:
-    cdef ZZX* x
+    cdef ntl_c_ZZX* x
     cdef set(self, void *y)
     cdef void setitem_from_int(ntl_ZZX self, long i, int value)
     cdef int getitem_as_int(ntl_ZZX self, long i)

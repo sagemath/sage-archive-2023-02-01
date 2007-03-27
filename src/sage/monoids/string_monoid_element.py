@@ -20,7 +20,6 @@ compression of FreeMonoid elements (a feature), and could be packed into words.
 #*****************************************************************************
 
 import operator
-from Crypto.Util.number import long_to_bytes
 from sage.rings.integer import Integer
 from sage.rings.real_mpfr import RealField
 from sage.structure.element import MonoidElement
@@ -231,6 +230,7 @@ class StringMonoidElement(FreeMonoidElement):
             'A..Za..z'
         """
         S = self.parent()
+	from Crypto.Util.number import long_to_bytes
         if isinstance(S,string_monoid.AlphabeticStringMonoid):
             return ''.join([ long_to_bytes(65+i) for i in self._element_list ])
         n = self.__len__()

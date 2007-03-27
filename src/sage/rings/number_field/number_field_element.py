@@ -1,15 +1,18 @@
 """
 Number Field Elements
 
-TODO / QUESTION: Shouldn't all the number field arithmetic below be directly
-wrapping PARI number field objects?  I'm confused why they don't.  I.e.,
-shouldn't __element by a Mod object in PARI?  Why do we avoid that below?
-Doing that would likely be much faster, easier, and make adding rings
-of integers, etc., easier.
 """
 
+# TODO -- relative extensions need to be completely rewritten, so one
+# can get easy access to representation of elements in their relative
+# form.  Functions like matrix below can't be done until relative
+# extensions are re-written this way.  Also there needs to be class
+# hierarchy for number field elements, integers, etc.  This is a
+# nontrivial project, and it needs somebody to attack it.  I'm amazed
+# how long this has gone unattacked.
+
 #*****************************************************************************
-#       Copyright (C) 2004 William Stein <wstein@gmail.com>
+#       Copyright (C) 2004, 2007 William Stein <wstein@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -34,6 +37,8 @@ import sage.rings.rational as rational
 import sage.rings.integer_ring as integer_ring
 import sage.rings.arith as arith
 import sage.misc.misc as misc
+
+import sage.rings.number_field.number_field
 
 import number_field
 
@@ -234,6 +239,13 @@ class NumberFieldElement(field_element.FieldElement):
         """
         P = self.parent().complex_embeddings(prec)[i]
         return abs(P(self))
+
+    def complex_embeddings(self, prec=53):
+        phi = self.parent().complex_embeddings(prec)
+        return [f(self) for f in phi]
+
+    def complex_embedding(self, prec=53, i=0):
+        return self.parent().complex_embeddings(prec)[i](self)
 
     def __pow__(self, r):
         right = int(r)
@@ -466,7 +478,7 @@ class NumberFieldElement(field_element.FieldElement):
 ##             return R(nf.rnfcharpoly(prp, elt))
 ##         # return self.matrix().charpoly('x')
 
-    def minpoly(self, var):
+    def minpoly(self, var='x'):
         """
         Return the minimal polynomial of this number field element.
 
@@ -486,7 +498,7 @@ class NumberFieldElement(field_element.FieldElement):
         # the characteristic polynomial.
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
-        f = polynomial_ring.PolynomialRing(QQ, var)(1)
+        f = polynomial_ring.PolynomialRing(QQ, str(var))(1)
         for g, _ in self.charpoly(var).factor():
             f *= g
         return f
@@ -496,7 +508,53 @@ class NumberFieldElement(field_element.FieldElement):
         The matrix of right multiplication by the element on the power
         basis $1, x, x^2, \ldots, x^{d-1}$ for the number field.  Thus
         the {\em rows} of this matrix give the images of each of the $x^i$.
+
+        EXAMPLES:
+
+        Regular number field:
+            sage: K.<a> = NumberField(QQ['x'].0^3 - 5)
+            sage: M = a.matrix(); M
+            [0 1 0]
+            [0 0 1]
+            [5 0 0]
+            sage: M.base_ring() is QQ
+            True
+
         """
+##         Relative number field:
+##             sage: L.<b> = K.extension(K['x'].0^2 - 2)
+##             sage: 1*b, b*b, b**3, b**6
+##             (b, b^2, b^3, 6*b^4 - 10*b^3 - 12*b^2 - 60*b - 17)
+##             sage: L.pari_rnf().rnfeltabstorel(b._pari_())
+##             x - y
+##             sage: L.pari_rnf().rnfeltabstorel((b**2)._pari_())
+##             2
+##             sage: M = b.matrix(); M
+##             [0 1]
+##             [3 0]
+##             sage: M.base_ring() is K
+##             True
+
+#         Absolute number field:
+#             sage: M = L.absolute_field().gen().matrix(); M
+#             [  0   1   0   0   0   0]
+#             [  0   0   1   0   0   0]
+#             [  0   0   0   1   0   0]
+#             [  0   0   0   0   1   0]
+#             [  0   0   0   0   0   1]
+#             [  2 -90 -27 -10   9   0]
+#             sage: M.base_ring() is QQ
+#             True
+
+#         More complicated relative number field:
+#             sage: L.<b> = K.extension(K['x'].0^2 - a); L
+#             Extension by x^2 + -a of the Number Field in a with defining polynomial x^3 - 5
+#             sage: M = b.matrix(); M
+#             [0 1]
+#             [a 0]
+#             sage: M.base_ring()
+#             sage: M.base_ring() is K
+#             True
         # Mutiply each power of field generator on
         # the left by this element; make matrix
         # whose rows are the coefficients of the result,
@@ -512,9 +570,9 @@ class NumberFieldElement(field_element.FieldElement):
             for n in range(d):
                 v += (a*self).list()
                 a *= x
-            Q = rational_field.RationalField()
+            k = K.base_ring()
             import sage.matrix.matrix_space
-            M = sage.matrix.matrix_space.MatrixSpace(Q, d)
+            M = sage.matrix.matrix_space.MatrixSpace(k, d)
             self.__matrix = M(v)
             return self.__matrix
 
@@ -530,8 +588,104 @@ class NumberFieldElement(field_element.FieldElement):
             sage: K(3).list()
             [3, 0]
         """
+        P = self.parent()
+        # The algorithm below is total nonsense, unless the parent of self is an
+        # absolute extension.
+        if isinstance(P, sage.rings.number_field.number_field.NumberField_extension):
+            raise NotImplementedError
         n = self.parent().degree()
         v = self.__element.list()[:n]
         z = rational.Rational(0)
         return v + [z]*(n - len(v))
 
+
+import doctest
+
+class SageDocTestParser(doctest.DocTestParser):
+    # DocTestParser has no __init__, so we don't call it
+    # def __init__(self):
+    #    doctest.DocTestParser.__init__(self)
+
+    def parse(self, string, name='<string>'):
+        s = string.replace('sage:', '>>>').replace('.....', '...')
+        return doctest.DocTestParser.parse(self, s, name)
+
+def sagetest(m=None, name=None, globs=None, verbose=None,
+            report=True, optionflags=0, extraglobs=None,
+            raise_on_error=False, exclude_empty=True,
+            recurse_modules=True):
+    r"""
+    """
+    # global master
+
+    # If no module was given, then use __main__.
+    if m is None:
+        # DWA - m will still be None if this wasn't invoked from the command
+        # line, in which case the following TypeError is about as good an error
+        # as we should expect
+        m = sys.modules.get('__main__')
+
+    # Check that we were actually given a module.
+    # if not inspect.ismodule(m):
+    #    raise TypeError("testmod: module required; %r" % (m,))
+
+    # If no name was given, then use the module's name.
+    if name is None:
+        name = m.__name__
+
+    # Find, parse, and run all tests in the given module.
+    parser = SageDocTestParser()
+    finder = doctest.DocTestFinder(exclude_empty=exclude_empty, parser=parser, recurse=True)
+
+    if raise_on_error:
+        runner = doctest.DebugRunner(verbose=verbose, optionflags=optionflags)
+    else:
+        runner = doctest.DocTestRunner(verbose=verbose, optionflags=optionflags)
+
+    import inspect
+    L = [(name, m)]
+    if inspect.ismodule(m) and recurse_modules:
+        L.extend(inspect.getmembers(m, inspect.ismodule))
+
+    for (n, o) in L:
+        # print n # , o
+        for test in finder.find(o, n, globs=globs, extraglobs=extraglobs):
+            for e in test.examples:
+                e.source = sage.misc.preparser.preparse(e.source) + '\n'
+            runner.run(test)
+
+    if report:
+        runner.summarize()
+
+    # if doctest.master is None:
+    doctest.master = runner
+    # else:
+    #    doctest.master.merge(runner)
+
+    return runner.failures, runner.tries
+
+def test(obj=None):
+    import sys
+    hooks = (sys.displayhook, sys.excepthook)
+    try:
+        try:
+            sys.displayhook = sys.__displayhook__
+            sys.excepthook = sys.__excepthook__
+        except:
+            pass
+
+        print sagetest(obj, name=str(obj)
+                       , optionflags=doctest.ELLIPSIS
+                       | doctest.IGNORE_EXCEPTION_DETAIL,
+                       globs=globals()
+                       )
+
+    finally:
+        try:
+            sys.displayhook = hooks[0]
+            sys.excepthook  = hooks[1]
+        except:
+            pass
+
+if __name__ == '__main__':
+    test(NumberFieldElement.matrix)

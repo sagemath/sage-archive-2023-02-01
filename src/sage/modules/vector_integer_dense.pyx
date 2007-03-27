@@ -27,6 +27,11 @@ We make a large zero vector:
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+TESTS:
+    sage: v = vector(ZZ, [1,2,3,4])
+    sage: loads(dumps(v)) == v
+    True
 """
 
 ###############################################################################
@@ -52,6 +57,11 @@ cdef class Vector_integer_dense(free_module_element.FreeModuleElement):
         y = PY_NEW(Vector_integer_dense)
         y._init(self._degree, self._parent)
         return y
+
+    cdef int is_dense_c(self):
+        return 1
+    cdef int is_sparse_c(self):
+        return 0
 
     def __copy__(self):
         cdef Vector_integer_dense y

@@ -89,6 +89,21 @@ class pAdicExtensionGeneric(pAdicGeneric):
         else:
             return K.extension(self.polynomial_ring().base_extend(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = self.print_mode(), names = self.variable_name())
 
+    def integer_ring(self):
+        r"""
+        Returns the ring of integers of self, which is just the
+        extension of base.integer_ring() determined by the same
+        polynomial.
+        """
+        #Currently does not support fields with non integral defining polynomials.  This should change when the padic_general_extension framework gets worked out.
+        if not self.is_field():
+            return self
+        K = self.ground_ring().integer_ring()
+        if self.is_lazy():
+            return K.extension(self.polynomial_ring().change_ring(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = self.print_mode(), halt = self.halting_parameter(), names = self.variable_name())
+        else:
+            return K.extension(self.polynomial_ring().change_ring(K)(self.defining_polynomial()), prec = self.precision_cap(), print_mode = self.print_mode(), names = self.variable_name())
+
     #def hasGNB(self):
     #    raise NotImplementedError
 

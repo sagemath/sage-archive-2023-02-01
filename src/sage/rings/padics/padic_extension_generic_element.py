@@ -138,36 +138,44 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
                 else:
                     return self._polynomial()._repr(name = self.parent().variable_name())
         else:
-            selflist = [a.residue(1) for a in self.padded_list(self.precision_absolute())]
-            triples = [(selflist[i], pprint, i) for i in range(2, self.precision_absolute())]
+            selflist = [a.residue(1) for a in self.list()]
+            if self.parent().is_field():
+                triples = [(selflist[i], pprint, i + self.valuation()) for i in range(len(selflist))]
+            else:
+                triples = [(selflist[i], pprint, i) for i in range(len(selflist))]
             #print triples
             triples = [a for a in triples if a[0] != 0] #need to change this later to account for __cmp__ throwing error on lazies
-            def addparen(c):
+            def combine(L):
+                (c, p, e) = L
+                if e == 0:
+                    p = ""
+                elif e == 1:
+                    if do_latex:
+                        p = "\\cdot%s"%p
+                    else:
+                        p = "*%s"%p
+                else:
+                    if do_latex:
+                        p = "\\cdot%s^{%s}"%(p, e)
+                    else:
+                        p = "*%s^%s"%(p, e)
                 c = "%s"%c
                 if c.find("+") != -1:
                     c = "(%s)"%c
-                return c
-            triples = [(addparen(a[0]), a[1], a[2]) for a in triples]
+                if c == "1":
+                    if p == "":
+                        return c
+                    elif do_latex:
+                        return p.replace("\\cdot","")
+                    else:
+                        return p.replace("*", "")
+                else:
+                    return c + p
             if do_latex:
-                s = " + ".join(["%s\\cdot%s^{%s}"%(a) for a in triples]) + " + O(%s^{%s})"%(pprint, self.precision_absolute())
-                if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s\\cdot%s + "%(addparen(selflist[1]), pprint) + s
-                s = s.replace(" 1\\cdot", " ")
-                if s.startswith("1\\cdot"):
-                    s = s.replace("1\\cdot", "", 1)
-                if self.precision_absolute() > 0 and selflist[0] != 0:
-                    s = "%s + "%(addparen(selflist[0])) + s
+                oterm = ["O(%s^{%s})"%(pprint, self.precision_absolute())]
             else:
-                s = " + ".join(["%s*%s^%s"%(a) for a in triples]) + " + O(%s^%s)"%(pprint, self.precision_absolute())
-                if self.precision_absolute() > 1 and selflist[1] != 0:
-                    s = "%s*%s + "%(addparen(selflist[1]), pprint) + s
-                s = s.replace(" 1*", " ")
-                if s.startswith("1*"):
-                    s = s.replace("1*", "", 1)
-                if self.precision_absolute() > 0 and selflist[0] != 0:
-                    s = "%s + "%(addparen(selflist[0])) + s
-            s = s.replace(" +  + ", " + ")
-            return s
+                oterm = ["O(%s^%s)"%(pprint, self.precision_absolute())]
+            return " + ".join(map(combine, triples) + oterm)
 
     def __cmp__(self, other):
         m = min(self.precision_absolute(), other.precision_absolute())
@@ -257,6 +265,7 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
         return sage.rings.arith.generic_power(self, n, one=self.parent()(1))
 
     def is_square(self): #is this implementation still correct in the eisenstein case?
+        #This needs to be rewritten
         if self._polynomial == 0:
             return True
         if self.parent().prime() != 2:
@@ -272,7 +281,7 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
     def is_equal_to(self, right, prec):
         return (self - right).is_zero(prec)
 
-    def minimal_polynomial(self, name):
+    def minimal_polynomial(self):
         return self._value.minpoly()
 
     def ordp(self):
@@ -322,6 +331,6 @@ class pAdicExtensionGenericElement(pAdicGenericElement):
 
     def trace(self, K = None):
         if K is None:
-            return self._value.norm()
+            return self._value.trace()
         else:
             raise NotImplementedError

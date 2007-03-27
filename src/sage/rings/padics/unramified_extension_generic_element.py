@@ -1,5 +1,6 @@
 import sage.rings.finite_field
 import sage.rings.polynomial_quotient_ring_element
+from sage.rings.padics.misc import min
 import sage.rings.integer
 import sage.rings.rational
 import sage.rings.integer_mod
@@ -12,7 +13,6 @@ import sage.rings.infinity
 import sys
 import sage.rings.polynomial_ring_constructor
 import sage.rings.padics.padic_extension_generic_element
-import padic_ring_base_generic
 
 GF = sage.rings.finite_field.GF
 PolynomialRing = sage.rings.polynomial_ring_constructor.PolynomialRing
@@ -22,7 +22,6 @@ Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
 is_FiniteFieldElement = sage.rings.finite_field_element.is_FiniteFieldElement
-pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
@@ -60,10 +59,8 @@ class UnramifiedExtensionGenericElement(pAdicExtensionGenericElement):
 
     def list(self):
         #Need to change this to allow for base_rings that are not Zp.  Also, this is slow.
-        if self.parent().is_field() and self.valuation() != 0:
-            return self.unit_part().list()
         answer = []
-        me = self.parent().integer_ring()(self)
+        me = self
         while me != 0:
             #print type(me)
             answer.append(self.parent()(me.residue(1), self.parent().precision_cap()))

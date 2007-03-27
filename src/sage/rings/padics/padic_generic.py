@@ -503,6 +503,8 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             return self.prime() - 1
 
     def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
+        if not self is modulus.base_ring():
+            modulus = modulus.parent().change_ring(self)(modulus)
         from sage.rings.padics.extension_factory import ExtensionFactory
         return ExtensionFactory(modulus, prec, print_mode, halt, names, check = True)
 

@@ -36,6 +36,7 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
     if check:
         pass # need to add sanity checking here.  Poly degree > 1.  Irreducible
     base = modulus.base_ring()
+    #print type(base)
     if not unram: #this is not quite the condition we want for not checking these things; deal with fixed-mod sanely
         if not modulus.is_monic():
             if modulus.base_ring().is_field():
@@ -82,7 +83,7 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
     #print "polytype = %s"%polytype
     if polytype != 'p':
         modulus = truncate_to_prec(modulus, prec)
-        key = (modulus, names, prec, halt, print_mode)
+        key = (base, modulus, names, prec, halt, print_mode)
         if extension_cache.has_key(key):
             K = extension_cache[key]()
             if not (K is None):
@@ -92,7 +93,7 @@ def ExtensionFactory(modulus, prec = None, print_mode = None, halt = None, names
         return K
     else:
         upoly, epoly, prec = split(modulus, prec)
-        key = (upoly, epoly, names, prec, halt, print_mode)
+        key = (base, upoly, epoly, names, prec, halt, print_mode)
         precmult = epoly.degree()
         if extension_cache.has_key(key):
             K = extension_cache[key]()
@@ -126,3 +127,4 @@ def is_unramified(poly):
     F = poly.parent().change_ring(poly.base_ring().residue_class_field())(poly).factor()
     if len(F) != 1 or F[0][1] != 1:
         return False
+    return True

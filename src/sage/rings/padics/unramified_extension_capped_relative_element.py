@@ -16,14 +16,19 @@ UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_gener
 
 class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement):
     def __init__(self, parent, x, absprec = infinity, relprec = infinity, check = True, construct = False):
+        self._normalized = False
         if construct:
-            (self._ordp, unit) = x
+            if isinstance(x, tuple):
+                (self._ordp, unit) = x
+            else:
+                unit = x
+                self._ordp = Integer(0)
             UnramifiedExtensionGenericElement.__init__(self, parent, unit, construct = True)
             return
         if check:
             from sage.rings.padics.padic_extension_leaves import UnramifiedExtensionRingCappedRelative, UnramifiedExtensionFieldCappedRelative
             if not isinstance(parent, (UnramifiedExtensionRingCappedRelative, UnramifiedExtensionFieldCappedRelative)):
-                raise TypeError, "parent must be an UnramifiedExtensionGeneric"
+                raise TypeError, "parent must be an UnramifiedExtensionCappedRelative"
         if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
         if absprec is infinity:
@@ -36,12 +41,14 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
             if x.parent() is self.parent():
                 (self._ordp, unit) = x._val_unit()
                 if self._ordp >= absprec:
-                    unit *= 0 #make sure to test for this case
+                    unit *= 0 #make sure to test for this case.  This should actually have relative precision 0...  Need to fix polynomials firxt.
                     self._ordp = absprec
                 else:
                     relprec = min(relprec, absprec - self._ordp)
                     unit = unit.add_bigoh(relprec)
                 UnramifiedExtensionGenericElement.__init__(self, parent, unit._value, construct = True)
+                self._normalized = True
+                return
             elif x.parent().fraction_field() is self.parent():
                 (self._ordp, unit) = x._val_unit()
                 if self._ordp >= absprec:
@@ -51,14 +58,17 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
                     relprec = min(relprec, absprec - self._ordp)
                     unit = unit.add_bigoh(relprec)
                 unit = parent._PQR.polynomial_ring()(unit._value)
+                UnramifiedExtensionGenericElement.__init__(self, parent, unit._value, construct = True)
+                self._normalized = True
+                return
         UnramifiedExtensionGenericElement.__init__(self, parent, x)
-        self._ordp = UnramifiedExtensionGenericElement.valuation(self)
-        UnramifiedExtensionGenericElement.__init__(self, parent, self._value._polynomial // parent.ground_ring().uniformizer_pow(self._ordp))
+        self._ordp = Integer(0)
 
     def _normalize(self):
-        c = UnramifiedExtensionGenericElement.valuation(self)
-        self._value = self.__rshift__(c)._value
-        self._ordp = self._ordp + c
+        if not self._normalized:
+            c = UnramifiedExtensionGenericElement.valuation(self)
+            self._value = self.parent()._PQR(self.parent()._PQR.polynomial_ring()([a.__rshift__(c) for a in self._value._polynomial.list()]))
+            self._ordp = self._ordp + c
 
     def _polynomial(self):
         #Note that self._value._polynomial should have capped-relative coefficients
@@ -78,7 +88,9 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
             return UnramifiedExtensionCappedRelativeElement(self.parent(), (self._ordp - shift, self._value._polynomial), construct = True)
         unit = UnramifiedExtensionGenericElement.__rshift__(self, shift - self._ordp)
         curval = unit.valuation()
-        if curval > 0:
+        if curval is infinity:
+            return self.parent()(0)
+        elif curval > 0:
             return UnramifiedExtensionCappedRelativeElement(self.parent(), (curval, unit.__rshift__(curval)._value._polynomial), construct = True)
         else:
             return UnramifiedExtensionCappedRelativeElement(self.parent(), (Integer(0), unit._value._polynomial), construct = True)
@@ -106,8 +118,7 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
 
     def list(self):
         if self.parent().is_field():
-            self._normalize()
-            return UnramifiedExtensionGenericElement.list(self)
+            return UnramifiedExtensionGenericElement.list(self.unit_part())
         else:
             return [self.parent()(0)]*(self._ordp) + UnramifiedExtensionGenericElement.list(self)
 
@@ -131,8 +142,24 @@ class UnramifiedExtensionCappedRelativeElement(UnramifiedExtensionGenericElement
 
     def unit_part(self):
         self._normalize()
-        return UnramifiedExtensionCappedRelativeElement(self.parent(), (Integer(0), self._value._polynomial), construct = True)
+        R = self.parent().integer_ring()
+        return UnramifiedExtensionCappedRelativeElement(R, (Integer(0), R._PQR.polynomial_ring()(self._value._polynomial)), construct = True)
 
     def valuation(self):
         self._normalize()
         return self._ordp
+
+    def minimal_polynomial(self):
+        return (self._value * self.parent().ground_ring().uniformizer()**(self._ordp * self.parent().degree())).minpoly()
+
+    def norm(self, K = None):
+        if K is None:
+            return (self._value * self.parent().ground_ring().uniformizer()**(self._ordp * self.parent().degree())).norm()
+        else:
+            raise NotImplementedError
+
+    def trace(self, K = None):
+        if K is None:
+            return (self._value * self.parent().ground_ring().uniformizer()**(self._ordp * self.parent().degree())).trace()
+        else:
+            raise NotImplementedError

@@ -1,6 +1,6 @@
-from sage.rings.finite_field import GF
-from sage.rings.padics.misc import min
+import sage.rings.finite_field
 import sage.rings.polynomial_quotient_ring_element
+from sage.rings.padics.misc import min
 import sage.rings.integer
 import sage.rings.rational
 import sage.rings.integer_mod
@@ -13,9 +13,8 @@ import sage.rings.infinity
 import sys
 import sage.rings.polynomial_ring_constructor
 import sage.rings.padics.padic_extension_generic_element
-import sage.rings.polynomial_quotient_ring as pqr
 
-PolynomialQuotientRing = pqr.PolynomialQuotientRing
+GF = sage.rings.finite_field.GF
 PolynomialRing = sage.rings.polynomial_ring_constructor.PolynomialRing
 infinity = sage.rings.infinity.infinity
 PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
@@ -23,7 +22,6 @@ Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
 is_FiniteFieldElement = sage.rings.finite_field_element.is_FiniteFieldElement
-#pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
@@ -81,6 +79,7 @@ class EisensteinExtensionGenericElement(pAdicExtensionGenericElement):
         return self * self.parent()(self.parent().polynomial_ring().gen()**shift)
 
     def list(self):
+        #Note: if you change this implementation you may need to fix eisenstein_extension_capped_relative_element's list function.
         if self.valuation() < 0:
             return self.unit_part().list()
         answer = []

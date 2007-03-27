@@ -210,7 +210,7 @@ class PowerSeries(ring_element.RingElement):
             sage: ((a+1)*t).change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: Unable to coerce a + 1 to an integer
 
         """
         S = self.parent().change_ring(R)

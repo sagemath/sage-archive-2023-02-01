@@ -335,7 +335,6 @@ class Monitor(object):
 
     def __init__(self, hostname, port):
         if hostname is None:
-            print SERVER
             hostname = SERVER
         self.hostname = hostname
         if port is None:
@@ -701,16 +700,15 @@ def main():
 
     """
 
-    hostname, port = sys.argv[1:]
-    # print hostname, port
-    # print type(hostname), type(port)
+    if len(sys.argv) == 3:
+        hostname, port = sys.argv[1:3]
     try:
         port = int(port)
     except:
         port = None
     try:
-        if hostname == 'None':
-            hostname = None
+        if hostname is not None:
+            hostname = str(hostname)
     except:
         hostname = None
 

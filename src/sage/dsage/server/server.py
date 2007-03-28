@@ -492,7 +492,10 @@ class DSageServer(pb.Root):
                              free_workers +
                              disconnected_workers)
 
-            worker_percentage = float(working_workers / total_workers) * 100
+            if total_workers != 0:
+                worker_percentage = float(working_workers / total_workers) * 100
+            else:
+                worker_percentage = 0.0
             percentage = doc.createTextNode(str(worker_percentage))
             workingAgentPercentage.appendChild(percentage)
 

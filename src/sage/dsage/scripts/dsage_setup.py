@@ -121,6 +121,7 @@ def setup_server():
     config.set('db', 'job_failure_threshold', 2)
     config.set('ssl', 'privkey_file', os.path.join(DSAGE_DIR, 'cacert.pem'))
     config.set('ssl', 'cert_file', os.path.join(DSAGE_DIR, 'privkey.pem'))
+    config.set('general', 'stats_file', 'gauge.xml')
 
     print DELIMITER
     print "Generating SSL certificate for server..."

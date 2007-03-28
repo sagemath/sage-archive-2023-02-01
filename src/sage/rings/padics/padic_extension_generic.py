@@ -61,12 +61,17 @@ class pAdicExtensionGeneric(pAdicGeneric):
     def teichmuller(self, x, prec = None):
         if prec is None:
             prec = self.precision_cap()
-        q = self.residue_class_field().order()
         x = self(x, prec)
-        xnew = x**q
+        if x.residue(1) == 0:
+            return self(0)
+        q = self.residue_class_field().order()
+        u = 1 / self(1 - q, prec)
+        delta = u * (1 - x ** (q - 1))
+        xnew = x - x*delta*(1 - q * delta)
         while x != xnew:
             x = xnew
-            xnew = x**q
+            delta = u*(1-x**(q-1))
+            xnew = x - x*delta*(1-q*delta)
         return x
 
     def absolute_discriminant(self):

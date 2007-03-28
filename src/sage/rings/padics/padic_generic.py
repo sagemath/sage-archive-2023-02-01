@@ -294,15 +294,24 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R = Zp(5, 10, 'fixed-mod', 'series')
             sage: R.teichmuller(2)
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+
+        AUTHORS:
+        Initial version: David Roe
+        Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
         if prec is None:
             prec = self.precision_cap()
-        p = self.prime()
         x = Mod(x,self.prime_pow(prec))
-        xnew = x**p
+        p = self.prime()
+        if Mod(x, p) == 0:
+            return self._element_class(self, 0)
+        u = 1 / Mod(1 - p, self.prime_pow(prec))
+        delta = u * (1 - x ** (p - 1))
+        xnew = x - x*delta*(1 - p * delta)
         while x != xnew:
             x = xnew
-            xnew = x**p
+            delta = u*(1-x**(p-1))
+            xnew = x - x*delta*(1-p*delta)
         return self._element_class(self, x)
 
     def teichmuller_system(self):

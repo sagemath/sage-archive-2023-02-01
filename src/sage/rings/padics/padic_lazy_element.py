@@ -424,22 +424,29 @@ class pAdicLazy_teichmuller(pAdicLazyElement):
         p = parent.prime()
         prec = min(parent.precision_cap(), relprec, absprec)
         x = Mod(x,parent.prime_pow(prec))
-        xnew = x**p
+        u = 1/Mod(1-p,parent.prime_pow(prec))
+        delta = u*(1 - x**(p-1))
+        xnew = x - x*delta*(1-p*delta)
         while x != xnew:
             x = xnew
-            xnew = x**p
+            delta = u*(1 - x**(p-1))
+            xnew = x - x*delta*(1-p*delta)
         self._set_cache(x)
         self._set_cache_prec(prec)
         self._set_base_valuation(Integer(0))
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            old = Mod(self._cache, self.parent().prime_pow(n))
-            new = old**self.parent().prime()
-            while old != new:
-                old = new
-                new = old**self.parent().prime()
-            self._set_cache(new)
+            p = self.parent().prime()
+            x = Mod(self._cache, self.parent().prime_pow(n))
+            u = 1 / Mod(1 - p, self.parent().prime_pow(n))
+            delta = u * (1 - x ** (p - 1))
+            xnew = x - x*delta*(1 - p * delta)
+            while x != xnew:
+                x = xnew
+                delta = u*(1-x**(p-1))
+                xnew = x - x*delta*(1-p*delta)
+            self._set_cache(xnew)
             self._set_cache_prec(n)
 
     def set_precision_absolute(self, n, halt = None):

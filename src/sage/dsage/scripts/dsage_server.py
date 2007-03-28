@@ -64,10 +64,10 @@ def usage():
 #     sys.path.append(os.path.abspath(options.dir))
     return options
 
-def write_stats(dsage_server):
+def write_stats(dsage_server, stats_file):
     # Put this entire thing in a try block, should not cause the server to die in any way.
     try:
-        fname = os.path.join(DSAGE_DIR, 'dsage.xml')
+        fname = os.path.join(DSAGE_DIR, stats_file)
         f = open(fname, 'w')
         f.write(dsage_server.generate_xml_stats())
         f.close()
@@ -102,6 +102,7 @@ def main():
         CLIENT_PORT = config.getint('server', 'client_port')
         PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
                                                         'pubkey_database'))
+        STATS_FILE = config.get('general', 'stats_file')
     except:
         print "Error reading %s, run dsage.setup()" % conf_file
         sys.exit(-1)
@@ -130,7 +131,7 @@ def main():
     client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
 
     # Create the looping call that will output the XML file for Dashboard
-    tsk1 = task.LoopingCall(write_stats, dsage_server)
+    tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
     tsk1.start(10.0, now=False)
 
     # Create the PBServerFactory for workers

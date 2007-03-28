@@ -35,12 +35,12 @@ class DistributedFactor(DistributedFunction):
         DistributedFunction.__init__(self, DSage)
         self.n = n
         self.prime_factors = []
+        self.composite_factors = []
         self.cur_B1 = 2000
         self.curve_count = 50
         self.concurrent = concurrent
         self.verbosity = verbosity
         self.name = name
-
         # Trial division first to peel off some factors
         for d in prime_range(2, trial_division_limit):
             while d.divides(n):
@@ -48,11 +48,11 @@ class DistributedFactor(DistributedFunction):
                 n = n // d
         if n == 1:
             self.done = True
-        if is_prime(n): # The last value might be prime
+        elif is_prime(n): # The last value might be prime
             self.done = True
             self.prime_factors.append(n)
         else:
-            self.composite_factors = [n]
+            self.composite_factors.append(n)
             self.outstanding_jobs = [self.qsieve_job()]
             for i in range(concurrent-1):
                 self.outstanding_jobs.append(self.ecm_job())

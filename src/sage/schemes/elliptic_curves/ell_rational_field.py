@@ -4292,7 +4292,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2 + 4*5 + O(5^3)
 
         TODO: With the old(-er), i.e., <= sage-2.4 p-adics we
-        got 5 + O(5^2) as output, i.e., relative precision 1, but
+        got $5 + O(5^2)$ as output, i.e., relative precision 1, but
         with the newer p-adics we get relative precision 0 and
         absolute precision 1.
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)

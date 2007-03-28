@@ -19,8 +19,8 @@ AUTHOR:
 #import sage.libs.all
 #import sage.rings.arith
 #import sage.rings.integer_mod
-import sage.rings.padics.padic_ring_generic_element
-import sage.rings.padics.padic_field_generic_element
+import sage.rings.padics.padic_base_generic_element
+#import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_lazy_element
 #import sage.rings.padics.padic_field_capped_relative_element
 #import sage.rings.commutative_ring_element
@@ -31,10 +31,10 @@ import sage.rings.padics.padic_lazy_element
 #import sage.rings.infinity
 
 #pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
-pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
+#pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+#pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
-pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
+pAdicBaseGenericElement = sage.rings.padics.padic_base_generic_element.pAdicBaseGenericElement
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
@@ -45,15 +45,15 @@ Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 infinity = sage.rings.infinity.infinity
 
-class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
-    def __init__(self, parent, x, absprec=None, relprec=None, construct=False):
+class pAdicCappedRelativeElement(pAdicBaseGenericElement):
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity, construct=False):
         """
         Constructs new element with given parent and value.
 
         INPUT:
-            x -- value to coerce into ring
-            prec -- number of digits of precision, or None to use the ring's
-                precision cap
+            x -- value to coerce into a capped relative ring or field
+            absprec -- maximum number of digits of absolute precision
+            relprec -- maximum number of digits of relative precision
             construct -- boolean, default False. True is for internal use,
                 in which case x is a triple to be assigned directly.
 
@@ -119,16 +119,18 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             (self._ordp, self._unit, self._relprec) = x
             return
 
-        if not absprec is None and not relprec is None:
+        if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
-        if absprec is None:
-            if relprec is None or relprec > parent.precision_cap():
+        if absprec is infinity:
+            if relprec > parent.precision_cap():
                 relprec = parent.precision_cap()
 
-        if isinstance(x, pAdicGenericElement) and x.parent().is_field() and x.valuation() < 0:
+        if isinstance(x, pAdicBaseGenericElement) and not parent.is_field() and x.valuation() < 0:
             raise ValueError, "element has negative valuation."
         if isinstance(x, pAdicLazyElement):
-            if relprec is None:
+            if parent.prime() != x.parent().prime():
+                raise ValueError, "Cannot coerce between p-adic rings with different primes."
+            if relprec is infinity:
                 try:
                     x.set_precision_absolute(absprec)
                 except PrecisionError:
@@ -144,25 +146,26 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             self._ordp = x._min_valuation()
             self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
-        if isinstance(x, pAdicRingGenericElement) or isinstance(x, pAdicFieldGenericElement):
+        if isinstance(x, pAdicBaseGenericElement):
             if parent.prime() != x.parent().prime():
                 raise ValueError, "Cannot coerce between p-adic rings with different primes."
             self._ordp = x.valuation()
-            if relprec is None:
+            if relprec is infinity:
                 if self._ordp is infinity:
-                    relprec = 0
+                    relprec = Integer(0)
                 else:
                     relprec = absprec - self._ordp
+            #print x
+            #print x.precision_relative()
+            #print type(x)
+            #print x.valuation()
             self._relprec = min(relprec, x.precision_relative(), parent.precision_cap())
             self._unit = Mod(x._unit_part(), parent.prime_pow(self._relprec))
             return
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                if not absprec is None:
-                    absprec = min(x.padicprec(parent.prime()), absprec)
-                else:
-                    absprec = x.padicprec(parent.prime())
+                absprec = min(x.padicprec(parent.prime()), absprec)
                 x = x.lift()
             if x.type() == "t_INT":
                 x = Integer(x)
@@ -182,9 +185,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
             x = x.lift()
-            if absprec is None:
-                absprec = k
-            else:
+            if absprec is infinity and relprec == parent.precision_cap(): #this allows you to lift integer_mod elements to higher precision than they are defined.  Subtle bug maybe: user tries to specify relprec = parent.precision_cap?
                 absprec = min(k, absprec)
 
             # We now use the code, below, so don't make the next line elif
@@ -194,27 +195,20 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             self._ordp = x.valuation(self.parent().prime())
         else:
             raise TypeError, "cannot create a p-adic out of %s"%(type(x))
-        if self._ordp < 0:
+        if self._ordp < 0 and not parent.is_field():
             raise ValueError, "element not a p-adic integer."
-        elif self._ordp == infinity:
+        elif self._ordp is infinity:
             self._unit = Mod(0, 1)
-            self._relprec = 0
+            self._relprec = Integer(0)
+            if not absprec is infinity:
+                self._ordp = absprec
             return
         x = x / self.parent().prime_pow(self._ordp)
-        if relprec is None:
-            if self._ordp is infinity:
-                self._relprec = 0
-            else:
-                self._relprec = min(absprec - self._ordp, parent.precision_cap())
-        elif absprec is None:
-            self._relprec = relprec
+        if self._ordp is infinity:
+            self._relprec = Integer(0)
         else:
             self._relprec = min(relprec, absprec - self._ordp, parent.precision_cap())
         self._unit = Mod(x, self.parent().prime_pow(self._relprec))
-        return
-
-    def _repr_(self, mode = None, do_latex = False):
-        return sage.rings.padics.padic_generic_element.pAdicGenericElement._repr_(self, mode, do_latex, True)
 
     #def __mod__(self, right):
     #    val = self.valuation()
@@ -237,7 +231,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: -R(0)
             0
         """
-        return pAdicRingCappedRelativeElement(self.parent(), (self._ordp, -self._unit, self._relprec), construct=True)
+        return pAdicCappedRelativeElement(self.parent(), (self._ordp, -self._unit, self._relprec), construct=True)
 
     def __pow__(self, right):
         """
@@ -251,23 +245,32 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
             sage: R(5)^30
             11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
+            sage: K = Qp(19, 5, 'capped-rel','series')
+            sage: a = K(-1); a
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+            sage: a^2
+            1 + O(19^5)
+            sage: a^3
+            18 + 18*19 + 18*19^2 + 18*19^3 + 18*19^4 + O(19^5)
+            sage: K(5)^30
+            11 + 14*19 + 19^2 + 7*19^3 + O(19^5)
         """
         right = Integer(right)
         if self == 0:
             if right == 0:
                 raise ValueError, "0^0 not defined"
-            return pAdicRingCappedRelativeElement(self.parent(), (self.valuation() * right, Mod(0, self.parent().prime()), 0), construct = True) #this isn't quite right.
+            return pAdicCappedRelativeElement(self.parent(), (self.valuation() * right, Mod(0, self.parent().prime()), 0), construct = True) #this isn't quite right.
         if right < 0:
             inv = 1/self
             return inv**(-right)
         if right == 0:
-            return pAdicRingCappedRelativeElement(self.parent(), (0, Mod(1, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
+            return pAdicCappedRelativeElement(self.parent(), (0, Mod(1, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
         ordp = right * self.valuation()
         prec = self.precision_relative()
         unit = Mod(sage.rings.arith.power_mod(self._unit_part().lift(), right, self.parent().prime_pow(prec)),self.parent().prime_pow(prec))
-        return pAdicRingCappedRelativeElement(self.parent(), (ordp, unit, prec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (ordp, unit, prec), construct = True)
 
-    def _add_(self, right): #assumes both have the same parent (ie same p and same relative cap)
+    def _add_(self, right):
         """
         EXAMPLES:
             sage: R = Zp(19, 5, 'capped-rel','series')
@@ -278,9 +281,9 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: a+b
             6 + 9*19 + 9*19^2 + 9*19^3 + 9*19^4 + O(19^5)
         """
-        if self.valuation() == infinity:
+        if self.valuation() is infinity:
             return right
-        if right.valuation() == infinity:
+        if right.valuation() is infinity:
             return self
         if self.valuation() == right.valuation():
             if self._relprec == right._relprec:
@@ -308,14 +311,29 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             uright = right._unit.lift() * self.parent().prime_pow(right.valuation() - min(self.valuation(), right.valuation()))
             u = Mod(uself + uright, self.parent().prime_pow(rprec))
             v = 0
-        return pAdicRingCappedRelativeElement(self.parent(), (min(self.valuation(), right.valuation()) + v, u, rprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (min(self.valuation(), right.valuation()) + v, u, rprec), construct = True)
+
+    def __invert__(self, prec=infinity):
+        r"""
+        Returns the multiplicative inverse of self.
+
+        EXAMPLES:
+            sage: R = Qp(7,4,'capped-rel','series'); a = R(3); a
+            3 + O(7^4)
+            sage: ~a
+            5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
+        """
+        if self.precision_relative() == 0:
+            raise PrecisionError, "cannot divide by something indistinguishable from zero."
+        prec = min(prec, self.precision_relative())
+        ppow = self.parent().prime_pow(prec)
+        unit = Mod(sage.rings.arith.inverse_mod(self._unit_part(), ppow), ppow)
+        return pAdicCappedRelativeElement(self.parent().fraction_field(), (-self.valuation(), unit, prec), construct = True)
 
     def __floordiv__(self, right):
         """
         If a,b are p-adic integers, then floordiv (//) satisfies the following equation:
         a%b + b*(a//b) == a
-
-        FIX BUG!!!
 
         EXAMPLES:
             sage: r = Zp(19)
@@ -335,7 +353,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             9 + 9*19 + O(19^2)
         """
         if isinstance(right, Integer):
-            right = pAdicRingCappedRelativeElement(self.parent(), right)
+            right = pAdicCappedRelativeElement(self.parent(), right)
         # This is the same as computing self/right then taking the integral part,
         # but is probably more efficient.   Note that it is important to
         # coerce into the parent first before shifting, otherwise the wrong
@@ -358,10 +376,12 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         shift = Integer(shift)
         if shift < 0:
             return self.__rshift__(-shift)
-        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation() + shift, self._unit_part(), self.precision_relative()), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (self.valuation() + shift, self._unit_part(), self.precision_relative()), construct = True)
 
     def __rshift__(self, shift):
         shift = Integer(shift)
+        if self.parent().is_field():
+            return pAdicCappedRelativeElement(self.parent(), (self.valuation() - shift, self._unit_part(), self.precision_relative()), construct = True)
         if shift < 0:
             return self.__lshift__(-shift)
         val = self.valuation()
@@ -382,7 +402,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
                 unit = Mod(unit // self.parent().prime_pow(val), self.parent().prime_pow(rprec))
             else:
                 unit = Mod(unit, self.parent().prime_pow(rprec))
-        return pAdicRingCappedRelativeElement(self.parent(), (val, unit, rprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (val, unit, rprec), construct = True)
 
     #def __mod__(self, right):
     #    if isinstance(right, Integer):
@@ -397,11 +417,11 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     #        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(u, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
 
     def _integer_(self):
-        return self._unit.lift() * self.parent().prime_pow(self.valuation())
+        return Integer(self._unit.lift() * self.parent().prime_pow(self.valuation()))
 
     def _mul_(self, right):
         rprec = min(self._relprec, right._relprec)
-        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation() + right.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)) * Mod(right._unit, self.parent().prime_pow(rprec)), rprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (self.valuation() + right.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)) * Mod(right._unit, self.parent().prime_pow(rprec)), rprec), construct = True)
 
     def add_bigoh(self, prec):
         """
@@ -414,17 +434,21 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
 
         EXAMPLE:
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
-                1 + O(7)
+            1 + O(7)
             sage: b = R(0); b.add_bigoh(3)
-                O(7^3)
+            O(7^3)
+            sage: R = Qp(7,4); a = R(8); a.add_bigoh(1)
+            1 + O(7)
+            sage: b = R(0); b.add_bigoh(3)
+            O(7^3)
         """
         rprec = min(self._relprec, prec - self.valuation())
         if rprec <= 0:
-            return pAdicRingCappedRelativeElement(self.parent(), (prec, Mod(0, 1), 0), construct = True)
-        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)), rprec), construct = True)
+            return pAdicCappedRelativeElement(self.parent(), (prec, Mod(0, 1), 0), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (self.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)), rprec), construct = True)
 
     def copy(self):
-        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), self._unit, self._relprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (self.valuation(), self._unit, self._relprec), construct = True)
 
     def exp_artin_hasse(self):
         raise NotImplementedError
@@ -433,7 +457,10 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
     def gamma(self):
         raise NotImplementedError
 
-    def is_zero(self, prec):
+    def _is_exact_zero(self):
+        return self.valuation() is infinity
+
+    def is_zero(self, prec = None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -444,9 +471,11 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             boolean -- whether self is zero
 
         """
-        return (self._relprec <= 0) or (self.valuation() >= prec)
+        if prec is None:
+            return self == self.parent().zero_element()
+        return (self.valuation() >= prec)
 
-    def is_equal_to(self, right, prec):
+    def is_equal_to(self, right, prec=None):
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
 
@@ -462,7 +491,7 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
 
     def lift(self):
         """
-        Return an integer congruent to self modulo self's precision
+        Return an integer or rational congruent to self modulo self's precision.  If a rational is returned, its denominator will eqaul p^ordp(self).
 
         INPUT:
             self -- a p-adic element
@@ -470,9 +499,13 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             integer -- a integer congruent to self mod $p^{\mbox{prec}}$
         EXAMPLE:
             sage: R = Zp(7,4,'capped-rel'); a = R(8); a.lift()
-                8
+            8
+            sage: R = Qp(7,4); a = R(8); a.lift()
+            8
+            sage: R = Qp(7,4); a = R(8/7); a.lift()
+            8/7
         """
-        if self.valuation() == infinity:
+        if self.valuation() is infinity:
             return 0
         else:
             return self.parent().prime_pow(self.valuation()) * self._unit_part().lift()
@@ -481,40 +514,44 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
         if self.valuation() is infinity:
             return self
         newprec = min(absprec - self.valuation(), self.parent().precision_cap())
-        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(self._unit_part(), self.parent().prime_pow(newprec)), newprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (self.valuation(), Mod(self._unit_part(), self.parent().prime_pow(newprec)), newprec), construct = True)
 
     def list(self):
         """
-        Returns a list of coeficiants of p starting with $p^0$
+        Returns a list of coefficients in a power series expansion of self in terms of p.  If self is a field element, they start at p^valuation, if a ring element at p^0.
         INPUT:
             self -- a p-adic element
         OUTPUT:
             list -- the list of coeficients of self
         EXAMPLES:
             sage: R = Zp(7,3,'capped-rel'); a = R(2*7+7**2); a.list()
-                [0, 2, 1, 0]
+            [0, 2 + O(7^3), 1 + O(7^3), 0]
+            sage: R = Qp(7,4); a = R(2*7+7**2); a.list()
+            [2 + O(7^4), 1 + O(7^4), 0, 0]
 
         NOTE:
-            this differs from the list method of padic_field_element
             use slice operators to get a particular range
 
         """
-        if (self.valuation() == infinity) or (self.precision_relative() <= 0):
+        if (self.valuation() is infinity) or (self.precision_relative() <= 0):
             return []
         else:
             def plist(n, p, prec):
                 if prec == 0:
                     return []
                 else:
-                    return [n % p] + plist(n // p, p, prec - 1)
-            return [0 for w in range(self.valuation())] + plist(self._unit.lift(), self.parent().prime(), self.precision_relative())
+                    return [self.parent()(n % p)] + plist(n // p, p, prec - 1)
+            if self.parent().is_field():
+                return plist(self._unit.lift(), self.parent().prime(), self.precision_relative())
+            else:
+                return [0 for w in range(self.valuation())] + plist(self._unit.lift(), self.parent().prime(), self.precision_relative())
 
     def log_artin_hasse(self):
         raise NotImplementedError
 
-    def padded_list(self, n):
+    def padded_list(self, absprec = infinity, relprec = infinity):
         """
-        Returns a list of coeficiants of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed)
+        Returns a list of coeficiants of p starting with $p^0$ up to $p^n$ exclusive (padded with zeros if needed).  If a field element, starts at p^val instead.
         INPUT:
             self -- a p-adic element
             n - an integer
@@ -522,13 +559,29 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             list -- the list of coeficients of self
         EXAMPLES:
             sage: R = Zp(7,3,'capped-rel'); a = R(2*7+7**2); a.padded_list(5)
-                [0, 2, 1, 0, 0]
+            [0, 2 + O(7^3), 1 + O(7^3), 0, 0]
+            sage: R = Qp(7,3); a = R(2*7+7**2); a.padded_list(5)
+            [2 + O(7^3), 1 + O(7^3), 0, 0]
+            sage: a.padded_list(3)
+            [2 + O(7^3), 1 + O(7^3)]
 
         NOTE:
             this differs from the padded_list method of padic_field_element
             the slice operators throw an error if asked for a slice above the precision
         """
-        return self.list()[:n] + [0 for w in range(self.precision_absolute(), n)]
+        if absprec is infinity and relprec is infinity:
+            raise ValueError, "must specify at least one of absprec and relprec"
+        if self.valuation() is infinity:
+            if relprec < infinity:
+                return [self.parent()(0)]*relprec
+            else:
+                return []
+        if self.parent().is_field():
+            relprec = min(relprec, absprec - self.valuation())
+            return self.list()[:relprec] + [self.parent()(0)]*(relprec - self.precision_relative())
+        else:
+            absprec = min(absprec, relprec + self.valuation())
+            return self.list()[:absprec] + [self.parent()(0)]*(absprec - self.precision_absolute())
 
     def precision_absolute(self):
         """
@@ -539,7 +592,9 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             integer -- the absolute precision of self
         EXAMPLES:
             sage: R = Zp(7,3,'capped-rel'); a = R(7); a.precision_absolute()
-                4
+            4
+            sage: R = Qp(7,3); a = R(7); a.precision_absolute()
+            4
        """
         return self._ordp + self._relprec
 
@@ -552,7 +607,9 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             integer -- the relative precision of self
         EXAMPLES:
             sage: R = Zp(7,3,'capped-rel'); a = R(7); a.precision_relative()
-                3
+            3
+            sage: R = Qp(7,3); a = R(7); a.precision_relative()
+            3
        """
         return self._relprec
 
@@ -566,12 +623,16 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             element of Z/(p^prec Z) -- self reduced mod p^prec
         EXAMPLES:
             sage: R = Zp(7,4,'capped-rel'); a = R(8); a.residue(1)
-                1
+            1
+            sage: R = Qp(7,4,'capped-rel'); a = R(8); a.residue(1)
+            1
         """
-        if prec <= self.precision_absolute():
+        if prec > self.precision_absolute():
+            raise PrecisionError, "Not enough precision known in order to compute residue."
+        elif self.valuation() >= 0:
             return Mod(self.parent().prime_pow(self.valuation()) * self._unit.lift(), self.parent().prime_pow(prec))
         else:
-            raise PrecisionError, "not enough precision to compute residue"
+            raise ValueError, "Element must have non-negative valuation in order to compute residue."
 
     def unit_part(self):
         r"""
@@ -585,13 +646,19 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: R = Zp(17,4,'capped-rel')
             sage: a = R(18*17)
             sage: a.unit_part()
-                1 + 17 + O(17^4)
+            1 + 17 + O(17^4)
             sage: type(a)
-                <class 'sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement'>
+            <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+            sage: R = Qp(17,4,'capped-rel')
+            sage: a = R(18*17)
+            sage: a.unit_part()
+            1 + 17 + O(17^4)
+            sage: type(a)
+            <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
         """
         if self.precision_relative() == 0:
             raise PrecisionError, "Not enough precision to determine unit part"
-        return pAdicRingCappedRelativeElement(self.parent(), (0, self._unit, self._relprec), construct = True)
+        return pAdicCappedRelativeElement(self.parent(), (0, self._unit, self._relprec), construct = True)
 
     def _unit_part(self):
         """
@@ -628,21 +695,52 @@ class pAdicRingCappedRelativeElement(pAdicRingGenericElement):
             sage: R = Zp(17, 4,'capped-rel')
             sage: a = R(2*17^2)
             sage: a.valuation()
-                2
+            2
             sage: R = Zp(5, 4,'capped-rel')
             sage: R(0).valuation()
-                +Infinity
+            +Infinity
+
+        TESTS:
             sage: R(1).valuation()
-                0
+            0
             sage: R(2).valuation()
-                0
+            0
             sage: R(5).valuation()
-                1
+            1
             sage: R(10).valuation()
-                1
+            1
             sage: R(25).valuation()
-                2
+            2
             sage: R(50).valuation()
-                2
+            2
+            sage: R = Qp(17, 4)
+            sage: a = R(2*17^2)
+            sage: a.valuation()
+            2
+            sage: R = Qp(5, 4)
+            sage: R(0).valuation()
+            +Infinity
+            sage: R(1).valuation()
+            0
+            sage: R(2).valuation()
+            0
+            sage: R(5).valuation()
+            1
+            sage: R(10).valuation()
+            1
+            sage: R(25).valuation()
+            2
+            sage: R(50).valuation()
+            2
+            sage: R(1/2).valuation()
+            0
+            sage: R(1/5).valuation()
+            -1
+            sage: R(1/10).valuation()
+            -1
+            sage: R(1/25).valuation()
+            -2
+            sage: R(1/50).valuation()
+            -2
         """
         return self._ordp

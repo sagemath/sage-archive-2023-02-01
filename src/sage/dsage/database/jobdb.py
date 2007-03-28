@@ -390,7 +390,7 @@ class JobDatabaseSQLite(JobDatabase):
      output TEXT,
      result BLOB,
      status TEXT NOT NULL,
-     priority TEXT,
+     priority INTEGER DEFAULT 10,
      type TEXT,
      failures INTEGER DEFAULT 0,
      creation_time timestamp NOT NULL,

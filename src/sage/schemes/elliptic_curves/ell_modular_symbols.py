@@ -69,6 +69,7 @@ class ModularSymbol(SageObject):
             raise TypeError, 'sign must -1 or 1'
         self._E = E
         self._modsym = E.modular_symbol_space(sign=_sign, base_ring=base_ring)
+        self._ambient_modsym = self._modsym.ambient_module()
         self._e = self._modsym.dual_eigenvector()
         # todo -- here must rescale self._e
 
@@ -82,7 +83,7 @@ class ModularSymbol(SageObject):
         return self._E
 
     def __call__(self, x):
-        w = self._modsym([0,x]).element()
+        w = self._ambient_modsym([0,x]).element()
         return (self._e).dot_product(w)
 
     def _repr_(self):

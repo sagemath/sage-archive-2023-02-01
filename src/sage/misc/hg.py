@@ -295,7 +295,7 @@ class HG:
         if filename.startswith("http://") or filename.startswith("https://"):
             filename = get_remote_file(filename, verbose=True)
         self._ensure_safe()
-        self('import "%s" %s'%(os.path.abspath(filename),options))
+        self('import  %s "%s"'%(options, os.path.abspath(filename)))
 
     patch = import_patch
 
@@ -795,18 +795,35 @@ class HG:
         """
         self('rollback')
 
-    def bundle(self, filename, options='', url=None):
-        """
+    def bundle(self, filename, options='', url=None, base=None):
+        r"""
         Create an hg changeset bundle with the given filename against the
         repository at the given url (which is by default the
         'official' SAGE repository).
+
+        If you have internet access, it's best to just do
+        \code{hg_sage.bundle(filename)}.  If you don't
+        find a revision r that you and the person unbundling
+        both have (by looking at \code{hg_sage.log()}), then
+        do \code{hg_sage.bundle(filename, base=r)}.
 
         Use self.inspect('file.bundle') to inspect the resulting bundle.
 
         This is a file that you should probably send to William Stein
         (wstein@gmail.com), post to a web page, or send to sage-devel.
         It will be written to the current directory.
+
+        INPUT:
+            filename -- output file in which to put bundle
+            options -- pass to hg
+            url -- url to bundle against (default: SAGE_SERVER)
+            base -- a base changeset revision number to bundle
+                    against (doesn't require internet access)
         """
+        if not base is None:
+            url = ''
+            options = '--base=%s %s'%(int(base), options)
+
         if url is None:
             url = self.__url
 

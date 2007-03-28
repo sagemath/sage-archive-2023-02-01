@@ -11,52 +11,52 @@ p-Adic Fields are examples of inexact structures, as the reals are.  That means 
 
 There are two types of precision for a p-adic element.  The first is relative precision, which gives the number of known p-adic digits.
     sage: R = Qp(5, 20, 'capped-rel', 'series'); a = R(675); a
-        2*5^2 + 5^4 + O(5^22)
+    2*5^2 + 5^4 + O(5^22)
     sage: a.precision_relative()
-        20
+    20
 
 The second type of precision is absolute precision, which gives the power of p that this element is stored modulo.
     sage: a.precision_absolute()
-        22
+    22
 
 The number of times that p divides the element is called the valuation, and can be accessed with the functions valuation() and ordp()
     sage: a.valuation()
-        2
+    2
 
 The following relationship holds: self.valuation() + self.precision_relative() == self.precision_absolute().
     sage: a.valuation() + a.precision_relative() == a.precision_absolute()
-        True
+    True
 
 In the lazy case, a certain number of digits are computed and stored, and in addition a function is stored so that additional digits can be computed later.  In order to set the number of known digits you call cache_set_precision().
     sage: R = Qp(5, 5, 'lazy', 'series'); a = R(4006); a
-        1  + 5 + 2*5^3 + 5^4 + O(5^5)
+    1  + 5 + 2*5^3 + 5^4 + O(5^5)
     sage: b = R(50127); b
-        2 + 5^3 + O(5^5)
+    2 + 5^3 + O(5^5)
     sage: c = a * b; c
-        2 + 2*5 + 4*5^4 + O(5^5)
+    2 + 2*5 + 4*5^4 + O(5^5)
     sage: c.set_precision_absolute(15)
     sage: c
-        2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
+    2 + 2*5 + 4*5^4 + 3*5^5 + 5^6 + 4*5^8 + 2*5^9 + 4*5^11 + O(5^15)
 
 There is some performance penalty for carrying the function around, but it is minimized if you determine the precision you will need going into a computation and set the cache precision appropriately at the outset.
 
 p-Adic fields should be created using the creation function Qp as above.  This will ensure that there is only one instance of $\Q_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Qp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-        Lazy 7-adic Field
-    sage: R = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'lazy', print_mode = 'series'); R is S
-        True
+    Lazy 7-adic Field
+    sage: R = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Qp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); R is S
+    True
     sage: Qp(2)
-        2-adic Field with capped relative precision 20
+    2-adic Field with capped relative precision 20
 
 Once one has a p-Adic field, one can cast elements into it in the standard way.  Integers, ints, longs, Rationals, other p-Adic types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a p-Adic field.
     sage: R = Qp(5, 5, 'lazy','series'); a = R(16); a
-        1 + 3*5 + O(5^5)
+    1 + 3*5 + O(5^5)
     sage: b = R(23/15); b
-        5^-1 + 3 + 3*5 + 5^2 + 3*5^3 + O(5^4)
+    5^-1 + 3 + 3*5 + 5^2 + 3*5^3 + O(5^4)
     sage: S = Zp(5, 5, 'fixed-mod','val-unit'); c = S(Mod(75,125)); c
-        5^2 * 3 + O(5^5)
+    5^2 * 3 + O(5^5)
     sage: R(c)
-        3*5^2 + O(5^5)
+    3*5^2 + O(5^5)
 
 In the previous example, since fixed-mod elements don't keep track of their precision, we assume that it has the full precision of the ring.  This is why you have to cast manually here.
 
@@ -89,48 +89,61 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #import sage.rings.integer
 #import sage.rings.rational
 #import sage.rings.finite_field
-import sage.rings.padics.padic_field_capped_relative_element
-import sage.rings.padics.padic_field_generic_element
-import sage.rings.padics.padic_generic
-import sage.rings.padics.padic_lazy_element as lazy
-import sage.rings.padics.padic_ring_capped_relative_element
-import sage.rings.padics.padic_ring_generic
-import sage.rings.padics.padic_field_capped_relative
+import padic_field_capped_relative_element
+import padic_field_generic_element
+import padic_generic
+import padic_generic_element
+import padic_lazy_element as lazy
+import padic_ring_capped_relative_element
+import padic_ring_generic
+import padic_field_capped_relative
+import padic_lazy_field_generic
+import padic_field_base_generic
+import sage.rings.infinity
 import copy
 
 pari = sage.libs.pari.gen.pari
+infinity = sage.rings.infinity.infinity
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 Mod = sage.rings.integer_mod.Mod
-pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
-pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
-pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
-pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
-pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
-#Zp = sage.rings.padics.padic_ring_generic.Zp
+pAdicLazyFieldGeneric = padic_lazy_field_generic.pAdicLazyFieldGeneric
+pAdicFieldBaseGeneric = padic_field_base_generic.pAdicFieldBaseGeneric
+pAdicGenericElement = padic_generic_element.pAdicGenericElement
+pAdicFieldCappedRelative = padic_field_capped_relative.pAdicFieldCappedRelative
+pAdicFieldCappedRelativeElement = padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
+pAdicRingCappedRelativeElement = padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
+#Zp = padic_ring_generic.Zp
 
-class pAdicFieldLazy(pAdicFieldBaseGeneric):
+class ErrorReporter:
+    def __init__(self, par):
+        self._obj = par
+
+    def __call__(self, x, absprec = infinity, relprec = infinity):
+        raise Exception, "There is a bug in the lazy code\n %s's generic methods are trying to create elements directly."
+
+class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
     r"""
     An implementation of p-adic fields using lazy evaluation.
     """
-    def __init__(self, p, prec, print_mode, halt):
-        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode)
+    def __init__(self, p, prec, print_mode, halt, names):
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, ErrorReporter(self))
         self._halt = halt
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = infinity, relprec = infinity):
         r"""
             Casts x into self.  Uses the constructor from pAdicFieldLazyElement.
         """
         if x == 0:
             return lazy.pAdicLazy_zero(self)
-        if prec is None:
-            prec = self.precision_cap()
         if isinstance(x, (int, long)):
             x = Integer(x)
+        if absprec < infinity and relprec < infinity:
+            raise ValueError, "only one of absprec and relprec may be specified"
         if isinstance(x, Integer):
-            return lazy.pAdicLazy_integer(self, x, prec)
+            return lazy.pAdicLazy_integer(self, x, absprec, relprec)
         if isinstance(x, Rational):
-            return lazy.pAdicLazy_rational(self, x, prec)
+            return lazy.pAdicLazy_rational(self, x, absprec, relprec)
         if isinstance(x, lazy.pAdicLazyElement):
             if x.parent().prime() != self.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
@@ -138,43 +151,38 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
             # and have pAdicLazy_**** accept a pAdicLazy_**** as an argument in addition to ****
             y = copy.copy(x)
             y._set_parent(self)
+            if absprec < infinity:
+                y.set_precision_absolute(absprec)
+            elif relprec < infinity:
+                y.set_precision_relative(relprec)
             return y
         if isinstance(x, pAdicGenericElement):
             if x.parent().prime() == self.prime():
-                return lazy.pAdicLazy_otherpadic(self, x, prec)
+                return lazy.pAdicLazy_otherpadic(self, x, absprec, relprec)
             raise TypeError, "cannot change primes in creating p-adic elements"
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x):
-            if x.parent().order() == self.prime():
-                return lazy.pAdicLazy_integer(self, x.lift(), prec)
-            raise TypeError, "cannot change primes in creating p-adic elements"
+        #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
+        #    if x.parent().order() == self.prime():
+        #        return lazy.pAdicLazy_integer(self, x.lift(), prec)
+        #    raise TypeError, "cannot change primes in creating p-adic elements"
         if sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-            return lazy.pAdicLazy_mod(self, x, prec)
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            try:
-                val = x.valuation(parent.prime())
-            except PariError:
-                raise TypeError, "cannot change primes in creating p-adic elements"
-            prec = min(x.padicprec(parent.prime()) - val, prec)
-            return lazy.pAdicLazy_mod(self, Integer(x.lift()), prec)
-        raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
-
-        return pAdicFieldLazyElement(self, x, prec = prec)
-
-    def __cmp__(self, other):
-        if isinstance(other, pAdicFieldLazy):
-            if self.prime() < other.prime():
-                return -1
-            elif self.prime() > other.prime():
-                return 1
+            return lazy.pAdicLazy_mod(self, x.lift(), min(k, absprec), relprec)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                from qp import Qp
+                try:
+                    return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
+                except PariError:
+                    raise TypeError, "cannot change primes in creating p-adic elements"
+            elif x.type() == "t_INT":
+                return lazy.pAdicLazy_integer(self,Integer(x), absprec, relprec)
+            elif x.type() == "t_FRAC":
+                return lazy.pAdicLazy_rational(self, Rational(x), absprec, relprec)
             else:
-                return 0
-        elif isinstance(other, pAdicFieldCappedRelative):
-            return 1
-        else:
-            return -1
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
+        raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
 
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer, Rational)):
@@ -187,12 +195,6 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
             if x.parent().halting_paramter() == self.parent().halting_parameter() and x.parent().precision_cap() >= self.precision_cap():
                 return True
         return False
-
-    def _coerce_impl(self, x):
-        if self.__contains__(x):
-            return self.__call__(x)
-        else:
-            raise TypeError, "no canonical coercion of x"
 
     def _repr_(self, do_latex=False):
         return "Lazy %s-adic Field"%(self.prime())
@@ -222,14 +224,8 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric):
         r"""
             Returns the integer ring of self, i.e. an appropriate implementation of $\Z_p$.
         """
-        from sage.rings.padics.zp import Zp
-        return Zp(self.prime(), self.precision_cap(), 'lazy', self.get_print_mode(), self.halting_parameter())
-
-    def fraction_field(self):
-        r"""
-        Returns the fraction field of self, i.e. self
-        """
-        return self
+        from zp import Zp
+        return Zp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def random_element(self):
         """

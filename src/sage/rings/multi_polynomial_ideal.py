@@ -774,8 +774,9 @@ class MPolynomialIdeal_macaulay2_repr:
             G = G[i+2:j].split(',')
             L = self.ring().var_dict()
             B = [sage_eval(f, L) for f in G]
-            B = Sequence(B, self.ring(), check=False, immutable=True)
+            B = Sequence(B, self.ring(), check=False)
             B.sort()
+            B.set_immutable()
             self.__groebner_basis = B
             return B
 

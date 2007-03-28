@@ -1,3 +1,7 @@
+"""
+Hecke Operators on $q$-expansions.
+"""
+
 #########################################################################
 #       Copyright (C) 2004--2006 William Stein <wstein@gmail.com>
 #
@@ -9,7 +13,7 @@
 from sage.modular.dirichlet import DirichletGroup, is_DirichletCharacter
 from sage.rings.all import (divisors, infinity, gcd, Integer,
                             is_PowerSeries)
-from sage.matrix.all import matrix
+from sage.matrix.all import matrix, MatrixSpace
 
 def hecke_operator_on_qexp(f, n, k, eps = None,
                            prec=None, check=True, _return_list=False):
@@ -84,7 +88,7 @@ def hecke_operator_on_basis(B, n, k, eps=None,
     prec = (f.prec()-1)//n
     A = R**prec
     V = A.span_of_basis([g.padded_list(prec) for g in B],
-                        already_echelonized=already_echelonized)
+                        already_echelonized = already_echelonized)
     return _hecke_operator_on_basis(B, V, n, k, eps)
 
 

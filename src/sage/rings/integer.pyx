@@ -11,6 +11,7 @@ AUTHORS:
     -- David Harvey (2006-09-15): added nth_root, exact_log
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
+    -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
 
 EXAMPLES:
    Add 2 integers:
@@ -122,6 +123,8 @@ cdef set_from_int(Integer self, int other):
 cdef public mpz_t* get_value(Integer self):
     return &self.value
 
+MAX_UNSIGNED_LONG = 2 * sys.maxint
+
 # This crashes SAGE:
 #  s = 2003^100300000
 # The problem is related to realloc moving all the memory
@@ -133,6 +136,9 @@ from sage.structure.element import  bin_op
 
 import integer_ring
 the_integer_ring = integer_ring.ZZ
+
+def is_Integer(x):
+    return bool(PY_TYPE_CHECK(x, Integer))
 
 cdef class Integer(sage.structure.element.EuclideanDomainElement):
     r"""
@@ -531,6 +537,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     cdef mpz_t* get_value(Integer self):
         return &self.value
 
+    cdef void _to_ZZ(self, ntl_c_ZZ *z):
+        _sig_on
+        mpz_to_ZZ(z, &self.value)
+        _sig_off
+
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         # self and right are guaranteed to be Integers
         cdef Integer x
@@ -564,7 +575,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef ModuleElement _neg_c_impl(self):
         cdef Integer x
-        x = Integer()
+        x = PY_NEW(Integer)
         mpz_neg(x.value, self.value)
         return x
 
@@ -577,9 +588,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         # self and right are guaranteed to be Integers
         cdef Integer x
         x = PY_NEW(Integer)
-        if  mpz_sizeinbase(self.value, 2) > 1000000:  # some lack of symmetry
-            # We only use the signal handler (to enable ctrl-c out) in case
-            # self is huge, so the product might actually take a while to compute.
+        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
+            # We only use the signal handler (to enable ctrl-c out) when the
+            # product might take a while to compute
             _sig_on
             mpz_mul(x.value, self.value, (<Integer>right).value)
             _sig_off
@@ -655,27 +666,41 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             9536.7431640625
             sage: 'sage'^3
             'sagesagesage'
+
+
+        The exponent must fit in an unsigned long.
+            sage: x = 2^100000000000000000000000
+            Traceback (most recent call last):
+            ...
+            RuntimeError: exponent must be at most 4294967294  # 32-bit
+            RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
         """
-        cdef Integer _self, _n
+        cdef Integer _n
         cdef unsigned int _nval
         if not PY_TYPE_CHECK(self, Integer):
             if isinstance(self, str):
                 return self * n
             else:
                 return self.__pow__(int(n))
+
         try:
+            # todo: should add a fast pathway to deal with n being
+            # an Integer or python int
             _n = Integer(n)
         except TypeError:
             raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+
         if _n < 0:
             return Integer(1)/(self**(-_n))
-        _self = integer(self)
+        if _n > MAX_UNSIGNED_LONG:
+            raise RuntimeError, "exponent must be at most %s"%MAX_UNSIGNED_LONG
+        _self = self
         cdef Integer x
-        x = Integer()
+        x = PY_NEW(Integer)
         _nval = _n
 
         _sig_on
-        mpz_pow_ui(x.value, _self.value, _nval)
+        mpz_pow_ui(x.value, (<Integer>self).value, _nval)
         _sig_off
 
         return x
@@ -1007,23 +1032,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             0
             sage: z.powermodm_ui(2, 14)
             2
-            sage: z.powermodm_ui(2^31-1, 14)
-            4
-            sage: z.powermodm_ui(2^31, 14)
+            sage: z.powermodm_ui(2^32-2, 14)
+            2
+            sage: z.powermodm_ui(2^32-1, 14)
             Traceback (most recent call last):                              # 32-bit
             ...                                                             # 32-bit
-            OverflowError: exp (=2147483648) must be <= 2147483647   # 32-bit
-            2              # 64-bit
-            sage: z.powermodm_ui(2^63, 14)
+            OverflowError: exp (=4294967295) must be <= 4294967294          # 32-bit
+            8              # 64-bit
+            sage: z.powermodm_ui(2^65, 14)
             Traceback (most recent call last):
             ...
-            OverflowError: exp (=9223372036854775808) must be <= 2147483647           # 32-bit
-            OverflowError: exp (=9223372036854775808) must be <= 9223372036854775807  # 64-bit
+            OverflowError: exp (=36893488147419103232) must be <= 4294967294  # 32-bit
+            OverflowError: exp (=36893488147419103232) must be <= 18446744073709551614     # 64-bit
         """
         if exp < 0:
             raise ValueError, "exp (=%s) must be nonnegative"%exp
-        elif exp > sys.maxint:
-            raise OverflowError, "exp (=%s) must be <= %s"%(exp, sys.maxint)
+        elif exp > MAX_UNSIGNED_LONG:
+            raise OverflowError, "exp (=%s) must be <= %s"%(exp, MAX_UNSIGNED_LONG)
         cdef Integer x, _mod
         _mod = Integer(mod)
         x = Integer()
@@ -1636,15 +1661,18 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(t)
         return g0, s0, t0
 
-    cdef _lshift(self, unsigned long int n):
+    cdef _lshift(self, long int n):
         """
         Shift self n bits to the left, i.e., quickly multiply by $2^n$.
         """
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
 
         _sig_on
-        mpz_mul_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_fdiv_q_2exp(x.value, self.value, -n)
+        else:
+            mpz_mul_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1659,16 +1687,32 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             128
             sage: int(32) << 2
             128
+            sage: 1 >> 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for >>
         """
+        try:
+            if not PY_TYPE_CHECK(x, Integer):
+                x = Integer(x)
+            elif not PY_TYPE_CHECK(y, Integer):
+                y = Integer(y)
+            return (<Integer>x)._lshift(long(y))
+        except TypeError:
+            raise TypeError, "unsupported operands for <<"
         if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
             return (<Integer>x)._lshift(long(y))
         return bin_op(x, y, operator.lshift)
 
-    cdef _rshift(Integer self, unsigned long int n):
+    cdef _rshift(Integer self, long int n):
         cdef Integer x
-        x = Integer()
+        x = <Integer> PY_NEW(Integer)
+
         _sig_on
-        mpz_fdiv_q_2exp(x.value, self.value, n)
+        if n < 0:
+            mpz_mul_2exp(x.value, self.value, -n)
+        else:
+            mpz_fdiv_q_2exp(x.value, self.value, n)
         _sig_off
         return x
 
@@ -1681,10 +1725,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             8
             sage: int(32) >> 2
             8
+            sage: 1<< 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for <<
         """
-        if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+        try:
+            if not PY_TYPE_CHECK(x, Integer):
+                x = Integer(x)
+            elif not PY_TYPE_CHECK(y, Integer):
+                y = Integer(y)
             return (<Integer>x)._rshift(long(y))
-        return bin_op(x, y, operator.rshift)
+        except TypeError:
+            raise TypeError, "unsupported operands for >>"
+
+        #if PY_TYPE_CHECK(x, Integer) and isinstance(y, (Integer, int, long)):
+        #    return (<Integer>x)._rshift(long(y))
+        #return bin_op(x, y, operator.rshift)
 
     cdef _and(Integer self, Integer other):
         cdef Integer x
@@ -1852,11 +1909,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
 ONE = Integer(1)
-
-def integer(x):
-    if PY_TYPE_CHECK(x, Integer):
-        return x
-    return Integer(x)
 
 
 def LCM_list(v):
@@ -2268,3 +2320,8 @@ def time_alloc(n):
 def pool_stats():
     print "Used pool %s / %s times" % (use_pool, total_alloc)
     print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)
+
+cdef integer(x):
+    if PY_TYPE_CHECK(x, Integer):
+        return x
+    return Integer(x)

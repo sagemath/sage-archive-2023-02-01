@@ -43,7 +43,7 @@ There is some performance penalty for carrying the function around, but it is mi
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
         Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'lazy', print_mode = 'series'); R is S
+    sage: R = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'lazy', print_mode = 'val-unit'); R is S
         True
     sage: Zp(2)
         2-adic Ring with capped relative precision 20
@@ -89,48 +89,59 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #import sage.rings.integer_mod
 #import sage.rings.finite_field_element
 import sage.rings.padics.padic_lazy_element as lazy
+import padic_lazy_ring_generic
+import padic_ring_base_generic
 import sage.rings.padics.padic_ring_generic_element
 import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_field_generic
+import sage.rings.infinity
 import copy
 
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
+infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
-Qp = sage.rings.padics.qp.Qp
-pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
-pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
-pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
+pAdicLazyRingGeneric = padic_lazy_ring_generic.pAdicLazyRingGeneric
+pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
+pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
+#pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 
-class pAdicRingLazy(pAdicRingBaseGeneric):
+class ErrorReporter:
+    def __init__(self, par):
+        self._obj = par
+
+    def __call__(self, x, absprec = infinity, relprec = infinity):
+        raise Exception, "There is a bug in the lazy code\n %s's generic methods are trying to create elements directly."
+
+class pAdicRingLazy(pAdicRingBaseGeneric, pAdicLazyRingGeneric):
     r"""
     An implementation of the p-adic integers with lazily evaluated elements.
     """
-    def __init__(self, p, prec, print_mode, halt):
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode)
+    def __init__(self, p, prec, print_mode, halt, names):
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, ErrorReporter(self))
         self._halt = halt
 
-    def __call__(self, x, prec = None):
+    def __call__(self, x, absprec = infinity, relprec = infinity):
         r"""
             Casts x into self.
         """
         if x == 0:
             return lazy.pAdicLazy_zero(self)
-        if prec is None:
-            prec = self.precision_cap()
         if isinstance(x, (int, long)):
             x = Integer(x)
+
+        if absprec < infinity and relprec < infinity:
+            raise ValueError, "only one of absprec and relprec may be specified"
         if isinstance(x, Integer):
-            return lazy.pAdicLazy_integer(self, x, prec)
+            return lazy.pAdicLazy_integer(self, x, absprec, relprec)
         if isinstance(x, Rational):
             if x.valuation(self.prime()) < 0:
                 raise ValueError, "element not a p-adic integer"
-            return lazy.pAdicLazy_rational(self, x, prec)
+            return lazy.pAdicLazy_rational(self, x, absprec, relprec)
         if isinstance(x, lazy.pAdicLazyElement):
             if x.parent().prime() != self.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
@@ -140,47 +151,40 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
             # and have pAdicLazy_**** accept a pAdicLazy_**** as an argument in addition to ****
             y = copy.copy(x)
             y._set_parent(self)
+            if absprec < infinity:
+                y.set_precision_absolute(absprec)
+            elif relprec < infinity:
+                y.set_precision_relative(relprec)
             return y
-        if isinstance(x, pAdicRingGenericElement):
-            if x.parent().prime() == self.prime():
-                return lazy.pAdicLazy_otherpadic(self, x, prec)
-            raise TypeError, "cannot change primes in creating p-adic elements"
-        if isinstance(x, pAdicFieldGenericElement):
+        if isinstance(x, pAdicGenericElement):
             if x.valuation() < 0:
                 raise ValueError, "element not a p-adic integer"
-            return lazy.pAdicLazy_otherpadic(self, x, prec)
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x):
-            if x.parent().order() == self.prime():
-                return lazy.pAdicLazy_integer(self, x.lift(), prec) #Note that this is cast in with full precision.  This may not be the desired behavior.
+            if x.parent().prime() == self.prime():
+                return lazy.pAdicLazy_otherpadic(self, x, absprec, relprec)
             raise TypeError, "cannot change primes in creating p-adic elements"
+        #if sage.rings.finite_field_element.is_FiniteFieldElement(x):
+        #    if x.parent().order() == self.prime():
+        #        return lazy.pAdicLazy_integer(self, x.lift(), absprec, relprec) #Note that this is cast in with full precision.  This may not be the desired behavior.
+        #    raise TypeError, "cannot change primes in creating p-adic elements"
         if sage.rings.integer_mod.is_IntegerMod(x):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-            return lazy.pAdicLazy_mod(self, x, prec)
-        if isinstance(x, pari_gen) and x.type() == "t_PADIC":
-            try:
-                val = x.valuation(parent.prime())
-            except PariError:
-                raise TypeError, "cannot change primes in creating p-adic elements"
-            if val < 0:
-                raise ValueError, "element not a p-adic integer"
-            prec = min(x.padicprec(parent.prime()) - val, prec)
-            return lazy.pAdicLazy_mod(self, Integer(x.lift()), prec)
-        raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
-
-    def __cmp__(self, other):
-        if isinstance(other, pAdicRingLazy):
-            if self.prime() < other.prime():
-                return -1
-            elif self.prime() > other.prime():
-                return 1
+            return lazy.pAdicLazy_mod(self, x.lift(), min(absprec, k), relprec)
+        if isinstance(x, pari_gen):
+            if x.type() == "t_PADIC":
+                try:
+                    from sage.rings.padics.qp import Qp
+                    return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
+                except PariError:
+                    raise TypeError, "cannot change primes in creating p-adic elements"
+            elif x.type() == "t_INT":
+                return lazy.pAdicLazy_integer(self,Integer(x), absprec, relprec)
+            elif x.type() == "t_FRAC":
+                return lazy.pAdicLazy_rational(self, Rational(x), absprec, relprec)
             else:
-                return 0
-        elif isinstance(other, pAdicRingBaseGeneric) or isinstance(other, pAdicFieldBaseGeneric):
-            return 1
-        else:
-            return -1
+                raise TypeError, "unsupported coercion from pari: only p-adics, integers and rationals allowed"
+        raise TypeError, "Cannot create a p-adic out of %s"%(type(x))
 
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer)):
@@ -191,12 +195,6 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
             if x.parent().halting_parameter() == self.halting_parameter() and x.parent().precision_cap() >= self.precision_cap():
                 return True
         return False
-
-    def _coerce_impl(self, x):
-        if self.__contains__(x):
-            return self.__call__(x)
-        else:
-            raise TypeError, "no canonical coercion of x"
 
     def _repr_(self, do_latex=False):
         return "Lazy %s-adic Ring"%(self.prime())
@@ -225,17 +223,12 @@ class pAdicRingLazy(pAdicRingBaseGeneric):
     def halting_parameter(self):
         return self._halt
 
-    def integer_ring(self):
-        r"""
-        Returns the integer ring of self, i.e. self.
-        """
-        return self
-
     def fraction_field(self):
         r"""
         Returns the fraction field of self.
         """
-        return Qp(self.prime(), self.precision_cap(), 'lazy', self.get_print_mode(), self.halting_parameter())
+        from sage.rings.padics.qp import Qp
+        return Qp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def random_element(self):
         """

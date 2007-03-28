@@ -80,7 +80,8 @@ function async_callback(id) {
                 callback('success', "empty");
             }
     } catch(e) {
-        async_release(id);      //release immediately
+        if(async_oblist[id] != null) //release immediately
+            async_release(id);
         callback("failure", e);
     }
 }
@@ -190,11 +191,15 @@ var non_word = "[^a-zA-Z0-9_]"; //finds any character that doesn't belong in a v
 var command_pat = "([a-zA-Z_][a-zA-Z._0-9]*)$"; //identifies the command at the end of a string
 var function_pat = "([a-zA-Z_][a-zA-Z._0-9]*)\\([^()]*$";
 var one_word_pat = "([a-zA-Z_][a-zA-Z._0-9]*)";
+
+var whitespace_pat = "(\\s*)";
+
 try{
   non_word = new RegExp(non_word);
   command_pat = new RegExp(command_pat);
   function_pat = new RegExp(function_pat);
   one_word_pat = new RegExp(one_word_pat);
+  whitespace_pat = new RegExp(whitespace_pat);
 } catch(e){}
 
 var after_cursor, before_cursor, before_replacing_word;
@@ -203,7 +208,7 @@ var update_timeout = -1;
 
 var updating = false; var update_time = -1;
 
-var jsmath_font_msg = '<a href="SAGE_URL/jsmath">jsMath temporarily disabled while we resolve a windows firefox hang bug</a><br>'; /*var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>'; */
+var jsmath_font_msg = '<a href="SAGE_URL/jsmath">Click to download and install tex fonts.</a><br>';
 
 var cell_id_list; // this gets set in worksheet.py
 
@@ -214,6 +219,18 @@ var slide_hidden = false; //whether the current slide has the hidden input class
 
 var worksheet_locked;
 
+var original_title;
+
+//var title_spinner = ['    ', '.   ', '..  ', '... '];
+//var title_spinner = ['[ ] ', '[.] ', '[:] ', '[.] '];
+//var title_spinner = ['S ', 'SA ', 'SAG ', 'SAGE '];
+var title_spinner = ['/ ', '\\ '];
+//var title_spinner = ['[   ] ', '[.  ] ', '[.. ] ', '[...] '];
+//var title_spinner = ['[-] ','[/] ','[|] ','[\\] '];
+var title_spinner_i = 0;
+try{
+    original_title = document.title;
+} catch(e) {}
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -359,6 +376,11 @@ function time_now() {
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
 
+function is_whitespace(s) {
+    m = whitespace_pat.exec(s);
+    return (m[1] == s);
+}
+
 function trim(s) {
     m = one_word_pat.exec(s);
     if(m == null)
@@ -462,6 +484,7 @@ function handle_replacement_controls(cell_input, event) {
 
 function do_replacement(id, word,do_trim) {
     var cell_input = get_cell(id);
+    cell_focus(id, false);
 
     if(do_trim) //optimization 'cause Opera has a slow regexp engine
         word = trim(word);
@@ -745,6 +768,21 @@ function unlock_worksheet_callback(status, response_text) {
     }
 }
 
+function sync_active_cell_list() {
+    async_request('/get_queue', sync_active_cell_list_callback, 'worksheet_id='+worksheet_id);
+}
+
+function sync_active_cell_list_callback(status, response_text) {
+    if(status == 'success') {
+        if(response_text == "")
+            return;
+        active_cell_list = response_text.split(",");
+        for(var i = 0; i < active_cell_list.length; i++)
+            cell_set_running(active_cell_list[i]);
+        start_update_check();
+    }
+}
+
 ///////////////////////////////////////////////////////////////////
 //
 // CELL functions -- for the individual cells
@@ -755,21 +793,34 @@ function get_cell(id) {
     return get_element('cell_input_'+ id);
 }
 
-function cell_focus(id) {
-    e = get_cell(id);
-    current_cell = id;
-    if(e == null) return;
-    e.className="cell_input_active";
-    cell_input_resize(e);
-    return true;
-}
 function cell_blur(id) {
+    var e = get_cell(id);
+    if(e == null) return;
+
+    e.className= "hidden";
+
    /* if(!in_slide_mode)
         current_cell = -1; */
-    e = get_cell(id);
-    if(e == null) return;
-    e.className="cell_input";
-    cell_input_minimize_size(e);
+
+    var t = e.value;
+    if (t.length == 0) {
+        t = ' ';
+    }
+
+    var display_cell = get_element('cell_display_' + id)
+    if (t.indexOf('%hide') == -1) {
+        set_class('cell_display_' + id, 'cell_input')
+    // This is nasty, but is seems like the only way to get
+    // the notation R.<x,y> = blah that we use in SAGE to not
+    // result in R. = blah after highlighting.
+        t = t.replace('<','<span class=pun><</span>')
+        display_cell.innerHTML = prettyPrintOne(t)
+    } else {
+        set_class('cell_display_' + id, 'cell_input_hide')
+        display_cell.innerHTML = '<font color="grey">' + t.replace('<','&lt') + '</font>'
+    }
+
+
     return true;
 }
 
@@ -791,14 +842,22 @@ function debug_blur() {
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.  Safari also has this problem.
-function focus(id, bottom) {
+function cell_focus(id, bottom) {
     // make_cell_input_active(id);
+    current_cell = id;
+
     var cell = get_cell(id);
-    if (cell && cell.focus) {
+    if (cell) {
         cell.focus();
+        set_class('cell_display_' + id, 'hidden');
+        cell.className="cell_input_active";
+        cell_input_resize(cell);
         if (!bottom)
             move_cursor_to_top_of_cell(cell);
+        current_cell = id;
+        cell.focus();
     }
+    return true;
 }
 
 function move_cursor_to_top_of_cell(cell) {
@@ -810,9 +869,9 @@ function move_cursor_to_top_of_cell(cell) {
 
 function focus_delay(id,bottom) {
     if(!bottom)
-         setTimeout('focus('+id+')', 10);
+         setTimeout('cell_focus('+id+',false)', 10);
     else
-         setTimeout('focus('+id+',true)', 10);
+         setTimeout('cell_focus('+id+',true)', 10);
 }
 
 
@@ -824,8 +883,12 @@ function cell_input_resize(cell_input) {
       rows = 2;
     } else {
       /* to avoid bottom chop off */
-/*      rows = rows + 1; */
+      rows = rows + 2;
     }
+    if (rows >= 30) {
+      rows = 30;
+    }
+
     try {
         cell_input.style.height = rows + 'em'; // this sort of works in konqueror...
     } catch(e) {}
@@ -862,6 +925,9 @@ function cell_input_minimize_size(cell_input) {
     var rows = v.split('\n').length ;
     if (rows < 1) {
       rows = 1;
+    }
+    if (rows >= 25) {
+      rows = 25;
     }
     cell_input.rows = rows;
     if (rows == 1) {
@@ -981,7 +1047,7 @@ function cell_input_key_event(id, e) {
     e = new key_event(e);
     if (e==null) return;
 
-    if (key_delete_cell(e) && cell_input.value == '') {
+    if (key_delete_cell(e) && is_whitespace(cell_input.value)) {
         cell_delete(id);
         return false;
     }
@@ -1125,7 +1191,7 @@ function jump_to_cell(id, delta, bottom) {
     if(in_slide_mode) {
         jump_to_slide(id);
     } else {
-        focus(id, bottom);
+        cell_focus(id, bottom);
     }
 }
 
@@ -1316,6 +1382,10 @@ function check_for_cell_update() {
     async_request('/cell_update',
                     check_for_cell_update_callback,
                     'cell_id=' + cell_id + '&worksheet_id='+worksheet_id);
+    try{
+        title_spinner_i = (title_spinner_i+1)%title_spinner.length;
+        document.title = title_spinner[title_spinner_i] + original_title;
+    } catch(e){}
 }
 
 function start_update_check() {
@@ -1329,6 +1399,7 @@ function cancel_update_check() {
     updating = false;
     clearTimeout(update_timeout);
     set_class('interrupt', 'interrupt_grey')
+    document.title = original_title;
 }
 
 function set_output_text(id, text, wrapped_text, output_html, status, introspect_html) {
@@ -1458,10 +1529,13 @@ function check_for_cell_update_callback(status, response_text) {
 
     set_output_text(id, output_text, output_text_wrapped,
                     output_html, stat, introspect_html);
+
     if (stat == 'd') {
         active_cell_list = delete_from_array(active_cell_list, id);
 
-        if (interrupted == 'false') {
+        if (interrupted == 'restart') {
+            restart_sage();
+        } else if (interrupted == 'false') {
             cell_set_evaluated(id);
         } else {
             halt_active_cells();
@@ -1540,7 +1614,7 @@ function slide_show() {
         input = get_cell(current_cell);
         if(input != null) {
             s = lstrip(input.value).slice(0,5)
-            focus(current_cell);
+            cell_focus(current_cell, false);
             if (s == '%hide') {
                 slide_hidden = true;
                 input.className = 'cell_input_hide';
@@ -1783,6 +1857,7 @@ function restart_sage_callback(status, response_text) {
     link.className = "restart_sage";
     link.innerHTML = "Restart";
     set_variable_list('');
+    sync_active_cell_list();
 }
 
 function restart_sage() {

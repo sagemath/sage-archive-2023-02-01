@@ -25,6 +25,7 @@ AUTHORS:
        more documentation, added Newton iteration method, added more complete
        "trace trick", integrated better into SAGE.
     -- David Harvey (Feb 2007): added algorithm with sqrt(p) complexity
+    -- Robert Bradshaw (Mar 2007): keep track of exact form in reduction algorithms
 
 """
 
@@ -38,7 +39,7 @@ AUTHORS:
 #*****************************************************************************
 
 
-from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial
+from sage.rings.all import Integers, Integer, PolynomialRing, is_Polynomial, PowerSeriesRing, Rationals, LaurentSeriesRing
 from sage.matrix.all import matrix
 from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
@@ -109,13 +110,14 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     the quotient ring stuff happening right now...
   """
 
-  def __init__(self, Q):
+  def __init__(self, Q, laurent_series = False):
     """
     Constructor.
 
     INPUT:
         Q -- a polynomial of the form Q(x) = x^3 + ax + b, where a, b
              belong to a ring in which 2, 3 are invertible.
+        laurent_series -- whether or not to allow negative powers of T (default=False)
     """
     if not is_Polynomial(Q):
       raise TypeError, "Q (=%s) must be a polynomial" % Q
@@ -133,14 +135,17 @@ class SpecialCubicQuotientRing(CommutativeAlgebra):
     CommutativeAlgebra.__init__(self, base_ring)
     self._a = Q[1]
     self._b = Q[0]
-    self._poly_ring = PolynomialRing(base_ring, 'T')    # R[T]
+    if laurent_series:
+      self._poly_ring = LaurentSeriesRing(base_ring, 'T')    # R[T]
+    else:
+      self._poly_ring = PolynomialRing(base_ring, 'T')    # R[T]
     self._poly_generator = self._poly_ring.gen(0)    # the generator T
 
     # Precompute a matrix that is used in the Toom-Cook multiplication.
     # This is where we need 2 and 3 invertible.
 
     # (a good description of Toom-Cook is online at:
-    # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html)
+    # http://www.gnu.org/software/gmp/manual/html_node/Toom-Cook-3-Way-Multiplication.html )
 
     self._speedup_matrix = \
         (matrix(Integers(), 3, 3, [2, 4, 8,
@@ -362,7 +367,7 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
     # We need to reduce mod y = x^3 + ax + b and return result.
 
     parent = self.parent()
-    y = parent._poly_generator
+    T = parent._poly_generator
     b = parent._b
     a = parent._a
 
@@ -374,11 +379,10 @@ class SpecialCubicQuotientRingElement(CommutativeAlgebraElement):
     b = parent._poly_ring(b)
 
     return SpecialCubicQuotientRingElement(parent,
-                                           -b*c3 + c0 + c3*y,
-                                           -b*c4 - a*c3 + c1 + c4*y,
+                                           -b*c3 + c0 + c3*T,
+                                           -b*c4 - a*c3 + c1 + c4*T,
                                            -a*c4 + c2,
                                            check=False)
-
 
 def transpose_list(input):
     """
@@ -430,8 +434,24 @@ def helper_matrix(Q):
                               6*a   , -9*b    , -2*a**2 ])
 
 
+def lift(x):
+    r"""
+    Tries to call x.lift(), presumably from the p-adics to ZZ.
 
-def reduce_negative(Q, p, coeffs, offset):
+    If this fails, it assumes the input is a power series, and tries to
+    lift it to a power series over QQ.
+
+    This function is just a very kludgy solution to the problem of trying
+    to make the reduction code (below) work over both Zp and Zp[[t]].
+    """
+    try:
+        return x.lift()
+    except AttributeError:
+        return PowerSeriesRing(Rationals(), "t")(x.list(), x.prec())
+
+
+
+def reduce_negative(Q, p, coeffs, offset, exact_form=None):
     """
     Applies cohomology relations to incorporate negative powers of $y$
     into the $y^0$ term.
@@ -471,6 +491,10 @@ def reduce_negative(Q, p, coeffs, offset):
     base_ring = Q.base_ring()
     next_a = coeffs[0]
 
+    if exact_form is not None:
+        x = exact_form.parent().gen(0)
+        y = exact_form.parent().base_ring().gen(0)
+
     try:
         three_j_plus_5 = 5 - base_ring(6*offset)
         three_j_plus_7 = 7 - base_ring(6*offset)
@@ -491,9 +515,16 @@ def reduce_negative(Q, p, coeffs, offset):
             # nicely with pAdicField, we should reimplement this stuff
             # using pAdicInteger.
 
-            a[0] = base_ring(a[0].lift() / (j+1))
-            a[1] = base_ring(a[1].lift() / (j+1))
-            a[2] = base_ring(a[2].lift() / (j+1))
+            if (p.divides(j+1)):
+               # need to lift here to perform the division
+               a[0] = base_ring(lift(a[0]) / (j+1))
+               a[1] = base_ring(lift(a[1]) / (j+1))
+               a[2] = base_ring(lift(a[2]) / (j+1))
+            else:
+               j_plus_1_inv = ~base_ring(j+1)
+               a[0] = a[0] * j_plus_1_inv
+               a[1] = a[1] * j_plus_1_inv
+               a[2] = a[2] * j_plus_1_inv
 
             c1 = m[3]*a[0] + m[4]*a[1] + m[5]*a[2]
             c2 = m[6]*a[0] + m[7]*a[1] + m[8]*a[2]
@@ -503,6 +534,11 @@ def reduce_negative(Q, p, coeffs, offset):
             three_j_plus_7 = three_j_plus_7 + six
             three_j_plus_5 = three_j_plus_5 + six
 
+            if exact_form is not None:
+                c0 = m[0]*a[0] + m[1]*a[1] + m[2]*a[2]
+                exact_form += (c0 + c1*x + c2 * x**2) * y**(j+1)
+
+
     except NotImplementedError:
         raise NotImplementedError, \
             "It looks like you've found a non-integral matrix of Frobenius! " \
@@ -510,9 +546,11 @@ def reduce_negative(Q, p, coeffs, offset):
 
     coeffs[int(offset)] = next_a
 
+    return exact_form
 
 
-def reduce_positive(Q, coeffs, offset):
+
+def reduce_positive(Q, p, coeffs, offset, exact_form=None):
     """
     Applies cohomology relations to incorporate positive powers of $y$
     into the $y^0$ term.
@@ -534,13 +572,13 @@ def reduce_positive(Q, coeffs, offset):
 
         sage: coeffs = [[1, 2, 3], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
-        sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
+        sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
          [16, 102, 88]
 
         sage: coeffs = [[9, 8, 7], [10, 15, 20]]
         sage: coeffs = [[R.base_ring()(a) for a in row] for row in coeffs]
-        sage: monsky_washnitzer.reduce_positive(Q, coeffs, 0)
+        sage: monsky_washnitzer.reduce_positive(Q, 5, coeffs, 0)
         sage: coeffs[0]
          [24, 108, 92]
 
@@ -555,29 +593,50 @@ def reduce_positive(Q, coeffs, offset):
     A = 2*Qa
     B = 3*Qb
 
+    offset = Integer(offset)
+
+
+    if exact_form is not None:
+        x = exact_form.parent().gen(0)
+        y = exact_form.parent().base_ring().gen(0)
+
     for i in range(len(coeffs)-1, offset, -1):
         j = 2*(i-offset) - 2
         a = next_a
         next_a = coeffs[i-1]
 
-        a[0] = a[0] - Qa*a[2]/3   # subtract d(y^j + 1)
+        a[0] = a[0] - Qa*a[2]/3   # subtract d(y^j + 3)
+        if exact_form is not None:
+            exact_form += Q.base_ring()(a[2].lift() / (3*j+9)) * y**(j+3)
 
         # todo: see comments about pAdicInteger in reduceNegative()
 
-        # subtract off c1 of d(x y^j + 1)
-        c1 = base_ring(a[0].lift() * (j+1) / (3*j + 5))
-        # subtract off c2 of d(x^2 y^j + 1)
-        c2 = base_ring(a[1].lift() * (j+1) / (3*j + 7))
+        # subtract off c1 of d(x y^j + 1), and
+        if p.divides(3*j + 5):
+            c1 = base_ring(lift(a[0]) / (3*j + 5))
+        else:
+            c1 = a[0] / (3*j + 5)
 
-        next_a[0] = next_a[0] + B*c1
-        next_a[1] = next_a[1] + A*c1 + B*c2
-        next_a[2] = next_a[2]        + A*c2
+        # subtract off c2 of d(x^2 y^j + 1)
+        if p.divides(3*j + 7):
+            c2 = base_ring(lift(a[1]) / (3*j + 7))
+        else:
+            c2 = a[1] / (3*j + 7)
+
+        next_a[0] = next_a[0] + B*c1*(j+1)
+        next_a[1] = next_a[1] + A*c1*(j+1) + B*c2*(j+1)
+        next_a[2] = next_a[2]              + A*c2*(j+1)
+
+        if exact_form is not None:
+            exact_form += (c1*x + c2 * x**2) * y**(j+1)
 
     coeffs[int(offset)] = next_a
 
+    return exact_form
 
 
-def reduce_zero(Q, coeffs, offset):
+
+def reduce_zero(Q, coeffs, offset, exact_form=None):
     """
     Applies cohomology relation to incorporate $x^2 y^0$ term into $x^0 y^0$
     and $x^1 y^0$ terms.
@@ -606,18 +665,27 @@ def reduce_zero(Q, coeffs, offset):
 
     a = coeffs[int(offset)]
     if a[2] == 0:
-      return
+      return exact_form
 
     Qa = Q[1]
 
     a[0] = a[0] - a[2]*Qa/3    # $3x^2 dx/y = -a dx/y$
-    a[2] = 0
 
     coeffs[int(offset)] = a
 
+    if exact_form is not None:
+        x = exact_form.parent().gen(0)
+        y = exact_form.parent().base_ring().gen(0)
+        exact_form += Q.base_ring()(a[2] / 3) * y
+
+    a[2] = 0
+
+    coeffs[int(offset)] = a
+    return exact_form
 
 
-def reduce_all(Q, p, coeffs, offset):
+
+def reduce_all(Q, p, coeffs, offset, compute_exact_form=False):
     """
     Applies cohomology relations to reduce all terms to a linear combination
     of $dx/y$ and $x dx/y$.
@@ -647,14 +715,26 @@ def reduce_all(Q, p, coeffs, offset):
 
     R = Q.base_ring()
 
+    if compute_exact_form:
+#        exact_form = SpecialCubicQuotientRing(Q, laurent_series=True)(0)
+        exact_form = PolynomialRing(LaurentSeriesRing(Q.base_ring(), 'y'), 'x')(0)
+#        t = (Q.base_ring().order().factor())[0]
+#        from sage.rings.padics.qp import pAdicField
+#        exact_form = PolynomialRing(LaurentSeriesRing(pAdicField(p, t[1]), 'y'), 'x')(0)
+    else:
+        exact_form = None
+
     while len(coeffs) <= offset:
         coeffs.append([R(0), R(0), R(0)])
 
-    reduce_negative(Q, p, coeffs, offset)
-    reduce_positive(Q, coeffs, offset)
-    reduce_zero(Q, coeffs, offset)
+    exact_form = reduce_negative(Q, p, coeffs, offset, exact_form)
+    exact_form = reduce_positive(Q, p, coeffs, offset, exact_form)
+    exact_form = reduce_zero(Q, coeffs, offset, exact_form)
 
-    return coeffs[int(offset)][0], coeffs[int(offset)][1]
+    if exact_form is None:
+        return coeffs[int(offset)][0], coeffs[int(offset)][1]
+    else:
+        return (coeffs[int(offset)][0], coeffs[int(offset)][1]), exact_form
 
 
 
@@ -940,7 +1020,7 @@ def adjusted_prec(p, prec):
 
 
 
-def matrix_of_frobenius(Q, p, M, trace=None):
+def matrix_of_frobenius(Q, p, M, trace=None, compute_exact_forms=False):
   """
   Computes the matrix of Frobenius on Monsky-Washnitzer cohomology,
   with respect to the basis $(dx/y, x dx/y)$.
@@ -1151,7 +1231,16 @@ def matrix_of_frobenius(Q, p, M, trace=None):
   F0, F1, offset = frobenius_expansion_by_newton(Q, p, M)
   #F0, F1, offset = frobenius_expansion_by_series(Q, p, M)
 
-  if M == 2:
+  if compute_exact_forms:
+    # we need to do all the work to get the exact expressions f such that F(x^i dx/y) = df + \sum a_i x^i dx/y
+
+    F0_coeffs = transpose_list(F0.coeffs())
+    F0_reduced, f_0 = reduce_all(Q, p, F0_coeffs, offset, True)
+
+    F1_coeffs = transpose_list(F1.coeffs())
+    F1_reduced, f_1 = reduce_all(Q, p, F1_coeffs, offset, True)
+
+  elif M == 2:
     # This implies that only one digit of precision is valid, so we only need
     # to reduce the second column. Also, the trace doesn't help at all.
 
@@ -1255,8 +1344,12 @@ def matrix_of_frobenius(Q, p, M, trace=None):
       "Hey that's impossible! The output matrix is not congruent mod p " \
       "to the approximation found earlier!"
 
-  return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
-                                  F0_reduced[1], F1_reduced[1]])
+  if compute_exact_forms:
+      return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
+                                      F0_reduced[1], F1_reduced[1]]), f_0, f_1
+  else:
+      return matrix(base_ring, 2, 2, [F0_reduced[0], F1_reduced[0],
+                                      F0_reduced[1], F1_reduced[1]])
 
 
 

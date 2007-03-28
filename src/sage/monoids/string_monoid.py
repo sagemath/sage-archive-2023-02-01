@@ -18,7 +18,6 @@ from sage.structure.parent_gens import ParentWithGens, normalize_names
 from free_monoid import FreeMonoid_class
 from string_monoid_element import StringMonoidElement
 from string_ops import strip_encoding
-from Crypto.Util.number import bytes_to_long
 
 import weakref
 
@@ -337,6 +336,7 @@ class BinaryStringMonoid(StringMonoid_class):
 	    sage: S.encoding(' ',padic=True)
 	    00000100
         """
+	from Crypto.Util.number import bytes_to_long
         bit_string = [ ]
         for i in range(len(S)):
             n = int(bytes_to_long(S[i]))
@@ -494,6 +494,7 @@ class HexadecimalStringMonoid(StringMonoid_class):
 	    sage: S.encoding(' ',padic=True)
 	    02
         """
+	from Crypto.Util.number import bytes_to_long
         hex_string = [ ]
         for i in range(len(S)):
             n = int(bytes_to_long(S[i]))

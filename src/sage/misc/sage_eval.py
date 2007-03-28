@@ -101,7 +101,7 @@ def sage_eval(source, locals={}):
 
     Here you can see eval simply will not work but \code{sage_eval} will.
     """
-    if not isinstance(source, str):
+    if not isinstance(source, basestring):
         raise TypeError, "source must be a string."
 
     import sage.all

@@ -375,8 +375,7 @@ cdef class RealDoubleElement(FieldElement):
         return self.str()
 
     def __hash__(self):
-        return 1455926870
-        #return hash(self.str())
+        return hash(self.str())
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -511,13 +510,13 @@ cdef class RealDoubleElement(FieldElement):
         """
         LShifting a double is not supported; nor is lshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for <<: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for <<"
 
     def __rshift__(x, y):
         """
         RShifting a double is not supported; nor is rshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for >>: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for >>"
 
     def multiplicative_order(self):
         if self == 1:

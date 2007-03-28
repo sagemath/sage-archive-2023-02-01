@@ -196,7 +196,7 @@ class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         else:
             raise TypeError, "cannot create a p-adic out of %s"%(type(x))
         if self._ordp < 0 and not parent.is_field():
-            raise ValueError, "element not a p-adic integer."
+            raise ValueError, "element has negative valuation."
         elif self._ordp is infinity:
             self._unit = Mod(0, 1)
             self._relprec = Integer(0)

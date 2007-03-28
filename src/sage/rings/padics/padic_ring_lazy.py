@@ -84,17 +84,9 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.libs.all
-#import sage.rings.integer
-#import sage.rings.integer_mod
-#import sage.rings.finite_field_element
 import sage.rings.padics.padic_lazy_element as lazy
 import padic_lazy_ring_generic
 import padic_ring_base_generic
-import sage.rings.padics.padic_ring_generic_element
-import sage.rings.padics.padic_field_generic_element
-import sage.rings.padics.padic_ring_generic
-import sage.rings.padics.padic_field_generic
 import sage.rings.infinity
 import copy
 
@@ -108,7 +100,6 @@ Rational = sage.rings.rational.Rational
 pAdicLazyRingGeneric = padic_lazy_ring_generic.pAdicLazyRingGeneric
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
-#pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 
 class ErrorReporter:
     def __init__(self, par):

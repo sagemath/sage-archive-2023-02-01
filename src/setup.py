@@ -484,6 +484,11 @@ ext_modules = [ \
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
 
+    Extension('sage.rings.number_field.number_field_element',
+              sources = ['sage/rings/number_field/number_field_element.pyx'],
+              libraries=['ntl','gmp'],
+              language = 'c++'), \
+
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 

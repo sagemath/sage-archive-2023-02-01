@@ -95,6 +95,13 @@ Here is a pretty graph:
     ...
     sage: g.save(dpi=200, axes=False)
 
+Another graph:
+    sage: P = plot(lambda x: sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
+    ...    plot(lambda x: x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
+    ...    plot(lambda x: tan(x),-4,4,rgbcolor=(0,1,0))
+    ...
+    sage: P.save('sage.png', ymin=-pi,ymax=pi)
+
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
     -- David Joyner: examples

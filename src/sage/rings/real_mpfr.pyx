@@ -995,10 +995,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: 1.0 << 32
             4294967296.00000
+            sage: 1.5 << 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for <<
         """
-        if isinstance(x, RealNumber) and isinstance(y, (int,long, Integer)):
-            return x._lshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.lshift)
+        if not PY_TYPE_CHECK(x, RealNumber):
+            raise TypeError, "unsupported operands for <<"
+        try:
+            return x._lshift_(Integer(y))
+        except TypeError:
+            raise TypeError, "unsupported operands for <<"
 
     def _rshift_(RealNumber self, n):
         if n > sys.maxint:
@@ -1013,10 +1020,18 @@ cdef class RealNumber(sage.structure.element.RingElement):
         EXAMPLES:
             sage: 1024.0 >> 7
             8.00000000000000
+            sage: 1.5 >> 2.5
+            Traceback (most recent call last):
+            ...
+            TypeError: unsupported operands for >>
         """
-        if isinstance(x, RealNumber) and isinstance(y, (int,long,Integer)):
-            return x._rshift_(y)
-        return sage.structure.coerce.bin_op(x, y, operator.rshift)
+        if not PY_TYPE_CHECK(x, RealNumber):
+            raise TypeError, "unsupported operands for >>"
+        try:
+            return x._rshift_(Integer(y))
+        except TypeError:
+            raise TypeError, "unsupported operands for >>"
+
 
     def multiplicative_order(self):
         if self == 1:

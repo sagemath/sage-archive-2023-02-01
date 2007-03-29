@@ -259,7 +259,6 @@ def _save_in_cache(key, R):
 
 def _single_variate(base_ring, name, sparse):
     import polynomial_ring as m
-    import padics.unramified_ring_extension #needed for hack; should be deleted after hack is removed
     name = normalize_names(1, name)
     key = (base_ring, name, sparse)
     R = _get_from_cache(key)
@@ -280,10 +279,6 @@ def _single_variate(base_ring, name, sparse):
 
         elif isinstance(base_ring, padics.padic_field_lazy.pAdicFieldLazy):
             R = m.PolynomialRing_padic_field_lazy(base_ring, name)
-
-        elif isinstance(base_ring, padics.unramified_ring_extension.UnramifiedRingExtension) and base_ring.ground_ring_of_tower().is_field():
-            # Hack to get unramified field extension polynomials working in the short term.
-            R = m.PolynomialRing_padic_field(base_ring, name)
 
         elif isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
             R = m.PolynomialRing_padic_field(base_ring, name)

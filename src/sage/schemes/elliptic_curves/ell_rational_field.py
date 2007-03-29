@@ -4286,17 +4286,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Check it works at low precision too:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
             2 + O(5)
-            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-            5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
             2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
             2 + 4*5 + O(5^3)
 
-          Check it works for different models of the same curve (37a),
-          even when the discriminant changes by a power of p (note that
-          E2 depends on the differential too, which is why it gets scaled
-          in some of the examples below):
+        TODO: With the old(-er), i.e., <= sage-2.4 p-adics we
+        got $5 + O(5^2)$ as output, i.e., relative precision 1, but
+        with the newer p-adics we get relative precision 0 and
+        absolute precision 1.
+            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+            O(5^1)
+
+        Check it works for different models of the same curve (37a),
+        even when the discriminant changes by a power of p (note that
+        E2 depends on the differential too, which is why it gets scaled
+        in some of the examples below):
 
             sage: X1 = EllipticCurve([-1, 1/4])
             sage: X1.j_invariant(), X1.discriminant()

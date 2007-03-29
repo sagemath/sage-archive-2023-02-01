@@ -16,9 +16,9 @@ import sage.structure.parent_gens
 
 
 class LocalGeneric(sage.rings.ring.CommutativeRing):
-    def __init__(self, prec):
+    def __init__(self, prec, names):
         self._prec = prec
-        sage.structure.parent_gens.ParentWithGens.__init__(self, self, ('x',), normalize=False)
+        sage.structure.parent_gens.ParentWithGens.__init__(self, self, (names,), normalize=False)
 
     def __call__(self, x):
         raise NotImplementedError
@@ -29,8 +29,23 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
     def __contains__(self, x):
         raise NotImplementedError
 
+    def is_capped_relative(self):
+        return False
+
+    def is_capped_absolute(self):
+        return False
+
+    def is_fixed_mod(self):
+        return False
+
+    def is_lazy(self):
+        return False
+
     def _coerce_impl(self, x):
-        raise NotImplementedError
+        if self.__contains__(x):
+            return self.__call__(x)
+        else:
+            raise TypeError, "cannot coerce %s of type %s into %s"%(x, type(x), self)
 
     def _repr_(self, do_latex = False, mode = None):
         return "Generic Local Ring"
@@ -60,7 +75,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         """
         return self._prec
 
-    def get_print_mode(self):
+    def print_mode(self):
         raise NotImplementedError
 
     def is_atomic_repr(self):
@@ -172,7 +187,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         OUTPUT:
             integer -- the ramification index of this ring, i.e., 1
         """
-        return ramification_index(self)
+        return self.ramification_index()
 
     def inertia_degree(self):
         r"""
@@ -196,7 +211,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         OUTPUT:
             integer -- the inertia degree of this ring, i.e., 1
         """
-        return inertia_degree(self)
+        return self.inertia_degree()
 
     def inertia_subring(self):
         r"""

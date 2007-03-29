@@ -105,101 +105,51 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 
 
 
-#import sage.rings.integer
-#import sage.rings.integer_mod
-import sage.rings.padics.padic_ring_generic
-import sage.rings.padics.padic_field_generic
-import sage.rings.padics.padic_ring_capped_relative_element
-import sage.rings.padics.padic_ring_fixed_mod
-import sage.rings.padics.padic_lazy_element
-import sage.rings.padics.qp
+import sage.rings.padics.padic_ring_base_generic
+import padic_base_generic_element
+import padic_capped_relative_ring_generic
+import sage.rings.integer
+import sage.rings.integer_ring
 
-from sage.rings.integer_ring import ZZ
+#from sage.rings.integer_ring import ZZ
 
+ZZ = sage.rings.integer_ring.ZZ
 Integer = sage.rings.integer.Integer
-Mod = sage.rings.integer_mod.Mod
-Qp = sage.rings.padics.qp.Qp
-pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
-pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
-pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
-pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
-pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
+#Mod = sage.rings.integer_mod.Mod
+#infinity = sage.rings.infinity.infinity
+#Element = sage.structure.element.Element
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGeneric
+pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
+pAdicCappedRelativeRingGeneric = sage.rings.padics.padic_capped_relative_ring_generic.pAdicCappedRelativeRingGeneric
+#pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
+#pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
+pAdicCappedRelativeElement = sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+#pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 
-class pAdicRingCappedRelative(pAdicRingBaseGeneric):
+class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
+
     r"""
     An implementation of the p-adic integers with capped relative precision.
     """
-
-    def __call__(self, x, absprec = None, relprec = None):
-        r"""
-            Casts x into self.  Uses the constructor from pAdicRingCappedRelativeElement.
-        """
-        return pAdicRingCappedRelativeElement(self, x, absprec, relprec)
-
-    def __cmp__(self, other):
-        if isinstance(other, pAdicRingCappedRelative):
-            if self.prime() < other.prime():
-                return -1
-            elif self.prime() > other.prime():
-                return 1
-            elif self.precision_cap() < other.precision_cap():
-                return -1
-            elif self.precision_cap() > other.precision_cap():
-                return 1
-            else:
-                return 0
-        elif isinstance(other, pAdicRingFixedMod) or isinstance(other, pAdicFieldBaseGeneric):
-            return 1
-        else:
-            return -1
-
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer)):
             return True
-        if isinstance(x, pAdicRingCappedRelativeElement) and x.parent().prime() == self.prime() and x.parent.precision_cap() >= self.precision_cap():
+        if not isinstance(x, pAdicBaseGenericElement):
+            return False
+        if x.parent().prime() != self.prime():
+            return False
+        if x.parent().is_field():
+            return False
+        if x.parent().is_capped_relative() and x.parent().precision_cap() >= self.precision_cap():
             return True
-        if isinstance(x, pAdicLazyElement) and not x.parent().is_field() and x.parent().prime() == self.prime():
+        if x.parent().is_lazy():
             return True
         return False
 
-    def _coerce_impl(self, x):
-        if self.__contains__(x):
-            return pAdicRingCappedRelativeElement(self, x)
-        else:
-            raise TypeError, "no canonical coercion of x"
-
     def _repr_(self, do_latex=False):
         return "%s-adic Ring with capped relative precision %s"%(self.prime(), self.precision_cap())
-
-    def teichmuller(self, x, prec = None):
-        r"""
-        Returns the teichmuller representative of x.
-
-        INPUT:
-            self -- a p-adic ring
-            x -- an integer or element of $\Z / p\Z$ that is not divisible by $p$
-        OUTPUT:
-            element -- the teichmuller lift of x
-        EXAMPLES:
-            sage: R = Zp(5, 10, 'capped-rel', 'series')
-            sage: R.teichmuller(2)
-                2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-        """
-        if prec is None:
-            prec = self.precision_cap()
-        p = self.prime()
-        x = Mod(x,self.prime_pow(prec))
-        xnew = x**p
-        while x != xnew:
-            x = xnew
-            xnew = x**p
-        return pAdicRingCappedRelativeElement(self, x)
-
-    def integer_ring(self):
-        r"""
-        Returns the integer ring of self, i.e. self.
-        """
-        return self
 
     def fraction_field(self):
         r"""
@@ -211,7 +161,8 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
             the p-adic field that is the fraction field of this ring
 
         """
-        return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.get_print_mode())
+        from sage.rings.padics.qp import Qp
+        return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def random_element(self, algorithm='default'):
         r"""
@@ -233,13 +184,4 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric):
             return self((self.prime()**i)*(a_i + self.prime()*ZZ.random_element(self.prime()**(self.precision_cap()-1))))
         else:
             raise NotImplementedError, "Don't know %s algorithm"%algorithm
-
-    def unit_group(self):
-        raise NotImplementedError
-
-    def unit_group_gens(self):
-        raise NotImplementedError
-
-    def principal_unit_group(self):
-        raise NotImplementedError
 

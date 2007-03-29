@@ -510,13 +510,13 @@ cdef class RealDoubleElement(FieldElement):
         """
         LShifting a double is not supported; nor is lshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for <<: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for <<"
 
     def __rshift__(x, y):
         """
         RShifting a double is not supported; nor is rshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for >>: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for >>"
 
     def multiplicative_order(self):
         if self == 1:

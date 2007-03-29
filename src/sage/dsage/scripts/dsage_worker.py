@@ -702,15 +702,20 @@ def main():
 
     if len(sys.argv) == 3:
         hostname, port = sys.argv[1:3]
-    try:
-        port = int(port)
-    except:
-        port = None
-    try:
-        if hostname is not None:
-            hostname = str(hostname)
-    except:
-        hostname = None
+        try:
+            port = int(port)
+        except:
+            port = None
+        if hostname == 'None':
+            hostname = None
+        else:
+            try:
+                hostname = str(hostname)
+            except Exception, msg:
+                print msg
+                hostname = None
+    else:
+        hostname = port = None
 
     monitor = Monitor(hostname, port)
 

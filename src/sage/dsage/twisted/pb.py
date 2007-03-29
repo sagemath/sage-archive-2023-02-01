@@ -161,6 +161,7 @@ class DefaultPerspective(pb.Avatar):
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
+        log.msg('%s disconnected' % (self.avatarID))
         if mind:
             # This will remove all disconnected clients, not just the one that
             # just disconnected.
@@ -317,8 +318,9 @@ class UserPerspective(DefaultPerspective):
     def perspective_submit_job(self, jdict):
         if jdict is None:
             raise BadJobError()
-        if jdict['username'] != self.avatarID:
+        if jdict['user_id'] != self.avatarID:
             raise BadJobError()
+
         return self.DSageServer.submit_job(jdict)
 
     def perspective_kill_job(self, job_id, reason=None):

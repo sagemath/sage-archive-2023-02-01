@@ -588,15 +588,6 @@ def log(x,b=None):
     ordering, so the base can be viewed as an optional second
     argument.}
 
-    EXAMPLES:
-        sage: log(10,2)
-        3.32192809489
-        sage: log(8,2)
-        3.0
-        sage: log(10)
-        2.30258509299
-        sage: log(2.718)
-        0.999896315728952
     """
     if b is None:
         if hasattr(x, 'log'):

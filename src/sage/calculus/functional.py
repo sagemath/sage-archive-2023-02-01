@@ -19,8 +19,8 @@ def integrate(f, *args):
     EXAMPLES:
         sage: integrate(sin(x), x)
         -cos(x)
-        integrate(sin(x)^2, x, pi, 123*pi/2)
-        ((123*pi)/4)
+        sage: integrate(sin(x)^2, x, pi, 123*pi/2)
+        ((121*pi)/4)
 
     """
     if isinstance(f, CallableFunction):

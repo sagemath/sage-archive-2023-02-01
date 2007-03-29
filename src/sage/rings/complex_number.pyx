@@ -428,7 +428,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             4
             sage: C(2).multiplicative_order()
             +Infinity
-            sage: w = (1+sqrt(-3))/2; w
+            sage: w = (1+sqrt(-3.0))/2; w
             0.500000000000000 + 0.866025403784439*I
             sage: abs(w)
             1.00000000000000
@@ -815,16 +815,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLE:
             sage: C = ComplexField()
-<<<<<<< /home/moretti/sage-1.5/devel/sage-temp/sage/rings/complex_number.pyx.orig.380518111
-            sage: z = (1/2)*(1 + sqrt(RR(3)) *C.0); z
-            0.500000000000000 + 0.866025403784438*I
-||||||| /tmp/complex_number.pyx~base.ccyvQL
-            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
-            0.500000000000000 + 0.866025403784438*I
-=======
-            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+            sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
             0.500000000000000 + 0.866025403784439*I
->>>>>>> /tmp/complex_number.pyx~other.C9_ueu
             sage: p = z.algdep(5); p
             x^5 + x^2
             sage: p.factor()

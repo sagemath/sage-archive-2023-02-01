@@ -29,6 +29,8 @@ from sage.rings.complex_number import ComplexNumber
 from sage.rings.real_double import RealDoubleElement
 from sage.rings.real_mpfi import RealIntervalFieldElement
 
+from sage.libs.pari.gen import gen as PariGen
+
 import math
 
 # used for caching simplified states
@@ -63,6 +65,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
                             Integer,
                             int,
                             Rational,
+                            PariGen,
                             ComplexNumber)):
             return SymbolicConstant(x)
         elif isinstance(x, Constant):
@@ -453,15 +456,17 @@ class SymbolicExpression(RingElement):
         AUTHORS:
             -- Bobby Moretti: Initial version
         """
-        if not isinstance(in_dict, (dict, SymbolicExpression)):
+        try:
             in_dict = SER(in_dict)
+        except TypeError:
+            pass
 
         if isinstance(in_dict, SymbolicExpression):
             vars = list(self._get_vars())
             if len(vars) == 1:
                 in_dict = {vars[0]: in_dict}
 
-        elif not (isinstance(in_dict, dict) or in_dict is None):
+        elif not ((isinstance(in_dict, dict) or in_dict is None)):
            raise TypeError, "Must give explicit variable names to substitute for"
 
         if in_dict is not None:
@@ -501,12 +506,12 @@ class PrimitiveFunction(SymbolicExpression):
     def tex_needs_braces(self):
         return self._tex_needs_braces
 
-    def __call__(self, x):
-        if isinstance(x, (RealNumber, RealDoubleElement, float)):
+    def __call__(self, x, *args):
+        if not isinstance(x, (Constant, int, Rational, Integer)):
             try:
                 r = self._approx_(x)
             except AttributeError:
-                r = self(SER(x))
+                r = self(SER(x), *args)
             return r
 
         return SymbolicComposition(self, SER(x))
@@ -873,9 +878,9 @@ class SymbolicOperation(SymbolicExpression):
         return vars
 
 class SymbolicComposition(SymbolicOperation):
-    r'''
+    r"""
     Represents the symbolic composition of $f \circ g$.
-    '''
+    """
     def __init__(self, f, g):
         SymbolicOperation.__init__(self, [f,g])
 
@@ -903,7 +908,25 @@ class SymbolicComposition(SymbolicOperation):
             return self.__maxima
         except AttributeError:
             ops = self._operands
-            m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+            #try:
+            #    base = self._base
+            #    print ops[1]
+            #    m = maxima.log(ops[1]._maxima_(maxima)) / ('log(%s)' % base)._maxima_(maxima)
+            #except AttributeError:
+            #    m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+            #    self.__maxima = m
+            #return m
+            try:
+                base = ops[0]._base
+            except AttributeError:
+                m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+                self.__maxima = m
+                return m
+            if not base is None:
+                m = maxima.log(ops[1]._maxima_(maxima)) / maxima.log(base)
+            else:
+                m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+
             self.__maxima = m
             return m
 
@@ -1388,27 +1411,67 @@ _syms['atan'] = atan
 
 
 class Function_log(PrimitiveFunction):
-    '''
-    The log function
+    """
+    The log funtion.
 
     EXAMPLES:
-    sage: log(10, 2)
-    '''
+    sage: log(e^2)
+    2
+    sage: log(1024, 2) # the following is ugly (for now)
+    log(1024)/log(2)
+    sage: log(10, 4)
+    log(10)/log(4)
+    sage: log(1024.0, 2.0)
+    10.0000000000000
+
+    sage: log(RDF(10),2)
+    3.32192809489
+    sage: RDF(log(8, 2))
+    3.0
+    sage: log(RDF(10))
+    2.30258509299
+    sage: log(2.718)
+    0.999896315728952
+    """
+
+    def __call__(self, x, base=None):
+        self._base = base
+        return PrimitiveFunction.__call__(self, x, base)
+
     def _repr_(self):
-        return "log"
+        if self._base is None:
+            return "log"
+        else:
+            if self._base._is_atomic():
+                return "log_%s" % self._base
+            else:
+                return "log_(%s)" % self._base
 
     def _latex_(self):
-        return "\\log"
+        if self._base is None:
+            return "\\log"
+        else:
+            return "\\log_{%s}" % self._base
 
     def _is_atomic(self):
         return True
 
     def _approx_(self, x):
         try:
-            return x.log()
+            base = self._base
+        except AttributeError:
+            base = None
+        try:
+            if base is None:
+                return x.log()
+            else:
+                return x.log(base)
         except AttributeError:
             if isinstance(x, float):
-                return math.log(x)
+                if base is None:
+                    return math.log(x)
+                else:
+                    return math.log(x, base)
             else:
                 return SymbolicComposition(self, x)
 

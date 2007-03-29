@@ -19,7 +19,7 @@
 import zlib
 import cPickle
 import datetime
-import xml
+import xml.dom.minidom
 import cStringIO
 
 from twisted.spread import pb

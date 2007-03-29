@@ -59,7 +59,8 @@ class JobDatabase(object):
                                                        'job_failure_threshold')
             self.LOG_FILE = config.get('db_log', 'log_file')
             self.LOG_LEVEL = config.getint('db_log', 'log_level')
-        except:
+        except Exception, msg:
+            print msg
             print "Error reading '%s', run dsage.setup()" % conf_file
             raise
         # End reading configuration

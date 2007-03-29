@@ -25,7 +25,7 @@ from twisted.internet import reactor, task
 from twisted.spread import pb
 
 from sage.dsage.database.job import Job
-from sage.dsage.interface.dsage_interface import JobWrapper, blockingJobWrapper
+from sage.dsage.interface.dsage_interface import JobWrapper, BlockingJobWrapper
 from sage.dsage.twisted.misc import blocking_call_from_thread
 
 class DistributedFunction(object):
@@ -115,7 +115,7 @@ class DistributedFunction(object):
                                                          async=True))
         else:
             if isinstance(job, Job):
-                self.waiting_jobs.append(self.DSage.send_job(job))
+                self.waiting_jobs.append(self.DSage.send_job(job, async=False))
             else:
                 self.waiting_jobs.append(self.DSage.eval(job,
                                                          job_name=job_name))
@@ -130,20 +130,18 @@ class DistributedFunction(object):
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
         self.checker_task = blocking_call_from_thread(task.LoopingCall,
                                                       self.check_results)
-        reactor.callFromThread(self.checker_task.start,
-                               1.0, now=True)
+        reactor.callFromThread(self.checker_task.start, 1.0, now=True)
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
             if isinstance(wrapped_job, JobWrapper):
                 try:
                     wrapped_job.get_job()
                 except pb.DeadReferenceError:
-                    print 'Got pb.DeadReferenceError.'
-                    print 'This will be handled in the future.'
+                    print 'Disconnected from the server, stopping checker_task.'
                     if self.checker_task.running:
                         reactor.callFromThread(self.checker_task.stop)
                     break
-            else:
+            elif isinstance(wrapped_job, BlockingJobWrapper):
                 wrapped_job.async_get_job()
             if wrapped_job.status == 'completed':
                 self.waiting_jobs.remove(wrapped_job)
@@ -154,10 +152,9 @@ class DistributedFunction(object):
             for wrapped_job in self.waiting_jobs:
                 if isinstance(wrapped_job, JobWrapper):
                     wrapped_job.kill()
-                else:
+                elif isinstance(wrapped_job, BlockingJobWrapper):
                     wrapped_job.async_kill()
             self.waiting_jobs = []
-
             if self.checker_task.running:
                 reactor.callFromThread(self.checker_task.stop)
 

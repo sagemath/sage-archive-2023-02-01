@@ -209,6 +209,12 @@ class MupadElement(ExpectElement):
         self._check_valid()
         return self.parent().get(self._name)
 
+    def _latex_(self):
+        self._check_valid()
+        P = self.parent()
+        s = P._eval_line('generate::TeX(%s)'%self.name())
+        s = s.replace('\\\\','\\').strip().strip('"')
+        return s
 
 # An instance
 mupad = Mupad(script_subdirectory='user')

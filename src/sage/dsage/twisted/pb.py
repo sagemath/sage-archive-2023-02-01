@@ -244,7 +244,7 @@ class MonitorPerspective(DefaultPerspective):
 
     def perspective_job_failed(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id passed to perspective_job_failed'
+            print 'Bad job_id [%s] passed to perspective_job_failed' % (job_id)
             raise BadTypeError()
 
         return self.DSageServer.job_failed(job_id)
@@ -267,8 +267,8 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_by_id(self, job_id):
         if not isinstance(job_id, str):
+            print 'Bad job_id [%s] passed to get_job_by_id' % (job_id)
             raise BadTypeError()
-            print 'Bad job_id passed to get_job_by_id'
         # log.msg('Returning job %s to %s' % (job_id, self.avatarID))
         job = self.DSageServer.get_job_by_id(job_id)
 
@@ -276,7 +276,7 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_jobs_by_user_id(self, user_id):
         if not (isinstance(user_id, str)):
-            print 'Bad job_id passed to perspective_get_jobs_by_user_id'
+            print 'Bad user_id [%s] passed to perspective_get_jobs_by_user_id' % (user_id)
             raise BadTypeError()
 
         jobs = self.DSageServer.get_jobs_by_user_id(user_id)
@@ -285,14 +285,14 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_result_by_id(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id passed to perspective_get_job_result_by_id'
+            print 'Bad job_id [%s] passed to perspective_get_job_result_by_id' % (job_id)
             raise BadTypeError()
 
         return self.DSageServer.get_job_result_by_id(job_id)
 
     def perspective_get_job_output_by_id(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id passed to get_job_output_by_id'
+            print 'Bad job_id [%s] passed to get_job_output_by_id' % (job_id)
             raise BadTypeError()
 
         return self.DSageServer.get_job_output_by_id(job_id)
@@ -310,7 +310,7 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_kill_job(self, job_id, reason=None):
         if not isinstance(job_id, str):
-            print 'Bad job_id passed to perspective_kill_job'
+            print 'Bad job_id [%s] passed to perspective_kill_job' % job_id
             raise BadTypeError()
 
         return self.DSageServer.kill_job(job_id, reason)

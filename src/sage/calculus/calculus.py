@@ -1,5 +1,16 @@
 """
 The SAGE calculus module
+
+EXAMPLES:
+    sage: f = 5*sin(x)
+    sage: f
+    5*sin(x)
+    sage: f(2)
+    5*sin(2)
+    sage: f(pi)
+    0
+    sage: float(f(pi))
+    6.1232339957367663e-16
 """
 
 

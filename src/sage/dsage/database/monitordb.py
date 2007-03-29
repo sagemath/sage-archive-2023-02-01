@@ -140,12 +140,14 @@ class MonitorDatabase(object):
         Returns a list of connected monitors.
 
         """
-        query = """SELECT uuid, ip, sage_version FROM monitors WHERE connected"""
-
+        query = """SELECT uuid, ip, sage_version, os FROM monitors WHERE connected"""
         cur = self.con.cursor()
         cur.execute(query)
+        result = cur.fetchall()
+        columns = [desc[0] for desc in cur.description]
+        monitors = [dict(zip(columns, monitor)) for monitor in result]
 
-        return cur.fetchall()
+        return monitors
 
     def set_connected(self, uuid, connected=True):
         r"""

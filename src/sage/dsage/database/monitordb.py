@@ -21,8 +21,6 @@ import datetime
 import os
 import ConfigParser
 import sqlite3 as sqlite
-import cStringIO
-import xml.dom.minidom
 
 from twisted.python import log
 
@@ -243,15 +241,15 @@ class MonitorDatabase(object):
         """
 
         if connected:
-            query = """SELECT cpus FROM monitors WHERE connected"""
+            query = """SELECT workers, cpus FROM monitors WHERE connected"""
         else:
-            query = """SELECT cpus FROM monitors"""
+            query = """SELECT workers, cpus FROM monitors"""
 
         cur = self.con.cursor()
         cur.execute(query)
 
         result = cur.fetchall()
 
-        cpu_count = sum(s[0] for s in result)
+        cpu_count = sum(min(s[0:2]) for s in result)
 
         return cpu_count

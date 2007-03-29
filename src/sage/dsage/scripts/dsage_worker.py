@@ -354,6 +354,10 @@ class Monitor(object):
             CONFIG.write(f)
         self.uuid = CONFIG.get('uuid', 'id')
 
+        self.host_info = ClassicHostInfo().host_info
+        self.host_info['uuid'] = self.uuid
+        self.host_info['workers'] = WORKERS
+
         if AUTHENTICATE:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
@@ -495,15 +499,12 @@ class Monitor(object):
         else:
             reactor.connectTCP(self.hostname, self.port, self.factory)
 
-        hf = ClassicHostInfo().host_info
-        hf['uuid'] = self.uuid
-        hf['workers'] = WORKERS
         if AUTHENTICATE:
             log.msg('Connecting as authenticated worker...\n')
-            d = self.factory.login(self.creds, (pb.Referenceable(), hf))
+            d = self.factory.login(self.creds, (pb.Referenceable(), self.host_info))
         else:
             log.msg('Connecting as anonymous worker...\n')
-            d = self.factory.login('Anonymous', (pb.Referenceable(), hf))
+            d = self.factory.login('Anonymous', (pb.Referenceable(), self.host_info))
         d.addCallback(self._connected)
         d.addErrback(self._catchConnectionFailure)
 

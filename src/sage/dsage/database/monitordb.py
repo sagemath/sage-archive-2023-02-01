@@ -140,7 +140,7 @@ class MonitorDatabase(object):
         Returns a list of connected monitors.
 
         """
-        query = """SELECT uuid, ip, sage_version, os FROM monitors WHERE connected"""
+        query = """SELECT uuid, hostname, ip, sage_version, os FROM monitors WHERE connected"""
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()

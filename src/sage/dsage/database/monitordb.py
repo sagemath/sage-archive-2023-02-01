@@ -140,7 +140,7 @@ class MonitorDatabase(object):
         Returns a list of connected monitors.
 
         """
-        query = """SELECT uuid FROM monitors WHERE connected"""
+        query = """SELECT uuid, ip, sage_version FROM monitors WHERE connected"""
 
         cur = self.con.cursor()
         cur.execute(query)
@@ -193,8 +193,7 @@ class MonitorDatabase(object):
         """
 
         if connected and not busy:
-            query = """SELECT workers FROM monitors
-            WHERE connected AND NOT busy"""
+            query = """SELECT workers FROM monitors WHERE connected AND NOT busy"""
         elif connected and busy:
             query = """SELECT workers FROM monitors WHERE connected AND busy"""
         elif connected:

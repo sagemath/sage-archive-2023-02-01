@@ -533,8 +533,8 @@ class BlockingDSage(DSage):
         return blocking_call_from_thread(self.remoteobj.callRemote,
                                       'get_cluster_speed')
 
-    def list_monitor(self):
-        r"""Returns a list of workers connected to the server.
+    def list_monitors(self):
+        r"""Returns a list of monitors connected to the server.
 
         """
 

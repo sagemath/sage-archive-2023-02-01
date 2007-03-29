@@ -33,6 +33,11 @@ from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 class WorkerPBServerFactory(pb.PBServerFactory):
+    r"""
+    This factory serves workers requests.
+
+    """
+
     def __init__(self, root):
         pb.PBServerFactory.__init__(self, root)
 
@@ -238,6 +243,9 @@ class MonitorPerspective(DefaultPerspective):
             print 'completed: %s' % (completed)
             print 'worker_info: %s' % (worker_info)
             raise BadTypeError()
+        if completed:
+            uuid = self.mind[1]['uuid']
+            self.DSageServer.set_busy(uuid, busy=False)
 
         return self.DSageServer.job_done(job_id, output, result,
                                   completed, worker_info)
@@ -246,6 +254,9 @@ class MonitorPerspective(DefaultPerspective):
         if not isinstance(job_id, str):
             print 'Bad job_id [%s] passed to perspective_job_failed' % (job_id)
             raise BadTypeError()
+
+        uuid = self.mind[1]['uuid']
+        self.DSageServer.set_busy(uuid, busy=False)
 
         return self.DSageServer.job_failed(job_id)
 
@@ -305,6 +316,8 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_submit_job(self, jdict):
         if jdict is None:
+            raise BadJobError()
+        if jdict['username'] != self.avatarID:
             raise BadJobError()
         return self.DSageServer.submit_job(jdict)
 

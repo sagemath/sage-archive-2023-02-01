@@ -105,14 +105,7 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 
 
 
-#import sage.rings.integer
-#import sage.rings.integer_mod
 import sage.rings.padics.padic_ring_base_generic
-#import sage.rings.padics.padic_generic
-import sage.rings.padics.padic_ring_capped_relative_element
-#import sage.rings.padics.padic_ring_fixed_mod
-#import sage.rings.padics.padic_lazy_element
-#import sage.rings.infinity
 import padic_base_generic_element
 import padic_capped_relative_ring_generic
 import sage.rings.integer

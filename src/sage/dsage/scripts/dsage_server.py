@@ -103,7 +103,8 @@ def main():
         PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
                                                         'pubkey_database'))
         STATS_FILE = config.get('general', 'stats_file')
-    except:
+    except Exception, msg:
+        print msg
         print "Error reading %s, run dsage.setup()" % conf_file
         sys.exit(-1)
     # End reading configuration

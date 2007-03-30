@@ -40,8 +40,6 @@ if [ "$SAGE_ROOT" = "" ]; then
            echo "SAGE_ROOT/local/bin/ directory."
        fi
     fi
-else
-    echo "WARNING: Using SAGE_ROOT variable that was already set to '$SAGE_ROOT'."
 fi
 cd "$SAVEDIR"
 

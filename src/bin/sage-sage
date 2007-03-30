@@ -548,9 +548,15 @@ fi
 #fi
 
 if [ $1 = '-upgrade' -o $1 = "--upgrade" ]; then
+    # People often move the SAGE install right before doing the upgrade, so it's
+    # important to fix any path hardcoding issues first, or certain library
+    # links will fail.
+    "$SAGE_ROOT/local/bin/"sage-location
+
     # Do it twice since when installing sage-scripts and a running
     # script changes, it gets confused and exits with an error.
     # Running again (with the script replaced) then fixes the problem.
+    # Run from a temporary copy of sage-sage
     sage-upgrade
     sage-upgrade
     exit $?

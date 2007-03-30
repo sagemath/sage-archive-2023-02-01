@@ -946,7 +946,7 @@ pre.cell_input {
   color:#000000;
   background-color: white;
   border: 2px solid #e8e8e8;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:auto;
   padding-left:5px;
@@ -979,7 +979,7 @@ textarea.cell_input_hide {
 pre.cell_input_hide {
   background-color: white;
   border: 2px solid #e8e8e8;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:3px;

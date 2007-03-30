@@ -29,7 +29,7 @@ class JobTestCase(unittest.TestCase):
         self.assert_(isinstance(job, Job))
 
         job = Job(id_=10, name='test', code='test', parent='test',
-                  user_id='test', type_='test')
+                  username='test', type_='test')
         self.assert_(isinstance(job, Job))
 
     def testjob_id(self):

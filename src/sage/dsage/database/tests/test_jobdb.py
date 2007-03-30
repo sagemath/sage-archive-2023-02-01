@@ -75,11 +75,11 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
             self.assert_(self.jobdb.get_job_by_id(job_id).update_time <
                          datetime.datetime.now())
 
-    def testget_jobs_by_user_id(self):
-        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', True)
+    def testget_jobs_by_username(self):
+        jobs = self.jobdb.get_jobs_by_username('Yi Qiang', True)
         self.assert_(len(jobs) == 0)
 
-        jobs = self.jobdb.get_jobs_by_user_id('Yi Qiang', False, 'unittest')
+        jobs = self.jobdb.get_jobs_by_username('Yi Qiang', False, 'unittest')
         self.assert_(len(jobs) > 0)
 
     def testget_active_jobs(self):
@@ -103,7 +103,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
+            jobs.append(Job(name='unittest', username='Yi Qiang'))
 
         return jobs
 
@@ -197,7 +197,7 @@ class DatabasePrunerTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
+            jobs.append(Job(name='unittest', username='Yi Qiang'))
 
         return jobs
 

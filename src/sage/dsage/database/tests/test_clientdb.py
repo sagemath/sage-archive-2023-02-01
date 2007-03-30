@@ -37,7 +37,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.clientdb = ClientDatabase(test=True)
 
     def tearDown(self):
-        query = """DELETE FROM users"""
+        query = """DELETE FROM clients"""
         cur = self.clientdb.con.cursor()
         cur.execute(query)
         self.clientdb.con.commit()

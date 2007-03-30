@@ -137,18 +137,18 @@ class DSageServer(pb.Root):
 
         # return job.pickle()
 
-    def get_jobs_by_user_id(self, user_id):
+    def get_jobs_by_username(self, username):
         r"""
-        Returns jobs created by user_id.
+        Returns jobs created by username.
 
         Parameters:
-        user_id -- the username (str)
+        username -- the username (str)
         is_active -- when set to True, only return active jobs (bool)
         job_name -- the job name (optional)
 
         """
 
-        jobs = self.jobdb.get_jobs_by_user_id(user_id)
+        jobs = self.jobdb.get_jobs_by_username(username)
 
         if self.LOG_LEVEL > 3:
             log.msg(jobs)
@@ -309,7 +309,6 @@ class DSageServer(pb.Root):
 
         """
         return self.monitordb.get_monitor_list()
-        # return worker_tracker.worker_list
 
     def get_client_list(self):
         r"""

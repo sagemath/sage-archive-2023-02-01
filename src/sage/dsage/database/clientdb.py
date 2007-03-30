@@ -33,7 +33,7 @@ class ClientDatabase(object):
 
     """
 
-    TABLENAME = 'users'
+    TABLENAME = 'clients'
 
     CREATE_USER_TABLE = """CREATE TABLE %s
     (
@@ -43,6 +43,7 @@ class ClientDatabase(object):
      creation_time timestamp,
      access_time timestamp,
      last_login timestamp,
+     connected BOOL,
      enabled BOOL DEFAULT 1
     )
     """ % TABLENAME
@@ -103,7 +104,7 @@ class ClientDatabase(object):
 
         """
 
-        query = """SELECT username, public_key FROM users WHERE username = ?"""
+        query = """SELECT username, public_key FROM clients WHERE username = ?"""
 
         cur = self.con.cursor()
         cur.execute(query, (username,))
@@ -113,13 +114,13 @@ class ClientDatabase(object):
 
     def get_user(self, username):
         r"""
-        Returns a tuple containing all of the users information.
+        Returns a tuple containing all of the clients information.
 
         WARNING: ORDER OF RETURNED TUPLE MIGHT CHANGE
 
         """
 
-        query = """SELECT * FROM users WHERE username = ?"""
+        query = """SELECT * FROM clients WHERE username = ?"""
         cur = self.con.cursor()
         cur.execute(query, (username,))
         result = cur.fetchone()
@@ -132,7 +133,7 @@ class ClientDatabase(object):
 
         """
 
-        query = """INSERT INTO users
+        query = """INSERT INTO clients
                    (username, public_key, creation_time)
                    VALUES (?, ?, ?)
                 """
@@ -156,20 +157,20 @@ class ClientDatabase(object):
 
         """
 
-        query = """DELETE FROM users WHERE username = ?"""
+        query = """DELETE FROM clients WHERE username = ?"""
         self.con.execute(query, (username,))
         self.con.commit()
 
     def set_enabled(self, username, enabled=True):
         r"""
-        Enables/Disables a users account.
+        Enables/Disables a clients account.
 
         Parameters:
         username -- str
         enabled -- bool
         """
 
-        query = """UPDATE users
+        query = """UPDATE clients
         SET enabled = ?
         WHERE username = ?
         """
@@ -183,7 +184,7 @@ class ClientDatabase(object):
 
         """
 
-        query = """SELECT enabled FROM users WHERE username = ?"""
+        query = """SELECT enabled FROM clients WHERE username = ?"""
         cur = self.con.cursor()
         cur.execute(query, (username,))
         result = cur.fetchone()
@@ -196,7 +197,7 @@ class ClientDatabase(object):
 
         """
 
-        query = """UPDATE users
+        query = """UPDATE clients
         SET %s = ?
         WHERE username = ?
         """ % (parameter)
@@ -210,12 +211,15 @@ class ClientDatabase(object):
 
         """
 
-        query = """SELECT %s FROM users WHERE username = ?""" % parameter
+        query = """SELECT %s FROM clients WHERE username = ?""" % parameter
         cur = self.con.cursor()
         cur.execute(query, (username,))
         result = cur.fetchone()
 
         return result[0]
+
+    def set_connected(self, username, connected=True):
+        return self.set_parameter(username, 'connected', connected)
 
     def update_login_time(self, username):
         r"""
@@ -223,7 +227,7 @@ class ClientDatabase(object):
 
         """
 
-        query = """UPDATE users
+        query = """UPDATE clients
         SET last_login = ?
         WHERE username = ?
         """

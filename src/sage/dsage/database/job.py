@@ -32,7 +32,7 @@ class Job(Persistent):
     """
 
     def __init__(self, id_=None, name=None, code=None, parent=None,
-                 user_id=None, type_='sage'):
+                 username=None, type_='sage'):
         r"""
         Creates a new job.
 
@@ -41,7 +41,7 @@ class Job(Persistent):
         id -- job id (must be unique)
         code -- job code
         parent -- sets if the job is a parent job
-        user_id -- author of the job (not neccesarily unique)
+        username -- author of the job (not neccesarily unique)
         type -- the type of the job (file, string, generator)
                 defaults to string
 
@@ -53,7 +53,7 @@ class Job(Persistent):
         self.jdict['job_id'] = id_
         self.jdict['name'] = name
         self.jdict['code'] = code
-        self.jdict['user_id'] = user_id
+        self.jdict['username'] = username
         self.jdict['data'] = []
         self.jdict['output'] = ''
         self.jdict['worker_info'] = None
@@ -148,11 +148,11 @@ class Job(Persistent):
     output = property(fget=get_output, fset=set_output, fdel=None,
                       doc='Job output')
 
-    def get_user_id(self):
-        return self.jdict['user_id']
-    def set_user_id(self, value):
-        self.jdict['user_id'] = value
-    user_id = property(fget=get_user_id, fset=set_user_id, fdel=None,
+    def get_username(self):
+        return self.jdict['username']
+    def set_username(self, value):
+        self.jdict['username'] = value
+    username = property(fget=get_username, fset=set_username, fdel=None,
                       doc='Job author')
 
     def get_finish_time(self):

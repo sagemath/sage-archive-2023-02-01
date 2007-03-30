@@ -238,7 +238,7 @@ class DSage(object):
         type_ = 'sage'
 
         job = Job(id_=None, code=cmd, name=job_name,
-                  user_id=self.username, type_=type_)
+                  username=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
         if globals_ is not None:
@@ -261,7 +261,7 @@ class DSage(object):
         type_ = 'file'
         cmd = open(fname).read()
         job = Job(id_=None, code=cmd, name=job_name,
-                  user_id=self.username, type_=type_)
+                  username=self.username, type_=type_)
 
         wrapped_job = JobWrapper(self.remoteobj, job)
 
@@ -280,7 +280,7 @@ class DSage(object):
 
     def _got_job_id(self, id, job):
         job.id = id
-        job.user_id = self.username
+        job.username = self.username
 
         self.jobs.append(job)
 
@@ -333,7 +333,7 @@ class DSage(object):
 
         self.check_connected()
 
-        d = self.remoteobj.callRemote('get_jobs_by_user_id',
+        d = self.remoteobj.callRemote('get_jobs_by_username',
                                       self.username,
                                       is_active,
                                       job_name)
@@ -469,7 +469,7 @@ class BlockingDSage(DSage):
         type_ = 'sage'
 
         job = Job(id_=None, code=cmd, name=job_name,
-                  user_id=self.username, type_=type_)
+                  username=self.username, type_=type_)
 
         if globals_ is not None:
             for k, v in globals_.iteritems():
@@ -516,7 +516,7 @@ class BlockingDSage(DSage):
         self.check_connected()
 
         jdicts = blocking_call_from_thread(self.remoteobj.callRemote,
-                                           'get_jobs_by_user_id',
+                                           'get_jobs_by_username',
                                            self.username)
 
         return [expand_job(jdict) for jdict in jdicts]

@@ -71,20 +71,20 @@ class DSageServerTestCase(unittest.TestCase):
                     self.dsage_server.get_job_result_by_id(jdict['job_id']),
                     'test')
 
-    def testget_jobs_by_user_id(self):
+    def testget_jobs_by_username(self):
         self.assertEquals(
-                type(self.dsage_server.get_jobs_by_user_id('yqiang')),
+                type(self.dsage_server.get_jobs_by_username('yqiang')),
                 list)
         self.assertEquals(
-                len(self.dsage_server.get_jobs_by_user_id('test')),
+                len(self.dsage_server.get_jobs_by_username('test')),
                 0)
 
         job = expand_job(self.dsage_server.get_job())
-        job.user_id = 'testing123'
+        job.username = 'testing123'
         job.code = ''
         jdict = self.dsage_server.submit_job(job.reduce())
-        j = expand_job(self.dsage_server.get_jobs_by_user_id('testing123')[0])
-        self.assertEquals(j.user_id, job.user_id)
+        j = expand_job(self.dsage_server.get_jobs_by_username('testing123')[0])
+        self.assertEquals(j.username, job.username)
 
     def testsubmit_job(self):
         jobs = self.create_jobs(10)
@@ -177,7 +177,7 @@ class DSageServerTestCase(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', user_id='yqiang', code='2+2'))
+            jobs.append(Job(name='unittest', username='yqiang', code='2+2'))
 
         return jobs
 

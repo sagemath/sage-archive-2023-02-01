@@ -196,12 +196,12 @@ class JobDatabaseZODB(JobDatabase):
         else:
             return self.jobdb[job_id]
 
-    def get_jobs_by_user_id(self, user_id, is_active, job_name=None):
+    def get_jobs_by_username(self, username, is_active, job_name=None):
         r"""
         Returns jobs created by author.
 
         Parameters:
-        user_id -- the user_id name (str)
+        username -- the username name (str)
         is_active -- when set to true, only return active jobs (bool)
         job_name -- the job name to return (default=None)
 
@@ -210,21 +210,21 @@ class JobDatabaseZODB(JobDatabase):
         if is_active:
             if job_name:
                 jobs = [job for job in self.get_active_jobs()
-                        if (job.user_id == user_id and job.name == job_name)]
+                        if (job.username == username and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_active_jobs()
-                        if job.user_id == user_id]
+                        if job.username == username]
 
         else:
             if job_name:
                 jobs = [job for job in self.get_jobs_list()
-                        if (job.user_id == user_id and job.name == job_name)]
+                        if (job.username == username and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_jobs_list()
-                        if job.user_id == user_id]
+                        if job.username == username]
 
         if self.LOG_LEVEL > 3:
-            log.msg('[JobDatabaseZODB, get_jobs_by_user_id] ', jobs)
+            log.msg('[JobDatabaseZODB, get_jobs_by_username] ', jobs)
         return jobs
 
     def store_job(self, job):
@@ -383,7 +383,7 @@ class JobDatabaseSQLite(JobDatabase):
     CREATE_JOBS_TABLE = """CREATE TABLE jobs
     (job_id TEXT NOT NULL UNIQUE,
      name TEXT,
-     user_id INTEGER REFERENCES users(id),
+     username INTEGER REFERENCES clients(id),
      worker_id INTEGER REFERENCES workers(id),
      worker_info TEXT,
      code TEXT,
@@ -426,7 +426,7 @@ class JobDatabaseSQLite(JobDatabase):
     def __add_test_data(self):
         INSERT_JOB = """INSERT INTO jobs
         (uid,
-         user_id,
+         username,
          code,
          data,
          output,
@@ -606,15 +606,15 @@ class JobDatabaseSQLite(JobDatabase):
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 
-    def get_jobs_by_user_id(self, user_id):
+    def get_jobs_by_username(self, username):
         r"""
-        Returns a list of jobs belonging to 'user_id'
+        Returns a list of jobs belonging to 'username'
 
         """
 
-        query = """SELECT * from jobs where user_id = ? """
+        query = """SELECT * from jobs where username = ? """
         cur = self.con.cursor()
-        cur.execute(query, (user_id,))
+        cur.execute(query, (username,))
 
         return [self.create_jdict(jtuple, cur.description) for jtuple in cur]
 

@@ -52,7 +52,7 @@ CONFIGURATION
         1)  Edit server.conf.
 
         2)  Setting up a public key database
-            Authentication of users is done solely based on public keys.
+            Authentication of clients is done solely based on public keys.
             To grant a client access to the server, you must first add
             their username and public key to the file you specified in
             server_conf.py under 'pubkey_database'.  The format is simply:

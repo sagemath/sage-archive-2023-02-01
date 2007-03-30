@@ -145,6 +145,10 @@ class ClientRemoteCallsTest(unittest.TestCase):
             os.remove(file)
         return self.server.stopListening()
 
+    def _catchFailure(self, failure, *args):
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
+
     def testremoteSubmitJob(self):
         """tests perspective_submit_job"""
         jobs = self.create_jobs(1)
@@ -156,6 +160,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         d = factory.login(self.creds, None)
         d.addCallback(self._LoginConnected2, jobs)
+        d.addErrback(self._catchFailure)
         return d
 
     def _LoginConnected2(self, remoteobj, jobs):
@@ -194,7 +199,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', user_id='Yi Qiang'))
+            jobs.append(Job(name='unittest', username='yqiang'))
 
         return jobs
 

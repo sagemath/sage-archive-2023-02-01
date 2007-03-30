@@ -148,28 +148,27 @@ class DefaultPerspective(pb.Avatar):
         self.current_connections += 1
         if isinstance(mind, tuple):
             self.mind = mind
-            host_info = mind[1]
-            host_info['ip'] = mind[0].broker.transport.getPeer().host
-            host_info['port'] = mind[0].broker.transport.getPeer().port
-            uuid = host_info['uuid']
-            worker_tracker.add((mind[0].broker, host_info))
+            self.host_info = mind[1]
+            self.host_info['ip'] = mind[0].broker.transport.getPeer().host
+            self.host_info['port'] = mind[0].broker.transport.getPeer().port
+            uuid = self.host_info['uuid']
             if self.DSageServer.monitordb.get_monitor(uuid) is None:
-                self.DSageServer.monitordb.add_monitor(host_info)
+                self.DSageServer.monitordb.add_monitor(self.host_info)
             self.DSageServer.monitordb.set_connected(uuid, connected=True)
         else:
+            self.DSageServer.clientdb.update_login_time(self.avatarID)
+            self.DSageServer.clientdb.set_connected(self.avatarID, connected=True)
             client_tracker.add((avatar, mind))
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
         if mind:
-            # This will remove all disconnected clients, not just the one that
-            # just disconnected.
+            # This will remove all disconnected clients
             for broker, host_info in worker_tracker.worker_list:
                 if broker.transport.disconnected:
                     worker_tracker.remove((broker, host_info))
-            self.DSageServer.monitordb.set_connected(host_info['uuid'],
-                                                    connected=False)
+            self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
         else:
             client_tracker.remove((avatar, mind))
 
@@ -286,12 +285,12 @@ class UserPerspective(DefaultPerspective):
 
         return job
 
-    def perspective_get_jobs_by_user_id(self, user_id):
-        if not (isinstance(user_id, str)):
-            print 'Bad user_id [%s] passed to perspective_get_jobs_by_user_id' % (user_id)
+    def perspective_get_jobs_by_username(self, username):
+        if not (isinstance(username, str)):
+            print 'Bad username [%s] passed to perspective_get_jobs_by_username' % (username)
             raise BadTypeError()
 
-        jobs = self.DSageServer.get_jobs_by_user_id(user_id)
+        jobs = self.DSageServer.get_jobs_by_username(username)
 
         return jobs
 
@@ -318,7 +317,9 @@ class UserPerspective(DefaultPerspective):
     def perspective_submit_job(self, jdict):
         if jdict is None:
             raise BadJobError()
-        if jdict['user_id'] != self.avatarID:
+        if jdict['username'] != self.avatarID:
+            print 'username does not match credentials'
+            print 'claim: %s\n actual:%s' % (jdict['username'], self.avatarID)
             raise BadJobError()
 
         return self.DSageServer.submit_job(jdict)

@@ -6,6 +6,7 @@ import precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 
+from sage.rings.integer_mod_ring import Integers
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZX_class, ZZ_pX_class
 from sage.structure.factorization import Factorization
@@ -350,6 +351,24 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             raise NotImplementedError
         return self._rmul_(self.base_ring()(~d.unit_part())).rshift_coeffs(d.valuation())
 
+    def __call__(self, a):
+        try:
+            a = self.base_ring()(a)
+        except ValueError, msg:
+            if msg == "element has negative valuation.":
+                a = self.base_ring().fraction_field()(a)
+            else:
+                raise ValueError, msg
+        if a.valuation() < 0:
+            #this is slow
+            return self.rescale(a)(1)
+        self._normalize()
+        aval = a.valuation()
+        arprec = a.precision_relative()
+        sumprec = min([min(self._relprecs[i] - self._valaddeds[i], arprec) + self._valaddeds[i] + i * aval for i in range(self.prec_degree() + 1)])
+        intreturn = self._poly(a.lift()) #Maybe one should pass to Z/p^sumprec[x]
+        return self.base_ring()(intreturn, absprec = sumprec) << self._valbase
+
     def _unsafe_mutate(self, n, value):
         n = int(n)
         value = self.base_ring()(value)
@@ -416,6 +435,21 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
+    def derivative(self):
+        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.derivative(), self._valbase, [self._relprecs[i] + i.valuation(self.base_ring().prime()) for i in xrange(1, self.prec_degree() + 1)], False, None, None), construct = True)
+
+    def integral(self):
+        if self._valbase is infinity:
+            return self
+        self._normalize()
+        p = self.base_ring().prime()
+        minval = min([self._valaddeds[i*p - 1] - 1 - i.valuation(p) for i in xrange(1, (self.prec_degree() + 1) // p)])
+        if -minval > self._valbase and not self.base_ring().is_field():
+            return self.base_extend(self.base_ring().fraction_field()).integral()
+        selflist = self.list()
+        base = self.base_ring()
+        return self.parent()([base(0)] + [selflist[n]//base(n + 1) for n in xrange(0, self.prec_degree() + 1)])
+
     def copy(self):
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.copy(), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
 
@@ -460,6 +494,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._valaddeds is None:
             self._comp_valaddeds()
         return self._valbase + min([self._valaddeds[i] + val_of_var * i for i in range(len(self._valaddeds))])
+
+    def is_unit(self):
+        return self.degree() == 0 and self[0].is_unit()
+
+    def is_nilpotent(self):
+        return self.is_zero()
 
     def reverse(self, n = None):
         if n is None:
@@ -521,6 +561,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def xgcd(self, right):
         raise NotImplementedError
 
+    def _xgcd(self, right):
+        return self.xgcd(right)
+
     def discriminant(self):
         raise NotImplementedError
 
@@ -574,8 +617,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         answer.append((xf, self._valbase + self._valadded[xf]))
         return answer
 
-    def hensel_lift(self, a):
+    def is_irreducible(self):
+        raise NotImplementedError
 
+    def hensel_lift(self, a):
+        raise NotImplementedError
 
     def factor_mod(self):
         r"""
@@ -591,6 +637,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def factor(self):
         raise NotImplementedError
 
+    def roots(self):
+        raise NotImplementedError
+
+    def root_field(self):
+        raise NotImplementedError
 
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))

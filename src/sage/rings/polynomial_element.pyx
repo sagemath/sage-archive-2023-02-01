@@ -754,6 +754,19 @@ cdef class Polynomial(CommutativeAlgebraElement):
         S = self.parent().change_ring(R)
         return S(self)
 
+    def change_var(self, var):
+        r"""
+        Return a copy of this polynomial but with the variable(s) set to var.
+
+        EXAMPLES:
+            sage: S.<x> = ZZ[]
+            sage: f = x^2 + 4*x + 3
+            sage: f.change_var('y')
+            y^2 + 4*y + 3
+        """
+        S = self.parent().change_var(var)
+        return S(self)
+
     def __copy__(self):
         """
         Return a "copy" of self.  This is just self, since in SAGE polynomials are

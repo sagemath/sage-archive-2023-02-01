@@ -577,7 +577,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.denominator()
             1
 
-        Denominators are note defined for real numbers:
+        Denominators are not defined for real numbers:
             sage: A = MatrixSpace(RealField(),2)([1,2,3,4])
             sage: A.denominator()
             Traceback (most recent call last):
@@ -1318,7 +1318,7 @@ cdef class Matrix(matrix1.Matrix):
         Compute the decomposition of this matrix using the spin algorithm.
 
         INPUT:
-            self -- a matrix with integer entries
+            self -- a matrix with field entries
 
         OUTPUT:
             a list of reduced row echelon form basis
@@ -1565,7 +1565,7 @@ cdef class Matrix(matrix1.Matrix):
         WARNING:
         This function returns an nxn matrix, where V has dimension n.
         It does \emph{not} check that V is in fact invariant under
-        self, unless check is True (not the default).
+        self, unless check is True.
 
         EXAMPLES:
             sage: V = VectorSpace(QQ, 3)
@@ -2246,9 +2246,15 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.is_scalar(1)
 
-    def is_scalar(self, a):
+    def is_scalar(self, a = None):
         """
-        Return True if this matrix is the identity matrix.
+        Return True if this matrix is a scalar matrix.
+
+        INPUT -- base_ring element a, which is chosen as self[0][0] if
+                 a = None
+
+        OUTPUT -- whether self is a scalar matrix (in fact the scalar
+                  matrix aI if a is input)
 
         EXAMPLES:
             sage: m = matrix(QQ,2,range(4))
@@ -2267,7 +2273,12 @@ cdef class Matrix(matrix1.Matrix):
         if not self.is_square():
             return False
         cdef Py_ssize_t i, j
-        a = self.base_ring()(a)
+        if a is None:
+            if self._nrows == 0:
+                return True
+            a = self.get_unsafe(0,0)
+        else:
+            a = self.base_ring()(a)
         zero = self.base_ring()(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:

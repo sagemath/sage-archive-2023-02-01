@@ -197,7 +197,7 @@ class MPolynomial(CommutativeRingElement):
             sage: x,y = ZZ['x,y'].gens()
             sage: f = (x + y)/3
             sage: f.parent()
-            Fraction Field of Polynomial Ring in x, y over Integer Ring
+            Polynomial Ring in x, y over Rational Field
 
         Note that / is still a constructor for elements of the
         fraction field in all cases as long as both arguments have the
@@ -236,6 +236,48 @@ class MPolynomial(CommutativeRingElement):
 
     def element(self):
         return self.__element
+
+    def base_extend(self, R):
+        r"""
+        Return a copy of this polynomial but with coefficients in R, if there
+        is a natural map from coefficient ring of self to R.
+
+        EXAMPLES:
+            sage: R.<x, y> = QQ[]
+            sage: f = x^3 - 17*y + 3
+            sage: f.base_extend(GF(7))
+            Traceback (most recent call last):
+            ...
+            TypeError: no such base extension
+            sage: f.change_ring(GF(7))
+            3 + 4*y + x^3
+        """
+        return self.parent().base_extend(R)(self)
+
+    def change_ring(self, R):
+        r"""
+        Return a copy of this polynomial but with coefficients in R, if at
+        all possible.
+
+        EXAMPLES:
+            sage: R.<x, y> = QQ[]
+            sage: f = x^3 - 17*y + 3
+            sage: f.change_ring(GF(7))
+            3 + 4*y + x^3
+        """
+        return self.parent().change_ring(R)(self)
+
+    def change_var(self, names):
+        r"""
+        Return a copy of this polynomial but with the variables set to names.
+
+        EXAMPLES:
+            sage: S.<x, y> = ZZ[]
+            sage: f = x^2 + 4*y + 3
+            sage: f.change_var('z,w')
+            3 + 4*w + z^2
+        """
+        return self.parent().change_var(names)(self)
 
 
 class MPolynomial_macaulay2_repr:
@@ -296,7 +338,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def _repr_with_changed_varnames(self, varnames):
         return self.element().poly_repr(varnames,
                                         atomic_coefficients=self.parent().base_ring().is_atomic_repr())
-
 
     def degree(self, x=None):
         """

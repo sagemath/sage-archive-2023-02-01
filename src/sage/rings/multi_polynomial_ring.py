@@ -248,6 +248,80 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         """
         return dict([(str(g),g) for g in self.gens()])
 
+    def base_extend(self, R):
+        """
+        Returns the base extension of this polynomial ring to R.
+
+        EXAMPLES:
+        sage: R.<x,y> = RR[]; R
+        Polynomial Ring in x, y over Real Field with 53 bits of precision
+        sage: R.base_extend(CC)
+        Polynomial Ring in x, y over Complex Field with 53 bits of precision
+        sage: R.base_extend(QQ)
+        Traceback (most recent call last):
+        ...
+        TypeError: no such base extension
+        sage: R.change_ring(QQ)
+        Polynomial Ring in x, y over Rational Field
+        """
+        if R.has_coerce_map_from(self.base_ring()):
+            return MPolynomialRing(R, names = self.variable_names(), order = self.__term_order)
+        else:
+            raise TypeError, "no such base extension"
+
+    def change_ring(self, R):
+        """
+        Returns a new polynomial ring in the same variables as self and with the same term order over the ring R.
+
+        EXAMPLES:
+        sage: R.<x, y> = RealIntervalField() []; R
+        Polynomial Ring in x, y over Real Interval Field with 53 bits of precision
+        sage: R.change_ring(GF(19^2,'b'))
+        Polynomial Ring in x, y over Finite Field in b of size 19^2
+        """
+        return MPolynomialRing(R, names=self.variable_names(), order = self.__term_order)
+
+    def change_var(self, names):
+        r"""
+        Returns a new polynomial ring with the same base ring and term order but with different variables.
+
+        EXAMPLES:
+        sage: R.<x, y> = ZZ[]; R
+        Polynomial Ring in x, y over Integer Ring
+        sage: R.change_var('z, q')
+        Polynomial Ring in z, q over Integer Ring
+        sage: R.change_var(['x', 'y', 'z'])
+        Polynomial Ring in x, y, z over Integer Ring
+        """
+        return MPolynomialRing(self.base_ring(), names = names, order = self.__term_order)
+
+    def change_term_order(self, order):
+        r"""
+        Returns a new polynomial ring with the same base ring and variables but with a different term order.
+
+        EXAMPLES:
+        sage: R.<x, y> = ZZ[]; R.term_order()
+        Degree reverse lexicographic term order
+        sage: S = R.change_term_order('lex'); S.term_order()
+        Lexicographic term order
+        """
+        return MPolynomialRing(self.base_ring(), names = self.variable_names(), order = order)
+
+    def extend_variables(self, added_names):
+        r"""
+        Returns a new polynomial ring with the same base ring and term order but with added_names as additional variables
+
+        EXAMPLES:
+        sage: R.<x, y> = ZZ[]; R
+        Polynomial Ring in x, y over Integer Ring
+        sage: R.extend_variables('z, w')
+        Polynomial Ring in x, y, z, w over Integer Ring
+        sage: R.extend_variables(('z', 'w'))
+        Polynomial Ring in x, y, z, w over Integer Ring
+        """
+        if isinstance(added_names, str):
+            added_names = added_names.split(",")
+        return MPolynomialRing(self.base_ring(), names = self.variable_names() + tuple(added_names), order = self.__term_order)
 
     def is_finite(self):
         if self.ngens() == 0:

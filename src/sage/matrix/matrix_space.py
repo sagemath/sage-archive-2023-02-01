@@ -422,11 +422,11 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
         else:
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
-            # the default
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_sparse.Matrix_rational_sparse
             elif sage.rings.integer_ring.is_IntegerRing(R):
                 return matrix_integer_sparse.Matrix_integer_sparse
+            # the default
             return matrix_generic_sparse.Matrix_generic_sparse
 
 

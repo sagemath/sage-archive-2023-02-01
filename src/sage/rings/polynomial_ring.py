@@ -79,8 +79,12 @@ from sage.libs.all import pari
 import sage.misc.defaults
 import sage.misc.latex as latex
 import sage.rings.multi_polynomial_element
-import padics.padic_field_generic
-import padics.padic_ring_generic
+import padics.padic_ring_capped_relative
+import padics.padic_field_capped_relative
+import padics.padic_ring_lazy
+import padics.padic_field_lazy
+import padics.padic_ring_capped_absolute
+import padics.padic_ring_fixed_mod
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
@@ -293,13 +297,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
         elif isinstance(R, padics.padic_ring_lazy.pAdicRingLazy):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_lazy_dense
+            self.__polynomial_class = R #Fix
         elif isinstance(R, padics.padic_field_lazy.pAdicFieldLazy):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_lazy_dense
-        elif isinstance(R, padics.padic_ring_generic.pAdicRingGeneric):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_dense
-        elif isinstance(R, padics.padic_field_generic.pAdicFieldGeneric):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_dense
+            self.__polynomial_class = R #Fix
+        elif isinstance(R, padics.padic_ring_capped_relative.pAdicRingCappedRelative):
+            self.__polynomial_class = padics.polynomial.polyomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense #Fix
+        elif isinstance(R, padics.padic_field_capped_relative.pAdicFieldCappedRelative):
+            self.__polynomial_class = padics.polynomial.polyomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense #Fix
+        elif isinstance(R, padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute):
+            self.__polynomial_class = R #Fix
+        elif isinstance(R, padics.padic_ring_fixed_mod.pAdicRingFixedMod):
+            self.__polynomial_class = R #Fix
         elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field
@@ -315,16 +323,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the base extension of this polynomial ring to R.
 
         EXAMPLES:
-            sage: R.<x> = RR[]; R
-            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
-            sage: R.base_extend(CC)
-            Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-            sage: R.base_extend(QQ)
-            Traceback (most recent call last):
-            ...
-            TypeError: no such base extension
-            sage: R.change_ring(QQ)
-            Univariate Polynomial Ring in x over Rational Field
+        sage: R.<x> = RR[]; R
+        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+        sage: R.base_extend(CC)
+        Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+        sage: R.base_extend(QQ)
+        Traceback (most recent call last):
+        ...
+        TypeError: no such base extension
+        sage: R.change_ring(QQ)
+        Univariate Polynomial Ring in x over Rational Field
         """
         if R.has_coerce_map_from(self.base_ring()):
             return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
@@ -336,12 +344,40 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the polynomial ring in the same variable as self over R.
 
         EXAMPLES:
-            sage: R.<ZZZ> = RealIntervalField() []; R
-            Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
-            sage: R.change_ring(GF(19^2,'b'))
-            Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
+        sage: R.<ZZZ> = RealIntervalField() []; R
+        Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
+        sage: R.change_ring(GF(19^2,'b'))
+        Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
         """
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
+
+    def change_var(self, var):
+        r"""
+        Return the polynomial ring in variable var over the same base ring.
+
+        EXAMPLES:
+        sage: R.<x> = ZZ[]; R
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: R.change_var('y')
+        Univariate Polynomial Ring in y over Integer Ring
+        """
+        return PolynomialRing(self.base_ring(), names = var, sparse=self.is_sparse())
+
+    def extend_variables(self, added_names, order = 'degrevlex'):
+        r"""
+        Returns a multivariate polynomial ring with the same base ring but with added_names as additional variables.
+
+        EXAMPLES:
+        sage: R.<x> = ZZ[]; R
+        Univariate Polynomial Ring in x over Integer Ring
+        sage: R.extend_variables('y, z')
+        Polynomial Ring in x, y, z over Integer Ring
+        sage: R.extend_variables(('y', 'z'))
+        Polynomial Ring in x, y, z over Integer Ring
+        """
+        if isinstance(added_names, str):
+            added_names = added_names.split(',')
+        return PolynomialRing(self.base_ring(), names = self.variable_names() + tuple(added_names), order = order)
 
     def characteristic(self):
         """
@@ -775,22 +811,30 @@ class PolynomialRing_field(PolynomialRing_integral_domain,
             P += Pj(j)*points[j][1]
         return P
 
-class PolynomialRing_padic_ring(PolynomialRing_integral_domain):
+class PolynomialRing_dense_padic_ring_generic(PolynomialRing_integral_domain):
     def __init__(self, base_ring, name=None):
-        if not isinstance(base_ring, padics.padic_ring_generic.pAdicRingGeneric):
-            raise TypeError, "Base ring must be a p-adic ring"
         PolynomialRing_integral_domain.__init__(self, base_ring, name)
 
-class PolynomialRing_padic_field(PolynomialRing_field):
+class PolynomialRing_dense_padic_field_generic(PolynomialRing_field):
     def __init__(self, base_ring, name=None):
-        #if not isinstance(base_ring, padics.padic_field_generic.pAdicFieldGeneric):
-        #    raise TypeError, "Base ring must be a p-adic field" #should be uncommented after hack is removed
         PolynomialRing_field.__init__(self, base_ring, name)
 
-class PolynomialRing_padic_ring_lazy(PolynomialRing_padic_ring):
+class PolynomialRing_dense_padic_ring_capped_relative(PolynomialRing_dense_padic_ring_generic):
     pass
 
-class PolynomialRing_padic_field_lazy(PolynomialRing_padic_field):
+class PolynomialRing_dense_padic_ring_capped_absolute(PolynomialRing_dense_padic_ring_generic):
+    pass
+
+class PolynomialRing_dense_padic_ring_fixed_mod(PolynomialRing_dense_padic_ring_generic):
+    pass
+
+class PolynomialRing_dense_padic_ring_lazy(PolynomialRing_dense_padic_ring_generic):
+    pass
+
+class PolynomialRing_dense_padic_field_capped_relative(PolynomialRing_dense_padic_field_generic):
+    pass
+
+class PolynomialRing_dense_padic_field_lazy(PolynomialRing_dense_padic_field_generic):
     pass
 
 class PolynomialRing_dense_mod_n(PolynomialRing_commutative):

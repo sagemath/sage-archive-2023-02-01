@@ -202,7 +202,7 @@ class ClientDatabase(object):
         WHERE username = ?
         """ % (parameter)
 
-        self.con.execute(query, (value, parameter))
+        self.con.execute(query, (value, username))
         self.con.commit()
 
     def get_parameter(self, username, parameter):
@@ -219,7 +219,7 @@ class ClientDatabase(object):
         return result[0]
 
     def set_connected(self, username, connected=True):
-        return self.set_parameter(username, 'connected', connected)
+        self.set_parameter(username, 'connected', connected)
 
     def update_login_time(self, username):
         r"""
@@ -234,3 +234,15 @@ class ClientDatabase(object):
 
         self.con.execute(query, (datetime.datetime.now(), username,))
         self.con.commit()
+
+    def get_client_list(self):
+        r"""
+        Returns a list of clients connected.
+
+        """
+
+        query = """SELECT username from clients WHERE connected"""
+        cur = self.con.cursor()
+        cur.execute(query)
+
+        return [result[0] for result in cur.fetchall()]

@@ -26,7 +26,6 @@ from twisted.spread.pb import IPerspective, AsReferenceable
 from twisted.python import log
 
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.client_tracker as client_tracker
 import sage.dsage.server.worker_tracker as worker_tracker
 from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 
@@ -158,19 +157,14 @@ class DefaultPerspective(pb.Avatar):
         else:
             self.DSageServer.clientdb.update_login_time(self.avatarID)
             self.DSageServer.clientdb.set_connected(self.avatarID, connected=True)
-            client_tracker.add((avatar, mind))
 
     def detached(self, avatar, mind):
         self.current_connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
-        if mind:
-            # This will remove all disconnected clients
-            for broker, host_info in worker_tracker.worker_list:
-                if broker.transport.disconnected:
-                    worker_tracker.remove((broker, host_info))
+        if isinstance(mind, tuple):
             self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
         else:
-            client_tracker.remove((avatar, mind))
+            self.DSageServer.clientdb.set_connected(self.avatarID, connected=False)
 
 class AnonymousMonitorPerspective(DefaultPerspective):
     r"""
@@ -339,8 +333,7 @@ class UserPerspective(DefaultPerspective):
         return self.DSageServer.get_monitor_list()
 
     def perspective_get_client_list(self):
-        return [avatar[0].avatarID for avatar in
-                self.DSageServer.get_client_list()]
+        return self.DSageServer.get_client_list()
 
     def perspective_submit_host_info(self, hostinfo):
         if not isinstance(hostinfo, dict):

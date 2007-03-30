@@ -113,7 +113,9 @@ class DSageServerTestCase(unittest.TestCase):
             self.assert_(job.update_time < datetime.datetime.now())
 
     def testget_active_clients_list(self):
-        pass
+        clients = self.dsage_server.get_client_list()
+        self.assertEquals(len(clients), 0)
+        self.assertEquals(type(clients), list)
 
     def testget_killed_jobs_list(self):
         jobs = self.dsage_server.get_killed_jobs_list()

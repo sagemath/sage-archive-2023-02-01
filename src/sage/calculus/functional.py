@@ -1,3 +1,7 @@
+"""
+Functional notation support for common calculus methods.
+"""
+
 from calculus import SER, SymbolicExpression, CallableFunction
 
 def diff(f, *args):

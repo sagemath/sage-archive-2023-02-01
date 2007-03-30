@@ -1,4 +1,15 @@
-"""nodoctest"""
+"""
+Preliminary support for equations and solutions in \sage.
+
+AUTHOR:
+    -- Bobby Moretti initial version
+
+EXAMPLES:
+    sage: f = x^2 + y^2 == 1
+    sage: f.solve(x)
+    [x == -sqrt(1 - y^2), x == sqrt(1 - y^2)]
+
+"""
 
 from sage.structure.all import SageObject
 from sage.interfaces.maxima import maxima
@@ -15,6 +26,7 @@ class SymbolicEquation(SageObject):
     def _latex_(self):
         return "%s = %s" %(self._left._latex_(), self._right._latex_())
 
+    # this is an excellent idea by Robert Bradshaw
     def __nonzero__(self):
         result = self._left.__cmp__(self._right)
 
@@ -23,9 +35,9 @@ class SymbolicEquation(SageObject):
         else:
             return False
 
-    def _maxima_(self):
-        l = self._left._maxima_()._name
-        r = self._right._maxima_()._name
+    def _maxima_(self, maxima=maxima):
+        l = str(self._left._maxima_())
+        r = str(self._right._maxima_())
         return maxima('%s = %s' % (l, r))
 
     def solve(self, x):

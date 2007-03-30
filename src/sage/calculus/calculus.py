@@ -1,16 +1,114 @@
-"""
-The SAGE calculus module
+r"""
+The \sage calculus and elementary functions module.
+
+AUTHORS:
+    Bobby Moretti and William Stein - Initial version
+    Bobby Moretti - lots of improvements
+
+The \sage calculus module is loosely based on the \sage Enhahcement Proposal
+found at: http://www.sagemath.org:9001/CalculusSEP.
 
 EXAMPLES:
-    sage: f = 5*sin(x)
-    sage: f
-    5*sin(x)
-    sage: f(2)
-    5*sin(2)
-    sage: f(pi)
-    0
-    sage: float(f(pi))
-    6.1232339957367663e-16
+    The basic units of the calculus suite are SymbolicExpressions. There are many
+    subclasses of SymbolicExpression. The most basic of these is the formal
+    indeterminate class, SymbolicVariable. To create a SymbolicVariable object in
+    \sage, use the var() method, whose argument is the text of that variable.
+    Note that \sage is intelligent about {\latex}ing variable names.
+        sage: x1 = var('x1'); x1
+        x1
+        sage: latex(x1)
+        \mbox{x}_{1}
+        sage: theta = var('theta'); theta
+        theta
+        sage: latex(theta)
+        \theta
+
+    \sage predefines upper and lowercase letters as global indeterminates. Thus
+    the following works:
+        sage: x^2
+        x^2
+        sage: type(x)
+        <class 'sage.calculus.calculus.SymbolicVariable'>
+
+    More complicated expressions in SAGE can be built up using ordinary
+    arithmetic. The following are valid, and follow the rules of Python
+    arithmetic: (The '=' operator represents assignment, and not equality)
+        sage: f = x + y + z/(2*sin(y*z/55))
+        sage: g = f^f; g
+        (z/2*sin(y*z/55) + y + x)^(z/2*sin(y*z/55) + y + x)
+
+    Differentiation and integration are available, but behind the scenes through
+    maxima
+        sage: f = sin(x)/cos(2*y)
+        sage: f.derivative(y)
+        2*sin(x)*sin(2*y)/cos(2*y)^2
+        sage: g = f.integral(x); g
+        -cos(x)/cos(2*y)
+
+    Note that these methods require an explicit variable name. If none is given,
+    \sage will try to find one for you.
+        sage: f = sin(x); f.derivative()
+        cos(x)
+
+    However when this is ambiguous, \sage will raise an exception:
+        sage: f = sin(x+y); f.derivative()
+        Traceback (most recent call last):
+        ...
+        ValueError: must supply an explicit variable for an expression containing more than one variable
+
+    Substitution works similarly. We can substitute with a python dict:
+        sage: f = sin(x*y - z)
+        sage: f({x: t, y: z})
+        sin(t*z - z)
+
+    Also we can substitute with keywords:
+        sage: f = sin(x*y - z)
+        sage: f(x = t, y = z)
+        sin(t*z - z)
+
+    If there is no ambiguity of variable names, we don't have to specify them:
+        sage: f = sin(x)
+        sage: f(y)
+        sin(y)
+        sage: f(pi)
+        0
+
+    However if there is ambiguity, we must explicitly state what variables we're
+    substituting for:
+        sage: f = sin(2*pi*x/y)
+        sage: f = sin(4)
+        Traceback (most recent call last):
+        ...
+        ValueError: must give explicit variable names to substitute for
+
+    We can also make CallableFunctions, which is a SymbolicExpression that are
+    functions of variables in a fixed order. Each SymbolicExpression has a
+    function() method used to create a CallableFunction.
+        sage: u = log((2-x)/(y+5))
+        sage: f = u.function(x, y); f
+        (x, y) |--> log((2 - x)/(y + 5))
+
+    There is an easier way of creating a CallableFunction, which relies on the
+    \sage preparser.
+        sage: f(x,y) = log(x)*cos(y); f
+        (x, y) |--> log(x)*cos(y)
+
+    Then we have fixed an order of variables and there is no ambiguity
+    substituting or evaluating:
+        sage: f(x,y) = log((2-x)/(y+5))
+        sage: f(7,t)
+        log(-5/(t + 5))
+
+    Some further examples:
+        sage: f = 5*sin(x)
+        sage: f
+        5*sin(x)
+        sage: f(2)
+        5*sin(2)
+        sage: f(pi)
+        0
+        sage: float(f(pi))
+        6.1232339957367663e-16
 """
 
 
@@ -140,7 +238,7 @@ class SymbolicExpression(RingElement):
             if len(vars) == 1:
                 return plot(self.function(vars[0]), **kwds)
 
-            raise TypeError, "Must give an explicit parameter to plot this"\
+            raise TypeError, "must give an explicit parameter to plot this"\
                             + " expression."
 
         del kwds['param']
@@ -303,11 +401,15 @@ class SymbolicExpression(RingElement):
         try:
             a = args[0]
         except IndexError:
+            # if there were NO arguments, try assuming
             a = 1
         if a is None or isinstance(a, (int, long, Integer)):
             vars = list(self._get_vars())
             if len(vars) == 1:
                 s = "%s, %s" % (vars[0], a)
+            else:
+                raise ValueError, "must supply an explicit variable for an " +\
+                                "expression containing more than one variable"
         for i in range(len(args)):
             if isinstance(args[i], SymbolicVariable):
                 s = s + '%s, ' %str(args[i])
@@ -477,8 +579,8 @@ class SymbolicExpression(RingElement):
             if len(vars) == 1:
                 in_dict = {vars[0]: in_dict}
 
-        elif not ((isinstance(in_dict, dict) or in_dict is None)):
-           raise TypeError, "Must give explicit variable names to substitute for"
+            elif not ((isinstance(in_dict, dict) or in_dict is None)):
+               raise TypeError, "must give explicit variable names to substitute for"
 
         if in_dict is not None:
             for k, v in in_dict.iteritems():
@@ -545,9 +647,9 @@ CallableFunctionRing = CallableFunctionRing_class()
 CFR = CallableFunctionRing
 
 class CallableFunction(RingElement):
-    r'''
+    r"""
     A callable, symbolic function that knows the variables on which it depends.
-    '''
+    """
     def __init__(self, expr, args):
         RingElement.__init__(self, CallableFunctionRing)
         if args == [] or args == () or args is None:
@@ -771,10 +873,10 @@ class CallableFunction(RingElement):
 
 
 class Symbolic_object(SymbolicExpression):
-    r'''
+    r"""
     A class representing a symbolic expression in terms of a SageObject (not
     necessarily a 'constant')
-    '''
+    """
 
     def __init__(self, obj):
         SymbolicExpression.__init__(self)
@@ -956,10 +1058,10 @@ symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
 
 
 class SymbolicArithmetic(SymbolicOperation):
-    r'''
+    r"""
     Represents the result of an arithemtic operation on
     $f$ and $g$.
-    '''
+    """
 
     def __init__(self, operands, op):
         SymbolicOperation.__init__(self, operands)
@@ -1162,7 +1264,7 @@ def tex_varify(a):
 
 _vars = {}
 def var(s):
-    r''' Create a symbolic variable with the name \emph{s}'''
+    r""" Create a symbolic variable with the name \emph{s}"""
     try:
         return _vars[s]
     except KeyError:
@@ -1173,10 +1275,10 @@ def var(s):
 _syms = {}
 
 class Function_erf(PrimitiveFunction):
-    r'''
+    r"""
     The error function, defined as $\text{erf}(x) = \frac{2}{\sqrt{\pi}}\int_0^x
     e^{-t^2} dt$.
-    '''
+    """
 
     def _repr_(self):
         return "erf"
@@ -1191,9 +1293,9 @@ erf = Function_erf()
 _syms['erf'] = erf
 
 class Function_sin(PrimitiveFunction):
-    '''
+    """
     The sine function
-    '''
+    """
 
     def __call__(self, x):
         return PrimitiveFunction.__call__(self, x)
@@ -1220,9 +1322,9 @@ sin = Function_sin()
 _syms['sin'] = sin
 
 class Function_cos(PrimitiveFunction):
-    '''
+    """
     The cosine function
-    '''
+    """
     def _repr_(self):
         return "cos"
 
@@ -1246,18 +1348,18 @@ cos = Function_cos()
 _syms['cos'] = cos
 
 class Function_sec(PrimitiveFunction):
-    '''
+    """
     The secant function
 
     sage: sec(pi/4)
     sqrt(2)
     sage: RR(sec(pi/4))
-    0.707106781186547
+    0.707106781186548
     sage: sec(1/2)
     sec(1/2)
     sage: sec(0.5)
-    0.877582561890372
-    '''
+    0.877582561890373
+    """
     def _repr_(self):
         return "sec"
 
@@ -1280,7 +1382,7 @@ sec = Function_sec()
 _syms['sec'] = sec
 
 class Function_tan(PrimitiveFunction):
-    '''
+    """
     The tangent function
 
     EXAMPLES:
@@ -1296,7 +1398,7 @@ class Function_tan(PrimitiveFunction):
         tan(1/2)
         sage: RR(tan(1/2))
         0.546302489843790
-    '''
+    """
     def _repr_(self):
         return "tan"
 
@@ -1319,18 +1421,18 @@ tan = Function_tan()
 _syms['tan'] = tan
 
 class Function_asin(PrimitiveFunction):
-    '''
+    """
     The arcsine function
 
     EXAMPLES:
         sage: asin(0.5)
-        0.523598775598298
+        0.523598775598299
         sage: asin(1/2)
         (pi/6)
         sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190503*I
+        0.666239432492515 + 1.06127506190504*I
 
-    '''
+    """
     def _repr_(self):
         return "asin"
 
@@ -1353,18 +1455,18 @@ asin = Function_asin()
 _syms['asin'] = asin
 
 class Function_acos(PrimitiveFunction):
-    '''
+    """
     The arccosine function
 
     EXAMPLES:
         sage: acos(0.5)
-        1.04719755119659
+        1.04719755119660
         sage: acos(1/2)
         (pi/3)
         sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190503*I
+        0.904556894302381 - 1.06127506190504*I
 
-    '''
+    """
     def _repr_(self):
         return "acos"
 
@@ -1388,17 +1490,17 @@ _syms['acos'] = acos
 
 
 class Function_atan(PrimitiveFunction):
-    '''
+    """
     The arctangent function.
 
     EXAMPLES:
         sage: atan(1/2)
         atan(1/2)
-        sage: RR(atan(1/2))
+        sage: RDF(atan(1/2))
         0.463647609001
         sage: atan(1 + I)
         1.01722196789785 + 0.402359478108525*I
-    '''
+    """
     def _repr_(self):
         return "atan"
 
@@ -1490,9 +1592,9 @@ log = Function_log()
 _syms['log'] = log
 
 class Function_sqrt(PrimitiveFunction):
-    '''
+    """
     The (positive) square root function.
-    '''
+    """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)
 

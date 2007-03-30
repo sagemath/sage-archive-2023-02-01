@@ -21,15 +21,15 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-import number_field.all
+import sage.rings.number_field.all as number_field
 import polynomial_element
 import polynomial_ring
-import rational_field
-import complex_field
+import sage.rings.rational_field as rational_field
+import sage.rings.complex_field as complex_field
 
-import commutative_ring
-import field
-import integral_domain
+import sage.rings.commutative_ring as commutative_ring
+import sage.rings.field as field
+import sage.rings.integral_domain as integral_domain
 
 import polynomial_quotient_ring_element
 
@@ -462,7 +462,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
         if not isinstance(self.base_ring(), rational_field.RationalField):
             raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
-        return number_field.all.NumberField(self.modulus(), self.variable_name())
+        return number_field.NumberField(self.modulus(), self.variable_name())
 
     def polynomial_ring(self):
         """

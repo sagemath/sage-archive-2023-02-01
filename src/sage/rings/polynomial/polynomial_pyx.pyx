@@ -25,11 +25,11 @@ AUTHOR:
 
 START_PRIME = 40009  # used for modular algorithms
 
-import sage.rings.polynomial_element as polynomial
+import sage.rings.polynomial.polynomial_element as polynomial
 
-include "../ext/cdefs.pxi"
-include "../ext/gmp.pxi"
-include "../ext/stdsage.pxi"
+include "../../ext/cdefs.pxi"
+include "../../ext/gmp.pxi"
+include "../../ext/stdsage.pxi"
 
 cimport sage.structure.element
 import  sage.structure.element

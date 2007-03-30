@@ -19,18 +19,17 @@ import operator
 import copy
 
 import sage.rings.rational
-import integer
-import sage.rings.polynomial_ring
-import arith
+import sage.rings.integer as integer
+import sage.rings.polynomial.polynomial_ring
+import sage.rings.arith as arith
 import sage.rings.ring_element as ring_element
-import integer_ring
-import rational_field
-import integer_mod_ring
+import sage.rings.integer_ring as integer_ring
+import sage.rings.rational_field as rational_field
+import sage.rings.integer_mod_ring as integer_mod_ring
 import polynomial_pyx
-import rational_field
-import complex_field
+import sage.rings.complex_field as complex_field
 #import padic_field
-from infinity import infinity
+from sage.rings.infinity import infinity
 import sage.misc.misc as misc
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
@@ -39,16 +38,16 @@ from sage.structure.factorization import Factorization
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen
 
-from real_mpfr import RealField, is_RealNumber, is_RealField
+from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
 from sage.structure.element import RingElement
 from sage.structure.element cimport Element
 
-from rational_field import QQ
-from integer_ring import ZZ
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
 
-from integral_domain import is_IntegralDomain
+from sage.rings.integral_domain import is_IntegralDomain
 
 import polynomial_fateman
 
@@ -65,7 +64,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: f = x*y; f
         y*x
         sage: type(f)
-        <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_dense'>
     """
     def __init__(self, parent, is_gen = False, construct=False):
         """
@@ -1136,7 +1135,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if check_irreducible and not self.is_irreducible():
             raise ValueError, "polynomial must be irreducible"
 
-        return sage.rings.polynomial_ring.PolynomialRing(R.fraction_field(),
+        return sage.rings.polynomial.polynomial_ring.PolynomialRing(R.fraction_field(),
                               self.parent().variable_name()).quotient(self, names)
 
 

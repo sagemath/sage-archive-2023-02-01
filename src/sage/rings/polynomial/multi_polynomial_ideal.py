@@ -80,12 +80,12 @@ Working with a polynomial ring over ZZ:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ideal import Ideal_generic
+from sage.rings.ideal import Ideal_generic
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.all import is_SingularElement
 singular = singular_default
-from integer import Integer
+from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
 import sage.rings.integer_ring
@@ -678,7 +678,7 @@ class MPolynomialIdeal_singular_repr:
 
         ALGORITHM: Uses Singular
         """
-        from sage.rings.multi_polynomial_ring import TermOrder,MPolynomialRing
+        from sage.rings.polynomial.multi_polynomial_ring import TermOrder,MPolynomialRing
         from sage.rings.quotient_ring import is_QuotientRing
 
         Is = self._singular_()
@@ -829,7 +829,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             symmetry -- default: None; if not None, describes symmetries of the ideal
             verbose -- default: False; if True, printout useful info during computations
         """
-        import groebner_fan
+        import sage.rings.groebner_fan
         return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 

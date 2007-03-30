@@ -24,12 +24,10 @@ AUTHORS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import finite_field
-
 from sage.interfaces.all import singular as singular_default, is_SingularElement
-from complex_field import is_ComplexField
-from real_mpfr import is_RealField
-from integer_ring import ZZ
+from sage.rings.complex_field import is_ComplexField
+from sage.rings.real_mpfr import is_RealField
+from sage.rings.integer_ring import ZZ
 import sage.rings.arith
 
 class PolynomialRing_singular_repr:
@@ -197,6 +195,7 @@ class PolynomialRing_singular_repr:
         GF(p), GF(p^n), Rationals, Reals, and Complexes are supported.
         """
         base_ring = self.base_ring()
+        import sage.rings.finite_field as finite_field
         return ( finite_field.is_FiniteField(base_ring)
                  or base_ring.is_prime_field()
                  or is_RealField(base_ring)

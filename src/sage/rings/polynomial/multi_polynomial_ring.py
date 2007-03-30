@@ -52,13 +52,11 @@ two variables:
 import weakref
 import re
 
-import commutative_ring
-import integral_domain
+import sage.rings.commutative_ring as commutative_ring
+import sage.rings.integral_domain as integral_domain
 
-import fraction_field
-import fraction_field_element
-
-import finite_field
+import sage.rings.fraction_field as fraction_field
+import sage.rings.fraction_field_element as fraction_field_element
 
 import multi_polynomial_element
 import multi_polynomial_ideal
@@ -75,11 +73,11 @@ from sage.structure.sage_object import SageObject
 from sage.rings.integer_ring import is_IntegerRing
 from sage.rings.integer import Integer
 
-from sage.rings.polynomial_singular_interface import PolynomialRing_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import PolynomialRing_singular_repr
 
 import multi_polynomial_ideal
 
-from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing as MPolynomialRing
 
 from sage.structure.parent_gens import ParentWithGens
 

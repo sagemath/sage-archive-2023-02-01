@@ -3,12 +3,14 @@
 #########################################################################################
 
 from sage.structure.parent_gens import normalize_names
-import ring
+import sage.rings.ring as ring
 import weakref
-import padics.padic_ring_generic
-import padics.padic_field_generic
-import padics.padic_ring_lazy
-import padics.padic_field_lazy
+import sage.rings.padics.padic_ring_capped_relative as padic_ring_capped_relative
+import sage.rings.padics.padic_field_capped_relative as padic_field_capped_relative
+import sage.rings.padics.padic_ring_lazy as padic_ring_lazy
+import sage.rings.padics.padic_field_lazy as padic_field_lazy
+import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
+import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
 
 _cache = {}
 
@@ -274,22 +276,22 @@ def _single_variate(base_ring, name, sparse):
             else:  # n == 1!
                 R = m.PolynomialRing_integral_domain(base_ring, name)   # specialized code breaks in this case.
 
-        elif isinstance(base_ring, padics.padic_ring_lazy.pAdicRingLazy):
+        elif isinstance(base_ring, padic_ring_lazy.pAdicRingLazy):
             R = m.PolynomialRing_dense_padic_ring_lazy(base_ring, name)
 
-        elif isinstance(base_ring, padics.padic_field_lazy.pAdicFieldLazy):
+        elif isinstance(base_ring, padic_field_lazy.pAdicFieldLazy):
             R = m.PolynomialRing_dense_padic_field_lazy(base_ring, name)
 
-        elif isinstance(base_ring, padics.padic_field_capped_relative.pAdicFieldCappedRelative):
+        elif isinstance(base_ring, padic_field_capped_relative.pAdicFieldCappedRelative):
             R = m.PolynomialRing_dense_padic_field_capped_relative(base_ring, name)
 
-        elif isinstance(base_ring, padics.padic_ring_capped_relative.pAdicRingCappedRelative):
+        elif isinstance(base_ring, padic_ring_capped_relative.pAdicRingCappedRelative):
             R = m.PolynomialRing_dense_padic_ring_capped_relative(base_ring, name)
 
-        elif isinstance(base_ring, padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute):
+        elif isinstance(base_ring, padic_ring_capped_absolute.pAdicRingCappedAbsolute):
             R = m.PolynomialRing_dense_padic_ring_capped_absolute(base_ring, name)
 
-        elif isinstance(base_ring, padics.padic_ring_fixed_mod.pAdicRingFixedMod):
+        elif isinstance(base_ring, padic_ring_fixed_mod.pAdicRingFixedMod):
             R = m.PolynomialRing_dense_padic_ring_fixed_mod(base_ring, name)
 
         elif base_ring.is_field():

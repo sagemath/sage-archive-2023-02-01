@@ -1,6 +1,6 @@
-include "../ext/interrupt.pxi"
-include "../ext/cdefs.pxi"
-include '../ext/stdsage.pxi'
+include "../../ext/interrupt.pxi"
+include "../../ext/cdefs.pxi"
+include "../../ext/stdsage.pxi"
 
 
 from sage.structure.element import Element, CommutativeAlgebraElement

@@ -71,6 +71,41 @@ END_MARKER = '___END___'
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
 
+class WorkerPool(object):
+    r"""
+    This is an object from which you can ask for workers.
+
+    It will spawn n+1 workers and reuse them as they become available.
+
+    """
+
+    def __init__(self, n, remoteobj):
+        r"""
+        Parameters:
+        n -- number of workers to initialize.
+
+        """
+        self.workers = [Worker(remoteobj, x) for x in range(n+1)]
+        log.msg('[Monitor] Initialized %s+1 workers.' % (WORKERS))
+
+    def get_worker(self):
+        r"""
+        Gets a fresh worker.
+
+        """
+
+        return self.workers.pop()
+
+    def return_worker(self, worker):
+        r"""
+        Returns a used worker back to the pool.
+
+        """
+
+        reactor.callLater(0.1, worker.restart)
+        self.workers.insert(0, worker)
+
+
 class Worker(object):
     r"""
     This class represents a worker object that does the actual calculation.
@@ -171,8 +206,8 @@ class Worker(object):
             d.errback(error.ConnectionLost())
             return d
 
-        if completed:
-            self.restart()
+        # if completed:
+        #     self.restart()
 
         return d
 
@@ -344,7 +379,7 @@ class Monitor(object):
         self.connected = False
         self.reconnecting = False
         self.workers = None
-
+        self.worker_pool = None
         # Start twisted logging facility
         self._startLogging(LOG_FILE)
 
@@ -426,11 +461,12 @@ class Monitor(object):
         self.reconnecting = False
 
         if self.workers == None: # Only pool workers the first time
-            self.poolWorkers(self.remoteobj)
+            self.worker_pool = WorkerPool(WORKERS, remoteobj)
+            self.workers = [self.worker_pool.get_worker() for n in xrange(WORKERS)]
+            # self.poolWorkers(self.remoteobj)
         else:
             for worker in self.workers:
-                worker.remoteobj = self.remoteobj # Update workers
-        # self.submit_host_info()
+                worker.remoteobj = self.remoteobj # Give workers new remoteobj's
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')
@@ -453,7 +489,8 @@ class Monitor(object):
                 if worker.job.id == job.id:
                     log.msg('[Worker: %s] Processing a killed job, \
                             restarting...' % worker.id)
-                    worker.restart()
+                    self.worker_pool.return_worker(worker)
+                    self.workers[self.workers.index(worker)] = self.worker_pool.get_worker()
 
     def _retryConnect(self):
         log.msg('[Monitor] Disconnected, reconnecting in %s' % DELAY)
@@ -575,8 +612,7 @@ class Monitor(object):
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
-            worker_info = (os.getenv('USER') + '@' + os.uname()[1],
-                           ' '.join(os.uname()[2:]))
+            worker_info = (os.getenv('USER') + '@' + os.uname()[1], ' '.join(os.uname()[2:]))
 
             sanitized_output = self.sanitizeOutput(new)
 
@@ -590,6 +626,9 @@ class Monitor(object):
                 d = self.remoteobj.callRemote('job_failed', worker.job.id)
 
             d = worker.job_done(sanitized_output, result, done, worker_info)
+            if done:
+                self.worker_pool.return_worker(worker)
+                self.workers[self.workers.index(worker)] = self.worker_pool.get_worker()
             d.addErrback(self._catchConnectionFailure)
 
     def checkOutputForFailure(self, sage_output):

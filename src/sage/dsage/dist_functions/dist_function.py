@@ -131,6 +131,7 @@ class DistributedFunction(object):
         self.checker_task = blocking_call_from_thread(task.LoopingCall,
                                                       self.check_results)
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
+
     def check_results(self):
         for wrapped_job in self.waiting_jobs:
             if isinstance(wrapped_job, JobWrapper):
@@ -174,4 +175,5 @@ class DistributedFunctionTest(DistributedFunction):
         self.outstanding_jobs = ["print %s"%i for i in range(1,n+1)]
 
     def process_result(self, job):
+        self.done = len(self.waiting_jobs) == 0
         self.result += int(job.output)

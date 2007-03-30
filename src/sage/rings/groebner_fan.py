@@ -59,8 +59,8 @@ from sage.misc.misc import forall
 
 from sage.structure.sage_object import SageObject
 from sage.interfaces.gfan import gfan
-from multi_polynomial_ideal import is_MPolynomialIdeal
-from multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing
+from polynomial.multi_polynomial_ideal import is_MPolynomialIdeal
+from polynomial.multi_polynomial_ring import is_MPolynomialRing, MPolynomialRing
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 

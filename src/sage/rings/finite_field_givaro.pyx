@@ -132,8 +132,8 @@ cdef void late_import():
     import sage.rings.rational
     Rational = sage.rings.rational.Rational
 
-    import sage.rings.polynomial_element
-    is_Polynomial = sage.rings.polynomial_element.is_Polynomial
+    import sage.rings.polynomial.polynomial_element
+    is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
@@ -141,11 +141,11 @@ cdef void late_import():
     import sage.rings.finite_field
     conway_polynomial = sage.rings.finite_field.conway_polynomial
 
-    import sage.rings.multi_polynomial_element
-    MPolynomial = sage.rings.multi_polynomial_element.MPolynomial
+    import sage.rings.polynomial.multi_polynomial_element
+    MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial
 
-    import sage.rings.polynomial_element
-    Polynomial = sage.rings.polynomial_element.Polynomial
+    import sage.rings.polynomial.polynomial_element
+    Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 
     import sage.modules.free_module_element
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
@@ -813,7 +813,7 @@ cdef class FiniteField_givaro(FiniteField):
 
     cdef polynomial_ring_c(self, variable_name):
         if self._polynomial_ring is None:
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             if variable_name is None:
                 # todo: is this cache necessary?
                 self._polynomial_ring = PolynomialRing(self.prime_subfield_C(),self.variable_name())
@@ -1548,7 +1548,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <class 'sage.rings.polynomial_element_generic.Polynomial_dense_mod_p'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """
@@ -1562,7 +1562,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             ret.append(coeff)
             quo = quo/b
         if not name is None and F.variable_name() != name:
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             return PolynomialRing(F.prime_subfield_C(), name)(ret)
         else:
             return F.polynomial_ring()(ret)
@@ -1767,7 +1767,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: a^2 + 18*a + 2
             0
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         R = PolynomialRing(parent_object(self).prime_subfield_C(), var)
         return R(self._pari_().charpoly('x').lift())
 
@@ -1861,7 +1861,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             ...
             ValueError: must be a perfect square.
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         R = PolynomialRing(parent_object(self), 'x')
         f = R([-self, 0, 1])
         g = f.factor()

@@ -1,5 +1,5 @@
-import sage.rings.polynomial_element_generic
-import sage.rings.polynomial_element
+import sage.rings.polynomial.polynomial_element_generic
+import sage.rings.polynomial.polynomial_element
 import sage.rings.integer
 import misc
 import precision_error
@@ -15,10 +15,10 @@ from sage.rings.infinity import infinity
 min = misc.min
 PrecisionError = precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
-Polynomial = sage.rings.polynomial_element.Polynomial
-is_Polynomial = sage.rings.polynomial_element.is_Polynomial
-Polynomial_generic_domain = sage.rings.polynomial_element_generic.Polynomial_generic_domain
-Polynomial_integer_dense = sage.rings.polynomial_element_generic.Polynomial_integer_dense
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
+is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
+Polynomial_generic_domain = sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_domain
+Polynomial_integer_dense = sage.rings.polynomial.polynomial_element_generic.Polynomial_integer_dense
 
 class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
@@ -84,7 +84,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         self._valbase = sage.rings.padics.misc.min(self._valaddeds)
         self._valaddeds = [c - self._valbase for c in self._valaddeds]
         self._relprecs = [a.precision_absolute() - self._valbase for a in x]
-        from sage.rings.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         self._poly = PolynomialRing(ZZ, parent.variable_name())([a >> self._valbase for a in x])
         self._normalized = True
         if not absprec is infinity or not relprec is infinity:

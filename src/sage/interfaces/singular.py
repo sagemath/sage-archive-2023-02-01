@@ -863,10 +863,10 @@ class SingularElement(ExpectElement):
         choose an appropriate conversion strategy}
         """
         # TODO: Refactor imports to move this to the top
-        from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict
-        from sage.rings.multi_polynomial_element import MPolynomial_polydict
-        from sage.rings.polynomial_ring import is_PolynomialRing
-        from sage.rings.polydict import PolyDict,ETuple
+        from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict
+        from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
+        from sage.rings.polynomial.polynomial_ring import is_PolynomialRing
+        from sage.rings.polynomial.polydict import PolyDict,ETuple
         from sage.rings.quotient_ring import QuotientRing_generic
         from sage.rings.quotient_ring_element import QuotientRingElement
 

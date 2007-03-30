@@ -23,8 +23,8 @@ AUTHOR:
 import operator
 
 import sage.rings.field_element as field_element
-import sage.rings.polynomial_element as polynomial
-import sage.rings.polynomial_ring as polynomial_ring
+import sage.rings.polynomial.polynomial_element as polynomial
+import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.rational_field as rational_field
 import sage.rings.integer_ring as integer_ring
 import sage.rings.arith as arith

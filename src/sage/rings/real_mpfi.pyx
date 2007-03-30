@@ -2434,7 +2434,8 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         # fortunately, there's a perfectly valid answer we can
         # return anyway.
         if 0 in self:
-            return sage.rings.polynomial_ring.polygen(
+            #import sage.rings.polynomial.polynomial_ring
+            return sage.rings.polynomial.polynomial_ring.polygen(
                 sage.rings.integer_ring.IntegerRing())
 
         known_bits = -self.relative_diameter().log2()

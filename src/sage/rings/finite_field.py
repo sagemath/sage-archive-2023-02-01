@@ -63,11 +63,11 @@ import weakref
 
 import arith
 import field
-import polynomial_ring
+import polynomial.polynomial_ring as polynomial_ring
 import sage.databases.conway
 import sage.misc.defaults
-import polynomial_element
-import multi_polynomial_element
+import polynomial.polynomial_element as polynomial_element
+import polynomial.multi_polynomial_element as multi_polynomial_element
 
 import integer
 import rational
@@ -123,7 +123,7 @@ def FiniteField(order, name=None, modulus=None, names=None,
         sage: f = K.modulus(); f
         x^5 + 4*x + 1
         sage: type(f)
-        <class 'sage.rings.polynomial_element_generic.Polynomial_dense_mod_p'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
 
     The modulus must be irreducible:
         sage: K.<a> = GF(5**5, name='a', modulus=x^5 - x )

@@ -76,8 +76,8 @@ With power series the behavior is the same.
 import operator
 
 from infinity import infinity, is_Infinite
-from polynomial_ring import PolynomialRing
-import polynomial_element_generic as polynomial
+from polynomial.polynomial_ring import PolynomialRing
+import polynomial.polynomial_element_generic as polynomial
 import power_series_ring
 import sage.misc.misc as misc
 import ring_element

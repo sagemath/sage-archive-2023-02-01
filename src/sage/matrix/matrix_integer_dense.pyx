@@ -63,7 +63,7 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.rings.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.sequence import Sequence
 

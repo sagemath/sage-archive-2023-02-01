@@ -268,7 +268,7 @@ class RationalField(_uniq, field.Field):
 
     def number_field(self, poly_var='x', nf_var='a'):
         from sage.rings.number_field.all import NumberField
-        x = sage.rings.polynomial_ring.PolynomialRing(self, poly_var).gen()
+        x = sage.rings.polynomial.polynomial_ring.PolynomialRing(self, poly_var).gen()
         return NumberField(x-1, nf_var)
 
     def order(self):

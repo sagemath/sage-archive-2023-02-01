@@ -384,7 +384,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         AUTHOR:
          -- Craig Citro
         """
-        import polynomial_ring
+        import polynomial.polynomial_ring as polynomial_ring
         R = polynomial_ring.PolynomialRing(self._parent, var)
         return R([-self,1])
 

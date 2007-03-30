@@ -1213,7 +1213,7 @@ class LinearCode(module.Module):
         I don't fully understand. However, when it does return a polynomial, the answer is
         (as far as I know) correct.
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.power_series_ring import PowerSeriesRing
         R = PolynomialRing(QQ,3,"xyT")

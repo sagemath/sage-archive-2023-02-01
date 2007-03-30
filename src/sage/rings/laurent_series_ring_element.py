@@ -47,7 +47,7 @@ from infinity import infinity
 import laurent_series_ring
 import power_series_ring_element
 import power_series_ring
-import polynomial_element as polynomial
+import polynomial.polynomial_element as polynomial
 import sage.misc.latex as latex
 import sage.rings.ring_element as ring_element
 

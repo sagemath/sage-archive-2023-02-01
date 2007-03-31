@@ -160,12 +160,14 @@ class DSageServerTestCase(unittest.TestCase):
 
     def testjob_failed(self):
         job = expand_job(self.dsage_server.get_job())
-        self.dsage_server.job_failed(job.id)
+        self.dsage_server.job_failed(job.id, 'Failure')
         job = expand_job(self.dsage_server.get_job_by_id(job.id))
         self.assertEquals(job.failures, 1)
-        self.dsage_server.job_failed(job.id)
+        self.assertEquals(job.output, 'Failure')
+        self.dsage_server.job_failed(job.id, 'Another Failure')
         job = expand_job(self.dsage_server.get_job_by_id(job.id))
         self.assertEquals(job.failures, 2)
+        self.assertEquals(job.output, 'Another Failure')
 
     def testkill_job(self):
         job = expand_job(self.dsage_server.get_job())

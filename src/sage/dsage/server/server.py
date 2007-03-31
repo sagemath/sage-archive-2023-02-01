@@ -217,7 +217,7 @@ class DSageServer(pb.Root):
 
     def job_done(self, job_id, output, result, completed, worker_info):
         r"""
-        job_done is called by the workers checkForJobOutput method.
+        job_done is called by the workers check_output method.
 
         Parameters:
         job_id -- job id (str)
@@ -256,7 +256,7 @@ class DSageServer(pb.Root):
 
         return self.jobdb.store_job(jdict)
 
-    def job_failed(self, job_id):
+    def job_failed(self, job_id, traceback):
         r"""
         job_failed is called when a remote job fails.
 
@@ -267,6 +267,7 @@ class DSageServer(pb.Root):
 
         job = expand_job(self.jobdb.get_job_by_id(job_id))
         job.failures += 1
+        job.output = traceback
 
         if job.failures > self.jobdb.JOB_FAILURE_THRESHOLD:
             job.status = 'failed'
@@ -557,12 +558,12 @@ class DSageWorkerServer(DSageServer):
         return DSageServer.job_done(self, job_id, output, result,
                              completed, worker_info)
 
-    def remote_job_failed(self, job_id):
+    def remote_job_failed(self, job_id, traceback):
         if not isinstance(job_id, str):
             log.msg('BadType in remote_job_failed')
             raise BadTypeError()
 
-        return DSageServer.job_failed(self, job_id)
+        return DSageServer.job_failed(self, job_id, traceback)
 
     def remote_get_killed_jobs_list(self):
         return DSageServer.get_killed_jobs_list(self)

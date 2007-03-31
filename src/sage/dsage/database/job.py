@@ -177,7 +177,6 @@ class Job(Persistent):
         return self.jdict['creation_time']
 
     def set_creation_time(self, value):
-        print type(value)
         if not isinstance(value, datetime.datetime):
             raise TypeError
         self.jdict['creation_time'] = value

@@ -47,7 +47,6 @@ class DistributedFunction(object):
         self.end_time= None
         self.name = None
         self.job_files = []
-        # self.checker_task = None
         self._done = False
 
     def __getstate__(self):
@@ -104,9 +103,9 @@ class DistributedFunction(object):
         self.checker_task.start(2.0, now=True)
 
     def submit_job(self, job, job_name='job', async=False):
-        # print 'Submitting job [%s]: %s' % (datetime.datetime.now(), job)
         if async:
             if isinstance(job, Job):
+                job.username = self.DSage.username
                 self.waiting_jobs.append(self.DSage.send_job(job,
                                                              async=True))
             else:
@@ -115,6 +114,7 @@ class DistributedFunction(object):
                                                          async=True))
         else:
             if isinstance(job, Job):
+                job.username = self.DSage.username
                 self.waiting_jobs.append(self.DSage.send_job(job, async=False))
             else:
                 self.waiting_jobs.append(self.DSage.eval(job,

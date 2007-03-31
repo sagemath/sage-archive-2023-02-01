@@ -238,7 +238,7 @@ class ClassicHostInfo(object):
                 kernel_version = os.popen('uname -r').readline().strip()
                 host_info['kernel_version'] = kernel_version
             except IOError, msg:
-                print msg
+                log.msg(msg)
                 raise
 
 

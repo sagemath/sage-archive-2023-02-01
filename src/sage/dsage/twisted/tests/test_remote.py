@@ -29,6 +29,7 @@ from twisted.spread import pb
 from twisted.internet import reactor
 from twisted.cred import portal, credentials
 from twisted.conch.ssh import keys
+from twisted.python import log
 
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.server.server import DSageServer
@@ -77,7 +78,7 @@ try:
     WORKERS = config.getint('general', 'workers')
 
 except Exception, msg:
-    print msg
+    log.msg(msg)
     raise
 # End reading configuration
 hf = ClassicHostInfo().host_info
@@ -145,7 +146,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
             os.remove(file)
         return self.server.stopListening()
 
-    def _catchFailure(self, failure, *args):
+    def _catch_failure(self, failure, *args):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
 
@@ -160,7 +161,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         d = factory.login(self.creds, None)
         d.addCallback(self._LoginConnected2, jobs)
-        d.addErrback(self._catchFailure)
+        d.addErrback(self._catch_failure)
         return d
 
     def _LoginConnected2(self, remoteobj, jobs):
@@ -332,7 +333,7 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         return d
 
     def _job_failed(self, remoteobj, jdict):
-        d = remoteobj.callRemote('job_failed', jdict['job_id'])
+        d = remoteobj.callRemote('job_failed', jdict['job_id'], 'Failure')
         d.addCallback(self._failed_job)
 
         return d
@@ -340,6 +341,7 @@ class MonitorRemoteCallsTest(unittest.TestCase):
     def _failed_job(self, jdict):
         self.assertEquals(type(jdict), dict)
         self.assertEquals(jdict['failures'], 1)
+        self.assertEquals(jdict['output'], 'Failure')
 
     def testget_killed_jobs_list(self):
         factory = PBClientFactory()

@@ -60,8 +60,8 @@ class JobDatabase(object):
             self.LOG_FILE = config.get('db_log', 'log_file')
             self.LOG_LEVEL = config.getint('db_log', 'log_level')
         except Exception, msg:
-            print msg
-            print "Error reading '%s', run dsage.setup()" % conf_file
+            log.msg(msg)
+            log.msg("Error reading '%s', run dsage.setup()" % conf_file)
             raise
         # End reading configuration
 
@@ -566,8 +566,8 @@ class JobDatabaseSQLite(JobDatabase):
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
                 if self.LOG_LEVEL > 3:
-                    print k, v
-                    print msg
+                    log.msg('key: %s, value: %s' % (k, v))
+                    log.msg(msg)
                 continue
 
         return self.get_job_by_id(job_id)

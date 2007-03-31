@@ -197,12 +197,11 @@ class Worker(object):
             print "Error: ", failure.getErrorMessage()
             print "Traceback: ", failure.printTraceback()
 
-    def setupTempDir(self, job):
+    def setup_tmp_dir(self, job):
         # change to a temporary directory
         cur_dir = os.getcwd() # keep a reference to the current directory
         tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
         tmp_job_dir = os.path.join(tmp_dir, job.id)
-        self.tmp_job_dir = tmp_job_dir
         if not os.path.isdir(tmp_dir):
             os.mkdir(tmp_dir)
         os.mkdir(tmp_job_dir)
@@ -211,7 +210,7 @@ class Worker(object):
 
         return tmp_job_dir
 
-    def extractJobData(self, job):
+    def extract_job_data(self, job):
         r"""
         Extracts all the data that is in a job object.
 
@@ -245,7 +244,7 @@ class Worker(object):
                     if LOG_LEVEL > 2:
                         log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
 
-    def writeJobFile(self, job):
+    def write_job_file(self, job):
         r"""
         Writes out the job file to be executed to disk.
 
@@ -262,7 +261,6 @@ class Worker(object):
         job_file.write("\n\n")
         job_file.write(END)
         job_file.close()
-
         if LOG_LEVEL > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
 
@@ -279,20 +277,19 @@ class Worker(object):
 
         if LOG_LEVEL > 3:
             log.msg('[Worker %s, doJob] Beginning job execution...' % (self.id))
+
         self.free = False
         d = defer.Deferred()
 
-        tmp_job_dir = self.setupTempDir(job)
-        self.extractJobData(job)
+        self.tmp_job_dir = self.setup_tmp_dir(job)
+        self.extract_job_data(job)
 
-        job_filename = self.writeJobFile(job)
+        job_filename = self.write_job_file(job)
 
-        f = os.path.join(tmp_job_dir, job_filename)
+        f = os.path.join(self.tmp_job_dir, job_filename)
         self.sage._send("execfile('%s')" % (f))
         if LOG_LEVEL > 2:
             log.msg('[Worker: %s] File to execute: %s' % (self.id, f))
-        if LOG_LEVEL > 3:
-            log.msg('[Worker: %s] Called sage._send()' % (self.id))
 
         d.callback(True)
 
@@ -300,15 +297,24 @@ class Worker(object):
 
     def stop(self):
         r"""
-        stop() kills the current running job.
+        Stops the current worker and resets it's internal state.
 
         """
+
+        # This quits the current running calculation
+        self.sage._expect.sendline(chr(3))  # send ctrl-c
+        self.sage._expect.expect(self.sage._prompt)
+        self.sage._expect.expect(self.sage._prompt)
 
         self.sage.reset()
         self.free = True
         self.job = None
 
     def start(self):
+        r"""
+        Starts a new worker if it does not exist already.
+
+        """
         if self.sage is None:
             if LOG_LEVEL > 3:
                 self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
@@ -431,7 +437,7 @@ class Monitor(object):
         self.reconnecting = False
 
         if self.workers == None: # Only pool workers the first time
-            self.poolWorkers(self.remoteobj)
+            self.pool_workers(self.remoteobj)
         else:
             for worker in self.workers:
                 worker.remoteobj = self.remoteobj # Update workers
@@ -442,7 +448,7 @@ class Monitor(object):
         self.connected = False
         self._retryConnect()
 
-    def _gotKilledJobsList(self, killed_jobs):
+    def _got_killed_jobs(self, killed_jobs):
         if killed_jobs == None:
             return
         # reconstruct the Job objects from the jdicts
@@ -476,7 +482,7 @@ class Monitor(object):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
 
-    def _catchFailure(self, failure):
+    def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
 
@@ -515,18 +521,18 @@ class Monitor(object):
 
         return d
 
-    def poolWorkers(self, remoteobj):
+    def pool_workers(self, remoteobj):
         r"""
-        poolWorkers creates as many workers as specified in worker.conf.
+        pool_workers creates as many workers as specified in worker.conf.
 
         """
 
         self.workers = [Worker(remoteobj, x) for x in range(WORKERS)]
         log.msg('[Monitor] Initialized ' + str(WORKERS) + ' workers.')
 
-    def checkForJobOutput(self):
+    def check_output(self):
         r"""
-        checkForJobOutput periodically polls workers for new output.
+        check_output periodically polls workers for new output.
 
         This figures out whether or not there is anything new output that we
         should submit to the server.
@@ -547,12 +553,15 @@ class Monitor(object):
             try:
                 done, output, new = worker.sage._so_far()
             except Exception, msg:
+                log.msg('Exception raised when checking output.')
                 log.msg(msg)
                 continue
             if new == '' or new.isspace():
                 continue
             if done:
+                worker.free = True
                 # Checks to see if the job created a result var
+                # Do this multiple times because of Expect weirdness
                 sobj = worker.sage.get('DSAGE_RESULT')
                 if sobj == '' or sobj.isspace():
                     sobj = worker.sage.get('DSAGE_RESULT')
@@ -575,29 +584,34 @@ class Monitor(object):
                         if LOG_LEVEL > 1:
                             log.msg(msg)
                         result = cPickle.dumps('Error in reading result.', 2)
-                worker.free = True
                 log.msg("Job '%s' finished" % worker.job.name)
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
-            worker_info = (os.getenv('USER') + '@' + os.uname()[1],
-                           ' '.join(os.uname()[2:]))
+            worker_info = (os.getenv('USER') + '@' + os.uname()[1], ' '.join(os.uname()[2:]))
 
-            sanitized_output = self.sanitizeOutput(new)
+            sanitized_output = self.clean_output(new)
 
-            if self.checkOutputForFailure(sanitized_output):
+            if self.check_failure(sanitized_output):
                 s = ['[Monitor] Error in result for ',
                      'job %s %s done by ' % (worker.job.name, worker.job.id),
-                     'Worker %s' % worker.id
+                     'Worker %s' % (worker.id)
                      ]
                 log.msg(''.join(s))
                 log.msg('[Monitor] Traceback: \n%s' % sanitized_output)
-                d = self.remoteobj.callRemote('job_failed', worker.job.id)
+                d = self.remoteobj.callRemote('job_failed', worker.job.id, sanitized_output)
+                d.addErrback(self._catch_failure)
+                continue
 
             d = worker.job_done(sanitized_output, result, done, worker_info)
             d.addErrback(self._catchConnectionFailure)
 
-    def checkOutputForFailure(self, sage_output):
+    def check_failure(self, sage_output):
+        r"""
+        Checks for signs of exceptions or errors in the output.
+
+        """
+
         if sage_output == None:
             return False
         else:
@@ -610,9 +624,9 @@ class Monitor(object):
         else:
             return False
 
-    def checkForKilledJobs(self):
+    def check_killed_jobs(self):
         r"""
-        checkForKilledJobs retrieves a list of killed job ids.
+        check_killed_jobs retrieves a list of killed job ids.
 
         """
 
@@ -620,21 +634,12 @@ class Monitor(object):
             return
 
         killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
-        killed_jobs.addCallback(self._gotKilledJobsList)
-        killed_jobs.addErrback(self._catchFailure)
+        killed_jobs.addCallback(self._got_killed_jobs)
+        killed_jobs.addErrback(self._catch_failure)
 
-    def jobUpdated(self, id):
+    def clean_output(self, sage_output):
         r"""
-        jobUpdated is a callback that gets called when there is new output
-        from checkForJobOutput.
-
-        """
-
-        print str(id) + ' was updated!'
-
-    def sanitizeOutput(self, sage_output):
-        r"""
-        sanitizeOutput attempts to clean up the output string from sage.
+        clean_output attempts to clean up the output string from sage.
 
         """
 
@@ -656,41 +661,20 @@ class Monitor(object):
         # log.msg("After cleaning output: ", output)
         return output
 
-    def _gotHostInfo(self, h):
-
-        # attach the workers uuid to the dictionary returned by
-        # HostInfo().get_host_info
-        h['uuid'] = self.uuid
-
-        d = self.remoteobj.callRemote("submit_host_info", h)
-        d.addErrback(self._catchConnectionFailure)
-        log.msg('[Monitor] Submitted host info')
-
-    def submit_host_info(self):
+    def start_looping_calls(self):
         r"""
-        Sends the workers hardware specs to the server.
-
-        """
-
-        h = HostInfo().get_host_info()
-        h.addCallback(self._gotHostInfo)
-        h.addErrback(self._catchConnectionFailure)
-
-    def startLoopingCalls(self):
-        r"""
-        startLoopingCalls prepares and starts our periodic checking methods.
+        stop_looping_calls prepares and starts our periodic checking methods.
 
         """
 
         # submits the output to the server
-        self.tsk1 = task.LoopingCall(self.checkForJobOutput)
+        self.tsk1 = task.LoopingCall(self.check_output)
         self.tsk1.start(0.1, now=False)
-
         # checks for killed jobs
-        self.tsk2 = task.LoopingCall(self.checkForKilledJobs)
+        self.tsk2 = task.LoopingCall(self.check_killed_jobs)
         self.tsk2.start(5.0, now=False)
 
-    def stopLoopingCalls(self):
+    def stop_looping_calls(self):
         r"""
         Stops the looping calls.
 
@@ -726,12 +710,12 @@ def main():
     monitor = Monitor(hostname, port)
 
     monitor.connect()
-    monitor.startLoopingCalls()
+    monitor.start_looping_calls()
 
     try:
         reactor.run()
     except:
-        sys.exist(-1)
+        sys.exit()
 
 if __name__ == '__main__':
     main()

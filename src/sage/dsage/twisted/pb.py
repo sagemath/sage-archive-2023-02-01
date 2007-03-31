@@ -195,20 +195,20 @@ class AnonymousMonitorPerspective(DefaultPerspective):
         return self.DSageServer.get_killed_jobs_list()
 
 
-    def perspective_job_failed(self, job_id):
+    def perspective_job_failed(self, job_id, traceback):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to perspective_job_failed' % (job_id)
+            log.msg('Bad job_id [%s] passed to perspective_job_failed' % (job_id))
             raise BadTypeError()
 
         uuid = self.mind[1]['uuid']
         self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.job_failed(job_id)
+        return self.DSageServer.job_failed(job_id, traceback)
 
     def perspective_job_done(self, job_id, output,
                              result, completed, worker_info):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
-            print 'Bad job_id passed to perspective_job_done'
+            log.msg('Bad job_id passed to perspective_job_done')
             raise BadTypeError()
 
         return self.DSageServer.job_done(job_id, output, result,
@@ -241,12 +241,11 @@ class MonitorPerspective(DefaultPerspective):
     def perspective_job_done(self, job_id, output, result,
                             completed, worker_info):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
-            print 'Bad job_id passed to perspective_job_done'
-            print 'job_id: %s' % (job_id)
-            print 'output: %s' % (output)
-            # print 'result: %s' % (result)
-            print 'completed: %s' % (completed)
-            print 'worker_info: %s' % (worker_info)
+            log.msg('Bad job_id passed to perspective_job_done')
+            log.msg('job_id: %s' % (job_id))
+            log.msg('output: %s' % (output))
+            log.msg('completed: %s' % (completed))
+            log.msg('worker_info: %s' % (worker_info))
             raise BadTypeError()
         if completed:
             uuid = self.mind[1]['uuid']
@@ -255,15 +254,15 @@ class MonitorPerspective(DefaultPerspective):
         return self.DSageServer.job_done(job_id, output, result,
                                   completed, worker_info)
 
-    def perspective_job_failed(self, job_id):
+    def perspective_job_failed(self, job_id, traceback):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to perspective_job_failed' % (job_id)
+            log.msg('Bad job_id [%s] passed to perspective_job_failed' % (job_id))
             raise BadTypeError()
 
         uuid = self.mind[1]['uuid']
         self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.job_failed(job_id)
+        return self.DSageServer.job_failed(job_id, traceback)
 
     def perspective_submit_host_info(self, hostinfo):
         if not isinstance(hostinfo, dict):
@@ -283,7 +282,7 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_by_id(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to get_job_by_id' % (job_id)
+            log.msg('Bad job_id [%s] passed to get_job_by_id' % (job_id))
             raise BadTypeError()
         # log.msg('Returning job %s to %s' % (job_id, self.avatarID))
         job = self.DSageServer.get_job_by_id(job_id)
@@ -292,7 +291,7 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_jobs_by_username(self, username):
         if not (isinstance(username, str)):
-            print 'Bad username [%s] passed to perspective_get_jobs_by_username' % (username)
+            log.msg('Bad username [%s] passed to perspective_get_jobs_by_username' % (username))
             raise BadTypeError()
 
         jobs = self.DSageServer.get_jobs_by_username(username)
@@ -301,14 +300,14 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_result_by_id(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to perspective_get_job_result_by_id' % (job_id)
+            log.msg('Bad job_id [%s] passed to perspective_get_job_result_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_result_by_id(job_id)
 
     def perspective_get_job_output_by_id(self, job_id):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to get_job_output_by_id' % (job_id)
+            log.msg('Bad job_id [%s] passed to get_job_output_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_output_by_id(job_id)
@@ -323,15 +322,16 @@ class UserPerspective(DefaultPerspective):
         if jdict is None:
             raise BadJobError()
         if jdict['username'] != self.avatarID:
-            print 'username does not match credentials'
-            print 'claim: %s\n actual:%s' % (jdict['username'], self.avatarID)
+            log.msg('username does not match credentials')
+            log.msg('claim: %s' % jdict['username'])
+            log.msg('actual: %s' % self.avatarID)
             raise BadJobError()
 
         return self.DSageServer.submit_job(jdict)
 
     def perspective_kill_job(self, job_id, reason=None):
         if not isinstance(job_id, str):
-            print 'Bad job_id [%s] passed to perspective_kill_job' % job_id
+            log.msg('Bad job_id [%s] passed to perspective_kill_job' % job_id)
             raise BadTypeError()
 
         return self.DSageServer.kill_job(job_id, reason)

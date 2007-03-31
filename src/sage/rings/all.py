@@ -91,7 +91,7 @@ from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleEl
 
 # Algebraic reals (the intersection of the algebraic closure of the rationals
 # with the reals)
-from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, Alg,
+from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
                             AlgebraicRealNumber, is_AlgebraicRealNumber)
 
 # Intervals

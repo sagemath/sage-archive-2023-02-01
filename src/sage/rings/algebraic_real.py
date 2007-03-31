@@ -327,7 +327,7 @@ def clear_denominators(poly):
     (Inspired by Pari's primitive_pol_to_monic().)
 
     EXAMPLES:
-        sage: from sage.rings.algebraic import clear_denominators
+        sage: from sage.rings.algebraic_real import clear_denominators
 
         sage: _.<x> = QQ['x']
         sage: clear_denominators(x + 3/2)
@@ -370,7 +370,7 @@ def do_polred(poly):
     new polynomial.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic import do_polred
+        sage: from sage.rings.algebraic_real import do_polred
 
         sage: _.<x> = QQ['x']
         sage: do_polred(x^2-5)
@@ -412,7 +412,7 @@ def isolating_interval(intv_fn, pol):
     Returns an interval containing at most one root of pol.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic import isolating_interval
+        sage: from sage.rings.algebraic_real import isolating_interval
 
         sage: _.<x> = QQ['x']
         sage: isolating_interval(lambda rif: sqrt(rif(2)), x^2 - 2)
@@ -495,7 +495,7 @@ def find_zero_result(fn, l):
     Returns that one element of l.
 
     EXAMPLES:
-        sage: from sage.rings.algebraic import find_zero_result
+        sage: from sage.rings.algebraic_real import find_zero_result
         sage: _.<x> = QQ['x']
         sage: delta = 10^(-70)
         sage: p1 = x - 1
@@ -557,7 +557,7 @@ class AlgebraicGenerator(SageObject):
         """
         Construct an AlgebraicGenerator object.
 
-        sage: from sage.rings.algebraic import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
+        sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
         sage: _.<y> = QQ['y']
         sage: x = polygen(Alg)
         sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
@@ -600,7 +600,7 @@ class AlgebraicGenerator(SageObject):
         does not actually extend the rationals.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import unit_generator
+            sage: from sage.rings.algebraic_real import unit_generator
             sage: unit_generator.is_unit()
             True
         """
@@ -622,7 +622,7 @@ class AlgebraicGenerator(SageObject):
         for the number field QQ[alpha][beta].
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -726,7 +726,7 @@ class AlgebraicGenerator(SageObject):
         returns None.)
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicGenerator, AlgebraicNumberRoot, unit_generator
+            sage: from sage.rings.algebraic_real import AlgebraicGenerator, AlgebraicNumberRoot, unit_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -779,7 +779,7 @@ class AlgebraicGenerator(SageObject):
         NumberFieldElement depending on whether this is the unit generator.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRoot, AlgebraicGenerator, AlgebraicNumberExtensionElement, AlgebraicNumberRational
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, AlgebraicNumberExtensionElement, AlgebraicNumberRational
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -835,7 +835,7 @@ class AlgebraicNumberDescr(SageObject):
         AlgebraicNumberExtensionElement.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRational
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRational
             sage: AlgebraicNumberRational(1/2).is_exact()
             True
         """
@@ -847,7 +847,7 @@ class AlgebraicNumberDescr(SageObject):
         an AlgebraicNumberExtensionElement which is actually rational.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRational
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRational
             sage: AlgebraicNumberRational(3/7).is_rational()
             True
         """
@@ -857,7 +857,7 @@ class AlgebraicNumberDescr(SageObject):
         """
         Returns True if self is an AlgebraicNumberExtensionElement.
 
-            sage: from sage.rings.algebraic import AlgebraicNumberExtensionElement, AlgebraicNumberRoot, AlgebraicGenerator
+            sage: from sage.rings.algebraic_real import AlgebraicNumberExtensionElement, AlgebraicNumberRoot, AlgebraicGenerator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
@@ -917,7 +917,7 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         mean 1).
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberExpression
+            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
             sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '+')
             [0.83333333333333325 ... 0.83333333333333338] (1/3 + 1/2)
             sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '-')
@@ -945,7 +945,7 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         the result may not be a minimal-width interval.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberExpression
+            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
             sage: five_sixths = AlgebraicNumberExpression(Alg(1/2), Alg(1/3), '+')
             sage: five_sixths.interval_fast(RealIntervalField(4))
             [0.812 ... 0.875]
@@ -977,7 +977,7 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         Return a new exact AlgebraicNumberDescr with the same value as self.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberExpression
+            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
             sage: five_sixths = AlgebraicNumberExpression(Alg(1/2), Alg(1/3), '+')
             sage: five_sixths.exactify()
             5/6
@@ -1075,7 +1075,7 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
         Initialize an algebraic number.  The argument must be either
         a rational number or a subclass of AlgebraicNumberDescr.
 
-        sage: from sage.rings.algebraic import AlgebraicNumberExpression
+        sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
         sage: AlgebraicNumber(22/7)
         22/7
         sage: AlgebraicNumber(AlgebraicNumberExpression(Alg(1/2), Alg(1/5), '+'))
@@ -1772,7 +1772,7 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
         quickly if started with a sufficiently narrow interval.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRoot
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot
             sage: x = polygen(Alg)
             sage: rt2 = AlgebraicNumberRoot(x^2 - 2, RIF(0, 2))
             sage: rt2.refine_interval(RIF(0, 2), 75)
@@ -1942,7 +1942,7 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
         AlgebraicNumberExtensionElement with the same value as this number.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic import AlgebraicNumberRoot
+            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot
             sage: x = polygen(Alg)
             sage: two = AlgebraicNumberRoot((x-2)*(x-sqrt(Alg(2))), RIF(1.5, 3))
             sage: two.exactify()

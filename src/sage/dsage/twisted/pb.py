@@ -194,6 +194,17 @@ class AnonymousMonitorPerspective(DefaultPerspective):
     def perspective_get_killed_jobs_list(self):
         return self.DSageServer.get_killed_jobs_list()
 
+
+    def perspective_job_failed(self, job_id):
+        if not isinstance(job_id, str):
+            print 'Bad job_id [%s] passed to perspective_job_failed' % (job_id)
+            raise BadTypeError()
+
+        uuid = self.mind[1]['uuid']
+        self.DSageServer.set_busy(uuid, busy=False)
+
+        return self.DSageServer.job_failed(job_id)
+
     def perspective_job_done(self, job_id, output,
                              result, completed, worker_info):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):

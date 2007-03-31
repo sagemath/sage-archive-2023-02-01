@@ -172,10 +172,7 @@ class DistributedFunctionTest(DistributedFunction):
         self.name = name
         self.result = 0
         self.results = []
-        self.code = """result=%s
-save(result, 'result')
-DSAGE_RESULT = 'result.sobj'
-        """
+        self.code = """DSAGE_RESULT=%s"""
         # self.outstanding_jobs = ["print %s" % (i for i in range(1,n+1))]
         self.outstanding_jobs = [Job(code=self.code % i, username='yqiang') for i in range(1, n+1)]
 

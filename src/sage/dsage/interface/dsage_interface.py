@@ -17,7 +17,6 @@
 #
 ############################################################################
 
-import sys
 import os
 import random
 import glob
@@ -29,7 +28,7 @@ import threading
 import time
 
 from twisted.spread import pb
-from twisted.internet import reactor, defer, error, task
+from twisted.internet import reactor, defer, error
 from twisted.cred import credentials
 from twisted.conch.ssh import keys
 
@@ -171,7 +170,7 @@ class DSage(object):
         self.remoteobj.notifyOnDisconnect(self._disconnected)
 
     def _disconnected(self, remoteobj):
-        print 'Lost connection to the server.'
+        print '[DSage] Lost connection to %s' % (self.SERVER)
         self.info_str = 'Not connected.'
 
     def _got_my_jobs(self, jobs, job_name):

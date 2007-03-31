@@ -16,8 +16,7 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0,
-                 trial_division_limit=10000, name='DistributedFactor'):
+    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000, name='DistributedFactor'):
         r"""
         Parameters:
             DSage -- an instance of a dsage connection
@@ -70,9 +69,7 @@ if is_prime(n):
     result = [[n], [True], {}, 'primality']
 else:
     v, t = qsieve(n)
-    result = [v, [0]*len(v), {}, 'qsieve']
-    save(result, 'result')
-    DSAGE_RESULT = 'result.sobj'
+    DSAGE_RESULT = [v, [0]*len(v), {}, 'qsieve']
 """ % n, name='qsieve')
         job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
@@ -88,12 +85,10 @@ else:
         job = Job(code="""
 n = %s
 if is_prime(n):
-    result = [[n], [True], {}, 'primality']
+    DSAGE_RESULT = [[n], [True], {}, 'primality']
 else:
     e = ECM()
-    result = [e.find_factor(n, B1=%s, c=%s, I=%s), e.primality, e.last_params, 'ecm']
-save(result, 'result')
-DSAGE_RESULT = 'result.sobj'
+    DSAGE_RESULT = [e.find_factor(n, B1=%s, c=%s, I=%s), e.primality, e.last_params, 'ecm']
 
 """ % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
         job.n = int(n)

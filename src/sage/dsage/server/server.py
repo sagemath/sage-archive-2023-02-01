@@ -170,7 +170,7 @@ class DSageServer(pb.Root):
         if jdict['code'] is None:
             return False
         if jdict['name'] is None:
-            jdict['name'] = 'No name specified'
+            jdict['name'] = 'Default'
         jdict['update_time'] = datetime.datetime.now()
 
         return self.jobdb.store_job(jdict)
@@ -238,10 +238,6 @@ class DSageServer(pb.Root):
             log.msg('[DSage, job_done] worker_info: %s ' % str(worker_info))
 
         jdict = self.get_job_by_id(job_id)
-
-        if self.LOG_LEVEL > 3:
-            log.msg('[DSage, job_done] result type' , type(result))
-
         output = str(output)
         if jdict['output'] is not None: # Append new output to existing output
             jdict['output'] += output

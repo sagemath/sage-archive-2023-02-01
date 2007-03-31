@@ -571,20 +571,20 @@ class Monitor(object):
                         if LOG_LEVEL > 1:
                             log.msg('Got DSAGE_RESULT second time')
 
-                # DSAGE_RESULT does not exist
                 if 'Error: name \'DSAGE_RESULT\' is not defined' in sobj:
                     if LOG_LEVEL > 1:
                         log.msg('DSAGE_RESULT does not exist')
                     result = cPickle.dumps('No result saved.', 2)
                 else:
+                    worker.sage.eval("save(DSAGE_RESULT, 'result')")
                     os.chdir(worker.tmp_job_dir)
                     try:
-                        result = open(sobj, 'rb').read()
+                        result = open('result.sobj', 'rb').read()
                     except Exception, msg:
                         if LOG_LEVEL > 1:
                             log.msg(msg)
                         result = cPickle.dumps('Error in reading result.', 2)
-                log.msg("Job '%s' finished" % worker.job.name)
+                log.msg("Job '%s' finished" % worker.job.id)
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 

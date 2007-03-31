@@ -109,12 +109,12 @@ they print as intervals (with 53-bit precision).
     sage: AA(5/7)
     5/7
     sage: two = sqrt(AA(4)); two
-    [1.9999999999999997 ... 2.0000000000000005]
+    [1.9999999999999997 .. 2.0000000000000005]
     sage: two == 2; two
     True
     2
     sage: phi
-    [1.6180339887498946 ... 1.6180339887498950]
+    [1.6180339887498946 .. 1.6180339887498950]
 
 The paper _ARPREC: An Arbitrary Precision Computation Package_ discusses
 this result.  Evidently it is difficult to find, but we can easily
@@ -126,17 +126,17 @@ verify it.
     sage: rhs_den = (alpha^35 - 1) * (alpha^15 - 1)^2 * (alpha^14 - 1)^2 * (alpha^5 - 1)^6 * alpha^68
     sage: rhs = rhs_num / rhs_den
     sage: lhs
-    [2.6420403358193507e44 ... 2.6420403358193520e44]
+    [2.6420403358193507e44 .. 2.6420403358193520e44]
     sage: rhs
-    [2.6420403358193507e44 ... 2.6420403358193520e44]
+    [2.6420403358193507e44 .. 2.6420403358193520e44]
     sage: lhs - rhs
-    [-62883485433074552000000000000 ... 63753912023197085000000000000]
+    [-62883485433074552000000000000 .. 63753912023197085000000000000]
     sage: lhs == rhs
     True
     sage: lhs - rhs
-    [0.00000000000000000 ... 0.00000000000000000]
+    [0.00000000000000000 .. 0.00000000000000000]
     sage: lhs._exact_value()
-    -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in [0.44406334400909258 ... 0.44406334400909265]
+    -242494609856316402264822833062350847769474540*a^9 + 862295472068289472491654837785947906234680703*a^8 - 829559238431038252116584538075753012193290520*a^7 - 125882239615006638366472766103700441555126185*a^6 + 1399067970863104691667276008776398309383579345*a^5 - 1561176687069361567616835847286958553574223422*a^4 + 761706318888840943058230840550737823821027895*a^3 + 580740464974951394762758666210754821723780266*a^2 - 954587496403409756503464154898858512440951323*a + 546081123623099782018260884934770383777092602 where a^10 - 4*a^9 + 5*a^8 - a^7 - 6*a^6 + 9*a^5 - 6*a^4 - a^3 + 5*a^2 - 4*a + 1 = 0 and a in [0.44406334400909258 .. 0.44406334400909265]
 """
 
 import sage.rings.ring
@@ -284,16 +284,16 @@ class AlgebraicRealField(_uniq_alg, sage.rings.ring.Field):
         EXAMPLES:
             sage: x = polygen(AA)
             sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(0, 2)); phi
-            [1.6180339887498946 ... 1.6180339887498950]
+            [1.6180339887498946 .. 1.6180339887498950]
             sage: p = (x-1)^7 * (x-2)
             sage: r = AA.polynomial_root(p, RIF(9/10, 11/10), multiplicity=7)
             sage: r; r == 1
-            [0.99999999999999988 ... 1.0000000000000003]
+            [0.99999999999999988 .. 1.0000000000000003]
             True
             sage: p = (x-phi)*(x-sqrt(AA(2)))
             sage: r = AA.polynomial_root(p, RIF(1, 3/2))
             sage: r; r == sqrt(AA(2))
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             True
         """
         return AlgebraicRealNumber(AlgebraicRealNumberRoot(poly, interval, multiplicity))
@@ -416,13 +416,13 @@ def isolating_interval(intv_fn, pol):
 
         sage: _.<x> = QQ['x']
         sage: isolating_interval(lambda rif: sqrt(rif(2)), x^2 - 2)
-        [1.41421356237309504876 ... 1.41421356237309504888]
+        [1.41421356237309504876 .. 1.41421356237309504888]
 
     And an example that requires more precision:
         sage: delta = 10^(-70)
         sage: p = (x - 1) * (x - 1 - delta) * (x - 1 + delta)
         sage: isolating_interval(lambda rif: rif(1 + delta), p)
-        [1.00000000000000000000000000000000000000000000000000000000000000000000009999999999999999999999999999999999999999999999999999999999999999999999999999999999998 ... 1.00000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000014]
+        [1.00000000000000000000000000000000000000000000000000000000000000000000009999999999999999999999999999999999999999999999999999999999999999999999999999999999998 .. 1.00000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000014]
     """
     for rif in rif_seq():
         intv = intv_fn(rif)
@@ -434,7 +434,7 @@ def isolating_interval(intv_fn, pol):
         # root (that the interval is sufficiently narrow).
 
         # Call the root we want alpha, and the bounding interval
-        # [bot ... top].  By Budan's theorem, if pol(x+bot)
+        # [bot .. top].  By Budan's theorem, if pol(x+bot)
         # has at most one more sign change than pol(x+top),
         # then pol has at most one root in this interval.
         # This is true if all coefficients in pol(x+bot)
@@ -466,7 +466,7 @@ def isolating_interval(intv_fn, pol):
         # Thus, all coefficients of pol(x+alpha) are nonzero,
         # except for the constant coefficient, which is zero.  We
         # are guaranteed that if we select a sufficiently tight bounding
-        # interval around alpha, then pol(x+[bot...top])
+        # interval around alpha, then pol(x+[bot..top])
         # will have coefficients bounded away from zero, which proves
         # that there is only one root within that bounding interval.
 
@@ -564,7 +564,7 @@ class AlgebraicGenerator(SageObject):
         sage: root = AlgebraicRealNumberRoot(x^2 - x - 1, RIF(1, 2))
         sage: x = AlgebraicGenerator(nf, root)
         sage: x
-        Number Field in a with defining polynomial y^2 - y - 1 with a in [1.6180339887498946 ... 1.6180339887498950]
+        Number Field in a with defining polynomial y^2 - y - 1 with a in [1.6180339887498946 .. 1.6180339887498950]
         sage: x.field()
         Number Field in a with defining polynomial y^2 - y - 1
         sage: x.is_unit()
@@ -629,18 +629,18 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
             sage: gen2.union(unit_generator) is gen2
             True
             sage: unit_generator.union(gen3) is gen3
             True
             sage: gen2.union(gen3)
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 ... 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
         """
         if self._unit:
             return other
@@ -733,15 +733,15 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 ... 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
             sage: unit_generator.super_poly(gen2) is None
             True
             sage: gen2.super_poly(gen2_3)
@@ -786,17 +786,17 @@ class AlgebraicGenerator(SageObject):
             sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
-            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
+            Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 .. 1.4142135623730952]
             sage: sqrt2 = AlgebraicRealNumberExtensionElement(gen2, nf2.gen())
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
             sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
-            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
+            Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 .. 1.7320508075688775]
             sage: sqrt3 = AlgebraicRealNumberExtensionElement(gen3, nf3.gen())
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
-            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 ... 0.51763809020504159]
+            Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 .. 0.51763809020504159]
             sage: gen2_3(sqrt2)
             -a^3 + 3*a
             sage: gen2_3(AlgebraicRealNumberRational(1/7))
@@ -919,17 +919,17 @@ class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
         EXAMPLES:
             sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
             sage: AlgebraicRealNumberExpression(AA(1/3), AA(1/2), '+')
-            [0.83333333333333325 ... 0.83333333333333338] (1/3 + 1/2)
+            [0.83333333333333325 .. 0.83333333333333338] (1/3 + 1/2)
             sage: AlgebraicRealNumberExpression(AA(1/3), AA(1/2), '-')
-            [-0.16666666666666669 ... -0.16666666666666662] (1/3 - 1/2)
+            [-0.16666666666666669 .. -0.16666666666666662] (1/3 - 1/2)
             sage: AlgebraicRealNumberExpression(AA(1/3), AA(1/2), '*')
-            [0.16666666666666665 ... 0.16666666666666669] (1/3 * 1/2)
+            [0.16666666666666665 .. 0.16666666666666669] (1/3 * 1/2)
             sage: AlgebraicRealNumberExpression(AA(1/3), AA(1/2), '/')
-            [0.66666666666666662 ... 0.66666666666666675] (1/3 / 1/2)
+            [0.66666666666666662 .. 0.66666666666666675] (1/3 / 1/2)
             sage: AlgebraicRealNumberExpression(None, AA(1/2), '-')
-            [-0.50000000000000000 ... -0.50000000000000000] (None - 1/2)
+            [-0.50000000000000000 .. -0.50000000000000000] (None - 1/2)
             sage: AlgebraicRealNumberExpression(None, AA(1/2), '/')
-            [2.0000000000000000 ... 2.0000000000000000] (None / 1/2)
+            [2.0000000000000000 .. 2.0000000000000000] (None / 1/2)
         """
         self._left = left
         self._right = right
@@ -948,9 +948,9 @@ class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
             sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
             sage: five_sixths = AlgebraicRealNumberExpression(AA(1/2), AA(1/3), '+')
             sage: five_sixths.interval_fast(RealIntervalField(4))
-            [0.812 ... 0.875]
+            [0.812 .. 0.875]
             sage: five_sixths.interval_fast(RealIntervalField(70))
-            [0.83333333333333333333305 ... 0.83333333333333333333390]
+            [0.83333333333333333333305 .. 0.83333333333333333333390]
         """
         op = self._op
         if op == '+':
@@ -1059,13 +1059,13 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
 
     EXAMPLES:
         sage: sqrt(AA(2))
-        [1.4142135623730949 ... 1.4142135623730952]
+        [1.4142135623730949 .. 1.4142135623730952]
         sage: sqrt(AA(2))^2 == 2
         True
         sage: x = polygen(AA)
         sage: phi = AA.polynomial_root(x^2 - x - 1, RIF(0, 2))
         sage: phi
-        [1.6180339887498946 ... 1.6180339887498950]
+        [1.6180339887498946 .. 1.6180339887498950]
         sage: phi^2 == phi+1
         True
     """
@@ -1079,7 +1079,7 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         sage: AlgebraicRealNumber(22/7)
         22/7
         sage: AlgebraicRealNumber(AlgebraicRealNumberExpression(AA(1/2), AA(1/5), '+'))
-        [0.69999999999999995 ... 0.70000000000000007]
+        [0.69999999999999995 .. 0.70000000000000007]
         """
         sage.structure.element.FieldElement.__init__(self, AA)
         if isinstance(x, (int, long, sage.rings.integer.Integer,
@@ -1196,9 +1196,9 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: AA(2)^(1/2)
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             sage: AA(8)^(2/3)
-            [3.9999999999999995 ... 4.0000000000000009]
+            [3.9999999999999995 .. 4.0000000000000009]
             sage: AA(8)^(2/3) == 4
             True
             sage: x = polygen(AA)
@@ -1206,11 +1206,11 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             sage: tau = AA.polynomial_root(x^2 - x - 1, RIF(-2, 0))
             sage: rt5 = AA(5)^(1/2)
             sage: phi^10 / rt5
-            [55.003636123247410 ... 55.003636123247418]
+            [55.003636123247410 .. 55.003636123247418]
             sage: tau^10 / rt5
-            [0.0036361232474132654 ... 0.0036361232474132659]
+            [0.0036361232474132654 .. 0.0036361232474132659]
             sage: (phi^10 - tau^10) / rt5
-            [54.999999999999992 ... 55.000000000000008]
+            [54.999999999999992 .. 55.000000000000008]
             sage: (phi^10 - tau^10) / rt5 == fibonacci(10)
             True
             sage: (phi^50 - tau^50) / rt5 == fibonacci(50)
@@ -1263,7 +1263,7 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: two = sqrt(AA(4))
             sage: two
-            [1.9999999999999997 ... 2.0000000000000005]
+            [1.9999999999999997 .. 2.0000000000000005]
             sage: two.exactify()
             sage: two
             2
@@ -1295,9 +1295,9 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             sage: AA(2)._exact_field()
             Unit generator
             sage: (sqrt(AA(2)) + sqrt(AA(19)))._exact_field()
-            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in [3.7893137826710354 ... 3.7893137826710360]
+            Number Field in a with defining polynomial y^4 - 20*y^2 + 81 with a in [3.7893137826710354 .. 3.7893137826710360]
             sage: (AA(7)^(3/5))._exact_field()
-            Number Field in a with defining polynomial y^5 - 7 with a in [1.4757731615945519 ... 1.4757731615945522]
+            Number Field in a with defining polynomial y^5 - 7 with a in [1.4757731615945519 .. 1.4757731615945522]
         """
 
         sd = self._descr
@@ -1317,9 +1317,9 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             sage: AA(2)._exact_value()
             2
             sage: (sqrt(AA(2)) + sqrt(AA(19)))._exact_value()
-            1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in [3.7893137826710354 ... 3.7893137826710360]
+            1/9*a^3 + a^2 - 11/9*a - 10 where a^4 - 20*a^2 + 81 = 0 and a in [3.7893137826710354 .. 3.7893137826710360]
             sage: (AA(7)^(3/5))._exact_value()
-            a^3 where a^5 - 7 = 0 and a in [1.4757731615945519 ... 1.4757731615945522]
+            a^3 where a^5 - 7 = 0 and a in [1.4757731615945519 .. 1.4757731615945522]
         """
         sd = self._descr
         if sd.is_exact():
@@ -1335,13 +1335,13 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: rt2 = sqrt(AA(2))
             sage: rt2._value
-            [1.41421356237309504876 ... 1.41421356237309504888]
+            [1.41421356237309504876 .. 1.41421356237309504888]
             sage: rt2._more_precision()
             sage: rt2._value
-            [1.414213562373095048801688724209698078568 ... 1.414213562373095048801688724209698078575]
+            [1.414213562373095048801688724209698078568 .. 1.414213562373095048801688724209698078575]
             sage: rt2._more_precision()
             sage: rt2._value
-            [1.414213562373095048801688724209698078569671875376948073176679737990732478462101 ... 1.414213562373095048801688724209698078569671875376948073176679737990732478462120]
+            [1.414213562373095048801688724209698078569671875376948073176679737990732478462101 .. 1.414213562373095048801688724209698078569671875376948073176679737990732478462120]
         """
         prec = self._value.prec()
         field = RealIntervalField(prec * 2)
@@ -1403,12 +1403,12 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         EXAMPLES:
             sage: x = AA(2).sqrt()
             sage: x.interval_fast(RIF)
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             sage: x.interval_fast(RealIntervalField(200))
-            [1.4142135623730950488016887242096980785696718753769480731766796 ... 1.4142135623730950488016887242096980785696718753769480731766809]
+            [1.4142135623730950488016887242096980785696718753769480731766796 .. 1.4142135623730950488016887242096980785696718753769480731766809]
             sage: x = AA(4).sqrt()
             sage: (x-2).interval_fast(RIF)
-            [-1.0842021724855045e-19 ... 2.1684043449710089e-19]
+            [-1.0842021724855045e-19 .. 2.1684043449710089e-19]
         """
         if field.prec() == self._value.prec():
             return self._value
@@ -1425,9 +1425,9 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: AA(2).sqrt().interval_diameter(1e-10)
-            [1.41421356237309504876 ... 1.41421356237309504888]
+            [1.41421356237309504876 .. 1.41421356237309504888]
             sage: AA(2).sqrt().interval_diameter(1e-30)
-            [1.414213562373095048801688724209698078568 ... 1.414213562373095048801688724209698078575]
+            [1.414213562373095048801688724209698078568 .. 1.414213562373095048801688724209698078575]
         """
         if diam <= 0:
             raise ValueError, 'diameter must be positive in interval_diameter'
@@ -1452,9 +1452,9 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             sage: y = x*x
             sage: y = 1000 * y - 999 * y
             sage: y.interval_fast(RIF64)
-            [1.99999999999999966693 ... 2.00000000000000033307]
+            [1.99999999999999966693 .. 2.00000000000000033307]
             sage: y.interval(RIF64)
-            [1.99999999999999999989 ... 2.00000000000000000022]
+            [1.99999999999999999989 .. 2.00000000000000000022]
         """
         target = RR(1.0) >> field.prec()
         val = self.interval_diameter(target)
@@ -1473,18 +1473,18 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             sage: x = AA(2).sqrt()
             sage: y = x*x
             sage: x.interval(RIF)
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             sage: x.interval_exact(RIF)
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             sage: y.interval(RIF)
-            [1.9999999999999997 ... 2.0000000000000005]
+            [1.9999999999999997 .. 2.0000000000000005]
             sage: y.interval_exact(RIF)
-            [2.0000000000000000 ... 2.0000000000000000]
+            [2.0000000000000000 .. 2.0000000000000000]
             sage: z = 1 + AA(2).sqrt() / 2^200
             sage: z.interval(RIF)
-            [1.0000000000000000 ... 1.0000000000000003]
+            [1.0000000000000000 .. 1.0000000000000003]
             sage: z.interval_exact(RIF)
-            [1.0000000000000000 ... 1.0000000000000003]
+            [1.0000000000000000 .. 1.0000000000000003]
         """
         for extra in (0, 40):
             target = RR(1.0) >> field.prec()
@@ -1643,8 +1643,8 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         val = self.interval_exact(rifp1)
 
         # Call the largest floating-point number <= self 'x'.  Then
-        # val may be [x ... x], [x ... x + 1/2 ulp],
-        # [x + 1/2 ulp ... x + 1/2 ulp], or [x + 1/2 ulp ... x + 1 ulp];
+        # val may be [x .. x], [x .. x + 1/2 ulp],
+        # [x + 1/2 ulp .. x + 1/2 ulp], or [x + 1/2 ulp .. x + 1 ulp];
         # in the second and fourth cases, the true value is not equal
         # to either of the interval endpoints.
 
@@ -1685,7 +1685,7 @@ class AlgebraicPolynomialTracker(SageObject):
         sage: P
         x^2 - x - 1
         sage: AA.polynomial_root(P, RIF(0, 2))
-        [1.6180339887498946 ... 1.6180339887498950]
+        [1.6180339887498946 .. 1.6180339887498950]
     """
 
     def __init__(self, poly):
@@ -1776,7 +1776,7 @@ class AlgebraicRealNumberRoot(AlgebraicRealNumberDescr):
             sage: x = polygen(AA)
             sage: rt2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(0, 2))
             sage: rt2.refine_interval(RIF(0, 2), 75)
-            [1.41421356237309504880163 ... 1.41421356237309504880175]
+            [1.41421356237309504880163 .. 1.41421356237309504880175]
         """
         p = self._poly.poly()
         dp = p.derivative()
@@ -1946,12 +1946,12 @@ class AlgebraicRealNumberRoot(AlgebraicRealNumberDescr):
             sage: x = polygen(AA)
             sage: two = AlgebraicRealNumberRoot((x-2)*(x-sqrt(AA(2))), RIF(1.5, 3))
             sage: two.exactify()
-            2 where a^2 - 2 = 0 and a in [1.4142135623730949 ... 1.4142135623730952]
+            2 where a^2 - 2 = 0 and a in [1.4142135623730949 .. 1.4142135623730952]
             sage: two.exactify().rational_value()
             2
             sage: strange = AlgebraicRealNumberRoot(x^2 + sqrt(AA(3))*x - sqrt(AA(2)), RIF(-1, 3))
             sage: strange.exactify()
-            a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in [0.60510122651395104 ... 0.60510122651395116]
+            a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in [0.60510122651395104 .. 0.60510122651395116]
         """
         gen = self._poly.generator()
 

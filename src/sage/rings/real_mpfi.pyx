@@ -10,8 +10,8 @@ This is a straightforward binding to the MPFI library; it may be useful
 to refer to its documentation for more details.
 
 An interval is represented as a pair of floating-point numbers a and b
-(where a <= b) and printed as [a ... b] (for instance,
-[3.1415 ... 3.1416]).  These floating-point numbers implemented using
+(where a <= b) and printed as [a .. b] (for instance,
+[3.1415 .. 3.1416]).  These floating-point numbers implemented using
 MPFR (the same as the RealNumber elements of RealField).
 
 The interval represents the set { x : a <= x <= b } (so if a == b, then
@@ -29,8 +29,8 @@ ways unsatisfying.
 Consider a 3-bit interval containing exactly the floating-point number
 1.25.  In round-to-nearest or round-down, this prints as 1.2; in
 round-up, this prints as 1.3.  The straightforward options, then, are
-to print this interval as [1.2 ... 1.2] (which does not even contain
-the true value, 1.25), or to print it as [1.2 ... 1.3] (which gives
+to print this interval as [1.2 .. 1.2] (which does not even contain
+the true value, 1.25), or to print it as [1.2 .. 1.3] (which gives
 the impression that the upper and lower bounds are not equal, even
 though they really are).  Neither of these is very satisfying, but I
 have chosen the latter for now.
@@ -39,7 +39,7 @@ EXAMPLES:
     sage: R = RealIntervalField(3)
     sage: a = R(1.25)
     sage: a
-    [1.2 ... 1.3]
+    [1.2 .. 1.3]
     sage: a == 1.25
     True
     sage: a == 2
@@ -206,47 +206,47 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: RIF = RealIntervalField(); RIF
         Real Interval Field with 53 bits of precision
         sage: RIF(3)
-        [3.0000000000000000 ... 3.0000000000000000]
+        [3.0000000000000000 .. 3.0000000000000000]
         sage: RIF(RIF(3))
-        [3.0000000000000000 ... 3.0000000000000000]
+        [3.0000000000000000 .. 3.0000000000000000]
         sage: RIF(pi)
-        [3.1415926535897931 ... 3.1415926535897936]
+        [3.1415926535897931 .. 3.1415926535897936]
         sage: RIF(RealField(53)('1.5'))
-        [1.5000000000000000 ... 1.5000000000000000]
+        [1.5000000000000000 .. 1.5000000000000000]
         sage: RIF(-2/19)
-        [-0.10526315789473686 ... -0.10526315789473683]
+        [-0.10526315789473686 .. -0.10526315789473683]
         sage: RIF(-3939)
-        [-3939.0000000000000 ... -3939.0000000000000]
+        [-3939.0000000000000 .. -3939.0000000000000]
         sage: RIF(-3939r)
-        [-3939.0000000000000 ... -3939.0000000000000]
+        [-3939.0000000000000 .. -3939.0000000000000]
         sage: RIF('1.5')
-        [1.5000000000000000 ... 1.5000000000000000]
+        [1.5000000000000000 .. 1.5000000000000000]
 
     The base must be explicitly specified as a named parameter:
         sage: RIF('101101', base=2)
-        [45.000000000000000 ... 45.000000000000000]
+        [45.000000000000000 .. 45.000000000000000]
         sage: RIF('+infinity')
-        [+infinity ... +infinity]
-        sage: RIF('[1...3]')
-        [1.0000000000000000 ... 3.0000000000000000]
+        [+infinity .. +infinity]
+        sage: RIF('[1..3]')
+        [1.0000000000000000 .. 3.0000000000000000]
 
     Next we coerce some 2-tuples, which define intervals.
         sage: RIF((-1.5, -1.3))
-        [-1.5000000000000000 ... -1.3000000000000000]
+        [-1.5000000000000000 .. -1.3000000000000000]
         sage: RIF((RDF('-1.5'), RDF('-1.3')))
-        [-1.5000000000000000 ... -1.3000000000000000]
+        [-1.5000000000000000 .. -1.3000000000000000]
         sage: RIF((1/3,2/3))
-        [0.33333333333333331 ... 0.66666666666666675]
+        [0.33333333333333331 .. 0.66666666666666675]
 
     The extra paranthesis aren't needed.
         sage: RIF(1/3,2/3)
-        [0.33333333333333331 ... 0.66666666666666675]
+        [0.33333333333333331 .. 0.66666666666666675]
         sage: RIF((1,2))
-        [1.0000000000000000 ... 2.0000000000000000]
+        [1.0000000000000000 .. 2.0000000000000000]
         sage: RIF((1r,2r))
-        [1.0000000000000000 ... 2.0000000000000000]
+        [1.0000000000000000 .. 2.0000000000000000]
         sage: RIF((pi, e))
-        [2.7182818284590455 ... 3.1415926535897932]
+        [2.7182818284590455 .. 3.1415926535897932]
 
     Values which can be represented as an exact floating-point number
     (of the precision of this RealIntervalField) result in a precise
@@ -257,26 +257,26 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         sage: def check(x):
         ...       return (x, x.lower() == x.upper())
         sage: check(RIF(pi))
-        ([3.1415926535897931 ... 3.1415926535897936], False)
+        ([3.1415926535897931 .. 3.1415926535897936], False)
         sage: check(RIF(RR(pi)))
-        ([3.1415926535897931 ... 3.1415926535897932], True)
+        ([3.1415926535897931 .. 3.1415926535897932], True)
         sage: check(RIF(1.5))
-        ([1.5000000000000000 ... 1.5000000000000000], True)
+        ([1.5000000000000000 .. 1.5000000000000000], True)
         sage: check(RIF('1.5'))
-        ([1.5000000000000000 ... 1.5000000000000000], True)
+        ([1.5000000000000000 .. 1.5000000000000000], True)
         sage: check(RIF(0.1))
-        ([0.10000000000000000 ... 0.10000000000000001], True)
+        ([0.10000000000000000 .. 0.10000000000000001], True)
         sage: check(RIF(1/10))
-        ([0.099999999999999991 ... 0.10000000000000001], False)
+        ([0.099999999999999991 .. 0.10000000000000001], False)
         sage: check(RIF('0.1'))
-        ([0.099999999999999991 ... 0.10000000000000001], False)
+        ([0.099999999999999991 .. 0.10000000000000001], False)
 
     Similarly, when specifying both ends of an interval, the lower end
     is rounded down and the upper end is rounded up.
         sage: outward = RIF(1/10, 7/10); outward
-        [0.099999999999999991 ... 0.70000000000000007]
+        [0.099999999999999991 .. 0.70000000000000007]
         sage: nearest = RIF(RR(1/10), RR(7/10)); nearest
-        [0.10000000000000000 ... 0.69999999999999996]
+        [0.10000000000000000 .. 0.69999999999999996]
         sage: nearest.lower() - outward.lower()
         1.38777878078144e-17
         sage: outward.upper() - nearest.upper()
@@ -285,15 +285,15 @@ cdef class RealIntervalField(sage.rings.ring.Field):
     Some examples with a real interval field of higher precision:
         sage: R = RealIntervalField(100)
         sage: R(3)
-        [3.0000000000000000000000000000000 ... 3.0000000000000000000000000000000]
+        [3.0000000000000000000000000000000 .. 3.0000000000000000000000000000000]
         sage: R(R(3))
-        [3.0000000000000000000000000000000 ... 3.0000000000000000000000000000000]
+        [3.0000000000000000000000000000000 .. 3.0000000000000000000000000000000]
         sage: R(pi)
-        [3.1415926535897932384626433832793 ... 3.1415926535897932384626433832825]
+        [3.1415926535897932384626433832793 .. 3.1415926535897932384626433832825]
         sage: R(-2/19)
-        [-0.10526315789473684210526315789481 ... -0.10526315789473684210526315789470]
+        [-0.10526315789473684210526315789481 .. -0.10526315789473684210526315789470]
         sage: R(e,pi)
-        [2.7182818284590452353602874713512 ... 3.1415926535897932384626433832825]
+        [2.7182818284590452353602874713512 .. 3.1415926535897932384626433832825]
     """
 
     def __init__(self, int prec=53, int sci_not=0):
@@ -363,15 +363,15 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealIntervalField(20)
             sage: R('1.234')
-            [1.2339992 ... 1.2340012]
+            [1.2339992 .. 1.2340012]
             sage: R('2', base=2)
             Traceback (most recent call last):
             ...
             TypeError: Unable to convert number to real interval.
             sage: a = R('1.1001', base=2); a
-            [1.5625000 ... 1.5625000]
+            [1.5625000 .. 1.5625000]
             sage: a.str(2)
-            '[1.1001000000000000000 ... 1.1001000000000000000]'
+            '[1.1001000000000000000 .. 1.1001000000000000000]'
 
         Type:
             RealIntervalField?
@@ -527,12 +527,12 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealIntervalField(100)
             sage: R.pi()
-            [3.1415926535897932384626433832793 ... 3.1415926535897932384626433832825]
+            [3.1415926535897932384626433832793 .. 3.1415926535897932384626433832825]
             sage: R.pi().sqrt()/2
-            [0.88622692545275801364908374166983 ... 0.88622692545275801364908374167142]
+            [0.88622692545275801364908374166983 .. 0.88622692545275801364908374167142]
             sage: R = RealIntervalField(150)
             sage: R.pi().sqrt()/2
-            [0.88622692545275801364908374167057259139877472759 ... 0.88622692545275801364908374167057259139877472830]
+            [0.88622692545275801364908374167057259139877472759 .. 0.88622692545275801364908374167057259139877472830]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -547,7 +547,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
 
         EXAMPLES:
             sage: RealIntervalField(100).euler_constant()
-            [0.57721566490153286060651209008233 ... 0.57721566490153286060651209008313]
+            [0.57721566490153286060651209008233 .. 0.57721566490153286060651209008313]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -574,9 +574,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R=RealIntervalField(100)
             sage: R.log2()
-            [0.69314718055994530941723212145798 ... 0.69314718055994530941723212145878]
+            [0.69314718055994530941723212145798 .. 0.69314718055994530941723212145878]
             sage: R(2).log()
-            [0.69314718055994530941723212145798 ... 0.69314718055994530941723212145878]
+            [0.69314718055994530941723212145798 .. 0.69314718055994530941723212145878]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -617,9 +617,9 @@ cdef class RealIntervalField(sage.rings.ring.Field):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R.zeta()
-            [-1.0000000000000000 ... -1.0000000000000000]
+            [-1.0000000000000000 .. -1.0000000000000000]
             sage: R.zeta(1)
-            [1.0000000000000000 ... 1.0000000000000000]
+            [1.0000000000000000 .. 1.0000000000000000]
             sage: R.zeta(5)
             Traceback (most recent call last):
             ...
@@ -663,15 +663,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R('1.2456')
-            [1.2455999999999998 ... 1.2456000000000001]
+            [1.2455999999999998 .. 1.2456000000000001]
             sage: R = RealIntervalField(3)
             sage: R('1.2456')
-            [1.0 ... 1.3]
+            [1.0 .. 1.3]
 
         EXAMPLE: Rounding
             sage: w = RealIntervalField(3)(5/2)
             sage: RealIntervalField(2)(w).str(2)
-            '[10 ... 11]'
+            '[10 .. 11]'
 
         Type:
             RealIntervalField?
@@ -745,7 +745,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         else:
             if isinstance(x, str):
                 # string
-                s = str(x).replace('...', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
+                s = str(x).replace('..', ',').replace(' ','').replace('+infinity', '@inf@').replace('-infinity','-@inf@')
                 if mpfi_set_str(self.value, s, base):
                     raise TypeError, "Unable to convert number to real interval."
             else:
@@ -770,15 +770,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: cmp(loads(dumps(b)), b)
             0
             sage: b = R(1)/R(0); b
-            [+infinity ... +infinity]
+            [+infinity .. +infinity]
             sage: loads(dumps(b)) == b
             True
             sage: b = R(-1)/R(0); b
-            [-infinity ... -infinity]
+            [-infinity .. -infinity]
             sage: loads(dumps(b)) == b
             True
-            sage: b = R('[2 ... 3]'); b
-            [2.0000000000000000000000000000000000000000000000000000000000000e0 ... 3.0000000000000000000000000000000000000000000000000000000000000e0]
+            sage: b = R('[2 .. 3]'); b
+            [2.0000000000000000000000000000000000000000000000000000000000000e0 .. 3.0000000000000000000000000000000000000000000000000000000000000e0]
             sage: cmp(loads(dumps(b)), b)
             0
         """
@@ -808,7 +808,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: n = RIF(1.3939494594)
             sage: n._interface_init_()
-            '[1.3939494593999999 ... 1.3939494594000000]'
+            '[1.3939494593999999 .. 1.3939494594000000]'
         """
         return self.str(10, no_sci=True)
 
@@ -839,7 +839,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     # MPFR had an elaborate "truncation" scheme to avoid printing
     # inaccurate-looking results; this has been removed for MPFI,
     # because I think it's less confusing to get such results than to
-    # see [0.333 ... 0.333] for an interval with unequal left and right
+    # see [0.333 .. 0.333] for an interval with unequal left and right
     # sides.
     def str(self, int base=10, no_sci=None, e='e'):
         """
@@ -851,24 +851,24 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: a = RIF(59/27); a
-            [2.1851851851851851 ... 2.1851851851851856]
+            [2.1851851851851851 .. 2.1851851851851856]
             sage: a.str(16)
-            '[2.2f684bda12f68 ... 2.2f684bda12f6a]'
+            '[2.2f684bda12f68 .. 2.2f684bda12f6a]'
             sage: a.str(no_sci=False)
-            '[2.1851851851851851e0 ... 2.1851851851851856e0]'
+            '[2.1851851851851851e0 .. 2.1851851851851856e0]'
         """
         if base < 2 or base > 36:
             raise ValueError, "the base (=%s) must be between 2 and 36"%base
         if mpfi_nan_p(self.value):
             if base >= 24:
-                return "[... @NaN@ ...]"
+                return "[.. @NaN@ ..]"
             else:
-                return "[... NaN ...]"
+                return "[.. NaN ..]"
 
         t1 = self.lower().str(base=base, no_sci=no_sci, e=e, truncate=False)
         t2 = self.upper().str(base=base, no_sci=no_sci, e=e, truncate=False)
 
-        return "[%s ... %s]"%(t1, t2)
+        return "[%s .. %s]"%(t1, t2)
 
     def __copy__(self):
         """
@@ -903,7 +903,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             '3.1411'
 
             sage: x = R(1.2,1.3); x
-            [1.1999 ... 1.3001]
+            [1.1999 .. 1.3001]
             sage: x.lower()
             1.19
             sage: x.lower('RNDU')
@@ -949,7 +949,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
             sage: R = RealIntervalField(13)
             sage: x = R(1.2,1.3); x
-            [1.1999 ... 1.3001]
+            [1.1999 .. 1.3001]
             sage: x.upper()
             1.31
             sage: x.upper('RNDU')
@@ -977,7 +977,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def absolute_diameter(self):
         """
-        The diameter of this interval (for [a ... b], this is b-a),
+        The diameter of this interval (for [a .. b], this is b-a),
         rounded upward, as a RealNumber.
 
         EXAMPLES:
@@ -991,7 +991,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
     def relative_diameter(self):
         """
-        The relative diameter of this interval (for [a ... b],
+        The relative diameter of this interval (for [a .. b],
         this is (b-a)/((a+b)/2)), rounded upward, as a RealNumber.
 
         EXAMPLES:
@@ -1119,11 +1119,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(-1.5) + R(2.5)
-            [1.0000000000000000 ... 1.0000000000000000]
+            [1.0000000000000000 .. 1.0000000000000000]
             sage: R('-1.3') + R('2.3')
-            [0.99999999999999977 ... 1.0000000000000005]
+            [0.99999999999999977 .. 1.0000000000000005]
             sage: R(1, 2) + R(3, 4)
-            [4.0000000000000000 ... 6.0000000000000000]
+            [4.0000000000000000 .. 6.0000000000000000]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -1138,19 +1138,19 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: v = RIF(2); v
-            [2.0000000000000000 ... 2.0000000000000000]
+            [2.0000000000000000 .. 2.0000000000000000]
             sage: ~v
-            [0.50000000000000000 ... 0.50000000000000000]
+            [0.50000000000000000 .. 0.50000000000000000]
             sage: v * ~v
-            [1.0000000000000000 ... 1.0000000000000000]
+            [1.0000000000000000 .. 1.0000000000000000]
             sage: v = RIF(1.5, 2.5); v
-            [1.5000000000000000 ... 2.5000000000000000]
+            [1.5000000000000000 .. 2.5000000000000000]
             sage: ~v
-            [0.39999999999999996 ... 0.66666666666666675]
+            [0.39999999999999996 .. 0.66666666666666675]
             sage: v * ~v
-            [0.59999999999999986 ... 1.6666666666666670]
+            [0.59999999999999986 .. 1.6666666666666670]
             sage: ~RIF(-1, 1)
-            [-infinity ... +infinity]
+            [-infinity .. +infinity]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -1164,11 +1164,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(-1.5) - R(2.5)
-            [-4.0000000000000000 ... -4.0000000000000000]
+            [-4.0000000000000000 .. -4.0000000000000000]
             sage: R('-1.3') - R('2.7')
-            [-4.0000000000000009 ... -3.9999999999999995]
+            [-4.0000000000000009 .. -3.9999999999999995]
             sage: R(1, 2) - R(3, 4)
-            [-3.0000000000000000 ... -1.0000000000000000]
+            [-3.0000000000000000 .. -1.0000000000000000]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -1182,11 +1182,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(-1.5) * R(2.5)
-            [-3.7500000000000000 ... -3.7500000000000000]
+            [-3.7500000000000000 .. -3.7500000000000000]
             sage: R('-1.3') * R('2.3')
-            [-2.9900000000000007 ... -2.9899999999999993]
+            [-2.9900000000000007 .. -2.9899999999999993]
             sage: R(1, 2) * R(3, 4)
-            [3.0000000000000000 ... 8.0000000000000000]
+            [3.0000000000000000 .. 8.0000000000000000]
 
         If two elements have different precision, arithmetic
         operations are performed after coercing to the lower
@@ -1197,13 +1197,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = R20('393.3902834028345')
             sage: b = R100('393.3902834028345')
             sage: a
-            [393.39013 ... 393.39063]
+            [393.39013 .. 393.39063]
             sage: b
-            [393.39028340283449999999999999970 ... 393.39028340283450000000000000011]
+            [393.39028340283449999999999999970 .. 393.39028340283450000000000000011]
             sage: a*b
-            [154755.75 ... 154756.25]
+            [154755.75 .. 154756.25]
             sage: b*a
-            [154755.75 ... 154756.25]
+            [154755.75 .. 154756.25]
             sage: parent(b*a)
             Real Interval Field with 20 bits of precision
         """
@@ -1220,16 +1220,16 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(1)/R(3)
-            [0.33333333333333331 ... 0.33333333333333338]
+            [0.33333333333333331 .. 0.33333333333333338]
             sage: R(1)/R(0)
-            [+infinity ... +infinity]
+            [+infinity .. +infinity]
             sage: R(1)/R(-1, 1)
-            [-infinity ... +infinity]
+            [-infinity .. +infinity]
 
             sage: R(-1.5) / R(2.5)
-            [-0.60000000000000009 ... -0.59999999999999997]
+            [-0.60000000000000009 .. -0.59999999999999997]
             sage: R(1, 2) / R(3, 4)
-            [0.25000000000000000 ... 0.66666666666666675]
+            [0.25000000000000000 .. 0.66666666666666675]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -1244,17 +1244,17 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: v = RIF(2); v
-            [2.0000000000000000 ... 2.0000000000000000]
+            [2.0000000000000000 .. 2.0000000000000000]
             sage: -v
-            [-2.0000000000000000 ... -2.0000000000000000]
+            [-2.0000000000000000 .. -2.0000000000000000]
             sage: v + -v
-            [-0.00000000000000000 ... 0.00000000000000000]
+            [-0.00000000000000000 .. 0.00000000000000000]
             sage: v = RIF(1.5, 2.5); v
-            [1.5000000000000000 ... 2.5000000000000000]
+            [1.5000000000000000 .. 2.5000000000000000]
             sage: -v
-            [-2.5000000000000000 ... -1.5000000000000000]
+            [-2.5000000000000000 .. -1.5000000000000000]
             sage: v + -v
-            [-1.0000000000000000 ... 1.0000000000000000]
+            [-1.0000000000000000 .. 1.0000000000000000]
         """
 
         cdef RealIntervalFieldElement x
@@ -1279,11 +1279,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1, 2).square()
-            [1.0000000000000000 ... 4.0000000000000000]
+            [1.0000000000000000 .. 4.0000000000000000]
             sage: RIF(-1, 1).square()
-            [0.00000000000000000 ... 1.0000000000000000]
+            [0.00000000000000000 .. 1.0000000000000000]
             sage: RIF(-1, 1) * RIF(-1, 1)
-            [-1.0000000000000000 ... 1.0000000000000000]
+            [-1.0000000000000000 .. 1.0000000000000000]
         """
 
         cdef RealIntervalFieldElement x
@@ -1307,7 +1307,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1.0) << 32
-            [4294967296.0000000 ... 4294967296.0000000]
+            [4294967296.0000000 .. 4294967296.0000000]
         """
         if isinstance(x, RealIntervalFieldElement) and isinstance(y, (int,long, Integer)):
             return x._lshift_(y)
@@ -1328,7 +1328,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1024.0) >> 14
-            [0.062500000000000000 ... 0.062500000000000000]
+            [0.062500000000000000 .. 0.062500000000000000]
         """
         if isinstance(x, RealIntervalFieldElement) and \
                isinstance(y, (int,long,Integer)):
@@ -1779,9 +1779,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1, 2).intersection(RIF(1.5, 3))
-            [1.5000000000000000 ... 2.0000000000000000]
+            [1.5000000000000000 .. 2.0000000000000000]
             sage: RIF(1, 2).intersection(RIF(4/3, 5/3))
-            [1.3333333333333332 ... 1.6666666666666668]
+            [1.3333333333333332 .. 1.6666666666666668]
             sage: RIF(1, 2).intersection(RIF(3, 4))
             Traceback (most recent call last):
             ...
@@ -1808,13 +1808,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: RIF(1, 2).union(RIF(pi, 22/7))
-            [1.0000000000000000 ... 3.1428571428571433]
+            [1.0000000000000000 .. 3.1428571428571433]
             sage: RIF(1, 2).union(pi)
-            [1.0000000000000000 ... 3.1415926535897936]
+            [1.0000000000000000 .. 3.1415926535897936]
             sage: RIF(1).union(RIF(0, 2))
-            [0.00000000000000000 ... 2.0000000000000000]
+            [0.00000000000000000 .. 2.0000000000000000]
             sage: RIF(1).union(RIF(-1))
-            [-1.0000000000000000 ... 1.0000000000000000]
+            [-1.0000000000000000 .. 1.0000000000000000]
         """
 
         cdef RealIntervalFieldElement x
@@ -1850,31 +1850,31 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(4.0)
             sage: r.sqrt()
-            [2.0000000000000000 ... 2.0000000000000000]
+            [2.0000000000000000 .. 2.0000000000000000]
             sage: r.sqrt()^2 == r
             True
 
             sage: r = RIF(4344)
             sage: r.sqrt()
-            [65.909028213136323 ... 65.909028213136339]
+            [65.909028213136323 .. 65.909028213136339]
             sage: r.sqrt()^2 == r
             False
             sage: r in r.sqrt()^2
             True
             sage: r.sqrt()^2 - r
-            [-0.00000000000090949470177292824 ... 0.0000000000018189894035458565]
+            [-0.00000000000090949470177292824 .. 0.0000000000018189894035458565]
 
             sage: r = RIF(-2.0)
             sage: r.sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: self (=[-2.0000000000000000 ... -2.0000000000000000]) is not >= 0
+            ValueError: self (=[-2.0000000000000000 .. -2.0000000000000000]) is not >= 0
 
             sage: r = RIF(-2, 2)
             sage: r.sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: self (=[-2.0000000000000000 ... 2.0000000000000000]) is not >= 0
+            ValueError: self (=[-2.0000000000000000 .. 2.0000000000000000]) is not >= 0
             """
         if self.lower() < 0:
             raise ValueError, "self (=%s) is not >= 0"%self
@@ -1889,11 +1889,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(-2.0)
             sage: r.square_root()
-            [... NaN ...]
+            [.. NaN ..]
             sage: r.sqrt()
             Traceback (most recent call last):
             ...
-            ValueError: self (=[-2.0000000000000000 ... -2.0000000000000000]) is not >= 0
+            ValueError: self (=[-2.0000000000000000 .. -2.0000000000000000]) is not >= 0
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -1967,7 +1967,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField()
             sage: R(2).log()
-            [0.69314718055994528 ... 0.69314718055994540]
+            [0.69314718055994528 .. 0.69314718055994540]
         """
         cdef RealIntervalFieldElement x
         if base == 'e':
@@ -1990,14 +1990,14 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(16.0)
             sage: r.log2()
-            [4.0000000000000000 ... 4.0000000000000000]
+            [4.0000000000000000 .. 4.0000000000000000]
 
             sage: r = RIF(31.9); r.log2()
-            [4.9954845188775065 ... 4.9954845188775075]
+            [4.9954845188775065 .. 4.9954845188775075]
 
             sage: r = RIF(0.0, 2.0)
             sage: r.log2()
-            [-infinity ... 1.0000000000000000]
+            [-infinity .. 1.0000000000000000]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2012,20 +2012,20 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: r = RIF(16.0); r.log10()
-            [1.2041199826559245 ... 1.2041199826559248]
+            [1.2041199826559245 .. 1.2041199826559248]
             sage: r.log() / log(10)
-            [1.2041199826559245 ... 1.2041199826559251]
+            [1.2041199826559245 .. 1.2041199826559251]
 
             sage: r = RIF(39.9); r.log10()
-            [1.6009728956867481 ... 1.6009728956867484]
+            [1.6009728956867481 .. 1.6009728956867484]
 
             sage: r = RIF(0.0)
             sage: r.log10()
-            [-infinity ... -infinity]
+            [-infinity .. -infinity]
 
             sage: r = RIF(-1.0)
             sage: r.log10()
-            [... NaN ...]
+            [.. NaN ..]
 
         """
         cdef RealIntervalFieldElement x
@@ -2042,17 +2042,17 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(0.0)
             sage: r.exp()
-            [1.0000000000000000 ... 1.0000000000000000]
+            [1.0000000000000000 .. 1.0000000000000000]
 
             sage: r = RIF(32.3)
             sage: a = r.exp(); a
-            [106588847274864.46 ... 106588847274864.49]
+            [106588847274864.46 .. 106588847274864.49]
             sage: a.log()
-            [32.299999999999990 ... 32.300000000000005]
+            [32.299999999999990 .. 32.300000000000005]
 
             sage: r = RIF(-32.3)
             sage: r.exp()
-            [0.0000000000000093818445884986834 ... 0.0000000000000093818445884986851]
+            [0.0000000000000093818445884986834 .. 0.0000000000000093818445884986851]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2068,15 +2068,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(0.0)
             sage: r.exp2()
-            [1.0000000000000000 ... 1.0000000000000000]
+            [1.0000000000000000 .. 1.0000000000000000]
 
             sage: r = RIF(32.0)
             sage: r.exp2()
-            [4294967296.0000000 ... 4294967296.0000000]
+            [4294967296.0000000 .. 4294967296.0000000]
 
             sage: r = RIF(-32.3)
             sage: r.exp2()
-            [0.00000000018911724825302069 ... 0.00000000018911724825302073]
+            [0.00000000018911724825302069 .. 0.00000000018911724825302073]
 
         """
         cdef RealIntervalFieldElement x
@@ -2148,9 +2148,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: t=RIF(pi)/2
             sage: t.cos()
-            [-0.00000000000000016081226496766367 ... 0.000000000000000061232339957367661]
+            [-0.00000000000000016081226496766367 .. 0.000000000000000061232339957367661]
             sage: t.cos().cos()
-            [0.99999999999999988 ... 1.0000000000000000]
+            [0.99999999999999988 .. 1.0000000000000000]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2166,7 +2166,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: R = RealIntervalField(100)
             sage: R(2).sin()
-            [0.90929742682568169539601986591150 ... 0.90929742682568169539601986591230]
+            [0.90929742682568169539601986591150 .. 0.90929742682568169539601986591230]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2182,10 +2182,10 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/3
             sage: q.tan()
-            [1.7320508075688767 ... 1.7320508075688779]
+            [1.7320508075688767 .. 1.7320508075688779]
             sage: q = RIF.pi()/6
             sage: q.tan()
-            [0.57735026918962562 ... 0.57735026918962585]
+            [0.57735026918962562 .. 0.57735026918962585]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2219,11 +2219,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: q = RIF.pi()/3; q
-            [1.0471975511965976 ... 1.0471975511965979]
+            [1.0471975511965976 .. 1.0471975511965979]
             sage: i = q.cos(); i
-            [0.49999999999999988 ... 0.50000000000000012]
+            [0.49999999999999988 .. 0.50000000000000012]
             sage: q2 = i.acos(); q2
-            [1.0471975511965974 ... 1.0471975511965981]
+            [1.0471975511965974 .. 1.0471975511965981]
             sage: q == q2
             False
             sage: q != q2
@@ -2231,7 +2231,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
-            [-0.00000000000000044408920985006262 ... 0.00000000000000044408920985006262]
+            [-0.00000000000000044408920985006262 .. 0.00000000000000044408920985006262]
             sage: q in q2
             True
         """
@@ -2248,11 +2248,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: q = RIF.pi()/5; q
-            [0.62831853071795862 ... 0.62831853071795874]
+            [0.62831853071795862 .. 0.62831853071795874]
             sage: i = q.sin(); i
-            [0.58778525229247302 ... 0.58778525229247325]
+            [0.58778525229247302 .. 0.58778525229247325]
             sage: q2 = i.asin(); q2
-            [0.62831853071795851 ... 0.62831853071795885]
+            [0.62831853071795851 .. 0.62831853071795885]
             sage: q == q2
             False
             sage: q != q2
@@ -2260,7 +2260,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
-            [-0.00000000000000022204460492503131 ... 0.00000000000000022204460492503131]
+            [-0.00000000000000022204460492503131 .. 0.00000000000000022204460492503131]
             sage: q in q2
             True
         """
@@ -2277,11 +2277,11 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: q = RIF.pi()/5; q
-            [0.62831853071795862 ... 0.62831853071795874]
+            [0.62831853071795862 .. 0.62831853071795874]
             sage: i = q.tan(); i
-            [0.72654252800536078 ... 0.72654252800536113]
+            [0.72654252800536078 .. 0.72654252800536113]
             sage: q2 = i.atan(); q2
-            [0.62831853071795851 ... 0.62831853071795885]
+            [0.62831853071795851 .. 0.62831853071795885]
             sage: q == q2
             False
             sage: q != q2
@@ -2289,7 +2289,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: q2.lower() == q.lower()
             False
             sage: q - q2
-            [-0.00000000000000022204460492503131 ... 0.00000000000000022204460492503131]
+            [-0.00000000000000022204460492503131 .. 0.00000000000000022204460492503131]
             sage: q in q2
             True
         """
@@ -2307,7 +2307,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/12
             sage: q.cosh()
-            [1.0344656400955103 ... 1.0344656400955108]
+            [1.0344656400955103 .. 1.0344656400955108]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2323,7 +2323,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/12
             sage: q.sinh()
-            [0.26480022760227067 ... 0.26480022760227079]
+            [0.26480022760227067 .. 0.26480022760227079]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2339,7 +2339,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/11
             sage: q.tanh()
-            [0.27807942929585022 ... 0.27807942929585039]
+            [0.27807942929585022 .. 0.27807942929585039]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2355,7 +2355,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/2
             sage: i = q.acosh() ; i
-            [1.0232274785475503 ... 1.0232274785475509]
+            [1.0232274785475503 .. 1.0232274785475509]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2371,9 +2371,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/7
             sage: i = q.sinh() ; i
-            [0.46401763049299088 ... 0.46401763049299106]
+            [0.46401763049299088 .. 0.46401763049299106]
             sage: i.asinh() - q
-            [-0.00000000000000016653345369377349 ... 0.00000000000000016653345369377349]
+            [-0.00000000000000016653345369377349 .. 0.00000000000000016653345369377349]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2389,9 +2389,9 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: q = RIF.pi()/7
             sage: i = q.tanh() ; i
-            [0.42091124104853488 ... 0.42091124104853501]
+            [0.42091124104853488 .. 0.42091124104853501]
             sage: i.atanh() - q
-            [-0.00000000000000016653345369377349 ... 0.00000000000000016653345369377349]
+            [-0.00000000000000016653345369377349 .. 0.00000000000000016653345369377349]
         """
         cdef RealIntervalFieldElement x
         x = self._new()
@@ -2415,13 +2415,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 
         EXAMPLE:
             sage: r = sqrt(RIF(2)); r
-            [1.4142135623730949 ... 1.4142135623730952]
+            [1.4142135623730949 .. 1.4142135623730952]
             sage: r.algdep(5)
             x^2 - 2
 
         If we compute a wrong, but precise, interval, we get a wrong answer.
             sage: r = sqrt(RealIntervalField(200)(2)) + (1/2)^40; r
-            [1.4142135623740045435034616524476131176321718753769480731766796 ... 1.4142135623740045435034616524476131176321718753769480731766809]
+            [1.4142135623740045435034616524476131176321718753769480731766796 .. 1.4142135623740045435034616524476131176321718753769480731766809]
             sage: r.algdep(5)
             7266488*x^5 + 22441629*x^4 - 90470501*x^3 + 23297703*x^2 + 45778664*x + 13681026
 
@@ -2570,13 +2570,13 @@ def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
 
     EXAMPLES:
         sage: RealInterval('2.3')
-        [2.2999999999999998 ... 2.3000000000000003]
+        [2.2999999999999998 .. 2.3000000000000003]
         sage: RealInterval(10)
-        [10.000000000000000 ... 10.000000000000000]
+        [10.000000000000000 .. 10.000000000000000]
         sage: RealInterval('1.0000000000000000000000000000000000')
-        [1.000000000000000000000000000000000000 ... 1.000000000000000000000000000000000000]
+        [1.000000000000000000000000000000000000 .. 1.000000000000000000000000000000000000]
         sage: RealInterval(29308290382930840239842390482, 3^20)
-        [3486784401.00000000000000000000 ... 29308290382930840239842390482.0]
+        [3486784401.00000000000000000000 .. 29308290382930840239842390482.0]
     """
     if not isinstance(s, str):
         s = str(s)

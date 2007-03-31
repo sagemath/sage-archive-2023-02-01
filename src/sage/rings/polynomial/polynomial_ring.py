@@ -299,17 +299,17 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
         elif isinstance(R, padic_ring_lazy.pAdicRingLazy):
-            self.__polynomial_class = R #Fix
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, padic_field_lazy.pAdicFieldLazy):
-            self.__polynomial_class = R #Fix
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, padic_ring_capped_relative.pAdicRingCappedRelative):
-            self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense #Fix
+            self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
         elif isinstance(R, padic_field_capped_relative.pAdicFieldCappedRelative):
-            self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense #Fix
+            self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
         elif isinstance(R, padic_ring_capped_absolute.pAdicRingCappedAbsolute):
-            self.__polynomial_class = R #Fix
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, padic_ring_fixed_mod.pAdicRingFixedMod):
-            self.__polynomial_class = R #Fix
+            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
         elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field

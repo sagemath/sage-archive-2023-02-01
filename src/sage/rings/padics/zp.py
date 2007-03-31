@@ -193,7 +193,7 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         sage: k.<a> = Zq(4); k
         Unramified Extension of 2-adic Ring with capped absolute precision 20
         in a defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20)
-        sage: k.<a> = Zq(3^10); k
+        sage.: k.<a> = Zq(3^10); k
         Unramified Extension of 3-adic Ring with capped absolute precision 20 in a
         defined by (1 + O(3^20))*x^10 + O(3^20)*x^9 + O(3^20)*x^8 + O(3^20)*x^7 +
         (2 + O(3^20))*x^6 + (2 + O(3^20))*x^5 + (2 + O(3^20))*x^4 + O(3^20)*x^3 +

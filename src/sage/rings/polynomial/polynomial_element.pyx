@@ -19,15 +19,15 @@ import operator
 import copy
 
 import sage.rings.rational
-import sage.rings.integer as integer
+from sage.rings.integer import Integer
 import sage.rings.polynomial.polynomial_ring
 import sage.rings.arith as arith
 import sage.rings.ring_element as ring_element
-import sage.rings.integer_ring as integer_ring
-import sage.rings.rational_field as rational_field
-import sage.rings.integer_mod_ring as integer_mod_ring
+#import sage.rings.integer_ring as integer_ring
+#import sage.rings.rational_field as rational_field
+#import sage.rings.integer_mod_ring as integer_mod_ring
 import polynomial_pyx
-import sage.rings.complex_field as complex_field
+#import sage.rings.complex_field as complex_field
 #import padic_field
 from sage.rings.infinity import infinity
 import sage.misc.misc as misc
@@ -35,6 +35,10 @@ from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 
+from sage.rings.integer_mod_ring import is_IntegerModRing
+from sage.rings.integer_ring import is_IntegerRing
+from sage.rings.rational_field import is_RationalField
+from sage.rings.complex_field import is_ComplexField
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.libs.all import pari, pari_gen
 
@@ -307,7 +311,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _integer_(self):
         if self.degree() > 0:
             raise TypeError, "cannot coerce nonconstant polynomial"
-        return integer.Integer(self[0])
+        return Integer(self[0])
 
     def __invert__(self):
         """
@@ -994,9 +998,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         from sage.rings.finite_field import is_FiniteField
 
         n = None
-        if integer_mod_ring.is_IntegerModRing(R) or \
-              integer_ring.is_IntegerRing(R) or \
-              rational_field.is_RationalField(R):
+        if is_IntegerModRing(R) or \
+              is_IntegerRing(R) or \
+              is_RationalField(R):
 
             G = list(self._pari_('x').factor())
 
@@ -1010,7 +1014,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
             G = list(self._pari_('x').factor())
 
-        elif complex_field.is_ComplexField(R):
+        elif is_ComplexField(R):
             # This is a hack to make the polynomial have complex coefficients, since
             # otherwise PARI will factor over RR.
             n = pari.set_real_precision(int(3.5*R.prec()) + 1)
@@ -1125,11 +1129,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
         if self.degree() <= 1:
             return R.fraction_field()
 
-        if integer_ring.is_IntegerRing(R):
+        if is_IntegerRing(R):
             return NumberField(self, names)
 
 
-        if rational_field.is_RationalField(R) or is_NumberField(R):
+        if is_RationalField(R) or is_NumberField(R):
             return NumberField(self, names)
 
         if check_irreducible and not self.is_irreducible():
@@ -1324,7 +1328,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         AUTHORS: David Joyner and William Stein (2005-11-28)
         """
-        n = integer.Integer(n)
+        n = Integer(n)
         df = self.derivative()
         K = self.parent().base_ring()
         a = K(x0)
@@ -1375,7 +1379,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         except AttributeError:
             K = self.base_ring()
             n = None
-            if is_RealField(K) or complex_field.is_ComplexField(K):
+            if is_RealField(K) or is_ComplexField(K):
                 n = pari.get_real_precision()
                 pari.set_real_precision(int(K.prec()*3.5)+1)
             v = self.list()
@@ -1553,7 +1557,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         K = self.parent().base_ring()
 
-        if is_RealField(K) or complex_field.is_ComplexField(K):
+        if is_RealField(K) or is_ComplexField(K):
             if is_RealField(K):
                 K = K.complex_field()
             n = pari.get_real_precision()
@@ -1620,7 +1624,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while self % p == 0:
                 k = k + 1
                 self = self.__floordiv__(p)
-            return integer.Integer(k)
+            return Integer(k)
         raise RuntimeError, "bug in computing valuation of polynomial"
 
     def ord(self, p=None):

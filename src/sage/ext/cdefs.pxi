@@ -53,6 +53,7 @@ cdef extern from "gmp.h":
     void mpz_divexact_ui (mpz_t q, mpz_t n, unsigned long int d)
     int mpz_divisible_p (mpz_t n, mpz_t d)
     int mpz_divisible_ui_p (mpz_t n, unsigned long int d)
+    int mpz_divisible_2exp_p (mpz_t n, unsigned long int d)
     void mpz_fac_ui (mpz_t rop, unsigned long int op)
     void mpz_fdiv_q  (mpz_t q, mpz_t n, mpz_t d)
     void mpz_fdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
@@ -112,6 +113,12 @@ cdef extern from "gmp.h":
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_xor (mpz_t rop, mpz_t op1, mpz_t op2)
     int mpz_root (mpz_t rop, mpz_t op, unsigned long int n)
+    unsigned long int mpz_remove(mpz_t rop, mpz_t op, mpz_t f)
+    unsigned long int mpz_popcount(mpz_t op)
+    int mpz_perfect_square_p(mpz_t op)
+    int mpz_perfect_power_p(mpz_t op)
+    unsigned long int mpz_scan0(mpz_t op, unsigned long int starting_bit)
+    unsigned long int mpz_scan1(mpz_t op, unsigned long int starting_bit)
 
     # The mpq type
     void mpq_abs (mpq_t rop, mpq_t op)

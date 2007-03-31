@@ -829,8 +829,8 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             symmetry -- default: None; if not None, describes symmetries of the ideal
             verbose -- default: False; if True, printout useful info during computations
         """
-        import sage.rings.groebner_fan
-        return groebner_fan.GroebnerFan(self, is_groebner_basis=is_groebner_basis,
+        from sage.rings.groebner_fan import GroebnerFan
+        return GroebnerFan(self, is_groebner_basis=is_groebner_basis,
                                         symmetry=symmetry, verbose=verbose)
 
     def groebner_basis(self, algorithm=None):

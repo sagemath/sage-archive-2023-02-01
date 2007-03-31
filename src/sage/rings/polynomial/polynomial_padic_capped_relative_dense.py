@@ -1,8 +1,9 @@
 import sage.rings.polynomial.polynomial_element_generic
 import sage.rings.polynomial.polynomial_element
 import sage.rings.integer
-import misc
-import precision_error
+import sage.rings.integer_ring
+import sage.rings.padics.misc as misc
+import sage.rings.padics.precision_error as precision_error
 import sage.rings.fraction_field_element as fraction_field_element
 import copy
 
@@ -12,6 +13,7 @@ from sage.structure.factorization import Factorization
 from sage.rings.infinity import infinity
 
 min = misc.min
+ZZ = sage.rings.integer_ring.ZZ
 PrecisionError = precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
@@ -24,13 +26,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
+            return
 
         #First we list the types that are turned into Polynomials
         if isinstance(x, ZZX_class):
             from polynomial_ring_constructor import PolynomialRing
             x = Polynomial_integer_dense(PolynomialRing(ZZ, parent.variable_name()), x, construct = True)
         elif isinstance(x, fraction_field_element.FractionFieldElement) and \
-                 and  x.denominator() == 1:
+               x.denominator() == 1:
             #Currently we ignore precision information in the denominator.  This should be changed eventually
             x = x.numerator()
 
@@ -78,18 +81,28 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if check:
             x = [parent.base_ring()(z) for z in x]
 
+        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+
         self._list = x
         self._valaddeds = [a.valuation() for a in x]
         self._valbase = sage.rings.padics.misc.min(self._valaddeds)
-        self._valaddeds = [c - self._valbase for c in self._valaddeds]
-        self._relprecs = [a.precision_absolute() - self._valbase for a in x]
-        from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
-        self._poly = PolynomialRing(ZZ, parent.variable_name())([a >> self._valbase for a in x])
-        self._normalized = True
-        if not absprec is infinity or not relprec is infinity:
-            self._adjust_prec_info(absprec, relprec)
+        if self._valbase is infinity:
+            self._valaddeds = []
+            self._relprecs = []
+            self._poly = PolynomialRing(ZZ, parent.variable_name())()
+            self._normalized = True
+            if not absprec is infinity or not relprec is infinity:
+                self._adjust_prec_info(absprec, relprec)
+        else:
+            self._valaddeds = [c - self._valbase for c in self._valaddeds]
+            self._relprecs = [a.precision_absolute() - self._valbase for a in x]
+            self._poly = PolynomialRing(ZZ, parent.variable_name())([a >> self._valbase for a in x])
+            self._normalized = True
+            if not absprec is infinity or not relprec is infinity:
+                self._adjust_prec_info(absprec, relprec)
 
     def _normalize(self):
+        # Currently slow: need to optimize
         if not self._normalized:
             if self._valaddeds is None:
                 self._comp_valaddeds()
@@ -214,7 +227,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self.base_ring()(self._poly[n], absprec = self._valbase + self._relprecs[n])
 
     def __getslice__(self, i, j):
-        raise NotImplementedError
+        if j > len(self._relprecs):
+            j = len(self._relprecs)
+        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly[i:j], self._valbase, [infinity]*i + self._relprecs[i:j], False, None if self._valaddeds is None else [infinity]*i + self._valaddeds[i:j], None if self._list is None else [self.base_ring()(0)] * i + self._list[i:j]), construct = True)
 
     def _add_(self, right):
         selfpoly = self._poly
@@ -301,13 +316,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         self._normalize()
         right._normalize()
         zzpoly = self._poly * right._poly
-        n = (max(len(self._relprecs), len(right._relprecs)) - 1).exact_log(2) + 1
+        n = Integer(len(self._relprecs) + len(right._relprecs) - 1).exact_log(2) + 1
         precpoly1 = self._getprecpoly(n) * right._getvalpoly(n)
         precpoly2 = self._getvalpoly(n) * right._getprecpoly(n)
         # These two will be the same length
-        preclist = [min(a, b) for (a, b) in zip(precpoly1.list(), precpoly2.list())]
+        tn = Integer(1) << n
+        preclist = [min(a, b).valuation(tn) for (a, b) in zip(precpoly1.list(), precpoly2.list())]
         answer = Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase + right._valbase, preclist, False, None, None), construct = True)
-        answer._normalize() #This is mainly to reduce the size of denominators in case we'll be adding with this, and since I don't think _normalize() is much more expensive than _reduce_poly()...
+        answer._reduce_poly()
         return answer
 
     def _lmul_(self, right):

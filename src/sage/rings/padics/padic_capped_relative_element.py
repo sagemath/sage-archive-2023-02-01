@@ -82,7 +82,7 @@ class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: R(15/425)
             Traceback (most recent call last):
             ...
-            ValueError: element not a p-adic integer.
+            ValueError: element has negative valuation.
 
         Construct from IntegerMod:
             sage: R(Integers(125)(3))

@@ -26,9 +26,9 @@ def O(x):
         if len(F) != 1:
             raise ArithmeticError, "x must be prime power"
         p, r = F[0]
-        return padics.qp.Qp(p, prec = r, type = 'capped-rel')(Mod(0, x))
+        return padics.zp.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
 
     elif isinstance(x, padics.padic_generic.pAdicGeneric):
-         return padics.qp.Qp(p, prec = x.parent().precision_cap(), type = 'capped-rel')(x.parent().prime_pow(x.valuation()))
+         return x.parent()(0, absprec = x.valuation())
     raise ArithmeticError, "O(x) not defined"
 

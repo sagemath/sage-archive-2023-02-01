@@ -71,49 +71,6 @@ END_MARKER = '___END___'
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
 
-class WorkerPool(object):
-    r"""
-    This is an object from which you can ask for workers.
-
-    It will spawn n+1 workers and reuse them as they become available.
-
-    """
-
-    def __init__(self, n, remoteobj):
-        r"""
-        Parameters:
-        n -- number of workers to initialize.
-
-        """
-
-        self.extra = 2
-        self.workers = [Worker(remoteobj, x) for x in range(n+self.extra)]
-        log.msg('[Monitor] Initialized %s+1 workers.' % (WORKERS))
-        log.msg('[Monitor] %s' % ([worker.id for worker in self.workers]))
-
-    def get_worker(self):
-        r"""
-        Gets a fresh worker.
-
-        """
-
-        w = self.workers.pop()
-        print "Pulling worker %s out of the pool" % (w.id)
-        print 'Current workers: %s' % ([worker.id for worker in self.workers])
-
-        return w
-
-    def return_worker(self, worker):
-        r"""
-        Returns a used worker back to the pool.
-
-        """
-
-        print 'Throwing worker %s back into the pool.' % (worker.id)
-        self.workers.insert(0, worker)
-        print 'Current workers: %s' % ([worker.id for worker in self.workers])
-        reactor.callLater(0.001, worker.restart)
-
 class Worker(object):
     r"""
     This class represents a worker object that does the actual calculation.
@@ -141,7 +98,7 @@ class Worker(object):
         self.sage.eval('import os')
 
         # Initialize getting of jobs
-        # self.get_job()
+        self.get_job()
 
     def get_job(self):
         try:
@@ -181,9 +138,9 @@ class Worker(object):
                                                    self.job.id))
         try:
             self.doJob(self.job)
-        except Exception, msg:
-            self.free = True
-            print msg
+        except Exception, e:
+            print e
+            raise
 
     def job_done(self, output, result, completed, worker_info):
         r"""
@@ -214,8 +171,8 @@ class Worker(object):
             d.errback(error.ConnectionLost())
             return d
 
-        # if completed:
-        #     self.restart()
+        if completed:
+            self.restart()
 
         return d
 
@@ -233,9 +190,9 @@ class Worker(object):
         sleep_time = 5.0
         if failure.check(NoJobException):
             if LOG_LEVEL > 3:
-                log.msg('[Worker %s, noJob] Sleeping for %s seconds' % (self.id, sleep_time))
-            self.free = True
-            # reactor.callLater(5.0, self.get_job)
+                log.msg('[Worker %s, noJob] Sleeping for %s seconds\
+                ' % (self.id, sleep_time))
+            reactor.callLater(5.0, self.get_job)
         else:
             print "Error: ", failure.getErrorMessage()
             print "Traceback: ", failure.printTraceback()
@@ -347,19 +304,24 @@ class Worker(object):
 
         """
 
-        self.sage.quit()
+        self.sage.reset()
         self.free = True
         self.job = None
-        self.sage = None
 
     def start(self):
-        if LOG_LEVEL > 3:
-            self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
-        else:
-            self.sage = Sage()
-        # self.get_job()
+        if self.sage is None:
+            if LOG_LEVEL > 3:
+                self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
+            else:
+                self.sage = Sage()
+        self.get_job()
 
     def restart(self):
+        r"""
+        Restarts the current worker.
+
+        """
+
         log.msg('[Worker: %s] Restarting...' % (self.id))
         self.stop()
         self.start()
@@ -387,7 +349,7 @@ class Monitor(object):
         self.connected = False
         self.reconnecting = False
         self.workers = None
-        self.worker_pool = None
+
         # Start twisted logging facility
         self._startLogging(LOG_FILE)
 
@@ -469,13 +431,11 @@ class Monitor(object):
         self.reconnecting = False
 
         if self.workers == None: # Only pool workers the first time
-            self.worker_pool = WorkerPool(WORKERS, remoteobj)
-            self.workers = [self.worker_pool.get_worker() for n in xrange(WORKERS)]
-            for worker in self.workers:
-                worker.get_job()
+            self.poolWorkers(self.remoteobj)
         else:
             for worker in self.workers:
-                worker.remoteobj = self.remoteobj # Give workers new remoteobj's
+                worker.remoteobj = self.remoteobj # Update workers
+        # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')
@@ -498,8 +458,7 @@ class Monitor(object):
                 if worker.job.id == job.id:
                     log.msg('[Worker: %s] Processing a killed job, \
                             restarting...' % worker.id)
-                    self.workers[self.workers.index(worker)] = self.worker_pool.get_worker()
-                    self.worker_pool.return_worker(worker)
+                    worker.restart()
 
     def _retryConnect(self):
         log.msg('[Monitor] Disconnected, reconnecting in %s' % DELAY)
@@ -564,7 +523,6 @@ class Monitor(object):
 
         self.workers = [Worker(remoteobj, x) for x in range(WORKERS)]
         log.msg('[Monitor] Initialized ' + str(WORKERS) + ' workers.')
-        log.msg('[Monitor] %s' % [worker.id for worker in self.workers])
 
     def checkForJobOutput(self):
         r"""
@@ -580,10 +538,8 @@ class Monitor(object):
 
         for worker in self.workers:
             if worker.job == None:
-                # worker.get_job()
                 continue
             if worker.free == True:
-                # worker.get_job()
                 continue
 
             if LOG_LEVEL > 1:
@@ -594,10 +550,6 @@ class Monitor(object):
                 log.msg(msg)
                 continue
             if new == '' or new.isspace():
-                continue
-            if new.startswith('exec_file'):
-                continue
-            if new.startswith('os.chdir'):
                 continue
             if done:
                 # Checks to see if the job created a result var
@@ -628,7 +580,8 @@ class Monitor(object):
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
-            worker_info = (os.getenv('USER') + '@' + os.uname()[1], ' '.join(os.uname()[2:]))
+            worker_info = (os.getenv('USER') + '@' + os.uname()[1],
+                           ' '.join(os.uname()[2:]))
 
             sanitized_output = self.sanitizeOutput(new)
 
@@ -642,20 +595,7 @@ class Monitor(object):
                 d = self.remoteobj.callRemote('job_failed', worker.job.id)
 
             d = worker.job_done(sanitized_output, result, done, worker_info)
-            if done:
-                self.worker_pool.return_worker(worker)
-                self.workers[self.workers.index(worker)] = self.worker_pool.get_worker()
             d.addErrback(self._catchConnectionFailure)
-
-    def checkForWorkers(self):
-        for worker in self.workers:
-            if worker.job == None:
-                worker.get_job()
-                continue
-            if worker.free == True:
-                worker.get_job()
-                continue
-
 
     def checkOutputForFailure(self, sage_output):
         if sage_output == None:
@@ -744,22 +684,17 @@ class Monitor(object):
 
         # submits the output to the server
         self.tsk1 = task.LoopingCall(self.checkForJobOutput)
-        self.tsk1.start(1.0, now=False)
+        self.tsk1.start(0.1, now=False)
 
         # checks for killed jobs
         self.tsk2 = task.LoopingCall(self.checkForKilledJobs)
         self.tsk2.start(5.0, now=False)
-
-        # checks for free workers
-        self.tsk3 = task.LoopingCall(self.checkForWorkers)
-        self.tsk3.start(2.0, now=False)
 
     def stopLoopingCalls(self):
         r"""
         Stops the looping calls.
 
         """
-
         self.tsk.stop()
         self.tsk1.stop()
         self.tsk2.stop()

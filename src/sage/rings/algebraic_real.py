@@ -161,7 +161,7 @@ class _uniq_alg(object):
             _obj = sage.rings.ring.Field.__new__(cls)
         return _obj
 
-class AlgebraicField(_uniq_alg, sage.rings.ring.Field):
+class AlgebraicRealField(_uniq_alg, sage.rings.ring.Field):
     r"""
     The field of algebraic reals.
 
@@ -298,10 +298,10 @@ class AlgebraicField(_uniq_alg, sage.rings.ring.Field):
         """
         return AlgebraicNumber(AlgebraicNumberRoot(poly, interval, multiplicity))
 
-def is_AlgebraicField(F):
-    return isinstance(F, AlgebraicField)
+def is_AlgebraicRealField(F):
+    return isinstance(F, AlgebraicRealField)
 
-Alg = AlgebraicField()
+Alg = AlgebraicRealField()
 
 def rif_seq():
     # XXX Should do some testing to see where the efficiency breaks are
@@ -1676,8 +1676,8 @@ class AlgebraicPolynomialTracker(SageObject):
     exact.
 
     This class is private, and should only be constructed by
-    AlgebraicField.common_polynomial(), and should only be used as
-    an argument to AlgebraicField.polynomial_root().
+    AlgebraicRealField.common_polynomial(), and should only be used as
+    an argument to AlgebraicRealField.polynomial_root().
 
     EXAMPLES:
         sage: x = polygen(Alg)

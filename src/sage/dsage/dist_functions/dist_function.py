@@ -172,8 +172,13 @@ class DistributedFunctionTest(DistributedFunction):
         self.name = name
         self.result = 0
         self.results = []
-        self.outstanding_jobs = ["print %s"%i for i in range(1,n+1)]
+        self.code = """result=%s
+save(result, 'result')
+DSAGE_RESULT = 'result.sobj'
+        """
+        # self.outstanding_jobs = ["print %s" % (i for i in range(1,n+1))]
+        self.outstanding_jobs = [Job(code=self.code % i, username='yqiang') for i in range(1, n+1)]
 
     def process_result(self, job):
         self.done = len(self.waiting_jobs) == 0
-        self.result += int(job.output)
+        self.result += (job.result)

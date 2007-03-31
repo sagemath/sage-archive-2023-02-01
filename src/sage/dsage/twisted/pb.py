@@ -233,7 +233,7 @@ class MonitorPerspective(DefaultPerspective):
             print 'Bad job_id passed to perspective_job_done'
             print 'job_id: %s' % (job_id)
             print 'output: %s' % (output)
-            print 'result: %s' % (result)
+            # print 'result: %s' % (result)
             print 'completed: %s' % (completed)
             print 'worker_info: %s' % (worker_info)
             raise BadTypeError()

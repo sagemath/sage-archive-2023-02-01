@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import unittest
@@ -21,16 +22,17 @@ import os
 import datetime
 from glob import glob
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
+from sage.dsage.database.jobdb import DatabasePruner
 from sage.dsage.database.job import Job
 
 class JobDatabaseZODBTestCase(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseZODB(test=True)
 
-        jobs = self.createJobs(10)
+        jobs = self.create_jobs(10)
         for job in jobs:
-            self.jobdb.newJob(job)
+            self.jobdb.new_job(job)
 
     def tearDown(self):
         self.jobdb._shutdown()
@@ -38,82 +40,127 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         for file in files:
             os.remove(file)
 
-    def testhasJob(self):
-        job = self.createJobs(1)
-        jobID = self.jobdb.storeJob(job[0])
-        self.assertEquals(self.jobdb.hasJob(jobID), True)
-        self.assert_(self.jobdb.hasJob('GLOBALS') > 0)
+    def testhas_job(self):
+        job = self.create_jobs(1)
+        job_id = self.jobdb.store_job(job[0])
+        self.assertEquals(self.jobdb.has_job(job_id), True)
+        self.assert_(self.jobdb.has_job('GLOBALS') > 0)
 
-    def testgetJobID(self):
+    def testget_next_job_id(self):
         """Attempt to increment Job ID by one. """
 
-        jobID = self.jobdb.getJobID()
-        jobID1 = self.jobdb.getJobID()
+        job_id = self.jobdb.get_next_job_id()
+        job_id1 = self.jobdb.get_next_job_id()
 
-        self.assert_(int(jobID[11:]) < int(jobID1[11:]))
+        self.assert_(int(job_id[11:]) < int(job_id1[11:]))
 
-    def testgetJob(self):
-        job = self.jobdb.getJob()
+    def testget_job(self):
+        job = self.jobdb.get_job()
         self.assert_(isinstance(job, Job) and job.status != 'completed')
 
-    def testremoveJob(self):
-        self.assertRaises(KeyError, self.jobdb.removeJob, 'not_a_job_id')
+    def testremove_job(self):
+        self.assertRaises(KeyError, self.jobdb.remove_job, 'not_a_job_id')
 
-        job = self.jobdb.getJob()
+        job = self.jobdb.get_job()
         self.assertEquals(type(job), Job)
         job_id = job.id
-        self.assertEquals(self.jobdb.removeJob(job_id), job_id)
-        self.assertRaises(KeyError, self.jobdb.removeJob, job_id)
+        self.assertEquals(self.jobdb.remove_job(job_id), job_id)
+        self.assertRaises(KeyError, self.jobdb.remove_job, job_id)
 
-    def teststoreJob(self):
-        jobs = self.createJobs(10)
+    def teststore_job(self):
+        jobs = self.create_jobs(10)
         for job in jobs:
-            job_id = self.jobdb.newJob(job)
-            self.assertEquals(job, self.jobdb.getJobByID(job_id))
-            self.assert_(self.jobdb.getJobByID(job_id).updated_time <
+            job_id = self.jobdb.new_job(job)
+            self.assertEquals(job, self.jobdb.get_job_by_id(job_id))
+            self.assert_(self.jobdb.get_job_by_id(job_id).update_time <
                          datetime.datetime.now())
 
-    def testgetJobsByAuthor(self):
-        jobs = self.jobdb.getJobsByAuthor('Yi Qiang', True)
+    def testget_jobs_by_username(self):
+        jobs = self.jobdb.get_jobs_by_username('Yi Qiang', True)
         self.assert_(len(jobs) == 0)
 
-        jobs = self.jobdb.getJobsByAuthor('Yi Qiang', False, 'unittest')
+        jobs = self.jobdb.get_jobs_by_username('Yi Qiang', False, 'unittest')
         self.assert_(len(jobs) > 0)
 
-    def testgetActiveJobs(self):
-        jobs = self.jobdb.getActiveJobs()
+    def testget_active_jobs(self):
+        jobs = self.jobdb.get_active_jobs()
         self.assert_(len(jobs) == 0)
 
-        jobs = self.jobdb.getJobsList()
+        jobs = self.jobdb.get_jobs_list()
         for job in jobs:
             job.status = 'processing'
-            self.jobdb.storeJob(job)
+            self.jobdb.store_job(job)
 
-        jobs = self.jobdb.getActiveJobs()
+        jobs = self.jobdb.get_active_jobs()
         self.assert_(len(jobs) == 10)
 
-    def testgetJobsList(self):
-        jobs = self.jobdb.getJobsList()
+    def testget_jobs_list(self):
+        jobs = self.jobdb.get_jobs_list()
+        self.assertEquals(len(jobs), 10)
 
-        for i in xrange(len(jobs)-1):
-            self.assert_(jobs[i].num < jobs[i+1].num)
-
-    def createJobs(self, n):
+    def create_jobs(self, n):
         """This method creates n jobs. """
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', username='Yi Qiang'))
 
         return jobs
+
+class JobDatabaseSQLiteTestCase(unittest.TestCase):
+    r"""
+    Unit tests for the SQLite based JobDatabase go here.
+
+    """
+
+    def setUp(self):
+        self.jobdb = JobDatabaseSQLite(test=True)
+
+    def tearDown(self):
+        query = """DELETE FROM jobs"""
+        cur = self.jobdb.con.cursor()
+        cur.execute(query)
+        self.jobdb._shutdown()
+
+    def testget_job(self):
+        job = Job()
+        job.status = 'new'
+        job.killed = False
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assertEquals(jdict['job_id'], self.jobdb.get_job()['job_id'])
+
+    def teststore_job(self):
+        job = Job()
+        self.assert_(isinstance(self.jobdb.store_job(job.reduce()), dict))
+
+    def testget_job_by_id(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assert_(self.jobdb.get_job_by_id(jdict['job_id']) is not None)
+
+    def testhas_job(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assertEquals(self.jobdb.has_job(jdict['job_id']), True)
+
+    def testcreate_jdict(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.assert_(isinstance(jdict, dict))
+
+    def testget_killed_jobs_list(self):
+        job = Job()
+        jdict = self.jobdb.store_job(job.reduce())
+        self.jobdb.set_killed(jdict['job_id'], killed=True)
+        self.assertEquals(len(self.jobdb.get_killed_jobs_list()), 1)
 
 class DatabasePrunerTestCase(unittest.TestCase):
     def setUp(self):
         self.jobdb = JobDatabaseZODB(test=True)
         self.pruner = DatabasePruner(self.jobdb)
-        jobs = self.createJobs(10)
+        jobs = self.create_jobs(10)
         for job in jobs:
-            self.jobdb.newJob(job)
+            self.jobdb.new_job(job)
 
 
     def tearDown(self):
@@ -122,35 +169,35 @@ class DatabasePrunerTestCase(unittest.TestCase):
         for file in files:
             os.remove(file)
 
-    def testcleanOldJobs(self):
-        jobs = self.jobdb.getJobsList()
+    def testclean_old_jobs(self):
+        jobs = self.jobdb.get_jobs_list()
         for job in jobs:
-            job.updated_time -= datetime.timedelta(10)
-            # directly accessing the database because storeJob
-            # automatically updates the updated_time
+            job.update_time -= datetime.timedelta(10)
+            # directly accessing the database because store_job
+            # automatically updates the update_time
             self.jobdb.jobdb[job.id] = job
 
-        self.pruner.cleanOldJobs()
+        self.pruner.clean_old_jobs()
 
-        jobs = self.jobdb.getJobsList()
+        jobs = self.jobdb.get_jobs_list()
         self.assertEquals(len(jobs), 0)
 
-    def testcleanFailedJobs(self):
-        jobs = self.jobdb.getJobsList()
+    def testclean_failed_jobs(self):
+        jobs = self.jobdb.get_jobs_list()
         for job in jobs:
             job.failures += 20
-            self.jobdb.storeJob(job)
+            self.jobdb.store_job(job)
 
-        self.pruner.cleanFailedJobs()
-        jobs = self.jobdb.getJobsList()
+        self.pruner.clean_failed_jobs()
+        jobs = self.jobdb.get_jobs_list()
         self.assertEquals(len(jobs), 0)
 
-    def createJobs(self, n):
+    def create_jobs(self, n):
         """This method creates n jobs. """
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', author='Yi Qiang'))
+            jobs.append(Job(name='unittest', username='Yi Qiang'))
 
         return jobs
 

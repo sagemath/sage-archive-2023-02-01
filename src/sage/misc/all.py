@@ -29,6 +29,8 @@ from pager import pager
 
 from sagedoc import search_src, search_doc
 
+from reset import reset, restore
+
 from getusage import top, get_memory_usage
 
 from log import log_html, log_dvi, log_html_mathml

@@ -184,9 +184,9 @@ class AlgebraicRealField(_uniq_alg, sage.rings.ring.Field):
 
         """
 
-        if isinstance(x, AlgebraicNumber):
+        if isinstance(x, AlgebraicRealNumber):
             return x
-        return AlgebraicNumber(x)
+        return AlgebraicRealNumber(x)
 
     def _coerce_impl(self, x):
         if isinstance(x, (int, long, sage.rings.integer.Integer,
@@ -296,7 +296,7 @@ class AlgebraicRealField(_uniq_alg, sage.rings.ring.Field):
             [1.4142135623730949 ... 1.4142135623730952]
             True
         """
-        return AlgebraicNumber(AlgebraicNumberRoot(poly, interval, multiplicity))
+        return AlgebraicRealNumber(AlgebraicRealNumberRoot(poly, interval, multiplicity))
 
 def is_AlgebraicRealField(F):
     return isinstance(F, AlgebraicRealField)
@@ -557,11 +557,11 @@ class AlgebraicGenerator(SageObject):
         """
         Construct an AlgebraicGenerator object.
 
-        sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
+        sage: from sage.rings.algebraic_real import AlgebraicRealNumberRoot, AlgebraicGenerator, unit_generator
         sage: _.<y> = QQ['y']
         sage: x = polygen(Alg)
         sage: nf = NumberField(y^2 - y - 1, name='a', check=False)
-        sage: root = AlgebraicNumberRoot(x^2 - x - 1, RIF(1, 2))
+        sage: root = AlgebraicRealNumberRoot(x^2 - x - 1, RIF(1, 2))
         sage: x = AlgebraicGenerator(nf, root)
         sage: x
         Number Field in a with defining polynomial y^2 - y - 1 with a in [1.6180339887498946 ... 1.6180339887498950]
@@ -622,16 +622,16 @@ class AlgebraicGenerator(SageObject):
         for the number field QQ[alpha][beta].
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, unit_generator
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRoot, AlgebraicGenerator, unit_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
-            sage: root2 = AlgebraicNumberRoot(x^2 - 2, RIF(1, 2))
+            sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
             Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
-            sage: root3 = AlgebraicNumberRoot(x^2 - 3, RIF(1, 2))
+            sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
             Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
@@ -708,7 +708,7 @@ class AlgebraicGenerator(SageObject):
             return red_elt(self._root.interval_fast(rif) * k + other._root.interval_fast(rif))
         new_intv = isolating_interval(intv_fn, red_pol)
 
-        new_gen = AlgebraicGenerator(new_nf, AlgebraicNumberRoot(QQx(red_pol), new_intv))
+        new_gen = AlgebraicGenerator(new_nf, AlgebraicRealNumberRoot(QQx(red_pol), new_intv))
         rel = AlgebraicGeneratorRelation(self, self_pol_sage(red_back_x),
                                          other, (QQx_x - k*self_pol_sage)(red_back_x),
                                          new_gen)
@@ -726,16 +726,16 @@ class AlgebraicGenerator(SageObject):
         returns None.)
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicGenerator, AlgebraicNumberRoot, unit_generator
+            sage: from sage.rings.algebraic_real import AlgebraicGenerator, AlgebraicRealNumberRoot, unit_generator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
-            sage: root2 = AlgebraicNumberRoot(x^2 - 2, RIF(1, 2))
+            sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
             Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
-            sage: root3 = AlgebraicNumberRoot(x^2 - 3, RIF(1, 2))
+            sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
             Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
@@ -772,34 +772,34 @@ class AlgebraicGenerator(SageObject):
 
     def __call__(self, elt):
         """
-        Takes an AlgebraicNumber which is represented as either a rational
+        Takes an AlgebraicRealNumber which is represented as either a rational
         or a number field element, and which is in a subfield of the
         field generated by this generator.  Lifts the number into the
         field of this generator, and returns either a Rational or a
         NumberFieldElement depending on whether this is the unit generator.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot, AlgebraicGenerator, AlgebraicNumberExtensionElement, AlgebraicNumberRational
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRoot, AlgebraicGenerator, AlgebraicRealNumberExtensionElement, AlgebraicRealNumberRational
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
-            sage: root2 = AlgebraicNumberRoot(x^2 - 2, RIF(1, 2))
+            sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
             sage: gen2
             Number Field in a with defining polynomial y^2 - 2 with a in [1.4142135623730949 ... 1.4142135623730952]
-            sage: sqrt2 = AlgebraicNumberExtensionElement(gen2, nf2.gen())
+            sage: sqrt2 = AlgebraicRealNumberExtensionElement(gen2, nf2.gen())
             sage: nf3 = NumberField(y^2 - 3, name='a', check=False)
-            sage: root3 = AlgebraicNumberRoot(x^2 - 3, RIF(1, 2))
+            sage: root3 = AlgebraicRealNumberRoot(x^2 - 3, RIF(1, 2))
             sage: gen3 = AlgebraicGenerator(nf3, root3)
             sage: gen3
             Number Field in a with defining polynomial y^2 - 3 with a in [1.7320508075688771 ... 1.7320508075688775]
-            sage: sqrt3 = AlgebraicNumberExtensionElement(gen3, nf3.gen())
+            sage: sqrt3 = AlgebraicRealNumberExtensionElement(gen3, nf3.gen())
             sage: gen2_3 = gen2.union(gen3)
             sage: gen2_3
             Number Field in a with defining polynomial y^4 - 4*y^2 + 1 with a in [0.51763809020504147 ... 0.51763809020504159]
             sage: gen2_3(sqrt2)
             -a^3 + 3*a
-            sage: gen2_3(AlgebraicNumberRational(1/7))
+            sage: gen2_3(AlgebraicRealNumberRational(1/7))
             1/7
             sage: gen2_3(sqrt3)
             -a^2 + 2
@@ -819,59 +819,59 @@ class AlgebraicGenerator(SageObject):
         # print self._field
         return self._field(elt.field_element_value().polynomial()(sp))
 
-class AlgebraicNumberDescr(SageObject):
+class AlgebraicRealNumberDescr(SageObject):
     """
-    An AlgebraicNumber is a wrapper around an AlgebraicNumberDescr object.
-    AlgebraicNumberDescr is an abstract base class, which should never
+    An AlgebraicRealNumber is a wrapper around an AlgebraicRealNumberDescr object.
+    AlgebraicRealNumberDescr is an abstract base class, which should never
     be directly instantiated; its concrete subclasses are
-    AlgebraicNumberRational, AlgebraicNumberExpression,
-    AlgebraicNumberRoot, and AlgebraicNumberExtensionElement.
-    AlgebraicNumberDescr and all of its subclasses are private, and
+    AlgebraicRealNumberRational, AlgebraicRealNumberExpression,
+    AlgebraicRealNumberRoot, and AlgebraicRealNumberExtensionElement.
+    AlgebraicRealNumberDescr and all of its subclasses are private, and
     should not be used directly.
     """
     def is_exact(self):
         """
-        Returns True if self is an AlgebraicNumberRational or an
-        AlgebraicNumberExtensionElement.
+        Returns True if self is an AlgebraicRealNumberRational or an
+        AlgebraicRealNumberExtensionElement.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRational
-            sage: AlgebraicNumberRational(1/2).is_exact()
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRational
+            sage: AlgebraicRealNumberRational(1/2).is_exact()
             True
         """
         return False
 
     def is_rational(self):
         """
-        Returns True if self is an AlgebraicNumberRational or
-        an AlgebraicNumberExtensionElement which is actually rational.
+        Returns True if self is an AlgebraicRealNumberRational or
+        an AlgebraicRealNumberExtensionElement which is actually rational.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRational
-            sage: AlgebraicNumberRational(3/7).is_rational()
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRational
+            sage: AlgebraicRealNumberRational(3/7).is_rational()
             True
         """
         return False
 
     def is_field_element(self):
         """
-        Returns True if self is an AlgebraicNumberExtensionElement.
+        Returns True if self is an AlgebraicRealNumberExtensionElement.
 
-            sage: from sage.rings.algebraic_real import AlgebraicNumberExtensionElement, AlgebraicNumberRoot, AlgebraicGenerator
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberExtensionElement, AlgebraicRealNumberRoot, AlgebraicGenerator
             sage: _.<y> = QQ['y']
             sage: x = polygen(Alg)
             sage: nf2 = NumberField(y^2 - 2, name='a', check=False)
-            sage: root2 = AlgebraicNumberRoot(x^2 - 2, RIF(1, 2))
+            sage: root2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(1, 2))
             sage: gen2 = AlgebraicGenerator(nf2, root2)
-            sage: sqrt2 = AlgebraicNumberExtensionElement(gen2, nf2.gen())
+            sage: sqrt2 = AlgebraicRealNumberExtensionElement(gen2, nf2.gen())
             sage: sqrt2.is_field_element()
             True
         """
         return False
 
-class AlgebraicNumberRational(AlgebraicNumberDescr):
+class AlgebraicRealNumberRational(AlgebraicRealNumberDescr):
     """
-    The subclass of AlgebraicNumberDescr that represents an arbitrary
+    The subclass of AlgebraicRealNumberDescr that represents an arbitrary
     rational.  This class is private, and should not be used directly.
     """
 
@@ -900,9 +900,9 @@ class AlgebraicNumberRational(AlgebraicNumberDescr):
     def is_exact(self):
         return True
 
-class AlgebraicNumberExpression(AlgebraicNumberDescr):
+class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
     """
-    The subclass of AlgebraicNumberDescr that represents the sum,
+    The subclass of AlgebraicRealNumberDescr that represents the sum,
     difference, product, or quotient of two algebraic numbers.
     This class is private, and should not be used directly.
     """
@@ -917,18 +917,18 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         mean 1).
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
-            sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '+')
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
+            sage: AlgebraicRealNumberExpression(Alg(1/3), Alg(1/2), '+')
             [0.83333333333333325 ... 0.83333333333333338] (1/3 + 1/2)
-            sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '-')
+            sage: AlgebraicRealNumberExpression(Alg(1/3), Alg(1/2), '-')
             [-0.16666666666666669 ... -0.16666666666666662] (1/3 - 1/2)
-            sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '*')
+            sage: AlgebraicRealNumberExpression(Alg(1/3), Alg(1/2), '*')
             [0.16666666666666665 ... 0.16666666666666669] (1/3 * 1/2)
-            sage: AlgebraicNumberExpression(Alg(1/3), Alg(1/2), '/')
+            sage: AlgebraicRealNumberExpression(Alg(1/3), Alg(1/2), '/')
             [0.66666666666666662 ... 0.66666666666666675] (1/3 / 1/2)
-            sage: AlgebraicNumberExpression(None, Alg(1/2), '-')
+            sage: AlgebraicRealNumberExpression(None, Alg(1/2), '-')
             [-0.50000000000000000 ... -0.50000000000000000] (None - 1/2)
-            sage: AlgebraicNumberExpression(None, Alg(1/2), '/')
+            sage: AlgebraicRealNumberExpression(None, Alg(1/2), '/')
             [2.0000000000000000 ... 2.0000000000000000] (None / 1/2)
         """
         self._left = left
@@ -945,8 +945,8 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         the result may not be a minimal-width interval.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
-            sage: five_sixths = AlgebraicNumberExpression(Alg(1/2), Alg(1/3), '+')
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
+            sage: five_sixths = AlgebraicRealNumberExpression(Alg(1/2), Alg(1/3), '+')
             sage: five_sixths.interval_fast(RealIntervalField(4))
             [0.812 ... 0.875]
             sage: five_sixths.interval_fast(RealIntervalField(70))
@@ -970,15 +970,15 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
                 return ~self._right.interval_fast(field)
             else:
                 return self._left.interval_fast(field) / self._right.interval_fast(field)
-        raise ValueError, 'Illegal operation for AlgebraicNumberExpression'
+        raise ValueError, 'Illegal operation for AlgebraicRealNumberExpression'
 
     def exactify(self):
         """
-        Return a new exact AlgebraicNumberDescr with the same value as self.
+        Return a new exact AlgebraicRealNumberDescr with the same value as self.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
-            sage: five_sixths = AlgebraicNumberExpression(Alg(1/2), Alg(1/3), '+')
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
+            sage: five_sixths = AlgebraicRealNumberExpression(Alg(1/2), Alg(1/3), '+')
             sage: five_sixths.exactify()
             5/6
         """
@@ -1017,25 +1017,25 @@ class AlgebraicNumberExpression(AlgebraicNumberDescr):
         # print right, right_value
 
         if gen.is_unit():
-            return AlgebraicNumberRational(value)
+            return AlgebraicRealNumberRational(value)
         else:
-            return AlgebraicNumberExtensionElement(gen, value)
+            return AlgebraicRealNumberExtensionElement(gen, value)
 
 
-class AlgebraicNumber(sage.structure.element.FieldElement):
+class AlgebraicRealNumber(sage.structure.element.FieldElement):
     """
     An algebraic real (a real number which is the zero of a polynomial
     in ZZ[x]).
 
-    AlgebraicNumber objects can be created using Alg (== AlgebraicNumberField);
+    AlgebraicRealNumber objects can be created using Alg (== AlgebraicRealNumberField);
     either by coercing a rational, or by using the Alg.polynomial_root()
     method to construct a particular root of a polynomial with algebraic
-    coefficients.  Also, AlgebraicNumber is closed under addition,
+    coefficients.  Also, AlgebraicRealNumber is closed under addition,
     subtraction, multiplication, division (except by 0), and rational
     powers (including roots), except for negative numbers and powers
     with an even denominator.
 
-    AlgebraicNumber objects can be approximated to any desired precision.
+    AlgebraicRealNumber objects can be approximated to any desired precision.
     They can be compared exactly; if the two numbers are very close,
     this may require exact computation, which can be extremely slow.
 
@@ -1073,19 +1073,19 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
     def __init__(self, x):
         """
         Initialize an algebraic number.  The argument must be either
-        a rational number or a subclass of AlgebraicNumberDescr.
+        a rational number or a subclass of AlgebraicRealNumberDescr.
 
-        sage: from sage.rings.algebraic_real import AlgebraicNumberExpression
-        sage: AlgebraicNumber(22/7)
+        sage: from sage.rings.algebraic_real import AlgebraicRealNumberExpression
+        sage: AlgebraicRealNumber(22/7)
         22/7
-        sage: AlgebraicNumber(AlgebraicNumberExpression(Alg(1/2), Alg(1/5), '+'))
+        sage: AlgebraicRealNumber(AlgebraicRealNumberExpression(Alg(1/2), Alg(1/5), '+'))
         [0.69999999999999995 ... 0.70000000000000007]
         """
         sage.structure.element.FieldElement.__init__(self, Alg)
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
-            self._descr = AlgebraicNumberRational(x)
-        elif isinstance(x, (AlgebraicNumberDescr)):
+            self._descr = AlgebraicRealNumberRational(x)
+        elif isinstance(x, (AlgebraicRealNumberDescr)):
             self._descr = x
         else:
             raise TypeError, "Illegal initializer for algebraic number"
@@ -1102,84 +1102,84 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
         od = other._descr
         if sd.is_rational() and od.is_rational():
             value = sd.rational_value() * od.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element() and \
                 od.is_field_element() and \
                 sd.field_parent() == od.field_parent():
             value = sd.field_element_value() * od.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(self, other, '*')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(self, other, '*')
+            return AlgebraicRealNumber(value)
 
     def _div_(self, other):
         sd = self._descr
         od = other._descr
         if sd.is_rational() and od.is_rational():
             value = sd.rational_value() / od.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element() and \
                 od.is_field_element() and \
                 sd.field_parent() == od.field_parent():
             value = sd.field_element_value() / od.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(self, other, '/')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(self, other, '/')
+            return AlgebraicRealNumber(value)
 
     def __invert__(self):
         sd = self._descr
         if sd.is_rational:
             value = ~sd.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element():
             value = ~sd.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(None, self, '/')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(None, self, '/')
+            return AlgebraicRealNumber(value)
 
     def _add_(self, other):
         sd = self._descr
         od = other._descr
         if sd.is_rational() and od.is_rational():
             value = sd.rational_value() + od.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element() and \
                 od.is_field_element() and \
                 sd.field_parent() == od.field_parent():
             value = sd.field_element_value() + od.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(self, other, '+')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(self, other, '+')
+            return AlgebraicRealNumber(value)
 
     def _sub_(self, other):
         sd = self._descr
         od = other._descr
         if sd.is_rational() and od.is_rational():
             value = sd.rational_value() - od.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element() and \
                 od.is_field_element() and \
                 sd.field_parent() == od.field_parent():
             value = sd.field_element_value() - od.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(self, other, '-')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(self, other, '-')
+            return AlgebraicRealNumber(value)
 
     def _neg_(self):
         sd = self._descr
         if sd.is_rational():
             value = -sd.rational_value()
-            return AlgebraicNumber(AlgebraicNumberRational(value))
+            return AlgebraicRealNumber(AlgebraicRealNumberRational(value))
         elif sd.is_field_element():
             value = -sd.field_element_value()
-            return AlgebraicNumber(AlgebraicNumberExtensionElement(sd.field_parent(), value))
+            return AlgebraicRealNumber(AlgebraicRealNumberExtensionElement(sd.field_parent(), value))
         else:
-            value = AlgebraicNumberExpression(None, self, '-')
-            return AlgebraicNumber(value)
+            value = AlgebraicRealNumberExpression(None, self, '-')
+            return AlgebraicRealNumber(value)
 
     def __cmp__(self, other):
         if other._descr.is_rational() and other._descr.rational_value() == 0:
@@ -1222,7 +1222,7 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
         if d == 1:
             if n == 0:
                 # implements 0^0 == 1
-                return AlgebraicNumber(1)
+                return AlgebraicRealNumber(1)
             elif n < 0:
                 return (~self).__pow__(-n)
             elif n == 1:
@@ -1248,7 +1248,7 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
         else:
             result_min = min(range.lower(), -1)
         result_max = max(range.upper(), 1)
-        return AlgebraicNumber(AlgebraicNumberRoot(poly, RIF(result_min, result_max)))
+        return AlgebraicRealNumber(AlgebraicRealNumberRoot(poly, RIF(result_min, result_max)))
 
     def sqrt(self):
         return self.__pow__(~ZZ(2))
@@ -1310,8 +1310,8 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
 
     def _exact_value(self):
         """
-        Returns either an AlgebraicNumberRational or an
-        AlgebraicNumberExtensionElement representing this value.
+        Returns either an AlgebraicRealNumberRational or an
+        AlgebraicRealNumberExtensionElement representing this value.
 
         EXAMPLES:
             sage: Alg(2)._exact_value()
@@ -1376,7 +1376,7 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
                 return 0
         elif self._descr.is_field_element():
             if not self._descr.is_irrational():
-                self._descr = AlgebraicNumberRational(self._descr.rational_value())
+                self._descr = AlgebraicRealNumberRational(self._descr.rational_value())
                 return self.sign()
             # An irrational number must eventually be different from 0
             self._more_precision()
@@ -1660,8 +1660,8 @@ class AlgebraicNumber(sage.structure.element.FieldElement):
 
         return field(mid)
 
-def is_AlgebraicNumber(x):
-    return isinstance(x, AlgebraicNumber)
+def is_AlgebraicRealNumber(x):
+    return isinstance(x, AlgebraicRealNumber)
 
 AlgPoly = PolynomialRing(Alg, 'x')
 
@@ -1739,9 +1739,9 @@ class AlgebraicPolynomialTracker(SageObject):
         self.exactify()
         return self._gen
 
-class AlgebraicNumberRoot(AlgebraicNumberDescr):
+class AlgebraicRealNumberRoot(AlgebraicRealNumberDescr):
     """
-    The subclass of AlgebraicNumberDescr that represents a particular
+    The subclass of AlgebraicRealNumberDescr that represents a particular
     root of a polynomial with algebraic coefficients.
     This class is private, and should not be used directly.
     """
@@ -1772,9 +1772,9 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
         quickly if started with a sufficiently narrow interval.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRoot
             sage: x = polygen(Alg)
-            sage: rt2 = AlgebraicNumberRoot(x^2 - 2, RIF(0, 2))
+            sage: rt2 = AlgebraicRealNumberRoot(x^2 - 2, RIF(0, 2))
             sage: rt2.refine_interval(RIF(0, 2), 75)
             [1.41421356237309504880163 ... 1.41421356237309504880175]
         """
@@ -1938,18 +1938,18 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
 
     def exactify(self):
         """
-        Returns either an AlgebraicNumberRational or an
-        AlgebraicNumberExtensionElement with the same value as this number.
+        Returns either an AlgebraicRealNumberRational or an
+        AlgebraicRealNumberExtensionElement with the same value as this number.
 
         EXAMPLES:
-            sage: from sage.rings.algebraic_real import AlgebraicNumberRoot
+            sage: from sage.rings.algebraic_real import AlgebraicRealNumberRoot
             sage: x = polygen(Alg)
-            sage: two = AlgebraicNumberRoot((x-2)*(x-sqrt(Alg(2))), RIF(1.5, 3))
+            sage: two = AlgebraicRealNumberRoot((x-2)*(x-sqrt(Alg(2))), RIF(1.5, 3))
             sage: two.exactify()
             2 where a^2 - 2 = 0 and a in [1.4142135623730949 ... 1.4142135623730952]
             sage: two.exactify().rational_value()
             2
-            sage: strange = AlgebraicNumberRoot(x^2 + sqrt(Alg(3))*x - sqrt(Alg(2)), RIF(-1, 3))
+            sage: strange = AlgebraicRealNumberRoot(x^2 + sqrt(Alg(3))*x - sqrt(Alg(2)), RIF(-1, 3))
             sage: strange.exactify()
             a where a^8 - 6*a^6 + 5*a^4 - 12*a^2 + 4 = 0 and a in [0.60510122651395104 ... 0.60510122651395116]
         """
@@ -1965,7 +1965,7 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
             assert(my_factor.is_monic())
 
             if my_factor.degree() == 1:
-                return AlgebraicNumberRational(-my_factor[0])
+                return AlgebraicRealNumberRational(-my_factor[0])
 
             den, my_factor = clear_denominators(my_factor)
 
@@ -1976,10 +1976,10 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
             def intv_fn(rif):
                 return red_elt(self.interval_fast(rif) * den)
             new_intv = isolating_interval(intv_fn, red_pol)
-            root = AlgebraicNumberRoot(AlgPoly(red_pol), new_intv)
+            root = AlgebraicRealNumberRoot(AlgPoly(red_pol), new_intv)
             new_gen = AlgebraicGenerator(field, root)
 
-            return AlgebraicNumberExtensionElement(new_gen, red_back(field.gen())/den)
+            return AlgebraicRealNumberExtensionElement(new_gen, red_back(field.gen())/den)
         else:
             fld = gen.field()
 
@@ -1997,7 +1997,7 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
             assert(my_factor.is_monic())
 
             if my_factor.degree() == 1:
-                return AlgebraicNumberExtensionElement(gen, -my_factor[0])
+                return AlgebraicRealNumberExtensionElement(gen, -my_factor[0])
 
             # rnfequation needs a monic polynomial with integral coefficients.
             # We achieve this with a change of variables.
@@ -2034,11 +2034,11 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
                 return red_elt(gen.interval_fast(rif) * k + self.interval_fast(rif) * den)
             new_intv = isolating_interval(intv_fn, red_pol)
 
-            root = AlgebraicNumberRoot(QQx(red_pol), new_intv)
+            root = AlgebraicRealNumberRoot(QQx(red_pol), new_intv)
             new_gen = AlgebraicGenerator(new_nf, root)
             red_back_a = red_back(new_nf.gen())
             new_poly = ((QQx_x - k * self_pol_sage)(red_back_a)/den)
-            return AlgebraicNumberExtensionElement(new_gen, new_poly)
+            return AlgebraicRealNumberExtensionElement(new_gen, new_poly)
 
     def _more_precision(self):
         """
@@ -2062,17 +2062,17 @@ class AlgebraicNumberRoot(AlgebraicNumberDescr):
         self._more_precision()
         return self.interval_fast(field)
 
-unit_generator = AlgebraicGenerator(None, AlgebraicNumberRoot(AlgPoly.gen() - 1, RIF(1)))
+unit_generator = AlgebraicGenerator(None, AlgebraicRealNumberRoot(AlgPoly.gen() - 1, RIF(1)))
 
-class AlgebraicNumberExtensionElement(AlgebraicNumberDescr):
+class AlgebraicRealNumberExtensionElement(AlgebraicRealNumberDescr):
     """
-    The subclass of AlgebraicNumberDescr that represents a number field
+    The subclass of AlgebraicRealNumberDescr that represents a number field
     element in terms of a specific generator.  Consists of a polynomial
     with rational coefficients in terms of the generator, and the
     generator itself, an AlgebraicGenerator.
     """
 
-    # XXX Should override __new__, and return an AlgebraicNumberRational
+    # XXX Should override __new__, and return an AlgebraicRealNumberRational
     # if the value is rational.
 
     def __init__(self, generator, value):
@@ -2114,7 +2114,7 @@ class AlgebraicNumberExtensionElement(AlgebraicNumberDescr):
         gen_val = self._generator.interval_fast(field)
         # XXX Coercion to field() below is necessary in case this is
         # a constant polynomial (that is, this is a rational number).
-        # If we maintain the invariant that AlgebraicNumberExtensionElement
+        # If we maintain the invariant that AlgebraicRealNumberExtensionElement
         # values are never rational, then the coercion is redundant.
         return field(self._value.polynomial()(gen_val))
 

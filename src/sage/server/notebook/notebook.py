@@ -650,7 +650,7 @@ class Notebook(SageObject):
 
     def create_new_worksheet(self, name='untitled', passcode=''):
         if name in self.__worksheets.keys():
-            raise KeyError, 'name (=%s) already taken.'%name
+            return self.__worksheets[name]
         name = str(name)
         passcode = str(passcode)
         wids = self.worksheet_ids()
@@ -857,6 +857,7 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
         #head += '<script language=javascript>' + js.javascript() + '</script>\n'
         return head
 
@@ -920,10 +921,11 @@ class Notebook(SageObject):
 
         if worksheet.computing():
             # Set the update checking back in motion.
-            body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check(); </script>\n'
+            # body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
+            # body += 'for(var i = 0; i < active_cell_list.length; i++)'
+            # body += '    cell_set_running(active_cell_list[i]); \n'
+            # body += 'start_update_check(); </script>\n'
+            body += '<script language=javascript>sync_active_cell_list();</script>'
         return body
 
     def _html_head(self, worksheet_id):
@@ -940,6 +942,10 @@ class Notebook(SageObject):
             head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
             head += '<script src="/jsmath/jsMath.js"></script>\n'
             head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
+        head +=' <script src="/highlight/prettify.js"></script>\n'
+        head += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+
         #head += '<script language=javascript>' + js.javascript() + '</script>\n'
 
         return head
@@ -997,10 +1003,10 @@ class Notebook(SageObject):
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Toggle Panel</a>' + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Left Panel</a>' + vbar
         #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
-        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
@@ -1130,7 +1136,8 @@ Output
         <style type="text/css">
 
         textarea.edit {
-            font-family: monospace;
+            font-family: courier, monospace;
+            font-size:12pt;
             border: 1px solid #8cacbb;
             color: black;
             background-color: white;
@@ -1205,6 +1212,7 @@ Output
 
     def help_window(self):
         help = [
+            ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),
@@ -1377,16 +1385,19 @@ Output
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
+
         if authorized:
             body = self._html_body(worksheet_id, show_debug=show_debug,
                                    worksheet_authorized=worksheet_authorized)
         else:
             body = self._html_authorize()
 
-        if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
+
+        if worksheet_id is not None:
+            head += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+
         return """
         <html>
         <head>%s</head>
@@ -1435,7 +1446,7 @@ Output
                     lists.append([])
                 cell = """
    <li id='completion%s_%s_%s' class='completion_menu_two'>
-    <a onClick='do_replacement(%s, "%s")'
+    <a onClick='do_replacement(%s, "%s"); return false;'
        onMouseOver='this.focus(); select_replacement(%s,%s);'
     >%s</a>
    </li>"""%(cell_id, i, j, cell_id, row[j], i,j,
@@ -1467,7 +1478,7 @@ def notebook(dir         ='sage_notebook',
              system      = None,
              jsmath      = True,
              show_debug  = False,
-             splashpage  = None,
+             splashpage  = True,
              warn        = True,
              ignore_lock = False,
              log_server = False,
@@ -1527,7 +1538,7 @@ def notebook(dir         ='sage_notebook',
     \item Figure out the external address of your server, say
           'sage.math.washington.edu', for example.
     \item On your server, type
-       server_http1('mysession', address='sage.math.washington.edu')
+        notebook('mysession', address='sage.math.washington.edu')
     \item Assuming you have permission to open a port on that
        machine, it will startup and display a URL, e.g.,
            \url{http://sage.math.washington.edu:8000}

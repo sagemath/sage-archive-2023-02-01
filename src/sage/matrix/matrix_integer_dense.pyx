@@ -21,6 +21,11 @@ EXAMPLES:
     False
     sage: b < a
     True
+
+TESTS:
+    sage: a = matrix(ZZ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ########## *** IMPORTANT ***
@@ -43,10 +48,12 @@ from sage.modules.vector_integer_dense cimport Vector_integer_dense
 from sage.misc.misc import verbose, get_verbose, cputime
 
 from sage.rings.arith import previous_prime
+from sage.structure.element import is_Element
 
 include "../ext/interrupt.pxi"
 include "../ext/stdsage.pxi"
 include "../ext/gmp.pxi"
+include "../ext/random.pxi"
 
 ctypedef unsigned int uint
 
@@ -55,7 +62,8 @@ from sage.ext.multi_modular cimport MultiModularBasis
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational_field import QQ
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer_ring import ZZ, IntegerRing_class
+from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
@@ -269,18 +277,18 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int is_list
         cdef Integer x
 
-        if not isinstance(entries, list):
+        if entries is None:
+            x = ZZ(0)
+            is_list = 0
+        elif isinstance(entries, (int,long)) or is_Element(entries):
             try:
-                entries = list(entries)
-                is_list = 1
+                x = ZZ(entries)
             except TypeError:
-                try:
-                    # Try to coerce entries to a scalar (an integer)
-                    x = ZZ(entries)
-                    is_list = 0
-                except TypeError:
-                    raise TypeError, "entries must be coercible to a list or integer"
+                self._initialized = False
+                raise TypeError, "unable to coerce entry to an integer"
+            is_list = 0
         else:
+            entries = list(entries)
             is_list = 1
 
         if is_list:
@@ -293,7 +301,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise TypeError, "entries has the wrong length"
             if coerce:
                 for i from 0 <= i < self._nrows * self._ncols:
-                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     x = ZZ(entries[i])
                     # todo -- see integer.pyx and the TODO there; perhaps this could be
                     # sped up by creating a mpz_init_set_sage function.
@@ -301,7 +308,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 self._initialized = True
             else:
                 for i from 0 <= i < self._nrows * self._ncols:
-                    # TODO: Should use an unsafe un-bounds-checked array access here.
                     mpz_init_set(self._entries[i], (<Integer> entries[i]).value)
                 self._initialized = True
         else:
@@ -1114,7 +1120,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         Return the elementary divisors of self, in order.
 
-        IMPLEMENTATION: Uses linbox.
+        IMPLEMENTATION: Uses linbox, except sometimes linbox doesn't
+        work (errors about pre-conditioning), in which case PARI is
+        used.
 
         WARNING: This is MUCH faster than the smith_form function.
 
@@ -1124,7 +1132,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             self -- matrix
-            algorithm -- 'linbox' or 'pari'
+            algorithm -- (default: 'linbox')
+                 'pari': works robustless, but is slower.
+                 'linbox' -- use linbox
 
         OUTPUT:
             list of int's
@@ -1147,13 +1157,20 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             d = []
         else:
             if algorithm == 'linbox':
-                d = self._elementary_divisors_linbox()
-            elif algorithm == 'pari':
+                # This fails in linbox: a = matrix(ZZ,2,[1, 1, -1, 0, 0, 0, 0, 1])
+                try:
+                    d = self._elementary_divisors_linbox()
+                except RuntimeError:
+                    import sys
+                    sys.stderr.write("DONT PANIC -- switching to using PARI (which will work fine)\n")
+                    algorithm = 'pari'
+            if algorithm == 'pari':
                 d = self._pari_().matsnf(0).python()
                 i = d.count(0)
+                d.sort()
                 if i > 0:
-                    d = list(reversed(d[i:])) + [d[0]]*i
-            else:
+                    d = d[i:] + [d[0]]*i
+            elif not (algorithm in ['pari', 'linbox']):
                 raise ValueError, "algorithm (='%s') unknown"%algorithm
         self.cache('elementary_divisors', d)
         return d
@@ -1296,6 +1313,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
            LLL -- bool (default: False); if True the basis is an LLL
                   reduced basis; otherwise, it is an echelon basis.
 
+        By convention if self has 0 rows, the kernel is of dimension
+        0, whereas the kernel is whole domain if self has 0 columns.
+
         EXAMPLES:
             sage: M = MatrixSpace(ZZ,4,2)(range(8))
             sage: M.kernel()
@@ -1306,7 +1326,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         """
         if self._nrows == 0:    # from a 0 space
             M = sage.modules.free_module.FreeModule(ZZ, self._nrows)
-            return M.zero_subspace()
+            return M.zero_submodule()
 
         elif self._ncols == 0:  # to a 0 space
             return sage.modules.free_module.FreeModule(ZZ, self._nrows)
@@ -1464,57 +1484,39 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         import misc
         return misc.matrix_integer_dense_rational_reconstruction(self, N)
 
-    def randomize(self, density=1, x=None, y=None):
+    def randomize(self, density=1, x=None, y=None, distribution=None):
         """
         Randomize density proportion of the entries of this matrix,
         leaving the rest unchanged.
 
-        The randomized entries of this matrix to be between x and y
+        The parameters are the same as the integer ring's random_element function.
+
+        If x and y are given, randomized entries of this matrix to be between x and y
         and have density 1.
         """
         self.check_mutability()
         self.clear_cache()
 
-        cdef int _min, _max
-        if y is None:
-            if x is None:
-                min = -2
-                max = 3
-            else:
-                min = 0
-                max = x
-        else:
-            min = x
-            max = y
-
         density = float(density)
 
-        cdef int min_is_zero
-        min_is_nonzero = (min != 0)
-
-        cdef Integer n_max, n_min, n_width
-        n_max = Integer(max)
-        n_min = Integer(min)
-        n_width = n_max - n_min
-
         cdef Py_ssize_t i, j, k, nc, num_per_row
-        global state
+        global state, ZZ
+
+        cdef IntegerRing_class the_integer_ring = ZZ
 
         _sig_on
         if density == 1:
             for i from 0 <= i < self._nrows*self._ncols:
-                mpz_urandomm(self._entries[i], state, n_width.value)
-                if min_is_nonzero:
-                    mpz_add(self._entries[i], self._entries[i], n_min.value)
+                the_integer_ring._randomize_mpz(self._entries[i], x, y, distribution)
+
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
             for i from 0 <= i < self._nrows:
                 for j from 0 <= j < num_per_row:
                     k = random()%nc
-                    mpz_urandomm(self._matrix[i][k], state, n_width.value)
-                    if min_is_nonzero:
-                        mpz_add(self._matrix[i][k], self._matrix[i][j], n_min.value)
+                    the_integer_ring._randomize_mpz(self._matrix[i][k], x, y, distribution)
+
         _sig_off
 
     #### Rank
@@ -1587,16 +1589,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         AUTHOR:
             -- William Stein
         """
+        if self._nrows == 0 or self._ncols == 0:
+            return self.matrix_space(self._ncols, 0).zero_matrix()
+
         cdef long dim
         cdef mpz_t *mp_N
         time = verbose('computing nullspace of %s x %s matrix using IML'%(self._nrows, self._ncols))
         _sig_on
         dim = nullspaceMP (self._nrows, self._ncols, self._entries, &mp_N)
         _sig_off
+        P = self.matrix_space(self._ncols, dim)
 
         # Now read the answer as a matrix.
         cdef Matrix_integer_dense M
-        P = self.matrix_space(self._ncols, dim)
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
         for i from 0 <= i < dim*self._ncols:
             mpz_init_set(M._entries[i], mp_N[i])
@@ -1723,6 +1728,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             n = self._ncols
             m = B._ncols
+            P = self.matrix_space(n, m)
+            if self._nrows == 0 or self._ncols == 0:
+                return P.zero_matrix(), Integer(1)
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = n, ncols = m), Integer(1)
@@ -1733,14 +1741,16 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             nonsingSolvLlhsMM(RightSolu, n, m, self._entries, B._entries, mp_N, mp_D)
 
-            P = self.matrix_space(n, m)
-
         else: # left
             if self._nrows != B._ncols:
                 raise ArithmeticError, "B's number of columns must match self's number of rows"
 
             n = self._ncols
             m = B._nrows
+
+            P = self.matrix_space(m, n)
+            if self._nrows == 0 or self._ncols == 0:
+                return P.zero_matrix(), Integer(1)
 
             if m == 0 or n == 0:
                 return self.new_matrix(nrows = m, ncols = n), Integer(1)
@@ -1751,7 +1761,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
             nonsingSolvLlhsMM(LeftSolu, n, m, self._entries, B._entries, mp_N, mp_D)
 
-            P = self.matrix_space(m, n)
 
         M = Matrix_integer_dense.__new__(Matrix_integer_dense, P, None, None, None)
         for i from 0 <= i < n*m:
@@ -1785,9 +1794,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         rows at the bottom.
 
         NOTE: IML is the actual underlying $p$-adic solver that we use.
-
-        EXAMPLES:
-
 
 
         AUTHOR:
@@ -1851,6 +1857,19 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         \end{enumerate}
         """
+        if self._nrows == 0:
+            pivots = []
+            nonpivots = range(self._ncols)
+            X = self.copy()
+            d = Integer(1)
+            return pivots, nonpivots, X, d
+        elif self._ncols == 0:
+            pivots = []
+            nonpivots = []
+            X = self.copy()
+            d = Integer(1)
+            return pivots, nonpivots, X, d
+
         from matrix_modn_dense import MAX_MODULUS
         A = self
         # Step 1: Compute the rank

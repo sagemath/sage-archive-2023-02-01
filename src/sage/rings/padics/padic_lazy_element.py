@@ -1,15 +1,17 @@
-import sage.rings.padics.padic_generic_element
+import sage.rings.integer_mod
+import padic_base_generic_element
 import sys
 
 Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
-pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
+#pAdicLazyGenericElement = sage.rings.padics.padic_lazy_generic_element.pAdicLazyGenericElement
 infinity = sage.rings.infinity.infinity
 HaltingError = sage.rings.padics.precision_error.HaltingError
 PrecisionLimitError = sage.rings.padics.precision_error.PrecisionLimitError
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
+pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 
-class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericElement):
+class pAdicLazyElement(pAdicBaseGenericElement):
     def _add_(self, right):
         if isinstance(self, pAdicLazy_zero):
             return right
@@ -29,9 +31,9 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         elif self.valuation() is infinity and right.valuation() is infinity:
             return 0
         #comparing valuations can throw an exception if self and right are both congruent to zero modulo p^halt, but we want this to be passed upstream.  We now know that the valuations are equal and both less than halt, so both have type Integer now rather than Valuation.
-        if self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) < right._cache % self.parent().prime_pow(halt - right.valuation()):
+        if self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) < right._cache.lift() % self.parent().prime_pow(halt - right.valuation()):
             return -1
-        elif self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) > right._cache % self.parent().prime_pow(halt - right.valuation()):
+        elif self._cache.lift() % self.parent().prime_pow(halt - self.valuation()) > right._cache.lift() % self.parent().prime_pow(halt - right.valuation()):
             return 1
         if self._cache != right._cache:
             #According to spec, we only compare up to halt.  We now know that self and right are equal up to halt, but unequal above.  In order to maintain consistency with previous calls to __cmp__, we throw an exception here.
@@ -64,14 +66,19 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
             return self
         return pAdicLazy_div(self, right)
 
-    def _floordiv_(self, right):
+    def __floordiv__(self, right):
+        right = self.parent()(right)
         if self.parent().is_field():
             return self._div_(right)
         if isinstance(right, pAdicLazy_zero):
             raise ZeroDivisionError, "Cannot divide by zero"
         if isinstance(self, pAdicLazy_zero):
             return self
-        return pAdicLazy_floordiv(self, right)
+        try:
+            right.set_precision_relative(1)
+        except PrecisionError:
+            raise ZeroDivisionError, "Cannot divide by a p-adic very close to zero.  Casting both into a lazy ring with higher halting parameter may help"
+        return pAdicLazy_rshift(self / right.unit_part(), right.valuation())
 
     def __getitem__(self, n):
         if isinstance(n, slice):
@@ -94,9 +101,23 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         ppow = self.parent().prime_pow(n - self._base_valuation)
         return (self._cache.lift() // ppow) % self.parent().prime()
 
+    def __lshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0 and not self.parent().is_field():
+            return pAdicLazy_rshift(self, -shift)
+        return pAdicLazy_lshift(self, shift)
+
+    def __rshift__(self, shift):
+        shift = Integer(shift)
+        if shift < 0 or self.parent().is_field():
+            return pAdicLazy_lshift(self, -shift)
+        return pAdicLazy_rshift(self, shift)
+
     def __mod__(self, right):
+        right = self.parent()(right)
         if self.parent().is_field() or self.valuation() > right.valuation() or isinstance(self, pAdicLazy_zero):
             return pAdicLazy_zero(self.parent())
+        #return self - right * (self // right) #can be made more efficient
         try:
             right.set_precision_relative(1)
         except PrecisionError:
@@ -128,7 +149,7 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
 
     def _repr_(self, mode = None, do_latex = False):
         self._recompute()
-        return pAdicGenericElement._repr_(self, mode, do_latex)
+        return pAdicBaseGenericElement._repr_(self, mode, do_latex)
 
     def _sub_(self, right):
         if isinstance(right, pAdicLazy_zero):
@@ -147,8 +168,9 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         self._base_valuation = base_valuation
 
     def exp(self):
-        #Do valuation checking
-        return pAdicLazy_exp(self)
+        if (self.valuation() > 0 and self.parent().prime() != 2) or self.valuation() > 1:
+            return pAdicLazy_exp(self)
+        raise ValueError, "cannot take exp of a unit (or x == 2 (mod 4))"
 
     def exp_artin_hasse(self):
         #Do valuation checking
@@ -189,6 +211,10 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
     def lift(self):
         return self.parent().prime_pow(self._base_valuation) * self._cache.lift()
 
+    def lift_to_precision(self, absprec):
+        self.set_precision_absolute(absprec)
+        return copy.copy(self)
+
     def list(self):
         if isinstance(self, pAdicLazy_zero):
             return []
@@ -202,12 +228,33 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
         return ([0] * self._base_valuation) + plist(self._cache, self.parent().prime())
 
     def log(self):
-        #Do valuation checking
-        return pAdic_log(self)
+        if not self.is_unit():
+            raise ValueError, "cannot take log of a non-unit"
+        return pAdicLazy_log(self)
 
     def log_artin_hasse(self):
         #Do valuation checking
         return pAdic_logah(self)
+
+    def padded_list(self, absprec = infinity, relprec = infinity):
+        if absprec is infinity and relprec is infinity:
+            raise ValueError, "must specify at least one of absprec and relprec"
+        if self.parent().is_field():
+            if self.valuation() is infinity:
+                if relprec < infinity:
+                    return [self.parent().residue_class_field()(0)]*relprec
+                else:
+                    return []
+            relprec = min(relprec, absprec - self.valuation())
+            return self.list()[:relprec] + [self.parent().residue_class_field()(0)]*(self.precision_relative() - relprec)
+        if self.valuation() is infinity:
+            if absprec < infinity:
+                return [self.parent().residue_class_field()(0)]*absprec
+            else:
+                raise ValueError, "would return infinite list"
+        absprec = min(absprec, relprec + self.valuation())
+        return self.list()[:absprec] + [self.parent().residue_class_field()(0)]*(self.precision_absolute() - absprec)
+
 
     def precision_absolute(self):
         return self._cache_prec + self._base_valuation
@@ -223,7 +270,7 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
     def residue(self, n):
         self.set_precision_absolute(n)
         try:
-            return Mod(self._cache.lift() * self.parent().prime_pow(self._base_valuation()), self.parent().prime_pow(n))
+            return Mod(self._cache.lift() * self.parent().prime_pow(self._base_valuation), self.parent().prime_pow(n))
         except ZeroDivisionError:
             raise ValueError, "element must have non-negative valuation in order to compute residue"
 
@@ -267,16 +314,19 @@ class pAdicLazyElement(sage.rings.padics.padic_generic_element.pAdicGenericEleme
             return self._base_valuation
         return self._base_valuation + self._cache_prec
 
+    def _is_exact_zero(self):
+        return False
 
 # The following subclasses are used to create pAdicLazyElements from other data
 # They need to implement the following methods:
 # set_precision_absolute, set_precision_relative, __init__, (copy)
 
 class pAdicLazy_integer(pAdicLazyElement):
-    def __init__(self, parent, x, prec): #cannot call with input zero
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity): #cannot call with input zero
+        pAdicLazyElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x // parent.prime_pow(self._base_valuation)
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
         self._set_cache(Mod(self._x, parent.prime_pow(prec)))
         self._set_cache_prec(prec)
 
@@ -292,10 +342,11 @@ class pAdicLazy_integer(pAdicLazyElement):
 
 
 class pAdicLazy_rational(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         self._set_base_valuation(x.valuation(parent.prime()))
         self._x = x / parent.prime_pow(self._base_valuation)
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation)
         self._set_cache(Mod(self._x, parent.prime_pow(prec)))
         self._set_cache_prec(prec)
 
@@ -311,12 +362,13 @@ class pAdicLazy_rational(pAdicLazyElement):
 
 
 class pAdicLazy_otherpadic(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         self._set_base_valuation(x.valuation())
         self._x = x
-        self._set_cache_prec(min(prec, x.precision_relative()))
-        self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(self._cache_prec)))
+        prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation, x.precision_relative())
+        self._set_cache_prec(prec)
+        self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(prec)))
 
     def set_precision_relative(self, n, halt = None):
         if n > self._cache_prec:
@@ -332,9 +384,13 @@ class pAdicLazy_otherpadic(pAdicLazyElement):
             self._set_cache_prec(n - self._base_valuation)
             self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(self._cache_prec)))
 
+class pAdicLazy_mod(pAdicLazyElement):
+    def __init__(self, parent, x, ppow):
+        raise NotImplementedError
+
 class pAdicLazy_zero(pAdicLazyElement):
     def __init__(self, parent):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyElement.__init__(self, parent)
         self._set_base_valuation(infinity)
         self._set_cache(Mod(0,1))
         self._set_cache_prec(0)
@@ -349,20 +405,24 @@ class pAdicLazy_zero(pAdicLazyElement):
     def set_precision_absolute(self, n, halt = None):
         pass
 
+    def _is_exact_zero(self):
+        return True
+
 class pAdicLazy_valpower(pAdicLazyElement):
     def __init__(self, parent, v):
-        pAdicGenericElement.__init__(self, parent)
+        pAdicLazyElement.__init__(self, parent)
         raise NotImplementedError
 
 class pAdicLazy_iterator(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         raise NotImplementedError
 
 class pAdicLazy_teichmuller(pAdicLazyElement):
-    def __init__(self, parent, x, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, x, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         p = parent.prime()
+        prec = min(parent.precision_cap(), relprec, absprec)
         x = Mod(x,parent.prime_pow(prec))
         xnew = x**p
         while x != xnew:
@@ -386,16 +446,16 @@ class pAdicLazy_teichmuller(pAdicLazyElement):
         return self.set_precision_relative(n, halt)
 
 class pAdicLazy_root(pAdicLazyElement):
-    def __init__(self, parent, f, x, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, f, x, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         self._f = f
         self._x = x
         raise NotImplementedError
 
 class pAdicLazy_integral(pAdicLazyElement):
     #I'm not sure exactly how this will work, but it's another way to get p-adics
-    def __init__(self, parent, f, X, prec):
-        pAdicGenericElement.__init__(self, parent)
+    def __init__(self, parent, f, X, absprec=infinity, relprec=infinity):
+        pAdicLazyElement.__init__(self, parent)
         raise NotImplementedError
 
 
@@ -404,7 +464,7 @@ class pAdicLazy_integral(pAdicLazyElement):
 
 class pAdicLazy_bintype(pAdicLazyElement):
     def __init__(self, x, y, op):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._op = op
@@ -413,7 +473,7 @@ class pAdicLazy_bintype(pAdicLazyElement):
 
 class pAdicLazy_addtype(pAdicLazyElement):
     def __init__(self, x, y): #neither x nor y should be exact zero
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._recompute()
@@ -443,7 +503,7 @@ class pAdicLazy_addtype(pAdicLazyElement):
                         self._recompute()
                         break
                 if self.precision_relative() == 0:
-                    raise HaltingError, "Stopped computing sum: set halting paramter higher if you want computation to continue"
+                    raise HaltingError, "Stopped computing sum: set halting parameter higher if you want computation to continue"
 
 
 class pAdicLazy_add(pAdicLazy_addtype):
@@ -479,7 +539,7 @@ class pAdicLazy_sub(pAdicLazy_addtype):
 
 class pAdicLazy_multype(pAdicLazyElement):
     def __init__(self, x, y):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         self._recompute()
@@ -525,9 +585,9 @@ class pAdicLazy_mul(pAdicLazy_multype):
         self._set_cache_prec(min(self._x._cache_prec, self._y._cache_prec))
         self._set_cache(self._x._cache * self._y._cache)
 
-class pAdicLazy_divtype(pAdicLazy_multype):
+class pAdicLazy_div(pAdicLazy_multype):
     def __init__(self, x, y, halt = None):
-        pAdicGenericElement.__init__(self, x.parent().fraction_field())
+        pAdicLazyElement.__init__(self, x.parent().fraction_field())
         self._x = x
         self._y = y
         try:
@@ -536,44 +596,92 @@ class pAdicLazy_divtype(pAdicLazy_multype):
             raise ZeroDivisionError, "Cannot divide by a p-adic very close to zero.  Casting both into a lazy ring/field with higher halting parameter may help"
         self._recompute()
 
-class pAdicLazy_div(pAdicLazy_divtype):
     def _recompute(self):
         self._set_base_valuation(self._x._base_valuation - self._y._base_valuation)
         self._set_cache_prec(min(self._x._cache_prec, self._y._cache_prec))
         self._set_cache(self._x._cache / self._y._cache)
 
-class pAdicLazy_floordiv(pAdicLazyElement):
-    def __init__(self, x, y, halt = None):
-        self._u = x / y.unit_part()
-        pAdicLazy_divtype.__init__(self, x.parent())
+class pAdicLazy_lshift(pAdicLazyElement):
+    def __init__(self, x, shift): #self can be a ring or field element, shift positive or negative integer.  If a ring element, shift is positive
+        pAdicLazyElement.__init__(self, x.parent())
+        self._x = x
+        self._shift = shift
+        self._recompute()
 
     def _recompute(self):
-        #This is wrong
-        self._u._recompute()
-        top = self._u._cache.lift()
-        shift = y._base_valuation - x._base_valuation + x._min_valuation()
-        bottom = x.parent().prime_pow(shift)
-        ans = top // bottom
-        self._cache_prec = x._cache_prec + x._base_valuation - shift
-        self._cache = Mod(ans, self._cache_prec)
+        self._set_base_valuation(self._x._base_valuation + self._shift)
+        self._set_cache_prec(self._x._cache_prec)
+        self._set_cache(self._x._cache)
+
+    def set_precision_relative(self, n, halt = None):
+        self._x.set_precision_relative(n, halt)
+        self._recompute()
+
+    def set_precision_absolute(self, n, halt = None):
+        self._x.set_precision_absolute(n + self._shift, halt)
+
+class pAdicLazy_rshift(pAdicLazyElement):
+    def __init__(self, x, shift): #self is a ring element and shift is nonnegative
+        pAdicLazyElement.__init__(self, x.parent())
+        x.set_precision_relative(shift + 1) #I'm being a bit lazy here, so that the code in recompute is simpler
+        self._x = x
+        self._shift = shift
+        self._recompute()
+
+    def _recompute(self):
+        val = self._x.valuation()
+        if self._shift <= val:
+            self._set_base_valuation(val - self._shift)
+            self._set_cache(self._x._cache)
+            self._set_cache_prec(self._x._cache_prec)
+            self._suck = Integer(0)
+        else:
+            shift = self._shift
+            unit = self._x._unit_part().lift() // self.parent().prime_pow(shift - val)
+            val = unit.valuation(self.parent().prime())
+            rprec = self._x.precision_absolute() - shift
+            if val is infinity:
+                self._suck = self._x.precision_relative() #this might not be right
+                val = max(rprec, Integer(0))
+                rprec = Integer(0)
+                unit = Mod(0, 1)
+            elif val > 0:
+                self._suck = shift - self._x.valuation() + val
+                rprec = rprec - val
+                unit = Mod(unit // self.parent().prime_pow(val), self.parent().prime_pow(rprec))
+            else:
+                self._suck = shift - self._x.valuation()
+                unit = Mod(unit, self.parent().prime_pow(rprec))
+            self._set_base_valuation(val)
+            self._set_cache(unit)
+            self._set_cache_prec(rprec)
+
+    def set_precision_relative(self, n, halt = None):
+        if n > self.precision_relative():
+            self._x.set_precision_relative(n + self._suck, halt)
+            self._recompute()
+
+    def set_precision_absolute(self, n, halt = None):
+        if n > self.precision_absolute():
+            self._x.set_precision_absolute(n + self._shift, halt)
 
 class pAdicLazy_pow(pAdicLazyElement):
     def __init__(self, x, y):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._y = y
         raise NotImplementedError
 
 class pAdicLazy_uni(pAdicLazyElement):
     def __init__(self, x, op):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._op = op
         raise NotImplementedError
 
 class pAdicLazy_neg(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         self._recompute()
 
@@ -594,7 +702,7 @@ class pAdicLazy_neg(pAdicLazyElement):
 
 class pAdicLazy_invert(pAdicLazyElement):
     def __init__(self, x, halt = None):
-        pAdicGenericElement.__init__(self, x.parent().fraction_field())
+        pAdicLazyElement.__init__(self, x.parent().fraction_field())
         self._x = x
         try:
             x.set_precision_relative(1, halt)
@@ -619,7 +727,7 @@ class pAdicLazy_invert(pAdicLazyElement):
 
 class pAdicLazy_slice(pAdicLazyElement):
     def __init__(self, x, i, j, k):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         if not (i is None):
             self._i = i
@@ -642,23 +750,23 @@ class pAdicLazy_slice(pAdicLazyElement):
 
 class pAdicLazy_unitpart(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent().integer_ring())
+        pAdicLazyElement.__init__(self, x.parent().integer_ring())
         self._x = x
+        self._set_base_valuation(Integer(0))
         self._recompute()
 
     def _recompute(self):
-        self._set_base_valuation(Integer(0))
         self._set_cache(self._x._cache)
         self._set_cache_prec(self._x._cache_prec)
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_relative()
+            self._x.set_precision_relative(n)
             self._recompute()
 
     def set_precision_absolute(self, n, halt = None):
         if n > self.precision_relative():
-            self._x.set_precision_relative()
+            self._x.set_precision_relative(n)
             self._recompute()
 
     def valuation(self):
@@ -666,31 +774,105 @@ class pAdicLazy_unitpart(pAdicLazyElement):
 
 
 class pAdicLazy_log(pAdicLazyElement):
-    def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
-        self._x = x
-        raise NotImplementedError
+    def __init__(self, x): #x must be a unit
+        pAdicLazyElement.__init__(self, x.parent())
+        if x.residue(1) == 1:
+            self._x = x
+            self._n = Integer(1)
+        else:
+            self._n = x.residue(1).multiplicative_order()
+            self._x = x.__pow__(self._n)
+            self._n = x.parent().prime() - 1
+        self._recompute()
+
+    def _recompute(self):
+        p = self.parent().prime()
+        prec = self._x.precision_absolute()
+        extra_prec = 0
+        while extra_prec < Integer(prec + extra_prec).exact_log(p):
+            extra_prec += 1
+        from sage.rings.padics.zp import Zp
+        working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
+        x = working_ring(Integer(1) - self._x.residue(prec).lift())
+        xpow = x
+        ans = working_ring(0)
+        for n in range(1, prec + extra_prec):
+            ans -= xpow // working_ring(n)
+            xpow *= x
+        ans = ans // self._n
+        ans = ans.residue(prec)
+        val = ans.lift().valuation(self.parent().prime())
+        ans = Mod(ans.lift() // self.parent().prime_pow(val), self.parent().prime_pow(prec - val))
+        self._set_cache(ans)
+        self._set_base_valuation(val)
+        self._set_cache_prec(prec - self._base_valuation)
+
+    def set_precision_absolute(self, n, halt = None):
+        if n > self.precision_absolute():
+            self._x.set_precision_absolute(n, halt)
+            self._recompute()
+
+    def set_precision_relative(self, n, halt = None):
+        if n > self.precision_relative():
+            v = self.valuation()
+            self._x.set_precision_absolute(v + n, halt)
+            self._recompute()
 
 class pAdicLazy_exp(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
-        raise NotImplementedError
+        self._set_base_valuation(Integer(0))
+        self._recompute()
+
+    def _recompute(self):
+        if self._x.precision_relative() == 0:
+            if self.parent().prime() == 2:
+                self._set_cache_prec(self._x.precision_absolute() - 1)
+            else:
+                self._set_cache_prec(self._x.precision_absolute())
+            self._set_cache(Mod(1, self.parent().prime_pow(self._cache_prec)))
+        else:
+            val = self._x.valuation()
+            p = self.parent().prime()
+            prec = self._x.precision_absolute()
+            max_term = ((p-1)*(prec-1)) // ((p-1) * val - 1) + 1
+            extra_prec = max_term // (p - 1)
+            from sage.rings.padics.zp import Zp
+            working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
+            x = working_ring(self._x.lift())
+            term = ans = working_ring(1)
+            for n in range(1, max_term):
+                term *= x
+                term //= working_ring(n)
+                ans += term
+            self._set_cache_prec(prec)
+            self._set_cache(ans.residue(prec))
+
+    def set_precision_absolute(self, n, halt = None):
+        if n > self.precision_absolute():
+            self._x.set_precision_absolute(n, halt) #need more when p == 2?
+            self._recompute()
+
+    def set_precision_relative(self, n, halt = None):
+        if n > self.precision_relative():
+            self._x.set_precision_absolute(n, halt) #need more when p == 2?
+            self._recompute()
 
 class pAdicLazy_logah(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError
 
 class pAdicLazy_expah(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError
 
 class pAdicLazy_sqrt(pAdicLazyElement):
     def __init__(self, x):
-        pAdicGenericElement.__init__(self, x.parent())
+        pAdicLazyElement.__init__(self, x.parent())
         self._x = x
         raise NotImplementedError

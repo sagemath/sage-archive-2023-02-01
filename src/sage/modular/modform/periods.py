@@ -1,3 +1,6 @@
+"""
+Periods of modular forms.
+"""
 
 # The following idea just occured to me.
 # We could use that $\langle T_n(g), x\rangle = \langle g, T_n(x)\rangle$

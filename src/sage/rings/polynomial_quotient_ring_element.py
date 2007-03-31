@@ -104,7 +104,26 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
         return PolynomialQuotientRingElement, (self.parent(), self._polynomial, False)
 
     def _repr_(self):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
+            sage: 3 * a^3 + S.modulus()
+            -3/2*a + 1/3
+        """
+        # We call _repr since _repr_ does not have a name variable.
+        # This is very fragile!
         return self._polynomial._repr(self.parent().variable_name())
+
+    def _latex_(self):
+        r"""
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: S.<a> = R.quotient(3*x^3 + 3/2*x -1/3)
+            sage: latex(a*(3 * a^3) + S.modulus())
+            -\frac{3}{2}a^{2} + \frac{1}{3}a
+        """
+        return self._polynomial._latex_(self.parent().variable_name())
 
     ##################################################
     # Arithmetic

@@ -35,13 +35,13 @@ The fixed modulus type is the leanest of the p-adic rings: it is basically just 
 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')
-        17-adic Ring with capped relative precision 10
+    17-adic Ring with capped relative precision 10
     sage: Zp(7, prec = 30, type = 'lazy', print_mode = 'val-unit')
-        Lazy 7-adic Ring
-    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'series'); R is S
-        True
+    Lazy 7-adic Ring
+    sage: R = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); S = Zp(7, prec = 20, type = 'capped-rel', print_mode = 'val-unit'); R is S
+    True
     sage: Zp(2)
-        2-adic Ring with capped relative precision 20
+    2-adic Ring with capped relative precision 20
 
 Once one has a p-Adic ring, one can cast elements into it in the standard way.  Integers, ints, longs, Rationals, other p-Adic types, pari p-adics and elements of $\Z / p^n \Z$ can all be cast into a p-Adic ring.
     sage: R = Zp(5, 5, 'capped-rel','series'); a = R(16); a
@@ -79,98 +79,44 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.rings.integer
-#import sage.rings.integer_mod_ring
-import sage.rings.padics.padic_ring_generic
-import sage.rings.padics.padic_field_generic
+import sage.rings.integer
+import sage.rings.integer_mod_ring
+import sage.rings.padics.padic_ring_base_generic
+#import sage.rings.padics.padic_field_generic
+import padic_fixed_mod_ring_generic
 import sage.rings.padics.padic_ring_fixed_mod_element
-import sage.rings.padics.padic_ring_capped_absolute_element
-import sage.rings.padics.qp
-import sage.rings.integer_mod
+#import sage.rings.padics.padic_ring_capped_absolute_element
+#import sage.rings.integer_mod
 
 Integer = sage.rings.integer.Integer
 Integers = sage.rings.integer_mod_ring.IntegerModRing
-pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
-pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
+#infinity = sage.rings.infinity.infinity
+pAdicFixedModRingGeneric = padic_fixed_mod_ring_generic.pAdicFixedModRingGeneric
+pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGeneric
+#pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicRingFixedModElement = sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement
-pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
-Mod = sage.rings.integer_mod.Mod
+#pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#Mod = sage.rings.integer_mod.Mod
 
-class pAdicRingFixedMod(pAdicRingBaseGeneric):
+class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
     r"""
     An implementation of the p-adic integers using fixed modulus.
     """
-
-    def __call__(self, x, prec = None):
-        r"""
-            Casts x into self.  Uses the constructor from pAdicRingFixedModElement.
-        """
-        return pAdicRingFixedModElement(self, x)
-
-    def __cmp__(self, other):
-        if isinstance(other, pAdicRingFixedMod):
-            if self.prime() < other.prime():
-                return -1
-            elif self.prime() > other.prime():
-                return 1
-            elif self.precision_cap() < other.precision_cap():
-                return -1
-            elif self.precision_cap() > other.precision_cap():
-                return 1
-            else:
-                return 0
-        elif isinstance(other, pAdicFieldBaseGeneric):
-            return 1
-        else:
-            return -1
+    def __init__(self, p, prec, print_mode, names):
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicRingFixedModElement)
 
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer)):
             return True
-        if isinstance(x, pAdicRingFixedModElement) and not isinstance(x, pAdicRingCappedAbsoluteElement) and x.parent().prime() == self.prime() and x.parent.precision_cap() >= self.precision_cap():
+        if isinstance(x.parent(), pAdicRingFixedMod) and x.parent().prime() != self.prime() and x.parent().precision_cap() >= self.precision_cap():
             return True
         return False
-
-
-    def _coerce_impl(self, x):
-        if self.__contains__(x):
-            return pAdicRingFixedModElement(self, x)
-        else:
-            raise TypeError, "no canonical coercion of x"
 
     def _repr_(self, do_latex=False):
         if do_latex:
             return "%s-adic Ring of fixed modulus %s^{%s}"%(self.prime(), self.prime(), self.precision_cap())
         else:
             return "%s-adic Ring of fixed modulus %s^%s"%(self.prime(), self.prime(), self.precision_cap())
-
-    def teichmuller(self, x):
-        r"""
-        Returns the teichmuller representative of x.
-
-        INPUT:
-            self -- a p-adic ring
-            x -- an integer or element of $\Z / p\Z$ that is not divisible by $p$
-        OUTPUT:
-            element -- the teichmuller lift of x
-        EXAMPLES:
-            sage: R = Zp(5, 10, 'fixed-mod', 'series')
-            sage: R.teichmuller(2)
-                2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-        """
-        p = self.prime()
-        x = Mod(x,p**self.precision_cap())
-        xnew = x**p
-        while x != xnew:
-            x = xnew
-            xnew = x**p
-        return pAdicRingFixedModElement(self, x)
-
-    def integer_ring(self):
-        r"""
-        Returns the integer ring of self, i.e. self.
-        """
-        return self
 
     def fraction_field(self):
         r"""
@@ -189,13 +135,4 @@ class pAdicRingFixedMod(pAdicRingBaseGeneric):
             element -- a random element of self
         """
         return self(Integers(self.prime()**self.precision_cap()).random_element())
-
-    def unit_group(self):
-        raise NotImplementedError
-
-    def unit_group_gens(self):
-        raise NotImplementedError
-
-    def principal_unit_group(self):
-        raise NotImplementedError
 

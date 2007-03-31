@@ -25,6 +25,7 @@ AUTHORS:
 # number field calculations that use the interpreter.
 from sage.interfaces.gp import Gp
 
+import sage.libs.ntl.all as ntl
 import sage.interfaces.gap
 import sage.misc.preparser
 import sage.rings.arith
@@ -139,7 +140,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
     if polynomial.degree() == 2:
         K = NumberField_quadratic(polynomial, name, check)
     else:
-        K = NumberField_generic(polynomial, name, check)
+        K = NumberField_generic(polynomial, name, None, check)
 
     _nf_cache[key] = weakref.ref(K)
     return K
@@ -205,6 +206,9 @@ class NumberField_generic(field.Field):
         self.__polynomial = polynomial
         self.__pari_bnf_certified = False
         self.__absolute_field = self
+
+    def __reduce__(self):
+        return NumberField_generic, (self.__polynomial, self.variable_name(), self.__latex_variable_name)
 
     def complex_embeddings(self, prec=53):
         r"""
@@ -607,6 +611,16 @@ class NumberField_generic(field.Field):
 
     def order_table(self):
         return []
+
+    def polynomial_ntl(self):
+        try:
+            return (self.__polynomial_ntl, self.__denominator_ntl)
+        except AttributeError:
+            self.__denominator_ntl = ntl.ZZ()
+            den = self.polynomial().denominator()
+            self.__denominator_ntl.set_from_sage_int(ZZ(den))
+            self.__polynomial_ntl = ntl.ZZX((self.polynomial()*den).list())
+        return (self.__polynomial_ntl, self.__denominator_ntl)
 
     def polynomial(self):
         return self.__polynomial
@@ -1231,10 +1245,9 @@ class NumberField_cyclotomic(NumberField_generic):
         n = K.zeta_order()
         m = self.zeta_order()
         if m % n == 0:   # easy case
-            e = m // n
-            f = x.polynomial()
-            X = f.parent().gen()
-            g = f(X**e)
+            # pass this off to a method in the element class
+            # it can be done very quickly and easily by the pyrex<->NTL interface there
+            return x._lift_cyclotomic_element(self)
         else:
             if only_canonical:
                 raise TypeError

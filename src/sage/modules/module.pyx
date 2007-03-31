@@ -23,9 +23,6 @@ cdef class Module(sage.structure.parent_gens.ParentWithAdditiveAbelianGens):
     """
     Generic module class.
     """
-    def __init__(self):
-        pass
-
     def __call__(self, x):
         """
         Coerce x into the ring.

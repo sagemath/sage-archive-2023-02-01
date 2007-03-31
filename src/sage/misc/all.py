@@ -27,7 +27,7 @@ from package import install_package, optional_packages, upgrade
 
 from pager import pager
 
-from sagedoc import search_sage
+from sagedoc import search_src, search_doc
 
 from getusage import top, get_memory_usage
 

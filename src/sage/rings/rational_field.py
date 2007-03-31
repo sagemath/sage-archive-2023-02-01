@@ -13,6 +13,8 @@ import sage.rings.rational
 import sage.structure.factorization
 import infinity
 
+ZZ = None
+
 from sage.structure.parent_gens import ParentWithGens
 
 _obj = {}
@@ -90,6 +92,9 @@ class RationalField(_uniq, field.Field):
         ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
+    def __hash__(self):
+        return -11115808
+
     def _repr_(self):
         return "Rational Field"
 
@@ -164,7 +169,8 @@ class RationalField(_uniq, field.Field):
         return sage.rings.rational.Rational(x, base)
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer)):
+        if isinstance(x, (int, long, sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
@@ -275,17 +281,47 @@ class RationalField(_uniq, field.Field):
         """
         return infinity.infinity
 
-    def random_element(self, num_bound=2, den_bound=2):
+    def random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
         EXAMPLES:
             sage: QQ.random_element(10,10)
             -5/3
         """
-
-        return self("%s/%s"%(random.randrange(-num_bound, num_bound+1), \
-                             random.randrange(1,den_bound+1)))
-
+        global ZZ
+        if ZZ is None:
+            import integer_ring
+            ZZ = integer_ring.ZZ
+        if num_bound == None:
+            return self((ZZ.random_element(distribution=distribution),
+                         ZZ.random_element(distribution=distribution)))
+        else:
+            if num_bound == 0:
+                num_bound = 2
+            if den_bound is None:
+                den_bound = num_bound
+                if den_bound < 1:
+                    den_bound = 2
+            return self((ZZ.random_element(-num_bound, num_bound+1, distribution=distribution),
+                         ZZ.random_element(1, den_bound+1, distribution=distribution)))
     def zeta(self, n=2):
+        """
+        Return a root of unity in self.
+
+        INPUT:
+            n -- integer (default: 2) order of the root of unity
+
+        EXAMPLES:
+            sage: QQ.zeta()
+            -1
+            sage: QQ.zeta(2)
+            -1
+            sage: QQ.zeta(1)
+            1
+            sage: QQ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in rational field
+        """
         if n == 1:
             return sage.rings.rational.Rational(1)
         elif n == 2:

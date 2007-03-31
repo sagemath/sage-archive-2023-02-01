@@ -311,7 +311,7 @@ class IndexedSequence(SageObject):
             sage: J = range(5)
             sage: A = [exp(-2*pi*i*I/5) for i in J]
             sage: s = IndexedSequence(A,J)
-            sage: s.dct()    # discrete cosine
+            sage: s.dct()    # discrete cosine   (random low bits)
             Indexed sequence: [2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I, 2.50000000000000 - 0.000000000000000111022302462516*I]
                indexed by [0, 1, 2, 3, 4]
         """

@@ -393,7 +393,7 @@ cdef class Element(sage_object.SageObject):
     # This is simply how Python works.
     #
     # For a *Python* class just define __cmp__ as always.
-    # But note that when this get called you can assume that
+    # But note that when this gets called you can assume that
     # both inputs have identical parents.
     ####################################################################
     def __richcmp__(left, right, int op):
@@ -884,7 +884,7 @@ cdef class MonoidElement(Element):
 
     def __pow__(self, nn, dummy):
         """
-        Retern the (integral) power of self.
+        Return the (integral) power of self.
         """
         cdef int cn
 
@@ -1390,6 +1390,12 @@ cdef class CommutativeRingElement(RingElement):
         return I.reduce(self)
 
 cdef class Vector(ModuleElement):
+    cdef int is_sparse_c(self):
+        raise NotImplementedError
+
+    cdef int is_dense_c(self):
+        raise NotImplementedError
+
     def __mul__(left, right):
         if PY_TYPE_CHECK(left, Vector):
             # left is the vector
@@ -1479,6 +1485,13 @@ cdef class Matrix(AlgebraElement):
         if vector_left._degree != matrix_right._nrows:
             raise TypeError, "incompatible dimensions"
         matrix_right, vector_left = canonical_base_coercion_c(matrix_right, vector_left)
+        sl = vector_left.is_sparse_c(); sr = matrix_right.is_sparse_c()
+        if sl != sr:  # one is dense and one is sparse
+            if sr:  # vector is dense and matrix is sparse
+                vector_left = vector_left.sparse_vector()
+            else:
+                # vector is sparse and matrix is dense
+                vector_left = vector_left.dense_vector()
         if HAS_DICTIONARY(matrix_right):
             return matrix_right._vector_times_matrix(vector_left)
         else:
@@ -1490,11 +1503,17 @@ cdef class Matrix(AlgebraElement):
     def _vector_times_matrix(matrix_right, vector_left):
         return matrix_right._vector_times_matrix_c_impl(vector_left)
 
-
     cdef Vector _matrix_times_vector_c(matrix_left, Vector vector_right):
         if matrix_left._ncols != vector_right._degree:
             raise TypeError, "incompatible dimensions"
         matrix_left, vector_right = canonical_base_coercion_c(matrix_left, vector_right)
+        sl = matrix_left.is_sparse_c(); sr = vector_right.is_sparse_c()
+        if sl != sr:  # one is dense and one is sparse
+            if sl:  # vector is dense and matrix is sparse
+                vector_right = vector_right.sparse_vector()
+            else:
+                # vector is sparse and matrix is dense
+                vector_right = vector_right.dense_vector()
         if HAS_DICTIONARY(matrix_left):
             return matrix_left._matrix_times_vector(vector_right)
         else:

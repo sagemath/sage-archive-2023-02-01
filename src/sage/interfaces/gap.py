@@ -167,8 +167,6 @@ gap_cmd = "gap"
 
 def gap_command(use_workspace_cache=True):
     if use_workspace_cache:
-        if not os.path.exists(WORKSPACE):
-            gap_reset_workspace()
         return "%s -L %s"%(gap_cmd, WORKSPACE), False
     else:
         return gap_cmd, True
@@ -231,6 +229,8 @@ class Gap(Expect):
 
 
     def _start(self):
+        if self.__use_workspace_cache and not os.path.exists(WORKSPACE):
+            gap_reset_workspace()
         global first_try
         n = self._session_number
         try:

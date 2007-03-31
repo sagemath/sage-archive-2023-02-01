@@ -115,7 +115,6 @@ from sage.rings.integer import Integer
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 
 ################
-# TODO: change this to use extern cdef's methods.
 from sage.ext.arith cimport arith_int
 cdef arith_int ai
 ai = arith_int()
@@ -158,6 +157,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         self._matrix = <mod_int **> sage_malloc(sizeof(mod_int*)*self._nrows)
         if self._matrix == NULL:
             sage_free(self._entries)
+            self._entries = NULL
             raise MemoryError, "Error allocating memory"
 
         cdef mod_int k
@@ -168,7 +168,7 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             k = k + self._ncols
 
     def __dealloc__(self):
-        if self._matrix == NULL: # TODO: should never happen now, right
+        if self._entries == NULL:
             return
         sage_free(self._entries)
         sage_free(self._matrix)
@@ -184,11 +184,15 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             _sig_on
             for i from 0 <= i < self._nrows*self._ncols:
                 self._entries[i] = 0
-            e = entries   # coerce to an unsigned int
-            if e != 0:
-                for i from 0 <= i < self._nrows:
-                    self._matrix[i][i] = e
             _sig_off
+            if entries is None:
+                # zero matrix
+                pass
+            else:
+                e = entries   # coerce to an unsigned int
+                if e != 0:
+                    for i from 0 <= i < self._nrows:
+                        self._matrix[i][i] = e
             return
 
         # all entries are given as a long list
@@ -933,5 +937,19 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
             ncols = self._ncols - col
         return matrix_window_modn_dense.MatrixWindow_modn_dense(self, row, col, nrows, ncols)
 
+    def _magma_init_(self):
+        """
+        Returns a string of self in MAGMA form.
 
-
+        NOTE: Does not return MAGMA object but string.
+        """
+        cdef int i,j
+        K = self._base_ring._magma_init_()
+        if self._nrows == self._ncols:
+            s = 'MatrixAlgebra(%s, %s)'%(K, self.nrows())
+        else:
+            s = 'RMatrixSpace(%s, %s, %s)'%(K, self.nrows(), self.ncols())
+        v = []
+        for i from 0 <= i < self._nrows*self._ncols:
+                v.append(str(self._entries[i]))
+        return s + '![%s]'%(','.join(v))

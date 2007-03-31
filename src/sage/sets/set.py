@@ -1,7 +1,8 @@
 """
 Sets
 
-AUTHOR:
+AUTHORS:
+    -- Mike Hansen (2007-3-25) -- added differences and symmetric differences; fixed operators
     -- William Stein (2005) -- first version
     -- William Stein (2006-02-16) -- large number of documentation and examples; improved code
 """
@@ -306,6 +307,19 @@ class Set_object(Set_generic):
         """
         return self.union(X)
 
+    def __or__(self, X):
+        """
+        Return the union of self and X.
+
+        EXAMPLES:
+            sage: Set([2,3]) | Set([3,4])
+            {2, 3, 4}
+            sage: Set(ZZ) | Set(QQ)
+            Set-theoretic union of Integer Ring and Rational Field
+        """
+
+        return self.union(X)
+
     def intersection(self, X):
         r"""
         Return the intersection of self and X.
@@ -334,11 +348,82 @@ class Set_object(Set_generic):
             return Set_object_intersection(self, X)
         raise TypeError, "X (=%s) must be a Set"%X
 
+
+    def difference(self, X):
+        r"""
+        Return the intersection of self and X.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).difference(Primes())
+            sage: 4 in X
+            True
+            sage: 3 in X
+            False
+
+            sage: 4/1 in X
+            True
+
+            sage: X = Set(GF(9,'b')).difference(Set(GF(27,'c')))
+            sage: X
+            {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
+
+            sage: X = Set(GF(9,'b')).difference(Set(GF(27,'b')))
+            sage: X
+            {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
+        """
+        if is_Set(X):
+            if self == X:
+                return Set([])
+            return Set_object_difference(self, X)
+        raise TypeError, "X (=%s) must be a Set"%X
+
+    def symmetric_difference(self, X):
+        r"""
+        Returns the symmetric difference of self and X.
+
+        EXAMPLES:
+            sage: X = Set([1,2,3]).symmetric_difference(Set([3,4]))
+            sage: X
+            {1, 2, 4}
+        """
+
+        if is_Set(X):
+            if self == X:
+                return Set([])
+            return Set_object_symmetric_difference(self, X)
+        raise TypeError, "X (=%s) must be a Set"%X
+
+
+    def __sub__(self, X):
+        """
+        Return the difference of self and X.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).difference(Primes())
+            sage: Y = Set(ZZ) - Primes()
+            sage: X == Y
+            True
+        """
+        return self.difference(X)
+
+    def __and__(self, X):
+        """
+        Returns the intersection of self and X.
+
+        EXAMPLES:
+            sage: Set([2,3]) & Set([3,4])
+            {3}
+            sage: Set(ZZ) & Set(QQ)
+            Set-theoretic intersection of Integer Ring and Rational Field
+        """
+
+        return self.intersection(X)
+
     def __xor__(self, X):
         """
-        Return the intersection of self and X.
+        Returns the symmetric difference of self and X.
         """
-        return self.intersection(X)
+        return self.symmetric_difference(X)
 
     def cardinality(self):
         """
@@ -500,6 +585,51 @@ class Set_object_enumerated(Set_object):
             return Set_object.intersection(self, other)
         return Set_object_enumerated(self.set().intersection(other.set()))
 
+    def difference(self, other):
+        """
+        Returns the set difference self-other.
+
+        EXAMPLES:
+            sage: X = Set([1,2,3,4])
+            sage: Y = Set([1,2])
+            sage: X.difference(Y)
+            {3, 4}
+            sage: Z = Set(ZZ)
+            sage: W = Set([2.5, 4, 5, 6])
+            sage: W.difference(Z)
+            {2.50000000000000}
+        """
+        if not isinstance(other, Set_object_enumerated):
+            return Set([x for x in self if x not in other])
+        return Set_object_enumerated(self.set().difference(other.set()))
+
+    def symmetric_difference(self, other):
+        """
+        Returns the set difference self-other.
+
+        EXAMPLES:
+            sage: X = Set([1,2,3,4])
+            sage: Y = Set([1,2])
+            sage: X.symmetric_difference(Y)
+            {3, 4}
+            sage: Z = Set(ZZ)
+            sage: W = Set([2.5, 4, 5, 6])
+            sage: U = W.symmetric_difference(Z)
+            sage: 2.5 in U
+            True
+            sage: 4 in U
+            False
+            sage: V = Z.symmetric_difference(W)
+            sage: V == U
+            True
+            sage: 2.5 in V
+            True
+            sage: 6 in V
+            False
+        """
+        if not isinstance(other, Set_object_enumerated):
+            return Set_object.symmetric_difference(self, other)
+        return Set_object_enumerated(self.set().symmetric_difference(other.set()))
 
 class Set_object_union(Set_object):
     """
@@ -761,3 +891,291 @@ class Set_object_intersection(Set_object):
         """
         return len(list(self))
 
+
+
+class Set_object_difference(Set_object):
+    """
+    Formal difference of two sets.
+    """
+    def __init__(self, X, Y):
+        r"""
+        EXAMPLES:
+            sage: S = Set(QQ)
+            sage: T = Set(ZZ)
+            sage: X = S.difference(T); X
+            Set-theoretic difference between Rational Field and Integer Ring
+            sage: latex(X)
+            \mathbf{Q} - \mathbf{Z}
+
+            sage: loads(X.dumps()) == X
+            True
+        """
+        self.__X = X
+        self.__Y = Y
+        Set_object.__init__(self, self)
+
+
+    def __cmp__(self, right):
+        r"""
+        Try to compare self and right.
+
+        \note{Comparison is basically not implemented, or rather it
+        could say sets are not equal even though they are.  I don't
+        know how one could implement this for a generic intersection
+        of sets in a meaningful manner.  So be careful when using
+        this.}
+
+        EXAMPLES:
+            sage: Y = Set(ZZ).difference(Set(QQ))
+            sage: Y == Set([])
+            False
+            sage: X = Set(QQ).difference(Set(ZZ))
+            sage: Y == X
+            False
+            sage: Z = X.difference(Set(ZZ))
+            sage: Z == X
+            False
+
+        This illustrates that equality testing for formal unions
+        can be misleading in general.
+            sage: X == Set(QQ).difference(Set(ZZ))
+            True
+        """
+        if not is_Set(right):
+            return -1
+        if not isinstance(right, Set_object_difference):
+            return -1
+        if self.__X == right.__X and self.__Y == right.__Y:
+            return 0
+        return -1
+
+    def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: X = Set(QQ).difference(Set(ZZ)); X
+            Set-theoretic difference between Rational Field and Integer Ring
+            sage: X.rename('Q - Z')
+            sage: X
+            Q - Z
+        """
+        return "Set-theoretic difference between %s and %s"%(self.__X.object(),
+                                                          self.__Y.object())
+
+    def _latex_(self):
+        r"""
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: X = Set(QQ).difference(Set(ZZ))
+            sage: latex(X)
+            \mathbf{Q} - \mathbf{Z}
+        """
+        return '%s - %s'%(latex(self.__X), latex(self.__Y))
+
+    def __iter__(self):
+        """
+        Return iterator through elements of self.
+
+        Self is a formal difference of X and Y and this function is
+        implemented by iterating through the elements of X and for
+        each checking if it is not in Y, and if yielding it.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).difference(Primes())
+            sage: I = X.__iter__()
+            sage: I.next()
+            0
+            sage: I.next()
+            1
+            sage: I.next()
+            -1
+            sage: I.next()
+            -2
+            sage: I.next()
+            -3
+        """
+        for x in self.__X:
+            if x not in self.__Y:
+                yield x
+
+    def __contains__(self, x):
+        """
+        Return true if self contains x.
+
+        Since self is a formal intersection of X and Y this function
+        returns true if both X and Y contains x.
+
+        EXAMPLES:
+            sage: X = Set(QQ).difference(Set(ZZ))
+            sage: 5 in X
+            False
+            sage: ComplexField().0 in X
+            False
+            sage: sqrt(2) in X     # since sqrt(2) is a numerical approx
+            True
+            sage: 5/2 in X
+            True
+        """
+        return x in self.__X and x not in self.__Y
+
+    def cardinality(self):
+        """
+        This tries to return the cardinality of this formal intersection.
+
+        Note that this is not likely to work in very much generality,
+        and may just hang if either set involved is infinite.
+
+        EXAMPLES:
+            sage: X = Set(GF(13)).difference(Set(Primes()))
+            sage: X.cardinality()
+            8
+        """
+        return len(list(self))
+
+class Set_object_symmetric_difference(Set_object):
+    """
+    Formal symmetric difference of two sets.
+    """
+    def __init__(self, X, Y):
+        r"""
+        EXAMPLES:
+            sage: S = Set(QQ)
+            sage: T = Set(ZZ)
+            sage: X = S.symmetric_difference(T); X
+            Set-theoretic symmetric difference of Rational Field and Integer Ring
+            sage: latex(X)
+            \mathbf{Q} \bigtriangleup \mathbf{Z}
+
+            sage: loads(X.dumps()) == X
+            True
+        """
+        self.__X = X
+        self.__Y = Y
+        Set_object.__init__(self, self)
+
+
+    def __cmp__(self, right):
+        r"""
+        Try to compare self and right.
+
+        \note{Comparison is basically not implemented, or rather it
+        could say sets are not equal even though they are.  I don't
+        know how one could implement this for a generic symmetric difference
+        of sets in a meaningful manner.  So be careful when using
+        this.}
+
+        EXAMPLES:
+            sage: Y = Set(ZZ).symmetric_difference(Set(QQ))
+            sage: X = Set(QQ).symmetric_difference(Set(ZZ))
+            sage: X == Y
+            True
+            sage: Y == X
+            True
+
+        """
+        if not is_Set(right):
+            return -1
+        if not isinstance(right, Set_object_symmetric_difference):
+            return -1
+        if self.__X == right.__X and self.__Y == right.__Y or \
+           self.__X == right.__Y and self.__Y == right.__X:
+            return 0
+        return -1
+
+    def _repr_(self):
+        """
+        Return string representation of self.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).symmetric_difference(Set(QQ)); X
+            Set-theoretic symmetric difference of Integer Ring and Rational Field
+            sage: X.rename('Z symdif Q')
+            sage: X
+            Z symdif Q
+        """
+        return "Set-theoretic symmetric difference of %s and %s"%(self.__X.object(),
+                                                          self.__Y.object())
+
+    def _latex_(self):
+        r"""
+        Return latex representation of self.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).symmetric_difference(Set(QQ))
+            sage: latex(X)
+            \mathbf{Z} \bigtriangleup \mathbf{Q}
+        """
+        return '%s \\bigtriangleup %s'%(latex(self.__X), latex(self.__Y))
+
+    def __iter__(self):
+        """
+        Return iterator through elements of self.
+
+        Self is the formal symmetric difference of X and Y. This function is
+        implemented by first iterating through the elements of X and
+        yielding it if it is not in Y.  Then it will iterate throw all
+        the elements of Y and yielding it if it is not in X.
+
+        EXAMPLES:
+            sage: X = Set(ZZ).symmetric_difference(Primes())
+            sage: I = X.__iter__()
+            sage: I.next()
+            0
+            sage: I.next()
+            1
+            sage: I.next()
+            -1
+            sage: I.next()
+            -2
+            sage: I.next()
+            -3
+        """
+        for x in self.__X:
+            if x not in self.__Y:
+                yield x
+
+        for y in self.__Y:
+            if y not in self.__X:
+                yield y
+
+
+    def __contains__(self, x):
+        """
+        Return true if self contains x.
+
+        Since self is the formal symmetric difference of X and Y this function
+        returns true if either X or Y (but now both) contains x.
+
+        EXAMPLES:
+            sage: X = Set(QQ).symmetric_difference(Primes())
+            sage: 4 in X
+            True
+            sage: ComplexField().0 in X
+            False
+            sage: sqrt(2) in X      # since sqrt(2) is currently a numerical approx.
+            True
+            sage: pi in X
+            False
+            sage: 5/2 in X
+            True
+            sage: 3 in X
+            False
+        """
+        return (x in self.__X and x not in self.__Y) \
+               or (x in self.__Y and x not in self.__X)
+
+    def cardinality(self):
+        """
+        This tries to return the cardinality of this formal symmetric difference.
+
+        Note that this is not likely to work in very much generality,
+        and may just hang if either set involved is infinite.
+
+        EXAMPLES:
+            sage: X = Set(GF(13)).symmetric_difference(Set(range(5)))
+            sage: X.cardinality()
+            8
+        """
+        return len(list(self))

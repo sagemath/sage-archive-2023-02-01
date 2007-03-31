@@ -29,6 +29,8 @@ Implemented methods:
        partial sum (in string format)
        plot of partial sum
        plot_fourier_series_partial_sum_cesaro
+       plot_fourier_series_partial_sum_hann
+       plot_fourier_series_partial_sum_filter
     laplace transform
        latex output option
     domain
@@ -65,11 +67,16 @@ AUTHOR: David Joyner (2006-04) -- initial version
                         trapezoid, trapezoid_integral_approximation, riemann_sum,
                         riemann_sum_integral_approximation, tangent_line
                         fixed bugs in __mul__, __add__
+	DJ (2007-03) -- adding Hann filter for FS, added general FS filter methods
+	                for computing and plotting, added options to plotting of FS
+	                (eg, specifying rgb values arenow allowed). Fixed bug in
+                        documentation reported by Pablo De Napoli.
+
 """
 
 #*****************************************************************************
 #       Copyright (C) 2006 William Stein <wstein@gmail.com>
-#                     2006 David Joyner <wdj@usna.edu>
+#                     2006 David Joyner <wdjoyner@gmail.com>
 #
 #  Distributed under the terms of the GNU General Public License (GPL)
 #
@@ -94,7 +101,7 @@ from sage.rings.all import QQ, RR, Integer, Rational
 class PiecewisePolynomial:
     def __init__(self, list_of_pairs):
         r"""
-        \code{list_of_pairs} is a list of pairs (fcn,I), where fcn is
+        \code{list_of_pairs} is a list of pairs (I, fcn), where fcn is
         a SAGE function (such as a polynomial over RR, or functions
         using the lambda notation), and I is an interval such as I = (1,3).
         Two consecutive intervals must share a common endpoint.
@@ -839,7 +846,68 @@ class PiecewisePolynomial:
             sumFS = sumFS+s+ " + "
         return sumFS[:-3]
 
-    def plot_fourier_series_partial_sum(self,N,L,xmin,xmax):
+    def fourier_series_partial_sum_hann(self,N,L):
+        r"""
+        Returns the Hann-filtered partial sum (named after von Hann, not Hamming)
+        \[
+        f(x) \sim \frac{a_0}{2} +
+                   \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+        \]
+        as a string, where $H_N(x) = (1+\cos(\pi x/N))/2$. This is a "smoother" partial sum - the Gibbs phenomenon is mollified.
+
+        EXAMPLE:
+            sage: f = lambda x:x^2
+            sage: f = Piecewise([[(-1,1),f]])
+            sage: f.fourier_series_partial_sum_hann(3,1)
+            '1/3 + ((1+cos(pi*1/3))*(0.5*(-4/(pi^2)))*cos(1*pi*x/1) + (1+cos(pi*1/3))*0.0*sin(1*pi*x/1)) + ((1+cos(pi*2/3))*(0.5*(1/(pi^2)))*cos(2*pi*x/1) + (1+cos(pi*2/3))*0.0*sin(2*pi*x/1))'
+            sage: f1 = lambda x:-1
+            sage: f2 = lambda x:2
+            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f.fourier_series_partial_sum_hann(3,pi)
+            '1/4 + ((1+cos(pi*1/3))*(0.5*(-3/pi))*cos(1*pi*x/pi) + (1+cos(pi*1/3))*(0.5*(1/pi))*sin(1*pi*x/pi)) + ((1+cos(pi*2/3))*0.0*cos(2*pi*x/pi) + (1+cos(pi*2/3))*(0.5*(-3/pi))*sin(2*pi*x/pi))'
+
+        """
+        a0 = self.fourier_series_cosine_coefficient(0,L)
+        A = ["(1+cos(pi*%s/%s))*"%(n,N)+str((0.5)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = ["(1+cos(pi*%s/%s))*"%(n,N)+str((0.5)*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
+        sumFS = str(a0/2)+" + "
+        for s in FS:
+            sumFS = sumFS+s+ " + "
+        return sumFS[:-3]
+
+    def fourier_series_partial_sum_filtered(self,N,L,F):
+        r"""
+        Returns the "filtered" partial sum
+        \[
+        f(x) \sim \frac{a_0}{2} +
+                   \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+        \]
+        as a string, where $F = [F_1,F_2, ..., F_{N}]$ is a list of length $N$ consisting of real numbers.
+	This can be used to plot FS solutions to the heat and wave PDEs.
+
+        EXAMPLE:
+            sage: f = lambda x:x^2
+            sage: f = Piecewise([[(-1,1),f]])
+            sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
+            '1/3 + ((1*(-4/(pi^2)))*cos(1*pi*x/1) + 0*sin(1*pi*x/1)) + ((1*(1/(pi^2)))*cos(2*pi*x/1) + 0*sin(2*pi*x/1))'
+            sage: f1 = lambda x:-1
+            sage: f2 = lambda x:2
+            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: f.fourier_series_partial_sum_filtered(3,pi,[1,1,1])
+            '1/4 + ((1*(-3/pi))*cos(1*pi*x/pi) + (1*(1/pi))*sin(1*pi*x/pi)) + (0*cos(2*pi*x/pi) + (1*(-3/pi))*sin(2*pi*x/pi))'
+
+        """
+        a0 = self.fourier_series_cosine_coefficient(0,L)
+        A = [str((F[n])*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = [str((F[n])*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
+        sumFS = str(a0/2)+" + "
+        for s in FS:
+            sumFS = sumFS+s+ " + "
+        return sumFS[:-3]
+
+    def plot_fourier_series_partial_sum(self,N,L,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
         \[
@@ -875,9 +943,9 @@ class PiecewisePolynomial:
             yi = ff.replace("pi",str(RR(pi)))
             yi = sage_eval(yi.replace("x",str(xi)))
             pts.append([xi,yi])
-        return line(pts)
+        return line(pts, **kwds)
 
-    def plot_fourier_series_partial_sum_cesaro(self,N,L,xmin,xmax):
+    def plot_fourier_series_partial_sum_cesaro(self,N,L,xmin,xmax, **kwds):
         r"""
         Plots the partial sum
         \[
@@ -913,7 +981,85 @@ class PiecewisePolynomial:
             yi = ff.replace("pi",str(RR(pi)))
             yi = sage_eval(yi.replace("x",str(xi)))
             pts.append([xi,yi])
-        return line(pts)
+        return line(pts, **kwds)
+
+    def plot_fourier_series_partial_sum_hann(self,N,L,xmin,xmax, **kwds):
+        r"""
+        Plots the partial sum
+        \[
+        f(x) \sim \frac{a_0}{2} +
+                   \sum_{n=1}^N H_N(n)*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+        \]
+        over xmin < x < xmin, where H_N(x) = (0.5)+(0.5)*cos(x*pi/N) is the N-th Hann filter.
+
+        EXAMPLE:
+            sage: f1 = lambda x:-2
+            sage: f2 = lambda x:1
+            sage: f3 = lambda x:-1
+            sage: f4 = lambda x:2
+            sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            sage: P = f.plot_fourier_series_partial_sum_hann(3,pi,-5,5)    # long time
+            sage: f1 = lambda x:-1
+            sage: f2 = lambda x:2
+            sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: P = f.plot_fourier_series_partial_sum_hann(15,pi,-5,5)   # long time
+
+	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
+        open it in a graphics viewer such as GIMP.
+        """
+        line = sage.plot.plot.line
+        pts = []
+        h = QQ(1)/QQ(10)
+        n = int((xmax - xmin)/h) + 1
+        Pi = 3.14159265
+        ff = self.fourier_series_partial_sum_hann(N,L)
+        for i in range(n):
+            pi = 3.14159265
+            xi = xmin + i*h
+            yi = ff.replace("pi",str(RR(pi)))
+            yi = sage_eval(yi.replace("x",str(xi)))
+            pts.append([xi,yi])
+        return line(pts, **kwds)
+
+    def plot_fourier_series_partial_sum_filtered(self,N,L,F,xmin,xmax, **kwds):
+        r"""
+        Plots the partial sum
+        \[
+        f(x) \sim \frac{a_0}{2} +
+                   \sum_{n=1}^N F_n*[a_n\cos(\frac{n\pi x}{L}) + b_n\sin(\frac{n\pi x}{L})],
+        \]
+        over xmin < x < xmin, where $F = [F_1,F_2, ..., F_{N}]$ is a list of length
+	$N$ consisting of real numbers. This can be used to plot FS solutions to the heat
+	and wave PDEs.
+
+        EXAMPLE:
+            sage: f1 = lambda x:-2
+            sage: f2 = lambda x:1
+            sage: f3 = lambda x:-1
+            sage: f4 = lambda x:2
+            sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f3],[(pi/2,pi),f4]])
+            sage: P = f.plot_fourier_series_partial_sum_filtered(3,pi,[1]*3,-5,5)    # long time
+            sage: f1 = lambda x:-1
+            sage: f2 = lambda x:2
+            sage: f = Piecewise([[(-pi,-pi/2),f1],[(-pi/2,0),f2],[(0,pi/2),f1],[(pi/2,pi),f2]])
+            sage: P = f.plot_fourier_series_partial_sum_filtered(15,pi,[1]*15,-5,5)   # long time
+
+	Remember, to view this type show(P) or P.save("<path>/myplot.png") and then
+        open it in a graphics viewer such as GIMP.
+        """
+        line = sage.plot.plot.line
+        ff = self.fourier_series_partial_sum_filtered(N,L,F)
+	pts = []
+        h = QQ(1)/QQ(10)
+        n = int((xmax - xmin)/h) + 1
+        Pi = 3.14159265
+        for i in range(n):
+            pi = 3.14159265
+            xi = xmin + i*h
+            yi = ff.replace("pi",str(RR(pi)))
+            yi = sage_eval(yi.replace("x",str(xi)))
+            pts.append([xi,yi])
+        return line(pts, **kwds)
 
     def fourier_series_value(self,x,L):
         r"""

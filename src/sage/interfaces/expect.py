@@ -71,6 +71,12 @@ tmp='%s/tmp'%SAGE_TMP_INTERFACE
 p = os.environ['PATH'].split(':')
 os.environ['PATH'] = ':'.join([v for v in p if v.strip() != '.'])
 
+class AsciiArtString(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Expect(ParentWithBase):

@@ -347,6 +347,13 @@ class Function_arith(Function):
         self.__y = y
         self.__op = op  # a binary operator, e.g., operator.sub
 
+    def _maxima_init_(self):
+        x = self.__x
+        y = self.__y
+        op = self.__op
+        return '(%s) %s (%s)'%(x._maxima_init_(), symbols[op] ,y._maxima_init_())
+
+
     def _repr_(self):
         """
         EXAMPLES:

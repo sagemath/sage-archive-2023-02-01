@@ -76,10 +76,10 @@ EXAMPLES:
     However if there is ambiguity, we must explicitly state what variables we're
     substituting for:
         sage: f = sin(2*pi*x/y)
-        sage: f = sin(4)
+        sage: f(4)
         Traceback (most recent call last):
         ...
-        ValueError: must give explicit variable names to substitute for
+        TypeError: must give explicit variable names to substitute for
 
     We can also make CallableFunctions, which is a SymbolicExpression that are
     functions of variables in a fixed order. Each SymbolicExpression has a
@@ -213,14 +213,6 @@ class SymbolicExpression(RingElement):
 
     def is_simplified(self):
         return self._is_simplified
-
-    def _maxima_(self, maxima=maxima):
-        try:
-            return self.__maxima
-        except AttributeError:
-            m = maxima(self._maxima_init_())
-            self.__maxima = m
-            return m
 
     def hash(self):
         return hash(maxima(self))
@@ -756,7 +748,7 @@ class CallableFunction(RingElement):
 
     def _div_(self, right):
         result = SymbolicArithmetic([self._expr, right._expr], operator.div)
-        return CallableFunction(result, self._unify_varlit(right))
+        return CallableFunction(result, self._unify_varlists(right))
 
     def __pow__(self, right):
         try:
@@ -944,13 +936,14 @@ class Symbolic_object(SymbolicExpression):
             R = sage.rings.all.RealField(53)
             return str(R(self._obj))
 
-    def _maxima_(self, maxima=maxima):
-        try:
-            return self.__maxima
-        except AttributeError:
-            m = maxima(self._obj)
-            self.__maxima = m
-            return m
+    def _maxima_init_(self):
+        return maxima_init(self._obj)
+
+def maxima_init(x):
+    try:
+        return x._maxima_init_()
+    except AttributeError:
+        return str(x)
 
 class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
@@ -1016,32 +1009,24 @@ class SymbolicComposition(SymbolicOperation):
         # ... while others (such as \cos) don't
         return r"%s \left( %s \right)"%((ops[0])._latex_(),(ops[1])._latex_())
 
-    def _maxima_(self, maxima=maxima):
+    def _maxima_init_(self):
+        ops = self._operands
+        #try:
+        #    base = self._base
+        #    print ops[1]
+        #    m = maxima.log(ops[1]._maxima_(maxima)) / ('log(%s)' % base)._maxima_(maxima)
+        #except AttributeError:
+        #    m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+        #    self.__maxima = m
+        #return m
         try:
-            return self.__maxima
+            base = ops[0]._base
         except AttributeError:
-            ops = self._operands
-            #try:
-            #    base = self._base
-            #    print ops[1]
-            #    m = maxima.log(ops[1]._maxima_(maxima)) / ('log(%s)' % base)._maxima_(maxima)
-            #except AttributeError:
-            #    m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
-            #    self.__maxima = m
-            #return m
-            try:
-                base = ops[0]._base
-            except AttributeError:
-                m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
-                self.__maxima = m
-                return m
-            if not base is None:
-                m = maxima.log(ops[1]._maxima_(maxima)) / maxima.log(base)
-            else:
-                m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+            return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
+        if not base is None:
+            return 'log(%s) / log(%s)' % (ops[1]._maxima_init_(),str(base))
 
-            self.__maxima = m
-            return m
+        return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def __float__(self):
         f = self._operands[0]
@@ -1102,7 +1087,7 @@ class SymbolicArithmetic(SymbolicOperation):
         # for the left operand, we need to surround it in parens when the
         # operator is mul/div/pow, and when the left operand contains an
         # operation of lower precedence
-        if op in [operator.mul, operator.div, operator.pow]:
+        if op in [operator.mul, operator.div]:
             if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
                 if not ops[0]._is_atomic():
                     s[0] = '(%s)' % s[0]
@@ -1128,11 +1113,13 @@ class SymbolicArithmetic(SymbolicOperation):
         # if we have a compound expression on the right, then we need parens on
         # the right... but in TeX, this is expressed by font size and position
         elif op is operator.pow:
-            if ops[1]._has_op(operator.add) or  \
-            ops[1]._has_op(operator.sub) or  \
-            ops[1]._has_op(operator.mul) or  \
-            ops[1]._has_op(operator.div) or  \
-            ops[1]._has_op(operator.pow):
+            if isinstance(ops[1], SymbolicArithmetic):
+            #if ops[1]._has_op(operator.add) or  \
+            #ops[1]._has_op(operator.sub) or  \
+            #ops[1]._has_op(operator.mul) or  \
+            #ops[1]._has_op(operator.div) or  \
+            #ops[1]._has_op(operator.pow):
+                s[0] = '(%s)' % s[0]
                 s[1] = '(%s)' % s[1]
         if op is operator.neg:
             return '-%s' % s[0]
@@ -1152,26 +1139,34 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.sub:
             return '%s - %s' % (s[0], s[1])
         elif op is operator.mul:
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
+                s[0] = r'\left( %s \right)' %s[0]
             return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:
             return '\\frac{%s}{%s}' % (s[0], s[1])
         elif op is operator.pow:
+            if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub) \
+               or ops[0]._has_op(operator.mul) or ops[0]._has_op(operator.div) \
+               or ops[0]._has_op(operator.pow):
+                s[0] = r'\left( %s \right)' % s[0]
             return '{%s}^{%s} ' % (s[0], s[1])
         elif op is operator.neg:
             return '-%s' % s[0]
 
-    def _maxima_(self, maxima=maxima):
-        try:
-            return self.__maxima
-        except AttributeError:
-            ops = self._operands
-            if self._operator is operator.neg:
-                m = self._operator(ops[0]._maxima_(maxima))
-            else:
-                m = self._operator(ops[0]._maxima_(maxima),
-                                      ops[1]._maxima_(maxima))
-            self.__maxima = m
-            return m
+    def _maxima_init_(self):
+        ops = self._operands
+        infixops = {operator.add: '+',
+                    operator.sub: '-',
+                    operator.mul: '*',
+                    operator.div: '/',
+                    operator.pow: '^'}
+
+        if self._operator is operator.neg:
+            return '-%s' % ops[0]._maxima_init_()
+        else:
+            return '(%s) %s (%s)' % (ops[0]._maxima_init_(),
+                                 infixops[self._operator],
+                                 ops[1]._maxima_init_())
 
 import re
 
@@ -1214,13 +1209,8 @@ class SymbolicVariable(SymbolicExpression):
         self.__latex = a
         return a
 
-    def _maxima_(self, maxima=maxima):
-        try:
-            return self.__maxima
-        except AttributeError:
-            m = maxima(self._name)
-            self.__maxima = m
-            return m
+    def _maxima_init_(self):
+        return self._name
 
 common_varnames = ['alpha',
                    'beta',

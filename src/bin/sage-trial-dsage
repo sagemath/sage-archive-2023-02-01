@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# This script runs twisted trial against sage.dsage, returns 1 if any tests fail and 0 if all tests pass
+
+echo "This script will run the unit tests for DSage"
+trial --tbformat=cgitb sage.dsage

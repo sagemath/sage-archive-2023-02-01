@@ -29,12 +29,12 @@ exit = quit
 
 import os, sys
 
+if not os.environ.has_key('SAGE_ROOT'):
+    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
+
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "SAGE requires Python 2.5 or newer"
     sys.exit(1)
-
-if not os.environ.has_key('SAGE_ROOT'):
-    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
 
 ###################################################################

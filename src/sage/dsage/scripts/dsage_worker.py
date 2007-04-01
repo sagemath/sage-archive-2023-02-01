@@ -416,10 +416,8 @@ class Monitor(object):
 
             self.port = config.getint('general', 'port')
             self.username = config.get('auth', 'username')
-            self.privkey_file = os.path.expanduser(config.get('auth',
-                                                              'privkey_file'))
-            self.pubkey_file = os.path.expanduser(config.get('auth',
-                                                             'pubkey_file'))
+            self.privkey_file = os.path.expanduser(config.get('auth', 'privkey_file'))
+            self.pubkey_file = os.path.expanduser(config.get('auth', 'pubkey_file'))
         except Exception, msg:
             print msg
             raise

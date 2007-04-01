@@ -20,9 +20,6 @@ class DistributedPOVRay(DistributedFunction):
         A number of .ppm files (depending on split) and a final .ppm file
         which is the combination of all the rendered parts.
 
-    AUTHOR:
-        Yi Qiang
-
     """
 
     def __init__(self, DSage, name, files, splits, **kwargs):

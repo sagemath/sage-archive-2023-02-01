@@ -82,7 +82,7 @@ class JobDatabase(object):
         return s
 
 class JobDatabaseZODB(JobDatabase):
-    r"""
+    """
     Implementation of DSage's database using ZODB.
 
     Parameters:

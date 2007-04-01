@@ -233,7 +233,6 @@ class DSageServer(pb.Root):
             log.msg('[DSage, job_done] Job %s called back' % (job_id))
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] Output: %s ' % output)
-            # log.msg('[DSage, job_done] Result: Some binary data...')
             log.msg('[DSage, job_done] completed: %s ' % completed)
             log.msg('[DSage, job_done] worker_info: %s ' % str(worker_info))
 

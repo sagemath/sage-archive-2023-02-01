@@ -17,7 +17,6 @@
 ############################################################################
 
 import datetime
-import copy
 import cPickle
 import zlib
 
@@ -50,9 +49,11 @@ class DistributedFunction(object):
         self._done = False
 
     def __getstate__(self):
-        d = copy(self.__dict__)
+        import copy
+        d = copy.copy(self.__dict__)
         d['DSage'] = None
         d['checker_task'] = None
+
         return d
 
     def get_done(self):
@@ -73,7 +74,7 @@ class DistributedFunction(object):
 
     def save(self, filename=None, compress=True):
         r"""
-        Saves your distributed job to a sobj.
+        Saves your distributed job to disk.
 
         """
 
@@ -87,9 +88,15 @@ class DistributedFunction(object):
         f = open(filename, 'wb')
         f.write(s)
         f.close()
+
         return filename
 
     def restore(self, dsage):
+        r"""
+        Reloads a distributed job from disk.
+
+        """
+
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
             reactor.callLater(1.0, self.restore, dsage)
@@ -99,8 +106,9 @@ class DistributedFunction(object):
             job.remoteobj = self.DSage.remoteobj
         if not len(self.outstanding_jobs) == 0:
             self.submit_jobs(self.name)
+
         self.checker_task = task.LoopingCall(self.check_results)
-        self.checker_task.start(2.0, now=True)
+        reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 
     def submit_job(self, job, job_name='job', async=False):
         if async:
@@ -126,10 +134,14 @@ class DistributedFunction(object):
         self.outstanding_jobs = []
 
     def start(self):
+        if self.DSage is None:
+            print 'Error: Not connected to a DSage server.'
+            return
         self.start_time = datetime.datetime.now()
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
-        self.checker_task = blocking_call_from_thread(task.LoopingCall,
-                                                      self.check_results)
+        import pdb
+        pdb.set_trace()
+        self.checker_task = blocking_call_from_thread(task.LoopingCall, self.check_results)
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 
     def check_results(self):

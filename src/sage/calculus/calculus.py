@@ -138,7 +138,17 @@ from sage.rings.complex_number import ComplexNumber
 from sage.rings.real_double import RealDoubleElement
 from sage.rings.real_mpfi import RealIntervalFieldElement
 
-from sage.libs.pari.gen import gen as PariGen
+from sage.libs.pari.gen import pari, gen as PariGen
+
+from sage.rings.complex_double import ComplexDoubleElement
+def is_DoublePrecisionNumber(x):
+    if isinstance(x, (float, RealDoubleElement, ComplexDoubleElement)):
+        return True
+    if isinstance(x, RealNumber) and x.prec() == 53:
+        return True
+    if isinstance(x, ComplexNumber) and x.prec() == 53:
+        return True
+    return False
 
 import math
 
@@ -612,14 +622,16 @@ class PrimitiveFunction(SymbolicExpression):
         return self._tex_needs_braces
 
     def __call__(self, x, *args):
-        if not isinstance(x, (Constant, int, Rational, Integer)):
-            try:
-                r = self._approx_(x)
-            except AttributeError:
-                r = self(SER(x), *args)
-            return r
+        if isinstance(x, float):
+            return self._approx_(x)
+        try:
+            return getattr(x, self._repr_())(*args)
+        except AttributeError:
+            return SymbolicComposition(self, SER(x))
 
-        return SymbolicComposition(self, SER(x))
+    def _approx_(self, x):
+        s = '%s(%s), numer'%(self._repr_(), float(x))
+        return float(maxima.eval(s))
 
 class CallableFunctionRing_class(CommutativeRing):
     def __init__(self):
@@ -1266,8 +1278,8 @@ _syms = {}
 
 class Function_erf(PrimitiveFunction):
     r"""
-    The error function, defined as $\text{erf}(x) = \frac{2}{\sqrt{\pi}}\int_0^x
-    e^{-t^2} dt$.
+    The error function, defined as $\text{erf}(x) =
+    \frac{2}{\sqrt{\pi}}\int_0^x e^{-t^2} dt$.
     """
 
     def _repr_(self):
@@ -1279,6 +1291,10 @@ class Function_erf(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
+    def _approx_(self, x):
+        return float(1 - pari(float(x)).erfc())
+
+
 erf = Function_erf()
 _syms['erf'] = erf
 
@@ -1286,9 +1302,6 @@ class Function_sin(PrimitiveFunction):
     """
     The sine function
     """
-
-    def __call__(self, x):
-        return PrimitiveFunction.__call__(self, x)
 
     def _repr_(self):
         return "sin"
@@ -1299,14 +1312,14 @@ class Function_sin(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
-    def _approx_(self, x):
+    def __call__(self, x):
         try:
             return x.sin()
         except AttributeError:
             if isinstance(x, float):
                 return math.sin(x)
-            else:
-                return SymbolicComposition(self, x)
+        return SymbolicComposition(self, x)
+
 
 sin = Function_sin()
 _syms['sin'] = sin

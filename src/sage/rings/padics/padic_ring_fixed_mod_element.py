@@ -16,19 +16,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.rings.arith
-#import sage.rings.infinity
-#import sage.libs.all
-import sage.rings.padics.padic_ring_generic_element
-import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_lazy_element
-#import sage.rings.padics.padic_field_capped_relative_element
-#import sage.rings.commutative_ring_element
-#import sage.rings.integer_mod
-#import sage.rings.finite_field_element
-#import sage.rings.integer
-#import sage.rings.rational
-#import sage.rings.padics.precision_error
 
 infinity = sage.rings.infinity.infinity
 PrecisionError = sage.rings.padics.precision_error.PrecisionError

@@ -829,7 +829,7 @@ class PowerSeries(ring_element.RingElement):
         raise NotImplementedError, "Mod on power series ring not defined."
 
     def sqrt(self):
-        """
+        r"""
         Return the square root of self, up to the precision of parent.
         The leading power of x must be even.
 

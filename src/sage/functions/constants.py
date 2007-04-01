@@ -837,6 +837,7 @@ class UniversalPolynomialElement(Constant):
     A universal indeterminate.
 
     EXAMPLES:
+        sage: x = polygen(QQ)
         sage: x
         x
         sage: x.parent()

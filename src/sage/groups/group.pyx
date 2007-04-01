@@ -120,6 +120,22 @@ cdef class FiniteGroup(Group):
         """
         return True
 
+    def cayley_graph(self):
+        from sage.graphs.graph import DiGraph
+        arrows = {}
+        for g in self:
+            for s in self.gens():
+                gs = g*s
+                if not gs == g:
+                    try:
+                        _ = arrows[g]
+                    except KeyError:
+                        arrows[g] = {}
+
+                    arrows[g][gs] = s
+
+        return DiGraph(arrows)
+
 cdef class AlgebraicGroup(Group):
     """
     Generic algebraic group.

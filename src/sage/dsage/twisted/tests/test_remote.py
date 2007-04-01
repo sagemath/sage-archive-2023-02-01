@@ -161,7 +161,6 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         d = factory.login(self.creds, None)
         d.addCallback(self._LoginConnected2, jobs)
-        d.addErrback(self._catch_failure)
         return d
 
     def _LoginConnected2(self, remoteobj, jobs):

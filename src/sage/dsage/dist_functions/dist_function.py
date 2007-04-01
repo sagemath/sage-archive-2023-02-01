@@ -20,9 +20,6 @@ import datetime
 import cPickle
 import zlib
 
-from twisted.internet import reactor, task
-from twisted.spread import pb
-
 from sage.dsage.database.job import Job
 from sage.dsage.interface.dsage_interface import JobWrapper, BlockingJobWrapper
 from sage.dsage.twisted.misc import blocking_call_from_thread
@@ -97,6 +94,7 @@ class DistributedFunction(object):
 
         """
 
+        from twisted.internet import reactor, task
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
             reactor.callLater(1.0, self.restore, dsage)
@@ -134,6 +132,7 @@ class DistributedFunction(object):
         self.outstanding_jobs = []
 
     def start(self):
+        from twisted.internet import reactor, task
         if self.DSage is None:
             print 'Error: Not connected to a DSage server.'
             return
@@ -143,6 +142,8 @@ class DistributedFunction(object):
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 
     def check_results(self):
+        from twisted.internet import reactor
+        from twisted.spread import pb
         for wrapped_job in self.waiting_jobs:
             if isinstance(wrapped_job, JobWrapper):
                 try:

@@ -17,12 +17,12 @@
 ##############################################################################
 
 import threading, sys
-from twisted.internet import defer, reactor
-from twisted.python.failure import Failure
 
 # This code is from
 # http://twistedmatrix.com/trac/ticket/1042
 def blocking_call_from_thread(func, *args, **kwargs):
+    from twisted.internet import defer, reactor
+    from twisted.python.failure import Failure
     # print func
     # print args
     # print kwargs

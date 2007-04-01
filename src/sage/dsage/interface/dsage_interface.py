@@ -27,18 +27,12 @@ import zlib
 import threading
 import time
 
-from twisted.spread import pb
-from twisted.internet import reactor, defer, error
-from twisted.cred import credentials
-from twisted.conch.ssh import keys
-
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.twisted.misc import blocking_call_from_thread
-from sage.dsage.errors.exceptions import NoJobException, NotConnectedException
 
 class DSageThread(threading.Thread):
     def run(self):
+        from twisted.internet import reactor
         if not reactor.running:
             reactor.run(installSignalHandlers=0)
 
@@ -49,11 +43,8 @@ class DSage(object):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
-
-        # We will read the values in from the conf file first and let the
-        # user override the values stored in the conf file by keyword
-        # parameters
-
+        from twisted.cred import credentials
+        from twisted.conch.ssh import keys
         self._getconf()
 
         if server is None:
@@ -157,6 +148,7 @@ class DSage(object):
         return passphrase
 
     def _catch_failure(self, failure):
+        from twisted.internet import error
         if failure.check(error.ConnectionRefusedError):
             print 'Remote server refused the connection.'
             return
@@ -174,6 +166,7 @@ class DSage(object):
         self.info_str = 'Not connected.'
 
     def _got_my_jobs(self, jobs, job_name):
+        from sage.dsage.errors.exceptions import NoJobException
         if jobs == None:
             raise NoJobException
         if job_name:
@@ -197,8 +190,8 @@ class DSage(object):
 
         """
 
-        # TODO: Send a useful 'mind' object with the login request!
-        # factory = pb.PBClientFactory()
+        from twisted.internet import reactor
+        from sage.dsage.twisted.pb import PBClientFactory
         factory = PBClientFactory()
 
         if self.SSL == 1:
@@ -291,6 +284,7 @@ class DSage(object):
         return JobWrapper(self.remoteobj, job)
 
     def eval_dir(self, dir, job_name):
+        from twisted.internet import defer
         self.check_connected()
         os.chdir(dir)
         files = glob.glob('*.spyx')
@@ -352,6 +346,8 @@ class DSage(object):
         return self.remoteobj.callRemote('get_cluster_speed')
 
     def check_connected(self):
+        from sage.dsage.errors.exceptions import NotConnectedException
+
         if self.remoteobj == None:
             raise NotConnectedException
         if self.remoteobj.broker.disconnected:
@@ -363,9 +359,8 @@ class BlockingDSage(DSage):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
-        # We will read the values in from the conf file first and let the
-        # user override the values stored in the conf file by keyword
-        # parameters
+        from twisted.cred import credentials
+        from twisted.conch.ssh import keys
 
         self._getconf()
 
@@ -428,8 +423,9 @@ class BlockingDSage(DSage):
 
         """
 
-        # TODO: Send a useful 'mind' object with the login request!
-        # factory = pb.PBClientFactory()
+        from twisted.internet import reactor
+        from sage.dsage.twisted.pb import PBClientFactory
+
         self.factory = PBClientFactory()
 
         if self.SSL == 1:
@@ -603,6 +599,7 @@ class JobWrapper(object):
         return cPickle.loads(zlib.decompress(pickled_job))
 
     def wait(self):
+        from twisted.internet import reactor
         timeout = 0.1
         while self._job.result is None:
             reactor.iterate(timeout)
@@ -616,6 +613,8 @@ class JobWrapper(object):
         return filename
 
     def _catch_failure(self, failure):
+        from twisted.internet import error
+        from twisted.spread import pb
         if failure.check(pb.DeadReferenceError, error.ConnectionLost):
             print 'Disconnected from server.'
         else:
@@ -634,6 +633,8 @@ class JobWrapper(object):
         self._update_job(self._job)
 
     def get_job(self):
+        from sage.dsage.errors.exceptions import NotConnectedException
+
         if self.remoteobj is None:
             raise NotConnectedException
         if self.id is None:
@@ -671,6 +672,7 @@ class JobWrapper(object):
         self._job.result = result
 
     def sync_job(self):
+        from twisted.spread import pb
         if self.remoteobj == None:
             if self.LOG_LEVEL > 2:
                 print 'self.remoteobj is None'
@@ -751,6 +753,8 @@ class BlockingJobWrapper(JobWrapper):
         return self.output
 
     def get_job(self):
+        from sage.dsage.errors.exceptions import NotConnectedException
+
         if self.remoteobj == None:
            raise NotConnectedException
         if self.status == 'completed':

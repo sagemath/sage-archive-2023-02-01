@@ -139,8 +139,6 @@ class DistributedFunction(object):
             return
         self.start_time = datetime.datetime.now()
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
-        import pdb
-        pdb.set_trace()
         self.checker_task = blocking_call_from_thread(task.LoopingCall, self.check_results)
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 

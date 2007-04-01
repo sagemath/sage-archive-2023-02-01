@@ -129,11 +129,10 @@ class DefaultPerspective(pb.Avatar):
 
     """
 
-    current_connections = 0
-
     def __init__(self, DSageServer, avatarID):
         self.DSageServer = DSageServer
         self.avatarID = avatarID
+        self.connections = 0
 
         log.msg('%s connected' % self.avatarID)
 
@@ -144,7 +143,7 @@ class DefaultPerspective(pb.Avatar):
                                                     message, args, kw)
 
     def attached(self, avatar, mind):
-        self.current_connections += 1
+        self.connections += 1
         if isinstance(mind, tuple):
             self.mind = mind
             self.host_info = mind[1]
@@ -159,7 +158,7 @@ class DefaultPerspective(pb.Avatar):
             self.DSageServer.clientdb.set_connected(self.avatarID, connected=True)
 
     def detached(self, avatar, mind):
-        self.current_connections -= 1
+        self.connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
         if isinstance(mind, tuple):
             self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)

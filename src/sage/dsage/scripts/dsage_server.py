@@ -133,7 +133,7 @@ def main():
 
     # Create the looping call that will output the XML file for Dashboard
     tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
-    tsk1.start(10.0, now=False)
+    tsk1.start(5.0, now=False)
 
     # Create the PBServerFactory for workers
     # Use this for unauthorized workers

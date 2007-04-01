@@ -139,12 +139,14 @@ class DistributedSage(object):
         dsage.setup() client
 
         """
+
         cmd = 'dsage_setup.py'
         os.system(cmd)
 
     def setup_server(self):
         r"""
         This method runs the configuration utility for the server.
+
         """
 
         cmd = 'dsage_setup.py server'
@@ -153,6 +155,7 @@ class DistributedSage(object):
     def setup_worker(self):
         r"""
         This method runs the configuration utility for the worker.
+
         """
 
         cmd = 'dsage_setup.py worker'
@@ -161,6 +164,7 @@ class DistributedSage(object):
     def setup_client(self):
         r"""
         This method runs the configuration utility for the client.
+
         """
 
         cmd = 'dsage_setup.py client'

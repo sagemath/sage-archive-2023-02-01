@@ -383,8 +383,8 @@ class JobDatabaseSQLite(JobDatabase):
     CREATE_JOBS_TABLE = """CREATE TABLE jobs
     (job_id TEXT NOT NULL UNIQUE,
      name TEXT,
-     username INTEGER REFERENCES clients(id),
-     worker_id INTEGER REFERENCES workers(id),
+     username TEXT REFERENCES clients(username),
+     monitor_id TEXT REFERENCES monitors(uuid),
      worker_info TEXT,
      code TEXT,
      data BLOB,
@@ -482,7 +482,7 @@ class JobDatabaseSQLite(JobDatabase):
         return self.create_jdict(jtuple, cur.description)
 
     def set_job_uuid(self, job_id, uuid):
-        query = "UPDATE jobs SET worker_id=? WHERE job_id=?"
+        query = "UPDATE jobs SET monitor_id=? WHERE job_id=?"
         cur = self.con.cursor()
         cur.execute(query, (uuid, job_id))
         self.con.commit()
@@ -517,6 +517,13 @@ class JobDatabaseSQLite(JobDatabase):
         return [self.create_jdict(jtuple, cur.description)
                 for jtuple in result]
 
+    def _set_parameter(self, job_id, key, value):
+        query = """UPDATE jobs
+        SET %s=?
+        WHERE job_id=?""" % (key)
+        cur = self.con.cursor()
+        cur.execute(query, (value, job_id))
+        self.con.commit()
 
     def _update_value(self, job_id, key, value):
         r"""

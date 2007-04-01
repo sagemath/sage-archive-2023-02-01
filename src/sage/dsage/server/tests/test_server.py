@@ -141,8 +141,7 @@ class DSageServerTestCase(unittest.TestCase):
         result = 'done'
         output = 'done '
         completed = True
-        jdict = self.dsage_server.job_done(job.id, output, result, completed,
-                                ('yi@test', 'no info provided'))
+        jdict = self.dsage_server.job_done(job.id, output, result, completed)
         job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
         self.assertEquals(job.output, output)
         self.assertEquals(job.result, result)
@@ -152,8 +151,7 @@ class DSageServerTestCase(unittest.TestCase):
         result = ['testing', '123']
         output = 'testing'
         completed = False
-        jdict = self.dsage_server.job_done(job.id, output, result, completed,
-                                ('yi@test', 'no info provided'))
+        jdict = self.dsage_server.job_done(job.id, output, result, completed)
         job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
         self.assert_(isinstance(job.output, str))
         self.assert_(job.status != 'completed')

@@ -571,7 +571,6 @@ class JobWrapper(object):
 
         # TODO Make this more complete
         self._update_job(job)
-        self.worker_info = self._job.worker_info
 
         # d = self.remoteobj.callRemote('get_next_job_id')
         d = self.remoteobj.callRemote('submit_job', job.reduce())
@@ -729,13 +728,11 @@ class JobWrapper(object):
             d.addErrback(self._catch_failure)
             return d
         else:
+            print 'Can not kill this job, no id.'
             return
 
     def _killed_job(self, job_id):
         return
-        # if job_id:
-        #     if self.LOG_LEVEL > 2:
-        #         print str(job_id) + ' was successfully killed.\r'
 
 class BlockingJobWrapper(JobWrapper):
     r"""
@@ -749,7 +746,6 @@ class BlockingJobWrapper(JobWrapper):
         self._job = job
 
         self._update_job(job)
-        self.worker_info = self._job.worker_info
 
         jdict = blocking_call_from_thread(self.remoteobj.callRemote,
                                           'submit_job', job.reduce())
@@ -801,8 +797,29 @@ class BlockingJobWrapper(JobWrapper):
         d.addErrback(self._catch_failure)
         return d
 
-    def wait(self):
-        timeout = 0.1
-        while self.result is None:
-            time.sleep(timeout)
-            self.get_job()
+    def wait(self, timeout=None):
+        r"""
+        Waits on a job until it is completed.
+
+        Parameters:
+        timeout -- number of seconds to wait, if it has not completed by then
+                   it will raise RunTimeError if it is set to None,
+                   it will wait indefinitely until the job is completed
+
+        """
+
+        import signal
+
+        if timeout is None:
+            while self.status != 'completed':
+                time.sleep(1.0)
+                self.get_job()
+        else:
+            def handler(signum, frame):
+                raise RuntimeError, 'Maximum wait time exceeded.'
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(timeout)
+            while self.status != 'completed':
+                time.sleep(1.0)
+                self.get_job()
+            signal.alarm(0)

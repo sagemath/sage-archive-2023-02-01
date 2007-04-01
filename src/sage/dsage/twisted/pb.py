@@ -174,6 +174,23 @@ class AnonymousMonitorPerspective(DefaultPerspective):
     def __init__(self, DSageServer, avatarID):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
 
+    def attached(self, avatar, mind):
+        self.connections += 1
+        self.mind = mind
+        self.host_info = mind[1]
+        self.host_info['ip'] = mind[0].broker.transport.getPeer().host
+        self.host_info['port'] = mind[0].broker.transport.getPeer().port
+        uuid = self.host_info['uuid']
+        if self.DSageServer.monitordb.get_monitor(uuid) is None:
+            self.DSageServer.monitordb.add_monitor(self.host_info)
+        self.DSageServer.monitordb.set_connected(uuid, connected=True)
+        self.DSageServer.monitordb.set_anonymous(uuid, anonymous=True)
+
+    def detached(self, avatar, mind):
+        self.connections -= 1
+        log.msg('%s disconnected' % (self.avatarID))
+        self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
+
     def perspective_get_job(self):
         r"""
         Returns jobs only marked as doable by anonymous workers.
@@ -204,22 +221,43 @@ class AnonymousMonitorPerspective(DefaultPerspective):
 
         return self.DSageServer.job_failed(job_id, traceback)
 
-    def perspective_job_done(self, job_id, output,
-                             result, completed, worker_info):
+    def perspective_job_done(self, job_id, output, result, completed):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
             log.msg('Bad job_id passed to perspective_job_done')
+            log.msg('job_id: %s' % (job_id))
+            log.msg('output: %s' % (output))
+            log.msg('completed: %s' % (completed))
             raise BadTypeError()
+        if completed:
+            uuid = self.mind[1]['uuid']
+            self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.job_done(job_id, output, result,
-                                         completed, worker_info)
+        return self.DSageServer.job_done(job_id, output, result, completed)
 
-class MonitorPerspective(DefaultPerspective):
+    def perspective_submit_host_info(self, hostinfo):
+        if not isinstance(hostinfo, dict):
+            raise BadTypeError()
+        return self.DSageServer.submit_host_info(hostinfo)
+
+class MonitorPerspective(AnonymousMonitorPerspective):
     r"""
     Defines the perspective of an authenticated worker to the server.
 
     """
     def __init__(self, DSageServer, avatarID):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
+
+    def attached(self, avatar, mind):
+        self.connections += 1
+        self.mind = mind
+        self.host_info = mind[1]
+        self.host_info['ip'] = mind[0].broker.transport.getPeer().host
+        self.host_info['port'] = mind[0].broker.transport.getPeer().port
+        uuid = self.host_info['uuid']
+        if self.DSageServer.monitordb.get_monitor(uuid) is None:
+            self.DSageServer.monitordb.add_monitor(self.host_info)
+        self.DSageServer.monitordb.set_connected(uuid, connected=True)
+        self.DSageServer.monitordb.set_anonymous(uuid, anonymous=False)
 
     def perspective_get_job(self):
         r"""
@@ -236,40 +274,6 @@ class MonitorPerspective(DefaultPerspective):
             self.DSageServer.set_busy(uuid, busy=False)
 
         return jdict
-
-    def perspective_job_done(self, job_id, output, result,
-                            completed, worker_info):
-        if not (isinstance(job_id, str) or isinstance(completed, bool)):
-            log.msg('Bad job_id passed to perspective_job_done')
-            log.msg('job_id: %s' % (job_id))
-            log.msg('output: %s' % (output))
-            log.msg('completed: %s' % (completed))
-            log.msg('worker_info: %s' % (worker_info))
-            raise BadTypeError()
-        if completed:
-            uuid = self.mind[1]['uuid']
-            self.DSageServer.set_busy(uuid, busy=False)
-
-        return self.DSageServer.job_done(job_id, output, result,
-                                  completed, worker_info)
-
-    def perspective_job_failed(self, job_id, traceback):
-        if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to perspective_job_failed' % (job_id))
-            raise BadTypeError()
-
-        uuid = self.mind[1]['uuid']
-        self.DSageServer.set_busy(uuid, busy=False)
-
-        return self.DSageServer.job_failed(job_id, traceback)
-
-    def perspective_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            raise BadTypeError()
-        return self.DSageServer.submit_host_info(hostinfo)
-
-    def perspective_get_killed_jobs_list(self):
-        return self.DSageServer.get_killed_jobs_list()
 
 class UserPerspective(DefaultPerspective):
     r"""
@@ -375,12 +379,10 @@ class Realm(object):
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer, avatarID)
             elif avatarID == 'Anonymous' and mind:
-                avatar = AnonymousMonitorPerspective(self.DSageServer,
-                                                     avatarID)
+                avatar = AnonymousMonitorPerspective(self.DSageServer, avatarID)
             elif mind:
                 avatar = MonitorPerspective(self.DSageServer, avatarID)
             else:
                 avatar = UserPerspective(self.DSageServer, avatarID)
         avatar.attached(avatar, mind)
-        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
-                                                                   mind)
+        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar, mind)

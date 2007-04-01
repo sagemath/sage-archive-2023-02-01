@@ -56,7 +56,7 @@ try:
     PORT = CONFIG.getint('general', 'port')
     DELAY = CONFIG.getint('general', 'delay')
     NICE_LEVEL = CONFIG.getint('general', 'nice_level')
-    AUTHENTICATE = CONFIG.getboolean('general', 'authenticate')
+    ANONYMOUS = CONFIG.getboolean('general', 'anonymous')
 except Exception, msg:
     print msg
     print "Error reading %s, please fix manually or run dsage.setup()" % \
@@ -142,7 +142,7 @@ class Worker(object):
             print e
             raise
 
-    def job_done(self, output, result, completed, worker_info):
+    def job_done(self, output, result, completed):
         r"""
         job_done is a callback for doJob.  Called when a job completes.
 
@@ -150,7 +150,6 @@ class Worker(object):
         output -- the output of the command
         result -- the result of processing the job, a pickled object
         completed -- whether or not the job is completely finished (bool)
-        worker_info -- user@host, os.uname() (tuple)
 
         """
 
@@ -159,14 +158,12 @@ class Worker(object):
                                           self.job.id,
                                           output,
                                           result,
-                                          completed,
-                                          worker_info)
+                                          completed)
         except Exception, msg:
             log.msg(msg)
             log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
                     % (self.id, DELAY))
-            reactor.callLater(DELAY, self.job_done, output,
-                              result, completed, worker_info)
+            reactor.callLater(DELAY, self.job_done, output, result, completed)
             d = defer.Deferred()
             d.errback(error.ConnectionLost())
             return d
@@ -369,7 +366,7 @@ class Monitor(object):
         self.host_info['uuid'] = self.uuid
         self.host_info['workers'] = WORKERS
 
-        if AUTHENTICATE:
+        if not ANONYMOUS:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
             self._get_auth_info()
@@ -377,13 +374,10 @@ class Monitor(object):
             self.pubkey_str =keys.getPublicKeyString(filename=self.pubkey_file)
             # try getting the private key object without a passphrase first
             try:
-                self.priv_key = keys.getPrivateKeyObject(
-                                    filename=self.privkey_file)
+                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file)
             except keys.BadKeyError:
-                passphrase = self._getpassphrase()
-                self.priv_key = keys.getPrivateKeyObject(
-                                filename=self.privkey_file,
-                                passphrase=passphrase)
+                pphrase = self._getpassphrase()
+                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file, passphrase=pphrase)
             self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
             self.alg_name = 'rsa'
             self.blob = keys.makePublicKeyBlob(self.pub_key)
@@ -508,7 +502,7 @@ class Monitor(object):
         else:
             reactor.connectTCP(self.hostname, self.port, self.factory)
 
-        if AUTHENTICATE:
+        if not ANONYMOUS:
             log.msg('Connecting as authenticated worker...\n')
             d = self.factory.login(self.creds, (pb.Referenceable(), self.host_info))
         else:
@@ -586,8 +580,6 @@ class Monitor(object):
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
-            worker_info = (os.getenv('USER') + '@' + os.uname()[1], ' '.join(os.uname()[2:]))
-
             sanitized_output = self.clean_output(new)
 
             if self.check_failure(sanitized_output):
@@ -601,7 +593,7 @@ class Monitor(object):
                 d.addErrback(self._catch_failure)
                 continue
 
-            d = worker.job_done(sanitized_output, result, done, worker_info)
+            d = worker.job_done(sanitized_output, result, done)
             d.addErrback(self._catchConnectionFailure)
 
     def check_failure(self, sage_output):

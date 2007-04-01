@@ -98,7 +98,7 @@ def setup_worker():
     config.set('log', 'log_file', 'stdout')
     config.set('log', 'log_level', '0')
     config.set('general', 'delay', '5')
-    config.set('general', 'authenticate', False)
+    config.set('general', 'anonymous', False)
     conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
     config.write(open(conf_file, 'w'))
     print "Worker configuration finished.\n"

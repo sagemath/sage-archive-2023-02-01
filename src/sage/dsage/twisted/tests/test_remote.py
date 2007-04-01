@@ -287,9 +287,7 @@ class MonitorRemoteCallsTest(unittest.TestCase):
 
     def testremote_job_done(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname,
-                                             self.port,
-                                             factory)
+        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"
@@ -302,12 +300,7 @@ class MonitorRemoteCallsTest(unittest.TestCase):
     def _job_done(self, remoteobj, jdict):
         job_id = jdict['job_id']
         result = jdict['result']
-        d = remoteobj.callRemote('job_done',
-                                 job_id,
-                                 'Nothing.',
-                                 result,
-                                 False,
-                                 'lalal')
+        d = remoteobj.callRemote('job_done', job_id, 'Nothing.', result, False)
         d.addCallback(self._done_job)
 
         return d

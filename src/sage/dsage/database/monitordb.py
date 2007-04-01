@@ -48,6 +48,7 @@ class MonitorDatabase(object):
      mem_free INTEGER,
      connected BOOL,
      busy BOOL,
+     anonymous BOOL DEFAULT 0,
      last_connection timestamp
     )
     """
@@ -92,6 +93,17 @@ class MonitorDatabase(object):
             raise
         # End reading configuration
 
+    def _set_parameter(self, uuid, key, value):
+        query = """UPDATE monitors
+        SET %s=?
+        WHERE uuid=?""" % (key)
+        cur = self.con.cursor()
+        cur.execute(query, (value, uuid))
+        self.con.commit()
+
+    def set_anonymous(self, uuid, anonymous=True):
+        return self._set_parameter(uuid, 'anonymous', anonymous)
+
     def add_monitor(self, host_info):
         query = """INSERT INTO monitors
         (uuid,
@@ -129,23 +141,35 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def get_monitor(self, uuid):
-        query = """SELECT * FROM monitors WHERE uuid=?"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors WHERE uuid=?"""
         cur = self.con.cursor()
         cur.execute(query, (uuid,))
+        result = cur.fetchone()
+        if result is None:
+            return result
+        columns = [desc[0] for desc in cur.description]
+        monitor = dict(zip(columns, result))
+        for k, v in monitor.iteritems():
+            if k == 'anonymous':
+                monitor[k] = bool(v)
 
-        return cur.fetchone()
+        return monitor
 
     def get_monitor_list(self):
         r"""
         Returns a list of connected monitors.
 
         """
-        query = """SELECT uuid, hostname, ip, sage_version, os FROM monitors WHERE connected"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors WHERE connected"""
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()
         columns = [desc[0] for desc in cur.description]
         monitors = [dict(zip(columns, monitor)) for monitor in result]
+        for monitor in monitors:
+            for k, v in monitor.iteritems():
+                if k == 'anonymous':
+                    monitor[k] = bool(v)
 
         return monitors
 

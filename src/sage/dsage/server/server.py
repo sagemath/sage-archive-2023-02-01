@@ -26,7 +26,6 @@ from twisted.spread import pb
 from twisted.python import log
 
 from sage.dsage.misc.hostinfo import HostInfo
-import sage.dsage.server.client_tracker as client_tracker
 from sage.dsage.server.hostinfo_tracker import hostinfo_list
 from sage.dsage.errors.exceptions import BadTypeError
 from sage.dsage.database.job import expand_job
@@ -80,7 +79,8 @@ class DSageServer(pb.Root):
                 log.msg('[DSage, get_job]' + ' Returning Job %s to client'
                         % (jdict['job_id']))
             jdict['status'] = 'processing'
-            self.jobdb.store_job(jdict)
+            jdict['worker_info'] = str(self.monitordb.get_monitor(uuid))
+            jdict = self.jobdb.store_job(jdict)
 
         return jdict
 
@@ -215,7 +215,7 @@ class DSageServer(pb.Root):
 
         return self.jobdb.get_next_job_id()
 
-    def job_done(self, job_id, output, result, completed, worker_info):
+    def job_done(self, job_id, output, result, completed):
         r"""
         job_done is called by the workers check_output method.
 
@@ -225,7 +225,6 @@ class DSageServer(pb.Root):
         result -- the result from the client (compressed pickle string)
                   result could be 'None'
         completed -- whether or not the job is completed (bool)
-        worker_info -- ''.join(os.uname())
 
         """
 
@@ -234,7 +233,6 @@ class DSageServer(pb.Root):
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, job_done] Output: %s ' % output)
             log.msg('[DSage, job_done] completed: %s ' % completed)
-            log.msg('[DSage, job_done] worker_info: %s ' % str(worker_info))
 
         jdict = self.get_job_by_id(job_id)
         output = str(output)
@@ -245,7 +243,6 @@ class DSageServer(pb.Root):
         if completed:
             jdict['result'] = result
             jdict['status'] = 'completed'
-            jdict['worker_info'] = str(worker_info)
 
         jdict['update_time'] = datetime.datetime.now()
 

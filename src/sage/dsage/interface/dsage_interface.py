@@ -43,6 +43,16 @@ class DSage(object):
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
+        r"""
+        Parameters:
+        server -- str
+        port -- int
+        username -- str
+        pubkey_file -- str (Default: None)
+        privkey_file -- str (Default: None)
+
+        """
+
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
         self._getconf()
@@ -525,8 +535,7 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote,
-                                      'get_cluster_speed')
+        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_cluster_speed')
 
     def list_monitors(self):
         r"""Returns a list of monitors connected to the server.
@@ -535,8 +544,7 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote,
-                                         'get_monitor_list')
+        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_monitor_list')
 
     def list_clients(self):
         r"""
@@ -545,8 +553,7 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote,
-                                         'get_client_list')
+        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_client_list')
 
 class JobWrapper(object):
     r"""
@@ -583,6 +590,7 @@ class JobWrapper(object):
         d = copy.copy(self.__dict__)
         d['remoteobj'] = None
         d['sync_job_task'] = None
+
         return d
 
     def _update_job(self, job):
@@ -610,7 +618,11 @@ class JobWrapper(object):
         filename += '.sobj'
         f = open(filename, 'w')
         cPickle.dump(self, f, 2)
+
         return filename
+
+    def restore(self, dsage):
+        self.remoteobj = dsage.remoteobj
 
     def _catch_failure(self, failure):
         from twisted.internet import error
@@ -744,7 +756,8 @@ class BlockingJobWrapper(JobWrapper):
         self._job = expand_job(jdict)
 
     def __repr__(self):
-        self.get_job()
+        if self.status != 'completed':
+            self.get_job()
         if self.status == 'completed' and not self.output:
             return 'No output.'
         elif not self.output:
@@ -760,8 +773,7 @@ class BlockingJobWrapper(JobWrapper):
         if self.status == 'completed':
             return
 
-        job = blocking_call_from_thread(self.remoteobj.callRemote,
-                                     'get_job_by_id', self._job.id)
+        job = blocking_call_from_thread(self.remoteobj.callRemote, 'get_job_by_id', self._job.id)
 
         self._update_job(expand_job(job))
 

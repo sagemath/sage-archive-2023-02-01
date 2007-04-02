@@ -19,5 +19,5 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):
     cdef _unpickle_version0(self, data)
 
     cdef _init_linbox(self)
-
+    cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus):
 

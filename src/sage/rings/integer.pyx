@@ -1145,7 +1145,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_off
         return bool(t)
 
-    cdef _valuation(Integer self, p):
+    cdef RingElement _valuation(Integer self, Integer p):
         r"""
         Return the p-adic valuation of self.
 
@@ -1157,21 +1157,19 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if self == 0:
             return sage.rings.infinity.infinity
-        cdef Integer _p
-        _p = Integer(p)
-        if mpz_cmp_ui(_p.value, 2) < 0:
+        if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         cdef Integer v
         v = PY_NEW(Integer)
         cdef mpz_t u
         mpz_init(u)
         _sig_on
-        mpz_set_ui(v.value, mpz_remove(u, self.value, _p.value))
+        mpz_set_ui(v.value, mpz_remove(u, self.value, p.value))
         _sig_off
         mpz_clear(u)
         return v
 
-    cdef _val_unit(Integer self, p):
+    cdef Tuple _val_unit(Integer self, Integer p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit of self.
 
@@ -1181,18 +1179,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         AUTHOR:
             -- David Roe (3/31/07)
         """
+        cdef Integer v, u
         if self == 0:
-            return (sage.rings.infinity.infinity, Integer(1))
-        cdef Integer _p
-        _p = Integer(p)
-        if mpz_cmp_ui(_p.value, 2) < 0:
+            u = ONE
+            Py_INCREF(ONE)
+            return (sage.rings.infinity.infinity, u)
+        if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
-        cdef Integer v
         v = PY_NEW(Integer)
-        cdef Integer u
         u = PY_NEW(Integer)
         _sig_on
-        mpz_set_ui(v.value, mpz_remove(u.value, self.value, _p.value))
+        mpz_set_ui(v.value, mpz_remove(u.value, self.value, p.value))
         _sig_off
         return (v, u)
 
@@ -1220,7 +1217,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: (2^11).valuation(4)
         5
         """
-        return self._valuation(p)
+        return self._valuation(Integer(p))
 
     def val_unit(self, p):
         r"""
@@ -1246,7 +1243,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         sage: 0.val_unit(2)
         (+Infinity, 1)
         """
-        return self._val_unit(p)
+        return self._val_unit(Integer(p))
 
     def ord(self, p=None):
         """Synonym for valuation

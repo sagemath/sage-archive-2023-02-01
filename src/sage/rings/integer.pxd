@@ -22,8 +22,8 @@ cdef class Integer(EuclideanDomainElement):
     cdef _and(Integer self, Integer other)
     cdef _or(Integer self, Integer other)
 
-    cdef _valuation(Integer self, p)
-    cdef _val_unit(Integer self, p)
+    cdef RingElement _valuation(Integer self, Integer p)
+    cdef Tuple _val_unit(Integer self, Integer p)
     cdef Integer _divide_knowing_divisible_by(Integer self, Integer right)
     cdef int _is_power_of(Integer self, Integer n)
 

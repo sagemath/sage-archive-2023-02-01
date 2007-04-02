@@ -55,6 +55,8 @@ class DSage(object):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
+        from twisted.spread import banana
+        banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
         self._getconf()
 
         if server is None:
@@ -367,10 +369,11 @@ class BlockingDSage(DSage):
     r"""This is the blocking version of DSage
     """
 
-    def __init__(self, server=None, port=8081, username=None,
-                 pubkey_file=None, privkey_file=None):
+    def __init__(self, server=None, port=8081, username=None, pubkey_file=None, privkey_file=None):
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
+        from twisted.spread import banana
+        banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
         self._getconf()
 

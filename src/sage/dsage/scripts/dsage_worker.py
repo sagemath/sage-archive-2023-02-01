@@ -28,6 +28,8 @@ import zlib
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
 from twisted.python import log
+from twisted.spread import banana
+banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file

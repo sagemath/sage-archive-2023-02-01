@@ -17,6 +17,9 @@
 ############################################################################
 
 from twisted.spread import pb
+from twisted.spread import banana
+banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
+
 from zope.interface import implements
 from twisted.cred import portal, credentials
 from twisted.cred.credentials import ISSHPrivateKey

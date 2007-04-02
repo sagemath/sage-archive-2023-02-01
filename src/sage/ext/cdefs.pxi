@@ -47,6 +47,7 @@ cdef extern from "gmp.h":
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_clear(mpz_t integer)
     int  mpz_cmp(mpz_t op1, mpz_t op2)
+    int  mpz_cmpabs(mpz_t op1, mpz_t op2)
     int  mpz_cmp_si(mpz_t op1, signed long int op2)
     int  mpz_cmp_ui(mpz_t op1, unsigned long int op2)
     void mpz_divexact (mpz_t q, mpz_t n, mpz_t d)

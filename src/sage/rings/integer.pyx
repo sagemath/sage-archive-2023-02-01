@@ -12,6 +12,7 @@ AUTHORS:
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
     -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
+    -- Pablo De Napoli (2007-04-01): multiplicative_order should return +infinity for non zero numbers
 
 EXAMPLES:
    Add 2 integers:
@@ -1450,8 +1451,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def multiplicative_order(self):
         r"""
-        Return the multiplicative order of self, if self is a unit, or raise
-        \code{ArithmeticError} otherwise.
+        Return the multiplicative order of self.
 
         EXAMPLES:
             sage: ZZ(1).multiplicative_order()
@@ -1459,20 +1459,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(-1).multiplicative_order()
             2
             sage: ZZ(0).multiplicative_order()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: no power of 0 is a unit
+            +Infinity
             sage: ZZ(2).multiplicative_order()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: no power of 2 is a unit
+            +Infinity
         """
-        if mpz_cmp_si(self.value, 1) == 0:
-            return Integer(1)
+        import sage.rings.infinity
+        if  mpz_cmp_si(self.value, 1) == 0:
+                return Integer(1)
         elif mpz_cmp_si(self.value, -1) == 0:
-            return Integer(2)
+                return Integer(2)
         else:
-            raise ArithmeticError, "no power of %s is a unit"%self
+                return sage.rings.infinity.infinity
 
     def is_squarefree(self):
         """

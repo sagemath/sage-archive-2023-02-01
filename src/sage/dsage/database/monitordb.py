@@ -25,6 +25,7 @@ import sqlite3 as sqlite
 from twisted.python import log
 
 import sage.dsage.database.sql_functions as sql_functions
+from sage.dsage.__version__ import version
 
 class MonitorDatabase(object):
     r"""

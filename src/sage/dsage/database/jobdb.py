@@ -33,6 +33,7 @@ import transaction
 
 from sage.dsage.database.job import Job
 import sage.dsage.database.sql_functions as sql_functions
+from sage.dsage.__version__ import version
 
 class JobDatabase(object):
     r"""

@@ -51,7 +51,9 @@ class JobDatabase(object):
             conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
             config = ConfigParser.ConfigParser()
             config.read(conf_file)
-
+            old_version = config.get('general', 'version')
+            if version != old_version:
+                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
             self.DB_FILE = os.path.expanduser(config.get('db', 'db_file'))
             self.PRUNE_IN_DAYS = config.getint('db', 'prune_in_days')
             self.STALE_IN_DAYS = config.getint('db', 'stale_in_days')

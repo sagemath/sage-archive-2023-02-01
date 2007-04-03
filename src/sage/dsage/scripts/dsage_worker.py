@@ -39,6 +39,7 @@ from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.__version__ import version
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -59,6 +60,9 @@ try:
     DELAY = CONFIG.getint('general', 'delay')
     NICE_LEVEL = CONFIG.getint('general', 'nice_level')
     ANONYMOUS = CONFIG.getboolean('general', 'anonymous')
+    old_version = CONFIG.get('general', 'version')
+    if version != old_version:
+        raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
 except Exception, msg:
     print msg
     print "Error reading %s, please fix manually or run dsage.setup()" % \

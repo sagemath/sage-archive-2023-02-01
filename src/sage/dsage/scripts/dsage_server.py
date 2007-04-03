@@ -39,6 +39,7 @@ from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer, DSageWorkerServer
 from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.__version__ import version
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
@@ -100,9 +101,11 @@ def main():
         SSL_CERT = config.get('ssl', 'cert_file')
         WORKER_PORT = config.getint('server', 'worker_port')
         CLIENT_PORT = config.getint('server', 'client_port')
-        PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
-                                                        'pubkey_database'))
+        PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
         STATS_FILE = config.get('general', 'stats_file')
+        old_version = config.get('general', 'version')
+        if version != old_version:
+            raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
     except Exception, msg:
         print msg
         print "Error reading %s, run dsage.setup()" % conf_file

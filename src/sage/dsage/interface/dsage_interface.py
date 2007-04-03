@@ -134,10 +134,13 @@ class DSage(object):
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
         try:
+            from sage.dsage.__version__ import version
             conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
             config = ConfigParser.ConfigParser()
             config.read(conf_file)
-
+            old_version = config.get('general', 'version')
+            if version != old_version:
+                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
             self.LOG_FILE = config.get('log', 'log_file')
             self.LOG_LEVEL = config.getint('log', 'log_level')
             self.SSL = config.getint('ssl', 'ssl')
@@ -150,6 +153,7 @@ class DSage(object):
             self.PORT = config.getint('general', 'port')
         except Exception, msg:
             print msg
+            print "Error reading '%s', run dsage.setup()" % conf_file
             raise
 
     def _getpassphrase(self):

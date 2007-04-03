@@ -81,22 +81,21 @@ class ClientDatabase(object):
 
     def _getconf(self):
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
+        from sage.dsage.__version__ import version
         try:
             conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
             config = ConfigParser.ConfigParser()
             config.read(conf_file)
-
-            # TODO: This needs to be changed to use db_file
-            self.DB_FILE = os.path.expanduser(config.get('auth',
-                                                         'pubkey_database'))
+            old_version = config.get('general', 'version')
+            if version != old_version:
+                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
+            self.DB_FILE = os.path.expanduser(config.get('auth', 'pubkey_database'))
             self.LOG_FILE = config.get('db_log', 'log_file')
             self.LOG_LEVEL = config.getint('db_log', 'log_level')
         except Exception, msg:
             log.msg(msg)
             log.msg("Error reading '%s', run dsage.setup()" % conf_file)
             raise
-        # End reading configuration
 
     def get_user_and_key(self, username):
         r"""

@@ -161,10 +161,10 @@ class DSage(object):
     def _catch_failure(self, failure):
         from twisted.internet import error
         if failure.check(error.ConnectionRefusedError):
-            print 'Remote server refused the connection.'
-            return
-        print "Error: ", failure.getErrorMessage()
-        print "Traceback: ", failure.printTraceback()
+            print 'Remote server %s refused the connection.'  % (self.server)
+        else:
+            print "Error: ", failure.getErrorMessage()
+            print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
         if self.LOG_LEVEL > 0:

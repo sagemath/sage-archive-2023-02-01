@@ -562,7 +562,7 @@ class SymbolicExpression(RingElement):
             sin(2)^2 + 1024
 
             sage: f(x=pi, y=t)
-            32*pi^(t/2)
+            32*(pi)^(t/2)
 
             sage: f = 2*x^2 - sin(x)
             sage: f(pi)
@@ -612,43 +612,6 @@ class SymbolicExpression(RingElement):
             return  arith._operator(*(arith._operands))
         elif isinstance(self, SymbolicComposition):
             return ops[0](ops[1]._recursive_sub(kwds))
-
-class PrimitiveFunction(SymbolicExpression):
-    def __init__(self, needs_braces=False):
-        self._tex_needs_braces = needs_braces
-        pass
-
-    def tex_needs_braces(self):
-        return self._tex_needs_braces
-
-    def __call__(self, x, *args):
-        if isinstance(x, float):
-            return self._approx_(x)
-        try:
-            return getattr(x, self._repr_())(*args)
-        except AttributeError:
-            return SymbolicComposition(self, SER(x))
-
-    def _approx_(self, x):
-        s = '%s(%s), numer'%(self._repr_(), float(x))
-        return float(maxima.eval(s))
-
-class CallableFunctionRing_class(CommutativeRing):
-    def __init__(self):
-        self._default_precision = 53 # default precision bits
-        ParentWithBase.__init__(self, RR)
-
-    def __call__(self, x):
-        return self._coerce_impl(x)
-
-    def _coerce_impl(self, x):
-        if isinstance(x, (Integer, Rational, Constant, int)):
-            return CallableFunction(x, SER(x))
-        else:
-            raise NotImplementedError, "cannot coerce this (yet)"
-
-CallableFunctionRing = CallableFunctionRing_class()
-CFR = CallableFunctionRing
 
 class CallableFunction(RingElement):
     r"""
@@ -995,61 +958,6 @@ class SymbolicOperation(SymbolicExpression):
                 vars.add(v)
         return vars
 
-class SymbolicComposition(SymbolicOperation):
-    r"""
-    Represents the symbolic composition of $f \circ g$.
-    """
-    def __init__(self, f, g):
-        SymbolicOperation.__init__(self, [f,g])
-
-    def _is_atomic(self):
-        return True
-
-    def _repr_(self):
-        if not self.is_simplified():
-            return self.simplify()._repr_()
-        ops = self._operands
-        return "%s(%s)"% (ops[0]._repr_(), ops[1]._repr_())
-
-    def _latex_(self):
-        if not self.is_simplified():
-            return self.simplify()._repr_()
-        ops = self._operands
-        # certain functions (such as \sqrt) need braces in LaTeX
-        if (ops[0]).tex_needs_braces():
-            return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
-        # ... while others (such as \cos) don't
-        return r"%s \left( %s \right)"%((ops[0])._latex_(),(ops[1])._latex_())
-
-    def _maxima_init_(self):
-        ops = self._operands
-        #try:
-        #    base = self._base
-        #    print ops[1]
-        #    m = maxima.log(ops[1]._maxima_(maxima)) / ('log(%s)' % base)._maxima_(maxima)
-        #except AttributeError:
-        #    m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
-        #    self.__maxima = m
-        #return m
-        try:
-            base = ops[0]._base
-        except AttributeError:
-            return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
-        if not base is None:
-            return 'log(%s) / log(%s)' % (ops[1]._maxima_init_(),str(base))
-
-        return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
-
-    def __float__(self):
-        f = self._operands[0]
-        g = self._operands[1]
-        return float(f._approx_(float(g)))
-
-    def _mpfr_(self, field):
-        f = self._operands[0]
-        g = self._operands[1]
-        return f._approx_(g._mpfr_(field))
-
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
             operator.div:'/', operator.pow:'^'}
 
@@ -1274,6 +1182,100 @@ def var(s):
         _vars[s] = v
         return v
 
+class CallableFunctionRing_class(CommutativeRing):
+    def __init__(self):
+        self._default_precision = 53 # default precision bits
+        ParentWithBase.__init__(self, RR)
+
+    def __call__(self, x):
+        return self._coerce_impl(x)
+
+    def _coerce_impl(self, x):
+        if isinstance(x, (Integer, Rational, Constant, int)):
+            return CallableFunction(x, SER(x))
+        else:
+            raise NotImplementedError, "cannot coerce this (yet)"
+
+CallableFunctionRing = CallableFunctionRing_class()
+CFR = CallableFunctionRing
+
+class SymbolicComposition(SymbolicOperation):
+    r"""
+    Represents the symbolic composition of $f \circ g$.
+    """
+    def __init__(self, f, g):
+        SymbolicOperation.__init__(self, [f,g])
+
+    def _is_atomic(self):
+        return True
+
+    def _repr_(self):
+        if not self.is_simplified():
+            return self.simplify()._repr_()
+        ops = self._operands
+        return "%s(%s)"% (ops[0]._repr_(), ops[1]._repr_())
+
+    def _latex_(self):
+        if not self.is_simplified():
+            return self.simplify()._repr_()
+        ops = self._operands
+        # certain functions (such as \sqrt) need braces in LaTeX
+        if (ops[0]).tex_needs_braces():
+            return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
+        # ... while others (such as \cos) don't
+        return r"%s \left( %s \right)"%((ops[0])._latex_(),(ops[1])._latex_())
+
+    def _maxima_init_(self):
+        ops = self._operands
+        #try:
+        #    base = self._base
+        #    print ops[1]
+        #    m = maxima.log(ops[1]._maxima_(maxima)) / ('log(%s)' % base)._maxima_(maxima)
+        #except AttributeError:
+        #    m = ops[0]._maxima_(maxima)(ops[1]._maxima_(maxima))
+        #    self.__maxima = m
+        #return m
+        try:
+            base = ops[0]._base
+        except AttributeError:
+            return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
+        if not base is None:
+            return 'log(%s) / log(%s)' % (ops[1]._maxima_init_(),str(base))
+
+        return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
+
+    def __float__(self):
+        f = self._operands[0]
+        g = self._operands[1]
+        #return float(f(float(g)))
+        return f.__call__(float(g))
+
+    def _mpfr_(self, field):
+        f = self._operands[0]
+        g = self._operands[1]
+        return f(g._mpfr_(field))
+
+
+class PrimitiveFunction(SymbolicExpression):
+    def __init__(self, needs_braces=False):
+        self._tex_needs_braces = needs_braces
+        pass
+
+    def tex_needs_braces(self):
+        return self._tex_needs_braces
+
+    def __call__(self, x, *args):
+        if isinstance(x, float):
+            return self._approx_(x)
+        try:
+            return getattr(x, self._repr_())(*args)
+        except AttributeError:
+            return SymbolicComposition(self, SER(x))
+
+    def _approx_(self, x):
+        s = '%s(%s), numer'%(self._repr_(), float(x))
+        return float(maxima.eval(s))
+
 _syms = {}
 
 class Function_erf(PrimitiveFunction):
@@ -1312,6 +1314,8 @@ class Function_sin(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
+    _approx_ = math.sin
+
     def __call__(self, x):
         try:
             return x.sin()
@@ -1319,7 +1323,6 @@ class Function_sin(PrimitiveFunction):
             if isinstance(x, float):
                 return math.sin(x)
         return SymbolicComposition(self, x)
-
 
 sin = Function_sin()
 _syms['sin'] = sin
@@ -1337,14 +1340,15 @@ class Function_cos(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
-    def _approx_(self, x):
+    _approx_ = math.cos
+
+    def __call__(self, x):
         try:
             return x.cos()
         except AttributeError:
             if isinstance(x, float):
                 return math.cos(x)
-            else:
-                return SymbolicComposition(self, x)
+        return SymbolicComposition(self, x)
 
 
 cos = Function_cos()
@@ -1357,11 +1361,11 @@ class Function_sec(PrimitiveFunction):
     sage: sec(pi/4)
     sqrt(2)
     sage: RR(sec(pi/4))
-    0.707106781186548
+    1.414213562373094
     sage: sec(1/2)
     sec(1/2)
     sage: sec(0.5)
-    0.877582561890373
+    1.139493927324549
     """
     def _repr_(self):
         return "sec"
@@ -1540,7 +1544,7 @@ class Function_log(PrimitiveFunction):
     sage: log(1024.0, 2.0)
     10.0000000000000
 
-    sage: log(RDF(10),2)
+    sage: RDF(log(10,2))
     3.32192809489
     sage: RDF(log(8, 2))
     3.0
@@ -1549,11 +1553,6 @@ class Function_log(PrimitiveFunction):
     sage: log(2.718)
     0.999896315728952
     """
-
-    def __call__(self, x, base=None):
-        self._base = base
-        return PrimitiveFunction.__call__(self, x, base)
-
     def _repr_(self):
         if self._base is None:
             return "log"
@@ -1572,11 +1571,19 @@ class Function_log(PrimitiveFunction):
     def _is_atomic(self):
         return True
 
-    def _approx_(self, x):
+    def __call__(self, x, *args):
+        # first try getting the base from what was passed
         try:
-            base = self._base
-        except AttributeError:
-            base = None
+            base = args[0]
+        except IndexError:
+            # if that fails, get the base from the object
+            try:
+                base = self._base
+            except AttributeError:
+                # and if that fails, get set it to None
+                base = None
+
+        self._base = base
         try:
             if base is None:
                 return x.log()
@@ -1584,12 +1591,11 @@ class Function_log(PrimitiveFunction):
                 return x.log(base)
         except AttributeError:
             if isinstance(x, float):
-                if base is None:
-                    return math.log(x)
-                else:
-                    return math.log(x, base)
-            else:
-                return SymbolicComposition(self, x)
+                return self._approx_(x, self._base)
+
+        return SymbolicComposition(self, x)
+
+    _approx_ = math.log
 
 log = Function_log()
 _syms['log'] = log
@@ -1609,6 +1615,18 @@ class Function_sqrt(PrimitiveFunction):
 
     def _is_atomic(self):
         return True
+
+    def __call__(self, x):
+        # if x is an integer or rational, never call the sqrt method
+        if isinstance(x, float):
+            return self._approx_(x)
+        if not isinstance(x, (Integer, Rational)):
+            try:
+                return x.sqrt()
+            except AttributeError:
+                pass
+        return SymbolicComposition(self, x)
+
 
     def _approx_(self, x):
         try:

@@ -80,7 +80,6 @@ class MonitorDatabase(object):
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
         try:
-            from sage.dsage.__version__ import version
             conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
             config = ConfigParser.ConfigParser()
             config.read(conf_file)

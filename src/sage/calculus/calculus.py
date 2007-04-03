@@ -1553,6 +1553,10 @@ class Function_log(PrimitiveFunction):
     sage: log(2.718)
     0.999896315728952
     """
+    def __init__(self, base=None):
+        self._base = base
+        PrimitiveFunction.__init__(self)
+
     def _repr_(self):
         if self._base is None:
             return "log"
@@ -1572,18 +1576,16 @@ class Function_log(PrimitiveFunction):
         return True
 
     def __call__(self, x, *args):
-        # first try getting the base from what was passed
-        try:
-            base = args[0]
-        except IndexError:
-            # if that fails, get the base from the object
+        # see if we have a base that's None
+        base = self._base
+        if base is None:
+            # first try getting the base from what was passed
             try:
+                base = args[0]
+            except IndexError:
+            # if that fails, get the base from the object
                 base = self._base
-            except AttributeError:
-                # and if that fails, get set it to None
-                base = None
 
-        self._base = base
         try:
             if base is None:
                 return x.log()
@@ -1593,7 +1595,12 @@ class Function_log(PrimitiveFunction):
             if isinstance(x, float):
                 return self._approx_(x, self._base)
 
-        return SymbolicComposition(self, x)
+        # if the base is None, we behave as before
+        if base is None:
+            return SymbolicComposition(self, x)
+        # else construct a new log function with the correct base
+        else:
+            return SymbolicComposition(Function_log(base), x)
 
     _approx_ = math.log
 
@@ -1664,6 +1671,7 @@ def symbolic_expression_from_maxima_string(x):
     s = maxima.eval('_tmp_')
     for x, y in symtable.iteritems():
         s = s.replace(x, y)
+        #print s
     return SymbolicExpressionRing(sage_eval(s, _syms))
 
 def symbolic_expression_from_maxima_element(x):

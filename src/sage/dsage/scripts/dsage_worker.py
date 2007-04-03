@@ -102,6 +102,10 @@ class Worker(object):
         # Initialize getting of jobs
         self.get_job()
 
+    def _catch_failure(self, failure):
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
+
     def get_job(self):
         try:
             if LOG_LEVEL > 3:
@@ -135,14 +139,14 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
 
-        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id,
-                                                   self.job.name,
-                                                   self.job.id))
+        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id, self.job.name, self.job.id))
         try:
             self.doJob(self.job)
-        except Exception, e:
-            print e
-            raise
+        except Exception, msg:
+            log.msg(msg)
+            d = self.remoteobj.callRemote('job_failed', self.job.id, msg)
+            d.addErrback(self._catch_failure)
+            self.restart()
 
     def job_done(self, output, result, completed):
         r"""
@@ -379,7 +383,8 @@ class Monitor(object):
                 self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file)
             except keys.BadKeyError:
                 pphrase = self._getpassphrase()
-                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file, passphrase=pphrase)
+                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
+                                                         passphrase=pphrase)
             self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
             self.alg_name = 'rsa'
             self.blob = keys.makePublicKeyBlob(self.pub_key)

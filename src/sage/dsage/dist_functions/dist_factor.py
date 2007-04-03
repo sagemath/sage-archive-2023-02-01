@@ -16,7 +16,8 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000, name='DistributedFactor'):
+    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000,
+                 name='DistributedFactor'):
         r"""
         Parameters:
             DSage -- an instance of a dsage connection
@@ -170,7 +171,6 @@ else:
                 print "factors:", self.prime_factors, self.composite_factors
 
         if len(self.composite_factors) == 0:
-            self.prime_factors.sort()
             self.result = self.prime_factors
             self.done = True
         else:
@@ -192,3 +192,6 @@ else:
             if self.qsieve_count == 0:
                 self.submit_job(self.qsieve_job(), self.name, async=True)
             self.submit_job(self.ecm_job(), self.name, async=True)
+
+        self.prime_factors.sort()
+        self.composite_factors.sort()

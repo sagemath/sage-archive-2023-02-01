@@ -249,7 +249,7 @@ class Job(Persistent):
             try:
                 s = cPickle.dumps(obj, 2)
                 s = zlib.compress(s)
-            except PicklingError:
+            except cPickle.PicklingError:
                 print 'Unable to attach your object.'
                 return
         self.jdict['data'].append((var, s, 'object'))

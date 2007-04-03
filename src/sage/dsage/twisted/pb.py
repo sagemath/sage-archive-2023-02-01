@@ -269,7 +269,7 @@ class MonitorPerspective(AnonymousMonitorPerspective):
         """
 
         uuid = self.mind[1]['uuid']
-        jdict = self.DSageServer.get_job(anonymous=False, uuid=uuid)
+        jdict = self.DSageServer.get_job(anonymous=False)
         if jdict is not None:
             self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
             self.DSageServer.set_busy(uuid, busy=True)

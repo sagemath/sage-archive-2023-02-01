@@ -130,8 +130,7 @@ class DSage(object):
 
     def _getconf(self):
         # randomly generated string we will use to sign
-        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
-                        range(500)]])
+        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in range(500)]])
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
         try:
@@ -731,7 +730,6 @@ class JobWrapper(object):
             d.addErrback(self._catch_failure)
             return d
         else:
-            print 'Can not kill this job, no id.'
             return
 
     def _killed_job(self, job_id):

@@ -88,6 +88,20 @@ class DistributedFunction(object):
 
         return filename
 
+    def stop(self, verbose=True):
+        r"""
+        Ends the current DistributedFunction, kills all waiting jobs.
+
+        """
+
+        for job in self.waiting_jobs:
+            job.kill()
+
+        self.done = True
+
+        if verbose:
+            print 'All waiting jobs have been killed. This job is no more.'
+
     def restore(self, dsage):
         r"""
         Reloads a distributed job from disk.

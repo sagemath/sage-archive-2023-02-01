@@ -57,7 +57,7 @@ class DSageServer(pb.Root):
     def unpickle(self, pickled_job):
         return cPickle.loads(zlib.decompress(pickled_job))
 
-    def get_job(self, anonymous=False, uuid=None):
+    def get_job(self, anonymous=False):
         r"""
         Returns a job to the client.
 
@@ -76,10 +76,8 @@ class DSageServer(pb.Root):
             return None
         else:
             if self.LOG_LEVEL > 3:
-                log.msg('[DSage, get_job]' + ' Returning Job %s to client'
-                        % (jdict['job_id']))
+                log.msg('[DSage, get_job]' + ' Returning Job %s to client' % (jdict['job_id']))
             jdict['status'] = 'processing'
-            jdict['worker_info'] = str(self.monitordb.get_monitor(uuid))
             jdict = self.jobdb.store_job(jdict)
 
         return jdict
@@ -99,8 +97,11 @@ class DSageServer(pb.Root):
 
         """
 
-        job = self.jobdb.get_job_by_id(job_id)
-        return job
+        jdict = self.jobdb.get_job_by_id(job_id)
+        uuid = jdict['monitor_id']
+        jdict['worker_info'] = self.monitordb.get_monitor(uuid)
+
+        return jdict
 
     def get_job_result_by_id(self, job_id):
         """Returns the job result.
@@ -112,6 +113,7 @@ class DSageServer(pb.Root):
 
         jdict = self.jobdb.get_job_by_id(job_id)
         job = expand_job(jdict)
+
         return job.result
 
     def get_job_output_by_id(self, job_id):

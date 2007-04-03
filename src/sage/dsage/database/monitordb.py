@@ -141,7 +141,8 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def get_monitor(self, uuid):
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors WHERE uuid=?"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors
+        WHERE uuid=?"""
         cur = self.con.cursor()
         cur.execute(query, (uuid,))
         result = cur.fetchone()
@@ -160,7 +161,8 @@ class MonitorDatabase(object):
         Returns a list of connected monitors.
 
         """
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors WHERE connected"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors
+        WHERE connected"""
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()

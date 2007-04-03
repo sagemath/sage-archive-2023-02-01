@@ -83,15 +83,14 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
-        self.port = CLIENT_PORT
-        self.r = reactor.listenTCP(CLIENT_PORT, self.client_factory)
+        self.r = reactor.listenTCP(0, self.client_factory)
+        self.port = self.r.getHost().port
 
         # public key authentication information
         self.username = USERNAME
         self.pubkey_file = PUBKEY_FILE
         self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(
-                                 filename=self.pubkey_file)
+        self.public_key_string = keys.getPublicKeyString(filename=self.pubkey_file)
         self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
         self.public_key = keys.getPublicKeyObject(self.public_key_string)
         self.alg_name = 'rsa'

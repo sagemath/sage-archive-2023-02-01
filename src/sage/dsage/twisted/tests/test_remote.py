@@ -112,8 +112,8 @@ class ClientRemoteCallsTest(unittest.TestCase):
         PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
-        self.port = CLIENT_PORT
-        self.server = reactor.listenTCP(CLIENT_PORT, self.client_factory)
+        self.server = reactor.listenTCP(0, self.client_factory)
+        self.port = self.server.getHost().port
 
         # public key authentication information
         self.username = USERNAME
@@ -223,9 +223,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
-        self.port = CLIENT_PORT
-        self.server = reactor.listenTCP(CLIENT_PORT, self.client_factory)
-
+        self.server = reactor.listenTCP(0, self.client_factory)
+        self.port = self.server.getHost().port
         # public key authentication information
         self.username = USERNAME
         self.pubkey_file = PUBKEY_FILE

@@ -18,9 +18,7 @@
 ############################################################################
 
 import os
-import random
 import glob
-import ConfigParser
 import copy
 import cPickle
 import zlib
@@ -29,6 +27,7 @@ import time
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.twisted.misc import blocking_call_from_thread
+from sage.dsage.misc.config import get_conf
 
 class DSageThread(threading.Thread):
     def run(self):
@@ -57,29 +56,31 @@ class DSage(object):
         from twisted.conch.ssh import keys
         from twisted.spread import banana
         banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
-        self._getconf()
+        conf = get_conf(type='client')
 
         if server is None:
-            self.server = self.SERVER
+            self.server = self.conf['server']
         else:
             self.server = server
         if port is None:
-            self.port = self.PORT
+            self.port = self.conf['port']
         else:
             self.port = port
         if username is None:
-            self.username = self.USERNAME
+            self.username = self.conf['username']
         else:
             self.username = username
         if pubkey_file is None:
-            self.pubkey_file = self.PUBKEY_FILE
+            self.pubkey_file = self.conf['pubkey_file']
         else:
             self.pubkey_file = pubkey_file
         if privkey_file is None:
-            self.privkey_file = self.PRIVKEY_FILE
+            self.privkey_file = self.conf['privkey_file']
         else:
             self.privkey_file = privkey_file
 
+        self.ssl = int(self.conf['ssl'])
+        self.log_level = int(conf['log_level'])
         self.remoteobj = None
         self.result = None
 
@@ -87,8 +88,7 @@ class DSage(object):
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
         # try getting the private key object without a passphrase first
         try:
-            self.priv_key = keys.getPrivateKeyObject(
-                                filename=self.privkey_file)
+            self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file)
         except keys.BadKeyError:
             passphrase = self._getpassphrase()
             self.priv_key = keys.getPrivateKeyObject(
@@ -97,7 +97,7 @@ class DSage(object):
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = self.DATA
+        self.data = self.conf['data']
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
@@ -128,34 +128,6 @@ class DSage(object):
         d['remoteobj'] = None
         return d
 
-    def _getconf(self):
-        # randomly generated string we will use to sign
-        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in range(500)]])
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
-        try:
-            from sage.dsage.__version__ import version
-            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-            old_version = config.get('general', 'version')
-            if version != old_version:
-                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
-            self.LOG_FILE = config.get('log', 'log_file')
-            self.LOG_LEVEL = config.getint('log', 'log_level')
-            self.SSL = config.getint('ssl', 'ssl')
-            self.USERNAME = config.get('auth', 'username')
-            self.PRIVKEY_FILE = os.path.expanduser(config.get('auth',
-                                                              'privkey_file'))
-            self.PUBKEY_FILE = os.path.expanduser(config.get('auth',
-                                                             'pubkey_file'))
-            self.SERVER = config.get('general', 'server')
-            self.PORT = config.getint('general', 'port')
-        except Exception, msg:
-            print msg
-            print "Error reading '%s', run dsage.setup()" % conf_file
-            raise
-
     def _getpassphrase(self):
         import getpass
         passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
@@ -171,13 +143,13 @@ class DSage(object):
             print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
-        if self.LOG_LEVEL > 0:
+        if self.log_level > 0:
             print 'Connected to remote server.\r'
         self.remoteobj = remoteobj
         self.remoteobj.notifyOnDisconnect(self._disconnected)
 
     def _disconnected(self, remoteobj):
-        print '[DSage] Lost connection to %s' % (self.SERVER)
+        print '[DSage] Lost connection to %s' % (self.server)
         self.info_str = 'Not connected.'
 
     def _got_my_jobs(self, jobs, job_name):
@@ -190,7 +162,7 @@ class DSage(object):
 
     def _killed_job(self, job_id):
         if job_id:
-            if self.LOG_LEVEL > 2:
+            if self.log_level > 2:
                 print str(job_id) + ' was successfully killed.'
 
     def restore(self, remoteobj):
@@ -378,29 +350,31 @@ class BlockingDSage(DSage):
         from twisted.spread import banana
         banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
-        self._getconf()
-
+        self.conf = get_conf(type='client')
         if server is None:
-            self.server = self.SERVER
+            self.server = self.conf['server']
         else:
             self.server = server
         if port is None:
-            self.port = self.PORT
+            self.port = self.conf['port']
         else:
             self.port = port
         if username is None:
-            self.username = self.USERNAME
+            self.username = self.conf['username']
         else:
             self.username = username
         if pubkey_file is None:
-            self.pubkey_file = self.PUBKEY_FILE
+            self.pubkey_file = self.conf['pubkey_file']
         else:
             self.pubkey_file = pubkey_file
         if privkey_file is None:
-            self.privkey_file = self.PRIVKEY_FILE
+            self.privkey_file = self.conf['privkey_file']
         else:
             self.privkey_file = privkey_file
 
+        self.data = self.conf['data']
+        self.ssl = int(self.conf['ssl'])
+        self.log_level = int(self.conf['log_level'])
         self.remoteobj = None
         self.result = None
 
@@ -420,7 +394,6 @@ class BlockingDSage(DSage):
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = self.DATA
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                 self.alg_name,
@@ -444,7 +417,7 @@ class BlockingDSage(DSage):
 
         self.factory = PBClientFactory()
 
-        if self.SSL == 1:
+        if self.ssl:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             blocking_call_from_thread(reactor.connectSSL,
@@ -800,6 +773,7 @@ class BlockingJobWrapper(JobWrapper):
         d = self.remoteobj.callRemote('kill_job', self.id)
         d.addCallback(self._killed_job)
         d.addErrback(self._catch_failure)
+
         return d
 
     def wait(self, timeout=None):

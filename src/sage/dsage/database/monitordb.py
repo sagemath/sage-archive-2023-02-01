@@ -19,13 +19,12 @@
 
 import datetime
 import os
-import ConfigParser
 import sqlite3 as sqlite
 
 from twisted.python import log
 
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.__version__ import version
+from sage.dsage.misc.config import get_conf
 
 class MonitorDatabase(object):
     r"""
@@ -55,17 +54,18 @@ class MonitorDatabase(object):
     """
 
     def __init__(self, test=False):
-        self._getconf()
+        self.conf = get_conf(type='monitordb')
         self.tablename = 'monitors'
         if test:
             self.db_file = 'monitordb-test.db'
         else:
-            self.db_file = self.DB_FILE
+            self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
-
+        self.log_level = self.conf['log_level']
+        self.log_file = self.conf['log_file']
         self.con = sqlite.connect(self.db_file,
                     detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
         self.con.text_factory = str
@@ -75,26 +75,6 @@ class MonitorDatabase(object):
                                        self.tablename,
                                        self.CREATE_MONITOR_TABLE)
             self.con.commit()
-
-    def _getconf(self):
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
-        try:
-            conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-            old_version = config.get('general', 'version')
-            if version != old_version:
-                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
-            # TODO: This needs to be changed to use db_file
-            self.DB_FILE = os.path.expanduser(config.get('db', 'db_file'))
-            self.LOG_FILE = config.get('db_log', 'log_file')
-            self.LOG_LEVEL = config.getint('db_log', 'log_level')
-        except Exception, msg:
-            log.msg(msg)
-            log.msg("Error reading '%s', run dsage.setup()" % conf_file)
-            raise
-        # End reading configuration
 
     def _set_parameter(self, uuid, key, value):
         query = """UPDATE monitors

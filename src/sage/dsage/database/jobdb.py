@@ -19,7 +19,6 @@
 
 import datetime
 import os
-import ConfigParser
 import random
 import string
 import time
@@ -33,7 +32,7 @@ import transaction
 
 from sage.dsage.database.job import Job
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.__version__ import version
+from sage.dsage.misc.config import get_conf
 
 class JobDatabase(object):
     r"""
@@ -43,30 +42,12 @@ class JobDatabase(object):
     """
 
     def __init__(self):
-        self._getconf()
-
-    def _getconf(self):
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
-        try:
-            conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-            old_version = config.get('general', 'version')
-            if version != old_version:
-                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
-            self.DB_FILE = os.path.expanduser(config.get('db', 'db_file'))
-            self.PRUNE_IN_DAYS = config.getint('db', 'prune_in_days')
-            self.STALE_IN_DAYS = config.getint('db', 'stale_in_days')
-            self.JOB_FAILURE_THRESHOLD = config.getint('db',
-                                                       'job_failure_threshold')
-            self.LOG_FILE = config.get('db_log', 'log_file')
-            self.LOG_LEVEL = config.getint('db_log', 'log_level')
-        except Exception, msg:
-            log.msg(msg)
-            log.msg("Error reading '%s', run dsage.setup()" % conf_file)
-            raise
-        # End reading configuration
+        self.conf = get_conf(type='jobdb')
+        self.db_file = self.conf['db_file']
+        self.job_failure_threshold = int(self.conf['job_failure_threshold'])
+        self.log_file = self.conf['log_file']
+        self.log_level = int(self.conf['log_level'])
+        self.prune_in_days = int(self.conf['prune_in_days'])
 
     def random_string(self, length=10):
         r"""
@@ -158,7 +139,7 @@ class JobDatabaseZODB(JobDatabase):
         gdict['next_job_num'] += 1
         job_id = self.random_string(10) + '_' + '%s' % jobNUM
         self.store_job(gdict)
-        if self.LOG_LEVEL > 1:
+        if self.log_level > 1:
             log.msg('[DB] Incremented job num to: ', jobNUM)
 
         return job_id
@@ -226,7 +207,7 @@ class JobDatabaseZODB(JobDatabase):
                 jobs = [job for job in self.get_jobs_list()
                         if job.username == username]
 
-        if self.LOG_LEVEL > 3:
+        if self.log_level > 3:
             log.msg('[JobDatabaseZODB, get_jobs_by_username] ', jobs)
         return jobs
 
@@ -264,7 +245,7 @@ class JobDatabaseZODB(JobDatabase):
             job._p_changed = True
         # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
         transaction.commit()
-        if self.LOG_LEVEL > 0:
+        if self.log_level > 0:
             log.msg("[DB] Stored job %s" % (job_id))
 
         return job_id
@@ -280,7 +261,7 @@ class JobDatabaseZODB(JobDatabase):
 
         try:
             del self.jobdb[job_id]
-            if self.LOG_LEVEL > 0:
+            if self.log_level > 0:
                 log.msg('[JobDB] Removed job %s from jobdb' % (job_id))
             transaction.commit()
             return job_id
@@ -410,7 +391,6 @@ class JobDatabaseSQLite(JobDatabase):
         if test:
             self.db_file = 'test_jobdb.db'
         else:
-            self.db_file = self.DB_FILE
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
@@ -561,7 +541,7 @@ class JobDatabaseSQLite(JobDatabase):
 
         if job_id is None:
             job_id = self.random_string()
-            if self.LOG_LEVEL > 3:
+            if self.log_level > 3:
                 log.msg('[JobDB] Creating a new job with id:', job_id)
             query = """INSERT INTO jobs
                     (job_id, status, creation_time) VALUES (?, ?, ?)"""
@@ -575,7 +555,7 @@ class JobDatabaseSQLite(JobDatabase):
             except (sqlite3.InterfaceError,
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
-                if self.LOG_LEVEL > 3:
+                if self.log_level > 3:
                     log.msg('key: %s, value: %s' % (k, v))
                     log.msg(msg)
                 continue
@@ -670,7 +650,7 @@ class DatabasePruner(object):
         jobs = self.jobdb.get_jobs_list()
         for job in jobs:
             delta =  datetime.datetime.now() - job.update_time
-            if delta > datetime.timedelta(self.jobdb.PRUNE_IN_DAYS):
+            if delta > datetime.timedelta(self.jobdb.prune_in_days):
                 self.jobdb.remove_job(job.id)
                 log.msg('[DatabasePruner, clean_old_jobs] Deleted job ',
                         job.id)
@@ -684,7 +664,7 @@ class DatabasePruner(object):
         jobs = self.jobdb.get_jobs_list()
 
         for job in jobs:
-            if job.failures > self.jobdb.JOB_FAILURE_THRESHOLD:
+            if job.failures > self.jobdb.job_failure_threshold:
                 self.jobdb.remove_job(job.id)
 
     def prune(self):

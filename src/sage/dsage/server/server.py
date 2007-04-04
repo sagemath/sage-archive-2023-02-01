@@ -263,7 +263,7 @@ class DSageServer(pb.Root):
         job.failures += 1
         job.output = traceback
 
-        if job.failures > self.jobdb.JOB_FAILURE_THRESHOLD:
+        if job.failures > self.jobdb.job_failure_threshold:
             job.status = 'failed'
         else:
             job.status = 'new' # Put job back in the queue

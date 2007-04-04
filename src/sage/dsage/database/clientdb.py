@@ -19,12 +19,12 @@
 
 import datetime
 import os
-import ConfigParser
 import sqlite3 as sqlite
 
 from twisted.python import log
 
 import sage.dsage.database.sql_functions as sql_functions
+from sage.dsage.misc.config import get_conf
 
 class ClientDatabase(object):
     r"""
@@ -55,12 +55,12 @@ class ClientDatabase(object):
 
         """
 
-        self._getconf()
+        self.conf = get_conf(type='clientdb')
         self.tablename = self.TABLENAME
         if test:
             self.db_file = 'clientdb_test.db'
         else:
-            self.db_file = self.DB_FILE
+            self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
@@ -78,24 +78,6 @@ class ClientDatabase(object):
     def _shutdown(self):
         self.con.commit()
         self.con.close()
-
-    def _getconf(self):
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        from sage.dsage.__version__ import version
-        try:
-            conf_file = os.path.join(self.DSAGE_DIR, 'server.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-            old_version = config.get('general', 'version')
-            if version != old_version:
-                raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
-            self.DB_FILE = os.path.expanduser(config.get('auth', 'pubkey_database'))
-            self.LOG_FILE = config.get('db_log', 'log_file')
-            self.LOG_LEVEL = config.getint('db_log', 'log_level')
-        except Exception, msg:
-            log.msg(msg)
-            log.msg("Error reading '%s', run dsage.setup()" % conf_file)
-            raise
 
     def get_user_and_key(self, username):
         r"""

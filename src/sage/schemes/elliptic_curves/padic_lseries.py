@@ -111,7 +111,9 @@ class pAdicLseries(SageObject):
             n -- an integer
 
         EXAMPLES:
-        We compute some $p$-adic $L$-functions associated to the elliptic curve 11a.
+        We compute some $p$-adic $L$-functions associated to the elliptic
+        curve 11a.
+
             sage: E = EllipticCurve('11a')
             sage: p = 3
             sage: E.is_ordinary(p)

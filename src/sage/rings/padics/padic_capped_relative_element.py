@@ -373,12 +373,32 @@ class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     #        return pAdicRingCappedRelativeElement(self.parent(), (uval, Mod(u / self.parent().prime_pow(uval), self.parent().prime_pow(prec)), prec), construct = True)
 
     def __lshift__(self, shift):
+        r"""
+        Multiplies self by p^shift.
+
+        EXAMPLES:
+        sage: a = Zp(5)(17); a
+        2 + 3*5 + O(5^20)
+        sage: a << 2
+        2*5^2 + 3*5^3 + O(5^22)
+        """
         shift = Integer(shift)
         if shift < 0:
             return self.__rshift__(-shift)
         return pAdicCappedRelativeElement(self.parent(), (self.valuation() + shift, self._unit_part(), self.precision_relative()), construct = True)
 
     def __rshift__(self, shift):
+        r"""
+        Divides self by p^shift.  If self is a ring element, throws away the non-integral part.
+
+        EXAMPLES:
+        sage: a = Zp(5)(17); a
+        2 + 3*5 + O(5^20)
+        sage: a >> 1
+        3 + O(5^19)
+        sage: a = Qp(5)(17); a >> 1
+        2*5^-1 + 3 + O(5^19)
+        """
         shift = Integer(shift)
         if self.parent().is_field():
             return pAdicCappedRelativeElement(self.parent(), (self.valuation() - shift, self._unit_part(), self.precision_relative()), construct = True)
@@ -417,9 +437,26 @@ class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     #        return pAdicRingCappedRelativeElement(self.parent(), (self.valuation(), Mod(u, self.parent().prime_pow(self.parent().precision_cap())), self.parent().precision_cap()), construct = True)
 
     def _integer_(self):
+        r"""
+        Converts self to an integer
+
+        sage: R = Zp(5, prec = 4); a = R(642); a
+        2 + 3*5 + O(5^4)
+        sage: Integer(a)
+        17
+        """
         return Integer(self._unit.lift() * self.parent().prime_pow(self.valuation()))
 
     def _mul_(self, right):
+        r"""
+        sage: R = Zp(5)
+        sage: a = R(2385,11); a
+        2*5 + 4*5^3 + 3*5^4 + O(5^11)
+        sage: b = R(2387625, 16); b
+        5^3 + 4*5^5 + 2*5^6 + 5^8 + 5^9 + O(5^16)
+        sage: a * b
+        2*5^4 + 2*5^6 + 4*5^7 + 2*5^8 + 3*5^10 + 5^11 + 3*5^12 + 4*5^13 + O(5^14)
+        """
         rprec = min(self._relprec, right._relprec)
         return pAdicCappedRelativeElement(self.parent(), (self.valuation() + right.valuation(), Mod(self._unit, self.parent().prime_pow(rprec)) * Mod(right._unit, self.parent().prime_pow(rprec)), rprec), construct = True)
 

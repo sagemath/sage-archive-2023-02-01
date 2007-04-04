@@ -85,8 +85,8 @@ import sage.rings.padics.padic_ring_lazy as padic_ring_lazy
 import sage.rings.padics.padic_field_lazy as padic_field_lazy
 import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
-import polynomial_padic_capped_relative_dense
-#import padics.polynomial.polynomial_padic_capped_relative_dense
+#import polynomial_padic_capped_relative_dense
+import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 

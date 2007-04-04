@@ -199,7 +199,7 @@ cdef class RealDoubleField_class(Field):
         x._value = value
         return x
 
-    def random_element(self, float min=-1, float max=1):
+    def random_element(self, distribution = 'gaussian', parameters = [], mean = None, sigma = None, min = None, max = None):
         """
         Return a random element of this real double field in the interval [min, max].
 
@@ -209,7 +209,16 @@ cdef class RealDoubleField_class(Field):
 	    sage: RDF.random_element(min=100, max=110)
 	    106.592535785
         """
-        return self._new_c((max-min)*random() + min)
+        cdef float a, b
+        import sage.gsl.probability_distribution
+        # Eventually take mean and sigma into account if parameters == []
+        if min is not None and max is not None:
+            a = min
+            b = max
+            return self._new_c((b-a)*random() + a)
+        else:
+            Dist = sage.gsl.probability_distribution.RealDistribution(distribution, parameters)
+            return Dist.get_random_element()
 
     def name(self):
         return "RealDoubleField"

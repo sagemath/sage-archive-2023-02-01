@@ -327,12 +327,20 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return answer
 
     def _lmul_(self, right):
+        print "lmul"
         val, unit = right._val_unit()
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._lmul_(unit.lift()), self._valbase + val, self._relprecs, False, self._valaddeds, None), construct = True)
+        self._comp_valaddeds()
+        right_rprec = right.precision_relative()
+        relprecs = [min(right_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
+        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._lmul_(unit.lift()), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
 
     def _rmul_(self, left):
+        print "rmul"
         val, unit = left._val_unit()
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit.lift()), self._valbase + val, self._relprecs, False, self._valaddeds, None), construct = True)
+        self._comp_valaddeds()
+        left_rprec = left.precision_relative()
+        relprecs = [min(left_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
+        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit.lift()), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
 
     def _neg_(self):
         return Polynomial_padic_capped_relative_dense(self.parent(), (-self._poly, self._valbase, self._relprecs, False, self._valaddeds, None), construct = True)

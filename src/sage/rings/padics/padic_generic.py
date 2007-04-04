@@ -306,12 +306,10 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         if Mod(x, p) == 0:
             return self._element_class(self, 0)
         u = 1 / Mod(1 - p, self.prime_pow(prec))
-        delta = u * (1 - x ** (p - 1))
-        xnew = x - x*delta*(1 - p * delta)
+        xnew = x + u*(x^q - x)
         while x != xnew:
             x = xnew
-            delta = u*(1-x**(p-1))
-            xnew = x - x*delta*(1-p*delta)
+            xnew = x + u*(x^q - x)
         return self._element_class(self, x)
 
     def teichmuller_system(self):

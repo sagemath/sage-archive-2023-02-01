@@ -12,22 +12,32 @@ David Roe (roed@math.harvard.edu) -- 3/30/07
 #                  http://www.gnu.org/licenses/
 ##############################################################################
 
+include "../../ext/stdsage.pxi"
+include "../../ext/interrupt.pxi"
+include "../../ext/cdefs.pxi"
+include "../../ext/gmp.pxi"
+
+ctypedef unsigned long ulong
+
 from sage.rings.padics.misc import min
 
-cimport sage.matrix.matrix_dense as matrix_dense
-cimport sage.rings.integer as integer
+cimport sage.matrix.matrix_dense
+cimport sage.rings.integer
 cimport sage.matrix.matrix_integer_dense
-cimport sgae.rings.ring
+cimport sage.structure.element
+cimport sage.matrix.matrix
 
-RingElement = sage.rings.ring.RingElement
-Matrix_integer_dense = sage.matrix.matrix_integer_dense
-Integer = integer.Integer
+from sage.structure.element cimport RingElement
+from sage.matrix.matrix_integer_dense cimport Matrix_integer_dense
+from sage.rings.integer cimport Integer
+from sage.matrix.matrix cimport Matrix
+from sage.matrix.matrix_dense cimport Matrix_dense
 
 from sage.rings.padics.padic_capped_relative_element import pAdicCappedRelativeElement
 from sage.rings.infinity import infinity
 from sage.rings.integer_ring import ZZ
 
-cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
+cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
 
     ########################################################################
     # LEVEL 0 functionality (overridden: y = for speed purposes, c = change of functionality)
@@ -70,12 +80,12 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
     # x * __hash__       -- alway simple
     ########################################################################
     def __new__(self, parent, entries, copy, coerce):
-        matrix_dense.Matrix_dense.__init__(self, parent)
+        Matrix_dense.__init__(self, parent)
         self._nrows = parent.nrows()
         self._ncols = parent.ncols()
         # Allocate an array for the precisions of the elements
         _sig_on
-        self._relprecs = <Integer *>sage_malloc(size_of(Integer) * (self._nrows * self._ncols))
+        self._relprecs = <ulong *>sage_malloc(size_of(ulong) * (self._nrows * self._ncols))
         _sig_off
         if self._relprecs == NULL:
             raise MemoryError, "out of matrix allocating precisions"
@@ -87,7 +97,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
         # THIS ARRAY IS *not* PERMUTED.  This should be OK, since all
         # algorithms operate on the underlying integer matrix anyway.
         ##################################
-        self._relprec_mat = <Integer **> sage_malloc(sizeof(Integer*)*self._nrows)
+        self._relprec_mat = <ulong **> sage_malloc(sizeof(ulong*)*self._nrows)
         # Should eventually switch to unsigned long ints
         if self._relprec_mat == NULL:
             sage_free(self._relprecs)
@@ -103,7 +113,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
             k = k + self._ncols
 
     def __dealloc__(self):
-        Py_ssize_t i
+        cdef Py_ssize_t i
         if self._initialized:
             sage_free(self._relprecs) #shouldn't this part always be done, even if self is not initialized?
             sage_free(self._relprec_mat)
@@ -136,7 +146,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
     def __init__(self, parent, entries, copy, coerce):
         cdef Py_ssize_t i, j, Icur
         cdef int is_list
-        cdef list coerced_list
+        cdef object coerced_list
 
         self._padic_values = {}
         self._valaddeds = {}
@@ -176,7 +186,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
                 blist = False
                 if entries[1][0] is None or entries[1][0] is infinity:
                     a = infinity
-                elif isinstance(entries[1][0], (list, tuple)) and len(entries[1][0]) = self._nrows * self._ncols:
+                elif isinstance(entries[1][0], (list, tuple)) and len(entries[1][0]) == self._nrows * self._ncols:
                     a = entries[1][0]
                     alist = True
                 else:
@@ -187,7 +197,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
                         raise TypeError, "unable to create an integer out of desired precision"
                 if entries[1][1] is None or entries[1][1] is infinity:
                     b = infinity
-                elif isinstance(entries[1][1], (list, tuple)) and len(entries[1][1]) = self._nrows * self._ncols:
+                elif isinstance(entries[1][1], (list, tuple)) and len(entries[1][1]) == self._nrows * self._ncols:
                     a = entries[1][1]
                     blist = True
                 else:
@@ -271,7 +281,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
                 self._relprecs_mat[i][i] = xrprec
             self._initialized = True
 
-    cdef void _comp_valaddeds(self):
+    cdef _comp_valaddeds(self):
         cdef Py_ssize_t i, j
         cdef int n
         cdef Integer p
@@ -282,16 +292,16 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
                 self._valaddeds[n] = self._value_matrix.get_unsafe(i, j)._valuation(p)
                 n += 1
 
-    cdef void _adjust_prec_info_global(RingElement absolute, RingElement relative):
+    cdef void _adjust_prec_info_global(self, RingElement absolute, RingElement relative):
         pass
 
-    cdef void _adjust_prec_info_global_local(RingElement absolute, list relative):
+    cdef void _adjust_prec_info_global_local(self, RingElement absolute, object relative):
         pass
 
-    cdef void _adjust_prec_info_local_global(list absolute, RingElement relative):
+    cdef void _adjust_prec_info_local_global(self, object absolute, RingElement relative):
         pass
 
-    cdef void _adjust_prec_info_local_local(list absolute, list relative):
+    cdef void _adjust_prec_info_local_local(self, object absolute, object relative):
         pass
 
     def _zero_out_matrix(val = None, precs = True):
@@ -305,7 +315,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
             self._valaddeds = [infinity] * (self._nrows * self._ncols)
         self._padic_values = {}
 
-    cdef void set_unsafe(self, Py_ssize_t i, Py_ssize_t j, value):
+    cdef set_unsafe(self, Py_ssize_t i, Py_ssize_t j, object value):
         r"""
         Sets self[i][j] to value.  No error checking is done.
 
@@ -374,7 +384,7 @@ cdef class Matrix_padic_capped_relative_dense(matrix_dense.Matrix_dense):
                 self._relprec_mat[i][j] = c
                 self._value_matrix.set_unsafe(i, j, a * self._base_ring.prime_pow(b))
 
-    cdef pAdicCappedRelativeElement get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
+    cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef int n
         cdef Integer m
         n = i * self._ncols + j

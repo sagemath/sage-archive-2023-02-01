@@ -1169,7 +1169,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(u)
         return v
 
-    cdef Tuple _val_unit(Integer self, Integer p):
+    cdef object _val_unit(Integer self, Integer p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit of self.
 

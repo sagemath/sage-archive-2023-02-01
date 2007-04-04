@@ -35,7 +35,7 @@ import matrix_integer_sparse
 import matrix_rational_dense
 import matrix_rational_sparse
 
-import padics.matrix_padic_capped_relative_dense
+#import padics.matrix_padic_capped_relative_dense
 
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
@@ -419,8 +419,8 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
-            elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
-                return padics.matrix_padic_capped_relative_dense
+            #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
+            #    return padics.matrix_padic_capped_relative_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense
 

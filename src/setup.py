@@ -235,7 +235,7 @@ matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
                                    ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
 matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
-                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense'])
+                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
 
 complex_number = Extension('sage.rings.complex_number',
 			    ['sage/rings/complex_number.pyx'],
@@ -359,7 +359,7 @@ ext_modules = [ \
      matrix_integer_sparse,
      matrix_real_double_dense,
      matrix_complex_double_dense,
-     matrix_padic_capped_relative_dense
+     matrix_padic_capped_relative_dense,
      solve,
      linbox,
      matrix_modn_dense,
@@ -857,6 +857,7 @@ setup(name        = 'sage',
                      'sage.rings.number_field',
                      'sage.rings.padics',
                      'sage.rings.polynomial',
+                     'sage.rings.polynomial.padics',
 
                      'sage.tests',
 

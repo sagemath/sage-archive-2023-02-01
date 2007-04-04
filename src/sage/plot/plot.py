@@ -2324,7 +2324,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except (TypeError, ValueError), msg:
-                #raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 pass
         # adaptive refinement
         i, j = 0, 0

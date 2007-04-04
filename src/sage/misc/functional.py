@@ -145,11 +145,6 @@ def acos(x):
     """
     Return the arc cosine of x.
 
-    EXAMPLES:
-        sage: acos(0.5)
-        1.04719755119660
-        sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190504*I
     """
     try: return x.acos()
     except AttributeError: return RDF(x).acos()
@@ -158,11 +153,6 @@ def asin(x):
     """
     Return the arc sine of x.
 
-    EXAMPLES:
-        sage: asin(0.5)
-        0.523598775598299
-        sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190504*I
     """
     try: return x.asin()
     except AttributeError: return RDF(x).asin()
@@ -171,11 +161,6 @@ def atan(x):
     """
     Return the arc tangent of x.
 
-    EXAMPLES:
-        sage: atan(1/2)
-        0.463647609001
-        sage: atan(1 + I)
-        1.01722196789785 + 0.402359478108525*I
     """
     try: return x.atan()
     except AttributeError: return RDF(x).atan()
@@ -603,15 +588,6 @@ def log(x,b=None):
     ordering, so the base can be viewed as an optional second
     argument.}
 
-    EXAMPLES:
-        sage: log(10,2)
-        3.32192809489
-        sage: log(8,2)
-        3.0
-        sage: log(10)
-        2.30258509299
-        sage: log(2.718)
-        0.999896315728952
     """
     if b is None:
         if hasattr(x, 'log'):
@@ -901,13 +877,7 @@ def square_root(x):
 def tan(x):
     """
     Return the tangent of x.
-
-    EXAMPLES:
-        sage: tan(3.1415)
-        -0.0000926535900581913
-        sage: tan(3.1415/4)
-        0.999953674278156
-    """
+   """
     try: return x.tan()
     except AttributeError: return RDF(x).tan()
 

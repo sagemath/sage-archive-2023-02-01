@@ -865,7 +865,7 @@ class Set_object_intersection(Set_object):
 
             Floating-point numbers are rational.
 
-            sage: sqrt(2) in X
+            sage: RR(sqrt(2)) in X
             True
 
             Real constants are not rational.
@@ -1013,8 +1013,10 @@ class Set_object_difference(Set_object):
             False
             sage: ComplexField().0 in X
             False
-            sage: sqrt(2) in X     # since sqrt(2) is a numerical approx
-            True
+            sage: sqrt(2) in X     # since sqrt(2) is not a numerical approx
+            False
+	    sage: sqrt(RR(2)) in X # since sqrt(RR(2)) is a numerical approx
+	    True
             sage: 5/2 in X
             True
         """
@@ -1154,8 +1156,10 @@ class Set_object_symmetric_difference(Set_object):
             True
             sage: ComplexField().0 in X
             False
-            sage: sqrt(2) in X      # since sqrt(2) is currently a numerical approx.
-            True
+            sage: sqrt(2) in X      # since sqrt(2) is currently symbolic
+            False
+	    sage: sqrt(RR(2)) in X # since sqrt(RR(2)) is currently approximated
+	    True
             sage: pi in X
             False
             sage: 5/2 in X

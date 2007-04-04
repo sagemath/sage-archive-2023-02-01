@@ -260,7 +260,6 @@ class Constant_arith(Constant, Function_arith):
         Function_arith.__init__(self, x, y, op)
         Constant.__init__(self)
 
-
 class Pi(Constant):
     """
     The ratio of a circle's circumference to its diameter.
@@ -837,6 +836,7 @@ class UniversalPolynomialElement(Constant):
     A universal indeterminate.
 
     EXAMPLES:
+        sage: x = polygen(QQ)
         sage: x
         x
         sage: x.parent()

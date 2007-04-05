@@ -804,9 +804,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
            sage: x = 3^100000
-           sage: log(RR(x), 3)
+           sage: RR(log(RR(x), 3))
            100000.000000000
-           sage: log(RR(x + 100000), 3)
+           sage: RR(log(RR(x + 100000), 3))
            100000.000000000
 
            sage: x.exact_log(3)
@@ -1583,9 +1583,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: (-1).sqrt()
             1.00000000000000*I
             sage: sqrt(-2)
-            1.41421356237310*I
+			sqrt(2)*1.00000000000000*I
+            sage: sqrt(-2.0)
+			1.41421356237310*I
             sage: sqrt(97)
-            9.84885780179610
+			sqrt(97)
             sage: n = 97; n.sqrt(200)
             9.8488578017961047217462114149176244816961362874427641717232
         """
@@ -1842,7 +1844,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         mpz_clear(x)
         return ans
 
-    def gcd(self, Integer n):
+    def gcd(self, n):
         """
         Return the greatest common divisor of self and $n$.
 
@@ -1860,12 +1862,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         cdef mpz_t g
         cdef object g0
+        cdef Integer _n = Integer(n)
 
         mpz_init(g)
 
 
         _sig_on
-        mpz_gcd(g, self.value, n.value)
+        mpz_gcd(g, self.value, _n.value)
         _sig_off
 
         g0 = Integer()

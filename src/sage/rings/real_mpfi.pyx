@@ -2005,7 +2005,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(16.0); r.log10()
             [1.2041199826559245 ... 1.2041199826559248]
-            sage: r.log() / log(10)
+            sage: r.log() / log(10.0)
             [1.2041199826559245 ... 1.2041199826559251]
 
             sage: r = RIF(39.9); r.log10()
@@ -2420,7 +2420,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         But if we compute an interval that includes the number we mean,
         we're much more likely to get the right answer, even if the interval
         is very imprecise.
-            sage: r = r.union(sqrt(2))
+            sage: r = r.union(sqrt(2.0))
             sage: r.algdep(5)
             x^2 - 2
 

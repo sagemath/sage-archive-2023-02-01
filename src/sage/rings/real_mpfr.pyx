@@ -2056,7 +2056,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-             sage: r = sqrt(2); r
+             sage: r = sqrt(2.0); r
              1.41421356237310
              sage: r.algdep(5)
              x^2 - 2
@@ -2073,7 +2073,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
          ALGORITHM: Uses the PARI C-library algdep command.
 
          EXAMPLE:
-              sage: r = sqrt(2); r
+              sage: r = sqrt(2.0); r
               1.41421356237310
               sage: r.algdep(5)
               x^2 - 2

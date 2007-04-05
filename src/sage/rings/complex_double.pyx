@@ -94,12 +94,17 @@ PREC = 28
 
 from random import random
 
+from sage.structure.parent_gens import ParentWithGens
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     The field of complex double precision numbers.
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def __init__(self):
+        ParentWithGens.__init__(self, self, ('x',), normalize=False)
+
     def is_exact(self):
         return False
     def __richcmp__(left, right, int op):
@@ -723,7 +728,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293726
+			0.099425429372582586
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
@@ -1428,7 +1433,7 @@ cdef class ComplexDoubleElement(FieldElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-            sage: z = (1/2)*(1 + sqrt(3) *CDF.0); z
+            sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
             0.5 + 0.866025403784*I
             sage: p = z.algdep(5); p
             x^5 + x^2

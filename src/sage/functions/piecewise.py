@@ -613,10 +613,12 @@ class PiecewisePolynomial:
             conv2 = maxima.eval(cmd2)
             conv3 = maxima.eval(cmd3)
             conv4 = maxima.eval(cmd4)
-            fg1 = sage_eval(conv1.replace("tt",var)) ## should be = R2(conv1)
-            fg2 = sage_eval(conv2.replace("tt",var)) ## should be = R2(conv2)
-            fg3 = sage_eval(conv3.replace("tt",var)) ## should be = R2(conv3)
-            fg4 = sage_eval(conv4.replace("tt",var)) ## should be = R2(conv4)
+            # this is a very, very, very ugly hack
+            x = PolynomialRing(QQ,'x').gen()
+            fg1 = sage_eval(conv1.replace("tt",var), {'x':x}) ## should be = R2(conv1)
+            fg2 = sage_eval(conv2.replace("tt",var), {'x':x}) ## should be = R2(conv2)
+            fg3 = sage_eval(conv3.replace("tt",var), {'x':x}) ## should be = R2(conv3)
+            fg4 = sage_eval(conv4.replace("tt",var), {'x':x}) ## should be = R2(conv4)
             if a1-b1<a2-b2:
                 if a2+b1!=a1+b2:
                     h = Piecewise([[(a1+b1,a1+b2),fg1],[(a1+b2,a2+b1),fg4],[(a2+b1,a2+b2),fg3]])
@@ -666,7 +668,9 @@ class PiecewisePolynomial:
         x = R.gen()
         diffs = [maxima('%s'%p[1](x)).diff('x') \
                  for p in self.list()]
-        dlist = [[(p[0][0], p[0][1]), R(sage_eval(str(maxima('%s'%p[1](x)).diff('x')).replace("%","")))] for p in self.list()]
+        dlist = [[(p[0][0], p[0][1]),
+            R(sage_eval(str(maxima('%s'%p[1](x)).diff('x')).replace("%",""),
+                {'x':x}))] for p in self.list()]
         return Piecewise(dlist)
 
     def tangent_line(self,pt):

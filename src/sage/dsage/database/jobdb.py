@@ -230,7 +230,7 @@ class JobDatabaseZODB(JobDatabase):
                 # log.msg('[DB, store_job] Setting job_id to GLOBALS')
                 job_id = 'GLOBALS'
         elif isinstance(job, Job):
-            job_id = job.id
+            job_id = job.job_id
             if not isinstance(job_id, str):
                 job_id = self.get_next_job_id()
             job.update_time = datetime.datetime.now()
@@ -307,7 +307,7 @@ class JobDatabaseZODB(JobDatabase):
         for job_id, job in self.jobdb.iteritems():
             if job_id == 'GLOBALS': # Skip the GLOBALS job
                 continue
-            sorted_list.append((job.id, job))
+            sorted_list.append((job.job_id, job))
         sorted_list.sort()
 
         return [job[1] for job in sorted_list]
@@ -348,7 +348,7 @@ class JobDatabaseZODB(JobDatabase):
         """
 
         job_id = self.get_next_job_id()
-        job.id = job_id
+        job.job_id = job_id
 
         return self.store_job(job)
 
@@ -651,9 +651,9 @@ class DatabasePruner(object):
         for job in jobs:
             delta =  datetime.datetime.now() - job.update_time
             if delta > datetime.timedelta(self.jobdb.prune_in_days):
-                self.jobdb.remove_job(job.id)
+                self.jobdb.remove_job(job.job_id)
                 log.msg('[DatabasePruner, clean_old_jobs] Deleted job ',
-                        job.id)
+                        job.job_id)
 
     def clean_failed_jobs(self):
         r"""
@@ -665,7 +665,7 @@ class DatabasePruner(object):
 
         for job in jobs:
             if job.failures > self.jobdb.job_failure_threshold:
-                self.jobdb.remove_job(job.id)
+                self.jobdb.remove_job(job.job_id)
 
     def prune(self):
         self.clean_old_jobs()

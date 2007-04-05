@@ -258,7 +258,7 @@ class DSage(object):
         return wrapped_job
 
     def _got_job_id(self, id, job):
-        job.id = id
+        job.job_id = id
         job.username = self.username
 
         self.jobs.append(job)
@@ -619,7 +619,7 @@ class JobWrapper(object):
 
     def _got_jdict(self, jdict):
         self._job = expand_job(jdict)
-        self.id = jdict['job_id']
+        self.job_id = jdict['job_id']
         self._update_job(self._job)
 
     def get_job(self):
@@ -627,9 +627,9 @@ class JobWrapper(object):
 
         if self.remoteobj is None:
             raise NotConnectedException
-        if self.id is None:
+        if self.job_id is None:
             return
-        d = self.remoteobj.callRemote('get_job_by_id', self.id)
+        d = self.remoteobj.callRemote('get_job_by_id', self.job_id)
         d.addCallback(self._got_job)
         d.addErrback(self._catch_failure)
 
@@ -638,7 +638,7 @@ class JobWrapper(object):
     def get_job_output(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_output_by_id', self._job.id)
+        d = self.remoteobj.callRemote('get_job_output_by_id', self._job.job_id)
         d.addCallback(self._got_job_output)
         d.addErrback(self._catch_failure)
 
@@ -651,7 +651,7 @@ class JobWrapper(object):
     def get_job_result(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_result_by_id', self._job.id)
+        d = self.remoteobj.callRemote('get_job_result_by_id', self._job.job_id)
         d.addCallback(self._got_job_result)
         d.addErrback(self._catch_failure)
 
@@ -676,7 +676,7 @@ class JobWrapper(object):
             return
 
         try:
-            d = self.remoteobj.callRemote('sync_job', self._job.id)
+            d = self.remoteobj.callRemote('sync_job', self._job.job_id)
         except pb.DeadReferenceError:
             if self.sync_job_task:
                 if self.sync_job_task.running:
@@ -701,8 +701,8 @@ class JobWrapper(object):
 
         """
 
-        if self.id is not None:
-            d = self.remoteobj.callRemote('kill_job', self.id)
+        if self.job_id is not None:
+            d = self.remoteobj.callRemote('kill_job', self.job_id)
             d.addCallback(self._killed_job)
             d.addErrback(self._catch_failure)
             return d
@@ -747,7 +747,7 @@ class BlockingJobWrapper(JobWrapper):
         if self.status == 'completed':
             return
 
-        job = blocking_call_from_thread(self.remoteobj.callRemote, 'get_job_by_id', self._job.id)
+        job = blocking_call_from_thread(self.remoteobj.callRemote, 'get_job_by_id', self._job.job_id)
 
         self._update_job(expand_job(job))
 
@@ -761,7 +761,7 @@ class BlockingJobWrapper(JobWrapper):
         """
 
         job_id = blocking_call_from_thread(self.remoteobj.callRemote,
-                                           'kill_job', self._job.id)
+                                           'kill_job', self._job.job_id)
         return job_id
 
     def async_kill(self):
@@ -770,7 +770,7 @@ class BlockingJobWrapper(JobWrapper):
 
         """
 
-        d = self.remoteobj.callRemote('kill_job', self.id)
+        d = self.remoteobj.callRemote('kill_job', self.job_id)
         d.addCallback(self._killed_job)
         d.addErrback(self._catch_failure)
 

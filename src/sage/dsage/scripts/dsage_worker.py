@@ -143,12 +143,12 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
 
-        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id, self.job.name, self.job.id))
+        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id, self.job.name, self.job.job_id))
         try:
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
-            d = self.remoteobj.callRemote('job_failed', self.job.id, msg)
+            d = self.remoteobj.callRemote('job_failed', self.job.job_id, msg)
             d.addErrback(self._catch_failure)
             self.restart()
 
@@ -165,7 +165,7 @@ class Worker(object):
 
         try:
             d = self.remoteobj.callRemote('job_done',
-                                          self.job.id,
+                                          self.job.job_id,
                                           output,
                                           result,
                                           completed)
@@ -208,7 +208,7 @@ class Worker(object):
         # change to a temporary directory
         cur_dir = os.getcwd() # keep a reference to the current directory
         tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
-        tmp_job_dir = os.path.join(tmp_dir, job.id)
+        tmp_job_dir = os.path.join(tmp_dir, job.job_id)
         if not os.path.isdir(tmp_dir):
             os.mkdir(tmp_dir)
         os.mkdir(tmp_job_dir)
@@ -464,7 +464,7 @@ class Monitor(object):
             for job in killed_jobs:
                 if job is None or worker.job is None:
                     continue
-                if worker.job.id == job.id:
+                if worker.job.job_id == job.job_id:
                     log.msg('[Worker: %s] Processing a killed job, \
                             restarting...' % worker.id)
                     worker.restart()
@@ -587,7 +587,7 @@ class Monitor(object):
                         if LOG_LEVEL > 1:
                             log.msg(msg)
                         result = cPickle.dumps('Error in reading result.', 2)
-                log.msg("Job '%s' finished" % worker.job.id)
+                log.msg("Job '%s' finished" % worker.job.job_id)
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
@@ -595,12 +595,12 @@ class Monitor(object):
 
             if self.check_failure(sanitized_output):
                 s = ['[Monitor] Error in result for ',
-                     'job %s %s done by ' % (worker.job.name, worker.job.id),
+                     'job %s %s done by ' % (worker.job.name, worker.job.job_id),
                      'Worker %s' % (worker.id)
                      ]
                 log.msg(''.join(s))
                 log.msg('[Monitor] Traceback: \n%s' % sanitized_output)
-                d = self.remoteobj.callRemote('job_failed', worker.job.id, sanitized_output)
+                d = self.remoteobj.callRemote('job_failed', worker.job.job_id, sanitized_output)
                 d.addErrback(self._catch_failure)
                 continue
 

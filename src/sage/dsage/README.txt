@@ -127,7 +127,7 @@ USAGE
             Note that job id is a integer.  If you do not remember the job
             id, you can simply type:
 
-                print job.result.job.id
+                print job.result.job.job_id
 
             This will print out the id of the job you submitted.  Also, the
             DSageInterface() object will keep a list of jobs you have

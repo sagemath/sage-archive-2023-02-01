@@ -63,7 +63,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
 
         job = self.jobdb.get_job()
         self.assertEquals(type(job), Job)
-        job_id = job.id
+        job_id = job.job_id
         self.assertEquals(self.jobdb.remove_job(job_id), job_id)
         self.assertRaises(KeyError, self.jobdb.remove_job, job_id)
 
@@ -175,7 +175,7 @@ class DatabasePrunerTestCase(unittest.TestCase):
             job.update_time -= datetime.timedelta(10)
             # directly accessing the database because store_job
             # automatically updates the update_time
-            self.jobdb.jobdb[job.id] = job
+            self.jobdb.jobdb[job.job_id] = job
 
         self.pruner.clean_old_jobs()
 

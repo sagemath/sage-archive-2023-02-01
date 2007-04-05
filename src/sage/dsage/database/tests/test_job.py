@@ -34,7 +34,7 @@ class JobTestCase(unittest.TestCase):
 
     def testjob_id(self):
         job = Job()
-        self.assertRaises(TypeError, job.id, 5)
+        self.assertRaises(TypeError, job.job_id, 5)
 
     def testjobFile(self):
         job = Job()

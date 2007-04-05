@@ -103,7 +103,7 @@ class Job(Persistent):
         if not isinstance(value, str):
             raise TypeError
         self.jdict['job_id'] = value
-    id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
+    job_id = property(fget=get_id, fset=set_id, fdel=None, doc='Job ID')
 
     def get_status(self):
         return self.jdict['status']
@@ -329,6 +329,6 @@ def expand_job(jdict):
     except:
         jdict['data'] = None
     # swap the jdicts, easy eh?
-    job.jdict = jdict
+    job.jdict.update(jdict)
 
     return job

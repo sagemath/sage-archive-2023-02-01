@@ -141,7 +141,7 @@ class DSageServerTestCase(unittest.TestCase):
         result = 'done'
         output = 'done '
         completed = True
-        jdict = self.dsage_server.job_done(job.id, output, result, completed)
+        jdict = self.dsage_server.job_done(job.job_id, output, result, completed)
         job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
         self.assertEquals(job.output, output)
         self.assertEquals(job.result, result)
@@ -151,26 +151,26 @@ class DSageServerTestCase(unittest.TestCase):
         result = ['testing', '123']
         output = 'testing'
         completed = False
-        jdict = self.dsage_server.job_done(job.id, output, result, completed)
+        jdict = self.dsage_server.job_done(job.job_id, output, result, completed)
         job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
         self.assert_(isinstance(job.output, str))
         self.assert_(job.status != 'completed')
 
     def testjob_failed(self):
         job = expand_job(self.dsage_server.get_job())
-        self.dsage_server.job_failed(job.id, 'Failure')
-        job = expand_job(self.dsage_server.get_job_by_id(job.id))
+        self.dsage_server.job_failed(job.job_id, 'Failure')
+        job = expand_job(self.dsage_server.get_job_by_id(job.job_id))
         self.assertEquals(job.failures, 1)
         self.assertEquals(job.output, 'Failure')
-        self.dsage_server.job_failed(job.id, 'Another Failure')
-        job = expand_job(self.dsage_server.get_job_by_id(job.id))
+        self.dsage_server.job_failed(job.job_id, 'Another Failure')
+        job = expand_job(self.dsage_server.get_job_by_id(job.job_id))
         self.assertEquals(job.failures, 2)
         self.assertEquals(job.output, 'Another Failure')
 
     def testkill_job(self):
         job = expand_job(self.dsage_server.get_job())
         reason = 'test'
-        id = self.dsage_server.kill_job(job.id, reason)
+        id = self.dsage_server.kill_job(job.job_id, reason)
         job = expand_job(self.dsage_server.get_job_by_id(id))
         self.assertEquals(job.killed, True)
 

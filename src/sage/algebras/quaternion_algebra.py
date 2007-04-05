@@ -2,6 +2,15 @@
 Quaternion algebras
 
 AUTHOR: David Kohel, 2005-09
+
+TESTS:
+    sage: A = QuaternionAlgebra(QQ, -1,-1, names=list('ijk'))
+    sage: A == loads(dumps(A))
+    True
+    sage: i, j, k = A.gens()
+    sage: i == loads(dumps(i))
+    True
+
 """
 
 #*****************************************************************************

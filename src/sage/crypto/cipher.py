@@ -27,6 +27,9 @@ class Cipher(Element):
 	self._parent = parent
 	self._key = key
 
+    def __eq__(self, right):
+        return type(self) == type(right) and self._parent == right._parent and self._key == right._key
+
     def __repr__(self):
 	return str(self._key)
 

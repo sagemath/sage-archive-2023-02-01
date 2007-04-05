@@ -43,6 +43,11 @@ class RingHomset_generic(HomsetWithBase):
             Traceback (most recent call last):
             ...
             TypeError: images do not define a valid homomorphism
+
+        TESTS:
+            sage: H = Hom(ZZ, QQ)
+            sage: H == loads(dumps(H))
+            True
         """
         try:
             return morphism.RingHomomorphism_im_gens(self, im_gens, check=check)
@@ -68,6 +73,14 @@ class RingHomset_quo_ring(RingHomset_generic):
         b
         sage: phi(b)
         a
+
+    TESTS:
+        sage: R.<x,y> = PolynomialRing(QQ, 2)
+        sage: S.<a,b> = R.quotient(x^2 + y^2)
+        sage: phi = S.hom([b,a])
+        sage: phi == loads(dumps(phi))
+        True
+
     """
     def __call__(self, im_gens, check=True):
         try:

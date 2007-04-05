@@ -115,6 +115,16 @@ If we try to subtract infinities or multiply infinity by zero we still get an er
     Traceback (most recent call last):
     ...
     SignError: cannot add positive finite value to negative finite value
+
+TESTS:
+    sage: P = InfinityRing
+    sage: P == loads(dumps(P))
+    True
+
+    sage: P(2) == loads(dumps(P(2)))
+    True
+
+
 """
 
 from sage.rings.ring_element import RingElement

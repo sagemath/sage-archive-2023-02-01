@@ -12,12 +12,32 @@ Quotienting is a constructor for an element of the fraction field:
     sage: parent((x^2-1)/(x+1))
     Fraction Field of Univariate Polynomial Ring in x over Rational Field
 
+
 The GCD is not taken (since it doesn't converge sometimes) in the inexact case.
     sage: Z.<z>=CC[]
     sage: (1+I+z)/(z+0.1*I)
     (1.00000000000000*z + 1.00000000000000 + 1.00000000000000*I)/(1.00000000000000*z + 0.100000000000000*I)
     sage: (1+I*z)/(z+1.1)
     (1.00000000000000*I*z + 1.00000000000000)/(1.00000000000000*z + 1.10000000000000)
+
+
+TESTS:
+    sage: F = FractionField(IntegerRing())
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(PolynomialRing(RationalField(),'x'))
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(PolynomialRing(IntegerRing(),'x'))
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FractionField(MPolynomialRing(RationalField(),2,'x'))
+    sage: F == loads(dumps(F))
+    True
+
 """
 
 #*****************************************************************************

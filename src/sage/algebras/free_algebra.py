@@ -12,6 +12,28 @@ EXAMPLES:
     Free Algebra on 2 generators (m, n) over Free Algebra on 3 generators (x, y, z) over Integer Ring
     sage: G.base_ring()
     Free Algebra on 3 generators (x, y, z) over Integer Ring
+
+TESTS:
+    sage: F = FreeAlgebra(GF(5),3,'x')
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F.<x,y,z> = FreeAlgebra(GF(5),3)
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(GF(5),3, ['xx', 'zba', 'Y'])
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(GF(5),3, 'abc')
+    sage: F == loads(dumps(F))
+    True
+
+    sage: F = FreeAlgebra(FreeAlgebra(ZZ,1,'a'), 2, 'x')
+    sage: F == loads(dumps(F))
+    True
+
 """
 
 #*****************************************************************************
@@ -197,13 +219,13 @@ class FreeAlgebra_generic(Algebra):
             P = x.parent()
             if P is self:
                 return x
-            if not (P == self.base_ring()):
+            if not (P is self.base_ring()):
                 return FreeAlgebraElement(self, x)
         # ok, not a free algebra element (or should not be viewed as one).
         F = self.__monoid
         R = self.base_ring()
         # coercion from free monoid
-        if isinstance(x, FreeMonoidElement) and x.parent() == F:
+        if isinstance(x, FreeMonoidElement) and x.parent() is F:
             return FreeAlgebraElement(self,{x:R(1)})
         # coercion via base ring
         x = R(x)
@@ -267,7 +289,7 @@ class FreeAlgebra_generic(Algebra):
             R = x.parent()
 
             # monoid
-            if R == self.__monoid:
+            if R is self.__monoid:
                 return self(x)
 
             # polynomial rings in the same variable over any base that coerces in:

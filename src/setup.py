@@ -175,6 +175,13 @@ linbox = Extension('sage.libs.linbox.linbox',
                    libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
 
+libsingular = Extension('sage.libs.singular.singular',
+                        sources = ['sage/libs/singular/singular.pyx'],
+                        libraries = ['gmp', 'm', 'singular'],
+                        language="c++",
+                        )
+
+
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
                               libraries = ['gmp'])
@@ -364,6 +371,8 @@ ext_modules = [ \
      matrix_mod2_dense,
      givaro_gfq, \
 
+     libsingular, \
+
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,
@@ -422,6 +431,12 @@ ext_modules = [ \
 
     Extension('sage.rings.multi_polynomial_ring_generic',
               sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_libsingular',
+              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'singular'],
+              language="c++",
               ), \
 
     Extension('sage.groups.group',
@@ -838,7 +853,7 @@ setup(name        = 'sage',
                      'sage.libs.ntl',
                      'sage.libs.ec',
                      'sage.libs.pari',
-                     'sage.libs.cf',
+                     'sage.libs.singular',
 
                      'sage.matrix',
 

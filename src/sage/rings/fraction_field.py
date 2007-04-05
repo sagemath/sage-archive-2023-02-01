@@ -3,6 +3,21 @@ Fraction Field of Integral Domains
 
 AUTHOR: William Stein (with input from David Joyner, David Kohel, and
         Joe Wetherell)
+
+EXAMPLES:
+Quotienting is a constructor for an element of the fraction field:
+    sage: R.<x> = QQ[]
+    sage: (x^2-1)/(x+1)
+    x - 1
+    sage: parent((x^2-1)/(x+1))
+    Fraction Field of Univariate Polynomial Ring in x over Rational Field
+
+The GCD is not taken (since it doesn't converge sometimes) in the inexact case.
+    sage: Z.<z>=CC[]
+    sage: (1+I+z)/(z+0.1*I)
+    (1.00000000000000*z + 1.00000000000000 + 1.00000000000000*I)/(1.00000000000000*z + 0.100000000000000*I)
+    sage: (1+I*z)/(z+1.1)
+    (1.00000000000000*I*z + 1.00000000000000)/(1.00000000000000*z + 1.10000000000000)
 """
 
 #*****************************************************************************
@@ -158,7 +173,22 @@ class FractionField_generic(field.Field):
         if coerce:
             R = self.ring()
             x = R(x); y = R(y)
-        return fraction_field_element.FractionFieldElement(self, x, y, coerce=False)
+        return fraction_field_element.FractionFieldElement(self, x, y,
+                                            coerce=False, reduce = self.is_exact())
+
+    def is_exact(self):
+        """
+        EXAMPLES:
+            sage: Z.<z>=CC[]
+            sage: Z.is_exact()
+            False
+        """
+        try:
+            return self.__is_exact
+        except AttributeError:
+            r = self.ring().is_exact()
+            self.__is_exact = r
+        return r
 
     def _coerce_impl(self, x):
         """

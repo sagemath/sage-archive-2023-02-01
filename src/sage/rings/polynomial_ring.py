@@ -435,6 +435,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return True
         return False
 
+    def is_exact(self):
+        return self.base_ring().is_exact()
+
     def is_field(self):
         """
         Return False, since polynomial rings are never fields.

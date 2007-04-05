@@ -249,6 +249,9 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         return dict([(str(g),g) for g in self.gens()])
 
 
+    def is_exact(self):
+        return self.base_ring().is_exact()
+
     def is_finite(self):
         if self.ngens() == 0:
             return self.base_ring().is_finite()

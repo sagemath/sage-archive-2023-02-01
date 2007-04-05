@@ -77,6 +77,15 @@ class Job(Persistent):
     def __str__(self):
         return str(self.jdict)
 
+    def __setattr__(self, name, value):
+        if name == 'jdict':
+            if not self.__dict__.has_key('jdict'):
+                self.__dict__[name] = value
+            else:
+                raise ValueError, 'Do not reassign Job.jdict.'
+        else:
+            Persistent.__setattr__(self, name, value)
+
     def num_of_children(self):
         return len(self.jdict['children'])
 

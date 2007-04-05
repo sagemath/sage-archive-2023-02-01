@@ -416,6 +416,14 @@ ext_modules = [ \
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
 
+    Extension('sage.rings.multi_polynomial',
+              sources = ['sage/rings/multi_polynomial.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_ring_generic',
+              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+              ), \
+
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
 

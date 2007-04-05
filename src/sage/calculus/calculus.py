@@ -448,11 +448,11 @@ class SymbolicExpression(RingElement):
     def integral(self, v=None, a=None, b=None):
         """
 
-        Returns the definite integral with respect to the variable $v$, ignoring
-        the constant of integration. Or, if endpoints $a$ and $b$ are specified,
-        returns the definite integral over the interval $[a, b]$. If \code{self}
-        has only one variable, then it returns the integral with respect to that
-        variable.
+        Returns the indefinite integral with respect to the variable
+        $v$, ignoring the constant of integration. Or, if endpoints
+        $a$ and $b$ are specified, returns the definite integral over
+        the interval $[a, b]$. If \code{self} has only one variable,
+        then it returns the integral with respect to that variable.
 
         EXAMPLES:
             sage: h = sin(x)/(cos(x))^2

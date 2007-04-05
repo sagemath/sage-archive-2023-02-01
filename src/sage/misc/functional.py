@@ -413,7 +413,7 @@ def imaginary(x):
     """
     return imag(x)
 
-def integral(x, var=None, algorithm='maxima'):
+def integral(x, *args, **kwds):
     """
     Return an indefinite integral of an object x.
 
@@ -425,21 +425,20 @@ def integral(x, var=None, algorithm='maxima'):
         sage: f = cyclotomic_polynomial(10)
         sage: integral(f)
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+        sage: integral(sin(x),x)
+        -cos(x)
+        sage: integral(sin(x),y)
+        sin(x)*y
+        sage: integral(sin(x), x, 0, pi/2)
+        1
+        sage: sin(x).integral(x, 0,pi/2)
+        1
     """
-    if var is None:
-        try:
-            return x.integral()
-        except AttributeError:
-            pass
-    import sage.interfaces.all as I
-    if var is None:
-        var = 'x'
-    if algorithm == 'maxima':
-        return I.maxima(x).integrate(var)
-    elif algorithm == 'mathematica':
-        return I.mathematica(x).Integrate(var)
+    if hasattr(x, 'integral'):
+        return x.integral(*args, **kwds)
     else:
-        raise ValueError, 'no algorithm %s'%algorithm
+        from sage.calculus.calculus import SER
+        return SER(x).integral(*args, **kwds)
 
 def integral_closure(x):
     return x.integral_closure()

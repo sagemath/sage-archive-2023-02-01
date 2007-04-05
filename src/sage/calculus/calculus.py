@@ -107,13 +107,14 @@ EXAMPLES:
         5*sin(2)
         sage: f(pi)
         0
-        sage: float(f(pi))
+        sage: float(f(pi))             # random low order bits
         6.1232339957367663e-16
 """
 
 
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
+                            is_MPolynomial,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC)
 
@@ -174,7 +175,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
             return x
         elif isinstance(x, MaximaElement):
             return symbolic_expression_from_maxima_element(x)
-        elif is_Polynomial(x):
+        elif is_Polynomial(x) or is_MPolynomial(x):
             return SymbolicPolynomial(x)
         elif isinstance(x, (RealNumber,
                             RealDoubleElement,
@@ -470,7 +471,8 @@ class SymbolicExpression(RingElement):
             if len(vars) == 1:
                 v = list(vars)[0]
         if not isinstance(v, SymbolicVariable):
-            raise TypeError, 'must integrate with respect to a variable'
+            v = var(str(v))
+            #raise TypeError, 'must integrate with respect to a variable'
         if (a is None and (not b is None)) or (b is None and (not a is None)):
             raise TypeError, 'only one endpoint given'
         if a is None:
@@ -562,7 +564,7 @@ class SymbolicExpression(RingElement):
             sin(2)^2 + 1024
 
             sage: f(x=pi, y=t)
-            32*(pi)^(t/2)
+            32*pi^(t/2)
 
             sage: f = 2*x^2 - sin(x)
             sage: f(pi)
@@ -591,27 +593,7 @@ class SymbolicExpression(RingElement):
         return self._recursive_sub(kwds)
 
     def _recursive_sub(self, kwds):
-        # if we have operands, call ourself on each operand
-        try:
-            ops = self._operands
-        except AttributeError:
-            pass
-        # if we are a symbolic variable, we're at a leaf node
-        if isinstance(self, SymbolicVariable):
-            s = str(self)
-            # do the replacement if needed
-            if s in kwds:
-                return kwds[s]
-            else:
-                return self
-        elif isinstance(self, SymbolicConstant):
-            return self
-        elif isinstance(self, SymbolicArithmetic):
-            new_ops = [op._recursive_sub(kwds) for op in ops]
-            arith = SymbolicArithmetic(new_ops, self._operator)
-            return  arith._operator(*(arith._operands))
-        elif isinstance(self, SymbolicComposition):
-            return ops[0](ops[1]._recursive_sub(kwds))
+        raise NotImplementedError, "implement _recursive_sub for type '%s'!"%(type(self))
 
 class CallableFunction(RingElement):
     r"""
@@ -928,16 +910,84 @@ class SymbolicConstant(Symbolic_object):
         else:
             self._atomic = True
 
+    def _recursive_sub(self, kwds):
+        """
+        EXAMPLES:
+            sage: a = SER(5/6)
+            sage: type(a)
+            <class 'sage.calculus.calculus.SymbolicConstant'>
+            sage: a(x=3)
+            5/6
+        """
+        return self
+
     def _is_atomic(self):
         return self._atomic
 
-class SymbolicPolynomial(Symbolic_object):
-    "An element of a polynomial ring as a formal symbolic expression."
 
+class SymbolicPolynomial(Symbolic_object):
+    """
+    An element of a polynomial ring as a formal symbolic expression.
+
+    EXAMPLES:
+    A single variate polynomial:
+        sage: R.<x> = QQ[]
+        sage: f = SER(x^3 + x)
+        sage: f(y=7)
+        x^3 + x
+        sage: f(x=5)
+        130
+        sage: f.integral(x)
+        x^4/4 + x^2/2
+        sage: f(x=y)
+        y*(y^2 + 1)
+
+    A multivariate polynomial:
+
+        sage: R.<x,y,theta> = ZZ[]
+        sage: f = SER(x^3 + x + y + theta^2); f
+        theta^2 + y + x + x^3
+        sage: f(x=y, theta=y)
+        2*y + y^2 + y^3
+        sage: f(x=5)
+        130 + theta^2 + y
+
+    The polynomial must be over a field of characteristic 0.
+        sage: R.<w> = GF(7)[]
+        sage: f = SER(w^3 + 1)
+        Traceback (most recent call last):
+        ...
+        TypeError: polynomial must be over a field of characteristic 0.
+    """
     # for now we do nothing except pass the info on to the superconstructor. It's
     # not clear to me why we need anything else in this class -Bobby
     def __init__(self, p):
-       Symbolic_object.__init__(self, p)
+        if p.parent().base_ring().characteristic() != 0:
+            raise TypeError, "polynomial must be over a field of characteristic 0."
+        Symbolic_object.__init__(self, p)
+
+    def _recursive_sub(self, kwds):
+        f = self._obj
+        if is_Polynomial(f):
+            # Single variable case
+            v = f.parent().variable_name()
+            if kwds.has_key(v):
+                return SER(f(kwds[v]))
+            else:
+                return self
+        else:
+            # Multivariable case
+            t = []
+            for g in f.parent().gens():
+                s = str(g)
+                if kwds.has_key(s):
+                    t.append(kwds[s])
+                else:
+                    t.append(g)
+            return SER(f(*t))
+
+##################################################################
+
 
 zero_constant = SymbolicConstant(Integer(0))
 
@@ -967,7 +1017,6 @@ class SymbolicArithmetic(SymbolicOperation):
     Represents the result of an arithemtic operation on
     $f$ and $g$.
     """
-
     def __init__(self, operands, op):
         SymbolicOperation.__init__(self, operands)
 
@@ -986,6 +1035,16 @@ class SymbolicArithmetic(SymbolicOperation):
 
         self._operator = op
 
+    def _recursive_sub(self, kwds):
+        """
+        EXAMPLES:
+            sage: ???
+        """
+        ops = self._operands
+        new_ops = [op._recursive_sub(kwds) for op in ops]
+        arith = SymbolicArithmetic(new_ops, self._operator)
+        return  arith._operator(*(arith._operands))
+
     def __float__(self):
         fops = [float(op) for op in self._operands]
         return self._operator(*fops)
@@ -998,12 +1057,49 @@ class SymbolicArithmetic(SymbolicOperation):
         return self._atomic
 
     def _repr_(self):
+        """
+        TESTS:
+            sage: a = (1-1/r)^(-1); a
+            1/(1 - (1/r))
+            sage: a.derivative(r)
+            -1/((1 - (1/r))^2*r^2)
+        """
         if not self.is_simplified():
             return self.simplify()._repr_()
         ops = self._operands
         op = self._operator
 
+        if False:
+            if op is operator.neg:
+                return '-%s' % s[0]
+            # The default is to parenthesize
+            sl = str(ops[0])
+            sr = str(ops[1])
+            paren_left = True
+            paren_right = True
+
+            if not ('+' in sl or '-' in sl or '/' in sl or '^' in sl):
+                paren_left = False
+            if not ('+' in sr or '-' in sr or '/' in sr or '^' in sr):
+                paren_right = False
+
+
+            if paren_left:
+                left = '(%s)'%sl
+            else:
+                left = sl
+            if paren_right:
+                right = '(%s)'%sr
+            else:
+                right = sr
+            return '%s%s%s'%(left,symbols[op], right)
+
+        ###############
+        # old and slightly broken code
+        ###############
+
         s = [str(o) for o in ops]
+
         # for the left operand, we need to surround it in parens when the
         # operator is mul/div/pow, and when the left operand contains an
         # operation of lower precedence
@@ -1023,24 +1119,19 @@ class SymbolicArithmetic(SymbolicOperation):
                 except AttributeError:
                     pass
 
-        # for the right operand, we need to surround it in parens when the
-        # operation is mul/div/sub and the, and when the right operand contains
-        # a + or -.
+        # for the right operand, we need to surround it in parens when
+        # the operation is mul/div/sub, and when the right operand
+        # contains a + or -.
         if op in [operator.mul, operator.div, operator.sub]:
                 # avoid drawing parens if s1 an atomic operation
                 if not ops[1]._is_atomic():
                     s[1] = '(%s)' % s[1]
-        # if we have a compound expression on the right, then we need parens on
-        # the right... but in TeX, this is expressed by font size and position
+
         elif op is operator.pow:
-            if isinstance(ops[1], SymbolicArithmetic):
-            #if ops[1]._has_op(operator.add) or  \
-            #ops[1]._has_op(operator.sub) or  \
-            #ops[1]._has_op(operator.mul) or  \
-            #ops[1]._has_op(operator.div) or  \
-            #ops[1]._has_op(operator.pow):
-                s[0] = '(%s)' % s[0]
-                s[1] = '(%s)' % s[1]
+            if not ops[0]._is_atomic():
+                s[0] = '(%s)'% s[0]
+            if not ops[1]._is_atomic():
+                s[1] = '(%s)'% s[1]
         if op is operator.neg:
             return '-%s' % s[0]
         else:
@@ -1096,6 +1187,14 @@ class SymbolicVariable(SymbolicExpression):
         self._name = name
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
+
+    def _recursive_sub(self, kwds):
+        s = str(self)
+        # do the replacement if needed
+        if s in kwds:
+            return kwds[s]
+        else:
+            return self
 
     def _get_vars(self, vars=None):
         if vars is None:
@@ -1174,7 +1273,9 @@ def tex_varify(a):
 
 _vars = {}
 def var(s):
-    r""" Create a symbolic variable with the name \emph{s}"""
+    r"""
+    Create a symbolic variable with the name \emph{s}.
+    """
     try:
         return _vars[s]
     except KeyError:
@@ -1205,6 +1306,16 @@ class SymbolicComposition(SymbolicOperation):
     """
     def __init__(self, f, g):
         SymbolicOperation.__init__(self, [f,g])
+
+    def _recursive_sub(self, kwds):
+        """
+        EXAMPLES:
+            sage: ??
+
+
+        """
+        ops = self._operands
+        return ops[0](ops[1]._recursive_sub(kwds))
 
     def _is_atomic(self):
         return True
@@ -1300,11 +1411,51 @@ class Function_erf(PrimitiveFunction):
 erf = Function_erf()
 _syms['erf'] = erf
 
+class Function_abs(PrimitiveFunction):
+    """
+    The absolute value function.
+
+    EXAMPLES:
+        sage: abs(x)
+        abs(x)
+        sage: abs(x^2 + y^2)
+        y^2 + x^2
+        sage: abs(-2)
+        2
+        sage: sqrt(x^2)
+        abs(x)
+        sage: abs(sqrt(x))
+        sqrt(x)
+    """
+    def _repr_(self):
+        return "abs"
+
+    def _latex_(self):
+        return "\\abs"
+
+    def _is_atomic(self):
+        return True
+
+    def _approx_(self, x):
+        return x.__abs__()
+
+    def __call__(self, x):
+        try:
+            return x.__abs__()
+        except (AttributeError, TypeError):
+            return SymbolicComposition(self, x)
+
+abs = Function_abs()
+_syms['abs'] = abs
+
 class Function_sin(PrimitiveFunction):
     """
     The sine function
-    """
 
+    EXAMPLES:
+        sage: ???
+
+    """
     def _repr_(self):
         return "sin"
 
@@ -1358,14 +1509,15 @@ class Function_sec(PrimitiveFunction):
     """
     The secant function
 
-    sage: sec(pi/4)
-    sqrt(2)
-    sage: RR(sec(pi/4))
-    1.414213562373094
-    sage: sec(1/2)
-    sec(1/2)
-    sage: sec(0.5)
-    1.139493927324549
+    EXAMPLES:
+        sage: sec(pi/4)
+        sqrt(2)
+        sage: RR(sec(pi/4))
+        1.414213562373094
+        sage: sec(1/2)
+        sec(1/2)
+        sage: sec(0.5)
+        1.139493927324549
     """
     def _repr_(self):
         return "sec"
@@ -1535,23 +1687,23 @@ class Function_log(PrimitiveFunction):
     The log funtion.
 
     EXAMPLES:
-    sage: log(e^2)
-    2
-    sage: log(1024, 2) # the following is ugly (for now)
-    log(1024)/log(2)
-    sage: log(10, 4)
-    log(10)/log(4)
-    sage: log(1024.0, 2.0)
-    10.0000000000000
+        sage: log(e^2)
+        2
+        sage: log(1024, 2) # the following is ugly (for now)
+        log(1024)/log(2)
+        sage: log(10, 4)
+        log(10)/log(4)
+        sage: log(1024.0, 2.0)
+        10.0000000000000
 
-    sage: RDF(log(10,2))
-    3.32192809489
-    sage: RDF(log(8, 2))
-    3.0
-    sage: log(RDF(10))
-    2.30258509299
-    sage: log(2.718)
-    0.999896315728952
+        sage: RDF(log(10,2))
+        3.32192809489
+        sage: RDF(log(8, 2))
+        3.0
+        sage: log(RDF(10))
+        2.30258509299
+        sage: log(2.718)
+        0.999896315728952
     """
     def __init__(self, base=None):
         self._base = base
@@ -1609,7 +1761,15 @@ _syms['log'] = log
 
 class Function_sqrt(PrimitiveFunction):
     """
-    The (positive) square root function.
+    The square root function.
+
+    EXAMPLES:
+        sage: sqrt(-1)
+        1.00000000000000*I
+        sage: sqrt(2)
+        sqrt(2)
+        sage: sqrt(x^2)
+        abs(x)
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)

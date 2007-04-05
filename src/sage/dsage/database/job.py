@@ -337,7 +337,6 @@ def expand_job(jdict):
         jdict['data'] = cPickle.loads(jdict['data'])
     except:
         jdict['data'] = None
-    # swap the jdicts, easy eh?
     job.jdict.update(jdict)
 
     return job

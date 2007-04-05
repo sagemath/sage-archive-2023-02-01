@@ -14,6 +14,7 @@
 #  The full text of the GPL is available at:
 #
 #                  http://www.gnu.org/licenses/
+#
 ############################################################################
 
 import datetime
@@ -154,6 +155,14 @@ class DistributedFunction(object):
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
         self.checker_task = blocking_call_from_thread(task.LoopingCall, self.check_results)
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
+
+    def process_result(self):
+        r"""
+        Any class subclassing DistributedFunction should implement this method.
+
+        """
+
+        pass
 
     def check_results(self):
         from twisted.internet import reactor

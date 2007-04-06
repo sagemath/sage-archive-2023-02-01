@@ -281,7 +281,7 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
                 self._relprecs_mat[i][i] = xrprec
             self._initialized = True
 
-    cdef _comp_valaddeds(self):
+    cdef void _comp_valaddeds(self):
         cdef Py_ssize_t i, j
         cdef int n
         cdef Integer p
@@ -295,16 +295,16 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
     cdef void _adjust_prec_info_global(self, RingElement absolute, RingElement relative):
         pass
 
-    cdef void _adjust_prec_info_global_local(self, RingElement absolute, object relative):
+    cdef void _adjust_prec_info_global_local(self, RingElement absolute, object relative, coerce):
         pass
 
-    cdef void _adjust_prec_info_local_global(self, object absolute, RingElement relative):
+    cdef void _adjust_prec_info_local_global(self, object absolute, RingElement relative, coerce):
         pass
 
-    cdef void _adjust_prec_info_local_local(self, object absolute, object relative):
+    cdef void _adjust_prec_info_local_local(self, object absolute, object relative, coerce):
         pass
 
-    def _zero_out_matrix(val = None, precs = True):
+    def _zero_out_matrix(self, val = None, precs = True):
         self._value_matrix._zero_out_matrix() #this may have been done already...
         if val is None:
             self._valbase = Integer(0)
@@ -351,7 +351,7 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
             c = <Integer> PyTuple_GET_ITEM(value, 1) # precision above self._valbase
             self._value_matrix.set_unsafe(i, j, a)
             self._value_matrix.reduce_entry_unsafe(i, j, self._base_ring.prime_pow(c))
-            mpz_set(self._relprec_mat[i][j].value, c.value)
+            self._relprec_mat[i][j] =  mpz_get_ui(c.value)
         else:
             #d = self._base_ring(value)
             a = <Integer> d._unit_part().lift()
@@ -386,7 +386,7 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
 
     cdef get_unsafe(self, Py_ssize_t i, Py_ssize_t j):
         cdef int n
-        cdef Integer m
+        cdef Integer m, relprec
         n = i * self._ncols + j
         if self._padic_values.has_key(n):
             return self._padic_values[n]
@@ -395,7 +395,8 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
         if not self._valaddeds.has_key(n):
             m = self._value_matrix.get_unsafe(i, j)
             self._valaddeds[n] = m.valuation()
-        return pAdicCappedRelativeElement(self._base_ring, (self._valbase + self._valaddeds[n], Mod(self._value_matrix.get_unsafe(i, j) // self._base_ring.prime_pow(self._valaddeds[n]), self._base_ring.prime_pow(self._relprecs[n] - self._valaddeds[n])), self._relprecs[n] - self._valaddeds[n]), construct = True)
+        relprec = self._relprecs[n] - self._valaddeds[n]
+        return pAdicCappedRelativeElement(self._base_ring, (self._valbase + self._valaddeds[n], Mod(self._value_matrix.get_unsafe(i, j) // self._base_ring.prime_pow(self._valaddeds[n]), self._base_ring.prime_pow(relprec)), relprec), construct = True)
 
     ########################################################################
     # LEVEL 2 functionality

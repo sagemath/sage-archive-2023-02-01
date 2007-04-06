@@ -20,7 +20,7 @@ cdef class Matrix_generic_dense(Matrix_dense):
     cdef object _valaddeds
     cdef object _padic_values
 
-    cdef _comp_valaddeds(self)
+    cdef void _comp_valaddeds(self)
     cdef void _adjust_prec_info_global(self, RingElement absolute, RingElement relative)
     cdef void _adjust_prec_info_global_local(self, RingElement absolute, object relative)
     cdef void _adjust_prec_info_local_global(self, object absolute, RingElement relative)

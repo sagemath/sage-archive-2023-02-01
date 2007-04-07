@@ -357,7 +357,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: parent(a)
             Real Double Field
         """
-        return RDF
+        return self._parent
 
     def __repr__(self):
         """
@@ -371,11 +371,18 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self.str()
 
-    def _latex_(self):  # todo -- this is terrible if sci not.
-        return self.str()
+    def _latex_(self):
+        s = self.str()
+        parts = s.split('e')
+        if len(parts) > 1:
+            # scientific notation
+            if parts[1][0] == '+':
+                parts[1] = parts[1][1:]
+            s = "%s \\times 10^{%s}" % (parts[0], parts[1])
+        return s
 
     def __hash__(self):
-        return hash(self.str())
+        return hash(float(self))
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -416,9 +423,6 @@ cdef class RealDoubleElement(FieldElement):
             True
         """
         return self
-        #cdef RealDoubleElement z
-        #z = RealDoubleElement(self._value)
-        #return z
 
     def integer_part(self):
         """
@@ -723,7 +727,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r.sqrt()
             1.41421356237*I
             """
-        if self >= 0:
+        if self._value >= 0:
             return self.square_root()
         return self._complex_double_().sqrt()
 
@@ -793,7 +797,7 @@ cdef class RealDoubleElement(FieldElement):
         return x
 
     def __pow(self, RealDoubleElement exponent):
-        return self._new_c(self._value**exponent._value)
+        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent._value))
 
     def __pow_int(self, int exponent):
         return self._new_c(gsl_pow_int(self._value, exponent))
@@ -816,9 +820,11 @@ cdef class RealDoubleElement(FieldElement):
             1.29711148178
         """
         cdef RealDoubleElement x
-        if isinstance(self, RealDoubleElement):
+        if PY_TYPE_CHECK(self, RealDoubleElement):
             return self.__pow(RealDoubleElement(exponent))
-        if isinstance(exponent, (int,Integer)):
+        elif PY_TYPE_CHECK(exponent, int):
+            return self.__pow_int(exponent)
+        elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
             return self.__pow_int(int(exponent))
         elif not isinstance(exponent, RealDoubleElement):
             x = RealDoubleElement(exponent)
@@ -1013,6 +1019,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(gsl_sf_sin(self._value))
 
+    def restrict_angle(self):
+        return self._new_c(gsl_sf_angle_restrict_symm(self._value))
+
     def tan(self):
         """
         Returns the tangent of this number
@@ -1025,9 +1034,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.tan()
             0.57735026919
         """
-        _sig_on
-        a = self._new_c(tan(self._value))
-        _sig_off
+        cdef double denom
+        cos = gsl_sf_cos(self._value)
+        if cos == 0:
+            return self._new_c(NAN)
+        a = self._new_c(gsl_sf_sin(self._value) / cos)
         return a
 
     def sincos(self):
@@ -1093,7 +1104,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.cosh()
             1.0344656401
         """
-        return self._new_c(cosh(self._value))
+        return self._new_c(gsl_ldexp( gsl_sf_exp(self._value) + gsl_sf_exp(-self._value), -1)) # (e^x + x^-x)/2
 
     def sinh(self):
         """
@@ -1105,7 +1116,7 @@ cdef class RealDoubleElement(FieldElement):
             0.264800227602
 
         """
-        return self._new_c(sinh(self._value))
+        return self._new_c(gsl_ldexp( gsl_sf_expm1(self._value) - gsl_sf_expm1(-self._value), -1)) # (e^x - x^-x)/2
 
     def tanh(self):
         """
@@ -1116,7 +1127,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.tanh()
             0.255977789246
         """
-        return self._new_c(tanh(self._value))
+        return self.sinh() / self.cosh()
 
     def acosh(self):
         """

@@ -1,5 +1,6 @@
 from equations import SymbolicEquation
-from calculus import (SER,
+from calculus import (SymbolicExpressionRing,
+                      SER,
                       var,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan, abs)
 

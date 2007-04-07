@@ -393,7 +393,8 @@ class Maxima(Expect):
         else:
             return Expect.__call__(self, x)
 
-    def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    #def __init__(self, script_subdirectory=None, logfile=None, server=None):
+    def __init__(self, script_subdirectory=None, logfile='/home/was/a.log', server=None):
         """
         Create an instance of the Maxima interpreter.
         """

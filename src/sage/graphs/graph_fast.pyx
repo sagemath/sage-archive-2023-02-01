@@ -1,18 +1,235 @@
 """
 Graph Theory SageX functions
 
-AUTHOR:
+AUTHORS:
     -- Robert L. Miller (2007-02-13): initial version
+    -- Robert L. Miller (2007-03-31): fast spring layout algorithms
 """
 
 #*****************************************************************************
 #           Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#                         2007 Robert W. Bradshaw <robertwb@math.washington.edu>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../ext/interrupt.pxi"
 include '../ext/cdefs.pxi'
+include '../ext/stdsage.pxi'
+from random import random
+
+cdef extern from *:
+    double sqrt(double)
+
+def spring_layout_fast_split(G, iterations=50, dim=2, vpos=None):
+    """
+    Graphs each component of G separately, placing them adjacent to
+    each other. This is done because on a disconnected graph, the
+    spring layout will push components further and further from each
+    other without bound, resulting in very tight clumps for each
+    component.
+
+    NOTE:
+        If the axis are scaled to fit the plot in a square, the
+        horizontal distance may end up being "squished" due to
+        the several adjacent components.
+
+    EXAMPLE:
+        sage: G = graphs.DodecahedralGraph()
+        sage: for i in range(10): G.add_cycle(range(100*i, 100*i+3))
+        sage: N = G.plot()
+
+    AUTHOR:
+        Robert Bradshaw
+    """
+    Gs = G.connected_components_subgraphs()
+    pos = {}
+    left = 0
+    buffer = 1/sqrt(len(G))
+    for g in Gs:
+        cur_pos = spring_layout_fast(g, iterations, dim, vpos)
+        xmin = min([x[0] for x in cur_pos.values()])
+        xmax = max([x[0] for x in cur_pos.values()])
+        if len(g) > 1:
+            buffer = (xmax - xmin)/sqrt(len(g))
+        for v, loc in cur_pos.iteritems():
+            loc[0] += left - xmin + buffer
+            pos[v] = loc
+        left += xmax - xmin + buffer
+    return pos
+
+def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
+    """
+    Spring force model layout
+
+    This function primarily acts as a wrapper around run_spring,
+    converting to and from raw c types.
+
+    This kind of speed cannot be achieved by naive pyrexification of the
+    function alone, especially if we require a function call (let alone
+    an object creation) every time we want to add a pair of doubles.
+    """
+
+    G = G.networkx_graph()
+    vlist = list(G) # this defines a consistant order
+
+    cdef int i, j, x
+    cdef int n = G.order()
+    if n == 0:
+        return {}
+
+    cdef double* pos = <double*>sage_malloc(n * dim * sizeof(double))
+    if pos is NULL:
+            raise MemoryError, "error allocating scratch space for spring layout"
+
+    # convert or create the starting positions as a flat list of doubles
+    if vpos is None:  # set the initial positions randomly in 1x1 box
+        for i from 0 <= i < n*dim:
+            pos[i] = random()
+    else:
+        for i from 0 <= i < n:
+            loc = vpos[vlist[i]]
+            for x from 0 <= x <dim:
+                pos[i*dim + x] = loc[x]
+
+
+    # here we construct a lexographically ordered list of all edges
+    # where elist[2*i], elist[2*i+1] represents the i-th edge
+    cdef int* elist = <int*>sage_malloc(2 * len(G.edges())  * sizeof(int) + 2)
+    if elist is NULL:
+        sage_free(pos)
+        raise MemoryError, "error allocating scratch space for spring layout"
+
+    cdef int cur_edge = 0
+
+    for i from 0 <= i < n:
+        for j from i < j < n:
+            if G.has_edge(vlist[i], vlist[j]):
+                elist[cur_edge] = i
+                elist[cur_edge+1] = j
+                cur_edge += 2
+
+    # finish the list with -1, -1 which never gets matched
+    # but does get compared against when looking for the "next" edge
+    elist[cur_edge] = -1
+    elist[cur_edge+1] = -1
+
+    run_spring(iterations, dim, pos, elist, n)
+
+    # put the data back into a position dictionary
+    vpos = {}
+    for i from 0 <= i < n:
+        vpos[vlist[i]] = [pos[i*dim+x] for x from 0 <= x < dim]
+
+    sage_free(pos)
+    sage_free(elist)
+
+    return vpos
+
+
+cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
+    """
+    Find a locally optimal layout for this graph, according to the
+    constraints that neighboring nodes want to be a fixed distance
+    from each other, and non-neighboring nodes always repel.
+
+    This is not a true physical model of mutually-replusive particles
+    with springs, rather it is more a model of such things traveling,
+    without any inertia, through an (ever thickening) fluid.
+
+    TODO: The inertial model could be incorperated (with F=ma)
+    TODO: Are the hard-coded constants here optimal?
+
+    INPUT:
+        iterations -- number of steps to take
+        dim        -- number of dimensions of freedom
+        pos        -- already initalized initial positions
+                      Each vertext is stored as [dim] consecutive doubles.
+                      These doubles are then placed consecutively in the array.
+                      For example, if dim=3, we would have
+                      pos = [x_1, y_1, z_1, x_2, y_2, z_2, ... , x_n, y_n, z_n]
+        edges      -- List of edges, sorted lexographically by the first
+                      (smallest) vertex, terminated by -1, -1.
+                      The first two entries represent the first edge, and so on.
+        n          -- number of vertices in the graph
+
+    OUTPUT:
+        Modifies contents of pos.
+
+    AUTHOR:
+        Robert Bradshaw
+    """
+
+    cdef int cur_iter, cur_edge
+    cdef int i, j, x
+
+    cdef double t = 1, dt = t/iterations, k = sqrt(1.0/n)
+    cdef double square_dist, force, scale
+    cdef double* disp_i
+    cdef double* disp_j
+    cdef double* delta
+
+    cdef double* disp = <double*>sage_malloc((n+1) * dim * sizeof(double))
+    if disp is NULL:
+            raise MemoryError, "error allocating scratch space for spring layout"
+    delta = &disp[n*dim]
+
+    _sig_on
+
+    for cur_iter from 0 <= cur_iter < iterations:
+      cur_edge = 1 # offset by one for fast checking against 2nd element first
+      # zero out the disp vectors
+      memset(disp, 0, n * dim * sizeof(double))
+      for i from 0 <= i < n:
+          disp_i = disp + (i*dim)
+          for j from i < j < n:
+              disp_j = disp + (j*dim)
+
+              for x from 0 <= x < dim:
+                  delta[x] = pos[i*dim+x] - pos[j*dim+x]
+
+              square_dist = delta[0] * delta[0]
+              for x from 1 <= x < dim:
+                  square_dist += delta[x] * delta[x]
+
+              if square_dist < 0.01:
+                  square_dist = 0.01
+
+              # they repel according to the (capped) inverse square law
+              force = k*k/square_dist
+
+              # and if they are neighbors, attract according Hooke's law
+              if edges[cur_edge] == j and edges[cur_edge-1] == i:
+                  force -= sqrt(square_dist)/k
+                  cur_edge += 2
+
+              # add this factor into each of the involved points
+              for x from 0 <= x < dim:
+                  disp_i[x] += delta[x] * force
+                  disp_j[x] -= delta[x] * force
+
+      # now update the positions
+      for i from 0 <= i < n:
+          disp_i = disp + (i*dim)
+
+          square_dist = disp_i[0] * disp_i[0]
+          for x from 1 <= x < dim:
+              square_dist += disp_i[x] * disp_i[x]
+
+          scale = t / (1 if square_dist < 0.01 else sqrt(square_dist))
+
+          for x from 0 <= x < dim:
+              pos[i*dim+x] += disp_i[x] * scale
+
+      t -= dt
+
+    _sig_off
+
+    sage_free(disp)
+
+
+
 
 def binary(n, length=None):
     """

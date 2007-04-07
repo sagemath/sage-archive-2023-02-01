@@ -221,7 +221,8 @@ AUTHOR:
 
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from expect import (Expect, ExpectElement, ExpectFunction,
+                    FunctionElement, AsciiArtString)
 
 from sage.misc.misc import verbose
 
@@ -320,9 +321,9 @@ command-line version of Mathematica.
     def eval(self, code, strip=True):
         s = Expect.eval(self, code)
         if strip:
-            return clean_output(s)
+            return AsciiArtString(clean_output(s))
         else:
-            return s
+            return AsciiArtString(s)
 
     #def _keyboard_interrupt(self):
     #    print "Keyboard interrupt pressed; trying to recover."

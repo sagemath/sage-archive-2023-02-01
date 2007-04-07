@@ -823,7 +823,7 @@ class GenericGraph(SageObject):
         elif layout == 'spring':
             pos = None
         if pos is None:
-            pos = networkx.drawing.spring_layout(self._nxg)
+            pos = graph_fast.spring_layout_fast(self)
         else:
             for v in pos:
                 for a in range(len(pos[v])):
@@ -3321,7 +3321,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
     verts = g.vertices()
     spring = False
     if pos3d is None:
-        pos3d = networkx.spring_layout(g._nxg, dim=3)
+        pos3d = graph_fast.spring_layout_fast(g, dim=3)
     try:
         for v in verts:
             c[0] += pos3d[v][0]

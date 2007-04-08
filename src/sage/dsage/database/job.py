@@ -272,12 +272,8 @@ class Job(Persistent):
 
         """
 
-        try:
-            f = open(file_name, 'rb').read()
-            f = zlib.compress(f)
-        except:
-            print 'Unable to read file.'
-            return
+        f = open(file_name, 'rb').read()
+        f = zlib.compress(f)
 
         # Strip out any hard coded path in the file name
         file_name = os.path.split(file_name)[1]
@@ -289,12 +285,9 @@ class Job(Persistent):
 
         """
 
-        try:
-            s = cPickle.dumps(self, 2)
-            s = zlib.compress(s)
-        except:
-            print 'Error pickling self'
-            return
+        s = cPickle.dumps(self, 2)
+        s = zlib.compress(s)
+
         return s
 
     def unpickle(self, pickled_job):

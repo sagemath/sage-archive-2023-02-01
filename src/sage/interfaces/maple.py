@@ -259,7 +259,7 @@ class Maple(Expect):
 
     def _install_hints(self):
         """
-        Hints for installing mathematica on your computer.
+        Hints for installing Maple on your computer.
 
         AUTHOR:
             -- William Stein and Justin Walker (2006-02-12).

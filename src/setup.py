@@ -171,7 +171,8 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
 
 linbox = Extension('sage.libs.linbox.linbox',
                    ['sage/libs/linbox/linbox.pyx'],
-                   libraries = ['ntl', 'linboxwrap', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
+                   # For this to work on cygwin, linboxwrap *must* be before ntl.
+                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
@@ -483,6 +484,11 @@ ext_modules = [ \
 
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
+
+    Extension('sage.rings.number_field.number_field_element',
+              sources = ['sage/rings/number_field/number_field_element.pyx'],
+              libraries=['ntl','gmp'],
+              language = 'c++'), \
 
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \

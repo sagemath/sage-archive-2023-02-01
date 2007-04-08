@@ -1,14 +1,20 @@
 import weakref
 import sage.rings.padics.padic_field_capped_relative
 import sage.rings.padics.padic_field_lazy
+#import sage.rings.padics.unramified_field_extension_capped_relative
+#import sage.rings.padics.unramified_field_extension_lazy
+
+from extension_factory import ExtensionFactory
 
 Integer = sage.rings.integer.Integer
 pAdicFieldCappedRelative = sage.rings.padics.padic_field_capped_relative.pAdicFieldCappedRelative
 pAdicFieldLazy = sage.rings.padics.padic_field_lazy.pAdicFieldLazy
+#UnramifiedFieldExtensionCappedRelative = sage.rings.padics.unramified_field_extension_capped_relative.UnramifiedFieldExtensionCappedRelative
+#UnramifiedFieldExtensionLazy = sage.rings.padics.unramified_field_extension_lazy.UnramifiedFieldExtensionLazy
 
 
 padic_field_cache = {}
-def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, check = True):
+def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check = True):
     """
     A creation function for p-adic fields.
 
@@ -50,18 +56,20 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
             raise TypeError, "prec must be an integer"
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
+    if names is None:
+        names = str(p)
     if type != 'lazy':
-        key = (p, prec, type, print_mode)
+        key = (p, prec, type, names, print_mode)
     else:
-        key = (p, prec, halt, print_mode)
+        key = (p, prec, halt, names, print_mode)
     if padic_field_cache.has_key(key):
         K = padic_field_cache[key]()
         if K != None:
             return K
     if (type == 'capped-rel'):
-        K = pAdicFieldCappedRelative(p, prec, print_mode)
+        K = pAdicFieldCappedRelative(p, prec, print_mode, names)
     elif (type == 'lazy'):
-        K = pAdicFieldLazy(p, prec, print_mode, halt)
+        K = pAdicFieldLazy(p, prec, print_mode, halt, names)
     else:
         raise ValueError, "type must be either 'capped-rel' or 'lazy'"
     padic_field_cache[key] = weakref.ref(K)
@@ -69,8 +77,7 @@ def Qp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
 
 pAdicField = Qp # for backwards compatibility; and it's not hard.
 
-qadic_field_cache = {}
-def Qq(q, names=None, prec=20, type='capped-rel', print_mode='series', halt=40, modulus=None, check=True):
+def Qq(q, prec = 20, type = 'capped-rel', modulus = None, names=None, print_mode="series", halt=40, qp_name = None, check=True):
     r"""
     Given a prime power q = p^n, return the unique unramified extension
     of Qp of degree n.
@@ -80,10 +87,6 @@ def Qq(q, names=None, prec=20, type='capped-rel', print_mode='series', halt=40, 
     """
 
     from sage.rings.integer import Integer
-    from sage.rings.polynomial_ring import PolynomialRing
-    from sage.rings.padics.unramified_ring_extension import UnramifiedRingExtension
-    from sage.rings.integer_ring import ZZ
-
     if check:
         if names is None:
             raise TypeError, "You must specify the name of the generator."
@@ -107,25 +110,16 @@ def Qq(q, names=None, prec=20, type='capped-rel', print_mode='series', halt=40, 
     if len(F) != 1:
         raise ValueError, "q must be a prime power"
     if F[0][1] == 1:
-        return Qp(q, prec, type, print_mode, halt)
-
-    if type != 'lazy':
-        key = (q, names, prec, type, print_mode)
-    else:
-        key = (q, names, prec, halt, print_mode)
-    if qadic_field_cache.has_key(key):
-        K = qadic_field_cache[key]()
-        if not (K is None):
-            return K
-
+        return Qp(q, prec, type, print_mode, halt, names, check)
+    base = Qp(F[0][0], prec, type, print_mode, halt, qp_name, check = False)
     if modulus is None:
-        check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Qp(F[0][0], prec, type, print_mode, halt), names)(GF(q,names).modulus().change_ring(ZZ))
-    K = UnramifiedRingExtension(modulus, prec, print_mode, check)
-    qadic_field_cache[key] = weakref.ref(K)
-
-    return K
+        from sage.rings.integer_ring import ZZ
+	from sage.rings.polynomial_ring import PolynomialRing
+        if qp_name is None:
+            qp_name = (str(F[0][0]),)
+        modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
+    return ExtensionFactory(modulus, prec, print_mode, halt, names, check, unram = True)
 
 
 ######################################################

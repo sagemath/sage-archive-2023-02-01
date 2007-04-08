@@ -1,22 +1,19 @@
 r"""
-p-adic Numbers in SAGE.
+Introduction to the $p$-adics
 
 This tutorial outlines what you need to know in order to use $p$-adics
 in SAGE  effectively.
 
-The $p$-adics in SAGE are currently undergoing a transformation.
-Prior to SAGE-2.1, SAGE included a single class representing $\Qp$,
-and a single class representing elements of $\Qp$.  Our goal is to
-create a rich structure of different options that will reflect the
-mathematical structures of the $p$-adics.  This is very much a work in
-progress: some of the classes that we eventually intend to include
-have not yet been written, and some of the functionality for classes
-in existence has not yet been implemented.  In addition, while we
-strive for perfect code, bugs (both subtle and not-so-subtle) continue
-to evade our clutches.  As a user, you serve an important role.  By
-writing non-trivial code that uses the $p$-adics, you both give us
-insight into what features are actually used and also expose problems
-in the code for us to fix.
+Our goal is to create a rich structure of different options that will
+reflect the mathematical structures of the $p$-adics.  This is very
+much a work in progress: some of the classes that we eventually intend
+to include have not yet been written, and some of the functionality
+for classes in existence has not yet been implemented.  In addition,
+while we strive for perfect code, bugs (both subtle and not-so-subtle)
+continue to evade our clutches.  As a user, you serve an important
+role.  By writing non-trivial code that uses the $p$-adics, you both
+give us insight into what features are actually used and also expose
+problems in the code for us to fix.
 
 Our design philosophy has been to create a robust, usable interface
 working first, with simple-minded implementations underneath.  We want
@@ -64,8 +61,8 @@ representation, we can just stop at some point in the projective
 limit, giving an element of $\Zpn$.  As $\Zp / p^n\Zp \cong \Zpn$,
 this is is equivalent to specifying our element modulo $p^n\Zp$.
 
-The \emph{absolute precision} of a finite approximation $\bar{x} \in
-\Zpn$ to $x \in \Zp$ is the non-negative integer $n$.
+The \emph{absolute precision} of a finite approximation $\bar{x} \in \Zpn$ to $x \in \Zp$
+is the non-negative integer $n$.
 
 In the second representation, we can achieve the same thing by
 truncating a series
@@ -81,13 +78,10 @@ As above, we call this $n$ the absolute precision of our element.
 Given any $x \in \Qp$ with $x \ne 0$, we can write $x = p^v u$ where
 $v \in \ZZ$ and $u \in \Zpx$.  We could thus also store an element of
 $\Qp$ (or $\Zp$) by storing $v$ and a finite approximation of $u$.
-This motivates the following definition:
-
-The
+This motivates the following definition: The
 \emph{relative precision} of an approximation to $x$ is defined as the
 absolute precision of the approximation minus the valuation of $x$.
-
- For example, if $x = a_k p^k + a_{k+1} p^{k+1} +
+For example, if $x = a_k p^k + a_{k+1} p^{k+1} +
 \cdots + a_{n-1} p^{n-1} + O(p^n)$ then the absolute precision of $x$
 is $n$, the valuation of $x$ is $k$ and the relative precision of $x$
 is $n-k$.
@@ -135,12 +129,14 @@ sage: b
 5 + 4*5^2 + O(5^10)
 
 
+
 Now that we have some elements, we can do arithmetic in the ring.
 
 sage: a + b
 5 + 4*5^2 + 3*5^3 + O(5^10)
 sage: a * b
 3*5^4 + 2*5^5 + 2*5^6 + O(5^10)
+
 
 
 Floor division (//) divides even though the result
@@ -159,6 +155,7 @@ ValueError: cannot invert non-unit
 
 
 
+
 Since elements don't actually store their actual precision, one can only divide by units:
 
 sage: a / 2
@@ -169,10 +166,12 @@ Traceback (most recent call last):
 ValueError: cannot invert non-unit
 
 
+
 If you want to divide by a non-unit, do it using the \verb@//@ operator:
 
 sage: a // b
 3*5^2 + 3*5^3 + 2*5^5 + 5^6 + 4*5^7 + 2*5^8 + O(5^10)
+
 
 
 \subsection{Capped Absolute Rings}
@@ -187,6 +186,7 @@ Once again, use \verb/Zp/ to create a capped absolute $p$-adic ring.
 sage: R = Zp(5, prec = 10, type = 'capped-abs', print_mode = 'series')
 sage: R
 5-adic Ring with capped absolute precision 10
+
 
 
 We can do similar things as in the fixed modulus case:
@@ -206,16 +206,19 @@ sage: c
 3*5^2 + O(5^9)
 
 
+
 Note that when we divided by 5, the precision of \verb/c/ dropped.  This lower precision is now reflected in arithmetic.
 
 sage: c + b
 5 + 2*5^2 + 5^3 + O(5^9)
 
 
+
 Division is allowed: the element that results is a capped relative field element, which is discussed in the next section:
 
 sage: 1 / (c + b)
 5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + O(5^7)
+
 
 
 \subsection{Capped Relative Rings and Fields}
@@ -234,6 +237,7 @@ sage: R
 sage: K = Qp(5, prec = 10, type = 'capped-rel', print_mode = 'series')
 sage: K
 5-adic Field with capped relative precision 10
+
 
 
 We can do all of the same operations as in the other two cases, but precision works a bit differently:
@@ -256,10 +260,12 @@ sage: c + 1
 1 + 3*5^2 + O(5^10)
 
 
+
 As with the capped absolute precision rings, we can divide, yielding a capped relative precision field element.
 
 sage: 1 / (c + b)
 5^-1 + 3 + 2*5 + 5^2 + 4*5^3 + 4*5^4 + 3*5^6 + 2*5^7 + 5^8 + O(5^9)
+
 
 
 \subsection{Lazy Rings and Fields}
@@ -284,6 +290,8 @@ sage: K.precision_cap()
 sage: K.halting_parameter()
 40
 
+
+
 There are two parameters that are set at the creation of a lazy ring
 or field.  The first is \verb/prec/, which controls the precision to
 which elements are initially computed.  When computing with lazy
@@ -301,6 +309,69 @@ Traceback (most recent call last):
 HaltingError: Stopped computing sum: set halting parameter higher if you want computation to continue
 
 
-The second is \code{halt}.
-"""
 
+Setting the halting parameter controls to what absolute precision one computes in such a situation.
+
+
+The interesting feature of lazy elements is that one can perform
+computations with them, discover that the answer does not have the
+desired precision, and then ask for more precision.  For example,
+
+
+sage: a = R(6).log() * 15
+sage: b = a.exp()
+sage: c = b / R(15).exp()
+sage: c
+1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + O(5^11)
+sage: c.set_precision_absolute(15)
+sage: c
+1 + 2*5 + 4*5^2 + 3*5^3 + 2*5^4 + 3*5^5 + 5^6 + 5^10 + 4*5^11 + 2*5^12 + 4*5^13 + 3*5^14 + O(5^15)
+
+
+
+There can be a performance penalty to using lazy $p$-adics in this
+way.  When one does computations with them, the computer construct an
+expression tree.  As you compute, values of these elements are cached,
+and the overhead is reasonably low (though obviously higher than for a
+fixed modulus element for example).  But when you set the precision,
+the computer has to reset precision throughout the expression tree for
+that element, and thus setting precision can take the same order of
+magnitude of time as doing the initial computation.  However, lazy
+$p$-adics can be quite useful when experimenting.
+
+\subsection{Unramified Extensions}
+
+One can create unramified extensions of $\Zp$ and $\Qp$ using the
+functions \verb/Zq/ and \verb/Qq/.  These extensions are still in a
+relatively primitive state, so I would suggest the following options
+when creating such extensions (more are available but may not
+currently work as well).
+
+In addition to requiring a prime power as the first argument,
+\verb/Zq/ also requires a name for the generator of the residue field.
+One can specify this name as follows:
+
+
+sage: R.<c> = Zq(125, prec = 20)
+sage: R
+Unramified Extension of 5-adic Ring with capped absolute precision 20 in c
+defined by (1 + O(5^20))*x^3 + O(5^20)*x^2 + (3 + O(5^20))*x + 3 + O(5^20)
+
+
+\section{New Versions of the $p$-adics}
+
+The code for $p$-adics is fairly rapidly changing.  If there's a bug
+you want fixed, let me know and I'll try to fix it.  Once I do, you'll
+need to get the latest version of $p$-adics with the bug fixed.  If
+you don't want to wait for the next version of SAGE to come out, you
+can do the following to get the most recent version:
+
+
+sage.: hg_sage.pull()
+sage.: hg_sage.apply('http://sage.math.washington.edu/home/padicgroup/development-version.hg')
+sage.: quit
+localhost:~$ sage
+sage.: run code that generated bug.
+
+If you want a slightly more stable but older version, use \verb/semistable-version.hg/ instead.
+"""

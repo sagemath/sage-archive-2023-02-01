@@ -2,8 +2,8 @@
 Graph Theory SageX functions
 
 AUTHORS:
-    -- Robert L. Miller (2007-02-13): initial version
-    -- Robert L. Miller (2007-03-31): fast spring layout algorithms
+    -- Robert L. Miller   (2007-02-13): initial version
+    -- Robert W. Bradshaw (2007-03-31): fast spring layout algorithms
 """
 
 #*****************************************************************************

@@ -953,9 +953,11 @@ class Graph(GenericGraph):
             'sparse6' -- Brendan McKay's sparse6 format, in a string (if the string has
                         multiple graphs, the first graph is taken)
             'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the number
-                                  of edges \{i,j\}
+                        of edges \{i,j\}
+            'labeled_adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the
+                        label of the single edge \{i,j\}
             'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
-                                  if C represents \{i, j\}, C[i] is -1 and C[j] is 1
+                        if C represents \{i, j\}, C[i] is -1 and C[j] is 1
         boundary -- a list of boundary vertices, if none, graph is considered as a 'graph
                     without boundary'
 
@@ -1138,6 +1140,18 @@ class Graph(GenericGraph):
                     e += [(i,j)]*int(data[i][j])
                 elif i == j and loops:
                     e.append((i,j))
+            self._nxg.add_edges_from(e)
+        elif format == 'weighted_adjacency_matrix':
+            d = {}
+            for i in range(data.nrows()):
+                d[i] = {}
+            self._nxg = networkx.XGraph(d, selfloops = loops, **kwds)
+            e = []
+            for i,j in data.nonzero_positions():
+                if i < j:
+                    e.append((i,j,data[i][j]))
+                elif i == j and loops:
+                    e.append((i,j,data[i][j]))
             self._nxg.add_edges_from(e)
         elif format == 'incidence_matrix':
             b = True
@@ -2320,6 +2334,18 @@ class DiGraph(GenericGraph):
                     e += [(i,j)]*int(data[i][j])
                 elif not i == j:
                     e.append((i,j))
+            self._nxg.add_edges_from(e)
+        elif format == 'weighted_adjacency_matrix':
+            d = {}
+            for i in range(data.nrows()):
+                d[i] = {}
+            self._nxg = networkx.XDiGraph(d, selfloops = loops, **kwds)
+            e = []
+            for i,j in data.nonzero_positions():
+                if i != j:
+                    e.append((i,j,data[i][j]))
+                elif i == j and loops:
+                    e.append((i,j,data[i][j]))
             self._nxg.add_edges_from(e)
         elif format == 'incidence_matrix':
             b = True

@@ -141,7 +141,7 @@ class DistributedFunction(object):
         for job in self.outstanding_jobs:
             try:
                self.submit_job(job, job_name, async)
-           except Exception, msg:
+            except Exception, msg:
                print msg
         self.outstanding_jobs = []
 

@@ -579,9 +579,9 @@ class Monitor(object):
                         log.msg('DSAGE_RESULT does not exist')
                     result = cPickle.dumps('No result saved.', 2)
                 else:
-                    worker.sage.eval("save(DSAGE_RESULT, 'result')")
-                    os.chdir(worker.tmp_job_dir)
                     try:
+                        os.chdir(worker.tmp_job_dir)
+                        worker.sage.eval("save(DSAGE_RESULT, 'result')")
                         result = open('result.sobj', 'rb').read()
                     except Exception, msg:
                         if LOG_LEVEL > 1:
@@ -598,8 +598,8 @@ class Monitor(object):
                      'job %s %s done by ' % (worker.job.name, worker.job.job_id),
                      'Worker %s' % (worker.id)
                      ]
-                log.msg(''.join(s))
-                log.msg('[Monitor] Traceback: \n%s' % sanitized_output)
+                log.err(''.join(s))
+                log.err('[Monitor] Traceback: \n%s' % sanitized_output)
                 d = self.remoteobj.callRemote('job_failed', worker.job.job_id, sanitized_output)
                 d.addErrback(self._catch_failure)
                 continue

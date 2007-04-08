@@ -2314,6 +2314,30 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             raise ValueError, "unknown algorithm '%s'%"%algorithm
 
+    def isogeny_graph(self):
+        r"""
+        Returns a graph representing the isogeny class of this elliptic curve,
+        where the vertices are isogenous curves over $\Q$ and the edges are
+        prime degree isogenies labeled by their degree.
+
+        EXAMPLES:
+            sage: LL = []
+            sage: for e in cremona_optimal_curves(range(1, 38)):
+            ...    G = e.isogeny_graph()
+            ...    already = False
+            ...    for H in LL:
+            ...        if G.is_isomorphic(H):
+            ...            already = True
+            ...            break
+            ...    if not already:
+            ...        LL.append(G)
+            ...
+            sage.: graphs_list.show_graphs(LL)
+        """
+        from sage.graphs.graph import Graph
+        M = self.isogeny_class()[1]
+        G = Graph(M, format='weighted_adjacency_matrix')
+        return G
 
     ##########################################################
     # Galois Representations

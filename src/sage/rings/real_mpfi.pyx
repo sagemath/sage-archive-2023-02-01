@@ -2712,9 +2712,6 @@ cdef _simplest_rational_exact(Rational low, Rational high, int low_open, int hig
     return fl + _simplest_rational_exact(low - fl, high - fl, low_open, high_open)
 
 
-RR = RealIntervalField()
-
-
 def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):
     r"""
     Return the real number defined by the string s as an element of

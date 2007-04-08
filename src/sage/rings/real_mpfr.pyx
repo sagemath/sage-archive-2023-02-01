@@ -1370,6 +1370,36 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         return gen
 
+    def exact_rational(self):
+        """
+        Returns the exact rational representation of this floating-point
+        number.
+
+        EXAMPLES:
+            sage: RR(0).exact_rational()
+            0
+            sage: RR(1/3).exact_rational()
+            6004799503160661/18014398509481984
+            sage: RR(37/16).exact_rational()
+            37/16
+            sage: RR(3^60).exact_rational()
+            42391158275216203520420085760
+            sage: RR(3^60).exact_rational() - 3^60
+            6125652559
+            sage: RealField(5)(-pi).exact_rational()
+            -25/8
+        """
+        cdef Integer mantissa = Integer()
+        cdef mp_exp_t exponent
+
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Calling exact_rational() on infinity or NaN'
+
+        exponent = mpfr_get_z_exp(mantissa.value, self.value)
+
+        return Rational(mantissa) * Integer(2) ** exponent
+
+
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
     ###########################################

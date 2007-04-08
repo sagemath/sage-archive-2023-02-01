@@ -431,7 +431,7 @@ class JobDatabaseSQLite(JobDatabase):
              (self.random_string(), 1, None, None, None, 1,
              0, 1, dn(), dn(), None)]
 
-        print 'Sleeping for 0.5 second to test timestamps...'
+        log.msg('Sleeping for 0.5 second to test timestamps...')
         time.sleep(0.5)
 
         D.extend([(self.random_string(), 1, None, None, None, 1,

@@ -144,3 +144,4 @@ cdef extern from "mpfr.h":
     int mpfr_less_p (mpfr_t op1, mpfr_t op2)
     int mpfr_lessequal_p (mpfr_t op1, mpfr_t op2)
     int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    int mpfr_equal_p (mpfr_t op1, mpfr_t op2)

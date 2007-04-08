@@ -127,23 +127,22 @@ class DistributedFunction(object):
         if async:
             if isinstance(job, Job):
                 job.username = self.DSage.username
-                self.waiting_jobs.append(self.DSage.send_job(job,
-                                                             async=True))
+                self.waiting_jobs.append(self.DSage.send_job(job, async=True))
             else:
-                self.waiting_jobs.append(self.DSage.eval(job,
-                                                         job_name=job_name,
-                                                         async=True))
+                self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name, async=True))
         else:
             if isinstance(job, Job):
                 job.username = self.DSage.username
                 self.waiting_jobs.append(self.DSage.send_job(job, async=False))
             else:
-                self.waiting_jobs.append(self.DSage.eval(job,
-                                                         job_name=job_name))
+                self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name))
 
     def submit_jobs(self, job_name='job', async=False):
         for job in self.outstanding_jobs:
-           self.submit_job(job, job_name, async)
+            try:
+               self.submit_job(job, job_name, async)
+           except Exception, msg:
+               print msg
         self.outstanding_jobs = []
 
     def start(self):

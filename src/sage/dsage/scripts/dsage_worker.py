@@ -585,8 +585,8 @@ class Monitor(object):
                         result = open('result.sobj', 'rb').read()
                     except Exception, msg:
                         if LOG_LEVEL > 1:
-                            log.msg(msg)
-                        result = cPickle.dumps('Error in reading result.', 2)
+                            log.err(msg)
+                        result = cPickle.dumps(msg, 2)
                 log.msg("Job '%s' finished" % worker.job.job_id)
             else:
                 result = cPickle.dumps('Job not done yet.', 2)

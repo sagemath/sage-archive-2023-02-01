@@ -30,6 +30,7 @@ NOTE:
 #
 ##############################################################################
 
+from sage.graphs.graph import Graph, DiGraph
 
 def finer(Pi1, Pi2):
     """
@@ -200,14 +201,9 @@ def degree(G, v, W):
         sage.: P.show(partition=Pi1)
     """
     i = 0
-    if G.is_directed():
-        for u in W:
-            if G.has_arc(u,v):
-                i += 1
-    else:
-        for u in W:
-            if G.has_edge(u,v):
-                i += 1
+    for u in W:
+        if G._nxg.adj[u].has_key(v):
+            i += 1
     return i
 
 def is_discrete(Pi):
@@ -530,18 +526,31 @@ def get_permutation(eta, nu):
                replace(' ', '').replace('(0','('+str(n)).replace(',0',','+str(n)))
     return gamma
 
-def term_pnest_graph(G, nu):
+def term_pnest_graph(G, nu, enumer=False):
     """
     BDM's G(nu): returns the graph G, relabeled in the order found in
     nu[last]. Assumes nu is a terminal partition nest in T(G, Pi).
     """
-    ord = nu[len(nu)-1]
+    n = G.order()
     d = {}
-    for i in range(len(nu[len(nu)-1])):
-        d[nu[len(nu)-1][i][0]] = i
-    H = G.copy()
-    H.relabel(d)
-    return H
+    for i in range(n):
+        d[nu[-1][i][0]] = i
+    if enumer:
+        # we know that the vertex set is {0,...,n-1}...
+        numbr = 0
+        if isinstance(G, Graph):
+            for i,j,l in G.edge_iterator():
+                numbr += 1<<((n-(d[i]+1))*n + n-(d[j]+1))
+                numbr += 1<<((n-(d[j]+1))*n + n-(d[i]+1))
+        elif isinstance(G, DiGraph):
+            for i,j,l in G.arc_iterator():
+                numbr += 1<<((n-(d[i]+1))*n + n-(d[j]+1))
+        return numbr
+    else:
+        ord = nu[-1]
+        H = G.copy()
+        H.relabel(d)
+        return H
 
 def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
     """
@@ -1082,8 +1091,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
 #            print 'state: 8'
             if (not lab) or (qzb < 0): state = 6
             elif (qzb > 0) or (k < len(rho)): state = 9
-            elif (term_pnest_graph(G, nu.values()) > term_pnest_graph(G, rho.values())): state = 9
-            elif (term_pnest_graph(G, nu.values()) < term_pnest_graph(G, rho.values())): state = 6
+            elif (term_pnest_graph(G, nu.values(), enumer=True) > term_pnest_graph(G, rho.values(), enumer=True)): state = 9
+            elif (term_pnest_graph(G, nu.values(), enumer=True) < term_pnest_graph(G, rho.values(), enumer=True)): state = 6
             else:
                 gamma = get_permutation(nu.values(), rho.values())
     #            print gamma

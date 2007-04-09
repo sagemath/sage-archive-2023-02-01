@@ -648,22 +648,97 @@ class GenericGraph(SageObject):
         r"""
         Uses a dictionary or permutation to relabel the (di)graph.
         If perm is a dictionary, each old vertex v is a key in the
-        dictionary, and its new label is d[v]. If perm is a permuta-
-        tion, the permutation is simply applied to the graph, under
-        the assumption that V = {0,1,...,n-1} is the vertex set, and
+        dictionary, and its new label is d[v]. If perm is a list,
+        we think of it as a map i \mapsto perm[i] (only for graphs
+        with V = {0,1,...,n-1} ). If perm is a per mutation, the
+        permutation is simply applied to the graph, under the
+        assumption that V = {0,1,...,n-1} is the vertex set, and
         the permutation acts on the set {1,2,...,n}, where we think
         of n = 0.
+
+        EXAMPLES:
+            sage: G = Graph({0:[1],1:[2],2:[]})
+            sage: G.am()
+            [0 1 0]
+            [1 0 1]
+            [0 1 0]
+
+        Relabeling using a list:
+            sage: G.relabel([0,2,1])
+            sage: G.am()
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
+
+        Relabeling using a dictionary:
+            sage: G.relabel({0:2,2:0})
+            sage: G.am()
+            [0 1 1]
+            [1 0 0]
+            [1 0 0]
+
+        Relabeling using a SAGE permutation:
+            sage: from sage.groups.perm_gps.permgroup import SymmetricGroup
+            sage: S = SymmetricGroup(3)
+            sage: gamma = S('(3,2)')
+            sage: G.relabel(gamma)
+            sage: G.am()
+            [0 0 1]
+            [0 0 1]
+            [1 1 0]
         """
-        from sage.groups.perm_gps.permgroup import SymmetricGroup
-        S = SymmetricGroup(2)
-        if type(perm) == type(S('(1,2)')):
+        if type(perm) == list:
+            if isinstance(self, Graph):
+                oldd = self._nxg.adj
+                newd = {}
+                for v in oldd.iterkeys():
+                    oldtempd = oldd[v]
+                    newtempd = {}
+                    for w in oldtempd.iterkeys():
+                        newtempd[perm[w]] = oldtempd[w]
+                    newd[perm[v]] = newtempd
+                if inplace:
+                    self._nxg.adj = newd
+                else:
+                    G = self.copy()
+                    G._nxg.adj = newd
+                    return G
+            else: # DiGraph
+                oldsucc = self._nxg.succ
+                oldpred = self._nxg.pred
+                newsucc = {}
+                newpred = {}
+                for v in oldsucc.iterkeys():
+                    oldtempsucc = oldsucc[v]
+                    newtempsucc = {}
+                    for w in oldtempsucc.iterkeys():
+                        newtempsucc[perm[w]] = oldtempsucc[w]
+                    newsucc[perm[v]] = newtempsucc
+                for v in oldpred.iterkeys():
+                    oldtemppred = oldpred[v]
+                    newtemppred = {}
+                    for w in oldtemppred.iterkeys():
+                        newtemppred[perm[w]] = oldtemppred[w]
+                    newpred[perm[v]] = newtemppred
+                if inplace:
+                    self._nxg.adj = newsucc
+                    self._nxg.succ = self._nxg.adj
+                    self._nxg.pred = newpred
+                else:
+                    D = self.copy()
+                    D._nxg.adj = newsucc
+                    D._nxg.succ = D._nxg.adj
+                    D._nxg.pred = newpred
+                    return D
+        from sage.groups.perm_gps.permgroup_element import PermutationGroupElement
+        if type(perm) == PermutationGroupElement:
             n = self.order()
             dict = {}
-            list = perm.list()
+            llist = perm.list()
             for i in range(1,n):
-                dict[i] = list[i-1]%n
+                dict[i] = llist[i-1]%n
             if n > 0:
-                dict[0] = list[n-1]%n
+                dict[0] = llist[n-1]%n
             perm = dict
         if type(perm) == type({}):
             keys = perm.keys()
@@ -2121,7 +2196,7 @@ class Graph(GenericGraph):
         if self.multiple_edges():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         else:
-            from sage.graphs.graph_isom import search_tree
+            from sage.graphs.graph_isom import search_tree, perm_group_elt
             from sage.groups.perm_gps.permgroup import PermutationGroup
             if partition is None:
                 partition = [self.vertices()]
@@ -2129,7 +2204,7 @@ class Graph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops())
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=self.loops())
-            a = PermutationGroup(a)
+            a = PermutationGroup([perm_group_elt(aa) for aa in a])
             if translation:
                 return a,b
             else:
@@ -3267,7 +3342,7 @@ class DiGraph(GenericGraph):
         if self.multiple_arcs():
             raise NotImplementedError, "Search algorithm does not support multiple edges yet."
         else:
-            from sage.graphs.graph_isom import search_tree
+            from sage.graphs.graph_isom import search_tree, perm_group_elt
             from sage.groups.perm_gps.permgroup import PermutationGroup
             if partition is None:
                 partition = [self.vertices()]
@@ -3275,7 +3350,7 @@ class DiGraph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=True)
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=True)
-            a = PermutationGroup(a)
+            a = PermutationGroup([perm_group_elt(aa) for aa in a])
             if translation:
                 return a,b
             else:

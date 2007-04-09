@@ -118,7 +118,7 @@ class DSage(object):
     def __call__(self, cmd, globals_=None, job_name=None):
         cmd = ['ans = %s\n' % (cmd),
                'print ans\n',
-               "DSAGE_RESULT = ans'\n"]
+               "DSAGE_RESULT = ans\n"]
 
         return self.eval(''.join(cmd), globals_=globals_, job_name=job_name)
 

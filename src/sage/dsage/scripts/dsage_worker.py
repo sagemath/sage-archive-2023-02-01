@@ -24,6 +24,7 @@ import ConfigParser
 import uuid
 import cPickle
 import zlib
+import pexpect
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -309,11 +310,20 @@ class Worker(object):
         """
 
         # This quits the current running calculation
-        self.sage._expect.sendline(chr(3))  # send ctrl-c
-        self.sage._expect.expect(self.sage._prompt)
-        self.sage._expect.expect(self.sage._prompt)
+        INTERRUPT_TRIES = 5
+        for i in range(INTERRUPT_TRIES):
+            try:
+                self.sage._expect.sendline(chr(3))  # send ctrl-c
+                self.sage._expect.expect(self.sage._prompt)
+                self.sage._expect.expect(self.sage._prompt)
+                success = True
+                break
+            except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                if LOG_LEVEL > 3:
+                    log.err("Trying again to interrupt SAGE (try %s)..." % i)
 
-        self.sage.reset()
+        if success:
+            self.sage.reset()
         self.free = True
         self.job = None
 
@@ -581,6 +591,7 @@ class Monitor(object):
                 else:
                     try:
                         os.chdir(worker.tmp_job_dir)
+                        worker.sage.eval("os.chdir('%s')" % (worker.tmp_job_dir))
                         worker.sage.eval("save(DSAGE_RESULT, 'result')")
                         result = open('result.sobj', 'rb').read()
                     except Exception, msg:

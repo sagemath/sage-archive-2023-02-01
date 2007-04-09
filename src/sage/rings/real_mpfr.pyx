@@ -870,12 +870,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a.integer_part()
             100000000000000000
         """
-        s = self.str(base=32, no_sci=True)
-        i = s.find(".")
-        if i != -1:
-            return Integer(s[:i], base=32)
-        else:
-            return Integer(s, base=32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z
 
     ########################
     #   Basic Arithmetic
@@ -1449,6 +1446,10 @@ cdef class RealNumber(sage.structure.element.RingElement):
             245850922/78256779
             sage: check(RR(2).sqrt())
             131836323/93222358
+            sage: check(RR(1/2^210))
+            1/1645504557321205859467264516194506011931735427766374553794641921
+            sage: check(RR(2^210))
+            1645504557321205950811116849375918117252433820865891134852825088
             sage: (RR(17).sqrt()).simplest_rational()^2 - 17
             -1/348729667233025
             sage: (RR(23).cube_root()).simplest_rational()^3 - 23

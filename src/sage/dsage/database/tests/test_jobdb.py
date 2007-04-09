@@ -108,7 +108,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         return jobs
 
 class JobDatabaseSQLiteTestCase(unittest.TestCase):
-    r"""
+    """
     Unit tests for the SQLite based JobDatabase go here.
 
     """

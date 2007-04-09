@@ -27,7 +27,7 @@ import sage.dsage.database.sql_functions as sql_functions
 from sage.dsage.misc.config import get_conf
 
 class ClientDatabase(object):
-    r"""
+    """
     This class defines the ClientDatabase which is used to store user
     authentication credentials and other information.
 
@@ -49,7 +49,7 @@ class ClientDatabase(object):
     """ % TABLENAME
 
     def __init__(self, test=False):
-        r"""
+        """
         Parameters:
         test -- set to true if you would like to do testing.
 
@@ -80,7 +80,7 @@ class ClientDatabase(object):
         self.con.close()
 
     def get_user_and_key(self, username):
-        r"""
+        """
         Returns a tuple containing the username and public key.
 
         """
@@ -94,7 +94,7 @@ class ClientDatabase(object):
         return result
 
     def get_user(self, username):
-        r"""
+        """
         Returns a tuple containing all of the clients information.
 
         WARNING: ORDER OF RETURNED TUPLE MIGHT CHANGE
@@ -109,7 +109,7 @@ class ClientDatabase(object):
         return result
 
     def add_user(self, username, pubkey):
-        r"""
+        """
         Adds a user to the database.
 
         """
@@ -133,7 +133,7 @@ class ClientDatabase(object):
         self.con.commit()
 
     def del_user(self, username):
-        r"""
+        """
         Deletes a user from the database.
 
         """
@@ -143,7 +143,7 @@ class ClientDatabase(object):
         self.con.commit()
 
     def set_enabled(self, username, enabled=True):
-        r"""
+        """
         Enables/Disables a clients account.
 
         Parameters:
@@ -160,7 +160,7 @@ class ClientDatabase(object):
         self.con.commit()
 
     def get_enabled(self, username):
-        r"""
+        """
         Returns whether or not a user account is enabled.
 
         """
@@ -173,7 +173,7 @@ class ClientDatabase(object):
         return bool(result[0])
 
     def set_parameter(self, username, parameter, value):
-        r"""
+        """
         Sets a particular parameter for the given username.
 
         """
@@ -187,7 +187,7 @@ class ClientDatabase(object):
         self.con.commit()
 
     def get_parameter(self, username, parameter):
-        r"""
+        """
         Returns a particular parameter for the given username.
 
         """
@@ -203,7 +203,7 @@ class ClientDatabase(object):
         self.set_parameter(username, 'connected', connected)
 
     def update_login_time(self, username):
-        r"""
+        """
         Updates the last_login time of the user.
 
         """
@@ -217,7 +217,7 @@ class ClientDatabase(object):
         self.con.commit()
 
     def get_client_list(self):
-        r"""
+        """
         Returns a list of clients connected.
 
         """

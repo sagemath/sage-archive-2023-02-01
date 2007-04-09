@@ -36,13 +36,13 @@ class DSageThread(threading.Thread):
             reactor.run(installSignalHandlers=0)
 
 class DSage(object):
-    r"""
+    """
     This object represents a connection to the distributed SAGE server.
     """
 
     def __init__(self, server=None, port=8081, username=None,
                  pubkey_file=None, privkey_file=None):
-        r"""
+        """
         Parameters:
         server -- str
         port -- int
@@ -165,13 +165,13 @@ class DSage(object):
                 print str(job_id) + ' was successfully killed.'
 
     def restore(self, remoteobj):
-        r"""
+        """
         This method restores a connection to the server.
         """
         self.remoteobj = remoteobj
 
     def connect(self):
-        r"""
+        """
         This methods establishes the conection to the remote server.
 
         """
@@ -199,7 +199,7 @@ class DSage(object):
         self.remoteobj = None
 
     def eval(self, cmd, globals_=None, job_name=None):
-        r"""
+        """
         eval evaluates a command
 
         Parameters:
@@ -226,7 +226,7 @@ class DSage(object):
         return wrapped_job
 
     def eval_file(self, fname, job_name):
-        r"""
+        """
         eval_file allows you to evaluate the contents of an entire file.
 
         Parameters:
@@ -246,7 +246,7 @@ class DSage(object):
         return wrapped_job
 
     def send_job(self, job):
-        r"""
+        """
         Sends a Job object to the server.
 
         """
@@ -286,7 +286,7 @@ class DSage(object):
         return d_list
 
     def kill(self, job_id):
-        r"""
+        """
         Kills a job given the job id.
 
         Parameters:
@@ -299,7 +299,7 @@ class DSage(object):
         d.addErrback(self._catch_failure)
 
     def get_my_jobs(self, is_active=False, job_name=None):
-        r"""
+        """
         This method returns a list of jobs that belong to you.
 
         Parameters:
@@ -322,7 +322,7 @@ class DSage(object):
         return d
 
     def cluster_speed(self):
-        r"""
+        """
         Returns the speed of the cluster.
 
         """
@@ -340,7 +340,7 @@ class DSage(object):
             raise NotConnectedException
 
 class BlockingDSage(DSage):
-    r"""This is the blocking version of DSage
+    """This is the blocking version of DSage
     """
 
     def __init__(self, server=None, port=8081, username=None, pubkey_file=None, privkey_file=None):
@@ -406,7 +406,7 @@ class BlockingDSage(DSage):
         self.connect()
 
     def connect(self):
-        r"""
+        """
         This methods establishes the conection to the remote server.
 
         """
@@ -434,7 +434,7 @@ class BlockingDSage(DSage):
         return d
 
     def eval(self, cmd, globals_=None, job_name=None, async=False):
-        r"""
+        """
         eval evaluates a command
 
         Parameters:
@@ -466,7 +466,7 @@ class BlockingDSage(DSage):
         return wrapped_job
 
     def send_job(self, job, async=False):
-        r"""
+        """
         Sends a Job object to the server.
 
         Parameters:
@@ -485,7 +485,7 @@ class BlockingDSage(DSage):
         return wrapped_job
 
     def get_my_jobs(self):
-        r"""
+        """
         This method returns a list of jobs that belong to you.
 
         Parameters:
@@ -506,7 +506,7 @@ class BlockingDSage(DSage):
 
 
     def cluster_speed(self):
-        r"""
+        """
         Returns the speed of the cluster.
 
         """
@@ -515,8 +515,8 @@ class BlockingDSage(DSage):
 
         return blocking_call_from_thread(self.remoteobj.callRemote, 'get_cluster_speed')
 
-    def list_monitors(self):
-        r"""Returns a list of monitors connected to the server.
+    def get_monitors_list(self):
+        """Returns a list of monitors connected to the server.
 
         """
 
@@ -524,8 +524,8 @@ class BlockingDSage(DSage):
 
         return blocking_call_from_thread(self.remoteobj.callRemote, 'get_monitor_list')
 
-    def list_clients(self):
-        r"""
+    def get_clients_list(self):
+        """
         Returns a list of clients connected to the server.
         """
 
@@ -533,8 +533,18 @@ class BlockingDSage(DSage):
 
         return blocking_call_from_thread(self.remoteobj.callRemote, 'get_client_list')
 
+    def get_worker_count(self):
+        """
+        Returns the number of busy and free workers.
+
+        """
+
+        self.check_connected()
+
+        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_worker_count')
+
 class JobWrapper(object):
-    r"""
+    """
     Represents a remote job.
 
     Parameters:
@@ -695,7 +705,7 @@ class JobWrapper(object):
         result_file.close()
 
     def kill(self):
-        r"""
+        """
         Kills the current job.
 
         """
@@ -712,7 +722,7 @@ class JobWrapper(object):
         return
 
 class BlockingJobWrapper(JobWrapper):
-    r"""
+    """
     Blocking version of the JobWrapper object.  This is to be used
     interactively.
 
@@ -754,7 +764,7 @@ class BlockingJobWrapper(JobWrapper):
         return JobWrapper.get_job(self)
 
     def kill(self):
-        r"""
+        """
         Kills the current job.
 
         """
@@ -764,7 +774,7 @@ class BlockingJobWrapper(JobWrapper):
         return job_id
 
     def async_kill(self):
-        r"""
+        """
         async version of kill
 
         """
@@ -776,7 +786,7 @@ class BlockingJobWrapper(JobWrapper):
         return d
 
     def wait(self, timeout=None):
-        r"""
+        """
         Waits on a job until it is completed.
 
         Parameters:

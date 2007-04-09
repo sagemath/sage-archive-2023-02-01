@@ -35,7 +35,7 @@ from sage.dsage.errors.exceptions import BadTypeError, BadJobError
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 class WorkerPBServerFactory(pb.PBServerFactory):
-    r"""
+    """
     This factory serves workers requests.
 
     """
@@ -62,7 +62,7 @@ class WorkerPBServerFactory(pb.PBServerFactory):
                 worker_tracker.remove((broker, host, port))
 
 class PBClientFactory(pb.PBClientFactory):
-    r"""
+    """
     Custom implementation of the PBClientFactory that supports logging in
     with public key as well as anonymous credentials.
 
@@ -127,7 +127,7 @@ class _SSHKeyPortalWrapper(pb._PortalWrapper):
         return perspective
 
 class DefaultPerspective(pb.Avatar):
-    r"""
+    """
     Custom implementation of pb.Avatar so we can keep track of the broker.
 
     """
@@ -169,7 +169,7 @@ class DefaultPerspective(pb.Avatar):
             self.DSageServer.clientdb.set_connected(self.avatarID, connected=False)
 
 class AnonymousMonitorPerspective(DefaultPerspective):
-    r"""
+    """
     Defines the perspective of an anonymous worker.
 
     """
@@ -195,7 +195,7 @@ class AnonymousMonitorPerspective(DefaultPerspective):
         self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
 
     def perspective_get_job(self):
-        r"""
+        """
         Returns jobs only marked as doable by anonymous workers.
 
         """
@@ -243,7 +243,7 @@ class AnonymousMonitorPerspective(DefaultPerspective):
         return self.DSageServer.submit_host_info(hostinfo)
 
 class MonitorPerspective(AnonymousMonitorPerspective):
-    r"""
+    """
     Defines the perspective of an authenticated worker to the server.
 
     """
@@ -263,7 +263,7 @@ class MonitorPerspective(AnonymousMonitorPerspective):
         self.DSageServer.monitordb.set_anonymous(uuid, anonymous=False)
 
     def perspective_get_job(self):
-        r"""
+        """
         Returns jobs to authenticated workers.
 
         """
@@ -279,7 +279,7 @@ class MonitorPerspective(AnonymousMonitorPerspective):
         return jdict
 
 class UserPerspective(DefaultPerspective):
-    r"""
+    """
     Defines the perspective of a regular user to the server.
 
     """
@@ -352,6 +352,9 @@ class UserPerspective(DefaultPerspective):
     def perspective_get_client_list(self):
         return self.DSageServer.get_client_list()
 
+    def perspective_get_worker_count(self):
+        return self.DSageServer.get_worker_count()
+
     def perspective_submit_host_info(self, hostinfo):
         if not isinstance(hostinfo, dict):
             raise BadTypeError()
@@ -361,7 +364,7 @@ class UserPerspective(DefaultPerspective):
         return self.DSageServer.get_killed_jobs_list()
 
 class AdminPerspective(UserPerspective):
-    r"""
+    """
     Defines the perspective of the admin.
 
     """

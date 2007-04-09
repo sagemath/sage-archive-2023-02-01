@@ -33,14 +33,14 @@ from sage.dsage.database.job import expand_job
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 class DSageServer(pb.Root):
-    r"""
+    """
     This class represents Distributed Sage server which does all the
     coordination of distributing jobs, creating new jobs and accepting job
     submissions.
 
     """
     def __init__(self, jobdb, monitordb, clientdb, log_level=0):
-        r"""
+        """
         Initializes the Distributed Sage PB Server.
 
         Parameters:
@@ -58,7 +58,7 @@ class DSageServer(pb.Root):
         return cPickle.loads(zlib.decompress(pickled_job))
 
     def get_job(self, anonymous=False):
-        r"""
+        """
         Returns a job to the client.
 
         This method returns the first job that has not been completed
@@ -89,7 +89,7 @@ class DSageServer(pb.Root):
         return self.monitordb.set_busy(uuid, busy=busy)
 
     def get_job_by_id(self, job_id):
-        r"""
+        """
         Returns a job by the job id.
 
         Parameters:
@@ -140,7 +140,7 @@ class DSageServer(pb.Root):
         # return job.pickle()
 
     def get_jobs_by_username(self, username):
-        r"""
+        """
         Returns jobs created by username.
 
         Parameters:
@@ -157,7 +157,7 @@ class DSageServer(pb.Root):
         return jobs
 
     def submit_job(self, jdict):
-        r"""
+        """
         Submits a job to the job database.
 
         Parameters:
@@ -178,20 +178,20 @@ class DSageServer(pb.Root):
         return self.jobdb.store_job(jdict)
 
     def get_all_jobs(self):
-        r"""
+        """
         Returns a list of all jobs in the database.
 
         """
         return self.jobdb.get_all_jobs()
 
     def get_active_jobs(self):
-        r"""
+        """
         Returns a list of active jobs"""
 
         return self.jobdb.get_active_jobs()
 
     def get_active_clients_list(self):
-        r"""
+        """
         Returns a list of active clients.
 
         """
@@ -199,7 +199,7 @@ class DSageServer(pb.Root):
         raise NotImplementedError
 
     def get_killed_jobs_list(self):
-        r"""
+        """
         Returns a list of killed job jdicts.
         """
 
@@ -207,7 +207,7 @@ class DSageServer(pb.Root):
         return killed_jobs
 
     def get_next_job_id(self):
-        r"""
+        """
         Returns the next job id.
 
         """
@@ -218,7 +218,7 @@ class DSageServer(pb.Root):
         return self.jobdb.get_next_job_id()
 
     def job_done(self, job_id, output, result, completed):
-        r"""
+        """
         job_done is called by the workers check_output method.
 
         Parameters:
@@ -251,7 +251,7 @@ class DSageServer(pb.Root):
         return self.jobdb.store_job(jdict)
 
     def job_failed(self, job_id, traceback):
-        r"""
+        """
         job_failed is called when a remote job fails.
 
         Parameters:
@@ -276,7 +276,7 @@ class DSageServer(pb.Root):
         return self.jobdb.store_job(job.reduce())
 
     def kill_job(self, job_id, reason):
-        r"""
+        """
         Kills a job.
 
         Marks as job as killed and moves it to the killed jobs database.
@@ -295,7 +295,7 @@ class DSageServer(pb.Root):
         return job_id
 
     def get_monitor_list(self):
-        r"""
+        """
         Returns a list of workers as a 3 tuple.
 
         tuple[0] = broker object
@@ -306,7 +306,7 @@ class DSageServer(pb.Root):
         return self.monitordb.get_monitor_list()
 
     def get_client_list(self):
-        r"""
+        """
         Returns a list of clients.
 
         """
@@ -314,7 +314,7 @@ class DSageServer(pb.Root):
         return self.clientdb.get_client_list()
 
     def get_cluster_speed(self):
-        r"""
+        """
         Returns an approximation of the total CPU speed of the cluster.
 
         """
@@ -331,8 +331,23 @@ class DSageServer(pb.Root):
 
         return cluster_speed
 
+    def get_worker_count(self):
+        """
+        Returns a list of busy and free workers.
+
+        """
+
+        count = {}
+        free_workers = self.monitordb.get_worker_count(connected=True, busy=False)
+        working_workers = self.monitordb.get_worker_count(connected=True, busy=True)
+
+        count['free'] = free_workers
+        count['working'] = working_workers
+
+        return count
+
     def submit_host_info(self, h):
-        r"""
+        """
         Takes a dict of workers machine specs.
 
         """
@@ -347,7 +362,7 @@ class DSageServer(pb.Root):
                     hostinfo_list.append(h)
 
     def generate_xml_stats(self):
-        r"""
+        """
         This method returns a an XML document to be consumed by the Dashboard
         widget
 
@@ -537,7 +552,7 @@ class DSageServer(pb.Root):
         return s.getvalue()
 
 class DSageWorkerServer(DSageServer):
-    r"""
+    """
     Exposes methods to workers.
     """
 

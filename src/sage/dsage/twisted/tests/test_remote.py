@@ -89,7 +89,7 @@ Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
                 range(500)]])
 
 class ClientRemoteCallsTest(unittest.TestCase):
-    r"""
+    """
     Tests of remote procedure calls go here.
 
     """
@@ -204,7 +204,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         return jobs
 
 class MonitorRemoteCallsTest(unittest.TestCase):
-    r"""
+    """
     Tests remote calls for monitors.
 
     """

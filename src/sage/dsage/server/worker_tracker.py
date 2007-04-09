@@ -21,7 +21,7 @@
 worker_list = []
 
 def add(worker):
-    r"""
+    """
     Adds an avatar to worker_list.
 
     """
@@ -29,7 +29,7 @@ def add(worker):
     worker_list.append(worker)
 
 def remove(worker):
-    r"""
+    """
     Removes the avatar from the worker_list.
 
     """

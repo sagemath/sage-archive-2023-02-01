@@ -5,7 +5,7 @@ from sage.dsage.interface.dsage_interface import JobWrapper
 from sage.all import *
 
 class DistributedFactor(DistributedFunction):
-    r"""
+    """
     DistributedFactor uses ECM and QSIEVE to find factors of numbers.
 
        DistributedFactor will first perform trial division on the number and
@@ -18,7 +18,7 @@ class DistributedFactor(DistributedFunction):
 
     def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000,
                  name='DistributedFactor'):
-        r"""
+        """
         Parameters:
             DSage -- an instance of a dsage connection
             n -- the square-free number to be factored
@@ -97,7 +97,7 @@ else:
         return job
 
     def process_result(self, job):
-        r"""
+        """
         For each factor m of n found by the worker, record them by
             1) Dividing each element x of composite_factors by gcd(x,m)
             2) Storing (non-trivial) gcd(x,m) to the composite factor list.

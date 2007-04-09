@@ -4,7 +4,7 @@ from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
 
 class DistributedPOVRay(DistributedFunction):
-    r"""
+    """
     DistributedPOVRay distributes rendering of a .pov file.
 
     Parameters:

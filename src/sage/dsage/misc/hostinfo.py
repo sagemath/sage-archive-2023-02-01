@@ -149,7 +149,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
         return self.host_info
 
 class ClassicHostInfo(object):
-    r"""
+    """
     Class to gather computer specifications on the running host.
 
     """

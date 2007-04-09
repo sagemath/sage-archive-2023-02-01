@@ -28,7 +28,7 @@ from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.server.server import DSageServer
 
 class DSageServerTestCase(unittest.TestCase):
-    r"""
+    """
     Tests for DSageServer go here.
 
     """

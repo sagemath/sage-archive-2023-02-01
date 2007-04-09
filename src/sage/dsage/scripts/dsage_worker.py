@@ -79,7 +79,7 @@ def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
 
 class Worker(object):
-    r"""
+    """
     This class represents a worker object that does the actual calculation.
 
     Parameters:
@@ -128,7 +128,7 @@ class Worker(object):
         return d
 
     def gotJob(self, jdict):
-        r"""
+        """
         gotJob is a callback for the remoteobj's get_job method.
 
         Parameters:
@@ -154,7 +154,7 @@ class Worker(object):
             self.restart()
 
     def job_done(self, output, result, completed):
-        r"""
+        """
         job_done is a callback for doJob.  Called when a job completes.
 
         Parameters:
@@ -187,7 +187,7 @@ class Worker(object):
     def noJob(self, failure):
         # TODO: Probably do not need this errback, look into consolidating
         # with failedJob
-        r"""
+        """
         noJob is an errback that catches the NoJobException.
 
         Parameters:
@@ -219,7 +219,7 @@ class Worker(object):
         return tmp_job_dir
 
     def extract_job_data(self, job):
-        r"""
+        """
         Extracts all the data that is in a job object.
 
         """
@@ -253,7 +253,7 @@ class Worker(object):
                         log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
 
     def write_job_file(self, job):
-        r"""
+        """
         Writes out the job file to be executed to disk.
 
         """
@@ -275,7 +275,7 @@ class Worker(object):
         return job_filename
 
     def doJob(self, job):
-        r"""
+        """
         doJob is the method that drives the execution of a job.
 
         Parameters:
@@ -304,7 +304,7 @@ class Worker(object):
         return d
 
     def stop(self):
-        r"""
+        """
         Stops the current worker and resets it's internal state.
 
         """
@@ -327,7 +327,7 @@ class Worker(object):
         self.job = None
 
     def start(self):
-        r"""
+        """
         Starts a new worker if it does not exist already.
 
         """
@@ -340,7 +340,7 @@ class Worker(object):
         self.get_job()
 
     def restart(self):
-        r"""
+        """
         Restarts the current worker.
 
         """
@@ -350,7 +350,7 @@ class Worker(object):
         self.start()
 
 class Monitor(object):
-    r"""
+    """
     This class represents a monitor that controls workers.
 
     It monitors the workers and checks on their status
@@ -499,7 +499,7 @@ class Monitor(object):
         log.err("Traceback: ", failure.printTraceback())
 
     def connect(self):
-        r"""
+        """
         This method connects the monitor to a remote PB server.
 
         """
@@ -534,7 +534,7 @@ class Monitor(object):
         return d
 
     def pool_workers(self, remoteobj):
-        r"""
+        """
         pool_workers creates as many workers as specified in worker.conf.
 
         """
@@ -543,7 +543,7 @@ class Monitor(object):
         log.msg('[Monitor] Initialized ' + str(WORKERS) + ' workers.')
 
     def check_output(self):
-        r"""
+        """
         check_output periodically polls workers for new output.
 
         This figures out whether or not there is anything new output that we
@@ -616,7 +616,7 @@ class Monitor(object):
             d.addErrback(self._catchConnectionFailure)
 
     def check_failure(self, sage_output):
-        r"""
+        """
         Checks for signs of exceptions or errors in the output.
 
         """
@@ -634,7 +634,7 @@ class Monitor(object):
             return False
 
     def check_killed_jobs(self):
-        r"""
+        """
         check_killed_jobs retrieves a list of killed job ids.
 
         """
@@ -647,7 +647,7 @@ class Monitor(object):
         killed_jobs.addErrback(self._catch_failure)
 
     def clean_output(self, sage_output):
-        r"""
+        """
         clean_output attempts to clean up the output string from sage.
 
         """
@@ -671,7 +671,7 @@ class Monitor(object):
         return output
 
     def start_looping_calls(self):
-        r"""
+        """
         stop_looping_calls prepares and starts our periodic checking methods.
 
         """
@@ -684,7 +684,7 @@ class Monitor(object):
         self.tsk2.start(5.0, now=False)
 
     def stop_looping_calls(self):
-        r"""
+        """
         Stops the looping calls.
 
         """
@@ -693,7 +693,7 @@ class Monitor(object):
         self.tsk2.stop()
 
 def main():
-    r"""
+    """
     argv[1] == hostname
     argv[2] == port
 

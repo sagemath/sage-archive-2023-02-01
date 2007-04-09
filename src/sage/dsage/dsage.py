@@ -8,7 +8,7 @@ AUTHORS:
 import os
 
 class DistributedSage(object):
-    r"""
+    """
     DistributedSage allows you to do distributed computing in SAGE.
 
     To get up and running quickly, run dsage.setup() to run the
@@ -82,7 +82,7 @@ class DistributedSage(object):
         return DSage()
 
     def server(self, blocking=True):
-        r"""
+        """
         This is the server of Distributed SAGE
 
         Doing dsage.server() will spawn a server process which listens by
@@ -96,7 +96,7 @@ class DistributedSage(object):
         os.system(cmd)
 
     def worker(self, server=None, port=None, blocking=True):
-        r"""
+        """
         This is the worker of Distributed SAGE
 
         Typing sage.worker() will launch a worker which by default connects to
@@ -119,7 +119,7 @@ class DistributedSage(object):
 
     # This is completely outdated now, only kept for historical reference
     # def console(self):
-    #     r"""
+    #     """
     #     This is the IPython console that allows you submit and view jobs.
     #
     #     Simply type dsage.console() to launch it.  It is a special ipython
@@ -130,7 +130,7 @@ class DistributedSage(object):
     #     os.system(cmd)
 
     def setup(self):
-        r"""
+        """
         This is the setup utility which helps you configure dsage.
 
         Type dsage.setup() to run the configuration for the server, worker and
@@ -144,7 +144,7 @@ class DistributedSage(object):
         os.system(cmd)
 
     def setup_server(self):
-        r"""
+        """
         This method runs the configuration utility for the server.
 
         """
@@ -153,7 +153,7 @@ class DistributedSage(object):
         os.system(cmd)
 
     def setup_worker(self):
-        r"""
+        """
         This method runs the configuration utility for the worker.
 
         """
@@ -162,7 +162,7 @@ class DistributedSage(object):
         os.system(cmd)
 
     def setup_client(self):
-        r"""
+        """
         This method runs the configuration utility for the client.
 
         """

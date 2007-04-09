@@ -27,7 +27,7 @@ import sage.dsage.database.sql_functions as sql_functions
 from sage.dsage.misc.config import get_conf
 
 class MonitorDatabase(object):
-    r"""
+    """
     This table keeps track of workers.
 
     """
@@ -140,10 +140,11 @@ class MonitorDatabase(object):
         return monitor
 
     def get_monitor_list(self):
-        r"""
+        """
         Returns a list of connected monitors.
 
         """
+
         query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors
         WHERE connected"""
         cur = self.con.cursor()
@@ -159,7 +160,7 @@ class MonitorDatabase(object):
         return monitors
 
     def set_connected(self, uuid, connected=True):
-        r"""
+        """
         Sets the connected status of a worker.
 
         Parameters:
@@ -180,7 +181,7 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def set_busy(self, uuid, busy):
-        r"""
+        """
         Sets whether or not a worker is doing a job.
 
         """
@@ -195,12 +196,13 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def get_worker_count(self, connected, busy):
-        r"""
+        """
         Returns the number of workers.
 
         Parameters:
         connected -- bool
         busy -- bool
+
         """
 
         if connected and not busy:
@@ -219,7 +221,7 @@ class MonitorDatabase(object):
         return sum(w[0] for w in result)
 
     def get_cpu_speed(self, connected=True, busy=True):
-        r"""
+        """
         Returns the aggregate cpu speed in Mhz.
 
         Parameters:
@@ -243,7 +245,7 @@ class MonitorDatabase(object):
         return cpu_speed
 
     def get_cpu_count(self, connected=True):
-        r"""
+        """
         Returns the number of cpus that are available.
 
         Parameters:

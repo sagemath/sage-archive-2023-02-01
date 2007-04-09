@@ -27,14 +27,14 @@ import copy
 from persistent import Persistent
 
 class Job(Persistent):
-    r"""
+    """
     Defines a Job that gets distributed to clients.
 
     """
 
     def __init__(self, id_=None, name=None, code=None, parent=None,
                  username=None, type_='sage'):
-        r"""
+        """
         Creates a new job.
 
         Parameters:
@@ -237,7 +237,7 @@ class Job(Persistent):
         self.jdict['verifiable'] = value
 
     def attach(self, var, obj, file_name=None):
-        r"""
+        """
         Attaches an object to a job.
 
         Parameters:
@@ -264,7 +264,7 @@ class Job(Persistent):
         self.jdict['data'].append((var, s, 'object'))
 
     def attach_file(self, file_name):
-        r"""
+        """
         Attach a file to a job.
 
         Parameters:
@@ -280,7 +280,7 @@ class Job(Persistent):
         self.jdict['data'].append((file_name, f, 'file'))
 
     def pickle(self):
-        r"""
+        """
         Returns a pickled representation of self.
 
         """
@@ -291,7 +291,7 @@ class Job(Persistent):
         return s
 
     def unpickle(self, pickled_job):
-        r"""
+        """
         Returns the unpickled version of myself.
 
         """
@@ -299,7 +299,7 @@ class Job(Persistent):
         return cPickle.loads(zlib.decompress(pickled_job))
 
     def reduce(self):
-        r"""
+        """
         Returns a reduced form of Job.jdict to be sent over the network.
 
         """
@@ -314,7 +314,7 @@ class Job(Persistent):
         return jdict
 
 def expand_job(jdict):
-    r"""
+    """
     This method recreates a Job object given a jdict.
 
     """

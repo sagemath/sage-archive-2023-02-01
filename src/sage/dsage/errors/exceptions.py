@@ -55,7 +55,7 @@ class BadKeyException(pb.Error):
     pass
 
 class AuthenticationError(pb.Error):
-    r"""
+    """
     Return this when credential checking has failed.
 
     """

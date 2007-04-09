@@ -24,7 +24,7 @@ import datetime
 from sage.dsage.database.clientdb import ClientDatabase
 
 class ClientDatabaseTestCase(unittest.TestCase):
-    r"""
+    """
     Test cases for DSAGE's ClientDatabase
 
     """

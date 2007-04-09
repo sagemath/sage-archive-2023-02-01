@@ -36,7 +36,7 @@ def table_exists(con, tablename):
     return result
 
 def create_table(con, tablename, query):
-    r"""
+    """
     Creates a table given the connection.
 
     """
@@ -45,7 +45,7 @@ def create_table(con, tablename, query):
     con.execute(query)
 
 def fields(cursor):
-    r"""
+    """
     Given a DB API 2.0 cursor object that has been executed, returns
     a dictionary that maps each field name to a column index, 0 and up.
 

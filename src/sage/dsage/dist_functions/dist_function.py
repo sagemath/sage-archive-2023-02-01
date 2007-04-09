@@ -26,7 +26,7 @@ from sage.dsage.interface.dsage_interface import JobWrapper, BlockingJobWrapper
 from sage.dsage.twisted.misc import blocking_call_from_thread
 
 class DistributedFunction(object):
-    r"""
+    """
     Parent class for all classes that wish to use Distributed SAGE.
 
     Parameters:
@@ -71,7 +71,7 @@ class DistributedFunction(object):
                      doc="Time it took for job to complete")
 
     def save(self, filename=None, compress=True):
-        r"""
+        """
         Saves your distributed job to disk.
 
         """
@@ -90,7 +90,7 @@ class DistributedFunction(object):
         return filename
 
     def stop(self, verbose=True):
-        r"""
+        """
         Ends the current DistributedFunction, kills all waiting jobs.
 
         """
@@ -104,7 +104,7 @@ class DistributedFunction(object):
             print 'All waiting jobs have been killed. This job is no more.'
 
     def restore(self, dsage):
-        r"""
+        """
         Reloads a distributed job from disk.
 
         """
@@ -156,7 +156,7 @@ class DistributedFunction(object):
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 
     def process_result(self):
-        r"""
+        """
         Any class subclassing DistributedFunction should implement this method.
 
         """
@@ -193,7 +193,7 @@ class DistributedFunction(object):
                 reactor.callFromThread(self.checker_task.stop)
 
 class DistributedFunctionTest(DistributedFunction):
-    r"""
+    """
     This is a very simple DistributedFunction.
     Only for educational purposes.
 

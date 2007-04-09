@@ -31,7 +31,7 @@ from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.errors.exceptions import AuthenticationError
 
 class PublicKeyCredentialsChecker(object):
-    r"""
+    """
     This class provides authentication checking using ssh public keys.
 
     """

@@ -3474,10 +3474,8 @@ def enum(graph):
     M = graph.am()
     enumeration = 0
     n = graph.order()
-    for i in range(n):
-        for j in range(n):
-            if M[i][j] == 1:
-                enumeration += 1<<((n-(i+1))*n + n-(j+1))
+    for i, j in M.nonzero_positions():
+        enumeration += 1 << ((n-(i+1))*n + n-(j+1))
     return enumeration
 
 

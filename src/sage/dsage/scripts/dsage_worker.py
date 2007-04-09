@@ -311,11 +311,12 @@ class Worker(object):
 
         # This quits the current running calculation
         INTERRUPT_TRIES = 5
+        timeout = 0.05
         for i in range(INTERRUPT_TRIES):
             try:
                 self.sage._expect.sendline(chr(3))  # send ctrl-c
-                self.sage._expect.expect(self.sage._prompt)
-                self.sage._expect.expect(self.sage._prompt)
+                self.sage._expect.expect(self.sage._prompt, timeout=timeout)
+                self.sage._expect.expect(self.sage._prompt, timeout=timeout)
                 success = True
                 break
             except (pexpect.TIMEOUT, pexpect.EOF), msg:

@@ -721,7 +721,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
 
         sage: graph3 = all_labeled_graphs(3)
         sage: part3 = all_ordered_partitions(range(3))
-        sage: for G in graph3:               # long time
+        sage: for G in graph3:               # long time (~30 secs)
         ...    for Pi in part3:
         ...        a,b = search_tree(G, Pi)
         ...        c,d = search_tree(G, Pi, dig=True)
@@ -938,11 +938,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         sage: PermutationGroup(gens).order()
         384
         sage: C = graphs.CubeGraph(5)
-        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time
+        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time (~8 secs)
         sage: PermutationGroup(gens).order()                    # long time
         3840
         sage: C = graphs.CubeGraph(6)
-        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time
+        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time (~50 secs)
         sage: PermutationGroup(gens).order()                    # long time
         46080
     """
@@ -1251,7 +1251,7 @@ def all_labeled_graphs(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,5): # long time
+        sage: for n in range(1,5): # long time (~9 secs)
         ...    Glist[n] = all_labeled_graphs(n)
         ...    Giso[n] = []
         ...    for g in Glist[n]:
@@ -1334,7 +1334,7 @@ def all_labeled_digraphs_with_loops(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,4): # long time
+        sage.: for n in range(1,4): # long time (~130 secs)
         ...    Glist[n] = all_labeled_digraphs_with_loops(n)
         ...    Giso[n] = []
         ...    for g in Glist[n]:
@@ -1345,7 +1345,7 @@ def all_labeled_digraphs_with_loops(n):
         ...                inn = True
         ...        if not inn:
         ...            Giso[n].append(b)
-        sage: for n in Giso: # long time (depends on previous)
+        sage.: for n in Giso: # long time (depends on previous)
         ...    print n, len(Giso[n])
         1 2
         2 10

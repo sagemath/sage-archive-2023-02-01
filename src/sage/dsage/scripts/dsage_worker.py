@@ -552,7 +552,7 @@ class Monitor(object):
                 continue
 
             if LOG_LEVEL > 1:
-                log.msg('[Monitor] Checking for job output')
+                log.msg('[Monitor] Checking for job output of worker %s' % (worker.id))
             try:
                 done, output, new = worker.sage._so_far()
             except Exception, msg:

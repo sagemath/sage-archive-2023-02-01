@@ -121,6 +121,7 @@ else:
             factors, primality, params, algorithm = result
         except Exception, msg:
             print 'Error in processing result.'
+            print result
             print msg
             return
         try:

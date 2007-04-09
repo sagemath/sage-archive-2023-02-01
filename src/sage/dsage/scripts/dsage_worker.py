@@ -488,6 +488,7 @@ class Monitor(object):
     def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
         log.msg("Traceback: ", failure.printTraceback())
+        self.restart()
 
     def connect(self):
         r"""

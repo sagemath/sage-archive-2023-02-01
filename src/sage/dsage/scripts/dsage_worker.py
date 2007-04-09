@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -24,6 +25,7 @@ import uuid
 import cPickle
 import zlib
 import pexpect
+import time
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -228,38 +230,39 @@ class Worker(object):
         if isinstance(job.data, list):
             if LOG_LEVEL > 2:
                 log.msg('Extracting job data...')
-            for var, data, kind in job.data:
-                # Uncompress data
-                try:
-                    data = zlib.decompress(data)
-                except Exception, msg:
-                    log.msg(msg)
-                    continue
-                if kind == 'file':
-                    # Write out files to current dir
-                    f = open(var, 'wb')
-                    f.write(data)
-                    if LOG_LEVEL > 2:
-                        log.msg('[Worker: %s] Extracted %s. ' % (self.id, f))
-                if kind == 'object':
-                    # Load object into the SAGE worker
-                    fname = var + '.sobj'
-                    if LOG_LEVEL > 3:
-                        log.msg('Object to be loaded: %s' % fname)
-                    f = open(fname, 'wb')
-                    f.write(data)
-                    f.close()
-                    self.sage.eval("%s = load('%s')" % (var, fname))
-                    if LOG_LEVEL > 2:
-                        log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
+            try:
+                for var, data, kind in job.data:
+                    try:
+                        data = zlib.decompress(data)
+                    except Exception, msg:
+                        log.msg(msg)
+                        continue
+                    if kind == 'file':
+                        f = open(var, 'wb')
+                        f.write(data)
+                        f.close()
+                        if LOG_LEVEL > 2:
+                            log.msg('[Worker: %s] Extracted %s. ' % (self.id, f))
+                    if kind == 'object':
+                        fname = var + '.sobj'
+                        if LOG_LEVEL > 2:
+                            log.msg('Object to be loaded: %s' % fname)
+                        f = open(fname, 'wb')
+                        f.write(data)
+                        f.close()
+                        self.sage.eval("%s = load('%s')" % (var, fname))
+                        if LOG_LEVEL > 2:
+                            log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
+            except Exception, msg:
+                log.err(msg)
 
     def write_job_file(self, job):
         """
         Writes out the job file to be executed to disk.
 
         """
-        parsed_file = preparse_file(job.code, magic=False,
-                                    do_time=False, ignore_prompts=False)
+
+        parsed_file = preparse_file(job.code, magic=False, do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
         job_file = open(job_filename, 'w')
@@ -540,8 +543,8 @@ class Monitor(object):
 
         """
 
+        log.msg('[Monitor] Starting %s workers, this might take some time...' % (WORKERS))
         self.workers = [Worker(remoteobj, x) for x in range(WORKERS)]
-        log.msg('[Monitor] Initialized ' + str(WORKERS) + ' workers.')
 
     def check_output(self):
         """
@@ -573,17 +576,12 @@ class Monitor(object):
                 continue
             if done:
                 worker.free = True
-                # Checks to see if the job created a result var
-                # Do this multiple times because of Expect weirdness
                 sobj = worker.sage.get('DSAGE_RESULT')
-                if sobj == '' or sobj.isspace():
+                timeout = 0.1
+                while sobj == '' or sobj.isspace():
                     sobj = worker.sage.get('DSAGE_RESULT')
-                    if sobj == '' or sobj.isspace():
-                        sobj = worker.sage.get('DSAGE_RESULT')
-                    else:
-                        if LOG_LEVEL > 1:
-                            log.msg('Got DSAGE_RESULT second time')
-                if 'Error: name \'DSAGE_RESULT\' is not defined' in sobj:
+                    time.sleep(timeout)
+                if 'NameError: name \'DSAGE_RESULT\' is not defined' in sobj:
                     if LOG_LEVEL > 1:
                         log.msg('DSAGE_RESULT does not exist')
                     result = cPickle.dumps('No result saved.', 2)
@@ -591,18 +589,17 @@ class Monitor(object):
                     try:
                         os.chdir(worker.tmp_job_dir)
                         worker.sage.eval("os.chdir('%s')" % (worker.tmp_job_dir))
-                        worker.sage.eval("save(DSAGE_RESULT, 'result')")
-                        result = open('result.sobj', 'rb').read()
+                        worker.sage.eval("save(DSAGE_RESULT, 'result', compress=True)")
+                        result = open('result.sobj', 'rb').read() # Already in compressed form.
                     except Exception, msg:
                         if LOG_LEVEL > 1:
                             log.err(msg)
                         result = cPickle.dumps(msg, 2)
-                log.msg("Job '%s' finished" % worker.job.job_id)
+                log.msg("[Worker: %s] Job '%s' finished" % (worker.id, worker.job.job_id))
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
 
             sanitized_output = self.clean_output(new)
-
             if self.check_failure(sanitized_output):
                 s = ['[Monitor] Error in result for ',
                      'job %s %s done by ' % (worker.job.name, worker.job.job_id),
@@ -689,6 +686,7 @@ class Monitor(object):
         Stops the looping calls.
 
         """
+
         self.tsk.stop()
         self.tsk1.stop()
         self.tsk2.stop()

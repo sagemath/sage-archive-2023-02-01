@@ -39,6 +39,7 @@ class DSageServer(pb.Root):
     submissions.
 
     """
+
     def __init__(self, jobdb, monitordb, clientdb, log_level=0):
         """
         Initializes the Distributed Sage PB Server.

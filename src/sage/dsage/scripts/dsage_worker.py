@@ -543,7 +543,7 @@ class Monitor(object):
 
         """
 
-        log.msg('[Monitor] Starting %s workers, this might take some time...' % (WORKERS))
+        log.msg('[Monitor] Starting %s workers...' % (WORKERS))
         self.workers = [Worker(remoteobj, x) for x in range(WORKERS)]
 
     def check_output(self):

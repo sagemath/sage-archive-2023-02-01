@@ -2333,10 +2333,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ...        LL.append(G)
             ...
             sage.: graphs_list.show_graphs(LL)
+
+            sage: E = EllipticCurve('195a')
+            sage: G = E.isogeny_graph()
+            sage: for v in G:
+                print v, G.obj(v)
+            ....:
+            0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
+            1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
+            2 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field
+            3 Elliptic Curve defined by y^2 + x*y  = x^3 - 520*x - 4225 over Rational Field
+            4 Elliptic Curve defined by y^2 + x*y  = x^3 + 605*x - 19750 over Rational Field
+            5 Elliptic Curve defined by y^2 + x*y  = x^3 - 8125*x - 282568 over Rational Field
+            6 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
+            7 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
+            sage: G.plot(edge_labels=True).save('isogeny_graph.png')
         """
         from sage.graphs.graph import Graph
-        M = self.isogeny_class()[1]
+        L, M = self.isogeny_class()
         G = Graph(M, format='weighted_adjacency_matrix')
+        d = {}
+        for v in G.vertices():
+            d[v] = L[v]
+        G.associate(d)
         return G
 
     ##########################################################

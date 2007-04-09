@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -185,8 +184,6 @@ class Worker(object):
         return d
 
     def noJob(self, failure):
-        # TODO: Probably do not need this errback, look into consolidating
-        # with failedJob
         """
         noJob is an errback that catches the NoJobException.
 
@@ -198,21 +195,25 @@ class Worker(object):
         sleep_time = 5.0
         if failure.check(NoJobException):
             if LOG_LEVEL > 3:
-                log.msg('[Worker %s, noJob] Sleeping for %s seconds\
-                ' % (self.id, sleep_time))
-            reactor.callLater(5.0, self.get_job)
+                log.msg('[Worker %s, noJob] Sleeping for %s seconds' % (self.id, sleep_time))
+            reactor.callLater(sleep_time, self.get_job)
         else:
             print "Error: ", failure.getErrorMessage()
             print "Traceback: ", failure.printTraceback()
 
     def setup_tmp_dir(self, job):
-        # change to a temporary directory
+        """
+        Creates the temporary directory for the worker.
+
+        """
+
         cur_dir = os.getcwd() # keep a reference to the current directory
         tmp_dir = os.path.join(DSAGE_DIR, 'tmp_worker_files')
         tmp_job_dir = os.path.join(tmp_dir, job.job_id)
         if not os.path.isdir(tmp_dir):
             os.mkdir(tmp_dir)
-        os.mkdir(tmp_job_dir)
+        if not os.path.isdir(tmp_job_dir):
+            os.mkdir(tmp_job_dir)
         os.chdir(tmp_job_dir)
         self.sage.eval("os.chdir('%s')" % tmp_job_dir)
 

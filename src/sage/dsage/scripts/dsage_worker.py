@@ -309,8 +309,7 @@ class Worker(object):
 
         """
 
-        # This quits the current running calculation
-        INTERRUPT_TRIES = 5
+        INTERRUPT_TRIES = 10
         timeout = 0.05
         for i in range(INTERRUPT_TRIES):
             try:
@@ -323,8 +322,7 @@ class Worker(object):
                 if LOG_LEVEL > 3:
                     log.err("Trying again to interrupt SAGE (try %s)..." % i)
 
-        if success:
-            self.sage.reset()
+        self.sage.reset()
         self.free = True
         self.job = None
 
@@ -333,6 +331,7 @@ class Worker(object):
         Starts a new worker if it does not exist already.
 
         """
+
         if self.sage is None:
             if LOG_LEVEL > 3:
                 self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
@@ -458,7 +457,7 @@ class Monitor(object):
         # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
-        log.msg('Lost connection to the server.')
+        log.err('Lost connection to the server.')
         self.connected = False
         self._retryConnect()
 
@@ -476,12 +475,11 @@ class Monitor(object):
                 if job is None or worker.job is None:
                     continue
                 if worker.job.job_id == job.job_id:
-                    log.msg('[Worker: %s] Processing a killed job, \
-                            restarting...' % worker.id)
+                    log.msg('[Worker: %s] Processing a killed job, restarting...' % worker.id)
                     worker.restart()
 
     def _retryConnect(self):
-        log.msg('[Monitor] Disconnected, reconnecting in %s' % DELAY)
+        log.err('[Monitor] Disconnected, reconnecting in %s' % DELAY)
         reactor.callLater(DELAY, self.connect)
 
     def _catchConnectionFailure(self, failure):
@@ -493,12 +491,12 @@ class Monitor(object):
         self.connected = False
         self._retryConnect()
 
-        log.msg("Error: ", failure.getErrorMessage())
-        log.msg("Traceback: ", failure.printTraceback())
+        log.err("Error: ", failure.getErrorMessage())
+        log.err("Traceback: ", failure.printTraceback())
 
     def _catch_failure(self, failure):
-        log.msg("Error: ", failure.getErrorMessage())
-        log.msg("Traceback: ", failure.printTraceback())
+        log.err("Error: ", failure.getErrorMessage())
+        log.err("Traceback: ", failure.printTraceback())
 
     def connect(self):
         r"""
@@ -567,8 +565,8 @@ class Monitor(object):
             try:
                 done, output, new = worker.sage._so_far()
             except Exception, msg:
-                log.msg('Exception raised when checking output.')
-                log.msg(msg)
+                log.err('Exception raised when checking output.')
+                log.err(msg)
                 continue
             if new == '' or new.isspace():
                 continue
@@ -584,7 +582,6 @@ class Monitor(object):
                     else:
                         if LOG_LEVEL > 1:
                             log.msg('Got DSAGE_RESULT second time')
-
                 if 'Error: name \'DSAGE_RESULT\' is not defined' in sobj:
                     if LOG_LEVEL > 1:
                         log.msg('DSAGE_RESULT does not exist')
@@ -615,7 +612,6 @@ class Monitor(object):
                 d = self.remoteobj.callRemote('job_failed', worker.job.job_id, sanitized_output)
                 d.addErrback(self._catch_failure)
                 continue
-
             d = worker.job_done(sanitized_output, result, done)
             d.addErrback(self._catchConnectionFailure)
 

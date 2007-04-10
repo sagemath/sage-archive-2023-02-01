@@ -199,7 +199,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
 
         jobs = []
         for i in range(n):
-            jobs.append(Job(name='unittest', username='yqiang'))
+            jobs.append(Job(name='unittest', username=self.username))
 
         return jobs
 

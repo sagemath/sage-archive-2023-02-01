@@ -107,8 +107,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
         self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.server = reactor.listenTCP(0, self.client_factory)
@@ -118,8 +117,7 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.username = USERNAME
         self.pubkey_file = PUBKEY_FILE
         self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(
-                                 filename=self.pubkey_file)
+        self.public_key_string = keys.getPublicKeyString(filename=self.pubkey_file)
         self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
         self.public_key = keys.getPublicKeyObject(self.public_key_string)
         self.alg_name = 'rsa'

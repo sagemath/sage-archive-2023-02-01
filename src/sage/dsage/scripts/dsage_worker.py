@@ -650,7 +650,6 @@ class Monitor(object):
 
         """
 
-        # log.msg("Before cleaning output: ", sage_output)
         begin = sage_output.find(START_MARKER)
         if begin != -1:
             begin += len(START_MARKER)
@@ -669,24 +668,22 @@ class Monitor(object):
 
     def start_looping_calls(self):
         """
-        stop_looping_calls prepares and starts our periodic checking methods.
+        start_looping_calls prepares and starts our periodic checking methods.
 
         """
 
-        # submits the output to the server
         self.tsk1 = task.LoopingCall(self.check_output)
         self.tsk1.start(0.1, now=False)
-        # checks for killed jobs
+        interval = 5.0
         self.tsk2 = task.LoopingCall(self.check_killed_jobs)
-        self.tsk2.start(5.0, now=False)
+        self.tsk2.start(interval, now=False)
 
     def stop_looping_calls(self):
         """
-        Stops the looping calls.
+        stops the looping calls.
 
         """
 
-        self.tsk.stop()
         self.tsk1.stop()
         self.tsk2.stop()
 

@@ -602,13 +602,13 @@ class Monitor(object):
             sanitized_output = self.clean_output(new)
             if self.check_failure(sanitized_output):
                 s = ['[Monitor] Error in result for ',
-                     'job %s %s done by ' % (worker.job.name, worker.job.job_id),
-                     'Worker %s' % (worker.id)
-                     ]
+                     '%s:%s ' % (worker.job.name, worker.job.job_id),
+                     'Worker ID:%s' % (worker.id)]
                 log.err(''.join(s))
                 log.err('[Monitor] Traceback: \n%s' % sanitized_output)
                 d = self.remoteobj.callRemote('job_failed', worker.job.job_id, sanitized_output)
                 d.addErrback(self._catch_failure)
+                worker.restart()
                 continue
             d = worker.job_done(sanitized_output, result, done)
             d.addErrback(self._catchConnectionFailure)
@@ -665,7 +665,6 @@ class Monitor(object):
         output = output.strip()
         output = output.replace('\r', '')
 
-        # log.msg("After cleaning output: ", output)
         return output
 
     def start_looping_calls(self):

@@ -395,10 +395,10 @@ class BlockingDSage(DSage):
         self.blob = keys.makePublicKeyBlob(self.pub_key)
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
-                                                self.alg_name,
-                                                self.blob,
-                                                self.data,
-                                                self.signature)
+                                               self.alg_name,
+                                               self.blob,
+                                               self.data,
+                                               self.signature)
 
         self.jobs = []
         self.dsage_thread = DSageThread()

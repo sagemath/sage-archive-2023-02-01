@@ -135,8 +135,7 @@ else:
             if self.n % prod(factors) != 0:
                 self.prime_factors.append("BAD FACTORS")
             # switch the order of indices
-            result = [(result[0][i],
-                       result[1][i]) for i in range(len(result[0]))]
+            result = [(result[0][i], result[1][i]) for i in range(len(result[0]))]
             # Only works for square-free numbers
             for r, is_prime_factor in result:
                 for p in self.prime_factors:
@@ -176,6 +175,7 @@ else:
             self.done = True
         else:
             self.qsieve_count = 0
+            to_be_removed_jobs = []
             for wrapped_job in self.waiting_jobs:
                 if wrapped_job.algorithm == 'qsieve':
                     if ZZ(wrapped_job.n) not in self.composite_factors:
@@ -185,11 +185,11 @@ else:
                             wrapped_job.kill()
                         else:
                             wrapped_job.async_kill()
-                        self.waiting_jobs.remove(wrapped_job)
+                        to_be_removed_jobs.append(wrapped_job)
                     else:
                         self.qsieve_count += 1
-            # Need to use async versions of submitting the jobs because
-            # this method is called from within the reactor thread
+            for job in to_be_removed_jobs:
+                self.waiting_jobs.remove(job)
             if self.qsieve_count == 0:
                 self.submit_job(self.qsieve_job(), self.name, async=True)
             self.submit_job(self.ecm_job(), self.name, async=True)

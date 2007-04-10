@@ -79,6 +79,7 @@ class DistributedSage(object):
         self.server(blocking=False)
         self.worker(blocking=False)
         from sage.dsage.interface.dsage_interface import BlockingDSage as DSage
+
         return DSage()
 
     def server(self, blocking=True):
@@ -86,7 +87,7 @@ class DistributedSage(object):
         This is the server of Distributed SAGE
 
         Doing dsage.server() will spawn a server process which listens by
-        default on ports 8081 and 8082.
+        default on port 8081.
 
         """
 

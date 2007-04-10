@@ -43,7 +43,7 @@ from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
 from sage.dsage.misc.hostinfo import ClassicHostInfo
 
-DSAGE_DIR = os.path.join(os.getenv('SAGE_ROOT'), 'tmp/dsage')
+DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 # Begin reading configuration
 try:
     conf_file = os.path.join(DSAGE_DIR, 'server.conf')

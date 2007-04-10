@@ -596,13 +596,17 @@ class JobDatabaseSQLite(JobDatabase):
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 
-    def get_jobs_by_username(self, username):
+    def get_jobs_by_username(self, username, active=True):
         """
         Returns a list of jobs belonging to 'username'
 
         """
 
-        query = """SELECT * from jobs where username = ? """
+        if active:
+            query = """SELECT * from jobs WHERE username = ?
+            AND status IN ('new', 'processing')"""
+        else:
+            query = """SELECT * from jobs WHERE username = ? """
         cur = self.con.cursor()
         cur.execute(query, (username,))
 

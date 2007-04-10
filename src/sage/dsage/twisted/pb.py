@@ -295,12 +295,12 @@ class UserPerspective(DefaultPerspective):
 
         return job
 
-    def perspective_get_jobs_by_username(self, username):
+    def perspective_get_jobs_by_username(self, username, active=True):
         if not (isinstance(username, str)):
             log.msg('Bad username [%s] passed to perspective_get_jobs_by_username' % (username))
             raise BadTypeError()
 
-        jobs = self.DSageServer.get_jobs_by_username(username)
+        jobs = self.DSageServer.get_jobs_by_username(username, active)
 
         return jobs
 

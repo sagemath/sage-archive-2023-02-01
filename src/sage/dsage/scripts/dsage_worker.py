@@ -433,7 +433,6 @@ class Monitor(object):
             config = ConfigParser.ConfigParser()
             config.read(conf_file)
 
-            self.port = config.getint('general', 'port')
             self.username = config.get('auth', 'username')
             self.privkey_file = os.path.expanduser(config.get('auth', 'privkey_file'))
             self.pubkey_file = os.path.expanduser(config.get('auth', 'pubkey_file'))

@@ -81,7 +81,7 @@ def startLogging(log_file):
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
     else:
-        print "Logging to file: ", log_file
+        print "DSAGE Server logging to file: ", log_file
         server_log = open(log_file, 'a')
         log.startLogging(server_log)
 

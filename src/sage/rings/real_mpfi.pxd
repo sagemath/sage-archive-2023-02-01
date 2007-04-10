@@ -10,6 +10,9 @@ import  sage.rings.ring
 cimport sage.structure.element
 from sage.structure.element cimport RingElement
 
+from rational import Rational
+from rational cimport Rational
+
 cimport real_mpfr
 
 cdef class RealIntervalFieldElement(sage.structure.element.RingElement)  # forward decl
@@ -42,4 +45,4 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
     cdef RealIntervalFieldElement _new(self)
 
     cdef RealIntervalFieldElement abs(RealIntervalFieldElement self)
-
+    cdef Rational _simplest_rational_helper(self)

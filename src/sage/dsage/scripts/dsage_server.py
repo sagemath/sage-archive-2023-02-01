@@ -149,9 +149,8 @@ def main():
     attempts = 0
     err_msg = """Could not find an open port after 50 attempts."""
     if SSL == 1:
-        ssl_context = ssl.DefaultOpenSSLContextFactory(
-                    SSL_PRIVKEY,
-                    SSL_CERT)
+        log.msg('Using SSL...')
+        ssl_context = ssl.DefaultOpenSSLContextFactory(SSL_PRIVKEY, SSL_CERT)
         while True:
             if attempts > 50:
                 log.err(err_msg)

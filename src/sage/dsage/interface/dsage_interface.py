@@ -109,10 +109,12 @@ class DSage(object):
 
         self.connect()
 
+    def __repr__(self):
+        return self.__str__()
+
     def __str__(self):
         self.check_connected()
-        self.info_str = 'Connected to DSAGE server at: ' \
-                    + self.server + ':' + str(self.port)
+        self.info_str = 'Connected to: %s:%s' % (self.server, self.port)
         return self.info_str + '\r'
 
     def __call__(self, cmd, globals_=None, job_name=None):
@@ -750,8 +752,10 @@ class BlockingJobWrapper(JobWrapper):
             self.get_job()
         if self.status == 'completed' and not self.output:
             return 'No output.'
-        else:
+        if not self.output:
             return 'No output yet.'
+        else:
+            return self.output
 
     def get_job(self):
         from sage.dsage.errors.exceptions import NotConnectedException

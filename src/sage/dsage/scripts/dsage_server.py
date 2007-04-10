@@ -86,9 +86,11 @@ def startLogging(log_file):
         log.startLogging(server_log)
 
 def main():
-    """Main execution loop of the server."""
+    """
+    Main execution loop of the server.
 
-    # Begin reading configuration
+    """
+
     try:
         conf_file = os.path.join(DSAGE_DIR, 'server.conf')
         config = ConfigParser.ConfigParser()
@@ -110,7 +112,6 @@ def main():
         print msg
         print "Error reading %s, run dsage.setup()" % conf_file
         sys.exit(-1)
-    # End reading configuration
 
     # start logging
     startLogging(LOG_FILE)
@@ -180,7 +181,7 @@ def main():
     log.msg('Listening on %s' % (CLIENT_PORT))
     log.msg(DELIMITER)
 
-    reactor.run()
+    reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
     main()

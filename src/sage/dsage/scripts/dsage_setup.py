@@ -32,19 +32,12 @@ DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
 DSAGE_VERSION = version
 
-def check_dsage_dir(test=False):
-    if test:
-        print 'Creating test configuration files..'
-        DSAGE_DIR = os.path.join(SAGE_ROOT, 'tmp/dsage')
-        if os.path.exists(DSAGE_DIR):
-            os.path.remove(DSAGE_DIR)
-        os.mkdir(DSAGE_DIR)
+def check_dsage_dir():
+    if os.path.exists(DSAGE_DIR):
+        return
     else:
         print "Creating " + DSAGE_DIR
-        if os.path.exists(DSAGE_DIR):
-            return
-        else:
-            os.mkdir(DSAGE_DIR)
+        os.mkdir(DSAGE_DIR)
 
 def get_config(type):
     config = ConfigParser.ConfigParser()
@@ -65,11 +58,8 @@ def get_config(type):
         config.add_section('db_log')
     return config
 
-def setup_client(test=False):
-    if test:
-        check_dsage_dir(test=True)
-    else:
-        check_dsage_dir()
+def setup_client():
+    check_dsage_dir()
     # Get ConfigParser object
     config = get_config('client')
 
@@ -114,11 +104,8 @@ def setup_worker():
     config.write(open(conf_file, 'w'))
     print "Worker configuration finished.\n"
 
-def setup_server(test=False):
-    if test:
-        check_dsage_dir(test=True)
-    else:
-        check_dsage_dir()
+def setup_server():
+    check_dsage_dir()
     # Get ConfigParser object
     config = get_config('server')
     config.set('server', 'client_port', 8081)
@@ -167,10 +154,6 @@ def setup():
     setup_worker()
     setup_server()
     print "Configuration finished.."
-
-def setup_for_test():
-    setup_server(test=True)
-    setup_client(test=True)
 
 if __name__ == '__main__':
     if len(sys.argv) == 1:

@@ -99,10 +99,10 @@ class PublicKeyCredentialsCheckerDB(object):
             return defer.fail(AuthenticationError('Login failed.'))
         if user:
             if not credentials.blob == base64.decodestring(key):
-                log.msg('Invalid key.')
+                log.msg('Invalid key for user %s' % (credentials.username))
                 return defer.fail(AuthenticationError('Login failed.'))
             if not credentials.signature:
-                log.msg('No signature.')
+                log.msg('No signature for user %s ' % (credentials.username))
                 return defer.fail(AuthenticationError('Login failed.'))
             pub_key = keys.getPublicKeyObject(data=credentials.blob)
             if keys.verifySignature(pub_key, credentials.signature,

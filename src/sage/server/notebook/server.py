@@ -140,6 +140,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             cell = W.get_cell_with_id(id)
             cell.set_cell_output_type(typ)
 
+    def set_cell_input(self):
+        C = self.get_postvars()
+        id = C['cell_id']
+        input = C['input']
+
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if self.auth_worksheet(W):
+            cell = W.get_cell_with_id(id)
+            cell.set_input_text(input)
+
     def hide_all(self):
         """
         Sets every cell's output hidden in a given worksheet.
@@ -478,14 +488,14 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         filename = path[i+1:]
         file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
         s = ''
-        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css">\n'
         s += '<h1 align=center>SAGE Source Browser</h1>\n'
         s += '<h2 align=center>devel/sage/sage%s</h2>\n'%filename
         s += '<br><hr><br>\n'
         s += '<pre id="code">%s</pre>\n'%file
         s += '<br><hr><br>\n'
-        s += '<script src="/highlight/prettify.js"></script>\n'
-        s += """<script>
+        s += '<script src="/highlight/prettify.js" type="text/javascript"></script>\n'
+        s += """<script type="text/javascript">
 function get_element(id) {
   if(document.getElementById)
     return document.getElementById(id);
@@ -623,14 +633,14 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         if do_print:
-            s += '<script src="/jsmath/jsMath.js"></script>\n'
-        s += '<script language=javascript src="/__main__.js"></script>\n'
-        s += '<link rel=stylesheet href="/__main__.css"></style>\n'
+            s += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+        s += '<script type="text/javascript" src="/__main__.js"></script>\n'
+        s += '<link rel=stylesheet href="/__main__.css">\n'
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
-            s += '<script language=javascript>jsMath.Process();</script>\n'
+            s += '<script type="text/javascript">jsMath.Process();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 
@@ -644,7 +654,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         s += '<body>\n'
         s += '<pre>' + t + '</pre>\n'
         s += '<a name="bottom"></a>\n'
-        s += '<script language=javascript> window.location="#bottom"</script>\n'
+        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
         s += '</body>\n'
         self.wfile.write(s)
 
@@ -749,7 +759,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                 self.wfile.write(keyboards.get_keyboard(self.path[-7:-5]))
                 return
             elif path[-13:-3] == '__main__':
-                self.wfile.write(js.javascript())
+                self.wfile.write(self.main_javascript())
                 return
         try:
             if path in static_images: #this list is defined at the top of this file
@@ -970,7 +980,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
                           'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
-                          'insert_wiki_cells', 'delete_cell_all', 'get_queue']:
+                          'insert_wiki_cells', 'delete_cell_all', 'get_queue', 'set_cell_input']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':
@@ -1009,6 +1019,15 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.send_header("Content-type", 'text/html')
         self.end_headers()
 
+
+    def main_javascript(self):
+        #Because of the javascript compression, it's best to cache here
+        #rather than compress every time the user asks for some javascript
+        try:
+            return self._main_javascript
+        except:
+            self._main_javascript = js.javascript()
+            return self._main_javascript
 
 
     def image(self, filename):

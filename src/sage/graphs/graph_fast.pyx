@@ -96,7 +96,7 @@ def spring_layout_fast(G, iterations=50, dim=2, vpos=None):
 
     # here we construct a lexographically ordered list of all edges
     # where elist[2*i], elist[2*i+1] represents the i-th edge
-    cdef int* elist = <int*>sage_malloc(2 * len(G.edges())  * sizeof(int) + 2)
+    cdef int* elist = <int*>sage_malloc( (2 * len(G.edges()) + 2) * sizeof(int)  )
     if elist is NULL:
         sage_free(pos)
         raise MemoryError, "error allocating scratch space for spring layout"

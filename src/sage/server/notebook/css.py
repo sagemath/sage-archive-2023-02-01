@@ -74,7 +74,7 @@ span.worksheet_control_commands {
    font-weight:normal;
    font-family:arial;
    font-size:12px;
-   padding:5;
+   padding:5px;
 }
 
 div.slide_control_commands {
@@ -100,7 +100,7 @@ span.vbar {
 div.top_control_bar a {
    color: #0000BB;
    text-decoration: none;
-   padding:5;
+   padding:5px;
 }
 
 div.top_control_bar a:hover {
@@ -188,7 +188,7 @@ div.top_control_bar a.history_link:hover {
 span.worksheet_control_commands a {
    color: #0000BB;
    text-decoration: none;
-   padding:5;
+   padding:5px;
 }
 
 span.worksheet_control_commands a:hover {

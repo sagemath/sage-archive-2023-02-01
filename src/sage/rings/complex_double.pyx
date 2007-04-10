@@ -94,12 +94,17 @@ PREC = 28
 
 from random import random
 
+from sage.structure.parent_gens import ParentWithGens
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     The field of complex double precision numbers.
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def __init__(self):
+        ParentWithGens.__init__(self, self, ('x',), normalize=False)
+
     def is_exact(self):
         return False
     def __richcmp__(left, right, int op):

@@ -49,6 +49,7 @@ cdef extern from "mpfr.h":
     size_t mpfr_out_str (int *stream, int base, size_t n, mpfr_t op, mp_rnd_t rnd)
     void mpfr_free_str (char *str)
 
+    void mpfr_get_z(mpz_t rop, mpfr_t op, mp_rnd_t rnd)
     mp_exp_t mpfr_get_z_exp(mpz_t rop, mpfr_t op)
 
     # Arithmetic
@@ -144,3 +145,4 @@ cdef extern from "mpfr.h":
     int mpfr_less_p (mpfr_t op1, mpfr_t op2)
     int mpfr_lessequal_p (mpfr_t op1, mpfr_t op2)
     int mpfr_cmp (mpfr_t op1, mpfr_t op2)
+    int mpfr_equal_p (mpfr_t op1, mpfr_t op2)

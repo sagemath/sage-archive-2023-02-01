@@ -455,6 +455,8 @@ class Maxima(Expect):
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):
+        if self._expect is None:
+            self._start()
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
         line = line.rstrip().rstrip(';')

@@ -161,7 +161,7 @@ class RationalField(_uniq, field.Field):
             1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075        # 64-bit
             sage: t = L/O; t
             0.200000000000000
-            sage: QQ(t)
+            sage: QQ(RealField(45)(t))
             1/5
         """
         if isinstance(x, sage.rings.rational.Rational):

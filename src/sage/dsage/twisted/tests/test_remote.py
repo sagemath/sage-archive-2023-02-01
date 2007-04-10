@@ -43,7 +43,7 @@ from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
 from sage.dsage.misc.hostinfo import ClassicHostInfo
 
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+DSAGE_DIR = os.path.join(os.getenv('SAGE_ROOT'), 'tmp/dsage')
 # Begin reading configuration
 try:
     conf_file = os.path.join(DSAGE_DIR, 'server.conf')
@@ -54,8 +54,7 @@ try:
     SSL = config.getint('ssl', 'ssl')
     WORKER_PORT = config.getint('server', 'worker_port')
     CLIENT_PORT = config.getint('server', 'client_port')
-    PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
-                                                    'pubkey_database'))
+    PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
 
     conf_file = os.path.join(DSAGE_DIR, 'client.conf')
     config = ConfigParser.ConfigParser()

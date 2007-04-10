@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# This script runs twisted trial against sage.dsage, returns
+# 1 if any tests fail and 0 if all tests pass
+
+echo "This script will run the unit tests for DSage"
+trial --temp-directory="$SAGE_ROOT/tmp/dsage-trial"  --tbformat=cgitb sage.dsage
+
+if [ $? != 0 ]; then
+    echo "However, an ERROR occurred in the Distributed SAGE unit tests."
+fi

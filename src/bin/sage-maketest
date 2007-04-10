@@ -1,0 +1,6 @@
+#!/bin/sh
+
+sage -b
+sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log
+#./sage -t devel/sage/sage 2>&1 | tee -a test.log
+grep "ERROR occurred" .test-dsage.log

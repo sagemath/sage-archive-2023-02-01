@@ -1555,6 +1555,182 @@ cdef class RealNumber(sage.structure.element.RingElement):
             intv = intv_field(self.nextbelow(), self)
             return intv.simplest_rational(low_open = True)
 
+    def nearby_rational(self, max_error=None, max_denominator=None):
+        """
+        Find a rational near to self.  Exactly one of max_error
+        or max_denominator must be specified.  If max_error is specified,
+        then this returns the simplest rational in the range
+        [self-max_error .. self+max_error].  If max_denominator is
+        specified, then this returns the rational closest to self with
+        denominator at most max_denominator.  (In case of ties, we
+        pick the simpler rational.)
+
+        EXAMPLES:
+            sage: (0.333).nearby_rational(max_error=0.001)
+            1/3
+            sage: (0.333).nearby_rational(max_error=1)
+            0
+            sage: (-0.333).nearby_rational(max_error=0.0001)
+            -257/772
+
+            sage: (0.333).nearby_rational(max_denominator=100)
+            1/3
+            sage: RR(1/3 + 1/1000000).nearby_rational(max_denominator=2999999)
+            777780/2333333
+            sage: RR(1/3 + 1/1000000).nearby_rational(max_denominator=3000000)
+            1000003/3000000
+            sage: (-0.333).nearby_rational(max_denominator=1000)
+            -333/1000
+            sage: RR(3/4).nearby_rational(max_denominator=2)
+            1
+            sage: RR(pi).nearby_rational(max_denominator=120)
+            355/113
+            sage: RR(pi).nearby_rational(max_denominator=10000)
+            355/113
+            sage: RR(pi).nearby_rational(max_denominator=100000)
+            312689/99532
+            sage: RR(pi).nearby_rational(max_denominator=1)
+            3
+            sage: RR(-3.5).nearby_rational(max_denominator=1)
+            -3
+        """
+        if ((max_error is None and max_denominator is None) or
+            (max_error is not None and max_denominator is not None)):
+            raise ValueError, 'Must specify exactly one of max_error or max_denominator in nearby_rational()'
+
+        if max_error is not None:
+            from real_mpfi import RealIntervalField
+
+            intv_field = RealIntervalField(self.prec())
+            intv = intv_field(self - max_error, self + max_error)
+
+            return intv.simplest_rational()
+
+        cdef int sgn = mpfr_sgn(self.value)
+
+        if sgn == 0:
+            return Rational(0)
+
+        cdef Rational self_r = self.exact_rational()
+
+        cdef Integer self_d = self_r.denominator()
+
+        if self_d <= max_denominator:
+            return self_r
+
+        if sgn < 0:
+            self_r = -self_r
+
+        cdef Integer fl = self_r.floor()
+        cdef Rational target = self_r - fl
+
+        cdef int low_done = 0
+        cdef int high_done = 0
+
+        # We use the Stern-Brocot tree to find the nearest neighbors of
+        # self with denominator at most max_denominator.  However,
+        # navigating the Stern-Brocot tree in the straightforward way
+        # can be very slow; for instance, to get to 1/1000000 takes a
+        # million steps.  Instead, we perform many steps at once;
+        # this probably slows down the average case, but it drastically
+        # speeds up the worst case.
+
+        # Suppose we have a/b < c/d < e/f, where a/b and e/f are
+        # neighbors in the Stern-Brocot tree and c/d is the target.
+        # We alternate between moving the low and the high end toward
+        # the target as much as possible.  Suppose that there are
+        # k consecutive rightward moves in the Stern-Brocot tree
+        # traversal; then we end up with (a+k*e)/(b+k*f).  We have
+        # two constraints on k.  First, the result must be <= c/d;
+        # this gives us the following:
+        # (a+k*e)/(b+k*f) <= c/d
+        # d*a + k*(d*e) <= c*b + k*(c*f)
+        # k*(d*e) - k*(c*f) <= c*b - d*a
+        # k <= (c*b - d*a)/(d*e - c*f)
+        # when moving the high side, we get
+        # (k*a+e)/(k*b+f) >= c/d
+        # k*(d*a) + d*e >= k*(c*b) + c*f
+        # d*e - c*f >= k*(c*b - d*a)
+        # k <= (d*e - c*f)/(c*b - d*a)
+
+        # We also need the denominator to be <= max_denominator; this
+        # gives (b+k*f) <= max_denominator or
+        # k <= (max_denominator - b)/f
+        # or
+        # k <= (max_denominator - f)/b
+
+        # We use variables with the same names as in the math above.
+
+        cdef Integer a = Integer(0)
+        cdef Integer b = Integer(1)
+        cdef Integer c = target.numerator()
+        cdef Integer d = target.denominator()
+        cdef Integer e = Integer(1)
+        cdef Integer f = Integer(1)
+
+        cdef Integer k
+
+        while (not low_done) or (not high_done):
+            # Move the low side
+            k = (c*b - d*a) // (d*e - c*f)
+
+            if b+k*f > max_denominator:
+                k = (max_denominator - b) // f
+                low_done = True
+
+            if k == 0:
+                low_done = True
+
+            a = a + k*e
+            b = b + k*f
+
+            # Move the high side
+            k = (d*e - c*f) // (c*b - d*a)
+
+            if k*b + f >= max_denominator:
+                k = (max_denominator - f) // b
+                high_done = True
+
+            if k == 0:
+                high_done = True
+
+            e = k*a + e
+            f = k*b + f
+
+        # Now a/b and e/f are rationals surrounding c/d.  We know that
+        # neither is equal to c/d, since d > max_denominator and
+        # b and f are both <= max_denominator.  (We know that
+        # d > max_denominator because we return early (before we
+        # get here) if d <= max_denominator.)
+
+        low = a/b
+        high = e/f
+
+        cdef int compare = cmp(target - low, high - target)
+
+        if compare > 0:
+            result = high
+        elif compare < 0:
+            result = low
+        else:
+            compare = cmp(b, f)
+            if compare > 0:
+                result = high
+            elif compare < 0:
+                result = low
+            else:
+                compare = cmp(a, e)
+                if compare > 0:
+                    result = high
+                else:
+                    result = low
+
+        result = fl + result
+
+        if sgn < 0:
+            return -result
+        return result
+
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=

@@ -985,10 +985,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         46080
     """
     from copy import copy
-    from sage.groups.perm_gps.permgroup import SymmetricGroup
     from sage.rings.infinity import Infinity
     n = G.order()
-    S = SymmetricGroup(n)
     Pi = copy(Pi)
 
     if proof:

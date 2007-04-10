@@ -3,6 +3,19 @@ Elements of $\Z/n\Z$
 
 An element of the integers modulo $n$.
 
+There are three types of integer_mod classes, depending on the
+size of the modulus. The range is capped such that a single
+arithmetic operation (e.g. multiplication) will not overflow.
+
+- IntegerMod_int stores its value in a int_fast32_t (typically an int)
+- IntegerMod_int64 stores its value in a int_fast64_t (typically a long long)
+- IntegerMod_gmp stores its value in a mpz_t
+
+All extend IntegerMod_abstract.
+
+For efficency reasons, it stores the modulus (in all three forms, if possible) in a common (cdef) class NativeIntStruct rather than in the parent.
+
+
 AUTHORS:
     -- Robert Bradshaw (most of the work)
     -- Didier Deshommes (bit shifting)
@@ -14,6 +27,16 @@ TESTS:
     sage: a * b
     851127
 """
+
+#################################################################################
+#       Copyright (C) 2006 Robert Bradshaw <robertwb@math.washington.edu>
+#                     2006 William Stein <wstein@gmail.com>
+#
+#  Distributed under the terms of the GNU General Public License (GPL)
+#
+#                  http://www.gnu.org/licenses/
+#*****************************************************************************
+
 
 include "../ext/interrupt.pxi"  # ctrl-c interrupt block support
 include "../ext/stdsage.pxi"
@@ -106,7 +129,13 @@ def makeNativeIntStruct(sage.rings.integer.Integer z):
     return NativeIntStruct(z)
 
 cdef class NativeIntStruct:
+    """
+    We store the various forms of the modulus here rather than in the
+    parent for efficiency reasons.
 
+    We may also store a cached table of all elements of a given
+    ring in this class.
+    """
     def __init__(NativeIntStruct self, sage.rings.integer.Integer z):
         self.int64 = -1
         self.int32 = -1

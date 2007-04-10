@@ -493,6 +493,9 @@ ext_modules = [ \
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 
+    Extension('sage.misc.reset',
+              ['sage/misc/reset.pyx']), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',

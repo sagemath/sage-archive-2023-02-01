@@ -662,7 +662,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         return self.str(10)
 
     def _latex_(self):
-        return str(self)
+        s = self.str()
+        parts = s.split('e')
+        if len(parts) > 1:
+            # scientific notation
+            if parts[1][0] == '+':
+                parts[1] = parts[1][1:]
+            s = "%s \\times 10^{%s}" % (parts[0], parts[1])
+        return s
 
     def _interface_init_(self):
         """

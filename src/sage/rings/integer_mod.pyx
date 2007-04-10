@@ -943,8 +943,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
     cdef IntegerMod_int _new_c(self, int_fast32_t value):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)
-        cdef IntegerMod_int x
-        x = PY_NEW(IntegerMod_int)
+        cdef IntegerMod_int x = PY_NEW(IntegerMod_int)
         x.__modulus = self.__modulus
         x._parent = self._parent
         x.ivalue = value

@@ -573,7 +573,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries = ['csage'] + m.libraries + ['stdc++']
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 

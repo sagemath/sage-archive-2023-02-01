@@ -1,0 +1,4 @@
+from unramified_extension_generic_element import UnramifiedExtensionGenericElement
+
+class UnramifiedExtensionAbsoluteElement(UnramifiedExtensionGenericElement):
+    pass

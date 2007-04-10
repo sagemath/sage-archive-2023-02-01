@@ -32,13 +32,10 @@ Mod = sage.rings.integer_mod.Mod
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 infinity = sage.rings.infinity.infinity
-#Zp = sage.rings.padics.padic_ring.Zp
 pAdicRingFixedModElement = sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
-pAdicFieldGenericElement = sage.rings.padics.padic_field_generic_element.pAdicFieldGenericElement
+pAdicBaseGenericElement = sage.rings.padics.padic_base_generic_element.pAdicBaseGenericElement
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
-#pAdicFieldCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
@@ -46,21 +43,21 @@ PrecisionError = sage.rings.padics.precision_error.PrecisionError
 
 class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
 
-    def __init__(self, parent, x, absprec=None, relprec = None, construct=False):
+    def __init__(self, parent, x, absprec=infinity, relprec = infinity, construct=False):
         sage.rings.commutative_ring_element.CommutativeRingElement.__init__(self,parent)
         if construct:
             (self._value, self._absprec) = x
             return
-        if not absprec is None and not relprec is None:
+        if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
-        if relprec is None:
-            if absprec is None or absprec > parent.precision_cap():
+        if relprec is infinity:
+            if absprec > parent.precision_cap():
                 absprec = parent.precision_cap()
 
         if isinstance(x, pAdicGenericElement) and x.valuation() < 0:
             raise ValueError, "element valuation cannot be negative."
         if isinstance(x, pAdicLazyElement):
-            if relprec is None:
+            if relprec is infinity:
                 absprec = min(absprec, parent.precision_cap())
                 try:
                     x.set_precision_absolute(absprec)
@@ -75,8 +72,8 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
                 self._absprec = min(parent.precision_cap(), x.precision_absolute())
             self._value = Mod(x.residue(self._absprec), self.parent().prime_pow(self.parent().precision_cap()))
             return
-        if isinstance(x, pAdicGenericElement):
-            if relprec is None:
+        if isinstance(x, pAdicBaseGenericElement):
+            if relprec is infinity:
                 self._absprec = min(x.precision_absolute(), absprec)
             else:
                 self._absprec = min(x.precision_absolute(), x.valuation() + relprec)
@@ -85,10 +82,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
 
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                if not absprec is None:
-                    absprec = min(x.padicprec(parent.prime()), absprec)
-                else:
-                    absprec = x.padicprec(parent.prime())
+                absprec = min(x.padicprec(parent.prime()), absprec)
                 x = x.lift()
             if x.type() == "t_INT":
                 x = Integer(x)
@@ -101,10 +95,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             k, p = pari(x.modulus()).ispower()
             if not k or p != parent.prime():
                 raise TypeError, "cannot change primes in creating p-adic elements"
-
-            if absprec is None:
-                absprec = k
-            else:
+            if absprec is infinity and relprec is infinity: #this allows you to lift integer_mod elements to higher precision than they are actually defined.
                 absprec = min(absprec, k)
             x = x.lift()
 
@@ -128,15 +119,10 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
             if val < 0:
                 raise ValueError, "p divides the denominator"
         if isinstance(x, (int, long, Integer, Rational)):
-            if absprec is None:
-                self._absprec = min(val + relprec, parent.precision_cap())
-            elif relprec is None:
-                self._absprec = absprec
-            else:
-                self._absprec = min(absprec, val + relprec, parent.precision_cap())
+            self._absprec = min(absprec, val + relprec, parent.precision_cap())
             self._value = Mod(Mod(x, parent.prime_pow(self._absprec)), parent.prime_pow(parent.precision_cap()))
         else:
-            raise TypeError, "unable to create p-adic element"
+            raise TypeError, "unable to create p-adic element from %s of type %s"%(x, type(x))
 
     def __invert__(self):
         return self.parent().fraction_field()(self).__invert__()
@@ -161,7 +147,7 @@ class pAdicRingCappedAbsoluteElement(pAdicRingFixedModElement):
     def __pow__(self, right):
         new = Integer(right) #Need to make sure that this works for p-adic exponents
         val = self.valuation()
-        if (val > 0) and (isinstance(right, pAdicRingGenericElement) or isinstance(right, pAdicFieldGenericElement)):
+        if (val > 0) and isinstance(right, pAdicBaseGenericElement):
             raise ValueError, "Can only have p-adic exponent if base is a unit"
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._value**new, min(self._absprec - val + new * val, self.parent().precision_cap())), construct = True)
 
@@ -440,3 +426,10 @@ self -- a p-adic element
                 <class 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
         """
         return pAdicRingCappedAbsoluteElement(self.parent(), (self._unit_part(), self.precision_relative()), construct = True)
+
+    def valuation(self):
+        val = sage.rings.arith.valuation(self.lift(),self.parent().prime())
+        if val is infinity:
+            return self._absprec
+        else:
+            return val

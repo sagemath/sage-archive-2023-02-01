@@ -650,7 +650,7 @@ class Notebook(SageObject):
 
     def create_new_worksheet(self, name='untitled', passcode=''):
         if name in self.__worksheets.keys():
-            raise KeyError, 'name (=%s) already taken.'%name
+            return self.__worksheets[name]
         name = str(name)
         passcode = str(passcode)
         wids = self.worksheet_ids()

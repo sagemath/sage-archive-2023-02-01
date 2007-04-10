@@ -4,21 +4,29 @@ import sage.rings.padics.padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.integer
+#import sage.rings.padics.unramified_ring_extension_capped_relative
+#import sage.rings.padics.unramified_ring_extension_capped_absolute
+#import sage.rings.padics.unramified_ring_extension_fixed_mod
+#import sage.rings.padics.unramified_ring_extension_lazy
+import sage.rings.padics.extension_factory
 
 from sage.rings.integer_ring import ZZ
 
 from sage.rings.polynomial_ring import PolynomialRing
-import sage.rings.padics.unramified_ring_extension
 
+#UnramifiedRingExtensionCappedRelative = sage.rings.padics.unramified_ring_extension_capped_relative.UnramifiedRingExtensionCappedRelative
+#UnramifiedRingExtensionCappedAbsolute = sage.rings.padics.unramified_ring_extension_capped_absolute.UnramifiedRingExtensionCappedAbsolute
+#UnramifiedRingExtensionFixedMod = sage.rings.padics.unramified_ring_extension_fixed_mod.UnramifiedRingExtensionFixedMod
+#UnramifiedRingExtensionLazy = sage.rings.padics.unramified_ring_extension_lazy.UnramifiedRingExtensionLazy
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 Integer = sage.rings.integer.Integer
-UnramifiedRingExtension = sage.rings.padics.unramified_ring_extension.UnramifiedRingExtension
+ExtensionFactory = sage.rings.padics.extension_factory.ExtensionFactory
 
 padic_ring_cache = {}
-def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, check=True):
+def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, names = None, check=True):
     """
     Return a model of the $p$-adic integer $\Z_p$.
 
@@ -76,7 +84,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
         sage: k(7*(-19))
         7 * 79792266297611982 + O(7^21)
 
-        sage: k = Zp(7, print_mode='integer'); k
+        sage: k = Zp(7, print_mode='terse'); k
         7-adic Ring with capped relative precision 20
         sage: k(7*(19))
         133 + O(7^21)
@@ -120,7 +128,7 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
        print_mode -- string (default: 'series', unless it has been
                      previously specified for a cached version of this ring)
            'val-unit' -- elements are displayed as p^k*u
-           'integer' -- elements are displayed as an integer
+           'terse' -- elements are displayed as an integer
            'series' -- elements are displayed as series in p
     """
     # if such a ring already exists reset it's print mode (unless the input print mode is None) and return it
@@ -136,30 +144,31 @@ def Zp(p, prec = 20, type = 'capped-rel', print_mode = 'series', halt = 40, chec
             raise TypeError, "prec must be an integer"
         elif isinstance(halt, (int, long)):
             halt = Integer(halt)
+    if names is None:
+        names = str(p)
     if type != 'lazy':
-        key = (p, prec, type, print_mode)
+        key = (p, prec, type, names, print_mode)
     else:
-        key = (p, prec, halt, print_mode)
+        key = (p, prec, halt, names, print_mode)
     if padic_ring_cache.has_key(key):
         K = padic_ring_cache[key]()
         if not (K is None):
             return K
     if (type == 'capped-rel'):
-        K = pAdicRingCappedRelative(p, prec, print_mode)
+        K = pAdicRingCappedRelative(p, prec, print_mode, names)
     elif (type == 'fixed-mod'):
-        K = pAdicRingFixedMod(p, prec, print_mode)
+        K = pAdicRingFixedMod(p, prec, print_mode, names)
     elif (type == 'capped-abs'):
-        K = pAdicRingCappedAbsolute(p, prec, print_mode)
+        K = pAdicRingCappedAbsolute(p, prec, print_mode, names)
     elif (type == 'lazy'):
-        K = pAdicRingLazy(p, prec, print_mode, halt)
+        K = pAdicRingLazy(p, prec, print_mode, halt, names)
     else:
         raise ValueError, "type must be one of 'capped-rel', 'fixed-mod', 'capped-abs' or 'lazy'"
     padic_ring_cache[key] = weakref.ref(K)
     return K
 
-qadic_ring_cache = {}
 def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
-          print_mode='series', halt = 40, check = True):
+          print_mode='series', halt = 40, zp_name = None, check = True):
     r"""
     Return an unramified extension of $\Z_p$.
 
@@ -171,7 +180,8 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
         names -- tuple
         print_mode -- string (default: 'series'); see the documentation for print_mode
         halt -- integer (default: 40): only applicable for type='lazy'
-        check -- bool (default: True): wether to verify that the input is valid.
+        zp_name -- string (default: None): a name for the underlying Zp's prime
+        check -- bool (default: True): whether to verify that the input is valid.
 
     OUTPUT:
         -- an unramified extension of Z_p
@@ -182,12 +192,12 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
     We
         sage: k.<a> = Zq(4); k
         Unramified Extension of 2-adic Ring with capped absolute precision 20
-        in x defined by (1 + O(2^20))*a^2 + (1 + O(2^20))*a + 1 + O(2^20)
+        in a defined by (1 + O(2^20))*x^2 + (1 + O(2^20))*x + 1 + O(2^20)
         sage: k.<a> = Zq(3^10); k
-        Unramified Extension of 3-adic Ring with capped absolute precision 20 in x
-        defined by (1 + O(3^20))*a^10 + O(3^20)*a^9 + O(3^20)*a^8 + O(3^20)*a^7 +
-        (2 + O(3^20))*a^6 + (2 + O(3^20))*a^5 + (2 + O(3^20))*a^4 + O(3^20)*a^3 +
-        O(3^20)*a^2 + (1 + O(3^20))*a + 2 + O(3^20)
+        Unramified Extension of 3-adic Ring with capped absolute precision 20 in a
+        defined by (1 + O(3^20))*x^10 + O(3^20)*x^9 + O(3^20)*x^8 + O(3^20)*x^7 +
+        (2 + O(3^20))*x^6 + (2 + O(3^20))*x^5 + (2 + O(3^20))*x^4 + O(3^20)*x^3 +
+        O(3^20)*x^2 + (1 + O(3^20))*x + 2 + O(3^20)
     """
     if check:
         if names is None:
@@ -211,24 +221,14 @@ def Zq(q, prec = 20, type = 'capped-abs', modulus = None, names=None,
     if len(F) != 1:
         raise ValueError, "q must be a prime power"
     if F[0][1] == 1:
-        return Zp(q, prec, type, print_mode, halt)
-    if type != 'lazy':
-        key = (q, names, prec, type, modulus, print_mode)
-    else:
-        key = (q, names, prec, halt, modulus, print_mode)
-    if qadic_ring_cache.has_key(key):
-        K = qadic_ring_cache[key]()
-        if not (K is None):
-            return K
+        return Zp(q, prec, type, print_mode, halt, names, check)
+    base = Zp(F[0][0], prec, type, print_mode, halt, zp_name, check = False)
     if modulus is None:
-        check = False
         from sage.rings.finite_field import GF
-        modulus = PolynomialRing(Zp(F[0][0], prec, type, print_mode, halt), names)(GF(q, names).modulus().change_ring(ZZ))
-
-    K = UnramifiedRingExtension(modulus, prec, print_mode, check)
-    qadic_ring_cache[key] = weakref.ref(K)
-    return K
-
+        if zp_name is None:
+            zp_name = (str(F[0][0]),)
+        modulus = PolynomialRing(base, 'x')(GF(q, names).modulus().change_ring(ZZ))
+    return ExtensionFactory(modulus, prec, print_mode, halt, names, check, unram = True)
 
 ######################################################
 # Short constructor names for different types
@@ -251,18 +251,18 @@ def ZpL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
               type = 'lazy')
 
 
-def ZqCR(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqCR(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-rel')
 
-def ZqCA(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqCA(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'capped-abs')
 
-def ZqFM(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqFM(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'fixed-mod')
 
-def ZqL(p, prec = 20, print_mode = 'series', halt = 40, check=True):
-    return Zq(p=p, prec=prec, print_mode=print_mode, halt=halt, check=check,
+def ZqL(q, prec = 20, modulus = None, names = None, print_mode = 'series', halt = 40, zp_name = None, check=True):
+    return Zq(q=q, prec=prec, modulus = modulus, names = names, print_mode=print_mode, halt=halt, check=check,
               type = 'lazy')

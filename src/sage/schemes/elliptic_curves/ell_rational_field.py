@@ -2314,6 +2314,49 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             raise ValueError, "unknown algorithm '%s'%"%algorithm
 
+    def isogeny_graph(self):
+        r"""
+        Returns a graph representing the isogeny class of this elliptic curve,
+        where the vertices are isogenous curves over $\Q$ and the edges are
+        prime degree isogenies labeled by their degree.
+
+        EXAMPLES:
+            sage: LL = []
+            sage: for e in cremona_optimal_curves(range(1, 38)):
+            ...    G = e.isogeny_graph()
+            ...    already = False
+            ...    for H in LL:
+            ...        if G.is_isomorphic(H):
+            ...            already = True
+            ...            break
+            ...    if not already:
+            ...        LL.append(G)
+            ...
+            sage.: graphs_list.show_graphs(LL)
+
+            sage: E = EllipticCurve('195a')
+            sage: G = E.isogeny_graph()
+            sage: for v in G:
+                print v, G.obj(v)
+            ....:
+            0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
+            1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
+            2 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field
+            3 Elliptic Curve defined by y^2 + x*y  = x^3 - 520*x - 4225 over Rational Field
+            4 Elliptic Curve defined by y^2 + x*y  = x^3 + 605*x - 19750 over Rational Field
+            5 Elliptic Curve defined by y^2 + x*y  = x^3 - 8125*x - 282568 over Rational Field
+            6 Elliptic Curve defined by y^2 + x*y  = x^3 - 7930*x - 296725 over Rational Field
+            7 Elliptic Curve defined by y^2 + x*y  = x^3 - 130000*x - 18051943 over Rational Field
+            sage: G.plot(edge_labels=True).save('isogeny_graph.png')
+        """
+        from sage.graphs.graph import Graph
+        L, M = self.isogeny_class()
+        G = Graph(M, format='weighted_adjacency_matrix')
+        d = {}
+        for v in G.vertices():
+            d[v] = L[v]
+        G.associate(d)
+        return G
 
     ##########################################################
     # Galois Representations
@@ -4286,17 +4329,22 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Check it works at low precision too:
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 1)
             2 + O(5)
-            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-            5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 2)
             2 + 4*5 + O(5^2)
             sage: EllipticCurve([-1, 1/4]).padic_E2(5, 3)
             2 + 4*5 + O(5^3)
 
-          Check it works for different models of the same curve (37a),
-          even when the discriminant changes by a power of p (note that
-          E2 depends on the differential too, which is why it gets scaled
-          in some of the examples below):
+        TODO: With the old(-er), i.e., <= sage-2.4 p-adics we
+        got $5 + O(5^2)$ as output, i.e., relative precision 1, but
+        with the newer p-adics we get relative precision 0 and
+        absolute precision 1.
+            sage: EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+            O(5^1)
+
+        Check it works for different models of the same curve (37a),
+        even when the discriminant changes by a power of p (note that
+        E2 depends on the differential too, which is why it gets scaled
+        in some of the examples below):
 
             sage: X1 = EllipticCurve([-1, 1/4])
             sage: X1.j_invariant(), X1.discriminant()

@@ -21,14 +21,12 @@ NOTE:
     {1,2,...,n} where we take 0 == n.
 """
 
-##############################################################################
-#
-#          Copyright (C) 2007 Robert L. Miller <rlmillster@gmail.com>
+#*****************************************************************************
+#      Copyright (C) 2006 - 2007 Robert L. Miller <rlmillster@gmail.com>
 #
 # Distributed  under  the  terms  of  the  GNU  General  Public  License (GPL)
 #                         http://www.gnu.org/licenses/
-#
-##############################################################################
+#*****************************************************************************
 
 from sage.graphs.graph import Graph, DiGraph
 

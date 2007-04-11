@@ -234,8 +234,8 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
             if not isinstance(polys, (list, tuple)):
                 raise TypeError, "polys (=%s) must be a list or tuple"%polys
             polys = Sequence(polys)
-            if len(polys) != parent.codomain().ngens():
-                raise ValueError, "there must be %s polynomials"%parent.codomain().ngens()
+            if len(polys) != parent.codomain().ambient_space().ngens():
+                raise ValueError, "there must be %s polynomials"%parent.codomain().ambient_space().ngens()
             polys.set_immutable()
         self.__polys = polys
         SchemeMorphism_on_points.__init__(self, parent)

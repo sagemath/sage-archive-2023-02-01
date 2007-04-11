@@ -359,8 +359,11 @@ class BlockingDSage(DSage):
         else:
             self.server = server
         if port is None:
-            conf = get_conf(type='server')
-            self.port = conf['client_port']
+            if self.server == 'localhost':
+                conf = get_conf(type='server')
+                self.port = int(conf['client_port'])
+            else:
+                self.port = int(self.conf['port'])
         else:
             self.port = port
         if username is None:

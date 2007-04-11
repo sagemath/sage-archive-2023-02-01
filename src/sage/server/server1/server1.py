@@ -712,7 +712,7 @@ def server_http1(dir       ='sage_server',
             httpd = BaseHTTPServer.HTTPServer(server_address,
                                               HTML_Interface)
             sa = httpd.socket.getsockname()
-            httpd.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            httpd.socket.setsockopt(socket.SOL_SOCKET, 1)
         except socket.error, msg:
             print msg
             port += 1

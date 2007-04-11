@@ -183,7 +183,7 @@ class PermutationGroup_generic(group.FiniteGroup):
     def __init__(self, gens, from_group = False, check=True):
         if from_group and isinstance(gens, str):
             self.__gap = gens
-            #self.gens()  # so will check that group can be defined in GAP (e.g., no missing packages, etc.)
+            self.gens()  # so will check that group can be defined in GAP (e.g., no missing packages, etc.)
             return
         if is_GapElement(gens):
             if from_group:
@@ -206,7 +206,7 @@ class PermutationGroup_generic(group.FiniteGroup):
         cmd = 'Group(%s)'%gens
         cmd = cmd.replace("'","")  # get rid of quotes
         self.__gap = cmd
-        #self.gens()
+        self.gens()
 
     def _gap_init_(self):
         return self.__gap

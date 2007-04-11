@@ -57,6 +57,9 @@ import sage.rings.padics.local_generic
 import sage.rings.integer_mod
 import sage.rings.ring
 
+from sage.rings.padics.pow_computer import PowComputer
+from sage.rings.integer import Integer
+
 infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 
@@ -65,6 +68,8 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
 
     def __init__(self, p, prec, print_mode, names, element_class):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
+        self.prime_pow = PowComputer(p, 5)
+        self.prime_pow.cache(prec)
         self._p = p
         self.__set_print_mode(print_mode)
         self._element_class = element_class
@@ -195,25 +200,25 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         return self._p
 
-    def prime_pow(self, n):
-        """
-        Returns the prime raised to the nth power.
-
-        INPUT:
-            self -- a p-adic field
-
-        OUTPUT:
-            integer -- p^n
-
-        EXAMPLES:
-            sage: R = Zp(3)
-            sage: R.prime_pow(5)
-                243
-        """
-        if n is infinity:
-            return 0
-        else:
-            return self._p ** n
+    #def prime_pow(self, n):
+    #    """
+    #    Returns the prime raised to the nth power.
+    #
+    #    INPUT:
+    #        self -- a p-adic field
+    #
+    #    OUTPUT:
+    #        integer -- p^n
+    #
+    #    EXAMPLES:
+    #        sage: R = Zp(3)
+    #        sage: R.prime_pow(5)
+    #            243
+    #    """
+    #    if n is infinity:
+    #        return 0
+    #    else:
+    #        return self._p ** n
 
     def uniformizer_pow(self, n):
         if n is infinity:
@@ -301,16 +306,12 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
         """
         if prec is None:
             prec = self.precision_cap()
-        x = Mod(x,self.prime_pow(prec))
-        p = self.prime()
-        if Mod(x, p) == 0:
-            return self._element_class(self, 0)
-        u = 1 / Mod(1 - p, self.prime_pow(prec))
-        xnew = x + u*(x^q - x)
-        while x != xnew:
-            x = xnew
-            xnew = x + u*(x^q - x)
-        return self._element_class(self, x)
+        else:
+            prec = min(Integer(prec), self.precision_cap())
+        x = Integer(x)
+        ans = self._element_class(self, None, empty = True)
+        ans._teichmuller_set(x, prec)
+        return ans
 
     def teichmuller_system(self):
         r"""

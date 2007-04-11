@@ -16,30 +16,18 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.rings.arith
-#import sage.rings.infinity
-#import sage.libs.all
 import sage.rings.padics.padic_ring_generic_element
 import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_lazy_element
-#import sage.rings.padics.padic_field_capped_relative_element
-#import sage.rings.commutative_ring_element
-#import sage.rings.integer_mod
-#import sage.rings.finite_field_element
-#import sage.rings.integer
-#import sage.rings.rational
-#import sage.rings.padics.precision_error
 
 infinity = sage.rings.infinity.infinity
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
-#Zp = sage.rings.padics.padic_ring_generic.Zp
 Mod = sage.rings.integer_mod.Mod
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pAdicBaseGenericElement = sage.rings.padics.padic_base_generic_element.pAdicBaseGenericElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
-#pAdicCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError

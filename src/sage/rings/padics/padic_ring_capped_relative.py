@@ -168,7 +168,7 @@ class pAdicRingCappedRelative(pAdicRingBaseGeneric, pAdicCappedRelativeRingGener
             the p-adic field that is the fraction field of this ring
 
         """
-        from sage.rings.padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def random_element(self, algorithm='default'):

@@ -3,18 +3,18 @@ import sage.rings.integer
 import sage.rings.rational
 import sage.rings.integer_mod
 import sage.rings.finite_field_element
-import sage.rings.infinity
+from sage.rings.infinity import infinity
 import sage.rings.arith
 import sage.rings.padics.precision_error
 import sage.libs.pari.gen
 
-infinity = sage.rings.infinity.infinity
+from sage.structure.element cimport ModuleElement, RingElement, CommutativeRingElement
 
-class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingElement):
-    def _add_(self, right):
-        raise NotImplementedError
+cdef class LocalGenericElement(CommutativeRingElement):
+    #cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    #    raise NotImplementedError
 
-    def _div_(self, right):
+    cdef RingElement _div_c_impl(self, RingElement right):
         r"""
         Returns the quotient of self by right.
 
@@ -24,8 +24,8 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
         """
         return self * right.__invert__()
 
-    def __getitem__(self, n):
-        raise NotImplementedError
+    #def __getitem__(self, n):
+    #    raise NotImplementedError
 
     def slice(self, i, j, k = 1):
         if i is None:
@@ -53,27 +53,30 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
         return ans
 
     def _latex_(self):
-        return self._repr_(do_latex = True)
+        return self._repr(do_latex = True)
 
-    def __mod__(self, right):
-        raise NotImplementedError
+    #def __mod__(self, right):
+    #    raise NotImplementedError
 
-    def _mul_(self, right):
-        raise NotImplementedError
+    #cdef RingElement _mul_c_impl(self, RingElement right):
+    #    raise NotImplementedError
 
-    def _neg_(self):
-        raise NotImplementedError
+    #cdef _neg_c_impl(self):
+    #    raise NotImplementedError
 
     def _pari_init_(self):
-        return self._repr_(mode = 'series')
+        return self._repr(mode = 'series')
 
-    def __pow__(self, right):
-        raise NotImplementedError
+    #def __pow__(self, right):
+    #    raise NotImplementedError
 
-    def _repr_(self, mode = None, do_latex = False):
-        raise NotImplementedError
+    def _repr_(self):
+        return self._repr()
 
-    def _sub_(self, right):
+    #def _repr(self, mode = None, do_latex = False):
+    #    raise NotImplementedError
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         r"""
             Returns the difference between self and right.
 
@@ -81,7 +84,7 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
                 sage: R = Zp(7,4,'capped-rel','series'); a = R(12); b = R(5); a - b
                 7 + O(7^4)
         """
-        return self + right._neg_()
+        return self + (-right)
 
     def add_bigoh(self, prec):
         return self.slice(None, prec)
@@ -101,11 +104,11 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
         else:
             return infinity
 
-    def copy(self):
-        raise NotImplementedError
+    #def copy(self):
+    #    raise NotImplementedError
 
-    def exp(self):
-        raise NotImplementedError
+    #def exp(self):
+    #    raise NotImplementedError
 
     def is_integral(self):
         """
@@ -123,10 +126,10 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
             sage: b = R(7/5); b.is_integral()
             True
         """
-        return self.valuation() >= 0
+        return bool(self.valuation() >= 0)
 
-    def is_square(self):
-        raise NotImplementedError
+    #def is_square(self):
+    #    raise NotImplementedError
 
     def is_unit(self):
         """
@@ -171,37 +174,37 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
             sage: K(1/9).is_unit()
             False
         """
-        return self.valuation() == 0
+        return bool(self.valuation() == 0)
 
-    def is_zero(self, prec):
-        raise NotImplementedError
+    #def is_zero(self, prec):
+    #    raise NotImplementedError
 
-    def is_equal_to(self, right, prec):
-        raise NotImplementedError
+    #def is_equal_to(self, right, prec):
+    #    raise NotImplementedError
 
-    def lift(self):
-        raise NotImplementedError
+    #def lift(self):
+    #    raise NotImplementedError
 
-    def list(self):
-        raise NotImplementedError
+    #def list(self):
+    #    raise NotImplementedError
 
-    def log(self):
-        raise NotImplementedError
+    #def log(self):
+    #    raise NotImplementedError
 
-    def multiplicative_order(self, prec):
-        raise NotImplementedError
+    #def multiplicative_order(self, prec):
+    #    raise NotImplementedError
 
-    def padded_list(self):
-        raise NotImplementedError
+    #def padded_list(self):
+    #    raise NotImplementedError
 
-    def precision_absolute(self):
-        raise NotImplementedError
+    #def precision_absolute(self):
+    #    raise NotImplementedError
 
-    def precision_relative(self):
-        raise NotImplementedError
+    #def precision_relative(self):
+    #    raise NotImplementedError
 
-    def residue(self, prec):
-        raise NotImplementedError
+    #def residue(self, prec):
+    #    raise NotImplementedError
 
     def sqrt(self):
         r"""
@@ -214,14 +217,14 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
         """
         return self.square_root()
 
-    def square_root(self):
-        raise NotImplementedError
+    #def square_root(self):
+    #    raise NotImplementedError
 
-    def unit_part(self):
-        raise NotImplementedError
+    #def unit_part(self):
+    #    raise NotImplementedError
 
-    def valuation(self):
-        raise NotImplementedError
+    #def valuation(self):
+    #    raise NotImplementedError
 
     def _min_valuation(self):
         return self.valuation()

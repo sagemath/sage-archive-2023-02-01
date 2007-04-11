@@ -1353,7 +1353,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     cdef void set_from_int(IntegerMod_int64 self, int_fast64_t ivalue):
         if ivalue < 0:
-            self.ivalue = self.__modulus.int64 + (ivalue % self.__modulus.int64)
+            self.ivalue = self.__modulus.int64 + (ivalue % self.__modulus.int64) # Is ivalue % self.__modulus.int64 actually negative?
         elif ivalue >= self.__modulus.int64:
             self.ivalue = ivalue % self.__modulus.int64
         else:

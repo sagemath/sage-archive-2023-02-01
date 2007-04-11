@@ -16,19 +16,30 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../../ext/gmp.pxi"
+include "../../ext/interrupt.pxi"
+include "../../ext/stdsage.pxi"
+
 from __future__ import with_statement
-import sage.rings.padics.local_generic_element
+cimport sage.rings.padics.local_generic_element
+from sage.rings.padics.local_generic_element cimport LocalGenericElement
+cimport sage.structure.element
+from sage.structure.element cimport Element
+cimport pow_computer
+from sage.rings.integer cimport Integer
 import sage.rings.rational_field
 
-Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 infinity = sage.rings.infinity.infinity
 PariError = sage.libs.pari.gen.PariError
 pari = sage.libs.pari.gen.pari
 QQ = sage.rings.rational_field.QQ
 
-class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericElement):
-    def __cmp__(self, other):
+cdef class pAdicGenericElement(LocalGenericElement):
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    cdef int _cmp_c_impl(left, Element right) except -2:
         """
         First compare valuations, then compare normalized
         residue of unit part.
@@ -48,11 +59,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             sage: a < b
             True
         """
-        m = min(self.precision_absolute(), other.precision_absolute())
-        x_ordp = self.valuation()
+        m = min(left.precision_absolute(), right.precision_absolute())
+        x_ordp = left.valuation()
         if x_ordp >= m :
             x_ordp = infinity
-        y_ordp = other.valuation()
+        y_ordp = right.valuation()
         if y_ordp >= m :
             y_ordp = infinity
         if x_ordp < y_ordp:
@@ -62,23 +73,24 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:  # equal ordp
             if x_ordp == infinity:
                 return 0 # since both are zero
-        p = self.parent().prime()
-        a = self._unit_part().lift()
-        b = other._unit_part().lift()
-        prec = min(self.precision_relative(), other.precision_relative())
-        ppow = p**prec
-        a %= ppow
-        b %= ppow
-        if a < b:
-            return -1
-        elif a == b:
-            return 0
-        else:
-            return 1
+            else:
+                p = left.parent().prime()
+                a = left.unit_part().lift()
+                b = right.unit_part().lift()
+                prec = min(left.precision_relative(), right.precision_relative())
+                ppow = p**prec
+                a %= ppow
+                b %= ppow
+                if a < b:
+                    return -1
+                elif a == b:
+                    return 0
+                else:
+                    return 1
 
     def __floordiv__(self, right):
         if self.parent().is_field():
-            return self.__div__(right)
+            return self / right
         else:
             right = self.parent()(right)
             v, u = right._val_unit()
@@ -108,7 +120,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             return self.list()[n - self.valuation()]
         return self.list()[n]
 
-    def __invert__(self, relprec=infinity):
+    def __invert__(self):
         r"""
         Returns the multiplicative inverse of self.
 
@@ -138,11 +150,11 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         return False
 
     def str(self, mode=None):
-        return self._repr_(mode=mode)
+        return self._repr(mode=mode)
 
-    def _repr_(self, mode = None, do_latex = False):
+    def _repr(self, mode = None, do_latex = False):
         r"""
-        Prints a string representation of the element.  See set_print_mode for more details.
+        Prints a string representation of the element.  See __init__ for more details on print modes.
 
         EXAMPLES:
             sage: R = Zp(7,4,'capped-rel','val-unit'); a = R(364); a
@@ -163,7 +175,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         elif not ((mode == 'val-unit') or (mode == 'series') or (mode == 'terse')):
             raise TypeError, "printing mode must be one of 'val-unit', 'series' or 'terse'"
         pprint = self.parent().variable_name()
-        if self._unit_part() == 0:
+        if self.lift() == 0:
             if mode == 'val-unit' or mode == 'series':
                 if do_latex:
                     return "O(%s^{%s})"%(pprint, self.precision_absolute())
@@ -177,16 +189,16 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         if mode == 'val-unit':
             if do_latex:
                 if self.valuation() == 0:
-                    return "%s + O(%s^{%s})"%(self._unit_part(), pprint, self.precision_absolute())
+                    return "%s + O(%s^{%s})"%(self.lift(), pprint, self.precision_absolute())
                 if self.valuation() == 1:
-                    return "%s \\cdot %s + O(%s^{%s})"%(pprint, self._unit_part(), pprint, self.precision_absolute())
-                return "%s^{%s} \\cdot %s + O(%s^{%s})"%(pprint, self.valuation(), self._unit_part(), pprint, self.precision_absolute())
+                    return "%s \\cdot %s + O(%s^{%s})"%(pprint, self.unit_part().lift(), pprint, self.precision_absolute())
+                return "%s^{%s} \\cdot %s + O(%s^{%s})"%(pprint, self.valuation(), self.unit_part().lift(), pprint, self.precision_absolute())
             else:
                 if self.valuation() == 0:
-                    return "%s + O(%s^%s)"%(self._unit_part(), pprint, self.precision_absolute())
+                    return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
                 if self.valuation() == 1:
-                    return "%s * %s + O(%s^%s)"%(pprint, self._unit_part(), pprint, self.precision_absolute())
-                return "%s^%s * %s + O(%s^%s)"%(pprint, self.valuation(), self._unit_part(), pprint, self.precision_absolute())
+                    return "%s * %s + O(%s^%s)"%(pprint, self.unit_part().lift(), pprint, self.precision_absolute())
+                return "%s^%s * %s + O(%s^%s)"%(pprint, self.valuation(), self.unit_part().lift(), pprint, self.precision_absolute())
         elif mode == 'terse':
             if self.valuation() < 0:
                 ppow1 = str(self.prime() ** (-self.valuation()))
@@ -210,9 +222,10 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
                 else:
                     return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
         else:
+            #should change over to using list()
             exp = self.valuation()
             p = self.parent().prime()
-            v = self._unit_part().lift()
+            v = self.unit_part().lift()
             s = ""
             while v != 0:
                 var = pprint
@@ -301,7 +314,8 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         """
         return sage.rings.arith.algdep(self, n)
 
-    algebraic_dependency = algdep
+    def algebraic_dependency(self, n):
+        return self.algdep(n)
 
     def exp(self):
         r"""
@@ -380,7 +394,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             term = ans = working_ring(Integer(1))
             for n in range(1, max_term):
                 term *=x
-                term //= working_ring(Integer(n))
+                term = term // working_ring(Integer(n))
                 ans += term
             # Note that it is the absolute precision that is respected by exp: even when p == 2?
             return self.parent()(ans).add_bigoh(prec)
@@ -764,7 +778,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         if self.is_zero(self.precision_absolute()):
             return Rational(0)
         p = self.parent().prime()
-        alpha = self._unit_part().lift()
+        alpha = self.unit_part().lift()
         m = Integer(p**self.precision_relative())
         r = sage.rings.arith.rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
@@ -890,8 +904,97 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return self
 
-    def _unit_part(self):
-        raise NotImplementedError
+    #def _unit_part(self):
+    #    raise NotImplementedError
 
     def _val_unit(self):
         return self.valuation(), self.unit_part()
+
+    cdef base_p_list(self, mpz_t value, mpz_t p, lift_mode, PowComputer_class powerer, int preccap):
+        cdef mpz_t tmp, halfp, ppow
+        cdef int neg, curpower
+        cdef Integer list_elt
+        ans = PyList_New(0)
+        mpz_init_set(tmp, value)
+        if lift_mode == 'simple':
+            while mpz_sgn(tmp) != 0:
+                list_elt = PY_NEW(Integer)
+                mpz_mod(list_elt.value, tmp, p)
+                mpz_sub(tmp, tmp, list_elt.value)
+                mpz_divexact(tmp, tmp, p)
+                PyList_Append(ans, list_elt)
+        elif lift_mode == 'smallest':
+            neg = 0
+            curpower = preccap
+            mpz_init(halfp)
+            mpz_init(ppow)
+            mpz_fdiv_q_2exp(halfp, p, 1)
+            while mpz_sgn(tmp) != 0:
+                curpower -= 1
+                list_elt = PY_NEW(Integer)
+                mpz_mod(list_elt.value, tmp, p)
+                if mpz_cmp(list_elt.value, halfp) >= 0:
+                    mpz_sub(list_elt.value, list_elt.value, p)
+                    neg = 1
+                else:
+                    neg = 0
+                mpz_sub(tmp, tmp, list_elt.value)
+                mpz_divexact(tmp, tmp, p)
+                if neg == 1:
+                    powerer.pow_mpz_ui(ppow, curpower)
+                    if mpz_cmp(tmp, ppow) >= 0:
+                        mpz_sub(tmp, tmp, ppow)
+                PyList_Append(ans, list_elt)
+            mpz_clear(halfp)
+            mpz_clear(ppow)
+        else:
+            mpz_clear(tmp)
+            raise ValueError, "lift mode must be one of 'simple', 'smallest' or 'teichmuller'"
+        mpz_clear(tmp)
+        return ans
+
+cdef public void teichmuller_set_c(mpz_t value, mpz_t p, mpz_t ppow):
+    r"""
+    Sets value to the integer between 0 and p^prec that is congruent to the Teichmuller lift of value to Z_p.
+
+    INPUT:
+
+    value -- An mpz_t currently holding an approximation to the
+             Teichmuller representative (this approximation can
+             be any integer).  It will be set to the actual
+             Teichmuller lift
+    p -- An mpz_t holding the value of the prime
+    ppow -- An mpz_t holding the value p^prec, where prec is the desired precision of the Teichmuller lift
+    """
+    cdef mpz_t u, xnew
+    if mpz_divisible_p(value, p) != 0:
+        mpz_set_ui(value, 0)
+        return
+    if mpz_sgn(value) < 0 or mpz_cmp(value, ppow) >= 0:
+        mpz_mod(value, value, ppow)
+    mpz_init(u)
+    mpz_init(xnew)
+    # u = 1 / Mod(1 - p, ppow)
+    mpz_sub(u, ppow, p)
+    mpz_add_ui(u, u, 1)
+    mpz_invert(u, u, ppow)
+    # Consider x as Mod(self.value, ppow)
+    # xnew = x + u*(x^p - x)
+    mpz_powm(xnew, value, p, ppow)
+    mpz_sub(xnew, xnew, value)
+    mpz_mul(xnew, xnew, u)
+    mpz_add(xnew, xnew, value)
+    mpz_mod(xnew, xnew, ppow)
+    # while x != xnew:
+    #     x = xnew
+    #     xnew = x + u*(x^p - x)
+    while mpz_cmp(value, xnew) != 0:
+        mpz_set(value, xnew)
+        mpz_powm(xnew, value, p, ppow)
+        mpz_sub(xnew, xnew, value)
+        mpz_mul(xnew, xnew, u)
+        mpz_add(xnew, xnew, value)
+        mpz_mod(xnew, xnew, ppow)
+    mpz_clear(u)
+    mpz_clear(xnew)
+

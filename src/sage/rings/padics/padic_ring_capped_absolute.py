@@ -101,7 +101,7 @@ import sage.rings.integer
 import padic_ring_base_generic
 import padic_capped_absolute_ring_generic
 #import sage.rings.padics.padic_ring_fixed_mod
-import sage.rings.padics.padic_ring_capped_absolute_element
+from sage.rings.padics.padic_ring_capped_absolute_element import pAdicRingCappedAbsoluteElement
 #import sage.rings.padics.padic_ring_capped_relative_element
 #import sage.rings.padics.padic_lazy_element
 #import sage.rings.infinity
@@ -114,7 +114,7 @@ pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 #pAdicFieldBaseGeneric = sage.rings.padics.padic_field_base_generic.pAdicFieldBaseGeneric
 #pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
-pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
 #pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
 #pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pAdicCappedAbsoluteRingGeneric = padic_capped_absolute_ring_generic.pAdicCappedAbsoluteRingGeneric
@@ -149,7 +149,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         r"""
         Returns the fraction field of self.
         """
-        from sage.rings.padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def random_element(self):

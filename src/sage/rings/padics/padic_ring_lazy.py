@@ -174,7 +174,7 @@ class pAdicRingLazy(pAdicRingBaseGeneric, pAdicLazyRingGeneric):
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
                 try:
-                    from sage.rings.padics.qp import Qp
+                    from sage.rings.padics.factory import Qp
                     return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
                 except PariError:
                     raise TypeError, "cannot change primes in creating p-adic elements"
@@ -227,7 +227,7 @@ class pAdicRingLazy(pAdicRingBaseGeneric, pAdicLazyRingGeneric):
         r"""
         Returns the fraction field of self.
         """
-        from sage.rings.padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         return Qp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def random_element(self):

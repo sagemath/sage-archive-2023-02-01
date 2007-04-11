@@ -1155,7 +1155,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         AUTHOR:
             -- David Roe (3/31/07)
         """
-        if self == 0:
+        if mpz_sgn(self.value) == 0:
             return sage.rings.infinity.infinity
         if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
@@ -1471,7 +1471,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef int _is_power_of(Integer self, Integer n):
         r"""
-        Returns a non-zero int if there is an integer b > 1 with self = n^b
+        Returns a non-zero int if there is an integer b with self = n^b
 
         For more documentation see \code{is_power_of}
 

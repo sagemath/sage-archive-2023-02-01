@@ -22,6 +22,7 @@ AUTHORS:
 
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
+from sage.rings.arith import next_prime
 
 def modular_symbol_space(E, sign, base_ring, bound=None):
     """
@@ -51,6 +52,7 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
         t = V.T(p)
         ap = E.ap(p)
         V = (t - ap).kernel()
+        p = next_prime(p)
 
     return V
 
@@ -70,8 +72,12 @@ class ModularSymbol(SageObject):
         self._E = E
         self._modsym = E.modular_symbol_space(sign=_sign, base_ring=base_ring)
         self._ambient_modsym = self._modsym.ambient_module()
-        self._e = self._modsym.dual_eigenvector()
-        # todo -- here must rescale self._e
+        #self._e = self._modsym.dual_eigenvector()
+
+        P = self._modsym.integral_period_mapping()
+        e = P.matrix().transpose()[0]
+        e /= 2
+        self._e = e
 
     def sign(self):
         return self._modsym.sign()
@@ -84,6 +90,7 @@ class ModularSymbol(SageObject):
 
     def __call__(self, x):
         w = self._ambient_modsym([0,x]).element()
+        #return self._map(w)[0]
         return (self._e).dot_product(w)
 
     def _repr_(self):

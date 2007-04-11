@@ -545,7 +545,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__modular_form = f
             return f
 
-    def modular_symbol_space(self, sign=1, base_ring=Q):
+    def modular_symbol_space(self, sign=1, base_ring=Q, bound=None):
         r"""
         Return the space of cuspidal modular symbols associated to
         this elliptic curve, with given sign and base ring.
@@ -555,6 +555,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             base_ring -- a ring
 
         EXAMPLES:
+            sage: f = EllipticCurve('37b')
+            sage: f.modular_symbol_space()
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(37) of weight 2 with sign 1 over Rational Field
+            sage: f.modular_symbol_space(-1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(37) of weight 2 with sign -1 over Rational Field
+            sage: f.modular_symbol_space(0, bound=3)
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -566,7 +573,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__modular_symbol_space = {}
         except KeyError:
             pass
-        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring)
+        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring, bound=bound)
         self.__modular_symbol_space[typ] = M
         return M
 
@@ -577,8 +584,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         to a fixed multiple of 2*pi*I*f(z)dz from oo to r/s,
         normalized so that all values of this map take values in QQ.
 
-        NOTE: Currently there is no guarantee about how this map is
-        normalized.  This will be added.
+        If sign=1, the normalization is such that the p-adic
+        L-function associated to this modular symbol is correct.
+        I.e., the normalization is the same as for the integral period
+        mapping divided by 2.
 
         INPUT:
             sign -- -1, or 1
@@ -612,6 +621,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: type(L)
             <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
+
+        We compute the $3$-adic $L$-series of two curves of rank $0$
+        and in each case verify the interpolation property for their
+        leading coefficient (i.e., value at 0):
+            sage: e = EllipticCurve('11a')
+            sage: ms = e.modular_symbol()
+            sage: [ms(1/11), ms(1/3), ms(0), ms(oo)]
+            [-1/5, -1/2, 0, -1/5]
+            sage: ms(oo)
+            -1/5
+            sage: L = e.padic_lseries(3)
+            sage: P = L.approx(5)
+            sage: P(0)
+            2 + 3 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + 2*3^11 + 2*3^13 + 3^14 + 2*3^15 + 3^18 + 3^19 + O(3^20)
+            sage: alpha = L.alpha(); alpha
+            2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + 2*3^11 + 2*3^13 + 3^14 + 2*3^15 + 3^18 + 3^19 + O(3^20)
+            sage: R.<x> = QQ[]
+            sage: f = x^2 - e.ap(3)*x + 3
+            sage: f(alpha)
+            O(3^20)
+            sage: r = e.L_ratio(); r
+            1/5
+            sage: (1 - alpha^(-1))^2 * r
+            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + 3^10 + 3^11 + 2*3^12 + 3^13 + 2*3^15 + 2*3^16 + 3^17 + 3^18 + O(3^20)
+            sage: P(0)
+            2 + 3 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + 2*3^9 + 2*3^11 + 2*3^13 + 3^14 + 2*3^15 + 3^18 + 3^19 + O(3^20)
+
+        Next consider the curve 37b:
+            sage: e = EllipticCurve('37b')
+            sage: L = e.padic_lseries(3)
+            sage: P = L.approx(5)
+            sage: alpha = L.alpha(); alpha
+            1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + 2*3^10 + 2*3^12 + 3^14 + 2*3^16 + 2*3^17 + 3^18 + 3^19 + O(3^20)
+            sage: r = e.L_ratio(); r
+            1/3
+            sage: (1 - alpha^(-1))^2 * r
+            3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^9 + 2*3^12 + 3^13 + 3^14 + 2*3^16 + 2*3^17 + 3^18 + 3^19 + O(3^20)
+            sage: P(0)
+            3 + 3^2 + 3^4 + 2*3^5 + 2*3^6 + 3^7 + 2*3^8 + 2*3^10 + 2*3^15 + 3^16 + 2*3^18 + 2*3^19 + O(3^20)
         """
         key = (p,prec)
         try:
@@ -1441,6 +1489,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (2.99345864623195962983200997945250817779758379137013298534052337856325035698668290412039406739705147343584052710494728819414438723737202525437537667109326, 2.45138938198679006085422483186652522534961728914479661465647140612915289999925689289113212802918108871268421886966184797547519986661675580167893816478303*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
+
+    def period_lattice_is_rectangular(self):
+        r"""
+        Return True precisely if the period lattice of self
+        is rectangular.
+
+        EXAMPLES:
+            sage: f = EllipticCurve('11a')
+            sage: f.period_lattice()
+            (1.269209304279553421688794616754547305219492241830608667967136921230408338613, 0.6346046521397767108443973083772736526097461209153043339835684606152041693064 + 1.458816616938495229330889612903675257159243428952665161469618762450537896609*I)
+            sage: f.period_lattice_is_rectangular()
+            False
+            sage: f = EllipticCurve('37b')
+            sage: f.period_lattice()
+            (1.088521592904229173504308311539594823105140504301377799086597419750048367573, 1.767610670233789475881323144497815233734289378984139837146363810096739201810*I)
+            sage: f.period_lattice_is_rectangular()
+            True
+
+        ALGORITHM:
+           The period lattice is rectangular precisely if the
+           discriminant of the Weierstrass equation is positive.
+        """
+        return self.discriminant() > 0
 
     def omega(self):
         """
@@ -2338,7 +2409,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: G = E.isogeny_graph()
             sage: for v in G:
                 print v, G.obj(v)
-            ....:
+            ...
+
             0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
             2 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field

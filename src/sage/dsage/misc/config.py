@@ -24,6 +24,7 @@ Gets the different configuration options for the various components of DSAGE.
 import os
 import random
 import ConfigParser
+import uuid
 
 def check_version(old_version):
     from sage.dsage.__version__ import version
@@ -55,6 +56,11 @@ def get_conf(type):
         elif type == 'monitor':
             conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
             config.read(conf_file)
+            if len(config.get('uuid', 'id')) != 36:
+                config.set('uuid', 'id', str(uuid.uuid1()))
+                f = open(conf_file, 'w')
+                config.write(f)
+                config.read(conf_file)
             conf = read_conf(config)
         elif type == 'jobdb' or type == 'clientdb' or type == 'monitordb':
             conf_file = os.path.join(DSAGE_DIR, 'server.conf')
@@ -68,3 +74,16 @@ def get_conf(type):
         print msg
         print "Error reading '%s', run dsage.setup()" % conf_file
 
+def get_bool(value):
+    boolean_states = {'0': False,
+    '1': True,
+    'false': False,
+    'no': False,
+    'off': False,
+    'on': True,
+    'true': True,
+    'yes': True}
+    if value.lower() not in boolean_states:
+        raise ValueError, 'Not a boolean: %s' % value
+
+    return boolean_states[value.lower()]

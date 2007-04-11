@@ -342,10 +342,12 @@ class DSage(object):
             raise NotConnectedException
 
 class BlockingDSage(DSage):
-    """This is the blocking version of DSage
+    """
+    This is the blocking version of the DSage interface.
+
     """
 
-    def __init__(self, server=None, port=8081, username=None, pubkey_file=None, privkey_file=None):
+    def __init__(self, server=None, port=None, username=None, pubkey_file=None, privkey_file=None):
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
         from twisted.spread import banana
@@ -357,7 +359,8 @@ class BlockingDSage(DSage):
         else:
             self.server = server
         if port is None:
-            self.port = self.conf['port']
+            conf = get_conf(type='server')
+            self.port = conf['client_port']
         else:
             self.port = port
         if username is None:

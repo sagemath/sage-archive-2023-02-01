@@ -109,7 +109,6 @@ def setup_server():
     # Get ConfigParser object
     config = get_config('server')
     config.set('server', 'client_port', 8081)
-    config.set('server', 'worker_port', 8082)
     config.set('ssl', 'ssl', 1)
     config.set('server_log', 'log_file', 'stdout')
     config.set('server_log', 'log_level', '0')

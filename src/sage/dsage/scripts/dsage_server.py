@@ -156,11 +156,21 @@ def main():
                 log.err(err_msg)
                 log.err('Last attempted port: %s' % (CLIENT_PORT))
             try:
-                reactor.listenSSL(CLIENT_PORT,
-                                  client_factory,
-                                  contextFactory = ssl_context)
-                break
-            except error.CannotListenError:
+                try:
+                    import socket
+                    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    s.connect(('', CLIENT_PORT))
+                    succeeded = True
+                except socket.error, msg:
+                    succeeded = False
+                if not succeeded:
+                    reactor.listenSSL(CLIENT_PORT,
+                                      client_factory,
+                                      contextFactory = ssl_context)
+                    break
+                else:
+                    raise SystemError
+            except (SystemError, error.CannotListenError), msg:
                 attempts += 1
                 CLIENT_PORT += 1
     else:

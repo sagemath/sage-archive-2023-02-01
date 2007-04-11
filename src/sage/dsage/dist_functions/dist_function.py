@@ -214,7 +214,6 @@ class DistributedFunctionTest(DistributedFunction):
         self.result = 0
         self.results = []
         self.code = """DSAGE_RESULT=%s"""
-        # self.outstanding_jobs = ["print %s" % (i for i in range(1,n+1))]
         self.outstanding_jobs = [Job(code=self.code % i, username='yqiang') for i in range(1, n+1)]
 
     def process_result(self, job):

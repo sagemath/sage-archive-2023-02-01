@@ -224,6 +224,8 @@ cdef extern from "libsingular.h":
     # pCmp: args may be NULL
     # returns: (p2==NULL ? 1 : (p1 == NULL ? -1 : p_LmCmp(p1, p2)))
     int p_Cmp(poly *l, poly *r, ring *r)
+    int p_ExpVectorEqual(poly *p, poly *m, ring *r)
+
 
     int p_IsConstant(poly *, ring *)
     int p_IsUnit(poly *, ring *)
@@ -252,6 +254,8 @@ cdef extern from "libsingular.h":
     number *n_Init(int n, ring *r)
     void n_Delete(number **n, ring *r)
     int nInt(number *n)
+
+    number *nInvers(number *n)
 
     cdef long SR_INT
     long SR_TO_INT(number *)

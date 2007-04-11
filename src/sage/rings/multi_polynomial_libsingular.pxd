@@ -9,6 +9,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
     cdef poly *_poly
     cdef _repr_short_c(self)
     cdef _singular_init_c(self,singular, have_ring)
+    cdef int is_constant_c(self)
 
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     cdef ring *_ring

@@ -102,9 +102,6 @@ cdef init_singular():
     far is to load the library again and to specifiy RTLD_GLOBAL.
     """
 
-    # This is a work around until we found a way to export those
-    # symbols without loading the lib again
-
     cdef void *handle
 
     lib = os.environ['SAGE_LOCAL']+"/lib/libsingular.so"
@@ -710,8 +707,20 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return new_MP(left._parent,_p)
 
     cdef RingElement  _div_c_impl(left, RingElement right):
-        raise NotImplementedError
+        cdef poly *p
+        cdef ring *r
+        cdef number *n
+        if (<MPolynomial_libsingular>right).is_constant_c():
 
+            p = (<MPolynomial_libsingular>right)._poly
+            r = (<MPolynomialRing_libsingular>(<MPolynomial_libsingular>right)._parent)._ring
+            n = p_GetCoeff(p, r)
+            n = nInvers(n)
+            p = pp_Mult_nn(left._poly, n,  r)
+            n_Delete(&n,r)
+            return new_MP(left._parent, p)
+        else:
+            raise NotImplementedError
 
     def __pow__(MPolynomial_libsingular self,int exp,ignored):
         """
@@ -773,7 +782,28 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return pDeg(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
     def newton_polytope(self):
-        raise NotImplementedError
+        """
+        Return the Newton polytope of this polynomial.
+
+        You should have the optional polymake package installed.
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y> = MPolynomialRing_libsingular(QQ,2)
+            sage: f = 1 + x*y + x^3 + y^3
+            sage: P = f.newton_polytope()
+            sage: P
+            Convex hull of points [[1, 0, 0], [1, 0, 3], [1, 1, 1], [1, 3, 0]]
+            sage: P.facets()
+            [(0, 1, 0), (3, -1, -1), (0, 0, 1)]
+            sage: P.is_simple()
+            True
+        """
+        from sage.geometry.all import polymake
+        e = self.exponents()
+        a = [[1] + list(v) for v in e]
+        P = polymake.convex_hull(a)
+        return P
 
     def total_degree(self):
         """
@@ -804,8 +834,51 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         """
         return pTotaldegree(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
-    def monomial_coefficient(self, mon):
-        raise NotImplementedError
+    def monomial_coefficient(self, MPolynomial_libsingular mon):
+        """
+        Return the coefficient of the monomial mon in self, where mon
+        must have the same parent as self.
+
+        INPUT:
+            mon -- a monomial
+
+        OUTPUT:
+            ring element
+
+        EXAMPLE:
+            sage: P.<x,y> = MPolynomialRing_libsingular(QQ, 2)
+
+        The coefficient returned is an element of the base ring of self; in
+        this case, QQ.
+            sage: f = 2 * x * y
+            sage: c = f.monomial_coefficient(x*y); c
+            2
+            sage: c in QQ
+            True
+
+            sage: f = y^2 - x^9 - 7*x + 5*x*y
+            sage: f.monomial_coefficient(y^2)
+            1
+            sage: f.monomial_coefficient(x*y)
+            5
+            sage: f.monomial_coefficient(x^9)
+            -1
+            sage: f.monomial_coefficient(x^10)
+            0
+        """
+        cdef poly *p = self._poly
+        cdef poly *m = mon._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+
+        if not mon._parent is self._parent:
+            raise TypeError, "mon must have same parent as self"
+
+        while(p):
+            if p_ExpVectorEqual(p, m, r) == 1:
+                return co.si2sa(p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base)
+            p = p.next
+
+        return (<MPolynomialRing_libsingular>self._parent)._base(0)
 
     def dict(self):
         cdef poly *p
@@ -830,7 +903,62 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return pd
 
     def __getitem__(self,x):
-        raise NotImplementedError
+        """
+        same as self.monomial_coefficent but for exponent vectors.
+
+        INPUT:
+            x -- a tuple or, in case of a single-variable MPolynomial
+                 ring x can also be an integer.
+
+        EXAMPLES:
+            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: f = -10*x^3*y + 17*x*y
+            sage: f[3,1]
+            -10
+            sage: f[1,1]
+            17
+            sage: f[0,1]
+            0
+
+            sage: R.<x> = PolynomialRing(GF(7),1); R
+            Polynomial Ring in x over Finite Field of size 7
+            sage: f = 5*x^2 + 3; f
+            3 + 5*x^2
+            sage: f[2]
+            5
+        """
+
+        cdef poly *m
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef int i
+
+        if PY_TYPE_CHECK(x, MPolynomial_libsingular):
+            return self.monomial_coefficient(x)
+        if not PY_TYPE_CHECK(x, tuple):
+            try:
+                x = tuple(x)
+            except TypeError:
+                x = (x,)
+
+        if len(x) != (<MPolynomialRing_libsingular>self._parent).__ngens:
+            raise TypeError, "x must have length self.ngens()"
+
+        m = p_ISet(1,r)
+        i = 1
+        for e in x:
+            p_SetExp(m, i, int(e), r)
+            i += 1
+        p_Setm(m, r)
+
+        while(p):
+            if p_ExpVectorEqual(p, m, r) == 1:
+                p_Delete(&m,r)
+                return co.si2sa(p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base)
+            p = p.next
+
+        p_Delete(&m,r)
+        return (<MPolynomialRing_libsingular>self._parent)._base(0)
 
     def coefficient(self, mon):
         raise NotImplementedError
@@ -993,6 +1121,9 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
     def is_constant(self):
         return bool(p_IsConstant(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring))
+
+    cdef int is_constant_c(self):
+        return p_IsConstant(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
     def __hash__(self):
         s = p_String(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring, (<MPolynomialRing_libsingular>self._parent)._ring)

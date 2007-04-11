@@ -16,8 +16,9 @@ beautiful antialised images.  To try it out immediately, do this:
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should fully work with Firefox (and Mozilla),
-Safari, and Opera. The notebook works somewhat in Internet Explorer.
+The SAGE notebook should fully work with Firefox (and Mozilla).  It
+may work to some extent with Safari and Opera.  Internet Explorer is
+not supported.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -346,6 +347,7 @@ import re           # regular expressions
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
 from   sage.misc.misc       import alarm, cancel_alarm
+from   sage.server.misc import print_open_msg
 
 # SAGE Notebook
 import css          # style
@@ -774,20 +776,9 @@ class Notebook(SageObject):
             else:
                 break
 
-        s = "Open your web browser to http://%s:%s"%(address, port)
-        t = len(s)
-        if t%2:
-            t += 1
-            s += ' '
-        n = max(t+4, 50)
-        k = n - t  - 1
-        j = k/2
-        print '*'*n
-        print '*'+ ' '*(n-2) + '*'
-        print '*' + ' '*j + s + ' '*j + '*'
-        print '*'+ ' '*(n-2) + '*'
-        print '*'*n
-        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla, Safari, and Opera."
+        print_open_msg(address, port)
+        print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
+
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
@@ -1474,7 +1465,7 @@ import time
 def notebook(dir         ='sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             open_viewer = False,
+             open_viewer = True,
              max_tries   = 10,
              username    = None,
              password    = None,
@@ -1501,7 +1492,7 @@ def notebook(dir         ='sage_notebook',
         port -- (default: 8000) port on computer where the server is served
         address -- (default: 'localhost') address that the server
                    will listen on
-        open_viewer -- bool (default:False); if True, pop up a web browser at the URL
+        open_viewer -- bool (default: True); if True, pop up a web browser at the URL
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
         username -- user name used for authenticated logins

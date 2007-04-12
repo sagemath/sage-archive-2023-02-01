@@ -102,7 +102,6 @@ def main():
         SSL = config.getint('ssl', 'ssl')
         SSL_PRIVKEY = config.get('ssl', 'privkey_file')
         SSL_CERT = config.get('ssl', 'cert_file')
-        WORKER_PORT = config.getint('server', 'worker_port')
         CLIENT_PORT = config.getint('server', 'client_port')
         PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
         STATS_FILE = config.get('general', 'stats_file')

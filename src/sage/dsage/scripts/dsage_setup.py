@@ -24,6 +24,7 @@ import subprocess
 import sys
 
 from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.twisted.pubkeyauth import get_pubkey_string
 from sage.dsage.misc.constants import delimiter as DELIMITER
 from sage.dsage.__version__ import version
 
@@ -147,9 +148,15 @@ def setup_server():
     clientdb = ClientDatabase()
     if clientdb.get_user(username) is None:
         clientdb.add_user(username, pubkey_file)
-        print 'Added user %s\n' % (username)
+        print 'Added user %s.\n' % (username)
     else:
-        print 'User %s already exists.' % (username)
+        user, key = clientdb.get_user_and_key(username)
+        if key != get_pubkey_string(pubkey_file):
+            clientdb.del_user(username)
+            clientdb.add_user(username, pubkey_file)
+            print "User %s's pubkey changed, setting to new one." % (username)
+        else:
+            print 'User %s already exists.' % (username)
 
 def setup():
     setup_client()

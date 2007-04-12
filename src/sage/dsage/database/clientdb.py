@@ -23,6 +23,7 @@ import sqlite3 as sqlite
 
 from twisted.python import log
 
+from sage.dsage.twisted.pubkeyauth import get_pubkey_string
 import sage.dsage.database.sql_functions as sql_functions
 from sage.dsage.misc.config import get_conf
 
@@ -108,7 +109,7 @@ class ClientDatabase(object):
 
         return result
 
-    def add_user(self, username, pubkey):
+    def add_user(self, username, pubkey_file):
         """
         Adds a user to the database.
 
@@ -119,17 +120,9 @@ class ClientDatabase(object):
                    VALUES (?, ?, ?)
                 """
 
-        try:
-            f = open(pubkey)
-            type_, key = f.readlines()[0].split()[:2]
-            f.close()
-            if not type_ == 'ssh-rsa':
-                raise TypeError
-        except IOError:
-            key = pubkey
-
+        pubkey = get_pubkey_string(pubkey_file)
         cur = self.con.cursor()
-        cur.execute(query, (username, key, datetime.datetime.now()))
+        cur.execute(query, (username, pubkey, datetime.datetime.now()))
         self.con.commit()
 
     def del_user(self, username):

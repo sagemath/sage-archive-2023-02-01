@@ -113,6 +113,10 @@ class ClientDatabase(object):
         """
         Adds a user to the database.
 
+        Parameters:
+        username -- username
+        pubkey_file -- path to the file containing the users public key
+
         """
 
         query = """INSERT INTO clients

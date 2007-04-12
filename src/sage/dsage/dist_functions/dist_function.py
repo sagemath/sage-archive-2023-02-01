@@ -141,7 +141,7 @@ class DistributedFunction(object):
             else:
                 self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name))
 
-    def submit_jobs(self, job_name='job', async=False):
+    def submit_jobs(self, job_name='job', async=True):
         """
         Repeatedly calls submit_job until we have no more jobs in outstanding_jobs
 

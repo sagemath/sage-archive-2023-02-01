@@ -8,18 +8,21 @@ AUTHORS:
 import os
 
 class DistributedSage(object):
-    """
-    DistributedSage allows you to do distributed computing in SAGE.
+    r"""
+    Distributed SAGE allows you to do distributed computing in SAGE.
 
     To get up and running quickly, run dsage.setup() to run the
     configuration utility.
-    Note that configuration files will be stored in $DOT_SAGE/dsage
+    Note that configuration files will be stored in the directory
+    \code{$DOT_SAGE/dsage}
 
     There are three distinct parts of Distributed SAGE:
         Server
             Launch the server with dsage.server()
+
         Worker
             Launch the worker with dsage.worker()
+
         Client
             Create the DSage object like this:
                 d = DSage()

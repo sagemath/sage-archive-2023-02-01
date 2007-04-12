@@ -145,8 +145,11 @@ def setup_server():
     username = c.get('auth', 'username')
     pubkey_file = c.get('auth', 'pubkey_file')
     clientdb = ClientDatabase()
-    clientdb.add_user(username, pubkey_file)
-    print 'Added user %s\n' % (username)
+    if clientdb.get_user(username) is None:
+        clientdb.add_user(username, pubkey_file)
+        print 'Added user %s\n' % (username)
+    else:
+        print 'User %s already exists.' % (username)
 
 def setup():
     setup_client()

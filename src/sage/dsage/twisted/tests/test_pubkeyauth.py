@@ -46,7 +46,6 @@ try:
 
     LOG_FILE = config.get('server_log', 'log_file')
     SSL = config.getint('ssl', 'ssl')
-    WORKER_PORT = config.getint('server', 'worker_port')
     CLIENT_PORT = config.getint('server', 'client_port')
     PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
                                                     'pubkey_database'))

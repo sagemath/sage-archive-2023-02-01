@@ -106,7 +106,6 @@ def main():
         SSL = config.getint('ssl', 'ssl')
         SSL_PRIVKEY = config.get('ssl', 'privkey_file')
         SSL_CERT = config.get('ssl', 'cert_file')
-        WORKER_PORT = config.getint('server', 'worker_port')
         CLIENT_PORT = config.getint('server', 'client_port')
         PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
         STATS_FILE = config.get('general', 'stats_file')
@@ -196,14 +195,14 @@ def main():
     log.msg('Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
-    # save pid to a file
-    hostname = socket.gethostname()
-    port = NEW_CLIENT_PORT
-    dir = '%s/dsage/'%os.environ['DOT_SAGE']
-    pid_file = '%s/server-%s-%s.pid'%(dir, hostname, port)
-    if not os.path.exists(dir):
-        os.makedirs(dir)
-    open(pid_file,'w').write(str(os.getpid()))
+##     # save pid to a file
+##     hostname = socket.gethostname()
+##     port = NEW_CLIENT_PORT
+##     dir = '%s/dsage/'%os.environ['DOT_SAGE']
+##     pid_file = '%s/server-%s-%s.pid'%(dir, hostname, port)
+##     if not os.path.exists(dir):
+##         os.makedirs(dir)
+##     open(pid_file,'w').write(str(os.getpid()))
 
     # start the reactor.
     reactor.run(installSignalHandlers=1)

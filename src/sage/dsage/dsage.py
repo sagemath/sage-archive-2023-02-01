@@ -23,17 +23,17 @@ import pexpect
 ##             cmd += ' 2>&1 > ' + logfile
 ##         os.system(cmd)
 
-def start_process(typ, hostname, address, port):
-    cmd = 'dsage_%s.py &'%typ
-    os.system(cmd)
-    dir = '%s/dsage/'%os.environ['DOT_SAGE']
-    pid_file = '%s/server-hostname-address-port.pid'%dir
-    while True:
-        try:
-            if os.path.exists(pid_file):
-                return int(open(pid_file).read())
-        except Exception, msg:
-            print msg
+## def start_process(typ, hostname, address, port):
+##     cmd = 'dsage_%s.py &'%typ
+##     os.system(cmd)
+##     dir = '%s/dsage/'%os.environ['DOT_SAGE']
+##     pid_file = '%s/server-hostname-address-port.pid'%dir
+##     while True:
+##         try:
+##             if os.path.exists(pid_file):
+##                 return int(open(pid_file).read())
+##         except Exception, msg:
+##             print msg
 
 
 class DistributedSage(object):
@@ -114,38 +114,38 @@ class DistributedSage(object):
 
         return DSage()
 
-    def server(self, blocking=True, logfile=None):
-        r"""
-        Run the Distributed SAGE server.
-
-        Doing \code{dsage.server()} will spawn a server process which
-        listens by default on port 8081.
-
-        INPUT:
-            blocking -- boolean (default: True) -- if False the dsage
-                        server will run and you'll still be able to
-                        enter commands at the command prompt (though
-                        logging will make this hard).
-            logfile  -- only used if blocking=True; the default is
-                        to log to $DOT_SAGE/dsage/server.log
-        """
-        cmd = 'dsage_server.py'
-        if not blocking:
-            if logfile is None:
-                logfile = '%s/dsage/server.log'%DOT_SAGE
-            spawn(cmd, logfile)
-        else:
-            os.system(cmd)
-
-##     def server(self):
+##     def server(self, blocking=True, logfile=None):
 ##         r"""
 ##         Run the Distributed SAGE server.
 
 ##         Doing \code{dsage.server()} will spawn a server process which
 ##         listens by default on port 8081.
+
+##         INPUT:
+##             blocking -- boolean (default: True) -- if False the dsage
+##                         server will run and you'll still be able to
+##                         enter commands at the command prompt (though
+##                         logging will make this hard).
+##             logfile  -- only used if blocking=True; the default is
+##                         to log to $DOT_SAGE/dsage/server.log
 ##         """
 ##         cmd = 'dsage_server.py'
-##         os.system(cmd)
+##         if not blocking:
+##             if logfile is None:
+##                 logfile = '%s/dsage/server.log'%DOT_SAGE
+##             spawn(cmd, logfile)
+##         else:
+##             os.system(cmd)
+
+    def server(self):
+        r"""
+        Run the Distributed SAGE server.
+
+        Doing \code{dsage.server()} will spawn a server process which
+        listens by default on port 8081.
+        """
+        cmd = 'dsage_server.py'
+        os.system(cmd)
 
 
 ##     def worker(self, server=None, port=None, blocking=True, logfile=None):

@@ -27,8 +27,20 @@ from twisted.internet import defer
 from twisted.python import log
 from twisted.spread import pb
 
-from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.errors.exceptions import AuthenticationError
+
+def get_pubkey_string(pubkey_file):
+    try:
+        f = open(pubkey_file)
+        type_, key = f.readlines()[0].split()[:2]
+        f.close()
+        if not type_ == 'ssh-rsa':
+            raise TypeError, 'Invalid key type.'
+    except IOError, msg:
+        print 'Unable to read the public key file.'
+        return
+
+    return key
 
 class PublicKeyCredentialsChecker(object):
     """
@@ -85,6 +97,7 @@ class PublicKeyCredentialsCheckerDB(object):
     credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, clientdb):
+        from sage.dsage.database.clientdb import ClientDatabase
         if not isinstance(clientdb, ClientDatabase):
             raise TypeError
         self.clientdb = clientdb

@@ -25,7 +25,6 @@ from twisted.cred.credentials import IAnonymous
 from zope.interface import implements
 from twisted.internet import defer
 from twisted.python import log
-from twisted.spread import pb
 
 from sage.dsage.errors.exceptions import AuthenticationError
 

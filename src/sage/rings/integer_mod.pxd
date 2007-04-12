@@ -19,23 +19,23 @@ cdef class NativeIntStruct:
 
 cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     cdef NativeIntStruct __modulus
+    cdef _new_c_from_long(self, long value)
+    cdef void set_from_mpz(self, mpz_t value)
+    cdef void set_from_long(self, long value)
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value
-    cdef void set_from_mpz(IntegerMod_gmp self, mpz_t value)
     cdef mpz_t* get_value(IntegerMod_gmp self)
     cdef IntegerMod_gmp _new_c(self)
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     cdef public int_fast32_t ivalue
-    cdef void set_from_mpz(IntegerMod_int self, mpz_t value)
     cdef void set_from_int(IntegerMod_int self, int_fast32_t value)
     cdef int_fast32_t get_int_value(IntegerMod_int self)
     cdef IntegerMod_int _new_c(self, int_fast32_t value)
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
     cdef int_fast64_t ivalue
-    cdef void set_from_mpz(IntegerMod_int64 self, mpz_t value)
     cdef void set_from_int(IntegerMod_int64 self, int_fast64_t value)
     cdef int_fast64_t get_int_value(IntegerMod_int64 self)
     cdef IntegerMod_int64 _new_c(self, int_fast64_t value)

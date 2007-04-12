@@ -37,8 +37,7 @@ def get_pubkey_string(pubkey_file):
         if not type_ == 'ssh-rsa':
             raise TypeError, 'Invalid key type.'
     except IOError, msg:
-        print 'Unable to read the public key file.'
-        return
+        key = pubkey_file
 
     return key
 

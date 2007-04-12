@@ -17,7 +17,6 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-
 import os
 import ConfigParser
 import subprocess

@@ -707,7 +707,7 @@ span.pane a.worksheet_other_computing {
    font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color1>;
-   background-color:ffd1d1;
+   background-color:#ffd1d1;
    text-decoration:none;
    color:black;
 }

@@ -107,9 +107,6 @@ class pAdicExtensionGeneric(pAdicGeneric):
     #def hasGNB(self):
     #    raise NotImplementedError
 
-    #def hom(self, ring):
-    #    raise NotImplementedError
-
     def random_element(self):
         return reduce(lambda x,y: x+y,map(lambda a,b:a*b,[self.ground_ring().random_element() for _ in range(self.modulus().degree())],[self.gen()**i for i in range(self.modulus().degree())]),0)
 

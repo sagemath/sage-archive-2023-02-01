@@ -20,6 +20,10 @@
 
 import sys
 import os
+import socket
+
+
+
 from optparse import OptionParser
 import ConfigParser
 
@@ -180,6 +184,16 @@ def main():
     log.msg('Listening on %s' % (CLIENT_PORT))
     log.msg(DELIMITER)
 
+    # save pid to a file
+    hostname = socket.gethostname()
+    port = NEW_CLIENT_PORT
+    dir = '%s/dsage/'%os.environ['DOT_SAGE']
+    pid_file = '%s/server-%s-%s.pid'%(dir, hostname, port)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    open(pid_file,'w').write(str(os.getpid()))
+
+    # start the reactor.
     reactor.run()
 
 if __name__ == "__main__":

@@ -494,6 +494,7 @@ class Monitor(object):
 
         log.msg(DELIMITER)
         log.msg('DSAGE Worker')
+        log.msg('PID %s'%os.getpid())
         log.msg('Connecting to %s:%s' % (self.server, self.port))
         log.msg(DELIMITER)
 

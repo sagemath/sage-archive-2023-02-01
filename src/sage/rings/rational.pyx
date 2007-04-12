@@ -183,15 +183,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpq_set_si(self.value, 0, 1)
                 return
             if not base:
-                v = x._pari_().contfrac().contfracpnqn()
-                s = '%s/%s'%(hex(v[0,0]), hex(v[1,0]))
-                n = mpq_set_str(self.value, s, 16)
-                # this mpq_denref business is to program around a bug in GMP, where
-                # it doesn't correctly return an error code in mpq_set_str (or canonicalalize)
-                # for strings with a 0 in the denominator.   In fact, it crashes horribly.
-                if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                    raise TypeError, "unable to convert %s to a rational"%x
-                mpq_canonicalize(self.value)
+                set_from_Rational(self, x.simplest_rational())
             else:
                 xstr = x.str(base)
                 if '.' in xstr:

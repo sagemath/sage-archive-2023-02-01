@@ -16,7 +16,6 @@ class LocalFieldExtension(algebraic_field_extension.AlgebraicFieldExtension):
     def has_GNB(self): pass
     def has_pth_root(self): pass
     def has_root_of_unity(self, n): pass
-    def hom(self, extension): pass
     def inertia_degree(self): pass
     def inertia_subfield(self): pass
     def integer_ring(self): pass

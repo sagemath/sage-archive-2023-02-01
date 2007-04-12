@@ -20,6 +20,10 @@
 
 import sys
 import os
+import socket
+
+
+
 from optparse import OptionParser
 import ConfigParser
 import socket
@@ -82,7 +86,7 @@ def startLogging(log_file):
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
     else:
-        print "Logging to file: ", log_file
+        print "DSAGE Server logging to file: ", log_file
         server_log = open(log_file, 'a')
         log.startLogging(server_log)
 
@@ -192,6 +196,16 @@ def main():
     log.msg('Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
+    # save pid to a file
+    hostname = socket.gethostname()
+    port = NEW_CLIENT_PORT
+    dir = '%s/dsage/'%os.environ['DOT_SAGE']
+    pid_file = '%s/server-%s-%s.pid'%(dir, hostname, port)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    open(pid_file,'w').write(str(os.getpid()))
+
+    # start the reactor.
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":

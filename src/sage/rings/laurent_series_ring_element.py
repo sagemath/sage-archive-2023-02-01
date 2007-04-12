@@ -16,7 +16,7 @@ Laurent series are immutable:
     ...
     IndexError: Laurent series are immutable
 
-We compute with a Laurent series over a the complex mpfr numbers.
+We compute with a Laurent series over the complex mpfr numbers.
     sage: K.<q> = Frac(CC[['q']])
     sage: K
     Laurent Series Ring in q over Complex Field with 53 bits of precision

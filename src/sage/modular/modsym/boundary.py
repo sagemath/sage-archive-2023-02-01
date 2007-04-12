@@ -66,7 +66,11 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                  field of parent.
         """
         self.__x = x
-        hecke.HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
+        self.__vec = parent.free_module()(x)
+        hecke.HeckeModuleElement.__init__(self, parent, self.__vec)
+
+    def coordinate_vector(self):
+        return self.__vec
 
     def _repr_(self):
         """

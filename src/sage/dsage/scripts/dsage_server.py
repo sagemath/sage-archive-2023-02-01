@@ -20,42 +20,33 @@
 
 import sys
 import os
+import socket
+
+
+
 from optparse import OptionParser
 import ConfigParser
+import socket
 
-from twisted.internet import reactor, task
+from twisted.internet import reactor, error, ssl, task
 from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
+from sage.dsage.database.jobdb import DatabasePruner
+from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import WorkerPBServerFactory
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
+from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer, DSageWorkerServer
+from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.__version__ import version
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-# Begin reading configuration
-try:
-    conf_file = os.path.join(DSAGE_DIR, 'server.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-
-    LOG_FILE = config.get('server_log', 'log_file')
-    LOG_LEVEL = config.getint('server_log', 'log_level')
-    SSL = config.getint('ssl', 'ssl')
-    SSL_PRIVKEY = config.get('ssl', 'privkey_file')
-    SSL_CERT = config.get('ssl', 'cert_file')
-    WORKER_PORT = config.getint('server', 'worker_port')
-    CLIENT_PORT = config.getint('server', 'client_port')
-    PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
-                                                    'pubkey_database'))
-except:
-    print "Error reading %s, please fix manually run dsage.setup()" % \
-    conf_file
-    sys.exit(-1)
-# End reading configuration
 
 def usage():
     """Prints usage help."""
@@ -79,67 +70,134 @@ def usage():
 #     sys.path.append(os.path.abspath(options.dir))
     return options
 
+def write_stats(dsage_server, stats_file):
+    # Put this entire thing in a try block, should not cause the server to die in any way.
+    try:
+        fname = os.path.join(DSAGE_DIR, stats_file)
+        f = open(fname, 'w')
+        f.write(dsage_server.generate_xml_stats())
+        f.close()
+    except Exception, msg:
+        print 'Error writing stats: %s' % (msg)
+        return
+
 def startLogging(log_file):
     """This method initializes the logging facilities for the server. """
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
     else:
-        print "Logging to file: ", log_file
+        print "DSAGE Server logging to file: ", log_file
         server_log = open(log_file, 'a')
         log.startLogging(server_log)
 
 def main():
-    """Main execution loop of the server."""
+    """
+    Main execution loop of the server.
 
-    options = usage()
-    jobdb = JobDatabaseZODB()
+    """
 
-    # Start to prune out old jobs
-    jobdb_pruner = DatabasePruner(jobdb)
-    prune_db = task.LoopingCall(jobdb_pruner.prune)
-    prune_db.start(60*60*24.0, now=True) # start now, interval is one day
+    try:
+        conf_file = os.path.join(DSAGE_DIR, 'server.conf')
+        config = ConfigParser.ConfigParser()
+        config.read(conf_file)
 
-    # Create the main DSage object
-    dsage_server = DSageServer(jobdb, log_level=LOG_LEVEL)
-    p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
-
-    # Get authorized keys
-    p.portal.registerChecker(PublicKeyCredentialsChecker(PUBKEY_DATABASE))
-
-    # HACK: unsafeTracebacks should eventually be TURNED off
-    client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
-
-    # Create the PBServerFactory for workers
-    dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
-    worker_factory = WorkerPBServerFactory(dsage_worker)
-
-    # We will listen on 2 ports
-    # One port that is authenticated so clients can submit new jobs
-    # One port for workers to connect to to receive and submit jobs
-    if SSL == 1:
-        from twisted.internet import ssl
-        sslContext = ssl.DefaultOpenSSLContextFactory(
-                    SSL_PRIVKEY,
-                    SSL_CERT)
-
-        reactor.listenSSL(CLIENT_PORT,
-                          client_factory,
-                          contextFactory = sslContext)
-        reactor.listenSSL(WORKER_PORT,
-                          worker_factory,
-                          contextFactory = sslContext)
-
-    else:
-        reactor.listenTCP(CLIENT_PORT, client_factory)
-        reactor.listenTCP(WORKER_PORT, worker_factory)
-
-    dsage_server.client_factory = client_factory
-    dsage_server.worker_factory = worker_factory
+        LOG_FILE = config.get('server_log', 'log_file')
+        LOG_LEVEL = config.getint('server_log', 'log_level')
+        SSL = config.getint('ssl', 'ssl')
+        SSL_PRIVKEY = config.get('ssl', 'privkey_file')
+        SSL_CERT = config.get('ssl', 'cert_file')
+        CLIENT_PORT = config.getint('server', 'client_port')
+        PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
+        STATS_FILE = config.get('general', 'stats_file')
+        old_version = config.get('general', 'version')
+        if version != old_version:
+            raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
+    except Exception, msg:
+        print msg
+        print "Error reading %s, run dsage.setup()" % conf_file
+        sys.exit(-1)
 
     # start logging
     startLogging(LOG_FILE)
 
-    reactor.run()
+    # Job database
+    jobdb = JobDatabaseSQLite()
+
+    # Worker database
+    monitordb = MonitorDatabase()
+
+    # Client database
+    clientdb = ClientDatabase()
+
+    # Create the main DSage object
+    dsage_server = DSageServer(jobdb, monitordb, clientdb, log_level=LOG_LEVEL)
+    p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
+
+    # Credentials checker
+    p.portal.registerChecker(PublicKeyCredentialsCheckerDB(clientdb))
+
+    # HACK: unsafeTracebacks should eventually be TURNED off
+    client_factory = pb.PBServerFactory(p, unsafeTracebacks=True)
+
+    # Create the looping call that will output the XML file for Dashboard
+    tsk1 = task.LoopingCall(write_stats, dsage_server, STATS_FILE)
+    tsk1.start(5.0, now=False)
+
+    # Create the PBServerFactory for workers
+    # Use this for unauthorized workers
+    # dsage_worker = DSageWorkerServer(jobdb, log_level=LOG_LEVEL)
+    # worker_factory = WorkerPBServerFactory(dsage_worker)
+
+    dsage_server.client_factory = client_factory
+
+    attempts = 0
+    err_msg = "Could not find an open port after 50 attempts."
+    NEW_CLIENT_PORT = CLIENT_PORT
+    while True:
+        if attempts > 50:
+            log.err(err_msg)
+            log.err('Last attempted port: %s' % (NEW_CLIENT_PORT))
+            sys.exit(-1)
+        try:
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect(('', NEW_CLIENT_PORT))
+                port_used = True
+            except socket.error, msg:
+                port_used = False
+            if not port_used:
+                if SSL:
+                    log.msg('Using SSL...')
+                    ssl_context = ssl.DefaultOpenSSLContextFactory(SSL_PRIVKEY, SSL_CERT)
+                    reactor.listenSSL(NEW_CLIENT_PORT,
+                                      client_factory,
+                                      contextFactory = ssl_context)
+                    break
+                else:
+                    reactor.listenTCP(NEW_CLIENT_PORT, client_factory)
+                    break
+            else:
+                raise SystemError, 'Trying to bind to open port: %s.' % (NEW_CLIENT_PORT)
+        except (SystemError, error.CannotListenError):
+            attempts += 1
+            NEW_CLIENT_PORT += 1
+
+    if CLIENT_PORT != NEW_CLIENT_PORT:
+        log.msg(DELIMITER)
+        log.msg("***NOTICE***")
+        log.msg("Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
+        log.msg(DELIMITER)
+        config.set('server', 'client_port', NEW_CLIENT_PORT)
+        config.write(open(conf_file, 'w'))
+
+    log.msg(DELIMITER)
+    log.msg('DSAGE Server')
+    log.msg('PID %s'%os.getpid())
+    log.msg('Listening on %s' % (NEW_CLIENT_PORT))
+    log.msg(DELIMITER)
+
+    # start the reactor.
+    reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
     main()

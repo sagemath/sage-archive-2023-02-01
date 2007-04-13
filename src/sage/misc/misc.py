@@ -222,7 +222,6 @@ def verbose(mesg="", t=0, level=1, caller_name=None):
     if t!=0:
         s = s + " (time = %s)"%cputime(t)
     print s
-    sys.stdout.flush()
     #open(LOGFILE,"a").write(s+"\n")
     return cputime()
 

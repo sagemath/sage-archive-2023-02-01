@@ -19,7 +19,7 @@
 client_list = []
 
 def add(avatar):
-    r"""
+    """
     Adds an avatar to clients_list.
 
     """
@@ -27,7 +27,7 @@ def add(avatar):
     client_list.append(avatar)
 
 def remove(avatar):
-    r"""
+    """
     Removes the avatar from the client_list.
 
     """

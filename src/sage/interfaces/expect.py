@@ -71,6 +71,12 @@ tmp='%s/tmp'%SAGE_TMP_INTERFACE
 p = os.environ['PATH'].split(':')
 os.environ['PATH'] = ':'.join([v for v in p if v.strip() != '.'])
 
+class AsciiArtString(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Expect(ParentWithBase):
@@ -355,20 +361,18 @@ class Expect(ParentWithBase):
         # this is *very useful* when external binaries are started up
         # by shell scripts, and killing the shell script doesn't
         # kill the binary.
+        E = self._expect
         if verbose:
             print "Exiting spawned %s process."%self
         try:
-            self._expect.sendline(self._quit_string())
+            E.sendline(self._quit_string())
             self._so_far(wait=0.25)
-            os.killpg(self._expect.pid, 9)
-            os.kill(self._expect.pid, 9)
-        except OSError, msg:
+            os.killpg(E.pid, 9)
+            os.kill(E.pid, 9)
+        except (RuntimeError, OSError), msg:
             pass
-        #try:
-        #    self._expect.close(9)
-        #except Exception:
-        #    pass
         self._expect = None
+        return
 
     def _quit_string(self):
         return 'quit'

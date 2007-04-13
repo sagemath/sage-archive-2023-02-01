@@ -11,6 +11,7 @@ This file is one big raw triple-quoted string that contains a bunch of javascrip
 the head of the notebook web page. """
 
 from sage.misc.misc import SAGE_URL
+from compress.JavaScriptCompressor import JavaScriptCompressor
 import keyboards
 
 ###########################################################################
@@ -20,6 +21,15 @@ import keyboards
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+
+
+def javascript():
+    s = async_lib()
+    s+= notebook_lib()
+
+    s = JavaScriptCompressor().getPacked(s)
+    return s
+
 
 def async_lib():
     s = r"""
@@ -126,11 +136,8 @@ function async_release(id) {
     return s
 
 
-
-
-def javascript():
-    s = async_lib()
-    s+= r"""
+def notebook_lib():
+    s= r"""
 
 ///////////////////////////////////////////////////////////////////
 //

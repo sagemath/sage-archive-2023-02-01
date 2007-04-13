@@ -57,7 +57,7 @@ def from_graph6(data):
     EXAMPLE:
         sage: l = ['N@@?N@UGAGG?gGlKCMO','XsGGWOW?CC?C@HQKHqOjYKC_uHWGX?P?~TqIKA`OA@SAOEcEA??']
         sage: graphs_list.from_graph6(l)
-        [A graph on 14 vertices, A graph on 25 vertices]
+        [Graph on 14 vertices, Graph on 25 vertices]
     """
     from sage.graphs.graph import Graph
     if isinstance(data,str):
@@ -98,7 +98,7 @@ def from_sparse6(data):
     EXAMPLE:
         sage: l = [':P_`cBaC_ACd`C_@BC`ABDHaEH_@BF_@CHIK_@BCEHKL_BIKM_BFGHI',':f`??KO?B_OOSCGE_?OWONDBO?GOJBDO?_SSJdApcOIG`?og_UKEbg?_SKFq@[CCBA`p?oYMFp@gw]Qaa@xEMHDb@hMCBCbQ@ECHEcAKKQKFPOwo[PIDQ{KIHEcQPOkVKEW_WMNKqPWwcRKOOWSKIGCqhWt??___WMJFCahWzEBa`xOu[MpPPKqYNoOOOKHHDBPs|??__gWMKEcAHKgTLErqA?A@a@G{kVLErs?GDBA@XCs\\NggWSOJIDbHh@?A@aF']
         sage: graphs_list.from_sparse6(l)
-        [A looped multi-graph on 17 vertices, A looped multi-graph on 39 vertices]
+        [Looped multi-graph on 17 vertices, Looped multi-graph on 39 vertices]
     """
     from sage.graphs.graph import Graph
     if isinstance(data,str):

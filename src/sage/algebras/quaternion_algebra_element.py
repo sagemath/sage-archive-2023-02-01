@@ -95,3 +95,37 @@ class QuaternionAlgebraElement(FreeAlgebraQuotientElement):
 	return self.charpoly(var)
 
     minimal_polynomial = minpoly
+
+
+class QuaternionAlgebraElement_fast(QuaternionAlgebraElement):
+
+    def __init__(self, H, x):
+        FreeAlgebraQuotientElement.__init__(self, H, x)
+        if isinstance(x, list):
+            self._list = list(self.vector())
+        else:
+            self._list = x
+
+    def _add_(self, other):
+        return QuaternionAlgebraElement_fast(self.parent(), [self._list[i] + other._list[i] for i in range(4)])
+
+    def _sub_(self, other):
+        return QuaternionAlgebraElement_fast(self.parent(), [self._list[i] - other._list[i] for i in range(4)])
+
+    def _neg_(self, other):
+        return QuaternionAlgebraElement_fast(self.parent(), [-r for r in self._list])
+
+    def _mul_(self, other):
+        d1, d2 = self.parent().discriminants
+        a = self._list
+        b = other._list
+        return QuaternionAlgebraElement_fast(self.parent(),
+            [a[0]*b[0] + d1*a[1]*b[1] + d2*a[2]*b[2] - d1*d2*a[3]*b[3],
+             a[0]*b[1] +    a[1]*b[0] + d2*a[3]*b[1] -    d2*a[2]*b[3],
+             a[0]*b[2] +    a[2]*b[0] + d1*a[1]*b[3] -    d1*a[3]*b[1],
+             a[0]*b[3] +    a[3]*b[0] +    a[1]*b[2] -       a[2]*b[1]])
+
+    def conjugate(self):
+        return QuaternionAlgebraElement_fast(self.parent(), [self._list[0], -self._list[1], -self._list[2], -self._list[3]])
+
+

@@ -493,6 +493,9 @@ ext_modules = [ \
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 
+    Extension('sage.misc.reset',
+              ['sage/misc/reset.pyx']), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',
@@ -570,7 +573,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries = ['csage'] + m.libraries + ['stdc++']
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -873,6 +876,7 @@ setup(name        = 'sage',
                      'sage.server',
                      'sage.server.server1',
                      'sage.server.notebook',
+                     'sage.server.notebook.compress',
                      'sage.server.wiki',
                      'sage.server.trac',
 
@@ -882,19 +886,22 @@ setup(name        = 'sage',
                      'sage.dsage.database',
                      'sage.dsage.database.tests',
                      'sage.dsage.server',
+                     'sage.dsage.server.tests',
+                     'sage.dsage.interface',
+                     'sage.dsage.interface.tests',
                      'sage.dsage.errors',
-                     'sage.dsage.tests',
                      'sage.dsage.twisted',
                      'sage.dsage.twisted.tests',
                      'sage.dsage.dist_functions',
+                     'sage.dsage.dist_functions.tests',
                      'sage.dsage.misc',
-                     'sage.dsage.interface',
+                     'sage.dsage.misc.tests',
                      'sage.dsage.scripts'
                      ],
 
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
-                 'sage/dsage/scripts/dsage_setup.py',
+                 'sage/dsage/scripts/dsage_setup.py'
                 ],
 
       ext_modules = ext_modules,

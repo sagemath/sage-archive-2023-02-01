@@ -1736,7 +1736,25 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
     \code{contour_plot} takes a function of two variables, f(x,y)
     and plots contour lines of the function over the specified
     xrange and yrange as demonstrated below.
-    contour_plot(f, (xmin, xmax), (ymin, ymax))
+
+      contour_plot(f, (xmin, xmax), (ymin, ymax), ...)
+
+    INPUT:
+        f -- a function of two variables
+        (xmin, xmax) -- 2-tuple, the range of x values
+        (ymin, ymax) -- 2-tuple, the range of y values
+    The following inputs must all be passed in as named parameters:
+        plot_points  -- integer (default: 25); number of points to plot
+                        in each direction of the grid
+        fill         -- bool (default: True), whether to color in the area
+                        between contour lines
+        cmap         -- string (default: 'gray'), the color map to use:
+                        autumn, bone, cool, copper, gray, hot, hsv,
+                        jet, pink, prism, spring, summer, winter
+        contours     -- integer (default: None), the number of contour
+                        lines to draw.  If None, determined automatically,
+                        and usually about 5.
+
 
     EXAMPLES:
 
@@ -2306,7 +2324,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                 y = f(x)
                 data.append((x, float(y)))
             except (TypeError, ValueError), msg:
-                #raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 pass
         # adaptive refinement
         i, j = 0, 0

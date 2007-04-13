@@ -213,7 +213,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         names = arg1
         R = _multi_variate(base_ring, names, n, sparse, order)
 
-    elif isinstance(arg1, str) or len(arg1) == 1:
+    elif isinstance(arg1, str) or (isinstance(arg1, (list,tuple)) and len(arg1) == 1):
         if not ',' in arg1:
             # 1. PolynomialRing(base_ring, name, sparse=False):
             if not arg2 is None:

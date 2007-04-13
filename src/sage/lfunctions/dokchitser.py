@@ -278,13 +278,17 @@ class Dokchitser(SageObject):
         s = s.replace('.E','.0E').replace(' ','')
         return self.__CC(sage_eval(s, locals={'I':self.__CC.gen(0)}))
 
+    def _clear_value_cache(self):
+        del self.__values
 
     def __call__(self, s, c=None):
-        """
+        r"""
         INPUT:
             s -- complex number
-            c -- (optional); cutoff which should be a real number > 1
-                 that is chosen close to 1.
+
+        NOTE: Evaluation of the function takes a long time, so each
+              evaluation is cached.  Call \code{self._clear_value_cache()}
+              to clear the evaluation cache.
 
         EXAMPLES:
             sage: E = EllipticCurve('5077a')
@@ -296,6 +300,12 @@ class Dokchitser(SageObject):
         """
         self.__check_init()
         s = self.__CC(s)
+        try:
+            return self.__values[s]
+        except AttributeError:
+            self.__values = {}
+        except KeyError:
+            pass
         z = self.gp().eval('L(%s)'%s)
         if 'pole' in z:
             raise ArithmeticError, z
@@ -305,8 +315,12 @@ class Dokchitser(SageObject):
             i = z.rfind('\n')
             msg = z[:i].replace('digits','decimal digits')
             verbose(msg, level=-1)
-            return self.__to_CC(z[i+1:])
-        return self.__to_CC(z)
+            ans = self.__to_CC(z[i+1:])
+            self.__values[s] = ans
+            return ans
+        ans = self.__to_CC(z)
+        self.__values[s] = ans
+        return ans
 
     def derivative(self, s, k=1):
         r"""

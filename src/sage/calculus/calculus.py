@@ -261,14 +261,14 @@ class SymbolicExpression(RingElement):
     EXAMPLES:
 
     """
-    def __init__(self, conversions={}):
+    def __init__(self):
         RingElement.__init__(self, SER)
 
     def is_simplified(self):
         return hasattr(self, '_simp')
 
     def hash(self):
-        return hash(maxima(self))
+        return hash(self._repr_(simplify=False))
 
     def plot(self, **kwds):
         from sage.plot.plot import plot
@@ -504,6 +504,7 @@ class SymbolicExpression(RingElement):
         try:
             return self._simp
         except AttributeError:
+            print "doing simplify on '%s'"%(self._maxima_init_())
             S = evaled_symbolic_expression_from_maxima_string(self._maxima_init_())
             S._simp = S
             self._simp = S
@@ -948,8 +949,6 @@ class SymbolicConstant(Symbolic_object):
         """
         return self
 
-    def _is_atomic(self):
-        return self._atomic
 
 
 class SymbolicPolynomial(Symbolic_object):
@@ -1026,11 +1025,6 @@ class SymbolicOperation(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._operands = operands   # don't even make a copy -- ok, since immutable.
 
-        # get rid of this -- copy and coercion is totally unecessary with careful
-        # correct code, and is *very* time consuming.
-
-        #self._operands = [SER(op) for op in operands]
-
     def _get_vars(self, vars=None):
         if vars is None:
             vars = set([])
@@ -1104,14 +1098,15 @@ class SymbolicArithmetic(SymbolicOperation):
                 return self._simp._repr_(simplify=False)
             else:
                 return self.simplify()._repr_(simplify=False)
+
         ops = self._operands
         op = self._operator
 
         ###############
-        # old and slightly broken code
+        # some bugs here in parenthesis -- exposed by above doctest
         ###############
 
-        s = [str(o) for o in ops]
+        s = [o._repr_(simplify=False) for o in ops]
 
         # for the left operand, we need to surround it in parens when the
         # operator is mul/div/pow, and when the left operand contains an
@@ -1119,16 +1114,16 @@ class SymbolicArithmetic(SymbolicOperation):
         if op in [operator.mul, operator.div]:
             if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
                 if not ops[0]._is_atomic():
-                    s[0] = '(%s)' % s[0]._repr_(simplify=False)
+                    s[0] = '(%s)' % s[0]
             else:
                 try:
                     if isinstance(ops[0]._obj, Rational):
-                        s[0] = '(%s)' % s[0]._repr_(simplify=False)
+                        s[0] = '(%s)' % s[0]
                 except AttributeError:
                     pass
                 try:
                     if isinstance(ops[1]._obj, Rational):
-                        s[1] = '(%s)' % s[1]._repr_(simplify=False)
+                        s[1] = '(%s)' % s[1]
                 except AttributeError:
                     pass
 
@@ -1138,13 +1133,14 @@ class SymbolicArithmetic(SymbolicOperation):
         if op in [operator.mul, operator.div, operator.sub]:
                 # avoid drawing parens if s1 an atomic operation
                 if not ops[1]._is_atomic():
-                    s[1] = '(%s)' % s[1]._repr_(simplify=False)
+                    s[1] = '(%s)' % s[1]
 
         elif op is operator.pow:
             if not ops[0]._is_atomic():
-                s[0] = '(%s)'% s[0]._repr_(simplify=False)
+                s[0] = '(%s)'% s[0]
             if not ops[1]._is_atomic():
-                s[1] = '(%s)'% s[1]._repr_(simplify=False)
+                s[1] = '(%s)'% s[1]
+
         if op is operator.neg:
             return '-%s' % s[0]
         else:
@@ -1318,6 +1314,10 @@ class SymbolicComposition(SymbolicOperation):
     Represents the symbolic composition of $f \circ g$.
     """
     def __init__(self, f, g):
+        """
+        INPUT:
+            f, g -- both must be in the symbolic expression ring.
+        """
         SymbolicOperation.__init__(self, [f,g])
 
     def _recursive_sub(self, kwds):
@@ -1448,7 +1448,7 @@ class Function_abs(PrimitiveFunction):
         try:
             return x.__abs__()
         except (AttributeError, TypeError):
-            return SymbolicComposition(self, x)
+            return SymbolicComposition(self, SER(x))
 
 abs = Function_abs()
 _syms['abs'] = abs
@@ -1478,7 +1478,7 @@ class Function_sin(PrimitiveFunction):
         except AttributeError:
             if isinstance(x, float):
                 return math.sin(x)
-        return SymbolicComposition(self, x)
+        return SymbolicComposition(self, SER(x))
 
 sin = Function_sin()
 _syms['sin'] = sin
@@ -1504,7 +1504,7 @@ class Function_cos(PrimitiveFunction):
         except AttributeError:
             if isinstance(x, float):
                 return math.cos(x)
-        return SymbolicComposition(self, x)
+        return SymbolicComposition(self, SER(x))
 
 
 cos = Function_cos()
@@ -1540,7 +1540,7 @@ class Function_sec(PrimitiveFunction):
             if isinstance(x, float):
                 return float(1)/float(cos(x))
             else:
-                return SymbolicComposition(self, x)
+                return SymbolicComposition(self, SER(x))
 
 sec = Function_sec()
 _syms['sec'] = sec
@@ -1579,7 +1579,7 @@ class Function_tan(PrimitiveFunction):
             if isinstance(x, float):
                 return math.tan(x)
             else:
-                return SymbolicComposition(self, x)
+                return SymbolicComposition(self, SER(x))
 
 tan = Function_tan()
 _syms['tan'] = tan
@@ -1613,7 +1613,7 @@ class Function_asin(PrimitiveFunction):
             if isinstance(x, float):
                 return math.asin(x)
             else:
-                return SymbolicComposition(self, x)
+                return SymbolicComposition(self, SER(x))
 
 asin = Function_asin()
 _syms['asin'] = asin
@@ -1647,7 +1647,7 @@ class Function_acos(PrimitiveFunction):
             if isinstance(x, float):
                 return math.acos(x)
             else:
-                return SymbolicComposition(self, x)
+                return SymbolicComposition(self, SER(x))
 
 acos = Function_acos()
 _syms['acos'] = acos
@@ -1681,7 +1681,7 @@ class Function_atan(PrimitiveFunction):
             if isinstance(x, float):
                 return math.atan(x)
             else:
-                return SymbolicComposition(self, x)
+                return SymbolicComposition(self, SER(x))
 
 atan = Function_atan()
 _syms['atan'] = atan
@@ -1754,10 +1754,10 @@ class Function_log(PrimitiveFunction):
 
         # if the base is None, we behave as before
         if base is None:
-            return SymbolicComposition(self, x)
+            return SymbolicComposition(self, SER(x))
         # else construct a new log function with the correct base
         else:
-            return SymbolicComposition(Function_log(base), x)
+            return SymbolicComposition(Function_log(base), SER(x))
 
     _approx_ = math.log
 
@@ -1797,7 +1797,7 @@ class Function_sqrt(PrimitiveFunction):
                 return x.sqrt()
             except AttributeError:
                 pass
-        return SymbolicComposition(self, x)
+        return SymbolicComposition(self, SER(x))
 
 
     def _approx_(self, x):
@@ -1810,10 +1810,61 @@ class Function_sqrt(PrimitiveFunction):
                 if isinstance(x, float):
                     return math.sqrt(x)
                 else:
-                    return SymbolicComposition(self, x)
+                    return SymbolicComposition(self, SER(x))
 
 sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt
+
+class Function_exp(PrimitiveFunction):
+    """
+    The square root function.
+
+    EXAMPLES:
+        sage: exp(-1)
+        ?
+        sage: exp(2)
+        ?
+        sage: exp(x^2)
+        ?
+    """
+    def __init__(self):
+        PrimitiveFunction.__init__(self, needs_braces=True)
+
+    def _repr_(self, simplify=True):
+        return "exp"
+
+    def _latex_(self):
+        return "\\exp"
+
+    def _is_atomic(self):
+        return True
+
+    def __call__(self, x):
+        # if x is an integer or rational, never call the sqrt method
+        if isinstance(x, float):
+            return self._approx_(x)
+        if not isinstance(x, (Integer, Rational)):
+            try:
+                return x.sqrt()
+            except AttributeError:
+                pass
+        return SymbolicComposition(self, SER(x))
+
+
+    def _approx_(self, x):
+        try:
+            return x._obj.exp()
+        except AttributeError:
+            try:
+                return x.exp()
+            except AttributeError:
+                if isinstance(x, float):
+                    return math.exp(x)
+                else:
+                    return SymbolicComposition(self, SER(x))
+
+exp = Function_exp()
+_syms['exp'] = exp
 
 #######################################################
 symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
@@ -1836,7 +1887,6 @@ def symbolic_expression_from_maxima_string(x):
     s = maxima.eval('_tmp_')
     for x, y in symtable.iteritems():
         s = s.replace(x, y)
-        #print s
     return SER(sage_eval(s, _syms))
 
 def symbolic_expression_from_maxima_element(x):

@@ -2,7 +2,8 @@ from equations import SymbolicEquation
 from calculus import (SymbolicExpressionRing,
                       SER,
                       var,
-                      sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan, abs)
+                      sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
+                      abs, exp)
 
 from calculus import (a,
                       b,

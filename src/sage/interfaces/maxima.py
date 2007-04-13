@@ -400,7 +400,7 @@ class Maxima(Expect):
         """
         # TODO: Input and output prompts in maxima can be changed by
         # setting inchar and outchar..
-        eval_using_file_cutoff = 200
+        eval_using_file_cutoff = 100
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         Expect.__init__(self,
                         name = 'maxima',
@@ -454,13 +454,50 @@ class Maxima(Expect):
     def _quit_string(self):
         return 'quit();'
 
+    def _broken_eval_line(self, line, reformat=True, allow_use_file=False,
+                   wait_for_prompt=True, need_output=True):
+        line = line.strip().strip(';')
+        if self._expect is None:
+            self._start()
+
+        if not need_output:
+            E = self._expect
+            E.sendline(line)
+            return
+
+        global seq
+        seq += 1
+        START = '__start__(%s+1)'%seq
+        END = '__end__(%s+1)'%seq
+        line = '%s; %s; %s;'%(START, line, END)
+        START = '__start__(%s)'%(seq+1)
+        END = '__end__(%s)'%(seq+1)
+
+        E = self._expect
+        print line
+        E.sendline(line)
+        print 1, 'expecting "%s"'%END
+        E.expect(END)
+        print 2
+        z = E.before
+        print z
+        i = z.find(START)
+        if i == -1:
+            raise RuntimeError, "%s\nError evaluating code in Maxima"%z
+        z = z[i+len(START)+2:]
+        z = z.rstrip().rstrip(END).rstrip('"').rstrip().strip('\n').strip('\r').strip('\n').replace('\\\r\n','')
+        i = z.find('Error: ')
+        if i != -1:
+            raise RuntimeError, z[i + 7:]
+        return z
+
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):
         if self._expect is None:
             self._start()
         if not wait_for_prompt:
             return Expect._eval_line(self, line)
-        line = line.rstrip().rstrip(';')
+        line = line.strip().strip(';')
         if line == '':
             return ''
         global seq

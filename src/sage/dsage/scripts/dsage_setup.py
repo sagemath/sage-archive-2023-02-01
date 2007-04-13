@@ -69,7 +69,6 @@ def setup_client():
     config.set('ssl', 'ssl', 1)
     config.set('log', 'log_file', 'stdout')
     config.set('log', 'log_level', '0')
-    # set public key authentication info
     print DELIMITER
     print "Generating public/private key pair for authentication..."
     print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
@@ -87,7 +86,6 @@ def setup_client():
 
 def setup_worker():
     check_dsage_dir()
-     # Get ConfigParser object
     config = get_config('worker')
 
     config.set('general', 'server', 'localhost')

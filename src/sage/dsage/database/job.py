@@ -82,7 +82,7 @@ class Job(Persistent):
             if not self.__dict__.has_key('jdict'):
                 self.__dict__[name] = value
             else:
-                raise ValueError, 'Do not reassign Job.jdict.'
+                raise ValueError('Do not reassign Job.jdict.')
         else:
             Persistent.__setattr__(self, name, value)
 

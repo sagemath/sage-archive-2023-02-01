@@ -107,7 +107,7 @@ def main():
         STATS_FILE = config.get('general', 'stats_file')
         old_version = config.get('general', 'version')
         if version != old_version:
-            raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
+            raise ValueError("Incompatible version. You have %s, need %s." % (old_version, version))
     except Exception, msg:
         print msg
         print "Error reading %s, run dsage.setup()" % conf_file
@@ -172,7 +172,7 @@ def main():
                     reactor.listenTCP(NEW_CLIENT_PORT, client_factory)
                     break
             else:
-                raise SystemError, 'Trying to bind to open port: %s.' % (NEW_CLIENT_PORT)
+                raise SystemError('Trying to bind to open port: %s.' % (NEW_CLIENT_PORT))
         except (SystemError, error.CannotListenError):
             attempts += 1
             NEW_CLIENT_PORT += 1

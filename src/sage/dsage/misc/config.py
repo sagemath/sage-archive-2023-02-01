@@ -29,7 +29,7 @@ import uuid
 def check_version(old_version):
     from sage.dsage.__version__ import version
     if version != old_version:
-        raise ValueError, "Incompatible version. You have %s, need %s." % (old_version, version)
+        raise ValueError("Incompatible version. You have %s, need %s." % (old_version, version))
 
 def read_conf(config):
     conf = {}
@@ -84,6 +84,6 @@ def get_bool(value):
     'true': True,
     'yes': True}
     if value.lower() not in boolean_states:
-        raise ValueError, 'Not a boolean: %s' % value
+        raise ValueError('Not a boolean: %s' % value)
 
     return boolean_states[value.lower()]

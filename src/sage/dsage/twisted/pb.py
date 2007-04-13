@@ -380,7 +380,7 @@ class Realm(object):
 
     def requestAvatar(self, avatarID, mind, *interfaces):
         if not pb.IPerspective in interfaces:
-            raise NotImplementedError, "No supported avatar interface."
+            raise NotImplementedError("No supported avatar interface.")
         else:
             if avatarID == 'admin':
                 avatar = AdminPerspective(self.DSageServer, avatarID)

@@ -141,7 +141,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
         return self * self.parent()(right)
 
-    def __call__(self, *a):
+    def __call__(self, *x):
         """
         Evaluate polynomial at x=a using Horner's rule
 
@@ -191,27 +191,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
+        Nested polynomial ring elements can be called like multi-variate polynomials.
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: f.parent()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: f(2)
+            3*x + 4
+            sage: f(2,4)
+            16
+            sage: R.<t> = PowerSeriesRing(QQ, 't'); S.<x> = R[]
+            sage: f = 1 + x*t^2 + 3*x*t^4
+            sage: f(2)
+            1 + 2*t^2 + 6*t^4
+            sage: f(2, 1/2)
+            15/8
 
         AUTHORS:
             -- David Joyner, 2005-04-10
             -- William Stein, 2006-01-22; change so parent
                is determined by the arithmetic
             -- William Stein, 2007-03-24: fix parent being determined in the constant case!
+            -- Robert Bradshaw, 2007-04-09: add support for nested calling
         """
-        a = a[0]
-        if isinstance(a, tuple):
-            a = a[0]
+        if isinstance(x[0], tuple):
+            x = x[0]
+        a = x[0]
+
         d = self.degree()
         result = self[d]
+        if len(x) > 1:
+            other_args = x[1:]
+            if hasattr(result, '__call__'):
+                result = result(other_args)
+            else:
+                raise TypeError, "Wrong number of arguments"
+
         if d == 0:
             try:
                 return a.parent()(1) * result
             except AttributeError:
                 return result
+
         i = d - 1
-        while i >= 0:
-            result = result * a + self[i]
-            i -= 1
+        if len(x) > 1:
+            while i >= 0:
+                result = result * a + self[i](other_args)
+                i -= 1
+        else:
+            while i >= 0:
+                result = result * a + self[i]
+                i -= 1
         return result
 
     cdef int _cmp_c_impl(self, Element other) except -2:

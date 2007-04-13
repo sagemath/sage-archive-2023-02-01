@@ -44,7 +44,7 @@ class DistributedSage(object):
     configuration utility.
 
     Note that configuration files will be stored in the
-    directory \code{$DOT_SAGE/dsage}.
+    directory \code{\$DOT\_SAGE/dsage}.
 
     There are three distinct parts of Distributed SAGE:
         Server
@@ -208,7 +208,7 @@ class DistributedSage(object):
         Type \code{dsage.setup()} to run the configuration for the server,
         worker and client.  Alternatively, if you want to run the
         configuration for just one parts, you can launch
-        \code{dsage.setup_server()}, \code{dsage.setup_worker()}
+        \code{dsage.setup_server()}, \code{dsage.setup\_worker()}
         or \code{dsage.setup()}.
         """
         cmd = 'dsage_setup.py'

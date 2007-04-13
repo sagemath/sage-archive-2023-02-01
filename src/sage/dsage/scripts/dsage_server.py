@@ -21,7 +21,6 @@
 import sys
 import os
 from optparse import OptionParser
-import ConfigParser
 import socket
 
 from twisted.internet import reactor, error, ssl, task
@@ -29,18 +28,15 @@ from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
-from sage.dsage.database.jobdb import JobDatabaseZODB, JobDatabaseSQLite
-from sage.dsage.database.jobdb import DatabasePruner
+from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.twisted.pb import Realm
-from sage.dsage.twisted.pb import WorkerPBServerFactory
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
-from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsChecker
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
-from sage.dsage.server.server import DSageServer, DSageWorkerServer
+from sage.dsage.server.server import DSageServer
+from sage.dsage.misc.config import get_conf, get_bool
 from sage.dsage.misc.constants import delimiter as DELIMITER
-from sage.dsage.__version__ import version
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
@@ -92,26 +88,15 @@ def main():
 
     """
 
-    try:
-        conf_file = os.path.join(DSAGE_DIR, 'server.conf')
-        config = ConfigParser.ConfigParser()
-        config.read(conf_file)
-
-        LOG_FILE = config.get('server_log', 'log_file')
-        LOG_LEVEL = config.getint('server_log', 'log_level')
-        SSL = config.getint('ssl', 'ssl')
-        SSL_PRIVKEY = config.get('ssl', 'privkey_file')
-        SSL_CERT = config.get('ssl', 'cert_file')
-        CLIENT_PORT = config.getint('server', 'client_port')
-        PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
-        STATS_FILE = config.get('general', 'stats_file')
-        old_version = config.get('general', 'version')
-        if version != old_version:
-            raise ValueError("Incompatible version. You have %s, need %s." % (old_version, version))
-    except Exception, msg:
-        print msg
-        print "Error reading %s, run dsage.setup()" % conf_file
-        sys.exit(-1)
+    config = get_conf('server')
+    LOG_FILE = config['log_file']
+    LOG_LEVEL = config['log_level']
+    SSL = get_bool(config['ssl'])
+    SSL_PRIVKEY = config['privkey_file']
+    SSL_CERT = config['cert_file']
+    CLIENT_PORT = int(config['client_port'])
+    PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
+    STATS_FILE = config['stats_file']
 
     # start logging
     startLogging(LOG_FILE)
@@ -183,7 +168,7 @@ def main():
         log.msg("[Server] Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
         config.set('server', 'client_port', NEW_CLIENT_PORT)
-        config.write(open(conf_file, 'w'))
+        config.write(open(config['conf_file'], 'w'))
 
     log.msg(DELIMITER)
     log.msg('[Server] DSAGE Server')

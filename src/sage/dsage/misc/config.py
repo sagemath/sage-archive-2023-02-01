@@ -69,6 +69,8 @@ def get_conf(type):
             conf['log_level'] = config.get('db_log', 'log_level')
             conf['log_file'] = config.get('db_log', 'log_file')
 
+        conf['conf_file'] = conf_file
+
         return conf
     except Exception, msg:
         print msg

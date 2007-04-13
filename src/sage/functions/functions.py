@@ -1,16 +1,6 @@
 """
 SAGE Functions Class
 
-EXAMPLES:
-    sage: f = 5*sin(x)
-    sage: f
-    (5*sin(x))
-    sage: f(2)
-    (5*sin(2))
-    sage: f(pi)
-    (5*sin(((1*pi) + 0)))
-    sage: float(f(pi))
-    6.1232339957367663e-16
 """
 import weakref
 
@@ -112,8 +102,6 @@ class FunctionRing_class(CommutativeRing):
         return Function_gen(x)
 
     def _coerce_impl(self, x):
-        if is_Polynomial(x):
-            return self(x)
         return self(x)
 
     def characteristic(self):
@@ -358,6 +346,13 @@ class Function_arith(Function):
         self.__x = x
         self.__y = y
         self.__op = op  # a binary operator, e.g., operator.sub
+
+    def _maxima_init_(self):
+        x = self.__x
+        y = self.__y
+        op = self.__op
+        return '(%s) %s (%s)'%(x._maxima_init_(), symbols[op] ,y._maxima_init_())
+
 
     def _repr_(self):
         """

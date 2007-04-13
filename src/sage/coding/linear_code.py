@@ -141,6 +141,14 @@ assmus_mattson_designs (implementing Assmus-Mattson Theorem).
     -- DJ (2006-09): modified decode syntax, fixed bug in is_galois_closed,
 added LinearCode_from_vectorspace, extended_code, zeta_function
     -- Nick Alexander (2006-12-10): factor GUAVA code to guava.py
+
+TESTS:
+   sage: MS = MatrixSpace(GF(2),4,7)
+   sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+   sage: C  = LinearCode(G)
+   sage: C == loads(dumps(C))
+
+
 """
 
 #*****************************************************************************

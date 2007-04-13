@@ -145,11 +145,6 @@ def acos(x):
     """
     Return the arc cosine of x.
 
-    EXAMPLES:
-        sage: acos(0.5)
-        1.04719755119660
-        sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190504*I
     """
     try: return x.acos()
     except AttributeError: return RDF(x).acos()
@@ -158,11 +153,6 @@ def asin(x):
     """
     Return the arc sine of x.
 
-    EXAMPLES:
-        sage: asin(0.5)
-        0.523598775598299
-        sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190504*I
     """
     try: return x.asin()
     except AttributeError: return RDF(x).asin()
@@ -171,11 +161,6 @@ def atan(x):
     """
     Return the arc tangent of x.
 
-    EXAMPLES:
-        sage: atan(1/2)
-        0.463647609001
-        sage: atan(1 + I)
-        1.01722196789785 + 0.402359478108525*I
     """
     try: return x.atan()
     except AttributeError: return RDF(x).atan()
@@ -428,7 +413,7 @@ def imaginary(x):
     """
     return imag(x)
 
-def integral(x, var=None, algorithm='maxima'):
+def integral(x, *args, **kwds):
     """
     Return an indefinite integral of an object x.
 
@@ -440,21 +425,20 @@ def integral(x, var=None, algorithm='maxima'):
         sage: f = cyclotomic_polynomial(10)
         sage: integral(f)
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+        sage: integral(sin(x),x)
+        -cos(x)
+        sage: integral(sin(x),y)
+        sin(x)*y
+        sage: integral(sin(x), x, 0, pi/2)
+        1
+        sage: sin(x).integral(x, 0,pi/2)
+        1
     """
-    if var is None:
-        try:
-            return x.integral()
-        except AttributeError:
-            pass
-    import sage.interfaces.all as I
-    if var is None:
-        var = 'x'
-    if algorithm == 'maxima':
-        return I.maxima(x).integrate(var)
-    elif algorithm == 'mathematica':
-        return I.mathematica(x).Integrate(var)
+    if hasattr(x, 'integral'):
+        return x.integral(*args, **kwds)
     else:
-        raise ValueError, 'no algorithm %s'%algorithm
+        from sage.calculus.calculus import SER
+        return SER(x).integral(*args, **kwds)
 
 def integral_closure(x):
     return x.integral_closure()
@@ -603,15 +587,6 @@ def log(x,b=None):
     ordering, so the base can be viewed as an optional second
     argument.}
 
-    EXAMPLES:
-        sage: log(10,2)
-        3.32192809489
-        sage: log(8,2)
-        3.0
-        sage: log(10)
-        2.30258509299
-        sage: log(2.718)
-        0.999896315728952
     """
     if b is None:
         if hasattr(x, 'log'):
@@ -901,13 +876,7 @@ def square_root(x):
 def tan(x):
     """
     Return the tangent of x.
-
-    EXAMPLES:
-        sage: tan(3.1415)
-        -0.0000926535900581913
-        sage: tan(3.1415/4)
-        0.999953674278156
-    """
+   """
     try: return x.tan()
     except AttributeError: return RDF(x).tan()
 

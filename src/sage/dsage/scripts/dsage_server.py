@@ -163,7 +163,6 @@ def main():
                 port_used = False
             if not port_used:
                 if SSL:
-                    log.msg('Using SSL...')
                     ssl_context = ssl.DefaultOpenSSLContextFactory(SSL_PRIVKEY, SSL_CERT)
                     reactor.listenSSL(NEW_CLIENT_PORT,
                                       client_factory,
@@ -181,14 +180,17 @@ def main():
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)
         log.msg("***NOTICE***")
-        log.msg("Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
+        log.msg("[Server] Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
         config.set('server', 'client_port', NEW_CLIENT_PORT)
         config.write(open(conf_file, 'w'))
 
     log.msg(DELIMITER)
-    log.msg('DSAGE Server')
-    log.msg('Listening on %s' % (NEW_CLIENT_PORT))
+    log.msg('[Server] DSAGE Server')
+    log.msg('[Server] Started with PID: %s' % (os.getpid()))
+    if SSL:
+        log.msg('[Server] Using SSL...')
+    log.msg('[Server] Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
     reactor.run(installSignalHandlers=1)

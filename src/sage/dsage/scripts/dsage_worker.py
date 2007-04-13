@@ -349,6 +349,7 @@ class Monitor(object):
         self.delay = float(self.conf['delay'])
         self.anonymous = get_bool(self.conf['anonymous'])
         self.ssl = get_bool(self.conf['ssl'])
+        self.priority = int(self.conf['priority'])
         if server is None:
             self.server = self.conf['server']
         else:
@@ -370,6 +371,13 @@ class Monitor(object):
         self.host_info['workers'] = self.workers
 
         self._startLogging(self.log_file)
+
+        try:
+            os.nice(self.priority)
+        except OSError, msg:
+            log.err('Error setting priority: %s, using default priority' % (self.priority))
+            pass
+        log.msg('[Monitor] Started with PID: %s' % (os.getpid()))
 
         if not self.anonymous:
             from twisted.cred import credentials

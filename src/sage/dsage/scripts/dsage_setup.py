@@ -92,7 +92,7 @@ def setup_worker():
 
     config.set('general', 'server', 'localhost')
     config.set('general', 'port', 8081)
-    config.set('general', 'nice_level', 20)
+    config.set('general', 'priority', 20)
     config.set('general', 'workers', 2)
     config.set('uuid', 'id', '')
     config.set('ssl', 'ssl', 1)

@@ -31,7 +31,7 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 200
+INTERRUPT_TRIES = 20
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -762,7 +762,7 @@ class Worksheet:
             pass
         else:
             E = S._expect
-            tm = 0.05
+            tm = 0.3
             al = INTERRUPT_TRIES * tm
             print "Trying to interrupt for at most %s seconds"%al
             try:
@@ -771,13 +771,15 @@ class Worksheet:
                     E.sendline(chr(3))
                     try:
                         E.expect(S._prompt, timeout=tm)
-                        E.expect(S._prompt, timeout=tm)
+                        #E.expect(S._prompt, timeout=tm)
                         success = True
                         break
                     except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        print msg
                         verbose("Trying again to interrupt SAGE (try %s)..."%i)
             except Exception, msg:
                 print msg
+
             if not success:
                 pid = self.__sage.pid()
                 cmd = 'kill -9 -%s'%pid

@@ -1192,6 +1192,7 @@ class PowerSeries_poly(PowerSeries):
             if x.parent() is self.parent():
                 if not (self.prec() is infinity):
                     x = x.add_bigoh(self.prec()*x.valuation())
+                    xs = list(xs); xs[0] = x; xs = tuple(xs) # tuples are immutable
         except AttributeError:
             pass
         return self.__f(xs)

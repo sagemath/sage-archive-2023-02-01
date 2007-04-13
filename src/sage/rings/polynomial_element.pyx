@@ -201,13 +201,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
             3*x + 4
             sage: f(2,4)
             16
-            sage: R.<t> = QQ[[]]; S.<x> = R[]
+            sage: R.<t> = PowerSeriesRing(QQ, 't'); S.<x> = R[]
             sage: f = 1 + x*t^2 + 3*x*t^4
             sage: f(2)
             1 + 2*t^2 + 6*t^4
             sage: f(2, 1/2)
             15/8
-
 
         AUTHORS:
             -- David Joyner, 2005-04-10

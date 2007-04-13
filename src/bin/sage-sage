@@ -316,6 +316,12 @@ if [ $1 = "-worker" -o $1 = "--worker" ]; then
    exit $?
 fi
 
+if [ $1 = "-dsage" -o $1 = "--dsage" ]; then
+   shift
+   dsage_server.py | dsage_worker.py
+   exit $?
+fi
+
 #####################################################################
 # Run SAGE's versions of the standard Algebra/Geometry etc. software
 #####################################################################

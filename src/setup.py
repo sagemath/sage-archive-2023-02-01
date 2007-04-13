@@ -573,7 +573,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries = ['csage'] + m.libraries + ['stdc++']
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -876,6 +876,7 @@ setup(name        = 'sage',
                      'sage.server',
                      'sage.server.server1',
                      'sage.server.notebook',
+                     'sage.server.notebook.compress',
                      'sage.server.wiki',
                      'sage.server.trac',
 

@@ -94,7 +94,7 @@ def numerical_integral(func, a, b=None,
                rule=3: 31 pt rule
                rule=4: 41 pt rule
                rule=5: 51 pt rule
-               rule=6: 61 pt sule
+               rule=6: 61 pt rule
          Higher key values are more accurate for smooth functions but lower
          key values deal better with discontinuities.
 

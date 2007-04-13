@@ -15,7 +15,6 @@ class LocalRingExtension(ring_extension.RingExtension):
     def has_GNB(self): pass
     def has_pth_root(self): pass
     def has_root_of_unity(self, n): pass
-    def hom(self, extension): pass
     def inertia_degree(self): pass
     def inertia_subring(self): pass
     def integer_ring(self): pass

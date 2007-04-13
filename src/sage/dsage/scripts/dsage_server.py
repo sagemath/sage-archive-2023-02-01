@@ -19,6 +19,10 @@
 
 import sys
 import os
+import socket
+
+
+
 from optparse import OptionParser
 import socket
 
@@ -77,7 +81,7 @@ def startLogging(log_file):
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
     else:
-        print "Logging to file: ", log_file
+        print "DSAGE Server logging to file: ", log_file
         server_log = open(log_file, 'a')
         log.startLogging(server_log)
 
@@ -177,6 +181,7 @@ def main():
     log.msg('[Server] Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
+    # start the reactor.
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":

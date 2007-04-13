@@ -13,7 +13,7 @@ cdef class NativeIntStruct:
     cdef Integer sageInteger
     cdef int_fast32_t int32
     cdef int_fast64_t int64
-    cdef object table # how much faster is unsafe access to a list than a c array?
+    cdef object table
     cdef lookup(NativeIntStruct self, Py_ssize_t value)
 
 
@@ -22,6 +22,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
     cdef _new_c_from_long(self, long value)
     cdef void set_from_mpz(self, mpz_t value)
     cdef void set_from_long(self, long value)
+    cdef int is_square_c(self) except -2
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     cdef mpz_t value

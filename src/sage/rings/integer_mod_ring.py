@@ -344,12 +344,13 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         # need to; really it just needs to know if n is a prime power or not,
         # which is easier than factoring.
 
-        F = arith.factor(n)
-        if len(F) > 1:
-            return False
-        if F[0][0] == 2:
-            return False
-        return True
+        if n.is_perfect_power():
+            F = arith.factor(n)
+            if len(F) > 1:
+                return False
+            if F[0][0] == 2:
+                return False
+            return True
 
 
     def multiplicative_generator(self):

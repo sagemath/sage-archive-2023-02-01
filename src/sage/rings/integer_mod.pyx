@@ -1,5 +1,5 @@
 r"""
-Elements of $\Z/n\Z$
+Elements of $\\Z/n\\Z$
 
 An element of the integers modulo $n$.
 
@@ -20,6 +20,7 @@ AUTHORS:
     -- Robert Bradshaw (most of the work)
     -- Didier Deshommes (bit shifting)
     -- William Stein (editing and polishing; new arith architecture)
+    -- Robert Bradshaw (implement native is_square and square_root)
 
 TESTS:
     sage: R = Integers(101^3)
@@ -70,7 +71,7 @@ from sage.structure.parent cimport Parent
 def Mod(n, m, parent=None):
     """
     Return the equivalence class of n modulo m as an element of
-    $\Z/m\Z$.
+    $\\Z/m\\Z$.
 
     EXAMPLES:
         sage: x = Mod(12345678, 32098203845329048)
@@ -240,8 +241,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: b.is_nilpotent()
             True
 
-        ALGORITHM: Let $m \geq  \log_2(n)$, where $n$ is the modulus.
-        Then $x \in \ZZ/n\ZZ$ is nilpotent if and only if $x^m = 0$.
+        ALGORITHM: Let $m \\geq  \\log_2(n)$, where $n$ is the modulus.
+        Then $x \\in \\ZZ/n\\ZZ$ is nilpotent if and only if $x^m = 0$.
 
         PROOF: This is clear if you reduce to the prime power case,
         which you can do via the Chinese Remainder Theorem.
@@ -271,9 +272,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         represented as powers of a generator for the multiplicative
         group, so the discrete log problem must be solved.
 
-        \note{This function will create a meaningless GAP object if the
+        \\note{This function will create a meaningless GAP object if the
         modulus is not a power of a prime.  Also, the modulus must
-        be $\leq 65536$.}
+        be $\\leq 65536$.}
 
         EXAMPLES:
             sage: a = Mod(2,19)
@@ -359,7 +360,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         Things that can go wrong.  E.g., if the base is not a
         generator for the multiplicative group, or not even a unit.
-        You can sometimes use the function \code{discrete_log_generic}
+        You can sometimes use the function \\code{discrete_log_generic}
         in general, but don't expect it to be very fast.
 
             sage: a = Mod(9, 100); b = Mod(3,100)
@@ -397,7 +398,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
                 raise ValueError, "base (=%s) for discrete log must generate multiplicative group"%b
             return n
         except PariError, msg:
-            raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
+            raise ValueError, "%s\\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
 
     def modulus(IntegerMod_abstract self):
@@ -407,17 +408,6 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             17
         """
         return self.__modulus.sageInteger
-
-
-    def is_square(self):
-        """
-        EXAMPLES:
-            sage: Mod(3,17).is_square()
-            False
-            sage: Mod(9,17).is_square()
-            True
-        """
-        return bool(self.pari().issquare())
 
     def charpoly(self, var):
         """
@@ -470,46 +460,121 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         return self
 
+
+    def is_square(self):
+        """
+        EXAMPLES:
+            sage: Mod(3,17).is_square()
+            False
+            sage: Mod(9,17).is_square()
+            True
+            sage: Mod(9,17*19^2).is_square()
+            True
+            sage: Mod(-1,17^30).is_square()
+            True
+            sage: Mod(1/9, next_prime(2^40)).is_square()
+            True
+            sage: Mod(1/25, next_prime(2^90)).is_square()
+            True
+
+        ALGORITHM:
+            Calculate the Jacobi symbol $(self/p)$ at each prime $p dividing $n$
+            It must be 1 or 0 for each prime, and if it is 0 mod $p$,
+            where $p^k || n$, then $ord_p(self)$ must be even or greater than $k$.
+
+            $p = 2$ handled seperatly.
+
+        AUTHOR:
+            -- Robert Bradshaw
+        """
+        return bool(self.is_square_c())
+
+    cdef int is_square_c(self) except -2:
+        if self.is_zero() or self.is_one():
+            return 1
+        moduli = self.parent().factored_order()
+        cdef int val, e
+        lift = self.lift()
+        if len(moduli) == 1:
+            p, e = moduli[0]
+            if e == 1:
+                return lift.jacobi(p) != -1
+            elif p == 2:
+                return self.pari().is_square() # TODO: implement directly
+            elif self % p == 0:
+                val = lift.valuation(p)
+                return val >= e or (val % 2 == 0 and (lift // p**val).jacobi(p) != -1)
+            else:
+                return lift.jacobi(p) != -1
+        else:
+            for p, e in moduli:
+                if p == 2:
+                    if e > 1 and not self.pari().is_square(): # TODO: implement directly
+                        return 0
+                elif e > 1 and lift % p == 0:
+                    val = lift.valuation(p)
+                    if val < e and (val % 2 == 1 or (lift // p**val).jacobi(p) == -1):
+                        return 0
+                elif lift.jacobi(p) == -1:
+                    return 0
+            return 1
+
+
     def sqrt(self):
         """
         Same as self.square_root().
         """
         return self.square_root()
 
+
     def square_root(self):
         """
+        Calculates the square roots mod $p$ for each of the primes $p$ dividing
+        the order of the ring, then lifts p-adically and uses crt to
+        find a square root mod $n$.
+
+        See also \\code{square_root_mod_prime_power} and \\code{square_root_mod_prime}
+        (in this module) algorithms details.
+
         EXAMPLES:
             sage: mod(-1, 17).square_root()
             4
             sage: mod(5, 389).square_root()
             86
+            sage: mod(7, 18).square_root()
+            5
+            sage: mod(15, 389).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: Self must be a square.
+            sage: Mod(1/9, next_prime(2^40)).square_root()^(-2)
+            9
+            sage: Mod(1/25, next_prime(2^90)).square_root()^(-2)
+            25
+
         """
-        try:
-            return self.parent()(self.pari().sqrt())  # TODO: implement directly
-        except PariError:
-            raise ValueError, "self must be a square."
-
-    def my_square_root(self):
-
         if self.is_zero() or self.is_one():
             return self
 
-        moduli = self.parent().factored_order()
+        if not self.is_square_c():
+            raise ValueError, "Self must be a square."
+
+        moduli = self._parent.factored_order()
         if len(moduli) == 1:
             p, e = moduli[0]
             if e > 1:
-                x = square_root_mod_prime_power(self, p, e)
+                x = square_root_mod_prime_power(mod(self, p**e), p, e)
             else:
                 x = square_root_mod_prime(self, p)
 
         else:
-
             # return product of square roots mod each prime power
-            sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in moduli if e == 1] + \
+            sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in moduli if e == 1] + \\
                     [square_root_mod_prime_power(mod(self, p**e), p, e) for p, e in moduli if e != 1]
-            x = sqrts[0]
-            for i in range(1, len(sqrts)):
-                x = x.crt(sqrts[i])
+
+            x = sqrts.pop()
+            for y in sqrts:
+                x = x.crt(y)
 
         return x._balanced_abs()
 
@@ -517,8 +582,12 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         """
         This function returns x or -x, whichever has a positive
         representative in -p/2 < x < p/2.
+
+        This is used so that the same square root is always returned,
+        despite the possibly probabalistic nature of the underlying
+        algorithm.
         """
-        if self.lift() > self.__modulus.sageInteger / 2:
+        if self.lift() > self.__modulus.sageInteger >> 1:
             return -self
         else:
             return self
@@ -584,7 +653,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         r"""
         Returns the additive order of self.
 
-        This is the same as \code{self.order()}.
+        This is the same as \\code{self.order()}.
 
         EXAMPLES:
             sage: Integers(20)(2).additive_order()
@@ -639,7 +708,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     """
-    Elements of $\Z/n\Z$ for n not small enough to be operated on in word size
+    Elements of $\\Z/n\\Z$ for n not small enough to be operated on in word size
     AUTHORS:
         -- Robert Bradshaw (2006-08-24)
     """
@@ -699,7 +768,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __lshift__(IntegerMod_gmp self, int right):
         r"""
-        Multiply self by $2^\text{right}$ very quickly via bit shifting.
+        Multiply self by $2^\\text{right}$ very quickly via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(19, 10^10)
@@ -737,7 +806,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def is_one(IntegerMod_gmp self):
         """
-        Returns \\code{True} if this is $1$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: mod(1,5^23).is_one()
@@ -749,7 +818,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def is_zero(IntegerMod_gmp self):
         """
-        Returns \\code{True} if this is $0$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: mod(13,5^23).is_zero()
@@ -871,10 +940,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         return long(self.lift())
 
     def __mod__(self, right):
-        right = int(right)
         if self.modulus() % right != 0:
             raise ZeroDivisionError, "Error - reduction modulo right not defined."
-        return IntegerMod(integer_mod_ring.IntegerModRing(right, self))
+        return IntegerMod(integer_mod_ring.IntegerModRing(right), self)
 
     def __pow__(IntegerMod_gmp self, right, m): # NOTE: m ignored, always use modulus of parent ring
         """
@@ -898,7 +966,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_gmp self, int right):
         r"""
-        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(1000001, 2^32-1)
@@ -973,7 +1041,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     """
-    Elements of $\Z/n\Z$ for n small enough to be operated on in 32 bits
+    Elements of $\\Z/n\\Z$ for n small enough to be operated on in 32 bits
     AUTHORS:
         -- Robert Bradshaw (2006-08-24)
     """
@@ -1063,7 +1131,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def is_one(IntegerMod_int self):
         """
-        Returns \\code{True} if this is $1$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: mod(6,5).is_one()
@@ -1075,7 +1143,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def is_zero(IntegerMod_int self):
         """
-        Returns \\code{True} if this is $0$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: mod(13,5).is_zero()
@@ -1203,7 +1271,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __lshift__(IntegerMod_int self, int right):
         r"""
-        Multiply self by $2^\text{right}$ very quickly via bit shifting.
+        Multiply self by $2^\\text{right}$ very quickly via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(5, 2^10 - 1)
@@ -1216,7 +1284,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_int self, int right):
         """
-        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(8, 2^5 - 1)
@@ -1282,7 +1350,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         return z
 
     def __float__(IntegerMod_int self):
-        return float(self.ivalue)
+        return self.ivalue
 
     def __hash__(self):
         """
@@ -1293,27 +1361,33 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return hash(self.ivalue)
 
-    def is_square_c(self):
+    cdef int is_square_c(self) except -2:
         if self.ivalue <= 1:
             return 1
-        moduli = self.parent().factored_order()
-        cdef int_fast32_t jacobi
+        moduli = self._parent.factored_order()
+        cdef int val, e
+        cdef int_fast32_t p
         if len(moduli) == 1:
-            p, e = moduli[0]
+            sage_p, e = moduli[0]
+            p = sage_p
             if e == 1:
-                return jacobi_int(self.ivalue, self.__modulus.int32) != -1
+                return jacobi_int(self.ivalue, p) != -1
             elif p == 2:
                 return self.pari().is_square() # TODO: implement directly
-            elif self.ivalue % int(p) == 0:
-                val = self.lift().valuation(p)
-                return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / p**val, p) != -1)
+            elif self.ivalue % p == 0:
+                val = self.lift().valuation(sage_p)
+                return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / int(sage_p**val), p) != -1)
             else:
                 return jacobi_int(self.ivalue, p) != -1
         else:
-            for p, e in moduli:
-                if e > 1 and self.ivalue % int(p) == 0:
-                    val = self.lift().valuation(p)
-                    if val < e and (val % 2 == 1 or jacobi_int(self.ivalue / p**val, p) == -1):
+            for sage_p, e in moduli:
+                p = sage_p
+                if p == 2:
+                    if e > 1 and not self.pari().is_square(): # TODO: implement directly
+                        return 0
+                elif e > 1 and self.ivalue % p == 0:
+                    val = self.lift().valuation(sage_p)
+                    if val < e and (val % 2 == 1 or jacobi_int(self.ivalue / int(sage_p**val), p) == -1):
                         return 0
                 elif jacobi_int(self.ivalue, p) == -1:
                     return 0
@@ -1415,7 +1489,7 @@ cdef int_fast32_t mod_pow_int(int_fast32_t base, int_fast32_t exp, int_fast32_t 
     return prod
 
 
-cdef int_fast32_t jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
+cdef int jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
     """
     Calculates the jacobi symbol (a/n)
     For use in IntegerMod_int
@@ -1423,6 +1497,7 @@ cdef int_fast32_t jacobi_int(int_fast32_t a, int_fast32_t m) except -2:
       -- Robert Bradshaw
     """
     cdef int s, jacobi = 1
+    cdef int_fast32_t b
 
     a = a % m
 
@@ -1465,7 +1540,7 @@ def test_mod_inverse(a, b):
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
     """
-    Elements of $\Z/n\Z$ for n small enough to be operated on in 64 bits
+    Elements of $\\Z/n\\Z$ for n small enough to be operated on in 64 bits
     AUTHORS:
         -- Robert Bradshaw (2006-09-14)
     """
@@ -1554,7 +1629,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def is_one(IntegerMod_int64 self):
         """
-        Returns \\code{True} if this is $1$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: (mod(-1,5^10)^2).is_one()
@@ -1566,7 +1641,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def is_zero(IntegerMod_int64 self):
         """
-        Returns \\code{True} if this is $0$, otherwise \\code{False}.
+        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
 
         EXAMPLES:
             sage: mod(13,5^10).is_zero()
@@ -1728,7 +1803,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_int64 self, int right):
         """
-        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(8, 2^31 - 1)
@@ -1795,6 +1870,17 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
 
         return hash(self.ivalue)
+
+    def _balanced_abs(self):
+        """
+        This function returns x or -x, whichever has a positive
+        representative in -p/2 < x < p/2.
+        """
+        if self.ivalue > self.__modulus.int64 / 2:
+            return -self
+        else:
+            return self
+
 
 ### End of class
 
@@ -1880,6 +1966,43 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
     return prod
 
 
+cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
+    """
+    Calculates the jacobi symbol (a/n)
+    For use in IntegerMod_int64
+    AUTHOR:
+      -- Robert Bradshaw
+    """
+    cdef int s, jacobi = 1
+    cdef int_fast64_t b
+
+    a = a % m
+
+    while 1:
+        if a == 0:
+            return 0 # gcd was nontrivial
+        elif a == 1:
+            return jacobi
+        s = 0
+        while (1 << s) & a == 0:
+            s += 1
+        b = a >> s
+        # Now a = 2^s * b
+
+        # factor out (2/m)^s term
+        if s % 2 == 1 and (m % 8 == 3 or m % 8 == 5):
+            jacobi = -jacobi
+
+        if b == 1:
+            return jacobi
+
+        # quadratic reciprocity
+        if b % 4 == 3 and m % 4 == 3:
+            jacobi = -jacobi
+        a = m % b
+        m = b
+
+
 ########################
 # Square root functions
 ########################
@@ -1887,6 +2010,13 @@ cdef int_fast64_t mod_pow_int64(int_fast64_t base, int_fast64_t exp, int_fast64_
 def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     """
     Calculates the square root of a, where a is an integer mod p^e.
+
+    ALGORITHM:
+        Perform p-adically by stripping off even powers of $p$ to get
+        a unit and lifting $\\sqrt{unit} mod p$ via newton's method.
+
+    AUTHOR:
+        -- Robert Bradshaw
     """
     if a.is_zero() or a.is_one():
         return a
@@ -1907,6 +2037,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     x = unit.parent()(square_root_mod_prime(mod(unit, p), p))
 
     # lift p-adically using newton iteration
+    # this is done to higher precision than neccisary except at the last step
     for i from 0 <= i <  ceil(log(e)/log(2)) - val/2:
         x = (x+unit/x) / 2
 
@@ -1918,6 +2049,35 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
 def square_root_mod_prime(IntegerMod_abstract a, p=None):
     """
     Calculates the square root of a, where a is an integer mod p.
+
+    ALGORITHM:
+        Several cases based on residue class of p mod 16.
+
+        $p$ mod 2 = 0 \\Rightarrow p = 2 so \\sqrt{a} = a$.
+        $p$ mod 4 = 3 \\Rightarrow \\sqrt{a} = a^{(p+1)/4}$.
+        $p$ mod 8 = 5 \\Rightarrow \\sqrt{a} = \\zeta i a$ where $\\zeta = (2a)^{(p-5)/8}, i=\\sqrt{-1}$.
+        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\\F_p$.
+        $p$ mod 16 = 1$ Variant of Cipolla\u2013Lehmer, using Lucas functions.
+
+    REFERENCES:
+        Siguna M\\:uller. 'On the Computation of Square Roots in Finite Fields'
+            Designs, Codes and Cryptography, Volume 31,  Issue 3 (March 2004)
+
+        A. Oliver L. Atkin. 'Probabilistic primality testing' (Section 4)
+            In P. Flajolet and P. Zimmermann, editors, Analysis of Algorithms Seminar I. INRIA Research Report XXX, 1992.
+            Summary by F. Morain.
+            \\url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
+
+        H. Postl. 'Fast evaluation of Dickson Polynomials'
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\u2013225
+
+    AUTHOR:
+        Robert Bradshaw
+
+    TESTS:
+        Every case appears in the first hundred primes.
+        sage: all([(a*a).square_root()^2 == a*a for p in prime_range(100) for a in Integers(p)])
+        True
     """
     if a.is_zero() or a.is_one():
         return a
@@ -1929,7 +2089,7 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     cdef int p_mod_16 = p % 16
 
-    if p_mod_16 % 2 == 0:
+    if p_mod_16 % 2 == 0:  # p == 2
         return a
 
     elif p_mod_16 % 4 == 3:
@@ -1941,7 +2101,7 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
         i = two_a ** ((p-1)/4)
         return zeta*a*(i-1)
 
-    elif p_mod_16 % 16 == 9:
+    elif p_mod_16 == 9:
         s = (a+a) ** ((p-1)/4)
         if s.is_one():
             d = a._parent.quadratic_nonresidue()
@@ -1954,30 +2114,59 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
             i = 2 * z*z * a
             return z*a*(i-1)
 
-    else:
+    else: # p_mod_16 == 1
 
         four = a._new_c_from_long(4)
 
         if a == four:
             return a._new_c_from_long(2)
 
-        if not (a - four).is_square():
+        if not (<IntegerMod_abstract>(a - four)).is_square_c():
             t = 1
             P = a - 2
-            return fastV((p-1) // 4, P)
+            return fast_lucas((p-1) // 4, P)
 
         else:
             t = a._new_c_from_long(2)
-            while (a*t*t - four).is_square():
+            while (<IntegerMod_abstract>(a*t*t - four)).is_square_c():
                 t += 1
             P = a*t*t - 2
-            return fastV((p-1)//4, P)/t
+            return fast_lucas((p-1)//4, P)/t
 
-def fastV(mm, IntegerMod_abstract P):
-    cdef sage.rings.integer.Integer m = mm if PY_TYPE_CHECK(mm, sage.rings.integer.Integer) else sage.rings.integer.Integer(mm)
+
+def fast_lucas(mm, IntegerMod_abstract P):
+    """
+    Return $V_k(P, 1)$ where $V_k$ is the Lucas function
+    defined by the recursive relation
+
+    $V_k(P, Q) = PV_{k-1}(P, Q) -  QV_{k-2}(P, Q)$
+
+    with $V_0 = 2, V_1(P_Q) = P$.
+
+    REFERENCES:
+        H. Postl. 'Fast evaluation of Dickson Polynomials'
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\u2013225
+
+    AUTHOR:
+        Robert Bradshaw
+
+    TESTS:
+        sage: from sage.rings.integer_mod import fast_lucas, slow_lucas
+        sage: all([fast_lucas(k, a) == slow_lucas(k, a) for a in Integers(23) for k in range(13)])
+        True
+    """
+    if mm == 0:
+        return 2
+    elif mm == 1:
+        return P
+
+    cdef sage.rings.integer.Integer m
+    m = <sage.rings.integer.Integer>mm if PY_TYPE_CHECK(mm, sage.rings.integer.Integer) else sage.rings.integer.Integer(mm)
     two = P._new_c_from_long(2)
     d1 = P
     d2 = P*P - two
+
+    _sig_on
     cdef int j
     for j from mpz_sizeinbase(m.value, 2)-1 > j > 0:
         if mpz_tstbit(m.value, j):
@@ -1986,15 +2175,19 @@ def fastV(mm, IntegerMod_abstract P):
         else:
             d2 = d1*d2 - P
             d1 = d1*d1 - two
+    _sig_off
     if mpz_odd_p(m.value):
         return d1*d2 - P
     else:
         return d1*d1 - two
 
-def slowV(k, P, Q=1):
+def slow_lucas(k, P, Q=1):
+    """
+    Lucas function defined using the definition, for consitancy testing.
+    """
     if k == 0:
         return 2
     elif k == 1:
         return P
     else:
-        return P*slowV(k-1, P, Q) - Q*slowV(k-2, P, Q)
+        return P*slow_lucas(k-1, P, Q) - Q*slow_lucas(k-2, P, Q)

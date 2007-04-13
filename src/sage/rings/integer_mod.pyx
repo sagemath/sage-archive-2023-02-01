@@ -486,6 +486,12 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: Mod(1/25, next_prime(2^90)).is_square()
             True
 
+        TESTS:
+            sage: Mod(1/25, 2^8).is_square()
+            True
+            sage: Mod(1/25, 2^40).is_square()
+            True
+
         ALGORITHM:
             Calculate the Jacobi symbol $(self/p)$ at each prime $p dividing $n$
             It must be 1 or 0 for each prime, and if it is 0 mod $p$,
@@ -509,7 +515,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             if e == 1:
                 return lift.jacobi(p) != -1
             elif p == 2:
-                return self.pari().is_square() # TODO: implement directly
+                return self.pari().issquare() # TODO: implement directly
             elif self % p == 0:
                 val = lift.valuation(p)
                 return val >= e or (val % 2 == 0 and (lift // p**val).jacobi(p) != -1)
@@ -518,7 +524,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         else:
             for p, e in moduli:
                 if p == 2:
-                    if e > 1 and not self.pari().is_square(): # TODO: implement directly
+                    if e > 1 and not self.pari().issquare(): # TODO: implement directly
                         return 0
                 elif e > 1 and lift % p == 0:
                     val = lift.valuation(p)
@@ -1398,7 +1404,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             if e == 1:
                 return jacobi_int(self.ivalue, p) != -1
             elif p == 2:
-                return self.pari().is_square() # TODO: implement directly
+                return self.pari().issquare() # TODO: implement directly
             elif self.ivalue % p == 0:
                 val = self.lift().valuation(sage_p)
                 return val >= e or (val % 2 == 0 and jacobi_int(self.ivalue / int(sage_p**val), p) != -1)
@@ -1408,7 +1414,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             for sage_p, e in moduli:
                 p = sage_p
                 if p == 2:
-                    if e > 1 and not self.pari().is_square(): # TODO: implement directly
+                    if e > 1 and not self.pari().issquare(): # TODO: implement directly
                         return 0
                 elif e > 1 and self.ivalue % p == 0:
                     val = self.lift().valuation(sage_p)

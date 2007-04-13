@@ -108,101 +108,57 @@ In addition, there are arrows within each type from higher precision_cap to lowe
 
 #import sage.libs.all
 #import sage.rings.integer_mod
-#import sage.rings.integer
-#import sage.rings.rational
+import sage.rings.integer
+import sage.rings.rational
 #import sage.rings.finite_field
-import sage.rings.padics.padic_field_capped_relative_element
-import sage.rings.padics.padic_field_generic
-import sage.rings.padics.padic_lazy_element
-import sage.rings.padics.padic_ring_capped_relative_element
-import sage.rings.padics.padic_ring_capped_absolute_element
-import sage.rings.padics.padic_ring_generic
+import sage.rings.padics.padic_capped_relative_element
+import sage.rings.padics.padic_field_base_generic
+import sage.rings.padics.padic_capped_relative_field_generic
+import padic_base_generic_element
+import padic_lazy_element
+#import sage.rings.padics.padic_lazy_element
+#import sage.rings.padics.padic_ring_capped_relative_element
+#import sage.rings.padics.padic_ring_capped_absolute_element
+#import sage.rings.padics.padic_ring_generic
 
-pari = sage.libs.pari.gen.pari
+#pari = sage.libs.pari.gen.pari
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
-Mod = sage.rings.integer_mod.Mod
-pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
-pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
-pAdicFieldCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
-pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
-pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#Mod = sage.rings.integer_mod.Mod
+#infinity = sage.rings.infinity.infinity
+pAdicFieldBaseGeneric = sage.rings.padics.padic_field_base_generic.pAdicFieldBaseGeneric
+pAdicCappedRelativeFieldGeneric = sage.rings.padics.padic_capped_relative_field_generic.pAdicCappedRelativeFieldGeneric
+#pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
+pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
+pAdicLazyElement = padic_lazy_element.pAdicLazyElement
+pAdicCappedRelativeElement = sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
+#pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
+#pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
 #Zp = sage.rings.padics.zp.Zp
 
-class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
+class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
+    def __init__(self, p, prec, print_mode, names):
+        pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
+
     r"""
     An implementation of p-adic fields with capped relative precision.
     """
-
-    def __call__(self, x, absprec = None, relprec = None):
-        r"""
-        Casts x into self.  Uses the constructor from pAdicFieldCappedRelativeElement.
-        """
-        return pAdicFieldCappedRelativeElement(self, x, absprec, relprec)
-
-    def __cmp__(self, other):
-        if isinstance(other, pAdicFieldCappedRelative):
-            if self.prime() < other.prime():
-                return -1
-            elif self.prime() > other.prime():
-                return 1
-            elif self.precision_cap() < other.precision_cap():
-                return -1
-            elif self.precision_cap() > other.precision_cap():
-                return 1
-            else:
-                return 0
-        else:
-            return -1
-
     def __contains__(self, x):
         if isinstance(x, (int, long, Integer, Rational)):
             return True
-        if sage.rings.integer_mod.is_IntegerMod(x):
-            k, g = pari(x.modulus()).ispower()
-            if not k or g != self.prime():
+        if not isinstance(x, (pAdicBaseGenericElement, pAdicLazyElement)):
+            return False
+        par = x.parent()
+        if par.prime() != self.prime():
+            return False
+        if par.is_capped_relative() or par.is_capped_absolute() or par.is_lazy():
+            if par.is_capped_relative() and par.is_field() and par.precision_cap() < self.precision_cap():
                 return False
-            else:
-                return True
-        if sage.rings.finite_field_element.is_FiniteFieldElement(x) and x.parent().order() == self.prime():
-            return True
-        if isinstance(x, pAdicFieldCappedRelativeElement) and x.parent().prime() == self.prime() and x.parent().precision_cap() >= self.precision_cap():
-            return True
-        if isinstance(x, (pAdicRingCappedAbsoluteElement, pAdicRingCappedRelativeElement, pAdicLazyElement)) and x.parent().prime() == self.prime():
             return True
         return False
 
-    def _coerce_impl(self, x):
-        if self.__contains__(x):
-            return pAdicFieldCappedRelativeElement(self, x)
-        else:
-            raise TypeError, "no canonical coercion of x"
-
     def _repr_(self, do_latex=False):
         return "%s-adic Field with capped relative precision %s"%(self.prime(), self.precision_cap())
-
-    def teichmuller(self, x):
-        r"""
-        Returns the teichmuller representative of x.
-
-        INPUT:
-            self -- a p-adic field
-            x -- an integer or element of $\Z / p\Z$ that is not divisible by $p$
-        OUTPUT:
-            element -- the teichmuller lift of x
-
-        EXAMPLES:
-            sage: R = Qp(5, 10,'capped-rel','series')
-            sage: R.teichmuller(2)
-            2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
-        """
-        p = self.prime()
-        x = Mod(x,p**self.precision_cap())
-        xnew = x**p
-        while x != xnew:
-            x = xnew
-            xnew = x**p
-        return pAdicFieldCappedRelativeElement(self, x)
 
     def integer_ring(self):
         r"""
@@ -214,35 +170,4 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric):
             the p-adic ring that is the integer ring of this field
         """
         from sage.rings.padics.zp import Zp
-        return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.get_print_mode())
-
-    def fraction_field(self):
-        r"""
-        Returns the fraction field of self, i.e. self
-        """
-        return self
-
-    def random_element(self):
-        """
-        Returns a random element of self.
-        """
-        raise NotImplementedError
-
-    def unit_group(self):
-        raise NotImplementedError
-
-    def unit_group_gens(self):
-        raise NotImplementedError
-
-    def principal_unit_group(self):
-        raise NotImplementedError
-
-    def class_field(self, group=None, map=None, generators=None):
-        raise NotImplementedError
-
-    def norm_group_discriminant(self, group=None, map=None, generators=None):
-        raise NotImplementedError
-
-    def list_of_extensions(self, degree, discriminant=None, e=None, f=None):
-        raise NotImplementedError
-
+        return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())

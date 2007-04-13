@@ -542,7 +542,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         r = right.list()
         l = self.list()
         if len(r) != len(l):
-            raise ArithmeticError, "degrees must be the same"%(len(l),len(r))
+            raise ArithmeticError, "degrees (%s and %s) must be the same"%(len(l),len(r))
         zero = self.parent().base_ring()(0)
         return sum(eval('[l[i]*r[i] for i in xrange(len(l))]', {'l':l,'r':r}), zero)
 

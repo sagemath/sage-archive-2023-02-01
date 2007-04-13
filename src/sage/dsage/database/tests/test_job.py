@@ -24,24 +24,21 @@ from sage.dsage.database.job import Job
 
 class JobTestCase(unittest.TestCase):
 
-    def testcreateJob(self):
+    def testcreate_job(self):
         job = Job()
         self.assert_(isinstance(job, Job))
 
-        job = Job(id=10, name='test', file='test', parent='test',
-                  author='test', type='test')
+        job = Job(id_=10, name='test', code='test', parent='test',
+                  username='test', type_='test')
         self.assert_(isinstance(job, Job))
 
-    def testjobID(self):
+    def testjob_id(self):
         job = Job()
-        self.assertRaises(TypeError, job.id, 5)
+        self.assertRaises(TypeError, job.job_id, 5)
 
-    def testjobNum(self):
-        job = Job()
-        self.assertEquals(None, job.num)
     def testjobFile(self):
         job = Job()
-        self.assertRaises(TypeError, job.file, 1)
+        self.assertRaises(TypeError, job.code, 1)
 
     def testjobCreationTime(self):
         job = Job()
@@ -53,10 +50,10 @@ class JobTestCase(unittest.TestCase):
         self.assert_(job.finish_time == None)
         self.assertRaises(TypeError, job.finish_time, 'test')
 
-    def testjobUpdatedTime(self):
+    def testjobUpdateTime(self):
         job = Job()
-        self.assertEquals(job.updated_time, None)
-        self.assertRaises(TypeError, job.updated_time, 'test')
+        self.assertEquals(job.update_time, None)
+        self.assertRaises(TypeError, job.update_time, 'test')
 
     def testjobStatus(self):
         job = Job()

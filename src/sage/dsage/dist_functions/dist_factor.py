@@ -5,7 +5,7 @@ from sage.dsage.interface.dsage_interface import JobWrapper
 from sage.all import *
 
 class DistributedFactor(DistributedFunction):
-    r"""
+    """
     DistributedFactor uses ECM and QSIEVE to find factors of numbers.
 
        DistributedFactor will first perform trial division on the number and
@@ -16,9 +16,9 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0,
-                 trial_division_limit=10000, name='DistributedFactor'):
-        r"""
+    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000,
+                 name='DistributedFactor'):
+        """
         Parameters:
             DSage -- an instance of a dsage connection
             n -- the square-free number to be factored
@@ -35,12 +35,12 @@ class DistributedFactor(DistributedFunction):
         DistributedFunction.__init__(self, DSage)
         self.n = n
         self.prime_factors = []
+        self.composite_factors = []
         self.cur_B1 = 2000
         self.curve_count = 50
         self.concurrent = concurrent
         self.verbosity = verbosity
         self.name = name
-
         # Trial division first to peel off some factors
         for d in prime_range(2, trial_division_limit):
             while d.divides(n):
@@ -48,8 +48,11 @@ class DistributedFactor(DistributedFunction):
                 n = n // d
         if n == 1:
             self.done = True
+        elif is_prime(n): # The last value might be prime
+            self.done = True
+            self.prime_factors.append(n)
         else:
-            self.composite_factors = [n]
+            self.composite_factors.append(n)
             self.outstanding_jobs = [self.qsieve_job()]
             for i in range(concurrent-1):
                 self.outstanding_jobs.append(self.ecm_job())
@@ -61,15 +64,13 @@ class DistributedFactor(DistributedFunction):
         n = max(self.composite_factors)
         if n < 10**40:
             return self.ecm_job()
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
     result = [[n], [True], {}, 'primality']
 else:
     v, t = qsieve(n)
-    result = [v, [0]*len(v), {}, 'qsieve']
-    save(result, 'result')
-    DSAGE_RESULT = 'result.sobj'
+    DSAGE_RESULT = [v, [0]*len(v), {}, 'qsieve']
 """ % n, name='qsieve')
         job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
@@ -82,15 +83,13 @@ else:
             self.i = 0
         n = self.composite_factors[self.i % len(self.composite_factors)]
         rate_multiplier = float(self.concurrent / len(self.composite_factors))
-        job = Job(file="""
+        job = Job(code="""
 n = %s
 if is_prime(n):
-    result = [[n], [True], {}, 'primality']
+    DSAGE_RESULT = [[n], [True], {}, 'primality']
 else:
     e = ECM()
-    result = [e.find_factor(n, B1=%s, c=%s, I=%s), e.primality, e.last_params, 'ecm']
-save(result, 'result')
-DSAGE_RESULT = 'result.sobj'
+    DSAGE_RESULT = [e.find_factor(n, B1=%s, c=%s, I=%s), e.primality, e.last_params, 'ecm']
 
 """ % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
         job.n = int(n)
@@ -98,7 +97,7 @@ DSAGE_RESULT = 'result.sobj'
         return job
 
     def process_result(self, job):
-        r"""
+        """
         For each factor m of n found by the worker, record them by
             1) Dividing each element x of composite_factors by gcd(x,m)
             2) Storing (non-trivial) gcd(x,m) to the composite factor list.
@@ -120,8 +119,10 @@ DSAGE_RESULT = 'result.sobj'
         # If result is unexpected...
         try:
             factors, primality, params, algorithm = result
-        except:
+        except Exception, msg:
             print 'Error in processing result.'
+            print result
+            print msg
             return
         try:
             self.cur_B1 = max(self.cur_B1, int(params['B1']))
@@ -134,8 +135,7 @@ DSAGE_RESULT = 'result.sobj'
             if self.n % prod(factors) != 0:
                 self.prime_factors.append("BAD FACTORS")
             # switch the order of indices
-            result = [(result[0][i],
-                       result[1][i]) for i in range(len(result[0]))]
+            result = [(result[0][i], result[1][i]) for i in range(len(result[0]))]
             # Only works for square-free numbers
             for r, is_prime_factor in result:
                 for p in self.prime_factors:
@@ -175,6 +175,7 @@ DSAGE_RESULT = 'result.sobj'
             self.done = True
         else:
             self.qsieve_count = 0
+            to_be_removed_jobs = []
             for wrapped_job in self.waiting_jobs:
                 if wrapped_job.algorithm == 'qsieve':
                     if ZZ(wrapped_job.n) not in self.composite_factors:
@@ -184,11 +185,14 @@ DSAGE_RESULT = 'result.sobj'
                             wrapped_job.kill()
                         else:
                             wrapped_job.async_kill()
-                        self.waiting_jobs.remove(wrapped_job)
+                        to_be_removed_jobs.append(wrapped_job)
                     else:
                         self.qsieve_count += 1
-            # Need to use async versions of submitting the jobs because
-            # this method is called from within the reactor thread
+            for job in to_be_removed_jobs:
+                self.waiting_jobs.remove(job)
             if self.qsieve_count == 0:
                 self.submit_job(self.qsieve_job(), self.name, async=True)
             self.submit_job(self.ecm_job(), self.name, async=True)
+
+        self.prime_factors.sort()
+        self.composite_factors.sort()

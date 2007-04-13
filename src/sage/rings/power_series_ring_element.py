@@ -85,9 +85,13 @@ import arith
 import sage.misc.latex as latex
 import sage.structure.coerce
 import rational_field, integer_ring
+from integer import Integer
+from integer_mod_ring import IntegerModRing
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.libs.all import PariError
+from sage.misc.functional import sqrt, log
+from sage.rings.arith import ceil
 
 Polynomial = polynomial.Polynomial_generic_dense
 
@@ -210,7 +214,7 @@ class PowerSeries(ring_element.RingElement):
             sage: ((a+1)*t).change_ring(ZZ)
             Traceback (most recent call last):
             ...
-            TypeError: cannot coerce nonconstant polynomial to int
+            TypeError: Unable to coerce a + 1 to an integer
 
         """
         S = self.parent().change_ring(R)
@@ -819,12 +823,72 @@ class PowerSeries(ring_element.RingElement):
         return num*inv
 
     def __mod__(self, other):
+        """
+        EXAMPLES:
+            sage: R.<T> = Qp(7)[[]]
+            sage: f = (48*67 + 46*67^2)*T + (1 + 42*67 + 5*67^3)*T^2 + O(T^3)
+            sage: f % 67
+            T^2 + O(T^3)
+        """
         if isinstance(other,(int,Integer,long)):
-            try:
-                return power_series_ring.PowerSeriesRing(Zmod(other))(self)
-            except TypeError:
-                raise ZeroDivisionError
-        raise NotImplementedError, "Mod on power series ring not defined."
+            return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
+        raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
+
+    def sqrt(self):
+        r"""
+        Return the square root of self, up to the precision of parent.
+        The leading power of x must be even.
+
+        ALGORITHM:
+            Newton's method
+            $x_{i+1} = \frac{1}{2}( x_i + self/x_i )$
+
+        EXAMPLES:
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: sqrt(t^2)
+            t
+            sage: sqrt(1+t)
+            1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
+            sage: sqrt(4+t)
+            2 + 1/4*t - 1/64*t^2 + 1/512*t^3 - 5/16384*t^4 + O(t^5)
+            sage: sqrt(2+t)
+            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
+
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
+            sage: sqrt(1+2*t+t^2)
+            1 + t + O(t^50)
+            sage: sqrt(t^2 +2*t^4 + t^6)
+            t + t^3 + O(t^51)
+            sage: sqrt(1 + t + t^2 + 7*t^3)^2
+            1 + t + t^2 + 7*t^3 + O(t^50)
+            sage: sqrt(K(0))
+            0
+
+        AUTHORS:
+            -- Robert Bradshaw
+        """
+        if self == 0:
+            return self.parent()(0).O(self.prec()/2)
+
+        val = self.valuation()
+        if val % 2 == 1:
+            raise ValueError, "Square root not defined for power series of odd valuation."
+
+        prec = self.prec()
+        if prec is infinity and self.degree() > 0:
+            prec = self.parent().default_prec()
+
+        a = self.valuation_zero_part()
+        x = sqrt(a[0])
+        newp = self.parent().base_extend(x.parent())
+        a = newp(a)
+        half = ~newp.base_ring()(2)
+
+        for i in range (ceil(log(prec, 2))):
+            x = half * (x + a/x)
+
+        return newp.gen(0)**(val/2) * x
+
 
     def O(self, prec):
         r"""

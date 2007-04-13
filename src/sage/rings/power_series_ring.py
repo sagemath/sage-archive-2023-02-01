@@ -398,7 +398,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R.base_extend(QuadraticField(3,'a'))
             Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
         """
-        return PowerSeriesRing(R, name = self.variable_name())
+        return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 
     def is_exact(self):
         return False
@@ -433,13 +433,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return 1
 
-    def random_element(self, prec, bound=0):
+    def random_element(self, prec, bound=None):
         """
         Return a random power series.
 
         INPUT:
             prec -- an integer
-            bound -- an integer (default: 0, which tries to spread choice across
+            bound -- an integer (default: None, which tries to spread choice across
                          ring, if implemented)
 
         OUTPUT:

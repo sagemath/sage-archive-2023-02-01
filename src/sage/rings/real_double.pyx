@@ -357,7 +357,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: parent(a)
             Real Double Field
         """
-        return RDF
+        return self._parent
 
     def __repr__(self):
         """
@@ -371,11 +371,18 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self.str()
 
-    def _latex_(self):  # todo -- this is terrible if sci not.
-        return self.str()
+    def _latex_(self):
+        s = self.str()
+        parts = s.split('e')
+        if len(parts) > 1:
+            # scientific notation
+            if parts[1][0] == '+':
+                parts[1] = parts[1][1:]
+            s = "%s \\times 10^{%s}" % (parts[0], parts[1])
+        return s
 
     def __hash__(self):
-        return hash(self.str())
+        return hash(float(self))
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self) # since 1 |--> 1
@@ -416,9 +423,6 @@ cdef class RealDoubleElement(FieldElement):
             True
         """
         return self
-        #cdef RealDoubleElement z
-        #z = RealDoubleElement(self._value)
-        #return z
 
     def integer_part(self):
         """
@@ -448,7 +452,9 @@ cdef class RealDoubleElement(FieldElement):
 	    sage: ~a
             -0.266666666667
         """
-        return RealDoubleElement(1/self._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = 1.0 / self._value
+        return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
@@ -458,7 +464,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF('-1.5') + RDF('2.5')
             1.0
         """
-        return self._new_c(self._value + (<RealDoubleElement>right)._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = self._value + (<RealDoubleElement>right)._value
+        return x
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
         """
@@ -468,7 +476,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF('-1.5') - RDF('2.5')
             -4.0
         """
-        return self._new_c(self._value - (<RealDoubleElement>right)._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = self._value - (<RealDoubleElement>right)._value
+        return x
 
     cdef RingElement _mul_c_impl(self, RingElement right):
         """
@@ -478,7 +488,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF('-1.5') * RDF('2.5')
             -3.75
         """
-        return self._new_c(self._value * (<RealDoubleElement>right)._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = self._value * (<RealDoubleElement>right)._value
+        return x
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
@@ -488,7 +500,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: RDF(1)/RDF(0)
             inf
         """
-        return self._new_c(self._value / (<RealDoubleElement>right)._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = self._value / (<RealDoubleElement>right)._value
+        return x
 
     cdef ModuleElement _neg_c_impl(self):
         """
@@ -498,7 +512,9 @@ cdef class RealDoubleElement(FieldElement):
             sage: -RDF('-1.5')
             1.5
         """
-        return self._new_c(-self._value)
+        cdef RealDoubleElement x = <RealDoubleElement>PY_NEW(RealDoubleElement)
+        x._value = -self._value
+        return x
 
     def __abs__(self):
         return self.abs()
@@ -510,13 +526,13 @@ cdef class RealDoubleElement(FieldElement):
         """
         LShifting a double is not supported; nor is lshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for <<: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for <<"
 
     def __rshift__(x, y):
         """
         RShifting a double is not supported; nor is rshifting a RealDoubleElement.
         """
-        raise TypeError, "unsupported operand type(s) for >>: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for >>"
 
     def multiplicative_order(self):
         if self == 1:
@@ -704,14 +720,14 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(4344)
             sage: r.sqrt()
             65.9090282131
-            sage: r.sqrt()^2 - r
+            sage: r.sqrt()^2 - r             # random low order bits
             0.0
 
             sage: r = RDF(-2.0)
             sage: r.sqrt()
             1.41421356237*I
             """
-        if self >= 0:
+        if self._value >= 0:
             return self.square_root()
         return self._complex_double_().sqrt()
 
@@ -781,7 +797,7 @@ cdef class RealDoubleElement(FieldElement):
         return x
 
     def __pow(self, RealDoubleElement exponent):
-        return self._new_c(self._value**exponent._value)
+        return self._new_c(gsl_sf_exp(gsl_sf_log(self._value) * exponent._value))
 
     def __pow_int(self, int exponent):
         return self._new_c(gsl_pow_int(self._value, exponent))
@@ -804,9 +820,11 @@ cdef class RealDoubleElement(FieldElement):
             1.29711148178
         """
         cdef RealDoubleElement x
-        if isinstance(self, RealDoubleElement):
+        if PY_TYPE_CHECK(self, RealDoubleElement):
             return self.__pow(RealDoubleElement(exponent))
-        if isinstance(exponent, (int,Integer)):
+        elif PY_TYPE_CHECK(exponent, int):
+            return self.__pow_int(exponent)
+        elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
             return self.__pow_int(int(exponent))
         elif not isinstance(exponent, RealDoubleElement):
             x = RealDoubleElement(exponent)
@@ -1001,6 +1019,9 @@ cdef class RealDoubleElement(FieldElement):
         """
         return self._new_c(gsl_sf_sin(self._value))
 
+    def restrict_angle(self):
+        return self._new_c(gsl_sf_angle_restrict_symm(self._value))
+
     def tan(self):
         """
         Returns the tangent of this number
@@ -1013,9 +1034,11 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.tan()
             0.57735026919
         """
-        _sig_on
-        a = self._new_c(tan(self._value))
-        _sig_off
+        cdef double denom
+        cos = gsl_sf_cos(self._value)
+        if cos == 0:
+            return self._new_c(NAN)
+        a = self._new_c(gsl_sf_sin(self._value) / cos)
         return a
 
     def sincos(self):
@@ -1081,7 +1104,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.cosh()
             1.0344656401
         """
-        return self._new_c(cosh(self._value))
+        return self._new_c(gsl_ldexp( gsl_sf_exp(self._value) + gsl_sf_exp(-self._value), -1)) # (e^x + x^-x)/2
 
     def sinh(self):
         """
@@ -1093,7 +1116,7 @@ cdef class RealDoubleElement(FieldElement):
             0.264800227602
 
         """
-        return self._new_c(sinh(self._value))
+        return self._new_c(gsl_ldexp( gsl_sf_expm1(self._value) - gsl_sf_expm1(-self._value), -1)) # (e^x - x^-x)/2
 
     def tanh(self):
         """
@@ -1104,7 +1127,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q.tanh()
             0.255977789246
         """
-        return self._new_c(tanh(self._value))
+        return self.sinh() / self.cosh()
 
     def acosh(self):
         """
@@ -1253,3 +1276,207 @@ def RealDoubleField():
 def is_RealDoubleElement(x):
     return PY_TYPE_CHECK(x, RealDoubleElement)
 
+
+
+
+
+
+################# FAST CREATION CODE ######################
+########### Based on fast integer creation code   #########
+######## There is nothing to see here, move along   #######
+
+cdef extern from *:
+
+    ctypedef struct RichPyObject "PyObject"
+
+    # We need a PyTypeObject with elements so we can
+    # get and set tp_new, tp_dealloc, tp_flags, and tp_basicsize
+    ctypedef struct RichPyTypeObject "PyTypeObject":
+
+        # We replace this one
+        PyObject*      (*    tp_new) ( RichPyTypeObject*, PyObject*, PyObject*)
+
+        # Not used, may be useful to determine correct memory management function
+        RichPyObject *(*   tp_alloc) ( RichPyTypeObject*, size_t )
+
+        # We replace this one
+        void           (*tp_dealloc) ( PyObject*)
+
+        # Not used, may be useful to determine correct memory management function
+        void          (*    tp_free) ( PyObject* )
+
+        # We set a flag here to circumvent the memory manager
+        long tp_flags
+
+    cdef long Py_TPFLAGS_HAVE_GC
+
+    # We need a PyObject where we can get/set the refcnt directly
+    # and access the type.
+    ctypedef struct RichPyObject "PyObject":
+        int ob_refcnt
+        RichPyTypeObject* ob_type
+
+    # Allocation
+    RichPyObject* PyObject_MALLOC(int)
+
+    # Useful for debugging, see below
+    void PyObject_INIT(RichPyObject *, RichPyTypeObject *)
+
+    # Free
+    void PyObject_FREE(PyObject*)
+
+# We use a global element to steal all the references
+# from.  DO NOT INITIALIZE IT AGAIN and DO NOT REFERENCE IT!
+cdef RealDoubleElement global_dummy_element
+global_dummy_element = RealDoubleElement(0)
+
+# A global pool for performance when elements are rapidly created and destroyed.
+# It operates on the following principles:
+#
+# - The pool starts out empty.
+# - When an new element is needed, one from the pool is returned
+#   if available, otherwise a new Integer object is created
+# - When an element is collected, it will add it to the pool
+#   if there is room, otherwise it will be deallocated.
+
+cdef enum:
+    element_pool_size = 50 # Pyrex has no way of defining constants
+
+cdef PyObject* element_pool[element_pool_size]
+cdef int element_pool_count = 0
+
+# used for profiling the pool
+cdef int total_alloc = 0
+cdef int use_pool = 0
+
+# The signature of tp_new is
+# PyObject* tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k).
+# However we don't actually use any of it.
+#
+# t in this case is the RealDoubleElement TypeObject.
+
+cdef PyObject* fast_tp_new(RichPyTypeObject *t, PyObject *a, PyObject *k):
+
+    global element_pool, element_pool_count, total_alloc, use_pool
+
+    cdef RichPyObject* new
+
+    # for profiling pool usage
+    # total_alloc += 1
+
+    # If there is a ready integer in the pool, we will
+    # decrement the counter and return that.
+
+    if element_pool_count > 0:
+
+        # for profiling pool usage
+        # use_pool += 1
+
+        element_pool_count -= 1
+        new = <RichPyObject *> element_pool[element_pool_count]
+
+    # Otherwise, we have to create one.
+
+    else:
+
+        # allocate enough room for the Integer, sizeof_Integer is
+        # sizeof(Integer). The use of PyObject_MALLOC directly
+        # assumes that Integers are not garbage collected, i.e.
+        # they do not pocess references to other Python
+        # objects (Aas indicated by the Py_TPFLAGS_HAVE_GC flag).
+        # See below for a more detailed description.
+
+        new = PyObject_MALLOC( sizeof(RealDoubleElement) )
+
+        # Now set every member as set in z, the global dummy Integer
+        # created before this tp_new started to operate.
+
+        memcpy(new, (<void*>global_dummy_element), sizeof(RealDoubleElement) )
+
+        # This line is only needed if Python is compiled in debugging
+        # mode './configure --with-pydebug'. If that is the case a Python
+        # object has a bunch of debugging fields which are initialized
+        # with this macro. For speed reasons, we don't call it if Python
+        # is not compiled in debug mode. So uncomment the following line
+        # if you are debugging Python.
+
+        #PyObject_INIT(new, (<RichPyObject*>global_dummy_element).ob_type)
+
+    # The global_dummy_element may have a reference count larger than
+    # one, but it is expected that newly created objects have a
+    # reference count of one. This is potentially unneeded if
+    # everybody plays nice, because the gobal_dummy_Integer has only
+    # one reference in that case.
+
+    # Objects from the pool have reference count zero, so this
+    # needs to be set in this case.
+
+    new.ob_refcnt = 1
+
+    return new
+
+cdef void fast_tp_dealloc(PyObject* o):
+
+    # If there is room in the pool for a used integer object,
+    # then put it in rather than deallocating it.
+
+    global element_pool, element_pool_count
+
+    if element_pool_count < element_pool_size:
+
+        # And add it to the pool.
+        element_pool[element_pool_count] = o
+        element_pool_count += 1
+        return
+
+    # Free the object. This assumes that Py_TPFLAGS_HAVE_GC is not
+    # set. If it was set another free function would need to be
+    # called.
+
+    PyObject_FREE(o)
+
+hook_fast_tp_functions()
+
+def hook_fast_tp_functions():
+    """
+    """
+    global global_dummy_element
+
+    cdef long flag
+
+    cdef RichPyObject* o
+    o = <RichPyObject*>global_dummy_element
+
+    # By default every object created in Pyrex is garbage
+    # collected. This means it may have references to other objects
+    # the Garbage collector has to look out for. We remove this flag
+    # as the only reference an Integer has is to the global Integer
+    # ring. As this object is unique we don't need to garbage collect
+    # it as we always have a module level reference to it. If another
+    # attribute is added to the Integer class this flag removal so as
+    # the alloc and free functions may not be used anymore.
+    # This object will still be reference counted.
+    flag = Py_TPFLAGS_HAVE_GC
+    o.ob_type.tp_flags = <long>(o.ob_type.tp_flags & (~flag))
+
+    # Finally replace the functions called when an Integer needs
+    # to be constructed/destructed.
+    o.ob_type.tp_new = &fast_tp_new
+    o.ob_type.tp_dealloc = &fast_tp_dealloc
+
+def time_alloc_list(n):
+    cdef int i
+    l = []
+    for i from 0 <= i < n:
+        l.append(PY_NEW(RealDoubleElement))
+
+    return l
+
+def time_alloc(n):
+    cdef int i
+    for i from 0 <= i < n:
+        z = PY_NEW(RealDoubleElement)
+
+def pool_stats():
+    print "Used pool %s / %s times" % (use_pool, total_alloc)
+    print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)

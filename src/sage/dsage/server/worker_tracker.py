@@ -16,22 +16,22 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-"""This is a dummy class that keeps a list of connected workers. """
+"""This is a dummy module that keeps a list of connected workers. """
 
 worker_list = []
 
-def add(avatar):
-    r"""
+def add(worker):
+    """
     Adds an avatar to worker_list.
 
     """
 
-    worker_list.append(avatar)
+    worker_list.append(worker)
 
-def remove(avatar):
-    r"""
+def remove(worker):
+    """
     Removes the avatar from the worker_list.
 
     """
 
-    worker_list.remove(avatar)
+    worker_list.remove(worker)

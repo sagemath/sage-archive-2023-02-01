@@ -1036,8 +1036,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         cdef double denom
         cos = gsl_sf_cos(self._value)
-        if cos == 0:
-            return self._new_c(NAN)
         a = self._new_c(gsl_sf_sin(self._value) / cos)
         return a
 

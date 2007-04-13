@@ -1,5 +1,5 @@
 r"""
-Elements of $\\Z/n\\Z$
+Elements of $\Z/n\Z$
 
 An element of the integers modulo $n$.
 
@@ -71,7 +71,7 @@ from sage.structure.parent cimport Parent
 def Mod(n, m, parent=None):
     """
     Return the equivalence class of n modulo m as an element of
-    $\\Z/m\\Z$.
+    $\Z/m\Z$.
 
     EXAMPLES:
         sage: x = Mod(12345678, 32098203845329048)
@@ -154,7 +154,7 @@ cdef class NativeIntStruct:
     def __reduce__(NativeIntStruct self):
         return sage.rings.integer_mod.makeNativeIntStruct, (self.sageInteger, )
 
-    def precompute_table(NativeIntStruct self, parent):
+    def precompute_table(NativeIntStruct self, parent, inverses=True):
         self.table = PyList_New(self.int64)
         cdef Py_ssize_t i
         if self.int32 != -1:
@@ -165,6 +165,15 @@ cdef class NativeIntStruct:
             for i from 0 <= i < self.int64:
                 z = IntegerMod_int64(parent, i)
                 Py_INCREF(z); PyList_SET_ITEM(self.table, i, z)
+
+        if inverses:
+            tmp = [None] * self.int64
+            for i from 1 <= i < self.int64:
+                try:
+                    tmp[i] = ~self.table[i]
+                except ZeroDivisionError:
+                    pass
+            self.inverses = tmp
 
     cdef lookup(NativeIntStruct self, Py_ssize_t value):
         return <object>PyList_GET_ITEM(self.table, value)
@@ -241,8 +250,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: b.is_nilpotent()
             True
 
-        ALGORITHM: Let $m \\geq  \\log_2(n)$, where $n$ is the modulus.
-        Then $x \\in \\ZZ/n\\ZZ$ is nilpotent if and only if $x^m = 0$.
+        ALGORITHM: Let $m \geq  \log_2(n)$, where $n$ is the modulus.
+        Then $x \in \ZZ/n\ZZ$ is nilpotent if and only if $x^m = 0$.
 
         PROOF: This is clear if you reduce to the prime power case,
         which you can do via the Chinese Remainder Theorem.
@@ -272,9 +281,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         represented as powers of a generator for the multiplicative
         group, so the discrete log problem must be solved.
 
-        \\note{This function will create a meaningless GAP object if the
+        \note{This function will create a meaningless GAP object if the
         modulus is not a power of a prime.  Also, the modulus must
-        be $\\leq 65536$.}
+        be $\leq 65536$.}
 
         EXAMPLES:
             sage: a = Mod(2,19)
@@ -360,7 +369,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         Things that can go wrong.  E.g., if the base is not a
         generator for the multiplicative group, or not even a unit.
-        You can sometimes use the function \\code{discrete_log_generic}
+        You can sometimes use the function \code{discrete_log_generic}
         in general, but don't expect it to be very fast.
 
             sage: a = Mod(9, 100); b = Mod(3,100)
@@ -398,7 +407,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
                 raise ValueError, "base (=%s) for discrete log must generate multiplicative group"%b
             return n
         except PariError, msg:
-            raise ValueError, "%s\\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
+            raise ValueError, "%s\nPARI failed to compute discrete log (perhaps base is not a generator or is too large)"%msg
 
 
     def modulus(IntegerMod_abstract self):
@@ -533,7 +542,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         the order of the ring, then lifts p-adically and uses crt to
         find a square root mod $n$.
 
-        See also \\code{square_root_mod_prime_power} and \\code{square_root_mod_prime}
+        See also \code{square_root_mod_prime_power} and \code{square_root_mod_prime}
         (in this module) algorithms details.
 
         EXAMPLES:
@@ -543,6 +552,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             86
             sage: mod(7, 18).square_root()
             5
+            sage: a = mod(14, 5^60).square_root()
+            sage: a*a
+            14
             sage: mod(15, 389).square_root()
             Traceback (most recent call last):
             ...
@@ -569,7 +581,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         else:
             # return product of square roots mod each prime power
-            sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in moduli if e == 1] + \\
+            sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in moduli if e == 1] + \
                     [square_root_mod_prime_power(mod(self, p**e), p, e) for p, e in moduli if e != 1]
 
             x = sqrts.pop()
@@ -653,7 +665,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         r"""
         Returns the additive order of self.
 
-        This is the same as \\code{self.order()}.
+        This is the same as \code{self.order()}.
 
         EXAMPLES:
             sage: Integers(20)(2).additive_order()
@@ -708,7 +720,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
 cdef class IntegerMod_gmp(IntegerMod_abstract):
     """
-    Elements of $\\Z/n\\Z$ for n not small enough to be operated on in word size
+    Elements of $\Z/n\Z$ for n not small enough to be operated on in word size
     AUTHORS:
         -- Robert Bradshaw (2006-08-24)
     """
@@ -768,7 +780,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __lshift__(IntegerMod_gmp self, int right):
         r"""
-        Multiply self by $2^\\text{right}$ very quickly via bit shifting.
+        Multiply self by $2^\text{right}$ very quickly via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(19, 10^10)
@@ -806,7 +818,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def is_one(IntegerMod_gmp self):
         """
-        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $1$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(1,5^23).is_one()
@@ -818,7 +830,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def is_zero(IntegerMod_gmp self):
         """
-        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^23).is_zero()
@@ -966,7 +978,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_gmp self, int right):
         r"""
-        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(1000001, 2^32-1)
@@ -1041,7 +1053,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
 
 cdef class IntegerMod_int(IntegerMod_abstract):
     """
-    Elements of $\\Z/n\\Z$ for n small enough to be operated on in 32 bits
+    Elements of $\Z/n\Z$ for n small enough to be operated on in 32 bits
     AUTHORS:
         -- Robert Bradshaw (2006-08-24)
     """
@@ -1131,7 +1143,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def is_one(IntegerMod_int self):
         """
-        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $1$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(6,5).is_one()
@@ -1143,7 +1155,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def is_zero(IntegerMod_int self):
         """
-        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5).is_zero()
@@ -1241,10 +1253,16 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: R(2)/3
             4
         """
+        if self.__modulus.inverses is not None:
+            right_inverse = self.__modulus.inverses[(<IntegerMod_int>right).ivalue]
+            if right_inverse is None:
+                raise ZeroDivisionError, "Inverse does not exist."
+            else:
+                return self._new_c((self.ivalue * (<IntegerMod_int>right_inverse).ivalue) % self.__modulus.int32)
+
         cdef int_fast32_t x
-        x = (self.ivalue * mod_inverse_int(
-            (<IntegerMod_int>right).ivalue, self.__modulus.int32) ) % self.__modulus.int32
-        return self._new_c(x)
+        x = self.ivalue * mod_inverse_int((<IntegerMod_int>right).ivalue, self.__modulus.int32)
+        return self._new_c(x% self.__modulus.int32)
 
     def __int__(IntegerMod_int self):
         return self.ivalue
@@ -1271,7 +1289,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __lshift__(IntegerMod_int self, int right):
         r"""
-        Multiply self by $2^\\text{right}$ very quickly via bit shifting.
+        Multiply self by $2^\text{right}$ very quickly via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(5, 2^10 - 1)
@@ -1284,7 +1302,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_int self, int right):
         """
-        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(8, 2^5 - 1)
@@ -1330,7 +1348,14 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: ~mod(7,100)
             43
         """
-        return self._new_c(mod_inverse_int(self.ivalue, self.__modulus.int32))
+        if self.__modulus.inverses is not None:
+            x = self.__modulus.inverses[self.ivalue]
+            if x is None:
+                raise ZeroDivisionError, "Inverse does not exist."
+            else:
+                return x
+        else:
+            return self._new_c(mod_inverse_int(self.ivalue, self.__modulus.int32))
 
     def lift(IntegerMod_int self):
         """
@@ -1540,7 +1565,7 @@ def test_mod_inverse(a, b):
 
 cdef class IntegerMod_int64(IntegerMod_abstract):
     """
-    Elements of $\\Z/n\\Z$ for n small enough to be operated on in 64 bits
+    Elements of $\Z/n\Z$ for n small enough to be operated on in 64 bits
     AUTHORS:
         -- Robert Bradshaw (2006-09-14)
     """
@@ -1629,7 +1654,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def is_one(IntegerMod_int64 self):
         """
-        Returns \\\\code{True} if this is $1$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $1$, otherwise \code{False}.
 
         EXAMPLES:
             sage: (mod(-1,5^10)^2).is_one()
@@ -1641,7 +1666,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def is_zero(IntegerMod_int64 self):
         """
-        Returns \\\\code{True} if this is $0$, otherwise \\\\code{False}.
+        Returns \code{True} if this is $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^10).is_zero()
@@ -1803,7 +1828,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     def __rshift__(IntegerMod_int64 self, int right):
         """
-        Divide self by $2^{\\text{right}}$ and take floor via bit shifting.
+        Divide self by $2^{\text{right}}$ and take floor via bit shifting.
 
         EXAMPLES:
             sage: e = Mod(8, 2^31 - 1)
@@ -2013,7 +2038,7 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
 
     ALGORITHM:
         Perform p-adically by stripping off even powers of $p$ to get
-        a unit and lifting $\\sqrt{unit} mod p$ via newton's method.
+        a unit and lifting $\sqrt{unit} mod p$ via newton's method.
 
     AUTHOR:
         -- Robert Bradshaw
@@ -2038,8 +2063,9 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
 
     # lift p-adically using newton iteration
     # this is done to higher precision than neccisary except at the last step
+    one_half = ~(a._new_c_from_long(2))
     for i from 0 <= i <  ceil(log(e)/log(2)) - val/2:
-        x = (x+unit/x) / 2
+        x = (x+unit/x) * one_half
 
     # multiply in powers of p (if any)
     if val > 0:
@@ -2053,23 +2079,23 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
     ALGORITHM:
         Several cases based on residue class of p mod 16.
 
-        $p$ mod 2 = 0 \\Rightarrow p = 2 so \\sqrt{a} = a$.
-        $p$ mod 4 = 3 \\Rightarrow \\sqrt{a} = a^{(p+1)/4}$.
-        $p$ mod 8 = 5 \\Rightarrow \\sqrt{a} = \\zeta i a$ where $\\zeta = (2a)^{(p-5)/8}, i=\\sqrt{-1}$.
-        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\\F_p$.
-        $p$ mod 16 = 1$ Variant of Cipolla\u2013Lehmer, using Lucas functions.
+        $p$ mod 2 = 0 \Rightarrow p = 2 so \sqrt{a} = a$.
+        $p$ mod 4 = 3 \Rightarrow \sqrt{a} = a^{(p+1)/4}$.
+        $p$ mod 8 = 5 \Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}, i=\sqrt{-1}$.
+        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\F_p$.
+        $p$ mod 16 = 1$ Variant of Cipolla\202\304\354Lehmer, using Lucas functions.
 
     REFERENCES:
-        Siguna M\\:uller. 'On the Computation of Square Roots in Finite Fields'
+        Siguna M\:uller. 'On the Computation of Square Roots in Finite Fields'
             Designs, Codes and Cryptography, Volume 31,  Issue 3 (March 2004)
 
         A. Oliver L. Atkin. 'Probabilistic primality testing' (Section 4)
             In P. Flajolet and P. Zimmermann, editors, Analysis of Algorithms Seminar I. INRIA Research Report XXX, 1992.
             Summary by F. Morain.
-            \\url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
+            \url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
 
         H. Postl. 'Fast evaluation of Dickson Polynomials'
-            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\u2013225
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\202\304\354225
 
     AUTHOR:
         Robert Bradshaw
@@ -2145,7 +2171,7 @@ def fast_lucas(mm, IntegerMod_abstract P):
 
     REFERENCES:
         H. Postl. 'Fast evaluation of Dickson Polynomials'
-            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\u2013225
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\202\304\354225
 
     AUTHOR:
         Robert Bradshaw

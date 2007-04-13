@@ -13,7 +13,8 @@ cdef class NativeIntStruct:
     cdef Integer sageInteger
     cdef int_fast32_t int32
     cdef int_fast64_t int64
-    cdef object table
+    cdef object table # a list
+    cdef object inverses # also a list
     cdef lookup(NativeIntStruct self, Py_ssize_t value)
 
 

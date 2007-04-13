@@ -238,6 +238,13 @@ class RationalField(_uniq, field.Field):
     def ngens(self):
         return 1
 
+    def is_subring(self, K):
+        if K.is_field():
+            return K.characteristic() == 0
+        if K.characteristic() != 0:
+            return False
+        raise NotImplementedError
+
     def is_field(self):
         """
         Return True, since the rational field is a field.

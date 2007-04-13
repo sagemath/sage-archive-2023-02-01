@@ -21,6 +21,7 @@ include "singular-cdefs.pxi"
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
 
+
 cdef extern from "stdsage.h":
     ctypedef void PyObject
     object PY_NEW(object t)
@@ -99,5 +100,14 @@ cdef class Conversion:
 
         elif PY_TYPE_CHECK(base, RationalField):
             return self.si2sa_QQ(n,_ring)
+        else:
+            raise ValueError, "cannot convert SINGULAR number"
+
+    cdef public number *sa2si(self, Element elem, ring * _ring):
+        if PY_TYPE_CHECK(elem._parent, FiniteField_prime_modn):
+            return n_Init(int(elem),_ring)
+
+        elif PY_TYPE_CHECK(elem._parent, RationalField):
+            return self.sa2si_QQ(elem, _ring)
         else:
             raise ValueError, "cannot convert SINGULAR number"

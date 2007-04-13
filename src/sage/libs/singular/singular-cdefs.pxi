@@ -44,6 +44,7 @@ cdef extern from "libsingular.h":
         int  OrdSgn
         int  ShortOut
         int  CanShortOut
+        char **names
         short N
 
     # This is the basic polynomial datatype of SINGULAR
@@ -132,6 +133,8 @@ cdef extern from "libsingular.h":
 
     void rWrite(ring *r)
 
+    int rRing_has_Comp(ring *r)
+
     ### Polynomials
     ### The rule of thumb is: p_XXX accepts a ring as parameter, while
     ### pXXX doesn't. It relies on currRing.
@@ -150,6 +153,11 @@ cdef extern from "libsingular.h":
 
     int p_SetExp(poly *p, int v, int e, ring *r)
     int p_GetExp(poly *p, int v, ring *r)
+    unsigned long p_SetComp(poly *p, unsigned long v, ring *r)
+    unsigned long p_GetComp(poly *p, ring *r)
+
+    void pLcm(poly *a, poly *b, poly *m)
+
 
     void p_Setm(poly *p, ring *r)
 
@@ -166,6 +174,10 @@ cdef extern from "libsingular.h":
 
     char *p_Read(char *c, poly *p, ring *r)
     poly *pmInit(char *c, int b)
+
+    void writemon(poly *p, int ko, ring *r)
+    char *StringAppendS(char *)
+    void StringSetS(char *)
 
     ## Arithmetic
     ## -------------------------------
@@ -186,7 +198,7 @@ cdef extern from "libsingular.h":
     poly *p_Minus_mm_Mult_qq(poly *p, poly *m, poly *q, ring *r)
 
     # returns p + m*q destroys p, const: q, m
-    poly *p_Plus_mm_Mult_qq(poly *p, poly m, poly *q, ring *r)
+    poly *p_Plus_mm_Mult_qq(poly *p, poly *m, poly *q, ring *r)
 
     # returns p*q, does neither destroy p nor q
     poly *pp_Mult_qq(poly *p, poly *q, ring *r)
@@ -194,6 +206,7 @@ cdef extern from "libsingular.h":
     # returns p*q, destroys p and q
     poly *p_Mult_q(poly *p, poly *q, ring *r)
 
+    poly *pDivide(poly *,poly *)
 
     # returns p*Coeff(m) for such monomials pm of p, for which m is
     # divisble by pm
@@ -216,6 +229,13 @@ cdef extern from "libsingular.h":
     # returns newly allocated copy of Lm(p), coef is copied,
     # next=NULL, p might be NULL
     poly *p_Head(poly *p, ring *r)
+
+    # returns TRUE, if leading monom of a divides leading monom of b
+    # i.e., if there exists a expvector c > 0, s.t. b = a + c;
+    int p_DivisibleBy(poly *a, poly *b, ring *r)
+
+    # like pDivisibleBy, except that it is assumed that a!=NULL, b!=NULL
+    int p_LmDivisibleBy(poly *a, poly *b, ring *r)
 
 
     long pDeg(poly *p, ring *r)
@@ -254,6 +274,10 @@ cdef extern from "libsingular.h":
     number *n_Init(int n, ring *r)
     void n_Delete(number **n, ring *r)
     int nInt(number *n)
+    number *n_Div(number *a, number *b, ring *r)
+    int n_GreaterZero(number *a, ring *r)
+    int n_IsZero(number *a, ring *r)
+    number *n_Sub(number *a, number *b, ring *r)
 
     number *nInvers(number *n)
 

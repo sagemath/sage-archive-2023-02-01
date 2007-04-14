@@ -6,9 +6,12 @@ AUTHORS:
 """
 
 import os
+import subprocess
+import sys
 
 import sage.interfaces.cleaner
 from sage.misc.all import DOT_SAGE
+from sage.misc.all import SAGE_ROOT
 
 def spawn(cmd, logfile=None, verbose=True):
     """
@@ -17,26 +20,13 @@ def spawn(cmd, logfile=None, verbose=True):
     """
 
     if not logfile is None:
-        cmd += ' &> ' + logfile + ' &'
-    os.system(cmd)
-    log = open(logfile).readlines()
-    for line in reversed(log):
-        if "PID" in line:
-            try:
-                pid = int(line.split(':')[-1].strip())
-                if pid != 0:
-                    sage.interfaces.cleaner.cleaner(pid)
-                    if verbose:
-                        print "Started %s (pid = %s, logfile = '%s')"%(cmd, pid, logfile)
-                break
-            except:
-                print 'Error reading PID, not registering with the cleaner.'
+        log = open(logfile, 'a')
+    else:
+        log = sys.stdout
 
-    # return pid
-    # if pid == 0:
-    #     if not logfile is None:
-    #         cmd += ' 2>&1 > ' + logfile
-    #     os.system(cmd)
+    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)], stdout=log)
+    print 'Spawned %s (pid = %s, logfile = %s)' % (cmd, process.pid, log.name)
+    sage.interfaces.cleaner.cleaner(process.pid)
 
 class DistributedSage(object):
     r"""

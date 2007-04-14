@@ -377,8 +377,6 @@ class Monitor(object):
         except OSError, msg:
             log.err('Error setting priority: %s, using default priority' % (self.priority))
             pass
-        log.msg('[Monitor] Started with PID: %s' % (os.getpid()))
-
         if not self.anonymous:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
@@ -502,7 +500,7 @@ class Monitor(object):
 
         log.msg(DELIMITER)
         log.msg('DSAGE Worker')
-        log.msg('PID %s'%os.getpid())
+        log.msg('Started with PID: %s' % (os.getpid()))
         log.msg('Connecting to %s:%s' % (self.server, self.port))
         log.msg(DELIMITER)
 

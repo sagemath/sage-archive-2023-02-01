@@ -168,17 +168,20 @@ def main():
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)
         log.msg("***NOTICE***")
-        log.msg("[Server] Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
+        log.msg("Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
-        config.set('server', 'client_port', NEW_CLIENT_PORT)
-        config.write(open(config['conf_file'], 'w'))
+        import ConfigParser
+        cparser = ConfigParser.ConfigParser()
+        cparser.read(config['conf_file'])
+        cparser.set('server', 'client_port', NEW_CLIENT_PORT)
+        cparser.write(open(config['conf_file'], 'w'))
 
     log.msg(DELIMITER)
-    log.msg('[Server] DSAGE Server')
-    log.msg('[Server] Started with PID: %s' % (os.getpid()))
+    log.msg('DSAGE Server')
+    log.msg('Started with PID: %s' % (os.getpid()))
     if SSL:
-        log.msg('[Server] Using SSL...')
-    log.msg('[Server] Listening on %s' % (NEW_CLIENT_PORT))
+        log.msg('Using SSL...')
+    log.msg('Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
     # start the reactor.

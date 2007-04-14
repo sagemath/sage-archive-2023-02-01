@@ -89,6 +89,7 @@ cdef extern from "libsingular.h":
     void rChangeCurrRing(ring *r)
     cdef ring *currRing
     cdef omBin *rnumber_bin
+    cdef int (*pLDeg)(poly *p, int *l, ring *r)
 
     int siInit(char *)
 
@@ -241,6 +242,8 @@ cdef extern from "libsingular.h":
     long pDeg(poly *p, ring *r)
     long pTotaldegree(poly *p, ring *r)
 
+    poly *pNext(poly *p)
+
     # pCmp: args may be NULL
     # returns: (p2==NULL ? 1 : (p1 == NULL ? -1 : p_LmCmp(p1, p2)))
     int p_Cmp(poly *l, poly *r, ring *r)
@@ -251,6 +254,8 @@ cdef extern from "libsingular.h":
     int p_IsUnit(poly *, ring *)
 
     poly *pSubst(poly *, int varidx, poly *value)
+
+    poly *pInvers(int n, poly *, intvec *)
 
     # gcd of f and g
     poly *singclap_gcd ( poly *f, poly *g )

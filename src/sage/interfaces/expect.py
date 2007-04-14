@@ -458,6 +458,30 @@ class Expect(ParentWithBase):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
+    def interrupt(self, tries=20, timeout=0.3):
+        E = self._expect
+        if E is None:
+            return True
+        success = False
+        try:
+            for i in range(tries):
+                E.sendline(self._quit_string())
+                E.sendline(chr(3))
+                try:
+                    E.expect(self._prompt, timeout=timeout)
+                    success= True
+                    break
+                except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                    #print msg
+                    pass
+        except Exception, msg:
+            pass
+        if success:
+            pass
+        else:
+            self.quit()
+        return success
+
     def eval(self, code, strip=True):
         """
         INPUT:

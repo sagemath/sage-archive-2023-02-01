@@ -18,7 +18,6 @@ def spawn(cmd, logfile=None, verbose=True):
 
     if not logfile is None:
         cmd += ' &> ' + logfile + ' &'
-    import pdb; pdb.set_trace()
     os.system(cmd)
     log = open(logfile).readlines()
     for line in reversed(log):

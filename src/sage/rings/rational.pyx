@@ -368,6 +368,39 @@ cdef class Rational(sage.structure.element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
+    cdef object _val_unit(Rational self, Integer p):
+        r"""
+        Returns a pair: the p-adic valuation of self, and the p-adic unit of self, as a Rational.
+
+        We do not require the p be prime, but it must be at least 2.
+        For more documentation see \code{val_unit}
+
+        AUTHOR:
+            -- David Roe (4/12/07)
+        """
+        cdef Integer v
+        cdef Rational u
+        if mpz_cmp_ui(p.value, 2) < 0:
+            raise ValueError, "p must be at least 2."
+        if mpq_sgn(self.value) == 0:
+            import sage.rings.infinity
+            u = PY_NEW(Rational)
+            mpq_set_ui(u.value, 1, 1)
+            return (sage.rings.infinity.infinity, u)
+        v = PY_NEW(Integer)
+        u = PY_NEW(Rational)
+        _sig_on
+        mpz_set_ui(v.value, mpz_remove(mpq_numref(u.value), mpq_numref(self.value), p.value))
+        _sig_off
+        if mpz_sgn(v.value) != 0:
+            mpz_set(mpq_denref(u.value), mpq_denref(self.value))
+        else:
+            _sig_on
+            mpz_set_ui(v.value, mpz_remove(mpq_denref(u.value), mpq_denref(self.value), p.value))
+            _sig_off
+            mpz_neg(v.value, v.value)
+        return (v, u)
+
     def sqrt(self, bits=None):
         r"""
         Returns the positive square root of self as a real number to

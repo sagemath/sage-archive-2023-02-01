@@ -1180,12 +1180,12 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             -- David Roe (3/31/07)
         """
         cdef Integer v, u
+        if mpz_cmp_ui(p.value, 2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         if self == 0:
             u = ONE
             Py_INCREF(ONE)
             return (sage.rings.infinity.infinity, u)
-        if mpz_cmp_ui(p.value, 2) < 0:
-            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
         v = PY_NEW(Integer)
         u = PY_NEW(Integer)
         _sig_on

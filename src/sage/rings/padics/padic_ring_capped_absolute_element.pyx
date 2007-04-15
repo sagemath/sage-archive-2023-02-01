@@ -49,19 +49,22 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_init(self.value)
         mpz_init_set(self.p, (<Integer>parent.prime()).value)
         mpz_init(self.modulus)
-        cdef PowComputer_class powerer
-        powerer = <PowComputer_class> parent.prime_pow
         CommutativeRingElement.__init__(self,parent)
         if empty:
             return
+        cdef PowComputer_class powerer
+        powerer = <PowComputer_class> parent.prime_pow
         if not absprec is infinity and not relprec is infinity:
             raise ValueError, "can only specify one of absprec and relprec"
         if relprec is infinity:
             if absprec > parent.precision_cap():
                 absprec = parent.precision_cap()
 
-        if isinstance(x, pAdicGenericElement) and x.valuation() < 0:
-            raise ValueError, "element valuation cannot be negative."
+        if isinstance(x, pAdicGenericElement):
+            if x.valuation() < 0:
+                raise ValueError, "element valuation cannot be negative."
+            if parent.prime() != x.parent().prime():
+                raise TypeError, "Cannot coerce between p-adic parents with different primes"
         if isinstance(x, pAdicLazyElement):
             if relprec is infinity:
                 absprec = min(absprec, parent.precision_cap())
@@ -103,7 +106,8 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.p)
             if mpz_cmp_ui(modulus, 1) == 0:
-                if absprec is infinity and relprec is infinity: #this allows you to lift integer_mod elements to higher precision than they are actually defined.
+                # There's a bug here if the user tries to lift to absprec = parent.precision_cap()
+                if absprec == parent.precision_cap() and relprec is infinity: #this allows you to lift integer_mod elements to higher precision than they are actually defined.
                     absprec = min(absprec, k)
                 x = x.lift()
                 mpz_clear(modulus)
@@ -121,7 +125,7 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
             val = x.valuation(parent.prime())
             if val < 0:
                 raise ValueError, "p divides the denominator"
-            # todo: make the following and speed it up a bit by just using mpz functions
+            # todo: make the following understandable and speed it up a bit by just using mpz functions
             absprec = min(absprec, val + relprec, parent.precision_cap())
             self.set_precs(mpz_get_ui((<Integer>absprec).value))
             tmp = PY_NEW(Integer)
@@ -608,6 +612,7 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         while mpz_sgn(tmp) != 0:
             curpower -= 1
             list_elt = self._new_c()
+            list_elt.set_precs(preccap)
             mpz_mod(list_elt.value, tmp, self.p)
             powerer.pow_mpz_ui(ppow, preccap)
             sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.p, ppow)
@@ -736,6 +741,10 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
             sage: R = Zp(7,4,'capped-abs'); a = R(8); a.residue(1)
             1
         """
+        if prec > self.precision_absolute():
+            raise PrecisionError, "Not enough precision known in order to compute residue."
+        elif prec < 0:
+            raise ValueError, "cannot reduce modulo a negative power of p"
         cdef Integer selfvalue
         selfvalue = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)

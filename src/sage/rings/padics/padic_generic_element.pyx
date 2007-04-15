@@ -908,7 +908,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
     #    raise NotImplementedError
 
     def _val_unit(self):
-        return self.valuation(), self.unit_part()
+        return self.valuation(), self.unit_part().lift()
 
     cdef base_p_list(self, mpz_t value, mpz_t p, lift_mode, PowComputer_class powerer, int preccap):
         cdef mpz_t tmp, halfp, ppow

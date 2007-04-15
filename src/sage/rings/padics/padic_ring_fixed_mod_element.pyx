@@ -154,6 +154,11 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         #    else:
         #        mpz_set(self.value, (<pAdicLazyElement>x).value)
         #    return
+        if PY_TYPE_CHECK(x, pAdicGenericElement):
+            if x.valuation() < 0:
+                raise ValueError, "element has negative valuation"
+            if parent.prime() != x.parent().prime():
+                raise TypeError, "Cannot coerce between p-adic parents with different primes."
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             tmp = <Integer> x.lift()
             if mpz_cmp(tmp.value, self.modulus) >= 0:

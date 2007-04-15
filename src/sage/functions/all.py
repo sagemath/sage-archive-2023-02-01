@@ -5,13 +5,12 @@ from transcendental import (exponential_integral_1,
                             gamma, gamma_inc, incomplete_gamma,
                             zeta, zeta_symmetric)
 
-# This is too terrible code.
 #from elementary import (cosine, sine, exponential,
 #                        ElementaryFunction,
 #                        ElementaryFunctionRing)
 
 from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
-                        hypergeometric_U, incomplete_gamma,
+                        hypergeometric_U,
                         spherical_bessel_J, spherical_bessel_Y,
                         spherical_hankel1, spherical_hankel2,
                         spherical_harmonic, jacobi,
@@ -35,5 +34,5 @@ from orthogonal_polys import (chebyshev_T,
 from functions import FunctionRing, sin, cos, airy_ai, airy_bi, var
 
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
-                       khinchin, twinprime, merten, brun)
+                       khinchin, twinprime, merten, brun, I)
 

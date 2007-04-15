@@ -113,7 +113,6 @@ except:
 
 # very useful 2-letter shortcuts
 CC = ComplexField()
-I = CC.gen(0)
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()

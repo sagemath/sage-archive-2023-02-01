@@ -1,9 +1,10 @@
 from equations import SymbolicEquation
 from calculus import (SymbolicExpressionRing,
                       SER,
-                      var,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
                       abs, exp)
+
+from var import var
 
 from calculus import (a,
                       b,
@@ -38,13 +39,11 @@ from calculus import (a,
                       F,
                       G,
                       H,
-                      I,
                       J,
                       K,
                       L,
                       M,
                       N,
-                      #O,
                       P,
                       Q,
                       R,

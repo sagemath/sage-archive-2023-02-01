@@ -1,18 +1,18 @@
 """nodoctest"""
 
-import os, time
+import os, time, pexpect
 
 expect_objects = []
 
 def expect_quitall(verbose=False):
-    for P in expect_objects:
-        R = P()
-        if not R is None:
-            try:
-                R.quit(verbose=verbose)
-            except RuntimeError, msg:
-                if verbose:
-                    print msg
+    ## for P in expect_objects:
+##         R = P()
+##         if not R is None:
+##             try:
+##                 R.quit(verbose=verbose)
+##                 pass
+##             except RuntimeError:
+##                 pass
     kill_spawned_jobs()
 
 def kill_spawned_jobs():
@@ -23,20 +23,14 @@ def kill_spawned_jobs():
         i = L.find(' ')
         pid = L[:i].strip()
         cmd = L[i+1:].strip()
-        j = 0
-        while j < 3:
-            j += 1
-            if not is_running(pid):
-                break
-            try:
-                os.killpg(int(pid), 9)
-            except OSError, msg:
-                pass
-            else:
-                j += 1
-                if j > 5:
-                    os.kill(int(pid), 9)
-                    break
+        try:
+            #s = "Killing spawned job %s"%pid
+            #if len(cmd) > 0:
+            #    s += ' (%s)'%cmd
+            #print s
+            os.killpg(int(pid), 9)
+        except:
+            pass
 
 def is_running(pid):
     """

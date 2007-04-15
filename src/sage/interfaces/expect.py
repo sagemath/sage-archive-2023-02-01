@@ -344,9 +344,9 @@ class Expect(ParentWithBase):
             try:
                 self._expect.close = dummy
             except Exception, msg:
-                print msg
+                pass
         except Exception, msg:
-            print msg
+            pass
 
     def cputime(self):
         """

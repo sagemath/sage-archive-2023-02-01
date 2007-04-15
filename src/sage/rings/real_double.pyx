@@ -112,6 +112,8 @@ cdef class RealDoubleField_class(Field):
             sage: b == RR(a)
             True
         """
+        if hasattr(x, '_real_double_'):
+            return x._real_double_(self)
         return RealDoubleElement(x)
 
     cdef _coerce_c_impl(self, x):

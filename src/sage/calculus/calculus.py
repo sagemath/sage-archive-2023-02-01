@@ -2,8 +2,7 @@ r"""
 The \sage calculus and elementary functions module.
 
 AUTHORS:
-    Bobby Moretti and William Stein - Initial version
-    Bobby Moretti - lots of improvements
+    Bobby Moretti and William Stein: 2006--2007
 
 The \sage calculus module is loosely based on the \sage Enhahcement Proposal
 found at: http://www.sagemath.org:9001/CalculusSEP.
@@ -120,6 +119,28 @@ EXAMPLES:
         0
         sage: float(f(pi))             # random low order bits
         6.1232339957367663e-16
+
+COERCION EXAMPLES:
+
+We coerce various symbolic expressions into the complex numbers:
+
+    sage: CC(I)
+    1.00000000000000*I
+    sage: CC(2*I)
+    2.00000000000000*I
+    sage: ComplexField(200)(2*I)
+    2.0000000000000000000000000000000000000000000000000000000000*I
+    sage: ComplexField(200)(sin(I))
+    1.1752011936438014568823818505956008151557179813340958702296*I
+    sage: f = sin(I) + cos(I/2); f
+    I*((exp(1) - exp(-1))/2) + (exp(1/2) + exp(-1/2))/2
+    sage: CC(f)
+    1.12762596520638 + 1.17520119364380*I
+    sage: ComplexField(200)(f)
+    1.1276259652063807852262251614026720125478471180986674836290 + 1.1752011936438014568823818505956008151557179813340958702296*I
+    sage: ComplexField(100)(f)
+    1.1276259652063807852262251614 + 1.1752011936438014568823818506*I
+
 """
 
 
@@ -264,6 +285,52 @@ class SymbolicExpression(RingElement):
     def __init__(self):
         RingElement.__init__(self, SER)
 
+    def display2d(self, onscreen=True):
+        """
+        Display self using ASCII art.
+
+        INPUT:
+            onscreen -- string (optional, default True) If True,
+                displays; if False, returns string.
+
+        EXAMPLES:
+        We display a fraction:
+            sage: f = (x^3+y)/(x+3*y^2+1); f
+            (y + x^3)/(3*y^2 + x + 1)
+            sage: f.display2d()
+                                                     3
+                                                y + x
+                                             ------------
+                                                2
+                                             3 y  + x + 1
+
+        Use onscreen=False to get the 2d string:
+             sage: print f.display2d(onscreen=False)
+                                         3
+                                    y + x
+                                 ------------
+                                    2
+                                 3 y  + x + 1
+
+
+        ASCII are really helps for the following integral:
+            sage: f = integral(sin(x^2)); f
+            sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
+            sage: f.display2d()
+                                                         (sqrt(2)  I + sqrt(2)) x
+                   sqrt( Pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                                                                    2
+                                                               (sqrt(2)  I - sqrt(2)) x
+                                  + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
+                                                                          2
+        """
+        s = self._maxima_().display2d(onscreen=False)
+        s = s.replace('%pi',' Pi').replace('%i',' I').replace('%e', ' E')
+        if onscreen:
+            print s
+        else:
+            return s
+
     def is_simplified(self):
         return hasattr(self, '_simp')
 
@@ -294,38 +361,102 @@ class SymbolicExpression(RingElement):
         return SymbolicEquation(self, right)
 
     def __cmp__(self, right):
+        """
+        Compares self and right.
+
+        This is by definition the comparison of the underlying Maxima
+        objects.
+
+        EXAMPLES:
+        These two are equal:
+            sage: cmp(e+e, e*2)
+            0
+        """
         return cmp(maxima(self), maxima(right))
 
     def _neg_(self):
+        """
+        Return the formal negative of self.
+
+        EXAMPLES:
+            sage: -a
+            -a
+            sage: -(x+y)
+            -y - x
+        """
         return SymbolicArithmetic([self], operator.neg)
 
     def _maxima_init_(self):
         return self._repr_(simplify=False)
 
+    def _mpfr_(self, field):
+        raise TypeError
+
+    def _complex_mpfr_field_(self, field):
+        raise TypeError
+
+    def _complex_double_(self, C):
+        raise TypeError
+
+    def _real_double_(self, R):
+        raise TypeError
+
     def _add_(self, right):
-        # if we are adding a negation, instead subtract the operand of negation
-        #if isinstance(right, SymbolicArithmetic):
-        #    if right._operator is operator.neg:
-        #        return SymbolicArithmetic([self, right._operands[0]], operator.sub)
-        #elif isinstance(right, Symbolic_object) and right < 0:
-        #    return SymbolicArithmetic([self, SER(abs(right._obj))], operator.sub)
-        #else:
+        """
+        EXAMPLES:
+            sage: x + y
+            y + x
+            sage: x._add_(y)
+            y + x
+        """
         return SymbolicArithmetic([self, right], operator.add)
 
     def _sub_(self, right):
+        """
+        EXAMPLES:
+            sage: x - y
+            x - y
+        """
         return SymbolicArithmetic([self, right], operator.sub)
 
     def _mul_(self, right):
+        """
+        EXAMPLES:
+            sage: x * y
+            x*y
+        """
         return SymbolicArithmetic([self, right], operator.mul)
 
     def _div_(self, right):
+        """
+        EXAMPLES:
+            sage: x / y
+            x/y
+        """
         return SymbolicArithmetic([self, right], operator.div)
 
     def __pow__(self, right):
+        """
+        EXAMPLES:
+            sage: x^(n+1)
+            x^(n + 1)
+        """
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
     def _get_vars(self, vars=None):
+        """
+        Returns the set of variables appearing in self.
+
+        OUTPUT:
+            a Python set
+
+        EXAMPLES:
+            sage: f = x^(n+1) + sin(pi/19); f
+            x^(n + 1) + sin(pi/19)
+            sage: f._get_vars()
+            set([x, n])
+        """
         if vars is None:
             vars = set([])
         return vars
@@ -481,6 +612,12 @@ class SymbolicExpression(RingElement):
             0
             sage: f.integral(a=-pi, b=pi)
             0
+
+        We integrate a spherical Bessel function:
+            sage: f = spherical_bessel_Y(2,x); f
+            (-3*sin(x)/x - (1 - (3/x^2))*cos(x))/x
+            sage: f.integral(x)
+            ???
         """
         if v is None:
             vars = self._get_vars()
@@ -504,7 +641,6 @@ class SymbolicExpression(RingElement):
         try:
             return self._simp
         except AttributeError:
-            print "doing simplify on '%s'"%(self._maxima_init_())
             S = evaled_symbolic_expression_from_maxima_string(self._maxima_init_())
             S._simp = S
             self._simp = S
@@ -538,6 +674,46 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().fullratsimp())
 
     rational_simplify = simplify_rational
+
+    ###################################################################
+    # factor
+    ###################################################################
+    def factor(self, dontfactor=[]):
+        """
+        Factors self, containing any number of variables or functions,
+        into factors irreducible over the integers.
+
+        INPUT:
+            self -- a symbolic expression
+            dontfactor -- list (default: []), a list of variables with
+                          respect to which factoring is not to occur.
+                          Factoring also will not take place with
+                          respect to any variables which are less
+                          important (using the variable ordering
+                          assumed for CRE form) than those on the
+                          `dontfactor' list.
+
+        EXAMPLES:
+            sage: (x^3-y^3).factor()
+            (-y - x)*(y^2 + x*y + x^2)
+            sage: factor(-8*y - 4*x + z^2*(2*y + x))
+            (2*y + x)*(z - 2)*(z + 2)
+            sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
+            sage: F = factor(f/(36*(1 + 2*y + y^2)), dontfactor=[x])
+            sage: F.display2d()
+                                          2
+                                        (x  + 2 x + 1) (y - 1)
+                                        ----------------------
+                                              36 (y + 1)
+        """
+        if len(dontfactor) > 0:
+            m = self._maxima_()
+            name = m.name()
+            cmd = 'block ([dontfactor: %s], factor (%s))'%(dontfactor,
+                                               name)
+            return evaled_symbolic_expression_from_maxima_string(cmd)
+        else:
+            return self.parent()(self._maxima_().factor())
 
     ###################################################################
     # expand
@@ -638,6 +814,13 @@ class CallableFunction(RingElement):
             return float(self.obj)
 
         def _mpfr_(self, field):
+            """
+            Coerce to a multiprecision real number.
+
+            EXAMPLES:
+                sage: RealField(100)(SER(10))
+                10.000000000000000000000000000
+            """
             return (self.obj)._mpfr_(field)
 
     # TODO: should len(args) == len(vars)?
@@ -854,59 +1037,63 @@ class Symbolic_object(SymbolicExpression):
         self._obj = obj
 
     def obj(self):
+        """
+        EXAMPLES:
+        """
         return self._obj
 
     def __float__(self):
+        """
+        EXAMPLES:
+        """
         return float(self._obj)
 
     def _mpfr_(self, field):
+        """
+        EXAMPLES:
+        """
         return field(self._obj)
 
+    def _complex_mpfr_field_(self, C):
+        """
+        EXAMPLES:
+        """
+        return C(self._obj)
+
+    def _complex_double_(self, C):
+        """
+        EXAMPLES:
+        """
+        return C(self._obj)
+
+    def _real_double_(self, R):
+        """
+        EXAMPLES:
+        """
+        return R(self._obj)
+
     def _repr_(self, simplify=True):
+        """
+        EXAMPLES:
+        """
         return str(self._obj)
 
     def _latex_(self):
+        """
+        EXAMPLES:
+        """
         return latex(self._obj)
 
     def __pow__(self, right):
+        """
+        EXAMPLES:
+        """
         if isinstance(right, Symbolic_object):
             try:
                 return Symbolic_object(self._obj ** right._obj)
             except TypeError:
                 pass
         return SymbolicExpression.__pow__(self, right)
-
-    def _add_(self, right):
-        if isinstance(right, Symbolic_object):
-            try:
-                return Symbolic_object(self._obj + right._obj)
-            except TypeError:
-                pass
-        return SymbolicExpression._add_(self, right)
-
-    def _sub_(self, right):
-        if isinstance(right, Symbolic_object):
-            try:
-                return Symbolic_object(self._obj - right._obj)
-            except TypeError:
-                pass
-        return SymbolicExpression._sub_(self, right)
-
-    def _mul_(self, right):
-        if isinstance(right, Symbolic_object):
-            try:
-                return Symbolic_object(self._obj * right._obj)
-            except TypeError:
-                pass
-        return SymbolicExpression._mul_(self, right)
-
-    def _div_(self, right):
-        if isinstance(right, Symbolic_object):
-            try:
-                return Symbolic_object(self._obj / right._obj)
-            except TypeError:
-                pass
-        return SymbolicExpression._div_(self, right)
 
     def str(self, bits=None):
         if bits is None:
@@ -1065,6 +1252,18 @@ class SymbolicArithmetic(SymbolicOperation):
         rops = [op._mpfr_(field) for op in self._operands]
         return self._operator(*rops)
 
+    def _complex_mpfr_field_(self, C):
+        rops = [op._complex_mpfr_field_(C) for op in self._operands]
+        return self._operator(*rops)
+
+    def _complex_double_(self, C):
+        rops = [op._complex_double_(C) for op in self._operands]
+        return self._operator(*rops)
+
+    def _real_double_(self, R):
+        rops = [op._real_double_(R) for op in self._operands]
+        return self._operator(*rops)
+
     def _is_atomic(self):
         try:
             return self._atomic
@@ -1142,7 +1341,10 @@ class SymbolicArithmetic(SymbolicOperation):
                 s[1] = '(%s)'% s[1]
 
         if op is operator.neg:
-            return '-%s' % s[0]
+            if ops[0]._is_atomic():
+                return '-%s' % s[0]
+            else:
+                return '-(%s)'%s[0]
         else:
             return '%s%s%s' % (s[0], symbols[op], s[1])
 
@@ -1182,7 +1384,7 @@ class SymbolicArithmetic(SymbolicOperation):
                     operator.pow: '^'}
 
         if self._operator is operator.neg:
-            return '-%s' % ops[0]._maxima_init_()
+            return '-(%s)' % ops[0]._maxima_init_()
         else:
             return '(%s) %s (%s)' % (ops[0]._maxima_init_(),
                                  infixops[self._operator],
@@ -1285,6 +1487,10 @@ def var(s):
     r"""
     Create a symbolic variable with the name \emph{s}.
     """
+    if ',' in s:
+        return tuple([var(x.strip()) for x in s.split(',')])
+    elif ' ' in s:
+        return tuple([var(x.strip()) for x in s.split()])
     try:
         return _vars[s]
     except KeyError:
@@ -1324,8 +1530,6 @@ class SymbolicComposition(SymbolicOperation):
         """
         EXAMPLES:
             sage: ??
-
-
         """
         ops = self._operands
         return ops[0](ops[1]._recursive_sub(kwds))
@@ -1367,9 +1571,52 @@ class SymbolicComposition(SymbolicOperation):
         return f.__call__(float(g))
 
     def _mpfr_(self, field):
+        """
+        Coerce to a multiprecision real number.
+
+        EXAMPLES:
+            sage: RealField(100)(sin(2)+cos(2))
+            0.49315059027853930839845163641
+        """
         f = self._operands[0]
         g = self._operands[1]
         return f(g._mpfr_(field))
+
+    def _complex_mpfr_field_(self, field):
+        """
+        Coerce to a multiprecision complex number.
+
+        EXAMPLES:
+            sage: ComplexField(100)(sin(2)+cos(2)+I)
+            0.49315059027853930839845163641 + 1.0000000000000000000000000000*I
+        """
+        f = self._operands[0]
+        g = self._operands[1]
+        return f(g._complex_mpfr_field_(field))
+
+    def _complex_double_(self, field):
+        """
+        Coerce to a complex double.
+
+        EXAMPLES:
+            sage: CDF(sin(2)+cos(2)+I)
+            0.493150590279 + 1.0*I
+        """
+        f = self._operands[0]
+        g = self._operands[1]
+        return f(g._complex_double_(field))
+
+    def _real_double_(self, field):
+        """
+        Coerce to a real double.
+
+        EXAMPLES:
+            sage: RDF(sin(2)+cos(2))
+            0.493150590279
+        """
+        f = self._operands[0]
+        g = self._operands[1]
+        return f(g._real_double_(field))
 
 
 class PrimitiveFunction(SymbolicExpression):
@@ -1824,8 +2071,12 @@ class Function_exp(PrimitiveFunction):
         ?
         sage: exp(2)
         ?
-        sage: exp(x^2)
+        sage: exp(x^2 + log(x))
         ?
+        sage: exp(2.5)
+        sage: exp(float(2.5))
+        sage: exp(RDF('2.5'))
+
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)
@@ -1845,7 +2096,7 @@ class Function_exp(PrimitiveFunction):
             return self._approx_(x)
         if not isinstance(x, (Integer, Rational)):
             try:
-                return x.sqrt()
+                return x.exp()
             except AttributeError:
                 pass
         return SymbolicComposition(self, SER(x))
@@ -1871,7 +2122,7 @@ symtable = {'%pi':'_Pi_', '%e': '_E_', '%i':'_I_'}
 import sage.functions.constants as c
 _syms['_Pi_'] = SER(c.pi)
 _syms['_E_'] = SER(c.e)
-_syms['_I_'] = SER(CC.gen(0))  # change when we create a symbolic I.
+_syms['_I_'] = SER(c.I)
 
 def symbolic_expression_from_maxima_string(x):
     global _syms
@@ -1885,9 +2136,12 @@ def symbolic_expression_from_maxima_string(x):
         for a in v:
             _syms[a] = var(a)
     s = maxima.eval('_tmp_')
-    for x, y in symtable.iteritems():
-        s = s.replace(x, y)
-    return SER(sage_eval(s, _syms))
+    for z, w in symtable.iteritems():
+        s = s.replace(z, w)
+    try:
+        return SER(sage_eval(s, _syms))
+    except SyntaxError:
+        raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s
 
 def symbolic_expression_from_maxima_element(x):
     return symbolic_expression_from_maxima_string(x.name())
@@ -1929,7 +2183,6 @@ E = var('E')
 F = var('F')
 G = var('G')
 H = var('H')
-I = var('I')
 J = var('J')
 K = var('K')
 L = var('L')
@@ -1947,43 +2200,4 @@ W = var('W')
 X = var('X')
 Y = var('Y')
 Z = var('Z')
-
-
-###################################
-# deleted code that was in comments:
-        # do some simplification... pull out negatives from the operands and put it
-        # in front of this multiplication
-        #if isinstance(self, SymbolicArithmetic) and isinstance(right, SymbolicArithmetic):
-        #    if self._operator is operator.neg and right._operator is operator.neg:
-        #        s_unneg = self._operands[0]
-        #        r_unneg = right._operands[0]
-        #        return SymbolicArithmetic([s_unneg, r_unneg], operator.mul)
-        #if isinstance(self, SymbolicArithmetic):
-        #    if self._operator is operator.neg and (not isinstance(right, SymbolicArithmetic) \
-        #    or not (right._operator is operator.neg)):
-        #        s_unneg = self._operands[0]
-        #        return -SymbolicArithmetic([s_unneg, right], operator.mul)
-        #if isinstance(right, SymbolicArithmetic):
-        #    if not isinstance(self, SymbolicArithmetic) or (not (self._operator is operator.neg)) \
-        #    and right._operator is operator.neg:
-        #        r_unneg = right._operands[0]
-        #        return -SymbolicArithmetic([self, r_unneg], operator.mul)
-
-        # do some simplification... pull out negatives from the operands and put it
-        # in front of this division
-        #if isinstance(self, SymbolicArithmetic) and isinstance(right, SymbolicArithmetic):
-        #    if self._operator is operator.neg and right._operator is operator.neg:
-        #        s_unneg = self._operands[0]
-        #        r_unneg = right._operands[0]
-        #        return SymbolicArithmetic([s_unneg, r_unneg], operator.div)
-        #elif isinstance(self, SymbolicArithmetic):
-        #    if self._operator is operator.neg and (not isinstance(right, SymbolicArithmetic) \
-        #    or not (right._operator is operator.neg)):
-        #        s_unneg = self._operands[0]
-        #        return -SymbolicArithmetic([s_unneg, right], operator.div)
-        #elif isinstance(right, SymbolicArithmetic):
-        #    if not isinstance(self, SymbolicArithmetic) or (not (self._operator is operator.neg)) \
-        #    and right._operator is operator.neg:
-        #        r_unneg = right._operands[0]
-        #        return -SymbolicArithmetic([self, r_unneg], operator.div)
 

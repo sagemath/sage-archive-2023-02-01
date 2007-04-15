@@ -228,6 +228,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                     return ComplexDoubleElement(t, 0)
                 else:
                     return t
+            elif hasattr(x, '_complex_double_'):
+                return x._complex_double_(self)
             else:
                 return ComplexDoubleElement(x, 0)
         else:

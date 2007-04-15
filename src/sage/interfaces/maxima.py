@@ -31,7 +31,7 @@ We factor $x^5 - y^5$ in Maxima in several different ways.
 The first way yields a Maxima object.
     sage: F = maxima.factor('x^5 - y^5')
     sage: F
-    -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
+    -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
     sage: type(F)
     <class 'sage.interfaces.maxima.MaximaElement'>
 
@@ -52,27 +52,27 @@ You can always use \code{x.str()} to obtain the linear representation
 of an object, even without changing the display2d flag.  This can
 be useful for moving maxima data to other systems.
     sage: F.str()
-    '-(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)'
+    '-(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)'
 
     sage: maxima.display2d(False)
     sage: F
-    -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
+    -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
 
 
 The \code{maxima.eval} command evaluates an expression in maxima
 and returns the result as a string.
 
     sage: print maxima.eval('factor(x^5 - y^5)')
-    -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
+    -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
 
 We can create the polynomial $f$ as a Maxima polynomial, then call
 the factor method on it.  Notice that the notation \code{f.factor()}
 is consistent with how the rest of \sage works.
     sage: f = maxima('x^5 - y^5')
     sage: f^2
-    (x^5 - y^5)^2
+    (x^5-y^5)^2
     sage: f.factor()
-    -(y - x)*(y^4 + x*y^3 + x^2*y^2 + x^3*y + x^4)
+    -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
 
 Control-C interruption works well with the maxima interface,
 because of the excellent implementation of maxima.  For example,
@@ -89,9 +89,9 @@ We follow the tutorial at
     201/10100
 
     sage: a = maxima('(1 + sqrt(2))^5'); a
-    (sqrt(2) + 1)^5
+    (sqrt(2)+1)^5
     sage: a.expand()
-    29*sqrt(2) + 41
+    29*sqrt(2)+41
 
     sage: a = maxima('(1 + sqrt(2))^5')
     sage: float(a)
@@ -109,24 +109,24 @@ We follow the tutorial at
 
     sage: f = maxima('(x + 3*y + x^2*y)^3')
     sage: f.expand()
-    x^6*y^3 + 9*x^4*y^3 + 27*x^2*y^3 + 27*y^3 + 3*x^5*y^2 + 18*x^3*y^2 + 27*x*y^2 + 3*x^4*y + 9*x^2*y + x^3
+    x^6*y^3+9*x^4*y^3+27*x^2*y^3+27*y^3+3*x^5*y^2+18*x^3*y^2+27*x*y^2+3*x^4*y+9*x^2*y+x^3
     sage: f.subst('x=5/z')
-    (5/z + 25*y/z^2 + 3*y)^3
+    (5/z+25*y/z^2+3*y)^3
     sage: g = f.subst('x=5/z')
     sage: h = g.ratsimp(); h
-    (27*y^3*z^6 + 135*y^2*z^5 + (675*y^3 + 225*y)*z^4 + (2250*y^2 + 125)*z^3 + (5625*y^3 + 1875*y)*z^2 + 9375*y^2*z + 15625*y^3)/z^6
+    (27*y^3*z^6+135*y^2*z^5+(675*y^3+225*y)*z^4+(2250*y^2+125)*z^3+(5625*y^3+1875*y)*z^2+9375*y^2*z+15625*y^3)/z^6
     sage: h.factor()
-    (3*y*z^2 + 5*z + 25*y)^3/z^6
+    (3*y*z^2+5*z+25*y)^3/z^6
 
     sage: eqn = maxima(['a+b*c=1', 'b-a*c=0', 'a+b=5'])
     sage: s = eqn.solve('[a,b,c]'); s
-    [[a = (25*sqrt(79)*%i + 25)/(6*sqrt(79)*%i - 34),b = (5*sqrt(79)*%i + 5)/(sqrt(79)*%i + 11),c = (sqrt(79)*%i + 1)/10],[a = (25*sqrt(79)*%i - 25)/(6*sqrt(79)*%i + 34),b = (5*sqrt(79)*%i - 5)/(sqrt(79)*%i - 11),c =  - (sqrt(79)*%i - 1)/10]]
+    [[a=(25*sqrt(79)*%i+25)/(6*sqrt(79)*%i-34),b=(5*sqrt(79)*%i+5)/(sqrt(79)*%i+11),c=(sqrt(79)*%i+1)/10],[a=(25*sqrt(79)*%i-25)/(6*sqrt(79)*%i+34),b=(5*sqrt(79)*%i-5)/(sqrt(79)*%i-11),c=-(sqrt(79)*%i-1)/10]]
 
 Here is an example of solving an algebraic equation:
     sage: maxima('x^2+y^2=1').solve('y')
-    [y =  - sqrt(1 - x^2),y = sqrt(1 - x^2)]
+    [y=-sqrt(1-x^2),y=sqrt(1-x^2)]
     sage: maxima('x^2 + y^2 = (x^2 - y^2)/sqrt(x^2 + y^2)').solve('y')
-    [y =  - sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2),y = sqrt(( - y^2 - x^2)*sqrt(y^2 + x^2) + x^2)]
+    [y=-sqrt((-y^2-x^2)*sqrt(y^2+x^2)+x^2),y=sqrt((-y^2-x^2)*sqrt(y^2+x^2)+x^2)]
 
 You can even nicely typeset the solution in latex:
     sage: latex(s)
@@ -136,32 +136,32 @@ To have the above appear onscreen via \code{xdvi}, type \code{view(s)}.
 (TODO: For OS X should create pdf output and use preview instead?)
 
     sage: e = maxima('sin(u + v) * cos(u)^3'); e
-    cos(u)^3*sin(v + u)
+    cos(u)^3*sin(v+u)
     sage: f = e.trigexpand(); f
-    cos(u)^3*(cos(u)*sin(v) + sin(u)*cos(v))
+    cos(u)^3*(cos(u)*sin(v)+sin(u)*cos(v))
     sage: f.trigreduce()
-    (sin(v + 4*u) + sin(v - 2*u))/8 + (3*sin(v + 2*u) + 3*sin(v))/8
+    (sin(v+4*u)+sin(v-2*u))/8+(3*sin(v+2*u)+3*sin(v))/8
     sage: w = maxima('3 + k*%i')
     sage: f = w^2 + maxima('%e')^w
     sage: f.realpart()
-    %e^3*cos(k) - k^2 + 9
+    %e^3*cos(k)-k^2+9
 
     sage: f = maxima('x^3 * %e^(k*x) * sin(w*x)'); f
     x^3*%e^(k*x)*sin(w*x)
     sage: f.diff('x')
-    k*x^3*%e^(k*x)*sin(w*x) + 3*x^2*%e^(k*x)*sin(w*x) + w*x^3*%e^(k*x)*cos(w*x)
+    k*x^3*%e^(k*x)*sin(w*x)+3*x^2*%e^(k*x)*sin(w*x)+w*x^3*%e^(k*x)*cos(w*x)
     sage: f.integrate('x')
-    (((k*w^6 + 3*k^3*w^4 + 3*k^5*w^2 + k^7)*x^3 + (3*w^6 + 3*k^2*w^4 - 3*k^4*w^2 - 3*k^6)*x^2 + ( - 18*k*w^4 - 12*k^3*w^2 + 6*k^5)*x - 6*w^4 + 36*k^2*w^2 - 6*k^4)*%e^(k*x)*sin(w*x) + (( - w^7 - 3*k^2*w^5 - 3*k^4*w^3 - k^6*w)*x^3 + (6*k*w^5 + 12*k^3*w^3 + 6*k^5*w)*x^2 + (6*w^5 - 12*k^2*w^3 - 18*k^4*w)*x - 24*k*w^3 + 24*k^3*w)*%e^(k*x)*cos(w*x))/(w^8 + 4*k^2*w^6 + 6*k^4*w^4 + 4*k^6*w^2 + k^8)
+    (((k*w^6+3*k^3*w^4+3*k^5*w^2+k^7)*x^3+(3*w^6+3*k^2*w^4-3*k^4*w^2-3*k^6)*x^2+(-18*k*w^4-12*k^3*w^2+6*k^5)*x-6*w^4+36*k^2*w^2-6*k^4)*%e^(k*x)*sin(w*x)+((-w^7-3*k^2*w^5-3*k^4*w^3-k^6*w)*x^3+(6*k*w^5+12*k^3*w^3+6*k^5*w)*x^2+(6*w^5-12*k^2*w^3-18*k^4*w)*x-24*k*w^3+24*k^3*w)*%e^(k*x)*cos(w*x))/(w^8+4*k^2*w^6+6*k^4*w^4+4*k^6*w^2+k^8)
 
     sage: f = maxima('1/x^2')
     sage: f.integrate('x', 1, 'inf')
     1
     sage: g = maxima('f/sinh(k*x)^4')
     sage: g.taylor('x', 0, 3)
-    f/(k^4*x^4) - 2*f/(3*k^2*x^2) + 11*f/45 - 62*k^2*f*x^2/945
+    f/(k^4*x^4)-2*f/(3*k^2*x^2)+11*f/45-62*k^2*f*x^2/945
 
     sage: maxima.taylor('asin(x)','x',0, 10)
-    x + x^3/6 + 3*x^5/40 + 5*x^7/112 + 35*x^9/1152
+    x+x^3/6+3*x^5/40+5*x^7/112+35*x^9/1152
 
 \subsection{Examples involving matrices}
 We illustrate computing with the matrix whose $i,j$ entry
@@ -177,7 +177,7 @@ is $i/j$, for $i,j=1,\ldots,4$.
     sage: A.eigenvalues()
     [[0,4],[3,1]]
     sage: A.eigenvectors()
-    [[[0,4],[3,1]],[1,0,0, - 4],[0,1,0, - 2],[0,0,1, - 4/3],[1,2,3,4]]
+    [[[0,4],[3,1]],[1,0,0,-4],[0,1,0,-2],[0,0,1,-4/3],[1,2,3,4]]
 
 We can also compute the echelon form in \sage:
     sage: B = matrix(QQ, A)
@@ -193,18 +193,18 @@ We can also compute the echelon form in \sage:
 We illustrate Laplace transforms:
     sage: _ = maxima.eval("f(t) := t*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
-    2*s/(s^2 + 1)^2
+    2*s/(s^2+1)^2
 
     sage: maxima("laplace(delta(t-3),t,s)") #Dirac delta function
     %e^-(3*s)
 
     sage: _ = maxima.eval("f(t) := exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
-    1/(s^2 - 2*s + 2)
+    1/(s^2-2*s+2)
 
     sage: _ = maxima.eval("f(t) := t^5*exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
-    360*(2*s - 2)/(s^2 - 2*s + 2)^4 - 480*(2*s - 2)^3/(s^2 - 2*s + 2)^5 + 120*(2*s - 2)^5/(s^2 - 2*s + 2)^6
+    360*(2*s-2)/(s^2-2*s+2)^4-480*(2*s-2)^3/(s^2-2*s+2)^5+120*(2*s-2)^5/(s^2-2*s+2)^6
     sage: maxima("laplace(f(t),t,s)").display2d()
                                              3                 5
                360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
@@ -213,10 +213,10 @@ We illustrate Laplace transforms:
               (s  - 2 s + 2)    (s  - 2 s + 2)    (s  - 2 s + 2)
 
     sage: maxima("laplace(diff(x(t),t),t,s)")
-    s*?%laplace(x(t),t,s) - x(0)
+    s*?%laplace(x(t),t,s)-x(0)
 
     sage: maxima("laplace(diff(x(t),t,2),t,s)")
-    -?%at('diff(x(t),t,1),t = 0) + s^2*?%laplace(x(t),t,s) - x(0)*s
+    -?%at('diff(x(t),t,1),t=0)+s^2*?%laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d representation:
     sage.: maxima("laplace(diff(x(t),t,2),t,s)").display2d()
@@ -272,7 +272,7 @@ We formally compute the limit as $n\to\infty$ of $2S/n$ as follows:
 
     sage: T = S*maxima('2/n')
     sage: T.tlimit('n','inf')
-    %e^3 - %e
+    %e^3-%e
 
 \subsection{Miscellaneous}
 Obtaining digits of $\pi$:
@@ -283,7 +283,7 @@ Obtaining digits of $\pi$:
 
 Defining functions in maxima:
     sage: maxima.eval('fun[a] := a^2')
-    'fun[a] := a^2'
+    'fun[a]:=a^2'
     sage: maxima('fun[10]')
     100
 
@@ -297,21 +297,10 @@ example that illustrates this problem is
 \code{maxima.eval('integrate (exp(a*x), x, 0, inf)')}.
 
 \subsection{Latex Output}
-The latex output of Maxima is not perfect.  E.g.,
-
-    sage: maxima.eval('tex(sin(u) + sinh(v^2))')
-    '$$\\sinhv^2 + \\sinu$$false'
-
-Notice the lack of space after the sin macro, which is a latex syntax
-error.  In \sage this is automatically fixed via a substition for
-trig functions, which may have potentially bad side effects:
+To tex a maxima object do this:
 
     sage: latex(maxima('sin(u) + sinh(v^2)'))
     \sinh v^2+\sin u
-
-It would be nice if somebody would fix this problem.  One way would
-be to improve Maxima by making the fix to Maxima and giving this back
-to the Maxima people.
 
 Here's another example:
 
@@ -393,20 +382,19 @@ class Maxima(Expect):
         else:
             return Expect.__call__(self, x)
 
-    #def __init__(self, script_subdirectory=None, logfile=None, server=None):
-    def __init__(self, script_subdirectory=None, logfile='/home/was/a.log', server=None):
+    def __init__(self, script_subdirectory=None, logfile=None, server=None):
         """
         Create an instance of the Maxima interpreter.
         """
         # TODO: Input and output prompts in maxima can be changed by
         # setting inchar and outchar..
-        eval_using_file_cutoff = 100
+        eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
                         command = "maxima --disable-readline",
-                        maxread = 1,    # CRUCIAL to use less buffering for maxima (or get all kinds of hangs on OS X and 64-bit machines, etc!
+                        maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
                         verbose_start = False,
@@ -415,7 +403,10 @@ class Maxima(Expect):
                                      ],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
+        self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
+        self._error_re = re.compile('(debugmode|Incorrect syntax)')
         self._display2d = False
+
 
     def __getattr__(self, attrname):
         if attrname[:1] == "_":
@@ -423,30 +414,8 @@ class Maxima(Expect):
         return MaximaExpectFunction(self, attrname)
 
     def _start(self):
-        # For some reason sending a single input line at startup avoids
-        # lots of weird timing issues when doing doctests.
         Expect._start(self)
-        self(1)
-
-    # this doesn't work.
-    #def x_start(self):
-    #    Expect._start(self)
-    #    self._expect.sendline('inchar:"__SAGE__";')
-    #    self._change_prompt('__SAGE__[0-9]+\)')
-    #    self.expect().expect('__SAGE__[0-9]+\)')
-
-    def _eval_line_using_file(self, line, tmp):
-        F = open(tmp, 'w')
-        F.write(line)
-        F.close()
-        if self._expect is None:
-            self._start()
-        # For some reason this trivial comp
-        # keeps certain random freezes from occuring.  Do not remove this.
-        # The space before the \n is also important.
-        self._expect.sendline('0;batchload("%s"); \n'%tmp)
-        self._expect.expect(self._prompt)
-        return ''
+        self._eval_line('0;')
 
     def __reduce__(self):
         return reduce_load_Maxima, tuple([])
@@ -454,122 +423,83 @@ class Maxima(Expect):
     def _quit_string(self):
         return 'quit();'
 
-    def _broken_eval_line(self, line, reformat=True, allow_use_file=False,
-                   wait_for_prompt=True, need_output=True):
-        line = line.strip().strip(';')
+    def _sendline(self, str):
+        self._send(str)
+        os.write(self._expect.child_fd, os.linesep)
+
+    def _send(self, str):
         if self._expect is None:
             self._start()
+        os.write(self._expect.child_fd, str)
 
-        if not need_output:
-            E = self._expect
-            E.sendline(line)
-            return
+    def _expect_expr(self, expr=None):
+        if expr is None:
+            expr = self._prompt
+        if self._expect is None:
+            self._start()
+        try:
+            self._expect.expect(expr)
+        except KeyboardInterrupt, msg:
+            print self._expect.before
+            self._send('quit;\n'+chr(3))
+            self._send('quit;\n'+chr(3))
+            raise KeyboardInterrupt, msg
 
-        global seq
-        seq += 1
-        START = '__start__(%s+1)'%seq
-        END = '__end__(%s+1)'%seq
-        line = '%s; %s; %s;'%(START, line, END)
-        START = '__start__(%s)'%(seq+1)
-        END = '__end__(%s)'%(seq+1)
+    def _interrupt(self):
+        self._send('quit;\n'+chr(3))
+        self._expect_expr()
+        self._send('quit;\n'+chr(3))
+        self._expect_expr()
 
-        E = self._expect
-        print line
-        E.sendline(line)
-        print 1, 'expecting "%s"'%END
-        E.expect(END)
-        print 2
-        z = E.before
-        print z
-        i = z.find(START)
-        if i == -1:
-            raise RuntimeError, "%s\nError evaluating code in Maxima"%z
-        z = z[i+len(START)+2:]
-        z = z.rstrip().rstrip(END).rstrip('"').rstrip().strip('\n').strip('\r').strip('\n').replace('\\\r\n','')
-        i = z.find('Error: ')
-        if i != -1:
-            raise RuntimeError, z[i + 7:]
-        return z
+    def _before(self):
+        return self._expect.before
+
+    def _batch(self, str, batchload=True):
+        F = open(tmp, 'w')
+        F.write(str)
+        F.close()
+        if batchload:
+            cmd = 'batchload("%s");'%tmp
+        else:
+            cmd = 'batch("%s");'%tmp
+        self._sendline(cmd)
+        self._expect_expr()
+        out = self._before()
+        if out.find("error") != -1:
+            raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+        return out
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):
-        if self._expect is None:
-            self._start()
-        if not wait_for_prompt:
-            return Expect._eval_line(self, line)
-        line = line.strip().strip(';')
-        if line == '':
+        if len(line) == 0:
             return ''
-        global seq
-        seq += 1
-        start = SAGE_START + str(seq)
-        end = SAGE_END + str(seq)
-        line = '%s;\n%s; %s;'%(start, line, end)
-        if self._expect is None:
-            self._start()
-        if allow_use_file and self.__eval_using_file_cutoff and \
-                            len(line) > self.__eval_using_file_cutoff:
-            return self._eval_line_using_file(line, tmp)
-        try:
-            E = self._expect
-            #print "in = '%s'"%line
-            E.sendline(line)
-            self._expect.expect(end)
-            # We have timeouts below, since getting the end above
-            # means the computation completed, but on some systems
-            # (Cygwin) the expect interface can sometimes hang getting
-            # the final prompts.
-            try:
-                self._expect.expect(end, timeout=1)
-                out = self._expect.before
-                self._expect.expect(self._prompt, timeout=1)
-                out += self._expect.before
-            except pexpect.TIMEOUT:
-                out = self._expect.before
-            if not '(%o' in out:
-                self._expect.expect(self._prompt)
-
-        except EOF:
-            if self._quit_string() in line:
-                return ''
-        except KeyboardInterrupt:
-            self._keyboard_interrupt()
-            return ''
-
-        if 'Incorrect syntax:' in out:
-            raise RuntimeError, out
-
-        import os
-        if cygwin:
-            # for reasons I can't deduce yet, maxima behaves somewhat
-            # differently under cygwin...
-            out = out.lstrip(';')
+        if wait_for_prompt and line[-1] != ';':
+            line += ';'
+        if len(line) > self.__eval_using_file_cutoff:
+            self._batch(line, batchload=False)
         else:
-	    i = out.rfind(start)
-	    j = out.rfind(end)
-            out = out[i+len(start):j]
+            self._sendline(line)
 
+        if not wait_for_prompt:
+            return
+        self._expect_expr()
+        out = self._before()
+        r = self._error_re
+        m = r.search(out)
+        if not m is None:
+            raise TypeError, out
         if not reformat:
             return out
-        if 'error' in out:
-            return out
-        out = out.lstrip()
-        i = out.find('(%o')
-        out0 = out[:i].strip()
-        i += out[i:].find(')')
-        out1 = out[i+1:].strip()
-        out = out0 + out1
-        out = ''.join(out.split())    # no whitespace
-        i = out.rfind(';;')
-        if i != -1:
-            out = out[i+2:]
-        out = out.replace('-', ' - ').replace('+',' + ').replace('=',' = ').replace(': =',' :=').replace('^ - ','^-')
-        if out[:3] == ' - ':
-            out = '-' + out[3:]
-        out = out.replace('E - ', 'E-')
-        out = out.replace('%e - ', '%e-')
-        i = out.rfind('(%o')
-        return out[:i]
+
+        r = self._output_prompt_re
+        m = r.search(out)
+        if m is None:
+            o = out[:-2]
+        else:
+            o = out[m.end()+1:-2]
+        o = ''.join([x.strip() for x in o.split()])
+        return o
+
 
 
     ###########################################
@@ -680,14 +610,14 @@ class Maxima(Expect):
             -.05837414342758009
             sage: f = maxima.function('x,y', 'sin(x)+cos(y)')
             sage: f(2,3.5)
-            sin(2) - .9364566872907963
+            sin(2)-.9364566872907963
             sage: f
             sin(x)+cos(y)
 
             sage: g = f.integrate('z'); g
-            (cos(y) + sin(x))*z
+            (cos(y)+sin(x))*z
             sage: g(1,2,3)
-            3*(cos(2) + sin(1))
+            3*(cos(2)+sin(1))
 
         The function definition can be a maxima object:
             sage: an_expr = maxima('sin(x)*gamma(x)')
@@ -700,8 +630,6 @@ class Maxima(Expect):
             0.90929742682568171
             sage: loads(t.dumps())
             gamma(x)*sin(x)
-
-
         """
         name = self._next_var_name()
         defn = str(defn)
@@ -716,12 +644,15 @@ class Maxima(Expect):
         """
         Set the variable var to the given value.
         """
-        cmd = '%s : %s$"";'%(var, str(value).rstrip(';'))
-        out = self._eval_line(cmd, reformat=False, allow_use_file=True)
-
-        if out.find("error") != -1:
-            raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out)
-
+        cmd = '%s : %s;'%(var, str(value).rstrip(';'))
+        if len(cmd) > self.__eval_using_file_cutoff:
+            self._batch(cmd, batchload=True)
+        else:
+            self._sendline(cmd)
+            self._expect_expr(self._prompt)
+            out = self._before()
+            if out.find("error") != -1:
+                raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out)
 
     def get(self, var):
         """
@@ -731,15 +662,13 @@ class Maxima(Expect):
         return s
 
     def clear(self, var):
-         """
-         Clear the variable named var.
-         """
-         if self._expect is None:
-             return
-         try:
-             self._expect.sendline('kill(%s);\n'%var)
-         except:  # program around weirdness in pexpect
-             pass
+        """
+        Clear the variable named var.
+        """
+        try:
+            self._eval_line('kill(%s);'%var, reformat=False)
+        except TypeError:
+            pass
 
     def console(self):
         maxima_console()
@@ -1178,19 +1107,17 @@ class MaximaElement(ExpectElement):
         self._check_valid()
         P = self.parent()
         s = P._eval_line('display2d : true; %s'%self.name(), reformat=False)
-        P._eval_line('display2d : false', reformat=False)
-        if not cygwin:
-            i = s.find('true')
-            i += s[i:].find('\n')
-            s = s[i+1:]
-        i = s.find('true')
-        i += s[i:].find('\n')
-        j = s.rfind('(%o')
-        s = s[i:j-2]
-        i = s.find('(%o')
-        j = i + s[i:].find(')')
-        s = s[:i] + ' '*(j-i+1) + s[j+1:]
-        s = s.lstrip('\n')
+        P._eval_line('display2d : false;', reformat=False)
+
+        r = P._output_prompt_re
+
+        m = r.search(s)
+        s = s[m.start():]
+        i = s.find('\n')
+        s = s[i+1:]
+        m = r.search(s)
+        if not m is None:
+            s = s[:m.start()] + ' '*(m.end() - m.start()) + s[m.end():].rstrip()
         if onscreen:
             print s
         else:
@@ -1216,7 +1143,7 @@ class MaximaElement(ExpectElement):
             sage: f.diff('x', 2)
             2
             sage: maxima('sin(x^2)').diff('x',4)
-            16*x^4*sin(x^2) - 12*sin(x^2) - 48*x^2*cos(x^2)
+            16*x^4*sin(x^2)-12*sin(x^2)-48*x^2*cos(x^2)
 
             sage: f = maxima('x^2 + 17*y^2')
             sage: f.diff('x')
@@ -1289,11 +1216,11 @@ class MaximaElement(ExpectElement):
 
         EXAMPLES:
             sage: maxima('x^2+1').integral()
-            x^3/3 + x
+            x^3/3+x
             sage: maxima('x^2+ 1 + y^2').integral('y')
-            y^3/3 + x^2*y + y
+            y^3/3+x^2*y+y
             sage: maxima('x / (x^2+1)').integral()
-            log(x^2 + 1)/2
+            log(x^2+1)/2
             sage: maxima('1/(x^2+1)').integral()
             atan(x)
             sage.: maxima('1/(x^2+1)').integral('x', 0, infinity)
@@ -1374,7 +1301,7 @@ class MaximaElement(ExpectElement):
     def _latex_(self):
         self._check_valid()
         P = self.parent()
-        s = P._eval_line('tex(%s)'%self.name(), reformat=False)
+        s = P._eval_line('tex(%s);'%self.name(), reformat=False)
         if not '$$' in s:
             raise RuntimeError, "Error texing maxima object."
         i = s.find('$$')
@@ -1448,7 +1375,7 @@ class MaximaElement(ExpectElement):
         EXAMPLES:
             sage: f = maxima('1/((1+x)*(x-1))')
             sage: f.partial_fraction_decomposition('x')
-            1/(2*(x - 1)) - 1/(2*(x + 1))
+            1/(2*(x-1))-1/(2*(x+1))
             sage: f.partial_fraction_decomposition('x').display2d()
                                  1           1
                              --------- - ---------

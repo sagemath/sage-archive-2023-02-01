@@ -55,7 +55,7 @@ can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
     (pi + ((e*4)/5))
     sage: maxima(a)
-    %pi + 4*%e/5
+    %pi+4*%e/5
     sage: a.str(15)      # 15 *bits* of precision
     '5.316'
     sage: gp(a)
@@ -101,6 +101,10 @@ by coercing into the real field with given precision.  For example, to
 
 
 EXAMPLES: Arithmetic with constants
+    sage: f = I*(e+1); f
+    (e + 1)*I
+    sage: f^2
+    -(e + 1)^2
 
     sage: pp = pi+pi; pp
     (pi + pi)
@@ -192,6 +196,14 @@ class Constant(Function):
         self._conversions = conversions
         RingElement.__init__(self, ConstantRing)
 
+    def _ser(self):
+        try:
+            return self.__ser
+        except AttributeError:
+            from sage.calculus.calculus import SER
+            self.__ser = SER(self)
+            return self.__ser
+
     def _neg_(self):
         return -Integer(1)*self
 
@@ -203,23 +215,19 @@ class Constant(Function):
 
     # The following adds formal arithmetic support for generic constant
     def _add_(self, right):
-        return Constant_arith(self, right, operator.add)
+        return self._ser() + right._ser()
 
     def _sub_(self, right):
-        return Constant_arith(self, right, operator.sub)
+        return self._ser() - right._ser()
 
     def _mul_(self, right):
-        return Constant_arith(self, right, operator.mul)
+        return self._ser() * right._ser()
 
     def _div_(self, right):
-        return Constant_arith(self, right, operator.div)
+        return self._ser() / right._ser()
 
     def __pow__(self, right):
-        try:
-            right = self.parent()._coerce_(right)
-        except TypeError:
-            raise TypeError, "computation of %s^%s not defined"%(self, right)
-        return Constant_arith(self, right, operator.pow)
+        return self._ser() ** right
 
     def _interface_is_cached_(self):
         """
@@ -328,6 +336,70 @@ class Pi(Constant):
 pi = Pi()
 
 
+class I_class(Constant):
+    """
+    The formal square root of -1.
+
+    EXAMPLES:
+        sage: I
+        I
+        sage: I^2
+        -1
+        sage: float(I)
+        boom
+        sage: gp(I)
+        I
+        sage: RR(I)
+        boom
+        sage: C = ComplexField(200); C
+        Real Field with 200 bits of precision
+        sage: C(I)
+        ...
+        sage: z = I + I; z
+        2*I
+        sage: C(z)
+        ???
+        sage: maxima(I)
+        2*%i
+    """
+    def __init__(self):
+        Constant.__init__(self,
+            {'axiom':'%i',
+             'maxima':'%i','gp':'I','mathematica':'I',
+             'matlab':'i','maple':'I','octave':'i','pari':'I'})
+
+    def _repr_(self):
+        return "I"
+
+    def _latex_(self):
+        return "i"
+
+    def _mathml_(self):
+        return "<mi>&i;</mi>"
+
+    def __float__(self):
+        raise TypeError
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _complex_mpfr_field_(self, R):
+        return R.gen()
+
+    def _complex_double_(self, C):
+        return C.gen()
+
+    def _real_double_(self):
+        raise TypeError
+
+    def __abs__(self):
+        return Integer(1)
+
+    def floor(self):
+        raise TypeError
+
+I = I_class()
+
 class E(Constant):
     """
     The base of the natural logarithm.
@@ -422,9 +494,9 @@ class GoldenRatio(Constant):
         sage: R(gr)
         1.6180339887498948482045868343656381177203091798057628621354
         sage: grm = maxima(golden_ratio);grm
-        (sqrt(5) + 1)/2
+        (sqrt(5)+1)/2
         sage: grm + grm
-        sqrt(5) + 1
+        sqrt(5)+1
         sage: float(grm + grm)
         3.2360679774997898
     """

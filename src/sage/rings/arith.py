@@ -1482,7 +1482,7 @@ def __factor_using_pari(n, int_=False, debug_level=0):
 #todo: add a limit option to factor, so it will only split off
 # primes at most a given limit.
 
-def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
+def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Returns the factorization of the integer n as a sorted list of
     tuples (p,e).
@@ -1535,7 +1535,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
         try:
-            return n.factor()
+            return n.factor(**kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
     #n = abs(n)

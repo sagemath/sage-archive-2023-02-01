@@ -1748,13 +1748,25 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b^(1/2)
             1.0000000*I                    # 32-bit
             -1.0842022e-19 + 1.0000000*I   # 64-bit
+
+        We raise a real number to a symbolic object:
+            sage: 1.5^x
+            1.50000000000000^x
+            sage: -2.3^(x+y^3+sin(x))
+            -2.30000000000000^(y^3 + sin(x) + x)
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):
             return self.__pow__(float(exponent))
         if not PY_TYPE_CHECK(exponent, RealNumber):
-            x = self
-            exponent = x._parent(exponent)
+            try:
+                x = self
+                exponent = x._parent(exponent)
+            except TypeError:
+                try:
+                    return exponent.parent()(self)**exponent
+                except AttributeError:
+                    raise TypeError
         return self.__pow(exponent)
 
     def log(self, base='e'):

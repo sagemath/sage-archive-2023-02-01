@@ -278,11 +278,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
-        z = self._pari_()
-        P = (<ComplexNumber>self)._parent
-        w = P(right)._pari_()
-        m = z**w
-        return P(m)
+        try:
+            right = self._parent(right)
+            z = self._pari_()
+            P = (<ComplexNumber>self)._parent
+            w = P(right)._pari_()
+            m = z**w
+            return P(m)
+        except TypeError:
+            try:
+                self = right.parent()(self)
+                return self**right
+            except AttributeError:
+                raise TypeError
 
     def prec(self):
         """

@@ -655,19 +655,35 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             TypeError: exponent (=1/3) must be an integer.
             Coerce your numbers to real or complex numbers first.
+
+        We raise to some interesting powers:
+            sage: (2/3)^I
+            2^I/3^I
+            sage: (2/3)^sqrt(2)
+            2^sqrt(2)/3^sqrt(2)
+            sage: (2/3)^(x^n + y^n + z^n)
+            3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):
             return self.__pow__(float(n))
         _self = self
-        if n < 0:
-            x = _self**(-n)
-            return x.__invert__()
         cdef unsigned int _n
         try:
             _n = integer.Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+
+        if n < 0:  # this doesn't make sense unless n is an integer.
+            x = _self**(-n)
+            return x.__invert__()
+
         x = <Rational> PY_NEW(Rational)
         cdef mpz_t num, den
 

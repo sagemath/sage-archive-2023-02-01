@@ -856,6 +856,12 @@ cdef class ComplexDoubleElement(FieldElement):
             0.5 + 0.866025403784*I
             sage: a^3                  # slightly random-ish arch dependent output
             -1.0 + 1.22460635382e-16*I
+
+        We raise to symbolic powers:
+            sage: CDF(1.2)^x
+            1.20000000000000^x
+            sage: CDF(1.2)^(x^n + n^x)
+            1.20000000000000^(x^n + n^x)
         """
         try:
             return z._pow_(a)
@@ -864,7 +870,14 @@ cdef class ComplexDoubleElement(FieldElement):
             return CDF(z)._pow_(a)
         except TypeError:
             # a is not a complex number
-            return z._pow_(CDF(a))
+            try:
+                return z._pow_(CDF(a))
+            except TypeError:
+                try:
+                    return a.parent()(z)**a
+                except AttributeError:
+                    raise TypeError
+
 
     def exp(self):
         r"""

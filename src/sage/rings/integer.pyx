@@ -674,6 +674,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             RuntimeError: exponent must be at most 4294967294  # 32-bit
             RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
+
+        We raise 2 to various interesting exponents:
+            sage: 2^x                # symbolic x
+            2^x
+            sage: 2^1.5              # real number
+            2.82842712474619
+            sage: 2^I                # complex number
+            2^I
+            sage: sage: f = 2^(sin(x)-cos(x)); f
+            2^(sin(x) - cos(x))
+            sage: f(3)
+            2^(sin(3) - cos(3))
+            sage: 2^(x+y+z)
+            2^(z + y + x)
         """
         cdef Integer _n
         cdef unsigned int _nval
@@ -688,7 +702,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # an Integer or python int
             _n = Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         if _n < 0:
             return Integer(1)/(self**(-_n))

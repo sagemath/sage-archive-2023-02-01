@@ -572,7 +572,7 @@ def spherical_bessel_J(n, var):
 
     EXAMPLES:
         sage: spherical_bessel_J(2,x)
-        ((-3/x^2 - 1)*sin(x) - (3*cos(x)/x))/x
+        ((3/x^2 - 1)*sin(x) - (3*cos(x)/x))/x
     """
     _init()
     return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -587,7 +587,7 @@ def spherical_bessel_Y(n,var):
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        (-3*sin(x)/x - (1 - (3/x^2))*cos(x))/x
+        ((1 - (3/x^2))*cos(x) - (3*sin(x)/x))/x
     """
     _init()
     return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
@@ -600,7 +600,7 @@ def spherical_hankel1(n,var):
 
     EXAMPLES:
         sage: spherical_hankel1(2,'x')
-        -3*I*( - x^2/3 - I*x + 1)*%e^(I*x)/x^3
+        -3*I*(-x^2/3 - I*x + 1)*e^I*x/x^3
     """
     _init()
     return meval("spherical_hankel1(%s,%s)"%(ZZ(n),var))
@@ -630,9 +630,9 @@ def spherical_harmonic(m,n,x,y):
 
     EXAMPLES:
         sage: spherical_harmonic(3,2,x,y)
-        15*sqrt(7)*cos(x)*sin(x)^2*e^2.00000000000000*y*I/4*sqrt(30)*sqrt(pi)
+        15*sqrt(7)*cos(x)*sin(x)^2*e^2*I*y/4*sqrt(30)*sqrt(pi)
         sage: spherical_harmonic(3,2,1,2)
-        15*sqrt(7)*cos(1)*sin(1)^2*e^4.00000000000000*I/4*sqrt(30)*sqrt(pi)
+        15*sqrt(7)*e^4*I*cos(1)*sin(1)^2/4*sqrt(30)*sqrt(pi)
     """
     _init()
     return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))

@@ -22,6 +22,16 @@ def var(s):
         sage: f(n = var('sigma'))
         zz^sigma + yy^sigma + xx^sigma
 
+    If you make an important builtin variable into a symbolic variable,
+    you can get back the original value using restore:
+        sage: var('QQ RR')
+        (QQ, RR)
+        sage: QQ
+        QQ
+        sage: restore('QQ')
+        sage: QQ
+        Rational Field
+
     We make two new variables separated by commas:
         sage: var('theta, gamma')
         (theta, gamma)

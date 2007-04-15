@@ -111,7 +111,7 @@ def _certify_names(names):
     v = []
     for N in names:
         if not isinstance(N, str):
-            raise TypeError, "variable name must be a string but %s isn't"%N
+            N = str(N)
         N = N.strip()
         if len(N) == 0:
             raise ValueError, "variable name must be nonempty"

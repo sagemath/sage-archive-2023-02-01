@@ -141,6 +141,35 @@ We coerce various symbolic expressions into the complex numbers:
     sage: ComplexField(100)(f)
     1.1276259652063807852262251614 + 1.1752011936438014568823818506*I
 
+We illustrate construction of an inverse sum where each denominator
+has a new variable name:
+    sage: f = sum(1/var('n%s'%i)^i for i in range(10))
+    sage: f.display2d()
+                 1     1     1     1     1     1     1     1    1
+                --- + --- + --- + --- + --- + --- + --- + --- + -- + 1
+                  9     8     7     6     5     4     3     2   n1
+                n9    n8    n7    n6    n5    n4    n3    n2
+
+Note that after calling var, the variables are immediately available for use:
+    sage: (n1 + n2)^5
+    (n2 + n1)^5
+
+We can, of course, substitute:
+    sage: f(n9=9,n7=n6).display2d()
+
+
+TESTS:
+We test pickling:
+    sage: f
+    -sqrt(pi)*((sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
+    sage: bool(loads(dumps(f)) == f)
+    True
+
+Substitution:
+    sage: f = x
+    sage: f(x=5)
+    5
+
 """
 
 
@@ -169,21 +198,21 @@ from sage.calculus.equations import SymbolicEquation
 from sage.rings.real_mpfr import RealNumber
 from sage.rings.complex_number import ComplexNumber
 from sage.rings.real_double import RealDoubleElement
+from sage.rings.complex_double import ComplexDoubleElement
 from sage.rings.real_mpfi import RealIntervalFieldElement
 
 from sage.libs.pari.gen import pari, gen as PariGen
 
 from sage.rings.complex_double import ComplexDoubleElement
-def is_DoublePrecisionNumber(x):
-    if isinstance(x, (float, RealDoubleElement, ComplexDoubleElement)):
-        return True
-    if isinstance(x, RealNumber) and x.prec() == 53:
-        return True
-    if isinstance(x, ComplexNumber) and x.prec() == 53:
-        return True
-    return False
 
 import math
+
+def is_SymbolicExpression(x):
+    """
+    EXAMPLES:
+    sage: ???
+    """
+    return isinstance(x, SymbolicExpression)
 
 # There will only ever be one instance of this class
 class SymbolicExpressionRing_class(CommutativeRing):
@@ -237,7 +266,8 @@ class SymbolicExpressionRing_class(CommutativeRing):
                             int,
                             Rational,
                             PariGen,
-                            ComplexNumber)):
+                            ComplexNumber,
+                            ComplexDoubleElement)):
             return SymbolicConstant(x)
         elif isinstance(x, Constant):
             return SymbolicConstant(x)
@@ -1084,17 +1114,6 @@ class Symbolic_object(SymbolicExpression):
         """
         return latex(self._obj)
 
-    def __pow__(self, right):
-        """
-        EXAMPLES:
-        """
-        if isinstance(right, Symbolic_object):
-            try:
-                return Symbolic_object(self._obj ** right._obj)
-            except TypeError:
-                pass
-        return SymbolicExpression.__pow__(self, right)
-
     def str(self, bits=None):
         if bits is None:
             return str(self._obj)
@@ -1414,10 +1433,10 @@ class SymbolicVariable(SymbolicExpression):
         return vars
 
     def __cmp__(self, right):
-        return cmp(self._repr_(), right._repr_())
-
-    def __call__(self, x):
-        raise AttributeError, "A symbolic variable is not callable."
+        if isinstance(right, SymbolicVariable):
+            return cmp(self._repr_(), right._repr_())
+        else:
+            return SymbolicExpression.__cmp__(self, right)
 
     def _repr_(self, simplify=True):
         return self._name

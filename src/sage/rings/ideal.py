@@ -137,7 +137,6 @@ def Ideal(R, gens=[], coerce=True):
         gens = [R(g) for g in gens]
 
     gens = list(set(gens))
-
     if isinstance(R, sage.rings.principal_ideal_domain.PrincipalIdealDomain):
         # Use GCD algorithm to obtain a principal ideal
         g = gens[0]
@@ -276,7 +275,7 @@ class Ideal_principal(Ideal_generic):
     def __init__(self, ring, gen):
         Ideal_generic.__init__(self, ring, [gen])
 
-    def _repr_(self):
+    def __repr__(self):
         return "Principal ideal (%s) of %s"%(self.gen(), self.ring())
 
     def is_principal(self):
@@ -349,7 +348,7 @@ class Ideal_pid(Ideal_principal):
 class Ideal_fractional(Ideal_generic):
     def __init__(self, ring, gen):
         Ideal_generic.__init__(self, ring, [gen])
-    def _repr_(self):
+    def __repr__(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())
 
 

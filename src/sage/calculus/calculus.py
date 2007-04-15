@@ -376,7 +376,7 @@ class SymbolicExpression(RingElement):
             if isinstance(self.simplify(), SymbolicConstant):
                 return plot(self.simplify()._obj)
 
-            vars = list(self._get_vars())
+            vars = list(self._variables())
             if len(vars) == 1:
                 return plot(self.function(vars[0]), **kwds)
 
@@ -431,6 +431,16 @@ class SymbolicExpression(RingElement):
     def _real_double_(self, R):
         raise TypeError
 
+    def _rational_(self):
+        return Rational(str(self))
+
+    def _integer_(self):
+        """
+        EXAMPLES:
+
+        """
+        return Integer(str(self))
+
     def _add_(self, right):
         """
         EXAMPLES:
@@ -474,7 +484,7 @@ class SymbolicExpression(RingElement):
         right = self.parent()(right)
         return SymbolicArithmetic([self, right], operator.pow)
 
-    def _get_vars(self, vars=None):
+    def _variables(self, vars=None):
         """
         Returns the set of variables appearing in self.
 
@@ -484,7 +494,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f = x^(n+1) + sin(pi/19); f
             x^(n + 1) + sin(pi/19)
-            sage: f._get_vars()
+            sage: f._variables()
             set([x, n])
         """
         if vars is None:
@@ -534,6 +544,72 @@ class SymbolicExpression(RingElement):
     def __call__(self, dict=None, **kwds):
         return self.substitute(dict, **kwds)
 
+    def polynomial(self, base_ring):
+        """
+        Return self as an algebraic polynomial over the given base ring, if
+        possible.
+
+        The point of this function is that it converts purely symbolic
+        polynomials into optimized algebraic polynomials over a given
+        base ring.
+
+        INPUT:
+           base_ring -- a ring
+
+        EXAMPLES:
+            sage: (x^2 -2/3*x + 1).polynomial(QQ)
+            x^2 - 2/3*x + 1
+            sage: f.polynomial(GF(19))
+            x^2 + 12*x + 1
+
+            sage: f = x^2*e + x + pi/e
+            sage: f.polynomial(RDF)
+            2.71828182846*x^2 + 1.0*x + 1.15572734979
+            sage: g = f.polynomial(RR); g
+            2.71828182845905*x^2 + 1.00000000000000*x + 1.15572734979092
+            sage: g.parent()
+            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            sage: f.polynomial(RealField(100))
+            2.7182818284590452353602874714*x^2 + 1.0000000000000000000000000000*x + 1.1557273497909217179100931833
+            sage: f.polynomial(CDF)
+            2.71828182846*x^2 + 1.0*x + 1.15572734979
+            sage: f.polynomial(CC)
+            2.71828182845905*x^2 + 1.00000000000000*x + 1.15572734979092
+
+        We coerce a multivariate polynomial with complex symbolic coefficients:
+            sage: f = pi^3*x - y^2*e - I; f
+            -e*y^2 + pi^3*x - I
+            sage: f.polynomial(CDF)
+            -1.0*I + (-2.71828182846)*y^2 + 31.0062766803*x
+            sage: f.polynomial(CC)
+            -1.00000000000000*I + (-2.71828182845905)*y^2 + 31.0062766802998*x
+            sage: f.polynomial(ComplexField(70))
+            -1.0000000000000000000*I + (-2.7182818284590452354)*y^2 + 31.006276680299820175*x
+
+        Another polynomial:
+            sage: f = sum((e*I)^n*x^n for n in range(5)); f
+            e^4*x^4 - e^3*I*x^3 - e^2*x^2 + e*I*x + 1
+            sage: f.polynomial(CDF)
+            54.5981500331*x^4 + (-20.0855369232*I)*x^3 + (-7.38905609893)*x^2 + 2.71828182846*I*x + 1.0
+            sage: f.polynomial(CC)
+            54.5981500331442*x^4 + (-20.0855369231877*I)*x^3 + (-7.38905609893065)*x^2 + 2.71828182845905*I*x + 1.00000000000000
+
+        A multivariate polynomial over a finite field:
+            sage: f = (3*x^5 - 5*y^5)^7; f
+            (3*x^5 - 5*y^5)^7
+            sage: g = f.polynomial(GF(7)); g
+            2*y^35 + 3*x^35
+            sage: parent(g)
+            Polynomial Ring in x, y over Finite Field of size 7
+        """
+        vars = list(self._variables())
+        vars.sort()
+        from sage.rings.all import PolynomialRing
+        R = PolynomialRing(base_ring, names=vars)
+        G = R.gens()
+        V = R.variable_names()
+        return self.substitute(dict([(str(V[i]),G[i]) for i in range(len(G))]), ring=R)
+
     def function(self, *args):
         """
         Return a CallableFunction, fixing a variable order to be the order of
@@ -577,7 +653,7 @@ class SymbolicExpression(RingElement):
             # if there were NO arguments, try assuming
             a = 1
         if a is None or isinstance(a, (int, long, Integer)):
-            vars = list(self._get_vars())
+            vars = list(self._variables())
             if len(vars) == 1:
                 s = "%s, %s" % (vars[0], a)
             else:
@@ -650,7 +726,7 @@ class SymbolicExpression(RingElement):
             ???
         """
         if v is None:
-            vars = self._get_vars()
+            vars = self._variables()
             if len(vars) == 1:
                 v = list(vars)[0]
         if not isinstance(v, SymbolicVariable):
@@ -772,7 +848,7 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # substitute
     ###################################################################
-    def substitute(self, in_dict=None, **kwds):
+    def substitute(self, in_dict=None, ring=None, **kwds):
         """
         Takes the symbolic variables given as dict keys or as keywords and
         replaces them with the symbolic expressions given as dict values or as
@@ -807,7 +883,7 @@ class SymbolicExpression(RingElement):
             pass
 
         if isinstance(in_dict, SymbolicExpression):
-            vars = list(self._get_vars())
+            vars = list(self._variables())
             if len(vars) == 1:
                 in_dict = {vars[0]: in_dict}
 
@@ -817,10 +893,11 @@ class SymbolicExpression(RingElement):
         if in_dict is not None:
             for k, v in in_dict.iteritems():
                kwds[str(k)] = v
-        # find the keys from the keywords
-        return self._recursive_sub(kwds)
 
-    def _recursive_sub(self, kwds):
+        # find the keys from the keywords
+        return self._recursive_sub(kwds, ring=ring)
+
+    def _recursive_sub(self, kwds, ring=None):
         raise NotImplementedError, "implement _recursive_sub for type '%s'!"%(type(self))
 
 class CallableFunction(RingElement):
@@ -1144,7 +1221,7 @@ class SymbolicConstant(Symbolic_object):
                 self._atomic = True
             return self._atomic
 
-    def _recursive_sub(self, kwds):
+    def _recursive_sub(self, kwds, ring=None):
         """
         EXAMPLES:
             sage: a = SER(5/6)
@@ -1153,6 +1230,8 @@ class SymbolicConstant(Symbolic_object):
             sage: a(x=3)
             5/6
         """
+        if not ring is None:
+            return ring(self)
         return self
 
 
@@ -1218,6 +1297,26 @@ class SymbolicPolynomial(Symbolic_object):
                     t.append(g)
             return SER(f(*t))
 
+    def polynomial(self, base_ring):
+        """
+        Return self as a polynomial over the given base ring, if possible.
+
+        INPUT:
+           base_ring -- a ring
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = SER(x^2 -2/3*x + 1)
+            sage: f.polynomial(QQ)
+            x^2 - 2/3*x + 1
+            sage: f.polynomial(GF(19))
+            x^2 + 12*x + 1
+        """
+        f = self._obj
+        if base_ring is f.base_ring():
+            return f
+        return f.change_ring(base_ring)
+
 ##################################################################
 
 
@@ -1231,11 +1330,11 @@ class SymbolicOperation(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._operands = operands   # don't even make a copy -- ok, since immutable.
 
-    def _get_vars(self, vars=None):
+    def _variables(self, vars=None):
         if vars is None:
             vars = set([])
         for op in self._operands:
-            opvars = op._get_vars(vars)
+            opvars = op._variables(vars)
             for v in opvars:
                 vars.add(v)
         return vars
@@ -1253,15 +1352,21 @@ class SymbolicArithmetic(SymbolicOperation):
         SymbolicOperation.__init__(self, operands)
         self._operator = op
 
-    def _recursive_sub(self, kwds):
+    def _recursive_sub(self, kwds, ring=None):
         """
         EXAMPLES:
             sage: ???
         """
         ops = self._operands
-        new_ops = [op._recursive_sub(kwds) for op in ops]
-        arith = SymbolicArithmetic(new_ops, self._operator)
-        return  arith._operator(*(arith._operands))
+        if ring is None:
+            new_ops = [op._recursive_sub(kwds, ring=ring) for op in ops]
+            return self._operator(*new_ops)
+        else:
+            if self._operator == operator.pow:
+                new_ops = [ops[0]._recursive_sub(kwds, ring=ring), Integer(ops[1])]
+            else:
+                new_ops = [op._recursive_sub(kwds, ring=ring) for op in ops]
+            return ring(self._operator(*new_ops))
 
     def __float__(self):
         fops = [float(op) for op in self._operands]
@@ -1418,15 +1523,21 @@ class SymbolicVariable(SymbolicExpression):
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
 
-    def _recursive_sub(self, kwds):
+    def _recursive_sub(self, kwds, ring=None):
         s = str(self)
         # do the replacement if needed
-        if s in kwds:
-            return kwds[s]
+        if ring is None:
+            if s in kwds:
+                return kwds[s]
+            else:
+                return self
         else:
-            return self
+            if s in kwds:
+                return ring(kwds[s])
+            else:
+                return ring(self)
 
-    def _get_vars(self, vars=None):
+    def _variables(self, vars=None):
         if vars is None:
             vars = set([])
         vars.add(self)
@@ -1545,13 +1656,17 @@ class SymbolicComposition(SymbolicOperation):
         """
         SymbolicOperation.__init__(self, [f,g])
 
-    def _recursive_sub(self, kwds):
+    def _recursive_sub(self, kwds, ring=None):
         """
         EXAMPLES:
             sage: ??
         """
-        ops = self._operands
-        return ops[0](ops[1]._recursive_sub(kwds))
+        if ring is None:
+            ops = self._operands
+            return ops[0](ops[1]._recursive_sub(kwds))
+        else:
+            ops = self._operands
+            return ring(ops[0](ops[1]._recursive_sub(kwds, ring=ring)))
 
     def _is_atomic(self):
         return True

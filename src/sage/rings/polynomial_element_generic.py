@@ -69,10 +69,10 @@ class Polynomial_generic_dense(Polynomial):
         R = parent.base_ring()
 
         if fraction_field_element.is_FractionFieldElement(x):
-            if x.denominator() != 1:
-                raise TypeError, "denominator must be 1"
+            if x.denominator().degree() >= 1:
+                raise TypeError, "denominator must be constant"
             else:
-                x = x.numerator()
+                x = x.numerator() * (~x.denominator()[0])
 
         if isinstance(x, Polynomial):
             if x.parent() == self.parent():

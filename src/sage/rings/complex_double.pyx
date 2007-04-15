@@ -96,6 +96,9 @@ from random import random
 
 from sage.structure.parent_gens import ParentWithGens
 
+def is_ComplexDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, ComplexDoubleField_class))
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     The field of complex double precision numbers.

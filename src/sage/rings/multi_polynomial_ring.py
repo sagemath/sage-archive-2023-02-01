@@ -484,8 +484,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        elif sage.calculus.calculus.is_SymbolicExpression(x)  and self._has_singular:
-            return self._singular_().parent(str(x)).sage_poly(self)
+        #elif sage.calculus.calculus.is_SymbolicExpression(x)  and self._has_singular:
+        #    return self._singular_().parent(str(x)).sage_poly(self)
         elif is_Macaulay2Element(x):
             try:
                 s = x.sage_polystring()

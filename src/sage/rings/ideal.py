@@ -184,7 +184,7 @@ class Ideal_generic(MonoidElement):
     def _repr_short(self):
         return '(%s)'%(', '.join([str(x) for x in self.gens()]))
 
-    def _repr_(self):
+    def __repr__(self):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
     def __cmp__(self, other):
@@ -349,7 +349,7 @@ class Ideal_pid(Ideal_principal):
 class Ideal_fractional(Ideal_generic):
     def __init__(self, ring, gen):
         Ideal_generic.__init__(self, ring, [gen])
-    def __repr__(self):
+    def _repr_(self):
         return "Fractional ideal %s of %s"%(self._repr_short(), self.ring())
 
 

@@ -43,6 +43,9 @@ import sage.rings.rational
 
 from sage.rings.integer cimport Integer
 
+def is_RealDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, RealDoubleField_class))
+
 cdef class RealDoubleField_class(Field):
     """
     The field of real double precision numbers.

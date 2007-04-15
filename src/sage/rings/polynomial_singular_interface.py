@@ -34,6 +34,8 @@ import finite_field
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_mpfr import is_RealField
+from complex_double import is_ComplexDoubleField
+from real_double import is_RealDoubleField
 from integer_ring import ZZ
 import sage.rings.arith
 
@@ -178,6 +180,16 @@ class PolynomialRing_singular_repr:
             digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
+        elif is_RealDoubleField(self.base_ring()):
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            self.__singular = singular.ring("(real,15,0)", _vars, order=order)
+
+        elif is_ComplexDoubleField(self.base_ring()):
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            self.__singular = singular.ring("(complex,15,0,I)", _vars,  order=order)
+
         elif self.base_ring().is_prime_field() or (self.base_ring() is ZZ and force):
             self.__singular = singular.ring(self.characteristic(), _vars, order=order)
 
@@ -206,6 +218,8 @@ class PolynomialRing_singular_repr:
                  or base_ring.is_prime_field()
                  or is_RealField(base_ring)
                  or is_ComplexField(base_ring)
+                 or is_RealDoubleField(base_ring)
+                 or is_ComplexDoubleField(base_ring)
                  or base_ring is ZZ )
 
 

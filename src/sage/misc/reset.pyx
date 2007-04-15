@@ -15,14 +15,56 @@ def reset():
     reset_interfaces()
 
 
-def restore():
+def restore(vars=None):
     """
-    Restore all predefined global variables to their default values.
+    Restore predefined global variables to their default values.
+
+    INPUT:
+       vars -- string or list (default: None) if not None, restores
+               just the given variables to the default value.
+
+    EXAMPLES:
+        sage: x = 10; y = 15/3; QQ='red'
+        sage: QQ
+        'red'
+        sage: restore('QQ')
+        sage: QQ
+        Rational Field
+        sage: x
+        10
+        sage: restore('x  y')
+        sage: x
+        x
+        sage: y
+        y
+        sage: x = 10; y = 15/3; QQ='red'
+        sage: ww = 15
+        sage: restore()
+        sage: x,y,QQ,ww
+        (x, y, Rational Field, 15)
+        sage: restore('ww')
+        sage: ww
+        Traceback (most recent call last):
+        ...
+        NameError: name 'ww' is not defined
     """
     G = globals()  # this is the reason the code must be in SageX.
     import sage.all
-    for k, v in sage.all.__dict__.iteritems():
-        G[k] = v
+    D = sage.all.__dict__
+    if vars is None:
+        for k, v in D.iteritems():
+            G[k] = v
+    else:
+        if isinstance(vars, str):
+            if ',' in vars:
+                vars = vars.split(',')
+            else:
+                vars = vars.split()
+        for k in vars:
+            if D.has_key(k):
+                G[k] = D[k]
+            else:
+                del G[k]      # the default value was "unset"
 
 
 def reset_interfaces():

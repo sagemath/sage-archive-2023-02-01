@@ -564,7 +564,7 @@ class Monitor(object):
             if done:
                 worker.free = True
                 sobj = worker.sage.get('DSAGE_RESULT')
-                timeout = 0.1
+                timeout = 0.3
                 while sobj == '' or sobj.isspace():
                     sobj = worker.sage.get('DSAGE_RESULT')
                     time.sleep(timeout)

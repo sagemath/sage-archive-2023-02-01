@@ -761,6 +761,40 @@ cdef class FiniteField_givaro(FiniteField):
         _sig_off
         return ret
 
+    def fetch_int(FiniteField_givaro self, int n):
+        r"""
+        Given an integer $n$ return a finite field element in self
+        which equals $n$ under the condition that  self.gen() is set to
+        self.characteristic().
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^8)
+            sage: k.fetch_int(8)
+            a^3
+            sage: e = k.fetch_int(151); e
+            a^7 + a^4 + a^2 + a + 1
+            sage: 2^7 + 2^4 + 2^2 + 2 + 1
+            151
+        """
+        cdef GivaroGfq *k = self.objectptr
+        cdef int ret = k.zero
+        cdef int a = k.sage_generator()
+        cdef int at = k.one
+        cdef unsigned int ch = k.characteristic()
+        cdef int _n, t, i
+
+        if n<0 or n>k.cardinality():
+            raise TypeError, "n must be between 0 and self.order()"
+
+        _n = n
+
+        for i from 0 <= i < k.exponent():
+            t = k.initi(t, _n%ch)
+            ret = k.axpy(ret, t, at, ret)
+            at = k.mul(at,at,a)
+            _n = _n/ch
+        return make_FiniteField_givaroElement(self, ret)
+
     def polynomial(self):
         """
         Return the defining polynomial of this field as an element of

@@ -131,7 +131,7 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
 
 qd = Extension('sage.rings.real_qdrf',
                        sources = ["sage/rings/real_qdrf.pyx"],
-                       libraries = ['qd', 'm', 'stdc++', ],
+                       libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
                        language='c++'
                        )
 
@@ -380,7 +380,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    #qd,
+    qd,
 
     complex_number,
 

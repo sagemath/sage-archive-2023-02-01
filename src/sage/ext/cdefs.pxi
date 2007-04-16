@@ -90,6 +90,7 @@ cdef extern from "gmp.h":
     void mpz_set_si(mpz_t integer, signed long int n)
     void mpz_set_ui(mpz_t integer, unsigned long int n)
     int  mpz_set_str(mpz_t rop, char *str, int base)
+    int  mpz_set_d(mpz_t rop, double d)
     int  mpz_sgn(mpz_t op)
     void mpz_sqrt (mpz_t rop, mpz_t op)
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)

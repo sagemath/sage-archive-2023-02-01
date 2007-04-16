@@ -35,6 +35,8 @@ cdef extern from "mpfr.h":
     void mpfr_init2 (mpfr_t x, mp_prec_t prec)
     void mpfr_clear (mpfr_t x)
 
+    mp_prec_t mpfr_get_prec (mpfr_t x)
+
     int mpfr_set (mpfr_t rop, mpfr_t op, mp_rnd_t rnd)
     int mpfr_set_si (mpfr_t rop, long int op, mp_rnd_t rnd)
     int mpfr_set_ui (mpfr_t rop, long unsigned int op, mp_rnd_t rnd)

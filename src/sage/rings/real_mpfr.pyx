@@ -8,6 +8,7 @@ AUTHORS:
    -- David Harvey (2006-09-20): compatibility with Element._parent
    -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
+   -- didier deshommes <dfdeshom@gmail.com>: special constructor for QD numbers
 
 EXAMPLES:
 
@@ -70,6 +71,8 @@ from rational cimport Rational
 
 from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
+
+from real_qdrf import QuadDoubleElement
 
 import sage.rings.complex_field
 
@@ -244,6 +247,8 @@ cdef class RealField(sage.rings.ring.Field):
         elif isinstance(x, (Integer, Rational)):
             return self(x)
         elif self.__prec <= 53 and is_RealDoubleElement(x):
+            return self(x)
+        elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
             return self(x)
         import sage.functions.constants
         return self._coerce_try(x, [sage.functions.constants.ConstantRing])
@@ -565,6 +570,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, RealDoubleElement):
             rd = x
             mpfr_set_d(self.value, rd._value, parent.rnd)
+        elif PY_TYPE_CHECK(x, QuadDoubleElement):
+            qd = x
+            self._set_from_qd(qd)
         #elif hasattr(x, '_mpfr_'):
         #    return x._mpfr_(self)
         else:
@@ -578,6 +586,34 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     mpfr_set_inf(self.value, -1)
                 else:
                     raise TypeError, "Unable to convert x (='%s') to real number."%s
+
+    cdef _set_from_qd(self,q):
+        """
+        Extract an MPFR number from a quad double
+        real number.
+
+        EXAMPLES:
+            sage: RR = RealField (53)
+            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
+            324324.009873663
+
+            sage: RR = RealField (200)
+            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
+            324324.00987366334455657653497600002763538650000000000000000
+        """
+        cdef int i
+        cdef double d
+        cdef mpfr_t curr
+        doubles = q.get_doubles()
+        rnd = (<RealField>self._parent).rnd
+        mpfr_init2(curr, mpfr_get_prec(self.value))
+        mpfr_set_d(self.value,doubles[0],rnd)
+        for i from 1 <= i < 4:
+            d = doubles[i]
+            mpfr_set_d(curr,d,rnd)
+            mpfr_add(self.value, self.value,curr,rnd)
+
+        mpfr_clear(curr)
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """

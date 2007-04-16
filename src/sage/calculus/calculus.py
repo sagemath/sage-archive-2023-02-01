@@ -211,6 +211,13 @@ import math
 
 is_simplified = False
 
+infixops = {operator.add: '+',
+            operator.sub: '-',
+            operator.mul: '*',
+            operator.div: '/',
+            operator.pow: '^'}
+
+
 def is_SymbolicExpression(x):
     """
     EXAMPLES:
@@ -477,9 +484,57 @@ class SymbolicExpression(RingElement):
         """
         return SymbolicArithmetic([self], operator.neg)
 
+    ##################################################################
+    # Coercions to interfaces
+    ##################################################################
+    # The maxima one is special:
     def _maxima_init_(self):
         return self._repr_(simplify=False)
 
+
+    # The others all go through _sys_init_, which is defined below,
+    # and does all interfaces in a unified manner.
+
+    def _axiom_init_(self):
+        return self._sys_init_('axiom')
+
+    def _gap_init_(self):
+        return self._sys_init_('gap')
+
+    def _gp_init_(self):
+        return self._sys_init_('pari')   # yes, gp goes through pari
+
+    def _kash_init_(self):
+        return self._sys_init_('kash')
+
+    def _macaulay2_init_(self):
+        return self._sys_init_('macaulay2')
+
+    def _magma_init_(self):
+        return self._sys_init_('magma')
+
+    def _maple_init_(self):
+        return self._sys_init_('maple')
+
+    def _mathematica_init_(self):
+        return self._sys_init_('mathematica')
+
+    def _octave_init_(self):
+        return self._sys_init_('octave')
+
+    def _pari_init_(self):
+        return self._sys_init_('pari')
+
+    def _singular_init_(self):
+        return self._sys_init_('singular')
+
+    def _sys_init_(self, system):
+        return repr(self)
+
+
+    ##################################################################
+    # Non-canonical coercions to compiled builtin rings and fields
+    ##################################################################
     def _mpfr_(self, field):
         raise TypeError
 
@@ -952,6 +1007,24 @@ class SymbolicExpression(RingElement):
             3*e^pi/5 - 3/5
             sage: integral(x^2 * exp(-x^2), x, -oo, oo)
             sqrt(pi)/2
+
+        We integrate the same function in both Mathematica and SAGE (via Maxima):
+            sage: f = sin(x^2) + y^z
+            sage: g = mathematica(f)
+            sage: print g
+                      z        2
+                     y  + Sin[x ]
+            sage: print g.Integrate(x)
+                        z        Pi                2
+                     x y  + Sqrt[--] FresnelS[Sqrt[--] x]
+                                 2                 Pi
+            sage: print f.integral(x)
+                      z                                         (sqrt(2)  I + sqrt(2)) x
+                   x y  + sqrt( Pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                                                                           2
+                                                               (sqrt(2)  I - sqrt(2)) x
+                                  + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
+                                                                          2
         """
         #sage: integrate(1/ ((x-4) * (x^3+2*x+1)), x)
         #    boom -- need noun forms of functions!
@@ -1539,11 +1612,23 @@ class Symbolic_object(SymbolicExpression):
     def _maxima_init_(self):
         return maxima_init(self._obj)
 
+    def _sys_init_(self, system):
+        return sys_init(self._obj, system)
+
 def maxima_init(x):
     try:
         return x._maxima_init_()
     except AttributeError:
         return repr(x)
+
+def sys_init(x, system):
+    try:
+        return x.__getattribute__('_%s_init_'%system)()
+    except AttributeError:
+        try:
+            return x._system_init_(system)
+        except AttributeError:
+            return repr(x)
 
 class SymbolicConstant(Symbolic_object):
     def __init__(self, x):
@@ -1896,18 +1981,21 @@ class SymbolicArithmetic(SymbolicOperation):
 
     def _maxima_init_(self):
         ops = self._operands
-        infixops = {operator.add: '+',
-                    operator.sub: '-',
-                    operator.mul: '*',
-                    operator.div: '/',
-                    operator.pow: '^'}
-
         if self._operator is operator.neg:
             return '-(%s)' % ops[0]._maxima_init_()
         else:
             return '(%s) %s (%s)' % (ops[0]._maxima_init_(),
                              infixops[self._operator],
                              ops[1]._maxima_init_())
+
+    def _sys_init_(self, system):
+        ops = self._operands
+        if self._operator is operator.neg:
+            return '-(%s)' % sys_init(ops[0], system)
+        else:
+            return '(%s) %s (%s)' % (sys_init(ops[0], system),
+                             infixops[self._operator],
+                             sys_init(ops[1], system))
 
 import re
 
@@ -1968,6 +2056,9 @@ class SymbolicVariable(SymbolicExpression):
         return a
 
     def _maxima_init_(self):
+        return self._name
+
+    def _sys_init_(self, system):
         return self._name
 
 common_varnames = ['alpha',
@@ -2092,13 +2183,29 @@ class SymbolicComposition(SymbolicOperation):
         if isinstance(ops[0], Function_log):
             base = ops[0]._base
             if not base is None:
-                return 'log(%s) / log(%s)' % (ops[1]._maxima_init_(),repr(base))
+                return 'log(%s)/log(%s)' % (ops[1]._maxima_init_(),repr(base))
         return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
+
+    def _sys_init_(self, system):
+        ops = self._operands
+        if isinstance(ops[0], Function_log):
+            base = ops[0]._base
+            if not base is None:
+                return 'log(%s)/log(%s)' % (sys_init(ops[1],system),repr(base))
+        return '%s(%s)' % (sys_init(ops[0],system), sys_init(ops[1],system))
+
+    def _mathematica_init_(self):
+        system = 'mathematica'
+        ops = self._operands
+        if isinstance(ops[0], Function_log):
+            base = ops[0]._base
+            if not base is None:
+                return 'Log[%s]/Log[%s]' % (sys_init(ops[1],system),repr(base))
+        return '%s[%s]' % (sys_init(ops[0],system).capitalize(), sys_init(ops[1],system))
 
     def __float__(self):
         f = self._operands[0]
         g = self._operands[1]
-        #return float(f(float(g)))
         return f.__call__(float(g))
 
     def _mpfr_(self, field):
@@ -2625,7 +2732,7 @@ _syms['exp'] = exp
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
 
 from sage.rings.infinity import infinity, minus_infinity
 

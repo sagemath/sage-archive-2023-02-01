@@ -846,13 +846,13 @@ class Maxima(Expect):
 
         EXAMPLES:
             sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
-            y = 3*x - 2*%e^(x - 1)
+            y=3*x-2*%e^(x-1)
             sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
-            y = %k1*%e^x + %k2*%e^ - x + 3*x
+            y=%k1*%e^x+%k2*%e^-x+3*x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
-            y = (%c - 3*( - x - 1)*%e^ - x)*%e^x
+            y=(%c-3*(-x-1)*%e^-x)*%e^x
             sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
-            y =  - %e^ - 1*(5*%e^x - 3*%e*x - 3*%e)
+            y=-%e^-1*(5*%e^x-3*%e*x-3*%e)
         """
         if not isinstance(vars, str):
             str_vars = '%s, %s'%(vars[1], vars[0])
@@ -925,7 +925,7 @@ class Maxima(Expect):
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
             sage: maxima.solve_linear(eqns, vars)
-            [x = a + 1,y = 2*a,z = a - 1]
+            [x=a+1,y=2*a,z=a-1]
         """
         eqs = "["
         for i in range(len(eqns)):
@@ -1183,7 +1183,7 @@ class MaximaElement(ExpectElement):
 
             sage: f = maxima('x^2 + 17*y^2')
             sage: f.diff('x')
-            2*x
+            34*y*'diff(y,x,1)+2*x
             sage: f.diff('y')
             34*y
         """

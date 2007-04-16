@@ -565,17 +565,13 @@ class Monitor(object):
             if self.log_level > 1:
                 log.msg('[Monitor] Checking worker %s, job %s' % (worker.id, worker.job.job_id))
             try:
-                done, output, new = worker.sage._so_far()
-                if not done:
-                    continue
-            except Exception, msg:
-                log.err('[Worker %s] %s' % (worker.id, msg))
-                continue
-            try:
+                foo, output, new = worker.sage._so_far()
                 os.chdir(worker.tmp_job_dir)
                 result = open('result.sobj', 'rb').read()
                 done = True
-            except Exception, msg:
+            except RuntimeError, msg: # Error in calling worker.sage._so_far()
+                continue
+            except IOError, msg: # File does not exist yet
                 done = False
             if done:
                 worker.free = True

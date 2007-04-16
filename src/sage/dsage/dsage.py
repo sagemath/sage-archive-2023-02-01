@@ -150,6 +150,7 @@ class DistributedSage(object):
             logfile -- only used if blocking=True; the default is
                        to log to $DOT_SAGE/dsage/worker.log
         """
+
         cmd = 'dsage_worker.py'
         if blocking:
             cmd += ' %s' % server

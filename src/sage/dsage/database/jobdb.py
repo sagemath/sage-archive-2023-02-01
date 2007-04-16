@@ -404,7 +404,7 @@ class JobDatabaseSQLite(JobDatabase):
         self.con = sqlite3.connect(
                    self.db_file,
                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        self.con.text_factory = str # Don't want unicode objects
+        self.con.text_factory = sqlite3.OptimizedUnicode # Don't want unicode objects
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,

@@ -1869,6 +1869,40 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return -g[0][0][0]
         raise ValueError, "must be a perfect square."
 
+    def vector(FiniteField_givaroElement self):
+        """
+        Return a vector in self.parent().vector_space() matching self.
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^4)
+            sage: e = a^2 + 1
+            sage: v = e.vector()
+            sage: v
+            (1, 0, 1, 0)
+            sage: k(v)
+            a^2 + 1
+
+            sage: k.<a> = GF(3^4)
+            sage: e = 2*a^2 + 1
+            sage: v = e.vector()
+            sage: v
+            (1, 0, 2, 0)
+            sage: k(v)
+            2*a^2 + 1
+
+        """
+        cdef FiniteField_givaro k = <FiniteField_givaro>self._parent
+
+        quo = k.log_to_int(self.element)
+        b   = int(k.characteristic())
+
+        ret = []
+        for i in range(k.degree()):
+            coeff = quo%b
+            ret.append(coeff)
+            quo = quo/b
+        return k.vector_space()(ret)
+
     def __reduce__(FiniteField_givaroElement self):
         """
         Used for supporting pickling of finite field elements.

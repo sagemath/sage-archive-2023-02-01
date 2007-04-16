@@ -7,9 +7,14 @@ from calculus import (SymbolicExpressionRing,
                       is_SymbolicExpression,
                       is_SymbolicExpressionRing)
 
+
+from functional import (diff, derivative,
+                        integrate, limit, lim,
+                        taylor, simplify)
+
 from var import var
 
-from calculus import (a,
+from predefined import (a,
                       b,
                       c,
                       d,
@@ -59,7 +64,3 @@ from calculus import (a,
                       Y,
                       Z)
 
-
-
-
-from functional import (diff, derivative, integrate, limit, lim, taylor, simplify)

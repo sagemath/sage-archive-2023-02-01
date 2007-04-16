@@ -288,7 +288,7 @@ class Worker(object):
 
         """
 
-        INTERRUPT_TRIES = 10
+        INTERRUPT_TRIES = 20
         timeout = 0.3
         for i in range(INTERRUPT_TRIES):
             try:

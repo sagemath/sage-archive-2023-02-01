@@ -359,6 +359,10 @@ class JobDatabaseSQLite(JobDatabase):
     Parameters:
     test -- set to true for unittesting purposes
 
+    AUTHORS:
+    Yi Qiang
+    Alex Clemesha
+
     """
 
     # TODO: SQLite does *NOT* enforce foreign key constraints

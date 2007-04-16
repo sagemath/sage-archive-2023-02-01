@@ -305,7 +305,10 @@ class Worker(object):
             log.err("[Worker %s] Could not do a soft reset, performing a hard reset now.")
 
         if not success:
-            pass
+            pid = self.__sage.pid()
+            cmd = 'kill -9 -%s'%pid
+            os.system(cmd)
+            self.sage = Sage()
 
         self.sage.reset()
         self.free = True

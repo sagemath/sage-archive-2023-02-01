@@ -53,14 +53,13 @@ type the following:
 Arithmetic operations with constants also yield constants, which
 can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
-    (pi + ((e*4)/5))
+    pi + 4*e/5
     sage: maxima(a)
     %pi+4*%e/5
-    sage: a.str(15)      # 15 *bits* of precision
-    '5.316'
+    sage: RealField(15)(a)           # 15 *bits* of precision
+    5.316
     sage: gp(a)
-    5.316218116357029426750873360            # 32-bit
-    5.3162181163570294267508733603616328824  # 64-bit
+    pi + 4/5*e
     sage: mathematica(a)                     # optional
      4 E
      --- + Pi
@@ -107,19 +106,19 @@ EXAMPLES: Arithmetic with constants
     -(e + 1)^2
 
     sage: pp = pi+pi; pp
-    (pi + pi)
+    2*pi
     sage: R(pp)
     6.2831853071795864769252867665590057683943387987502116419499
 
-    sage: s = (1 + e^pi);s
-    (1 + (e^pi))
+    sage: s = (1 + e^pi); s
+    e^pi + 1
     sage: R(s)
     24.140692632779269005729086367948547380266106242600211993445
     sage: R(s-1)
     23.140692632779269005729086367948547380266106242600211993445
 
-    sage: l = (1-log2)/(1+log2);l
-    ((1 - log2)/(1 + log2))
+    sage: l = (1-log2)/(1+log2); l
+    (1 - log(2))/(log(2) + 1)
     sage: R(l)
     0.18123221829928249948761381864650311423330609774776013488056
 
@@ -303,7 +302,7 @@ class Pi(Constant):
         sage: R(pi)
         3.1415926535897932384626433832795028841971693993751058209749
         sage: pp = pi+pi; pp
-        (pi + pi)
+        2*pi
         sage: R(pp)
         6.2831853071795864769252867665590057683943387987502116419499
         sage: maxima(pi)
@@ -362,20 +361,24 @@ class I_class(Constant):
         sage: I^2
         -1
         sage: float(I)
-        boom
+        Traceback (most recent call last):
+        ...
+        TypeError
         sage: gp(I)
         I
         sage: RR(I)
-        boom
-        sage: C = ComplexField(200); C
-        Real Field with 200 bits of precision
-        sage: C(I)
+        Traceback (most recent call last):
         ...
+        TypeError
+        sage: C = ComplexField(200); C
+        Complex Field with 200 bits of precision
+        sage: C(I)
+        1.0000000000000000000000000000000000000000000000000000000000*I
         sage: z = I + I; z
         2*I
         sage: C(z)
-        ???
-        sage: maxima(I)
+        2.0000000000000000000000000000000000000000000000000000000000*I
+        sage: maxima(2*I)
         2*%i
     """
     def __init__(self):
@@ -428,7 +431,7 @@ class E(Constant):
         sage: R(e)
         2.7182818284590452353602874713526624977572470936999595749670
         sage: em = 1 + e^(1-e); em
-        (1 + (e^(1 - e)))
+        e^(1 - e) + 1
         sage: R(em)
         1.1793740787340171819619895873183164984596816017589156131574
         sage: maxima(e).float()
@@ -556,8 +559,8 @@ class Log2(Constant):
         Real Field with 200 bits of precision
         sage: R(log2)
         0.69314718055994530941723212145817656807550013436025525412068
-        sage: l = (1-log2)/(1+log2);l
-        ((1 - log2)/(1 + log2))
+        sage: l = (1-log2)/(1+log2); l
+        (1 - log(2))/(log(2) + 1)
         sage: R(l)
         0.18123221829928249948761381864650311423330609774776013488056
         sage: maxima(log2)
@@ -613,15 +616,16 @@ class EulerGamma(Constant):
         Real Field with 200 bits of precision
         sage: R(euler_gamma)
         0.57721566490153286060651209008240243104215933593992359880577
-        sage: eg = euler_gamma + euler_gamma;eg
-        (euler_gamma + euler_gamma)
+        sage: eg = euler_gamma + euler_gamma; eg
+        2*euler_gamma
         sage: R(eg)
         1.1544313298030657212130241801648048620843186718798471976115
     """
     def __init__(self):
         Constant.__init__(self,
 	    {'kash':'EulerGamma(R)','maple':'gamma',
-             'mathematica':'EulerGamma','pari':'Euler'})
+             'mathematica':'EulerGamma','pari':'Euler',
+             'maxima':'%gamma'})
 
     def _repr_(self, simplify=True):
         return 'euler_gamma'
@@ -638,7 +642,7 @@ class EulerGamma(Constant):
             sage: RDF(euler_gamma)
             0.577215664902
         """
-        return R.euler()
+        return R.euler_constant()
 
     def floor(self):
         return Integer(0)

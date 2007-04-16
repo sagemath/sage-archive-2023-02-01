@@ -1,5 +1,7 @@
 """
-Automorphism group computation and isomorphism checking for graphs
+N.I.C.E. - Nice (as in open source) Isomorphism Check Engine
+
+Automorphism group computation and isomorphism checking for graphs.
 
 This is a new open source implementation of Brendan McKay's algorithm
 for graph automorphism and isomorphism.  This is not a derived work of
@@ -10,6 +12,7 @@ GPL).
 AUTHORS:
     Robert L. Miller -- (2007-03-20) initial version
     Tom Boothby -- (2007-03-20) help with indicator function
+    Robert L. Miller -- (2007-04-07) optimizations
 
 REFERENCE:
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
@@ -203,7 +206,7 @@ def sat225(Pi, n):
     elif n == len(Pi) + m + 1: return True
     else: return False
 
-def degree(G, v, W):
+def degree(G, v, W, bool_matrix_format=False):
     """
     Returns the number of edges from v to vertices in W, i.e. the degree of v
     with respect to W. W is usually a cell in a partition, but needs only be
@@ -213,13 +216,37 @@ def degree(G, v, W):
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import degree
         sage: P = graphs.PetersenGraph()
+        sage: M = P.adjacency_matrix()
         sage: Pi1 = [[0,2,3,4],[5,7,8,1],[6,9]]
         sage: degree(P, 6, Pi1[1])
+        2
+        sage: degree(M, 6, Pi1[1], bool_matrix_format=True)
         2
 
     To see what is going on:
         sage.: P.show(partition=Pi1)
+
+    NOTE:
+    Regarding the bool_matrix_format option, see the following timings:
+        sage.: import sage.graphs.graph_isom
+        sage.: from sage.graphs.graph_isom import degree
+        sage.: P = graphs.PetersenGraph()
+        sage.: M = P.adjacency_matrix()
+        sage.: str(M).replace('\n',',').replace(' ',',').replace('1','True').replace('0','False')
+        '[False,True,False,False,True,True,False,False,False,False],[True,False,True,False,False,False,True,False,False,False],[False,True,False,True,False,False,False,True,False,False],[False,False,True,False,True,False,False,False,True,False],[True,False,False,True,False,False,False,False,False,True],[True,False,False,False,False,False,False,True,True,False],[False,True,False,False,False,False,False,False,True,True],[False,False,True,False,False,True,False,False,False,True],[False,False,False,True,False,True,True,False,False,False],[False,False,False,False,True,False,True,True,False,False]'
+        sage.: M = [[False,True,False,False,True,True,False,False,False,False],[True,False,True,False,False,False,True,False,False,False],[False,True,False,True,False,False,False,True,False,False],[False,False,True,False,True,False,False,False,True,False],[True,False,False,True,False,False,False,False,False,True],[True,False,False,False,False,False,False,True,True,False],[False,True,False,False,False,False,False,False,True,True],[False,False,True,False,False,True,False,False,False,True],[False,False,False,True,False,True,True,False,False,False],[False,False,False,False,True,False,True,True,False,False]]
+        sage.: Pi1 = [[0,2,3,4],[5,7,8,1],[6,9]]
+        sage.: timeit degree(P, 6, Pi1[1])
+        10000 loops, best of 3: 24.9 [micro]s per loop
+        sage.: timeit degree(M, 6, Pi1[1], bool_matrix_format=True)
+        100000 loops, best of 3: 8.27 [micro]s per loop
     """
+    if bool_matrix_format:
+        i = 0
+        for u in W:
+            if G[u][v]:
+                i += 1
+        return i
     i = 0
     for u in W:
         if G._nxg.adj[u].has_key(v):
@@ -290,7 +317,7 @@ def replace_in(Pi, k, L):
     for j in Pi[k+1:]: PiNew.append(j)
     return PiNew
 
-def sort_by_degree(G, A, B):
+def sort_by_degree(G, A, B, bool_matrix_format=False):
     """
     Assuming A and B are subsets of the vertex set of G, returns an ordered
     partition of A such that degree(x,B) < degree(y,B) iff x occurs in an
@@ -308,14 +335,14 @@ def sort_by_degree(G, A, B):
     """
     ddict = {}
     for a in A:
-        dd = degree(G, a, B)
+        dd = degree(G, a, B, bool_matrix_format=bool_matrix_format)
         if ddict.has_key(dd):
             ddict[dd].append(a)
         else:
             ddict[dd] = [a]
     return ddict.values()
 
-def refine(G, Pi, alpha):
+def refine(G, Pi, alpha, bool_matrix_format=False):
     """
     The key refinement procedure. Given a graph G, a partition Pi of the
     vertex set, and a collection alpha of disjoint subsets of the vertex set,
@@ -369,7 +396,7 @@ def refine(G, Pi, alpha):
         k = 0
         r = len(PiT)
         while k < r:
-            X = sort_by_degree(G, PiT[k], W)
+            X = sort_by_degree(G, PiT[k], W, bool_matrix_format=bool_matrix_format)
             s = len(X)
             if s != 1:
                 t = 0
@@ -411,14 +438,14 @@ def comp(Pi, v):
                 L.append(vv)
         return replace_in(Pi, i, [[v], L])
 
-def perp(G, Pi, v):
+def perp(G, Pi, v, bool_matrix_format=False):
     """
     Refines the partition Pi by cutting out a vertex, then using refine,
     comparing against only that vertex.
     """
-    return refine(G, comp(Pi, v), [[v]])
+    return refine(G, comp(Pi, v), [[v]], bool_matrix_format=bool_matrix_format)
 
-def partition_nest(G, Pi, V):
+def partition_nest(G, Pi, V, bool_matrix_format=False):
     """
     Given a sequence of vertices V = (v_1,...,v_{m-1}) of a graph G, and a
     partition Pi, the partition nest derived from G, Pi, and V is defined to
@@ -431,9 +458,9 @@ def partition_nest(G, Pi, V):
 
     C.f. 2.9 in [1].
     """
-    L = [refine(G, Pi, Pi)]
+    L = [refine(G, Pi, Pi, bool_matrix_format=bool_matrix_format)]
     for i in range(len(V)):
-        L.append(perp(G, L[i], V[i]))
+        L.append(perp(G, L[i], V[i], bool_matrix_format=bool_matrix_format))
     return L
 
 def first_smallest_non_trivial(Pi):
@@ -450,7 +477,7 @@ def first_smallest_non_trivial(Pi):
         if len(Pi[i]) == m:
             return Pi[i]
 
-def indicator(G, Pi, V):
+def indicator(G, Pi, V, bool_matrix_format=False):
     """
     Takes a labelled graph, an ordered partition, and a partition nest, and
     outputs an integer, which is the same under any fixed permutation.
@@ -491,13 +518,17 @@ def indicator(G, Pi, V):
         sage: indicator(G, [range(93)], partition_nest(G, [range(93)], V)) == indicator(H, [range(93)], partition_nest(H, [range(93)], [g.list()[v-1] for v in V]))
         True
     """
+    if bool_matrix_format:
+        n = len(G)
+    else:
+        n = G.order()
     from sage.misc.misc import prod
-    LL = [0]*G.order()
+    LL = [0]*n
     for partition in V:
         a = len(partition)
         for k in range(a):
             LL[k] += len(partition[k])*(1 + \
-                sum(  [  degree(G, partition[k][0], partition[i]) for i in range(len(partition))  ]  ) \
+                sum(  [  degree(G, partition[k][0], partition[i], bool_matrix_format=bool_matrix_format) for i in range(len(partition))  ]  ) \
                                         )
     return prod([l for l in LL if l!=0])
 
@@ -588,7 +619,7 @@ def term_pnest_graph(G, nu, enumer=False):
         H.relabel(d)
         return H
 
-def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
+def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0):
     """
     Assumes that the vertex set of G is {0,1,...,n-1} for some n.
 
@@ -1007,6 +1038,15 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         Pi2.append(newcell)
     Pi = Pi2
 
+    M = [[False]*n]*n
+    if isinstance(G, Graph):
+        for i, j, l in G.edge_iterator():
+            M[i][j] = True
+            M[j][i] = True
+    elif isinstance(G, DiGraph):
+        for i, j, l in G.arc_iterator():
+            M[i][j] = True
+
     #begin BDM's algorithm:
     L = 100
     state = 1
@@ -1043,7 +1083,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
 #        print 'hzf: ' + str(hzf)
 #        print 'qzb: ' + str(qzb)
         if state == 1:
-#            print 'state: 1'
+            if verbosity > 0: print 'state: 1'
             size = 1
             k = 1
             h = 0
@@ -1063,7 +1103,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                 e[1] = 0
                 state = 2
         elif state == 2:
-#            print 'state: 2'
+            if verbosity > 0: print 'state: 2'
             k += 1
             nu[k] = perp(G, nu[k-1], v[k-1])
             Lambda[k] = indicator(G, Pi, nu.values())
@@ -1082,11 +1122,11 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                     if qzb > 0: zb[k] = Lambda[k]
                     state = 3
         elif state == 3:
-#            print 'state: 3'
+            if verbosity > 0: print 'state: 3'
             if hzf <= k or (lab and qzb >= 0): state = 4 ##changed hzb to hzf, == to <=
             else: state = 6
         elif state == 4:
-#            print 'state: 4'
+            if verbosity > 0: print 'state: 4'
             if is_discrete(nu[k]): state = 7
             else:
                 W[k] = first_smallest_non_trivial(nu[k])
@@ -1095,12 +1135,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                 e[k] = 0
                 state = 2
         elif state == 5:
-#            print 'state: 5'
+            if verbosity > 0: print 'state: 5'
             zf[k] = Lambda[k]
             zb[k] = Lambda[k]
             state = 4
         elif state == 6:
-#            print 'state: 6'
+            if verbosity > 0: print 'state: 6'
             kprime = k
             k = min([ hh-1, max(ht-1,hzb) ])
             if k == 0: k = 1 # not in BDM, broke at G = Graph({0:[], 1:[]}), Pi = [[0,1]], lab=False
@@ -1111,7 +1151,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                 Phi[l] = fix(nu[hh])
                 state = 12
         elif state == 7:
-#            print 'state: 7'
+            if verbosity > 0: print 'state: 7'
             if h == 0: state = 18
             elif k < hzf: state = 8 ## BDM had !=, broke at G = Graph({0:[],1:[],2:[]}), Pi = [[0,1,2]]
             else:
@@ -1122,7 +1162,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                 else:
                     state = 8
         elif state == 8:
-#            print 'state: 8'
+            if verbosity > 0: print 'state: 8'
             if (not lab) or (qzb < 0): state = 6
             elif (qzb > 0) or (k < len(rho)): state = 9
             elif (term_pnest_graph(G, nu.values(), enumer=True) > term_pnest_graph(G, rho.values(), enumer=True)): state = 9
@@ -1132,7 +1172,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
     #            print gamma
                 state = 10
         elif state == 9:
-#            print 'state: 9'
+            if verbosity > 0: print 'state: 9'
             rho = copy(nu)
             qzb = 0
             hb = k
@@ -1140,7 +1180,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
             zb[k+1] = Infinity
             state = 6
         elif state == 10:
-#            print 'state: 10'
+            if verbosity > 0: print 'state: 10'
             l = min([l+1,L])
             Omega[l] = min_cell_reps(orbit_partition(gamma, list_perm=True))
             Phi[l] = fix(orbit_partition(gamma, list_perm=True))
@@ -1155,16 +1195,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                     k = h
                     state = 13
         elif state == 11:
-#            print 'state: 11'
+            if verbosity > 0: print 'state: 11'
             k = hb
             state = 12
         elif state == 12:
-#            print 'state: 12'
+            if verbosity > 0: print 'state: 12'
             if e[k] == 1:
                 W[k] = [v for v in W[k] if v in Omega[l]]
             state = 13
         elif state == 13:
-#            print 'state: 13'
+            if verbosity > 0: print 'state: 13'
             if k == 0: state = None
             else:
                 if k > h: state = 17
@@ -1175,7 +1215,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                     tvh = tvc
                 state = 14
         elif state == 14:
-#            print 'state: 14'
+            if verbosity > 0: print 'state: 14'
             for cell in Theta:
                 if v[k] in cell:
                     if tvh in cell:
@@ -1190,7 +1230,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
             elif v[k] not in min_cell_reps(Theta): state = 14
             else: state = 15
         elif state == 15:
-#            print 'state: 15'
+            if verbosity > 0: print 'state: 15'
             hh = min(hh,k+1)
             hzf = min(hzf,k)
             if not lab or hb < k: state = 2 # changed hzb to hb
@@ -1199,14 +1239,14 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
                 qzb = 0
                 state = 2
         elif state == 16:
-#            print 'state: 16'
+            if verbosity > 0: print 'state: 16'
             if len(W[k]) == index and ht == k+1: ht = k
             size = size*index
             index = 0
             k -= 1
             state = 13
         elif state == 17:
-#            print 'state: 17'
+            if verbosity > 0: print 'state: 17'
             if e[k] == 0:
                 l = W[k]
                 for i in range(1,l+1):
@@ -1228,7 +1268,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
             k -= 1
             state = 13
         elif state == 18:
-#            print 'state: 18'
+            if verbosity > 0: print 'state: 18'
             h = k
             ht = k
             hzf = k

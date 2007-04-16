@@ -508,7 +508,7 @@ class Expect(ParentWithBase):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:
-            return 'error evaluating "%s":\n%s'%(code,s)
+            raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
     def execute(self, *args, **kwds):
         return self.eval(*args, **kwds)

@@ -1010,11 +1010,11 @@ class SymbolicExpression(RingElement):
 
         We integrate the same function in both Mathematica and SAGE (via Maxima):
             sage: f = sin(x^2) + y^z
-            sage: g = mathematica(f)
-            sage: print g
+            sage: g = mathematica(f)                           # optional
+            sage: print g                                      # optional
                       z        2
                      y  + Sin[x ]
-            sage: print g.Integrate(x)
+            sage: print g.Integrate(x)                         # optional
                         z        Pi                2
                      x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                                  2                 Pi
@@ -1123,8 +1123,7 @@ class SymbolicExpression(RingElement):
         if len(dontfactor) > 0:
             m = self._maxima_()
             name = m.name()
-            cmd = 'block ([dontfactor: %s], factor (%s))'%(dontfactor,
-                                               name)
+            cmd = 'block([dontfactor:%s],factor(%s))'%(dontfactor, name)
             return evaled_symbolic_expression_from_maxima_string(cmd)
         else:
             return self.parent()(self._maxima_().factor())
@@ -1638,7 +1637,7 @@ class SymbolicConstant(Symbolic_object):
         try:
             return self._atomic
         except AttributeError:
-            if isinstance(x, Rational):
+            if isinstance(self, Rational):
                 self._atomic = False
             else:
                 self._atomic = True
@@ -2743,9 +2742,11 @@ from sage.misc.multireplace import multiple_replace
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False):
     global _syms
-    maxima._eval_line('listdummyvars: false;')
+
     maxima.set('_tmp_',x)
-    r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
+    r = maxima._eval_line('listofvars(_tmp_);', synchronize=False)[1:-1]
+    s = maxima.get('_tmp_')
+
     symtable2 = {}
     if len(r) > 0:
         # Now r is a list of all the indeterminate variables that
@@ -2757,7 +2758,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False):
                 a = a[1:]
             _syms[a] = var(a)
 
-    s = maxima.get('_tmp_')
     if symtable2:
         s = multiple_replace(symtable2, s)
 

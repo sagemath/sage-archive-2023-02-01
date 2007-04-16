@@ -351,8 +351,9 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from pexpect import EOF
 
+import random
+
 import sage.rings.all
-#import sage.rings.complex_number2 as complex_number
 
 from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
@@ -404,7 +405,7 @@ class Maxima(Expect):
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask]
-        self._error_re = re.compile('(debugmode|Incorrect syntax)')
+        self._error_re = re.compile('(debugmode|Incorrect syntax|Maxima encountered a Lisp error)')
         self._display2d = False
 
 
@@ -450,8 +451,16 @@ class Maxima(Expect):
                 raise ValueError, msg
         except KeyboardInterrupt, msg:
             print self._expect.before
-            self._send('quit;\n'+chr(3))
-            self._send('quit;\n'+chr(3))
+            while True:
+                try:
+                    print "Control-C pressed while running maxima.  Please wait..."
+                    self._send('quit;\n'+chr(3))
+                    self._send('quit;\n'+chr(3))
+                    self.interrupt()
+                except KeyboardInterrupt:
+                    pass
+                else:
+                    break
             raise KeyboardInterrupt, msg
 
     def _interrupt(self):
@@ -474,12 +483,19 @@ class Maxima(Expect):
         self._sendline(cmd)
         self._expect_expr()
         out = self._before()
-        if out.find("error") != -1:
-            raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+        self._error_check(str, out)
         return out
 
+    def _error_check(self, str, out):
+        r = self._error_re
+        m = r.search(out)
+        if not m is None:
+            raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+
     def _eval_line(self, line, reformat=True, allow_use_file=False,
-                   wait_for_prompt=True):
+                   wait_for_prompt=True, synchronize=True):
+        if synchronize:
+            self._synchronize()
         if len(line) == 0:
             return ''
         if wait_for_prompt and line[-1] != ';':
@@ -493,10 +509,9 @@ class Maxima(Expect):
             return
         self._expect_expr()
         out = self._before()
-        r = self._error_re
-        m = r.search(out)
-        if not m is None:
-            raise TypeError, out
+
+        self._error_check(line, out)
+
         if not reformat:
             return out
 
@@ -509,6 +524,19 @@ class Maxima(Expect):
         o = ''.join([x.strip() for x in o.split()])
         return o
 
+
+    def _synchronize(self):
+        if self._expect is None: return
+        r = random.randrange(10000)
+        cmd = "print(1+%s);\n"%r
+        s = str(r+1)
+        self._send(cmd)
+        self._expect_expr()
+        b = self._before()
+        if not s in b:
+            self._expect_expr(s)
+            self._expect_expr()
+            self._before()
 
 
     ###########################################
@@ -668,8 +696,7 @@ class Maxima(Expect):
             self._sendline(cmd)
             self._expect_expr()
             out = self._before()
-            if out.find("error") != -1:
-                raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out)
+            self._error_check(cmd, out)
 
     def get(self, var):
         """

@@ -33,8 +33,7 @@ def integrate(f, *args, **kwds):
         sage: integrate(sin(x), x)
         -cos(x)
         sage: integrate(sin(x)^2, x, pi, 123*pi/2)
-        ((121*pi)/4)
-
+        121*pi/4
     """
     if isinstance(f, CallableFunction):
         return f.derivative(*args, **kwds)

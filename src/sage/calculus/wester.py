@@ -164,7 +164,6 @@ sage: print f.partial_fraction()
 sage: # (BUG?) Assuming  x>=y,  y>=z,  z>=x, deduce  x=z.
 sage: # Maxima doesn't agree that x==z is a conclusion...
 sage: forget()
-Forgetting all assumptions.
 sage: restore('x,y,z')
 sage: assume(x>=y, y>=z,z>=x)
 sage: print bool(x==z)
@@ -172,14 +171,12 @@ False
 
 sage: # (YES) Assuming x>y, y>0, deduce 2*x^2>2*y^2.
 sage: forget()
-Forgetting all assumptions.
 sage: assume(x>y, y>0)
 sage: print assumptions()
 [x > y, y > 0]
 sage: print bool(2*x^2 > 2*y^2)
 True
 sage: forget()
-Forgetting all assumptions.
 sage: print assumptions()
 []
 sage: # Solve the inequality Abs(x-1)>2.
@@ -338,7 +335,6 @@ sage: assume(imag(z) <= pi)
 sage: f
 z
 sage: forget()
-Forgetting all assumptions.
 
 sage: # (YES) Assuming Re(x)>0, Re(y)>0, deduce x^(1/n)*y^(1/n)-(x*y)^(1/n)=0.
 sage: assume(real(x) > 0, real(y) > 0)
@@ -346,7 +342,6 @@ sage: f = x^(1/n)*y^(1/n)-(x*y)^(1/n)
 sage: print f
                                        0
 sage: forget()
-Forgetting all assumptions.
 
 sage: # (??) Transform equations, (x==2)/2+(1==1)=>x/2+1==2.
 sage: # This doesn't make any sense, in my opinion.  Adding equations

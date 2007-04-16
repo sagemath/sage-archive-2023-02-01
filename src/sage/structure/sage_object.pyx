@@ -238,8 +238,8 @@ cdef class SageObject:
             try:
                 s = self._interface_init_()
             except AttributeError, msg1:
-                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
-                      (I, msg0, msg1)
+                raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
+                      (repr(self), I, msg0, msg1)
         X = I(s)
         if c:
             try:
@@ -249,7 +249,7 @@ cdef class SageObject:
         return X
 
     def _interface_init_(self):
-        return str(self)
+        return repr(self)
 
     def _interface_is_cached_(self):
         """

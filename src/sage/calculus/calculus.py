@@ -38,16 +38,16 @@ EXAMPLES:
     not equality)
         sage: f = x + y + z/(2*sin(y*z/55))
         sage: g = f^f; g
-        (z/2*sin(y*z/55) + y + x)^(z/2*sin(y*z/55) + y + x)
+        (z/(2*sin(y*z/55)) + y + x)^(z/(2*sin(y*z/55)) + y + x)
 
     Differentiation and integration are available, but behind the
     scenes through maxima:
 
         sage: f = sin(x)/cos(2*y)
         sage: f.derivative(y)
-        2*sin(x)*sin(2*y)/cos(2*y)^2
+        2*sin(x)*sin(2*y)/(cos(2*y)^2)
         sage: g = f.integral(x); g
-        -cos(x)/cos(2*y)
+        -cos(x)/(cos(2*y))
 
     Note that these methods require an explicit variable name. If none
     is given, \sage will try to find one for you.
@@ -84,7 +84,7 @@ EXAMPLES:
         sage: f(4)
         Traceback (most recent call last):
         ...
-        TypeError: must give explicit variable names to substitute for
+        ValueError: you must specify the variable when doing a substitution, e.g., f(x=5)
 
     We can also make CallableFunctions, which is a SymbolicExpression
     that are functions of variables in a fixed order. Each
@@ -155,13 +155,15 @@ Note that after calling var, the variables are immediately available for use:
     (n2 + n1)^5
 
 We can, of course, substitute:
-    sage: f(n9=9,n7=n6).display2d()
-
+    sage: print f(n9=9,n7=n6)
+            1     1     1     1     1     1     1    1    387420490
+           --- + --- + --- + --- + --- + --- + --- + -- + ---------
+             8     6     7     5     4     3     2   n1   387420489
+           n8    n6    n6    n5    n4    n3    n2
 
 TESTS:
 We test pickling:
-    sage: f
-    -sqrt(pi)*((sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
+    sage: f = -sqrt(pi)*((sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
     sage: bool(loads(dumps(f)) == f)
     True
 
@@ -212,11 +214,26 @@ is_simplified = False
 def is_SymbolicExpression(x):
     """
     EXAMPLES:
-    sage: ???
+        sage: is_SymbolicExpression(sin(x))
+        True
+        sage: is_SymbolicExpression(2/3)
+        False
+        sage: is_SymbolicExpression(sqrt(2))
+        True
     """
     return isinstance(x, SymbolicExpression)
 
-# There will only ever be one instance of this class
+def is_SymbolicExpressionRing(x):
+    """
+    EXAMPLES:
+        sage: is_SymbolicExpressionRing(QQ)
+        False
+        sage: is_SymbolicExpressionRing(SER)
+        True
+    """
+    return isinstance(x, SymbolicExpressionRing_class)
+
+
 class SymbolicExpressionRing_class(CommutativeRing):
     """
     The ring of all formal symbolic expressions.
@@ -333,7 +350,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: f = y^2/(y+1)^3 + x/(x-1)^3
             sage: f
-            (y)^2/(y + 1)^3 + x/(x - 1)^3
+            y^2/(y + 1)^3 + x/(x - 1)^3
             sage: print f
                                               2
                                              y          x
@@ -643,7 +660,8 @@ class SymbolicExpression(RingElement):
            base_ring -- a ring
 
         EXAMPLES:
-            sage: (x^2 -2/3*x + 1).polynomial(QQ)
+            sage: f = x^2 -2/3*x + 1
+            sage: f.polynomial(QQ)
             x^2 - 2/3*x + 1
             sage: f.polynomial(GF(19))
             x^2 + 12*x + 1
@@ -664,7 +682,7 @@ class SymbolicExpression(RingElement):
 
         We coerce a multivariate polynomial with complex symbolic coefficients:
             sage: f = pi^3*x - y^2*e - I; f
-            -e*y^2 + pi^3*x - I
+            -1*e*y^2 + pi^3*x - I
             sage: f.polynomial(CDF)
             -1.0*I + (-2.71828182846)*y^2 + 31.0062766803*x
             sage: f.polynomial(CC)
@@ -901,7 +919,7 @@ class SymbolicExpression(RingElement):
 
             sage: f = x^2/(x+1)^3
             sage: f.integral()
-            log(x + 1) + (4*(x) + 3)/(2*(x)^2 + 4*(x) + 2)
+            log(x + 1) + (4*x + 3)/(2*x^2 + 4*x + 2)
 
             sage: f = x*cos(x^2)
             sage: f.integral(x, 0, sqrt(pi))
@@ -909,18 +927,12 @@ class SymbolicExpression(RingElement):
             sage: f.integral(a=-pi, b=pi)
             0
 
-        We integrate a spherical Bessel function:
-            sage: f = spherical_bessel_Y(2,x); f
-            (-3*sin(x)/x - (1 - (3/x^2))*cos(x))/x
-            sage: f.integral(x)
-            ???
-
         Constraints are sometimes needed:
             sage: integral(x^n,x)
             Traceback (most recent call last):
             ...
-            TypeError: Maxima requires additional constraints:
-            Is  n+1  zero or nonzero? (use assume)
+            TypeError: Computation failed, since Maxima requested additional constraints:
+            Is  n+1  zero or nonzero?
             sage: assume(n > 0)
             sage: integral(x^n,x)
             x^(n + 1)/(n + 1)
@@ -1025,12 +1037,12 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
             sage: (x^3-y^3).factor()
-            (-y - x)*(y^2 + x*y + x^2)
+            (-(y - x))*(y^2 + x*y + x^2)
             sage: factor(-8*y - 4*x + z^2*(2*y + x))
             (2*y + x)*(z - 2)*(z + 2)
             sage: f = -1 - 2*x - x^2 + y^2 + 2*x*y^2 + x^2*y^2
             sage: F = factor(f/(36*(1 + 2*y + y^2)), dontfactor=[x])
-            sage: F.display2d()
+            sage: print F
                                           2
                                         (x  + 2 x + 1) (y - 1)
                                         ----------------------
@@ -1106,7 +1118,7 @@ class SymbolicExpression(RingElement):
         kwds = self.__varify_kwds(kwds)
         return X._recursive_sub(kwds)
 
-    def _recursive_sub(self, kwds, ring):
+    def _recursive_sub(self, kwds):
         raise NotImplementedError, "implement _recursive_sub for type '%s'!"%(type(self))
 
     def _recursive_sub_over_ring(self, kwds, ring):
@@ -1181,6 +1193,7 @@ class SymbolicExpression(RingElement):
             sage: print f
         			       z
             sage: forget()
+            Forgetting all assumptions.
         """
         return self.parent()(self._maxima_().imag())
 
@@ -1401,7 +1414,7 @@ class CallableFunction(RingElement):
             sage: g
             (w, t) |--> cos(w - t)
             sage: f._unify_varlists(g)
-            (t, w, x, y, z)
+            (x, y, z, w, t)
 
             sage: f(x, y, t) = y*(x^2-t)
             sage: f
@@ -1410,7 +1423,7 @@ class CallableFunction(RingElement):
             sage: f._unify_varlists(g)
             (x, y, t, w)
             sage: g._unify_varlists(f)
-            (x, y, t, w)
+            (x, y, w, t)
             sage: f*g
             (x, y, t, w) |--> (x^2 - t)*y*(y + x - cos(w))
 
@@ -1419,7 +1432,7 @@ class CallableFunction(RingElement):
             sage: f._unify_varlists(g)
             (x, y, t, w)
             sage: g._unify_varlists(f)
-            (x, y, t, w)
+            (x, y, w, t)
             sage: f + g
             (x, y, t, w) |--> y + x + w + t
 
@@ -1579,7 +1592,7 @@ class SymbolicPolynomial(Symbolic_object):
         sage: f.integral(x)
         x^4/4 + x^2/2
         sage: f(x=y)
-        y*(y^2 + 1)
+        y^3 + y
 
     A multivariate polynomial:
 
@@ -1587,9 +1600,9 @@ class SymbolicPolynomial(Symbolic_object):
         sage: f = SER(x^3 + x + y + theta^2); f
         theta^2 + y + x + x^3
         sage: f(x=y, theta=y)
-        2*y + y^2 + y^3
+        y^3 + y^2 + 2*y
         sage: f(x=5)
-        130 + theta^2 + y
+        y + theta^2 + 130
 
     The polynomial must be over a field of characteristic 0.
         sage: R.<w> = GF(7)[]
@@ -1787,6 +1800,7 @@ class SymbolicArithmetic(SymbolicOperation):
             sage: a.derivative(r)
             -1/((1 - (1/r))^2*r^2)
 
+            sage: reset('a,b')
             sage: s = 0*(1/a) + -b*(1/a)*(1 + -1*0*(1/a))*(1/(a*b + -1*b*(1/a)))
             sage: s
             -b/(a*(a*b - (b/a)))
@@ -2046,10 +2060,6 @@ class SymbolicComposition(SymbolicOperation):
         SymbolicOperation.__init__(self, [f,g])
 
     def _recursive_sub(self, kwds):
-        """
-        EXAMPLES:
-            sage: ??
-        """
         ops = self._operands
         return ops[0](ops[1]._recursive_sub(kwds))
 
@@ -2147,6 +2157,9 @@ class PrimitiveFunction(SymbolicExpression):
         self._tex_needs_braces = needs_braces
         pass
 
+    def _is_atomic(self):
+        return True
+
     def tex_needs_braces(self):
         return self._tex_needs_braces
 
@@ -2175,9 +2188,6 @@ class Function_erf(PrimitiveFunction):
 
     def _latex_(self):
         return "\\text{erf}"
-
-    def _is_atomic(self):
-        return True
 
     def _approx_(self, x):
         return float(1 - pari(float(x)).erfc())
@@ -2208,9 +2218,6 @@ class Function_abs(PrimitiveFunction):
     def _latex_(self):
         return "\\abs"
 
-    def _is_atomic(self):
-        return True
-
     def _approx_(self, x):
         return x.__abs__()
 
@@ -2223,19 +2230,12 @@ _syms['abs'] = abs_symbolic
 class Function_sin(PrimitiveFunction):
     """
     The sine function
-
-    EXAMPLES:
-        sage: ???
-
     """
     def _repr_(self, simplify=True):
         return "sin"
 
     def _latex_(self):
         return "\\sin"
-
-    def _is_atomic(self):
-        return True
 
     _approx_ = math.sin
 
@@ -2259,9 +2259,6 @@ class Function_cos(PrimitiveFunction):
 
     def _latex_(self):
         return "\\cos"
-
-    def _is_atomic(self):
-        return True
 
     _approx_ = math.cos
 
@@ -2296,9 +2293,6 @@ class Function_sec(PrimitiveFunction):
 
     def _latex_(self):
         return "\\sec"
-
-    def _is_atomic(self):
-        return True
 
     def _approx_(self, x):
         try:
@@ -2336,9 +2330,6 @@ class Function_tan(PrimitiveFunction):
     def _latex_(self):
         return "\\tan"
 
-    def _is_atomic(self):
-        return True
-
     def _approx_(self, x):
         try:
             return x.tan()
@@ -2359,19 +2350,15 @@ class Function_asin(PrimitiveFunction):
         sage: asin(0.5)
         0.523598775598299
         sage: asin(1/2)
-        (pi/6)
+        pi/6
         sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190504*I
-
+        1.061275061905036*I + 0.6662394324925153
     """
     def _repr_(self, simplify=True):
         return "asin"
 
     def _latex_(self):
         return "\\sin^{-1}"
-
-    def _is_atomic(self):
-        return True
 
     def _approx_(self, x):
         try:
@@ -2393,19 +2380,15 @@ class Function_acos(PrimitiveFunction):
         sage: acos(0.5)
         1.04719755119660
         sage: acos(1/2)
-        (pi/3)
+        pi/3
         sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190504*I
-
+        0.9045568943023813 - 1.061275061905036*I
     """
     def _repr_(self, simplify=True):
         return "acos"
 
     def _latex_(self):
         return "\\cos^{-1}"
-
-    def _is_atomic(self):
-        return True
 
     def _approx_(self, x):
         try:
@@ -2430,16 +2413,13 @@ class Function_atan(PrimitiveFunction):
         sage: RDF(atan(1/2))
         0.463647609001
         sage: atan(1 + I)
-        1.01722196789785 + 0.402359478108525*I
+        atan(I + 1)
     """
     def _repr_(self, simplify=True):
         return "atan"
 
     def _latex_(self):
         return "\\tan^{-1}"
-
-    def _is_atomic(self):
-        return True
 
     def _approx_(self, x):
         try:
@@ -2497,7 +2477,7 @@ class Function_log(PrimitiveFunction):
             return "\\log_{%s}" % self._base
 
     def _is_atomic(self):
-        return True
+        return self._base is None
 
     def __call__(self, x, *args):
         # see if we have a base that's None
@@ -2549,7 +2529,7 @@ class Function_sqrt(PrimitiveFunction):
 
     EXAMPLES:
         sage: sqrt(-1)
-        1.00000000000000*I
+        I
         sage: sqrt(2)
         sqrt(2)
         sage: sqrt(x^2)
@@ -2563,9 +2543,6 @@ class Function_sqrt(PrimitiveFunction):
 
     def _latex_(self):
         return "\\sqrt"
-
-    def _is_atomic(self):
-        return True
 
     def __call__(self, x):
         # if x is an integer or rational, never call the sqrt method
@@ -2600,15 +2577,17 @@ class Function_exp(PrimitiveFunction):
 
     EXAMPLES:
         sage: exp(-1)
-        ?
+        e^-1
         sage: exp(2)
-        ?
+        e^2
         sage: exp(x^2 + log(x))
-        ?
+        x*e^x^2
         sage: exp(2.5)
+        12.1824939607035
         sage: exp(float(2.5))
+        12.182493960703473
         sage: exp(RDF('2.5'))
-
+        12.1824939607
     """
     def __init__(self):
         PrimitiveFunction.__init__(self, needs_braces=True)
@@ -2618,9 +2597,6 @@ class Function_exp(PrimitiveFunction):
 
     def _latex_(self):
         return "\\exp"
-
-    def _is_atomic(self):
-        return True
 
     def __call__(self, x):
         # if x is an integer or rational, never call the sqrt method

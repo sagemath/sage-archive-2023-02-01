@@ -3,7 +3,9 @@ from equations import SymbolicEquation, forget, assume, assumptions, solve
 from calculus import (SymbolicExpressionRing,
                       SER,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
-                      abs_symbolic, exp)
+                      abs_symbolic, exp,
+                      is_SymbolicExpression,
+                      is_SymbolicExpressionRing)
 
 from var import var
 

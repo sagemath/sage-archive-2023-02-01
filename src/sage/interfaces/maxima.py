@@ -444,7 +444,7 @@ class Maxima(Expect):
                 v = self._expect.before
                 j = v.find('Is ')
                 v = v[j:]
-                msg = "Computation failed, since Maxima requested additional constraints:\n" + v + self._ask[i-1]
+                msg = "Computation failed since Maxima requested additional constraints (use assume):\n" + v + self._ask[i-1]
                 self._send(chr(3))
                 self._send(chr(3))
                 self._expect_expr()

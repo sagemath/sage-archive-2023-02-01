@@ -137,6 +137,8 @@ class SymbolicEquation(SageObject):
     def _maxima_init_(self, maxima=maxima):
         l = self._left._maxima_init_()
         r = self._right._maxima_init_()
+        if self._op == operator.eq:
+            return 'equal(%s, %s)'%(l, r)
         return '(%s)%s(%s)' % (l, maxima_symbols[self._op], r)
 
     def assume(self):

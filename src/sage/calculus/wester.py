@@ -1,6 +1,550 @@
 """
-Do all problems at
-
+These are all the problems at
     http://yacas.sourceforge.net/essaysmanual.html
 
+They come from the 1994 paper "Review of CAS mathematical capabilities",
+by Michael Wester, who put forward 123 problems that a reasonable computer
+algebra system should be able to solve and tested the then current
+versions of various commercial CAS on this list.   SAGE can do most of
+the problems natively now, i.e., with no explicit calls to maxima or
+other systems.
+
+
+sage: factorial(50)
+30414093201713378043612608166064768844377641568960512000000000000
+sage: factor(factorial(50))
+2^47 * 3^22 * 5^12 * 7^8 * 11^4 * 13^3 * 17^2 * 19^2 * 23^2 * 29 * 31 * 37 * 41 * 43 * 47
+
+sage: # 1/2+...+1/10 = 4861/2520
+sage: sum(1/n for n in range(2,10+1)) == 4861/2520
+True
+
+sage: # Evaluate  e^(Pi*Sqrt(163)) to 50 decimal digits
+sage: a = e^(pi*sqrt(163)); a
+e^(sqrt(163)*pi)
+sage: print RealField(150)(a)
+262537412640768743.99999999999925007259719819
+
+sage: # Evaluate the Bessel function J[2] numerically at z=1+I.
+sage: # NOTE -- we get a different answer than yacas
+sage: bessel_J(2.0,1.0+I)
+0.874211097673326 - 0.222469792478650*I
+
+sage: # Obtain period of decimal fraction 1/7=0.(142857).
+sage: a = 1/7
+sage: print a
+1/7
+sage: print a.period()
+6
+
+sage: # Continued fraction of 3.1415926535
+sage: a = 3.1415926535
+sage: continued_fraction(a)
+[3, 7, 15, 1, 292, 1, 1, 6, 2, 13, 4]
+
+sage: # (not exactly ok) Sqrt(2*Sqrt(3)+4)=1+Sqrt(3).
+sage: # The maxima backend equality checker fails this; maybe it *should*, since
+sage: # the equality only holds for one choice of sign.
+sage: a = sqrt(2*sqrt(3) + 4); b = 1 + sqrt(3)
+sage: print float(a-b)
+0.0
+sage: print bool(a == b)
+False
+sage: # We can, of course, do this in a quadratic field
+sage: k.<sqrt3> = QuadraticField(3)
+sage: asqr = 2*sqrt3 + 4
+sage: b = 1+sqrt3
+sage: asqr == b^2
+True
+
+sage: # (not exactly ok) Sqrt(14+3*Sqrt(3+2*Sqrt(5-12*Sqrt(3-2*Sqrt(2)))))=3+Sqrt(2).
+sage: a = sqrt(14+3*sqrt(3+2*sqrt(5-12*sqrt(3-2*sqrt(2)))))
+sage: b = 3+sqrt(2)
+sage: print a, b
+sqrt(3 sqrt(2 sqrt(5 - 12 sqrt(3 - 2 sqrt(2))) + 3) + 14)                                  sqrt(2) + 3
+sage: print bool(a==b)
+False
+sage: print float(a-b)
+1.7763568394e-15
+sage: # 2*Infinity-3=Infinity.
+sage: 2*infinity-3 == infinity
+True
+
+sage: # (YES) Standard deviation of the sample (1, 2, 3, 4, 5).
+sage: v = vector(RDF, 5, [1,2,3,4,5])
+sage: v.standard_deviation()
+1.5811388300841898
+
+sage: # (NO) Hypothesis testing with t-distribution.
+sage: # (NO) Hypothesis testing with chi^2 distribution
+
+sage: # (YES) (x^2-4)/(x^2+4*x+4)=(x-2)/(x+2).
+sage: R.<x> = QQ[]
+sage: (x^2-4)/(x^2+4*x+4) == (x-2)/(x+2)
+True
+sage: restore('x')
+
+sage: # (NO -- Maxima doesn't consider them equal.)
+sage: # (Exp(x)-1)/(Exp(x/2)+1)=Exp(x/2)-1.
+sage: f = (exp(x)-1)/(exp(x/2)+1)
+sage: g = exp(x/2)-1
+sage: f
+(e^x - 1)/(e^(x/2) + 1)
+sage: g
+e^(x/2) - 1
+sage: print f(10.0), g(10.0)
+147.4131591025766 147.4131591025766
+sage: print bool(f == g)
+False
+
+sage: # (YES) Expand (1+x)^20, take derivative and factorize.
+sage: # first do it is using algebraic polys
+sage: R.<x> = QQ[]
+sage: f = (1+x)^20
+sage: print f
+x^20 + 20*x^19 + 190*x^18 + 1140*x^17 + 4845*x^16 + 15504*x^15 + 38760*x^14 + 77520*x^13 + 125970*x^12 + 167960*x^11 + 184756*x^10 + 167960*x^9 + 125970*x^8 + 77520*x^7 + 38760*x^6 + 15504*x^5 + 4845*x^4 + 1140*x^3 + 190*x^2 + 20*x + 1
+sage: print f.factor()
+(x + 1)^20
+sage: # next do it symbolically
+sage: restore('x')
+sage: f = (1+x)^20; f
+(x + 1)^20
+sage: g = f.expand(); g
+x^20 + 20*x^19 + 190*x^18 + 1140*x^17 + 4845*x^16 + 15504*x^15 + 38760*x^14 + 77520*x^13 + 125970*x^12 + 167960*x^11 + 184756*x^10 + 167960*x^9 + 125970*x^8 + 77520*x^7 + 38760*x^6 + 15504*x^5 + 4845*x^4 + 1140*x^3 + 190*x^2 + 20*x + 1
+sage: g.factor()
+(x + 1)^20
+
+
+sage: # (YES) Factorize x^100-1.
+sage: factor(x^100-1)
+(x - 1)*(x + 1)*(x^2 + 1)*(x^4 - x^3 + x^2 - x + 1)*(x^4 + x^3 + x^2 + x + 1)*(x^8 - x^6 + x^4 - x^2 + 1)*(x^20 - x^15 + x^10 - x^5 + 1)*(x^20 + x^15 + x^10 + x^5 + 1)*(x^40 - x^30 + x^20 - x^10 + 1)
+sage: # Also, algebraically
+sage: x = polygen(QQ)
+sage: factor(x^100 - 1)
+(x - 1) * (x + 1) * (x^2 + 1) * (x^4 - x^3 + x^2 - x + 1) * (x^4 + x^3 + x^2 + x + 1) * (x^8 - x^6 + x^4 - x^2 + 1) * (x^20 - x^15 + x^10 - x^5 + 1) * (x^20 + x^15 + x^10 + x^5 + 1) * (x^40 - x^30 + x^20 - x^10 + 1)
+sage: restore('x')
+
+
+sage: # (YES) Factorize  x^4-3*x^2+1 in the field of rational numbers extended by roots of  x^2-x-1.
+sage: k.< a> = NumberField(x^2 - x -1)
+sage: R.< y> = k[]
+sage: f = y^4 - 3*y^2 + 1
+sage: f
+y^4 + (-3)*y^2 + 1
+sage: factor(f)
+(y + -a) * (y + -a + 1) * (y + a - 1) * (y + a)
+
+sage: # (YES) Factorize  x^4-3*x^2+1 mod 5.
+sage: k.< x > = GF(5) [ ]
+sage: f = x^4 - 3*x^2 + 1
+sage: f.factor()
+(x + 2)^2 * (x + 3)^2
+sage: # Alternatively, from symbol x as follows:
+sage: reset('x')
+sage: f = x^4 - 3*x^2 + 1
+sage: f.polynomial(GF(5)).factor()
+(x + 2)^2 * (x + 3)^2
+
+sage: # (YES) Partial fraction decomposition of (x^2+2*x+3)/(x^3+4*x^2+5*x+2)
+sage: f = (x^2+2*x+3)/(x^3+4*x^2+5*x+2)
+sage: print f
+                                  2
+                                 x  + 2 x + 3
+                              -------------------
+                               3      2
+                              x  + 4 x  + 5 x + 2
+
+sage: print f.partial_fraction()
+                             3	     2	      2
+                           ----- - ----- + --------
+                           x + 2   x + 1	  2
+                                           (x + 1)
+
+
+sage: # (BUG?) Assuming  x>=y,  y>=z,  z>=x, deduce  x=z.
+sage: # Maxima doesn't agree that x==z is a conclusion...
+sage: forget()
+Forgetting all assumptions.
+sage: restore('x,y,z')
+sage: assume(x>=y, y>=z,z>=x)
+sage: print bool(x==z)
+False
+
+sage: # (YES) Assuming x>y, y>0, deduce 2*x^2>2*y^2.
+sage: forget()
+Forgetting all assumptions.
+sage: assume(x>y, y>0)
+sage: print assumptions()
+[x > y, y > 0]
+sage: print bool(2*x^2 > 2*y^2)
+True
+sage: forget()
+Forgetting all assumptions.
+sage: print assumptions()
+[]
+sage: # Solve the inequality Abs(x-1)>2.
+
+sage: # (NO) Maxima doesn't solve inequalities:
+sage: eqn = abs(x-1) > 2
+sage: print eqn
+                                abs(x - 1) > 2
+
+sage: # (NO) Solve the inequality (x-1)*...*(x-5)<0.
+sage: eqn = prod(x-i for i in range(1,5 +1)) < 0
+sage: # but don't know how to solve
+sage: print eqn
+                  (x - 5) (x - 4) (x - 3) (x - 2) (x - 1) < 0
+
+
+sage: # (YES) Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2 or similar equivalent combination.
+sage: f = cos(3*x)/cos(x)
+sage: g = cos(x)^2 - 3*sin(x)^2
+sage: h = f-g
+sage: print h.trig_simplify()
+                                       0
+
+sage: # (YES) Cos(3*x)/Cos(x)=2*Cos(2*x)-1.
+sage: f = cos(3*x)/cos(x)
+sage: g = 2*cos(2*x) - 1
+sage: h = f-g
+sage: print h.trig_simplify()
+                                       0
+sage: # (NO) Define rewrite rules to match  Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2.
+sage: # SAGE has no notion of "rewrite rules".
+sage: # Sqrt(997)-(997^3)^(1/6)=0
+sage: a = sqrt(997) - (997^3)^(1/6)
+sage: print a
+                                       0
+sage: print bool(a == 0)
+True
+
+sage: # (NO) Sqrt(99983)-99983^3^(1/6)=0
+sage: # For some reason Maxima decides its not zero because of the factorization.
+sage: a = sqrt(99983) - (99983^3)^(1/6)
+sage: print a
+                       sqrt(99983) - sqrt(13) sqrt(7691)
+sage: print bool(a==0)
+False
+sage: print float(a)
+1.13686837722e-13
+sage: print 13*7691
+99983
+
+sage: # (YES) (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3))-6 = 0
+sage: ## same issue as above -- can only do using number fields
+sage: a = (2^(1/3) + 4^(1/3))^3 - 6*(2^(1/3) + 4^(1/3)) - 6
+sage: print a
+		       1/3    1/3 3	  1/3	 1/3
+        	     (4	   + 2	 )  - 6 (4    + 2   ) - 6
+sage: print bool(a==0)
+False
+sage: print float(a)
+3.5527136788e-15
+sage: ## but we can do it using number fields.
+sage: reset('x')
+sage: k.<b> = NumberField(x^3-2)
+sage: a = (b  + b^2)^3 - 6*(b  + b^2) - 6
+sage: print a
+0
+
+sage: # (YES) Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0
+sage: # Yes, in that the thing is clearly not equal to 0!
+sage: f = log(tan(x/2 + pi/4)) - asin(tan(x))
+sage: bool(f == 0)
+False
+sage: [float(f(i/10)) for i in range(1,5)]
+[-0.00033670040754082975, -0.0027778004096620235, -0.0098909940914040928, -0.025411145508414501]
+
+sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
+sage: g = f.derivative()
+sage: print float(f(0))
+-1.11022302463e-16
+sage: print float(g(0))
+-1.11022302463e-16
+sage: print g
+                         2 x    Pi
+                      sec (- + ---)	       2
+                           2    4	    sec (x)
+                      -------------- - -----------------
+                            x    Pi		   2
+                      2 tan(- + ---)   sqrt(1 - tan (x))
+                            2	 4
+
+
+sage: # (NO?) Ln((2*Sqrt(r) + 1)/Sqrt(4*r 4*Sqrt(r) 1))=0.
+sage: f = log( (2*sqrt(r) + 1) / sqrt(4*r  + 4*sqrt(r) +  1))
+sage: print f
+                                  2 sqrt(r) + 1
+                        log(-------------------------)
+                            sqrt(4 r + 4 sqrt(r) + 1)
+sage: print bool(f == 0)
+False
+sage: print [float(f(i)) for i in [0.1,0.3,0.5]]
+[0.0, 0.0, 0.0]
+
+
+sage: # (NO, except numerically)
+sage: # (4*r+4*Sqrt(r)+1)^(Sqrt(r)/(2*Sqrt(r)+1))*(2*Sqrt(r)+1)^(2*Sqrt(r)+1)^(-1)-2*Sqrt(r)-1=0, assuming r>0.
+sage: assume(r>0)
+sage: f = (4*r+4*sqrt(r)+1)^(sqrt(r)/(2*sqrt(r)+1))*(2*sqrt(r)+1)^(2*sqrt(r)+1)^(-1)-2*sqrt(r)-1
+sage: print f
+                             1				     sqrt(r)
+                       -------------			  -------------
+                       2 sqrt(r) + 1			  2 sqrt(r) + 1
+        (2 sqrt(r) + 1)		     (4 r + 4 sqrt(r) + 1)
+                                                                - 2 sqrt(r) - 1
+sage: print bool(f == 0)
+False
+sage: print [float(f(i)) for i in [0.1,0.3,0.5]]
+[0.0, 0.0, -2.2204460492503131e-16]
+
+
+sage: # (YES) Obtain real and imaginary parts of Ln(3+4*I).
+sage: a = log(3+4*I)
+sage: print a
+                                 log(4  I + 3)
+sage: print a.real()
+                                    log(5)
+sage: print a.imag()
+                                         4
+                                    atan(-)
+                                         3
+
+sage: # (YES) Obtain real and imaginary parts of Tan(x+I*y)
+sage: a = tan(x + I*y)
+sage: print a
+                                 tan( I y + x)
+sage: print a.real()
+                                   sin(2 x)
+                          --------------------------
+                            2 y	    - 2 y
+                           E    +  E
+                          --------------- + cos(2 x)
+                                 2
+sage: print a.imag()
+                                 2 y	 - 2 y
+                                E    -  E
+                        ------------------------------
+                             2 y     - 2 y
+                            E    +  E
+                        2 (--------------- + cos(2 x))
+                                  2
+
+
+sage: # (YES) Simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi.
+sage: f = log(exp(z))
+sage: assume(-pi < imag(z))
+sage: assume(imag(z) <= pi)
+sage: f
+z
+sage: forget()
+Forgetting all assumptions.
+
+sage: # (YES) Assuming Re(x)>0, Re(y)>0, deduce x^(1/n)*y^(1/n)-(x*y)^(1/n)=0.
+sage: assume(real(x) > 0, real(y) > 0)
+sage: f = x^(1/n)*y^(1/n)-(x*y)^(1/n)
+sage: print f
+                                       0
+sage: forget()
+Forgetting all assumptions.
+
+sage: # (??) Transform equations, (x==2)/2+(1==1)=>x/2+1==2.
+sage: # This doesn't make any sense, in my opinion.  Adding equations
+
+sage: # (SOMEWHAT) Solve Exp(x)=1 and get all solutions.
+sage: solve(exp(x) == 1)
+[x == 0]
+
+sage: # (SOMEWHAT) Solve Tan(x)=1 and get all solutions.
+sage: solve(tan(x) == 1)
+[x == (pi/4)]
+
+sage: # (YES) Solve a degenerate 3x3 linear system.
+sage: # x+y+z==6,2*x+y+2*z==10,x+3*y+z==10
+sage: # First symbolically:
+sage: solve([x+y+z==6, 2*x+y+2*z==10, x+3*y+z==10], x,y,z)
+[[x == (4 - r1), y == 2, z == r1]]
+
+sage: # (YES) Invert a 2x2 symbolic matrix.
+sage: # [[a,b],[1,a*b]]
+sage: # Using multivariate poly ring -- much nicer
+sage: R.<a,b> = QQ[]
+sage: m = matrix(2,2,[a,b,  1, a*b])
+sage: zz = m^(-1)
+sage: print zz
+[       a/(-1 + a^2)     (-1)/(-1 + a^2)]
+[(-1)/(-1*b + a^2*b)    a/(-1*b + a^2*b)]
+
+sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
+sage: restore('a,b,c,d')
+sage: m = matrix(SER, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
+sage: print m
+[a^0 a^1 a^2 a^3]
+[b^0 b^1 b^2 b^3]
+[c^0 c^1 c^2 c^3]
+[d^0 d^1 d^2 d^3]
+sage: d = m.determinant()
+sage: print d.factor()
+                (b - a) (c - a) (c - b) (d - a) (d - b) (d - c)
+
+sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
+sage: # Do it instead in a multivariate ring
+sage: R.<a,b,c,d> = QQ[]
+sage: m = matrix(R, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
+sage: print m
+[  1   a a^2 a^3]
+[  1   b b^2 b^3]
+[  1   c c^2 c^3]
+[  1   d d^2 d^3]
+sage: d = m.determinant()
+sage: print d
+b*c^2*d^3 - b*c^3*d^2 - b^2*c*d^3 + b^2*c^3*d + b^3*c*d^2 - b^3*c^2*d - a*c^2*d^3 + a*c^3*d^2 + a*b^2*d^3 - a*b^2*c^3 - a*b^3*d^2 + a*b^3*c^2 + a^2*c*d^3 - a^2*c^3*d - a^2*b*d^3 + a^2*b*c^3 + a^2*b^3*d - a^2*b^3*c - a^3*c*d^2 + a^3*c^2*d + a^3*b*d^2 - a^3*b*c^2 - a^3*b^2*d + a^3*b^2*c
+sage: print d.factor()
+(-1) * (-1*d + c) * (-1*d + b) * (-1*c + b) * (b - a) * (-1*d + a) * (-1*c + a)
+
+sage: # Find the eigenvalues of a 3x3 integer matrix.
+sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])
+sage: m.eigenspaces()
+[
+(3, [
+(1, 0, -1)
+]),
+(1, [
+(1, 1, -1)
+]),
+(-2, [
+(0, 1, 1)
+])
+]
+
+sage: # OK Verify some standard limits found by L'Hopital's rule:
+sage: #   Verify(Limit(x,Infinity) (1+1/x)^x, Exp(1));
+sage: #   Verify(Limit(x,0) (1-Cos(x))/x^2, 1/2);
+sage: print limit( (1+1/x)^x, x, oo)
+e
+sage: print limit( (1-cos(x))/(x^2), x, 1/2)
+                                           1
+                                 4 - 4 cos(-)
+                                           2
+
+sage: # (OK-ish) D(x)Abs(x)
+sage: #    Verify(D(x) Abs(x), Sign(x));
+sage: diff(abs(x))
+x/abs(x)
+
+sage: # (NO) (Integrate(x)Abs(x))=Abs(x)*x/2
+sage: integral(abs(x), x)
+Traceback (most recent call last):
+...
+TypeError: unable to make sense of Maxima expression ''integrate(abs(x),x)' in SAGE
+
+sage: #  (YES) Compute derivative of Abs(x), piecewise defined.
+sage: #     Verify(D(x)if(x<0) (-x) else x,
+sage: #        Simplify(if(x<0) -1 else 1))
+Piecewise defined function with 2 parts, [[(-10, 0), -1], [(0, 10), 1]]
+sage: #  (NOT really) Integrate Abs(x), piecewise defined.
+sage: #      Verify(Simplify(Integrate(x)
+sage: #        if(x<0) (-x) else x),
+sage: #        Simplify(if(x<0) (-x^2/2) else x^2/2));
+sage: f = piecewise([ [[-10,0], -x], [[0,10], x]])
+sage: f.integral()
+100
+
+sage: # (YES) Taylor series of 1/Sqrt(1-v^2/c^2) at v=0.
+sage: restore('v,c')
+sage: taylor(1/sqrt(1-v^2/c^2), v, 0, 7)
+1 + v^2/(2*c^2) + 3*v^4/(8*c^4) + 5*v^6/(16*c^6)
+
+sage: # (OK-ish) (Taylor expansion of Sin(x))/(Taylor expansion of Cos(x)) = (Taylor expansion of Tan(x)).
+sage: #      TestYacas(Taylor(x,0,5)(Taylor(x,0,5)Sin(x))/
+sage: #        (Taylor(x,0,5)Cos(x)), Taylor(x,0,5)Tan(x));
+sage: f = taylor(sin(x), x, 0, 8)
+sage: g = taylor(cos(x), x, 0, 8)
+sage: h = taylor(tan(x), x, 0, 8)
+sage: f = f.power_series(QQ)
+sage: g = g.power_series(QQ)
+sage: h = h.power_series(QQ)
+sage: f - g*h
+O(x^8)
+
+sage: # (YES) Taylor expansion of Ln(x)^a*Exp(-b*x) at x=1.
+sage: taylor(log(x)^a * exp(-b*x), x, 1, 3)
+(x - 1)^a/e^b - (((x - 1)^a*a + 2*b*(x - 1)^a)*(x - 1)/(2*e^b)) + (3*(x - 1)^a*a^2 + (12*b + 5)*(x - 1)^a*a + 12*b^2*(x - 1)^a)*(x - 1)^2/(24*e^b) - (((x - 1)^a*a^3 + (6*b + 5)*(x - 1)^a*a^2 + (12*b^2 + 10*b + 6)*(x - 1)^a*a + 8*b^3*(x - 1)^a)*(x - 1)^3/(48*e^b))
+
+sage: # (YES) Taylor expansion of Ln(Sin(x)/x) at x=0.
+sage: taylor(log(sin(x)/x), x, 0, 10)
+-x^2/6 - (x^4/180) - (x^6/2835) - (x^8/37800) - (x^10/467775)
+
+sage: # (NO) Compute n-th term of the Taylor series of Ln(Sin(x)/x) at x=0.
+sage: # need formal functions
+
+sage: # (NO) Compute n-th term of the Taylor series of Exp(-x)*Sin(x) at x=0.
+sage: # (Sort of, with some work)
+sage: # Solve x=Sin(y)+Cos(y) for y as Taylor series in x at x=1.
+sage: #      TestYacas(InverseTaylor(y,0,4) Sin(y)+Cos(y),
+sage: #        (y-1)+(y-1)^2/2+2*(y-1)^3/3+(y-1)^4);
+sage: #       Note that InverseTaylor does not give the series in terms of x but in terms of y which is semantically
+sage: # wrong. But other CAS do the same.
+sage: f = sin(y) + cos(y)
+sage: g = f.taylor(y, 0, 10)
+sage: h = g.power_series(QQ)
+sage: k = (h - 1).reversion()
+sage: print k
+y + 1/2*y^2 + 2/3*y^3 + y^4 + 17/10*y^5 + 37/12*y^6 + 41/7*y^7 + 23/2*y^8 + 1667/72*y^9 + 3803/80*y^10 + O(y^11)
+
+sage: # [OK] Compute Legendre polynomials directly from Rodrigues's formula, P[n]=1/(2^n*n!) *(Deriv(x,n)(x^2-1)^n).
+sage: #      P(n,x) := Simplify( 1/(2*n)!! *
+sage: #        Deriv(x,n) (x^2-1)^n );
+sage: #      TestYacas(P(4,x), (35*x^4)/8+(-15*x^2)/4+3/8);
+sage: def P(n,x):
+...    return   simplify(diff((x^2-1)^n,x,n) / (2^n * factorial(n)))
+...
+sage: print P(4,x).expand()
+                                   4	   2
+                               35 x    15 x    3
+                               ----- - ----- + -
+                                 8	 4     8
+
+sage: # (YES) Define the polynomial p=Sum(i,1,5,a[i]*x^i).
+sage: # symbolically
+sage: ps = sum(var('a%s'%i)*x^i for i in range(1,6))
+sage: print 'symbolic\n',ps
+symbolic
+                         5	 4	 3	 2
+                     a5 x  + a4 x  + a3 x  + a2 x  + a1 x
+sage: # algebraically
+sage: R = PolynomialRing(QQ,5,names='a')
+sage: S.<x> = PolynomialRing(R)
+sage: p = S(list(R.gens()))*x
+sage: print 'algebraic\n',p
+algebraic
+a4*x^5 + a3*x^4 + a2*x^3 + a1*x^2 + a0*x
+
+sage: # (YES) Convert the above to Horner's form.
+sage: #      Verify(Horner(p, x), ((((a[5]*x+a[4])*x
+sage: #        +a[3])*x+a[2])*x+a[1])*x);
+sage: # We use the trick of evaluating the algebraic poly at a symbolic variable:
+sage: restore('x')
+sage: p(x)
+x*(x*(x*(x*(a4*x + a3) + a2) + a1) + a0)
+
+sage: # (NO) Convert the result of problem 127 to Fortran syntax.
+sage: #      CForm(Horner(p, x));
+
+sage: # (YES) Verify that True And False=False.
+sage: (True and False) == False
+True
+
+sage: # (YES) Prove x Or Not x.
+sage: for x in [True, False]:
+...    print x or (not x)
+True
+True
+
+sage: # (YES) Prove x Or y Or x And y=>x Or y.
+sage: for x in [True, False]:
+...   for y in [True, False]:
+...       if x or y or x and y:
+...           if not (x or y):
+...              print "failed!"
 """

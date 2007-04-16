@@ -355,6 +355,18 @@ class Expect(ParentWithBase):
         raise NotImplementedError
 
     def quit(self, verbose=False):
+        """
+        EXAMPLES:
+            sage: a = maxima('y')
+            sage: a
+            y
+            sage: maxima.quit()
+            sage: a
+            Traceback (most recent call last):
+            ...
+            ValueError: The maxima session in which this object was defined is no longer running.
+        """
+        self._session_number += 1
         if self._expect is None:
             return
         # Send a kill -9 to the process *group*.
@@ -808,8 +820,8 @@ class ExpectElement(RingElement):
         """
         try:
             P = self.parent()
-            if P is None is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
-                          (P._restart_on_ctrlc and P._session_number != self._session_number):
+            if P is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
+                          P._session_number != self._session_number:
                 raise ValueError, "The %s session in which this object was defined is no longer running."%P.name()
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."

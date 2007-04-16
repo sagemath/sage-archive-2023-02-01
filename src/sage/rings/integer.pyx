@@ -688,6 +688,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2^(sin(3) - cos(3))
             sage: 2^(x+y+z)
             2^(z + y + x)
+            sage: 2^(1/2)
+            sqrt(2)
+            sage: 2^(-1/2)
+            1/sqrt(2)
         """
         cdef Integer _n
         cdef unsigned int _nval

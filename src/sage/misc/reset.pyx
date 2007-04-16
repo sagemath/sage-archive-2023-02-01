@@ -1,16 +1,29 @@
 import sys
 
-def reset():
+def reset(vars=None):
     """
     Delete all user defined variables, reset all globals variables
     back to their default state, and reset all interfaces to other
     computer algebra systems.
+
+    If vars is specified, just restore the value of vars and leave
+    all other variables alone (i.e., call restore).
+
+    INPUT:
+        vars -- (default: None), a list, or space or comma separated
+        string.
     """
+    if not vars is None:
+        restore(vars)
+        return
     G = globals()  # this is the reason the code must be in SageX.
     T = type(sys)
     for k in G.keys():
         if k[0] != '_' and type(k) != T:
-            del G[k]
+            try:
+                del G[k]
+            except KeyError:
+                pass
     restore()
     reset_interfaces()
 
@@ -64,7 +77,10 @@ def restore(vars=None):
             if D.has_key(k):
                 G[k] = D[k]
             else:
-                del G[k]      # the default value was "unset"
+                try:
+                    del G[k]      # the default value was "unset"
+                except KeyError:
+                    pass
 
 
 def reset_interfaces():

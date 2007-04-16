@@ -127,7 +127,7 @@ def NumberField(polynomial, name=None, check=True, names=None):
         try:
             polynomial = polynomial.polynomial(QQ)
         except (AttributeError, TypeError):
-            raise TypeError, "polynomial (=%s) must be a polynomial."%polynomial
+            raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
 
 
     key = (polynomial, name)
@@ -193,7 +193,7 @@ class NumberField_generic(field.Field):
                  latex_name=None, check=True):
         ParentWithGens.__init__(self, QQ, name)
         if not isinstance(polynomial, polynomial_element.Polynomial):
-            raise TypeError, "polynomial (=%s) must be a polynomial"%polynomial
+            raise TypeError, "polynomial (=%s) must be a polynomial"%repr(polynomial)
 
         if check:
             if not polynomial.is_irreducible():
@@ -835,7 +835,7 @@ class NumberField_extension(NumberField_generic):
             try:
                 polynomial = polynomial.polynomial(base)
             except (AttributeError, TypeError), msg:
-                raise TypeError, "polynomial (=%s) must be a polynomial."%polynomial
+                raise TypeError, "polynomial (=%s) must be a polynomial."%repr(polynomial)
         if name == base.variable_name():
             raise ValueError, "Base field and extension cannot have the same name"
         if polynomial.parent().base_ring() != base:

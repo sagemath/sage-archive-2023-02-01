@@ -245,8 +245,9 @@ cdef class RealField(sage.rings.ring.Field):
             return self(x)
         elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
-        import sage.functions.constants
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing])
+        raise TypeError
+        #import sage.functions.constants
+        #return self._coerce_try(x, [sage.functions.constants.ConstantRing])
 
     def __cmp__(self, other):
         """

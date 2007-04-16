@@ -36,13 +36,14 @@ The first way yields a Maxima object.
     <class 'sage.interfaces.maxima.MaximaElement'>
 
 Note that Maxima objects can also be displayed using ``ASCII art'';
-to see a normal linear representation of any Maxima object x,
+to see a normal linear representation of any Maxima object x.
+Just use the print command:
 use \code{str(x)}.
-    sage: F.display2d()
+    sage: print F
                                4      3    2  2    3      4
                    - (y - x) (y  + x y  + x  y  + x  y + x )
 
-We can make this the default:
+We can make this the default even when not using print:
     sage: maxima.display2d(True)
     sage: F
                                4      3    2  2    3      4
@@ -60,7 +61,7 @@ be useful for moving maxima data to other systems.
 
 
 The \code{maxima.eval} command evaluates an expression in maxima
-and returns the result as a string.
+and returns the result as a \emph{string} not a maxima object.
 
     sage: print maxima.eval('factor(x^5 - y^5)')
     -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
@@ -205,7 +206,7 @@ We illustrate Laplace transforms:
     sage: _ = maxima.eval("f(t) := t^5*exp(t)*sin(t)")
     sage: maxima("laplace(f(t),t,s)")
     360*(2*s-2)/(s^2-2*s+2)^4-480*(2*s-2)^3/(s^2-2*s+2)^5+120*(2*s-2)^5/(s^2-2*s+2)^6
-    sage: maxima("laplace(f(t),t,s)").display2d()
+    sage: print maxima("laplace(f(t),t,s)")
                                              3                 5
                360 (2 s - 2)    480 (2 s - 2)     120 (2 s - 2)
               --------------- - --------------- + ---------------
@@ -219,7 +220,7 @@ We illustrate Laplace transforms:
     -?%at('diff(x(t),t,1),t=0)+s^2*?%laplace(x(t),t,s)-x(0)*s
 
 It is difficult to read some of these without the 2d representation:
-    sage.: maxima("laplace(diff(x(t),t,2),t,s)").display2d()
+    sage: print maxima("laplace(diff(x(t),t,2),t,s)")
                          !
                 d        !         2
               - -- (x(t))!      + s  laplace(x(t), t, s) - x(0) s
@@ -261,7 +262,7 @@ You can plot 3d graphs (via gnuplot):
 You can formally evaluate sums (note the \code{nusum} command):
 
     sage: S = maxima('nusum(exp(1+2*i/n),i,1,n)')
-    sage.: S.display2d()
+    sage: print S
                             2/n + 3                   2/n + 1
                           %e                        %e
                    ----------------------- - -----------------------
@@ -377,10 +378,7 @@ class Maxima(Expect):
     """
     def __call__(self, x):
         import sage.rings.all
-        if sage.rings.all.is_Infinite(x):
-            return Expect.__call__(self, 'inf')
-        else:
-            return Expect.__call__(self, x)
+        return Expect.__call__(self, x)
 
     def __init__(self, script_subdirectory=None, logfile=None, server=None):
         """
@@ -404,6 +402,8 @@ class Maxima(Expect):
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
+        self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
+        self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask]
         self._error_re = re.compile('(debugmode|Incorrect syntax)')
         self._display2d = False
 
@@ -434,11 +434,20 @@ class Maxima(Expect):
 
     def _expect_expr(self, expr=None):
         if expr is None:
-            expr = self._prompt
+            expr = self._prompt_wait
         if self._expect is None:
             self._start()
         try:
-            self._expect.expect(expr)
+            i = self._expect.expect(expr)
+            if i > 0:
+                v = self._expect.before
+                j = v.find('Is ')
+                v = v[j:]
+                msg = "Computation failed, since Maxima requested additional constraints:\n" + v + self._ask[i-1]
+                self._send(chr(3))
+                self._send(chr(3))
+                self._expect_expr()
+                raise ValueError, msg
         except KeyboardInterrupt, msg:
             print self._expect.before
             self._send('quit;\n'+chr(3))
@@ -593,7 +602,7 @@ class Maxima(Expect):
     def _false_symbol(self):
         return 'false'
 
-    def function(self, args, defn, repr=None, latex=None):
+    def function(self, args, defn, rep=None, latex=None):
         """
         Return the Maxima function with given arguments
         and definition.
@@ -602,7 +611,7 @@ class Maxima(Expect):
             args -- a string with variable names separated by commas
             defn -- a string (or Maxima expression) that defines
                     a function of the arguments in Maxima.
-            repr -- an optional string; if given, this is how the function will print.
+            rep  -- an optional string; if given, this is how the function will print.
 
         EXAMPLES:
             sage: f = maxima.function('x', 'sin(x)')
@@ -614,7 +623,8 @@ class Maxima(Expect):
             sage: f
             sin(x)+cos(y)
 
-            sage: g = f.integrate('z'); g
+            sage: g = f.integrate('z')
+            sage: g
             (cos(y)+sin(x))*z
             sage: g(1,2,3)
             3*(cos(2)+sin(1))
@@ -625,19 +635,26 @@ class Maxima(Expect):
             sage: t
             gamma(x)*sin(x)
             sage: t(2)
-            sin(2)
+             sin(2)
             sage: float(t(2))
             0.90929742682568171
             sage: loads(t.dumps())
             gamma(x)*sin(x)
         """
         name = self._next_var_name()
-        defn = str(defn)
-        args = str(args)
-        maxima.eval('%s(%s) := %s'%(name, args, defn))
-        if repr is None:
-            repr = defn
-        f = MaximaFunction(self, name, repr, args, latex)
+        if isinstance(defn, MaximaElement):
+            defn = defn.str()
+        elif not isinstance(defn, str):
+            defn = str(defn)
+        if isinstance(args, MaximaElement):
+            args = args.str()
+        elif not isinstance(args, str):
+            args = str(args)
+        cmd = '%s(%s) := %s'%(name, args, defn)
+        maxima._eval_line(cmd)
+        if rep is None:
+            rep = defn
+        f = MaximaFunction(self, name, rep, args, latex)
         return f
 
     def set(self, var, value):
@@ -649,7 +666,7 @@ class Maxima(Expect):
             self._batch(cmd, batchload=True)
         else:
             self._sendline(cmd)
-            self._expect_expr(self._prompt)
+            self._expect_expr()
             out = self._before()
             if out.find("error") != -1:
                 raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(cmd, out)
@@ -658,7 +675,7 @@ class Maxima(Expect):
         """
         Get the string value of the variable var.
         """
-        s = self._eval_line('%s'%var)
+        s = self._eval_line('%s;'%var)
         return s
 
     def clear(self, var):
@@ -828,13 +845,13 @@ class Maxima(Expect):
                    y(a)=b1, y'(a)=b2
 
         EXAMPLES:
-            sage.: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
+            sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'], [1,1,1])
             y = 3*x - 2*%e^(x - 1)
-            sage.: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
+            sage: maxima.de_solve('diff(y,x,2) + 3*x = y', ['x','y'])
             y = %k1*%e^x + %k2*%e^ - x + 3*x
-            sage.: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
+            sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'])
             y = (%c - 3*( - x - 1)*%e^ - x)*%e^x
-            sage.: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
+            sage: maxima.de_solve('diff(y,x) + 3*x = y', ['x','y'],[1,1])
             y =  - %e^ - 1*(5*%e^x - 3*%e*x - 3*%e)
         """
         if not isinstance(vars, str):
@@ -866,15 +883,15 @@ class Maxima(Expect):
                    (eg, f(0)=1, f'(0)=2 is ics = [0,1,2])
 
         EXAMPLES:
-            sage.: maxima.clear('x'); maxima.clear('f')
-            sage.: maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"], [0,1,2])
-            f(x) = x*%e^x + %e^x
+            sage: maxima.clear('x'); maxima.clear('f')
+            sage: maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"], [0,1,2])
+            f(x)=x*%e^x+%e^x
 
-            sage.: maxima.clear('x'); maxima.clear('f')
-            sage.: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
-            sage.: f
-            f(x) = x*%e^x*(at('diff(f(x),x,1),x = 0)) - f(0)*x*%e^x + f(0)*%e^x
-            sage.: f.display2d()
+            sage: maxima.clear('x'); maxima.clear('f')
+            sage: f = maxima.de_solve_laplace("diff(f(x),x,2) = 2*diff(f(x),x)-f(x)", ["x","f"])
+            sage: f
+            f(x)=x*%e^x*(?%at('diff(f(x),x,1),x=0))-f(0)*x*%e^x+f(0)*%e^x
+            sage: print f
                                                !
                                    x  d        !                  x          x
                         f(x) = x %e  (-- (f(x))!     ) - f(0) x %e  + f(0) %e
@@ -907,7 +924,7 @@ class Maxima(Expect):
         EXAMPLES:
             sage: eqns = ["x + z = y","2*a*x - y = 2*a^2","y - 2*z = 2"]
             sage: vars = ["x","y","z"]
-            sage.: maxima.solve_linear(eqns, vars)
+            sage: maxima.solve_linear(eqns, vars)
             [x = a + 1,y = 2*a,z = a - 1]
         """
         eqs = "["
@@ -924,35 +941,35 @@ class Maxima(Expect):
                 vrs = vrs + vars[i]+"]"
         return self('linsolve(%s, %s)'%(eqs, vrs))
 
-    def unit_quadratic_integer(self, n):
-        r"""
-        Finds a unit of the ring of integers of the quadratic number
-        field $\Q(\sqrt{n})$, $n>1$, using the qunit maxima command.
+##     def unit_quadratic_integer(self, n):
+##         r"""
+##         Finds a unit of the ring of integers of the quadratic number
+##         field $\Q(\sqrt{n})$, $n>1$, using the qunit maxima command.
 
-        EXAMPLE:
-            sage: u = maxima.unit_quadratic_integer(101)
-            sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 101
-            sage: u
-            a + 10
-            sage: u = maxima.unit_quadratic_integer(13)
-            sage: u
-            5*a + 18
-            sage: u.parent()
-            Number Field in a with defining polynomial x^2 - 13
-        """
-        from sage.rings.all import QuadraticField, Integer
-        # Take square-free part so sqrt(n) doesn't get simplified further by maxima
-        # (The original version of this function would yield wrong answers if
-        # n is not squarefree.)
-        n = Integer(n).square_free_part()
-        if n < 1:
-            raise ValueError, "n (=%s) must be >= 1"%n
-        s = str(self('qunit(%s)'%n)).lower()
-        r = re.compile('sqrt\(.*\)')
-        s = r.sub('a', s)
-        a = QuadraticField(n, 'a').gen()
-        return eval(s)
+##         EXAMPLE:
+##             sage: u = maxima.unit_quadratic_integer(101)
+##             sage: u.parent()
+##             Number Field in a with defining polynomial x^2 - 101
+##             sage: u
+##             a + 10
+##             sage: u = maxima.unit_quadratic_integer(13)
+##             sage: u
+##             5*a + 18
+##             sage: u.parent()
+##             Number Field in a with defining polynomial x^2 - 13
+##         """
+##         from sage.rings.all import QuadraticField, Integer
+##         # Take square-free part so sqrt(n) doesn't get simplified further by maxima
+##         # (The original version of this function would yield wrong answers if
+##         # n is not squarefree.)
+##         n = Integer(n).square_free_part()
+##         if n < 1:
+##             raise ValueError, "n (=%s) must be >= 1"%n
+##         s = str(self('qunit(%s)'%n)).lower()
+##         r = re.compile('sqrt\(.*\)')
+##         s = r.sub('a', s)
+##         a = QuadraticField(n, 'a').gen()
+##         return eval(s)
 
     def plot_list(self, ptsx, ptsy, options=None):
         r"""
@@ -971,8 +988,8 @@ class Maxima(Expect):
         hanging.  Why?}
 
         EXAMPLES:
-            sage.: zeta_ptsx = [ (pari(1/2 + i*I/10).zeta().real()).precision(1) for i in range (70,150)]
-            sage.: zeta_ptsy = [ (pari(1/2 + i*I/10).zeta().imag()).precision(1) for i in range (70,150)]
+            sage: zeta_ptsx = [ (pari(1/2 + i*I/10).zeta().real()).precision(1) for i in range (70,150)]
+            sage: zeta_ptsy = [ (pari(1/2 + i*I/10).zeta().imag()).precision(1) for i in range (70,150)]
             sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy)
             sage.: opts='[gnuplot_preamble, "set nokey"], [gnuplot_term, ps], [gnuplot_out_file, "zeta.eps"]'
             sage.: maxima.plot_list(zeta_ptsx, zeta_ptsy, opts)
@@ -1030,6 +1047,22 @@ class MaximaElement(ExpectElement):
         P = self.parent()
         return P('%s(%s)'%(self.name(), x))
 
+    def __str__(self):
+        """
+        Printing an object explicitly gives ASCII art:
+
+        EXAMPLES:
+            sage: f = maxima('1/(x-1)^3'); f
+            1/(x-1)^3
+            sage: print f
+                                                  1
+                                               --------
+                                                      3
+                                               (x - 1)
+
+        """
+        return self.display2d(onscreen=False)
+
     def __cmp__(self, other):
         """
         EXAMPLES:
@@ -1062,6 +1095,7 @@ class MaximaElement(ExpectElement):
         else:
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
+
     def numer(self):
         return self.comma('numer')
 
@@ -1118,6 +1152,8 @@ class MaximaElement(ExpectElement):
         m = r.search(s)
         if not m is None:
             s = s[:m.start()] + ' '*(m.end() - m.start()) + s[m.end():].rstrip()
+        # if ever want to dedent, see
+        # http://mail.python.org/pipermail/python-list/2006-December/420033.html
         if onscreen:
             print s
         else:
@@ -1223,7 +1259,7 @@ class MaximaElement(ExpectElement):
             log(x^2+1)/2
             sage: maxima('1/(x^2+1)').integral()
             atan(x)
-            sage.: maxima('1/(x^2+1)').integral('x', 0, infinity)
+            sage: maxima('1/(x^2+1)').integral('x', 0, infinity)
             %pi/2
             sage: maxima('x/(x^2+1)').integral('x', -1, 1)
             0
@@ -1376,7 +1412,7 @@ class MaximaElement(ExpectElement):
             sage: f = maxima('1/((1+x)*(x-1))')
             sage: f.partial_fraction_decomposition('x')
             1/(2*(x-1))-1/(2*(x+1))
-            sage: f.partial_fraction_decomposition('x').display2d()
+            sage: print f.partial_fraction_decomposition('x')
                                  1           1
                              --------- - ---------
                              2 (x - 1)   2 (x + 1)
@@ -1400,6 +1436,9 @@ class MaximaFunction(MaximaElement):
         self.__defn = defn
         self.__args = args
         self.__latex = latex
+
+    def __reduce__(self):
+        return reduce_load_Maxima_function, (self.parent(), self.__defn, self.__args, self.__latex)
 
     def __call__(self, *x):
         self._check_valid()
@@ -1428,7 +1467,7 @@ class MaximaFunction(MaximaElement):
             args = self.__args
         else:
             args = self.__args + ',' + var
-        return P.function(args, str(f))
+        return P.function(args, repr(f))
 
 
 def is_MaximaElement(x):
@@ -1440,6 +1479,10 @@ maxima = Maxima(script_subdirectory=None)
 def reduce_load_Maxima():
     return maxima
 
+def reduce_load_Maxima_function(parent, defn, args, latex):
+    return parent.function(args, defn, defn, latex)
+
+
 import os
 def maxima_console():
     os.system('maxima')
@@ -1450,3 +1493,5 @@ def maxima_version():
 def __doctest_cleanup():
     import sage.interfaces.quit
     sage.interfaces.quit.expect_quitall()
+
+

@@ -2284,13 +2284,16 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
+    import sage.calculus.calculus
+    import sage.functions.constants
     # if x is a SymbolicExpression, try coercing it to a real number
     if not bits is None:
         try:
             x = sage.rings.real_mpfr.RealField(bits)(x)
         except  TypeError:
             raise TypeError, "can only find the continued fraction of a number"
-    elif isinstance(x, sage.calculus.calculus.SymbolicExpression):
+    elif isinstance(x, (sage.calculus.calculus.SymbolicExpression,
+                        sage.functions.constants.Constant)):
         try:
             x = sage.rings.real_mpfr.RealField(53)(x)
         except TypeError:

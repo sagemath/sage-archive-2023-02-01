@@ -5,14 +5,14 @@ import os, time, pexpect
 expect_objects = []
 
 def expect_quitall(verbose=False):
-    ## for P in expect_objects:
-##         R = P()
-##         if not R is None:
-##             try:
-##                 R.quit(verbose=verbose)
-##                 pass
-##             except RuntimeError:
-##                 pass
+    for P in expect_objects:
+        R = P()
+        if not R is None:
+            try:
+                R.quit(verbose=verbose)
+                pass
+            except RuntimeError:
+                pass
     kill_spawned_jobs()
 
 def kill_spawned_jobs():

@@ -279,9 +279,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
         try:
-            right = self._parent(right)
+            P = self.parent()
+            right = P(right)
             z = self._pari_()
-            P = (<ComplexNumber>self)._parent
             w = P(right)._pari_()
             m = z**w
             return P(m)

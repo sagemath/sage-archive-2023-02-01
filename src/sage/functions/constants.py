@@ -159,49 +159,53 @@ from sage.misc.latex import latex
 
 from functions import Function_gen, Function_arith, Function, FunctionRing_class
 
+
 ######################
 # Ring of Constants
 ######################
 
-class ConstantRing_class(FunctionRing_class):
-    def _repr_(self):
-        return "Ring of Real Mathematical Constants"
+## class ConstantRing_class(FunctionRing_class):
+##     def _repr_(self):
+##         return "Ring of Real Mathematical Constants"
 
-    def __cmp__(self, right):
-        if isinstance(right, ConstantRing_class):
-            return 0
-        return -1
+##     def __cmp__(self, right):
+##         if isinstance(right, ConstantRing_class):
+##             return 0
+##         return -1
 
-    def __call__(self, x):
-        try:
-            return self._coerce_(x)
-        except TypeError:
-            return Constant_gen(x)
+##     def __call__(self, x):
+##         try:
+##             return self._coerce_(x)
+##         except TypeError:
+##             return Constant_gen(x)
 
-    def _coerce_impl(self, x):
-        if isinstance(x, (sage.rings.integer.Integer,
-                          sage.rings.rational.Rational, int, long)):
-            return Constant_gen(x)
-        raise TypeError, 'no canonical coercion of element into self.'
+##     def _coerce_impl(self, x):
+##         if isinstance(x, (sage.rings.integer.Integer,
+##                           sage.rings.rational.Rational, int, long)):
+##             return Constant_gen(x)
+##         raise TypeError, 'no canonical coercion of element into self.'
 
-ConstantRing = ConstantRing_class()
+## ConstantRing = ConstantRing_class()
 
 
 ######################
 # Constant functions
 ######################
+import sage.calculus.calculus
 
 class Constant(Function):
     def __init__(self, conversions={}):
         self._conversions = conversions
-        RingElement.__init__(self, ConstantRing)
+        RingElement.__init__(self, sage.calculus.calculus.SER)
+
+    def _has_op(self, x):
+        return False
 
     def _ser(self):
         try:
             return self.__ser
         except AttributeError:
-            from sage.calculus.calculus import SER
-            self.__ser = SER(self)
+            self.__ser = sage.calculus.calculus.SER._coerce_impl(self)
             return self.__ser
 
     def _neg_(self):
@@ -215,16 +219,16 @@ class Constant(Function):
 
     # The following adds formal arithmetic support for generic constant
     def _add_(self, right):
-        return self._ser() + right._ser()
+        return self._ser() + right
 
     def _sub_(self, right):
-        return self._ser() - right._ser()
+        return self._ser() - right
 
     def _mul_(self, right):
-        return self._ser() * right._ser()
+        return self._ser() * right
 
     def _div_(self, right):
-        return self._ser() / right._ser()
+        return self._ser() / right
 
     def __pow__(self, right):
         return self._ser() ** right
@@ -301,7 +305,7 @@ class Pi(Constant):
              'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
              'matlab':'pi','maple':'Pi','octave':'pi','pari':'Pi'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return "pi"
 
     def _latex_(self):
@@ -368,7 +372,7 @@ class I_class(Constant):
              'maxima':'%i','gp':'I','mathematica':'I',
              'matlab':'i','maple':'I','octave':'i','pari':'I'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return "I"
 
     def _latex_(self):
@@ -434,7 +438,7 @@ class E(Constant):
              'maple':'exp(1)',
              'octave':'e'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'e'
 
     def _latex_(self):
@@ -461,8 +465,6 @@ class E(Constant):
 e = E()
 ee = e
 
-
-
 class NotANumber(Constant):
     """
     Not a Number
@@ -471,7 +473,7 @@ class NotANumber(Constant):
         Constant.__init__(self,
 	    {'matlab':'NaN'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'NaN'
 
     def _mpfr_(self,R):
@@ -505,7 +507,7 @@ class GoldenRatio(Constant):
 				'maple':'(1+sqrt(5))/2','maxima':'(1+sqrt(5))/2',
 				'pari':'(1+sqrt(5))/2','octave':'(1+sqrt(5))/2',
 				'kash':'(1+Sqrt(5))/2'})
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'golden_ratio'
 
     def _latex_(self):
@@ -562,7 +564,7 @@ class Log2(Constant):
 				'maple':'log(2)','maxima':'log(2)','gp':'log(2)',
 				'pari':'log(2)','octave':'log(2)'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'log2'
 
     def _latex_(self):
@@ -609,7 +611,7 @@ class EulerGamma(Constant):
 	    {'kash':'EulerGamma(R)','maple':'gamma',
              'mathematica':'EulerGamma','pari':'Euler'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'euler_gamma'
 
     def _latex_(self):
@@ -643,7 +645,7 @@ class Catalan(Constant):
              {'mathematica':'Catalan','kash':'Catalan(R)', #kash: R is default prec
 	      'maple':'Catalan'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'K'
 
     def _latex_(self):
@@ -702,7 +704,7 @@ class Khinchin(Constant):
         self.__value = "2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289308477880620360737053501033672633577289049904270702723451702625237023545810686318501032374655803775026442524852869468234189949157306618987207994137235500057935736698933950879021244642075289741459147693018449050601793499385225470404203377985639831015709022233910000220772509651332460444439191691460859682348212832462282927101269069741823484776754573489862542033926623518620867781366509696583146995271837448054012195366666049648269890827548115254721177330319675947383719393578106059230401890711349624673706841221794681074060891827669566711716683740590473936880953450489997047176390451343232377151032196515038246988883248709353994696082647818120566349467125784366645797409778483662049777748682765697087163192938512899314199518611673792654620563505951385713761697126872299805327673278710513763"
         self.__bits = len(self.__value)*3-1   # underestimate
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'khinchin'
 
     def _mpfr_(self, R):
@@ -753,7 +755,7 @@ class TwinPrime(Constant):
     def floor(self):
         return Integer(0)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'twinprime'
 
     def _mpfr_(self, R):
@@ -805,7 +807,7 @@ class Merten(Constant):
     def floor(self):
         return Integer(0)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'merten'
 
     def _mpfr_(self, R):
@@ -868,7 +870,7 @@ class Brun(Constant):
     def floor(self):
         return Integer(1)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'brun'
 
     def _mpfr_(self, R):
@@ -903,51 +905,3 @@ class Brun(Constant):
 
 brun=Brun()
 
-class UniversalPolynomialElement(Constant):
-    """
-    A universal indeterminate.
-
-    EXAMPLES:
-        sage: x = polygen(QQ)
-        sage: x
-        x
-        sage: x.parent()
-        Univariate Polynomial Ring in x over Rational Field
-    """
-    def __init__(self, name):
-        self._name = name
-        Constant.__init__(self,
-            {'axiom':name,
-             'maxima':name,
-             'gp':name,'kash':name,
-             'mathematica':name,
-             'matlab':name,
-             'maple':name,
-             'octave':name,
-             'pari':name})
-
-    def _repr_(self):
-        return self._name
-
-    def _latex_(self):
-        return self._name
-
-    def _mathml_(self):
-        return "<mi>%s</mi>"%self._name
-
-    def __float__(self):
-        raise TypeError
-
-    def _mpfr_(self, R):
-        raise TypeError
-
-    def _real_double_(self, R):
-        raise TypeError
-
-    def __abs__(self):
-        raise TypeError
-
-    def floor(self):
-        raise TypeError
-
-x = UniversalPolynomialElement('x')

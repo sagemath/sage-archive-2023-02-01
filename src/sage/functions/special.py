@@ -331,6 +331,7 @@ import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
+from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import ZZ, QQ, RR
 import sage.rings.commutative_ring as commutative_ring
@@ -357,6 +358,11 @@ def _setup(prec):
     a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
     return RR, a
 
+def _setup_CC(prec):
+    from sage.libs.pari.all import pari
+    CC = ComplexField(prec)
+    a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
+    return CC, a
 
 def bessel_I(nu,z,alg = "pari",prec=53):
     r"""
@@ -475,12 +481,14 @@ def bessel_J(nu,z,alg="pari",prec=53):
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
-        R,a = _setup(prec)
-        b = R(pari(z).besselj(nu))
+        K,a = _setup(prec)
+        if not (z in K):
+            K, a = _setup_CC(prec)
+        b = K(pari(z).besselj(nu))
         pari.set_real_precision(a)
         return b
     else:
-        return RR(maxima.eval("bessel_j(%s,%s)"%(float(nu),float(z))))
+        return meval("bessel_j(%s,%s)"%(nu, z))
 
 def bessel_K(nu,z,prec=53):
     r"""

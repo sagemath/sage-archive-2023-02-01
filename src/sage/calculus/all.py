@@ -1,8 +1,9 @@
-from equations import SymbolicEquation
+from equations import SymbolicEquation, forget, assume, assumptions, solve
+
 from calculus import (SymbolicExpressionRing,
                       SER,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
-                      abs, exp)
+                      abs_symbolic, exp)
 
 from var import var
 
@@ -59,4 +60,4 @@ from calculus import (a,
 
 
 
-from functional import (diff, solve, integrate)
+from functional import (diff, derivative, integrate, limit, lim, taylor, simplify)

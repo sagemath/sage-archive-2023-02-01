@@ -109,10 +109,14 @@ def is_ParentWithMultiplicativeAbelianGens(x):
 
 def _certify_names(names):
     v = []
+    try:
+        names = tuple(names)
+    except TypeError:
+        names = [str(names)]
     for N in names:
         if not isinstance(N, str):
             N = str(N)
-        N = N.strip()
+        N = N.strip().strip("'")
         if len(N) == 0:
             raise ValueError, "variable name must be nonempty"
         if not N.isalnum():

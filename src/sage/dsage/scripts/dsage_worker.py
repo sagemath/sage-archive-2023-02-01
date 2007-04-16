@@ -289,7 +289,7 @@ class Worker(object):
         """
 
         INTERRUPT_TRIES = 10
-        timeout = 0.05
+        timeout = 0.3
         for i in range(INTERRUPT_TRIES):
             try:
                 self.sage._expect.sendline(chr(3))  # send ctrl-c

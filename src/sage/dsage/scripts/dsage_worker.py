@@ -243,10 +243,15 @@ class Worker(object):
         job_file = open(job_filename, 'w')
         BEGIN = "print '%s'\n\n" % (START_MARKER)
         END = "print '%s'\n\n" % (END_MARKER)
+        SAVE_RESULT = """try:
+    save(DSAGE_RESULT, 'result.sobj', compress=True)
+except:
+    save('No DSAGE_RESULT', 'result.sobj', compress=True)"""
         job_file.write(BEGIN)
         job_file.write(parsed_file)
         job_file.write("\n\n")
         job_file.write(END)
+        job_file.write(SAVE_RESULT)
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
@@ -555,47 +560,25 @@ class Monitor(object):
             return
 
         for worker in self.worker_pool:
-            if worker.job == None:
+            if worker.job == None or worker.free == True:
                 continue
-            if worker.free == True:
-                continue
-
             if self.log_level > 1:
-                log.msg('[Monitor] Checking for job output of worker %s' % (worker.id))
+                log.msg('[Monitor] Checking worker %s, job %s' % (worker.id, worker.job.job_id))
             try:
-                done, output, new = worker.sage._so_far()
+                foo, output, new = worker.sage._so_far()
+            except:
+                continue
+            try:
+                os.chdir(worker.tmp_job_dir)
+                result = open('result.sobj', 'rb').read()
+                done = True
+                # done, output, new = worker.sage._so_far()
             except Exception, msg:
-                log.err('Exception raised when checking output.')
-                log.err(msg)
-                continue
-            if new == '' or new.isspace():
-                continue
+                done = False
             if done:
                 worker.free = True
-                sobj = worker.sage.get('DSAGE_RESULT')
-                timeout = 0.3
-                while sobj == '' or sobj.isspace():
-                    sobj = worker.sage.get('DSAGE_RESULT')
-                    time.sleep(timeout)
-                if 'NameError: name \'DSAGE_RESULT\' is not defined' in sobj:
-                    if self.log_level > 1:
-                        log.msg('DSAGE_RESULT does not exist')
-                    result = cPickle.dumps('No result saved.', 2)
-                else:
-                    try:
-                        os.chdir(worker.tmp_job_dir)
-                        worker.sage.eval("os.chdir('%s')" % (worker.tmp_job_dir))
-                        worker.sage.eval("save(DSAGE_RESULT, 'result', compress=True)")
-                        result = open('result.sobj', 'rb').read() # Already in compressed form.
-                    except Exception, msg:
-                        if self.log_level > 1:
-                            job_id = worker.job.job_id
-                            log.err('[Worker %s, Job ID: %s ] %s' % (worker.id, job_id, msg))
-                        result = cPickle.dumps(msg, 2)
-                log.msg("[Worker: %s] Job '%s' finished" % (worker.id, worker.job.job_id))
             else:
                 result = cPickle.dumps('Job not done yet.', 2)
-
             sanitized_output = self.clean_output(new)
             if self.check_failure(sanitized_output):
                 s = ['[Monitor] Error in result for ',

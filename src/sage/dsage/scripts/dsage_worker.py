@@ -565,14 +565,16 @@ class Monitor(object):
             if self.log_level > 1:
                 log.msg('[Monitor] Checking worker %s, job %s' % (worker.id, worker.job.job_id))
             try:
-                foo, output, new = worker.sage._so_far()
-            except:
+                done, output, new = worker.sage._so_far()
+                if not done:
+                    continue
+            except Exception, msg:
+                log.err('[Worker %s] %s' % (worker.id, msg))
                 continue
             try:
                 os.chdir(worker.tmp_job_dir)
                 result = open('result.sobj', 'rb').read()
                 done = True
-                # done, output, new = worker.sage._so_far()
             except Exception, msg:
                 done = False
             if done:

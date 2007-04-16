@@ -589,7 +589,8 @@ class Monitor(object):
                         result = open('result.sobj', 'rb').read() # Already in compressed form.
                     except Exception, msg:
                         if self.log_level > 1:
-                            log.err('[Worker %s, Job ID: %s ] %s' % (worker.id, worker.job.id, msg))
+                            job_id = worker.job.job_id
+                            log.err('[Worker %s, Job ID: %s ] %s' % (worker.id, job_id, msg))
                         result = cPickle.dumps(msg, 2)
                 log.msg("[Worker: %s] Job '%s' finished" % (worker.id, worker.job.job_id))
             else:

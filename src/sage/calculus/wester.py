@@ -208,7 +208,9 @@ sage: print h.trig_simplify()
                                        0
 sage: # (NO) Define rewrite rules to match  Cos(3*x)/Cos(x)=Cos(x)^2-3*Sin(x)^2.
 sage: # SAGE has no notion of "rewrite rules".
-sage: # Sqrt(997)-(997^3)^(1/6)=0
+
+
+sage: # (YES) Sqrt(997)-(997^3)^(1/6)=0
 sage: a = sqrt(997) - (997^3)^(1/6)
 sage: print a
                                        0
@@ -330,6 +332,7 @@ sage: print a.imag()
 
 sage: # (YES) Simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi.
 sage: f = log(exp(z))
+sage: # (except it does it even without the constraint)
 sage: assume(-pi < imag(z))
 sage: assume(imag(z) <= pi)
 sage: f
@@ -374,10 +377,10 @@ sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix i
 sage: restore('a,b,c,d')
 sage: m = matrix(SER, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
 sage: print m
-[a^0 a^1 a^2 a^3]
-[b^0 b^1 b^2 b^3]
-[c^0 c^1 c^2 c^3]
-[d^0 d^1 d^2 d^3]
+    [  1   a a^2 a^3]
+    [  1   b b^2 b^3]
+    [  1   c c^2 c^3]
+    [  1   d d^2 d^3]
 sage: d = m.determinant()
 sage: print d.factor()
                 (b - a) (c - a) (c - b) (d - a) (d - b) (d - c)

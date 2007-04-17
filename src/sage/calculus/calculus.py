@@ -615,7 +615,7 @@ class SymbolicExpression(RingElement):
             sage: f = x^(n+1) + sin(pi/19); f
             x^(n + 1) + sin(pi/19)
             sage: f.variables()
-            [n, x]
+            (n, x)
         """
         return vars
 
@@ -986,7 +986,7 @@ class SymbolicExpression(RingElement):
             sage: integral(x^n,x)
             Traceback (most recent call last):
             ...
-            TypeError: Computation failed, since Maxima requested additional constraints:
+            TypeError: Computation failed since Maxima requested additional constraints (use assume):
             Is  n+1  zero or nonzero?
             sage: assume(n > 0)
             sage: integral(x^n,x)
@@ -1245,6 +1245,12 @@ class SymbolicExpression(RingElement):
                                                      4
                                                 atan(-)
                                                      3
+
+        Now make a and b symbolic and compute the general real part:
+            sage: restore('a,b')
+            sage: f = log(a + b*I)
+            sage: f.real()
+            log(b^2 + a^2)/2
         """
         return self.parent()(self._maxima_().real())
 
@@ -1264,6 +1270,11 @@ class SymbolicExpression(RingElement):
             sage: print f
         			       z
             sage: forget()
+
+        A more symbolic example:
+            sage: f = log(a + b*I)
+            sage: f.imag()
+            atan(b/a)
         """
         return self.parent()(self._maxima_().imag())
 
@@ -1485,6 +1496,8 @@ class CallableFunction(RingElement):
             (w, t) |--> cos(w - t)
             sage: f._unify_varlists(g)
             (x, y, z, w, t)
+            (t, w, x, y, z)
+
 
             sage: f(x, y, t) = y*(x^2-t)
             sage: f
@@ -1538,7 +1551,7 @@ class CallableFunction(RingElement):
             if not b[j] in temp:
                 temp.append(b[j])
 
-        temp.sort()
+        temp.sort(var_cmp)
         new_list.extend(temp)
         return tuple(new_list)
 
@@ -1766,10 +1779,10 @@ class SymbolicOperation(SymbolicExpression):
             sage: f = (x - x) + y^2 - z/z + (w^2-1)/(w+1); f
             y^2 + (w^2 - 1)/(w + 1) - 1
             sage: f.variables()
-            [w, y]
+            (w, y)
 
             sage: (x + y + z + a + b + c).variables()
-            [a, b, c, x, y, z]
+            (a, b, c, x, y, z)
         """
         if not self.is_simplified():
             return self.simplify().variables(vars)
@@ -1787,7 +1800,8 @@ class SymbolicOperation(SymbolicExpression):
                 if not v in vars:
                     vars.append(v)
         vars.sort(var_cmp)
-        self.__variables = tuple(vars)
+        vars = tuple(vars)
+        self.__variables = vars
         return vars
 
 def var_cmp(x,y):
@@ -2179,27 +2193,15 @@ class SymbolicComposition(SymbolicOperation):
 
     def _maxima_init_(self):
         ops = self._operands
-        if isinstance(ops[0], Function_log):
-            base = ops[0]._base
-            if not base is None:
-                return 'log(%s)/log(%s)' % (ops[1]._maxima_init_(),repr(base))
         return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _sys_init_(self, system):
         ops = self._operands
-        if isinstance(ops[0], Function_log):
-            base = ops[0]._base
-            if not base is None:
-                return 'log(%s)/log(%s)' % (sys_init(ops[1],system),repr(base))
         return '%s(%s)' % (sys_init(ops[0],system), sys_init(ops[1],system))
 
     def _mathematica_init_(self):
         system = 'mathematica'
         ops = self._operands
-        if isinstance(ops[0], Function_log):
-            base = ops[0]._base
-            if not base is None:
-                return 'Log[%s]/Log[%s]' % (sys_init(ops[1],system),repr(base))
         return '%s[%s]' % (sys_init(ops[0],system).capitalize(), sys_init(ops[1],system))
 
     def __float__(self):
@@ -2446,6 +2448,11 @@ class Function_tan(PrimitiveFunction):
 tan = Function_tan()
 _syms['tan'] = tan
 
+def atan2(y, x):
+    return atan(y/x)
+
+_syms['atan2'] = atan2
+
 class Function_asin(PrimitiveFunction):
     """
     The arcsine function
@@ -2549,8 +2556,6 @@ class Function_log(PrimitiveFunction):
         log(1024)/log(2)
         sage: log(10, 4)
         log(10)/log(4)
-        sage: log(1024.0, 2.0)
-        10.0000000000000
 
         sage: RDF(log(10,2))
         3.32192809489
@@ -2561,71 +2566,30 @@ class Function_log(PrimitiveFunction):
         sage: log(2.718)
         0.999896315728952
     """
-    def __init__(self, base=None):
-        self._base = base
+    def __init__(self):
         PrimitiveFunction.__init__(self)
 
     def _repr_(self, simplify=True):
-        if self._base is None:
-            return "log"
-        else:
-            if self._base._is_atomic():
-                return "log_%s" % self._base
-            else:
-                return "log_(%s)" % self._base
+        return "log"
 
     def _latex_(self):
-        if self._base is None:
-            return "\\log"
-        else:
-            return "\\log_{%s}" % self._base
-
-    def _is_atomic(self):
-        return self._base is None
-
-    def __call__(self, x, *args):
-        # see if we have a base that's None
-        base = self._base
-        if base is None:
-            # first try getting the base from what was passed
-            try:
-                base = args[0]
-            except IndexError:
-            # if that fails, get the base from the object
-                base = self._base
-
-        try:
-            if base is None:
-                return x.log()
-            else:
-                return x.log(base)
-        except AttributeError:
-            renorm = self._renormalize()
-            if isinstance(x, float):
-                return self._approx_(x)  * renorm
-
-        # if the base is None, we behave as before
-        if base is None:
-            return SymbolicComposition(self, SER(x))
-        # else construct a new log function with the correct base
-        else:
-            return SymbolicComposition(Function_log(base), SER(x))
+        return "\\log"
 
     _approx_ = math.log
 
-    def _renormalize(self):
-        try:
-            return self.__renormalize
-        except AttributeError:
-            if self._base is None:
-                k = 1.0
-            else:
-                k = 1.0/self._approx_(float(self._base))
-            self.__renormalize = k
-            return k
+function_log = Function_log()
 
-log = Function_log()
-_syms['log'] = log
+def log(x, base=None):
+    if base is None:
+        try:
+            return x.log()
+        except AttributeError:
+            return function_log(x)
+    else:
+        try:
+            return x.log(base)
+        except AttributeError:
+            return function_log(x) / function_log(base)
 
 class Function_sqrt(PrimitiveFunction):
     """
@@ -2765,20 +2729,21 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False):
     if equals_sub:
         s = s.replace('=','==')
 
+    global is_simplified
     try:
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
-        global is_simplified
         is_simplified = True
         w = sage_eval(s, _syms)
         if isinstance(w, (list, tuple)):
             return w
         else:
             x = SER(w)
-        is_simplified = False
         return x
     except SyntaxError:
         raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s
+    finally:
+        is_simplified = False
 
 def symbolic_expression_from_maxima_element(x):
     return symbolic_expression_from_maxima_string(x.name())

@@ -134,17 +134,17 @@ class SymbolicEquation(SageObject):
             return cmp(self._left._maxima_() , self._right._maxima_()) == 0
         return s == 'true'
 
-    def _maxima_init_(self, maxima=maxima):
+    def _maxima_init_(self, maxima=maxima, assume=False):
         l = self._left._maxima_init_()
         r = self._right._maxima_init_()
-        if self._op == operator.eq:
+        if assume and self._op == operator.eq:
             return 'equal(%s, %s)'%(l, r)
         return '(%s)%s(%s)' % (l, maxima_symbols[self._op], r)
 
     def assume(self):
         if not self in _assumptions:
-            m = self._maxima_()
-            m.parent().assume(m)
+            m = self._maxima_init_(assume=True)
+            maxima.assume(m)
             _assumptions.append(self)
 
     def forget(self):

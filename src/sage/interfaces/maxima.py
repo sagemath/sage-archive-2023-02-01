@@ -451,6 +451,7 @@ class Maxima(Expect):
                 raise ValueError, msg
         except KeyboardInterrupt, msg:
             print self._expect.before
+            i = 0
             while True:
                 try:
                     print "Control-C pressed while running maxima.  Please wait..."
@@ -458,6 +459,9 @@ class Maxima(Expect):
                     self._send('quit;\n'+chr(3))
                     self.interrupt()
                 except KeyboardInterrupt:
+                    i += 1
+                    if i > 10:
+                        break
                     pass
                 else:
                     break

@@ -284,6 +284,9 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef int n = self._ncols
         cdef int k = round(min(0.75 * log(n,2), 16))
 
+        if k < 1:
+            k = 1
+
 ##         if ( self.nrows() < right.ncols() ):
 ##             return self._multiply_m4rm_c(right,k,1) # transpose
 ##         else:
@@ -584,6 +587,14 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
              sage: B == C == E
              True
 
+        TESTS:
+             sage: VF2 = VectorSpace(GF(2),2)
+             sage: WF2 = VF2.submodule([VF2([1,1])])
+             sage: WF2
+             Vector space of degree 2 and dimension 1 over Finite Field of size 2
+             Basis matrix:
+             [1 1]
+
         ALGORITHM: Uses Gregory Bard's M4RI algorithm and implementation or
                    LinBox.
 
@@ -610,6 +621,8 @@ cdef class Matrix_mod2_dense(matrix_dense.Matrix_dense):   # dense or sparse
             else:
                 n = min(self._nrows, self._ncols)
                 k = round(min(0.75 * log(n,2), 16))
+                if k<1:
+                    k = 1
 
             _sig_on
             r =  simpleFourRussiansPackedFlex(self._entries, 1, k)

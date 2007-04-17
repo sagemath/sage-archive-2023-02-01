@@ -523,14 +523,13 @@ def indicator(G, Pi, V, bool_matrix_format=False):
     else:
         n = G.order()
     from sage.misc.misc import prod
-    LL = [0]*n
+    LL = []
     for partition in V:
         a = len(partition)
         for k in range(a):
-            LL[k] += len(partition[k])*(1 + \
-                sum(  [  degree(G, partition[k][0], partition[i], bool_matrix_format=bool_matrix_format) for i in range(len(partition))  ]  ) \
-                                        )
-    return prod([l for l in LL if l!=0])
+            LL.append( len(partition[k])*(1 + \
+                sum(  [  degree(G, partition[k][0], partition[i], bool_matrix_format=bool_matrix_format) for i in range(a)  ]  ) ) )
+    return prod(LL)
 
 def get_permutation(eta, nu, list_perm=False):
     r"""
@@ -1015,6 +1014,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     """
     from copy import copy
     from sage.rings.infinity import Infinity
+    from sage.graphs.graph import enum
     n = G.order()
     Pi = copy(Pi)
 
@@ -1038,7 +1038,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         Pi2.append(newcell)
     Pi = Pi2
 
-    M = [[False]*n]*n
+    # create the boolean matrix
+    M = []
+    for _ in range(n):
+        M.append( [False]*n )
     if isinstance(G, Graph):
         for i, j, l in G.edge_iterator():
             M[i][j] = True
@@ -1063,25 +1066,27 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     zb = {}
     output = []
     k = None
-#    h = None
-#    hh = None
+    h = None
+    hh = None
     hb = None
-#    hzb = None
-#    hzf = None
-#    qzb = None
+    hzb = None
+    hzf = None
+    qzb = None
     while not state is None:
-#        print 'e: ' + str(e)
-#        print 'k: ' + str(k)
-#        print 'hh: ' + str(hh)
-#        print 'hb: ' + str(hb)
-#        print 'h: ' + str(h)
-#        print 'nu: ' + str(nu)
-#        print 'eta: ' + str(eta)
-#        print 'rho: ' + str(rho)
-#        print 'zb: ' + str(zb)
-#        print 'hzb: ' + str(hzb)
-#        print 'hzf: ' + str(hzf)
-#        print 'qzb: ' + str(qzb)
+        if verbosity > 1:
+            print 'k: ' + str(k)
+            print 'nu: ' + str(nu)
+            print 'rho: ' + str(rho)
+        if verbosity > 3:
+            print 'e: ' + str(e)
+            print 'hh: ' + str(hh)
+            print 'hb: ' + str(hb)
+            print 'h: ' + str(h)
+            print 'eta: ' + str(eta)
+            print 'zb: ' + str(zb)
+            print 'hzb: ' + str(hzb)
+            print 'hzf: ' + str(hzf)
+            print 'qzb: ' + str(qzb)
         if state == 1:
             if verbosity > 0: print 'state: 1'
             size = 1
@@ -1091,7 +1096,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             index = 0
             l = 0
             Theta = [[i] for i in range(n)]
-            nu[1] = refine(G, Pi, Pi)
+            nu[1] = refine(M, Pi, Pi, bool_matrix_format=True)
             hh = 2
             if not dig:
                 if sat225(nu[1], n): hh = 1
@@ -1105,8 +1110,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         elif state == 2:
             if verbosity > 0: print 'state: 2'
             k += 1
-            nu[k] = perp(G, nu[k-1], v[k-1])
-            Lambda[k] = indicator(G, Pi, nu.values())
+            nu[k] = perp(M, nu[k-1], v[k-1], bool_matrix_format=True)
+            Lambda[k] = indicator(M, Pi, nu.values(), bool_matrix_format=True)
             if h == 0: state = 5
             else:
                 if hzf == k-1 and Lambda[k] == zf[k]:
@@ -1114,10 +1119,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                 if not lab:
                     state = 3
                 else:
-                    if zb[k] == Infinity:       # This replaces the last line,
-                        qzb = -1                # since MinusInfinity is not
-                    else:                       # yet implemented.
-                        qzb = Lambda[k] - zb[k] #
+                    qzb = Lambda[k] - zb[k]
                     if hzb == k-1 and qzb == 0: hzb = k
                     if qzb > 0: zb[k] = Lambda[k]
                     state = 3
@@ -1156,8 +1158,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             elif k < hzf: state = 8 ## BDM had !=, broke at G = Graph({0:[],1:[],2:[]}), Pi = [[0,1,2]]
             else:
                 gamma = get_permutation(eta.values(), nu.values(), list_perm=True)
-    #            print gamma
-                if G == G.relabel(gamma, inplace=False): # if G^gamma == G:
+                if verbosity > 2: print gamma
+                if enum(G, quick=True) == G.relabel(gamma, inplace=False, quick=True): # if G^gamma == G:
                     state = 10
                 else:
                     state = 8
@@ -1169,7 +1171,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             elif (term_pnest_graph(G, nu.values(), enumer=True) < term_pnest_graph(G, rho.values(), enumer=True)): state = 6
             else:
                 gamma = get_permutation(nu.values(), rho.values(), list_perm=True)
-    #            print gamma
+                if verbosity > 2: print gamma
                 state = 10
         elif state == 9:
             if verbosity > 0: print 'state: 9'
@@ -1278,8 +1280,8 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             if not lab: state = 13
             else:
                 rho = copy(nu)
-                hzb = k#+1 # ???
-                hb = k#+1  # ???
+                hzb = k ## BDM had k+1
+                hb = k ## BDM had k+1
                 zb[k+2] = Infinity
                 qzb = 0
                 state = 13

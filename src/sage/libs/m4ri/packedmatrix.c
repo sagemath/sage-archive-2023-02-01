@@ -355,7 +355,7 @@ void rowAddPacked( packedmatrix *m, int sourcerow, int destrow) {
 
 int gaussianPackedDelayed(packedmatrix *m, int startcol, int full) {
   int i,j;
-  int start; //stop=min( m->rows, m->cols);
+  int start;
 
   int startrow = startcol;
   int ii;

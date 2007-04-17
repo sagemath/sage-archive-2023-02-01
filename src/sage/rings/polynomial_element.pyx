@@ -4,6 +4,13 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1)
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################
@@ -517,6 +524,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -529,6 +537,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """

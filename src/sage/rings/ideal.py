@@ -84,6 +84,21 @@ def Ideal(R, gens=[], coerce=True):
         Traceback (most recent call last):
         ...
         TypeError: unable to find common ring into which all ideal generators map
+
+    TESTS:
+        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+        sage: I == loads(dumps(I))
+        True
+
+        sage: I = Ideal(R, [4 + 3*x + x^2, 1 + x^2])
+        sage: I == loads(dumps(I))
+        True
+
+        sage: I = Ideal((4 + 3*x + x^2, 1 + x^2))
+        sage: I == loads(dumps(I))
+        True
+
     """
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())
@@ -122,7 +137,6 @@ def Ideal(R, gens=[], coerce=True):
         gens = [R(g) for g in gens]
 
     gens = list(set(gens))
-
     if isinstance(R, sage.rings.principal_ideal_domain.PrincipalIdealDomain):
         # Use GCD algorithm to obtain a principal ideal
         g = gens[0]
@@ -169,7 +183,7 @@ class Ideal_generic(MonoidElement):
     def _repr_short(self):
         return '(%s)'%(', '.join([str(x) for x in self.gens()]))
 
-    def _repr_(self):
+    def __repr__(self):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
     def __cmp__(self, other):
@@ -261,7 +275,7 @@ class Ideal_principal(Ideal_generic):
     def __init__(self, ring, gen):
         Ideal_generic.__init__(self, ring, [gen])
 
-    def _repr_(self):
+    def __repr__(self):
         return "Principal ideal (%s) of %s"%(self.gen(), self.ring())
 
     def is_principal(self):

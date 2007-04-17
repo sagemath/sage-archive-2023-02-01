@@ -31,7 +31,8 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 20
+INTERRUPT_TRIES = 15
+
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -761,31 +762,7 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            E = S._expect
-            tm = 0.3
-            al = INTERRUPT_TRIES * tm
-            print "Trying to interrupt for at most %s seconds"%al
-            try:
-                for i in range(INTERRUPT_TRIES):
-                    E.sendline('q')
-                    E.sendline(chr(3))
-                    try:
-                        E.expect(S._prompt, timeout=tm)
-                        #E.expect(S._prompt, timeout=tm)
-                        success = True
-                        break
-                    except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                        print msg
-                        verbose("Trying again to interrupt SAGE (try %s)..."%i)
-            except Exception, msg:
-                print msg
-
-            if not success:
-                pid = self.__sage.pid()
-                cmd = 'kill -9 -%s'%pid
-                print cmd
-                os.system(cmd)
-                self.__sage._expect = None
+            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3)
 
         # empty the queue
         for C in self.__queue:

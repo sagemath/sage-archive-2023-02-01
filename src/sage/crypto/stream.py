@@ -32,6 +32,12 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
 	    sage: E
             LFSR cryptosystem over Finite Field of size 2
 
+        TESTS:
+            sage: E = LFSRCryptosystem(FiniteField(2))
+	    sage: E == loads(dumps(E))
+            True
+
+
 	TODO: Implement LFSR cryptosytem for arbitrary rings. The current
 	implementation if limitated to the finite field of 2 elements only
         because of the dependence on binary strings.
@@ -44,6 +50,9 @@ class LFSRCryptosystem(SymmetricKeyCryptosystem):
 	P = PolynomialRing(FiniteField(2),'x')
         SymmetricKeyCryptosystem.__init__(self, S, S, None)
 	self._field = field
+
+    def __eq__(self,right):
+        return type(self) == type(right) and self._field == right._field
 
     def __call__(self, key):
         """

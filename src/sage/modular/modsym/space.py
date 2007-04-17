@@ -521,6 +521,7 @@ class ModularSymbolsSpace(hecke.HeckeModule_free_module):
             [ 0  0  1  0 -2]
 
         An example that (somewhat spuriously) is over a number field:
+            sage: x = polygen(QQ)
             sage: k = NumberField(x^2+1, 'a')
             sage: M = ModularSymbols(11, base_ring=k, sign=1).cuspidal_submodule()
             sage: M.q_expansion_module(5, QQ)

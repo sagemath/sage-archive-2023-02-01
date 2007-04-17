@@ -426,35 +426,43 @@ class PiecewisePolynomial:
 
     def critical_points(self):
         """
-        Function to return the critical points. Uses maxima, which
-        prints the warning to use results with caution. Only works for
-        piecewise functions whose parts are polynomials with real
-        critical not occurring on the interval endpoints.
+        Return the critical points of this piecewise function.
+
+        WARNINGS: Uses maxima, which prints the warning to use results
+        with caution. Only works for piecewise functions whose parts
+        are polynomials with real critical not occurring on the
+        interval endpoints.
 
         EXAMPLES:
             sage: x = PolynomialRing(QQ, 'x').0
             sage: f1 = x^0
-            sage: f2 = 1-x
-            sage: f3 = 2*x
-            sage: f4 = 10*x-x^2
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f2 = 10*x - x^2
+            sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
+            sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
             sage: f.critical_points()
-            [5.0]
+            [5.0, 12.000000000000171, 12.9999999999996, 14.000000000000229]
         """
         maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()
         fcns = self.functions()
         N = len(fcns)
         crit_pts = []
+        I = self.intervals()
         for i in range(N):
             maxima.eval("eqn:diff(%s,x)=0"%fcns[i])
             ans = maxima.eval("allroots(eqn)")
-            if "[x =" in ans:
-                i1 = ans.index("[x =")
-                i2 = ans.index("]")
-                r = eval(ans[i1+4:i2])
-                if self.intervals()[i][0] < r < self.intervals()[i][1]:
+            while True:
+                start = ans.find('x=')
+                if start == -1:
+                    break
+                ans = ans[start+2:]
+                end = ans.find(',')
+                if end == -1:
+                    end = ans.find(']')
+                r = float(ans[:end])
+                if I[i][0] < r < I[i][1]:
                     crit_pts.append(r)
+                ans = ans[end+1:]
         return crit_pts
 
     def base_ring(self):
@@ -613,10 +621,12 @@ class PiecewisePolynomial:
             conv2 = maxima.eval(cmd2)
             conv3 = maxima.eval(cmd3)
             conv4 = maxima.eval(cmd4)
-            fg1 = sage_eval(conv1.replace("tt",var)) ## should be = R2(conv1)
-            fg2 = sage_eval(conv2.replace("tt",var)) ## should be = R2(conv2)
-            fg3 = sage_eval(conv3.replace("tt",var)) ## should be = R2(conv3)
-            fg4 = sage_eval(conv4.replace("tt",var)) ## should be = R2(conv4)
+            # this is a very, very, very ugly hack
+            x = PolynomialRing(QQ,'x').gen()
+            fg1 = sage_eval(conv1.replace("tt",var), {'x':x}) ## should be = R2(conv1)
+            fg2 = sage_eval(conv2.replace("tt",var), {'x':x}) ## should be = R2(conv2)
+            fg3 = sage_eval(conv3.replace("tt",var), {'x':x}) ## should be = R2(conv3)
+            fg4 = sage_eval(conv4.replace("tt",var), {'x':x}) ## should be = R2(conv4)
             if a1-b1<a2-b2:
                 if a2+b1!=a1+b2:
                     h = Piecewise([[(a1+b1,a1+b2),fg1],[(a1+b2,a2+b1),fg4],[(a2+b1,a2+b2),fg3]])
@@ -666,7 +676,9 @@ class PiecewisePolynomial:
         x = R.gen()
         diffs = [maxima('%s'%p[1](x)).diff('x') \
                  for p in self.list()]
-        dlist = [[(p[0][0], p[0][1]), R(sage_eval(str(maxima('%s'%p[1](x)).diff('x')).replace("%","")))] for p in self.list()]
+        dlist = [[(p[0][0], p[0][1]),
+            R(sage_eval(str(maxima('%s'%p[1](x)).diff('x')).replace("%",""),
+                {'x':x}))] for p in self.list()]
         return Piecewise(dlist)
 
     def tangent_line(self,pt):
@@ -1214,14 +1226,13 @@ class PiecewisePolynomial:
             sage: f2 = lambda x:1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.laplace_transform()
-            '1/s - e^-s/s + (s + 1)*e^-(2*s)/s^2 - e^-s/s^2'
+            '1/s-e^-s/s + (s+1)*e^-(2*s)/s^2-e^-s/s^2'
             sage: f.laplace_transform("w",latex_output=1)
-            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
+            '-{{e^ {- w }}\\over{w}}-{{e^ {- w }}\\over{w^2}}+{{\\left(w+1\\right)\\,  e^ {- 2\\,w }}\\over{w^2}}+{{1}\\over{w}}'
             sage: f.laplace_transform("w",True)
-            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
+            '-{{e^ {- w }}\\over{w}}-{{e^ {- w }}\\over{w^2}}+{{\\left(w+1\\right)\\,  e^ {- 2\\,w }}\\over{w^2}}+{{1}\\over{w}}'
             sage: f.laplace_transform("w")
-            '1/w - e^-w/w + (w + 1)*e^-(2*w)/w^2 - e^-w/w^2'
-
+            '1/w-e^-w/w + (w+1)*e^-(2*w)/w^2-e^-w/w^2'
         """
         maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()
@@ -1240,10 +1251,11 @@ class PiecewisePolynomial:
         if latex_output == 0:
             return ans
         if latex_output == 1:
-            ans0 = maxima.eval("tex("+ans_latex+")")
-            ans0 = ans0.replace("$$","")
-            ans0 = ans0.replace("false","")
-            return ans0
+            return maxima(ans_latex)._latex_()
+        #ans0 = maxima.eval("tex("+ans_latex+")")
+        #    ans0 = ans0.replace("$$","")
+        #    ans0 = ans0.replace("false","")
+        #   return ans0
 
     def __add__(self,other):
 	"""

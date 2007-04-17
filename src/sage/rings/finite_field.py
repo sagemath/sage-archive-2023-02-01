@@ -499,6 +499,7 @@ class FiniteField_ext_pari(FiniteField_generic):
             3
 
         Nonconstant polynomials do not coerce:
+            sage: x = polygen(QQ)
             sage: k(x)
             Traceback (most recent call last):
             ...

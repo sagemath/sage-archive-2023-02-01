@@ -21,6 +21,11 @@
 ##         new_object.__dict__ = _dict
 ##     return new_object
 
+def is_ParentWithBase(x):
+    """
+    Return True if x is a parent object with base.
+    """
+    return bool(PY_TYPE_CHECK(x, ParentWithBase))
 
 cdef class ParentWithBase(parent.Parent):
     def __init__(self, base):

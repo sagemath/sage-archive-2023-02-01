@@ -71,6 +71,7 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
        Notice that SAGE is careful to find a sensible common
        ring for all the entries (using the Sequence object):
 
+        sage: x = polygen(QQ)
         sage: m = matrix([[1/3,2+x],[3,4]]); m
         [  1/3 x + 2]
         [    3     4]

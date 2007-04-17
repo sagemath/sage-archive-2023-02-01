@@ -96,6 +96,9 @@ from random import random
 
 from sage.structure.parent_gens import ParentWithGens
 
+def is_ComplexDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, ComplexDoubleField_class))
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     The field of complex double precision numbers.
@@ -228,6 +231,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                     return ComplexDoubleElement(t, 0)
                 else:
                     return t
+            elif hasattr(x, '_complex_double_'):
+                return x._complex_double_(self)
             else:
                 return ComplexDoubleElement(x, 0)
         else:
@@ -728,7 +733,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1.1,0.1).logabs()
             0.099425429372582669
             sage: log(abs(CDF(1.1,0.1)))
-            0.0994254293726
+			0.099425429372582586
 
         Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
@@ -854,6 +859,12 @@ cdef class ComplexDoubleElement(FieldElement):
             0.5 + 0.866025403784*I
             sage: a^3                  # slightly random-ish arch dependent output
             -1.0 + 1.22460635382e-16*I
+
+        We raise to symbolic powers:
+            sage: CDF(1.2)^x
+            1.20000000000000^x
+            sage: CDF(1.2)^(x^n + n^x)
+            1.20000000000000^(x^n + n^x)
         """
         try:
             return z._pow_(a)
@@ -862,7 +873,14 @@ cdef class ComplexDoubleElement(FieldElement):
             return CDF(z)._pow_(a)
         except TypeError:
             # a is not a complex number
-            return z._pow_(CDF(a))
+            try:
+                return z._pow_(CDF(a))
+            except TypeError:
+                try:
+                    return a.parent()(z)**a
+                except AttributeError:
+                    raise TypeError
+
 
     def exp(self):
         r"""
@@ -1433,7 +1451,7 @@ cdef class ComplexDoubleElement(FieldElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-            sage: z = (1/2)*(1 + sqrt(3) *CDF.0); z
+            sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
             0.5 + 0.866025403784*I
             sage: p = z.algdep(5); p
             x^5 + x^2

@@ -115,6 +115,16 @@ If we try to subtract infinities or multiply infinity by zero we still get an er
     Traceback (most recent call last):
     ...
     SignError: cannot add positive finite value to negative finite value
+
+TESTS:
+    sage: P = InfinityRing
+    sage: P == loads(dumps(P))
+    True
+
+    sage: P(2) == loads(dumps(P(2)))
+    True
+
+
 """
 
 from sage.rings.ring_element import RingElement
@@ -260,6 +270,9 @@ class UnsignedInfinity(_uniq1, InfinityElement):
 
     def _repr_(self):
         return "Infinity"
+
+    def _maxima_init_(self):
+        return "inf"
 
     def lcm(self, x):
         """
@@ -467,6 +480,14 @@ class MinusInfinity(_uniq3, MinusInfinityElement):
     def _repr_(self):
         return "-Infinity"
 
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: maxima(-oo)
+            minf
+        """
+        return "minf"
+
     def _latex_(self):
         return "-\\infty"
 
@@ -536,6 +557,14 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
     def __repr__(self):
         return "+Infinity"
 
+    def _maxima_init_(self):
+        """
+        EXAMPLES:
+            sage: maxima(oo)
+            inf
+        """
+        return "inf"
+
     def _latex_(self):
         return "+\\infty"
 
@@ -596,6 +625,7 @@ class PlusInfinity(_uniq4, PlusInfinityElement):
 InfinityRing = InfinityRing_class()
 infinity = InfinityRing.gen(0)
 Infinity = infinity
+minus_infinity = InfinityRing.gen(1)
 
 
 

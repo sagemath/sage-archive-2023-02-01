@@ -278,11 +278,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
-        z = self._pari_()
-        P = (<ComplexNumber>self)._parent
-        w = P(right)._pari_()
-        m = z**w
-        return P(m)
+        try:
+            P = self.parent()
+            right = P(right)
+            z = self._pari_()
+            w = P(right)._pari_()
+            m = z**w
+            return P(m)
+        except TypeError:
+            try:
+                self = right.parent()(self)
+                return self**right
+            except AttributeError:
+                raise TypeError
 
     def prec(self):
         """
@@ -428,7 +436,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             4
             sage: C(2).multiplicative_order()
             +Infinity
-            sage: w = (1+sqrt(-3))/2; w
+            sage: w = (1+sqrt(-3.0))/2; w
             0.500000000000000 + 0.866025403784439*I
             sage: abs(w)
             1.00000000000000
@@ -815,7 +823,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLE:
             sage: C = ComplexField()
-            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+            sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algdep(5); p
             x^5 + x^2

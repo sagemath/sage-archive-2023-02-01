@@ -2,6 +2,11 @@
 Free algebra elements
 
 AUTHOR: David Kohel, 2005-09
+
+TESTS:
+    sage: R.<x,y> = FreeAlgebra(QQ,2)
+    sage: x == loads(dumps(x))
+    True
 """
 
 #*****************************************************************************
@@ -43,7 +48,7 @@ class FreeAlgebraElement(AlgebraElement):
         elif isinstance(x, FreeMonoidElement):
             self.__monomial_coefficients = { x:R(1) }
         elif True:
-            self.__monomial_coefficients = x
+            self.__monomial_coefficients = dict([ (A.monoid()(e1),R(e2)) for e1,e2 in x.items()])
         else:
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 

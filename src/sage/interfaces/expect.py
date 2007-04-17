@@ -344,9 +344,9 @@ class Expect(ParentWithBase):
             try:
                 self._expect.close = dummy
             except Exception, msg:
-                print msg
+                pass
         except Exception, msg:
-            print msg
+            pass
 
     def cputime(self):
         """
@@ -355,6 +355,18 @@ class Expect(ParentWithBase):
         raise NotImplementedError
 
     def quit(self, verbose=False):
+        """
+        EXAMPLES:
+            sage: a = maxima('y')
+            sage: a
+            y
+            sage: maxima.quit()
+            sage: a
+            Traceback (most recent call last):
+            ...
+            ValueError: The maxima session in which this object was defined is no longer running.
+        """
+        self._session_number += 1
         if self._expect is None:
             return
         # Send a kill -9 to the process *group*.
@@ -458,6 +470,30 @@ class Expect(ParentWithBase):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
+    def interrupt(self, tries=20, timeout=0.3):
+        E = self._expect
+        if E is None:
+            return True
+        success = False
+        try:
+            for i in range(tries):
+                E.sendline(self._quit_string())
+                E.sendline(chr(3))
+                try:
+                    E.expect(self._prompt, timeout=timeout)
+                    success= True
+                    break
+                except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                    #print msg
+                    pass
+        except Exception, msg:
+            pass
+        if success:
+            pass
+        else:
+            self.quit()
+        return success
+
     def eval(self, code, strip=True):
         """
         INPUT:
@@ -472,7 +508,7 @@ class Expect(ParentWithBase):
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:
-            return 'error evaluating "%s":\n%s'%(code,s)
+            raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
     def execute(self, *args, **kwds):
         return self.eval(*args, **kwds)
@@ -784,8 +820,8 @@ class ExpectElement(RingElement):
         """
         try:
             P = self.parent()
-            if P is None is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
-                          (P._restart_on_ctrlc and P._session_number != self._session_number):
+            if P is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
+                          P._session_number != self._session_number:
                 raise ValueError, "The %s session in which this object was defined is no longer running."%P.name()
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."

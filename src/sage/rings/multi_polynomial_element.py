@@ -224,7 +224,7 @@ class MPolynomial(CommutativeRingElement):
 
     def __pow__(self, n):
         if not isinstance(n, (int, long, integer.Integer)):
-            raise TypeError, "The exponent must be an integer."
+            n = integer.Integer(n)
         if n < 0:
             return 1/(self**(-n))
         return self.parent()(self.__element**n)

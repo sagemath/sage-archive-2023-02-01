@@ -554,7 +554,7 @@ cdef class Matrix_real_double_dense(matrix_dense.Matrix_dense):   # dense
             sage: m = matrix(RDF,2,2,range(4)); m
             [0.0 1.0]
             [2.0 3.0]
-            sage: log(abs(m.determinant()))
+            sage: RDF(log(abs(m.determinant())))
             0.69314718056
             sage: m.log_determinant()
             0.69314718056

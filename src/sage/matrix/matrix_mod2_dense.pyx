@@ -57,6 +57,33 @@ EXAMPLES:
     [1 0 1]
     [0 1 0]
 
+TESTS:
+    sage: FF = FiniteField(2)
+    sage: V = VectorSpace(FF,2)
+    sage: v = V([0,1]); v
+    (0, 1)
+    sage: W = V.subspace([v])
+    sage: W
+    Vector space of degree 2 and dimension 1 over Finite Field of size 2
+    Basis matrix:
+    [0 1]
+    sage: v in W
+    True
+
+    sage: M = Matrix(GF(2), [[1,1,0],[0,1,0]])
+    sage: M.row_space()
+    Vector space of degree 3 and dimension 2 over Finite Field of size 2
+    Basis matrix:
+    [1 0 0]
+    [0 1 0]
+
+    sage: M = Matrix(GF(2), [[1,1,0],[0,0,1]])
+    sage: M.row_space()
+    Vector space of degree 3 and dimension 2 over Finite Field of size 2
+    Basis matrix:
+    [1 1 0]
+    [0 0 1]
+
 TODO:
    - make linbox frontend and use it
      - charpoly ?

@@ -69,6 +69,7 @@ class Job(Persistent):
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
+        self.jdict['timeout'] = 600 # default timeout for jobs in seconds
 
         # These might become deprecated
         self.jdict['parent'] = parent
@@ -235,6 +236,17 @@ class Job(Persistent):
         if not isinstance(value, bool):
             raise TypeError
         self.jdict['verifiable'] = value
+
+    def timeout():
+        doc = "The timeout property."
+        def fget(self):
+            return self.jdict['timeout']
+        def fset(self, value):
+            if not isinstance(value, int):
+                raise TypeError('Timeout must be an integer.')
+            self.jdict['timeout']  = value
+        return locals()
+    timeout = property(**timeout())
 
     def attach(self, var, obj, file_name=None):
         """

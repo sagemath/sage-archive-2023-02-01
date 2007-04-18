@@ -2379,10 +2379,10 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
 
 
 def is_RealField(x):
-    return PY_TYPE_CHECK(x, RealField)
+    return bool(PY_TYPE_CHECK(x, RealField))
 
 def is_RealNumber(x):
-    return PY_TYPE_CHECK(x, RealNumber)
+    return bool(PY_TYPE_CHECK(x, RealNumber))
 
 def __create__RealField_version0(prec, sci_not, rnd):
     return RealField(prec, sci_not, rnd)

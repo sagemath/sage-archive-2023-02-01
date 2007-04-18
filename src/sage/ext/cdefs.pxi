@@ -113,6 +113,16 @@ cdef extern from "gmp.h":
     void mpz_xor (mpz_t rop, mpz_t op1, mpz_t op2)
     int mpz_root (mpz_t rop, mpz_t op, unsigned long int n)
 
+    int mpz_odd_p (mpz_t op)
+    int mpz_even_p (mpz_t op)
+
+    int mpz_perfect_power_p (mpz_t op)
+    int mpz_perfect_square_p (mpz_t op)
+
+    int mpz_jacobi (mpz_t a, mpz_t b)
+    int mpz_kronecker (mpz_t a, mpz_t b)
+    int mpz_kronecker_si (mpz_t a, long b)
+
     # The mpq type
     void mpq_abs (mpq_t rop, mpq_t op)
     void mpq_add(mpq_t sum, mpq_t addend1, mpq_t addend2)

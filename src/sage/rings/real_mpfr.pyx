@@ -47,6 +47,7 @@ import sys
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
+include "../ext/random.pxi"
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -410,10 +411,27 @@ cdef class RealField(sage.rings.ring.Field):
             sage: R(2).log()
             0.69314718055994530941723212146
         """
-        cdef RealNumber x
-        x = self._new()
+        cdef RealNumber x = self._new()
         mpfr_const_log2(x.value, self.rnd)
         return x
+
+    def random_element(self, min=-1, max=1, distribution=None):
+        """
+        Returns a uniformly distributed random number between
+        min and max (default -1 to 1).
+
+        EXAMPLES:
+            sage: RealField(100).random_element(-5, 10)
+            4.2682457657074627882421620493
+            sage: RealField(10).random_element()
+            .27
+        """
+        cdef RealNumber x = self._new()
+        mpfr_urandomb(x.value, state)
+        if min == 0 and max == 1:
+            return x
+        else:
+            return (max-min)*x + min
 
     def factorial(self, int n):
         """

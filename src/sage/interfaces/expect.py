@@ -808,7 +808,8 @@ class ExpectElement(RingElement):
                 P = self.parent()
                 if not (P is None):
                     P.clear(self._name)
-        except RuntimeError, msg:    # needed to avoid infinite loops in some rare cases
+
+        except (RuntimeError, pexpect.ExceptionPexpect), msg:    # needed to avoid infinite loops in some rare cases
             #print msg
             pass
 

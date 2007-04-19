@@ -50,6 +50,7 @@ import power_series_ring
 import polynomial_element as polynomial
 import sage.misc.latex as latex
 import sage.rings.ring_element as ring_element
+from sage.rings.integer import Integer
 
 class LaurentSeries(ring_element.RingElement):
     """
@@ -482,6 +483,16 @@ class LaurentSeries(ring_element.RingElement):
         if right != r:
             raise ValueError, "exponent must be an integer"
         return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
+
+    def __lshift__(self, k):
+        if not isinstance(k, (int, Integer)):
+            raise TypeError, "Cannot shift by non-integer."
+        return LaurentSeries(self.parent(), self.__u, self.__n + k)
+
+    def __rshift__(self, k):
+        if not isinstance(k, (int, Integer)):
+            raise TypeError, "Cannot shift by non-integer."
+        return LaurentSeries(self.parent(), self.__u, self.__n - k)
 
 
     def _div_(self, right):

@@ -2056,7 +2056,8 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
 
         self._ring = (LaurentSeriesRing if invert_y else PolynomialRing)(R, 'y')
         y = self._ring.gen(0)
-        degree = Q.degree()
+        self._poly_ring_y = y
+        self._n = degree = int(Q.degree())
 
         mul_by_x = []
         # multiplication by x acts on each of the monomials of degree < n by shifting
@@ -2101,6 +2102,21 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
     def y(self):
         return self._y
 
+    def monomial(self, i, j):
+        """
+        Returns $y^j x^i$, computed quickly.
+        """
+        i = int(i)
+        j = int(j)
+        if 0 < i and i < self._n:
+            y_to_j = self._poly_ring_y << (j-1)
+            v = [0] * self._n
+            v[i] = y_to_j
+            return self(v)
+        else:
+            return (self._x ** i) << j
+
+
     def Q(self):
         return self._Q
 
@@ -2132,6 +2148,14 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
             return self.parent()(v)
         else:
             raise ZeroDivisionError, "Element not invertible"
+
+    def __lshift__(self, k):
+        v = self.vector()
+        return self.parent()([a << k for a in v])
+
+    def __rshift__(self, k):
+        v = self.vector()
+        return self.parent()([a >> k for a in v])
 
     def _repr_(self):
         s = FreeAlgebraQuotientElement._repr_(self)
@@ -2231,7 +2255,7 @@ class MonskyWashnitzerDifferentialRing(Module):
         # cache for future use
         self._x_to_p = x_to_p
 
-        a = self.frob_Q() * y**(-2*p)
+        a = self.frob_Q() >> 2*p  # frobQ * y^{-2p}
 
         Q = self.base_ring()._Q
         three_halves = Q.parent().base_ring()(Rational((3,2)))
@@ -2250,7 +2274,7 @@ class MonskyWashnitzerDifferentialRing(Module):
 
         print "a*t^2 =", a * t**2
 
-        F_dx_y = p * x_to_p_less_1 * y**(1-p) * t
+        F_dx_y = (p * x_to_p_less_1 * t) >> (p-1)  # px^{p-1} sqrt(a) * y^{-p+1}
 #        print "-----", F_dx_y
 #        print "-----", x_to_p * F_dx_y
         return MonskyWashnitzerDifferential(self, F_dx_y)
@@ -2348,10 +2372,11 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         Use homology relations to eliminate negative powers of y.
         """
+        S = self.parent().base_ring()
         M = self.parent().helper_matrix()
-        p = self.parent().base_ring().prime()
-        x, y = self.parent().base_ring().gens()
-        f = self.parent().base_ring()(0)
+        p = S.prime()
+        x, y = S.gens()
+        f = S(0)
         reduced = self
         for j in range(self.min_pow_y()+1, 0):
             if p.divides(j):
@@ -2364,7 +2389,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             g = self.parent().base_ring()(0)
             for i in range(len(lin_comb)):
                 if lin_comb[i] != 0:
-                    g += lin_comb[i] * y**j * x**i # TODO: there is so much re-use that can be done here
+                    g += lin_comb[i] * S.monomial(i, j)
             if g.vector() != 0:
                 f += g
                 reduced -= g.diff()
@@ -2376,17 +2401,18 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         Use homology relations to eliminate positive powers of y.
         """
-        n = self.parent().base_ring().Q().degree()
-        p = self.parent().base_ring().prime()
-        x, y = self.parent().base_ring().gens()
-        f = self.parent().base_ring()(0)
+        S = self.parent().base_ring()
+        n = S.Q().degree()
+        p = S.prime()
+        x, y = S.gens()
+        f = S(0)
         reduced = self
         for j in range(self.max_pow_y(), 0, -1):
             for i in range(n-1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
 #                print "x^%s y^%s"%(i,j), c
                 if c != 0:
-                    g = y**(j+1) if i == n-1 else x**(i+1) * y**(j-1)
+                    g = S.monomial(0, j+1) if i == n-1 else S.monomial(i+1, j-1)
                     dg = g.diff()
 #                    print reduced, " - ", dg
                     denom = dg.extract_pow_y(j)[i]

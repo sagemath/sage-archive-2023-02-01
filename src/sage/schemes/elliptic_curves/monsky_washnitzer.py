@@ -1997,9 +1997,11 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 
 #*****************************************************************************
 # This is a generalization of the above functionality for hyperelliptic curves.
+#
 # The implementations below are much less optimized, so will be slower, but should
-# hopefully be easier to follow. I tried to embed must stuff into the
-# rings themselves rather than extract and manipulate lists of coefficents.
+# hopefully be easier to follow. (E.g. one can print/make sense of intermediate
+# results.) I tried to embed must stuff into the rings themselves rather than
+# just extract and manipulate lists of coefficents.
 #
 # AUTHOR:
 #    -- Robert Bradshaw (2007-04)
@@ -2011,17 +2013,25 @@ from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ
 
+from sage.misc.profiler import Profiler
 
 def matrix_of_frobenius_general(Q, p, prec):
+    prof = Profiler()
+    prof("setup")
     M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
     real_prec_ring = Integers(p**prec) # pAdicField(p, prec) # To capped absolute?
     S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, p, True)
     MW = S.monsky_washnitzer()
+    prof("frob basis elements")
     F = MW.frob_basis_elements(M)
+    prof("reduce")
     reduced = [F_i.reduce() for F_i in F]
+    prof("make matrix")
     M = matrix(real_prec_ring, [a.H1_vector() for f, a in reduced])
     M = M.change_ring(pAdicField(p, prec))
+    print prof
+    print len(S._monomials)
     return M.transpose()
 
 class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
@@ -2085,8 +2095,10 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
         y_vector[0] = y
         self._y = self(y_vector)
 
-        self._dQ = Q.derivative()(self._x)
+        self._n = int(Q.degree())
+        self._dQ = Q.derivative().change_ring(self)(self._x)
         self._monsky_washnitzer = MonskyWashnitzerDifferentialRing(self)
+        self._monomials = {}
 
 
     def __call__(self, val):
@@ -2109,7 +2121,19 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
         """
         i = int(i)
         j = int(j)
+
         if 0 < i and i < self._n:
+#            try:
+#                mon = self._monomials[i,j]
+#                return mon if b is None else self.base_ring()(b) * mon
+#            except KeyError:
+#                by_to_j = self._poly_ring_y << (j-1)
+#                v = [0] * self._n
+#                v[i] = by_to_j
+#                self._monomials[i,j] = mon = self(v)
+#                mon.diff()
+#                return mon if b is None else self.base_ring()(b) * mon
+
             if b is None:
                 by_to_j = self._poly_ring_y << (j-1)
             else:
@@ -2125,7 +2149,7 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
         return self._Q
 
     def degree(self):
-        return self._Q.degree()
+        return self._n
 
     def prime(self):
         return self._p
@@ -2153,6 +2177,33 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
         else:
             raise ZeroDivisionError, "Element not invertible"
 
+    def __eq__(self, other):
+        if not isinstance(other, SpecialHyperellipticQuotientElement):
+            other = self.parent()(other)
+        return self.vector() == other.vector()
+
+    def __cmp__(left, right):
+        if not isinstance(right, SpecialHyperellipticQuotientElement):
+            if right == 0:
+                return left.is_zero()
+            else:
+                right = left.parent()(right)
+        return left.vector() == right.vector()
+
+    def __nonzero__(self):
+        return self.vector() != 0
+
+    def is_zero(self):
+        return self.vector() == 0
+
+#    def _rmul_(self, c):
+#        prod = self.parent()(c * self.vector())
+#        try:
+#            prod._diff = c * self._diff
+#        except AttributeError:
+#            pass
+#        return prod
+
     def __lshift__(self, k):
         v = self.vector()
         return self.parent()([a << k for a in v])
@@ -2178,7 +2229,12 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
         return s
 
     def diff(self):
-        # construct A and B such that
+
+        try:
+            return self._diff_x
+        except AttributeError:
+            pass
+
         # d(self) = A dx + B dy
         #         = (2y A + BQ') dx/2y
         parent = self.parent()
@@ -2194,7 +2250,9 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
         A = parent(A)
         B = parent(B)
         dQ = parent._dQ
-        return self.parent()._monsky_washnitzer( 2*y * A + dQ * B )
+        two_y = y.parent()(2) << 1
+        self._diff = self.parent()._monsky_washnitzer( two_y * A + dQ * B )
+        return self._diff
 
     def extract_pow_y(self, k):
         v = self.vector()
@@ -2392,6 +2450,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
             g = self.parent().base_ring()(0)
             for i in range(n):
                 if lin_comb[i] != 0:
+#                    gg = S.monomial(i, j, lin_comb[i])
+#                    f += gg
+#                    reduced -= gg.diff()
                     g += S.monomial(i, j, lin_comb[i])
             if g.vector() != 0:
                 f += g

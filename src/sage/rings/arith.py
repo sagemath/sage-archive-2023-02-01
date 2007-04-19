@@ -2292,6 +2292,9 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
             x = sage.rings.real_mpfr.RealField(bits)(x)
         except  TypeError:
             raise TypeError, "can only find the continued fraction of a number"
+    elif isinstance(x, float):
+        from real_double import RDF
+        x = RDF(x)
     elif isinstance(x, (sage.calculus.calculus.SymbolicExpression,
                         sage.functions.constants.Constant)):
         try:
@@ -2627,9 +2630,11 @@ def falling_factorial(x, a):
         sage: falling_factorial(1+I, I)
         0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
-        2.00000000000000 + 4.00000000000000*I
+        (I - 2)*(I - 1)*I*(I + 1)
+        sage: expand(falling_factorial(1+I, 4))
+        4*I + 2
         sage: falling_factorial(I, 4)
-        -10.0000000000000
+        (I - 3)*(I - 2)*(I - 1)*I
 
         sage: M = MatrixSpace(ZZ, 4, 4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
@@ -2688,8 +2693,10 @@ def rising_factorial(x, a):
         sage: rising_factorial(1+I, I)
         0.266816390637832 + 0.122783354006372*I
 
-        sage: rising_factorial(I, 4)
-        -10.0000000000000
+        sage: a = rising_factorial(I, 4); a
+        I*(I + 1)*(I + 2)*(I + 3)
+        sage: expand(a)
+        -10
 
     See falling_factorial(I, 4).
 

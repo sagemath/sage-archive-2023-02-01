@@ -82,3 +82,45 @@ def taylor(f, v, a, n):
         f = SER(f)
     return f.taylor(v=v,a=a,n=n)
 
+
+def expand(x, *args, **kwds):
+    """
+    EXAMPLES:
+        sage: a = (1+I)*(2-sqrt(3)*I); a
+        (I + 1)*(2 - sqrt(3)*I)
+        sage: expand(a)
+        -sqrt(3)*I + 2*I + sqrt(3) + 2
+        sage: a = (x-1)*(x^2 - 1); a
+        (x - 1)*(x^2 - 1)
+        sage: expand(a)
+        x^3 - x^2 - x + 1
+
+    You can also use expand on polynomial, integer, and other
+    factorizations:
+        sage: x = polygen(ZZ)
+        sage: F = factor(x^12 - 1); F
+        (x - 1) * (x + 1) * (x^2 - x + 1) * (x^2 + 1) * (x^2 + x + 1) * (x^4 - x^2 + 1)
+        sage: expand(F)
+        x^12 - 1
+        sage: F.expand()
+        x^12 - 1
+        sage: F = factor(2007); F
+        3^2 * 223
+        sage: expand(F)
+        2007
+
+    Note: If you want to compute the expanded form of a polynomial
+    arithmetic operation quickly and the coefficients of the polynomial
+    all lie in some ring, e.g., the integers, it is vastly faster to
+    create a polynomial ring and do the arithmetic there.
+
+        sage: x = polygen(ZZ)      # polynomial over a given base ring.
+        sage: f = sum(x^n for n in range(5))
+        sage: f*f                  # much faster, even if the degree is huge
+        x^8 + 2*x^7 + 3*x^6 + 4*x^5 + 5*x^4 + 4*x^3 + 3*x^2 + 2*x + 1
+
+    """
+    try:
+        return x.expand(*args, **kwds)
+    except AttributeError:
+        return x

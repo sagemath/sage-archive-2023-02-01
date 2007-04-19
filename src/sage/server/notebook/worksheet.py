@@ -1218,7 +1218,7 @@ class Worksheet:
             menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
+            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
             menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
             #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar

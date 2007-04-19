@@ -153,5 +153,12 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             if c != 0: z.__vector += monomial_product(A,c*u,B[i])
         return z
 
+    def _rmul_(self, c):
+        return self.parent([c*a for a in self.__vector])
+
+    def _lmul_(self, c):
+        return self.parent([a*c for a in self.__vector])
+
+
 
 

@@ -2085,6 +2085,7 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
         y_vector[0] = y
         self._y = self(y_vector)
 
+        self._dQ = Q.derivative()(self._x)
         self._monsky_washnitzer = MonskyWashnitzerDifferentialRing(self)
 
 
@@ -2102,19 +2103,22 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
     def y(self):
         return self._y
 
-    def monomial(self, i, j):
+    def monomial(self, i, j, b=None):
         """
-        Returns $y^j x^i$, computed quickly.
+        Returns $b y^j x^i$, computed quickly.
         """
         i = int(i)
         j = int(j)
         if 0 < i and i < self._n:
-            y_to_j = self._poly_ring_y << (j-1)
+            if b is None:
+                by_to_j = self._poly_ring_y << (j-1)
+            else:
+                by_to_j = self.base_ring()(b) << j
             v = [0] * self._n
-            v[i] = y_to_j
+            v[i] = by_to_j
             return self(v)
         else:
-            return (self._x ** i) << j
+            return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
 
 
     def Q(self):
@@ -2177,7 +2181,8 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
         # construct A and B such that
         # d(self) = A dx + B dy
         #         = (2y A + BQ') dx/2y
-        x, y = self.parent().gens()
+        parent = self.parent()
+        x, y = parent.gens()
         v = self.vector()
         n = len(v)
         A = [0]*n
@@ -2186,10 +2191,9 @@ class SpecialHyperellipticQuotientElement(FreeAlgebraQuotientElement):
             if i > 0:
                 A[i-1] = i*v[i]
             B[i] = v[i].derivative()
-        A = self.parent()(A)
-        B = self.parent()(B)
-        Q = self.parent()._Q
-        dQ = Q.derivative()(x)
+        A = parent(A)
+        B = parent(B)
+        dQ = parent._dQ
         return self.parent()._monsky_washnitzer( 2*y * A + dQ * B )
 
     def extract_pow_y(self, k):
@@ -2324,12 +2328,10 @@ class MonskyWashnitzerDifferential(ModuleElement):
         return MonskyWashnitzerDifferential(self.parent(), -self._coeff)
 
     def _lmul_(self, a):
-        # this ring is commutative
-        return self._rmul_(a)
+        return MonskyWashnitzerDifferential(self.parent(), self._coeff * a)
 
     def _rmul_(self, a):
-        return MonskyWashnitzerDifferential(self.parent(),
-                                            self.parent().base_ring()(a)*self._coeff)
+        return MonskyWashnitzerDifferential(self.parent(), a * self._coeff)
 
     def coeff(self):
         """
@@ -2375,6 +2377,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         S = self.parent().base_ring()
         M = self.parent().helper_matrix()
         p = S.prime()
+        n = S.degree()
         x, y = S.gens()
         f = S(0)
         reduced = self
@@ -2387,9 +2390,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
             lin_comb = M * vector(M.base_ring(), cs)
 #            print "j =", j, "b =", cs, "lin_comb =", lin_comb
             g = self.parent().base_ring()(0)
-            for i in range(len(lin_comb)):
+            for i in range(n):
                 if lin_comb[i] != 0:
-                    g += lin_comb[i] * S.monomial(i, j)
+                    g += S.monomial(i, j, lin_comb[i])
             if g.vector() != 0:
                 f += g
                 reduced -= g.diff()
@@ -2402,6 +2405,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Use homology relations to eliminate positive powers of y.
         """
         S = self.parent().base_ring()
+        series = S.base_ring()
         n = S.Q().degree()
         p = S.prime()
         x, y = S.gens()
@@ -2421,6 +2425,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
                         c = R(QQ(c)/QQ(denom))
                     else:
                         c /= denom
+                    c = series(c)
                     f += c * g
                     reduced -= c * dg
 

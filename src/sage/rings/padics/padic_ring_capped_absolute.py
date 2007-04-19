@@ -41,11 +41,11 @@ In the capped absolute type, instead of having a cap on the relative precision o
     sage: (a * b) // 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) // 5^3)
-    <class 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
+    <type 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
     sage: (a * b) / 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) / 5^3)
-    <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+    <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')

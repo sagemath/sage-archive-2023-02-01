@@ -180,6 +180,9 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_init(x.modulus)
         return x
 
+    def __richcmp__(left, right, op):
+        return (<Element>left)._richcmp(right, op)
+
     def __invert__(self):
         return self._invert_c_impl()
 
@@ -629,7 +632,7 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         cdef mpz_t ppow
         mpz_set(self.value, n.value)
         if mpz_fits_sint_p(absprec.value) == 0:
-            raise ValueError, "cannot computer teichmuller lift to that high precision"
+            raise ValueError, "cannot compute teichmuller lift to that high precision"
         if mpz_sgn(absprec.value) != 1:
             raise ValueError, "can only compute to positive precision"
         self.set_precs(mpz_get_si(absprec.value))
@@ -816,7 +819,12 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef pAdicRingCappedAbsoluteElement unit_part_c(pAdicRingCappedAbsoluteElement self):
         cdef pAdicRingCappedAbsoluteElement ans
         cdef int v
-        if mpz_divisible_p(self.value, self.p):
+        if mpz_sgn(self.value) == 0:
+            ans = self._new_c()
+            mpz_set_ui(ans.value, 0)
+            ans.set_precs(0)
+            return ans
+        elif mpz_divisible_p(self.value, self.p):
             ans = self._new_c()
             v = mpz_remove(ans.value, self.value, self.p)
             ans.set_precs(self.absprec - v)
@@ -839,3 +847,40 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         ans = mpz_remove(tmp, self.value, self.p)
         mpz_clear(tmp)
         return ans
+
+    def val_unit(self):
+        return self.val_unit_c()
+
+    cdef val_unit_c(self):
+        cdef pAdicRingCappedAbsoluteElement unit
+        cdef Integer val
+        cdef int v
+        val = PY_NEW(Integer)
+        if mpz_sgn(self.value) == 0:
+            unit = self._new_c()
+            mpz_set_ui(unit.value, 0)
+            unit.set_precs(0)
+            mpz_set_ui(val.value, self.absprec)
+            return (val, unit)
+        elif mpz_divisible_p(self.value, self.p):
+            unit = self._new_c()
+            v = mpz_remove(unit.value, self.value, self.p)
+            unit.set_precs(self.absprec - v)
+            mpz_set_ui(val.value, v)
+            return (val, unit)
+        else:
+            mpz_set_ui(val.value, 0)
+            return (val, self)
+
+    def __hash__(self):
+        return self._hash()
+
+    cdef long _hash(self) except -1:
+        cdef Integer ans
+        if self.absprec == 0:
+            # This is so that different primes are distinguished.  If someone else can think of a better idea, go for it.
+            return hash(self.parent().prime_pow(self.parent().precision_cap()))
+        else:
+            ans = PY_NEW(Integer)
+            mpz_xor(ans.value, self.modulus, self.value)
+            return hash(ans)

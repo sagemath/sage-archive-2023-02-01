@@ -37,6 +37,7 @@ QQ = sage.rings.rational_field.QQ
 
 cdef class pAdicGenericElement(LocalGenericElement):
     def __richcmp__(left, right, int op):
+        print "rich"
         return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:
@@ -104,9 +105,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R = Zp(7,4,'capped-rel','series'); a = R(1/3); a
             5 + 4*7 + 4*7^2 + 4*7^3 + O(7^4)
             sage: a[0]
-            5 + O(7^4)
+            5
             sage: a[1]
-            4 + O(7^4)
+            4
         """
         if isinstance(n, slice):
             if n.start == 0:
@@ -506,9 +507,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
         elif self.precision_relative() < 1:
             return True
         elif self.parent().prime() != 2:
-            return (self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square())
+            return bool((self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square()))
         else:
-            return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
+            return bool((self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1))
 
     def log(self, branch = None):
         r"""

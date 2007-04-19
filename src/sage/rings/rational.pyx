@@ -368,7 +368,10 @@ cdef class Rational(sage.structure.element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
-    cdef object _val_unit(Rational self, Integer p):
+    def val_unit(self, p):
+        return self._val_unit(p)
+
+    cdef _val_unit(Rational self, integer.Integer p):
         r"""
         Returns a pair: the p-adic valuation of self, and the p-adic unit of self, as a Rational.
 
@@ -378,7 +381,7 @@ cdef class Rational(sage.structure.element.FieldElement):
         AUTHOR:
             -- David Roe (4/12/07)
         """
-        cdef Integer v
+        cdef integer.Integer v
         cdef Rational u
         if mpz_cmp_ui(p.value, 2) < 0:
             raise ValueError, "p must be at least 2."
@@ -387,7 +390,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             u = PY_NEW(Rational)
             mpq_set_ui(u.value, 1, 1)
             return (sage.rings.infinity.infinity, u)
-        v = PY_NEW(Integer)
+        v = PY_NEW(integer.Integer)
         u = PY_NEW(Rational)
         _sig_on
         mpz_set_ui(v.value, mpz_remove(mpq_numref(u.value), mpq_numref(self.value), p.value))

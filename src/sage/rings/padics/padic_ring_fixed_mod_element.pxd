@@ -4,7 +4,7 @@ cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 
 cimport sage.structure.element
-from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement
+from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement, Element
 
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
@@ -27,3 +27,5 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
     cdef object teichmuller_list(pAdicRingFixedModElement self)
     cdef pAdicRingFixedModElement unit_part_c(pAdicRingFixedModElement self)
     cdef int valuation_c(self)
+    cdef val_unit_c(self)
+    cdef long _hash(self) except -1

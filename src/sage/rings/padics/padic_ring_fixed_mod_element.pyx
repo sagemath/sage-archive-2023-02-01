@@ -229,6 +229,9 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         mpz_init_set(x.p, self.p)
         return x
 
+    def __richcmp__(left, right, op):
+        return (<Element>left)._richcmp(right, op)
+
     def __invert__(self):
         r"""
         Returns multiplicative inverse of this element. Its valuation
@@ -918,4 +921,27 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         ans = mpz_remove(tmp, self.value, self.p)
         mpz_clear(tmp)
         return ans
+
+    def val_unit(self):
+        return self.val_unit_c()
+
+    cdef val_unit_c(self):
+        cdef Integer val
+        cdef pAdicRingFixedModElement unit
+        cdef int v
+        if mpz_sgn(self.value) == 0:
+            return (self.parent().precision_cap(), self)
+        val = PY_NEW(Integer)
+        unit = self._new_c()
+        mpz_set_ui(val.value, mpz_remove(unit.value, self.value, self.p))
+        return (val, unit)
+
+    def __hash__(self):
+        return self._hash()
+
+    cdef long _hash(self) except -1:
+        cdef Integer ans
+        ans = PY_NEW(Integer)
+        mpz_xor(ans.value, self.modulus, self.value)
+        return hash(ans)
 

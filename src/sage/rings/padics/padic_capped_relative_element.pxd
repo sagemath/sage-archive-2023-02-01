@@ -4,7 +4,7 @@ cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 
 cimport sage.structure.element
-from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement
+from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement, Element
 
 cimport sage.rings.integer
 from sage.rings.integer cimport Integer
@@ -31,5 +31,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef RingElement _div_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, mpz_t absprec)
     cdef teichmuller_list(pAdicCappedRelativeElement self)
-
+    cdef val_unit_c(self)
+    cdef pAdicCappedRelativeElement unit_part_c(self)
+    cdef valuation_c(self)
+    cdef long _hash(self) except -1
 

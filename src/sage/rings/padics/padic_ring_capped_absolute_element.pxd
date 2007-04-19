@@ -4,7 +4,7 @@ cimport sage.rings.padics.padic_base_generic_element
 from sage.rings.padics.padic_base_generic_element cimport pAdicBaseGenericElement
 
 cimport sage.structure.element
-from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement
+from sage.structure.element cimport CommutativeRingElement, RingElement, ModuleElement, Element
 
 cimport sage.rings.padics.pow_computer
 from sage.rings.padics.pow_computer cimport PowComputer_class
@@ -33,3 +33,5 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
     cdef object teichmuller_list(pAdicRingCappedAbsoluteElement self)
     cdef pAdicRingCappedAbsoluteElement unit_part_c(pAdicRingCappedAbsoluteElement self)
     cdef int valuation_c(self)
+    cdef val_unit_c(self)
+    cdef long _hash(self) except -1

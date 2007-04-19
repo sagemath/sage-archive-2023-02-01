@@ -142,6 +142,17 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
         self.cache('hash', h)
         return h
 
+    cdef _comp_valaddeds(self):
+        cdef Py_ssize_t i, j
+        cdef int n
+        cdef Integer p
+        n = 0
+        p = self._base_ring.prime()
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self._ncols:
+                self._valaddeds[n] = self._value_matrix.get_unsafe(i, j)._valuation(p)
+                n += 1
+
 
     def __init__(self, parent, entries, copy, coerce):
         cdef Py_ssize_t i, j, Icur

@@ -666,11 +666,31 @@ cdef class RealDoubleElement(FieldElement):
         """
         return long(self._value)
 
-    def _complex_number_(self):
-        return sage.rings.complex_field.ComplexField()(self)
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: a = RDF(1/3)
+            sage: CC(a)
+            0.333333333333333
+            sage: a._complex_mpfr_field_(CC)
+            0.333333333333333
 
-    def _complex_double_(self):
-        return sage.rings.complex_double.ComplexDoubleField()(self)
+        If we coerce to a higher-precision field the extra bits appear
+        random; they are actualy 0's in base 2.
+            sage: a._complex_mpfr_field_(ComplexField(100))
+            0.33333333333333331482961625625
+            sage: a._complex_mpfr_field_(ComplexField(100)).str(2)
+            '0.01010101010101010101010101010101010101010101010101010100000000000000000000000000000000000000000000000'
+        """
+        return CC(self._value)
+
+    def _complex_double_(self, CDF):
+        """
+        EXAMPLES:
+            sage: CDF(RDF(1/3))
+            0.333333333333
+        """
+        return CDF(self._value)
 
     def _pari_(self):
         cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
@@ -736,7 +756,7 @@ cdef class RealDoubleElement(FieldElement):
             """
         if self._value >= 0:
             return self.square_root()
-        return self._complex_double_().sqrt()
+        return self._complex_double_(sage.rings.complex_double.CDF).sqrt()
 
 
     def square_root(self):

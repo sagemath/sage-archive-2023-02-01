@@ -77,8 +77,12 @@ class LaurentSeries(ring_element.RingElement):
 
         # self is that t^n * u:
         if f.is_zero():
-            self.__n = n
-            self.__u = f
+            if n == infinity:
+                self.__n = 0
+                self.__u = parent.power_series_ring()(0)
+            else:
+                self.__n = n
+                self.__u = f
         else:
             self.__n = n + f.valuation()    # power of the variable
             self.__u = f.valuation_zero_part()        # unit part

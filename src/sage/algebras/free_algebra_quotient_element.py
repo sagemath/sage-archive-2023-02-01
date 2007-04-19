@@ -104,6 +104,18 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             else:
                 return x
 
+    def _latex_(self):
+        Q = self.parent()
+        M = Q.monoid()
+        with localvars(M, Q.variable_names()):
+            cffs = list(self.__vector)
+            mons = Q.monomial_basis()
+            x = repr_lincomb(mons, cffs, True).replace("*1 "," ")
+            if x[len(x)-2:] == "*1":
+                return x[:len(x)-2]
+            else:
+                return x
+
     def vector(self):
         return self.__vector
 
@@ -141,18 +153,5 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             if c != 0: z.__vector += monomial_product(A,c*u,B[i])
         return z
 
-    def __pow__(self, n):
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "Argument n (= %s) must be an integer."%n
-        if n < 0:
-            raise IndexError, "Argument n (= %s) must be positive."%n
-        elif n == 0:
-            return self.parent()(1)
-        elif n == 1:
-            return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
 
 

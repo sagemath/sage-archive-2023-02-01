@@ -122,6 +122,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        if left == 0:
+            return self.parent()(0)
         return self.parent()(left) * self
 
     def _rmul_(self, right):
@@ -139,6 +141,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- Should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        if right == 0:
+            return self.parent()(0)
         return self * self.parent()(right)
 
     def __call__(self, *x):

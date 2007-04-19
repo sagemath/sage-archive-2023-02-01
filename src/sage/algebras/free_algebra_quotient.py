@@ -76,8 +76,8 @@ class FreeAlgebraQuotient(Algebra, object):
         if not is_FreeAlgebra(A):
             raise TypeError, "Argument A must be an algebra."
         R = A.base_ring()
-        if not R.is_field():
-            raise TypeError, "Base ring of argument A must be a field."
+#        if not R.is_field():  # TODO: why?
+#            raise TypeError, "Base ring of argument A must be a field."
         n = A.ngens()
         assert n == len(mats)
         self.__free_algebra = A

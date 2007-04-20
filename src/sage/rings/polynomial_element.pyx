@@ -1749,8 +1749,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.shift(2)
              x^4 + 2*x^3 + 4*x^2
 
+        One can also use the infix shift operator:
+            sage: f = x^3 - x
+            sage: f >> 2
+            x
+            sage: f << 2
+            x^5 - x^3
+
         AUTHOR:
             -- David Harvey (2006-08-06)
+            -- Robert Bradshaw (2007-04-18) Added support for infix operator.
         """
         if n == 0:
             return self   # safe because immutable.
@@ -1763,6 +1771,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return self.polynomial([])
             else:
                 return self.polynomial(self.coeffs()[-int(n):], check=False)
+
+    def __lshift__(self, k):
+        return self.shift(k)
+
+    def __rshift__(self, k):
+        return self.shift(-k)
+
 
     def truncate(self, n):
         r"""

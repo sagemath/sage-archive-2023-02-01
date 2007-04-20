@@ -60,6 +60,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         M = A.module()
         F = A.monoid()
         B = A.monomial_basis()
+
         if isinstance(x, (int, long, Integer)):
             self.__vector = x*M.gen(0)
         elif isinstance(x, RingElement) and not isinstance(x, AlgebraElement) and x in R:
@@ -88,8 +89,6 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         elif isinstance(x, AlgebraElement) and x.parent().ambient_algebra() is A:
             self.__vector = x.ambient_algebra_element().vector()
         else:
-            print "x =", x
-            print "type(x) =", type(x)
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
     def _repr_(self):

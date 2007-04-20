@@ -38,6 +38,7 @@ IMPLEMENTATION: Laurent series in SAGE are represented internally as a
 AUTHORS:
     -- William Stein: original version
     -- David Joyner: added examples 2006-01-22
+    -- Robert Bradshaw: optimizations, shifting 2007-04
 """
 
 import operator
@@ -366,10 +367,8 @@ class LaurentSeries(ring_element.RingElement):
             t^-3 + t^3 + O(t^9)
 
         ALGORITHM:
-            Multiply both Laurent series by a power of the variable to make them
-            power series, add those power series, then divide.
+            Shift the unit parts to align them, then add.
         """
-        # Add together two Laurent series over the same base ring.
 
         # 1. Special case when one or the other is 0.
         if right.is_zero():
@@ -377,19 +376,52 @@ class LaurentSeries(ring_element.RingElement):
         if self.is_zero():
             return right.add_bigoh(self.prec())
 
-        # 2. Find power of t that we can multiply both by to get power series.
-        m = - min(self.valuation(), right.valuation())
-        # Now t^m times each one is a polynomial.
-        # Get the polynomial indeterminate t
-        t = self.__u.parent().gen()
-        # Compute t^m times self
-        f1 = t**(self.__n + m) * self.__u
-        # Compute t^m times right
-        f2 = t**(right.__n + m) * right.__u
-        # Now add f1 and f2 as power series
-        g = f1 + f2
-        # Finally construct the Laurent series associated to the sum time t^(-m).
-        return LaurentSeries(self.parent(), g, -m)
+        # 2. Align the unit parts.
+        if self.__n < right.__n:
+            m = self.__n
+            f1 = self.__u
+            f2 = right.__u << right.__n - m
+        else:
+            m = right.__n
+            f1 = self.__u << self.__n - m
+            f2 = right.__u
+        # 3. Add
+        return LaurentSeries(self.parent(), f1 + f2, m)
+
+    def _sub_(self, right):
+        """
+        Subtract two power series with the same parent.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ)
+            sage: t - t
+            0
+            sage: t^5 + 2 * t^-5
+            2*t^-5 + t^5
+
+        ALGORITHM:
+            Shift the unit parts to align them, then subtract.
+        """
+        # Add together two Laurent series over the same base ring.
+
+        # 1. Special case when one or the other is 0.
+        if right.is_zero():
+            return self.add_bigoh(right.prec())
+        if self.is_zero():
+            return -right.add_bigoh(self.prec())
+
+        # 2. Align the unit parts.
+        if self.__n < right.__n:
+            m = self.__n
+            f1 = self.__u
+            f2 = right.__u << right.__n - m
+        else:
+            m = right.__n
+            f1 = self.__u << self.__n - m
+            f2 = right.__u
+        # 3. Subtract
+        return LaurentSeries(self.parent(), f1 - f2, m)
+
 
     def add_bigoh(self, prec):
         """
@@ -421,40 +453,16 @@ class LaurentSeries(ring_element.RingElement):
         """
         return self.__u.degree() + self.valuation()
 
-# todo:
-# I commented out the following __sub__ because it doesn't fit the new
-# arithmetic architecture rules. Perhaps a native _sub_ implementation would
-# be reasonable to have, but it seems pretty well covered by the default
-# RingElement._sub_c_impl() implementation anyway, so why bother.
-#   -- David Harvey
-#
-# BTW should mention that David Roe is working on reimplementing laurent
-# series from scratch. (hopefully!)
-#
-#    def __sub__(self, right):
-#        """
-#        EXAMPLES:
-#            sage: R = LaurentSeriesRing(ZZ, 't')
-#            sage: f = t^2 + t^3 + O(t^10)
-#            sage: g = 3/t^4 + t^3 + O(t^5)
-#            sage: f - g
-#            -3*t^-4 + t^2 + O(t^5)
-#            sage: g - f
-#            3*t^-4 - t^2 + O(t^5)
-#        """
-#        return self + right.__neg__()
 
-# ditto with __neg__:
-#
-#    def __neg__(self):
-#        """
-#        EXAMPLES:
-#            sage: R.<t> = LaurentSeriesRing(ZZ)
-#            sage: f = 3/t^2 +  t^2 + t^3 + O(t^10)
-#            sage: f.__neg__()
-#            -3*t^-2 - t^2 - t^3 + O(t^10)
-#        """
-#        return (-1)*self
+    def __neg__(self):
+        """
+        sage: R.<t> = LaurentSeriesRing(QQ)
+        sage: -(1+t^5)
+        -1 - t^5
+        sage: -(1/(1+t+O(t^5)))
+        -1 + t - t^2 + t^3 - t^4 + O(t^5)
+        """
+        return LaurentSeries(self.parent(), -self.__u, self.__n)
 
     def _mul_(self, right):
         """
@@ -468,6 +476,13 @@ class LaurentSeries(ring_element.RingElement):
         return LaurentSeries(self.parent(),
                              self.__u * right.__u,
                              self.__n + right.__n)
+
+    def _rmul_(self, c):
+        return LaurentSeries(self.parent(), c * self.__u, self.__n)
+
+    def _lmul_(self, c):
+        return LaurentSeries(self.parent(), self.__u * c, self.__n)
+
     def __pow__(self, r):
         """
         EXAMPLES:
@@ -484,14 +499,39 @@ class LaurentSeries(ring_element.RingElement):
             raise ValueError, "exponent must be an integer"
         return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
 
+    def shift(self, k):
+        r"""
+        Returns this laurent series multiplied by the power $t^n$. Does not
+        change this series.
+
+        NOTE:
+            Despite the fact that higher order terms are printed to the
+            right in a power series, right shifting decreases the powers
+            of $t$, while left shifting increases them. This is to be
+            consistant with polynomials, integers, etc.
+
+        EXAMPLES:
+            sage: R.<t> = LaurentSeriesRing(QQ['y'])
+            sage: f = (t+t^-1)^4; f
+            t^-4 + 4*t^-2 + 6 + 4*t^2 + t^4
+            sage: f.shift(10)
+            t^6 + 4*t^8 + 6*t^10 + 4*t^12 + t^14
+            sage: f >> 10
+            t^-14 + 4*t^-12 + 6*t^-10 + 4*t^-8 + t^-6
+            sage: t << 4
+            t^5
+            sage: t + O(t^3) >> 4
+            t^-3 + O(t^-1)
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-04-18)
+        """
+        return LaurentSeries(self.parent(), self.__u, self.__n + k)
+
     def __lshift__(self, k):
-        if not isinstance(k, (int, Integer)):
-            raise TypeError, "Cannot shift by non-integer."
         return LaurentSeries(self.parent(), self.__u, self.__n + k)
 
     def __rshift__(self, k):
-        if not isinstance(k, (int, Integer)):
-            raise TypeError, "Cannot shift by non-integer."
         return LaurentSeries(self.parent(), self.__u, self.__n - k)
 
 

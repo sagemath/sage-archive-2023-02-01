@@ -202,6 +202,12 @@ class Polynomial_generic_dense(Polynomial):
         d = self.parent().base_ring()(right)
         return self.polynomial([c // d for c in self.__coeffs], check=False)
 
+    def _rmul_(self, c):
+        return self.polynomial([c * a for a in self.__coeffs], check=False)
+
+    def _lmul_(self, c):
+        return self.polynomial([a * c for a in self.__coeffs], check=False)
+
     def list(self):
         """
         Return a new copy of the list of the underlying
@@ -258,7 +264,6 @@ class Polynomial_generic_dense(Polynomial):
                 return self.polynomial([])
             else:
                 return self.polynomial(self.__coeffs[-int(n):], check=False)
-
 
 class Polynomial_generic_sparse(Polynomial):
     """
@@ -1867,6 +1872,16 @@ class Polynomial_dense_mod_n(Polynomial):
         """
         self._ntl_set_modulus()
         return self.parent()(self.__poly * right.__poly, construct=True)
+
+    def _rmul_(self, c):
+        self._ntl_set_modulus()
+        return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+
+    def _lmul_(self, c):
+        self._ntl_set_modulus()
+        return self.parent()(ZZ_pX([c]) * self.__poly, construct=True)
+
+
 
     def quo_rem(self, right):
         """

@@ -7,6 +7,7 @@ any SAGE base ring.
 AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
+   -- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
 
 EXAMPLE:
     sage: R.<x> = PowerSeriesRing(ZZ)
@@ -834,6 +835,43 @@ class PowerSeries(ring_element.RingElement):
             return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
         raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
 
+    def shift(self, n):
+        r"""
+        Returns this power series multiplied by the power $t^n$. If $n$
+        is negative, terms below $t^n$ will be discarded. Does not
+        change this power series.
+
+        NOTE:
+            Despite the fact that higher order terms are printed to the
+            right in a power series, right shifting decreases the powers
+            of $t$, while left shifting increases them. This is to be
+            consistant with polynomials, integers, etc.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ['y'], 't', 5)
+            sage: f = ~(1+t); f
+            1 + -t + t^2 + -t^3 + t^4 + O(t^5)
+            sage: f.shift(3)
+            t^3 + -t^4 + t^5 + -t^6 + t^7 + O(t^8)
+            sage: f >> 2
+            1 + -t + t^2 + O(t^3)
+            sage: f << 10
+            t^10 + -t^11 + t^12 + -t^13 + t^14 + O(t^15)
+            sage: t << 29
+            t^30
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-04-18)
+        """
+        return self.parent()(self.polynomial().shift(n), self.prec() + n)
+
+    def __lshift__(self, n):
+        return self.parent()(self.polynomial() << n, self.prec() + n)
+
+    def __rshift__(self, n):
+        return self.parent()(self.polynomial() >> n, self.prec() - n)
+
+
     def sqrt(self):
         r"""
         Return the square root of self, up to the precision of parent.
@@ -1369,6 +1407,12 @@ class PowerSeries_poly(PowerSeries):
                                          self.__f * right.__f,
                                          prec,
                                          check=True)  # check, since truncation may be needed
+
+    def _rmul_(self, c):
+        return PowerSeries_poly(self.parent(), c * self.__f, self._prec, check=False)
+
+    def _lmul_(self, c):
+        return PowerSeries_poly(self.parent(), self.__f * c, self._prec, check=False)
 
 
     def __floordiv__(self, denom):

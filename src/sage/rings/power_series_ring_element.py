@@ -79,6 +79,7 @@ import operator
 from infinity import infinity, is_Infinite
 from polynomial_ring import PolynomialRing
 import polynomial_element_generic as polynomial
+import polynomial_element
 import power_series_ring
 import sage.misc.misc as misc
 import ring_element
@@ -94,7 +95,7 @@ from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import ceil
 
-Polynomial = polynomial.Polynomial_generic_dense
+Polynomial = polynomial_element.Polynomial_generic_dense
 
 def is_PowerSeries(x):
     return isinstance(x, PowerSeries)

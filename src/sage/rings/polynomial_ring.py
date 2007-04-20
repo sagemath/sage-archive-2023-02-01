@@ -167,8 +167,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-        #    return x.univariate_polynomial(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         if absprec is None:
@@ -434,6 +432,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if R.is_finite() and R.order() == 1:
             return True
         return False
+
+    def is_exact(self):
+        return self.base_ring().is_exact()
 
     def is_field(self):
         """

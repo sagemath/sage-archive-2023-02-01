@@ -7,6 +7,8 @@ AUTHOR:
                                    * precision of real literals now determined
                                      by digits of input (like mathematica).
     -- Joe Wetherell (2006-04-14): * added MAGMA-style constructor preparsing.
+    -- Bobby Moretti (2007-01-25): * added preliminary function assignment
+                                     notation
 
 EXAMPLES:
 
@@ -113,8 +115,8 @@ implemented using the GMP C library.
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
-
 import os
+import pdb
 
 def isalphadigit_(s):
     return s.isalpha() or s.isdigit() or s=="_"
@@ -123,10 +125,20 @@ def isalphadigit_(s):
 in_single_quote = False
 in_double_quote = False
 in_triple_quote = False
+
 def in_quote():
     return in_single_quote or in_double_quote or in_triple_quote
 
 def preparse(line, reset=True, do_time=False, ignore_prompts=False):
+
+    # find where the parens are for function assignment notation
+    oparen_index = -1
+    cparen_index = -1
+
+    # for caclulus function notation:
+    paren_level = 0
+    first_eq_index = -1
+
     global in_single_quote, in_double_quote, in_triple_quote
     line = line.rstrip()  # xreadlines leaves the '\n' at end of line
     L = line.lstrip()
@@ -159,6 +171,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
     num_start = -1
     in_number = False
     is_real = False
+
+    in_args = False
+
     if reset:
         in_single_quote = False
         in_double_quote = False
@@ -212,7 +227,6 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 i += 1
                 continue
 
-
         # Decide if we should wrap a particular integer or real literal
         if in_number:
             if line[i] == ".":
@@ -239,6 +253,12 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 in_number = False
                 is_real = False
                 continue
+
+        elif line[i] == ";" and not in_quote():
+            line = line[:i+1] + preparse(line[i+1:], reset, do_time, ignore_prompts)
+            i = len(line)
+            continue
+
 
         # Support for generator construction syntax:
         # "obj.<gen0,gen1,...,genN> = objConstructor(...)"
@@ -321,6 +341,95 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             i += 1
 
             continue
+
+        # Support for calculus-like function assignment, the line
+        # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
+        # gets turnd into
+        # "f = (sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # AUTHORS:
+        #   - Bobby Moretti: initial version - 02/2007
+
+        elif (line[i] == "(") and not in_quote():
+            paren_level += 1
+            # we need to make sure that this is the first open paren we find
+            if oparen_index == -1:
+                oparen_index = i
+            i += 1
+            continue
+
+        elif (line[i] == ")") and not in_quote():
+            cparen_index = i
+            paren_level -= 1
+            i += 1
+            continue
+
+        elif (line[i] == "=") and paren_level == 0 and not in_quote():
+            if first_eq_index == -1:
+                first_eq_index = i
+            eq = i
+
+            if cparen_index == -1:
+                i += 1
+                continue
+
+            # make sure the '=' sign is on its own, reprsenting assignment
+            eq_chars = ["=", "!", ">", "<", "+", "-", "*", "/", "^"]
+            if line[eq-1] in eq_chars or line[eq+1] in eq_chars:
+                i += 1
+                continue
+
+            line_before = line[:oparen_index].strip()
+            if line_before == "" or not line_before.isalnum():
+                i += 1
+                continue
+
+            if eq != first_eq_index:
+                i += 1
+                continue
+
+            vars_end = cparen_index
+            vars_begin = oparen_index+1
+
+            # figure out where the line ends
+            line_after = line[vars_end+1:]
+            try:
+                a = line.index("#")
+            except ValueError:
+                a = len(line)
+
+            try:
+                b = line.index(";")
+            except ValueError:
+                b = len(line)
+
+            a =  min(a,b)
+
+            vars = line[vars_begin:vars_end].split(",")
+            vars = [v.strip() for v in vars]
+            b = []
+
+
+            # construct the parsed line
+            b.append(line[:vars_begin-1])
+            b.append('=')
+            b.append('(')
+            b.append(line[eq+1:a].strip())
+            b.append(').function(')
+            b.append(','.join(vars))
+            b.append(')')
+            b.append(line[a:])
+
+
+            line =  ''.join(b)
+
+            # i should get set to the position of the first paren after the new
+            # assignment operator
+            n = len(line_before)
+            i = line.find('=', n) + 2
+
+            continue
+        #
+        ####### END CALCULUS ########
 
         # exponents can be either ^ or **
         elif line[i] == "^" and not in_quote():

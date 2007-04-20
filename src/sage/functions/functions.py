@@ -1,16 +1,6 @@
 """
 SAGE Functions Class
 
-EXAMPLES:
-    sage: f = 5*sin(x)
-    sage: f
-    (5*sin(x))
-    sage: f(2)
-    (5*sin(2))
-    sage: f(pi)
-    (5*sin(((1*pi) + 0)))
-    sage: float(f(pi))
-    6.1232339957367663e-16
 """
 import weakref
 
@@ -112,8 +102,6 @@ class FunctionRing_class(CommutativeRing):
         return Function_gen(x)
 
     def _coerce_impl(self, x):
-        if is_Polynomial(x):
-            return self(x)
         return self(x)
 
     def characteristic(self):
@@ -338,14 +326,14 @@ class Function_arith(Function):
         sage: RR(s)
         19.7977502738062
         sage: maxima(s)
-        2*%e*%pi + %e
+        2*%e*%pi+%e
 
         sage: t = e^2 + pi + 2/3; t
         (((e^2) + pi) + 2/3)
         sage: RR(t)
         11.1973154191871
         sage: maxima(t)
-        %pi + %e^2 + 2/3
+        %pi+%e^2+2/3
         sage: t^e
         ((((e^2) + pi) + 2/3)^e)
         sage: RR(t^e)
@@ -358,6 +346,13 @@ class Function_arith(Function):
         self.__x = x
         self.__y = y
         self.__op = op  # a binary operator, e.g., operator.sub
+
+    def _maxima_init_(self):
+        x = self.__x
+        y = self.__y
+        op = self.__op
+        return '(%s) %s (%s)'%(x._maxima_init_(), symbols[op] ,y._maxima_init_())
+
 
     def _repr_(self):
         """
@@ -440,7 +435,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: maxima(e + pi)
-            %pi + %e
+            %pi+%e
         """
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
@@ -491,7 +486,7 @@ class Function_gen(Function):
         sage: a
         ((pi/2) + e)
         sage: maxima(a)
-        %pi/2 + %e
+        %pi/2+%e
         sage: RR(a)
         4.28907815525394
         sage: RealField(200)(a)
@@ -499,7 +494,7 @@ class Function_gen(Function):
 
         sage: b = e + 5/7
         sage: maxima(b)
-        %e + 5/7
+        %e+5/7
         sage: RR(b)
         3.43256754274476
     """

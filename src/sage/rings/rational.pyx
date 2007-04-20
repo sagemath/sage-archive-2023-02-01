@@ -9,6 +9,13 @@ AUTHORS:
     -- William Stein and Naqi Jaffery (2006-03-06): height, sqrt examples,
           and improve behavior of sqrt.
     -- David Harvey (2006-09-15): added nth_root
+
+TESTS:
+    sage: a = -2/3
+    sage: a == loads(dumps(a))
+    True
+
+
 """
 
 
@@ -441,6 +448,48 @@ cdef class Rational(sage.structure.element.FieldElement):
         # TODO -- this could be quicker, by using GMP directly.
         return self.numerator().square_root() / self.denominator().square_root()
 
+    def period(self):
+        r"""
+        Return the period of the repeating part of the decimal
+        expansion of this rational number.
+
+        ALGORITHM: When a rational number $n/d$ with $(n,d)==1$ is
+        expanded, the period begins after $s$ terms and has length
+        $t$, where $s$ and $t$ are the smallest numbers satisfying
+        $10^s=10^(s+t) (mod d)$.  When $d$ is coprime to 10, this
+        becomes a purely periodic decimal with $10^t=1 (mod d)$.
+        (Lehmer 1941 and Mathworld).
+
+        EXAMPLES:
+            sage: (1/7).period()
+            6
+            sage: RR(1/7)
+            0.142857142857143
+            sage: (1/8).period()
+            1
+            sage: RR(1/8)
+            0.125000000000000
+            sage: RR(1/6)
+            0.166666666666667
+            sage: (1/6).period()
+            1
+            sage: x = 333/106
+            sage: x.period()
+            13
+            sage: RealField(200)(x)
+            3.1415094339622641509433962264150943396226415094339622641509
+        """
+        cdef unsigned int alpha, beta
+        d = self.denominator()
+        alpha = d.valuation(2)
+        beta = d.valuation(5)
+        P = d.parent()
+        if alpha > 0 or beta > 0:
+            d = d//(P(2)**alpha * P(5)**beta)
+        from sage.rings.integer_mod import Mod
+        a = Mod(P(10),d)
+        return a.multiplicative_order()
+
     def nth_root(self, int n):
         r"""
         Computes the nth root of self, or raises a \exception{ValueError}
@@ -648,19 +697,42 @@ cdef class Rational(sage.structure.element.FieldElement):
             ...
             TypeError: exponent (=1/3) must be an integer.
             Coerce your numbers to real or complex numbers first.
+
+        We raise to some interesting powers:
+            sage: (2/3)^I
+            2^I/3^I
+            sage: (2/3)^sqrt(2)
+            2^sqrt(2)/3^sqrt(2)
+            sage: (2/3)^(x^n + y^n + z^n)
+            3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
+            sage: (2/3)^(3/4)
+            2^(3/4)/3^(3/4)
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):
             return self.__pow__(float(n))
         _self = self
-        if n < 0:
-            x = _self**(-n)
-            return x.__invert__()
         cdef unsigned int _n
         try:
             _n = integer.Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            if isinstance(n, Rational):
+                # this is the only sensible answer that avoids rounding and
+                # an infinite recursion.
+                from sage.calculus.calculus import SER
+                return SER(self)**SER(n)
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+
+        if n < 0:  # this doesn't make sense unless n is an integer.
+            x = _self**(-n)
+            return x.__invert__()
+
         x = <Rational> PY_NEW(Rational)
         cdef mpz_t num, den
 

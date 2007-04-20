@@ -675,6 +675,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             RuntimeError: exponent must be at most 4294967294  # 32-bit
             RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
+
+        We raise 2 to various interesting exponents:
+            sage: 2^x                # symbolic x
+            2^x
+            sage: 2^1.5              # real number
+            2.82842712474619
+            sage: 2^I                # complex number
+            2^I
+            sage: sage: f = 2^(sin(x)-cos(x)); f
+            2^(sin(x) - cos(x))
+            sage: f(3)
+            2^(sin(3) - cos(3))
+            sage: 2^(x+y+z)
+            2^(z + y + x)
+            sage: 2^(1/2)
+            sqrt(2)
+            sage: 2^(-1/2)
+            1/sqrt(2)
         """
         cdef Integer _n
         cdef unsigned int _nval
@@ -689,7 +707,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # an Integer or python int
             _n = Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         if _n < 0:
             return Integer(1)/(self**(-_n))
@@ -805,9 +827,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
            sage: x = 3^100000
-           sage: log(RR(x), 3)
+           sage: RR(log(RR(x), 3))
            100000.000000000
-           sage: log(RR(x + 100000), 3)
+           sage: RR(log(RR(x + 100000), 3))
            100000.000000000
 
            sage: x.exact_log(3)
@@ -1628,7 +1650,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
 
-    def sqrt(self, bits=None):
+    def sqrt_approx(self, bits=None):
         r"""
         Returns the positive square root of self, possibly as a
         \emph{a real or complex number} if self is not a perfect
@@ -1638,8 +1660,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             bits -- number of bits of precision.
                     If bits is not specified, the number of
                     bits of precision is at least twice the
-                    number of bits of self (the precision
-                    is always at least 53 bits if not specified).
+                    number of bits of self.
         OUTPUT:
             integer, real number, or complex number.
 
@@ -1648,32 +1669,30 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLE:
             sage: Z = IntegerRing()
-            sage: Z(4).sqrt()
-            2
-            sage: Z(4).sqrt(53)
+            sage: Z(4).sqrt_approx(53)
             2.00000000000000
-            sage: Z(2).sqrt(53)
+            sage: Z(2).sqrt_approx(53)
             1.41421356237310
-            sage: Z(2).sqrt(100)
+            sage: Z(2).sqrt_approx(100)
             1.4142135623730950488016887242
-            sage: n = 39188072418583779289; n.square_root()
+            sage: n = 39188072418583779289; n.sqrt()
             6260037733
-            sage: (100^100).sqrt()
+            sage: (100^100).sqrt_approx()
             10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: (-1).sqrt()
+            sage: (-1).sqrt_approx()
             1.00000000000000*I
+            sage: (-1).sqrt()
+            I
             sage: sqrt(-2)
-            1.41421356237310*I
+            sqrt(2)*I
+            sage: sqrt(-2.0)
+            sqrt(2)*I
             sage: sqrt(97)
-            9.84885780179610
-            sage: n = 97; n.sqrt(200)
+            sqrt(97)
+            sage: n = 97; n.sqrt_approx(200)
             9.8488578017961047217462114149176244816961362874427641717232
         """
         if bits is None:
-            try:
-                return self.square_root()
-            except ValueError:
-                pass
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
         if self < 0:
@@ -1685,23 +1704,23 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 
-    def square_root(self):
+    def sqrt(self):
         """
         Return the positive integer square root of self, or raises a ValueError
         if self is not a perfect square.
 
         EXAMPLES:
-            sage: Integer(144).square_root()
+            sage: Integer(144).sqrt()
             12
-            sage: Integer(102).square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: self (=102) is not a perfect square
+            sage: Integer(102).sqrt()
+            sqrt(102)
         """
         n = self.isqrt()
         if n * n == self:
             return n
-        raise ValueError, "self (=%s) is not a perfect square"%self
+        from sage.calculus.calculus import sqrt
+        return sqrt(self)
+        #raise ValueError, "self (=%s) is not a perfect square"%self
 
 
     def _xgcd(self, Integer n):

@@ -246,8 +246,9 @@ cdef class RealField(sage.rings.ring.Field):
             return self(x)
         elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
-        import sage.functions.constants
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing])
+        raise TypeError
+        #import sage.functions.constants
+        #return self._coerce_try(x, [sage.functions.constants.ConstantRing])
 
     def __cmp__(self, other):
         """
@@ -1766,13 +1767,25 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b^(1/2)
             1.0000000*I                    # 32-bit
             -1.0842022e-19 + 1.0000000*I   # 64-bit
+
+        We raise a real number to a symbolic object:
+            sage: 1.5^x
+            1.50000000000000^x
+            sage: -2.3^(x+y^3+sin(x))
+            -2.30000000000000^(y^3 + sin(x) + x)
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):
             return self.__pow__(float(exponent))
         if not PY_TYPE_CHECK(exponent, RealNumber):
-            x = self
-            exponent = x._parent(exponent)
+            try:
+                x = self
+                exponent = x._parent(exponent)
+            except TypeError:
+                try:
+                    return exponent.parent()(self)**exponent
+                except AttributeError:
+                    raise TypeError
         return self.__pow(exponent)
 
     def log(self, base='e'):
@@ -2267,7 +2280,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-             sage: r = sqrt(2); r
+             sage: r = sqrt(2.0); r
              1.41421356237310
              sage: r.algdep(5)
              x^2 - 2
@@ -2284,7 +2297,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
          ALGORITHM: Uses the PARI C-library algdep command.
 
          EXAMPLE:
-              sage: r = sqrt(2); r
+              sage: r = sqrt(2.0); r
               1.41421356237310
               sage: r.algdep(5)
               x^2 - 2
@@ -2384,10 +2397,10 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
 
 
 def is_RealField(x):
-    return PY_TYPE_CHECK(x, RealField)
+    return bool(PY_TYPE_CHECK(x, RealField))
 
 def is_RealNumber(x):
-    return PY_TYPE_CHECK(x, RealNumber)
+    return bool(PY_TYPE_CHECK(x, RealNumber))
 
 def __create__RealField_version0(prec, sci_not, rnd):
     return RealField(prec, sci_not, rnd)

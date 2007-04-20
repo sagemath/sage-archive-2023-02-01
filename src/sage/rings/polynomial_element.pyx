@@ -4,6 +4,13 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1)
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################
@@ -517,6 +524,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -529,6 +537,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """
@@ -938,7 +947,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
-            sage: F.mul()
+            sage: expand(F)
             2*x^10 + 2*x + 2*a
 
         Factorization also works even if the variable of the finite field is nefariously
@@ -973,7 +982,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
             (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
             1.0000000000000000000000000000*x^2 + 1.0000000000000000000000000000
@@ -981,15 +990,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = C[]
             sage: F = factor(x^2+3); F
             (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
             (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: f = C.0 * (x^2 + 1) ; f
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
-            sage: F=factor(f); F
+            sage: F = factor(f); F
             (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
         """
 

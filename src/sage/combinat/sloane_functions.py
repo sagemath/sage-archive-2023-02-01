@@ -35,6 +35,11 @@ You can also change how a sequence prints:
     sage: a
     The integer sequence tau(n), which is the number of divisors of n.
 
+TESTS:
+    sage: a = sloane.A000001;
+    sage: a == loads(dumps(a))
+    True
+
 AUTHORS:
     -- William Stein: framework
     -- Jaap Spies: most sequences

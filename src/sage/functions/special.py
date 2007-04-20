@@ -1,10 +1,11 @@
-r"""nodoctest -- TODO remove
+r"""
 Special Functions
 
 AUTHORS:
    -- David Joyner (2006-13-06)
 
-Some of Maxima's and Pari's special functions are wrapped.
+This module provides easy access to many of Maxima and PARI's
+special functions.
 
 Maxima's special functions package (which includes spherical harmonic
 functions, spherical Bessel functions (of the 1st and 2nd kind), and
@@ -330,14 +331,17 @@ import sage.interfaces.all
 from sage.rings.polynomial_ring import PolynomialRing
 from sage.rings.rational_field import RationalField
 from sage.rings.real_mpfr import RealField
+from sage.rings.complex_field import ComplexField
 from sage.misc.sage_eval import sage_eval
-from sage.rings.all import QQ, RR
+from sage.rings.all import ZZ, QQ, RR
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 
-from functions import *
+def meval(x):
+    from sage.calculus.calculus import symbolic_expression_from_maxima_element
+    return symbolic_expression_from_maxima_element(maxima(x))
 
-from sage.misc.functional import exp
+from functions import *
 
 _done = False
 def _init():
@@ -354,6 +358,11 @@ def _setup(prec):
     a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
     return RR, a
 
+def _setup_CC(prec):
+    from sage.libs.pari.all import pari
+    CC = ComplexField(prec)
+    a = pari.set_real_precision(int(prec/3.3)+1)    ## 3.3 < log(10,2)
+    return CC, a
 
 def bessel_I(nu,z,alg = "pari",prec=53):
     r"""
@@ -398,9 +407,9 @@ def bessel_I(nu,z,alg = "pari",prec=53):
 
     EXAMPLES:
         sage: bessel_I(1,1,"pari",500)
-        0.56515910399248502720769602760986330732889962162109200948029448947925564096437113409266499776681441006467788605552630267685763768491717981204113120812118
+        0.565159103992485027207696027609863307328899621621092009480294489479255640964371134092664997766814410064677886055526302676857637684917179812041131208121
         sage: bessel_I(1,1)
-        0.56515910399248503
+        0.565159103992485
         sage: bessel_I(2,1.1,"maxima")  # last few digits are random
         0.16708949925104899
         sage: bessel_I(0,1.1,"maxima")  # last few digits are random
@@ -415,7 +424,7 @@ def bessel_I(nu,z,alg = "pari",prec=53):
         pari.set_real_precision(a)
         return b
     else:
-        return eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
+        return sage_eval(maxima.eval("bessel_i(%s,%s)"%(float(nu),float(z))))
 
 def bessel_J(nu,z,alg="pari",prec=53):
     r"""
@@ -472,12 +481,14 @@ def bessel_J(nu,z,alg="pari",prec=53):
     """
     if alg=="pari":
         from sage.libs.pari.all import pari
-        R,a = _setup(prec)
-        b = R(pari(z).besselj(nu))
+        K,a = _setup(prec)
+        if not (z in K):
+            K, a = _setup_CC(prec)
+        b = K(pari(z).besselj(nu))
         pari.set_real_precision(a)
         return b
     else:
-        return RR(maxima.eval("bessel_j(%s,%s)"%(float(nu),float(z))))
+        return meval("bessel_j(%s,%s)"%(nu, z))
 
 def bessel_K(nu,z,prec=53):
     r"""
@@ -499,9 +510,9 @@ def bessel_K(nu,z,prec=53):
 
     EXAMPLES:
         sage: bessel_K(1,1)
-        0.60190723019723458
+        0.601907230197235
         sage: bessel_K(1,1,500)
-        0.60190723019723457473754000153561733926158688996810645601776795916855358294623784016886370695825821535464409978314005090846929281349329460565572696199608
+        0.601907230197234574737540001535617339261586889968106456017767959168553582946237840168863706958258215354644099783140050908469292813493294605655726961996
     """
     from sage.libs.pari.all import pari
     RR,a = _setup(prec)
@@ -550,9 +561,9 @@ def hypergeometric_U(alpha,beta,x,prec=53):
 
     EXAMPLES:
         sage: hypergeometric_U(1,1,1)
-        0.59634736232319407
+        0.596347362323194
         sage: hypergeometric_U(1,1,1,70)
-        0.59634736232319407434152
+        0.59634736232319407434
     """
     from sage.libs.pari.all import pari
     R,a = _setup(prec)
@@ -560,77 +571,36 @@ def hypergeometric_U(alpha,beta,x,prec=53):
     pari.set_real_precision(a)
     return b
 
-def incomplete_gamma(s,x,prec=53):
-    r"""
-    Implements the incomplete Gamma function.
-
-    INPUT:
-        s, x -- ocmplex numbers.
-        prec -- bits of precision.
-
-    The argument x and s are complex numbers
-    (x must be a positive real number if s = 0).
-    The result returned is $\int_x^\infty e^{-t}t^{s-1}dt$.
-
-    EXAMPLES:
-        sage: incomplete_gamma(0.1,6,200)
-        119.99999984701215693242493354706493878953914933130704861011488
-        sage: incomplete_gamma(0,6,200)
-        120.00000000000000000000000000000000000000000000000000000000000
-        sage: incomplete_gamma(0.3,6,200)
-        119.99990598341125737887779259683594390225182610507857843438320
-        sage: incomplete_gamma(0.3,6)
-        119.99990598341125
-        sage: incomplete_gamma(0.5,6)
-        119.99830020752132
-        sage: incomplete_gamma(0.5,6,100)
-        119.99830020752131890111421425093
-    """
-    from sage.libs.pari.all import pari
-    R,a = _setup(prec)
-    b = R(pari(x).incgam(s))
-    pari.set_real_precision(a)
-    return b
-
-def spherical_bessel_J(n,x):
+def spherical_bessel_J(n, var):
     r"""
     Returns the spherical Bessel function of the first kind
     for integers n > -1.
+
     Reference: A&S 10.1.8 page 437 and A&S 10.1.15 page 439.
 
     EXAMPLES:
-        sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_J(2,x)
-        '( - (1 - 24/(8*x^2))*sin(x) - 3*cos(x)/x)/x'
-
-    Here I = sqrt(-1).
-
+        ((3/x^2 - 1)*sin(x) - (3*cos(x)/x))/x
     """
     _init()
-    R = x.parent()
-    y = R.gen()
-    return maxima.eval("spherical_bessel_j(%s,%s)"%(n,y)).replace("%i","I")
+    return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
 
-def spherical_bessel_Y(n,x):
+def spherical_bessel_Y(n,var):
     r"""
     Returns the spherical Bessel function of the second kind
     for integers n > -1.
+
     Reference: A&S 10.1.9 page 437 and A&S 10.1.15 page 439.
 
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        '-(3*sin(x)/x - (1 - 24/(8*x^2))*cos(x))/x'
-
-    Here I = sqrt(-1).
-
+        ((1 - (3/x^2))*cos(x) - (3*sin(x)/x))/x
     """
     _init()
-    R = x.parent()
-    y = R.gen()
-    return maxima.eval("spherical_bessel_y(%s,%s)"%(n,y)).replace("%i","I")
+    return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
 
-def spherical_hankel1(n,x):
+def spherical_hankel1(n,var):
     r"""
     Returns the spherical Hankel function of the first
     kind for integers $n > -1$, written as a string.
@@ -638,14 +608,10 @@ def spherical_hankel1(n,x):
 
     EXAMPLES:
         sage: spherical_hankel1(2,'x')
-        '-3*I*( - x^2/3 - I*x + 1)*%e^(I*x)/x^3'
-
-    Here I = sqrt(-1).
-
+        -3*I*(-x^2/3 - I*x + 1)*e^I*x/x^3
     """
     _init()
-    y = str(x)
-    return maxima.eval("spherical_hankel1(%s,%s)"%(n,y)).replace("%i","I")
+    return meval("spherical_hankel1(%s,%s)"%(ZZ(n),var))
 
 def spherical_hankel2(n,x):
     r"""
@@ -655,7 +621,7 @@ def spherical_hankel2(n,x):
 
     EXAMPLES:
         sage: spherical_hankel2(2,'x')
-        '3*I*( - x^2/3 + I*x + 1)*%e^-(I*x)/x^3'
+        '3*I*(-x^2/3+I*x+1)*%e^-(I*x)/x^3'
 
     Here I = sqrt(-1).
 
@@ -671,32 +637,13 @@ def spherical_harmonic(m,n,x,y):
     Reference: Merzbacher 9.64.
 
     EXAMPLES:
-        sage: x = PolynomialRing(QQ, 'x').gen()
-        sage: y = PolynomialRing(QQ, 'y').gen()
         sage: spherical_harmonic(3,2,x,y)
-        '15*sqrt(7)*cos(x)*sin(x)^2*e^(2*I*y)/(4*sqrt(30)*sqrt(pi))'
+        15*sqrt(7)*cos(x)*sin(x)^2*e^2*I*y/4*sqrt(30)*sqrt(pi)
         sage: spherical_harmonic(3,2,1,2)
-        -0.25556469795208248 - 0.29589824630616246*I
-
-    Here I = sqrt(-1).
-
+        15*sqrt(7)*e^4*I*cos(1)*sin(1)^2/4*sqrt(30)*sqrt(pi)
     """
     _init()
-    if not(is_Polynomial(x) and is_Polynomial(y)):
-        s1 = maxima.eval("spherical_harmonic(%s,%s,%s,%s)"%(m,n,x,y))
-        s2 = s1.replace("%i","I")
-        s3 = s2.replace("%pi","pi")
-        s4 = s3.replace("%e","CC(e)")
-        return sage_eval(s4)
-    R = x.parent()
-    x1 = R.gen()
-    R = y.parent()
-    y1 = R.gen()
-    s1 = maxima.eval("spherical_harmonic(%s,%s,%s,%s)"%(m,n,x,y))
-    s2 = s1.replace("%i","I")
-    s3 = s2.replace("%pi","pi")
-    s4 = s3.replace("%e","e")
-    return s4
+    return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
 
 ####### elliptic functions and integrals
 
@@ -709,20 +656,18 @@ def jacobi(sym,x,m):
 
     EXAMPLES:
         sage: jacobi("sn",1,1)
-        0.76159415595576485
+        (e - e^-1)/(e + e^-1)
         sage: jacobi("cd",1,1/2)
-        0.72400972165937116
-        sage: jacobi("cn",1,1/2);jacobi("dn",1,1/2);jacobi("cn",1,1/2)/jacobi("dn",1,1/2)
+        (e - e^-1)/(e + e^-1)
+        sage: jacobi("cn",1,1/2); jacobi("dn",1,1/2);jacobi("cn",1,1/2)/jacobi("dn",1,1/2)
         0.59597656767214113
         0.82316100163159622
         0.72400972165937116
-        sage: jsn = lambda x: jacobi("sn",x,1)
-        sage: P= plot(jsn,0,1)
-
-    Now to view this, just type show(P).
-
+        sage: jsn = jacobi("sn",x,1)
+        sage: P = plot(jsn,0,1)
+        sage.: P.show()
     """
-    return eval(maxima.eval("jacobi_%s(%s,%s)"%(sym, float(x), float(m))))
+    return meval("jacobi_%s(%s,%s)"%(sym, x, m))
 
 def inverse_jacobi(sym,x,m):
     """
@@ -735,14 +680,14 @@ def inverse_jacobi(sym,x,m):
         0.4707504736556572
         sage: inverse_jacobi("sn",0.47,1/2)
         0.4990982313222197
-        sage: inverse_jacobi("sn",0.4707504,1/2)
-        0.49999991146655459
-        sage: ijsn = lambda x: inverse_jacobi("sn",x,1/2)
-        sage: P= plot(ijsn,0,1)
+        sage: inverse_jacobi("sn",0.4707504,0.5)
+        0.4999999114665546
+        sage: ijsn = lambda x: inverse_jacobi("sn",x,0.5)
+        sage: P = plot(ijsn,0,1)
 
     Now to view this, just type show(P).
     """
-    return eval(maxima.eval("inverse_jacobi_%s(%s,%s)"%(sym, float(x),float(m))))
+    return meval("inverse_jacobi_%s(%s,%s)"%(sym, x,m))
 
 #### elliptic integrals
 
@@ -753,12 +698,14 @@ def sinh(t):
     try:
         return t.sinh()
     except AttributeError:
+        from sage.calculus.calculus import exp
         return (exp(t)-exp(-t))/2
 
 def cosh(t):
     try:
         return t.cosh()
     except AttributeError:
+        from sage.calculus.calculus import exp
         return (exp(t)+exp(-t))/2
 
 def tanh(t):

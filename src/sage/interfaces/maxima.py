@@ -1127,6 +1127,10 @@ class MaximaElement(ExpectElement):
             return -1  # everything is supposed to be comparable in Python, so we define
                        # the comparison thus when no comparable in interfaced system.
 
+    def sage_object(self):
+         from sage.calculus.calculus import symbolic_expression_from_maxima_string
+         return symbolic_expression_from_maxima_string(self.name(), maxima=self.parent())
+
     def numer(self):
         return self.comma('numer')
 

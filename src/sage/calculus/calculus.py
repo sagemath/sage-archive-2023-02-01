@@ -1,5 +1,5 @@
 r"""
-The \sage calculus and elementary functions module.
+Symbolic Computation.
 
 AUTHORS:
     Bobby Moretti and William Stein: 2006--2007
@@ -86,16 +86,16 @@ EXAMPLES:
         ...
         ValueError: you must specify the variable when doing a substitution, e.g., f(x=5)
 
-    We can also make CallableFunctions, which is a SymbolicExpression
+    We can also make CallableSymbolicExpressions, which is a SymbolicExpression
     that are functions of variables in a fixed order. Each
     SymbolicExpression has a function() method used to create a
-    CallableFunction.
+    CallableSymbolicExpression.
 
         sage: u = log((2-x)/(y+5))
         sage: f = u.function(x, y); f
         (x, y) |--> log((2 - x)/(y + 5))
 
-    There is an easier way of creating a CallableFunction, which
+    There is an easier way of creating a CallableSymbolicExpression, which
     relies on the \sage preparser.
 
         sage: f(x,y) = log(x)*cos(y); f
@@ -174,7 +174,7 @@ Substitution:
 
 """
 
-
+import weakref
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial,
@@ -279,7 +279,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
-        if isinstance(x, CallableFunction):
+        if isinstance(x, CallableSymbolicExpression):
             return x._expr
         elif isinstance(x, SymbolicExpression):
             return x
@@ -773,8 +773,8 @@ class SymbolicExpression(RingElement):
 
     def function(self, *args):
         """
-        Return a CallableFunction, fixing a variable order to be the order of
-        args.
+        Return a CallableSymbolicExpression, fixing a variable order
+        to be the order of args.
 
         EXAMPLES:
            sage: u = sin(x) + x*cos(y)
@@ -785,8 +785,34 @@ class SymbolicExpression(RingElement):
            t*cos(z) + sin(t)
            sage: g(x^2, x^y)
            x^2*cos(x^y) + sin(x^2)
+
+            sage: f = (x^2 + sin(a*w)).function(a,x,w); f
+            (a, x, w) |--> x^2 + sin(a*w)
+            sage: f(1,2,3)
+            sin(3) + 4
+
+        Using the function method we can obtain the above function f,
+        but viewed as a function of different variables:
+            sage: h = f.function(w,a); h
+            (w, a) |--> x^2 + sin(a*w)
+
+        This notation also works:
+            sage: h(w,a) = f
+            sage: h
+            (w, a) |--> x^2 + sin(a*w)
+
+        You can even make a symbolic expression $f$ into a function by
+        writing \code{f(x,y) = f}:
+            sage: f = x^n + y^n; f
+            y^n + x^n
+            sage: f(x,y) = f
+            sage: f
+            (x, y) |--> y^n + x^n
+            sage: f(2,3)
+            3^n + 2^n
         """
-        return CallableFunction(self, args)
+        R = CallableSymbolicExpressionRing(args)
+        return R(self)
 
 
     ###################################################################
@@ -848,6 +874,9 @@ class SymbolicExpression(RingElement):
         t = maxima('diff(%s, %s)'%(self._maxima_().name(), s))
         f = self.parent()(t)
         return f
+
+    differentiate = derivative
+    diff = derivative
 
 
     ###################################################################
@@ -1043,6 +1072,8 @@ class SymbolicExpression(RingElement):
             return self.parent()(self._maxima_().integrate(v))
         else:
             return self.parent()(self._maxima_().integrate(v, a, b))
+
+    integrate = integral
 
 
     ###################################################################
@@ -1321,247 +1352,13 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().partfrac(var))
 
 
-class CallableFunction(RingElement):
-    r"""
-    A callable symbolic function that knows the variables on which it depends.
-    """
-    def __init__(self, expr, args):
-        RingElement.__init__(self, CallableFunctionRing)
-        if args == [] or args == () or args is None:
-            raise ValueError, "A CallableFunction must know at least one of" \
-                               +" its variables."
-        for arg in args:
-            if not isinstance(arg, SymbolicExpression):
-                raise TypeError, "Must construct a function with a list of" \
-                                +" SymbolicVariables."
-
-            self._varlist = args
-            self._expr = expr
-
-        def __float__(self):
-            return float(self.obj)
-
-        def _mpfr_(self, field):
-            """
-            Coerce to a multiprecision real number.
-
-            EXAMPLES:
-                sage: RealField(100)(SER(10))
-                10.000000000000000000000000000
-            """
-            return (self.obj)._mpfr_(field)
-
-    # TODO: should len(args) == len(vars)?
-    def __call__(self, *args):
-        vars = self._varlist
-
-        dct = {}
-        for i in range(len(args)):
-            dct[vars[i]] = args[i]
-
-        return self._expr.substitute(dct)
-
-    def _repr_(self, simplify=True):
-        if len(self._varlist) == 1:
-            return "%s |--> %s" % (self._varlist[0], self._expr._repr_(simplify=simplify))
-        else:
-            vars = ", ".join(map(str, self._varlist))
-            return "(%s) |--> %s" % (vars, self._expr._repr_(simplify=simplify))
-
-    def _latex_(self):
-        if len(self._varlist) == 1:
-            return "%s \\ {\mapsto}\\ %s" % (self._varlist[0],
-                    self._expr._latex_())
-        else:
-            vars = ", ".join(map(latex, self._varlist))
-            # the weird TeX is to workaround an apparent JsMath bug
-            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (vars, self._expr._latex_())
-
-    def derivative(self, *args):
-        """
-        Returns the derivative of this symbolic function with respect to the
-        given variables. If the function has only one variable, it returns the
-        derivative with respect to that variable.
-        """
-        # if there are no args and only one var, differentiate wrt that var
-        if args == () and len(self._varlist) == 1:
-            return CallableFunction(self._expr.derivative(self._varlist[0]), self._varlist)
-        # if there's only one var and the arg is an integer n, diff. n times wrt
-        # that var
-        elif isinstance(args[0], Integer) and len(self._varlist) == 1:
-            f = self._expr.derivative(self._varlist[0], args[0])
-            return CallableFunction(f, self._varlist)
-        # else just take the derivative
-        else:
-            return CallableFunction(self._expr.derivative(*args), self._varlist)
-
-    def integral(self, dx):
-        return CallableFunction(self._expr.integral(dx), self._varlist)
-
-    def substitute(self, dict=None, **kwds):
-        return CallableFunction(self._expr.substitute(dict, kwds), self._varlist)
-
-    def simplify(self):
-        return CallableFunction(self._expr.simplify(), self._varlist)
-
-    def trig_simplify(self):
-        return CallableFunction(self._expr.trig_simplify(), self._varlist)
-
-    simplify_trig = trig_simplify
-
-    def rational_simplify(self):
-        return CallableFunction(self._expr.rational_simplify(), self._varlist)
-
-    simplify_rational = rational_simplify
-
-    def expand(self):
-        return CallableFunction(self._expr.expand(), self._varlist)
-
-    def trig_expand(self):
-        return CallableFunction(self._expr.trig_expand(), self._varlist)
-
-    def _neg_(self):
-        result = SymbolicArithmetic([self._expr], operator.neg)
-        return CallableFunction(result, self._unify_varlists(right))
-
-    def _add_(self, right):
-        result = SymbolicArithmetic([self._expr, right._expr], operator.add)
-        return CallableFunction(result, self._unify_varlists(right))
-
-    def _sub_(self, right):
-        result = SymbolicArithmetic([self._expr, right._expr], operator.sub)
-        return CallableFunction(result, self._unify_varlists(right))
-
-    def _mul_(self, right):
-        result = SymbolicArithmetic([self._expr, right._expr], operator.mul)
-        return CallableFunction(result, self._unify_varlists(right))
-
-    def _div_(self, right):
-        result = SymbolicArithmetic([self._expr, right._expr], operator.div)
-        return CallableFunction(result, self._unify_varlists(right))
-
-    def __pow__(self, right):
-        try:
-            result = SymbolicArithmetic([self._expr, right._expr], operator.pow)
-        except AttributeError:
-            result = SymbolicArithmetic([self._expr, right], operator.pow)
-        return CallableFunction(result, self._varlist)
-
-
-    def _unify_varlists(self, x):
-        r"""
-        Takes the variable list from another CallableFunction object and
-        compares it with the current CallableFunction object's variable list,
-        combining them according to the following rules:
-
-        Let \code{a} be \code{self}'s variable list, let \code{b} be
-        \code{y}'s variable list.
-
-        \begin{enumerate}
-        \item If \code{a == b}, then the variable lists are identical, so return
-        that variable list.
-        \item If \code{a} $\neq$ \code{b}, then check if the first $n$ items in
-        \code{a} are the first $n$ items in \code{b}, or vice-versa. If so,
-        return a list with these $n$ items, followed by the remaining items in
-        $\code{b}$ and $\code{a}$.
-        \item If none of the previous conditions are met, then just return
-        \code{a} $\cup$ \code{b}, sorted alphabetically.
-
-        Note: When used for arithmetic between CallableFunctions, these rules
-        ensure that the set of CallableFunctions will have certain properties.
-        In particular, it ensures that the set is a commutative ring.
-
-        INPUT:
-            x -- A CallableFunction
-
-        OUTPUT:
-            A combination of \code{self}'s variables and \code{x}'s variables
-            sorted in a nice way.
-
-        EXAMPLES:
-            sage: f(x, y, z) = sin(x+y+z)
-            sage: f
-            (x, y, z) |--> sin(z + y + x)
-            sage: g(x, y) = y + 2*x
-            sage: g
-            (x, y) |--> y + 2*x
-            sage: f._unify_varlists(g)
-            (x, y, z)
-            sage: g._unify_varlists(f)
-            (x, y, z)
-
-            sage: f(x, y, z) = sin(x+y+z)
-            sage: g(w, t) = cos(w - t)
-            sage: g
-            (w, t) |--> cos(w - t)
-            sage: f._unify_varlists(g)
-            (x, y, z, w, t)
-            (t, w, x, y, z)
-
-
-            sage: f(x, y, t) = y*(x^2-t)
-            sage: f
-            (x, y, t) |--> (x^2 - t)*y
-            sage: g(x, y, w) = x + y - cos(w)
-            sage: f._unify_varlists(g)
-            (x, y, t, w)
-            sage: g._unify_varlists(f)
-            (x, y, w, t)
-            sage: f*g
-            (x, y, t, w) |--> (x^2 - t)*y*(y + x - cos(w))
-
-            sage: f(x,y, t) = x+y
-            sage: g(x, y, w) = w + t
-            sage: f._unify_varlists(g)
-            (x, y, t, w)
-            sage: g._unify_varlists(f)
-            (x, y, w, t)
-            sage: f + g
-            (x, y, t, w) |--> y + x + w + t
-
-        AUTHORS:
-            -- Bobby Moretti, thanks to William Stein for the rules
-
-        """
-        a = self._varlist
-        b = x._varlist
-
-        # Rule #1
-        if a == b:
-            return self._varlist
-
-        # Rule #2
-        new_list = []
-        done = False
-        i = 0
-        while not done and i < min(len(a), len(b)):
-            if a[i] == b[i]:
-                new_list.append(a[i])
-                i += 1
-            else:
-                done = True
-
-        temp = []
-        # Rule #3, plus the rest of Rule #4
-        for j in range(i, len(a)):
-            if not a[j] in temp:
-                temp.append(a[j])
-
-        for j in range(i, len(b)):
-            if not b[j] in temp:
-                temp.append(b[j])
-
-        temp.sort(var_cmp)
-        new_list.extend(temp)
-        return tuple(new_list)
 
 
 class Symbolic_object(SymbolicExpression):
     r"""
     A class representing a symbolic expression in terms of a SageObject (not
-    necessarily a 'constant')
+    necessarily a 'constant').
     """
-
     def __init__(self, obj):
         SymbolicExpression.__init__(self)
         self._obj = obj
@@ -2133,22 +1930,406 @@ def var(s):
         _vars[s] = v
         return v
 
-class CallableFunctionRing_class(CommutativeRing):
-    def __init__(self):
+
+#########################################################################################
+#  Callable functions
+#########################################################################################
+def is_CallableSymbolicExpressionRing(x):
+    """
+    EXAMPLES:
+        sage: is_CallableSymbolicExpressionRing(QQ)
+        False
+        sage: is_CallableSymbolicExpressionRing(CallableSymbolicExpressionRing((x,y,z)))
+        True
+    """
+    return isinstance(x, CallableSymbolicExpressionRing_class)
+
+class CallableSymbolicExpressionRing_class(CommutativeRing):
+    def __init__(self, args):
         self._default_precision = 53 # default precision bits
+        self._args = args
         ParentWithBase.__init__(self, RR)
 
     def __call__(self, x):
+        """
+
+        TESTS:
+            sage: f(x) = x+1; g(y) = y+1
+            sage: f.parent()(g)
+            x |--> y + 1
+            sage: g.parent()(f)
+            y |--> x + 1
+            sage: f(x) = x+2*y; g(y) = y+3*x
+            sage: f.parent()(g)
+            x |--> y + 3*x
+            sage: g.parent()(f)
+            y |--> 2*y + x
+        """
         return self._coerce_impl(x)
 
     def _coerce_impl(self, x):
-        if isinstance(x, (Integer, Rational, Constant, int)):
-            return CallableFunction(x, SER(x))
-        else:
-            raise NotImplementedError, "cannot coerce this (yet)"
+        if isinstance(x, SymbolicExpression):
+            if isinstance(x, CallableSymbolicExpression):
+                x = x._expr
+            return CallableSymbolicExpression(self, x)
+        return self._coerce_try(x, [SER])
 
-CallableFunctionRing = CallableFunctionRing_class()
-CFR = CallableFunctionRing
+    def _repr_(self):
+        return "Callable function ring with arguments %s"%(self._args,)
+
+    def args(self):
+        return self._args
+
+    def zero_element(self):
+        try:
+            return self.__zero_element
+        except AttributeError:
+            z = CallableSymbolicExpression(SER.zero_element(), self._args)
+            self.__zero_element = z
+            return z
+
+    def _an_element_impl(self):
+        return self.zero_element()
+
+
+_cfr_cache = {}
+def CallableSymbolicExpressionRing(args, check=True):
+    if check:
+        if len(args) == 1 and isinstance(args[0], (list, tuple)):
+            args = args[0]
+        for arg in args:
+            if not isinstance(arg, SymbolicVariable):
+                raise TypeError, "Must construct a function with a tuple (or list) of" \
+                                +" SymbolicVariables."
+        args = tuple(args)
+    if _cfr_cache.has_key(args):
+        R = _cfr_cache[args]()
+        if not R is None:
+            return R
+    R = CallableSymbolicExpressionRing_class(args)
+    _cfr_cache[args] = weakref.ref(R)
+    return R
+
+def is_CallableSymbolicExpression(x):
+    """
+    Returns true if x is a callable symbolic expression.
+
+    EXAMPLES:
+        sage: f(x,y) = a + 2*x + 3*y + z
+        sage: is_CallableSymbolicExpression(f)
+        True
+        sage: is_CallableSymbolicExpression(a+2*x)
+        False
+        sage: def foo(n): return n^2
+        ...
+        sage: is_CallableSymbolicExpression(foo)
+        False
+    """
+    return isinstance(x, CallableSymbolicExpression)
+
+class CallableSymbolicExpression(SymbolicExpression):
+    r"""
+    A callable symbolic expression that knows the ordered list of
+    variables on which it depends.
+
+    EXAMPLES:
+        sage: f(x,y) = a + 2*x + 3*y + z
+        sage: f
+        (x, y) |--> z + 3*y + 2*x + a
+        sage: f(1,2)
+        z + a + 8
+    """
+    def __init__(self, parent, expr):
+        RingElement.__init__(self, parent)
+        self._expr = expr
+
+    def expression(self):
+        """
+        Return the underlying symbolic expression (i.e., forget the
+        extra map structure).
+        """
+        return self._expr
+
+    def args(self):
+        return self.parent().args()
+
+    def _maxima_init_(self):
+        return self._expr._maxima_init_()
+
+    def __float__(self):
+        return float(self._expr)
+
+    def _mpfr_(self, field):
+        """
+        Coerce to a multiprecision real number.
+
+        EXAMPLES:
+            sage: RealField(100)(SER(10))
+            10.000000000000000000000000000
+        """
+        return (self._expr)._mpfr_(field)
+
+    def _complex_mpfr_field_(self, field):
+        return field(self._expr)
+
+    def _complex_double_(self, C):
+        return C(self._expr)
+
+    def _real_double_(self, R):
+        return R(self._expr)
+
+    # TODO: should len(args) == len(vars)?
+    def __call__(self, *args):
+        vars = self.args()
+        dct = dict( (vars[i], args[i]) for i in range(len(args)) )
+        return self._expr.substitute(dct)
+
+    def _repr_(self, simplify=True):
+        args = self.args()
+        if len(args) == 1:
+            return "%s |--> %s" % (args[0], self._expr._repr_(simplify=simplify))
+        else:
+            args = ", ".join(map(str, args))
+            return "(%s) |--> %s" % (args, self._expr._repr_(simplify=simplify))
+
+    def _latex_(self):
+        args = self.args()
+        if len(args) == 1:
+            return "%s \\ {\mapsto}\\ %s" % (args[0],
+                    self._expr._latex_())
+        else:
+            vars = ", ".join(map(latex, args))
+            # the weird TeX is to workaround an apparent JsMath bug
+            return "\\left(%s \\right)\\ {\\mapsto}\\ %s" % (args, self._expr._latex_())
+
+    def _neg_(self):
+        return CallableSymbolicExpression(self.parent(), -self._expr)
+
+    def __add__(self, right):
+        """
+        EXAMPLES:
+            sage: f(x,n,y) = x^n + y^m;  g(x,n,m,z) = x^n +z^m
+            sage: f + g
+            (x, n, m, y, z) |--> z^m + y^m + 2*x^n
+            sage: g + f
+            (x, n, m, y, z) |--> z^m + y^m + 2*x^n
+        """
+        if isinstance(right, CallableSymbolicExpression):
+            if self.parent() is right.parent():
+                return self._add_(right)
+            else:
+                args = self._unify_args(right)
+                R = CallableSymbolicExpressionRing(args)
+                return R(self) + R(right)
+        else:
+            return RingElement.__add__(self, right)
+
+    def _add_(self, right):
+        return CallableSymbolicExpression(self.parent(), self._expr + right._expr)
+
+    def __sub__(self, right):
+        """
+        EXAMPLES:
+            sage: f(x,n,y) = x^n + y^m;  g(x,n,m,z) = x^n +z^m
+            sage: f - g
+            (x, n, m, y, z) |--> y^m - z^m
+            sage: g - f
+            (x, n, m, y, z) |--> z^m - y^m
+        """
+        if isinstance(right, CallableSymbolicExpression):
+            if self.parent() is right.parent():
+                return self._sub_(right)
+            else:
+                args = self._unify_args(right)
+                R = CallableSymbolicExpressionRing(args)
+                return R(self) - R(right)
+        else:
+            return RingElement.__sub__(self, right)
+
+    def _sub_(self, right):
+        return CallableSymbolicExpression(self.parent(), self._expr - right._expr)
+
+    def __mul__(self, right):
+        """
+        EXAMPLES:
+            sage: f(x) = x+2*y; g(y) = y+3*x
+            sage: f*(2/3)
+            x |--> 2*(2*y + x)/3
+            sage: f*g
+            (x, y) |--> (y + 3*x)*(2*y + x)
+            sage: (2/3)*f
+            x |--> 2*(2*y + x)/3
+
+            sage: f(x,y,z,a,b) = x+y+z-a-b; f
+            (x, y, z, a, b) |--> z + y + x - b - a
+            sage: f * (b*c)
+            (x, y, z, a, b) |--> b*c*(z + y + x - b - a)
+            sage: g(x,y,w,t) = x*y*w*t
+            sage: f*g
+            (x, y, a, b, t, w, z) |--> t*w*x*y*(z + y + x - b - a)
+            sage: (f*g)(2,3)
+            6*t*w*(z - b - a + 5)
+
+            sage: f(x,n,y) = x^n + y^m;  g(x,n,m,z) = x^n +z^m
+            sage: f * g
+            (x, n, m, y, z) |--> (y^m + x^n)*(z^m + x^n)
+            sage: g * f
+            (x, n, m, y, z) |--> (y^m + x^n)*(z^m + x^n)
+        """
+        if isinstance(right, CallableSymbolicExpression):
+            if self.parent() is right.parent():
+                return self._mul_(right)
+            else:
+                args = self._unify_args(right)
+                R = CallableSymbolicExpressionRing(args)
+                return R(self)*R(right)
+        else:
+            return RingElement.__mul__(self, right)
+
+    def _mul_(self, right):
+        return CallableSymbolicExpression(self.parent(), self._expr * right._expr)
+
+    def __div__(self, right):
+        """
+        EXAMPLES:
+
+            sage: f(x,n,y) = x^n + y^m;  g(x,n,m,z) = x^n +z^m
+            sage: f / g
+            (x, n, m, y, z) |--> (y^m + x^n)/(z^m + x^n)
+            sage: g / f
+            (x, n, m, y, z) |--> (z^m + x^n)/(y^m + x^n)
+        """
+        if isinstance(right, CallableSymbolicExpression):
+            if self.parent() is right.parent():
+                return self._div_(right)
+            else:
+                args = self._unify_args(right)
+                R = CallableSymbolicExpressionRing(args)
+                return R(self) / R(right)
+        else:
+            return RingElement.__div__(self, right)
+
+    def _div_(self, right):
+        return CallableSymbolicExpression(self.parent(), self._expr / right._expr)
+
+    def __pow__(self, right):
+        return CallableSymbolicExpression(self.parent(), self._expr ** right._expr)
+
+    def _unify_args(self, x):
+        r"""
+        Takes the variable list from another CallableSymbolicExpression object and
+        compares it with the current CallableSymbolicExpression object's variable list,
+        combining them according to the following rules:
+
+        Let \code{a} be \code{self}'s variable list, let \code{b} be
+        \code{y}'s variable list.
+
+        \begin{enumerate}
+
+        \item If \code{a == b}, then the variable lists are identical,
+              so return that variable list.
+
+        \item If \code{a} $\neq$ \code{b}, then check if the first $n$
+              items in \code{a} are the first $n$ items in \code{b},
+              or vice-versa. If so, return a list with these $n$
+              items, followed by the remaining items in \code{a} and
+              \code{b} sorted together in alphabetical order.
+
+        \end{enumerate}
+
+        Note: When used for arithmetic between CallableSymbolicExpressions,
+        these rules ensure that the set of CallableSymbolicExpressions will have
+        certain properties.  In particular, it ensures that the set is
+        a \emph{commutative} ring, i.e., the order of the input
+        variables is the same no matter in which order arithmetic is
+        done.
+
+        INPUT:
+            x -- A CallableSymbolicExpression
+
+        OUTPUT:
+            A tuple of variables.
+
+        EXAMPLES:
+            sage: f(x, y, z) = sin(x+y+z)
+            sage: f
+            (x, y, z) |--> sin(z + y + x)
+            sage: g(x, y) = y + 2*x
+            sage: g
+            (x, y) |--> y + 2*x
+            sage: f._unify_args(g)
+            (x, y, z)
+            sage: g._unify_args(f)
+            (x, y, z)
+
+            sage: f(x, y, z) = sin(x+y+z)
+            sage: g(w, t) = cos(w - t)
+            sage: g
+            (w, t) |--> cos(w - t)
+            sage: f._unify_args(g)
+            (t, w, x, y, z)
+
+            sage: f(x, y, t) = y*(x^2-t)
+            sage: f
+            (x, y, t) |--> (x^2 - t)*y
+            sage: g(x, y, w) = x + y - cos(w)
+            sage: f._unify_args(g)
+            (x, y, t, w)
+            sage: g._unify_args(f)
+            (x, y, t, w)
+            sage: f*g
+            (x, y, t, w) |--> (x^2 - t)*y*(y + x - cos(w))
+
+            sage: f(x,y, t) = x+y
+            sage: g(x, y, w) = w + t
+            sage: f._unify_args(g)
+            (x, y, t, w)
+            sage: g._unify_args(f)
+            (x, y, t, w)
+            sage: f + g
+            (x, y, t, w) |--> y + x + w + t
+
+        AUTHORS:
+            -- Bobby Moretti, thanks to William Stein for the rules
+
+        """
+        a = self.args()
+        b = x.args()
+
+        # Rule #1
+        if [str(x) for x in a] == [str(x) for x in b]:
+            return a
+
+        # Rule #2
+        new_list = []
+        done = False
+        i = 0
+        while not done and i < min(len(a), len(b)):
+            if var_cmp(a[i], b[i]) == 0:
+                new_list.append(a[i])
+                i += 1
+            else:
+                done = True
+
+        temp = set([])
+        # Sorting remaining variables.
+        for j in range(i, len(a)):
+            if not a[j] in temp:
+                temp.add(a[j])
+
+        for j in range(i, len(b)):
+            if not b[j] in temp:
+                temp.add(b[j])
+
+        temp = list(temp)
+        temp.sort(var_cmp)
+        new_list.extend(temp)
+        return tuple(new_list)
+
+
+#########################################################################################
+#  End callable functions
+#########################################################################################
 
 class SymbolicComposition(SymbolicOperation):
     r"""
@@ -2258,10 +2439,11 @@ class SymbolicComposition(SymbolicOperation):
         return f(g._real_double_(field))
 
 
+
+
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
         self._tex_needs_braces = needs_braces
-        pass
 
     def _is_atomic(self):
         return True
@@ -2704,7 +2886,7 @@ _syms['minf'] = minus_infinity
 
 from sage.misc.multireplace import multiple_replace
 
-def symbolic_expression_from_maxima_string(x, equals_sub=False):
+def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     global _syms
 
     maxima.set('_tmp_',x)

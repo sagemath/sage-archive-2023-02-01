@@ -2,7 +2,7 @@
 Functional notation support for common calculus methods.
 """
 
-from calculus import SER, SymbolicExpression, CallableFunction
+from calculus import SER, SymbolicExpression, CallableSymbolicExpression
 
 def simplify(f):
     """
@@ -13,33 +13,36 @@ def simplify(f):
     except AttributeError:
         return f
 
-def diff(f, *args, **kwds):
+def derivative(f, *args, **kwds):
     """
-    Formally differentiate the function f.
+    Formally derivativeerentiate the function f.
     """
-    if isinstance(f, CallableFunction):
+    if isinstance(f, CallableSymbolicExpression):
         return f.derivative(*args, **kwds)
     if not isinstance(f, SymbolicExpression):
         f = SER(f)
     return f.derivative(*args, **kwds)
 
-derivative = diff
+diff = derivative
+differentiate = derivative
 
-def integrate(f, *args, **kwds):
+def integral(f, *args, **kwds):
     """
     Returns the integral of f.
 
     EXAMPLES:
-        sage: integrate(sin(x), x)
+        sage: integral(sin(x), x)
         -cos(x)
-        sage: integrate(sin(x)^2, x, pi, 123*pi/2)
+        sage: integral(sin(x)^2, x, pi, 123*pi/2)
         121*pi/4
     """
-    if isinstance(f, CallableFunction):
+    if isinstance(f, CallableSymbolicExpression):
         return f.derivative(*args, **kwds)
     if not isinstance(f, SymbolicExpression):
         f = SER(f)
     return f.integral(*args, **kwds)
+
+integrate = integral
 
 def limit(f, v, a, dir=None):
     """

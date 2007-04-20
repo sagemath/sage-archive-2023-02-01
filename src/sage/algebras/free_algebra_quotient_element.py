@@ -60,6 +60,7 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         M = A.module()
         F = A.monoid()
         B = A.monomial_basis()
+
         if isinstance(x, (int, long, Integer)):
             self.__vector = x*M.gen(0)
         elif isinstance(x, RingElement) and not isinstance(x, AlgebraElement) and x in R:
@@ -88,8 +89,6 @@ class FreeAlgebraQuotientElement(AlgebraElement):
         elif isinstance(x, AlgebraElement) and x.parent().ambient_algebra() is A:
             self.__vector = x.ambient_algebra_element().vector()
         else:
-            print "x =", x
-            print "type(x) =", type(x)
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
     def _repr_(self):
@@ -99,6 +98,18 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             cffs = list(self.__vector)
             mons = Q.monomial_basis()
             x = repr_lincomb(mons, cffs).replace("*1 "," ")
+            if x[len(x)-2:] == "*1":
+                return x[:len(x)-2]
+            else:
+                return x
+
+    def _latex_(self):
+        Q = self.parent()
+        M = Q.monoid()
+        with localvars(M, Q.variable_names()):
+            cffs = list(self.__vector)
+            mons = Q.monomial_basis()
+            x = repr_lincomb(mons, cffs, True).replace("*1 "," ")
             if x[len(x)-2:] == "*1":
                 return x[:len(x)-2]
             else:
@@ -141,18 +152,12 @@ class FreeAlgebraQuotientElement(AlgebraElement):
             if c != 0: z.__vector += monomial_product(A,c*u,B[i])
         return z
 
-    def __pow__(self, n):
-        if not isinstance(n, (int, long, Integer)):
-            raise TypeError, "Argument n (= %s) must be an integer."%n
-        if n < 0:
-            raise IndexError, "Argument n (= %s) must be positive."%n
-        elif n == 0:
-            return self.parent()(1)
-        elif n == 1:
-            return self
-        elif n == 2:
-            return self * self
-        k = n//2
-        return self**k * self**(n-k)
+    def _rmul_(self, c):
+        return self.parent([c*a for a in self.__vector])
+
+    def _lmul_(self, c):
+        return self.parent([a*c for a in self.__vector])
+
+
 
 

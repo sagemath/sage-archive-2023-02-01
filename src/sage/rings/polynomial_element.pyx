@@ -2089,7 +2089,7 @@ cdef class Polynomial_generic_dense(Polynomial):
             high = x[min:]
         elif len(x) < len(y):
             min = len(x)
-            high = y[min:]
+            high = [-y[i] for i from min <= i < len(y)]
         else:
             min = len(x)
         low = [x[i] - y[i] for i from 0 <= i < min]

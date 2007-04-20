@@ -1998,10 +1998,12 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 #*****************************************************************************
 # This is a generalization of the above functionality for hyperelliptic curves.
 #
-# The implementations below are much less optimized, so will be slower, but should
-# hopefully be easier to follow. (E.g. one can print/make sense of intermediate
-# results.) I tried to embed must stuff into the rings themselves rather than
-# just extract and manipulate lists of coefficents.
+# THIS IS A WORK IN PROGRESS.
+#
+# I tried to embed must stuff into the rings themselves rather than
+# just extract and manipulate lists of coefficents. Hence the implementations
+# below are much less optimized, so are much slower, but should hopefully be
+# easier to follow. (E.g. one can print/make sense of intermediate results.)
 #
 # AUTHOR:
 #    -- Robert Bradshaw (2007-04)

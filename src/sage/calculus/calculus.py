@@ -2051,6 +2051,22 @@ class CallableSymbolicExpression(SymbolicExpression):
         RingElement.__init__(self, parent)
         self._expr = expr
 
+    def variables(self):
+        """
+        EXAMPLES:
+            sage: g(x) = sin(x) + a
+            sage: g.variables()
+            (a, x)
+            sage: g.args()
+            (x,)
+            sage: g(y,x,z) = sin(x) + a - a
+            sage: g
+            (y, x, z) |--> sin(x)
+            sage: g.args()
+            (y, x, z)
+        """
+        return self._expr.variables()
+
     def expression(self):
         """
         Return the underlying symbolic expression (i.e., forget the

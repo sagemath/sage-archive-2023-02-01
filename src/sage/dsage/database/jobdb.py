@@ -386,6 +386,7 @@ class JobDatabaseSQLite(JobDatabase):
      update_time timestamp,
      finish_time timestamp,
      verifiable BOOL,
+     timeout INTEGER DEFAULT 600,
      killed BOOL DEFAULT 0
     );
     """

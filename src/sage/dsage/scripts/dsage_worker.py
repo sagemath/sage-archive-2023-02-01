@@ -241,12 +241,14 @@ class Worker(object):
 
         job_filename = str(job.name) + '.py'
         job_file = open(job_filename, 'w')
+        timeout = job.timeout
         BEGIN = "print '%s'\n\n" % (START_MARKER)
         END = "print '%s'\n\n" % (END_MARKER)
         SAVE_RESULT = """try:
     save(DSAGE_RESULT, 'result.sobj', compress=True)
 except:
     save('No DSAGE_RESULT', 'result.sobj', compress=True)"""
+        job_file.write("alarm(%s)\n\n" % (timeout))
         job_file.write(BEGIN)
         job_file.write(parsed_file)
         job_file.write("\n\n")
@@ -524,6 +526,7 @@ class Monitor(object):
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.server, self.port,
                                self.factory, contextFactory)
+            log.msg('Using SSL...')
         else:
             reactor.connectTCP(self.server, self.port, self.factory)
 

@@ -9,6 +9,11 @@ def var(s):
              or a space or comma separated list of
              variable names.
 
+    NOTE: The new variable is both returned and automatically injected
+    into the global namespace.  If you use var in library code, it is
+    better to use sage.calculus.calculus.var, since it won't touch the
+    global namespace.
+
     EXAMPLES:
     We define three variables:
         sage: var('xx yy zz')
@@ -45,17 +50,63 @@ def var(s):
         sage: parent(theta)
         Ring of Symbolic Expressions
 
-    NOTE: The new variable is both returned and automatically injected
-    into the global namespace.  If you use var in library code, it is
-    better to use sage.calculus.calculus.var, since it won't touch the
-    global namespace.
     """
     G = globals()  # this is the reason the code must be in SageX.
     v = calculus.var(s)
     if isinstance(v, tuple):
         for x in v:
-            G[str(x)] = x
+            G[repr(x)] = x
     else:
-        G[str(v)] = v
+        G[repr(v)] = v
     return v
+
+def function(s, *args):
+    """
+    Create a formal symbolic function with the name \emph{s}.
+
+    INPUT:
+        s -- a string, either a single variable name,
+             or a space or comma separated list of
+             variable names.
+
+    NOTE: The new function is both returned and automatically injected
+    into the global namespace.  If you use var in library code, it is
+    better to use sage.calculus.calculus.function, since it won't
+    touch the global namespace.
+
+    EXAMPLES:
+    We create a formal function called supersin.
+        sage: f = function('supersin', x)
+        sage: f
+        supersin(x)
+
+    We can immediately use supersin in symbolic expressions:
+        sage: supersin(y+z) + A^3
+        A^3 + supersin(z + y)
+
+    We can define other functions in terms of supersin.
+        sage: g(x,y) = supersin(x)^2 + sin(y/2)
+        sage: g
+        (x, y) |--> sin(y/2) + supersin(x)^2
+        sage: g.diff(y)
+        (x, y) |--> cos(y/2)/2
+        sage: g.diff(x)
+        (x, y) |--> 2*supersin(x)*(diff(supersin(x), x, 1))
+        sage: k = g.diff(x); k
+        (x, y) |--> 2*supersin(x)*(diff(supersin(x), x, 1))
+        sage: k.substitute(supersin=sin)
+        2*sin(x)*(diff(supersin(x), x, 1))
+    """
+    if len(args) > 0:
+        return function(s)(*args)
+
+    G = globals()  # this is the reason the code must be in SageX.
+    v = calculus.function(s)
+    if isinstance(v, tuple):
+        for x in v:
+            G[repr(x)] = x
+    else:
+        G[repr(v)] = v
+    return v
+
 

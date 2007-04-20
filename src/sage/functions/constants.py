@@ -200,6 +200,9 @@ class Constant(Function):
     def _has_op(self, x):
         return False
 
+    def substitute(self, *args, **kwds):
+        return self
+
     def _recursive_sub(self, kwds):
         return self
 

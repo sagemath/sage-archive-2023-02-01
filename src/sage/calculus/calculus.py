@@ -82,9 +82,7 @@ EXAMPLES:
 
         sage: f = sin(2*pi*x/y)
         sage: f(4)
-        Traceback (most recent call last):
-        ...
-        ValueError: you must specify the variable when doing a substitution, e.g., f(x=5)
+        sin(8*pi/y)
 
     We can also make CallableSymbolicExpressions, which is a SymbolicExpression
     that are functions of variables in a fixed order. Each
@@ -533,7 +531,7 @@ class SymbolicExpression(RingElement):
 
 
     ##################################################################
-    # Non-canonical coercions to compiled builtin rings and fields
+    # Non-canonical coercions to compiled built-in rings and fields
     ##################################################################
     def _mpfr_(self, field):
         raise TypeError
@@ -696,7 +694,7 @@ class SymbolicExpression(RingElement):
         """
         v = self.variables()
         if len(v) != 1:
-            raise ValueError, "self must be a polynomial in one variable."
+            raise ValueError, "self must be a polynomial in one variable but it is in the variables %s"%tuple([v])
         f = self.polynomial(base_ring)
         from sage.rings.all import PowerSeriesRing
         R = PowerSeriesRing(base_ring, names=f.parent().variable_names())
@@ -1220,6 +1218,9 @@ class SymbolicExpression(RingElement):
         kwds = self.__varify_kwds(kwds)
         return X._recursive_sub(kwds)
 
+    def subs(self, *args, **kwds):
+        return self.substitute(*args, **kwds)
+
     def _recursive_sub(self, kwds):
         raise NotImplementedError, "implement _recursive_sub for type '%s'!"%(type(self))
 
@@ -1235,9 +1236,9 @@ class SymbolicExpression(RingElement):
                 raise ValueError, "you must not both give the variable and specify it explicitly when doing a substitution."
             in_dict = SER(in_dict)
             vars = self.variables()
-            if len(vars) > 1:
-                raise ValueError, "you must specify the variable when doing a substitution, e.g., f(x=5)"
-            elif len(vars) == 0:
+            #if len(vars) > 1:
+            #    raise ValueError, "you must specify the variable when doing a substitution, e.g., f(x=5)"
+            if len(vars) == 0:
                 return {}
             else:
                 return {vars[0]: in_dict}
@@ -1580,6 +1581,9 @@ class SymbolicOperation(SymbolicExpression):
 
             sage: (x + y + z + a + b + c).variables()
             (a, b, c, x, y, z)
+
+            sage: (x^2 + x).variables()
+            (x,)
         """
         if not self.is_simplified():
             return self.simplify().variables(vars)
@@ -1592,10 +1596,7 @@ class SymbolicOperation(SymbolicExpression):
             vars = []
         else:
             vars = list(vars)
-        for op in self._operands:
-            for v in op.variables():
-                if not v in vars:
-                    vars.append(v)
+        vars = list(set(sum([list(op.variables()) for op in self._operands], [])))
         vars.sort(var_cmp)
         vars = tuple(vars)
         self.__variables = vars
@@ -1915,6 +1916,10 @@ _vars = {}
 def var(s):
     r"""
     Create a symbolic variable with the name \emph{s}.
+
+    EXAMPLES:
+        sage: var('xx')
+        xx
     """
     if isinstance(s, SymbolicVariable):
         return s
@@ -1924,11 +1929,14 @@ def var(s):
     elif ' ' in s:
         return tuple([var(x.strip()) for x in s.split()])
     try:
-        return _vars[s]
+        X = _vars[s]()
+        if not X is None:
+            return X
     except KeyError:
-        v = SymbolicVariable(s)
-        _vars[s] = v
-        return v
+        pass
+    v = SymbolicVariable(s)
+    _vars[s] = weakref.ref(v)
+    return v
 
 
 #########################################################################################
@@ -2441,6 +2449,7 @@ class SymbolicComposition(SymbolicOperation):
 
 
 
+
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
         self._tex_needs_braces = needs_braces
@@ -2875,6 +2884,210 @@ class Function_exp(PrimitiveFunction):
 exp = Function_exp()
 _syms['exp'] = exp
 
+
+#######################################################
+# Symbolic functions
+#######################################################
+
+class SymbolicFunction(PrimitiveFunction):
+    """
+    A formal symbolic function.
+
+    EXAMPLES:
+        sage: f = function('foo')
+        sage: g = f(x,y,z)
+        sage: g
+        foo(x, y, z)
+        sage: g(x=var('theta'))
+        foo(theta, y, z)
+    """
+    def __init__(self, name):
+        PrimitiveFunction.__init__(self, needs_braces=True)
+        self._name = str(name)
+
+    def _repr_(self, simplify=True):
+        return self._name
+
+    def _is_atomic(self):
+        return True
+
+    def _latex_(self):
+        return "{\\rm %s}"%self._name
+
+    def _maxima_init_(self):
+        return "'%s"%self._name
+
+    def _approx_(self, x):
+        return SymbolicComposition(self, SER(x))
+
+    def __call__(self, *args):
+        return SymbolicFunctionEvaluation(self, [SER(x) for x in args])
+
+
+class SymbolicFunctionEvaluation(SymbolicExpression):
+    """
+    The result of evaluating a formal symbolic function.
+
+    EXAMPLES:
+        sage: h = function('gfun', x); h
+        gfun(x)
+        sage: k = h.integral(x); k
+        integrate(gfun(x), x)
+        sage: k(gfun=sin)
+        -cos(x)
+        sage: k(gfun=cos)
+        sin(x)
+        sage: k.diff(x)
+        gfun(x)
+    """
+    def __init__(self, f, args):
+        """
+        INPUT:
+            f -- symbolic function
+            args -- a tuple or list of symbolic expressions, at which
+                    f is formally evaluated.
+        """
+        SymbolicExpression.__init__(self)
+        self._f = f
+        if not isinstance(args, tuple):
+            args = tuple(args)
+        self._args = args
+
+    def _is_atomic(self):
+        return True
+
+    def arguments(self):
+        return tuple(self._args)
+
+    def _repr_(self, simplify=True):
+        if simplify:
+            return self.simplify()._repr_(simplify=False)
+        else:
+            return '%s(%s)'%(self._f._name, ', '.join([x._repr_(simplify=simplify)
+                                                       for x in self._args]))
+
+    def _latex_(self):
+        return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
+                                                       x in self._args]))
+
+    def _maxima_init_(self):
+        try:
+            return self.__maxima_init
+        except AttributeError:
+            n = self._f._name
+            if not (n in ['integrate', 'diff']):
+                n = "'" + n
+            s = "%s(%s)"%(n, ', '.join([x._maxima_init_()
+                                           for x in self._args]))
+            self.__maxima_init = s
+        return s
+
+    def _recursive_sub(self, kwds):
+        """
+        EXAMPLES:
+            sage: f = function('foo',x); f
+            foo(x)
+            sage: f(foo=sin)
+            sin(x)
+            sage: f(x+y)
+            foo(y + x)
+            sage: a = f(pi)
+            sage: a.substitute(foo = sin)
+            0
+            sage: a = f(pi/2)
+            sage: a.substitute(foo = sin)
+            1
+            sage: b = f(pi/3) + x + y
+            sage: b
+            y + x + foo(pi/3)
+            sage: b(foo = sin)
+            y + x + sqrt(3)/2
+            sage: b(foo = cos)
+            y + x + 1/2
+            sage: b(foo = cos, x=y)
+            2*y + 1/2
+        """
+        function_sub = False
+        for x in kwds.keys():
+            if repr(x) == self._f._name:
+                g = kwds[x]
+                function_sub = True
+                break
+        if function_sub:
+            del kwds[x]
+
+        arg = tuple([SER(x._recursive_sub(kwds)) for x in self._args])
+
+        if function_sub:
+            return g(*arg)
+        else:
+            return SymbolicFunctionEvaluation(self._f, arg)
+
+    def _recursive_sub_over_ring(self, kwds, ring):
+        raise TypeError, "no way to coerce the formal function to ring."
+
+    def variables(self):
+        """
+        Return the variables appearing in the simplified form of self.
+
+        EXAMPLES:
+            sage: foo = function('foo')
+            sage: w = foo(x,y,a,b,z) + t
+            sage: w
+            foo(x, y, a, b, z) + t
+            sage: w.variables()
+            (a, b, t, x, y, z)
+        """
+        try:
+            return self.__variables
+        except AttributeError:
+            pass
+        vars = sum([list(op.variables()) for op in self._args], [])
+        vars.sort(var_cmp)
+        vars = tuple(vars)
+        self.__variables = vars
+        return vars
+
+
+_functions = {}
+def function(s, *args):
+    """
+    Create a formal symbolic function with the name \emph{s}.
+
+    EXAMPLES:
+        sage: f = function('cr', a)
+        sage: g = f.diff(a).integral(b)
+        sage: g
+        diff(cr(a), a, 1)*b
+        sage: g(cr=cos)
+        -sin(a)*b
+        sage: g(cr=sin(x) + cos(x))
+        (cos(a) - sin(a))*b
+    """
+    if len(args) > 0:
+        return function(s)(*args)
+    if isinstance(s, SymbolicFunction):
+        return s
+    s = str(s)
+    if ',' in s:
+        return tuple([function(x.strip()) for x in s.split(',')])
+    elif ' ' in s:
+        return tuple([function(x.strip()) for x in s.split()])
+    try:
+        X = _functions[s]()
+        if not X is None:
+            return X
+    except KeyError:
+        pass
+    v = SymbolicFunction(s)
+    _functions[s] = weakref.ref(v)
+    return v
+
+#######################################################
+
+
+
+
 #######################################################
 
 symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
@@ -2886,12 +3099,20 @@ _syms['minf'] = minus_infinity
 
 from sage.misc.multireplace import multiple_replace
 
+maxima_tick = re.compile("'[a-z|A-Z|0-9]*")
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     global _syms
 
     maxima.set('_tmp_',x)
     r = maxima._eval_line('listofvars(_tmp_);', synchronize=False)[1:-1]
     s = maxima.get('_tmp_')
+
+    formal_functions = maxima_tick.findall(s)
+    if len(formal_functions) > 0:
+        for X in formal_functions:
+            _syms[X[1:]] = function(X[1:])
+        s = s.replace("'","")  # potential very subtle bug if 'foo is in a string literal -- but string literals should *never* ever be part of a symbolic expression.
 
     symtable2 = {}
     if len(r) > 0:

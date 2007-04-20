@@ -532,7 +532,7 @@ class Maxima(Expect):
     def _synchronize(self):
         if self._expect is None: return
         r = random.randrange(10000)
-        cmd = "print(1+%s);\n"%r
+        cmd = "1+%s;\n"%r
         s = str(r+1)
         self._send(cmd)
         self._expect_expr()

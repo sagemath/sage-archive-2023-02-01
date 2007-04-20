@@ -2014,6 +2014,7 @@ from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ
 
 from sage.misc.profiler import Profiler
+from sage.misc.misc import repr_lincomb
 
 def matrix_of_frobenius_general(Q, p, prec):
     prof = Profiler()
@@ -2021,7 +2022,8 @@ def matrix_of_frobenius_general(Q, p, prec):
     M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
     real_prec_ring = Integers(p**prec) # pAdicField(p, prec) # To capped absolute?
-    S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, p, True)
+    S = SpecialHyperellipticQuotientRing_2(Q, extra_prec_ring, p, True)
+#    S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, p, True)
     MW = S.monsky_washnitzer()
     prof("frob basis elements")
     F = MW.frob_basis_elements(M)
@@ -2031,8 +2033,203 @@ def matrix_of_frobenius_general(Q, p, prec):
     M = matrix(real_prec_ring, [a.H1_vector() for f, a in reduced])
     M = M.change_ring(pAdicField(p, prec))
     print prof
-    print len(S._monomials)
+#    print len(S._monomials)
     return M.transpose()
+
+
+
+
+
+
+class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
+    def __init__(self, Q, R, p, invert_y=False):
+        CommutativeAlgebra.__init__(self, R)
+        self._p = p
+
+        x = PolynomialRing(R, 'x').gen(0)
+        if is_EllipticCurve(Q):
+            E = Q
+            if E.a1() != 0 or E.a2() != 0:
+                raise NotImplementedError, "Curve must be in Weierstrass normal form."
+            Q = E.defining_polynomial()(x,0,1)
+
+        elif is_HyperellipticCurve(Q):
+            C = Q
+            if C.hyperelliptic_polynomials()[1] != 0:
+                raise NotImplementedError, "Curve must be of form y^2 = Q(x)."
+            Q = E.hyperelliptic_polynomials()[0]()(x)
+
+        if is_Polynomial(Q):
+            self._Q = Q.change_ring(R)
+            self._coeffs = self._Q.coeffs()
+            if self._coeffs.pop() != 1:
+                raise NotImplementedError, "Polynomial must be monic."
+
+        else:
+            raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
+
+        self._n = degree = int(Q.degree())
+
+        self._series_ring = (LaurentSeriesRing if invert_y else PolynomialRing)(R, 'y')
+        self._series_ring_y = self._series_ring.gen(0)
+        self._series_ring_0 = self._series_ring(0)
+
+        self._poly_ring = PolynomialRing(self._series_ring, 'x')
+
+        self._x = self(self._poly_ring.gen(0))
+        self._y = self(self._series_ring.gen(0))
+
+        self._dQ = Q.derivative().change_ring(self)(self._x)
+        self._monsky_washnitzer = MonskyWashnitzerDifferentialRing(self)
+
+
+    def __call__(self, val):
+        if isinstance(val, SpecialHyperellipticQuotientElement_2) and val.parent() is self:
+            return val
+        return SpecialHyperellipticQuotientElement_2(self, val)
+
+    def gens(self):
+        return self._x, self._y
+
+    def x(self):
+        return self._x
+
+    def y(self):
+        return self._y
+
+    def monomial(self, i, j, b=None):
+        """
+        Returns $b y^j x^i$, computed quickly.
+        """
+        i = int(i)
+        j = int(j)
+
+        if 0 < i and i < self._n:
+            if b is None:
+                by_to_j = self._series_ring_y << (j-1)
+            else:
+                by_to_j = self._series_ring(b) << j
+            v = [self._series_ring_0] * self._n
+            v[i] = by_to_j
+            return self(v)
+        else:
+            return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
+
+    def Q(self):
+        return self._Q
+
+    def degree(self):
+        return self._n
+
+    def prime(self):
+        return self._p
+
+    def monsky_washnitzer(self):
+        return self._monsky_washnitzer
+
+    def is_field(self):
+        return False
+
+
+
+class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
+
+    def __init__(self, parent, val=0):
+        CommutativeAlgebraElement.__init__(self, parent)
+        self._f = parent._poly_ring(val)
+
+    def __invert__(self):
+        """
+        The general element in our ring is not invertible, but y may be.
+        We do not want to pass to the fraction field.
+        """
+        if self._f.degree() == 0 and self._f[0].is_unit():
+            return SpecialHyperellipticQuotientElement_2(self.parent(), ~self._f[0])
+        else:
+            raise ZeroDivisionError, "Element not invertible"
+
+    def is_zero(self):
+        return self._f.is_zero()
+
+    def __eq__(self, other):
+        if not isinstance(other, SpecialHyperellipticQuotientElement_2):
+            other = self.parent()(other)
+        return self._f == other._f
+
+    def _add_(self, other):
+        return SpecialHyperellipticQuotientElement_2(self.parent(), self._f + other._f)
+
+    def _sub_(self, other):
+        return SpecialHyperellipticQuotientElement_2(self.parent(), self._f - other._f)
+
+    def _mul_(self, other):
+        prod = self._f * other._f
+        v = prod.list()
+        Q_coeffs = self.parent().Q().list()
+        n = len(Q_coeffs) - 1
+        y2 = self.parent()._series_ring_y << 1
+        for i in range(len(v)-1, n-1, -1):
+            for j in range(n):
+                v[i-n+j] -= v[i] * Q_coeffs[j]
+            v[i-n] += v[i] * y2
+        return SpecialHyperellipticQuotientElement_2(self.parent(), v[0:n])
+
+    def _rmul_(self, c):
+        return self.parent()([c*a for a in self._f])
+
+    def _lmul_(self, c):
+        return self.parent()([a*c for a in self._f])
+
+    def __lshift__(self, k):
+        return self.parent()([a << k for a in self._f])
+
+    def __rshift__(self, k):
+        return self.parent()([a >> k for a in self._f])
+
+    def _repr_(self):
+        x = PolynomialRing(QQ, 'x').gen(0)
+        coeffs = self._f.list()
+        return repr_lincomb([x**i for i in range(len(coeffs))], coeffs)
+
+    def _latex_(self):
+        x = PolynomialRing(QQ, 'x').gen(0)
+        coeffs = self._f.list()
+        return repr_lincomb([x**i for i in range(len(coeffs))], coeffs, is_latex=True)
+
+
+    def diff(self):
+
+#        try:
+#            return self._diff_x
+#        except AttributeError:
+#            pass
+
+        # d(self) = A dx + B dy
+        #         = (2y A + BQ') dx/2y
+        parent = self.parent()
+        R = parent.base_ring()
+        x, y = parent.gens()
+        v = self._f.list()
+        n = len(v)
+        A = parent([R(i) * v[i] for i in range(1,n)])
+        B = parent([a.derivative() for a in v])
+        dQ = parent._dQ
+        return parent._monsky_washnitzer( (R(2) * A << 1) + dQ * B )
+#        self._diff = self.parent()._monsky_washnitzer( two_y * A + dQ * B )
+#        return self._diff
+
+    def extract_pow_y(self, k):
+        v = [a[k] for a in self._f.list()]
+        while len(v) < self.parent()._n:
+            v.append(0)
+        return v
+
+    def min_pow_y(self):
+        return min([a.valuation() for a in self._f.list()])
+
+    def max_pow_y(self):
+        return max([a.degree() for a in self._f.list()])
+
 
 class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
     """
@@ -2298,7 +2495,7 @@ class MonskyWashnitzerDifferentialRing(Module):
 
     def frob_Q(self):
         x_to_p = self.x_to_p()
-        return self.base_ring()._Q(x_to_p)
+        return self.base_ring()._Q.change_ring(self.base_ring())(x_to_p)
 
     def frob_invariant_differential(self, prec):
         """
@@ -2325,7 +2522,7 @@ class MonskyWashnitzerDifferentialRing(Module):
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}
         # This converges because we know the root is in the same residue class as 1.
-        t = 1
+        t = self.base_ring()(1)
         print prec, "->", ceil(log(prec, 2))+1
 #        for _ in range(prec+1):
         for _ in range(ceil(log(prec, 2))+1):
@@ -2454,7 +2651,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 #                    f += gg
 #                    reduced -= gg.diff()
                     g += S.monomial(i, j, lin_comb[i])
-            if g.vector() != 0:
+            if not g.is_zero():
                 f += g
                 reduced -= g.diff()
 #                print g, g.diff()

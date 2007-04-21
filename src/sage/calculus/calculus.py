@@ -142,7 +142,7 @@ We coerce various symbolic expressions into the complex numbers:
 We illustrate construction of an inverse sum where each denominator
 has a new variable name:
     sage: f = sum(1/var('n%s'%i)^i for i in range(10))
-    sage: f.display2d()
+    sage: print f
                  1     1     1     1     1     1     1     1    1
                 --- + --- + --- + --- + --- + --- + --- + --- + -- + 1
                   9     8     7     6     5     4     3     2   n1
@@ -378,7 +378,7 @@ class SymbolicExpression(RingElement):
         We display a fraction:
             sage: f = (x^3+y)/(x+3*y^2+1); f
             (y + x^3)/(3*y^2 + x + 1)
-            sage: f.display2d()
+            sage: print f
                                                      3
                                                 y + x
                                              ------------
@@ -386,18 +386,13 @@ class SymbolicExpression(RingElement):
                                              3 y  + x + 1
 
         Use onscreen=False to get the 2d string:
-             sage: print f.display2d(onscreen=False)
-                                         3
-                                    y + x
-                                 ------------
-                                    2
-                                 3 y  + x + 1
+             sage: f.display2d(onscreen=False)
+             '\t\t\t\t\t 3\r\n\t\t\t\t    y + x\r\n         \t\t\t ------------\r\n\t\t\t\t    2\r\n\t\t\t\t 3 y  + x + 1'
 
-
-        ASCII are really helps for the following integral:
+        ASCII art is really helps for the following integral:
             sage: f = integral(sin(x^2)); f
             sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
-            sage: f.display2d()
+            sage: print f
                                                          (sqrt(2)  I + sqrt(2)) x
                    sqrt( Pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
                                                                     2
@@ -1037,7 +1032,7 @@ class SymbolicExpression(RingElement):
 
         We integrate the same function in both Mathematica and SAGE (via Maxima):
             sage: f = sin(x^2) + y^z
-            sage: g = mathematica(f)                           # optional
+            sage: g = mathematica(f)                           # optional  -- requires mathematica
             sage: print g                                      # optional
                       z        2
                      y  + Sin[x ]
@@ -1052,9 +1047,27 @@ class SymbolicExpression(RingElement):
                                                                (sqrt(2)  I - sqrt(2)) x
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
+
+        We integrate the above function in maple now:
+            sage: g = maple(f); g                             # optional -- requires maple
+            sin(x^2)+y^z
+            sage: g.integrate(x)                              # optional -- requires maple
+            1/2*2^(1/2)*Pi^(1/2)*FresnelS(2^(1/2)/Pi^(1/2)*x)+y^z*x
+
+        We next integrate a function with no closed form integral.  Notice that
+        the answer comes back as an expression that contains an integral itself.
+            sage: A = integral(1/ ((x-4) * (x^3+2*x+1)), x); A
+            log(x - 4)/73 - (integrate((x^2 + 4*x + 18)/(x^3 + 2*x + 1), x)/73)
+            sage: print A
+                                     /  2
+                                     [ x  + 4 x + 18
+                                     I ------------- dx
+                                     ]  3
+                        log(x - 4)   / x  + 2 x + 1
+                        ---------- - ------------------
+                            73               73
         """
-        #sage: integrate(1/ ((x-4) * (x^3+2*x+1)), x)
-        #    boom -- need noun forms of functions!
+
         if v is None:
             vars = self.variables()
             if len(vars) < 1:
@@ -1329,7 +1342,7 @@ class SymbolicExpression(RingElement):
             sage: f = x^2/(x+1)^3
             sage: f.partial_fraction()
             1/(x + 1) - (2/(x + 1)^2) + 1/(x + 1)^3
-            sage: f.partial_fraction().display2d()
+            sage: print f.partial_fraction()
                                         1        2          1
                                       ----- - -------- + --------
                                       x + 1          2          3
@@ -3120,9 +3133,11 @@ maxima_tick = re.compile("'[a-z|A-Z|0-9]*")
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     global _syms
 
+    if len(x) == 0:
+        raise RuntimeError, "invalid symbolic expression -- ''"
     maxima.set('_tmp_',x)
-    r = maxima._eval_line('listofvars(_tmp_);', synchronize=False)[1:-1]
-    s = maxima.get('_tmp_')
+    r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
+    s = maxima._eval_line('_tmp_;')
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:

@@ -501,7 +501,8 @@ class Expect(ParentWithBase):
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
         """
-        code = str(code)
+        if not isinstance(code, str):
+            raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:
             return '\n'.join([self._eval_line(L) for L in code.split('\n') if L != ''])

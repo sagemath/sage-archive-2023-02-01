@@ -43,22 +43,13 @@ use \code{str(x)}.
                                4      3    2  2    3      4
                    - (y - x) (y  + x y  + x  y  + x  y + x )
 
-We can make this the default even when not using print:
-    sage: maxima.display2d(True)
-    sage: F
-                               4      3    2  2    3      4
-                   - (y - x) (y  + x y  + x  y  + x  y + x )
-
-You can always use \code{x.str()} to obtain the linear representation
-of an object, even without changing the display2d flag.  This can
-be useful for moving maxima data to other systems.
+You can always use \code{repr(x)} to obtain the linear representation
+of an object.  This can be useful for moving maxima data to other
+systems.
+    sage: repr(F)
+    '-(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)'
     sage: F.str()
     '-(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)'
-
-    sage: maxima.display2d(False)
-    sage: F
-    -(y-x)*(y^4+x*y^3+x^2*y^2+x^3*y+x^4)
-
 
 The \code{maxima.eval} command evaluates an expression in maxima
 and returns the result as a \emph{string} not a maxima object.
@@ -327,6 +318,12 @@ This working tests that a subtle bug has been fixed:
     sage: del f
     sage: maxima(sin(x))
     sin(x)
+
+A long complicated input expression:
+
+    sage: maxima._eval_line('((((((((((0) + ((1) / ((n0) ^ (0)))) + ((1) / ((n1) ^ (1)))) + ((1) / ((n2) ^ (2)))) + ((1) / ((n3) ^ (3)))) + ((1) / ((n4) ^ (4)))) + ((1) / ((n5) ^ (5)))) + ((1) / ((n6) ^ (6)))) + ((1) / ((n7) ^ (7)))) + ((1) / ((n8) ^ (8)))) + ((1) / ((n9) ^ (9)));')
+    '1/n9^9+1/n8^8+1/n7^7+1/n6^6+1/n5^5+1/n4^4+1/n3^3+1/n2^2+1/n1+1'
+
 """
 
 #*****************************************************************************
@@ -359,11 +356,6 @@ from sage.misc.misc import verbose, DOT_SAGE, SAGE_ROOT
 
 from sage.misc.multireplace import multiple_replace
 
-SAGE_START = '_s_start_'
-SAGE_END = '_s_stop_'
-cnt = 0
-seq = 0
-
 COMMANDS_CACHE = '%s/maxima_commandlist_cache.sobj'%DOT_SAGE
 
 import sage.server.support
@@ -389,10 +381,13 @@ class Maxima(Expect):
         # setting inchar and outchar..
         eval_using_file_cutoff = 256
         self.__eval_using_file_cutoff = eval_using_file_cutoff
+        STARTUP = '%s/local/bin/sage-maxima.lisp'%SAGE_ROOT
+        if not os.path.exists(STARTUP):
+            raise RuntimeError, 'You must get the file local/bin/sage-maxima.lisp'
         Expect.__init__(self,
                         name = 'maxima',
                         prompt = '\(\%i[0-9]+\)',
-                        command = "maxima --disable-readline",
+                        command = 'maxima -p "%s"'%STARTUP,
                         maxread = 10000,
                         script_subdirectory = script_subdirectory,
                         restart_on_ctrlc = False,
@@ -402,6 +397,7 @@ class Maxima(Expect):
                                      ],
                         logfile = logfile,
                         eval_using_file_cutoff=eval_using_file_cutoff)
+        self._display_prompt = '<sage-display>'  # must match what is in the file local/ibn/sage-maxima.lisp!!
         self._output_prompt_re = re.compile('\(\%o[0-9]+\)')
         self._ask = ['zero or nonzero?', 'an integer?', 'positive, negative, or zero?', 'positive or negative?']
         self._prompt_wait = [self._prompt] + [re.compile(x) for x in self._ask]
@@ -494,16 +490,22 @@ class Maxima(Expect):
         r = self._error_re
         m = r.search(out)
         if not m is None:
-            raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+            self._error_msg(str, out)
+
+    def _error_msg(self, str, out):
+        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
-                   wait_for_prompt=True, synchronize=True):
-        if synchronize:
-            self._synchronize()
+                   wait_for_prompt=True):
         if len(line) == 0:
             return ''
-        if wait_for_prompt and line[-1] != ';':
+        line = line.rstrip()
+        if line[-1] != '$' and line[-1] != ';':
             line += ';'
+
+        if line[-1] == ';' and wait_for_prompt:
+            self._synchronize()
+
         if len(line) > self.__eval_using_file_cutoff:
             self._batch(line, batchload=False)
         else:
@@ -511,9 +513,11 @@ class Maxima(Expect):
 
         if not wait_for_prompt:
             return
+
+        if line[-1] == ';':
+            self._expect_expr(self._display_prompt)
         self._expect_expr()
         out = self._before()
-
         self._error_check(line, out)
 
         if not reformat:
@@ -528,19 +532,21 @@ class Maxima(Expect):
         o = ''.join([x.strip() for x in o.split()])
         return o
 
+        i = o.rfind('(%o')
+        return o[:i]
+
 
     def _synchronize(self):
         if self._expect is None: return
-        r = random.randrange(10000)
-        cmd = "1+%s;\n"%r
+        r = random.randrange(2147483647)
         s = str(r+1)
+        cmd = "1+%s;\n"%r
         self._send(cmd)
         self._expect_expr()
-        b = self._before()
-        if not s in b:
+        if not s in self._before():
             self._expect_expr(s)
             self._expect_expr()
-            self._before()
+
 
 
     ###########################################
@@ -692,8 +698,14 @@ class Maxima(Expect):
     def set(self, var, value):
         """
         Set the variable var to the given value.
+
+        INPUT:
+            var -- string
+            value -- string
         """
-        cmd = '%s : %s;'%(var, str(value).rstrip(';'))
+        if not isinstance(value, str):
+            raise TypeError
+        cmd = '%s : %s$'%(var, value.rstrip(';'))
         if len(cmd) > self.__eval_using_file_cutoff:
             self._batch(cmd, batchload=True)
         else:
@@ -714,7 +726,7 @@ class Maxima(Expect):
         Clear the variable named var.
         """
         try:
-            self._eval_line('kill(%s);'%var, reformat=False)
+            self._eval_line('kill(%s)$'%var, reformat=False)
         except TypeError:
             pass
 
@@ -724,27 +736,27 @@ class Maxima(Expect):
     def version(self):
         return maxima_version()
 
-    def display2d(self, flag=True):
-        """
-        Set the flag that determines whether Maxima objects are
-        printed using their 2-d ASCII art representation.  When the
-        maxima interface starts the default is that objects are not
-        represented in 2-d.
+##     def display2d(self, flag=True):
+##         """
+##         Set the flag that determines whether Maxima objects are
+##         printed using their 2-d ASCII art representation.  When the
+##         maxima interface starts the default is that objects are not
+##         represented in 2-d.
 
-        INPUT:
-            flag -- bool (default: True)
+##         INPUT:
+##             flag -- bool (default: True)
 
-        EXAMPLES
-            sage: maxima('1/2')
-            1/2
-            sage: maxima.display2d(True)
-            sage: maxima('1/2')
-                                           1
-                                           -
-                                           2
-            sage: maxima.display2d(False)
-        """
-        self._display2d = bool(flag)
+##         EXAMPLES
+##             sage: maxima('1/2')
+##             1/2
+##             sage: maxima.display2d(True)
+##             sage: maxima('1/2')
+##                                            1
+##                                            -
+##                                            2
+##             sage: maxima.display2d(False)
+##         """
+##         self._display2d = bool(flag)
 
     def plot2d(self, *args):
         r"""
@@ -1153,17 +1165,18 @@ class MaximaElement(ExpectElement):
         return sage.rings.all.ComplexNumber( CC, self.real(), self.imag() )
 
     def str(self):
-        self._check_valid()
-        P = self.parent()
+        P = self._check_valid()
         return P.get(self._name)
 
     def __repr__(self):
-        self._check_valid()
-        P = self.parent()
-        if P._display2d:
-            return self.display2d(onscreen=False)
-        else:
-            return P.get(self._name)
+        try:
+            return self.__repr
+        except AttributeError:
+            pass
+        P = self._check_valid()
+        r = P.get(self._name)
+        self.__repr = r
+        return r
 
     def display2d(self, onscreen=True):
         """
@@ -1183,7 +1196,7 @@ class MaximaElement(ExpectElement):
         m = r.search(s)
         s = s[m.start():]
         i = s.find('\n')
-        s = s[i+1:]
+        s = s[i+1 + len(P._display_prompt):]
         m = r.search(s)
         if not m is None:
             s = s[:m.start()] + ' '*(m.end() - m.start()) + s[m.end():].rstrip()

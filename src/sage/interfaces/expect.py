@@ -501,7 +501,8 @@ class Expect(ParentWithBase):
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
         """
-        code = str(code)
+        if not isinstance(code, str):
+            raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:
             return '\n'.join([self._eval_line(L) for L in code.split('\n') if L != ''])
@@ -779,7 +780,7 @@ class ExpectElement(RingElement):
         return reduce_load, (self.parent(), self._reduce())
 
     def _reduce(self):
-        return str(self)
+        return repr(self)
 
     def _r_action(self, x):   # used for coercion
         raise AttributeError

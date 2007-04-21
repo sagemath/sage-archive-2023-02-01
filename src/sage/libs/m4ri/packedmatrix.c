@@ -355,12 +355,12 @@ void rowAddPacked( packedmatrix *m, int sourcerow, int destrow) {
 
 int gaussianPackedDelayed(packedmatrix *m, int startcol, int full) {
   int i,j;
-  int start, stop=min( m->rows, m->cols);
+  int start;
 
   int startrow = startcol;
   int ii;
   int pivots = 0;
-  for (i=startcol ; i<stop ; i++) {
+  for (i=startcol ; i<m->cols ; i++) {
 
     for(j=startrow ; j < m->rows; j++) {
       if (readPackedCell(m,j,i)) {

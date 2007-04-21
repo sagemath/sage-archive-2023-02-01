@@ -503,8 +503,8 @@ class Maxima(Expect):
         if line[-1] != '$' and line[-1] != ';':
             line += ';'
 
-        if line[-1] == ';' and wait_for_prompt:
-            self._synchronize()
+        #if line[-1] == ';' and wait_for_prompt:
+        self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
             self._batch(line, batchload=False)
@@ -514,8 +514,7 @@ class Maxima(Expect):
         if not wait_for_prompt:
             return
 
-        if line[-1] == ';':
-            self._expect_expr(self._display_prompt)
+        self._expect_expr(self._display_prompt)
         self._expect_expr()
         out = self._before()
         self._error_check(line, out)
@@ -709,10 +708,11 @@ class Maxima(Expect):
         if len(cmd) > self.__eval_using_file_cutoff:
             self._batch(cmd, batchload=True)
         else:
-            self._sendline(cmd)
-            self._expect_expr()
-            out = self._before()
-            self._error_check(cmd, out)
+            self._eval_line(cmd)
+            #self._sendline(cmd)
+            #self._expect_expr()
+            #out = self._before()
+            #self._error_check(cmd, out)
 
     def get(self, var):
         """

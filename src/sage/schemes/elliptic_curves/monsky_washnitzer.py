@@ -2081,6 +2081,7 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
         self._x = self(self._poly_ring.gen(0))
         self._y = self(self._series_ring.gen(0))
 
+        self._Q_coeffs = Q.change_ring(self._series_ring).list()
         self._dQ = Q.derivative().change_ring(self)(self._x)
         self._monsky_washnitzer = MonskyWashnitzerDifferentialRing(self)
 
@@ -2167,14 +2168,15 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
     def _mul_(self, other):
         prod = self._f * other._f
         v = prod.list()
-        Q_coeffs = self.parent().Q().list()
+        parent = self.parent()
+        Q_coeffs = parent._Q_coeffs
         n = len(Q_coeffs) - 1
         y2 = self.parent()._series_ring_y << 1
         for i in range(len(v)-1, n-1, -1):
             for j in range(n):
-                v[i-n+j] -= v[i] * Q_coeffs[j]
-            v[i-n] += v[i] * y2
-        return SpecialHyperellipticQuotientElement_2(self.parent(), v[0:n])
+                v[i-n+j] -= Q_coeffs[j] * v[i]
+            v[i-n] += y2 * v[i]
+        return SpecialHyperellipticQuotientElement_2(parent, v[0:n])
 
     def _rmul_(self, c):
         return self.parent()([c*a for a in self._f])
@@ -2507,37 +2509,49 @@ class MonskyWashnitzerDifferentialRing(Module):
 
         Use Newton's method to calculate the square root.
         """
+        prof = Profiler()
+        prof("setup")
         # TODO, would it be useful to be able to take Frobenius of any element? Less efficient?
         p = self.base_ring().prime()
         x, y = self.base_ring().gens()
+        prof("x_to_p")
         x_to_p_less_1 = x**(p-1)
         x_to_p = x*x_to_p_less_1
 
         # cache for future use
         self._x_to_p = x_to_p
 
+        prof("frob_Q")
         a = self.frob_Q() >> 2*p  # frobQ * y^{-2p}
 
+        prof("sqrt")
         Q = self.base_ring()._Q
+
         three_halves = Q.parent().base_ring()(Rational((3,2)))
         one_half = Q.parent().base_ring()(Rational((1,2)))
+#        three_halves = self.base_ring()._series_ring(Rational((3,2)))
+#        one_half     = self.base_ring()._series_ring(Rational((1,2)))
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}
         # This converges because we know the root is in the same residue class as 1.
         t = self.base_ring()(1)
-        print prec, "->", ceil(log(prec, 2))+1
+        print prec, "->", ceil(log(prec, 2))
 #        for _ in range(prec+1):
-        for _ in range(ceil(log(prec, 2))+1):
-            t = three_halves * t - one_half * t**3 * a
+        for _ in range(ceil(log(prec, 2))):
+            t = three_halves * t - one_half * t*t*t * a
 
 #        print "a =", a
 #        print "t =", t
 
+        prof("verify")
         print "a*t^2 =", a * t**2
 
+        prof("compose")
         F_dx_y = (p * x_to_p_less_1 * t) >> (p-1)  # px^{p-1} sqrt(a) * y^{-p+1}
 #        print "-----", F_dx_y
 #        print "-----", x_to_p * F_dx_y
+        prof("done")
+        print prof
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec):

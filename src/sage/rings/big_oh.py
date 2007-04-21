@@ -3,7 +3,7 @@ Big O for various types (power series, p-adics, etc.)
 """
 
 import arith
-import laurent_series_ring_element
+import laurent_series_ring_element_pyx as laurent_series_ring_element
 import padics.qp
 import padics.padic_generic
 import power_series_ring_element

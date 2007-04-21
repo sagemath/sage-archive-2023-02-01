@@ -49,14 +49,20 @@ import laurent_series_ring
 import power_series_ring_element
 import power_series_ring
 import polynomial_element as polynomial
-import sage.misc.latex as latex
+import sage.misc.latex
 import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 
-class LaurentSeries(ring_element.RingElement):
+from sage.structure.element cimport ModuleElement, RingElement, AlgebraElement
+
+
+cdef class LaurentSeries(AlgebraElement):
     """
     A Laurent Series.
     """
+
+    cdef __u, __n
+
     def __init__(self, parent, f, n=0):
         r"""
         Create the Laurent series $t^n \cdot f$.  The default is n=0.
@@ -70,10 +76,10 @@ class LaurentSeries(ring_element.RingElement):
         OUTPUT:
             a Laurent series
         """
-        ring_element.RingElement.__init__(self, parent)
+        AlgebraElement.__init__(self, parent)
         if isinstance(f, LaurentSeries):
-            n += f.__n
-            f = parent.power_series_ring()(f.__u)
+            n += (<LaurentSeries>f).__n
+            f = parent.power_series_ring()((<LaurentSeries>f).__u)
         elif not isinstance(f, power_series_ring_element.PowerSeries):
             f = parent.power_series_ring()(f)
 
@@ -88,6 +94,9 @@ class LaurentSeries(ring_element.RingElement):
         else:
             self.__n = n + f.valuation()    # power of the variable
             self.__u = f.valuation_zero_part()        # unit part
+
+    def __reduce__(self):
+        return make_element_from_parent, (self._parent, self.__u, self.__n)
 
     def is_unit(self):
         """
@@ -225,7 +234,7 @@ class LaurentSeries(ring_element.RingElement):
             if x != 0:
                 if not first:
                     s += " + "
-                x = latex.latex(x)
+                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if e == 1:
@@ -252,9 +261,9 @@ class LaurentSeries(ring_element.RingElement):
             if pr == 0:
                 bigoh = "O(1)"
             elif pr == 1:
-                bigoh = "O(%s)"%latex.latex(self.parent().variable_name())
+                bigoh = "O(%s)"%sage.misc.latex.latex(self.parent().variable_name())
             else:
-                bigoh = "O(%s^{%s})"%(latex.latex(self.parent().variable_name()),pr)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self.parent().variable_name()),pr)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh
@@ -288,6 +297,8 @@ class LaurentSeries(ring_element.RingElement):
             sage: f[0:]
             1/3 + t + t^2 - 10/3*t^3 + O(t^5)
         """
+        if j > self.__u.degree():
+            j = self.__u.degree()
         f = self.__u[i-self.__n:j-self.__n]
         return LaurentSeries(self.parent(), f, self.__n)
 
@@ -308,8 +319,7 @@ class LaurentSeries(ring_element.RingElement):
             1
             -10/3
         """
-        for i in range(self.valuation(), self.degree()+1):
-            yield self[i]
+        return iter(self.__u)
 
     def __setitem__(self, n, value):
         """
@@ -344,7 +354,7 @@ class LaurentSeries(ring_element.RingElement):
                 self.__u = self.__u.parent()(coeffs)
         self.__normalize()
 
-    def _add_(self, right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
         """
         Add two power series with the same parent.
 
@@ -369,6 +379,7 @@ class LaurentSeries(ring_element.RingElement):
         ALGORITHM:
             Shift the unit parts to align them, then add.
         """
+        cdef LaurentSeries right = <LaurentSeries>right_m
 
         # 1. Special case when one or the other is 0.
         if right.is_zero():
@@ -388,7 +399,7 @@ class LaurentSeries(ring_element.RingElement):
         # 3. Add
         return LaurentSeries(self.parent(), f1 + f2, m)
 
-    def _sub_(self, right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
         """
         Subtract two power series with the same parent.
 
@@ -402,7 +413,7 @@ class LaurentSeries(ring_element.RingElement):
         ALGORITHM:
             Shift the unit parts to align them, then subtract.
         """
-        # Add together two Laurent series over the same base ring.
+        cdef LaurentSeries right = <LaurentSeries>right_m
 
         # 1. Special case when one or the other is 0.
         if right.is_zero():
@@ -464,7 +475,7 @@ class LaurentSeries(ring_element.RingElement):
         """
         return LaurentSeries(self.parent(), -self.__u, self.__n)
 
-    def _mul_(self, right):
+    cdef RingElement _mul_c_impl(self, RingElement right_r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -473,17 +484,18 @@ class LaurentSeries(ring_element.RingElement):
             sage: f*g
             x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
         """
+        cdef LaurentSeries right = <LaurentSeries>right_r
         return LaurentSeries(self.parent(),
                              self.__u * right.__u,
                              self.__n + right.__n)
 
-    def _rmul_(self, c):
+    cdef ModuleElement _rmul_c_impl(self, RingElement c):
         return LaurentSeries(self.parent(), c * self.__u, self.__n)
 
-    def _lmul_(self, c):
+    cdef ModuleElement _lmul_c_impl(self, RingElement c):
         return LaurentSeries(self.parent(), self.__u * c, self.__n)
 
-    def __pow__(self, r):
+    def __pow__(_self, r, dummy):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -494,6 +506,7 @@ class LaurentSeries(ring_element.RingElement):
             sage: g^7
             x^-70 - 7*x^-59 + 7*x^-58 - 7*x^-56 + O(x^-52)
         """
+        cdef LaurentSeries self = _self
         right=int(r)
         if right != r:
             raise ValueError, "exponent must be an integer"
@@ -528,14 +541,14 @@ class LaurentSeries(ring_element.RingElement):
         """
         return LaurentSeries(self.parent(), self.__u, self.__n + k)
 
-    def __lshift__(self, k):
+    def __lshift__(LaurentSeries self, k):
         return LaurentSeries(self.parent(), self.__u, self.__n + k)
 
-    def __rshift__(self, k):
+    def __rshift__(LaurentSeries self, k):
         return LaurentSeries(self.parent(), self.__u, self.__n - k)
 
 
-    def _div_(self, right):
+    cdef RingElement _div_c_impl(self, RingElement right_r):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -546,6 +559,7 @@ class LaurentSeries(ring_element.RingElement):
             sage: f/g
             x^8 + x^9 + 3*x^11 + O(x^14)
         """
+        cdef LaurentSeries right = <LaurentSeries>right_r
         if right.__u.is_zero():
             raise ZeroDivisionError
         try:
@@ -594,7 +608,7 @@ class LaurentSeries(ring_element.RingElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __cmp__(self, right):
+    def __cmp__(self, right_r):
         r"""
         Comparison of self and right.
 
@@ -631,6 +645,8 @@ class LaurentSeries(ring_element.RingElement):
             sage: f > g
             True
         """
+        cdef LaurentSeries right = <LaurentSeries>right_r
+
         prec = self.common_prec(right)
         n = min(self.__n, right.__n)
 
@@ -821,3 +837,5 @@ class LaurentSeries(ring_element.RingElement):
         return self.__u(x) * (x[0]**self.__n)
 
 
+def make_element_from_parent(parent, *args):
+    return parent(*args)

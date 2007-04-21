@@ -760,7 +760,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
          * The MAGMA documentation appears to give no information about how
            polynomial multiplication is implemented.
         """
-        return self.parent()(do_karatsuba(self.list(), right.list()))
+        return self._parent(do_karatsuba(self.list(), right.list()))
 
     def base_ring(self):
         """

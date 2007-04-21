@@ -15,7 +15,7 @@ EXAMPLES:
 
 import weakref
 
-import laurent_series_ring_element
+import laurent_series_ring_element_pyx as laurent_series_ring_element
 import power_series_ring
 import commutative_ring
 import integral_domain

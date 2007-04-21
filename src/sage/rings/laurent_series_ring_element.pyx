@@ -39,6 +39,7 @@ AUTHORS:
     -- William Stein: original version
     -- David Joyner: added examples 2006-01-22
     -- Robert Bradshaw: optimizations, shifting 2007-04
+    -- Robert Bradshaw: SageX version
 """
 
 import operator
@@ -165,13 +166,13 @@ cdef class LaurentSeries(AlgebraElement):
             if self.prec() == infinity:
                 return "0"
             else:
-                return "O(%s^%s)"%(self.parent().variable_name(),self.prec())
+                return "O(%s^%s)"%(self._parent.variable_name(),self.prec())
         s = " "
         v = self.__u.list()
         valuation = self.__n
         m = len(v)
-        X = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        X = self._parent.variable_name()
+        atomic_repr = self._parent.base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
             x = v[n]
@@ -197,9 +198,9 @@ cdef class LaurentSeries(AlgebraElement):
         if self.prec() == 0:
             bigoh = "O(1)"
         elif self.prec() == 1:
-            bigoh = "O(%s)"%self.parent().variable_name()
+            bigoh = "O(%s)"%self._parent.variable_name()
         else:
-            bigoh = "O(%s^%s)"%(self.parent().variable_name(),self.prec())
+            bigoh = "O(%s^%s)"%(self._parent.variable_name(),self.prec())
         if self.prec() != infinity:
             if s == " ":
                 return bigoh
@@ -223,8 +224,8 @@ cdef class LaurentSeries(AlgebraElement):
         v = self.__u.list()
         valuation = self.__n
         m = len(v)
-        X = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        X = self._parent.variable_name()
+        atomic_repr = self._parent.base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
             x = v[n]
@@ -259,9 +260,9 @@ cdef class LaurentSeries(AlgebraElement):
             if pr == 0:
                 bigoh = "O(1)"
             elif pr == 1:
-                bigoh = "O(%s)"%sage.misc.latex.latex(self.parent().variable_name())
+                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.variable_name())
             else:
-                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self.parent().variable_name()),pr)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.variable_name()),pr)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh
@@ -298,7 +299,7 @@ cdef class LaurentSeries(AlgebraElement):
         if j > self.__u.degree():
             j = self.__u.degree()
         f = self.__u[i-self.__n:j-self.__n]
-        return LaurentSeries(self.parent(), f, self.__n)
+        return LaurentSeries(self._parent, f, self.__n)
 
     def __iter__(self):
         """
@@ -347,9 +348,9 @@ cdef class LaurentSeries(AlgebraElement):
         else: # off to the left
             if value != 0:
                 self.__n = self.__n + j
-                R = self.parent().base_ring()
+                R = self._parent.base_ring()
                 coeffs = [value] + [R(0) for _ in range(1,-j)] + self.__u.list()
-                self.__u = self.__u.parent()(coeffs)
+                self.__u = self.__u._parent(coeffs)
         self.__normalize()
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
@@ -378,6 +379,7 @@ cdef class LaurentSeries(AlgebraElement):
             Shift the unit parts to align them, then add.
         """
         cdef LaurentSeries right = <LaurentSeries>right_m
+        cdef long m
 
         # 1. Special case when one or the other is 0.
         if right.is_zero():
@@ -395,7 +397,7 @@ cdef class LaurentSeries(AlgebraElement):
             f1 = self.__u << self.__n - m
             f2 = right.__u
         # 3. Add
-        return LaurentSeries(self.parent(), f1 + f2, m)
+        return LaurentSeries(self._parent, f1 + f2, m)
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
         """
@@ -412,6 +414,7 @@ cdef class LaurentSeries(AlgebraElement):
             Shift the unit parts to align them, then subtract.
         """
         cdef LaurentSeries right = <LaurentSeries>right_m
+        cdef long m
 
         # 1. Special case when one or the other is 0.
         if right.is_zero():
@@ -429,7 +432,7 @@ cdef class LaurentSeries(AlgebraElement):
             f1 = self.__u << self.__n - m
             f2 = right.__u
         # 3. Subtract
-        return LaurentSeries(self.parent(), f1 - f2, m)
+        return LaurentSeries(self._parent, f1 - f2, m)
 
 
     def add_bigoh(self, prec):
@@ -444,7 +447,7 @@ cdef class LaurentSeries(AlgebraElement):
         if prec == infinity or prec >= self.prec():
             return self
         u = self.__u.add_bigoh(prec - self.__n)
-        return LaurentSeries(self.parent(), u, self.__n)
+        return LaurentSeries(self._parent, u, self.__n)
 
     def degree(self):
         """
@@ -460,7 +463,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: g.degree()
             4
         """
-        return self.__u.degree() + self.valuation()
+        return self.__u.degree() + self.__n
 
 
     def __neg__(self):
@@ -471,7 +474,7 @@ cdef class LaurentSeries(AlgebraElement):
         sage: -(1/(1+t+O(t^5)))
         -1 + t - t^2 + t^3 - t^4 + O(t^5)
         """
-        return LaurentSeries(self.parent(), -self.__u, self.__n)
+        return LaurentSeries(self._parent, -self.__u, self.__n)
 
     cdef RingElement _mul_c_impl(self, RingElement right_r):
         """
@@ -483,15 +486,15 @@ cdef class LaurentSeries(AlgebraElement):
             x^-3 - x^-2 + x^-1 + 4*x^4 + O(x^5)
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
-        return LaurentSeries(self.parent(),
+        return LaurentSeries(self._parent,
                              self.__u * right.__u,
                              self.__n + right.__n)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement c):
-        return LaurentSeries(self.parent(), c * self.__u, self.__n)
+        return LaurentSeries(self._parent, c * self.__u, self.__n)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement c):
-        return LaurentSeries(self.parent(), self.__u * c, self.__n)
+        return LaurentSeries(self._parent, self.__u * c, self.__n)
 
     def __pow__(_self, r, dummy):
         """
@@ -508,7 +511,7 @@ cdef class LaurentSeries(AlgebraElement):
         right=int(r)
         if right != r:
             raise ValueError, "exponent must be an integer"
-        return LaurentSeries(self.parent(), self.__u**right, self.__n*right)
+        return LaurentSeries(self._parent, self.__u**right, self.__n*right)
 
     def shift(self, k):
         r"""
@@ -537,13 +540,13 @@ cdef class LaurentSeries(AlgebraElement):
         AUTHOR:
             -- Robert Bradshaw (2007-04-18)
         """
-        return LaurentSeries(self.parent(), self.__u, self.__n + k)
+        return LaurentSeries(self._parent, self.__u, self.__n + k)
 
     def __lshift__(LaurentSeries self, k):
-        return LaurentSeries(self.parent(), self.__u, self.__n + k)
+        return LaurentSeries(self._parent, self.__u, self.__n + k)
 
     def __rshift__(LaurentSeries self, k):
-        return LaurentSeries(self.parent(), self.__u, self.__n - k)
+        return LaurentSeries(self._parent, self.__u, self.__n - k)
 
 
     cdef RingElement _div_c_impl(self, RingElement right_r):
@@ -561,7 +564,7 @@ cdef class LaurentSeries(AlgebraElement):
         if right.__u.is_zero():
             raise ZeroDivisionError
         try:
-            return LaurentSeries(self.parent(),
+            return LaurentSeries(self._parent,
                              self.__u / right.__u,
                              self.__n - right.__n)
         except TypeError, msg:
@@ -704,7 +707,7 @@ cdef class LaurentSeries(AlgebraElement):
             sage: f.variable()
             'x'
         """
-        return self.parent().variable_name()
+        return self._parent.variable_name()
 
     def prec(self):
         """
@@ -722,10 +725,10 @@ cdef class LaurentSeries(AlgebraElement):
             sage: g.prec()
             8
         """
-        return self.__u.prec() + self.valuation()
+        return self.__u.prec() + self.__n
 
     def copy(self):
-        return LaurentSeries(self.parent(), self.__u.copy(), self.__n)
+        return LaurentSeries(self._parent, self.__u.copy(), self.__n)
 
     def derivative(self):
         """
@@ -741,12 +744,12 @@ cdef class LaurentSeries(AlgebraElement):
             -10*x^-11 - 1 + 2*x - 4*x^3 + O(x^7)
         """
         if self.is_zero():
-            return LaurentSeries(self.parent(), 0, self.__u.prec() - 1)
-        n = self.__n
+            return LaurentSeries(self._parent, 0, self.__u.prec() - 1)
+        cdef long m, n = self.__n
         a = self.__u.list()
-        v = [(n+m)*a[m] for m in range(len(a))]
-        u = self.parent().power_series_ring()(v, self.__u.prec())
-        return LaurentSeries(self.parent(), u, n-1)
+        v = [(n+m)*a[m] for m from 0 <= m < len(a)]
+        u = self._parent.power_series_ring()(v, self.__u.prec())
+        return LaurentSeries(self._parent, u, n-1)
 
     def integral(self):
         r"""
@@ -776,7 +779,7 @@ cdef class LaurentSeries(AlgebraElement):
             ...
             ArithmeticError: The integral of is not a Laurent series, since t^-1 has nonzero coefficient.
         """
-        n = self.__n
+        cdef long i, n = self.__n
         a = self.__u.list()
         if self[-1] != 0:
             raise ArithmeticError, \
@@ -788,10 +791,10 @@ cdef class LaurentSeries(AlgebraElement):
             v = []
         v += [a[i]/(n+i+1) for i in range(max(-n,0), len(a))]
         try:
-            u = self.parent().power_series_ring()(v, self.__u.prec())
+            u = self._parent.power_series_ring()(v, self.__u.prec())
         except TypeError:
             raise ArithmeticError, "Coefficients of integral cannot be coerced into the base ring"
-        return LaurentSeries(self.parent(), u, n+1)
+        return LaurentSeries(self._parent, u, n+1)
 
 
     def power_series(self):

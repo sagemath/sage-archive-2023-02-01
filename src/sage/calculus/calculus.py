@@ -394,14 +394,14 @@ class SymbolicExpression(RingElement):
             sqrt(pi)*((sqrt(2)*I + sqrt(2))*erf((sqrt(2)*I + sqrt(2))*x/2) + (sqrt(2)*I - sqrt(2))*erf((sqrt(2)*I - sqrt(2))*x/2))/8
             sage: print f
                                                          (sqrt(2)  I + sqrt(2)) x
-                   sqrt( Pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                   sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
                                                                     2
                                                                (sqrt(2)  I - sqrt(2)) x
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
         """
         s = self._maxima_().display2d(onscreen=False)
-        s = s.replace('%pi',' Pi').replace('%i',' I').replace('%e', ' E')
+        s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
         if onscreen:
             print s
         else:
@@ -1041,12 +1041,12 @@ class SymbolicExpression(RingElement):
                      x y  + Sqrt[--] FresnelS[Sqrt[--] x]
                                  2                 Pi
             sage: print f.integral(x)
-                      z                                         (sqrt(2)  I + sqrt(2)) x
-                   x y  + sqrt( Pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
-                                                                           2
-                                                               (sqrt(2)  I - sqrt(2)) x
-                                  + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
-                                                                          2
+                  z                                         (sqrt(2)  I + sqrt(2)) x
+               x y  + sqrt( pi) ((sqrt(2)  I + sqrt(2)) erf(------------------------)
+                                                                       2
+                                                           (sqrt(2)  I - sqrt(2)) x
+                              + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
+                                                                      2
 
         We integrate the above function in maple now:
             sage: g = maple(f); g                             # optional -- requires maple
@@ -1086,6 +1086,19 @@ class SymbolicExpression(RingElement):
 
     integrate = integral
 
+
+    ###################################################################
+    # solve
+    ###################################################################
+    def solve(self, var):
+        r"""
+        Solve the equation \code{self == 0} for the given variable.
+
+        EXAMPLES:
+            sage: solve(z^5 - 1, z)
+            [z == e^(2*I*pi/5), z == e^(4*I*pi/5), z == e^(-(4*I*pi/5)), z == e^(-(2*I*pi/5)), z == 1]
+        """
+        return (self == 0).solve(var)
 
     ###################################################################
     # simplify

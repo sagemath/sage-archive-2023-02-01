@@ -251,7 +251,7 @@ sage: # Yes, in that the thing is clearly not equal to 0!
 sage: f = log(tan(x/2 + pi/4)) - asin(tan(x))
 sage: bool(f == 0)
 False
-sage: [float(f(i/10)) for i in range(1,5)]
+sage: [float(f(i/10)) for i in range(1,5)]           # random low order bits
 [-0.00033670040754082975, -0.0027778004096620235, -0.0098909940914040928, -0.025411145508414501]
 
 sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 and its derivative at x=0 are zero.
@@ -261,13 +261,13 @@ sage: print float(f(0))
 sage: print float(g(0))
 -1.11022302463e-16
 sage: print g
-                         2 x    Pi
-                      sec (- + ---)	       2
-                           2    4	    sec (x)
+                         2 x    pi
+                      sec (- + ---)            2
+                           2    4           sec (x)
                       -------------- - -----------------
-                            x    Pi		   2
+                            x    pi                2
                       2 tan(- + ---)   sqrt(1 - tan (x))
-                            2	 4
+                            2    4
 
 
 sage: # (NO?) Ln((2*Sqrt(r) + 1)/Sqrt(4*r 4*Sqrt(r) 1))=0.
@@ -316,16 +316,16 @@ sage: print a
 sage: print a.real()
                                    sin(2 x)
                           --------------------------
-                            2 y	    - 2 y
-                           E    +  E
+                            2 y     - 2 y
+                           e    +  e
                           --------------- + cos(2 x)
                                  2
 sage: print a.imag()
-                                 2 y	 - 2 y
-                                E    -  E
+                                 2 y     - 2 y
+                                e    -  e
                         ------------------------------
                              2 y     - 2 y
-                            E    +  E
+                            e    +  e
                         2 (--------------- + cos(2 x))
                                   2
 
@@ -432,9 +432,7 @@ x/abs(x)
 
 sage: # (NO) (Integrate(x)Abs(x))=Abs(x)*x/2
 sage: integral(abs(x), x)
-Traceback (most recent call last):
-...
-TypeError: unable to make sense of Maxima expression ''integrate(abs(x),x)' in SAGE
+integrate(abs(x), x)
 
 sage: #  (YES) Compute derivative of Abs(x), piecewise defined.
 sage: #     Verify(D(x)if(x<0) (-x) else x,

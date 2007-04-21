@@ -91,11 +91,11 @@ def function(s, *args):
         sage: g.diff(y)
         (x, y) |--> cos(y/2)/2
         sage: g.diff(x)
-        (x, y) |--> 2*supersin(x)*(diff(supersin(x), x, 1))
+        (x, y) |--> 2*supersin(x)*diff(supersin(x), x, 1)
         sage: k = g.diff(x); k
-        (x, y) |--> 2*supersin(x)*(diff(supersin(x), x, 1))
+        (x, y) |--> 2*supersin(x)*diff(supersin(x), x, 1)
         sage: k.substitute(supersin=sin)
-        2*sin(x)*(diff(supersin(x), x, 1))
+        2*sin(x)*diff(supersin(x), x, 1)
     """
     if len(args) > 0:
         return function(s)(*args)

@@ -1,9 +1,28 @@
 r"""
-Preliminary support for equations and solutions in \sage.
+Symbolic Equations and Inequalities.
 
-AUTHOR:
-    -- Bobby Moretti initial version
-    -- William Stein: rewrite; add inequalities
+SAGE can solving symbolic equations and expressing inequalities.
+For example, we derive the quadratic formula as follows:
+
+    sage: qe = (a*x^2 + b*x + c == 0)
+    sage: print qe
+                                     2
+                                  a x  + b x + c == 0
+    sage: print solve(qe, x)
+    [
+                                          2
+                                  - sqrt(b  - 4 a c) - b
+                              x == ----------------------
+                                           2 a,
+                                         2
+                                   sqrt(b  - 4 a c) - b
+                               x == --------------------
+                                           2 a
+    ]
+
+AUTHORS:
+    -- Bobby Moretti: initial version
+    -- William Stein: second version
 
 EXAMPLES:
     sage: f = x^2 + y^2 == 1
@@ -17,11 +36,10 @@ EXAMPLES:
 
 _assumptions = []
 
-from sage.structure.all import SageObject
-from sage.interfaces.maxima import maxima
-
-
-from sage.misc.sage_eval import sage_eval
+from sage.structure.sage_object import SageObject
+from sage.structure.sequence    import Sequence
+from sage.interfaces.maxima     import maxima
+from sage.misc.sage_eval        import sage_eval
 
 import operator
 
@@ -82,7 +100,7 @@ class SymbolicEquation(SageObject):
         """
         EXAMPLES:
             sage: f =  (x+y+w) == (x^2 - y^2 - z^3);   f
-            (x + y + w) == (x^2 - y^2 - z^3)
+            (y + x + w) == (-z^3 - y^2 + x^2)
             sage: f.variables()
             [w, x, y, z]
         """
@@ -114,7 +132,7 @@ class SymbolicEquation(SageObject):
                                               x  - x == 0
         """
         s = self._maxima_().display2d(onscreen=False)
-        s = s.replace('%pi',' Pi').replace('%i',' I').replace('%e', ' E').replace(' = ',' == ')
+        s = s.replace('%pi','pi').replace('%i',' I').replace('%e', ' e').replace(' = ',' == ')
         return s
 
     def _latex_(self):
@@ -282,7 +300,7 @@ def assumptions():
         sage: forget()
         sage: assume(x^2+y^2 > 0)
         sage: assumptions()
-        [(x^2 + y^2) > 0]
+        [(y^2 + x^2) > 0]
         sage: forget(x^2+y^2 > 0)
         sage: assumptions()
         []
@@ -334,7 +352,11 @@ def solve(f, *args, **kwds):
     else:
         return f.solve(*args, **kwds)
 
+import sage.categories.all
+objs = sage.categories.all.Objects()
+
 def string_to_list_of_solutions(s):
     from sage.calculus.calculus import symbolic_expression_from_maxima_string
-    return symbolic_expression_from_maxima_string(s, equals_sub=True)
+    v = symbolic_expression_from_maxima_string(s, equals_sub=True)
+    return Sequence(v, universe=objs)
 

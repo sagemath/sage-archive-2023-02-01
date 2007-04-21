@@ -204,13 +204,13 @@ def extract_doc(file_name, module):
         s += "\tr"+doc_preparse(F[i:j+3]) + "\n\n"
         F = F[j+3:]
 
-    i = F.find('def __doctest_cleanup')
-    if i != -1:
-        s += F[i:] + '\n'
-        s += test_code()
-        s += '    __doctest_cleanup()\n'
-    else:
-        s += test_code()
+    #i = F.find('def __doctest_cleanup')
+    #if i != -1:
+    #    s += F[i:] + '\n'
+    #    s += test_code()
+    #    s += '    __doctest_cleanup()\n'
+    #else:
+    s += test_code()
     s += '    sys.exit(s[0])'
 
 

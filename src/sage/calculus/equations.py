@@ -1,4 +1,4 @@
-"""
+r"""
 Preliminary support for equations and solutions in \sage.
 
 AUTHOR:

@@ -8,6 +8,7 @@ AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
    -- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
+   -- Robert Bradshaw (2007-04): SageX version
 
 EXAMPLE:
     sage: R.<x> = PowerSeriesRing(ZZ)
@@ -74,45 +75,52 @@ With power series the behavior is the same.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+include "../ext/stdsage.pxi"
+
 import operator
 
 from infinity import infinity, is_Infinite
 from polynomial_ring import PolynomialRing
-import polynomial_element_generic as polynomial
+import polynomial_element_generic
 import polynomial_element
 import power_series_ring
-import sage.misc.misc as misc
+import sage.misc.misc
 import ring_element
 import arith
-import sage.misc.latex as latex
+import sage.misc.latex
 import sage.structure.coerce
 import rational_field, integer_ring
 from integer import Integer
 from integer_mod_ring import IntegerModRing
-import sage.libs.pari.all as pari
-import sage.misc.latex as latex
+import sage.libs.pari.all
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import ceil
 
 Polynomial = polynomial_element.Polynomial_generic_dense
 
+from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
+
 def is_PowerSeries(x):
     return isinstance(x, PowerSeries)
 
-class PowerSeries(ring_element.RingElement):
+cdef class PowerSeries(AlgebraElement):
     """
     A power series.
     """
+
     def __init__(self, parent, prec, is_gen=False):
         """
         Initialize a power series.
         """
-        ring_element.RingElement.__init__(self, parent)
+        AlgebraElement.__init__(self, parent)
         self.__is_gen = is_gen
         if not (prec is infinity):
             prec = int(prec)
         self._prec = prec
+
+    def __reduce__(self):
+        return make_element_from_parent, (self._parent, self.polynomial(), self.prec())
 
     def is_sparse(self):
         """
@@ -124,7 +132,7 @@ class PowerSeries(ring_element.RingElement):
             sage: t.is_sparse()
             True
         """
-        return self.parent().is_sparse()
+        return self._parent.is_sparse()
 
     def is_dense(self):
         """
@@ -136,7 +144,7 @@ class PowerSeries(ring_element.RingElement):
             sage: t.is_dense()
             False
         """
-        return self.parent().is_dense()
+        return self._parent.is_dense()
 
     def is_gen(self):
         """
@@ -156,7 +164,7 @@ class PowerSeries(ring_element.RingElement):
             sage: 1*t == t
             True
         """
-        return self.__is_gen
+        return bool(self.__is_gen)
 
     def _im_gens_(self, codomain, im_gens):
         """
@@ -180,7 +188,7 @@ class PowerSeries(ring_element.RingElement):
             sage: (t - t^2) * Mod(1, 3)
             t + 2*t^2
         """
-        S = self.parent().base_extend(R)
+        S = self._parent.base_extend(R)
         return S(self)
 
     def change_ring(self, R):
@@ -219,10 +227,13 @@ class PowerSeries(ring_element.RingElement):
             TypeError: Unable to coerce a + 1 to an integer
 
         """
-        S = self.parent().change_ring(R)
+        S = self._parent.change_ring(R)
         return S(self)
 
-    def __cmp__(self, right):
+    def __cmp__(left, right):
+        return (<Element>left)._cmp(right)
+
+    cdef int _cmp_c_impl(self, Element right) except -2:
         r"""
         Comparison of self and right.
 
@@ -248,6 +259,11 @@ class PowerSeries(ring_element.RingElement):
             sage: 1 - 2*q + q^2 +O(q^3) == 1 - 2*q^2 + q^2 + O(q^4)
             False
         """
+        # A very common case throughout code
+        # TODO: change code to use is_zero() or equivalent
+        if PY_TYPE_CHECK(right, int):
+            return self.is_zero()
+
         prec = self.common_prec(right)
         x = self.list()
         y = right.list()
@@ -291,7 +307,7 @@ class PowerSeries(ring_element.RingElement):
             sage: (t^2 + O(t^3)).base_ring()
             Finite Field in alpha of size 7^2
         """
-        return self.parent().base_ring()
+        return self._parent.base_ring()
 
     def padded_list(self, n):
         """
@@ -314,7 +330,7 @@ class PowerSeries(ring_element.RingElement):
         """
         v = self.list()
         if len(v) < n:
-            z = self.parent().base_ring()(0)
+            z = self._parent.base_ring()(0)
             return v + [z]*(n - len(v))
         else:
             return v[:int(n)]
@@ -356,10 +372,10 @@ class PowerSeries(ring_element.RingElement):
             if self.prec() is infinity:
                 return "0"
             else:
-                return "O(%s^%s)"%(self.parent().variable_name(),self.prec())
+                return "O(%s^%s)"%(self._parent.variable_name(),self.prec())
 
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
-        X = self.parent().variable_name()
+        atomic_repr = self._parent.base_ring().is_atomic_repr()
+        X = self._parent.variable_name()
 
         s = " "
         if self.is_sparse():
@@ -412,9 +428,9 @@ class PowerSeries(ring_element.RingElement):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
-                bigoh = "O(%s)"%self.parent().variable_name()
+                bigoh = "O(%s)"%self._parent.variable_name()
             else:
-                bigoh = "O(%s^%s)"%(self.parent().variable_name(),self._prec)
+                bigoh = "O(%s^%s)"%(self._parent.variable_name(),self._prec)
             if s==" ":
                 return bigoh
             s += " + %s"%bigoh
@@ -439,15 +455,15 @@ class PowerSeries(ring_element.RingElement):
         s = " "
         v = self.list()
         m = len(v)
-        X = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        X = self._parent.variable_name()
+        atomic_repr = self._parent.base_ring().is_atomic_repr()
         first = True
         for n in xrange(m):
             x = v[n]
             if x != 0:
                 if not first:
                     s += " + "
-                x = latex.latex(x)
+                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
@@ -471,9 +487,9 @@ class PowerSeries(ring_element.RingElement):
             if self._prec == 0:
                 bigoh = "O(1)"
             elif self._prec == 1:
-                bigoh = "O(%s)"%latex.latex(self.parent().variable_name())
+                bigoh = "O(%s)"%sage.misc.latex.latex(self._parent.variable_name())
             else:
-                bigoh = "O(%s^{%s})"%(latex.latex(self.parent().variable_name()),self._prec)
+                bigoh = "O(%s^{%s})"%(sage.misc.latex.latex(self._parent.variable_name()),self._prec)
             if s == " ":
                 return bigoh
             s += " + %s"%bigoh
@@ -495,7 +511,7 @@ class PowerSeries(ring_element.RingElement):
             prec = self._prec
         a = self.list()
         v = [a[i] for i in range(min(prec, len(a)))]
-        return self.parent()._poly_ring()(v)
+        return self._parent._poly_ring()(v)
 
     def add_bigoh(self, prec):
         r"""
@@ -513,7 +529,7 @@ class PowerSeries(ring_element.RingElement):
             return self
         a = self.list()
         v = [a[i] for i in range(min(prec, len(a)))]
-        return self.parent()(v, prec)
+        return self._parent(v, prec)
 
     def __getitem__(self,n):
         r"""
@@ -586,13 +602,24 @@ class PowerSeries(ring_element.RingElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def _mul_(self, right):
+    cdef common_prec_c(self, PowerSeries f):
+        if self._prec is infinity:
+            return f._prec
+        elif f._prec is infinity:
+            return self._prec
+        elif self._prec < f._prec:
+            return self._prec
+        else:
+            return f._prec
+
+    cdef RingElement _mul_c_impl(self, RingElement right_r):
+        cdef PowerSeries right = <PowerSeries>right_r
         if self.is_zero():
             return self
         if right.is_zero():
             return right
-        sp = self.prec()
-        rp = right.prec()
+        sp = self._prec
+        rp = right_.prec
         if sp is infinity:
             if rp is infinity:
                 prec = infinity
@@ -604,7 +631,7 @@ class PowerSeries(ring_element.RingElement):
             else:
                 prec = min(rp + self.valuation(), sp + right.valuation())
         # endif
-        return self._mul_(right, prec)
+        return self._mul_(right, prec) # ???
 
     def is_zero(self):
         """
@@ -703,10 +730,10 @@ class PowerSeries(ring_element.RingElement):
             return self
         prec = self.prec()
         if prec is infinity and self.degree() > 0:
-            prec = self.parent().default_prec()
+            prec = self._parent.default_prec()
         if self.valuation() > 0:
             u = ~self.valuation_zero_part()    # inverse of unit part
-            R = self.parent().laurent_series_ring()
+            R = self._parent.laurent_series_ring()
             return R(u, -self.valuation())
 
         # Use Newton's method, i.e. start with single term approximation,
@@ -719,7 +746,7 @@ class PowerSeries(ring_element.RingElement):
             raise ZeroDivisionError, "leading coefficient must be a unit"
 
         if prec is infinity:
-            return self.parent()(first_coeff, prec=prec)
+            return self._parent(first_coeff, prec=prec)
 
         A = self.truncate()
         R = A.parent()     # R is the corresponding polynomial ring
@@ -733,11 +760,11 @@ class PowerSeries(ring_element.RingElement):
         # todo: also, NTL has built-in series inversion. We should use
         # that when available.
 
-        for next_prec in misc.newton_method_sizes(prec)[1:]:
+        for next_prec in sage.misc.misc.newton_method_sizes(prec)[1:]:
             z = current.square() * A.truncate(next_prec)
             current = 2*current - z.truncate(next_prec)
 
-        return self.parent()(current, prec=prec)
+        return self._parent(current, prec=prec)
 
         # Here is the old code, which uses a simple recursion, and is
         # asymptotically inferior:
@@ -784,7 +811,9 @@ class PowerSeries(ring_element.RingElement):
         if self.is_zero():
             raise ValueError, "power series has no valuation 0 part"
         n = self.valuation()
-        if self.is_dense():
+        if n == 0:
+            return self
+        elif self.is_dense():
             v = self.list()[int(n):]
         else:
             n = int(n)
@@ -792,9 +821,9 @@ class PowerSeries(ring_element.RingElement):
             for k, x in self.dict().iteritems():
                 if k >= n:
                     v[k-n] = x
-        return self.parent()(v, self.prec()-n)
+        return self._parent(v, self.prec()-n)
 
-    def _div_(self, denom):
+    cdef RingElement _div_c_impl(self, RingElement denom_r):
         """
         EXAMPLES:
             sage: k.<t> = QQ[[]]
@@ -805,12 +834,13 @@ class PowerSeries(ring_element.RingElement):
             sage: (t^5/(t^2 - 2)) * (t^2 -2 )
             t^5 + O(t^25)
         """
+        denom = <PowerSeries>denom_r
         u = denom.valuation_zero_part()
         inv = ~u  # inverse
 
         v = denom.valuation()
         if v > self.valuation():
-            R = self.parent().laurent_series_ring()
+            R = self._parent.laurent_series_ring()
             return R(self)/R(denom)
 
         # Algorithm: Cancel common factors of q from top and bottom,
@@ -819,7 +849,7 @@ class PowerSeries(ring_element.RingElement):
         # of power series).
 
         if v > 0:
-            num = self.parent()(self.valuation_zero_part().polynomial(), self.prec()-v)
+            num = self >> v
         else:
             num = self
         return num*inv
@@ -864,13 +894,13 @@ class PowerSeries(ring_element.RingElement):
         AUTHOR:
             -- Robert Bradshaw (2007-04-18)
         """
-        return self.parent()(self.polynomial().shift(n), self.prec() + n)
+        return self._parent(self.polynomial().shift(n), self._prec + n)
 
     def __lshift__(self, n):
-        return self.parent()(self.polynomial() << n, self.prec() + n)
+        return self.parent()(self.polynomial() << n, self.prec())
 
     def __rshift__(self, n):
-        return self.parent()(self.polynomial() >> n, self.prec() - n)
+        return self.parent()(self.polynomial() >> n, self.prec())
 
 
     def sqrt(self):
@@ -906,20 +936,20 @@ class PowerSeries(ring_element.RingElement):
         AUTHORS:
             -- Robert Bradshaw
         """
-        if self == 0:
-            return self.parent()(0).O(self.prec()/2)
+        if self.is_zero():
+            return self._parent(0).O(self.prec()/2)
 
         val = self.valuation()
-        if val % 2 == 1:
+        if val is not infinity and val % 2 == 1:
             raise ValueError, "Square root not defined for power series of odd valuation."
 
         prec = self.prec()
         if prec is infinity and self.degree() > 0:
-            prec = self.parent().default_prec()
+            prec = self._parent.default_prec()
 
         a = self.valuation_zero_part()
-        x = sqrt(a[0])
-        newp = self.parent().base_extend(x.parent())
+        x = a[0].sqrt()
+        newp = self._parent.base_extend(x.parent())
         a = newp(a)
         half = ~newp.base_ring()(2)
 
@@ -937,7 +967,7 @@ class PowerSeries(ring_element.RingElement):
         if prec is infinity or prec >= self.prec():
             return self
         coeffs = self[:prec]
-        return self.parent()(coeffs, prec)
+        return self._parent(coeffs, prec)
 
 
     def solve_linear_de(self, prec = infinity, b = None, f0 = None):
@@ -1004,7 +1034,7 @@ class PowerSeries(ring_element.RingElement):
             3/5 + 21/5*t + 33/10*t^2 - 38/15*t^3 + 11/24*t^4 + O(t^5)
         """
         if b is None:
-            b = self.parent()(0)
+            b = self._parent(0)
 
         if f0 is None:
             f0 = 1
@@ -1017,13 +1047,13 @@ class PowerSeries(ring_element.RingElement):
                  "cannot solve differential equation to infinite precision"
         prec = int(prec)
         if prec == 0:
-            return self.parent()(0, 0)
+            return self._parent(0, 0)
         if prec < 0:
             raise ValueError, \
                   "prec (=%s) must be a non-negative integer" % prec
 
-        base_ring = self.parent().base_ring()
-        R = PolynomialRing(base_ring, self.parent().variable_name())
+        base_ring = self._parent.base_ring()
+        R = PolynomialRing(base_ring, self._parent.variable_name())
 
         a_list = self.list()
         b_list = [base_ring(0)]
@@ -1031,7 +1061,7 @@ class PowerSeries(ring_element.RingElement):
         while len(b_list) < prec:
             b_list.append(base_ring(0))
         f = _solve_linear_de(R, 0, prec, a_list, b_list, f0)
-        return self.parent()(f, prec)
+        return self._parent(f, prec)
 
 
     def exp(self, prec=None):
@@ -1088,7 +1118,7 @@ class PowerSeries(ring_element.RingElement):
 
         """
         if prec is None:
-            prec = self.parent().default_prec()
+            prec = self._parent.default_prec()
         if not self[0].is_zero():
             raise ValueError, "constant term must to zero"
         return self.derivative().solve_linear_de(prec)
@@ -1108,7 +1138,7 @@ class PowerSeries(ring_element.RingElement):
             else:
                 w.append(v[m])
                 m += 1
-        return self.parent()(w, self.prec()*n)
+        return self._parent(w, self.prec()*n)
 
     def valuation(self):
         """
@@ -1146,7 +1176,7 @@ class PowerSeries(ring_element.RingElement):
         AUTHOR:
             -- David Harvey (2006-08-08)
         """
-        return self.parent().variable_name()
+        return self._parent.variable_name()
 
     def degree(self):
         """
@@ -1170,8 +1200,9 @@ class PowerSeries(ring_element.RingElement):
 #        del v[n]
 #        n -= 1
 
-class PowerSeries_poly(PowerSeries):
-    def __init__(self, parent, f=0, prec=infinity, check=True, is_gen=False):
+cdef class PowerSeries_poly(PowerSeries):
+
+    def __init__(self, parent, f=0, prec=infinity, int check=1, is_gen=0):
         """
         EXAMPLES:
             sage: R, q = PowerSeriesRing(CC, 'q').objgen()
@@ -1181,36 +1212,46 @@ class PowerSeries_poly(PowerSeries):
             True
         """
         R = parent._poly_ring()
-        try:
-            if f.parent() is parent.base_ring():
-                f = R([parent.base_ring()(f)])
-        except AttributeError:
-            pass
-        if not (isinstance(f, polynomial.Polynomial) and f.parent() is R):
-            if isinstance(f, PowerSeries_poly):
-                prec = f.prec()
-                f = R(f.__f)
+        if PY_TYPE_CHECK(f, Element):
+            if (<Element>f)._parent is R:
+                pass
+            elif (<Element>f)._parent is R.base_ring():
+                f = R([f])
+            elif PY_TYPE_CHECK(f, PowerSeries_poly):
+                prec = (<PowerSeries_poly>f)._prec
+                f = R((<PowerSeries_poly>f).__f)
             else:
                 f = R(f, check=check)
+        else:
+            f = R(f, check=check)
 
         self.__f = f
         if check and not (prec is infinity):
             self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
 
-    def __pow__(self, r):
-        right = int(r)
+    def __reduce__(self):
+        # TODO: find out what's going on with ring pickling
+        params = (self._parent.base_ring(), self._parent.variable_name(), self._parent.default_prec(), self._parent.variable_names(), self._parent.is_sparse())
+        return make_powerseries_poly, (params, self.__f, self._prec, 0, self.__is_gen)
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    def __pow__(self_t, r, dummy):
+        cdef PowerSeries_poly self = self_t
+        cdef int right = r
         if right != r:
             raise ValueError, "exponent must be an integer"
         if right < 0:
             return (~self)**(-right)
         if right == 0:
-            return self.parent()(1)
-        if self.is_gen():
-            return PowerSeries_poly(self.parent(), self.__f**right, check=False)
+            return self._parent(1)
+        if self.__is_gen:
+            return PowerSeries_poly(self._parent, self.__f**right, check=False)
         if self.is_zero():
             return self
-        return arith.generic_power(self, right, self.parent()(1))
+        return arith.generic_power(self, right, self._parent(1))
 
     def polynomial(self):
         """
@@ -1221,6 +1262,12 @@ class PowerSeries_poly(PowerSeries):
             6*t^3 + 3
         """
         return self.__f
+
+    def valuation(self):
+        return self.__f.valuation()
+
+    def degree(self):
+        return self.__f.degree()
 
     def __call__(self, *xs):
         """
@@ -1234,7 +1281,7 @@ class PowerSeries_poly(PowerSeries):
             xs = xs[0]
         x = xs[0]
         try:
-            if x.parent() is self.parent():
+            if x.parent() is self._parent:
                 if not (self.prec() is infinity):
                     x = x.add_bigoh(self.prec()*x.valuation())
                     xs = list(xs); xs[0] = x; xs = tuple(xs) # tuples are immutable
@@ -1268,7 +1315,7 @@ class PowerSeries_poly(PowerSeries):
             sage: f[2:4]
             80*t^2 - 40*t^3 + O(t^7)
         """
-        return PowerSeries_poly(self.parent(), self.__f[i:j], prec=self.prec(), check=False)
+        return PowerSeries_poly(self._parent, self.__f[i:j], prec=self.prec(), check=False)
 
     def _unsafe_mutate(self, i, value):
         """
@@ -1340,8 +1387,7 @@ class PowerSeries_poly(PowerSeries):
             sage: for a in f: print a,
             0 1 0 17/5 2
         """
-        for i in range(self.__f.degree()+1):
-            yield self.__f[i]
+        return iter(self.__f)
 
     def __neg__(self):
         """
@@ -1353,10 +1399,10 @@ class PowerSeries_poly(PowerSeries):
             sage: -f
             -t - 17/5*t^3 - 2*t^4 + O(t^5)
         """
-        return PowerSeries_poly(self.parent(), -self.__f,
+        return PowerSeries_poly(self._parent, -self.__f,
                                          self._prec, check=False)
 
-    def _add_(self, right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement right_m):
         """
         EXAMPLES:
             sage: R.<x> = PowerSeriesRing(ZZ)
@@ -1367,10 +1413,11 @@ class PowerSeries_poly(PowerSeries):
             sage: f+g
             x^2 + O(x^3)
         """
-        return PowerSeries_poly(self.parent(), self.__f + right.__f, \
-                                         self.common_prec(right), check=True)
+        cdef PowerSeries_poly right = <PowerSeries_poly>right_m
+        return PowerSeries_poly(self._parent, self.__f + right.__f, \
+                                         self.common_prec_c(right), check=True)
 
-    def _sub_(self, right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right_m):
         """
         Return difference of two power series.
 
@@ -1380,10 +1427,11 @@ class PowerSeries_poly(PowerSeries):
             sage: w*t^2 -w*t +13 - (w*t^2 + w*t)
             13 + -2*w*t
         """
-        return PowerSeries_poly(self.parent(), self.__f - right.__f, \
-                                         self.common_prec(right), check=True)
+        cdef PowerSeries_poly right = <PowerSeries_poly>right_m
+        return PowerSeries_poly(self._parent, self.__f - right.__f, \
+                                         self.common_prec_c(right), check=True)
 
-    def _mul_(self, right):
+    cdef RingElement _mul_c_impl(self, RingElement right_r):
         """
         Return the product of two power series.
 
@@ -1392,8 +1440,9 @@ class PowerSeries_poly(PowerSeries):
             sage: (1+17*w+15*w^3+O(w^5))*(19*w^10+O(w^12))
             19*w^10 + 323*w^11 + O(w^12)
         """
-        sp = self.prec()
-        rp = right.prec()
+        cdef PowerSeries_poly right = <PowerSeries_poly>right_r
+        sp = self._prec
+        rp = right._prec
         if is_Infinite(sp):
             if is_Infinite(rp):
                 prec = infinity
@@ -1404,34 +1453,39 @@ class PowerSeries_poly(PowerSeries):
                 prec = sp + right.valuation()
             else:
                 prec = min(rp + self.valuation(), sp + right.valuation())
-        return PowerSeries_poly(self.parent(),
+        return PowerSeries_poly(self._parent,
                                          self.__f * right.__f,
                                          prec,
                                          check=True)  # check, since truncation may be needed
 
     def _rmul_(self, c):
-        return PowerSeries_poly(self.parent(), c * self.__f, self._prec, check=False)
+        return PowerSeries_poly(self._parent, c * self.__f, self._prec, check=False)
 
     def _lmul_(self, c):
-        return PowerSeries_poly(self.parent(), self.__f * c, self._prec, check=False)
+        return PowerSeries_poly(self._parent, self.__f * c, self._prec, check=False)
 
 
     def __floordiv__(self, denom):
         try:
             return PowerSeries.__div__(self, denom)
         except (PariError, ZeroDivisionError), e: # PariError to general?
-            if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self.parent().base_ring():
+            if is_PowerSeries(denom) and denom.degree() == 0 and denom[0] in self._parent.base_ring():
                 denom = denom[0]
-            elif not denom in self.parent().base_ring():
+            elif not denom in self._parent.base_ring():
                 raise ZeroDivisionError, e
-            return PowerSeries_poly(self.parent(),
+            return PowerSeries_poly(self._parent,
                                              self.__f // denom, self._prec)
 
+    def __lshift__(_self, n):
+        cdef PowerSeries_poly self = _self
+        return PowerSeries_poly(self._parent, self.__f << n, self._prec + n)
 
+    def __rshift__(_self, n):
+        cdef PowerSeries_poly self = _self
+        return PowerSeries_poly(self._parent, self.__f >> n, self._prec - n)
 
     def copy(self):
-        return PowerSeries_poly(self.parent(), self.__f, self.prec(),
-                                         check=False)
+        return PowerSeries_poly(self._parent, self.__f, self.prec(), check=False)
 
     def list(self):
         return self.__f.list()
@@ -1450,7 +1504,7 @@ class PowerSeries_poly(PowerSeries):
             sage: f.derivative()
             6*t + 100000*t^99999 + O(t^9999999)
         """
-        return PowerSeries_poly(self.parent(), self.__f.derivative(),
+        return PowerSeries_poly(self._parent, self.__f.derivative(),
                                          self.prec()-1, check=False)
 
     def integral(self):
@@ -1462,7 +1516,7 @@ class PowerSeries_poly(PowerSeries):
             sage: (1+17*w+15*w^3+O(w^5)).integral()
             w + 17/2*w^2 + 15/4*w^4 + O(w^6)
         """
-        return PowerSeries_poly(self.parent(), self.__f.integral(),
+        return PowerSeries_poly(self._parent, self.__f.integral(),
                                          self.prec()+1, check=False)
 
     def laurent_series(self):
@@ -1478,7 +1532,7 @@ class PowerSeries_poly(PowerSeries):
             sage: g = f.laurent_series(); g
             1 + 17*w + 15*w^3 + O(w^5)
         """
-        return self.parent().laurent_series_ring()(self)
+        return self._parent.laurent_series_ring()(self)
 
     def ogf(self):
         r"""
@@ -1553,7 +1607,7 @@ class PowerSeries_poly(PowerSeries):
             raise NotImplementedError
         if self.prec() is infinity:
             raise RuntimeError, "series precision must be finite for conversion to pari object."
-        return pari.pari(str(self))
+        return sage.libs.pari.all.pari(str(self))
 
 
 
@@ -1648,3 +1702,10 @@ def _solve_linear_de(R, N, L, a, b, f0):
     g.extend(h)
     return g
 
+
+# TODO: fix pickling of PowerSeriesRing
+def make_powerseries_poly(params, *args):
+    return PowerSeries_poly(power_series_ring.PowerSeriesRing(*params), *args)
+
+def make_element_from_parent(parent, *args):
+    return parent(*args)

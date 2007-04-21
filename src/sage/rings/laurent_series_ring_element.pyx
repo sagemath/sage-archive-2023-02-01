@@ -61,8 +61,6 @@ cdef class LaurentSeries(AlgebraElement):
     A Laurent Series.
     """
 
-    cdef __u, __n
-
     def __init__(self, parent, f, n=0):
         r"""
         Create the Laurent series $t^n \cdot f$.  The default is n=0.

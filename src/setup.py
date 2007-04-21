@@ -466,8 +466,8 @@ ext_modules = [ \
     Extension('sage.rings.polynomial_element',
               sources = ['sage/rings/polynomial_element.pyx']), \
 
-    Extension('sage.rings.laurent_series_ring_element_pyx',
-              sources = ['sage/rings/laurent_series_ring_element_pyx.pyx']), \
+    Extension('sage.rings.laurent_series_ring_element',
+              sources = ['sage/rings/laurent_series_ring_element.pyx']), \
 
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',

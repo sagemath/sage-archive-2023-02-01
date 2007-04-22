@@ -873,13 +873,6 @@ def square_root(x):
     except AttributeError:
         raise NotImplementedError
 
-def tan(x):
-    """
-    Return the tangent of x.
-   """
-    try: return x.tan()
-    except AttributeError: return RDF(x).tan()
-
 def transpose(x):
     """
     EXAMPLES:

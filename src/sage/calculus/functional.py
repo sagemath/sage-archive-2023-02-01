@@ -127,3 +127,58 @@ def expand(x, *args, **kwds):
         return x.expand(*args, **kwds)
     except AttributeError:
         return x
+
+
+def laplace(f, t, s):
+    r"""
+    Attempts to compute and return the Laplace transform of self
+    with respect to the variable t and transform parameter s.  If
+    Laplace cannot find a solution, a formal function is returned
+    in terms of \code{laplace0}.
+
+    The function that is returned maybe be viewed as a function of s.
+
+    EXAMPLES:
+        sage: f = exp (2*t + a) * sin(t) * t; f
+        t*e^(2*t + a)*sin(t)
+        sage: L = laplace(f, t, s); L
+        e^a*(2*s - 4)/((s^2 - 4*s + 5)^2)
+        sage: inverse_laplace(L, s, t)
+        t*e^(2*t + a)*sin(t)
+
+    Unable to compute solution:
+        sage: laplace(1/s, s, t)
+        laplace0(1/s, s, t)
+    """
+    if not isinstance(f, SymbolicExpression):
+        f = SER(f)
+    return f.laplace(t,s)
+
+def inverse_laplace(f, t, s):
+    r"""
+    Attempts to compute and return the inverse Laplace transform of
+    self with respect to the variable t and transform parameter s.  If
+    Laplace cannot find a solution, a formal function
+    \code{inverselaplace0(...)} is returned.
+
+    EXAMPLES:
+        sage: L = laplace(f, t, s); L
+        2*s^2/(s^2 + 1)^2 - (1/(s^2 + 1))
+        sage: inverse_laplace(L, s, t)
+        t*cos(t)
+        sage: print inverse_laplace(1/(s^3+1), s, t)
+                           sqrt(3) t        sqrt(3) t
+                       sin(---------)   cos(---------)      - t
+                  t/2          2                2          e
+                 e    (-------------- - --------------) + -----
+                          sqrt(3)             3             3
+
+    No explicit inverse Laplace transform, so one is returned formally.
+        sage: inverse_laplace(cos(s), s, t)
+        inverselaplace0(cos(s), s, t)
+    """
+    if not isinstance(f, SymbolicExpression):
+        f = SER(f)
+    return f.inverse_laplace(t,s)
+
+

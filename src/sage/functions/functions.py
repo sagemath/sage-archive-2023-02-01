@@ -205,13 +205,8 @@ class Function(RingElement):
     def _singular_init_(self):
         """
         EXAMPLES:
-            sage: singular(e)
+            sage: s = singular(e); s
             2.71828182845905
-            sage: P = e.parent()
-            sage: old_prec = P.set_precision(200)
-            sage: singular(e)
-            2.7182818284590452353602874713526624977572470936999595749670
-            sage: _ = P.set_precision(old_prec)
         """
         try:
             return self._conversions['singular']
@@ -251,18 +246,18 @@ class Function(RingElement):
         """
         EXAMPLES:
             sage: s = e + pi
-            sage: s == 0
+            sage: bool(s == 0)
             False
             sage: t = e^2  +pi
-            sage: s == t
+            sage: bool(s == t)
             False
-            sage: s == s
+            sage: bool(s == s)
             True
-            sage: t == t
+            sage: bool(t == t)
             True
-            sage: s < t
+            sage: bool(s < t)
             True
-            sage: t < s
+            sage: bool(t < s)
             False
         """
         if self is right:
@@ -322,20 +317,20 @@ class Function_arith(Function):
     EXAMPLES:
         sage: s = (pi + pi) * e + e
         sage: s
-        (((pi + pi)*e) + e)
+        2*e*pi + e
         sage: RR(s)
         19.7977502738062
         sage: maxima(s)
         2*%e*%pi+%e
 
         sage: t = e^2 + pi + 2/3; t
-        (((e^2) + pi) + 2/3)
+        pi + e^2 + 2/3
         sage: RR(t)
         11.1973154191871
         sage: maxima(t)
         %pi+%e^2+2/3
         sage: t^e
-        ((((e^2) + pi) + 2/3)^e)
+        (pi + e^2 + 2/3)^e
         sage: RR(t^e)
         710.865247688858
     """
@@ -358,7 +353,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: log2 * e + pi^2/2
-            ((log2*e) + ((pi^2)/2))
+            e*log(2) + pi^2/2
         """
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
 
@@ -366,11 +361,11 @@ class Function_arith(Function):
         r"""
         EXAMPLES:
             sage: latex(log2 * e + pi^2/2)
-            \log(2) \cdot e + \frac{\pi^{2}}{2}
+            {e \cdot \log \left( 2 \right)} + \frac{{\pi}^{2} }{2}
             sage: latex(NaN^3 + 1/golden_ratio)
-            \text{NaN}^{3} + \frac{1}{\phi}
+            {\mbox{NaN}}^{3}  + \frac{2}{\sqrt{ 5 } + 1}
             sage: latex(log2 + euler_gamma + catalan + khinchin + twinprime + merten + brun)
-            \log(2) + \gamma + K + \text{khinchin} + \text{twinprime} + \text{merten} + \text{brun}
+            \mbox{twinprime} + \mbox{merten} + \mbox{khinchin} + \mbox{euler_gamma} + \mbox{catalan} + \mbox{brun} + \log \left( 2 \right)
         """
         if self.__op == operator.div:
             return '\\frac{%s}{%s}'%(latex(self.__x), latex(self.__y))
@@ -394,7 +389,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: gap(e + pi)
-            "5.85987448204884"
+            "pi + e"
         """
         return '"%s"'%self.str()
 
@@ -463,7 +458,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: singular(e + pi)
-            5.85987448204884
+            pi + e
         """
         return '"%s"'%self.str()
 
@@ -484,7 +479,7 @@ class Function_gen(Function):
     EXAMPLES:
         sage: a = pi/2 + e
         sage: a
-        ((pi/2) + e)
+        pi/2 + e
         sage: maxima(a)
         %pi/2+%e
         sage: RR(a)

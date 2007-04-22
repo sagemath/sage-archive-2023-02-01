@@ -16,8 +16,7 @@ from special    import (bessel_I, bessel_J, bessel_K, bessel_Y,
                         spherical_bessel_J, spherical_bessel_Y,
                         spherical_hankel1, spherical_hankel2,
                         spherical_harmonic, jacobi,
-                        inverse_jacobi, sinh, cosh,
-                        tanh, coth, sech, csch, dilog,
+                        inverse_jacobi, dilog,
                         lngamma, exp_int, error_fcn)
 
 from orthogonal_polys import (chebyshev_T,

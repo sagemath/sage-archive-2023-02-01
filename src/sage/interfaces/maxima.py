@@ -503,11 +503,11 @@ class Maxima(Expect):
         if line[-1] != '$' and line[-1] != ';':
             line += ';'
 
-        #if line[-1] == ';' and wait_for_prompt:
         self._synchronize()
 
         if len(line) > self.__eval_using_file_cutoff:
-            self._batch(line, batchload=False)
+            a = self(line)
+            return repr(a)
         else:
             self._sendline(line)
 

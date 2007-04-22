@@ -337,6 +337,8 @@ from sage.rings.all import ZZ, QQ, RR
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.ring as ring
 
+from sage.interfaces.maxima import maxima
+
 def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element
     return symbolic_expression_from_maxima_element(maxima(x))
@@ -638,9 +640,9 @@ def spherical_harmonic(m,n,x,y):
 
     EXAMPLES:
         sage: spherical_harmonic(3,2,x,y)
-        15*sqrt(7)*cos(x)*sin(x)^2*e^2*I*y/4*sqrt(30)*sqrt(pi)
+        15*sqrt(7)*cos(x)*sin(x)^2*e^(2*I*y)/(4*sqrt(30)*sqrt(pi))
         sage: spherical_harmonic(3,2,1,2)
-        15*sqrt(7)*e^4*I*cos(1)*sin(1)^2/4*sqrt(30)*sqrt(pi)
+        15*sqrt(7)*e^(4*I)*cos(1)*sin(1)^2/(4*sqrt(30)*sqrt(pi))
     """
     _init()
     return meval("spherical_harmonic(%s,%s,%s,%s)"%(ZZ(m),ZZ(n),x,y))
@@ -667,6 +669,7 @@ def jacobi(sym,x,m):
         sage: P = plot(jsn,0,1)
         sage.: P.show()
     """
+    _init()
     return meval("jacobi_%s(%s,%s)"%(sym, x, m))
 
 def inverse_jacobi(sym,x,m):
@@ -687,6 +690,7 @@ def inverse_jacobi(sym,x,m):
 
     Now to view this, just type show(P).
     """
+    _init()
     return meval("inverse_jacobi_%s(%s,%s)"%(sym, x,m))
 
 #### elliptic integrals
@@ -694,43 +698,37 @@ def inverse_jacobi(sym,x,m):
 #### hyperboic trig functions (which are special cases
 #### of Jacobi elliptic functions but faster to evaluate directly)
 
-def sinh(t):
-    try:
-        return t.sinh()
-    except AttributeError:
-        from sage.calculus.calculus import exp
-        return (exp(t)-exp(-t))/2
+## def sinh(t):
+##     try:
+##         return t.sinh()
+##     except AttributeError:
+##         from sage.calculus.calculus import exp
+##         return (exp(t)-exp(-t))/2
 
-def cosh(t):
-    try:
-        return t.cosh()
-    except AttributeError:
-        from sage.calculus.calculus import exp
-        return (exp(t)+exp(-t))/2
+## def cosh(t):
+##     try:
+##         return t.cosh()
+##     except AttributeError:
+##         from sage.calculus.calculus import exp
+##         return (exp(t)+exp(-t))/2
 
-def tanh(t):
-    try:
-        return t.tanh()
-    except AttributeError:
-        return sinh(t)/cosh(t)
+## def coth(t):
+##     try:
+##         return t.coth()
+##     except AttributeError:
+##         return 1/tanh(t)
 
-def coth(t):
-    try:
-        return t.coth()
-    except AttributeError:
-        return 1/tanh(t)
+## def sech(t):
+##     try:
+##         return t.sech()
+##     except AttributeError:
+##         return 1/cosh(t)
 
-def sech(t):
-    try:
-        return t.sech()
-    except AttributeError:
-        return 1/cosh(t)
-
-def csch(t):
-    try:
-        return t.csch()
-    except AttributeError:
-        return 1/sinh(t)
+## def csch(t):
+##     try:
+##         return t.csch()
+##     except AttributeError:
+##         return 1/sinh(t)
 
 def dilog(t):
     """

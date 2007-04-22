@@ -102,6 +102,12 @@ def numerical_integral(func, a, b=None,
        numerical_integral returns a tuple whose first component is
        the answer and whose second component is an error estimate.
 
+   REMARK:
+       There is also a method \code{nintegral} on symbolic expressions
+       that implements numerical integration using Maxima.  It is potentially
+       very useful for symbolic expressions.
+
+
    MORE EXAMPLES:
    If we want to change the error tolerances and gauss rule used
        sage: f = lambda x: x^2
@@ -140,9 +146,15 @@ def numerical_integral(func, a, b=None,
        sage: numerical_integral(zeta, [1.1,1.5])           # slightly random output
        (1.8488570602160455, 2.052643677492633e-14)
 
+   We can also numerically integrate symbolic expressions using either this
+   function (which uses GSL) or the native integration (which uses Maxima):
+       sage: exp(-1/x).nintegral(x, 1, 2)   # via maxima
+       (0.50479221787318396, 5.6043194293440752e-15, 21, 0)
+       sage: numerica_integral(exp(-1/x), 1, 2)
+       (0.50479221787318407, 5.6043194293440744e-15)
 
    IMPLEMENTATION NOTES:
-       Uses GSL -- the GNU Scientific Library
+       Uses calls to the GSL -- the GNU Scientific Library -- C library.
 
    AUTHORS:
        -- Josh Kantor

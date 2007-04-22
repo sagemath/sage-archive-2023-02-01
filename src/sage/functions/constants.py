@@ -628,7 +628,7 @@ class EulerGamma(Constant):
         Constant.__init__(self,
 	    {'kash':'EulerGamma(R)','maple':'gamma',
              'mathematica':'EulerGamma','pari':'Euler',
-             'maxima':'%gamma'})
+             'maxima':'%gamma', 'maxima':'euler_gamma'})
 
     def _repr_(self, simplify=True):
         return 'euler_gamma'
@@ -658,11 +658,13 @@ class Catalan(Constant):
     function evaluated at the number 2.
 
     EXAMPLES:
+        sage: catalan^2 + merten
+        merten + catalan^2
     """
     def __init__(self):
         Constant.__init__(self,
              {'mathematica':'Catalan','kash':'Catalan(R)', #kash: R is default prec
-	      'maple':'Catalan'})
+              'maple':'Catalan', 'maxima':'catalan'})
 
     def _repr_(self, simplify=True):
         return 'K'
@@ -713,7 +715,7 @@ class Khinchin(Constant):
     """
     def __init__(self):
         Constant.__init__(self,
-             {'mathematica':'Khinchin'}) #Khinchin is only implemented in Mathematica
+             {'maxima':'khinchin', 'mathematica':'Khinchin'}) #Khinchin is only implemented in Mathematica
 
         # digits come from http://pi.lacim.uqam.ca/piDATA/khintchine.txt
         self.__value = "2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289308477880620360737053501033672633577289049904270702723451702625237023545810686318501032374655803775026442524852869468234189949157306618987207994137235500057935736698933950879021244642075289741459147693018449050601793499385225470404203377985639831015709022233910000220772509651332460444439191691460859682348212832462282927101269069741823484776754573489862542033926623518620867781366509696583146995271837448054012195366666049648269890827548115254721177330319675947383719393578106059230401890711349624673706841221794681074060891827669566711716683740590473936880953450489997047176390451343232377151032196515038246988883248709353994696082647818120566349467125784366645797409778483662049777748682765697087163192938512899314199518611673792654620563505951385713761697126872299805327673278710513763"
@@ -759,7 +761,7 @@ class TwinPrime(Constant):
         0.66016181584686957392781211001455577843262336028473341331945
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Twin prime is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':'twinprime'}) #Twin prime is not implemented in any other algebra systems.
 
         #digits come from http://www.gn-50uma.de/alula/essays/Moree/Moree-details.en.shtml
 
@@ -811,7 +813,7 @@ class Merten(Constant):
         0.26149721284764278375542683860869585905156664826119920619206
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Merten's constant is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':'merten'}) #Merten's constant is not implemented in any other algebra systems.
 
         # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=77761&fmt=0
 
@@ -874,7 +876,7 @@ class Brun(Constant):
         1.90216058310
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Brun's constant is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':"brun"}) #Brun's constant is not implemented in any other algebra systems.
 
         # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=65421&fmt=0
 

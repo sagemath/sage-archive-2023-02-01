@@ -491,23 +491,20 @@ class SymbolicExpression(RingElement):
     def _axiom_init_(self):
         return self._sys_init_('axiom')
 
-    def _gap_init_(self):
-        return self._sys_init_('gap')
-
     def _gp_init_(self):
         return self._sys_init_('pari')   # yes, gp goes through pari
+
+    def _maple_init_(self):
+        return self._sys_init_('maple')
+
+    def _magma_init_(self):
+        return '"%s"'%self.str()
 
     def _kash_init_(self):
         return self._sys_init_('kash')
 
     def _macaulay2_init_(self):
         return self._sys_init_('macaulay2')
-
-    def _magma_init_(self):
-        return self._sys_init_('magma')
-
-    def _maple_init_(self):
-        return self._sys_init_('maple')
 
     def _mathematica_init_(self):
         return self._sys_init_('mathematica')
@@ -518,12 +515,32 @@ class SymbolicExpression(RingElement):
     def _pari_init_(self):
         return self._sys_init_('pari')
 
-    def _singular_init_(self):
-        return self._sys_init_('singular')
-
     def _sys_init_(self, system):
         return repr(self)
 
+    ##################################################################
+    # These systems have no symbolic or numerical capabilities at all,
+    # really, so we always just coerce to a string
+    ##################################################################
+    def _gap_init_(self):
+        """
+        Conversion of symbolic object to GAP always results in a GAP string.
+
+        EXAMPLES:
+            sage: gap(e+pi^2 + x^3)
+            "x^3 + pi^2 + e"
+        """
+        return '"%s"'%repr(self)
+
+    def _singular_init_(self):
+        """
+        Conversion of symbolic object to Singular always results in a Singular string.
+
+        EXAMPLES:
+            sage: singular(e+pi^2 + x^3)
+            x^3 + pi^2 + e
+        """
+        return '"%s"'%repr(self)
 
     ##################################################################
     # Non-canonical coercions to compiled built-in rings and fields
@@ -971,7 +988,70 @@ class SymbolicExpression(RingElement):
         return self.parent()(l)
 
     ###################################################################
-    # integral
+    # Laplace transform
+    ###################################################################
+    def laplace(self, t, s):
+        r"""
+        Attempts to compute and return the Laplace transform of self
+        with respect to the variable t and transform parameter s.  If
+        Laplace cannot find a solution, a formal function is returned.
+
+        The function that is returned maybe be viewed as a function of s.
+
+        DEFINITION:
+        The Laplace transform of a function $f(t)$, defined for all
+        real numbers $t \geq 0$, is the function $F(s)$ defined by
+        $$
+             F(s) = \int_{0}^{\infty} e^{-st} f(t) dt.
+        $$
+
+        EXAMPLES:
+        We compute a few Laplace transforms:
+            sage: sin(x).laplace(x, s)
+            1/(s^2 + 1)
+            sage: (z + exp(x)).laplace(x, s)
+            z/s + 1/(s - 1)
+
+        We do a formal calculation:
+            sage: f = function('f', x)
+            sage: g = f.diff(x); g
+            diff(f(x), x, 1)
+            sage: g.laplace(x, s)
+            s*laplace0(f(x), x, s) - f(0)
+
+        """
+        return self.parent()(self._maxima_().laplace(var(t), var(s)))
+
+    def inverse_laplace(self, t, s):
+        r"""
+        Attempts to compute the inverse Laplace transform of self with
+        respect to the variable t and transform parameter s.  If
+        Laplace cannot find a solution, a formal function is returned.
+
+        The function that is returned maybe be viewed as a function of s.
+
+
+        DEFINITION:
+        The inverse Laplace transform of a function $F(s)$,
+        is the function $f(t)$ defined by
+        $$
+             F(s) = \frac{1}{2\pi i} \int_{\gamma-i\infty}^{\gamma + i\infty} e^{st} F(s) dt,
+        $$
+        where $\gamma$ is chosen so that the contour path of
+        integration is in the region of convergence of $F(s)$.
+
+        EXAMPLES:
+            sage: f = (1/(w^2+10)).inverse_laplace(w, m); f
+            sin(sqrt(10)*m)/sqrt(10)
+            sage: laplace(f, m, w)
+            1/(w^2 + 10)
+        """
+        return self.parent()(self._maxima_().ilt(var(t), var(s)))
+
+
+
+    ###################################################################
+    # integration
     ###################################################################
     def integral(self, v=None, a=None, b=None):
         """
@@ -1086,6 +1166,58 @@ class SymbolicExpression(RingElement):
 
     integrate = integral
 
+    def nintegral(self, x, a, b,
+                  desired_relative_error='1e-8',
+                  maximum_num_subintervals=200):
+        r"""
+        Return a numerical approximation to the integral of self from
+        a to b.
+
+        INPUT:
+            x -- variable to integrate with respect to
+            a -- lower endpoint of integration
+            b -- upper endpoint of integration
+            desired_relative_error -- (default: '1e-8') the desired
+                 relative error
+            maximum_num_subintervals -- (default: 200) maxima number
+                 of subintervals
+
+        OUTPUT:
+            -- float: approximation to the integral
+            -- float: estimated absolute error of the approximation
+            -- the number of integrand evaluations
+            -- an error code:
+                  0 -- no problems were encountered
+                  1 -- too many subintervals were done
+                  2 -- excessive roundoff error
+                  3 -- extremely bad integrand behavior
+                  4 -- failed to converge
+                  5 -- integral is probably divergent or slowly convergent
+                  6 -- the input is invalid
+
+        ALIAS:
+            nintegrate is the same as nintegral
+
+        REMARK:
+            There is also a function \code{numerical_integral} that implements
+            numerical integration using the GSL C library.  It is potentially
+            much faster and applies to arbitrary user defined functions.
+
+        EXAMPLES:
+            sage: exp(-sqrt(x)).nintegral(x, 0, 1)
+            (0.52848223531423055, 4.1633141378838452e-11, 231, 0)
+
+        We can also use the \code{numerical_integral} function, which calls
+        the GSL C library.
+            sage: numerical_integral(exp(-sqrt(x)), 0, 1)
+            (0.52848223225314706, 6.8392846084921134e-07)
+        """
+        v = self._maxima_().quad_qags(var(x),
+                                      a, b, desired_relative_error,
+                                      maximum_num_subintervals)
+        return float(v[0]), float(v[1]), Integer(v[2]), Integer(v[3])
+
+    nintegrate = nintegral
 
     ###################################################################
     # solve
@@ -1137,8 +1269,28 @@ class SymbolicExpression(RingElement):
 
     def simplify_rational(self):
         """
+        Simplify by expanding repeatedly rational expressions.
 
         ALIAS: rational_simplify and simplify_rational are the same
+
+        EXAMPLES:
+            sage: f = sin(x/(x^2 + x))
+            sage: f
+            sin(x/(x^2 + x))
+            sage: f.simplify_rational()
+            sin(1/(x + 1))
+
+            sage: f = ((x - 1)^(3/2) - (x + 1)*sqrt(x - 1))/sqrt((x - 1)*(x + 1))
+            sage: print f
+                                          3/2
+                                   (x - 1)    - sqrt(x - 1) (x + 1)
+                                   --------------------------------
+                                        sqrt((x - 1) (x + 1))
+            sage: print f.simplify_rational()
+                                              2 sqrt(x - 1)
+                                            - -------------
+                                                    2
+                                              sqrt(x  - 1)
         """
         return self.parent()(self._maxima_().fullratsimp())
 
@@ -2778,6 +2930,237 @@ atan = Function_atan()
 _syms['atan'] = atan
 
 
+#######
+# Hyperbolic functions
+#######
+
+#tanh
+class Function_tanh(PrimitiveFunction):
+    """
+    The hyperbolic tangent function.
+
+    EXAMPLES:
+        sage: tanh(pi)
+
+        sage: tanh(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: tanh(pi/4)
+        1
+        sage: tanh(1/2)
+
+        sage: RR(tanh(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "tanh"
+
+    def _latex_(self):
+        return "\\tanh"
+
+    def _approx_(self, x):
+        try:
+            return x.tanh()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.tanh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+tanh = Function_tanh()
+_syms['tanh'] = tanh
+
+#sinh
+class Function_sinh(PrimitiveFunction):
+    """
+    The hyperbolic sine function.
+
+    EXAMPLES:
+        sage: sinh(pi)
+
+        sage: sinh(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: sinh(pi/4)
+        1
+        sage: sinh(1/2)
+
+        sage: RR(sinh(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "sinh"
+
+    def _latex_(self):
+        return "\\sinh"
+
+    def _approx_(self, x):
+        try:
+            return x.sinh()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.sinh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+sinh = Function_sinh()
+_syms['sinh'] = sinh
+
+#cosh
+class Function_cosh(PrimitiveFunction):
+    """
+    The hyperbolic cosine function.
+
+    EXAMPLES:
+        sage: cosh(pi)
+
+        sage: cosh(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: cosh(pi/4)
+        1
+        sage: cosh(1/2)
+
+        sage: RR(cosh(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "cosh"
+
+    def _latex_(self):
+        return "\\cosh"
+
+    def _approx_(self, x):
+        try:
+            return x.cosh()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.cosh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+cosh = Function_cosh()
+_syms['cosh'] = cosh
+
+#coth
+class Function_coth(PrimitiveFunction):
+    """
+    The hyperbolic cotangent function.
+
+    EXAMPLES:
+        sage: coth(pi)
+
+        sage: coth(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: coth(pi/4)
+        1
+        sage: coth(1/2)
+
+        sage: RR(coth(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "coth"
+
+    def _latex_(self):
+        return "\\coth"
+
+    def _approx_(self, x):
+        try:
+            return x.coth()
+        except AttributeError:
+            if isinstance(x, float):
+                return 1/math.tanh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+coth = Function_coth()
+_syms['coth'] = coth
+
+#sech
+class Function_sech(PrimitiveFunction):
+    """
+    The hyperbolic secant function.
+
+    EXAMPLES:
+        sage: sech(pi)
+
+        sage: sech(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: sech(pi/4)
+        1
+        sage: sech(1/2)
+
+        sage: RR(sech(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "sech"
+
+    def _latex_(self):
+        return "\\sech"
+
+    def _approx_(self, x):
+        try:
+            return x.sech()
+        except AttributeError:
+            if isinstance(x, float):
+                return 1/math.cosh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+sech = Function_sech()
+_syms['sech'] = sech
+
+
+#csch
+class Function_csch(PrimitiveFunction):
+    """
+    The hyperbolic cosecant function.
+
+    EXAMPLES:
+        sage: csch(pi)
+
+        sage: csch(3.1415)
+
+        sage: tan(3.1415/4)
+        0.999953674278156
+        sage: csch(pi/4)
+        1
+        sage: csch(1/2)
+
+        sage: RR(csch(1/2))
+
+    """
+    def _repr_(self, simplify=True):
+        return "csch"
+
+    def _latex_(self):
+        return "\\csch"
+
+    def _approx_(self, x):
+        try:
+            return x.csch()
+        except AttributeError:
+            if isinstance(x, float):
+                return 1/math.sinh(x)
+            else:
+                return SymbolicComposition(self, SER(x))
+
+csch = Function_csch()
+_syms['csch'] = csch
+
+#############
+# log and exp
+#############
+
 class Function_log(PrimitiveFunction):
     """
     The log funtion.
@@ -3132,7 +3515,8 @@ def function(s, *args):
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma', \
+            '?%ilt':"'inverselaplace0", '?%laplace':"'laplace0"}
 
 from sage.rings.infinity import infinity, minus_infinity
 
@@ -3151,6 +3535,8 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     maxima.set('_tmp_',x)
     r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
     s = maxima._eval_line('_tmp_;')
+
+    s = multiple_replace(symtable, s)
 
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
@@ -3172,7 +3558,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     if symtable2:
         s = multiple_replace(symtable2, s)
 
-    s = multiple_replace(symtable, s)
     if equals_sub:
         s = s.replace('=','==')
 

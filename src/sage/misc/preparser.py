@@ -50,6 +50,17 @@ because users frequently request it.
     ...
     SyntaxError: invalid syntax
 
+SYMBOLIC FUNCTIONAL NOTATION:
+    sage: a=10; f(theta, beta) = theta + beta; b = x^2 + theta
+    (theta, beta)
+    sage: f
+    (theta, beta) |--> theta + beta
+    sage: a
+    10
+    sage: b
+    x^2 + theta
+    sage: f(theta,theta)
+    2*theta
 
 RAW LITERALS:
 
@@ -345,9 +356,10 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
-        # "f = (sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # "f = SER(sin(x^3 - 4*y) + y^x).function(x,y,z)"
         # AUTHORS:
         #   - Bobby Moretti: initial version - 02/2007
+        #   - William Stein: make variables become defined if they aren't already defined.
 
         elif (line[i] == "(") and not in_quote():
             paren_level += 1
@@ -410,15 +422,19 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
 
             # construct the parsed line
-            b.append(line[:vars_begin-1])
+            k = line[:vars_begin-1].rfind(';')
+            if k == -1:
+                k = len(line) - len(line.lstrip())
+            b.append(line[:k])
+            b.append('_=var("%s");'%(','.join(vars)))
+            b.append(line[k:vars_begin-1])
             b.append('=')
-            b.append('(')
+            b.append('SER(')
             b.append(line[eq+1:a].strip())
             b.append(').function(')
             b.append(','.join(vars))
             b.append(')')
             b.append(line[a:])
-
 
             line =  ''.join(b)
 

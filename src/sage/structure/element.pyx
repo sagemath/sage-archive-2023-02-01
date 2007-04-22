@@ -280,9 +280,9 @@ cdef class Element(sage_object.SageObject):
 
     def _coeff_repr(self, no_space=True):
         if self._is_atomic():
-            s = str(self)
+            s = repr(self)
         else:
-            s = "(%s)"%self
+            s = "(%s)"%repr(self)
         if no_space:
             return s.replace(' ','')
         return s
@@ -698,15 +698,21 @@ cdef class ModuleElement(Element):
         if n < 0:
             a = -a
             n = -n
-        sum = self._parent(0)
+        sum = None
         asum = a
         while True:
-            if n&1 > 0: sum = sum + asum
+            if n&1 > 0:
+                if sum is None:
+                    sum = asum
+                else:
+                    sum += asum
             n = n >> 1
             if n != 0:
-                asum = asum + asum
+                asum += asum
             else:
                 break
+        if sum is None:
+            return self._parent(0)
         return sum
 
     def _rmul_(self, left):

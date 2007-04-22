@@ -195,7 +195,7 @@ import sage.calculus.calculus
 class Constant(Function):
     def __init__(self, conversions={}):
         self._conversions = conversions
-        RingElement.__init__(self, sage.calculus.calculus.SER)
+        RingElement.__init__(self, sage.calculus.calculus.SR)
 
     def _has_op(self, x):
         return False
@@ -219,7 +219,7 @@ class Constant(Function):
         try:
             return self.__ser
         except AttributeError:
-            self.__ser = sage.calculus.calculus.SER._coerce_impl(self)
+            self.__ser = sage.calculus.calculus.SR._coerce_impl(self)
             return self.__ser
 
     def _neg_(self):

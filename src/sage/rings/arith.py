@@ -1223,7 +1223,7 @@ def generic_power(a, m, one=1):
         sage: generic_power(2,-3)
         1/8
     """
-    if a == one:
+    if bool(a == one):
         return a
     if m < 0:
         a = ~a

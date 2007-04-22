@@ -6,7 +6,7 @@ from calculus import (SymbolicExpressionRing,
                       CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpressionRing,
                       is_CallableSymbolicExpression,
-                      SER,
+                      SR,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
                       tanh, sinh, cosh, coth, sech, csch, ln,
                       abs_symbolic, exp,
@@ -71,4 +71,7 @@ from predefined import (a,
                       X,
                       Y,
                       Z)
+
+def symbolic_expression(x):
+    return SR(x)
 

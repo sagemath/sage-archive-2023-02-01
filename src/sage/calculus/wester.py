@@ -367,7 +367,7 @@ sage: print zz
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
 sage: restore('a,b,c,d')
-sage: m = matrix(SER, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
+sage: m = matrix(SR, 4, 4, [[z^i for i in range(4)] for z in [a,b,c,d]])
 sage: print m
     [  1   a a^2 a^3]
     [  1   b b^2 b^3]

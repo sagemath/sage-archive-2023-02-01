@@ -62,6 +62,10 @@ SYMBOLIC FUNCTIONAL NOTATION:
     sage: f(theta,theta)
     2*theta
 
+    sage: a = 5; f(x,y) = x*y*sqrt(a)
+    sage: f
+    (x, y) |--> sqrt(5)*x*y
+
 RAW LITERALS:
 
 Raw literals are not preparsed, which can be useful from an efficiency
@@ -356,7 +360,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
         # Support for calculus-like function assignment, the line
         # "f(x,y,z) = sin(x^3 - 4*y) + y^x"
         # gets turnd into
-        # "f = SER(sin(x^3 - 4*y) + y^x).function(x,y,z)"
+        # "f = SR(sin(x^3 - 4*y) + y^x).function(x,y,z)"
         # AUTHORS:
         #   - Bobby Moretti: initial version - 02/2007
         #   - William Stein: make variables become defined if they aren't already defined.
@@ -429,7 +433,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             b.append('_=var("%s");'%(','.join(vars)))
             b.append(line[k:vars_begin-1])
             b.append('=')
-            b.append('SER(')
+            b.append('symbolic_expression(')
             b.append(line[eq+1:a].strip())
             b.append(').function(')
             b.append(','.join(vars))

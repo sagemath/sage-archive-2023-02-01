@@ -4,7 +4,7 @@ Compute the Christoffel symbol.
 
     sage: var('r theta phi')
     (r, theta, phi)
-    sage: m = matrix(SER, [[(1-1/r),0,0,0],[0,-(1-1/r)^(-1),0,0],[0,0,-r^2,0],[0,0,0,-r^2*(sin(theta))^2]])
+    sage: m = matrix(SR, [[(1-1/r),0,0,0],[0,-(1-1/r)^(-1),0,0],[0,0,-r^2,0],[0,0,0,-r^2*(sin(theta))^2]])
     sage: print m
     [        1 - (1/r)                 0                 0                 0]
     [                0    -1/(1 - (1/r))                 0                 0]

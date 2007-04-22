@@ -73,6 +73,9 @@ class SymbolicEquation(SageObject):
         self._right = right
         self._op = op
 
+    def __call__(self, *args, **argv):
+        return self._op(self._left(*args, **argv), self._right(*args,**argv))
+
     def __cmp__(self, right):
         """
         EXAMPLES:

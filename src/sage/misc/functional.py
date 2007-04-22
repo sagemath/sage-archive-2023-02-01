@@ -437,8 +437,8 @@ def integral(x, *args, **kwds):
     if hasattr(x, 'integral'):
         return x.integral(*args, **kwds)
     else:
-        from sage.calculus.calculus import SER
-        return SER(x).integral(*args, **kwds)
+        from sage.calculus.calculus import SR
+        return SR(x).integral(*args, **kwds)
 
 def integral_closure(x):
     return x.integral_closure()

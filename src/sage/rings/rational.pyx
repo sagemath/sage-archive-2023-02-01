@@ -718,8 +718,8 @@ cdef class Rational(sage.structure.element.FieldElement):
             if isinstance(n, Rational):
                 # this is the only sensible answer that avoids rounding and
                 # an infinite recursion.
-                from sage.calculus.calculus import SER
-                return SER(self)**SER(n)
+                from sage.calculus.calculus import SR
+                return SR(self)**SR(n)
             try:
                 s = n.parent()(self)
                 return s**n

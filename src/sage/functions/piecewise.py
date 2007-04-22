@@ -99,7 +99,7 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational
 
 from sage.interfaces.maxima import maxima
-from sage.calculus.calculus import SER, var
+from sage.calculus.calculus import SR, var
 
 def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element
@@ -1246,7 +1246,7 @@ class PiecewisePolynomial:
         s = var(s)
         ints = []
         for p in self.list():
-            g = SER(p[1])
+            g = SR(p[1])
             fcn = maxima('(%s)*exp(-%s*%s)'%(g._maxima_init_(), s, x))
             ints.append(fcn.integral(x, p[0][0], p[0][1]))
         ans = ""

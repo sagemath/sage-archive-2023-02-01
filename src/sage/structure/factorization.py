@@ -303,6 +303,17 @@ class Factorization(SageObject, list):
         """
         return self.value()
 
+    def prod(self):
+        r"""
+        Same as \code{self.value()}.
+
+        EXAMPLES:
+            sage: F = factor(100)
+            sage: F.prod()
+            100
+        """
+        return self.value()
+
 
 def Factorization_deduce_unit(x, mul):
     F = Factorization(x)

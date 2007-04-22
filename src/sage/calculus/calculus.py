@@ -8,10 +8,11 @@ The \sage calculus module is loosely based on the \sage Enhahcement Proposal
 found at: http://www.sagemath.org:9001/CalculusSEP.
 
 EXAMPLES:
-    The basic units of the calculus suite are
-    SymbolicExpressions. There are many subclasses of
-    SymbolicExpression. The most basic of these is the formal
-    indeterminate class, SymbolicVariable. To create a
+
+    The basic units of the calculus package are symbolic expressions
+    which are elements of the symbolic expression ring (SR). There are
+    many subclasses of SymbolicExpression. The most basic of these is
+    the formal indeterminate class, SymbolicVariable. To create a
     SymbolicVariable object in \sage, use the var() method, whose
     argument is the text of that variable.  Note that \sage is
     intelligent about {\latex}ing variable names.
@@ -233,7 +234,7 @@ def is_SymbolicExpressionRing(x):
     EXAMPLES:
         sage: is_SymbolicExpressionRing(QQ)
         False
-        sage: is_SymbolicExpressionRing(SER)
+        sage: is_SymbolicExpressionRing(SR)
         True
     """
     return isinstance(x, SymbolicExpressionRing_class)
@@ -244,9 +245,9 @@ class SymbolicExpressionRing_class(CommutativeRing):
     The ring of all formal symbolic expressions.
 
     EXAMPLES:
-        sage: SER
-        Ring of Symbolic Expressions
-        sage: type(SER)
+        sage: SR
+        Symbolic Ring
+        sage: type(SR)
         <class 'sage.calculus.calculus.SymbolicExpressionRing_class'>
     """
     def __init__(self):
@@ -255,19 +256,19 @@ class SymbolicExpressionRing_class(CommutativeRing):
 
     def __call__(self, x):
         """
-        Coerce x into the symbolic expression ring SER.
+        Coerce x into the symbolic expression ring SR.
 
         EXAMPLES:
-            sage: a = SER(-3/4); a
+            sage: a = SR(-3/4); a
             -3/4
             sage: type(a)
             <class 'sage.calculus.calculus.SymbolicConstant'>
             sage: a.parent()
-            Ring of Symbolic Expressions
+            Symbolic Ring
 
         If a is already in the symblic expression ring, coercing returns
         a itself (not a copy):
-            sage: SER(a) is a
+            sage: SR(a) is a
             True
         """
         if is_Element(x) and x.parent() is self:
@@ -303,10 +304,13 @@ class SymbolicExpressionRing_class(CommutativeRing):
             raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
 
     def _repr_(self):
-        return  'Ring of Symbolic Expressions'
+        return 'Symbolic Ring'
 
     def _latex_(self):
         return 'SymbolicExpressionRing'
+
+    def var(self, x):
+        return var(x)
 
     def characteristic(self):
         return Integer(0)
@@ -321,9 +325,9 @@ class SymbolicExpressionRing_class(CommutativeRing):
         return False
 
 # Define the unique symbolic expression ring.
-SER = SymbolicExpressionRing_class()
+SR = SymbolicExpressionRing_class()
 
-# The factory function that returns the unique SER.
+# The factory function that returns the unique SR.
 def SymbolicExpressionRing():
     """
     Return the symbolic expression ring.
@@ -331,10 +335,10 @@ def SymbolicExpressionRing():
     EXAMPLES:
         sage: SymbolicExpressionRing()
         Ring of Symbolic Expressions
-        sage: SymbolicExpressionRing() is SER
+        sage: SymbolicExpressionRing() is SR
         True
     """
-    return SER
+    return SR
 
 class SymbolicExpression(RingElement):
     """
@@ -344,13 +348,13 @@ class SymbolicExpression(RingElement):
 
     """
     def __init__(self):
-        RingElement.__init__(self, SER)
+        RingElement.__init__(self, SR)
         if is_simplified:
             self._simp = self
 
     def __nonzero__(self):
         # Best to error on side of being nonzero in most cases.
-        return not bool(self == SER.zero_element())
+        return not bool(self == SR.zero_element())
 
     def __str__(self):
         """
@@ -414,6 +418,9 @@ class SymbolicExpression(RingElement):
     def is_simplified(self):
         return hasattr(self, '_simp') and self._simp is self
 
+    def _declare_simplified(self):
+        self._simp = self
+
     def hash(self):
         return hash(self._repr_(simplify=False))
 
@@ -460,22 +467,22 @@ class SymbolicExpression(RingElement):
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
-        return SymbolicEquation(self, SER(right), operator.lt)
+        return SymbolicEquation(self, SR(right), operator.lt)
 
     def __le__(self, right):
-        return SymbolicEquation(self, SER(right), operator.le)
+        return SymbolicEquation(self, SR(right), operator.le)
 
     def __eq__(self, right):
-        return SymbolicEquation(self, SER(right), operator.eq)
+        return SymbolicEquation(self, SR(right), operator.eq)
 
     def __ne__(self, right):
-        return SymbolicEquation(self, SER(right), operator.ne)
+        return SymbolicEquation(self, SR(right), operator.ne)
 
     def __ge__(self, right):
-        return SymbolicEquation(self, SER(right), operator.ge)
+        return SymbolicEquation(self, SR(right), operator.ge)
 
     def __gt__(self, right):
-        return SymbolicEquation(self, SER(right), operator.gt)
+        return SymbolicEquation(self, SR(right), operator.gt)
 
     def __cmp__(self, right):
         """
@@ -571,6 +578,26 @@ class SymbolicExpression(RingElement):
     ##################################################################
     # Non-canonical coercions to compiled built-in rings and fields
     ##################################################################
+    def __int__(self):
+        """
+        EXAMPLES:
+            sage: int(sin(2)*100)
+            90
+        """
+        try:
+            return int(repr(self))
+        except (ValueError, TypeError):
+            return int(float(self))
+
+    def __long__(self):
+        """
+        EXAMPLES:
+            sage: long(sin(2)*100)
+            90L
+        """
+        return long(int(self))
+
+
     def _mpfr_(self, field):
         raise TypeError
 
@@ -739,13 +766,16 @@ class SymbolicExpression(RingElement):
         return R(f, f.degree()+1)
 
     def polynomial(self, base_ring):
-        """
+        r"""
         Return self as an algebraic polynomial over the given base ring, if
         possible.
 
         The point of this function is that it converts purely symbolic
         polynomials into optimized algebraic polynomials over a given
         base ring.
+
+        WARNING: This is different from \code{self.poly(x)} which is used
+        to rewrite self as a polynomial in x.
 
         INPUT:
            base_ring -- a ring
@@ -945,7 +975,7 @@ class SymbolicExpression(RingElement):
             -1/x^6 + 1/(2*x^4) + 11/(120*x^2) - 347/15120 - (6767*x^2/604800) - (15377*x^4/7983360)
         """
         v = var(v)
-        l = self._maxima_().taylor(v, SER(a), Integer(n))
+        l = self._maxima_().taylor(v, SR(a), Integer(n))
         return self.parent()(l)
 
     ###################################################################
@@ -1260,18 +1290,234 @@ class SymbolicExpression(RingElement):
 
     nintegrate = nintegral
 
+
+    ###################################################################
+    # Manipulating epxressions
+    ###################################################################
+    def coeff(self, x, n=1):
+        """
+        Returns the coefficient of $x^n$ in self.
+
+        INPUT:
+            x -- variable, function, expression, etc.
+            n -- integer, default 1.
+
+        Sometimes it may be necessary to expand or factor first, since
+        this is not done automatically.
+
+        EXAMPLES:
+            sage: f = (a*sqrt(2))*x^2 + sin(y)*x^(1/2) + z^z
+            sage: f.coeff(sin(y))
+            sqrt(x)
+            sage: f.coeff(x^2)
+            sqrt(2)*a
+            sage: f.coeff(x^(1/2))
+            sin(y)
+            sage: f.coeff(1)
+            0
+            sage: f.coeff(x, 0)
+            z^z
+        """
+        return self.parent()(self._maxima_().coeff(x, n))
+
+    def coeffs(self, x=None):
+        """
+        Coefficients of self as a polynomial in x.
+
+        INPUT:
+            x -- optional variable
+        OUTPUT:
+            list of pairs [expr, n], where expr is a symbolic expression and n is a power.
+
+        EXAMPLES:
+            sage: p = x^3 - (x-3)*(x^2+x) + 1
+            sage: p.coeffs()
+            [[1, 0], [3, 1], [2, 2]]
+            sage: p = expand((x-a*sqrt(2))^2 + x + 1); p
+            x^2 - 2*sqrt(2)*a*x + x + 2*a^2 + 1
+            sage: p.coeffs(a)
+            [[x^2 + x + 1, 0], [-2*sqrt(2)*x, 1], [2, 2]]
+            sage: p.coeffs(x)
+            [[2*a^2 + 1, 0], [1 - 2*sqrt(2)*a, 1], [1, 2]]
+
+        A polynomial with wacky exponents:
+            sage: p = (17/3*a)*x^(3/2) + x*y + 1/x + x^x
+            sage: p.coeffs(x)
+            [[1, -1], [x^x, 0], [y, 1], [17*a/3, 3/2]]
+        """
+        f = self._maxima_()
+        P = f.parent()
+        P._eval_line('load(coeflist)')
+        if x is None:
+            x = self.default_variable()
+        x = var(x)
+        G = f.coeffs(x)
+        S = symbolic_expression_from_maxima_string(repr(G))
+        return S[1:]
+
+    def poly(self, x=None):
+        r"""
+        Express self as a polynomial in x.  Is self is not a polynomial
+        in x, then some coefficients may be functions of x.
+
+        WARNING: This is different from \code{self.polynomial()} which
+        returns a SAGE polynomial over a given base ring.
+
+        EXAMPLES:
+            sage: p = expand((x-a*sqrt(2))^2 + x + 1); p
+            x^2 - 2*sqrt(2)*a*x + x + 2*a^2 + 1
+            sage: p.poly(a)
+            (x^2 + x + 1)*1 + -2*sqrt(2)*x*a + 2*a^2
+            sage: bool(expand(p.poly(a)) == p)
+            True
+            sage: p.poly(x)
+            (2*a^2 + 1)*1 + (1 - 2*sqrt(2)*a)*x + 1*x^2
+        """
+        f = self._maxima_()
+        P = f.parent()
+        P._eval_line('load(coeflist)')
+        if x is None:
+            x = self.default_variable()
+        x = var(x)
+        G = f.coeffs(x)
+        ans = None
+        for i in range(1, len(G)):
+            Z = G[i]
+            coeff = SR(Z[0])
+            n = SR(Z[1])
+            if repr(coeff) != '0':
+                if repr(n) == '0':
+                    xpow = SR(1)
+                elif repr(n) == '1':
+                    xpow = x
+                else:
+                    xpow = x**n
+                if ans is None:
+                    ans = coeff*xpow
+                else:
+                    ans += coeff*xpow
+        ans._declare_simplified()
+        return ans
+
+    def combine(self):
+        """
+        Simplifies self by combining all terms with the same
+        denominator into a single term.
+
+        EXAMPLES:
+            sage: f = x*(x-1)/(x^2 - 7) + y^2/(x^2-7) + 1/(x+1) + b/a + c/a
+            sage: print f
+                                     2
+                                    y      (x - 1) x     1     c   b
+                                  ------ + --------- + ----- + - + -
+                                   2         2         x + 1   a   a
+                                  x  - 7    x  - 7
+            sage: print f.combine()
+                                     2
+                                    y  + (x - 1) x     1     c + b
+                                    -------------- + ----- + -----
+                                         2           x + 1     a
+                                        x  - 7
+        """
+        return self.parent()(self._maxima_().combine())
+
+    def numerator(self):
+        """
+        EXAMPLES:
+            sage: f = x*(x-a)/((x^2 - y)*(x-a))
+            sage: print f
+                                                  x
+                                                ------
+                                                 2
+                                                x  - y
+            sage: f.numerator()
+            x
+            sage: f.denominator()
+            x^2 - y
+        """
+        return self.parent()(self._maxima_().num())
+
+    def denominator(self):
+        """
+        EXAMPLES:
+            sage: f = (sqrt(x) + sqrt(y) + sqrt(z))/(x^10 - y^10 - sqrt(var('theta')))
+            sage: print f
+                                      sqrt(z) + sqrt(y) + sqrt(x)
+                                      ---------------------------
+                                          10    10
+                                       - y   + x   - sqrt(theta)
+            sage: f.denominator()
+            -y^10 + x^10 - sqrt(theta)
+        """
+        return self.parent()(self._maxima_().denom())
+
     ###################################################################
     # solve
     ###################################################################
-    def solve(self, var):
+    def roots(self, x=None):
         r"""
-        Solve the equation \code{self == 0} for the given variable.
+        Returns the roots of self, with multiplicities.
+
+        INPUT:
+            x -- variable to view the function in terms of
+                   (use default variable if not given)
+        OUTPUT:
+            list of pairs (root, multiplicity)
+
+        If there are infinitely many roots, e.g., a function
+        like sin(x), only one is returned.
 
         EXAMPLES:
-            sage: solve(z^5 - 1, z)
+        A simple example:
+            sage: ((x^2-1)^2).roots()
+            [(-1, 2), (1, 2)]
+
+        A complicated example.
+            sage: f = expand((x^2 - 1)^3*(x^2 + 1)*(x-a)); f
+            x^9 - a*x^8 - 2*x^7 + 2*a*x^6 + 2*x^3 - 2*a*x^2 - x + a
+
+        The default variable is a, since it is the first in alphabetical order:
+            sage: f.roots()
+            [(x, 1)]
+
+        As a polynomial in a, x is indeed a root:
+            sage: f.poly(a)
+            (x^9 - 2*x^7 + 2*x^3 - x)*1 + (-x^8 + 2*x^6 - 2*x^2 + 1)*a
+            sage: f(a=x)
+            0
+
+        The roots in terms of x are what we expect:
+            sage: f.roots(x)
+            [(a, 1), (-1*I, 1), (I, 1), (1, 3), (-1, 3)]
+
+        Only one root of $\sin(x) = 0$ is given:
+            sage: f = sin(x)
+            sage: f.roots(x)
+            [(0, 1)]
+
+        We derive the roots of a general quadratic polynomial:
+            sage: (a*x^2 + b*x + c).roots(x)
+            [((-sqrt(b^2 - 4*a*c) - b)/(2*a), 1), ((sqrt(b^2 - 4*a*c) - b)/(2*a), 1)]
+        """
+        if x is None:
+            x = self.default_variable()
+        S, mul = self.solve(x, multiplicities=True)
+        return [(S[i].rhs(), mul[i]) for i in range(len(mul))]
+
+    def solve(self, x, multiplicities=False):
+        r"""
+        Solve the equation \code{self == 0} for the variable x.
+
+        INPUT:
+            x -- variable to solve for
+            multiplicities -- bool (default: False); if True, return corresponding multiplicities.
+
+        EXAMPLES:
+            sage: (z^5 - 1).solve(z)
             [z == e^(2*I*pi/5), z == e^(4*I*pi/5), z == e^(-(4*I*pi/5)), z == e^(-(2*I*pi/5)), z == 1]
         """
-        return (self == 0).solve(var)
+        x = var(x)
+        return (self == 0).solve(x, multiplicities=multiplicities)
 
     ###################################################################
     # simplify
@@ -1453,7 +1699,7 @@ class SymbolicExpression(RingElement):
         if not isinstance(in_dict, dict):
             if len(kwds) > 0:
                 raise ValueError, "you must not both give the variable and specify it explicitly when doing a substitution."
-            in_dict = SER(in_dict)
+            in_dict = SR(in_dict)
             vars = self.variables()
             #if len(vars) > 1:
             #    raise ValueError, "you must specify the variable when doing a substitution, e.g., f(x=5)"
@@ -1676,7 +1922,7 @@ class SymbolicConstant(Symbolic_object):
     def _recursive_sub(self, kwds):
         """
         EXAMPLES:
-            sage: a = SER(5/6)
+            sage: a = SR(5/6)
             sage: type(a)
             <class 'sage.calculus.calculus.SymbolicConstant'>
             sage: a(x=3)
@@ -1696,7 +1942,7 @@ class SymbolicPolynomial(Symbolic_object):
     EXAMPLES:
     A single variate polynomial:
         sage: R.<x> = QQ[]
-        sage: f = SER(x^3 + x)
+        sage: f = SR(x^3 + x)
         sage: f(y=7)
         x^3 + x
         sage: f(x=5)
@@ -1709,7 +1955,7 @@ class SymbolicPolynomial(Symbolic_object):
     A multivariate polynomial:
 
         sage: R.<x,y,theta> = ZZ[]
-        sage: f = SER(x^3 + x + y + theta^2); f
+        sage: f = SR(x^3 + x + y + theta^2); f
         theta^2 + y + x + x^3
         sage: f(x=y, theta=y)
         y^3 + y^2 + 2*y
@@ -1718,7 +1964,7 @@ class SymbolicPolynomial(Symbolic_object):
 
     The polynomial must be over a field of characteristic 0.
         sage: R.<w> = GF(7)[]
-        sage: f = SER(w^3 + 1)
+        sage: f = SR(w^3 + 1)
         Traceback (most recent call last):
         ...
         TypeError: polynomial must be over a field of characteristic 0.
@@ -1741,7 +1987,7 @@ class SymbolicPolynomial(Symbolic_object):
             if kwds.has_key(v):
                 return ring(f(kwds[v]))
             else:
-                if not ring is SER:
+                if not ring is SR:
                     return ring(self)
         else:
             # Multivariable case
@@ -1763,7 +2009,7 @@ class SymbolicPolynomial(Symbolic_object):
 
         EXAMPLES:
             sage: R.<x> = QQ[]
-            sage: f = SER(x^2 -2/3*x + 1)
+            sage: f = SR(x^2 -2/3*x + 1)
             sage: f.polynomial(QQ)
             x^2 - 2/3*x + 1
             sage: f.polynomial(GF(19))
@@ -1854,7 +2100,7 @@ class SymbolicArithmetic(SymbolicOperation):
             100000 - sqrt(2)
         """
         ops = self._operands
-        new_ops = [SER(op._recursive_sub(kwds)) for op in ops]
+        new_ops = [SR(op._recursive_sub(kwds)) for op in ops]
         return self._operator(*new_ops)
 
     def _recursive_sub_over_ring(self, kwds, ring):
@@ -2201,7 +2447,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
             if isinstance(x, CallableSymbolicExpression):
                 x = x._expr
             return CallableSymbolicExpression(self, x)
-        return self._coerce_try(x, [SER])
+        return self._coerce_try(x, [SR])
 
     def _repr_(self):
         return "Callable function ring with arguments %s"%(self._args,)
@@ -2216,7 +2462,7 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
         try:
             return self.__zero_element
         except AttributeError:
-            z = CallableSymbolicExpression(SER.zero_element(), self._args)
+            z = CallableSymbolicExpression(SR.zero_element(), self._args)
             self.__zero_element = z
             return z
 
@@ -2312,7 +2558,7 @@ class CallableSymbolicExpression(SymbolicExpression):
         Coerce to a multiprecision real number.
 
         EXAMPLES:
-            sage: RealField(100)(SER(10))
+            sage: RealField(100)(SR(10))
             10.000000000000000000000000000
         """
         return (self._expr)._mpfr_(field)
@@ -2710,7 +2956,7 @@ class PrimitiveFunction(SymbolicExpression):
         try:
             return getattr(x, self._repr_())(*args)
         except AttributeError:
-            return SymbolicComposition(self, SER(x))
+            return SymbolicComposition(self, SR(x))
 
     def _approx_(self, x):
         s = '%s(%s), numer'%(self._repr_(), float(x))
@@ -2763,7 +3009,7 @@ class Function_abs(PrimitiveFunction):
         return x.__abs__()
 
     def __call__(self, x): # special case
-        return SymbolicComposition(self, SER(x))
+        return SymbolicComposition(self, SR(x))
 
 abs_symbolic = Function_abs()
 _syms['abs'] = abs_symbolic
@@ -2786,7 +3032,7 @@ class Function_sin(PrimitiveFunction):
         except AttributeError:
             if isinstance(x, float):
                 return math.sin(x)
-        return SymbolicComposition(self, SER(x))
+        return SymbolicComposition(self, SR(x))
 
 sin = Function_sin()
 _syms['sin'] = sin
@@ -2809,7 +3055,7 @@ class Function_cos(PrimitiveFunction):
         except AttributeError:
             if isinstance(x, float):
                 return math.cos(x)
-        return SymbolicComposition(self, SER(x))
+        return SymbolicComposition(self, SR(x))
 
 
 cos = Function_cos()
@@ -2842,7 +3088,7 @@ class Function_sec(PrimitiveFunction):
             if isinstance(x, float):
                 return float(1)/float(cos(x))
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 sec = Function_sec()
 _syms['sec'] = sec
@@ -2878,7 +3124,7 @@ class Function_tan(PrimitiveFunction):
             if isinstance(x, float):
                 return math.tan(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 tan = Function_tan()
 _syms['tan'] = tan
@@ -2913,7 +3159,7 @@ class Function_asin(PrimitiveFunction):
             if isinstance(x, float):
                 return math.asin(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 asin = Function_asin()
 _syms['asin'] = asin
@@ -2943,7 +3189,7 @@ class Function_acos(PrimitiveFunction):
             if isinstance(x, float):
                 return math.acos(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 acos = Function_acos()
 _syms['acos'] = acos
@@ -2974,7 +3220,7 @@ class Function_atan(PrimitiveFunction):
             if isinstance(x, float):
                 return math.atan(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 atan = Function_atan()
 _syms['atan'] = atan
@@ -3016,7 +3262,7 @@ class Function_tanh(PrimitiveFunction):
             if isinstance(x, float):
                 return math.tanh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 tanh = Function_tanh()
 _syms['tanh'] = tanh
@@ -3049,7 +3295,7 @@ class Function_sinh(PrimitiveFunction):
             if isinstance(x, float):
                 return math.sinh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 sinh = Function_sinh()
 _syms['sinh'] = sinh
@@ -3082,7 +3328,7 @@ class Function_cosh(PrimitiveFunction):
             if isinstance(x, float):
                 return math.cosh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 cosh = Function_cosh()
 _syms['cosh'] = cosh
@@ -3115,7 +3361,7 @@ class Function_coth(PrimitiveFunction):
             if isinstance(x, float):
                 return 1/math.tanh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 coth = Function_coth()
 _syms['coth'] = coth
@@ -3148,7 +3394,7 @@ class Function_sech(PrimitiveFunction):
             if isinstance(x, float):
                 return 1/math.cosh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 sech = Function_sech()
 _syms['sech'] = sech
@@ -3182,7 +3428,7 @@ class Function_csch(PrimitiveFunction):
             if isinstance(x, float):
                 return 1/math.sinh(x)
             else:
-                return SymbolicComposition(self, SER(x))
+                return SymbolicComposition(self, SR(x))
 
 csch = Function_csch()
 _syms['csch'] = csch
@@ -3268,7 +3514,7 @@ class Function_sqrt(PrimitiveFunction):
                 return x.sqrt()
             except AttributeError:
                 pass
-        return SymbolicComposition(self, SER(x))
+        return SymbolicComposition(self, SR(x))
 
 
     def _approx_(self, x):
@@ -3281,7 +3527,7 @@ class Function_sqrt(PrimitiveFunction):
                 if isinstance(x, float):
                     return math.sqrt(x)
                 else:
-                    return SymbolicComposition(self, SER(x))
+                    return SymbolicComposition(self, SR(x))
 
 sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt
@@ -3322,7 +3568,7 @@ class Function_exp(PrimitiveFunction):
                 return x.exp()
             except AttributeError:
                 pass
-        return SymbolicComposition(self, SER(x))
+        return SymbolicComposition(self, SR(x))
 
 
     def _approx_(self, x):
@@ -3335,7 +3581,7 @@ class Function_exp(PrimitiveFunction):
                 if isinstance(x, float):
                     return math.exp(x)
                 else:
-                    return SymbolicComposition(self, SER(x))
+                    return SymbolicComposition(self, SR(x))
 
 exp = Function_exp()
 _syms['exp'] = exp
@@ -3377,7 +3623,7 @@ class SymbolicFunction(PrimitiveFunction):
         raise TypeError
 
     def __call__(self, *args):
-        return SymbolicFunctionEvaluation(self, [SER(x) for x in args])
+        return SymbolicFunctionEvaluation(self, [SR(x) for x in args])
 
 class SymbolicFunction_delayed(SymbolicFunction):
     def simplify(self):
@@ -3390,7 +3636,7 @@ class SymbolicFunction_delayed(SymbolicFunction):
         return "%s"%self._name
 
     def __call__(self, *args):
-        return SymbolicFunctionEvaluation_delayed(self, [SER(x) for x in args])
+        return SymbolicFunctionEvaluation_delayed(self, [SR(x) for x in args])
 
 
 
@@ -3486,7 +3732,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         if function_sub:
             del kwds[x]
 
-        arg = tuple([SER(x._recursive_sub(kwds)) for x in self._args])
+        arg = tuple([SR(x._recursive_sub(kwds)) for x in self._args])
 
         if function_sub:
             return g(*arg)
@@ -3661,7 +3907,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         if isinstance(w, (list, tuple)):
             return w
         else:
-            x = SER(w)
+            x = SR(w)
         return x
     except SyntaxError:
         raise TypeError, "unable to make sense of Maxima expression '%s' in SAGE"%s

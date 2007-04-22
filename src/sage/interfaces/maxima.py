@@ -446,13 +446,14 @@ class Maxima(Expect):
                 self._expect_expr()
                 raise ValueError, msg
         except KeyboardInterrupt, msg:
-            print self._expect.before
+            #print self._expect.before
             i = 0
             while True:
                 try:
-                    print "Control-C pressed while running maxima.  Please wait..."
+                    print "Control-C pressed.  Interrupting Maxima. Please wait..."
                     self._send('quit;\n'+chr(3))
                     self._send('quit;\n'+chr(3))
+                    self.interrupt()
                     self.interrupt()
                 except KeyboardInterrupt:
                     i += 1
@@ -1129,15 +1130,18 @@ class MaximaElement(ExpectElement):
 
         # thanks to David Joyner for telling me about using "is".
         P = self.parent()
-        if P.eval("is (%s < %s)"%(self.name(), other.name())) == P._true_symbol():
-            return -1
-        elif P.eval("is (%s > %s)"%(self.name(), other.name())) == P._true_symbol():
-            return 1
-        elif P.eval("is (%s = %s)"%(self.name(), other.name())) == P._true_symbol():
-            return 0
-        else:
-            return -1  # everything is supposed to be comparable in Python, so we define
-                       # the comparison thus when no comparable in interfaced system.
+        try:
+            if P.eval("is (%s < %s)"%(self.name(), other.name())) == P._true_symbol():
+                return -1
+            elif P.eval("is (%s > %s)"%(self.name(), other.name())) == P._true_symbol():
+                return 1
+            elif P.eval("is (%s = %s)"%(self.name(), other.name())) == P._true_symbol():
+                return 0
+        except TypeError:
+            pass
+        return cmp(repr(self),repr(other))
+                   # everything is supposed to be comparable in Python, so we define
+                   # the comparison thus when no comparable in interfaced system.
 
     def sage_object(self):
          from sage.calculus.calculus import symbolic_expression_from_maxima_string

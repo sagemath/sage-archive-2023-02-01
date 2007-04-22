@@ -2,7 +2,7 @@
 Functional notation support for common calculus methods.
 """
 
-from calculus import SER, SymbolicExpression, CallableSymbolicExpression
+from calculus import SR, SymbolicExpression, CallableSymbolicExpression
 
 def simplify(f):
     """
@@ -20,7 +20,7 @@ def derivative(f, *args, **kwds):
     if isinstance(f, CallableSymbolicExpression):
         return f.derivative(*args, **kwds)
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.derivative(*args, **kwds)
 
 diff = derivative
@@ -110,7 +110,7 @@ def integral(f, *args, **kwds):
     if isinstance(f, CallableSymbolicExpression):
         return f.derivative(*args, **kwds)
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.integral(*args, **kwds)
 
 integrate = integral
@@ -151,7 +151,7 @@ def limit(f, dir=None, **argv):
 
     """
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.limit(dir=dir, **argv)
 
 lim = limit
@@ -174,7 +174,7 @@ def taylor(f, v, a, n):
 
     """
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.taylor(v=v,a=a,n=n)
 
 
@@ -242,7 +242,7 @@ def laplace(f, t, s):
         laplace(1/s, s, t)
     """
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.laplace(t,s)
 
 def inverse_laplace(f, t, s):
@@ -270,7 +270,7 @@ def inverse_laplace(f, t, s):
         ilt(cos(s), s, t)
     """
     if not isinstance(f, SymbolicExpression):
-        f = SER(f)
+        f = SR(f)
     return f.inverse_laplace(t,s)
 
 

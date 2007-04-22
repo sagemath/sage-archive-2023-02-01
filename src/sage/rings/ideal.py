@@ -187,7 +187,11 @@ class Ideal_generic(MonoidElement):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
     def __cmp__(self, other):
-        return cmp(set(self.gens()), set(other.gens()))
+        S = set(self.gens())
+        T = set(other.gens())
+        if S == T:
+            return 0
+        return cmp(self.gens(), other.gens())
 
     def __contains__(self, x):
         try:

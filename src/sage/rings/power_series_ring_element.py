@@ -367,10 +367,10 @@ class PowerSeries(ring_element.RingElement):
             coeffs = list(d.iteritems())
             coeffs.sort()
             for (n, x) in coeffs:
-                if x != 0:
+                if x:
                     if s != ' ':
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -386,10 +386,10 @@ class PowerSeries(ring_element.RingElement):
             first = True
             for n in xrange(m):
                 x = v[n]
-                if x != 0:
+                if x:
                     if not first:
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -457,7 +457,7 @@ class PowerSeries(ring_element.RingElement):
                 if n > 0:
                     s += "%s|%s"%(x,var)
                 else:
-                    s += str(x)
+                    s += repr(x)
                 first = False
 
         if atomic_repr:
@@ -523,7 +523,7 @@ class PowerSeries(ring_element.RingElement):
 
         EXAMPLES:
             sage: R.<m> = CDF[[]]
-            sage: f = pi^2 + m^3 + e*m^4 + O(m^10); f
+            sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
             9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
             sage: f[-5]
             0
@@ -844,7 +844,7 @@ class PowerSeries(ring_element.RingElement):
             $x_{i+1} = \frac{1}{2}( x_i + self/x_i )$
 
         EXAMPLES:
-            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: sqrt(t^2)
             t
             sage: sqrt(1+t)
@@ -852,9 +852,8 @@ class PowerSeries(ring_element.RingElement):
             sage: sqrt(4+t)
             2 + 1/4*t - 1/64*t^2 + 1/512*t^3 - 5/16384*t^4 + O(t^5)
             sage: sqrt(2+t)
-            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
-
-            sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
+            ...
+            sage: K.<t> = PowerSeriesRing(QQ, 50)
             sage: sqrt(1+2*t+t^2)
             1 + t + O(t^50)
             sage: sqrt(t^2 +2*t^4 + t^6)
@@ -879,7 +878,11 @@ class PowerSeries(ring_element.RingElement):
             prec = self.parent().default_prec()
 
         a = self.valuation_zero_part()
-        x = sqrt(a[0])
+        try:
+            x = sqrt(a[0])
+            x = self.base_ring()(x)
+        except TypeError:
+            self = self.change_ring(x.parent())
         newp = self.parent().base_extend(x.parent())
         a = newp(a)
         half = ~newp.base_ring()(2)
@@ -1508,7 +1511,7 @@ class PowerSeries_poly(PowerSeries):
             raise NotImplementedError
         if self.prec() is infinity:
             raise RuntimeError, "series precision must be finite for conversion to pari object."
-        return pari.pari(str(self))
+        return pari.pari(repr(self))
 
 
 

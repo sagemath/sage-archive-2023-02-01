@@ -233,7 +233,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return tuple(G)
 
     def _error_bad_coords(self, v):
-        raise TypeError, "coordinates %s do not define a point on %s"%(v,self)
+        raise TypeError, "coordinates %s do not define a point on %s"%(list(v),self)
 
     def _check_satisfies_equations(self, v):
         """

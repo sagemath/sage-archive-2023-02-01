@@ -98,8 +98,8 @@ def NumberField(polynomial, name=None, check=True, names=None):
 
     EXAMPLES: Constructing a relative number field
         sage: K.<a> = NumberField(x^2 - 2)
-        sage: R.<t> = K['t']
-        sage: L = K.extension(t^3+t+a, 'b'); L
+        sage: R.<t> = K[]
+        sage: L = K.extension(t^3+t+a, b); L
         Extension by t^3 + t + a of the Number Field in a with defining polynomial x^2 - 2
         sage: L.absolute_field()
         Number Field in b with defining polynomial x^6 + 2*x^4 + x^2 - 2
@@ -256,7 +256,7 @@ class NumberField_generic(field.Field):
         else:
             self.__latex_variable_name = name
 
-    def __repr__(self):
+    def _repr_(self):
         return "Number Field in %s with defining polynomial %s"%(
                    self.variable_name(), self.polynomial())
 
@@ -482,9 +482,9 @@ class NumberField_generic(field.Field):
 
         EXAMPLES:
             sage: K.<a> = NumberField(x^3 - 2)
-            sage: t = K['x'].gen()
+            sage: R.<t> = K[]
             sage: L.<b> = K.extension(t^2 + a); L
-            Extension by x^2 + a of the Number Field in a with defining polynomial x^3 - 2
+            Extension by t^2 + a of the Number Field in a with defining polynomial x^3 - 2
 
         We create another extension.
             sage: k.<a> = NumberField(x^2 + 1); k
@@ -500,10 +500,13 @@ class NumberField_generic(field.Field):
                 poly = poly.polynomial(self)
             except (AttributeError, TypeError):
                 raise TypeError, "polynomial (=%s) must be a polynomial."%repr(poly)
-        if not names is None: name = names
+        if not names is None:
+            name = names
+        if isinstance(name, tuple):
+            name = name[0]
         if name is None:
             raise TypeError, "the variable name must be specified."
-        return NumberField_extension(self, poly, name)
+        return NumberField_extension(self, poly, repr(name))
 
     def factor_integer(self, n):
         r"""
@@ -896,6 +899,7 @@ class NumberField_extension(NumberField_generic):
     def __reduce__(self):
         """
         TESTS:
+            sage: K.<w> = NumberField(Z^3 + Z + 1)
             sage: L.<z> = K.extension(Z^3 + 2)
             sage: L = loads(dumps(K))
             sage: print L
@@ -1229,7 +1233,7 @@ class NumberField_cyclotomic(NumberField_generic):
         """
         return NumberField_cyclotomic_v1, (self.__zeta_order, self.variable_name())
 
-    def __repr__(self):
+    def _repr_(self):
         return "Cyclotomic Field of order %s and degree %s"%(
                 self.zeta_order(), self.degree())
 

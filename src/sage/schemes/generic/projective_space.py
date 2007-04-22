@@ -214,7 +214,7 @@ class ProjectiveSpace_ring(ambient_space.AmbientSpace):
     def _repr_generic_point(self, v=None):
         if v is None:
             v = self.gens()
-        return '(%s)'%(" : ".join([str(f) for f in v]))
+        return '(%s)'%(" : ".join([repr(f) for f in v]))
 
     def _latex_generic_point(self, v=None):
         if v is None:

@@ -658,13 +658,15 @@ def jacobi(sym,x,m):
 
     EXAMPLES:
         sage: jacobi("sn",1,1)
-        (e - e^-1)/(e + e^-1)
+        tanh(1)
         sage: jacobi("cd",1,1/2)
-        (e - e^-1)/(e + e^-1)
-        sage: jacobi("cn",1,1/2); jacobi("dn",1,1/2);jacobi("cn",1,1/2)/jacobi("dn",1,1/2)
-        0.59597656767214113
-        0.82316100163159622
-        0.72400972165937116
+        jacobi_cd(1, 1/2)
+        sage: RDF(jacobi("cd",1,1/2))
+        0.724009721659
+        sage: RDF(jacobi("cn",1,1/2)); RDF(jacobi("dn",1,1/2)); RDF(jacobi("cn",1,1/2)/jacobi("dn",1,1/2))
+        0.595976567672
+        0.823161001632
+        0.724009721659
         sage: jsn = jacobi("sn",x,1)
         sage: P = plot(jsn,0,1)
         sage.: P.show()

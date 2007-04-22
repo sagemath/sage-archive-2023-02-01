@@ -2252,21 +2252,21 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
-        sage: g = plot(sin,0,10, linestyle='-.')
+        sage: g = plot(sin(x),0,10, linestyle='-.')
         sage: g.save('sage.png')
     """
     def _reset(self):
         o = self.options
         o['plot_points'] = 200
-        o['plot_division'] = 1000 # is this a good value?
-        o['max_bend'] = 0.1       # is this good as well?
+        o['plot_division'] = 1000
+        o['max_bend'] = 0.1
+        o['rgbcolor'] = (0,0,1)
 
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
     def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, label='',
-                 show=None, **kwds):
+                 polar=False, label='', show=None, **kwds):
         if show is None:
             show = SHOW_DEFAULT
         try:
@@ -2283,7 +2283,6 @@ class PlotFactory(GraphicPrimitiveFactory):
             return G
         except AttributeError:
             pass
-
         if xmin is None:
             xmin = -1
         if xmax is None:
@@ -2322,6 +2321,7 @@ class PlotFactory(GraphicPrimitiveFactory):
                     x = xmax
             else:
                 x = xmax  # guarantee that we get the last point.
+
             try:
                 y = f(x)
                 data.append((x, float(y)))

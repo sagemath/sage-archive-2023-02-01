@@ -786,7 +786,7 @@ def show(x, *args, **kwds):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
         return sage.misc.latex.LatexExpr('') # so not visible output
-    raise AttributeError, "object %s does not support show."%x
+    raise AttributeError, "object %s does not support show."%(x, )
 
 def sqrt(x):
     """

@@ -413,25 +413,47 @@ class SymbolicExpression(RingElement):
     def hash(self):
         return hash(self._repr_(simplify=False))
 
-    def plot(self, **kwds):
+    def plot(self, *args, **kwds):
         from sage.plot.plot import plot
-        # see if the user passed a param
-        try:
+
+        # see if the user passed a variable in.
+        if kwds.has_key('param'):
             param = kwds['param']
-        except KeyError:
-            if isinstance(self.simplify(), SymbolicConstant):
-                return plot(self.simplify()._obj)
+        else:
+            param = None
+            for i in range(len(args)):
+                if isinstance(args[i], SymbolicVariable):
+                    param = args[i]
+                    args = args[:i] + args[i+1:]
+                    break
 
-            vars = self.variables()
-            if len(vars) == 1:
-                return plot(self.function(vars[0]), **kwds)
+        F = self.simplify()
+        if isinstance(F, Symbolic_object):
+            if hasattr(F._obj, '__call__'):
+                f = lambda x: F._obj(x)
+            else:
+                y = float(F._obj)
+                f = lambda x: y
 
-            raise TypeError, "must give an explicit parameter to plot this"\
-                            + " expression."
-
-        del kwds['param']
-        return plot(self.function(param), **kwds)
-
+        elif param is None:
+            if isinstance(self, CallableSymbolicExpression):
+                A = self.arguments()
+                if len(A) == 0:
+                    raise ValueError, "function has no input arguments"
+                else:
+                    param = A[0]
+                f = lambda x: self(x)
+            else:
+                A = self.variables()
+                if len(A) == 0:
+                    y = float(self)
+                    f = lambda x: y
+                else:
+                    param = A[0]
+                f = self.function(param)
+        else:
+            f = self.function(param)
+        return plot(f, *args, **kwds)
 
     def __lt__(self, right):
         return SymbolicEquation(self, SER(right), operator.lt)
@@ -1813,7 +1835,7 @@ class SymbolicArithmetic(SymbolicOperation):
             100000 - sqrt(2)
         """
         ops = self._operands
-        new_ops = [op._recursive_sub(kwds) for op in ops]
+        new_ops = [SER(op._recursive_sub(kwds)) for op in ops]
         return self._operator(*new_ops)
 
     def _recursive_sub_over_ring(self, kwds, ring):
@@ -2165,6 +2187,9 @@ class CallableSymbolicExpressionRing_class(CommutativeRing):
 
     def args(self):
         return self._args
+
+    def arguments(self):
+        return self.args()
 
     def zero_element(self):
         try:
@@ -3323,10 +3348,24 @@ class SymbolicFunction(PrimitiveFunction):
         return "'%s"%self._name
 
     def _approx_(self, x):
-        return SymbolicComposition(self, SER(x))
+        raise TypeError
 
     def __call__(self, *args):
         return SymbolicFunctionEvaluation(self, [SER(x) for x in args])
+
+class SymbolicFunction_delayed(SymbolicFunction):
+    def simplify(self):
+        return self
+
+    def is_simplified(self):
+        return True
+
+    def _maxima_init_(self):
+        return "%s"%self._name
+
+    def __call__(self, *args):
+        return SymbolicFunctionEvaluation_delayed(self, [SER(x) for x in args])
+
 
 
 class SymbolicFunctionEvaluation(SymbolicExpression):
@@ -3426,7 +3465,7 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         if function_sub:
             return g(*arg)
         else:
-            return SymbolicFunctionEvaluation(self._f, arg)
+            return self.__class__(self._f, arg)
 
     def _recursive_sub_over_ring(self, kwds, ring):
         raise TypeError, "no way to coerce the formal function to ring."
@@ -3452,6 +3491,43 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
         vars = tuple(vars)
         self.__variables = vars
         return vars
+
+class SymbolicFunctionEvaluation_delayed(SymbolicFunctionEvaluation):
+    def simplify(self):
+        return self
+
+    def is_simplified(self):
+        return True
+
+    def __float__(self):
+        return float(self._maxima_())
+
+    def _real_double_(self, R):
+        return R(float(self))
+
+    def _complex_double_(self, C):
+        return C(float(self))
+
+    def _mpfr_(self, field):
+        if field.prec() <= 53:
+            return field(float(self))
+        raise TypeError
+
+    def _complex_mpfr_field_(self, field):
+        if field.prec() <= 53:
+            return field(float(self))
+        raise TypeError
+
+    def _maxima_init_(self):
+        try:
+            return self.__maxima_init
+        except AttributeError:
+            n = self._f._name
+            s = "%s(%s)"%(n, ', '.join([x._maxima_init_()
+                                           for x in self._args]))
+            self.__maxima_init = s
+        return s
+
 
 
 _functions = {}
@@ -3495,8 +3571,7 @@ def function(s, *args):
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma', \
-            '?%ilt':"'inverselaplace0", '?%laplace':"'laplace0"}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
 
 from sage.rings.infinity import infinity, minus_infinity
 
@@ -3505,7 +3580,9 @@ _syms['minf'] = minus_infinity
 
 from sage.misc.multireplace import multiple_replace
 
-maxima_tick = re.compile("'[a-z|A-Z|0-9]*")
+maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
+
+maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     global _syms
@@ -3516,13 +3593,21 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
     s = maxima._eval_line('_tmp_;')
 
-    s = multiple_replace(symtable, s)
-
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
         for X in formal_functions:
             _syms[X[1:]] = function(X[1:])
-        s = s.replace("'","")  # potential very subtle bug if 'foo is in a string literal -- but string literals should *never* ever be part of a symbolic expression.
+        # You might think there is a potential very subtle bug if 'foo is in a string literal --
+        # but string literals should *never* ever be part of a symbolic expression.
+        s = s.replace("'","")
+
+    delayed_functions = maxima_qp.findall(s)
+    if len(delayed_functions) > 0:
+        for X in delayed_functions:
+            _syms[X[2:]] = SymbolicFunction_delayed(X[2:])
+        s = s.replace("?%","")
+
+    s = multiple_replace(symtable, s)
 
     symtable2 = {}
     if len(r) > 0:

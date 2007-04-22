@@ -54,8 +54,10 @@ import sage.misc.latex
 import sage.rings.ring_element as ring_element
 from sage.rings.integer import Integer
 
-from sage.structure.element cimport ModuleElement, RingElement, AlgebraElement
+from sage.structure.element cimport Element, ModuleElement, RingElement, AlgebraElement
 
+def is_LaurentSeries(x):
+    return isinstance(x, LaurentSeries)
 
 cdef class LaurentSeries(AlgebraElement):
     """
@@ -319,6 +321,9 @@ cdef class LaurentSeries(AlgebraElement):
             -10/3
         """
         return iter(self.__u)
+
+    def list(self):
+        return self.__u.list()
 
     def __setitem__(self, n, value):
         """
@@ -609,7 +614,7 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
-    def __cmp__(self, right_r):
+    cdef int _cmp_c_impl(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
 

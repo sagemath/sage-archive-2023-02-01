@@ -621,13 +621,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return PyBool_FromLong(self.degree() == self.valuation())
 
     def _mul_generic(self, right):
-        d1 = self.degree()
-        d2 = right.degree()
-        d = d1 + d2
-        w = [sum([self[i]*right[k-i] for i in range(0,min(d1,k)+1) if \
-                  i <= d1 and k-i <= d2 and self[i]!=0 and right[k-i]!=0]) \
-                for k in range(d+1)]
-        return self.parent()(w)
+        if self is right:
+            return self._square_generic()
+        x = self.list()
+        y = right.list()
+        cdef Py_ssize_t i, k, start, end
+        cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
+        if d1 == -1:
+            return self
+        elif d2 == -1:
+            return right
+        elif d1 == 0:
+            c = x[0]
+            return self._parent([c*a for a in y])
+        elif d2 == 0:
+            c = y[0]
+            return self._parent([a*c for a in x])
+        coeffs = []
+        for k from 0 <= k <= d1+d2:
+            start = 0 if k <= d2 else k-d2 # max(0, k-d2)
+            end =   k if k <= d1 else d1    # min(k, d1)
+            sum = x[start] * y[k-start]
+            for i from start < i <= end:
+                sum += x[i] * y[k-i]
+            coeffs.append(sum)
+        return self._parent(coeffs)
+
+    def _square_generic(self):
+        x = self.list()
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t d = len(x)-1
+        zero = self._parent.base_ring()(0)
+        two = self._parent.base_ring()(2)
+        coeffs = [zero] * (2 * d + 1)
+        for i from 0 <= i <= d:
+            coeffs[2*i] = x[i] * x[i]
+            for j from 0 <= j < i:
+                coeffs[i+j] += two * x[i] * x[j]
+        return self._parent(coeffs)
 
     def _mul_fateman(self, right):
         r"""

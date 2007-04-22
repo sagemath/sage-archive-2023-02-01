@@ -2013,7 +2013,8 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ
+from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing
+from sage.modules.all import FreeModule, is_FreeModuleElement
 
 from sage.misc.profiler import Profiler
 from sage.misc.misc import repr_lincomb
@@ -2085,11 +2086,32 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
         self._dQ = Q.derivative().change_ring(self)(self._x)
         self._monsky_washnitzer = MonskyWashnitzerDifferentialRing(self)
 
+        self._monomial_diffs = {}
+        self._monomial_diff_coeffs = {}
 
-    def __call__(self, val):
-        if isinstance(val, SpecialHyperellipticQuotientElement_2) and val.parent() is self:
-            return val
-        return SpecialHyperellipticQuotientElement_2(self, val)
+    def _repr_(self):
+        y_inverse = ",y^-1" if is_LaurentSeriesRing(self._series_ring) else ""
+        return "SpecialHyperellipticQuotientRing K[x,y%s] / (y^2 = %s) over %s"%(y_inverse, self._Q, self.base_ring())
+
+    def base_extend(self, R):
+        if R.has_coerce_map_from(self.base_ring()):
+            self.change_ring(R)
+        else:
+            raise TypeError, "no such base extension"
+
+    def change_ring(self, R):
+        return SpecialHyperellipticQuotientRing_2(self._Q, R, self._p, is_LaurentSeriesRing(self._series_ring))
+
+    def __call__(self, val, offset=0):
+        if isinstance(val, SpecialHyperellipticQuotientElement_2):
+            if val.parent() is self:
+                if offset == 0:
+                    return val
+                else:
+                    return val << offset
+            else:
+                val = val._f.change_ring(self._series_ring)
+        return SpecialHyperellipticQuotientElement_2(self, val, offset)
 
     def gens(self):
         return self._x, self._y
@@ -2118,6 +2140,20 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
         else:
             return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
 
+    def monomial_diff_coeffs(self, i, j, R=None):
+        # TODO: explicitly calculate these formulas
+        try:
+            return self._monomial_diff_coeffs[i,j,R]
+        except KeyError:
+            dg = self.monomial(i, j).diff()
+            coeffs = [dg.extract_pow_y(j-1), dg.extract_pow_y(j+1)]
+            self._monomial_diff_coeffs[i,j,None] = coeffs
+            if not R is None:
+                V = FreeModule(R, len(coeffs[0]))
+                coeffs = [V(coeffs[0]), V(coeffs[1])]
+            self._monomial_diff_coeffs[i,j,R] = coeffs
+            return coeffs
+
     def Q(self):
         return self._Q
 
@@ -2137,9 +2173,13 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
 
 class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
 
-    def __init__(self, parent, val=0):
+    def __init__(self, parent, val=0, offset=0):
         CommutativeAlgebraElement.__init__(self, parent)
+        if isinstance(val, list) and len(val) > 0 and is_FreeModuleElement(val[0]):
+            val = transpose_list(val)
         self._f = parent._poly_ring(val)
+        if offset != 0:
+            self._f = self._f.parent()([a << offset for a in self._f])
 
     def __invert__(self):
         """
@@ -2166,7 +2206,10 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         return SpecialHyperellipticQuotientElement_2(self.parent(), self._f - other._f)
 
     def _mul_(self, other):
-        prod = self._f * other._f
+        # over laurent series, addition and subtraction can be expensive,
+        # and the degree of this poly is small enough that Karatsuba actually hurts
+        prod = self._f._mul_generic(other._f)
+#        prod = self._f * other._f
         v = prod.list()
         parent = self.parent()
         Q_coeffs = parent._Q_coeffs
@@ -2179,16 +2222,20 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         return SpecialHyperellipticQuotientElement_2(parent, v[0:n])
 
     def _rmul_(self, c):
-        return self.parent()([c*a for a in self._f])
+        coeffs = self._f.list()
+        return self.parent()([c*a for a in coeffs])
 
     def _lmul_(self, c):
-        return self.parent()([a*c for a in self._f])
+        coeffs = self._f.list()
+        return self.parent()([a*c for a in coeffs])
 
     def __lshift__(self, k):
-        return self.parent()([a << k for a in self._f])
+        coeffs = self._f.list()
+        return self.parent()([a << k for a in coeffs])
 
     def __rshift__(self, k):
-        return self.parent()([a >> k for a in self._f])
+        coeffs = self._f.list()
+        return self.parent()([a >> k for a in coeffs])
 
     def _repr_(self):
         x = PolynomialRing(QQ, 'x').gen(0)
@@ -2229,11 +2276,30 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         return v
 
     def min_pow_y(self):
+        if self._f.degree() == -1:
+            return 0
         return min([a.valuation() for a in self._f.list()])
 
     def max_pow_y(self):
+        if self._f.degree() == -1:
+            return 0
         return max([a.degree() for a in self._f.list()])
 
+    def coeffs(self, R=None):
+        zero = self.base_ring()(0) if R is None else R(0)
+        y_offset = min(self.min_pow_y(), 0)
+        y_degree = max(self.max_pow_y(), 0)
+        coeffs = []
+        for a in self._f.list():
+            L = a.list()
+#            if R is not None:
+#                L = [R(x) for x in L]
+            coeffs.append( [zero] * (a.valuation()-y_offset) + L + [zero]*(y_degree - a.degree()) )
+        while len(coeffs) < self.parent().degree():
+            coeffs.append( [zero] * (y_degree - y_offset + 1) )
+        V = FreeModule(self.base_ring() if R is None else R, self.parent().degree())
+        coeffs = transpose_list(coeffs)
+        return [V(a) for a in coeffs], y_offset
 
 class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
     """
@@ -2345,6 +2411,9 @@ class SpecialHyperellipticQuotientRing(FreeAlgebraQuotient):
         else:
             return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
 
+    def monomial_diff_coeffs(self, i, j):
+        dg = self.monomial(i, j).diff()
+        return [[dg.extract_pow_y(j-1)], dg.extract_pow_y(j+1)]
 
     def Q(self):
         return self._Q
@@ -2476,12 +2545,14 @@ class MonskyWashnitzerDifferentialRing(Module):
     def invariant_differential(self):
         return self(1)
 
-    def __call__(self, val):
-        return MonskyWashnitzerDifferential(self, val)
+    def __call__(self, val, offset=0):
+        return MonskyWashnitzerDifferential(self, val, offset)
 
     def base_extend(self, R):
-        test = self.base_ring()(R(2))
-        return self
+        return MonskyWashnitzerDifferentialRing(self.base_ring().base_extend(R))
+
+    def change_ring(self, R):
+        return MonskyWashnitzerDifferentialRing(self.base_ring().change_ring(R))
 
     def degree(self):
         return self.base_ring().degree()
@@ -2527,18 +2598,22 @@ class MonskyWashnitzerDifferentialRing(Module):
         prof("sqrt")
         Q = self.base_ring()._Q
 
-        three_halves = Q.parent().base_ring()(Rational((3,2)))
-        one_half = Q.parent().base_ring()(Rational((1,2)))
-#        three_halves = self.base_ring()._series_ring(Rational((3,2)))
-#        one_half     = self.base_ring()._series_ring(Rational((1,2)))
+#        three_halves = Q.parent().base_ring()(Rational((3,2)))
+#        one_half = Q.parent().base_ring()(Rational((1,2)))
+        three_halves = self.base_ring()._series_ring(Rational((3,2)))
+        one_half     = self.base_ring()._series_ring(Rational((1,2)))
 
         # We are solving for t = a^{-1/2} = (F_pQ y^{-p})^{-1/2}
         # This converges because we know the root is in the same residue class as 1.
+
         t = self.base_ring()(1)
+#        t = self.base_ring()(three_halves) - a._rmul_(one_half)
+
         print prec, "->", ceil(log(prec, 2))
 #        for _ in range(prec+1):
         for _ in range(ceil(log(prec, 2))):
-            t = three_halves * t - one_half * t*t*t * a
+            t = t._rmul_(three_halves) - (t*t*t * a)._rmul_(one_half)  # t = (3/2) t - (1/2) a t^3
+#            t = three_halves * t - one_half * t*t*t * a
 
 #        print "a =", a
 #        print "t =", t
@@ -2568,6 +2643,10 @@ class MonskyWashnitzerDifferentialRing(Module):
         We use this to solve for the linear combination of $x^i y^j$ needed
         to clear all terms with $y^{j-1}$.
         """
+        try:
+            return self._helper_matrix
+        except:
+            AttributeError
         # The smallest y term of (1/j) d(x^i y^j) is constant for all j.
         L = []
         x, y = self.base_ring().gens()
@@ -2575,17 +2654,17 @@ class MonskyWashnitzerDifferentialRing(Module):
         for i in range(n):
             L.append( (y*x**i).diff().extract_pow_y(0) )
         A = matrix(L).transpose()
-        A = (~A.change_ring(QQ)).change_ring(L[0][0].parent())
-        return A
+        self._helper_matrix = (~A.change_ring(QQ)).change_ring(L[0][0].parent())
+        return self._helper_matrix
 
 
 class MonskyWashnitzerDifferential(ModuleElement):
     """
     Represents an element of the form F dx/2y
     """
-    def __init__(self, parent, val=0):
+    def __init__(self, parent, val=0, offset=0):
         ModuleElement.__init__(self, parent)
-        self._coeff = self.parent().base_ring()(val)
+        self._coeff = self.parent().base_ring()(val, offset)
 
     def _add_(left, right):
         return MonskyWashnitzerDifferential(left.parent(),
@@ -2646,6 +2725,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Use homology relations to eliminate negative powers of y.
         """
         S = self.parent().base_ring()
+        R = S.base_ring()
         M = self.parent().helper_matrix()
         p = S.prime()
         n = S.degree()
@@ -2654,25 +2734,59 @@ class MonskyWashnitzerDifferential(ModuleElement):
         reduced = self
         for j in range(self.min_pow_y()+1, 0):
             if p.divides(j):
-                R = a.parent()
                 cs = [R(QQ(a)/j) for a in reduced.extract_pow_y(j-1)]
             else:
-                cs = [a/j for a in reduced.extract_pow_y(j-1)]
+                j_inverse = ~R(j)
+                cs = [a*j_inverse for a in reduced.extract_pow_y(j-1)]
             lin_comb = M * vector(M.base_ring(), cs)
 #            print "j =", j, "b =", cs, "lin_comb =", lin_comb
             g = self.parent().base_ring()(0)
-            for i in range(n):
-                if lin_comb[i] != 0:
-#                    gg = S.monomial(i, j, lin_comb[i])
-#                    f += gg
-#                    reduced -= gg.diff()
-                    g += S.monomial(i, j, lin_comb[i])
-            if not g.is_zero():
-                f += g
-                reduced -= g.diff()
-#                print g, g.diff()
+            if not lin_comb.is_zero():
+                for i in range(n):
+                    if lin_comb[i] != 0:
+    #                    gg = S.monomial(i, j, lin_comb[i])
+    #                    f += gg
+    #                    reduced -= gg.diff()
+                        g += S.monomial(i, j, lin_comb[i])
+                if not g.is_zero():
+                    f += g
+                    reduced -= g.diff()
+#                    print g, g.diff()
+#                    print "reduced", reduced
 
         return f, reduced
+
+    def reduce_neg_y_fast(self):
+        """
+        Use homology relations to eliminate negative powers of y.
+        """
+        S = self.parent().base_ring()
+        R = S.base_ring()
+        M = self.parent().helper_matrix()
+
+        coeffs, offset = self.coeffs(R)
+        V = coeffs[0].parent()
+
+        if offset == 0:
+            return S(0), self
+
+        forms = []
+        for j in range(self.min_pow_y()+1, 0):
+            if coeffs[j-offset-1].is_zero():
+                forms.append(V(0))
+            else:
+                lin_comb = ~R(j) * (M * coeffs[j-offset-1])
+                forms.append(lin_comb)
+                for i in lin_comb.nonzero_positions():
+                    # g = lin_comb[i] x^i y^j
+                    # self -= dg
+                    coeffs[j-offset+1] -= lin_comb[i] * V(S.monomial_diff_coeffs(i, j)[1])
+
+        f = S(forms, offset+1)
+        reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
+#        reduced = self - f.diff()
+        return f, reduced
+
 
     def reduce_pos_y(self):
         """
@@ -2699,10 +2813,57 @@ class MonskyWashnitzerDifferential(ModuleElement):
                         c = R(QQ(c)/QQ(denom))
                     else:
                         c /= denom
-                    c = series(c)
+                    c = g.parent()(c)
                     f += c * g
                     reduced -= c * dg
 
+        return f, reduced
+
+
+    def reduce_pos_y_fast(self):
+        """
+        Use homology relations to eliminate positive powers of y.
+        """
+        S = self.parent().base_ring()
+        R = S.base_ring()
+        n = S.Q().degree()
+
+        coeffs, offset = self.coeffs(R)
+        V = coeffs[0].parent()
+        forms = [V(0), V(0)]
+
+        for j in range(self.max_pow_y(), -1, -1):
+
+            form = V(0)
+            i = n-1
+            c = coeffs[j-offset][i]
+            if c != 0:
+                dg_coeffs = V(S.monomial_diff_coeffs(0, j+1)[0])
+                c /= dg_coeffs[i]
+                forms[len(forms)-2][0] = c
+                # self -= c d(y^{j+1})
+                coeffs[j-offset] -= c*dg_coeffs
+
+            if j == 0:
+                # the others are basis elements
+                break
+
+            for i in range(n-2, -1, -1):
+                c = coeffs[j-offset][i]
+                if c != 0:
+                    dg_coeffs = S.monomial_diff_coeffs(i+1, j-1)
+                    dg_coeffs = [V(dg_coeffs[0]), V(dg_coeffs[1])]
+                    denom = dg_coeffs[1][i]
+                    c /= denom
+                    form[i+1] = c
+                    # self -= c d(x^{i+1} y^{j-1})
+                    coeffs[j-offset] -= c*dg_coeffs[1]
+                    coeffs[j-offset-2] -= c*dg_coeffs[0]
+            forms.append(form)
+
+        forms.reverse()
+        f = S(forms)
+        reduced = self.parent()(coeffs[:1-offset], offset)
         return f, reduced
 
     def reduce(self):
@@ -2710,6 +2871,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         Use homology relations to find $a$ and $f$ such that
         $self = a + df$ where $a$ is given in terms of the $x^i dx/2y$.
         """
+#        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
         n = self.parent().base_ring().Q().degree()
         f1, a = self.reduce_neg_y()
         f2, a = a.reduce_pos_y()
@@ -2720,11 +2882,24 @@ class MonskyWashnitzerDifferential(ModuleElement):
             x, y = self.parent().base_ring().gens()
             g = y
             dg = g.diff()
-            c = c.parent()(QQ(c)/QQ(dg.extract_pow_y(0)[n-1])) # TODO: fix when we have fast p-adics
+            c = g.parent()(QQ(c)/QQ(dg.extract_pow_y(0)[n-1])) # TODO: fix when we have fast p-adics
             f += c * g
             a -= c * dg
+#            print g, dg
 
         return f, a
+
+    def reduce_fast(self):
+        """
+        Use homology relations to find $a$ and $f$ such that
+        $self = a + df$ where $a$ is given in terms of the $x^i dx/2y$.
+        """
+#        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
+        f1, reduced = self.reduce_neg_y_fast()
+        f2, reduced = reduced.reduce_pos_y_fast()
+
+        return f1+f2, reduced
+
 
     def H1_vector(self):
         """
@@ -2734,5 +2909,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
         v = reduced.extract_pow_y(0)
         v.pop()
         return v
+
+    def coeffs(self, R=None):
+        return self._coeff.coeffs(R)
 
 ### end of file

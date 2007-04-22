@@ -2013,7 +2013,7 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
-from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing
+from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing, is_IntegralDomain
 from sage.modules.all import FreeModule, is_FreeModuleElement
 
 from sage.misc.profiler import Profiler
@@ -2024,30 +2024,38 @@ def matrix_of_frobenius_general(Q, p, prec):
     prof("setup")
     M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
-    real_prec_ring = Integers(p**prec) # pAdicField(p, prec) # To capped absolute?
-    S = SpecialHyperellipticQuotientRing_2(Q, extra_prec_ring, p, True)
+    real_prec_ring = pAdicField(p, prec) # pAdicField(p, prec) # To capped absolute?
+    S = SpecialHyperellipticQuotientRing_2(Q, extra_prec_ring, True)
 #    S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, p, True)
     MW = S.monsky_washnitzer()
     prof("frob basis elements")
-    F = MW.frob_basis_elements(M)
+    F = MW.frob_basis_elements(M, p)
     prof("reduce")
-    reduced = [F_i.reduce() for F_i in F]
+
+    # do reduction over Q in caase we have non-integral entries (and its so much faster than padics)
+    rational_S = S.change_ring(QQ)
+    # this is a hack until pAdics are fast
+    # (it will periodically cast into this ring to reduce coefficent size)
+    rational_S._prec_cap = p**M
+    rational_S._p = p
+    rational_S(F[0]).reduce_fast()
+    prof("reduce others")
+    reduced = [rational_S(F_i).reduce_fast() for F_i in F]
+    # but the coeffs are WAY more precision than they need to be
+    # print reduced[0][1].H1_vector()
+
     prof("make matrix")
+    # now take care of precision capping
     M = matrix(real_prec_ring, [a.H1_vector() for f, a in reduced])
-    M = M.change_ring(pAdicField(p, prec))
+    M += real_prec_ring(0).add_bigoh(prec)
     print prof
 #    print len(S._monomials)
     return M.transpose()
 
 
-
-
-
-
 class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
-    def __init__(self, Q, R, p, invert_y=False):
+    def __init__(self, Q, R, invert_y=False):
         CommutativeAlgebra.__init__(self, R)
-        self._p = p
 
         x = PolynomialRing(R, 'x').gen(0)
         if is_EllipticCurve(Q):
@@ -2100,17 +2108,16 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
             raise TypeError, "no such base extension"
 
     def change_ring(self, R):
-        return SpecialHyperellipticQuotientRing_2(self._Q, R, self._p, is_LaurentSeriesRing(self._series_ring))
+        return SpecialHyperellipticQuotientRing_2(self._Q, R, is_LaurentSeriesRing(self._series_ring))
 
     def __call__(self, val, offset=0):
-        if isinstance(val, SpecialHyperellipticQuotientElement_2):
-            if val.parent() is self:
-                if offset == 0:
-                    return val
-                else:
-                    return val << offset
+        if isinstance(val, SpecialHyperellipticQuotientElement_2) and val.parent() is self:
+            if offset == 0:
+                return val
             else:
-                val = val._f.change_ring(self._series_ring)
+                return val << offset
+        elif isinstance(val, MonskyWashnitzerDifferential):
+            return self._monsky_washnitzer(val)
         return SpecialHyperellipticQuotientElement_2(self, val, offset)
 
     def gens(self):
@@ -2140,19 +2147,49 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
         else:
             return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
 
-    def monomial_diff_coeffs(self, i, j, R=None):
-        # TODO: explicitly calculate these formulas
+    def monomial_diff_coeffs(self, i, j):
+        """
+        The key here is that the formula for $d(x^iy^j)$ is messy
+        in terms of i, but varies nicely with j.
+
+        $d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}$
+
+        Where $A,B$ have degree at most $n-1$ for each $i$.
+        Pre-compute $A_i, B_i$ for each $i$ the "hard" way, and
+        the rest are easy.
+        """
         try:
-            return self._monomial_diff_coeffs[i,j,R]
+            return self._monomial_diff_coeffs[i,j]
         except KeyError:
+            pass
+        if i < self._n:
+            try:
+                A, B, two_i_x_to_i = self._precomputed_diff_coeffs[i]
+            except AttributeError:
+                self._precomputed_diff_coeffs = self._precompute_monomial_diffs()
+                A, B, two_i_x_to_i = self._precomputed_diff_coeffs[i]
+            if i == 0:
+                return j*A, j*B
+            else:
+                return j*A, j*B + two_i_x_to_i
+        else:
             dg = self.monomial(i, j).diff()
             coeffs = [dg.extract_pow_y(j-1), dg.extract_pow_y(j+1)]
-            self._monomial_diff_coeffs[i,j,None] = coeffs
-            if not R is None:
-                V = FreeModule(R, len(coeffs[0]))
-                coeffs = [V(coeffs[0]), V(coeffs[1])]
-            self._monomial_diff_coeffs[i,j,R] = coeffs
+            self._monomial_diff_coeffs[i,j] = coeffs
             return coeffs
+
+    def _precompute_monomial_diffs(self):
+        x, y = self.gens()
+        R = self.base_ring()
+        V = FreeModule(R, self.degree())
+        As = []
+        for i in range(self.degree()):
+            dg = self.monomial(i, 1).diff()
+            two_i_x_to_i = R(2*i) * x**(i-1) * y*y if i > 0 else self(0)
+            A = dg - self._monsky_washnitzer(two_i_x_to_i)
+            As.append( (V(A.extract_pow_y(0)), V(A.extract_pow_y(2)), V(two_i_x_to_i.extract_pow_y(2))) )
+        return As
+
 
     def Q(self):
         return self._Q
@@ -2175,6 +2212,10 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0):
         CommutativeAlgebraElement.__init__(self, parent)
+        if isinstance(val, tuple):
+            val, offset = val
+        if isinstance(val, SpecialHyperellipticQuotientElement_2):
+            val = val.coeffs()
         if isinstance(val, list) and len(val) > 0 and is_FreeModuleElement(val[0]):
             val = transpose_list(val)
         self._f = parent._poly_ring(val)
@@ -2541,6 +2582,7 @@ class MonskyWashnitzerDifferentialRing(Module):
 
     def __init__(self, base_ring):
         Module.__init__(self, base_ring)
+        self._cache = {}
 
     def invariant_differential(self):
         return self(1)
@@ -2560,19 +2602,24 @@ class MonskyWashnitzerDifferentialRing(Module):
     def Q(self):
         return self.base_ring().Q()
 
-    def x_to_p(self):
+    def x_to_p(self, p):
         try:
-            return self._x_to_p
-        except AttributeError:
-            x = self.base_ring().x()
-            p = self.base_ring().prime()
-            return x**p
+            return self._cache["x_to_p", p]
+        except KeyError:
+            x_to_p = self.base_ring().x() ** p
+            self._cache["x_to_p", p] = x_to_p
+            return x_to_p
 
-    def frob_Q(self):
-        x_to_p = self.x_to_p()
-        return self.base_ring()._Q.change_ring(self.base_ring())(x_to_p)
+    def frob_Q(self, p):
+        try:
+            return self._cache["frobQ", p]
+        except KeyError:
+            x_to_p = self.x_to_p(p)
+            frobQ = self.base_ring()._Q.change_ring(self.base_ring())(x_to_p)
+            self._cache["frobQ", p] = frobQ
+            return frobQ
 
-    def frob_invariant_differential(self, prec):
+    def frob_invariant_differential(self, prec, p):
         """
         $F_p(dx/y) = px^{p-1} y(F_py)^{-1} dx/y
                    = px^{p-1} y^{1-p} (1+pEy^{-2p})^{-1/2} dx/y
@@ -2583,17 +2630,16 @@ class MonskyWashnitzerDifferentialRing(Module):
         prof = Profiler()
         prof("setup")
         # TODO, would it be useful to be able to take Frobenius of any element? Less efficient?
-        p = self.base_ring().prime()
         x, y = self.base_ring().gens()
         prof("x_to_p")
         x_to_p_less_1 = x**(p-1)
         x_to_p = x*x_to_p_less_1
 
         # cache for future use
-        self._x_to_p = x_to_p
+        self._cache["x_to_p", p] = x_to_p
 
         prof("frob_Q")
-        a = self.frob_Q() >> 2*p  # frobQ * y^{-2p}
+        a = self.frob_Q(p) >> 2*p  # frobQ * y^{-2p}
 
         prof("sqrt")
         Q = self.base_ring()._Q
@@ -2629,9 +2675,9 @@ class MonskyWashnitzerDifferentialRing(Module):
         print prof
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
-    def frob_basis_elements(self, prec):
-        F_i = self.frob_invariant_differential(prec)
-        x_to_p = self.x_to_p()
+    def frob_basis_elements(self, prec, p):
+        F_i = self.frob_invariant_differential(prec, p)
+        x_to_p = self.x_to_p(p)
         F = [F_i]
         for i in range(1, self.degree()-1):
             F_i *= x_to_p
@@ -2654,7 +2700,11 @@ class MonskyWashnitzerDifferentialRing(Module):
         for i in range(n):
             L.append( (y*x**i).diff().extract_pow_y(0) )
         A = matrix(L).transpose()
-        self._helper_matrix = (~A.change_ring(QQ)).change_ring(L[0][0].parent())
+        if not is_IntegralDomain(A.base_ring()):
+            # must be using integer_mod or something to approximate
+            self._helper_matrix = (~A.change_ring(QQ)).change_ring(A.base_ring())
+        else:
+            self._helper_matrix = ~A
         return self._helper_matrix
 
 
@@ -2664,6 +2714,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
     """
     def __init__(self, parent, val=0, offset=0):
         ModuleElement.__init__(self, parent)
+        if isinstance(val, MonskyWashnitzerDifferential):
+            val = val._coeff.coeffs()
         self._coeff = self.parent().base_ring()(val, offset)
 
     def _add_(left, right):
@@ -2727,7 +2779,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         S = self.parent().base_ring()
         R = S.base_ring()
         M = self.parent().helper_matrix()
-        p = S.prime()
+        p = S._p
         n = S.degree()
         x, y = S.gens()
         f = S(0)
@@ -2744,9 +2796,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
             if not lin_comb.is_zero():
                 for i in range(n):
                     if lin_comb[i] != 0:
-    #                    gg = S.monomial(i, j, lin_comb[i])
-    #                    f += gg
-    #                    reduced -= gg.diff()
                         g += S.monomial(i, j, lin_comb[i])
                 if not g.is_zero():
                     f += g
@@ -2775,12 +2824,23 @@ class MonskyWashnitzerDifferential(ModuleElement):
             if coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
+                # this is a total hack to deal with the fact that we're using
+                # rational numbers to approximate fixed precision p-adics
+                if j % 3 == 0:
+                    try:
+                        v = coeffs[j-offset-1]
+                        for kk in range(len(v)):
+                            a = v[kk]
+                            ppow = S._p**max(-a.valuation(S._p), 0)
+                            v[kk] = ((a * ppow) % S._prec_cap) / ppow
+                    except AttributeError:
+                        pass
                 lin_comb = ~R(j) * (M * coeffs[j-offset-1])
                 forms.append(lin_comb)
                 for i in lin_comb.nonzero_positions():
                     # g = lin_comb[i] x^i y^j
                     # self -= dg
-                    coeffs[j-offset+1] -= lin_comb[i] * V(S.monomial_diff_coeffs(i, j)[1])
+                    coeffs[j-offset+1] -= lin_comb[i] * S.monomial_diff_coeffs(i, j)[1]
 
         f = S(forms, offset+1)
         reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
@@ -2795,7 +2855,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         S = self.parent().base_ring()
         series = S.base_ring()
         n = S.Q().degree()
-        p = S.prime()
+        p = S._p
         x, y = S.gens()
         f = S(0)
         reduced = self
@@ -2838,7 +2898,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             i = n-1
             c = coeffs[j-offset][i]
             if c != 0:
-                dg_coeffs = V(S.monomial_diff_coeffs(0, j+1)[0])
+                dg_coeffs = S.monomial_diff_coeffs(0, j+1)[0]
                 c /= dg_coeffs[i]
                 forms[len(forms)-2][0] = c
                 # self -= c d(y^{j+1})
@@ -2852,7 +2912,6 @@ class MonskyWashnitzerDifferential(ModuleElement):
                 c = coeffs[j-offset][i]
                 if c != 0:
                     dg_coeffs = S.monomial_diff_coeffs(i+1, j-1)
-                    dg_coeffs = [V(dg_coeffs[0]), V(dg_coeffs[1])]
                     denom = dg_coeffs[1][i]
                     c /= denom
                     form[i+1] = c
@@ -2905,7 +2964,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         """
         Returns self as a element of $H^1$ under the basis $dx/2y, x dx/2y, ..., x^{n-1} dx/2y$.
         """
-        f, reduced = self.reduce()
+        f, reduced = self.reduce_fast()
         v = reduced.extract_pow_y(0)
         v.pop()
         return v

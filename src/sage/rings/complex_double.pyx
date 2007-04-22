@@ -259,23 +259,11 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF._coerce_(RDF(3.4))
             3.4
 
-        Symbolic constants canonically coerce into the complex double field,
-        but CDF does not canonically coerce to symbolic constants:
-            sage: CDF._coerce_(pi)
-            3.14159265359
-            sage: R = parent(pi)
-            sage: R(CDF.0)
-            1.0*I
-            sage: R._coerce_(CDF.0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion of element into self.
-
-        Thus the sum of a CDF and a symbolic constant is in CDF:
+        Thus the sum of a CDF and a symbolic object is symbolic:
             sage: a = pi + CDF.0; a
-            3.14159265359 + 1.0*I
+            1.00000000000000*I + pi
             sage: parent(a)
-            Complex Double Field
+            Ring of Symbolic Expressions
         """
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])
@@ -1274,7 +1262,7 @@ cdef class ComplexDoubleElement(FieldElement):
         We compute eta to low precision directly from the definition.
             sage: z = CDF(1,1); z.eta()
             0.742048775837 + 0.19883137023*I
-            sage: i = CDF(0,1)
+            sage: i = CDF(0,1); pi = CDF(pi)
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.742048775837 + 0.19883137023*I
 
@@ -1282,6 +1270,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: z = CDF(1,1)
             sage: z.eta(omit_frac=True)
             0.998129069926
+            sage: pi = CDF(pi)
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])      # slightly random-ish arch dependent output
             0.998129069926 + 4.5908467128e-19*I
 
@@ -1363,8 +1352,9 @@ cdef class ComplexDoubleElement(FieldElement):
         The principal square root is always chosen.
 
         EXAMPLES:
-            sage: (1+I).agm(2-I)
-            1.62780548487271 + 0.136827548397369*I
+            sage: i = CDF(I)
+            sage: (1+i).agm(2-i)
+            1.62780548487 + 0.136827548397*I
         """
         cdef pari_sp sp
         sp = avma

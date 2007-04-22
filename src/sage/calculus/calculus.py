@@ -131,7 +131,7 @@ We coerce various symbolic expressions into the complex numbers:
     sage: ComplexField(200)(sin(I))
     1.1752011936438014568823818505956008151557179813340958702296*I
     sage: f = sin(I) + cos(I/2); f
-    I*((exp(1) - exp(-1))/2) + (exp(1/2) + exp(-1/2))/2
+    I*sinh(1) + cosh(1/2)
     sage: CC(f)
     1.12762596520638 + 1.17520119364380*I
     sage: ComplexField(200)(f)
@@ -2941,17 +2941,17 @@ class Function_tanh(PrimitiveFunction):
 
     EXAMPLES:
         sage: tanh(pi)
-
+        tanh(pi)
         sage: tanh(3.1415)
-
+        0.996271386633702
+        sage: float(tanh(pi))
+        0.99627207622074987
         sage: tan(3.1415/4)
         0.999953674278156
         sage: tanh(pi/4)
-        1
-        sage: tanh(1/2)
-
+        tanh(pi/4)
         sage: RR(tanh(1/2))
-
+        0.462117157260010
     """
     def _repr_(self, simplify=True):
         return "tanh"
@@ -2978,17 +2978,13 @@ class Function_sinh(PrimitiveFunction):
 
     EXAMPLES:
         sage: sinh(pi)
-
+        sinh(pi)
         sage: sinh(3.1415)
-
-        sage: tan(3.1415/4)
-        0.999953674278156
-        sage: sinh(pi/4)
-        1
-        sage: sinh(1/2)
-
-        sage: RR(sinh(1/2))
-
+        11.5476653707437
+        sage: float(sinh(pi))
+        11.548739357257748
+        sage: RR(sinh(pi))
+        11.5487393572577
     """
     def _repr_(self, simplify=True):
         return "sinh"
@@ -3015,17 +3011,13 @@ class Function_cosh(PrimitiveFunction):
 
     EXAMPLES:
         sage: cosh(pi)
-
+        cosh(pi)
         sage: cosh(3.1415)
-
-        sage: tan(3.1415/4)
-        0.999953674278156
-        sage: cosh(pi/4)
-        1
-        sage: cosh(1/2)
-
+        11.5908832931176
+        sage: float(cosh(pi))
+        11.591953275521519
         sage: RR(cosh(1/2))
-
+        1.12762596520638
     """
     def _repr_(self, simplify=True):
         return "cosh"
@@ -3052,17 +3044,13 @@ class Function_coth(PrimitiveFunction):
 
     EXAMPLES:
         sage: coth(pi)
-
+        coth(pi)
         sage: coth(3.1415)
-
-        sage: tan(3.1415/4)
-        0.999953674278156
-        sage: coth(pi/4)
-        1
-        sage: coth(1/2)
-
-        sage: RR(coth(1/2))
-
+        1.00374256795520
+        sage: float(coth(pi))
+        1.0037418731973213
+        sage: RR(coth(pi))
+        1.003741873197321
     """
     def _repr_(self, simplify=True):
         return "coth"
@@ -3089,17 +3077,13 @@ class Function_sech(PrimitiveFunction):
 
     EXAMPLES:
         sage: sech(pi)
-
+        sech(pi)
         sage: sech(3.1415)
-
-        sage: tan(3.1415/4)
-        0.999953674278156
-        sage: sech(pi/4)
-        1
-        sage: sech(1/2)
-
-        sage: RR(sech(1/2))
-
+        0.086274701824819220
+        sage: float(sech(pi))
+        0.086266738334054432
+        sage: RR(sech(pi))
+        0.086266738334054700
     """
     def _repr_(self, simplify=True):
         return "sech"
@@ -3127,17 +3111,13 @@ class Function_csch(PrimitiveFunction):
 
     EXAMPLES:
         sage: csch(pi)
-
+        csch(pi)
         sage: csch(3.1415)
-
-        sage: tan(3.1415/4)
-        0.999953674278156
-        sage: csch(pi/4)
-        1
-        sage: csch(1/2)
-
-        sage: RR(csch(1/2))
-
+        0.086597590759213260
+        sage: float(csch(pi))
+        0.086589537530046945
+        sage: RR(csch(pi))
+        0.086589537530047220
     """
     def _repr_(self, simplify=True):
         return "csch"

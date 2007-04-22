@@ -128,6 +128,9 @@ cdef class Ring(ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
+    cdef _an_element_c_impl(self):  # override this in SageX
+        return self.zero_element()
+
     def base_extend(self, R):
         """
         EXAMPLES:

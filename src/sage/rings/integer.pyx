@@ -392,7 +392,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the string representation of \code{self} in the given
         base.
 
-
         EXAMPLES:
             sage: Integer(2^10).str(2)
             '10000000000'
@@ -654,10 +653,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^-0
             1
             sage: (-1)^(1/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to real or complex numbers first.
+            -1
 
         The base need not be an integer (it can be a builtin
         Python type).
@@ -683,7 +679,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             2.82842712474619
             sage: 2^I                # complex number
             2^I
-            sage: sage: f = 2^(sin(x)-cos(x)); f
+            sage: f = 2^(sin(x)-cos(x)); f
             2^(sin(x) - cos(x))
             sage: f(3)
             2^(sin(3) - cos(3))
@@ -1678,7 +1674,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: n = 39188072418583779289; n.sqrt()
             6260037733
             sage: (100^100).sqrt_approx()
-            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
             sage: (-1).sqrt_approx()
             1.00000000000000*I
             sage: (-1).sqrt()
@@ -1686,7 +1682,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: sqrt(-2)
             sqrt(2)*I
             sage: sqrt(-2.0)
-            sqrt(2)*I
+            1.41421356237310*I
             sage: sqrt(97)
             sqrt(97)
             sage: n = 97; n.sqrt_approx(200)
@@ -1715,6 +1711,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(102).sqrt()
             sqrt(102)
         """
+        if self < 0:
+            from sage.calculus.calculus import sqrt
+            return sqrt(self)
         n = self.isqrt()
         if n * n == self:
             return n

@@ -14,7 +14,8 @@ Quotienting is a constructor for an element of the fraction field:
 
 
 The GCD is not taken (since it doesn't converge sometimes) in the inexact case.
-    sage: Z.<z>=CC[]
+    sage: Z.<z> = CC[]
+    sage: I = CC.gen()
     sage: (1+I+z)/(z+0.1*I)
     (1.00000000000000*z + 1.00000000000000 + 1.00000000000000*I)/(1.00000000000000*z + 0.100000000000000*I)
     sage: (1+I*z)/(z+1.1)

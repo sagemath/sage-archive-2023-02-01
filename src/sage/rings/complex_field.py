@@ -41,8 +41,9 @@ def ComplexField(prec=53, names=None):
         Complex Field with 100 bits of precision
         sage: ComplexField(100).base_ring()
         Real Field with 100 bits of precision
-        sage: K.<i> = ComplexField(200)
+        sage: i = ComplexField(200).gen()
         sage: i^2
+        -1.0000000000000000000000000000000000000000000000000000000000
     """
     global cache
     if cache.has_key(prec):

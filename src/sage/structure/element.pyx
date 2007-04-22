@@ -354,7 +354,7 @@ cdef class Element(sage_object.SageObject):
                     r = cmp(_left, _right)
                 else:
                     return _left._richcmp_(_right, op)
-            except TypeError:
+            except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
                 if r == 0:
                     r = -1

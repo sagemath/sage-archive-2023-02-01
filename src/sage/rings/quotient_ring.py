@@ -144,8 +144,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             return self.__cover
         except AttributeError:
             import morphism
-            pi = morphism.RingHomomorphism_cover(self.__R, self)
-            #pi = self.__R.homomorphism(self.__R.gens(), self)       # needlessly slow (!)
+            pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
             lift = self.lift()
             pi._set_lift(lift)
             self.__cover = pi

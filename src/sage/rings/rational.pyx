@@ -367,7 +367,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
-    def sqrt(self, bits=None):
+    def sqrt_approx(self, bits=None):
         r"""
         Returns the positive square root of self as a real number to
         the given number of bits of precision if self is nonnegative,
@@ -384,34 +384,30 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: x = 23/2
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             3.39116499156263
             sage: x = 32/5
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             2.52982212813470
             sage: x = 16/9
-            sage: x.sqrt()
-            4/3
-            sage: x.sqrt(53)
+            sage: x.sqrt_approx()
             1.33333333333333
+            sage: x.sqrt_approx(100)
+            1.3333333333333333333333333333
             sage: x = 9837/2
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             70.1320183653658
             sage: x = 645373/45
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             119.756512233040
             sage: x = -12/5
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             1.54919333848297*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
         """
         if bits is None:
-            try:
-                return self.square_root()
-            except ValueError:
-                pass
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
         if self < 0:
@@ -421,32 +417,36 @@ cdef class Rational(sage.structure.element.FieldElement):
             R = sage.rings.real_mpfr.RealField(bits)
             return R(self).sqrt()
 
-    def square_root(self):
+    def sqrt(self):
         r"""
         Return the positive rational square root of self, or raises a
         \exception{ValueError} if self is not a perfect square.
 
         EXAMPLES:
             sage: x = 125/5
-            sage: x.square_root()
+            sage: x.sqrt()
             5
             sage: x = 64/4
-            sage: x.square_root()
+            sage: x.sqrt()
             4
             sage: x = 1000/10
-            sage: x.square_root()
+            sage: x.sqrt()
             10
             sage: x = 81/3
-            sage: x.square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: self (=27) is not a perfect square
+            sage: x.sqrt()
+            3*sqrt(3)
+            sage: x = -81/3
+            sage: x.sqrt()
+            3*sqrt(3)*I
 
         AUTHOR:
-            -- Naqi Jaffery (2006-03-05): examples
+            -- Naqi Jaffery (2006-03-05): some examples
         """
+        if self < 0:
+            from sage.calculus.calculus import sqrt
+            return sqrt(self)
         # TODO -- this could be quicker, by using GMP directly.
-        return self.numerator().square_root() / self.denominator().square_root()
+        return self.numerator().sqrt() / self.denominator().sqrt()
 
     def period(self):
         r"""
@@ -693,10 +693,7 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3)^5
             32/243
             sage: (-1/1)^(1/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to real or complex numbers first.
+            -1
 
         We raise to some interesting powers:
             sage: (2/3)^I
@@ -1111,6 +1108,9 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def is_zero(self):
         return bool(mpz_cmp_si(mpq_numref(self.value), 0) == 0)
+
+    def is_square(self):
+        return self.numerator().is_square() and self.denominator().is_square()
 
     cdef _lshift(self, long int exp):
         r"""

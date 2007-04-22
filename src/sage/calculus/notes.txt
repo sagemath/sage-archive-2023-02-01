@@ -22,3 +22,22 @@ I had in mind the following iterative approach:
 
 Exactly the steps above would also work for symbolic differentiation.
 (Integration is a completely different story.)
+
+Ondrej doesn't this will work (I totally disagree):
+
+"I don't think that would work for limits (it should work for
+differentiation though) except some simple cases. As an example, let's
+take this limit, that Maxima cannot do:
+
+limit((5**x+3**x)**(1/x), x, infty)
+
+(if you type this in SymPy, you will get 5, because we use the Gruntz
+algorithm, as described here:
+http://sympy.googlecode.com/svn/trunk/doc/gruntz.pdf). The only thing
+that occurs to me how to fix maxima is to match the expression and
+return 5 immediatelly, or implement the whole algorithm from scratch,
+but then you will just write the same code as we did for SymPy.
+
+Integration is quite easy - just match the expression and return a
+table integral. The general Risch algorithm is difficult, but I think
+Axiom can do it."

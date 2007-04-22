@@ -8,7 +8,7 @@ from calculus import (SymbolicExpressionRing,
                       is_CallableSymbolicExpression,
                       SER,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
-                      tanh, sinh, cosh, coth, sech, csch,
+                      tanh, sinh, cosh, coth, sech, csch, ln,
                       abs_symbolic, exp,
                       is_SymbolicExpression,
                       is_SymbolicExpressionRing)

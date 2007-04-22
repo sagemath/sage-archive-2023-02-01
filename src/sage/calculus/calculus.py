@@ -348,6 +348,10 @@ class SymbolicExpression(RingElement):
         if is_simplified:
             self._simp = self
 
+    def __nonzero__(self):
+        # Best to error on side of being nonzero in most cases.
+        return not bool(self == SER.zero_element())
+
     def __str__(self):
         """
         Printing an object explicitly gives ASCII art:
@@ -947,31 +951,35 @@ class SymbolicExpression(RingElement):
     ###################################################################
     # limits
     ###################################################################
-    def limit(self, v, a, dir=None):
+    def limit(self, dir=None, **argv):
         """
         Return the limit as the variable v approaches a from the
         given direction.
 
+        \begin{verbatim}
+        expr.limit(x = a)
+        expr.limit(x = a, dir='above')
+        \end{verbatim}
+
         INPUT:
-            v -- variable
-            a -- number
             dir -- (default: None); dir may have the value `plus' (or 'above')
                    for a limit from above, `minus' (or 'below') for a limit from
                    below, or may be omitted (implying a two-sided
                    limit is to be computed).
+            **argv -- 1 named parameter
 
         NOTE: Output it may also use `und' (undefined), `ind'
         (indefinite but bounded), and `infinity' (complex infinity).
 
         EXAMPLES:
             sage: f = (1+1/x)^x
-            sage: f.limit(x,oo)
+            sage: f.limit(x = oo)
             e
-            sage: f.limit(x,5)
+            sage: f.limit(x = 5)
             7776/3125
-            sage: f.limit(x,1.2)
+            sage: f.limit(x = 1.2)
             2.069615754672029
-            sage: f.limit(x,I)
+            sage: f.limit(x = I)
             e^(I*log(1 - I))
             sage: f(1.2)
             2.069615754672029
@@ -979,26 +987,31 @@ class SymbolicExpression(RingElement):
             (1 - I)^I
             sage: CDF(f(I))
             2.06287223508 + 0.74500706218*I
-            sage: CDF(f.limit(x,I))
+            sage: CDF(f.limit(x = I))
             2.06287223508 + 0.74500706218*I
 
         More examples:
-            sage: limit(x*log(x), x, 0, 'above')
+            sage: limit(x*log(x), x = 0, dir='above')
             0
-            sage: lim((x+1)^(1/x),x,0)
+            sage: lim((x+1)^(1/x),x = 0)
             e
-            sage: lim(e^x/x, x, oo)
+            sage: lim(e^x/x, x = oo)
             +Infinity
-            sage: lim(e^x/x, x, -oo)
+            sage: lim(e^x/x, x = -oo)
             0
-            sage: lim(-e^x/x, x, oo)
+            sage: lim(-e^x/x, x = oo)
             -Infinity
 
         The following means "indefinite but bounded":
-            sage: lim(sin(1/x), x, 0)
+            sage: lim(sin(1/x), x = 0)
             ind
         """
-        v = var(v)
+        if len(argv) != 1:
+            raise ValueError, "call the limit function like this, e.g. limit(expr, x=2)."
+        else:
+            k = argv.keys()[0]
+            v = var(k, create=False)
+            a = argv[k]
         if dir is None:
             l = self._maxima_().limit(v, a)
         elif dir == 'plus' or dir == 'above':
@@ -1071,6 +1084,15 @@ class SymbolicExpression(RingElement):
         return self.parent()(self._maxima_().ilt(var(t), var(s)))
 
 
+    ###################################################################
+    # a default variable, for convenience.
+    ###################################################################
+    def default_variable(self):
+        vars = self.variables()
+        if len(vars) < 1:
+            return var('x')
+        else:
+            return vars[0]
 
     ###################################################################
     # integration
@@ -1171,11 +1193,8 @@ class SymbolicExpression(RingElement):
         """
 
         if v is None:
-            vars = self.variables()
-            if len(vars) < 1:
-                raise TypeError, "specify the variable of integration"
-            else:
-                v = vars[0]
+            v = self.default_variable()
+
         if not isinstance(v, SymbolicVariable):
             v = var(repr(v))
             #raise TypeError, 'must integrate with respect to a variable'
@@ -2113,7 +2132,7 @@ def tex_varify(a):
         return '\\mbox{%s}'%a
 
 _vars = {}
-def var(s):
+def var(s, create=True):
     r"""
     Create a symbolic variable with the name \emph{s}.
 
@@ -2133,6 +2152,8 @@ def var(s):
         if not X is None:
             return X
     except KeyError:
+        if not create:
+            raise ValueError, "the variable '%s' has not been defined"%var
         pass
     v = SymbolicVariable(s)
     _vars[s] = weakref.ref(v)
@@ -2440,7 +2461,7 @@ class CallableSymbolicExpression(SymbolicExpression):
         return CallableSymbolicExpression(self.parent(), self._expr / right._expr)
 
     def __pow__(self, right):
-        return CallableSymbolicExpression(self.parent(), self._expr ** right._expr)
+        return CallableSymbolicExpression(self.parent(), self._expr ** right)
 
     def _unify_args(self, x):
         r"""
@@ -2672,6 +2693,10 @@ class SymbolicComposition(SymbolicOperation):
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
         self._tex_needs_braces = needs_braces
+
+    def plot(self, *args, **kwds):
+        f = self(var('x'))
+        return SymbolicExpression.plot(f, *args, **kwds)
 
     def _is_atomic(self):
         return True
@@ -3199,6 +3224,7 @@ class Function_log(PrimitiveFunction):
     _approx_ = math.log
 
 function_log = Function_log()
+ln = function_log
 
 def log(x, base=None):
     if base is None:

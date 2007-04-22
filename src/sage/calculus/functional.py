@@ -35,6 +35,77 @@ def integral(f, *args, **kwds):
         -cos(x)
         sage: integral(sin(x)^2, x, pi, 123*pi/2)
         121*pi/4
+        sage: integral( sin(x), x, 0, pi)
+        2
+
+        sage: assume(b-a>0)
+        sage: integral( sin(x), x, a, b)
+        cos(a) - cos(b)
+        sage: forget()
+
+        sage: print integral(x/(x^3-1), x)
+                                         2 x + 1
+                       2            atan(-------)
+                  log(x  + x + 1)        sqrt(3)    log(x - 1)
+                - --------------- + ------------- + ----------
+                         6             sqrt(3)          3
+
+        sage: print integral( exp(-x^2), x )
+                               sqrt( pi) erf(x)
+                               ----------------
+                                      2
+
+    SAGE is unable to do this integral:
+        sage: print integral( exp(-x^2)*log(x), x )
+                              /      2
+                              [   - x
+                              I  e     log(x) dx
+                              ]
+                              /
+
+    SAGE does not know how to compute this integral either.
+        sage: print integral( exp(-x^2)*ln(x), x, 0, oo)
+                              inf
+                             /         2
+                             [      - x
+                             I     e     log(x) dx
+                             ]
+                             /
+                              0
+
+    This definite integral is easy:
+        sage: integral( ln(x)/x, x, 1, 2)
+        log(2)^2/2
+
+    SAGE can't do this elliptic integral (yet):
+        sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)
+        integrate(1/(sqrt(2*t^4 - 3*t^2 - 2)), t, 2, 3)
+
+    A double integral:
+        sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)
+        32/5
+
+    This illustrates using assumptions:
+        sage: integral(abs(x), x, 0, 5)
+        25/2
+        sage: integral(abs(x), x, 0, a)
+        integrate(abs(x), x, 0, a)
+        sage: assume(a>0)
+        sage: integral(abs(x), x, 0, a)
+        a^2/2
+        sage: forget()      # forget the assumptions.
+
+    We integrate and differentiate a huge mess:
+        sage: f = (x^2-1+3*(1+x^2)^(1/3))/(1+x^2)^(2/3)*x/(x^2+2)^2
+        sage: g = integral(f, x)
+        sage: h = f - diff(g, x)
+
+    Numerically h is 0, but the symbolic equality checker
+    unfortunately can't tell for sure:
+        sage: print [float(h(i)) for i in range(5)]
+        [0.0, -1.1102230246251565e-16, -8.3266726846886741e-17, -4.163336342344337e-17, -6.9388939039072284e-17]
+        sage: bool(h)
+        False
     """
     if isinstance(f, CallableSymbolicExpression):
         return f.derivative(*args, **kwds)
@@ -44,23 +115,44 @@ def integral(f, *args, **kwds):
 
 integrate = integral
 
-def limit(f, v, a, dir=None):
+def limit(f, dir=None, **argv):
     """
     Return the limit as the variable v approaches a from the
     given direction.
 
+        \begin{verbatim}
+        limit(expr, x = a)
+        limit(expr, x = a, dir='above')
+        \end{verbatim}
+
     INPUT:
-        f -- symbolic expression
-        v -- variable
-        a -- number
         dir -- (default: None); dir may have the value `plus' (or 'above')
                for a limit from above, `minus' (or 'below') for a limit from
                below, or may be omitted (implying a two-sided
                limit is to be computed).
+        **argv -- 1 named parameter
+
+    ALIAS: You can also use lim instead of limit.
+
+    EXAMPLES:
+        sage: limit(sin(x)/x, x=0)
+        1
+        sage: limit(exp(x), x=oo)
+        +Infinity
+        sage: lim(exp(x), x=-oo)
+        0
+        sage: lim(1/x, x=0)
+        und
+
+    SAGE does not know how to do this limit (which is 0),
+    so it returns it unevaluated:
+        sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
+        limit(e^x^2 - e^x^2*erf(x), x, +Infinity)
+
     """
     if not isinstance(f, SymbolicExpression):
         f = SER(f)
-    return f.limit(v=v,a=a,dir=dir)
+    return f.limit(dir=dir, **argv)
 
 lim = limit
 

@@ -21,4 +21,13 @@ Compute the Christoffel symbol.
     sage: christoffel(3,3,2, [t,r,theta,phi], m)
     -cos(theta)*sin(theta)
 
+Some basic things:
+
+    sage: f(x,y) = x^3 + sinh(1/y)
+    sage: f
+    (x, y) |--> sinh(1/y) + x^3
+    sage: f^3
+    (x, y) |--> (sinh(1/y) + x^3)^3
+    sage: (f^3).expand()
+    (x, y) |--> sinh(1/y)^3 + 3*x^3*sinh(1/y)^2 + 3*x^6*sinh(1/y) + x^9
 """

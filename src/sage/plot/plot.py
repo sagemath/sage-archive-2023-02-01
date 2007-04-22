@@ -2252,7 +2252,7 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
-        sage: g = plot(sin(x),0,10, linestyle='-.')
+        sage: g = plot(sin(x), 0, 10, linestyle='-.')
         sage: g.save('sage.png')
     """
     def _reset(self):

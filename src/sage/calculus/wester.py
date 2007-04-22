@@ -410,9 +410,9 @@ sage: m.eigenspaces()
 sage: # OK Verify some standard limits found by L'Hopital's rule:
 sage: #   Verify(Limit(x,Infinity) (1+1/x)^x, Exp(1));
 sage: #   Verify(Limit(x,0) (1-Cos(x))/x^2, 1/2);
-sage: print limit( (1+1/x)^x, x, oo)
+sage: print limit( (1+1/x)^x, x = oo)
 e
-sage: print limit( (1-cos(x))/(x^2), x, 1/2)
+sage: print limit( (1-cos(x))/(x^2), x = 1/2)
                                            1
                                  4 - 4 cos(-)
                                            2

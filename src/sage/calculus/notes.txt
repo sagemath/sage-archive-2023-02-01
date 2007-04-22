@@ -1,0 +1,24 @@
+On 4/22/07, Ondrej Certik <ondrej.certik@gmail.com> wrote:
+> As to the extensibility  -  I think it would be quite difficult to
+> extend for example Maxima's limits facility (there are some limits
+> that Maxima cannot do, but SymPy can), or Maxima's differential
+> equations solver module. Either it would have to be done in LISP, or
+> rewrite the whole module to python, neither of which I find easy. Or
+> is there a better approach?
+
+I had in mind the following iterative approach:
+
+  (1) Implement the basic limit formulas for products, sums, quotients, etc.,
+        in Python.
+  (2) This reduces computing limits of symbolic expressions to computing
+        the limits of the leaves in the tree, i.e., symbolic variables, constants, and
+        primitive functions (like sinh, exp, log, erf).
+ (3)  Limits of symbolic variables and constants are trivial.
+ (4) For some special functions one writes an optional method _limit_
+       that computes the limit of that special function at a point from a given
+       direction.  The default _limit_ method in the base class computes the
+       limit using maxima.  So for each function for which you want better
+       speed or a different behavior from maxima, you just fill in the _limit_ method.
+
+Exactly the steps above would also work for symbolic differentiation.
+(Integration is a completely different story.)

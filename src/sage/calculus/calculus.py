@@ -2762,7 +2762,7 @@ class Function_abs(PrimitiveFunction):
     def _approx_(self, x):
         return x.__abs__()
 
-    def __call__(self, x):
+    def __call__(self, x): # special case
         return SymbolicComposition(self, SER(x))
 
 abs_symbolic = Function_abs()

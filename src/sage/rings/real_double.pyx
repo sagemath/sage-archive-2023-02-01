@@ -141,13 +141,14 @@ cdef class RealDoubleField_class(Field):
             Complex Double Field
             sage: parent(CDF(5) + RDF(3))
             Complex Double Field
+            sage: CDF.gen(0) + 5.0
+            5.0 + 1.0*I
         """
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)
         import real_mpfr
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing,
-                                    real_mpfr.RR])
+        return self._coerce_try(x, [real_mpfr.RR])
 
 
     def gen(self, n=0):

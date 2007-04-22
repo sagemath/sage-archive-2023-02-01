@@ -80,9 +80,10 @@ We can put text in a graph:
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
 
-    sage: p1 = plot(lambda t: arg(zeta(0.5+t*I)), 1,27,rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
-    sage: p1+p2
+    sage: i = CDF.0      # define i this way for maximum speed.
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,rgbcolor=hue(0.7))
+    sage: p1 + p2
     Graphics object consisting of 2 graphics primitives
     sage: (p1+p2).save()
 
@@ -469,10 +470,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: h1 = lambda x : abs(sqrt(x^3  - 1))
-            sage: h2 = lambda x : -abs(sqrt(x^3  - 1))
-            sage: g1 = plot(h1, 1, 5)
-            sage: g2 = plot(h2, 1, 5)
+            sage: g1 = plot(abs(sqrt(x^3  - 1)), 1, 5)
+            sage: g2 = plot(-abs(sqrt(x^3  - 1)), 1, 5)
             sage: h = g1 + g2
             sage: h.save()
         """
@@ -1895,8 +1894,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
 
     A red, blue, and green "cool cat":
 
-        sage: ncos = lambda x: -cos(x)
-        sage: G = plot(ncos, -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
+        sage: G = plot(-cos(x), -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
         sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: H = G + P + Q
@@ -2313,6 +2311,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         delta = (xmax - xmin) / plot_points
         data = []
         dd = delta
+        exceptions = 0; msg=''
         for i in xrange(plot_points + 1):
             x = xmin + i*delta
             if i < plot_points:
@@ -2327,7 +2326,12 @@ class PlotFactory(GraphicPrimitiveFactory):
                 data.append((x, float(y)))
             except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
                 pass
+
+        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
+            print "Last error message: '%s'"%msg
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2429,9 +2433,7 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         other options -- passed to plot.
 
     EXAMPLE:
-        sage: f = lambda t: sin(t)
-        sage: g = lambda t: sin(2*t)
-        sage: G = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        sage: G = parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
         sage: G.save()
     """
     if show is None:
@@ -2776,9 +2778,9 @@ def graphics_array(array, n=None, m=None):
     EXAMPLE:
     Make some plots of $\sin$ functions:
 
-        sage: f = lambda x: sin(x)
-        sage: g = lambda x: sin(2*x)
-        sage: h = lambda x: sin(4*x)
+        sage: f(x) = sin(x)
+        sage: g(x) = sin(2*x)
+        sage: h(h) = sin(4*x)
         sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
         sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
         sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))

@@ -104,7 +104,7 @@ def integral(f, *args, **kwds):
     unfortunately can't tell for sure:
         sage: print [float(h(i)) for i in range(5)]
         [0.0, -1.1102230246251565e-16, -8.3266726846886741e-17, -4.163336342344337e-17, -6.9388939039072284e-17]
-        sage: bool(h)
+        sage: bool(h == 0)
         False
     """
     if isinstance(f, CallableSymbolicExpression):

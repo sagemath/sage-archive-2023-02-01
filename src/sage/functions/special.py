@@ -582,7 +582,7 @@ def spherical_bessel_J(n, var):
 
     EXAMPLES:
         sage: spherical_bessel_J(2,x)
-        ((3/x^2 - 1)*sin(x) - (3*cos(x)/x))/x
+        ((-(1 - (24/(8*x^2))))*sin(x) - (3*cos(x)/x))/x
     """
     _init()
     return meval("spherical_bessel_j(%s,%s)"%(ZZ(n),var))
@@ -597,7 +597,7 @@ def spherical_bessel_Y(n,var):
     EXAMPLES:
         sage: x = PolynomialRing(QQ, 'x').gen()
         sage: spherical_bessel_Y(2,x)
-        ((1 - (3/x^2))*cos(x) - (3*sin(x)/x))/x
+        (-(3*sin(x)/x - (1 - (24/(8*x^2)))*cos(x)))/x
     """
     _init()
     return meval("spherical_bessel_y(%s,%s)"%(ZZ(n),var))
@@ -610,7 +610,7 @@ def spherical_hankel1(n,var):
 
     EXAMPLES:
         sage: spherical_hankel1(2,'x')
-        -3*I*(-x^2/3 - I*x + 1)*e^I*x/x^3
+        -3*I*(-x^2/3 - I*x + 1)*e^(I*x)/x^3
     """
     _init()
     return meval("spherical_hankel1(%s,%s)"%(ZZ(n),var))
@@ -682,13 +682,14 @@ def inverse_jacobi(sym,x,m):
 
     EXAMPLES:
         sage: jacobi("sn",1/2,1/2)
+        jacobi_sn(1/2, 1/2)
+        sage: float(jacobi("sn",1/2,1/2))
         0.4707504736556572
-        sage: inverse_jacobi("sn",0.47,1/2)
+        sage: float(inverse_jacobi("sn",0.47,1/2))
         0.4990982313222197
-        sage: inverse_jacobi("sn",0.4707504,0.5)
-        0.4999999114665546
-        sage: ijsn = lambda x: inverse_jacobi("sn",x,0.5)
-        sage: P = plot(ijsn,0,1)
+        sage: float(inverse_jacobi("sn",0.4707504,0.5))
+        0.49999991146655459
+        sage: P = plot(inverse_jacobi('sn', x, 0.5), 0, 1, plot_points=20)
 
     Now to view this, just type show(P).
     """

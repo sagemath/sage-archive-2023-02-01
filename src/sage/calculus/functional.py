@@ -147,7 +147,7 @@ def laplace(f, t, s):
 
     Unable to compute solution:
         sage: laplace(1/s, s, t)
-        laplace0(1/s, s, t)
+        laplace(1/s, s, t)
     """
     if not isinstance(f, SymbolicExpression):
         f = SER(f)
@@ -161,6 +161,7 @@ def inverse_laplace(f, t, s):
     is called \code{ilt}.
 
     EXAMPLES:
+        sage: f = t*cos(t)
         sage: L = laplace(f, t, s); L
         2*s^2/(s^2 + 1)^2 - (1/(s^2 + 1))
         sage: inverse_laplace(L, s, t)

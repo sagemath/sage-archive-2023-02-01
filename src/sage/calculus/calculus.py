@@ -1039,7 +1039,7 @@ class SymbolicExpression(RingElement):
             sage: g = f.diff(x); g
             diff(f(x), x, 1)
             sage: g.laplace(x, s)
-            s*laplace0(f(x), x, s) - f(0)
+            s*laplace(f(x), x, s) - f(0)
 
         """
         return self.parent()(self._maxima_().laplace(var(t), var(s)))
@@ -2615,7 +2615,7 @@ class SymbolicComposition(SymbolicOperation):
     def __float__(self):
         f = self._operands[0]
         g = self._operands[1]
-        return f.__call__(float(g))
+        return f._approx_(float(g))
 
     def _mpfr_(self, field):
         """

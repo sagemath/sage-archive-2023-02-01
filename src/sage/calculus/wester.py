@@ -315,20 +315,12 @@ sage: print a
                                  tan( I y + x)
 sage: print a.real()
                                    sin(2 x)
-                          --------------------------
-                            2 y     - 2 y
-                           e    +  e
-                          --------------- + cos(2 x)
-                                 2
+                             --------------------
+                             cosh(2 y) + cos(2 x)
 sage: print a.imag()
-                                 2 y     - 2 y
-                                e    -  e
-                        ------------------------------
-                             2 y     - 2 y
-                            e    +  e
-                        2 (--------------- + cos(2 x))
-                                  2
-
+                                  sinh(2 y)
+                             --------------------
+                             cosh(2 y) + cos(2 x)
 
 sage: # (YES) Simplify Ln(Exp(z)) to z for -Pi<Im(z)<=Pi.
 sage: f = log(exp(z))

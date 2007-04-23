@@ -747,7 +747,7 @@ class LaurentSeries(ring_element.RingElement):
         t = u.parent().gen()
         return t**(self.__n) * u
 
-    def __call__(self, x):
+    def __call__(self, *x):
         """
         Compute value of this Laurent series at x.
 
@@ -761,6 +761,8 @@ class LaurentSeries(ring_element.RingElement):
             sage: f(1/3)
             82/9
         """
-        return self.__u(x) * (x**self.__n)
+        if isinstance(x[0], tuple):
+            x = x[0]
+        return self.__u(x) * (x[0]**self.__n)
 
 

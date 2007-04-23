@@ -1873,11 +1873,10 @@ def kronecker_symbol(x,y):
         sage: kronecker(-2,15)
         -1
 
-    IMPLEMENTATION: Using Pari.
+    IMPLEMENTATION: Using GMP.
     """
     x = integer_ring.ZZ(x)
-    y = integer_ring.ZZ(y)
-    return integer_ring.ZZ(pari(x).kronecker(y).python())
+    return integer_ring.ZZ(x.kronecker(y))
 
 def kronecker(x,y):
     r"""

@@ -178,14 +178,8 @@ class HG:
             os.system('chmod +x %s; %s &'%(P, P))
 
         print_open_msg(address, port)
-        tries = 0
-        while self('serve --address %s --port %s  %s'%(address, port, options)) != 2:
-            port += 1
-            tries += 1
-            if tries > 100:
-                raise RuntimeError, "no port found after trying 100 (maybe your network is down)"
-            print_open_msg(address, port)
-
+        self('serve --address %s --port %s  %s'%(address, port, options))
+        print_open_msg(address, port)
 
     browse = serve
 

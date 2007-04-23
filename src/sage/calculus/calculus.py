@@ -381,6 +381,10 @@ class SymbolicExpression(RingElement):
         """
         return self.display2d(onscreen=False)
 
+    def show(self):
+        from sage.misc.functional import _do_show
+        return _do_show(self)
+
     def display2d(self, onscreen=True):
         """
         Display self using ASCII art.
@@ -2296,10 +2300,6 @@ class SymbolicArithmetic(SymbolicOperation):
         ops = self._operands
         op = self._operator
 
-        ###############
-        # some bugs here in parenthesis -- exposed by above doctest
-        ###############
-
         s = [o._repr_(simplify=False) for o in ops]
 
         # for the left operand, we need to surround it in parens when the
@@ -2362,6 +2362,8 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.mul:
             if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
                 s[0] = r'\left( %s \right)' %s[0]
+            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
+                s[1] = r'\left( %s \right)' %s[1]
             return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:
             return '\\frac{%s}{%s}' % (s[0], s[1])

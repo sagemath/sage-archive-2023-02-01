@@ -59,7 +59,8 @@ can be coerced into other systems or evaluated.
     sage: RealField(15)(a)           # 15 *bits* of precision
     5.316
     sage: gp(a)
-    5.316218116357029426750873360
+    5.316218116357029426750873360              # 32-bit
+    5.3162181163570294267508733603616328824    # 64-bit
     sage: print mathematica(a)                     # optional
      4 E
      --- + Pi

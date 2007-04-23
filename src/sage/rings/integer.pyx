@@ -1417,8 +1417,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_perfect_power_p(self.value))
 
     def jacobi(self, b):
-        """
-        Calculate the Jacobi symbol $\left(\frac{self,b}\right)$.
+        r"""
+        Calculate the Jacobi symbol $\left(\frac{self}{b}\right)$.
 
         EXAMPLES:
             sage: z = -1
@@ -1453,8 +1453,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return mpz_jacobi(self.value, (<Integer>b).value)
 
     def kronecker(self, b):
-        """
-        Calculate the Jacobi symbol $\left(\frac{self,b}\right)$ with the Kronecker extension
+        r"""
+        Calculate the Kronecker symbol
+        $\left(\frac{self}{b}\right)$ with the Kronecker extension
         $(self/2)=(2/self)$ when self odd, or $(self/2)=0$ when $self$ even.
 
         EXAMPLES:

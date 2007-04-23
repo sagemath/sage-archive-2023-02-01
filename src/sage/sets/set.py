@@ -868,12 +868,15 @@ class Set_object_intersection(Set_object):
             sage: RR(sqrt(2)) in X
             True
 
-            Real constants are not rational.
+        Real constants are not rational:
 
             sage: pi in X
             False
+
+        pi is not in RR either, since the comparison takes
+        place in the symbolic ring.
             sage: pi in RR
-            True
+            False
         """
         return x in self.__X and x in self.__Y
 

@@ -889,7 +889,10 @@ class SymbolicExpression(RingElement):
         vars = self.variables()
         B = R.base_ring()
         if B == SR:
-            return R([self])
+            if is_MPolynomialRing(R):
+                return R({tuple([0]*R.ngens()):self})
+            else:
+                return R([self])
         G = R.gens()
         sub = []
         for v in vars:
@@ -3463,7 +3466,7 @@ class Function_tanh(PrimitiveFunction):
         tanh(pi)
         sage: tanh(3.1415)
         0.996271386633702
-        sage: float(tanh(pi))
+        sage: float(tanh(pi))       # random low-order bits
         0.99627207622074987
         sage: tan(3.1415/4)
         0.999953674278156

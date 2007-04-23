@@ -369,7 +369,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
                         v[j] /= c
                     break
             if all_zero:
-                raise ValueError, "%s does not define a valid point since all entries are 0"%v
+                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
 
             X.codomain()._check_satisfies_equations(v)
 

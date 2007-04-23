@@ -893,7 +893,7 @@ class PowerSeries(ring_element.RingElement):
         a = newp(a)
         half = ~newp.base_ring()(2)
 
-        for i in range (ceil(log(prec, 2))):
+        for i in range (int(ceil(log(prec, 2)))):
             x = half * (x + a/x)
 
         return newp.gen(0)**(val/2) * x

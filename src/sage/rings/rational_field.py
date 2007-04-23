@@ -215,7 +215,7 @@ class RationalField(_uniq, field.Field):
             - Nils Bruin (2007-02-20)
         """
 
-        from sage.rings.arith import floor
+        from sage.rings.arith import integer_floor as floor
 
         n=self(0)
         yield n

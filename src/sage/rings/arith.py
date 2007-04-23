@@ -2714,49 +2714,51 @@ def rising_factorial(x, a):
 
 
 
-## def ceil(x):
-##     """
-##     Return the ceiling of x.
-##     """
-##     try:
-##         return sage.rings.all.Integer(x.ceil())
-##     except AttributeError:
-##         try:
-##             return sage.rings.all.Integer(int(math.ceil(float(x))))
-##         except TypeError:
-##             pass
-##     raise NotImplementedError, "computation of floor of %s not implemented"%repr(x)
+def integer_ceil(x):
+    """
+    Return the ceiling of x.
 
-## ceiling = ceil
+    EXAMPLES:
+        sage: integer_ceil(5.4)
+        6
+    """
+    try:
+        return sage.rings.all.Integer(x.ceil())
+    except AttributeError:
+        try:
+            return sage.rings.all.Integer(int(math.ceil(float(x))))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%repr(x)
 
-## def floor(x):
-##     r"""
-##     Return the largest integer $\leq x$.
+def integer_floor(x):
+    r"""
+    Return the largest integer $\leq x$.
 
-##     INPUT:
-##         x -- an object that has a floor method or is coercible to int
+    INPUT:
+        x -- an object that has a floor method or is coercible to int
 
-##     OUTPUT:
-##         an Integer
+    OUTPUT:
+        an Integer
 
-##     EXAMPLES:
-##         sage: floor(5.4)
-##         5
-##         sage: floor(float(5.4))
-##         5
-##         sage: floor(-5/2)
-##         -3
-##         sage: floor(RDF(-5/2))
-##         -3
-##     """
-##     try:
-##         return sage.rings.all.Integer(x.floor())
-##     except AttributeError:
-##         try:
-##             return sage.rings.all.Integer(int(math.floor(float(x))))
-##         except TypeError:
-##             pass
-##     raise NotImplementedError, "computation of floor of %s not implemented"%x
+    EXAMPLES:
+        sage: integer_floor(5.4)
+        5
+        sage: integer_floor(float(5.4))
+        5
+        sage: integer_floor(-5/2)
+        -3
+        sage: integer_floor(RDF(-5/2))
+        -3
+    """
+    try:
+        return sage.rings.all.Integer(x.floor())
+    except AttributeError:
+        try:
+            return sage.rings.all.Integer(int(math.floor(float(x))))
+        except TypeError:
+            pass
+    raise NotImplementedError, "computation of floor of %s not implemented"%x
 
 
 

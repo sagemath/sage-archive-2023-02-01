@@ -37,7 +37,7 @@ class QuotientRingElement(ring_element.RingElement):
     EXAMPLES:
         sage: R.<x> = PolynomialRing(ZZ)
         sage: S.<xbar> = R.quo((4 + 3*x + x^2, 1 + x^2)); S
-        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
+        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
         sage: v = S.gens(); v
         (xbar,)
 

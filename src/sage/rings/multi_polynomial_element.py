@@ -1110,7 +1110,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x*y^13 + y^12
             sage: M = f.lift(I)
             sage: M
-            [y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8, y^7]
+            [y^7, y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
         """

@@ -344,7 +344,7 @@ class RingMap_lift(RingMap):
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
-          From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, y^2 + x^2)
+          From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2, y)
           To:   Polynomial Ring in x, y over Rational Field
           Defn: Choice of lifting map
         sage: S.lift() == 0

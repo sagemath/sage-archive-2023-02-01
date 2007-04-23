@@ -17,13 +17,13 @@ EXAMPLES:
     sage: D1.parent() is D2.parent()
     True
     sage: D = D1 - D2 + D3; D
-    10*(z + y, 2*z + x) + 3*(y, x) - (z, x)
+    10*(2*z + x, z + y) + 3*(x, y) - (x, z)
     sage: D[1][0]
     3
     sage: D[1][1]
-    Ideal (y, x) of Polynomial Ring in x, y, z over Finite Field of size 5
+    Ideal (x, y) of Polynomial Ring in x, y, z over Finite Field of size 5
     sage: C.divisor([(3, pts[0]), (-1, pts[1]), (10,pts[5])])
-    10*(z + y, 2*z + x) + 3*(y, x) - (z, x)
+    10*(2*z + x, z + y) + 3*(x, y) - (x, z)
 """
 #*******************************************************************************
 #  Copyright (C) 2005 David Kohel <kohel@maths.usyd.edu.au>
@@ -98,7 +98,7 @@ class Divisor_generic(FormalSum):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]); D
-            -(3 + y, 3 + x) + 3*(y, x)
+            -(3 + x, 3 + y) + 3*(x, y)
             sage: D.scheme()
             Affine Curve over Finite Field of size 5 defined by y^2 + 4*x + 4*x^9
         """
@@ -129,13 +129,13 @@ class Divisor_curve(Divisor_generic):
         (161/16 : -2065/64 : 1)
         sage: D = E.divisor(P)
         sage: D
-        (y, x)
+        (x, y)
         sage: 10*D
-        10*(y, x)
+        10*(x, y)
         sage: E.divisor([P, P])
-        2*(y, x)
+        2*(x, y)
         sage: E.divisor([(3,P), (-4,5*P)])
-        -4*(5/8*z + y, -1/4*z + x) + 3*(y, x)
+        -4*(-1/4*z + x, 5/8*z + y) + 3*(x, y)
     """
     def __init__(self, v, check=True, reduce=True, parent=None):
         """
@@ -221,7 +221,7 @@ class Divisor_curve(Divisor_generic):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1, pts[1])]); D
-            -(3 + y, 3 + x) + 3*(y, x)
+            -(3 + x, 3 + y) + 3*(x, y)
             sage: D.support()
             [(0, 0), (2, 2)]
         """
@@ -247,7 +247,7 @@ class Divisor_curve(Divisor_generic):
             sage: D.coeff(pts[0])
             1
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
-            -(3 + y, 3 + x) + 3*(y, x)
+            -(3 + x, 3 + y) + 3*(x, y)
             sage: D.coeff(pts[0])
             3
             sage: D.coeff(pts[1])

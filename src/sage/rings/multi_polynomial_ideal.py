@@ -176,8 +176,8 @@ class MPolynomialIdeal_singular_repr:
             sage: I = R.ideal([x^3 + y, y])
             sage: S = I._singular_()
             sage: S
-            y,
-            x^3+y
+            x^3+y,
+            y
         """
         if singular is None: singular = singular_default
         try:
@@ -438,7 +438,7 @@ class MPolynomialIdeal_singular_repr:
             sage: K = I.intersection(J); K
             Ideal (y^2, x*y, x^2) of Polynomial Ring in x, y over Rational Field
             sage: IJ = I*J; IJ
-            Ideal (y^3, x*y, x^2*y^2, x^3) of Polynomial Ring in x, y over Rational Field
+            Ideal (x^2*y^2, x^3, y^3, x*y) of Polynomial Ring in x, y over Rational Field
             sage: IJ == K
             False
         """
@@ -462,7 +462,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (-1*z^2 + y, 2 + z^3) of Polynomial Ring in x, y, z over Rational Field, Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -530,7 +530,7 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y> = QQ[]
             sage: I = ideal([x^2,x*y^4,y^5])
             sage: I.integral_closure()
-            [x^2, y^5, x*y^3]
+            [x^2, y^5, -1*x*y^3]
 
         ALGORITHM: Use Singular
 
@@ -829,7 +829,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(IntegerRing(), 2, order='lex')
             sage: R.ideal([x, y])
-            Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
+            Ideal (x, y) of Polynomial Ring in x, y over Integer Ring
             sage: R.<x0,x1> = GF(3)[]
             sage: R.ideal([x0^2, x1^3])
             Ideal (x0^2, x1^3) of Polynomial Ring in x0, x1 over Finite Field of size 3

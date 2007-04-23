@@ -66,6 +66,7 @@ def solve_matrix_complex_double_dense(mat, vec):
        for i from 0<=i< _mat._matrix.size1:
               z=gsl_vector_complex_get(result_vector,i)
               list.append(sage.rings.complex_double.CDF(GSL_REAL(z),GSL_IMAG(z)))
+    #          list.append(gsl_vector_complex_get(result_vector, i))
        gsl_vector_complex_free(result_vector)
        return vector(sage.rings.complex_double.CDF,list) #todo: don't go through python
 

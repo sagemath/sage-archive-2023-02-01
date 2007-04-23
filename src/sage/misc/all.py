@@ -29,6 +29,8 @@ from pager import pager
 
 from sagedoc import search_src, search_doc
 
+from reset import reset, restore
+
 from getusage import top, get_memory_usage
 
 from log import log_html, log_dvi, log_html_mathml
@@ -47,12 +49,75 @@ from persist import save, load, dumps, loads, db, db_save
 
 from func_persist import func_persist
 
-from functional import *
+from functional import (additive_order,
+                        sqrt as numerical_sqrt,
+                        arg,
+                        base_ring,
+                        base_field,
+                        basis,
+                        category,
+                        charpoly,
+                        coerce,
+                        cyclotomic_polynomial,
+                        decomposition,
+                        denominator,
+                        derivative,
+                        det,
+                        dimension,
+                        dim,
+                        discriminant,
+                        disc,
+                        eta,
+                        exp,
+                        factor,
+                        fcp,
+                        gens,
+                        hecke_operator,
+                        ideal,
+                        image,
+                        imag,
+                        imaginary,
+                        integral,
+                        integral_closure,
+                        interval,
+                        xinterval,
+                        is_commutative,
+                        is_even,
+                        is_integrally_closed,
+                        is_field,
+                        is_odd,
+                        kernel,
+                        krull_dimension,
+                        lift,
+                        minimal_polynomial,
+                        multiplicative_order,
+                        ngens,
+                        norm,
+                        numerator,
+                        objgens,
+                        objgen,
+                        one,
+                        order,
+                        rank,
+                        real,
+                        regulator,
+                        round,
+                        quotient,
+                        quo,
+                        show,
+                        isqrt,
+                        square_free_part,
+                        squarefree_part,
+                        transpose,
+                        zero,
+                        log as log_b,
+                        parent)
+
 
 from latex import latex, view, lprint, jsmath
 
 # disabled -- nobody uses mathml
-#from mathml import mathml
+#from mathml ml
 
 from trace import trace
 

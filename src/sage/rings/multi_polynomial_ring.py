@@ -84,6 +84,7 @@ from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomial
 from sage.structure.parent_gens import ParentWithGens
 
 
+
 def is_MPolynomialRing(x):
     return isinstance(x, MPolynomialRing_generic)
 
@@ -248,6 +249,9 @@ class MPolynomialRing_generic(commutative_ring.CommutativeRing):
         """
         return dict([(str(g),g) for g in self.gens()])
 
+
+    def is_exact(self):
+        return self.base_ring().is_exact()
 
     def is_finite(self):
         if self.ngens() == 0:
@@ -415,6 +419,31 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: f = x^2 + 2/3*y^3
             sage: S(f)
             3*b^3 + a^2
+
+        Coercion from symbolic variables:
+            sage: x,y,z = var('x,y,z')
+            sage: R = QQ[x,y,z]
+            sage: type(x)
+            <class 'sage.calculus.calculus.SymbolicVariable'>
+            sage: type(R(x))
+            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            sage: f = R(x^3 + y^3 - z^3); f
+            -1*z^3 + y^3 + x^3
+            sage: type(f)
+            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            sage: parent(f)
+            Polynomial Ring in x, y, z over Rational Field
+
+        A more complicated symbolic and computational mix.  Behind the scenes
+        Singular and Maxima are doing the real work.
+            sage: R = QQ[x,y,z]
+            sage: f = (x^3 + y^3 - z^3)^10; f
+            (-z^3 + y^3 + x^3)^10
+            sage: g = R(f); parent(g)
+            Polynomial Ring in x, y, z over Rational Field
+            sage: (f - g).expand()
+            0
+
         """
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
@@ -437,23 +466,30 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_polydict(self, x)
+
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
                 return x.numerator()
             else:
                 raise TypeError, "unable to coerce since the denominator is not 1"
+
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except:
                 raise TypeError, "Unable to coerce singular object"
+
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
+
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+
         elif is_Macaulay2Element(x):
             try:
                 s = x.sage_polystring()
@@ -467,8 +503,12 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             except (AttributeError, TypeError, NameError):
                 raise TypeError, "Unable to coerce macaulay2 object"
             return multi_polynomial_element.MPolynomial_polydict(self, x)
-        c = self.base_ring()(x)
-        return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
+
+        if isinstance(x, dict):
+            return multi_polynomial_element.MPolynomial_polydict(self, x)
+        else:
+            c = self.base_ring()(x)
+            return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
 
 
 

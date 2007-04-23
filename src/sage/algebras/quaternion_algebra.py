@@ -2,6 +2,15 @@
 Quaternion algebras
 
 AUTHOR: David Kohel, 2005-09
+
+TESTS:
+    sage: A = QuaternionAlgebra(QQ, -1,-1, names=list('ijk'))
+    sage: A == loads(dumps(A))
+    True
+    sage: i, j, k = A.gens()
+    sage: i == loads(dumps(i))
+    True
+
 """
 
 #*****************************************************************************
@@ -30,7 +39,7 @@ from sage.algebras.free_algebra import FreeAlgebra
 from sage.algebras.free_algebra_quotient import FreeAlgebraQuotient
 from sage.algebras.algebra_element import AlgebraElement
 from sage.algebras.free_algebra_quotient_element import FreeAlgebraQuotientElement
-from sage.algebras.quaternion_algebra_element import QuaternionAlgebraElement
+from sage.algebras.quaternion_algebra_element import QuaternionAlgebraElement, QuaternionAlgebraElement_fast
 
 import weakref
 
@@ -339,9 +348,14 @@ class QuaternionAlgebra_generic(FreeAlgebraQuotient):
 	    self._basis_traces = basis_traces
 
     def __call__(self, x):
-        if isinstance(x, QuaternionAlgebraElement) and x.parent() is self:
-            return x
-        return QuaternionAlgebraElement(self,x)
+        if hasattr(self, 'discriminants'):
+            if isinstance(x, QuaternionAlgebraElement_fast) and x.parent() is self:
+                return x
+            return QuaternionAlgebraElement_fast(self,x)
+        else:
+            if isinstance(x, QuaternionAlgebraElement) and x.parent() is self:
+                return x
+            return QuaternionAlgebraElement(self,x)
 
     def __repr__(self):
         return "Quaternion algebra with generators %s over %s"%(
@@ -415,3 +429,15 @@ class QuaternionAlgebra_generic(FreeAlgebraQuotient):
             V = self.__vector_space
         return V
 
+
+def QuaternionAlgebra_fast(K, a, b, names="ijk"):
+    H = QuaternionAlgebra(K, a, b, names)
+    H.discriminants = (a,b)
+    return H
+
+class QuaternionAlgebra_faster(QuaternionAlgebra_generic):
+
+    def __call__(self, x):
+        if isinstance(x, QuaternionAlgebraElement_fast) and x.parent() is self:
+            return x
+        return QuaternionAlgebraElement_fast(self,x)

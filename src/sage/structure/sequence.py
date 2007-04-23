@@ -374,9 +374,12 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def _repr_(self):
         if self.__cr:
-            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+            return '[\n' + ',\n'.join([repr(x) for x in self]) + '\n]'
         else:
             return list.__repr__(self)
+
+    def __str__(self):
+        return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
 
     def category(self):
         import sage.categories.all

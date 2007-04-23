@@ -16,7 +16,7 @@ Laurent series are immutable:
     ...
     IndexError: Laurent series are immutable
 
-We compute with a Laurent series over a the complex mpfr numbers.
+We compute with a Laurent series over the complex mpfr numbers.
     sage: K.<q> = Frac(CC[['q']])
     sage: K
     Laurent Series Ring in q over Complex Field with 53 bits of precision
@@ -111,7 +111,7 @@ class LaurentSeries(ring_element.RingElement):
         """
         return self.__u.is_unit()
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -122,7 +122,7 @@ class LaurentSeries(ring_element.RingElement):
             sage: z.is_zero()
             1
         """
-        return self.__u.is_zero()
+        return not self.__u.is_zero()
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))
@@ -747,7 +747,7 @@ class LaurentSeries(ring_element.RingElement):
         t = u.parent().gen()
         return t**(self.__n) * u
 
-    def __call__(self, x):
+    def __call__(self, *x):
         """
         Compute value of this Laurent series at x.
 
@@ -761,6 +761,8 @@ class LaurentSeries(ring_element.RingElement):
             sage: f(1/3)
             82/9
         """
-        return self.__u(x) * (x**self.__n)
+        if isinstance(x[0], tuple):
+            x = x[0]
+        return self.__u(x) * (x[0]**self.__n)
 
 

@@ -153,8 +153,10 @@ class FreeMonoid_class(Monoid_class):
 
         """
         ## There should really some careful type checking here...
+        if isinstance(x, FreeMonoidElement) and x.parent() is self:
+                return x
         if isinstance(x, FreeMonoidElement) and x.parent() == self:
-            return x
+            return FreeMonoidElement(self,x._element_list,check)
         elif isinstance(x, (int, long, Integer)) and x == 1:
             return FreeMonoidElement(self, x, check)
         elif isinstance(x, list):

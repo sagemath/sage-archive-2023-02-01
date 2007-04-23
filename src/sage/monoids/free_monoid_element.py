@@ -66,23 +66,23 @@ class FreeMonoidElement(MonoidElement):
             # TODO: should have some other checks here...
             raise TypeError, "Argument x (= %s) is of the wrong type."%x
 
-    def __cmp__(left, right):
-        """
-        Compare two free monoid elements with the same parents.
+##     def __cmp__(left, right):
+##         """
+##         Compare two free monoid elements with the same parents.
 
-        The ordering is the one on the underlying sorted list of
-        (monomial,coefficients) pairs.
+##         The ordering is the one on the underlying sorted list of
+##         (monomial,coefficients) pairs.
 
-        EXAMPLES:
-            sage: R.<x,y> = FreeMonoid(2)
-            sage: x < y
-            True
-            sage: x * y < y * x
-            True
-            sage: x * y * x^2 < x * y * x^3
-            True
-        """
-        return cmp(left._element_list, right._element_list)
+##         EXAMPLES:
+##             sage: R.<x,y> = FreeMonoid(2)
+##             sage: x < y
+##             True
+##             sage: x * y < y * x
+##             True
+##             sage: x * y * x^2 < x * y * x^3
+##             True
+##         """
+##         return cmp(left._element_list, right._element_list)
 
     def _repr_(self):
         s = ""
@@ -253,5 +253,4 @@ class FreeMonoidElement(MonoidElement):
                 else:
                     return 1
         return 0 # x = self and y are equal
-
 

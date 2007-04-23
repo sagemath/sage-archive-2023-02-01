@@ -4,6 +4,12 @@ Field $\Q$ of Rational Numbers.
 The class \class{RationalField} represents the field $\Q$ of
 (arbitrary precision) rational numbers.  Each rational number is an
 instance of the class \class{Rational}.
+
+TEST:
+   sage: Q = RationalField()
+   sage: Q == loads(dumps(Q))
+   True
+
 """
 
 import random
@@ -161,7 +167,7 @@ class RationalField(_uniq, field.Field):
             1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075        # 64-bit
             sage: t = L/O; t
             0.200000000000000
-            sage: QQ(t)
+            sage: QQ(RealField(45)(t))
             1/5
         """
         if isinstance(x, sage.rings.rational.Rational):
@@ -209,7 +215,7 @@ class RationalField(_uniq, field.Field):
             - Nils Bruin (2007-02-20)
         """
 
-        from sage.rings.arith import floor
+        from sage.rings.arith import integer_floor as floor
 
         n=self(0)
         yield n
@@ -237,6 +243,13 @@ class RationalField(_uniq, field.Field):
 
     def ngens(self):
         return 1
+
+    def is_subring(self, K):
+        if K.is_field():
+            return K.characteristic() == 0
+        if K.characteristic() != 0:
+            return False
+        raise NotImplementedError
 
     def is_field(self):
         """

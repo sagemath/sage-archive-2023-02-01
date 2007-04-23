@@ -34,6 +34,7 @@ import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file
+from   sage.server.misc import print_open_msg
 
 def embedded():
     return sage.server.support.EMBEDDED_MODE
@@ -153,7 +154,8 @@ class HG:
             err = x[2].read()
             return out, err
 
-    def serve(self, port=8200, open_viewer=False):
+    def serve(self, port=8200, address='localhost',
+              open_viewer=True, options=''):
         """
         Start a web server for this repository.
 
@@ -163,17 +165,21 @@ class HG:
 
         INPUT:
             port -- port that the server will listen on
-            open_viewer -- boolean (default: False); whether to pop up the web page
+            address --  (default: 'localhost') address to listen on
+            open_viewer -- boolean (default: True); whether to pop up the web page
+            options -- a string passed directly to hg's serve command.
         """
-        print('Now serving repository on port %s'%port)
-        print("Point your web browser at http://localhost:%s"%port)
         if open_viewer:
-            cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(), 'localhost', port)
+            cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(),
+                                                              address, port)
             t = tmp_filename()
             open(t,'w').write(cmd)
             P = os.path.abspath(t)
             os.system('chmod +x %s; %s &'%(P, P))
-        self('serve --port %s'%port)
+
+        print_open_msg(address, port)
+        self('serve --address %s --port %s  %s'%(address, port, options))
+        print_open_msg(address, port)
 
     browse = serve
 
@@ -556,6 +562,45 @@ class HG:
              \code{hg_sage('usual hg command line notation')}
         """
         self('%s --help | %s'%(cmd, pager()))
+
+    def outgoing(self, url=None, opts=''):
+        """
+        Use this to find changsets that are in your branch, but not in the
+        specified destination repository. If no destination is specified, the
+        official repository is used.
+
+        From the Mercurial documentation:
+            Show changesets not found in the specified destination repository or the
+            default push location. These are the changesets that would be pushed if
+            a push was requested.
+
+            See pull() for valid destination format details.
+
+        INPUT:
+            url:  default: self.url() -- the official repository
+                   * http://[user@]host[:port]/[path]
+                   * https://[user@]host[:port]/[path]
+                   * ssh://[user@]host[:port]/[path]
+                   * local directory (starting with a /)
+                   * name of a branch (for hg_sage); no /'s
+            options: (default: none)
+                 -M --no-merges     do not show merges
+                 -f --force         run even when remote repository is unrelated
+                 -p --patch         show patch
+                    --style         display using template map file
+                 -r --rev           a specific revision you would like to push
+                 -n --newest-first  show newest record first
+                    --template      display with template
+                 -e --ssh           specify ssh command to use
+                    --remotecmd     specify hg command to run on the remote side
+        """
+        if url is None:
+            url = self.__url
+
+        if not '/' in url:
+            url = '%s/devel/sage-%s'%(SAGE_ROOT, url)
+
+        self('outgoing %s %s | %s' % (opts, url, pager()))
 
     def pull(self, url=None, options='-u'):
         """

@@ -3,6 +3,14 @@ Number Field Ideals
 
 AUTHOR:
    -- Steven Sivek (2005-05-16)
+
+TESTS:
+    sage: K.<a> = NumberField(x^2 - 5)
+    sage: I = K.ideal(2/(5+a))
+    sage: I == loads(dumps(I))
+    True
+
+
 """
 
 #*****************************************************************************
@@ -62,9 +70,7 @@ class NumberFieldIdeal(Ideal_fractional):
         Ideal_generic.__init__(self, field, gens, coerce)
 
     def __cmp__(self, other):
-        if self.pari_hnf() == other.pari_hnf():
-            return 0
-        return -1
+        return cmp(self.pari_hnf(), other.pari_hnf())
 
     def _coerce_impl(self, x):
         if isinstance(x, NumberFieldIdeal):

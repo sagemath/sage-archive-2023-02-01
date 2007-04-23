@@ -280,9 +280,9 @@ cdef class Element(sage_object.SageObject):
 
     def _coeff_repr(self, no_space=True):
         if self._is_atomic():
-            s = str(self)
+            s = repr(self)
         else:
-            s = "(%s)"%self
+            s = "(%s)"%repr(self)
         if no_space:
             return s.replace(' ','')
         return s
@@ -313,8 +313,21 @@ cdef class Element(sage_object.SageObject):
         s = str(self)
         return PyBool_FromLong(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
 
+    def __nonzero__(self):
+        """
+        Return True if self does not equal self.parent()(0).
+        """
+        return PyBool_FromLong(self != self._parent(0))
+
     def is_zero(self):
-        return PyBool_FromLong(self == self._parent(0))
+        """
+        Return True if self equals self.parent()(0). The default
+        implementation is to fall back to 'not self.__nonzero__'.
+
+        NOTE: Do not re-implement this method in your subclass but
+        implement __nonzero__ instead.
+        """
+        return PyBool_FromLong(not self)
 
     def _cmp_(left, right):
         return left._cmp(right)
@@ -354,7 +367,7 @@ cdef class Element(sage_object.SageObject):
                     r = cmp(_left, _right)
                 else:
                     return _left._richcmp_(_right, op)
-            except TypeError:
+            except (TypeError, NotImplementedError):
                 r = cmp(type(left), type(right))
                 if r == 0:
                     r = -1
@@ -439,9 +452,6 @@ cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
-    ##################################################
-    def is_zero(self):
-        return PyBool_FromLong(self == self._parent(0))
 
     ##################################################
     # Addition
@@ -698,15 +708,21 @@ cdef class ModuleElement(Element):
         if n < 0:
             a = -a
             n = -n
-        sum = self._parent(0)
+        sum = None
         asum = a
         while True:
-            if n&1 > 0: sum = sum + asum
+            if n&1 > 0:
+                if sum is None:
+                    sum = asum
+                else:
+                    sum += asum
             n = n >> 1
             if n != 0:
-                asum = asum + asum
+                asum += asum
             else:
                 break
+        if sum is None:
+            return self._parent(0)
         return sum
 
     def _rmul_(self, left):
@@ -1050,9 +1066,6 @@ def is_RingElement(x):
 
 cdef class RingElement(ModuleElement):
     ##################################################
-    def is_zero(self):
-        return PyBool_FromLong(self == self.parent()(0))
-
     def is_one(self):
         return PyBool_FromLong(self == self.parent()(1))
 
@@ -1766,7 +1779,7 @@ cdef class MinusInfinityElement(InfinityElement):
     pass
 
 
-cdef int have_same_parent(left, right):
+cdef inline int have_same_parent(left, right):
     """
     Return nonzero true value if and only if left and right are
     elements and have the same parent.

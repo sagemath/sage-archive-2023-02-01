@@ -30,6 +30,7 @@ NOTE:
 #
 ##############################################################################
 
+from sage.graphs.graph import Graph, DiGraph
 
 def finer(Pi1, Pi2):
     """
@@ -137,13 +138,17 @@ def fix(Pi):
             l.append(cell[0])
     return l
 
-def orbit_partition(G, gamma):
-    """
+def orbit_partition(gamma, list_perm=False):
+    r"""
     Assuming that G is a graph on vertices {0,1,...,n-1}, and gamma is an
     element of SymmetricGroup(n), returns the partition of the vertex set
     determined by the orbits of gamma, considered as action on the set
     {1,2,...,n} where we take 0 = n. In other words, returns the partition
     determined by a cyclic representation of gamma.
+
+    INPUT:
+        list_perm -- if True, assumes gamma is a list representing the map
+    i \mapsto gamma[i].
 
     EXAMPLES:
         sage: import sage.graphs.graph_isom
@@ -151,22 +156,40 @@ def orbit_partition(G, gamma):
         sage: G = graphs.PetersenGraph()
         sage: S = SymmetricGroup(10)
         sage: gamma = S('(10,1,2,3,4)(5,6,7)(8,9)')
-        sage: orbit_partition(G,gamma)
+        sage: orbit_partition(gamma)
         [[1, 2, 3, 4, 0], [5, 6, 7], [8, 9]]
         sage: gamma = S('(10,5)(1,6)(2,7)(3,8)(4,9)')
-        sage: orbit_partition(G,gamma)
+        sage: orbit_partition(gamma)
         [[1, 6], [2, 7], [3, 8], [4, 9], [5, 0]]
     """
-    n = len(gamma.list())
-    l = []
-    for i in range(1,n+1):
-        orb = gamma.orbit(i)
-        if orb not in l: l.append(orb)
-    for i in l:
-        for j in range(len(i)):
-            if i[j] == n:
-                i[j] = 0
-    return l
+    if list_perm:
+        n = len(gamma)
+        seen = [1] + [0]*(n-1)
+        i = 0
+        p = 0
+        partition = [[0]]
+        while sum(seen) < n:
+            if gamma[i] != partition[p][0]:
+                partition[p].append(gamma[i])
+                i = gamma[i]
+                seen[i] = 1
+            else:
+                i = min([j for j in range(n) if seen[j] == 0])
+                partition.append([i])
+                p += 1
+                seen[i] = 1
+        return partition
+    else:
+        n = len(gamma.list())
+        l = []
+        for i in range(1,n+1):
+            orb = gamma.orbit(i)
+            if orb not in l: l.append(orb)
+        for i in l:
+            for j in range(len(i)):
+                if i[j] == n:
+                    i[j] = 0
+        return l
 
 def sat225(Pi, n):
     """
@@ -200,14 +223,9 @@ def degree(G, v, W):
         sage.: P.show(partition=Pi1)
     """
     i = 0
-    if G.is_directed():
-        for u in W:
-            if G.has_arc(u,v):
-                i += 1
-    else:
-        for u in W:
-            if G.has_edge(u,v):
-                i += 1
+    for u in W:
+        if G._nxg.adj[u].has_key(v):
+            i += 1
     return i
 
 def is_discrete(Pi):
@@ -485,11 +503,15 @@ def indicator(G, Pi, V):
                                         )
     return prod([l for l in LL if l!=0])
 
-def get_permutation(eta, nu):
-    """
+def get_permutation(eta, nu, list_perm=False):
+    r"""
     Given two terminal nodes of the search tree, eta and nu, each last
     partition is discrete, and the order of the partition determines a
     permutation gamma such that gamma(eta) = nu. Returns the partition gamma.
+
+    INPUT:
+        list_perm -- if True, returns a list L representing the map i \mapsto
+    L[i].
 
     EXAMPLE:
         sage: import sage.graphs.graph_isom
@@ -500,48 +522,73 @@ def get_permutation(eta, nu):
         sage: nu = [ [[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19]], [[1], [12, 15, 17], [16], [4, 5, 11, 13, 14, 18], [3, 6, 7, 9, 10, 19], [0, 2, 8]], [[1], [12], [15, 17], [16], [4, 5], [14, 18], [11, 13], [3, 6], [7, 19], [9, 10], [2], [0, 8]], [[1], [12], [15], [17], [16], [4], [5], [18], [14], [11], [13], [3], [6], [19], [7], [10], [9], [2], [0], [8]] ]
         sage: get_permutation(eta, nu)
         (1,8,7,14,15,16,17,18,19,20)(12,4,11,3,10,2,9,6,13,5)
+        sage: get_permutation(eta, nu, list_perm=True)
+        [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]
     """
-    from sage.rings.integer import Integer
-    from sage.groups.perm_gps.permgroup import SymmetricGroup
-    a = nu[len(nu)-Integer(1)]
-    b = eta[len(eta)-Integer(1)]
+    a = nu[-1]
+    b = eta[-1]
     n = len(b)
-    S = SymmetricGroup(n)
-    gamma = []
-    for i in range(len(b)):
-        if b[i][0] != a[i][0]:
-            gamma.append([b[i][0],a[i][0]])
-    i = 0
-    while i < len(gamma):
-        if gamma[i][0] == gamma[i][-1]:
-            i += 1
-        else:
-            for j in range(i+1,len(gamma)):
-                if gamma[i][-1] == gamma[j][0]:
-                    gamma[i] = gamma[i] + gamma[j][1:]
-                    gamma.pop(j)
+    if list_perm:
+        gamma = []
+        i = 0
+        while len(gamma) < n:
+            for j in range(n):
+                if b[j][0] == i:
+                    gamma.append(a[j][0])
+                    i += 1
                     break
-    for i in range(len(gamma)):
-        gamma[i] = gamma[i][1:]
-    if len(gamma) == 0:
-        gamma = S('()')
+        return gamma
     else:
-        gamma = S(str(gamma)[1:-1].replace('[','(').replace(']',')').\
-               replace(' ', '').replace('(0','('+str(n)).replace(',0',','+str(n)))
-    return gamma
+        from sage.groups.perm_gps.permgroup import SymmetricGroup
+        S = SymmetricGroup(n)
+        gamma = []
+        for i in range(len(b)):
+            if b[i][0] != a[i][0]:
+                gamma.append([b[i][0],a[i][0]])
+        i = 0
+        while i < len(gamma):
+            if gamma[i][0] == gamma[i][-1]:
+                i += 1
+            else:
+                for j in range(i+1,len(gamma)):
+                    if gamma[i][-1] == gamma[j][0]:
+                        gamma[i] = gamma[i] + gamma[j][1:]
+                        gamma.pop(j)
+                        break
+        for i in range(len(gamma)):
+            gamma[i] = gamma[i][1:]
+        if len(gamma) == 0:
+            gamma = S('()')
+        else:
+            gamma = S(str(gamma)[1:-1].replace('[','(').replace(']',')').\
+                   replace(' ', '').replace('(0','('+str(n)).replace(',0',','+str(n)))
+        return gamma
 
-def term_pnest_graph(G, nu):
+def term_pnest_graph(G, nu, enumer=False):
     """
     BDM's G(nu): returns the graph G, relabeled in the order found in
     nu[last]. Assumes nu is a terminal partition nest in T(G, Pi).
     """
-    ord = nu[len(nu)-1]
+    n = G.order()
     d = {}
-    for i in range(len(nu[len(nu)-1])):
-        d[nu[len(nu)-1][i][0]] = i
-    H = G.copy()
-    H.relabel(d)
-    return H
+    for i in range(n):
+        d[nu[-1][i][0]] = i
+    if enumer:
+        # we know that the vertex set is {0,...,n-1}...
+        numbr = 0
+        if isinstance(G, Graph):
+            for i,j,l in G.edge_iterator():
+                numbr += 1<<((n-(d[i]+1))*n + n-(d[j]+1))
+                numbr += 1<<((n-(d[j]+1))*n + n-(d[i]+1))
+        elif isinstance(G, DiGraph):
+            for i,j,l in G.arc_iterator():
+                numbr += 1<<((n-(d[i]+1))*n + n-(d[j]+1))
+        return numbr
+    else:
+        ord = nu[-1]
+        H = G.copy()
+        H.relabel(d)
+        return H
 
 def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
     """
@@ -581,18 +628,18 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
     EXAMPLES:
         sage: from sage.groups.perm_gps.permgroup import PermutationGroup
         sage: import sage.graphs.graph_isom
-        sage: from sage.graphs.graph_isom import search_tree
+        sage: from sage.graphs.graph_isom import search_tree, perm_group_elt
         sage: from sage.graphs.graph import enum
 
         sage: G = graphs.DodecahedralGraph()
         sage: Pi=[range(20)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [(16,14)(13,12)(7,17)(6,4)(9,11)(8,18)(2,3)(1,19), (14,5)(17,12)(4,13)(6,7)(18,11)(3,9)(2,8)(19,10), (16,14,5)(7,4,12)(6,17,13)(8,3,11)(2,18,9)(1,19,10), (1,8,7,14,15,16,17,18,19,20)(12,4,11,3,10,2,9,6,13,5)] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [0, 19, 18, 11, 12, 16, 17, 4, 3, 2, 1, 8, 7, 6, 5, 15, 14, 13, 9, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]] 17318942212009113839976787462421724338461987195898671092180383421848885858584973127639899792828728124797968735273000
         sage: c = search_tree(G, Pi, lab=False)
         sage: print c
-        [(16,14)(13,12)(7,17)(6,4)(9,11)(8,18)(2,3)(1,19), (14,5)(17,12)(4,13)(6,7)(18,11)(3,9)(2,8)(19,10), (16,14,5)(7,4,12)(6,17,13)(8,3,11)(2,18,9)(1,19,10), (1,8,7,14,15,16,17,18,19,20)(12,4,11,3,10,2,9,6,13,5)]
-        sage: DodecAut = PermutationGroup(a)
+        [[0, 19, 3, 2, 6, 5, 4, 17, 18, 11, 10, 9, 13, 12, 16, 15, 14, 7, 8, 1], [0, 1, 8, 9, 13, 14, 7, 6, 2, 3, 19, 18, 17, 4, 5, 15, 16, 12, 11, 10], [0, 19, 18, 11, 12, 16, 17, 4, 3, 2, 1, 8, 7, 6, 5, 15, 14, 13, 9, 10], [1, 8, 9, 10, 11, 12, 13, 14, 7, 6, 2, 3, 4, 5, 15, 16, 17, 18, 19, 0]]
+        sage: DodecAut = PermutationGroup([perm_group_elt(aa) for aa in a])
         sage: DodecAut.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
@@ -604,7 +651,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         [                     4                      0                      1                      0                      1                     -1                     -1                     -1                      1                     -4]
         [                     5                      1                     -1                      1                      0                      0                     -1                      0                      0                      5]
         [                     5                     -1                     -1                      1                      0                      0                      1                      0                      0                     -5]
-        sage: DodecAut2 = PermutationGroup(c)
+        sage: DodecAut2 = PermutationGroup([perm_group_elt(cc) for cc in c])
         sage: DodecAut2.character_table()
         [                     1                      1                      1                      1                      1                      1                      1                      1                      1                      1]
         [                     1                     -1                      1                      1                     -1                      1                     -1                      1                     -1                     -1]
@@ -621,9 +668,9 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         sage: Pi=[range(10)]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [(9,8)(3,7)(4,5), (3,8)(7,9)(6,2)(4,5), (6,9,7,2,3,8)(4,5,1), (1,10)(7,3,9,8)(4,6,5,2)] 8716441511243809436161868448
+        [[0, 1, 2, 7, 5, 4, 6, 3, 9, 8], [0, 1, 6, 8, 5, 4, 2, 9, 3, 7], [0, 4, 3, 8, 5, 1, 9, 2, 6, 7], [1, 0, 4, 9, 6, 2, 5, 3, 7, 8]] 8716441511243809436161868448
         sage: c = search_tree(G, Pi, lab=False)
-        sage: PAut = PermutationGroup(a)
+        sage: PAut = PermutationGroup([perm_group_elt(aa) for aa in a])
         sage: PAut.character_table()
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
@@ -632,7 +679,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         [ 5  1  1  1 -1 -1  0]
         [ 5 -1  1 -1 -1  1  0]
         [ 6  0 -2  0  0  0  1]
-        sage: PAut = PermutationGroup(c)
+        sage: PAut = PermutationGroup([perm_group_elt(cc) for cc in c])
         sage: PAut.character_table()
         [ 1  1  1  1  1  1  1]
         [ 1 -1  1 -1  1 -1  1]
@@ -651,12 +698,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         sage: Pi = [Pi]
         sage: a,b = search_tree(G, Pi)
         sage: print a, enum(b)
-        [(6,4)(1,3), (4,2)(3,5), (6,4,2)(1,3,5), (1,8)(6,7)(3,2)(5,4)] 520239721777506480
+        [[0, 3, 2, 1, 6, 5, 4, 7], [0, 1, 4, 5, 2, 3, 6, 7], [0, 3, 6, 5, 2, 1, 4, 7], [1, 0, 3, 2, 5, 4, 7, 6]] 520239721777506480
         sage: c = search_tree(G, Pi, lab=False)
 
-        sage: PermutationGroup(a).order()
+        sage: PermutationGroup([perm_group_elt(aa) for aa in a]).order()
         48
-        sage: PermutationGroup(c).order()
+        sage: PermutationGroup([perm_group_elt(cc) for cc in c]).order()
         48
         sage: DodecAut.order()
         120
@@ -703,16 +750,16 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         ...        print a.ljust(15), b.ljust(5), c.ljust(15), d.ljust(5), e.ljust(15)
         []              0     []              0     []
         []              0     []              0     []
-        [(1,2)]         0     [(1,2)]         0     [(1,2)]
-        [(1,2)]         0     [(1,2)]         0     [(1,2)]
+        [[1, 0]]        0     [[1, 0]]        0     [[1, 0]]
+        [[1, 0]]        0     [[1, 0]]        0     [[1, 0]]
         []              6     []              6     []
         []              6     []              6     []
-        [(1,2)]         6     [(1,2)]         6     [(1,2)]
-        [(1,2)]         6     [(1,2)]         6     [(1,2)]
+        [[1, 0]]        6     [[1, 0]]        6     [[1, 0]]
+        [[1, 0]]        6     [[1, 0]]        6     [[1, 0]]
 
         sage: graph3 = all_labeled_graphs(3)
         sage: part3 = all_ordered_partitions(range(3))
-        sage: for G in graph3:               # long time
+        sage: for G in graph3:               # long time (~30 secs)
         ...    for Pi in part3:
         ...        a,b = search_tree(G, Pi)
         ...        c,d = search_tree(G, Pi, dig=True)
@@ -721,32 +768,32 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         ...        print a.ljust(15), b.ljust(5), c.ljust(15), d.ljust(5), e.ljust(15)
         []              0     []              0     []
         []              0     []              0     []
-        [(2,1)]         0     [(2,1)]         0     [(2,1)]
-        [(2,1)]         0     [(2,1)]         0     [(2,1)]
+        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
+        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
         []              0     []              0     []
         []              0     []              0     []
-        [(2,3)]         0     [(2,3)]         0     [(2,3)]
-        [(2,3)]         0     [(2,3)]         0     [(2,3)]
+        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
+        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
         []              0     []              0     []
         []              0     []              0     []
-        [(1,3)]         0     [(1,3)]         0     [(1,3)]
-        [(1,3)]         0     [(1,3)]         0     [(1,3)]
-        [(1,3)]         0     [(1,3)]         0     [(1,3)]
-        [(2,3)]         0     [(2,3)]         0     [(2,3)]
-        [(1,3)]         0     [(1,3)]         0     [(1,3)]
-        [(2,1)]         0     [(2,1)]         0     [(2,1)]
-        [(2,3)]         0     [(2,3)]         0     [(2,3)]
-        [(2,1)]         0     [(2,1)]         0     [(2,1)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
-        [(2,1), (1,3)]  0     [(2,1), (1,3)]  0     [(2,1), (1,3)]
+        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
+        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
+        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
+        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
+        [[1, 0, 2]]     0     [[1, 0, 2]]     0     [[1, 0, 2]]
+        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
+        [[2, 1, 0]]     0     [[2, 1, 0]]     0     [[2, 1, 0]]
+        [[0, 2, 1]]     0     [[0, 2, 1]]     0     [[0, 2, 1]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]] 0     [[0, 2, 1], [1, 0, 2]]
         []              10    []              10    []
         []              10    []              10    []
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
         []              68    []              68    []
         []              160   []              160   []
         []              68    []              68    []
@@ -758,39 +805,39 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         []              10    []              10    []
         []              10    []              10    []
         []              10    []              10    []
-        [(2,1)]         160   [(2,1)]         160   [(2,1)]
+        [[0, 2, 1]]     160   [[0, 2, 1]]     160   [[0, 2, 1]]
         []              10    []              10    []
-        [(2,1)]         160   [(2,1)]         160   [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
-        [(2,1)]         10    [(2,1)]         10    [(2,1)]
+        [[0, 2, 1]]     160   [[0, 2, 1]]     160   [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
+        [[0, 2, 1]]     10    [[0, 2, 1]]     10    [[0, 2, 1]]
         []              68    []              68    []
         []              160   []              160   []
         []              68    []              68    []
         []              68    []              68    []
         []              10    []              10    []
         []              10    []              10    []
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
         []              160   []              160   []
         []              68    []              68    []
         []              68    []              68    []
         []              68    []              68    []
         []              10    []              10    []
-        [(2,3)]         160   [(2,3)]         160   [(2,3)]
+        [[2, 1, 0]]     160   [[2, 1, 0]]     160   [[2, 1, 0]]
         []              10    []              10    []
         []              10    []              10    []
-        [(2,3)]         160   [(2,3)]         160   [(2,3)]
+        [[2, 1, 0]]     160   [[2, 1, 0]]     160   [[2, 1, 0]]
         []              10    []              10    []
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
-        [(2,3)]         10    [(2,3)]         10    [(2,3)]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
+        [[2, 1, 0]]     10    [[2, 1, 0]]     10    [[2, 1, 0]]
         []              78    []              78    []
         []              170   []              170   []
         []              78    []              78    []
@@ -801,20 +848,20 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         []              78    []              78    []
         []              228   []              228   []
         []              228   []              228   []
-        [(1,3)]         228   [(1,3)]         228   [(1,3)]
-        [(1,3)]         228   [(1,3)]         228   [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
+        [[1, 0, 2]]     228   [[1, 0, 2]]     228   [[1, 0, 2]]
+        [[1, 0, 2]]     228   [[1, 0, 2]]     228   [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
         []              170   []              170   []
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
         []              170   []              170   []
         []              170   []              170   []
         []              170   []              170   []
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
-        [(1,3)]         78    [(1,3)]         78    [(1,3)]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
+        [[1, 0, 2]]     78    [[1, 0, 2]]     78    [[1, 0, 2]]
         []              160   []              160   []
         []              68    []              68    []
         []              68    []              68    []
@@ -825,48 +872,48 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         []              68    []              68    []
         []              10    []              10    []
         []              10    []              10    []
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         160   [(1,3)]         160   [(1,3)]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     160   [[1, 0, 2]]     160   [[1, 0, 2]]
         []              10    []              10    []
-        [(1,3)]         160   [(1,3)]         160   [(1,3)]
+        [[1, 0, 2]]     160   [[1, 0, 2]]     160   [[1, 0, 2]]
         []              10    []              10    []
         []              10    []              10    []
         []              10    []              10    []
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
-        [(1,3)]         10    [(1,3)]         10    [(1,3)]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
+        [[1, 0, 2]]     10    [[1, 0, 2]]     10    [[1, 0, 2]]
         []              170   []              170   []
         []              78    []              78    []
         []              78    []              78    []
         []              78    []              78    []
         []              228   []              228   []
         []              228   []              228   []
-        [(2,3)]         228   [(2,3)]         228   [(2,3)]
-        [(2,3)]         228   [(2,3)]         228   [(2,3)]
+        [[2, 1, 0]]     228   [[2, 1, 0]]     228   [[2, 1, 0]]
+        [[2, 1, 0]]     228   [[2, 1, 0]]     228   [[2, 1, 0]]
         []              78    []              78    []
         []              170   []              170   []
         []              78    []              78    []
         []              78    []              78    []
         []              170   []              170   []
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
         []              170   []              170   []
         []              170   []              170   []
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
         []              170   []              170   []
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
-        [(2,3)]         78    [(2,3)]         78    [(2,3)]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
+        [[2, 1, 0]]     78    [[2, 1, 0]]     78    [[2, 1, 0]]
         []              228   []              228   []
         []              228   []              228   []
-        [(2,1)]         228   [(2,1)]         228   [(2,1)]
-        [(2,1)]         228   [(2,1)]         228   [(2,1)]
+        [[0, 2, 1]]     228   [[0, 2, 1]]     228   [[0, 2, 1]]
+        [[0, 2, 1]]     228   [[0, 2, 1]]     228   [[0, 2, 1]]
         []              170   []              170   []
         []              78    []              78    []
         []              78    []              78    []
@@ -878,70 +925,68 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         []              170   []              170   []
         []              170   []              170   []
         []              170   []              170   []
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
         []              170   []              170   []
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
-        [(2,1)]         78    [(2,1)]         78    [(2,1)]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
+        [[0, 2, 1]]     78    [[0, 2, 1]]     78    [[0, 2, 1]]
         []              238   []              238   []
         []              238   []              238   []
-        [(2,1)]         238   [(2,1)]         238   [(2,1)]
-        [(2,1)]         238   [(2,1)]         238   [(2,1)]
+        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
+        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
         []              238   []              238   []
         []              238   []              238   []
-        [(2,3)]         238   [(2,3)]         238   [(2,3)]
-        [(2,3)]         238   [(2,3)]         238   [(2,3)]
+        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
+        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
         []              238   []              238   []
         []              238   []              238   []
-        [(1,3)]         238   [(1,3)]         238   [(1,3)]
-        [(1,3)]         238   [(1,3)]         238   [(1,3)]
-        [(1,3)]         238   [(1,3)]         238   [(1,3)]
-        [(2,3)]         238   [(2,3)]         238   [(2,3)]
-        [(1,3)]         238   [(1,3)]         238   [(1,3)]
-        [(2,1)]         238   [(2,1)]         238   [(2,1)]
-        [(2,3)]         238   [(2,3)]         238   [(2,3)]
-        [(2,1)]         238   [(2,1)]         238   [(2,1)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
-        [(2,1), (1,3)]  238   [(2,1), (1,3)]  238   [(2,1), (1,3)]
+        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
+        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
+        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
+        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
+        [[1, 0, 2]]     238   [[1, 0, 2]]     238   [[1, 0, 2]]
+        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
+        [[2, 1, 0]]     238   [[2, 1, 0]]     238   [[2, 1, 0]]
+        [[0, 2, 1]]     238   [[0, 2, 1]]     238   [[0, 2, 1]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
+        [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]] 238   [[0, 2, 1], [1, 0, 2]]
 
         sage: C = graphs.CubeGraph(1)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup(gens).order()
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         2
         sage: C = graphs.CubeGraph(2)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup(gens).order()
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         8
         sage: C = graphs.CubeGraph(3)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup(gens).order()
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         48
         sage: C = graphs.CubeGraph(4)
         sage: gens = search_tree(C, [C.vertices()], lab=False)
-        sage: PermutationGroup(gens).order()
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()
         384
         sage: C = graphs.CubeGraph(5)
-        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time
-        sage: PermutationGroup(gens).order()                    # long time
+        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time (~8 secs)
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()                    # long time
         3840
         sage: C = graphs.CubeGraph(6)
-        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time
-        sage: PermutationGroup(gens).order()                    # long time
+        sage: gens = search_tree(C, [C.vertices()], lab=False)  # long time (~50 secs)
+        sage: PermutationGroup([perm_group_elt(aa) for aa in gens]).order()                    # long time
         46080
     """
     from copy import copy
-    from sage.groups.perm_gps.permgroup import SymmetricGroup
     from sage.rings.infinity import Infinity
     n = G.order()
-    S = SymmetricGroup(n)
     Pi = copy(Pi)
 
     if proof:
@@ -1072,7 +1117,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
             if h == 0: state = 18
             elif k < hzf: state = 8 ## BDM had !=, broke at G = Graph({0:[],1:[],2:[]}), Pi = [[0,1,2]]
             else:
-                gamma = get_permutation(eta.values(), nu.values())
+                gamma = get_permutation(eta.values(), nu.values(), list_perm=True)
     #            print gamma
                 if G == G.relabel(gamma, inplace=False): # if G^gamma == G:
                     state = 10
@@ -1082,10 +1127,10 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
 #            print 'state: 8'
             if (not lab) or (qzb < 0): state = 6
             elif (qzb > 0) or (k < len(rho)): state = 9
-            elif (term_pnest_graph(G, nu.values()) > term_pnest_graph(G, rho.values())): state = 9
-            elif (term_pnest_graph(G, nu.values()) < term_pnest_graph(G, rho.values())): state = 6
+            elif (term_pnest_graph(G, nu.values(), enumer=True) > term_pnest_graph(G, rho.values(), enumer=True)): state = 9
+            elif (term_pnest_graph(G, nu.values(), enumer=True) < term_pnest_graph(G, rho.values(), enumer=True)): state = 6
             else:
-                gamma = get_permutation(nu.values(), rho.values())
+                gamma = get_permutation(nu.values(), rho.values(), list_perm=True)
     #            print gamma
                 state = 10
         elif state == 9:
@@ -1099,12 +1144,12 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
         elif state == 10:
 #            print 'state: 10'
             l = min([l+1,L])
-            Omega[l] = min_cell_reps(orbit_partition(G, gamma))
-            Phi[l] = fix(orbit_partition(G, gamma))
-            if finer( orbit_partition(G, gamma), Theta ):
+            Omega[l] = min_cell_reps(orbit_partition(gamma, list_perm=True))
+            Phi[l] = fix(orbit_partition(gamma, list_perm=True))
+            if finer( orbit_partition(gamma, list_perm=True), Theta ):
                 state = 11
             else:
-                Theta = vee( orbit_partition(G, gamma), Theta )
+                Theta = vee( orbit_partition(gamma, list_perm=True), Theta )
                 output.append(gamma)
                 if tvc in min_cell_reps(Theta) and lab: ## added "and lab"
                     state = 11
@@ -1228,6 +1273,28 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False):
     else:
         return output
 
+def perm_group_elt(lperm):
+    """
+    Given a list permutation of the set {0, 1, ..., n-1},
+    returns the corresponding PermutationGroupElement where
+    we take 0 = n.
+    """
+    from sage.groups.perm_gps.permgroup import SymmetricGroup
+    n = len(lperm)
+    S = SymmetricGroup(n)
+    Part = orbit_partition(lperm, list_perm=True)
+    gens = []
+    for z in Part:
+        if len(z) > 1:
+            if 0 in z:
+                zed = z.index(0)
+                generator = z[:zed] + [n] + z[zed+1:]
+                gens.append(tuple(generator))
+            else:
+                gens.append(tuple(z))
+    E = S(gens)
+    return E
+
 # Benchmarking functions
 
 def all_labeled_graphs(n):
@@ -1242,7 +1309,7 @@ def all_labeled_graphs(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,5): # long time
+        sage: for n in range(1,5): # long time (~9 secs)
         ...    Glist[n] = all_labeled_graphs(n)
         ...    Giso[n] = []
         ...    for g in Glist[n]:
@@ -1325,7 +1392,7 @@ def all_labeled_digraphs_with_loops(n):
         sage: from sage.graphs.graph import enum
         sage: Glist = {}
         sage: Giso  = {}
-        sage: for n in range(1,4): # long time
+        sage.: for n in range(1,4): # long time (~130 secs)
         ...    Glist[n] = all_labeled_digraphs_with_loops(n)
         ...    Giso[n] = []
         ...    for g in Glist[n]:
@@ -1336,7 +1403,7 @@ def all_labeled_digraphs_with_loops(n):
         ...                inn = True
         ...        if not inn:
         ...            Giso[n].append(b)
-        sage: for n in Giso: # long time (depends on previous)
+        sage.: for n in Giso: # long time (depends on previous)
         ...    print n, len(Giso[n])
         1 2
         2 10

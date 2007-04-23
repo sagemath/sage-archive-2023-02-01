@@ -1190,9 +1190,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return (<FiniteField_givaro>self._parent)
 
-    def is_zero(FiniteField_givaroElement self):
+    def __nonzero__(FiniteField_givaroElement self):
         r"""
-        Return True if \code{self == k(0)}.
+        Return True if \code{self != k(0)}.
 
         EXAMPLES:
             sage: k.<a> = GF(3^4); k
@@ -1202,7 +1202,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(0).is_zero()
             True
         """
-        return bool((<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
+        return not bool((<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
 
     def is_one(FiniteField_givaroElement self):
         r"""

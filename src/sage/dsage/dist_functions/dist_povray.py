@@ -4,7 +4,7 @@ from sage.dsage.database.job import Job
 from sage.dsage.dist_functions.dist_function import DistributedFunction
 
 class DistributedPOVRay(DistributedFunction):
-    r"""
+    """
     DistributedPOVRay distributes rendering of a .pov file.
 
     Parameters:
@@ -19,9 +19,6 @@ class DistributedPOVRay(DistributedFunction):
     OUTPUT:
         A number of .ppm files (depending on split) and a final .ppm file
         which is the combination of all the rendered parts.
-
-    AUTHOR:
-        Yi Qiang
 
     """
 
@@ -75,7 +72,7 @@ class DistributedPOVRay(DistributedFunction):
 
         self.job_files.append(job_file)
 
-        job = Job(file=job_file, name='%s_%04d.ppm' % (self.name, self.n))
+        job = Job(code=job_file, name='%s_%04d.ppm' % (self.name, self.n))
 
         for file_ in self.files:
             job.attach_file(file_)

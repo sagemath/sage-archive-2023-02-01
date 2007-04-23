@@ -329,11 +329,11 @@ def fcp(x, var='x'):
     try: return x.fcp(var)
     except AttributeError: return factor(charpoly(x, var))
 
-def floor(x):
-    try:
-        return x.floor()
-    except AttributeError:
-        return sage.rings.all.floor(x)
+## def floor(x):
+##     try:
+##         return x.floor()
+##     except AttributeError:
+##         return sage.rings.all.floor(x)
 
 def gen(x):
     """

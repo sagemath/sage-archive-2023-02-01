@@ -91,7 +91,7 @@ import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
-from sage.rings.arith import ceil
+from math import ceil
 
 Polynomial = polynomial.Polynomial_generic_dense
 

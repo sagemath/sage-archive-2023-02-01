@@ -45,7 +45,8 @@ from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.arith import binomial, floor
+from sage.rings.arith import binomial
+from math import floor
 from sage.misc.functional import log, ceil, sqrt
 
 

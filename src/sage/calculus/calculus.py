@@ -3180,6 +3180,93 @@ class Function_abs(PrimitiveFunction):
 abs_symbolic = Function_abs()
 _syms['abs'] = abs_symbolic
 
+
+
+class Function_ceil(PrimitiveFunction):
+    """
+    The ceiling function.
+
+    EXAMPLES:
+        sage: a = ceil(2/5 + x)
+        sage: a
+        ceil(x + 2/5)
+        sage: a(4)
+        5
+        sage: a(4.0)
+        5
+        sage: ZZ(a(3))
+        4
+        sage: a = ceil(x^3 + x + 5/2)
+        sage: a
+        ceil(x^3 + x + 1/2) + 2
+        sage: a(x=2)
+        13
+
+        sage: ceil(5.4)
+        6
+        sage: type(ceil(5.4))
+        <type 'sage.rings.integer.Integer'>
+    """
+    def _repr_(self, simplify=True):
+        return "ceil"
+
+    def _latex_(self):
+        return "\\text{ceil}"
+
+    def _maxima_init_(self):
+        return "ceiling"
+
+    _approx_ = math.ceil
+
+    def __call__(self, x):
+        try:
+            return x.ceil()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.ceil(x)
+        return SymbolicComposition(self, SR(x))
+
+ceil = Function_ceil()
+_syms['ceiling'] = ceil   # spelled ceiling in maxima
+
+
+class Function_floor(PrimitiveFunction):
+    """
+    The floor function.
+
+    EXAMPLES:
+        sage: floor(5.4)
+        5
+        sage: type(floor(5.4))
+        <type 'sage.rings.integer.Integer'>
+        sage: a = floor(5.4 + x); a
+        floor(x + 0.4000000000000004) + 5
+        sage: a(2)
+        7
+    """
+    def _repr_(self, simplify=True):
+        return "floor"
+
+    def _latex_(self):
+        return "\\text{floor}"
+
+    def _maxima_init_(self):
+        return "floor"
+
+    _approx_ = math.floor
+
+    def __call__(self, x):
+        try:
+            return x.floor()
+        except AttributeError:
+            if isinstance(x, float):
+                return math.floor(x)
+        return SymbolicComposition(self, SR(x))
+
+floor = Function_floor()
+_syms['floor'] = floor   # spelled ceiling in maxima
+
+
 class Function_sin(PrimitiveFunction):
     """
     The sine function

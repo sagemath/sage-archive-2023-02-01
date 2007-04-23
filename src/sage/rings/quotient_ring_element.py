@@ -79,8 +79,8 @@ class QuotientRingElement(ring_element.RingElement):
     def lift(self):
         return self.__rep
 
-    def is_zero(self):
-        return self.__rep in self.parent().defining_ideal()
+    def __nonzero__(self):
+        return self.__rep not in self.parent().defining_ideal()
 
     def is_unit(self):
         if self.__rep.is_unit():

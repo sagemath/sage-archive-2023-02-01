@@ -263,7 +263,7 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: a = pi + CDF.0; a
             1.00000000000000*I + pi
             sage: parent(a)
-            Ring of Symbolic Expressions
+            Symbolic Ring
         """
         return self._coerce_try(x, [self.real_double_field(),
                                     CC, RR])

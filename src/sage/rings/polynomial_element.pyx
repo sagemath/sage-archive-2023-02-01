@@ -503,7 +503,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -1252,9 +1252,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_gen(self):
         return bool(self._is_gen)
 
-    def is_zero(self):
-        return bool(self.degree() == -1)
-
     def leading_coefficient(self):
         return self[self.degree()]
 
@@ -1419,7 +1416,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.__pari
 
     def _pari_init_(self):
-        return str(self._pari_())
+        return repr(self._pari_())
 
     def _magma_init_(self):
         """
@@ -1464,7 +1461,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return f
 
     def _gap_init_(self):
-        return str(self)
+        return repr(self)
 
     def _gap_(self, G):
         """

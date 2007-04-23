@@ -48,8 +48,7 @@ def var(s):
         sage: type(theta)
         <class 'sage.calculus.calculus.SymbolicVariable'>
         sage: parent(theta)
-        Ring of Symbolic Expressions
-
+        Symbolic Ring
     """
     G = globals()  # this is the reason the code must be in SageX.
     v = calculus.var(s)

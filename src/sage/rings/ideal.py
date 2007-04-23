@@ -203,8 +203,8 @@ class Ideal_generic(MonoidElement):
         # check if x, which is assumed to be in the ambient ring, is actually in this ideal.
         raise NotImplementedError
 
-    def is_zero(self):
-        return self.gens() == [self.ring()(0)]
+    def __nonzero__(self):
+        return self.gens() != [self.ring()(0)]
 
     def base_ring(self):
         return self.ring().base_ring()

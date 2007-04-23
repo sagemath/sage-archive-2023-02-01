@@ -421,6 +421,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             3*b^3 + a^2
 
         Coercion from symbolic variables:
+            sage: x,y,z = var('x,y,z')
             sage: R = QQ[x,y,z]
             sage: type(x)
             <class 'sage.calculus.calculus.SymbolicVariable'>
@@ -444,8 +445,6 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             0
 
         """
-        import sage.calculus.calculus
-
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
             if P is self:
@@ -467,25 +466,30 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
 
         elif isinstance(x, polydict.PolyDict):
             return multi_polynomial_element.MPolynomial_polydict(self, x)
+
         elif isinstance(x, fraction_field_element.FractionFieldElement) and x.parent().ring() == self:
             if x.denominator() == 1:
                 return x.numerator()
             else:
                 raise TypeError, "unable to coerce since the denominator is not 1"
+
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
             except:
                 raise TypeError, "Unable to coerce singular object"
+
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
+
         elif isinstance(x , str) and self._has_singular:
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        #elif sage.calculus.calculus.is_SymbolicExpression(x)  and self._has_singular:
-        #    return self._singular_().parent(str(x)).sage_poly(self)
+
         elif is_Macaulay2Element(x):
             try:
                 s = x.sage_polystring()
@@ -499,6 +503,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             except (AttributeError, TypeError, NameError):
                 raise TypeError, "Unable to coerce macaulay2 object"
             return multi_polynomial_element.MPolynomial_polydict(self, x)
+
         c = self.base_ring()(x)
         return multi_polynomial_element.MPolynomial_polydict(self, {self._zero_tuple:c})
 

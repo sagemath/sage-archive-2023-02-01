@@ -68,6 +68,68 @@ class MPolynomial(CommutativeRingElement):
     def _repr_(self):
         return "%s"%self.__element
 
+    ####################
+    # Some standard conversions
+    ####################
+    def __int__(self):
+        if self.degree() == 0:
+            return int(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def __long__(self):
+        if self.degree() == 0:
+            return long(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def __float__(self):
+        if self.degree() == 0:
+            return float(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _mpfr_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _complex_mpfr_field_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _complex_double_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _real_double_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _rational_(self):
+        if self.degree() == 0:
+            from rational import Rational
+            return Rational(repr(self))
+        else:
+            raise TypeError
+
+    def _integer_(self):
+        if self.degree() == 0:
+            from integer import Integer
+            return Integer(repr(self))
+        else:
+            raise TypeError
+
+
+    ####################
+
     def __call__(self, *x):
         """
         Evaluate this multi-variate polynomial at $x$, where $x$ is
@@ -304,7 +366,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         generators for the parent of self.
 
         INPUT:
-            x -- multivariate polynmial (a generator of the parent of self)
+            x -- multivariate polynomial (a generator of the parent of self)
                  If x is not specified (or is None), return the total degree,
                  which is the maximum degree of any monomial.
 
@@ -970,13 +1032,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             return self._richcmp_(right,3)
         return self._MPolynomial__element != right._MPolynomial__element
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Returns True if self == 0
+        Returns True if self != 0
 
         \note{This is much faster than actually writing self == 0}
         """
-        return self._MPolynomial__element.dict()=={}
+        return self._MPolynomial__element.dict()!={}
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>

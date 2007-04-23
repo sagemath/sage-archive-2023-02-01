@@ -111,7 +111,7 @@ class LaurentSeries(ring_element.RingElement):
         """
         return self.__u.is_unit()
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
         EXAMPLES:
             sage: x = Frac(QQ[['x']]).0
@@ -122,7 +122,7 @@ class LaurentSeries(ring_element.RingElement):
             sage: z.is_zero()
             1
         """
-        return self.__u.is_zero()
+        return not self.__u.is_zero()
 
     def _im_gens_(self, codomain, im_gens):
         return codomain(self(im_gens[0]))

@@ -167,6 +167,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         if absprec is None:
@@ -828,6 +830,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 

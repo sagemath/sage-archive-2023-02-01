@@ -176,9 +176,10 @@ Substitution:
 import weakref
 
 from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                            is_MPolynomial,
+                            is_MPolynomial, is_MPolynomialRing,
                             is_RealNumber, is_ComplexNumber, RR,
-                            Integer, Rational, CC)
+                            Integer, Rational, CC,
+                            PolynomialRing)
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
@@ -270,6 +271,10 @@ class SymbolicExpressionRing_class(CommutativeRing):
         a itself (not a copy):
             sage: SR(a) is a
             True
+
+        A Python complex number:
+            sage: SR(complex(2,-3))
+            2.00000000000000 - 3.00000000000000*I
         """
         if is_Element(x) and x.parent() is self:
             return x
@@ -300,6 +305,8 @@ class SymbolicExpressionRing_class(CommutativeRing):
                             InfinityElement
                             )):
             return SymbolicConstant(x)
+        elif isinstance(x, complex):
+            return evaled_symbolic_expression_from_maxima_string('%s+%%i*%s'%(x.real,x.imag))
         else:
             raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
 
@@ -334,7 +341,7 @@ def SymbolicExpressionRing():
 
     EXAMPLES:
         sage: SymbolicExpressionRing()
-        Ring of Symbolic Expressions
+        Symbolic Ring
         sage: SymbolicExpressionRing() is SR
         True
     """
@@ -830,12 +837,65 @@ class SymbolicExpression(RingElement):
         vars = self.variables()
         if len(vars) == 0:
             vars = ['x']
-        from sage.rings.all import PolynomialRing
         R = PolynomialRing(base_ring, names=vars)
         G = R.gens()
         V = R.variable_names()
         return self.substitute_over_ring(
              dict([(var(V[i]),G[i]) for i in range(len(G))]), ring=R)
+
+    def _polynomial_(self, R):
+        """
+        Coerce this symbolic expression to a polynomial in R.
+
+        EXAMPLES:
+            sage: R = QQ[x,y,z]
+            sage: R(x^2 + y)
+            y + x^2
+            sage: R = QQ[w]
+            sage: R(w^3 + w + 1)
+            w^3 + w + 1
+            sage: R = GF(7)[z]
+            sage: R(z^3 + 10*z)
+            z^3 + 3*z
+
+        NOTE: If the base ring of the polynomial ring is the symbolic
+        ring, then a constant polynomial is always returned.
+            sage: R = SR[x]
+            sage: a = R(sqrt(2) + x^3 + y)
+            sage: a
+            y + x^3 + sqrt(2)
+            sage: type(a)
+            <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
+            sage: a.degree()
+            0
+
+        We coerce to a double precision complex polynomial ring:
+            sage: f = e*x^3 + pi*y^3 + sqrt(2) + I; f
+            pi*y^3 + e*x^3 + I + sqrt(2)
+            sage: R = CDF[x,y]
+            sage: R(f)
+            1.41421356237 + 1.0*I + 3.14159265359*y^3 + 2.71828182846*x^3
+
+        We coerce to a higher-precision polynomial ring
+            sage: R = ComplexField(100)[x,y]
+            sage: R(f)
+            1.4142135623730950066967437806 + 1.0000000000000000000000000000*I + 3.1415926535897932384626433833*y^3 + 2.7182818284590452353602874714*x^3
+
+        """
+        vars = self.variables()
+        B = R.base_ring()
+        if B == SR:
+            return R([self])
+        G = R.gens()
+        sub = []
+        for v in vars:
+            r = repr(v)
+            for g in G:
+                if repr(g) == r:
+                    sub.append((v,g))
+        if len(sub) == 0:
+            return R(B(self))
+        return self.substitute_over_ring(dict(sub), ring=R)
 
     def function(self, *args):
         """
@@ -1841,6 +1901,12 @@ class Symbolic_object(SymbolicExpression):
         """
         return float(self._obj)
 
+    def __complex__(self):
+        """
+        EXAMPLES:
+        """
+        return complex(self._obj)
+
     def _mpfr_(self, field):
         """
         EXAMPLES:
@@ -2115,20 +2181,32 @@ class SymbolicArithmetic(SymbolicOperation):
         fops = [float(op) for op in self._operands]
         return self._operator(*fops)
 
+    def __complex__(self):
+        fops = [complex(op) for op in self._operands]
+        return self._operator(*fops)
+
     def _mpfr_(self, field):
+        if not self.is_simplified():
+            return self.simplify()._mpfr_(field)
         rops = [op._mpfr_(field) for op in self._operands]
         return self._operator(*rops)
 
-    def _complex_mpfr_field_(self, C):
-        rops = [op._complex_mpfr_field_(C) for op in self._operands]
+    def _complex_mpfr_field_(self, field):
+        if not self.is_simplified():
+            return self.simplify()._complex_mpfr_field_(field)
+        rops = [op._complex_mpfr_field_(field) for op in self._operands]
         return self._operator(*rops)
 
-    def _complex_double_(self, C):
-        rops = [op._complex_double_(C) for op in self._operands]
+    def _complex_double_(self, field):
+        if not self.is_simplified():
+            return self.simplify()._complex_double_(field)
+        rops = [op._complex_double_(field) for op in self._operands]
         return self._operator(*rops)
 
-    def _real_double_(self, R):
-        rops = [op._real_double_(R) for op in self._operands]
+    def _real_double_(self, field):
+        if not self.is_simplified():
+            return self.simplify()._real_double_(field)
+        rops = [op._real_double_(field) for op in self._operands]
         return self._operator(*rops)
 
     def _is_atomic(self):
@@ -2553,6 +2631,9 @@ class CallableSymbolicExpression(SymbolicExpression):
     def __float__(self):
         return float(self._expr)
 
+    def __complex__(self):
+        return complex(self._expr)
+
     def _mpfr_(self, field):
         """
         Coerce to a multiprecision real number.
@@ -2882,7 +2963,12 @@ class SymbolicComposition(SymbolicOperation):
     def __float__(self):
         f = self._operands[0]
         g = self._operands[1]
-        return f._approx_(float(g))
+        return float(f._approx_(float(g)))
+
+    def __complex__(self):
+        f = self._operands[0]
+        g = self._operands[1]
+        return complex(f._approx_(float(g)))
 
     def _mpfr_(self, field):
         """
@@ -2891,10 +2977,33 @@ class SymbolicComposition(SymbolicOperation):
         EXAMPLES:
             sage: RealField(100)(sin(2)+cos(2))
             0.49315059027853930839845163641
+
+            sage: RR(sin(pi))
+            0.000000000000000
+
+            sage: type(RR(sqrt(163)*pi))
+            <type 'sage.rings.real_mpfr.RealNumber'>
+
+            sage: RR(coth(pi))
+            1.00374187319732
+            sage: RealField(100)(coth(pi))
+            1.0037418731973212882015526912
+            sage: RealField(200)(acos(1/10))
+            1.4706289056333368228857985121870581235299087274579233690964
         """
+        if not self.is_simplified():
+            return self.simplify()._mpfr_(field)
         f = self._operands[0]
         g = self._operands[1]
-        return f(g._mpfr_(field))
+        x = f(g._mpfr_(field))
+        if isinstance(x, SymbolicExpression):
+            if field.prec() <= 53:
+                return field(float(x))
+            else:
+                raise TypeError, "precision loss"
+        else:
+            return x
+
 
     def _complex_mpfr_field_(self, field):
         """
@@ -2903,10 +3012,20 @@ class SymbolicComposition(SymbolicOperation):
         EXAMPLES:
             sage: ComplexField(100)(sin(2)+cos(2)+I)
             0.49315059027853930839845163641 + 1.0000000000000000000000000000*I
+
         """
+        if not self.is_simplified():
+            return self.simplify()._complex_mpfr_field_(field)
         f = self._operands[0]
         g = self._operands[1]
-        return f(g._complex_mpfr_field_(field))
+        x = f(g._complex_mpfr_field_(field))
+        if isinstance(x, SymbolicExpression):
+            if field.prec() <= 53:
+                return field(complex(x))
+            else:
+                raise TypeError, "precision loss"
+        else:
+            return x
 
     def _complex_double_(self, field):
         """
@@ -2915,10 +3034,17 @@ class SymbolicComposition(SymbolicOperation):
         EXAMPLES:
             sage: CDF(sin(2)+cos(2)+I)
             0.493150590279 + 1.0*I
+            sage: CDF(coth(pi))
+            1.0037418732
         """
+        if not self.is_simplified():
+            return self.simplify()._complex_double_(field)
         f = self._operands[0]
         g = self._operands[1]
-        return f(g._complex_double_(field))
+        z = f(g._complex_double_(field))
+        if isinstance(z, SymbolicExpression):
+            return field(complex(z))
+        return z
 
     def _real_double_(self, field):
         """
@@ -2928,13 +3054,14 @@ class SymbolicComposition(SymbolicOperation):
             sage: RDF(sin(2)+cos(2))
             0.493150590279
         """
+        if not self.is_simplified():
+            return self.simplify()._real_double_(field)
         f = self._operands[0]
         g = self._operands[1]
-        return f(g._real_double_(field))
-
-
-
-
+        z = f(g._real_double_(field))
+        if isinstance(z, SymbolicExpression):
+            return field(float(z))
+        return z
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
@@ -2958,7 +3085,7 @@ class PrimitiveFunction(SymbolicExpression):
         except AttributeError:
             return SymbolicComposition(self, SR(x))
 
-    def _approx_(self, x):
+    def _approx_(self, x):  # must *always* be called with a float x as input.
         s = '%s(%s), numer'%(self._repr_(), float(x))
         return float(maxima.eval(s))
 
@@ -3006,7 +3133,7 @@ class Function_abs(PrimitiveFunction):
         return "\\abs"
 
     def _approx_(self, x):
-        return x.__abs__()
+        return float(x.__abs__())
 
     def __call__(self, x): # special case
         return SymbolicComposition(self, SR(x))
@@ -3069,7 +3196,7 @@ class Function_sec(PrimitiveFunction):
         sage: sec(pi/4)
         sqrt(2)
         sage: RR(sec(pi/4))
-        1.414213562373094
+        1.41421356237310
         sage: sec(1/2)
         sec(1/2)
         sage: sec(0.5)
@@ -3082,13 +3209,7 @@ class Function_sec(PrimitiveFunction):
         return "\\sec"
 
     def _approx_(self, x):
-        try:
-            return x.cos()
-        except AttributeError:
-            if isinstance(x, float):
-                return float(1)/float(cos(x))
-            else:
-                return SymbolicComposition(self, SR(x))
+        return 1/math.cos(x)
 
 sec = Function_sec()
 _syms['sec'] = sec
@@ -3118,13 +3239,7 @@ class Function_tan(PrimitiveFunction):
         return "\\tan"
 
     def _approx_(self, x):
-        try:
-            return x.tan()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.tan(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.tan(x)
 
 tan = Function_tan()
 _syms['tan'] = tan
@@ -3153,13 +3268,7 @@ class Function_asin(PrimitiveFunction):
         return "\\sin^{-1}"
 
     def _approx_(self, x):
-        try:
-            return x.asin()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.asin(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.asin(x)
 
 asin = Function_asin()
 _syms['asin'] = asin
@@ -3183,13 +3292,7 @@ class Function_acos(PrimitiveFunction):
         return "\\cos^{-1}"
 
     def _approx_(self, x):
-        try:
-            return x.acos()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.acos(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.acos(x)
 
 acos = Function_acos()
 _syms['acos'] = acos
@@ -3214,13 +3317,7 @@ class Function_atan(PrimitiveFunction):
         return "\\tan^{-1}"
 
     def _approx_(self, x):
-        try:
-            return x.atan()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.atan(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.atan(x)
 
 atan = Function_atan()
 _syms['atan'] = atan
@@ -3248,6 +3345,13 @@ class Function_tanh(PrimitiveFunction):
         tanh(pi/4)
         sage: RR(tanh(1/2))
         0.462117157260010
+
+        sage: CC(tanh(pi + I*e))
+        0.997524731976164 - 0.00279068768100315*I
+        sage: ComplexField(100)(tanh(pi + I*e))
+        0.99752473197616361034204366446 - 0.0027906876810031453884245163923*I
+        sage: CDF(tanh(pi + I*e))
+        0.997524731976 - 0.002790687681*I
     """
     def _repr_(self, simplify=True):
         return "tanh"
@@ -3256,13 +3360,7 @@ class Function_tanh(PrimitiveFunction):
         return "\\tanh"
 
     def _approx_(self, x):
-        try:
-            return x.tanh()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.tanh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.tanh(x)
 
 tanh = Function_tanh()
 _syms['tanh'] = tanh
@@ -3289,13 +3387,7 @@ class Function_sinh(PrimitiveFunction):
         return "\\sinh"
 
     def _approx_(self, x):
-        try:
-            return x.sinh()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.sinh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.sinh(x)
 
 sinh = Function_sinh()
 _syms['sinh'] = sinh
@@ -3322,13 +3414,7 @@ class Function_cosh(PrimitiveFunction):
         return "\\cosh"
 
     def _approx_(self, x):
-        try:
-            return x.cosh()
-        except AttributeError:
-            if isinstance(x, float):
-                return math.cosh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return math.cosh(x)
 
 cosh = Function_cosh()
 _syms['cosh'] = cosh
@@ -3346,7 +3432,7 @@ class Function_coth(PrimitiveFunction):
         sage: float(coth(pi))
         1.0037418731973213
         sage: RR(coth(pi))
-        1.003741873197321
+        1.00374187319732
     """
     def _repr_(self, simplify=True):
         return "coth"
@@ -3355,13 +3441,7 @@ class Function_coth(PrimitiveFunction):
         return "\\coth"
 
     def _approx_(self, x):
-        try:
-            return x.coth()
-        except AttributeError:
-            if isinstance(x, float):
-                return 1/math.tanh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return 1/math.tanh(x)
 
 coth = Function_coth()
 _syms['coth'] = coth
@@ -3375,11 +3455,11 @@ class Function_sech(PrimitiveFunction):
         sage: sech(pi)
         sech(pi)
         sage: sech(3.1415)
-        0.086274701824819220
+        0.0862747018248192
         sage: float(sech(pi))
         0.086266738334054432
         sage: RR(sech(pi))
-        0.086266738334054700
+        0.0862667383340544
     """
     def _repr_(self, simplify=True):
         return "sech"
@@ -3388,13 +3468,7 @@ class Function_sech(PrimitiveFunction):
         return "\\sech"
 
     def _approx_(self, x):
-        try:
-            return x.sech()
-        except AttributeError:
-            if isinstance(x, float):
-                return 1/math.cosh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return 1/math.cosh(x)
 
 sech = Function_sech()
 _syms['sech'] = sech
@@ -3409,11 +3483,11 @@ class Function_csch(PrimitiveFunction):
         sage: csch(pi)
         csch(pi)
         sage: csch(3.1415)
-        0.086597590759213260
+        0.0865975907592133
         sage: float(csch(pi))
         0.086589537530046945
         sage: RR(csch(pi))
-        0.086589537530047220
+        0.0865895375300470
     """
     def _repr_(self, simplify=True):
         return "csch"
@@ -3422,13 +3496,7 @@ class Function_csch(PrimitiveFunction):
         return "\\csch"
 
     def _approx_(self, x):
-        try:
-            return x.csch()
-        except AttributeError:
-            if isinstance(x, float):
-                return 1/math.sinh(x)
-            else:
-                return SymbolicComposition(self, SR(x))
+        return 1/math.sinh(x)
 
 csch = Function_csch()
 _syms['csch'] = csch
@@ -3518,16 +3586,7 @@ class Function_sqrt(PrimitiveFunction):
 
 
     def _approx_(self, x):
-        try:
-            return x._obj.sqrt()
-        except AttributeError:
-            try:
-                return x.sqrt()
-            except AttributeError:
-                if isinstance(x, float):
-                    return math.sqrt(x)
-                else:
-                    return SymbolicComposition(self, SR(x))
+        return math.sqrt(x)
 
 sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt
@@ -3572,16 +3631,7 @@ class Function_exp(PrimitiveFunction):
 
 
     def _approx_(self, x):
-        try:
-            return x._obj.exp()
-        except AttributeError:
-            try:
-                return x.exp()
-            except AttributeError:
-                if isinstance(x, float):
-                    return math.exp(x)
-                else:
-                    return SymbolicComposition(self, SR(x))
+        return math.exp(x)
 
 exp = Function_exp()
 _syms['exp'] = exp
@@ -3774,6 +3824,9 @@ class SymbolicFunctionEvaluation_delayed(SymbolicFunctionEvaluation):
     def __float__(self):
         return float(self._maxima_())
 
+    def __complex__(self):
+        return complex(self._maxima_())
+
     def _real_double_(self, R):
         return R(float(self))
 
@@ -3919,4 +3972,5 @@ def symbolic_expression_from_maxima_element(x):
 
 def evaled_symbolic_expression_from_maxima_string(x):
     return symbolic_expression_from_maxima_string(maxima.eval(x))
+
 

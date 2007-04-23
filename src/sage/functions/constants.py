@@ -231,6 +231,15 @@ class Constant(Function):
     def floor(self):
         return Integer(int(float(self)))
 
+    def _complex_mpfr_field_(self, R):
+        return R(self._mpfr_(R._real_field()))
+
+    def _real_double_(self, R):
+        return R(float(self))
+
+    def _complex_double_(self, R):
+        return R(float(self))
+
     # The following adds formal arithmetic support for generic constant
     def _add_(self, right):
         return self._ser() + right

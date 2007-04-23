@@ -216,10 +216,6 @@ cdef class RealField(sage.rings.ring.Field):
             '1.1001000000000000000'
         """
         if hasattr(x, '_mpfr_'):
-            # This design with the hasattr is very annoying.
-            # The only thing that uses it right now is symbolic constants
-            # and symbolic function evaluation.
-            # Getting rid of this would speed things up.
             return x._mpfr_(self)
         cdef RealNumber z
         z = self._new()
@@ -1665,13 +1661,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
     ############################
 
     def sqrt(self):
-        """
+        r"""
         Return a square root of self.
 
         If self is negative a complex number is returned.
 
-        If you use self.square_root() then a real number will always
-        be returned (though it will be NaN if self is negative).
+        If you use \code{self.sqrt_approx()} then a real number will
+        always be returned (though it will be NaN if self is
+        negative).
 
         EXAMPLES:
             sage: r = 4.0
@@ -1682,22 +1679,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 4344
             sage: r.sqrt()
-            65.9090282131363
+            2*sqrt(1086)
+
+            sage: r = 4344.0
             sage: r.sqrt()^2 == r
             True
             sage: r.sqrt()^2 - r
-             0.000000000000000
+            0.000000000000000
 
             sage: r = -2.0
             sage: r.sqrt()
             1.41421356237310*I
             """
         if self >= 0:
-            return self.square_root()
+            return self.sqrt_approx()
         return self._complex_number_().sqrt()
 
-
-    def square_root(self):
+    def sqrt_approx(self):
         """
         Return a square root of self.  A real number will always be
         returned (though it will be NaN if self is negative).
@@ -1706,7 +1704,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: r = -2.0
-            sage: r.square_root()
+            sage: r.sqrt_approx()
             NaN
             sage: r.sqrt()
             1.41421356237310*I
@@ -2119,6 +2117,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpfr_tanh(x.value, self.value, (<RealField>self._parent).rnd)
         _sig_off
         return x
+
+    def coth(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).coth()
+            1.0373147207275480958778097648
+        """
+        return 1/self.tanh()
+
+    def csch(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).csch()
+            0.27572056477178320775835148216
+        """
+        return 1/self.sinh()
+
+    def sech(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).sech()
+            0.26580222883407969212086273982
+        """
+        return 1/self.cosh()
 
     def acosh(self):
         """

@@ -5,7 +5,7 @@ AUTHOR:
     -- William Stein
 
 TESTS:
-    sage: R = PolynomialRing(ZZ,'x')
+    sage: R.<x> = PolynomialRing(ZZ)
     sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
     sage: S = R.quotient_ring(I);
     sage: S == loads(dumps(S))

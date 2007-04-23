@@ -514,6 +514,31 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self._pari_().atanh())
 
+    def coth(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).coth()
+            0.86801414289592494863584920892 - 0.21762156185440268136513424361*I
+        """
+        return 1/self.tanh()
+
+    def csch(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).csch()
+            0.30393100162842645033448560451 - 0.62151801717042842123490780586*I
+        """
+        return 1/self.sinh()
+
+    def sech(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).sech()
+            0.49833703055518678521380589177 - 0.59108384172104504805039169297*I
+        """
+        return 1/self.cosh()
+
+
     def cotan(self):
         """
         EXAMPLES:

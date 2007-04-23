@@ -399,16 +399,16 @@ class Polynomial_generic_sparse(Polynomial):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
-                    x = "(%s)"%x
+                    x = "(%s)"%repr(x)
                 if n > 1:
                     var = "*%s^%s"%(name,n)
                 elif n==1:
                     var = "*%s"%name
                 else:
                     var = ""
-                s += "%s%s"%(x,var)
+                s += "%s%s"%(repr(x),var)
         if atomic_repr:
             s = s.replace(" + -", " - ")
         s = s.replace(" 1*"," ")
@@ -1614,7 +1614,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
             if x.valuation() != infinity:
                 if n != m:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -1623,7 +1623,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
                     var = "*%s"%name
                 else:
                     var = ""
-                s += "%s%s"%(x,var)
+                s += "%s%s"%(repr(x),var)
             n -= 1
         if atomic_repr:
             s = s.replace(" + -", " - ")

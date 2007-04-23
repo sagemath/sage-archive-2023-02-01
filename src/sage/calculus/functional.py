@@ -15,10 +15,36 @@ def simplify(f):
 
 def derivative(f, *args, **kwds):
     """
-    Formally derivativeerentiate the function f.
+    The derivative of f.
+
+    EXAMPLES:
+    We differentiate a callable symbolic function:
+        sage: f(x,y) = x*y + sin(x^2) + e^(-x)
+        sage: f
+        (x, y) |--> x*y + sin(x^2) + e^(-x)
+        sage: derivative(f, x)
+        (x, y) |--> y + 2*x*cos(x^2) - e^(-x)
+        sage: derivative(f, y)
+        (x, y) |--> x
+
+    We differentiate a polynomial:
+        sage: t = polygen(QQ, 't')
+        sage: f = (1-t)^5; f
+        -t^5 + 5*t^4 - 10*t^3 + 10*t^2 - 5*t + 1
+        sage: derivative(f)
+        -5*t^4 + 20*t^3 - 30*t^2 + 20*t - 5
+
+    We differentiate a symbolic expression:
+        sage: f = exp(sin(a - x^2))/x
+        sage: diff(f, x)
+        -2*cos(x^2 - a)*e^(-sin(x^2 - a)) - (e^(-sin(x^2 - a))/x^2)
+        sage: diff(f, a)
+        cos(x^2 - a)*e^(-sin(x^2 - a))/x
     """
-    if isinstance(f, CallableSymbolicExpression):
+    try:
         return f.derivative(*args, **kwds)
+    except AttributeError:
+        pass
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
     return f.derivative(*args, **kwds)
@@ -28,7 +54,7 @@ differentiate = derivative
 
 def integral(f, *args, **kwds):
     """
-    Returns the integral of f.
+    The integral of f.
 
     EXAMPLES:
         sage: integral(sin(x), x)
@@ -37,6 +63,11 @@ def integral(f, *args, **kwds):
         121*pi/4
         sage: integral( sin(x), x, 0, pi)
         2
+
+    We integrate a symbolic function:
+        sage: f(x,y) = x*y/z + sin(z)
+        sage: integral(f, z)
+        (x, y) |--> x*y*log(z) - cos(z)
 
         sage: assume(b-a>0)
         sage: integral( sin(x), x, a, b)
@@ -55,7 +86,25 @@ def integral(f, *args, **kwds):
                                ----------------
                                       2
 
-    SAGE is unable to do this integral:
+    You can have SAGE calculate multiple integrals.  For example,
+    consider the function $exp(y^2)$ on the region between the lines
+    $x=y$, $x=1$, and $y=0$. We find the value of the integral on
+    this region using the command:
+        sage: area = integral(integral(exp(y^2),x,0,y),y,0,1); area
+        e/2 - 1/2
+        sage: float(area)
+        0.85914091422952255
+
+    We compute the line integral of sin(x) along the arc of the curve
+    $x=y^4$ from $(1,-1)$ to $(1,1)$:
+        sage: (x,y) = (t^4,t)
+        sage: (dx,dy) = (diff(x,t), diff(y,t))
+        sage: integral(sin(x)*dx, t,-1, 1)
+        0
+        sage: restore('x,y')   # restore the symbolic variables x and y
+
+    SAGE is unable to do anything with the following integral:
+
         sage: print integral( exp(-x^2)*log(x), x )
                               /      2
                               [   - x
@@ -107,8 +156,10 @@ def integral(f, *args, **kwds):
         sage: bool(h == 0)
         False
     """
-    if isinstance(f, CallableSymbolicExpression):
-        return f.derivative(*args, **kwds)
+    try:
+        return f.integral(*args, **kwds)
+    except AttributeError:
+        pass
     if not isinstance(f, SymbolicExpression):
         f = SR(f)
     return f.integral(*args, **kwds)

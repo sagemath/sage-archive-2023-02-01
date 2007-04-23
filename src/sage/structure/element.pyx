@@ -313,8 +313,21 @@ cdef class Element(sage_object.SageObject):
         s = str(self)
         return PyBool_FromLong(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
 
+    def __nonzero__(self):
+        """
+        Return True if self does not equal self.parent()(0).
+        """
+        return PyBool_FromLong(self != self._parent(0))
+
     def is_zero(self):
-        return PyBool_FromLong(self == self._parent(0))
+        """
+        Return True if self equals self.parent()(0). The default
+        implementation is to fall back to 'not self.__nonzero__'.
+
+        NOTE: Do not re-implement this method in your subclass but
+        implement __nonzero__ instead.
+        """
+        return PyBool_FromLong(not self)
 
     def _cmp_(left, right):
         return left._cmp(right)
@@ -439,9 +452,6 @@ cdef class ModuleElement(Element):
     """
     Generic element of a module.
     """
-    ##################################################
-    def is_zero(self):
-        return PyBool_FromLong(self == self._parent(0))
 
     ##################################################
     # Addition
@@ -1056,9 +1066,6 @@ def is_RingElement(x):
 
 cdef class RingElement(ModuleElement):
     ##################################################
-    def is_zero(self):
-        return PyBool_FromLong(self == self.parent()(0))
-
     def is_one(self):
         return PyBool_FromLong(self == self.parent()(1))
 

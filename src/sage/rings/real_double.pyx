@@ -1148,7 +1148,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/12
             sage: q.sinh()
             0.264800227602
-
         """
         return self._new_c(gsl_ldexp( gsl_sf_expm1(self._value) - gsl_sf_expm1(-self._value), -1)) # (e^x - x^-x)/2
 
@@ -1201,6 +1200,42 @@ cdef class RealDoubleElement(FieldElement):
             -4.4408920985e-16
         """
         return self._new_c(gsl_atanh(self._value))
+
+    def sech(self):
+        r"""
+        This function returns the  hyperbolic secant.
+
+        EXAMPLES:
+            sage: RDF(pi).sech()
+            0.0862667383341
+            sage: CDF(pi).sech()
+            0.0862667383341
+        """
+        return 1/self.cosh()
+
+    def csch(self):
+        r"""
+        This function returns the hyperbolic cosecant.
+
+        EXAMPLES:
+            sage: RDF(pi).csch()
+            0.08658953753
+            sage: CDF(pi).csch()
+            0.08658953753
+        """
+        return 1/self.sinh()
+
+    def coth(self):
+        r"""
+        This function returns the hyperbolic cotangent.
+
+        EXAMPLES:
+            sage: RDF(pi).coth()
+            1.0037418732
+            sage: CDF(pi).coth()
+            1.0037418732
+        """
+        return self.cosh() / self.sinh()
 
     def agm(self, other):
         """

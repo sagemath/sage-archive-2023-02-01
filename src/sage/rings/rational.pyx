@@ -755,9 +755,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         mpq_neg(x.value, self.value)
         return x
 
-    def __nonzero__(self):
-        return not self.numerator().is_zero()
-
     def __abs__(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -1106,8 +1103,8 @@ cdef class Rational(sage.structure.element.FieldElement):
     def is_one(self):
         return bool(mpz_cmp_si(mpq_numref(self.value), 1) == 0)
 
-    def is_zero(self):
-        return bool(mpz_cmp_si(mpq_numref(self.value), 0) == 0)
+    def __nonzero__(self):
+        return bool(mpz_cmp_si(mpq_numref(self.value), 0) != 0)
 
     def is_square(self):
         return self.numerator().is_square() and self.denominator().is_square()

@@ -604,9 +604,9 @@ class PowerSeries(ring_element.RingElement):
         # endif
         return self._mul_(right, prec)
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Return True if this power series equals 0.
+        Return True if this power series doesn't equal 0.
 
         EXAMPLES:
             sage: R.<q> = ZZ[[ ]]; R
@@ -621,7 +621,7 @@ class PowerSeries(ring_element.RingElement):
             sage: (0 + O(q^1000)).is_zero()
             True
         """
-        return self.polynomial().is_zero()
+        return not self.polynomial().is_zero()
 
     def is_unit(self):
         """

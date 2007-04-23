@@ -20,6 +20,20 @@ Compute the Christoffel symbol.
 
     sage: christoffel(3,3,2, [t,r,theta,phi], m)
     -cos(theta)*sin(theta)
+    sage: X = christoffel(1,1,1,[t,r,theta,phi],m)
+    sage: print X
+                                     1
+                                     - - 1
+                                     r
+                                 -------------
+                                        1 2  2
+                                 2 (1 - -)  r
+                                        r
+    sage: print X.rational_simplify()
+                                       1
+                                 - ----------
+                                      2
+                                   2 r  - 2 r
 
 Some basic things:
 

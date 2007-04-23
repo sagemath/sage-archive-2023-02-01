@@ -408,7 +408,6 @@ class JobDatabaseSQLite(JobDatabase):
         sql_functions.optimize_sqlite(self.con)
         # Don't use this, slow!
         # self.con.text_factory = sqlite3.OptimizedUnicode
-
         self.con.text_factory = str
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,

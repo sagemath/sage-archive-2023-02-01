@@ -70,6 +70,7 @@ class ClientDatabase(object):
                     detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         # Don't use this slow!
         # self.con.text_factory = sqlite3.OptimizedUnicode
+        sql_functions.optimize_sqlite(self.con)
         self.con.text_factory = str
         if sql_functions.table_exists(self.con, self.tablename) is None:
             sql_functions.create_table(self.con,

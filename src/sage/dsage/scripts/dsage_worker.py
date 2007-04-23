@@ -25,6 +25,7 @@ import cPickle
 import zlib
 import pexpect
 import datetime
+import random
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -116,7 +117,6 @@ class Worker(object):
 
         """
 
-        print datetime.datetime.now()
         if self.log_level > 3:
             log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
 

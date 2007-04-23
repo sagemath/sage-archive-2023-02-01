@@ -170,14 +170,14 @@ class PolynomialRing_singular_repr:
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = self.base_ring().precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
 
         elif is_ComplexField(self.base_ring()):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = self.base_ring().precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
+            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
             self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
 
         elif is_RealDoubleField(self.base_ring()):

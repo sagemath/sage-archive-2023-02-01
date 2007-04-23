@@ -84,6 +84,7 @@ CC = complex_field.ComplexField()
 import real_mpfr
 RR = real_mpfr.RealField()
 
+from real_double import RealDoubleElement
 
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
 # are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
@@ -654,13 +655,13 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,0).arg()
             0.0
             sage: CDF(0,1).arg()
-            1.5707963267948966
+            1.57079632679
             sage: CDF(0,-1).arg()
-            -1.5707963267948966
+            -1.57079632679
             sage: CDF(-1,0).arg()
-            3.1415926535897931
+            3.14159265359
         """
-        return gsl_complex_arg(self._complex)
+        return RealDoubleElement(gsl_complex_arg(self._complex))
 
     def __abs__(self):
         """
@@ -668,13 +669,13 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: abs(CDF(1,2))
-            2.2360679774997898
+            2.2360679775
             sage: abs(CDF(1,0))
             1.0
             sage: abs(CDF(-2,3))   # slightly random-ish arch dependent output
             3.6055512754639891
         """
-        return gsl_complex_abs(self._complex)
+        return RealDoubleElement(gsl_complex_abs(self._complex))
 
     def abs(self):
         """
@@ -684,7 +685,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).abs()   # slightly random-ish arch dependent output
             3.6055512754639891
         """
-        return gsl_complex_abs(self._complex)
+        return RealDoubleElement(gsl_complex_abs(self._complex))
 
     def abs2(self):
         """
@@ -695,7 +696,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).abs2()
             13.0
         """
-        return gsl_complex_abs2(self._complex)
+        return RealDoubleElement(gsl_complex_abs2(self._complex))
 
     def norm(self):
         """
@@ -706,7 +707,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).norm()
             13.0
         """
-        return gsl_complex_abs2(self._complex)
+        return RealDoubleElement(gsl_complex_abs2(self._complex))
 
     def logabs(self):
         r"""
@@ -718,21 +719,16 @@ cdef class ComplexDoubleElement(FieldElement):
         would lead to a loss of precision in this case.
 
         EXAMPLES:
-        We try it out.
             sage: CDF(1.1,0.1).logabs()
-            0.099425429372582669
+            0.0994254293726
             sage: log(abs(CDF(1.1,0.1)))
-			0.099425429372582586
+            0.0994254293726
 
-        Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
             0.099425429372582675602989386713555936556752871164033127857198
-
-        Indeed, the logabs, wins.
         """
-        return gsl_complex_logabs(self._complex)
+        return RealDoubleElement(gsl_complex_logabs(self._complex))
 
-    # TODO: real and imag should be elements of RealDoubleField, when that exists.
     def real(self):
         """
         Return the real part of this complex double.
@@ -742,7 +738,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.real()
             3.0
         """
-        return self._complex.dat[0]
+        return RealDoubleElement(self._complex.dat[0])
 
     def imag(self):
         """
@@ -753,7 +749,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.imag()
             -2.0
         """
-        return self._complex.dat[1]
+        return RealDoubleElement(self._complex.dat[1])
 
     def parent(self):
         """

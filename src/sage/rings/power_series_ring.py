@@ -129,6 +129,8 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None, sparse=Fa
         sage: S.default_prec()
         15
     """
+    if isinstance(name, (int,long,integer.Integer)):
+        default_prec = name
     if not names is None:
         name = names
     try:

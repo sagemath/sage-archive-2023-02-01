@@ -51,9 +51,9 @@ def arg(x):
     Return the argument of a complex number $x$.
 
     EXAMPLES:
-        sage: z = 1+2*I
+        sage: z = CC(1,2)
         sage: theta = arg(z)
-        sage: cos(theta)*abs(z)   # slightly random output on cygwin
+        sage: cos(theta)*abs(z)
         1.00000000000000
         sage: sin(theta)*abs(z)
         2.00000000000000
@@ -285,7 +285,7 @@ def eta(x):
 
     EXAMPLES:
         sage: eta(1+I)
-        0.742048775836565 + 0.198831370229911*I
+        0.742048775837 + 0.19883137023*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -407,9 +407,9 @@ def imaginary(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: imaginary(z)
-        2.00000000000000
+        2
         sage: imag(z)
-        2.00000000000000
+        2
     """
     return imag(x)
 

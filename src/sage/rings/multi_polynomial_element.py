@@ -548,8 +548,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 2 * x * y
             sage: c = f.coefficient(x*y); c
             2
-            sage: c in QQ
-            False
+            sage: c.parent()
+            Polynomial Ring in x, y over Rational Field
             sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
             True
 

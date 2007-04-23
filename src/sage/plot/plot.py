@@ -2780,7 +2780,7 @@ def graphics_array(array, n=None, m=None):
 
         sage: f(x) = sin(x)
         sage: g(x) = sin(2*x)
-        sage: h(h) = sin(4*x)
+        sage: h(x) = sin(4*x)
         sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
         sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
         sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))

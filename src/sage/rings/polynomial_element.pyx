@@ -101,6 +101,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    cdef ModuleElement _neg_c_impl(self):
+        return self.polynomial([-x for x in self.list()])
+
     def _add_(self, right):
         if self.degree() >= right.degree():
             x = list(self.list())

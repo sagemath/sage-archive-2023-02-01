@@ -44,4 +44,14 @@ Some basic things:
     (x, y) |--> (sinh(1/y) + x^3)^3
     sage: (f^3).expand()
     (x, y) |--> sinh(1/y)^3 + 3*x^3*sinh(1/y)^2 + 3*x^6*sinh(1/y) + x^9
+
+A polynomial over a symbolic base ring:
+    sage: R = SR[x]
+    sage: f = R([1/sqrt(2), 1/(4*sqrt(2))])
+    sage: f
+    1/(4*sqrt(2))*x + 1/sqrt(2)
+    sage: -f
+    (-1/(4*sqrt(2)))*x + -1/sqrt(2)
+    sage: (-f).degree()
+    1
 """

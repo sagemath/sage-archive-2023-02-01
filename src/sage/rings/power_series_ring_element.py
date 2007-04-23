@@ -851,8 +851,14 @@ class PowerSeries(ring_element.RingElement):
             1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
             sage: sqrt(4+t)
             2 + 1/4*t - 1/64*t^2 + 1/512*t^3 - 5/16384*t^4 + O(t^5)
-            sage: sqrt(2+t)
-            ...
+
+        If the constant term is not a square, the result maybe be defined over a different
+        base ring or be symbolic (potentially very very slow!):
+            sage: a = sqrt(2+t+O(t^2)); a
+            sqrt(2) + 1/(2*sqrt(2))*t + O(t^2)
+            sage: parent(a)
+            Power Series Ring in t over Symbolic Ring
+
             sage: K.<t> = PowerSeriesRing(QQ, 50)
             sage: sqrt(1+2*t+t^2)
             1 + t + O(t^50)

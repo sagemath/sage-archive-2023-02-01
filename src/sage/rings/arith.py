@@ -2259,7 +2259,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction_list(sqrt(4/19))
-        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 18]
         sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),

@@ -52,7 +52,6 @@ because users frequently request it.
 
 SYMBOLIC FUNCTIONAL NOTATION:
     sage: a=10; f(theta, beta) = theta + beta; b = x^2 + theta
-    (theta, beta)
     sage: f
     (theta, beta) |--> theta + beta
     sage: a

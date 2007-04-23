@@ -361,7 +361,9 @@ class Expect(ParentWithBase):
             sage: a
             y
             sage: maxima.quit()
-            sage: a
+            sage: a        # since the representation is cached
+            y
+            sage: a._check_valid()
             Traceback (most recent call last):
             ...
             ValueError: The maxima session in which this object was defined is no longer running.

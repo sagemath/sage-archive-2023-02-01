@@ -18,7 +18,7 @@ Mathematica, Maple, Octave, and Singular:
     sage: euler_gamma   # Euler's gamma constant
     euler_gamma
     sage: catalan       # the Catalon constant
-    K
+    catalan
     sage: khinchin      # Khinchin's constant
     khinchin
 
@@ -230,6 +230,9 @@ class Constant(Function):
 
     def floor(self):
         return Integer(int(float(self)))
+
+    def _latex_(self):
+        return '\\text{%s}'%self
 
     def _complex_mpfr_field_(self, R):
         return R(self._mpfr_(R._real_field()))
@@ -676,10 +679,7 @@ class Catalan(Constant):
               'maple':'Catalan', 'maxima':'catalan'})
 
     def _repr_(self, simplify=True):
-        return 'K'
-
-    def _latex_(self):
-        return 'K'
+        return 'catalan'
 
     def _mpfr_(self, R):
         return R.catalan_constant()
@@ -865,6 +865,7 @@ class Merten(Constant):
             0.26149721284764277
         """
 	return 0.261497212847642783755426838608695859051
+
 
 merten = Merten()
 

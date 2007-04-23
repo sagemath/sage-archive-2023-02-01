@@ -4035,6 +4035,8 @@ maxima_tick = re.compile("'[a-z|A-Z|0-9|_]*")
 
 maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
+maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
+
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     global _syms
 
@@ -4062,6 +4064,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace("?%","")
 
     s = multiple_replace(symtable, s)
+    s = s.replace("%","")
 
     if equals_sub:
         s = s.replace('=','==')

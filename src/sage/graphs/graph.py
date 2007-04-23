@@ -1159,21 +1159,21 @@ class Graph(GenericGraph):
                     k += 1
             self._nxg = networkx.XGraph(d)
         elif format == 'sparse6':
-            from sage.rings.arith import ceil, floor
+            from math import ceil, floor
             from sage.misc.functional import log
             n = data.find('\n')
             if n == -1:
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             l = [graph_fast.binary(ord(i)-63) for i in s]
             for i in range(len(l)):
                 l[i] = '0'* (6-len(l[i])) + l[i]
             bits = ''.join(l)
             b = []
             x = []
-            for i in range(floor(len(bits)/(k+1))):
+            for i in range(int(floor(len(bits)/(k+1)))):
                 b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
                 x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
             v = 0
@@ -1909,9 +1909,9 @@ class Graph(GenericGraph):
             edges.sort(cmp)
 
             # encode bit vector
-            from sage.rings.arith import ceil
+            from math import ceil
             from sage.misc.functional import log
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             v = 0
             i = 0
             m = 0

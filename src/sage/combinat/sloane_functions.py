@@ -98,6 +98,7 @@ import inspect
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
+import sage.calculus.all as calculus
 Integer = ZZ
 
 class SloaneSequence(SageObject):
@@ -3395,7 +3396,7 @@ class A001405(SloaneSequence):
         return "Central binomial coefficients: C(n,floor(n/2))."
 
     def _eval(self, n):
-        return arith.binomial(n,arith.floor(n//2))
+        return arith.binomial(n, int(calculus.floor(n//2)))
 
 class A000292(SloaneSequence):
     r"""

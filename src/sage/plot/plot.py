@@ -2819,10 +2819,10 @@ def float_to_html(r,g,b):
     Notice how the colors don't respect the partition at all.....
     """ # TODO: figure out WTF
     from sage.rings.integer import Integer
-    from sage.rings.arith import floor
-    rr = Integer(floor(r*255)).str(base=16)
-    gg = Integer(floor(g*255)).str(base=16)
-    bb = Integer(floor(b*255)).str(base=16)
+    from math import floor
+    rr = Integer(int(floor(r*255))).str(base=16)
+    gg = Integer(int(floor(g*255))).str(base=16)
+    bb = Integer(int(floor(b*255))).str(base=16)
     rr = '0'*(2-len(rr)) + rr
     gg = '0'*(2-len(gg)) + gg
     bb = '0'*(2-len(bb)) + bb
@@ -2843,7 +2843,7 @@ def rainbow(n):
         sage: rainbow(7)
         ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
     """
-    from sage.rings.arith import floor
+    from math import floor
     R = []
     for i in range(n):
         r = 6*float(i)/n

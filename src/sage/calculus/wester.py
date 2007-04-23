@@ -258,7 +258,7 @@ sage: # (YES) Numerically, the expression Ln(Tan(x/2+Pi/4))-ArcSinh(Tan(x))=0 an
 sage: g = f.derivative()
 sage: print float(f(0))
 -1.11022302463e-16
-sage: print float(g(0))
+sage: print float(g(0))     # random low order bits
 -1.11022302463e-16
 sage: print g
                          2 x    pi
@@ -294,7 +294,7 @@ sage: print f
                                                                 - 2 sqrt(r) - 1
 sage: print bool(f == 0)
 False
-sage: print [float(f(i)) for i in [0.1,0.3,0.5]]
+sage: print [float(f(i)) for i in [0.1,0.3,0.5]]     # random low-order bits
 [0.0, 0.0, -2.2204460492503131e-16]
 
 

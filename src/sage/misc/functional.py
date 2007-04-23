@@ -787,10 +787,15 @@ def show(x, *args, **kwds):
             return x.show(*args, **kwds)
         except AttributeError:
             pass
+    _do_show(x)
+
+def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
-        return sage.misc.latex.LatexExpr('') # so not visible output
-    raise AttributeError, "object %s does not support show."%(x, )
+        return sage.misc.latex.LatexExpr('') # so no visible output
+    from latex import view
+    view(x)
+    #raise AttributeError, "object %s does not support show."%(x, )
 
 def sqrt(x):
     """

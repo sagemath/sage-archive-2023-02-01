@@ -403,51 +403,17 @@ class JobDatabaseSQLite(JobDatabase):
 
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
-                   self.db_file,
-                   detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        self.con.text_factory = sqlite3.OptimizedUnicode # Don't want unicode objects
+                  self.db_file,
+                  detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        sql_functions.optimize_sqlite(self.con)
+        # Don't use this, slow!
+        # self.con.text_factory = sqlite3.OptimizedUnicode
+
+        self.con.text_factory = str
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,
                                        self.CREATE_JOBS_TABLE)
-
-    def __add_test_data(self):
-        INSERT_JOB = """INSERT INTO jobs
-        (uid,
-         username,
-         code,
-         data,
-         output,
-         worker_id,
-         status,
-         priority,
-         creation_time,
-         update_time,
-         finish_time
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """
-
-        dn = lambda: datetime.datetime.now() # short hand
-        D = [(self.random_string(), 1, None, None, None, 1,
-             'new', 1, dn(), dn(), None),
-             (self.random_string(), 1, None, None, None, 1,
-             0, 1, dn(), dn(), None),
-             (self.random_string(), 1, None, None, None, 1,
-             0, 1, dn(), dn(), None)]
-
-        log.msg('Sleeping for 0.5 second to test timestamps...')
-        time.sleep(0.5)
-
-        D.extend([(self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None),
-                  (self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None),
-                  (self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None)])
-
-        self.con.executemany(INSERT_JOB, D)
-        self.con.commit()
 
     def _shutdown(self):
         self.con.commit()
@@ -594,6 +560,7 @@ class JobDatabaseSQLite(JobDatabase):
         Returns a list of jobs which have been marked as killed.
 
         """
+
         query = "SELECT * from jobs where killed = 1 AND status <> 'completed'"
         cur = self.con.cursor()
         cur.execute(query)

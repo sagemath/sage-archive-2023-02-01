@@ -68,7 +68,9 @@ class MonitorDatabase(object):
         self.log_file = self.conf['log_file']
         self.con = sqlite3.connect(self.db_file,
                     detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        self.con.text_factory = sqlite3.OptimizedUnicode
+        # Don't use this, slow!
+        # self.con.text_factory = sqlite3.OptimizedUnicode
+        self.con.text_factory = str
 
         if sql_functions.table_exists(self.con, self.tablename) is None:
             sql_functions.create_table(self.con,

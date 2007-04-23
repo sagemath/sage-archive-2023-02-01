@@ -176,8 +176,9 @@ class DistributedFunction(object):
         from twisted.internet import reactor
         from twisted.spread import pb
         for wrapped_job in self.waiting_jobs:
-            if job.killed == True:
-                self.waiting_jobs.remove(job)
+            if wrapped_job.killed == True:
+                self.waiting_jobs.remove(wrapped_job)
+                continue
             if isinstance(wrapped_job, JobWrapper):
                 try:
                     wrapped_job.get_job()

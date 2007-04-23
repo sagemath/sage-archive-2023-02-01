@@ -158,7 +158,8 @@ class DefaultPerspective(pb.Avatar):
             self.DSageServer.monitordb.set_connected(uuid, connected=True)
         else:
             self.DSageServer.clientdb.update_login_time(self.avatarID)
-            self.DSageServer.clientdb.set_connected(self.avatarID, connected=True)
+            self.DSageServer.clientdb.set_connected(self.avatarID,
+                                                    connected=True)
 
     def detached(self, avatar, mind):
         self.connections -= 1

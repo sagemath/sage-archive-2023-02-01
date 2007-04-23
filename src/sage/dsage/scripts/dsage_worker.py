@@ -24,7 +24,7 @@ import ConfigParser
 import cPickle
 import zlib
 import pexpect
-import time
+import datetime
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -48,7 +48,7 @@ DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
-
+LOG_PREFIX = "[Worker %s]"
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
 
@@ -90,12 +90,11 @@ class Worker(object):
     def get_job(self):
         try:
             if self.log_level > 3:
-                log.msg('Worker %s: Getting job...' % (self.id))
+                log.msg((LOG_PREFIX + 'Getting job...') % self.id)
             d = self.remoteobj.callRemote('get_job')
         except Exception, msg:
             log.msg(msg)
-            log.msg('[Worker: %s, get_job] Disconnected from remote server.'\
-                    % self.id)
+            log.msg((LOG_PREFIX + 'Disconnected...') % self.id)
             reactor.callLater(self.delay, self.get_job)
             return
         d.addCallback(self.gotJob)
@@ -112,6 +111,7 @@ class Worker(object):
 
         """
 
+        print datetime.datetime.now()
         if self.log_level > 3:
             log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
 
@@ -120,7 +120,9 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
 
-        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id, self.job.name, self.job.job_id))
+        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id,
+                                                   self.job.name,
+                                                   self.job.job_id))
         try:
             self.doJob(self.job)
         except Exception, msg:
@@ -150,7 +152,8 @@ class Worker(object):
             log.msg(msg)
             log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
                     % (self.id, self.delay))
-            reactor.callLater(self.delay, self.job_done, output, result, completed)
+            reactor.callLater(self.delay, self.job_done,
+                              output, result, completed)
             d = defer.Deferred()
             d.errback(error.ConnectionLost())
             return d
@@ -217,7 +220,8 @@ class Worker(object):
                         f.write(data)
                         f.close()
                         if self.log_level > 2:
-                            log.msg('[Worker: %s] Extracted %s. ' % (self.id, f))
+                            log.msg('[Worker: %s] Extracted %s. ' % (self.id,
+                                                                     f))
                     if kind == 'object':
                         fname = var + '.sobj'
                         if self.log_level > 2:
@@ -237,7 +241,8 @@ class Worker(object):
 
         """
 
-        parsed_file = preparse_file(job.code, magic=False, do_time=False, ignore_prompts=False)
+        parsed_file = preparse_file(job.code, magic=False,
+                                    do_time=False, ignore_prompts=False)
 
         job_filename = str(job.name) + '.py'
         job_file = open(job_filename, 'w')
@@ -307,7 +312,7 @@ except:
                     break
                 except (pexpect.TIMEOUT, pexpect.EOF), msg:
                     if self.log_level > 3:
-                        log.err("Trying again to interrupt SAGE (try %s)..." % i)
+                        log.err("Trying to interrupt SAGE (try %s)..." % i)
         except Exception, msg:
             log.err("[Worker %s] Could not do a soft reset, performing a hard reset now.")
 
@@ -398,14 +403,14 @@ class Monitor(object):
             from twisted.conch.ssh import keys
             self._get_auth_info()
             # public key authentication information
-            self.pubkey_str =keys.getPublicKeyString(filename=self.pubkey_file)
+            self.pubkey_str =keys.getPublicKeyString(self.pubkey_file)
             # try getting the private key object without a passphrase first
             try:
-                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file)
+                self.priv_key = keys.getPrivateKeyObject(self.privkey_file)
             except keys.BadKeyError:
                 pphrase = self._getpassphrase()
-                self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file,
-                                                         passphrase=pphrase)
+                self.priv_key = keys.getPrivateKeyObject(self.privkey_file,
+                                                         pphrase)
             self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
             self.alg_name = 'rsa'
             self.blob = keys.makePublicKeyBlob(self.pub_key)
@@ -587,7 +592,9 @@ class Monitor(object):
                      'Worker ID:%s' % (worker.id)]
                 log.err(''.join(s))
                 log.err('[Monitor] Traceback: \n%s' % sanitized_output)
-                d = self.remoteobj.callRemote('job_failed', worker.job.job_id, sanitized_output)
+                d = self.remoteobj.callRemote('job_failed',
+                                              worker.job.job_id,
+                                              sanitized_output)
                 d.addErrback(self._catch_failure)
                 worker.restart()
                 continue

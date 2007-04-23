@@ -339,8 +339,10 @@ class DSageServer(pb.Root):
         """
 
         count = {}
-        free_workers = self.monitordb.get_worker_count(connected=True, busy=False)
-        working_workers = self.monitordb.get_worker_count(connected=True, busy=True)
+        free_workers = self.monitordb.get_worker_count(connected=True,
+                                                       busy=False)
+        working_workers = self.monitordb.get_worker_count(connected=True,
+                                                          busy=True)
 
         count['free'] = free_workers
         count['working'] = working_workers

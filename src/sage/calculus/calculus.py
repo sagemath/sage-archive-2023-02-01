@@ -1347,7 +1347,7 @@ class SymbolicExpression(RingElement):
 
         We can also use the \code{numerical_integral} function, which calls
         the GSL C library.
-            sage: numerical_integral(exp(-sqrt(x)), 0, 1)
+            sage: numerical_integral(exp(-sqrt(x)), 0, 1)             # random low-order bits
             (0.52848223225314706, 6.8392846084921134e-07)
         """
         v = self._maxima_().quad_qags(var(x),
@@ -3504,7 +3504,7 @@ class Function_sinh(PrimitiveFunction):
         sinh(pi)
         sage: sinh(3.1415)
         11.5476653707437
-        sage: float(sinh(pi))
+        sage: float(sinh(pi))              # random low-order bits
         11.548739357257748
         sage: RR(sinh(pi))
         11.5487393572577
@@ -3613,7 +3613,7 @@ class Function_csch(PrimitiveFunction):
         csch(pi)
         sage: csch(3.1415)
         0.0865975907592133
-        sage: float(csch(pi))
+        sage: float(csch(pi))           # random low-order bits
         0.086589537530046945
         sage: RR(csch(pi))
         0.0865895375300470

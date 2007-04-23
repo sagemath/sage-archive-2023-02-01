@@ -2085,11 +2085,13 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
     ALGORITHM:
         Several cases based on residue class of p mod 16.
 
+    \begin{verbatim}
         $p$ mod 2 = 0 $\Rightarrow$ p = 2 so \sqrt{a} = a$.
         $p$ mod 4 = 3 $\Rightarrow \sqrt{a} = a^{(p+1)/4}$.
         $p$ mod 8 = 5 $\Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}$, $i=\sqrt{-1}$.
         $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\FF_p$.
         $p$ mod 16 = 1$ Variant of Cipolla-Lehmer, using Lucas functions.
+    \end{verbatim}
 
     REFERENCES:
         Siguna M\:uller. 'On the Computation of Square Roots in Finite Fields'

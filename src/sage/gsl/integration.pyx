@@ -143,14 +143,14 @@ def numerical_integral(func, a, b=None,
        (1.7724538509060035, 3.4295192165889879e-08)
 
    One can integrate any real-valued callable function:
-       sage: numerical_integral(zeta, [1.1,1.5])           # slightly random output
+       sage: numerical_integral(lambda x: abs(zeta(x)), [1.1,1.5])           # slightly random output
        (1.8488570602160455, 2.052643677492633e-14)
 
    We can also numerically integrate symbolic expressions using either this
    function (which uses GSL) or the native integration (which uses Maxima):
        sage: exp(-1/x).nintegral(x, 1, 2)   # via maxima
        (0.50479221787318396, 5.6043194293440752e-15, 21, 0)
-       sage: numerica_integral(exp(-1/x), 1, 2)
+       sage: numerical_integral(exp(-1/x), 1, 2)
        (0.50479221787318407, 5.6043194293440744e-15)
 
    IMPLEMENTATION NOTES:

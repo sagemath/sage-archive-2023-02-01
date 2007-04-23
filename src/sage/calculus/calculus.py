@@ -686,6 +686,10 @@ class SymbolicExpression(RingElement):
             x^(n + 1) + sin(pi/19)
             sage: f.variables()
             (n, x)
+
+            sage: a = e^x
+            sage: a.variables()
+            (x,)
         """
         return vars
 
@@ -3950,7 +3954,10 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     if len(x) == 0:
         raise RuntimeError, "invalid symbolic expression -- ''"
     maxima.set('_tmp_',x)
-    r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
+
+    # This is inefficient since it so rarely is needed:
+    #r = maxima._eval_line('listofvars(_tmp_);')[1:-1]
+
     s = maxima._eval_line('_tmp_;')
 
     formal_functions = maxima_tick.findall(s)
@@ -3969,19 +3976,6 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
 
     s = multiple_replace(symtable, s)
 
-    symtable2 = {}
-    if len(r) > 0:
-        # Now r is a list of all the indeterminate variables that
-        # appear in the expression x.
-        v = r.split(',')
-        for a in v:
-            if a[0] == '%':
-                symtable2[a] = a[1:]
-                a = a[1:]
-
-    if symtable2:
-        s = multiple_replace(symtable2, s)
-
     if equals_sub:
         s = s.replace('=','==')
 
@@ -3990,7 +3984,21 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         # use a global flag so all expressions obtained via
         # evaluation of maxima code are assumed pre-simplified
         is_simplified = True
-        w = sage_eval(s, _syms)
+        last_msg = ''
+        while True:
+            try:
+                w = sage_eval(s, _syms)
+            except NameError, msg:
+                if msg == last_msg:
+                    raise NameError, msg
+                msg = str(msg)
+                last_msg = msg
+                i = msg.find("'")
+                j = msg.rfind("'")
+                nm = msg[i+1:j]
+                _syms[nm] = var(nm)
+            else:
+                break
         if isinstance(w, (list, tuple)):
             return w
         else:

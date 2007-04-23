@@ -135,7 +135,7 @@ REFERENCES:
 #*****************************************************************************
 
 from sage.interfaces.all import gap
-from sage.rings.all import QQ, RR, ZZ
+from sage.rings.all import QQ, RR, ZZ, RDF
 from sage.rings.arith import factorial
 from sage.misc.functional import log, sqrt
 
@@ -372,10 +372,10 @@ def elias_bound_asymp(delta,q):
 
     EXAMPLES:
         sage: elias_bound_asymp(1/4,2)
-        0.399123963307
+        0.399123963308
     """
     r = 1-1/q
-    return (1-entropy(r-sqrt(r*(r-delta)), q))
+    return RDF((1-entropy(r-sqrt(r*(r-delta)), q)))
 
 def mrrw1_bound_asymp(delta,q):
     """
@@ -387,7 +387,7 @@ def mrrw1_bound_asymp(delta,q):
         0.354578902665
 
     """
-    return entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q)
+    return RDF(entropy((q-1-delta*(q-2)-2*sqrt((q-1)*delta*(1-delta)))/q,q))
 
 
 

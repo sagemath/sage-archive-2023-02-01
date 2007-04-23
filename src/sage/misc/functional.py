@@ -630,6 +630,10 @@ def norm(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: norm(z)
+        5
+        sage: norm(CDF(z))
+        5.0
+        sage: norm(CC(z))
         5.00000000000000
     """
     return x.norm()
@@ -713,7 +717,7 @@ def rank(x):
         2
 
     We compute the rank of an elliptic curve:
-        sage: E=EllipticCurve([0,0,1,-1,0])
+        sage: E = EllipticCurve([0,0,1,-1,0])
         sage: rank(E)
         1
     """
@@ -726,7 +730,7 @@ def real(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: real(z)
-        1.00000000000000
+        1
     """
     try: return x.real()
     except AttributeError: return CDF(x).real()
@@ -857,21 +861,20 @@ def square_free_part(x):
 
 squarefree_part = square_free_part
 
-def square_root(x):
-    """
-    Return a square root of x with the same parent as x, if possible,
-    otherwise raise a ValueError.
-
-    EXAMPLES:
-        sage: square_root(9)
-        3
-        sage: square_root(100)
-        10
-    """
-    try:
-        return x.square_root()
-    except AttributeError:
-        raise NotImplementedError
+## def square_root(x):
+##     """
+##     Return a square root of x with the same parent as x, if possible,
+##     otherwise raise a ValueError.
+##     EXAMPLES:
+##         sage: square_root(9)
+##         3
+##         sage: square_root(100)
+##         10
+##     """
+##     try:
+##         return x.square_root()
+##     except AttributeError:
+##         raise NotImplementedError
 
 def transpose(x):
     """

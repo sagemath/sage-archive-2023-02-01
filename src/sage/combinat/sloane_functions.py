@@ -116,6 +116,11 @@ class SloaneSequence(SageObject):
     def _repr_(self):
         raise NotImplementedError
 
+    def __cmp__(self, other):
+        if not isinstance(other, SloaneSequence):
+            return cmp(type(self), type(other))
+        return cmp(repr(self), repr(other))
+
     def __call__(self, n):
         m = ZZ(n)
         if m < self.offset:

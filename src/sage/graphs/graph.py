@@ -215,6 +215,9 @@ from random import random
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+
 
 class GenericGraph(SageObject):
     """
@@ -1140,7 +1143,6 @@ class Graph(GenericGraph):
         if format == 'graph6':
             if not isinstance(data, str):
                 raise ValueError, 'If input format is graph6, then data must be a string'
-            from sage.rings.integer import Integer
             n = data.find('\n')
             if n == -1:
                 n = len(data)

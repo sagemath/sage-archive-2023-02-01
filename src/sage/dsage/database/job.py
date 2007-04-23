@@ -238,7 +238,7 @@ class Job(Persistent):
         self.jdict['verifiable'] = value
 
     def timeout():
-        doc = "The timeout property."
+        doc = "Job timeout in seconds. Set to 0 to disable."
         def fget(self):
             return self.jdict['timeout']
         def fset(self, value):

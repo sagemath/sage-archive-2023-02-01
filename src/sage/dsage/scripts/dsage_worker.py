@@ -49,8 +49,13 @@ DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
 LOG_PREFIX = "[Worker %s]"
+
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
+
+def random_data(length=500):
+    s = [chr(i) for i in [random.randint(65, 123) for n in range(length)]]
+    return ''.join(s)
 
 class Worker(object):
     """
@@ -432,8 +437,7 @@ class Monitor(object):
 
     def _get_auth_info(self):
         import random
-        self.DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
-                        range(500)]])
+        self.DATA =  random_data(500)
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
         try:

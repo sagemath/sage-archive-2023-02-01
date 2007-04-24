@@ -120,7 +120,13 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         R = PolynomialRing(self.base_ring(), ['x', 'y'])
         return self.tiny_integrals([R(1), R.gen(0)], P, Q)
 
-    def p_power_frobenious(self):
+    def frobenius(self):
+
+        try:
+            return self._frob
+        except AttributeError:
+            pass
+
         K = self.base_field()
         p = K.prime()
         x = PolynomialRing(K, 'x').gen(0)
@@ -142,6 +148,7 @@ class EllipticCurve_padic_field(EllipticCurve_field):
                 yres=-yres
             return self.point((xres,yres))
 
+        self._frob = frob
         return frob
 
     def teichmuller(self, P, frob=None):
@@ -150,8 +157,10 @@ class EllipticCurve_padic_field(EllipticCurve_field):
 
         TODO: what kind of convergence am I guerenteed here?
         """
+        x = padic_teichmuller(P[0])
+
         if frob is None:
-            frob = self.p_power_frobenious()
+            frob = self.frobenius()
         for i in xrange(self.base_field().precision_cap()):
             P = frob(P)
         return P
@@ -181,7 +190,7 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         from sage.matrix.constructor import matrix
         V = VectorSpace(K, 2)
 
-        frob = self.p_power_frobenious()
+        frob = self.frobenius()
         TP = self.teichmuller(P, frob)
 #        print "TP", TP
         P_to_TP = V(self.tiny_integrals_on_basis(P, TP))
@@ -219,3 +228,15 @@ class EllipticCurve_padic_field(EllipticCurve_field):
 #        print "\n"
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
+
+# TODO: add this to padics (if it isn't there in the new version already).
+def padic_teichmuller(K, a):
+    p = K.prime()
+    p_less_1_inverse = ~K(p-1)
+    one = K(1)
+    x = K(ZZ(a) % p)
+    if x == 0:
+        return x
+    for _ in range(ceil(log(K.precision_cap(),2))):
+        x = ((p-2)*x + x**(2-p)) * p_less_1_inverse
+    return x

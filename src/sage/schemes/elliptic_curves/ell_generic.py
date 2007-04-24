@@ -301,6 +301,81 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.point([R(0),R(1),R(0)], check=False)
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args)
 
+    def lift_x(self, x):
+        """
+        Given the x-coordinate of a point on the curve, use the defining
+        polynomial to find all affine points on this curve with the
+        given x-coordinate.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('37a'); E
+            Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
+            sage: E.lift_x(1)
+            [(1 : 0 : 1), (1 : -1 : 1)]
+            sage: E.lift_x(2)
+            [(2 : 2 : 1), (2 : -3 : 1)]
+            sage: E.lift_x(1/4)
+            [(1/4 : -3/8 : 1), (1/4 : -5/8 : 1)]
+
+        There are no rational points with x-cordinate 3.
+            sage: E.lift_x(3)
+            []
+
+        However, there are two such points in $E(\R)$:
+            sage: E.change_ring(RR).lift_x(3)
+            [(3.00000000000000 : 4.42442890089805 : 1.00000000000000), (3.00000000000000 : -5.42442890089805 : 1.00000000000000)]
+
+        And of course it always works in $E(\C)$:
+            sage: E.change_ring(RR).lift_x(.5)
+            []
+            sage: E.change_ring(CC).lift_x(.5)
+            [(0.500000000000000 : -0.500000000000000 + 0.353553390593274*I : 1.00000000000000), (0.500000000000000 : -0.500000000000000 - 0.353553390593274*I : 1.00000000000000)]
+
+        We can perform these operations over finite fields too:
+            sage: E = E.change_ring(GF(17)); E
+            Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
+            sage: E.lift_x(7)
+            [(7 : 11 : 1), (7 : 5 : 1)]
+            sage: E.lift_x(3)
+            []
+
+        Note that there is only one lift with x-coordinate 10 in $E(\F_17)$.
+            sage: E.lift_x(10)
+            [(10 : 8)]
+
+        We can lift over more exotic rings too.
+            sage: E = EllipticCurve('37a');
+            sage: E.lift_x(pAdicField(17, 5)(6))
+            [(6 + O(17^5) : 2 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5) : 1 + O(17^5)), (6 + O(17^5) : 14 + O(17^5) : 1 + O(17^5))]
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: E.lift_x(1+t)
+            [(1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1), (1 + t : -1 - 2*t + t^2 - 5*t^3 + 21*t^4 + O(t^5) : 1)]
+        """
+        a1, a2, a3, a4, a6 = self.ainvs()
+        f = ((x + a2) * x + a4) * x + a6
+        x += self.base_ring()(0)
+        one = x.parent()(1)
+        if a1.is_zero() and a3.is_zero():
+            if f.is_zero():
+                return [self.point((x,x.parent()(0), one), check=False)]
+            if not f.is_square():
+                return []
+            else:
+                y = f.square_root()
+                return [self.point((x,  y, one), check=False),
+                        self.point((x, -y, one), check=False)]
+        else:
+            b = (a1*x + a3)
+            D = b*b + 4*f
+            if D.is_zero():
+                return [self.point((x, -b/2), check=False)]
+            if not D.is_square():
+                return []
+            else:
+                sqrtD = D.square_root()
+                return [self.point((x, (-b+sqrtD)/2, one), check=False),
+                        self.point((x, (-b-sqrtD)/2, one), check=False)]
+
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
 

@@ -731,6 +731,21 @@ cdef class RealDoubleElement(FieldElement):
         return self._complex_double_().sqrt()
 
 
+    def is_square(self):
+        """
+        Returns whether or not this number is a square in this field.
+        For the real numbers, this is True if and only if self is non-negative.
+
+        EXAMPLES:
+            sage: RDF(3.5).is_square()
+            True
+            sage: RDF(0).is_square()
+            True
+            sage: RDF(-4).is_square()
+            False
+        """
+        return bool(self._value >= 0)
+
     def square_root(self):
         """
         Return a square root of self.  A real number will always be

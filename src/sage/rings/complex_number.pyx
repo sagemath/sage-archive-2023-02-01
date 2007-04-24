@@ -779,6 +779,12 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self._pari_().sqrt())
 
+    def is_square(self):
+        """
+        This function always returns true as $\C$ is algebraically closed.
+        """
+        return True
+
     def square_root(self):
         """
         Return square root, which is a complex number.

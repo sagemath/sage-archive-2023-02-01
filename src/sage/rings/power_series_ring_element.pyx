@@ -97,6 +97,8 @@ from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
 from sage.rings.arith import ceil
 
+from sage.rings.ring import is_Field
+
 Polynomial = polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
@@ -902,6 +904,52 @@ cdef class PowerSeries(AlgebraElement):
     def __rshift__(self, n):
         return self.parent()(self.polynomial() >> n, self.prec())
 
+    def is_square(self):
+        """
+        Returns True if this function has a square root in this ring,
+        e.g. there is an element $y$ in \code{self.parent()} such that
+        $y^2 = \code{self}$.
+
+        ALGORITHM:
+            If the basering is a field, this is true whenver the power
+            series has even valuation and the leading coefficent is a
+            perfect square.
+
+            For an integral domain, it operates attempts the square root
+            in the fraction field and tests whether or not the result
+            lies in the original ring.
+
+        EXAMPLES:
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: (1+t).is_square()
+            True
+            sage: (2+t).is_square()
+            False
+            sage: (2+t.change_ring(RR)).is_square()
+            True
+            sage: t.is_square()
+            False
+            sage: K.<t> = PowerSeriesRing(ZZ, 't', 5)
+            sage: (1+t).is_square()
+            False
+            sage: f = (1+t)^100
+            sage: f.is_square()
+            True
+
+        """
+        val = self.valuation()
+        if val is not infinity and val % 2 == 1:
+            return False
+        elif not self[val].is_square():
+            return False
+        elif is_Field(self.base_ring()):
+            return True
+        else:
+            try:
+                self.parent()(self.sqrt())
+                return True
+            except TypeError:
+                return False
 
     def sqrt(self):
         r"""
@@ -933,7 +981,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: sqrt(K(0))
             0
 
-        AUTHORS:
+        AUTHOR:
             -- Robert Bradshaw
         """
         if self.is_zero():
@@ -958,6 +1006,50 @@ cdef class PowerSeries(AlgebraElement):
 
         return newp.gen(0)**(val/2) * x
 
+    def square_root(self):
+        """
+        Return the square root of self in this ring. If this cannot be done
+        then an error will be raised.
+
+        This function succeeds if and only if \code{self.is_square()}
+
+        EXAMPLES:
+            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: (1+t).square_root()
+            1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
+            sage: (2+t).square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: Square root does not live in this ring.
+            sage: (2+t.change_ring(RR)).square_root()
+            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
+            sage: t.square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: Square root not defined for power series of odd valuation.
+            sage: K.<t> = PowerSeriesRing(ZZ, 't', 5)
+            sage: f = (1+t)^20
+            sage: f.square_root()
+            1 + 10*t + 45*t^2 + 120*t^3 + 210*t^4 + O(t^5)
+            sage: f = 1+t
+            sage: f.square_root()
+            Traceback (most recent call last):
+            ...
+            ValueError: Square root does not live in this ring.
+
+        AUTHOR:
+            -- Robert Bradshaw
+        """
+        val = self.valuation()
+        if val is not infinity and val % 2 == 1:
+            raise ValueError, "Square root not defined for power series of odd valuation."
+        elif not self[val].is_square():
+            raise ValueError, "Square root does not live in this ring."
+        else:
+            try:
+                return self.parent()(self.sqrt())
+            except TypeError:
+                raise ValueError, "Square root does not live in this ring."
 
     def O(self, prec):
         r"""

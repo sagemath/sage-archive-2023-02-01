@@ -1695,6 +1695,23 @@ cdef class RealNumber(sage.structure.element.RingElement):
             return self.square_root()
         return self._complex_number_().sqrt()
 
+    def is_square(self):
+        """
+        Returns whether or not this number is a square in this field.
+        For the real numbers, this is True if and only if self is non-negative.
+
+        EXAMPLES:
+            sage: r = 3.5
+            sage: r.is_square()
+            True
+            sage: r = 0.0
+            sage: r.is_square()
+            True
+            sage: r = -4.0
+            sage: r.is_square()
+            False
+        """
+        return bool(self >= 0)
 
     def square_root(self):
         """

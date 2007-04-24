@@ -315,6 +315,7 @@ except:
                     if self.log_level > 3:
                         log.msg("Trying to interrupt SAGE (try %s)..." % i)
         except Exception, msg:
+            success = False
             log.err(msg)
             log.err(LOG_PREFIX % self.id + "Performing hard reset.")
 

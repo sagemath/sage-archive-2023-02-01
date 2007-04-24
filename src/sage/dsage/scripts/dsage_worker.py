@@ -341,7 +341,7 @@ except:
             else:
                 self.sage = Sage()
             self.sage.expect()
-            self.sage._expect.delaybeforesend=1
+            self.sage._expect.delaybeforesend=0.5
         self.get_job()
 
     def restart(self):

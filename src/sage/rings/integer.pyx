@@ -758,7 +758,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if n < 1:
             raise ValueError, "n (=%s) must be positive" % n
-        if (self < 0) and not (n & 1):
+        if (mpz_sgn(self.value) < 0) and not (n & 1):
             raise ValueError, "cannot take even root of negative number"
         cdef Integer x
         cdef int is_exact
@@ -826,7 +826,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if _m != m:
             raise ValueError, "base of log must be an integer"
         m = _m
-        if self <= 0:
+        if mpz_sgn(self.value) <= 0:
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
@@ -1260,7 +1260,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             5 120
             6 720
         """
-        if self < 0:
+        if mpz_sgn(self.value) < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
 
         if mpz_cmp_ui(self.value,4294967295) > 0:
@@ -1354,6 +1354,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(41).is_square()
             False
         """
+        if mpz_sgn(self.value) < 0:
+            return False
         return bool(mpz_perfect_square_p(self.value))
 
     def is_prime(self):
@@ -1614,10 +1616,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(-102).isqrt()
             Traceback (most recent call last):
             ...
-            ValueError: square root of negative number not defined.
+            ValueError: square root of negative integer not defined.
         """
-        if self < 0:
-            raise ValueError, "square root of negative number not defined."
+        if mpz_sgn(self.value) < 0:
+            raise ValueError, "square root of negative integer not defined."
         cdef Integer x
         x = PY_NEW(Integer)
 
@@ -1676,7 +1678,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
                 pass
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
-        if self < 0:
+        if mpz_sgn(self.value) < 0:
             import sage.rings.complex_field
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
@@ -1698,11 +1700,20 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             ValueError: self (=102) is not a perfect square
         """
-        n = self.isqrt()
-        if n * n == self:
-            return n
-        raise ValueError, "self (=%s) is not a perfect square"%self
-
+        if mpz_sgn(self.value) < 0:
+            raise ValueError, "self (=%s) is not a perfect square"%self
+        cdef Integer z = PY_NEW(Integer)
+        cdef mpz_t tmp
+        cdef int non_square
+        _sig_on
+        mpz_init(tmp)
+        mpz_sqrtrem(z.value, tmp, self.value)
+        non_square = mpz_sgn(tmp) != 0
+        mpz_clear(tmp)
+        _sig_off
+        if non_square:
+            raise ValueError, "self (=%s) is not a perfect square"%self
+        return z
 
     def _xgcd(self, Integer n):
         r"""

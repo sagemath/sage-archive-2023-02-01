@@ -360,6 +360,24 @@ cdef class Rational(sage.structure.element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
+    def is_square(self):
+        """
+        EXAMPLES:
+            sage: x = 9/4
+            sage: x.is_square()
+            True
+            sage: x = (7/53)^100
+            sage: x.is_square()
+            True
+            sage: x = 4/3
+            sage: x.is_square()
+            False
+            sage: x = -1/4
+            sage: x.is_square()
+            False
+        """
+        return bool(mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value)))
+
     def sqrt(self, bits=None):
         r"""
         Returns the positive square root of self as a real number to
@@ -420,26 +438,43 @@ cdef class Rational(sage.structure.element.FieldElement):
         \exception{ValueError} if self is not a perfect square.
 
         EXAMPLES:
-            sage: x = 125/5
+            sage: x = 25/9
             sage: x.square_root()
-            5
+            5/3
             sage: x = 64/4
             sage: x.square_root()
             4
             sage: x = 1000/10
             sage: x.square_root()
             10
-            sage: x = 81/3
+            sage: x = 81/5
             sage: x.square_root()
             Traceback (most recent call last):
             ...
-            ValueError: self (=27) is not a perfect square
+            ValueError: self (=81/5) is not a perfect square
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
         """
-        # TODO -- this could be quicker, by using GMP directly.
-        return self.numerator().square_root() / self.denominator().square_root()
+        if mpq_sgn(self.value) < 0:
+            raise ValueError, "self (=%s) is not a perfect square"%self
+        cdef Rational z = <Rational> PY_NEW(Rational)
+        cdef mpz_t tmp
+        _sig_on
+        mpz_init(tmp)
+        mpz_sqrtrem(mpq_numref(z.value), tmp, mpq_numref(self.value))
+        if mpz_sgn(tmp) != 0:
+            mpz_clear(tmp)
+            _sig_off
+            raise ValueError, "self (=%s) is not a perfect square"%self
+        mpz_sqrtrem(mpq_denref(z.value), tmp, mpq_denref(self.value))
+        if mpz_sgn(tmp) != 0:
+            mpz_clear(tmp)
+            _sig_off
+            raise ValueError, "self (=%s) is not a perfect square"%self
+        mpz_clear(tmp)
+        _sig_off
+        return z
 
     def nth_root(self, int n):
         r"""

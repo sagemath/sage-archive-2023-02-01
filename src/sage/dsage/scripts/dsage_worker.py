@@ -75,19 +75,12 @@ class Worker(object):
         self.conf = get_conf('monitor')
         self.log_level = self.conf['log_level']
         self.delay = self.conf['delay']
-        if self.log_level > 3:
-            self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.log'\
-                             % self.id)
-        else:
-            self.sage = Sage()
+        self.start()
 
         # import some basic modules into our Sage() instance
-        self.sage.eval('import time')
-        self.sage.eval('import sys')
-        self.sage.eval('import os')
-
-        # Initialize getting of jobs
-        self.get_job()
+        # self.sage.eval('import time')
+        # self.sage.eval('import sys')
+        # self.sage.eval('import os')
 
     def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
@@ -339,9 +332,12 @@ except:
 
         if self.sage is None:
             if self.log_level > 3:
-                self.sage = Sage(logfile=DSAGE_DIR + '/%s-pexpect.out' % self.id)
+                logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
+                self.sage = Sage(logfile=logfile)
             else:
                 self.sage = Sage()
+            self.sage.expect()
+            self.sage._expect.delaybeforesend=1
         self.get_job()
 
     def restart(self):

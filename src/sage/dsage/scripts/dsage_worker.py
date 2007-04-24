@@ -49,7 +49,7 @@ DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
-LOG_PREFIX = "[Worker %s]"
+LOG_PREFIX = "[Worker %s] "
 
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
@@ -110,21 +110,23 @@ class Worker(object):
 
         """
 
+        if self.log_level > 1:
+            if jdict is None:
+                log.msg(LOG_PREFIX % self.id + 'No new job.')
         if self.log_level > 3:
-            log.msg('[Worker %s, gotJob] %s' % (self.id, jdict))
+            if jdict is not None:
+                log.msg(LOG_PREFIX % self.id + 'Got Job: %s' % jdict)
 
         self.job = expand_job(jdict)
 
         if not isinstance(self.job, Job):
             raise NoJobException
 
-        log.msg('[Worker: %s] Got job (%s, %s)' % (self.id,
-                                                   self.job.name,
-                                                   self.job.job_id))
+        log.msg(LOG_PREFIX % self.id + 'Processing job %s' % self.job.job_id)
         try:
             self.doJob(self.job)
         except Exception, msg:
-            log.msg(msg)
+            log.err(msg)
             d = self.remoteobj.callRemote('job_failed', self.job.job_id, msg)
             d.addErrback(self._catch_failure)
             self.restart()
@@ -300,22 +302,24 @@ except:
 
         INTERRUPT_TRIES = 20
         timeout = 0.3
+        e = self.sage._expect
         try:
             for i in range(INTERRUPT_TRIES):
                 self.sage._expect.sendline('q')
                 self.sage._expect.sendline(chr(3))  # send ctrl-c
                 try:
-                    self.sage._expect.expect(self.sage._prompt, timeout=timeout)
+                    e.expect(self.sage._prompt, timeout=timeout)
                     success = True
                     break
                 except (pexpect.TIMEOUT, pexpect.EOF), msg:
                     if self.log_level > 3:
-                        log.err("Trying to interrupt SAGE (try %s)..." % i)
+                        log.msg("Trying to interrupt SAGE (try %s)..." % i)
         except Exception, msg:
-            log.err("[Worker %s] Could not do a soft reset, performing a hard reset now.")
+            log.err(msg)
+            log.err(LOG_PREFIX % self.id + "Performing hard reset.")
 
         if not success:
-            pid = self.__sage.pid()
+            pid = self.sage.pid()
             cmd = 'kill -9 -%s'%pid
             os.system(cmd)
             self.sage = Sage()
@@ -330,7 +334,7 @@ except:
 
         """
 
-        if self.sage is None:
+        if not hasattr(self, 'sage'):
             if self.log_level > 3:
                 logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
                 self.sage = Sage(logfile=logfile)

@@ -19,12 +19,15 @@
 
 """
 Gets the different configuration options for the various components of DSAGE.
+
 """
 
 import os
 import random
 import ConfigParser
 import uuid
+
+from sage.dsage.misc.misc import random_str
 
 def check_version(old_version):
     from sage.dsage.__version__ import version
@@ -45,7 +48,7 @@ def get_conf(type):
     try:
         if type == 'client':
             conf_file = os.path.join(DSAGE_DIR, 'client.conf')
-            DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in range(500)]])
+            DATA =  random_str(length=500)
             config.read(conf_file)
             conf = read_conf(config)
             conf['data'] = DATA

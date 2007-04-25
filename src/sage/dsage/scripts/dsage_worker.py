@@ -24,7 +24,6 @@ import ConfigParser
 import cPickle
 import zlib
 import pexpect
-import datetime
 import random
 
 from twisted.spread import pb
@@ -42,6 +41,7 @@ from sage.dsage.misc.config import get_conf, get_bool
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.misc import random_str
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
 
@@ -53,10 +53,6 @@ LOG_PREFIX = "[Worker %s] "
 
 def unpickle(pickled_job):
     return cPickle.loads(zlib.decompress(pickled_job))
-
-def random_data(length=500):
-    s = [chr(i) for i in [random.randint(65, 123) for n in range(length)]]
-    return ''.join(s)
 
 class Worker(object):
     """
@@ -275,7 +271,7 @@ except:
         """
 
         if self.log_level > 3:
-            log.msg('[Worker %s, doJob] Beginning job execution...' % (self.id))
+            log.msg(LOG_PREFIX % self.id +'Executing job %s ' % job.job_id)
 
         self.free = False
         d = defer.Deferred()
@@ -438,7 +434,7 @@ class Monitor(object):
 
     def _get_auth_info(self):
         import random
-        self.DATA =  random_data(500)
+        self.DATA =  random_str(500)
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
         try:

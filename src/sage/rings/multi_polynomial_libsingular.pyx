@@ -93,9 +93,16 @@ cdef init_singular():
 
     cdef void *handle
 
-    lib = os.environ['SAGE_LOCAL']+"/lib/libsingular.so"
 
-    handle = dlopen(lib, 256+1)
+    lib = os.environ['SAGE_LOCAL']+"/lib/libsingular.so"
+    if os.path.exists(lib):
+       handle = dlopen(lib, 256+1)
+    else:
+        lib = os.environ['SAGE_LOCAL']+"/lib/libsingular.dylib"
+        if os.path.exists(lib):
+            handle = dlopen(lib, 256+1)
+        else:
+            raise ImportError, "cannot load libSINGULAR library"
 
     if handle == NULL:
         print dlerror()
@@ -639,7 +646,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
             sage: hash(P)
-            -6257278808099690586
+            -6257278808099690586 # 64-bit
+            -1767675994 # 32-bit
         """
         return hash(self.__repr__())
 
@@ -745,7 +753,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             9/4
 
             sage: P.monomial_m_div_n(x,y) # Note the wrong result
-            x*y^1048575*z^1048575
+            x*y^1048575*z^1048575 # 64-bit
+            x*y^65535*z^65535 # 32-bit
 
             sage: P.monomial_m_div_n(x,P(1))
             x

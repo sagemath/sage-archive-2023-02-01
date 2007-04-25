@@ -177,7 +177,7 @@ linbox = Extension('sage.libs.linbox.linbox',
 
 libsingular = Extension('sage.libs.singular.singular',
                         sources = ['sage/libs/singular/singular.pyx'],
-                        libraries = ['gmp', 'm', 'singular'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
                         language="c++",
                         )
 
@@ -435,7 +435,7 @@ ext_modules = [ \
 
     Extension('sage.rings.multi_polynomial_libsingular',
               sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
-              libraries = ['gmp', 'm', 'singular'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
               language="c++",
               ), \
 

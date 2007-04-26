@@ -16,19 +16,7 @@ AUTHOR:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-#import sage.rings.arith
-#import sage.rings.infinity
-#import sage.libs.all
-import sage.rings.padics.padic_ring_generic_element
-import sage.rings.padics.padic_field_generic_element
 import sage.rings.padics.padic_lazy_element
-#import sage.rings.padics.padic_field_capped_relative_element
-#import sage.rings.commutative_ring_element
-#import sage.rings.integer_mod
-#import sage.rings.finite_field_element
-#import sage.rings.integer
-#import sage.rings.rational
-#import sage.rings.padics.precision_error
 
 infinity = sage.rings.infinity.infinity
 PrecisionError = sage.rings.padics.precision_error.PrecisionError
@@ -37,14 +25,14 @@ Rational = sage.rings.rational.Rational
 #Zp = sage.rings.padics.padic_ring_generic.Zp
 Mod = sage.rings.integer_mod.Mod
 pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+pAdicBaseGenericElement = sage.rings.padics.padic_base_generic_element.pAdicBaseGenericElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 #pAdicCappedRelativeElement = sage.rings.padics.padic_field_capped_relative_element.pAdicFieldCappedRelativeElement
 pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
 
-class pAdicRingFixedModElement(pAdicRingGenericElement):
+class pAdicRingFixedModElement(pAdicBaseGenericElement):
     def __init__(self, parent, x, absprec = None, relprec = None, construct=False):
         r"""
         INPUT:
@@ -62,7 +50,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             Elements of IntegerModRing(p^k) for k less than or equal to the modulus
 
         EXAMPLES:
-            sage: R = Zp(5, 20, 'fixed-mod', 'integer')
+            sage: R = Zp(5, 20, 'fixed-mod', 'terse')
 
         Construct from integers:
             sage: R(3)
@@ -128,16 +116,18 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 x.set_precision_absolute(prec)
             except PrecisionError:
                 pass
-        if isinstance(x, pAdicGenericElement):
+            self._value = Mod(x.lift(), self.parent().prime_pow(self.parent().precision_cap()))
+            return
+        if isinstance(x, pAdicBaseGenericElement):
             self._value = Mod(x.lift(), self.parent().prime_pow(self.parent().precision_cap()))
             return
 
         if isinstance(x, pari_gen) and x.type() == "t_PADIC":
             t = x.lift()
             if t.type() == 't_INT':
-                x = int(t)
+                x = Integer(t)
             else:
-                x = QQ(t)
+                raise ValueError, "pari element has negative valuation"
 
         if sage.rings.integer_mod.is_IntegerMod(x):
             # todo: this is wildly inefficient. To check if it's a power of p,
@@ -188,8 +178,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
         if self.valuation() > 0:
             raise ValueError, "cannot invert non-unit"
         else:
-            # todo: use ~(self._value) perhaps? -- dmharvey
-            inverse = 1 / self._value
+            inverse = ~(self._value)
             return pAdicRingFixedModElement(self.parent(), inverse, construct = True)
 
     #def __mod__(self, right):
@@ -354,7 +343,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
     def gamma(self):
         raise NotImplementedError
 
-    def is_zero(self, prec):
+    def is_zero(self, prec = None):
         r"""
         Returns whether self is zero modulo $p^{\mbox{prec}}$.
 
@@ -365,9 +354,11 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             boolean -- whether self is zero
 
         """
+        if prec is None:
+            return self._value == 0
         return Mod(self._value, self.parent().prime_pow(prec)) == 0
 
-    def is_equal_to(self, right, prec): #assumes they have the same parent
+    def is_equal_to(self, right, prec = None): #assumes they have the same parent
         r"""
         Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
 
@@ -379,6 +370,8 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             boolean -- whether self is equal to right
 
         """
+        if prec is None:
+            return self._value == right._value
         return Mod(self._value, self.parent().prime_pow(prec)) == Mod(right._value, self.parent().prime_pow(prec))
 
     def lift(self):
@@ -412,7 +405,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 is $p^n$.
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.list()
-            [0, 2, 1, 0]
+            [O(7^4), 2 + O(7^4), 1 + O(7^4)]
 
         NOTE:
             this differs from the list method of padic_field_element
@@ -421,9 +414,9 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
             if n == 0:
                 return []
             else:
-                return [n % p] + plist(n // p, p)
+                return [self.parent()(n % p)] + plist(n // p, p)
         rep = plist(self._value.lift(), self.parent().prime())
-        return rep + [0 for w in range(len(rep), self.parent().precision_cap())]
+        return rep
 
     def log_artin_hasse(self):
         raise NotImplementedError
@@ -541,7 +534,7 @@ class pAdicRingFixedModElement(pAdicRingGenericElement):
                 True
             sage: R2(17).square_root()
                 1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
-            sage: R3 = Zp(5,20,'fixed-mod', 'integer')
+            sage: R3 = Zp(5,20,'fixed-mod', 'terse')
             sage: R3(0).square_root()
                 0 + O(5^20)
             sage: R3(1).square_root()

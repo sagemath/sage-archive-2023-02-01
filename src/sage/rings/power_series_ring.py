@@ -31,6 +31,15 @@ An iterated example:
     sage: S.base_ring()
     Power Series Ring in t over Integer Ring
 
+We compute with power series over the symbolic ring.
+    sage: K.<t> = PowerSeriesRing(SR, 5)
+    sage: f = a + b*t + c*t^2 + O(t^3)
+    sage: f*f
+    a^2 + ((b + a)^2 - b^2 - a^2)*t + ((c + b + a)^2 - (c + b)^2 - (b + a)^2 + 2*b^2)*t^2 + O(t^3)
+    sage: f = sqrt(2) + sqrt(3)*t + O(t^3)
+    sage: f^2
+    2 + ((sqrt(3) + sqrt(2))^2 - 5)*t + 3*t^2 + O(t^3)
+
 Elements are first coerced to constants in base_ring, then coerced into the
 PowerSeriesRing:
     sage: R.<t> = PowerSeriesRing(ZZ)
@@ -55,6 +64,16 @@ We make a sparse Laurent series from a power series generator:
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
+
+TESTS:
+    sage: R.<t> = PowerSeriesRing(QQ)
+    sage: R == loads(dumps(R))
+    True
+
+    sage: R.<x> = PowerSeriesRing(QQ, sparse=True)
+    sage: R == loads(dumps(R))
+    True
+
 """
 
 import weakref
@@ -103,13 +122,15 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None, sparse=Fa
         sage: R = PowerSeriesRing(QQ, 10)
         Traceback (most recent call last):
         ...
-        TypeError: illegal variable name
+        ValueError: first letter of variable name must be a letter
 
         sage: S = PowerSeriesRing(QQ, 'x', default_prec = 15); S
         Power Series Ring in x over Rational Field
         sage: S.default_prec()
         15
     """
+    if isinstance(name, (int,long,integer.Integer)):
+        default_prec = name
     if not names is None:
         name = names
     try:
@@ -398,7 +419,7 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
             sage: R.base_extend(QuadraticField(3,'a'))
             Power Series Ring in T over Number Field in a with defining polynomial x^2 - 3
         """
-        return PowerSeriesRing(R, name = self.variable_name())
+        return PowerSeriesRing(R, name = self.variable_name(), default_prec = self.default_prec())
 
     def is_exact(self):
         return False
@@ -433,13 +454,13 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         """
         return 1
 
-    def random_element(self, prec, bound=0):
+    def random_element(self, prec, bound=None):
         """
         Return a random power series.
 
         INPUT:
             prec -- an integer
-            bound -- an integer (default: 0, which tries to spread choice across
+            bound -- an integer (default: None, which tries to spread choice across
                          ring, if implemented)
 
         OUTPUT:

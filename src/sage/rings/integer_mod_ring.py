@@ -344,12 +344,17 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         # need to; really it just needs to know if n is a prime power or not,
         # which is easier than factoring.
 
-        F = arith.factor(n)
-        if len(F) > 1:
+        if n.is_perfect_power():
+            F = arith.factor(n)
+            if len(F) > 1:
+                return False
+            if F[0][0] == 2:
+                return False
+            return True
+
+        else:
             return False
-        if F[0][0] == 2:
-            return False
-        return True
+
 
     def multiplicative_generator(self):
         """
@@ -391,6 +396,15 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 raise ValueError, "multiplicative group of this ring is not cyclic"
             self.__mult_gen = a
             return a
+
+    def quadratic_nonresidue(self):
+        try:
+            return self._nonresidue
+        except AttributeError:
+            for a in self:
+                if not a.is_square():
+                    self._nonresidue = a
+                    return a
 
     def factored_order(self):
         """

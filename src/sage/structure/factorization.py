@@ -17,7 +17,7 @@ factorizations.
     (-5) * (x - 3) * (x - 2)
     sage: F.unit()
     -5
-    sage: mul(F)            # or F.mul() or F.prod()
+    sage: expand(F)
     -5*x^2 + 25*x - 30
 
 The underlying list is the list of pairs $(p_i, e_i)$, where $p_i$
@@ -44,7 +44,7 @@ factorization has three factors:
     1
     sage: list(F)
     [(-5, 1), (x - 3, 1), (x - 2, 1)]
-    sage: mul(F)            # or F.mul() or F.prod()
+    sage: expand(F)
     -5*x^2 + 25*x - 30
     sage: len(F)
     3
@@ -237,7 +237,7 @@ class Factorization(SageObject, list):
             sage: factor(10) - 16
             -6
         """
-        return self.mul() + other
+        return self.value() + other
 
 
     def __sub__(self, other):
@@ -250,7 +250,7 @@ class Factorization(SageObject, list):
             sage: factor(10) - 16
             -6
         """
-        return self.mul() - other
+        return self.value() - other
 
     def __mul__(self, other):
         """
@@ -263,7 +263,7 @@ class Factorization(SageObject, list):
             -1 * 2^5 * 5
         """
         if not isinstance(other, Factorization):
-            return self.mul() * other
+            return self.value() * other
         d1 = dict(self)
         d2 = dict(other)
         s = {}
@@ -297,19 +297,27 @@ class Factorization(SageObject, list):
             x *= (f**e)
         return x
 
-    def mul(self):
+    def expand(self):
+        r"""
+        Same as \code{self.value()}.
+        """
         return self.value()
 
     def prod(self):
         r"""
-        Same as \code{self.mul()}.
+        Same as \code{self.value()}.
+
+        EXAMPLES:
+            sage: F = factor(100)
+            sage: F.prod()
+            100
         """
-        return self.mul()
+        return self.value()
 
 
 def Factorization_deduce_unit(x, mul):
     F = Factorization(x)
-    z = F.mul()
+    z = F.value()
     u = mul/z
     F._Factorization__unit = u
     return F

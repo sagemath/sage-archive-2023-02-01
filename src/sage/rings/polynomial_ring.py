@@ -167,8 +167,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-        #    return x.univariate_polynomial(self)
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         if absprec is None:
@@ -284,7 +284,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return "%s[%s]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
 
     def __set_polynomial_class(self, cls=None):
-        from padics.unramified_ring_extension import UnramifiedRingExtension #here for a hack.  Should be removed after hack is gone
         if not (cls is None):
             self.__polynomial_class = cls
             return
@@ -297,9 +296,6 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_lazy_dense
         elif isinstance(R, padics.padic_field_lazy.pAdicFieldLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_lazy_dense
-        elif isinstance(R, UnramifiedRingExtension) and R.ground_ring_of_tower().is_field():
-            #hack.  Should be removed after we fix inheretance structure
-            self.__polynomial_class = polynomial_element_generic.Polynomial_padic_field_dense
         elif isinstance(R, padics.padic_ring_generic.pAdicRingGeneric):
             self.__polynomial_class = polynomial_element_generic.Polynomial_padic_ring_dense
         elif isinstance(R, padics.padic_field_generic.pAdicFieldGeneric):
@@ -438,6 +434,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if R.is_finite() and R.order() == 1:
             return True
         return False
+
+    def is_exact(self):
+        return self.base_ring().is_exact()
 
     def is_field(self):
         """
@@ -831,6 +830,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 

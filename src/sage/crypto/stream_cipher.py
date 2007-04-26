@@ -43,6 +43,14 @@ class LFSRCipher(SymmetricKeyCipher):
             00111001110111101011111001001101110101011011101000011001100101101011001000000011100101101010111100000101110100111111101100000101110101111010111101000011
             sage: m == e(e(m))
             True
+
+        TESTS:
+            sage: FF = FiniteField(2)
+            sage: P.<x> = PolynomialRing(FF)
+            sage: E = LFSRCryptosystem(FF)
+            sage: E == loads(dumps(E))
+            True
+
         """
         SymmetricKeyCipher.__init__(self, parent, key = (poly, IS))
 

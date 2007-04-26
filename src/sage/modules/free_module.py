@@ -106,6 +106,7 @@ import sage.misc.latex as latex
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
+import sage.rings.finite_field as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
@@ -291,8 +292,6 @@ def VectorSpace(K, dimension, sparse=False,  inner_product_matrix=None):
         TypeError: K must be a field
     """
 
-    if not ring.is_Ring(K):
-        raise TypeError, "K must be a field"
     if not K.is_field():
         raise TypeError, "K must be a field"
     return FreeModule(K, dimension, sparse, inner_product_matrix)
@@ -2655,6 +2654,24 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
             Rational Field
         """
         return self.base_ring()
+
+    def __call__(self, e, coerce=True, copy=True, check=True):
+        """
+
+        EXAMPLE:
+            sage: k.<a> = GF(3^4)
+            sage: VS = k.vector_space()
+            sage: VS(a)
+            (0, 1, 0, 0)
+
+        """
+        try:
+            k = e.parent()
+            if finite_field.is_FiniteField(k) and k.base_ring() == self.base_ring() and k.degree() == self.degree():
+                return self(e.vector())
+        except AttributeError:
+            pass
+        return FreeModule_generic_field.__call__(self,e)
 
 
 ###############################################################################

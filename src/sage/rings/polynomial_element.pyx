@@ -4,6 +4,13 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1)
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################
@@ -94,6 +101,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
+    cdef ModuleElement _neg_c_impl(self):
+        return self.polynomial([-x for x in self.list()])
+
     def _add_(self, right):
         if self.degree() >= right.degree():
             x = list(self.list())
@@ -141,7 +151,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
         return self * self.parent()(right)
 
-    def __call__(self, *a):
+    def __call__(self, *x):
         """
         Evaluate polynomial at x=a using Horner's rule
 
@@ -191,27 +201,58 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: b.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Rational Field
 
+        Nested polynomial ring elements can be called like multi-variate polynomials.
+            sage: R.<x> = QQ[]
+            sage: S.<y> = R[]
+            sage: f = x+y*x+y^2
+            sage: f.parent()
+            Univariate Polynomial Ring in y over Univariate Polynomial Ring in x over Rational Field
+            sage: f(2)
+            3*x + 4
+            sage: f(2,4)
+            16
+            sage: R.<t> = PowerSeriesRing(QQ, 't'); S.<x> = R[]
+            sage: f = 1 + x*t^2 + 3*x*t^4
+            sage: f(2)
+            1 + 2*t^2 + 6*t^4
+            sage: f(2, 1/2)
+            15/8
 
         AUTHORS:
             -- David Joyner, 2005-04-10
             -- William Stein, 2006-01-22; change so parent
                is determined by the arithmetic
             -- William Stein, 2007-03-24: fix parent being determined in the constant case!
+            -- Robert Bradshaw, 2007-04-09: add support for nested calling
         """
-        a = a[0]
-        if isinstance(a, tuple):
-            a = a[0]
+        if isinstance(x[0], tuple):
+            x = x[0]
+        a = x[0]
+
         d = self.degree()
         result = self[d]
+        if len(x) > 1:
+            other_args = x[1:]
+            if hasattr(result, '__call__'):
+                result = result(other_args)
+            else:
+                raise TypeError, "Wrong number of arguments"
+
         if d == 0:
             try:
                 return a.parent()(1) * result
             except AttributeError:
                 return result
+
         i = d - 1
-        while i >= 0:
-            result = result * a + self[i]
-            i -= 1
+        if len(x) > 1:
+            while i >= 0:
+                result = result * a + self[i](other_args)
+                i -= 1
+        else:
+            while i >= 0:
+                result = result * a + self[i]
+                i -= 1
         return result
 
     cdef int _cmp_c_impl(self, Element other) except -2:
@@ -465,7 +506,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -486,6 +527,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -498,6 +540,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """
@@ -907,7 +950,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
-            sage: F.mul()
+            sage: expand(F)
             2*x^10 + 2*x + 2*a
 
         Factorization also works even if the variable of the finite field is nefariously
@@ -942,7 +985,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
             (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
             1.0000000000000000000000000000*x^2 + 1.0000000000000000000000000000
@@ -950,15 +993,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = C[]
             sage: F = factor(x^2+3); F
             (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
             (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: f = C.0 * (x^2 + 1) ; f
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
-            sage: F=factor(f); F
+            sage: F = factor(f); F
             (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
         """
 
@@ -1212,9 +1255,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_gen(self):
         return bool(self._is_gen)
 
-    def is_zero(self):
-        return bool(self.degree() == -1)
-
     def leading_coefficient(self):
         return self[self.degree()]
 
@@ -1379,7 +1419,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.__pari
 
     def _pari_init_(self):
-        return str(self._pari_())
+        return repr(self._pari_())
 
     def _magma_init_(self):
         """
@@ -1424,7 +1464,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return f
 
     def _gap_init_(self):
-        return str(self)
+        return repr(self)
 
     def _gap_(self, G):
         """
@@ -1533,9 +1573,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
 
             sage: x = CC['x'].0
-            sage: f = (x-1)*(x-I)
+            sage: i = CC.0
+            sage: f = (x - 1)*(x - i)
             sage: f.roots()
             [1.00000000000000*I, 1.00000000000000]
+
+        A purely symbolic roots example:
+            sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
+            X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
+            sage: print f.roots()
+            [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
         """
         seq = []
 

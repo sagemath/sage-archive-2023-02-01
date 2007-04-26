@@ -872,15 +872,13 @@ cdef class CanonicalForm:
         #}embed
         return bool(CF_isOne(self.thisptr))
 
-    def is_zero(CanonicalForm self):
+    def __nonzero__(CanonicalForm self):
         """
-        This predicate returns true if self represents the zero
-        element of the current base domain. Like the predicate is_one
-        using the predicate f.is_zero() is also faster than a
-        comparison via f == 0.
+        This predicate returns true if self does not represent the zero
+        element of the current base domain.
         """
         #embed{ int CF_isZero(void *e)
-        return ((CanonicalForm*)e)->isZero();
+        return not ((CanonicalForm*)e)->isZero();
         #}embed
 
         return bool(CF_isZero(self.thisptr))

@@ -24,6 +24,12 @@ MAX_OUTPUT = 65536
 
 TRACEBACK = 'Traceback (most recent call last):'
 
+import re
+
+# This regexp matches "cell://blah..." in a non-greedy way (the ?), so
+# we don't get several of these combined in one.
+re_cell = re.compile('"cell://.*?"')
+re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 
 import os, shutil
 
@@ -314,6 +320,13 @@ class Cell(Cell_generic):
             self.__introspect_html = ''
             return ''
 
+    def process_cell_urls(self, x):
+        end = '?%d"'%self.version()
+        begin = '"%s/'%self.directory()
+        for s in re_cell.findall(x) + re_cell_2.findall(x):
+            x = x.replace(s,begin + s[7:-1] + end)
+        return x
+
     def output_text(self, ncols=0, html=True, raw=False):
         s = self.__out
 
@@ -323,6 +336,10 @@ class Cell(Cell_generic):
         if html:
             def format(x):
                 return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
+            def format_html(x):
+                x = self.process_cell_urls(x)
+                return x
 
             # if there is an error in the output,
             # specially format it.
@@ -341,7 +358,7 @@ class Cell(Cell_generic):
                 if j == -1:
                     t += format(s)
                     break
-                t += format(s[:i]) + s[i+6:j]
+                t += format(s[:i]) + format_html(s[i+6:j])
                 s = s[j+7:]
             s = t
             if not self.is_html() and len(s.strip()) > 0:
@@ -481,7 +498,7 @@ class Cell(Cell_generic):
         r = len(t.splitlines())
 
         s += """
-           <textarea class="%s" rows=%s cols=100000 columns=100000
+           <textarea class="%s" rows=%s cols=100000
               id         = 'cell_input_%s'
               onKeyPress = 'return input_keypress(%s,event);'
               onInput   = 'cell_input_resize(this); return true;'
@@ -489,18 +506,17 @@ class Cell(Cell_generic):
            >%s</textarea>
         """%('hidden', r, id, id, id, t)
 
-        if r == 0:
-            t = ' '
+        t = t.replace("<","&lt;")+" "
 
         s += """
            <pre class="%s"
               id         = 'cell_display_%s'
-              onClick  = 'cell_focus(%s, false); return true;'
+              onClick  = 'cell_focus(%s, false); return false;'
            >%s</pre>
         """%(cls, id, id, t)
         return s
 
-    def files_html(self):
+    def files_html(self, out=''):
         dir = self.directory()
         D = os.listdir(dir)
         D.sort()
@@ -512,6 +528,8 @@ class Cell(Cell_generic):
         # the async request requests the output text for a computation.
         # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
+            if 'cell://%s'%F in out:
+                continue
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
             elif F[-4:] == '.svg':
@@ -646,5 +664,6 @@ def math_parse(s):
         if typ == 'div':
             s = s[1:]
     return t
+
 
 

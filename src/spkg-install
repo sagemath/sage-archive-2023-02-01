@@ -48,6 +48,10 @@ if [ -d "$DEVEL/sage-main" ]; then
 
     touch */*.pyx */*/*.pyx */*/*/*.pyx */*/*/*/*.pyx */*/*/*/*/*.pyx */*/*/*/*/*.pyx  */*/*/*/*/*/*.pyx  2> /dev/null
 
+    # We also delete the build directory, since it could contain
+    # old .py files we don't want anymore.
+    rm -rf build
+
     "$SAGE_ROOT/sage" -b main
     if [ $? -ne 0 ]; then
         echo "Error building new version of SAGE."

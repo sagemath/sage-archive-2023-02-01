@@ -29,18 +29,12 @@ exit = quit
 
 import os, sys
 
+if not os.environ.has_key('SAGE_ROOT'):
+    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
+
 if sys.version_info[:2] < (2, 5):
     print >>sys.stderr, "SAGE requires Python 2.5 or newer"
     sys.exit(1)
-
-try:
-    _l = '%s/local/lib'%os.environ['SAGE_ROOT']
-    if os.environ.has_key('LD_LIBRARY_PATH'):
-        if not _l in os.environ['LD_LIBRARY_PATH']:
-            raise KeyError
-    del _l
-except KeyError, msg:
-    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
 
 ###################################################################
@@ -76,7 +70,7 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
-#from sage.calculus.all   import *
+from sage.calculus.all   import *
 from sage.server.all     import *
 from sage.dsage.all      import *
 import sage.tests.all as tests
@@ -119,7 +113,6 @@ except:
 
 # very useful 2-letter shortcuts
 CC = ComplexField()
-I = CC.gen(0)
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
@@ -141,7 +134,7 @@ true = True
 false = False
 
 oo = infinity
-x = PolynomialRing(QQ,'x').gen()
+#x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()

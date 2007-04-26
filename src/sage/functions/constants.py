@@ -18,7 +18,7 @@ Mathematica, Maple, Octave, and Singular:
     sage: euler_gamma   # Euler's gamma constant
     euler_gamma
     sage: catalan       # the Catalon constant
-    K
+    catalan
     sage: khinchin      # Khinchin's constant
     khinchin
 
@@ -53,15 +53,15 @@ type the following:
 Arithmetic operations with constants also yield constants, which
 can be coerced into other systems or evaluated.
     sage: a = pi + e*4/5; a
-    (pi + ((e*4)/5))
+    pi + 4*e/5
     sage: maxima(a)
-    %pi + 4*%e/5
-    sage: a.str(15)      # 15 *bits* of precision
-    '5.316'
+    %pi+4*%e/5
+    sage: RealField(15)(a)           # 15 *bits* of precision
+    5.316
     sage: gp(a)
-    5.316218116357029426750873360            # 32-bit
-    5.3162181163570294267508733603616328824  # 64-bit
-    sage: mathematica(a)                     # optional
+    5.316218116357029426750873360              # 32-bit
+    5.3162181163570294267508733603616328824    # 64-bit
+    sage: print mathematica(a)                     # optional
      4 E
      --- + Pi
       5
@@ -101,21 +101,25 @@ by coercing into the real field with given precision.  For example, to
 
 
 EXAMPLES: Arithmetic with constants
+    sage: f = I*(e+1); f
+    (e + 1)*I
+    sage: f^2
+    -(e + 1)^2
 
     sage: pp = pi+pi; pp
-    (pi + pi)
+    2*pi
     sage: R(pp)
     6.2831853071795864769252867665590057683943387987502116419499
 
-    sage: s = (1 + e^pi);s
-    (1 + (e^pi))
+    sage: s = (1 + e^pi); s
+    e^pi + 1
     sage: R(s)
     24.140692632779269005729086367948547380266106242600211993445
     sage: R(s-1)
     23.140692632779269005729086367948547380266106242600211993445
 
-    sage: l = (1-log2)/(1+log2);l
-    ((1 - log2)/(1 + log2))
+    sage: l = (1-log2)/(1+log2); l
+    (1 - log(2))/(log(2) + 1)
     sage: R(l)
     0.18123221829928249948761381864650311423330609774776013488056
 
@@ -155,42 +159,69 @@ from sage.misc.latex import latex
 
 from functions import Function_gen, Function_arith, Function, FunctionRing_class
 
+
 ######################
 # Ring of Constants
 ######################
 
-class ConstantRing_class(FunctionRing_class):
-    def _repr_(self):
-        return "Ring of Real Mathematical Constants"
+## class ConstantRing_class(FunctionRing_class):
+##     def _repr_(self):
+##         return "Ring of Real Mathematical Constants"
 
-    def __cmp__(self, right):
-        if isinstance(right, ConstantRing_class):
-            return 0
-        return -1
+##     def __cmp__(self, right):
+##         if isinstance(right, ConstantRing_class):
+##             return 0
+##         return -1
 
-    def __call__(self, x):
-        try:
-            return self._coerce_(x)
-        except TypeError:
-            return Constant_gen(x)
+##     def __call__(self, x):
+##         try:
+##             return self._coerce_(x)
+##         except TypeError:
+##             return Constant_gen(x)
 
-    def _coerce_impl(self, x):
-        if isinstance(x, (sage.rings.integer.Integer,
-                          sage.rings.rational.Rational, int, long)):
-            return Constant_gen(x)
-        raise TypeError, 'no canonical coercion of element into self.'
+##     def _coerce_impl(self, x):
+##         if isinstance(x, (sage.rings.integer.Integer,
+##                           sage.rings.rational.Rational, int, long)):
+##             return Constant_gen(x)
+##         raise TypeError, 'no canonical coercion of element into self.'
 
-ConstantRing = ConstantRing_class()
+## ConstantRing = ConstantRing_class()
 
 
 ######################
 # Constant functions
 ######################
+import sage.calculus.calculus
 
 class Constant(Function):
     def __init__(self, conversions={}):
         self._conversions = conversions
-        RingElement.__init__(self, ConstantRing)
+        RingElement.__init__(self, sage.calculus.calculus.SR)
+
+    def _has_op(self, x):
+        return False
+
+    def substitute(self, *args, **kwds):
+        return self
+
+    def _recursive_sub(self, kwds):
+        return self
+
+    def _recursive_sub(self, kwds):
+        return self
+
+    def _recursive_sub_over_ring(self, kwds, ring):
+        return ring(self)
+
+    def variables(self):
+        return []
+
+    def _ser(self):
+        try:
+            return self.__ser
+        except AttributeError:
+            self.__ser = sage.calculus.calculus.SR._coerce_impl(self)
+            return self.__ser
 
     def _neg_(self):
         return -Integer(1)*self
@@ -201,25 +232,33 @@ class Constant(Function):
     def floor(self):
         return Integer(int(float(self)))
 
+    def _latex_(self):
+        return '\\text{%s}'%self
+
+    def _complex_mpfr_field_(self, R):
+        return R(self._mpfr_(R._real_field()))
+
+    def _real_double_(self, R):
+        return R(float(self))
+
+    def _complex_double_(self, R):
+        return R(float(self))
+
     # The following adds formal arithmetic support for generic constant
     def _add_(self, right):
-        return Constant_arith(self, right, operator.add)
+        return self._ser() + right
 
     def _sub_(self, right):
-        return Constant_arith(self, right, operator.sub)
+        return self._ser() - right
 
     def _mul_(self, right):
-        return Constant_arith(self, right, operator.mul)
+        return self._ser() * right
 
     def _div_(self, right):
-        return Constant_arith(self, right, operator.div)
+        return self._ser() / right
 
     def __pow__(self, right):
-        try:
-            right = self.parent()._coerce_(right)
-        except TypeError:
-            raise TypeError, "computation of %s^%s not defined"%(self, right)
-        return Constant_arith(self, right, operator.pow)
+        return self._ser() ** right
 
     def _interface_is_cached_(self):
         """
@@ -260,7 +299,6 @@ class Constant_arith(Constant, Function_arith):
         Function_arith.__init__(self, x, y, op)
         Constant.__init__(self)
 
-
 class Pi(Constant):
     """
     The ratio of a circle's circumference to its diameter.
@@ -280,7 +318,7 @@ class Pi(Constant):
         sage: R(pi)
         3.1415926535897932384626433832795028841971693993751058209749
         sage: pp = pi+pi; pp
-        (pi + pi)
+        2*pi
         sage: R(pp)
         6.2831853071795864769252867665590057683943387987502116419499
         sage: maxima(pi)
@@ -294,7 +332,7 @@ class Pi(Constant):
              'maxima':'%pi','gp':'Pi','kash':'PI','mathematica':'Pi',
              'matlab':'pi','maple':'Pi','octave':'pi','pari':'Pi'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return "pi"
 
     def _latex_(self):
@@ -309,8 +347,8 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
-    def _real_double_(self):
-        return sage.rings.all.RD.pi()
+    def _real_double_(self,R):
+        return R.pi()
 
     def __abs__(self):
         if self.str()[0] != '-':
@@ -329,6 +367,74 @@ class Pi(Constant):
 pi = Pi()
 
 
+class I_class(Constant):
+    """
+    The formal square root of -1.
+
+    EXAMPLES:
+        sage: I
+        I
+        sage: I^2
+        -1
+        sage: float(I)
+        Traceback (most recent call last):
+        ...
+        TypeError
+        sage: gp(I)
+        I
+        sage: RR(I)
+        Traceback (most recent call last):
+        ...
+        TypeError
+        sage: C = ComplexField(200); C
+        Complex Field with 200 bits of precision
+        sage: C(I)
+        1.0000000000000000000000000000000000000000000000000000000000*I
+        sage: z = I + I; z
+        2*I
+        sage: C(z)
+        2.0000000000000000000000000000000000000000000000000000000000*I
+        sage: maxima(2*I)
+        2*%i
+    """
+    def __init__(self):
+        Constant.__init__(self,
+            {'axiom':'%i',
+             'maxima':'%i','gp':'I','mathematica':'I',
+             'matlab':'i','maple':'I','octave':'i','pari':'I'})
+
+    def _repr_(self, simplify=True):
+        return "I"
+
+    def _latex_(self):
+        return "i"
+
+    def _mathml_(self):
+        return "<mi>&i;</mi>"
+
+    def __float__(self):
+        raise TypeError
+
+    def _mpfr_(self, R):
+        raise TypeError
+
+    def _complex_mpfr_field_(self, R):
+        return R.gen()
+
+    def _complex_double_(self, C):
+        return C.gen()
+
+    def _real_double_(self, R):
+        raise TypeError
+
+    def __abs__(self):
+        return Integer(1)
+
+    def floor(self):
+        raise TypeError
+
+I = I_class()
+
 class E(Constant):
     """
     The base of the natural logarithm.
@@ -341,7 +447,7 @@ class E(Constant):
         sage: R(e)
         2.7182818284590452353602874713526624977572470936999595749670
         sage: em = 1 + e^(1-e); em
-        (1 + (e^(1 - e)))
+        e^(1 - e) + 1
         sage: R(em)
         1.1793740787340171819619895873183164984596816017589156131574
         sage: maxima(e).float()
@@ -363,7 +469,7 @@ class E(Constant):
              'maple':'exp(1)',
              'octave':'e'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'e'
 
     def _latex_(self):
@@ -378,8 +484,8 @@ class E(Constant):
     def floor(self):
         return Integer(2)
 
-    def _real_double_(self):
-        return sage.rings.all.RD.e()
+    def _real_double_(self, R):
+        return R(1).exp()
 
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
@@ -390,8 +496,6 @@ class E(Constant):
 e = E()
 ee = e
 
-
-
 class NotANumber(Constant):
     """
     Not a Number
@@ -400,14 +504,14 @@ class NotANumber(Constant):
         Constant.__init__(self,
 	    {'matlab':'NaN'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'NaN'
 
     def _mpfr_(self,R):
         return R('NaN') #??? nan in mpfr: void mpfr_set_nan (mpfr_t x)
 
-    def _real_double_(self):
-        return sage.rings.all.RD.nan()
+    def _real_double_(self, R):
+        return R.nan()
 
 NaN = NotANumber()
 
@@ -423,9 +527,9 @@ class GoldenRatio(Constant):
         sage: R(gr)
         1.6180339887498948482045868343656381177203091798057628621354
         sage: grm = maxima(golden_ratio);grm
-        (sqrt(5) + 1)/2
+        (sqrt(5)+1)/2
         sage: grm + grm
-        sqrt(5) + 1
+        sqrt(5)+1
         sage: float(grm + grm)
         3.2360679774997898
     """
@@ -434,7 +538,7 @@ class GoldenRatio(Constant):
 				'maple':'(1+sqrt(5))/2','maxima':'(1+sqrt(5))/2',
 				'pari':'(1+sqrt(5))/2','octave':'(1+sqrt(5))/2',
 				'kash':'(1+Sqrt(5))/2'})
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'golden_ratio'
 
     def _latex_(self):
@@ -443,13 +547,13 @@ class GoldenRatio(Constant):
     def __float__(self):
         return float(0.5)*(float(1.0)+math.sqrt(float(5.0)))
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(golden_ratio)
             1.61803398875
         """
-        return sage.rings.all.RDF(1.61803398874989484820458)
+        return R('1.61803398874989484820458')
 
     def _mpfr_(self,R):  #is this OK for _mpfr_ ?
 	return (R(1)+R(5).sqrt())*R(0.5)
@@ -471,8 +575,8 @@ class Log2(Constant):
         Real Field with 200 bits of precision
         sage: R(log2)
         0.69314718055994530941723212145817656807550013436025525412068
-        sage: l = (1-log2)/(1+log2);l
-        ((1 - log2)/(1 + log2))
+        sage: l = (1-log2)/(1+log2); l
+        (1 - log(2))/(log(2) + 1)
         sage: R(l)
         0.18123221829928249948761381864650311423330609774776013488056
         sage: maxima(log2)
@@ -491,7 +595,7 @@ class Log2(Constant):
 				'maple':'log(2)','maxima':'log(2)','gp':'log(2)',
 				'pari':'log(2)','octave':'log(2)'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'log2'
 
     def _latex_(self):
@@ -500,13 +604,13 @@ class Log2(Constant):
     def __float__(self):
         return math.log(2)
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(log2)
             0.69314718056
         """
-        return sage.rings.all.RD.log2()
+        return R.log2()
 
     def _mpfr_(self,R):
         return R.log2()
@@ -528,17 +632,18 @@ class EulerGamma(Constant):
         Real Field with 200 bits of precision
         sage: R(euler_gamma)
         0.57721566490153286060651209008240243104215933593992359880577
-        sage: eg = euler_gamma + euler_gamma;eg
-        (euler_gamma + euler_gamma)
+        sage: eg = euler_gamma + euler_gamma; eg
+        2*euler_gamma
         sage: R(eg)
         1.1544313298030657212130241801648048620843186718798471976115
     """
     def __init__(self):
         Constant.__init__(self,
 	    {'kash':'EulerGamma(R)','maple':'gamma',
-             'mathematica':'EulerGamma','pari':'Euler'})
+             'mathematica':'EulerGamma','pari':'Euler',
+             'maxima':'%gamma', 'maxima':'euler_gamma'})
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'euler_gamma'
 
     def _latex_(self):
@@ -547,13 +652,13 @@ class EulerGamma(Constant):
     def _mpfr_(self,R):
         return R.euler_constant()
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(euler_gamma)
             0.577215664902
         """
-        return sage.rings.all.RD.euler()
+        return R.euler_constant()
 
     def floor(self):
         return Integer(0)
@@ -566,29 +671,28 @@ class Catalan(Constant):
     function evaluated at the number 2.
 
     EXAMPLES:
+        sage: catalan^2 + merten
+        merten + catalan^2
     """
     def __init__(self):
         Constant.__init__(self,
              {'mathematica':'Catalan','kash':'Catalan(R)', #kash: R is default prec
-	      'maple':'Catalan'})
+              'maple':'Catalan', 'maxima':'catalan'})
 
-    def _repr_(self):
-        return 'K'
-
-    def _latex_(self):
-        return 'K'
+    def _repr_(self, simplify=True):
+        return 'catalan'
 
     def _mpfr_(self, R):
         return R.catalan_constant()
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
         We coerce to the real double field:
             sage: RDF(catalan)
             0.915965594177
         """
-        return sage.rings.all.RDF(0.91596559417721901505460351493252)
+        return R('0.91596559417721901505460351493252')
 
     def __float__(self):
         """
@@ -616,22 +720,18 @@ class Khinchin(Constant):
         sage: m = mathematica(khinchin); m             # optional
         Khinchin
         sage: m.N(200)                                 # optional
-             2.685452001065306445309714835481795693820382293994462953051152345557     # 32-bit
-        >    218859537152002801141174931847697995153465905288090082897677716410963051 # 32-bit
-        >    7925334832596683818523154213321194996260393285220448194096181            # 32-bit
-             2.685452001065306445309714835481795693820382293994462953051152345557     # 64-bit
-        >    218859537152002801141174931847697995153465905288090082897677716410963051 # 64-bit
-        >    7925334832596683818523154213321194996260393285220448194096181            # 64-bit
+             2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289    # 32-bit
+             2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096181                # 64-bit
     """
     def __init__(self):
         Constant.__init__(self,
-             {'mathematica':'Khinchin'}) #Khinchin is only implemented in Mathematica
+             {'maxima':'khinchin', 'mathematica':'Khinchin'}) #Khinchin is only implemented in Mathematica
 
         # digits come from http://pi.lacim.uqam.ca/piDATA/khintchine.txt
         self.__value = "2.6854520010653064453097148354817956938203822939944629530511523455572188595371520028011411749318476979951534659052880900828976777164109630517925334832596683818523154213321194996260393285220448194096180686641664289308477880620360737053501033672633577289049904270702723451702625237023545810686318501032374655803775026442524852869468234189949157306618987207994137235500057935736698933950879021244642075289741459147693018449050601793499385225470404203377985639831015709022233910000220772509651332460444439191691460859682348212832462282927101269069741823484776754573489862542033926623518620867781366509696583146995271837448054012195366666049648269890827548115254721177330319675947383719393578106059230401890711349624673706841221794681074060891827669566711716683740590473936880953450489997047176390451343232377151032196515038246988883248709353994696082647818120566349467125784366645797409778483662049777748682765697087163192938512899314199518611673792654620563505951385713761697126872299805327673278710513763"
         self.__bits = len(self.__value)*3-1   # underestimate
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'khinchin'
 
     def _mpfr_(self, R):
@@ -639,13 +739,13 @@ class Khinchin(Constant):
             return R(self.__value)
         raise NotImplementedError, "Khinchin's constant only available up to %s bits"%self.__bits
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(khinchin)
             2.68545200107
         """
-	return sage.rings.all.RDF(2.685452001065306445309714835481795693820)
+	return R('2.685452001065306445309714835481795693820')
 
 
     def __float__(self):
@@ -671,7 +771,7 @@ class TwinPrime(Constant):
         0.66016181584686957392781211001455577843262336028473341331945
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Twin prime is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':'twinprime'}) #Twin prime is not implemented in any other algebra systems.
 
         #digits come from http://www.gn-50uma.de/alula/essays/Moree/Moree-details.en.shtml
 
@@ -682,7 +782,7 @@ class TwinPrime(Constant):
     def floor(self):
         return Integer(0)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'twinprime'
 
     def _mpfr_(self, R):
@@ -690,13 +790,13 @@ class TwinPrime(Constant):
             return R(self.__value)
         raise NotImplementedError, "Twin Prime constant only available up to %s bits"%self.__bits
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(twinprime)
             0.660161815847
         """
-	return sage.rings.all.RDF(0.660161815846869573927812110014555778432)
+	return R('0.660161815846869573927812110014555778432')
 
     def __float__(self):
         """
@@ -723,7 +823,7 @@ class Merten(Constant):
         0.26149721284764278375542683860869585905156664826119920619206
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Merten's constant is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':'merten'}) #Merten's constant is not implemented in any other algebra systems.
 
         # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=77761&fmt=0
 
@@ -734,7 +834,7 @@ class Merten(Constant):
     def floor(self):
         return Integer(0)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'merten'
 
     def _mpfr_(self, R):
@@ -751,13 +851,13 @@ class Merten(Constant):
             return R(self.__value)
         raise NotImplementedError, "Merten's constant only available up to %s bits"%self.__bits
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(merten)
             0.261497212848
         """
-        return sage.rings.all.RDF(0.261497212847642783755426838608695859051)
+        return R('0.261497212847642783755426838608695859051')
 
     def __float__(self):
         """
@@ -766,6 +866,7 @@ class Merten(Constant):
             0.26149721284764277
         """
 	return 0.261497212847642783755426838608695859051
+
 
 merten = Merten()
 
@@ -786,7 +887,7 @@ class Brun(Constant):
         1.90216058310
     """
     def __init__(self):
-        Constant.__init__(self,{}) #Brun's constant is not implemented in any other algebra systems.
+        Constant.__init__(self,{'maxima':"brun"}) #Brun's constant is not implemented in any other algebra systems.
 
         # digits come from Sloane's tables at http://www.research.att.com/~njas/sequences/table?a=65421&fmt=0
 
@@ -797,7 +898,7 @@ class Brun(Constant):
     def floor(self):
         return Integer(1)
 
-    def _repr_(self):
+    def _repr_(self, simplify=True):
         return 'brun'
 
     def _mpfr_(self, R):
@@ -814,13 +915,13 @@ class Brun(Constant):
             return R(self.__value)
         raise NotImplementedError, "Brun's constant only available up to %s bits"%self.__bits
 
-    def _real_double_(self):
+    def _real_double_(self, R):
         """
         EXAMPLES:
             sage: RDF(brun)
             1.9021605831
         """
-        return sage.rings.all.RDF(1.9021605831040)
+        return R('1.9021605831040')
 
     def __float__(self):
         """
@@ -832,50 +933,3 @@ class Brun(Constant):
 
 brun=Brun()
 
-class UniversalPolynomialElement(Constant):
-    """
-    A universal indeterminate.
-
-    EXAMPLES:
-        sage: x
-        x
-        sage: x.parent()
-        Univariate Polynomial Ring in x over Rational Field
-    """
-    def __init__(self, name):
-        self._name = name
-        Constant.__init__(self,
-            {'axiom':name,
-             'maxima':name,
-             'gp':name,'kash':name,
-             'mathematica':name,
-             'matlab':name,
-             'maple':name,
-             'octave':name,
-             'pari':name})
-
-    def _repr_(self):
-        return self._name
-
-    def _latex_(self):
-        return self._name
-
-    def _mathml_(self):
-        return "<mi>%s</mi>"%self._name
-
-    def __float__(self):
-        raise TypeError
-
-    def _mpfr_(self, R):
-        raise TypeError
-
-    def _real_double_(self):
-        raise TypeError
-
-    def __abs__(self):
-        raise TypeError
-
-    def floor(self):
-        raise TypeError
-
-x = UniversalPolynomialElement('x')

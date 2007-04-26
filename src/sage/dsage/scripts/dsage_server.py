@@ -19,10 +19,6 @@
 
 import sys
 import os
-import socket
-
-
-
 from optparse import OptionParser
 import socket
 
@@ -66,7 +62,6 @@ def usage():
     return options
 
 def write_stats(dsage_server, stats_file):
-    # Put this entire thing in a try block, should not cause the server to die in any way.
     try:
         fname = os.path.join(DSAGE_DIR, stats_file)
         f = open(fname, 'w')
@@ -77,7 +72,11 @@ def write_stats(dsage_server, stats_file):
         return
 
 def startLogging(log_file):
-    """This method initializes the logging facilities for the server. """
+    """
+    This method initializes the logging facilities for the server.
+
+    """
+
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
     else:
@@ -114,7 +113,8 @@ def main():
     clientdb = ClientDatabase()
 
     # Create the main DSage object
-    dsage_server = DSageServer(jobdb, monitordb, clientdb, log_level=LOG_LEVEL)
+    dsage_server = DSageServer(jobdb, monitordb,
+                               clientdb, log_level=LOG_LEVEL)
     p = _SSHKeyPortalRoot(portal.Portal(Realm(dsage_server)))
 
     # Credentials checker
@@ -184,6 +184,8 @@ def main():
     log.msg('Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
+    from sage.dsage.misc.countrefs import logInThread
+    logInThread(n=15)
     # start the reactor.
     reactor.run(installSignalHandlers=1)
 

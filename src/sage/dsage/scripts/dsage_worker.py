@@ -24,7 +24,6 @@ import ConfigParser
 import cPickle
 import zlib
 import pexpect
-import random
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -71,12 +70,13 @@ class Worker(object):
         self.conf = get_conf('monitor')
         self.log_level = self.conf['log_level']
         self.delay = self.conf['delay']
+        self.checker_task = task.LoopingCall(self.check_work)
+        self.checker_timeout = 1.0
         self.start()
 
         # import some basic modules into our Sage() instance
-        # self.sage.eval('import time')
-        # self.sage.eval('import sys')
-        # self.sage.eval('import os')
+        self.sage.eval('import time')
+        self.sage.eval('import os')
 
     def _catch_failure(self, failure):
         log.msg("Error: ", failure.getErrorMessage())
@@ -118,6 +118,13 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
 
+        try:
+            self.checker_task.start(self.checker_timeout, now=False)
+        except AssertionError:
+            self.checker_task.stop()
+            self.checker_task.start(self.checker_timeout, now=False)
+
+        log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
         log.msg(LOG_PREFIX % self.id + 'Processing job %s' % self.job.job_id)
         try:
             self.doJob(self.job)
@@ -171,7 +178,8 @@ class Worker(object):
         sleep_time = 5.0
         if failure.check(NoJobException):
             if self.log_level > 3:
-                log.msg('[Worker %s, noJob] Sleeping for %s seconds' % (self.id, sleep_time))
+                msg = 'Sleeping for %s seconds' % sleep_time
+                log.msg(LOG_PREFIX % self.id + msg)
             reactor.callLater(sleep_time, self.get_job)
         else:
             print "Error: ", failure.getErrorMessage()
@@ -203,7 +211,8 @@ class Worker(object):
 
         if isinstance(job.data, list):
             if self.log_level > 2:
-                log.msg('Extracting job data...')
+                msg = 'Extracting job data...'
+                log.msg(LOG_PREFIX % self.id + msg)
             try:
                 for var, data, kind in job.data:
                     try:
@@ -216,8 +225,8 @@ class Worker(object):
                         f.write(data)
                         f.close()
                         if self.log_level > 2:
-                            log.msg('[Worker: %s] Extracted %s. ' % (self.id,
-                                                                     f))
+                            msg = 'Extracted %s' % f
+                            log.msg(LOG_PREFIX % self.id + msg)
                     if kind == 'object':
                         fname = var + '.sobj'
                         if self.log_level > 2:
@@ -227,9 +236,10 @@ class Worker(object):
                         f.close()
                         self.sage.eval("%s = load('%s')" % (var, fname))
                         if self.log_level > 2:
-                            log.msg('[Worker: %s] Loaded %s' % (self.id, fname))
+                            msg = 'Loaded %s' % fname
+                            log.msg(LOG_PREFIX % self.id + msg)
             except Exception, msg:
-                log.err(msg)
+                log.err(LOG_PREFIX % self.id + msg)
 
     def write_job_file(self, job):
         """
@@ -271,7 +281,7 @@ except:
         """
 
         if self.log_level > 3:
-            log.msg(LOG_PREFIX % self.id +'Executing job %s ' % job.job_id)
+            log.msg(LOG_PREFIX % self.id + 'Executing job %s ' % job.job_id)
 
         self.free = False
         d = defer.Deferred()
@@ -284,11 +294,114 @@ except:
         f = os.path.join(self.tmp_job_dir, job_filename)
         self.sage._send("execfile('%s')" % (f))
         if self.log_level > 2:
-            log.msg('[Worker: %s] File to execute: %s' % (self.id, f))
+            msg = 'File to execute: %s' % f
+            log.msg(LOG_PREFIX % self.id + msg)
 
         d.callback(True)
 
-        return d
+    def reset_checker(self):
+        self.checker_timeout = 1.0
+        self.checker_task.stop()
+        self.checker_task = task.LoopingCall(self.check_work)
+
+    def check_work(self):
+        """
+        check_output periodically polls workers for new output.
+
+        This figures out whether or not there is anything new output that we
+        should submit to the server.
+
+        """
+
+        if self.sage == None:
+            return
+
+        if self.job == None or self.free == True:
+            if self.checker_task.running:
+                self.checker_task.stop()
+            return
+
+        if self.log_level > 1:
+            msg = 'Checking job %s' % self.job.job_id
+            log.msg(LOG_PREFIX % self.id + msg)
+        try:
+            foo, output, new = self.sage._so_far()
+            os.chdir(self.tmp_job_dir)
+            result = open('result.sobj', 'rb').read()
+            done = True
+        except RuntimeError, msg: # Error in calling worker.sage._so_far()
+            return
+        except IOError, msg: # File does not exist yet
+            done = False
+        if done:
+            self.free = True
+            self.reset_checker()
+        else:
+            result = cPickle.dumps('Job not done yet.', 2)
+        sanitized_output = self.clean_output(new)
+        if self.check_failure(sanitized_output):
+            s = ['[Monitor] Error in result for ',
+                 '%s:%s ' % (self.job.name, self.job.job_id),
+                 'Worker ID:%s' % (self.id)]
+            log.err(''.join(s))
+            log.err('[Monitor] Traceback: \n%s' % sanitized_output)
+            d = self.remoteobj.callRemote('job_failed',
+                                          self.job.job_id,
+                                          sanitized_output)
+            d.addErrback(self._catch_failure)
+            self.restart()
+            return
+        d = self.job_done(sanitized_output, result, done)
+        # d.addErrback(self._catchConnectionFailure)
+
+        # Exponential back off algorithm
+        if self.checker_task.running:
+            self.checker_task.stop()
+        self.checker_timeout = self.checker_timeout * 2
+        self.checker_task = task.LoopingCall(self.check_work)
+        self.checker_task.start(self.checker_timeout, now=False)
+        msg = 'Checking output again in %s' % self.checker_timeout
+        log.msg(LOG_PREFIX % self.id + msg)
+
+    def clean_output(self, sage_output):
+        """
+        clean_output attempts to clean up the output string from sage.
+
+        """
+
+        begin = sage_output.find(START_MARKER)
+        if begin != -1:
+            begin += len(START_MARKER)
+        else:
+            begin = 0
+        end = sage_output.find(END_MARKER)
+        if end != -1:
+            end -= 1
+        else:
+            end = len(sage_output)
+        output = sage_output[begin:end]
+        output = output.strip()
+        output = output.replace('\r', '')
+
+        return output
+
+    def check_failure(self, sage_output):
+        """
+        Checks for signs of exceptions or errors in the output.
+
+        """
+
+        if sage_output == None:
+            return False
+        else:
+            sage_output = ''.join(sage_output)
+
+        if 'Traceback' in sage_output:
+            return True
+        elif 'Error' in sage_output:
+            return True
+        else:
+            return False
 
     def stop(self):
         """
@@ -338,7 +451,7 @@ except:
             else:
                 self.sage = Sage()
             self.sage.expect()
-            self.sage._expect.delaybeforesend=0.5
+            self.sage._expect.delaybeforesend = 2.0
         self.get_job()
 
     def restart(self):
@@ -357,13 +470,16 @@ class Monitor(object):
 
     It monitors the workers and checks on their status
 
-    Parameters:
-    hostname -- the hostname of the server we want to connect to (str)
-    port -- the port of the server we want to connect to (int)
-
     """
 
     def __init__(self, server, port):
+        """
+        Parameters:
+        hostname -- the hostname of the server we want to connect to (str)
+        port -- the port of the server we want to connect to (int)
+
+        """
+
         self.conf = get_conf('monitor')
         self.uuid = self.conf['id']
         self.workers = int(self.conf['workers'])
@@ -398,7 +514,7 @@ class Monitor(object):
         try:
             os.nice(self.priority)
         except OSError, msg:
-            log.err('Error setting priority: %s, using default priority' % (self.priority))
+            log.err('Error setting priority: %s' % (self.priority))
             pass
         if not self.anonymous:
             from twisted.cred import credentials
@@ -433,7 +549,6 @@ class Monitor(object):
             log.startLogging(server_log)
 
     def _get_auth_info(self):
-        import random
         self.DATA =  random_str(500)
         self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
         # Begin reading configuration
@@ -443,8 +558,10 @@ class Monitor(object):
             config.read(conf_file)
 
             self.username = config.get('auth', 'username')
-            self.privkey_file = os.path.expanduser(config.get('auth', 'privkey_file'))
-            self.pubkey_file = os.path.expanduser(config.get('auth', 'pubkey_file'))
+            self.privkey_file = os.path.expanduser(config.get('auth',
+                                                   'privkey_file'))
+            self.pubkey_file = os.path.expanduser(config.get('auth',
+                                                  'pubkey_file'))
         except Exception, msg:
             print msg
             raise
@@ -487,7 +604,8 @@ class Monitor(object):
                 if job is None or worker.job is None:
                     continue
                 if worker.job.job_id == job.job_id:
-                    log.msg('[Worker: %s] Processing a killed job, restarting...' % worker.id)
+                    msg = 'Processing killed job, restarting...'
+                    log.msg(LOG_PREFIX % worker.id + msg)
                     worker.restart()
 
     def _retryConnect(self):
@@ -495,11 +613,6 @@ class Monitor(object):
         reactor.callLater(self.delay, self.connect)
 
     def _catchConnectionFailure(self, failure):
-        # If we lost the connection to the server somehow
-        # if failure.check(error.ConnectionRefusedError,
-        #                 error.ConnectionLost,
-        #                 pb.DeadReferenceError):
-
         self.connected = False
         self._retryConnect()
 
@@ -538,10 +651,12 @@ class Monitor(object):
 
         if not self.anonymous:
             log.msg('Connecting as authenticated worker...\n')
-            d = self.factory.login(self.creds, (pb.Referenceable(), self.host_info))
+            d = self.factory.login(self.creds,
+                                   (pb.Referenceable(), self.host_info))
         else:
             log.msg('Connecting as anonymous worker...\n')
-            d = self.factory.login('Anonymous', (pb.Referenceable(), self.host_info))
+            d = self.factory.login('Anonymous',
+                                   (pb.Referenceable(), self.host_info))
         d.addCallback(self._connected)
         d.addErrback(self._catchConnectionFailure)
 
@@ -572,7 +687,8 @@ class Monitor(object):
             if worker.job == None or worker.free == True:
                 continue
             if self.log_level > 1:
-                log.msg('[Monitor] Checking worker %s, job %s' % (worker.id, worker.job.job_id))
+                log.msg('[Monitor] Checking worker %s, job %s' % (worker.id,
+                                                        worker.job.job_id))
             try:
                 foo, output, new = worker.sage._so_far()
                 os.chdir(worker.tmp_job_dir)
@@ -660,9 +776,11 @@ class Monitor(object):
         start_looping_calls prepares and starts our periodic checking methods.
 
         """
+        #
+        # self.check_output_timeout = 1
+        # self.tsk1 = task.LoopingCall(self.check_output)
+        # self.tsk1.start(self.check_output_timeout, now=False)
 
-        self.tsk1 = task.LoopingCall(self.check_output)
-        self.tsk1.start(0.1, now=False)
         interval = 5.0
         self.tsk2 = task.LoopingCall(self.check_killed_jobs)
         self.tsk2.start(interval, now=False)

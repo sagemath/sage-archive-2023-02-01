@@ -1246,7 +1246,7 @@ function jump_to_cell(id, delta, bottom) {
 
 function escape0(input) {
     input = escape(input);
-    input = input.replaceAll(/\+/g,"%2B");
+    input = input.replace(/\+/g,"%2B");
     return input;
 }
 

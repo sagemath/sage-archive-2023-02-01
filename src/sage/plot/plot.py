@@ -587,7 +587,7 @@ class Graphics(SageObject):
         self._extend_y_axis(ymin)
         self._extend_y_axis(ymax)
 
-    def _plot_(self, **args):
+    def plot(self, *args, **kwds):
         return self
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
@@ -2263,24 +2263,23 @@ class PlotFactory(GraphicPrimitiveFactory):
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, label='', show=None, **kwds):
+    def __call__(self, funcs, *args, **kwds):
+        do_show = False
+        if kwds.has_key('show') and kwds['show']:
+            do_show = True
+            del kwds['show']
+        if hasattr(funcs, 'plot'):
+            G = funcs.plot(*args, **kwds)
+        else:
+            G = self._call(funcs, *args, **kwds)
+        if do_show:
+            G.show()
+        return G
+
+    def _call(self, funcs, xmin=None, xmax=None, parametric=False,
+              polar=False, label='', show=None, **kwds):
         if show is None:
             show = SHOW_DEFAULT
-        try:
-            G = funcs._plot_(xmin, xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
-        try:
-            G = funcs.plot(xmin, xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
         if xmin is None:
             xmin = -1
         if xmax is None:
@@ -2293,7 +2292,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         if isinstance(funcs, (list, tuple)) and not parametric:
             G = Graphics()
             for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
+                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
             if show:
                 G.show(**kwds)
             return G

@@ -3290,6 +3290,7 @@ class Function_floor(PrimitiveFunction):
         5
         sage: type(floor(5.4))
         <type 'sage.rings.integer.Integer'>
+        sage: var('x')
         sage: a = floor(5.4 + x); a
         floor(x + 0.4000000000000004) + 5
         sage: a(2)

@@ -112,20 +112,9 @@ class Worker(object):
         if self.log_level > 3:
             if jdict is not None:
                 log.msg(LOG_PREFIX % self.id + 'Got Job: %s' % jdict)
-
         self.job = expand_job(jdict)
-
         if not isinstance(self.job, Job):
             raise NoJobException
-
-        try:
-            self.checker_task.start(self.checker_timeout, now=False)
-        except AssertionError:
-            self.checker_task.stop()
-            self.checker_task.start(self.checker_timeout, now=False)
-
-        log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
-        log.msg(LOG_PREFIX % self.id + 'Processing job %s' % self.job.job_id)
         try:
             self.doJob(self.job)
         except Exception, msg:
@@ -286,6 +275,13 @@ except:
         self.free = False
         d = defer.Deferred()
 
+        try:
+            self.checker_task.start(self.checker_timeout, now=False)
+        except AssertionError:
+            self.checker_task.stop()
+            self.checker_task.start(self.checker_timeout, now=False)
+        log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
+
         self.tmp_job_dir = self.setup_tmp_dir(job)
         self.extract_job_data(job)
 
@@ -300,8 +296,8 @@ except:
         d.callback(True)
 
     def reset_checker(self):
-        self.checker_timeout = 1.0
         self.checker_task.stop()
+        self.checker_timeout = 1.0
         self.checker_task = task.LoopingCall(self.check_work)
 
     def check_work(self):
@@ -313,9 +309,9 @@ except:
 
         """
 
+        import pdb; pdb.set_trace()
         if self.sage == None:
             return
-
         if self.job == None or self.free == True:
             if self.checker_task.running:
                 self.checker_task.stop()
@@ -351,17 +347,19 @@ except:
             d.addErrback(self._catch_failure)
             self.restart()
             return
-        d = self.job_done(sanitized_output, result, done)
-        # d.addErrback(self._catchConnectionFailure)
 
-        # Exponential back off algorithm
-        if self.checker_task.running:
-            self.checker_task.stop()
-        self.checker_timeout = self.checker_timeout * 2
-        self.checker_task = task.LoopingCall(self.check_work)
-        self.checker_task.start(self.checker_timeout, now=False)
-        msg = 'Checking output again in %s' % self.checker_timeout
-        log.msg(LOG_PREFIX % self.id + msg)
+        if sanitized_output == '' and not done:
+            # Exponential back off algorithm
+            if self.checker_task.running:
+                self.checker_task.stop()
+            self.checker_timeout = self.checker_timeout * 2
+            self.checker_task = task.LoopingCall(self.check_work)
+            self.checker_task.start(self.checker_timeout, now=False)
+            msg = 'Checking output again in %s' % self.checker_timeout
+            log.msg(LOG_PREFIX % self.id + msg)
+        else:
+            d = self.job_done(sanitized_output, result, done)
+            d.addErrback(self._catch_failure)
 
     def clean_output(self, sage_output):
         """
@@ -450,8 +448,13 @@ except:
                 self.sage = Sage(logfile=logfile)
             else:
                 self.sage = Sage()
-            self.sage.expect()
-            self.sage._expect.delaybeforesend = 2.0
+            try:
+                self.sage.expect()
+                self.sage._expect.delaybeforesend = 0.5
+            except RuntimeError, msg:
+                self.sage.expect()
+                self.sage._expect.delaybeforesend = 0.5
+
         self.get_job()
 
     def restart(self):

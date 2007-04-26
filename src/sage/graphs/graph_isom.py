@@ -3,25 +3,42 @@ N.I.C.E. - Nice (as in open source) Isomorphism Check Engine
 
 Automorphism group computation and isomorphism checking for graphs.
 
-This is a new open source implementation of Brendan McKay's algorithm
-for graph automorphism and isomorphism.  This is not a derived work of
-nauty (one of the other restrictively licensed implementations of
-McKay's algorithm), and is completely open source (released under the
-GPL).
+This is an open source implementation of Brendan McKay's algorithm for graph
+automorphism and isomorphism. McKay released a C version of his algorithm,
+named nauty (No AUTomorphisms, Yes?) under a license that is not GPL
+compatible. Although the program is open source, reading the source disallows
+anyone from recreating anything similar and releasing it under the GPL. Also,
+many people have complained that the code is difficult to understand. The
+first main goal of NICE was to produce a genuinely open graph isomorphism
+program, which has been accomplished. The second goal is for this code to be
+understandable, so that computed results can be trusted and further derived
+work will be possible.
+
+To determine the isomorphism type of a graph, it is convenient to define a
+canonical label for each isomorphism class- essentially an equivalence class
+representative. Loosely (albeit incorrectly), the canonical label is defined
+by enumerating all labeled graphs, then picking the maximal one in each
+isomorphism class. The NICE algorithm is essentially a backtrack search. It
+searches through the rooted tree of partition nests (where each partition is
+equitable) for implicit and explicit automorphisms, and uses this information
+to eliminate large parts of the tree from further searching. Since the leaves
+of the search tree are all discrete ordered partitions, each one of these
+corresponds to an ordering of the vertices of the graph, i.e. another member
+of the isomorphism class. Once the algorithm has finished searching the tree,
+it will know which leaf corresponds to the canonical label. In the process,
+generators for the automorphism group are also produced.
 
 AUTHORS:
     Robert L. Miller -- (2007-03-20) initial version
     Tom Boothby -- (2007-03-20) help with indicator function
-    Robert L. Miller -- (2007-04-07) optimizations
+    Robert L. Miller -- (2007-04-07--17) optimizations
 
 REFERENCE:
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
         Vol. 30 (1981), pp. 45-87.
 
 NOTE:
-    Often we assume that G is a graph on vertices {0,1,...,n-1}, and gamma is
-    an element of SymmetricGroup(n), considered as action on the set
-    {1,2,...,n} where we take 0 == n.
+    Often we assume that G is a graph on vertices {0,1,...,n-1}.
 """
 
 #*****************************************************************************
@@ -477,7 +494,7 @@ def first_smallest_non_trivial(Pi):
         if len(Pi[i]) == m:
             return Pi[i]
 
-def indicator(G, Pi, V, bool_matrix_format=False):
+def indicator(G, Pi, V, k=None, bool_matrix_format=False):
     """
     Takes a labelled graph, an ordered partition, and a partition nest, and
     outputs an integer, which is the same under any fixed permutation.
@@ -518,6 +535,8 @@ def indicator(G, Pi, V, bool_matrix_format=False):
         sage: indicator(G, [range(93)], partition_nest(G, [range(93)], V)) == indicator(H, [range(93)], partition_nest(H, [range(93)], [g.list()[v-1] for v in V]))
         True
     """
+    if k is not None:
+        V = V[:k]
     if bool_matrix_format:
         n = len(G)
     else:
@@ -1111,7 +1130,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
             if verbosity > 0: print 'state: 2'
             k += 1
             nu[k] = perp(M, nu[k-1], v[k-1], bool_matrix_format=True)
-            Lambda[k] = indicator(M, Pi, nu.values(), bool_matrix_format=True)
+            Lambda[k] = indicator(M, Pi, nu.values(), k, bool_matrix_format=True)
             if h == 0: state = 5
             else:
                 if hzf == k-1 and Lambda[k] == zf[k]:

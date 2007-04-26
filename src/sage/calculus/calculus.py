@@ -1137,9 +1137,12 @@ class SymbolicExpression(RingElement):
             +Infinity
             sage: lim(sqrt(x^2+1) - x, x = oo)
             0
-
+            sage: lim(x^2/(sec(x)-1), x=0)
+            2
             sage: lim(cos(x)/(cos(x)-1), x=0)
             -Infinity
+            sage: lim(x*sin(1/x), x=0)
+            0
 
             Traceback (most recent call last):
             ...
@@ -1194,6 +1197,10 @@ class SymbolicExpression(RingElement):
             1/(s^2 + 1)
             sage: (z + exp(x)).laplace(x, s)
             z/s + 1/(s - 1)
+
+            sage: var('t0')
+            sage: log(t/t0).laplace(x, s)
+            (-log(t0) - log(s) - euler_gamma)/s
 
         We do a formal calculation:
             sage: f = function('f', x)
@@ -1701,7 +1708,10 @@ class SymbolicExpression(RingElement):
 
     rational_simplify = simplify_rational
 
-    def radical_simplify(self):
+    # TODO: come up with a way to intelligently wrap Maxima's way of
+    # fine-tuning all simplificationsrational
+
+    def simplify_radical(self):
         r"""
         Wraps the Maxima radcan() command. From the Maxima documentation:
 
@@ -1719,12 +1729,27 @@ class SymbolicExpression(RingElement):
             expression for simplifications based on factoring and partial
             fraction expansions of exponents.
 
+        ALIAS: radical_simplify, simplify_log, log_simplify, exp_simplify,
+        simplify_exp are all the same
+
         EXAMPLES:
-            sage: log(x*y)
-            log(x) + log(y)
-            sage:
+
+            sage: f = log(x*y)
+            sage: f.simplify_radical()
+            log(y) + log(x)
+
+            sage: f = (log(x+x^2)-log(x))^a/log(1+x)^(a/2)
+            sage: f.simplify_radical()
+            log(x + 1)^(a/2)
+
+            sage: f = (e^x-1)/(1+e^(x/2))
+            sage: f.simplify_exp()
+            e^(x/2) - 1
         """
         return self.parent()(self._maxima_().radcan())
+
+    radical_simplify = simplify_log = log_simplify = simplify_radical
+    simplify_exp = exp_simplify = simplify_radical
 
     ###################################################################
     # factor

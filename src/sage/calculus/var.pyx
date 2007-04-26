@@ -94,7 +94,7 @@ def function(s, *args):
         sage: k = g.diff(x); k
         (x, y) |--> 2*supersin(x)*diff(supersin(x), x, 1)
         sage: k.substitute(supersin=sin)
-        2*sin(x)*diff(supersin(x), x, 1)
+        2*sin(x)*diff(sin(x), x, 1)
     """
     if len(args) > 0:
         return function(s)(*args)

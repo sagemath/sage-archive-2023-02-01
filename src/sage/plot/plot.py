@@ -2258,7 +2258,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         o['plot_points'] = 200
         o['plot_division'] = 1000
         o['max_bend'] = 0.1
-        o['rgbcolor'] = (0,0,1)
+        o['rgbcolor'] = (0,0,0)
 
     def _repr_(self):
         return "plot; type plot? for help and examples."

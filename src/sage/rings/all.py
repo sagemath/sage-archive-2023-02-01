@@ -115,7 +115,7 @@ from power_series_ring_element import PowerSeries, is_PowerSeries
 
 # Laurent series ring in one variable
 from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
-from laurent_series_ring_element import LaurentSeries
+from laurent_series_ring_element import LaurentSeries, is_LaurentSeries
 
 # Float interval arithmetic
 # (deprecated)

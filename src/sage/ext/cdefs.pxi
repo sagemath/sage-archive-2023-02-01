@@ -92,6 +92,7 @@ cdef extern from "gmp.h":
     int  mpz_set_str(mpz_t rop, char *str, int base)
     int  mpz_sgn(mpz_t op)
     void mpz_sqrt (mpz_t rop, mpz_t op)
+    void mpz_sqrtrem (mpz_t rop, mpz_t rem, mpz_t op)
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_sub_ui(mpz_t rop, mpz_t op1, unsigned long int op2)
     unsigned long int mpz_mod_ui(mpz_t r, mpz_t n, unsigned long int d)

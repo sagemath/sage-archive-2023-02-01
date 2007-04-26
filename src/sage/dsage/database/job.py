@@ -197,10 +197,6 @@ class Job(Persistent):
     def get_type(self):
         return self.jdict['type']
     def set_type(self, value):
-        types = ['sage', 'spyx', 'py']
-        if value not in types:
-            raise TypeError
-
         self.jdict['type'] = value
     type = property(fget=get_type, fset=set_type,
                     fdel=None, doc='Job type')

@@ -74,6 +74,9 @@ else:
 """ % n, name='qsieve')
         job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
+        job.verifiable = True
+        job.type = 'qsieve'
+
         return job
 
     def ecm_job(self):
@@ -94,6 +97,8 @@ else:
 """ % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
         job.n = int(n)
         job.algorithm = 'ecm'
+        job.verifiable = True
+        job.type = 'ecm'
         return job
 
     def process_result(self, job):

@@ -72,6 +72,7 @@ class Worker(object):
         self.delay = self.conf['delay']
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 1.0
+        self.got_output = False
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -85,11 +86,11 @@ class Worker(object):
     def get_job(self):
         try:
             if self.log_level > 3:
-                log.msg((LOG_PREFIX + 'Getting job...') % self.id)
+                log.msg(LOG_PREFIX % self.id +  'Getting job...')
             d = self.remoteobj.callRemote('get_job')
         except Exception, msg:
             log.msg(msg)
-            log.msg((LOG_PREFIX + 'Disconnected...') % self.id)
+            log.msg(LOG_PREFIX % self.id +  'Disconnected...')
             reactor.callLater(self.delay, self.get_job)
             return
         d.addCallback(self.gotJob)
@@ -273,6 +274,7 @@ except:
             log.msg(LOG_PREFIX % self.id + 'Executing job %s ' % job.job_id)
 
         self.free = False
+        self.got_output = False
         d = defer.Deferred()
 
         try:
@@ -296,7 +298,13 @@ except:
         d.callback(True)
 
     def reset_checker(self):
-        self.checker_task.stop()
+        """
+        Resets the output/result checker for the worker.
+
+        """
+
+        if self.checker_task.running:
+            self.checker_task.stop()
         self.checker_timeout = 1.0
         self.checker_task = task.LoopingCall(self.check_work)
 
@@ -309,7 +317,6 @@ except:
 
         """
 
-        import pdb; pdb.set_trace()
         if self.sage == None:
             return
         if self.job == None or self.free == True:
@@ -326,6 +333,8 @@ except:
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
+            log.err(LOG_PREFIX % self.id + '%s' % msg)
+            self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
             done = False
@@ -334,32 +343,41 @@ except:
             self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
-        sanitized_output = self.clean_output(new)
-        if self.check_failure(sanitized_output):
-            s = ['[Monitor] Error in result for ',
-                 '%s:%s ' % (self.job.name, self.job.job_id),
-                 'Worker ID:%s' % (self.id)]
-            log.err(''.join(s))
-            log.err('[Monitor] Traceback: \n%s' % sanitized_output)
-            d = self.remoteobj.callRemote('job_failed',
-                                          self.job.job_id,
-                                          sanitized_output)
-            d.addErrback(self._catch_failure)
+        if self.check_failure(new):
+            self.report_failure(new)
             self.restart()
             return
 
+        sanitized_output = self.clean_output(new)
         if sanitized_output == '' and not done:
-            # Exponential back off algorithm
-            if self.checker_task.running:
-                self.checker_task.stop()
-            self.checker_timeout = self.checker_timeout * 2
-            self.checker_task = task.LoopingCall(self.check_work)
-            self.checker_task.start(self.checker_timeout, now=False)
-            msg = 'Checking output again in %s' % self.checker_timeout
-            log.msg(LOG_PREFIX % self.id + msg)
+            self.increase_checker_task_timeout()
         else:
             d = self.job_done(sanitized_output, result, done)
             d.addErrback(self._catch_failure)
+
+    def report_failure(self, failure):
+        msg = 'Job %s failed!' % (self.job.job_id)
+        log.err(LOG_PREFIX % self.id + msg)
+        log.err('Traceback: \n%s' % failure)
+        d = self.remoteobj.callRemote('job_failed', self.job.job_id, failure)
+        d.addErrback(self._catch_failure)
+
+    def increase_checker_task_timeout(self):
+        """
+        Quickly decreases the number of times a worker checks for output
+
+        """
+
+        if self.checker_task.running:
+            self.checker_task.stop()
+
+        self.checker_timeout = self.checker_timeout * 2
+        if self.checker_timeout > 60.0:
+            self.checker_timeout = 60.0
+        self.checker_task = task.LoopingCall(self.check_work)
+        self.checker_task.start(self.checker_timeout, now=False)
+        msg = 'Checking output again in %s' % self.checker_timeout
+        log.msg(LOG_PREFIX % self.id + msg)
 
     def clean_output(self, sage_output):
         """
@@ -369,6 +387,7 @@ except:
 
         begin = sage_output.find(START_MARKER)
         if begin != -1:
+            self.got_output = True
             begin += len(START_MARKER)
         else:
             begin = 0
@@ -376,7 +395,10 @@ except:
         if end != -1:
             end -= 1
         else:
-            end = len(sage_output)
+            if not self.got_output:
+                end = 0
+            else:
+                end = len(sage_output)
         output = sage_output[begin:end]
         output = output.strip()
         output = output.replace('\r', '')
@@ -449,11 +471,9 @@ except:
             else:
                 self.sage = Sage()
             try:
-                self.sage.expect()
-                self.sage._expect.delaybeforesend = 0.5
+                self.sage._start(block_during_init=True)
             except RuntimeError, msg:
-                self.sage.expect()
-                self.sage._expect.delaybeforesend = 0.5
+                print msg
 
         self.get_job()
 
@@ -463,9 +483,10 @@ except:
 
         """
 
-        log.msg('[Worker: %s] Restarting...' % (self.id))
         self.stop()
         self.start()
+        self.reset_checker()
+        log.msg('[Worker: %s] Restarting...' % (self.id))
 
 class Monitor(object):
     """
@@ -674,71 +695,6 @@ class Monitor(object):
         log.msg('[Monitor] Starting %s workers...' % (self.workers))
         self.worker_pool = [Worker(remoteobj, x) for x in range(self.workers)]
 
-    def check_output(self):
-        """
-        check_output periodically polls workers for new output.
-
-        This figures out whether or not there is anything new output that we
-        should submit to the server.
-
-        """
-
-        if self.worker_pool == None:
-            return
-
-        for worker in self.worker_pool:
-            if worker.job == None or worker.free == True:
-                continue
-            if self.log_level > 1:
-                log.msg('[Monitor] Checking worker %s, job %s' % (worker.id,
-                                                        worker.job.job_id))
-            try:
-                foo, output, new = worker.sage._so_far()
-                os.chdir(worker.tmp_job_dir)
-                result = open('result.sobj', 'rb').read()
-                done = True
-            except RuntimeError, msg: # Error in calling worker.sage._so_far()
-                continue
-            except IOError, msg: # File does not exist yet
-                done = False
-            if done:
-                worker.free = True
-            else:
-                result = cPickle.dumps('Job not done yet.', 2)
-            sanitized_output = self.clean_output(new)
-            if self.check_failure(sanitized_output):
-                s = ['[Monitor] Error in result for ',
-                     '%s:%s ' % (worker.job.name, worker.job.job_id),
-                     'Worker ID:%s' % (worker.id)]
-                log.err(''.join(s))
-                log.err('[Monitor] Traceback: \n%s' % sanitized_output)
-                d = self.remoteobj.callRemote('job_failed',
-                                              worker.job.job_id,
-                                              sanitized_output)
-                d.addErrback(self._catch_failure)
-                worker.restart()
-                continue
-            d = worker.job_done(sanitized_output, result, done)
-            d.addErrback(self._catchConnectionFailure)
-
-    def check_failure(self, sage_output):
-        """
-        Checks for signs of exceptions or errors in the output.
-
-        """
-
-        if sage_output == None:
-            return False
-        else:
-            sage_output = ''.join(sage_output)
-
-        if 'Traceback' in sage_output:
-            return True
-        elif 'Error' in sage_output:
-            return True
-        else:
-            return False
-
     def check_killed_jobs(self):
         """
         check_killed_jobs retrieves a list of killed job ids.
@@ -751,28 +707,6 @@ class Monitor(object):
         killed_jobs = self.remoteobj.callRemote('get_killed_jobs_list')
         killed_jobs.addCallback(self._got_killed_jobs)
         killed_jobs.addErrback(self._catch_failure)
-
-    def clean_output(self, sage_output):
-        """
-        clean_output attempts to clean up the output string from sage.
-
-        """
-
-        begin = sage_output.find(START_MARKER)
-        if begin != -1:
-            begin += len(START_MARKER)
-        else:
-            begin = 0
-        end = sage_output.find(END_MARKER)
-        if end != -1:
-            end -= 1
-        else:
-            end = len(sage_output)
-        output = sage_output[begin:end]
-        output = output.strip()
-        output = output.replace('\r', '')
-
-        return output
 
     def start_looping_calls(self):
         """
@@ -794,7 +728,7 @@ class Monitor(object):
 
         """
 
-        self.tsk1.stop()
+        # self.tsk1.stop()
         self.tsk2.stop()
 
 def main():

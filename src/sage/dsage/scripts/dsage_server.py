@@ -184,9 +184,9 @@ def main():
     log.msg('Listening on %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
-    from sage.dsage.misc.countrefs import logInThread
-    logInThread(n=15)
-    # start the reactor.
+    # from sage.dsage.misc.countrefs import logInThread
+    # logInThread(n=15)
+
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":

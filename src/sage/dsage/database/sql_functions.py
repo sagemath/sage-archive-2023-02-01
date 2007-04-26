@@ -73,5 +73,15 @@ def fields(cursor):
 
     return results
 
+def drop_table(con, table):
+    """
+    Drops a table, use with caution!
+
+    """
+
+    cur = con.cursor()
+    query = "DROP TABLE ?"
+    cursor.execute(query, (table,))
+
 def add_trigger(con, trigger):
     con.execute(trigger)

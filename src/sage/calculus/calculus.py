@@ -1701,6 +1701,31 @@ class SymbolicExpression(RingElement):
 
     rational_simplify = simplify_rational
 
+    def radical_simplify(self):
+        r"""
+        Wraps the Maxima radcan() command. From the Maxima documentation:
+
+            Simplifies this expression, which can contain logs, exponentials,
+            and radicals, by converting it into a form which is canonical over a
+            large class of expressions and a given ordering of variables; that
+            is, all functionally equivalent forms are mapped into a unique form.
+            For a somewhat larger class of expressions, produces a regular form.
+            Two equivalent expressions in this class do not necessarily have the
+            same appearance, but their difference can be simplified by radcan to
+            zero.
+
+            For some expressions radcan is quite time consuming. This is the
+            cost of exploring certain relationships among the components of the
+            expression for simplifications based on factoring and partial
+            fraction expansions of exponents.
+
+        EXAMPLES:
+            sage: log(x*y)
+            log(x) + log(y)
+            sage:
+        """
+        return self.parent()(self._maxima_().radcan())
+
     ###################################################################
     # factor
     ###################################################################
@@ -3687,7 +3712,7 @@ _syms['csch'] = csch
 
 class Function_log(PrimitiveFunction):
     """
-    The log funtion.
+    The log funtion. This is a symbolic logarithm.
 
     EXAMPLES:
         sage: log(e^2)
@@ -3734,7 +3759,7 @@ def log(x, base=None):
 
 class Function_sqrt(PrimitiveFunction):
     """
-    The square root function.
+    The square root function. This is a symbolic square root.
 
     EXAMPLES:
         sage: sqrt(-1)
@@ -3772,8 +3797,8 @@ sqrt = Function_sqrt()
 _syms['sqrt'] = sqrt
 
 class Function_exp(PrimitiveFunction):
-    """
-    The square root function.
+    r"""
+    The exponential function, $\exp(x) = e^x$.
 
     EXAMPLES:
         sage: exp(-1)

@@ -102,8 +102,8 @@ class ModularFormElement(element.HeckeModuleElement):
                   "case not implemented yet."
         return chi
 
-    def is_zero(self):
-        return self.element().is_zero()
+    def __nonzero__(self):
+        return not self.element().is_zero()
 
     def level(self):
         return self.parent().level()

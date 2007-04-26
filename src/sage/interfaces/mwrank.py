@@ -67,7 +67,7 @@ class Mwrank_class(Expect):
         return _reduce_load_Mwrank, tuple([])
 
     def __call__(self, cmd):
-        return self.eval(cmd)
+        return self.eval(str(cmd))
 
     def console(self):
         mwrank_console()

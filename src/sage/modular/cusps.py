@@ -101,7 +101,8 @@ class Cusps_class(ParentWithBase):
             sage: Cusps(I)
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.00000000000000*I (<type 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: Unable to coerce I (<class 'sage.functions.constants.I_class'>) to Rational
+
         """
         return Cusp(x, parent=self)
 
@@ -167,7 +168,7 @@ class Cusp(Element):
             sage: Cusp(sqrt(-1))
             Traceback (most recent call last):
             ...
-            TypeError: Unable to coerce 1.00000000000000*I (<type 'sage.rings.complex_number.ComplexNumber'>) to Rational
+            TypeError: unable to convert I to a rational
 
             sage: a = Cusp(2,3)
             sage: loads(a.dumps()) == a

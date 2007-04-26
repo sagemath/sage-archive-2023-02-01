@@ -264,7 +264,7 @@ gsl_callback = Extension('sage.gsl.callback',
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', 'gmp', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
@@ -333,7 +333,7 @@ ext_modules = [ \
 
     matrix_misc,
 
-    cf,
+    #cf,
 
     matrix_dense,
     matrix_generic_dense,
@@ -495,6 +495,9 @@ ext_modules = [ \
 
     Extension('sage.misc.reset',
               ['sage/misc/reset.pyx']), \
+
+    Extension('sage.calculus.var',
+              ['sage/calculus/var.pyx']), \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',

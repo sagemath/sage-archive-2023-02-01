@@ -385,6 +385,24 @@ function time_now() {
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
 
+
+// Replaces all instances of the given substring.
+// From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
+
+String.prototype.replaceAll = function(strTarget, strSubString ) {
+	var strText = this;
+	var intIndexOfMatch = strText.indexOf( strTarget );
+	// Keep looping while an instance of the target string
+	// still exists in the string.
+	while (intIndexOfMatch != -1) {
+		// Replace out the current instance.
+		strText = strText.replace( strTarget, strSubString )
+		// Get the index of any next matching substring.
+		intIndexOfMatch = strText.indexOf( strTarget );
+	}
+	return( strText );
+}
+
 function is_whitespace(s) {
     m = whitespace_pat.exec(s);
     return (m[1] == s);
@@ -810,14 +828,13 @@ function cell_blur(id) {
    /* if(!in_slide_mode)
         current_cell = -1; */
 
-    var t = cell.value.replace("<","&lt;");
+    var t = cell.value.replaceAll("<","&lt;");
 
     var display_cell = get_element('cell_display_' + id)
     if (t.indexOf('%hide') == -1) {
         set_class('cell_display_' + id, 'cell_input')
-    // This is nasty, but is seems like the only way to get
-    // the notation R.<x,y> = blah that we use in SAGE to not
-    // result in R. = blah after highlighting.
+        // We do this so <'s don't result in being parsed as
+        // special html tags.
         display_cell.innerHTML = t;
         setTimeout("prettify_cell("+id+")",10);
     } else {
@@ -841,8 +858,7 @@ function prettify_cell(id) {
     var cell = get_cell(id);
     var display_cell = get_element('cell_display_' + id)
     if(cell == null || display_cell == null) return;
-
-    var t = cell.value.replace('<','<span><</span>');
+    var t = cell.value.replaceAll("<","&lt;");
     display_cell.innerHTML = prettyPrintOne(t+' '); //add a space to keep the cell from being too skinny
 }
 
@@ -1230,7 +1246,7 @@ function jump_to_cell(id, delta, bottom) {
 
 function escape0(input) {
     input = escape(input);
-    input = input.replace(/\+/g,"%2B");
+    input = input.replaceAll(/\+/g,"%2B");
     return input;
 }
 

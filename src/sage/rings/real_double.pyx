@@ -21,6 +21,7 @@ Also, you can instantly create a space of large dimension.
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
+include '../ext/random.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
@@ -31,8 +32,6 @@ import math, operator
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
 
-from random import random
-
 from sage.misc.sage_eval import sage_eval
 
 import sage.rings.complex_double
@@ -40,6 +39,11 @@ import sage.rings.complex_field
 
 import sage.rings.integer
 import sage.rings.rational
+
+from sage.rings.integer cimport Integer
+
+def is_RealDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, RealDoubleField_class))
 
 cdef class RealDoubleField_class(Field):
     """
@@ -112,6 +116,8 @@ cdef class RealDoubleField_class(Field):
             sage: b == RR(a)
             True
         """
+        if hasattr(x, '_real_double_'):
+            return x._real_double_(self)
         return RealDoubleElement(x)
 
     cdef _coerce_c_impl(self, x):
@@ -135,13 +141,14 @@ cdef class RealDoubleField_class(Field):
             Complex Double Field
             sage: parent(CDF(5) + RDF(3))
             Complex Double Field
+            sage: CDF.gen(0) + 5.0
+            5.0 + 1.0*I
         """
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)
         import real_mpfr
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing,
-                                    real_mpfr.RR])
+        return self._coerce_try(x, [real_mpfr.RR])
 
 
     def gen(self, n=0):
@@ -199,7 +206,7 @@ cdef class RealDoubleField_class(Field):
         x._value = value
         return x
 
-    def random_element(self, float min=-1, float max=1):
+    def random_element(self, double min=-1, double max=1):
         """
         Return a random element of this real double field in the interval [min, max].
 
@@ -209,7 +216,7 @@ cdef class RealDoubleField_class(Field):
 	    sage: RDF.random_element(min=100, max=110)
 	    106.592535785
         """
-        return self._new_c((max-min)*random() + min)
+        return self._new_c((max-min)*(<double>random())/RAND_MAX + min)
 
     def name(self):
         return "RealDoubleField"
@@ -659,11 +666,31 @@ cdef class RealDoubleElement(FieldElement):
         """
         return long(self._value)
 
-    def _complex_number_(self):
-        return sage.rings.complex_field.ComplexField()(self)
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: a = RDF(1/3)
+            sage: CC(a)
+            0.333333333333333
+            sage: a._complex_mpfr_field_(CC)
+            0.333333333333333
 
-    def _complex_double_(self):
-        return sage.rings.complex_double.ComplexDoubleField()(self)
+        If we coerce to a higher-precision field the extra bits appear
+        random; they are actualy 0's in base 2.
+            sage: a._complex_mpfr_field_(ComplexField(100))
+            0.33333333333333331482961625625
+            sage: a._complex_mpfr_field_(ComplexField(100)).str(2)
+            '0.01010101010101010101010101010101010101010101010101010100000000000000000000000000000000000000000000000'
+        """
+        return CC(self._value)
+
+    def _complex_double_(self, CDF):
+        """
+        EXAMPLES:
+            sage: CDF(RDF(1/3))
+            0.333333333333
+        """
+        return CDF(self._value)
 
     def _pari_(self):
         cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
@@ -729,7 +756,7 @@ cdef class RealDoubleElement(FieldElement):
             """
         if self._value >= 0:
             return self.square_root()
-        return self._complex_double_().sqrt()
+        return self._complex_double_(sage.rings.complex_double.CDF).sqrt()
 
 
     def square_root(self):
@@ -818,18 +845,27 @@ cdef class RealDoubleElement(FieldElement):
             67.6462977039
             sage: a^a
             1.29711148178
+
+        Symbolic examples:
+            sage: RDF('-2.3')^(x+y^3+sin(x))
+            -2.30000000000000^(y^3 + sin(x) + x)
+            sage: RDF('-2.3')^x
+            -2.30000000000000^x
         """
         cdef RealDoubleElement x
-        if PY_TYPE_CHECK(self, RealDoubleElement):
+        if PY_TYPE_CHECK(exponent, RealDoubleElement):
             return self.__pow(RealDoubleElement(exponent))
         elif PY_TYPE_CHECK(exponent, int):
             return self.__pow_int(exponent)
         elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
             return self.__pow_int(int(exponent))
-        elif not isinstance(exponent, RealDoubleElement):
-            x = RealDoubleElement(exponent)
-        else:
-            x = exponent
+        try:
+            x = self.parent()(exponent)
+        except TypeError:
+            try:
+                return exponent.parent()(self)**exponent
+            except AttributeError:
+                raise TypeError
         return self.__pow(x)
 
 
@@ -900,7 +936,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF('16.0'); r.log10()
             1.20411998266
-            sage: r.log() / log(10)
+            sage: r.log() / RDF(log(10))
             1.20411998266
             sage: r = RDF('39.9'); r.log10()
             1.60097289569
@@ -917,7 +953,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF(16); r.logpi()
             2.42204624559
-            sage: r.log() / log(pi)
+            sage: r.log() / RDF(log(pi))
             2.42204624559
             sage: r = RDF('39.9'); r.logpi()
             3.22030233461
@@ -1036,8 +1072,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         cdef double denom
         cos = gsl_sf_cos(self._value)
-        if cos == 0:
-            return self._new_c(NAN)
         a = self._new_c(gsl_sf_sin(self._value) / cos)
         return a
 
@@ -1114,7 +1148,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/12
             sage: q.sinh()
             0.264800227602
-
         """
         return self._new_c(gsl_ldexp( gsl_sf_expm1(self._value) - gsl_sf_expm1(-self._value), -1)) # (e^x - x^-x)/2
 
@@ -1167,6 +1200,42 @@ cdef class RealDoubleElement(FieldElement):
             -4.4408920985e-16
         """
         return self._new_c(gsl_atanh(self._value))
+
+    def sech(self):
+        r"""
+        This function returns the  hyperbolic secant.
+
+        EXAMPLES:
+            sage: RDF(pi).sech()
+            0.0862667383341
+            sage: CDF(pi).sech()
+            0.0862667383341
+        """
+        return 1/self.cosh()
+
+    def csch(self):
+        r"""
+        This function returns the hyperbolic cosecant.
+
+        EXAMPLES:
+            sage: RDF(pi).csch()
+            0.08658953753
+            sage: CDF(pi).csch()
+            0.08658953753
+        """
+        return 1/self.sinh()
+
+    def coth(self):
+        r"""
+        This function returns the hyperbolic cotangent.
+
+        EXAMPLES:
+            sage: RDF(pi).coth()
+            1.0037418732
+            sage: CDF(pi).coth()
+            1.0037418732
+        """
+        return self.cosh() / self.sinh()
 
     def agm(self, other):
         """

@@ -496,14 +496,14 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
     # def _list(self):
     # def _dict(self):
 
-    def is_zero(self):
+    def __nonzero__(self):
         cdef mpz_t *a, *b
         cdef Py_ssize_t i, j
         cdef int k
         for i from 0 <= i < self._nrows * self._ncols:
             if mpz_cmp_si(self._entries[i], 0):
-                return False
-        return True
+                return True
+        return False
 
     def _multiply_linbox(self, Matrix right):
         """

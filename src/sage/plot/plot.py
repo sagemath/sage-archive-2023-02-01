@@ -2268,14 +2268,14 @@ class PlotFactory(GraphicPrimitiveFactory):
         if show is None:
             show = SHOW_DEFAULT
         try:
-            G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
+            G = funcs._plot_(xmin, xmax, **kwds)
             if show:
                 G.show(**kwds)
             return G
         except AttributeError:
             pass
         try:
-            G = funcs.plot(xmin=xmin, xmax=xmax, **kwds)
+            G = funcs.plot(xmin, xmax, **kwds)
             if show:
                 G.show(**kwds)
             return G

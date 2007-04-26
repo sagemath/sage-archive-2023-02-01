@@ -793,9 +793,9 @@ class SingularElement(ExpectElement):
         else:
             P.eval('%s[%s] = %s'%(self.name(), n, value.name()))
 
-    def is_zero(self):
+    def __nonzero__(self):
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == '1'
+        return P.eval('%s == 0'%self.name()) == '0'
 
     def sage_polystring(self):
 	"""

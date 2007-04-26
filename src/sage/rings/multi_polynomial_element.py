@@ -70,6 +70,68 @@ class MPolynomial_element(MPolynomial):
     def _repr_(self):
         return "%s"%self.__element
 
+    ####################
+    # Some standard conversions
+    ####################
+    def __int__(self):
+        if self.degree() == 0:
+            return int(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def __long__(self):
+        if self.degree() == 0:
+            return long(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def __float__(self):
+        if self.degree() == 0:
+            return float(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _mpfr_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _complex_mpfr_field_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _complex_double_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _real_double_(self, R):
+        if self.degree() == 0:
+            return R(self.constant_coefficient())
+        else:
+            raise TypeError
+
+    def _rational_(self):
+        if self.degree() == 0:
+            from rational import Rational
+            return Rational(repr(self))
+        else:
+            raise TypeError
+
+    def _integer_(self):
+        if self.degree() == 0:
+            from integer import Integer
+            return Integer(repr(self))
+        else:
+            raise TypeError
+
+
+    ####################
+
     def __call__(self, *x):
         """
         Evaluate this multi-variate polynomial at $x$, where $x$ is
@@ -226,7 +288,7 @@ class MPolynomial_element(MPolynomial):
 
     def __pow__(self, n):
         if not isinstance(n, (int, long, integer.Integer)):
-            raise TypeError, "The exponent must be an integer."
+            n = integer.Integer(n)
         if n < 0:
             return 1/(self**(-n))
         return self.parent()(self.__element**n)
@@ -306,7 +368,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         generators for the parent of self.
 
         INPUT:
-            x -- multivariate polynmial (a generator of the parent of self)
+            x -- multivariate polynomial (a generator of the parent of self)
                  If x is not specified (or is None), return the total degree,
                  which is the maximum degree of any monomial.
 
@@ -488,8 +550,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = 2 * x * y
             sage: c = f.coefficient(x*y); c
             2
-            sage: c in QQ
-            False
+            sage: c.parent()
+            Polynomial Ring in x, y over Rational Field
             sage: c in MPolynomialRing(RationalField(), 2, names = ['x','y'])
             True
 
@@ -972,13 +1034,13 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             return self._richcmp_(right,3)
         return self._MPolynomial_element__element != right._MPolynomial_element__element
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Returns True if self == 0
+        Returns True if self != 0
 
         \note{This is much faster than actually writing self == 0}
         """
-        return self._MPolynomial_element__element.dict()=={}
+        return self._MPolynomial__element.dict()!={}
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -1050,7 +1112,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x*y^13 + y^12
             sage: M = f.lift(I)
             sage: M
-            [y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8, y^7]
+            [y^7, y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
         """

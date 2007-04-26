@@ -1858,7 +1858,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             other_rn = other
             return bool(mpfi_is_inside_fr(<mpfr_t> other_rn.value, self.value))
         try:
-            other_intv = self._parent._coerce_(other)
+            other_intv = self._parent(other)
             return bool(mpfi_is_inside(other_intv.value, self.value))
         except TypeError, msg:
             return False
@@ -1885,7 +1885,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             other_intv = other
         else:
             # Let type errors from _coerce_ propagate...
-            other_intv = self._parent._coerce_(other)
+            other_intv = self._parent(other)
 
         mpfi_intersect(x.value, self.value, other_intv.value)
         if mpfr_less_p(&x.value.right, &x.value.left):
@@ -1921,7 +1921,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             mpfi_put_fr(x.value, <mpfr_t> other_rn.value)
         else:
             # Let type errors from _coerce_ propagate...
-            other_intv = self._parent._coerce_(other)
+            other_intv = self._parent(other)
             mpfi_union(x.value, self.value, other_intv.value)
         return x
 
@@ -2104,7 +2104,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         EXAMPLES:
             sage: r = RIF(16.0); r.log10()
             [1.2041199826559245 ... 1.2041199826559248]
-            sage: r.log() / log(10)
+            sage: r.log() / log(10.0)
             [1.2041199826559245 ... 1.2041199826559251]
 
             sage: r = RIF(39.9); r.log10()
@@ -2519,7 +2519,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
         But if we compute an interval that includes the number we mean,
         we're much more likely to get the right answer, even if the interval
         is very imprecise.
-            sage: r = r.union(sqrt(2))
+            sage: r = r.union(sqrt(2.0))
             sage: r.algdep(5)
             x^2 - 2
 

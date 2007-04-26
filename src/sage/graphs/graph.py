@@ -215,6 +215,9 @@ from random import random
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+
 
 class GenericGraph(SageObject):
     """
@@ -1140,7 +1143,6 @@ class Graph(GenericGraph):
         if format == 'graph6':
             if not isinstance(data, str):
                 raise ValueError, 'If input format is graph6, then data must be a string'
-            from sage.rings.integer import Integer
             n = data.find('\n')
             if n == -1:
                 n = len(data)
@@ -1159,21 +1161,21 @@ class Graph(GenericGraph):
                     k += 1
             self._nxg = networkx.XGraph(d)
         elif format == 'sparse6':
-            from sage.rings.arith import ceil, floor
+            from math import ceil, floor
             from sage.misc.functional import log
             n = data.find('\n')
             if n == -1:
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             l = [graph_fast.binary(ord(i)-63) for i in s]
             for i in range(len(l)):
                 l[i] = '0'* (6-len(l[i])) + l[i]
             bits = ''.join(l)
             b = []
             x = []
-            for i in range(floor(len(bits)/(k+1))):
+            for i in range(int(floor(len(bits)/(k+1)))):
                 b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
                 x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
             v = 0
@@ -1909,9 +1911,9 @@ class Graph(GenericGraph):
             edges.sort(cmp)
 
             # encode bit vector
-            from sage.rings.arith import ceil
+            from math import ceil
             from sage.misc.functional import log
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             v = 0
             i = 0
             m = 0
@@ -3463,7 +3465,8 @@ def enum(graph):
         sage: enum(graphs.FlowerSnark())
         645682215283153372602620320081348424178216159521280462146968720908564261127120716040952785862033320307812724373694972050L
         sage: enum(graphs.CubeGraph(3))
-        6100215452666565930L
+        6100215452666565930L              # 32-bit
+        6100215452666565930               # 64-bit
         sage: enum(graphs.CubeGraph(4))
         31323620658472264895128471376615338141839885567113523525061169966087480352810L
         sage: enum(graphs.CubeGraph(5))

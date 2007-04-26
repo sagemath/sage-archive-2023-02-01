@@ -147,18 +147,13 @@ def zeta(s):
         sage: RR = RealField(200)
         sage: zeta(RR(2))
         1.6449340668482264364724151666460251892189499012067984377356
+        sage: zeta(I)
+        0.00330022368532410 - 0.418155449141322*I
     """
     try:
         return s.zeta()
     except AttributeError:
-        return RealField()(s).zeta()
-
-##     prec = s.prec()
-##     s = pari.new_with_prec(s, prec)
-##     z = s.zeta()._sage_()
-##     if z.prec() < prec:
-##         raise RuntimeError, "Error computing zeta(%s) -- precision loss."%s
-##     return z
+        return ComplexField()(s).zeta()
 
 def zeta_symmetric(s):
     r"""

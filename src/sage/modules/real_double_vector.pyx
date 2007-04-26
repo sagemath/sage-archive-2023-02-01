@@ -332,6 +332,38 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         p=<double *>n.data
         memcpy(self.v.data,p,self.v.size*sizeof(double))
 
+    #############################
+    # statistics
+    #############################
+    def mean(self):
+        return gsl_stats_mean(self.v.data, self.v.stride, self.v.size)
+
+    def variance(self):
+        return gsl_stats_variance(self.v.data, self.v.stride, self.v.size)
+
+    #def covariance(self):
+    #    return gsl_stats_covariance(self.v.data, self.v.stride, self.v.size)
+
+    def standard_deviation(self):
+        """
+        EXAMPLES:
+        sage: v = vector(RDF, 5, [1,2,3,4,5])
+        sage: v.standard_deviation()
+        1.5811388300841898
+        """
+        return gsl_stats_sd(self.v.data, self.v.stride, self.v.size)
+
+    def stats_skew(self):
+        return gsl_stats_skew(self.v.data, self.v.stride, self.v.size)
+
+    def stats_kurtosis(self):
+        return gsl_stats_kurtosis(self.v.data, self.v.stride, self.v.size)
+
+    def stats_lag1_autocorrelation(self):
+        return gsl_stats_lag1_autocorrelation(self.v.data, self.v.stride, self.v.size)
+
+
+
 def unpickle_v0(parent, entries, degree):
     # If you think you want to change this function, don't.
     # Instead make a new version with a name like

@@ -545,7 +545,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__modular_form = f
             return f
 
-    def modular_symbol_space(self, sign=1, base_ring=Q):
+    def modular_symbol_space(self, sign=1, base_ring=Q, bound=None):
         r"""
         Return the space of cuspidal modular symbols associated to
         this elliptic curve, with given sign and base ring.
@@ -555,6 +555,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             base_ring -- a ring
 
         EXAMPLES:
+            sage: f = EllipticCurve('37b')
+            sage: f.modular_symbol_space()
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 3 for Gamma_0(37) of weight 2 with sign 1 over Rational Field
+            sage: f.modular_symbol_space(-1)
+            Modular Symbols subspace of dimension 1 of Modular Symbols space of dimension 2 for Gamma_0(37) of weight 2 with sign -1 over Rational Field
+            sage: f.modular_symbol_space(0, bound=3)
+            Modular Symbols subspace of dimension 2 of Modular Symbols space of dimension 5 for Gamma_0(37) of weight 2 with sign 0 over Rational Field
 
         NOTE: If you just want the $q$-expansion, use
         \code{self.q_expansion(prec)}.
@@ -566,45 +573,60 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             self.__modular_symbol_space = {}
         except KeyError:
             pass
-        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring)
+        M = ell_modular_symbols.modular_symbol_space(self, sign, base_ring, bound=bound)
         self.__modular_symbol_space[typ] = M
         return M
 
-    def modular_symbol(self, sign=1, base_ring=Q):
+    def modular_symbol(self, sign=1, normalize=True):
         r"""
         Return the modular symbol associated to this elliptic curve,
         with given sign and base ring.  This is the map that sends r/s
         to a fixed multiple of 2*pi*I*f(z)dz from oo to r/s,
         normalized so that all values of this map take values in QQ.
 
-        NOTE: Currently there is no guarantee about how this map is
-        normalized.  This will be added.
+        If sign=1, the normalization is such that the p-adic
+        L-function associated to this modular symbol is correct.
+        I.e., the normalization is the same as for the integral period
+        mapping divided by 2.
 
         INPUT:
             sign -- -1, or 1
             base_ring -- a ring
+            normalize -- (default: True); if True, the modular symbol
+                is correctly normalized (up to possibly a factor of
+                -1 or 2).  If False, the modular symbol is almost certainly
+                not correctly normalized, i.e., all values will be a
+                fixed scalar multiple of what they should be.  But
+                the initial computation of the modular symbol is
+                much faster, though evaluation of it after computing
+                it won't be any faster.
 
-        NOTE: If you just want the $q$-expansion, use
-        \code{self.q_expansion(prec)}.
+        EXAMPLES:
+
         """
-        typ = (sign, base_ring)
+        typ = (sign, normalize)
         try:
             return self.__modular_symbol[typ]
         except AttributeError:
             self.__modular_symbol = {}
         except KeyError:
             pass
-        M = ell_modular_symbols.ModularSymbol(self, sign, base_ring)
+        M = ell_modular_symbols.ModularSymbol(self, sign, normalize)
         self.__modular_symbol[typ] = M
         return M
 
-    def padic_lseries(self, p, prec=20):
-        """
-        Return the p-adic Lseries of self at p with given p-adic precision.
+    def padic_lseries(self, p, normalize=True):
+        r"""
+        Return the $p$-adic $L$-series of self at $p$, which is an object
+        whose approx method computes approximation to the true $p$-adic
+        $L$-series to any deesired precision.
 
         INPUT:
             p -- prime
-            prec -- precision of p-adic computations
+            normalize -- (default: True); if True the p-adic L-series
+            is normalized correctly (up to multiplication by -1 and
+            2); otherwise it isn't, but computation of the series is
+            quicker.
 
         EXAMPLES:
             sage: E = EllipticCurve('37a')
@@ -612,8 +634,47 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             5-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: type(L)
             <class 'sage.schemes.elliptic_curves.padic_lseries.pAdicLseriesOrdinary'>
+
+        We compute the $3$-adic $L$-series of two curves of rank $0$
+        and in each case verify the interpolation property for their
+        leading coefficient (i.e., value at 0):
+            sage: e = EllipticCurve('11a')
+            sage: ms = e.modular_symbol()
+            sage: [ms(1/11), ms(1/3), ms(0), ms(oo)]
+            [0, -3/10, 1/5, 0]
+            sage: ms(0)
+            1/5
+            sage: L = e.padic_lseries(3)
+            sage: P = L.series(5)
+            sage: P(0)
+            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7)
+            sage: alpha = L.alpha(9); alpha
+            2 + 3^2 + 2*3^3 + 2*3^4 + 2*3^6 + 3^8 + O(3^9)
+            sage: R.<x> = QQ[]
+            sage: f = x^2 - e.ap(3)*x + 3
+            sage: f(alpha)
+            O(3^9)
+            sage: r = e.L_ratio(); r
+            1/5
+            sage: (1 - alpha^(-1))^2 * r
+            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + 3^7 + O(3^9)
+            sage: P(0)
+            2 + 3 + 3^2 + 2*3^3 + 2*3^5 + 3^6 + O(3^7)
+
+        Next consider the curve 37b:
+            sage: e = EllipticCurve('37b')
+            sage: L = e.padic_lseries(3)
+            sage: P = L.series(5)
+            sage: alpha = L.alpha(9); alpha
+            1 + 2*3 + 3^2 + 2*3^5 + 2*3^7 + 3^8 + O(3^9)
+            sage: r = e.L_ratio(); r
+            1/3
+            sage: (1 - alpha^(-1))^2 * r
+            3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
+            sage: P(0)
+            3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^7)
         """
-        key = (p,prec)
+        key = (p, normalize)
         try:
             return self._padic_lseries[key]
         except AttributeError:
@@ -621,21 +682,23 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         except KeyError:
             pass
         if self.ap(p) % p != 0:
-            Lp = padic_lseries.pAdicLseriesOrdinary(self, p, prec)
+            Lp = padic_lseries.pAdicLseriesOrdinary(self, p,
+                                  normalize = normalize)
         else:
-            Lp = padic_lseries.pAdicLseriesSupersingular(self, p, prec)
+            Lp = padic_lseries.pAdicLseriesSupersingular(self, p,
+                                  normalize = normalize)
         self._padic_lseries[key] = Lp
         return Lp
 
     def newform(self):
-        """
+        r"""
         Same as \code{self.modular_form()}.
         """
         return self.modular_form()
 
     def q_eigenform(self, prec):
-        """
-        Synonym for self.q_expansion(prec).
+        r"""
+        Synonym for \code{self.q_expansion(prec)}.
         """
         return self.q_expansion(prec)
 
@@ -1441,6 +1504,29 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             (2.99345864623195962983200997945250817779758379137013298534052337856325035698668290412039406739705147343584052710494728819414438723737202525437537667109326, 2.45138938198679006085422483186652522534961728914479661465647140612915289999925689289113212802918108871268421886966184797547519986661675580167893816478303*I)   # 64-bit
         """
         return tuple(self.pari_curve().omega().python())
+
+    def period_lattice_is_rectangular(self):
+        r"""
+        Return True precisely if the period lattice of self
+        is rectangular.
+
+        EXAMPLES:
+            sage: f = EllipticCurve('11a')
+            sage: f.period_lattice()
+            (1.269209304279553421688794616754547305219492241830608667967136921230408338613, 0.6346046521397767108443973083772736526097461209153043339835684606152041693064 + 1.458816616938495229330889612903675257159243428952665161469618762450537896609*I)
+            sage: f.period_lattice_is_rectangular()
+            False
+            sage: f = EllipticCurve('37b')
+            sage: f.period_lattice()
+            (1.088521592904229173504308311539594823105140504301377799086597419750048367573, 1.767610670233789475881323144497815233734289378984139837146363810096739201810*I)
+            sage: f.period_lattice_is_rectangular()
+            True
+
+        ALGORITHM:
+           The period lattice is rectangular precisely if the
+           discriminant of the Weierstrass equation is positive.
+        """
+        return self.discriminant() > 0
 
     def omega(self):
         """
@@ -2336,9 +2422,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
             sage: E = EllipticCurve('195a')
             sage: G = E.isogeny_graph()
-            sage: for v in G:
-                print v, G.obj(v)
-            ....:
+            sage: for v in G: print v, G.obj(v)
+            ...
             0 Elliptic Curve defined by y^2 + x*y  = x^3 - 110*x + 435 over Rational Field
             1 Elliptic Curve defined by y^2 + x*y  = x^3 - 115*x + 392 over Rational Field
             2 Elliptic Curve defined by y^2 + x*y  = x^3 + 210*x + 2277 over Rational Field
@@ -2367,6 +2452,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         Return True if the mod-p representation attached
         to E is reducible.
 
+        INPUT:
+            p -- a prime number
+
+        NOTE: The answer is cached.
+
         EXAMPLES:
             sage: E = EllipticCurve('121a'); E
             Elliptic Curve defined by y^2 + x*y + y = x^3 + x^2 - 30*x - 76 over Rational Field
@@ -2382,29 +2472,54 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: e.torsion_order()
             1
         """
+        try:
+            return self.__is_reducible[p]
+        except AttributeError:
+            self.__is_reducible = {}
+        except KeyError:
+            pass
+
+        if not arith.is_prime(p):
+            raise ValueError, 'p (=%s) must be prime'%p
         # we do is_surjective first, since this is
         # much easier than computing isogeny_class
         t, why = self.is_surjective(p)
         if t == True:
+            self.__is_reducible[p] = False
             return False  # definitely not reducible
         isogeny_matrix = self.isogeny_class()[ 1 ]
         v = isogeny_matrix[0]  # first row
         for a in v:
             if a != 0 and a % p == 0:
+                self.__is_reducible[p] = True
                 return True
+        self.__is_reducible[p] = False
         return False
 
     def is_irreducible(self, p):
         """
         Return True if the mod p represenation is irreducible.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('37b')
+            sage: e.is_irreducible(2)
+            True
+            sage: e.is_irreducible(3)
+            False
+            sage: e.is_reducible(2)
+            False
+            sage: e.is_reducible(3)
+            True
         """
-        return not self.is_reducible()
+        return not self.is_reducible(p)
 
     def is_surjective(self, p, A=1000):
         """
         Return True if the mod-p representation attached to E
         is surjective, False if it is not, or None if we were
         unable to determine whether it is or not.
+
+        NOTE: The answer is cached.
 
         INPUT:
             p -- int (a prime number)
@@ -2416,6 +2531,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             -- information about what it is if not surjective
 
         EXAMPLES:
+            sage: e = EllipticCurve('37b')
+            sage: e.is_surjective(2)
+            (True, None)
+            sage: e.is_surjective(3)
+            (False, '3-torsion')
+
 
         REMARKS:
 
@@ -2432,7 +2553,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         """
         if not arith.is_prime(p):
             raise TypeError, "p (=%s) must be prime."%p
+        A = int(A)
+        key = (p, A)
+        try:
+            return self.__is_surjective[key]
+        except KeyError:
+            pass
+        except AttributeError:
+            self.__is_surjective = {}
 
+        ans = self._is_surjective(p, A)
+        self.__is_surjective[key] = ans
+        return ans
+
+    def _is_surjective(self, p, A):
         T = self.torsion_subgroup().order()
         if T % p == 0:
             return False, "%s-torsion"%p

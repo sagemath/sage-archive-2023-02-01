@@ -34,6 +34,7 @@ import sage.server.support
 from   viewer import browser
 from   misc   import tmp_filename, branch_current_hg
 from   remote_file import get_remote_file
+from   sage.server.misc import print_open_msg
 
 def embedded():
     return sage.server.support.EMBEDDED_MODE
@@ -153,7 +154,8 @@ class HG:
             err = x[2].read()
             return out, err
 
-    def serve(self, port=8200, open_viewer=False):
+    def serve(self, port=8200, address='localhost',
+              open_viewer=True, options=''):
         """
         Start a web server for this repository.
 
@@ -163,17 +165,21 @@ class HG:
 
         INPUT:
             port -- port that the server will listen on
-            open_viewer -- boolean (default: False); whether to pop up the web page
+            address --  (default: 'localhost') address to listen on
+            open_viewer -- boolean (default: True); whether to pop up the web page
+            options -- a string passed directly to hg's serve command.
         """
-        print('Now serving repository on port %s'%port)
-        print("Point your web browser at http://localhost:%s"%port)
         if open_viewer:
-            cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(), 'localhost', port)
+            cmd = 'sleep 1; %s http://%s:%s 1>&2 >/dev/null'%(browser(),
+                                                              address, port)
             t = tmp_filename()
             open(t,'w').write(cmd)
             P = os.path.abspath(t)
             os.system('chmod +x %s; %s &'%(P, P))
-        self('serve --port %s'%port)
+
+        print_open_msg(address, port)
+        self('serve --address %s --port %s  %s'%(address, port, options))
+        print_open_msg(address, port)
 
     browse = serve
 

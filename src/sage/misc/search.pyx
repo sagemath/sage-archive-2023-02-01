@@ -30,6 +30,7 @@ def search(object v, object x):
     Return (True,i) where i is such that v[i] == x if there is such an i,
     or (False,j) otherwise, where j is the position that a should be inserted
     so that v remains sorted.
+
     INPUT:
         v -- a list, which is assumed sorted
         x -- Python object

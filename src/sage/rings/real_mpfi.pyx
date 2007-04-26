@@ -140,9 +140,6 @@ import operator
 from integer import Integer
 from integer cimport Integer
 
-from rational import Rational
-from rational cimport Rational
-
 from real_double import RealDoubleElement
 from real_double cimport RealDoubleElement
 
@@ -1494,6 +1491,108 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #     def _pari_(self):
 #         return sage.libs.pari.all.pari.new_with_bits_prec(str(self), (<RealIntervalField>self._parent).__prec)
 
+    def simplest_rational(self, low_open=False, high_open=False):
+        """
+        Returns the simplest rational in this interval.
+        Given rationals a/b and c/d (both in lowest terms), the former
+        is simpler if b<d or if b==d and |a|<|c|.
+
+        If optional parameters low_open or high_open are true, then
+        treat this as an open interval on that end.
+
+        EXAMPLES:
+            sage: RealIntervalField(10)(pi).simplest_rational()
+            22/7
+            sage: RealIntervalField(20)(pi).simplest_rational()
+            355/113
+            sage: RIF(0.123, 0.567).simplest_rational()
+            1/2
+            sage: RIF(RR(1/3).nextabove(), RR(3/7)).simplest_rational()
+            2/5
+            sage: RIF(1234/567).simplest_rational()
+            1234/567
+            sage: RIF(-8765/432).simplest_rational()
+            -8765/432
+            sage: RIF(-1.234, 0.003).simplest_rational()
+            0
+            sage: RIF(RR(1/3)).simplest_rational()
+            6004799503160661/18014398509481984
+            sage: RIF(RR(1/3)).simplest_rational(high_open=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: simplest_rational() on open, empty interval
+            sage: RIF(1/3, 1/2).simplest_rational()
+            1/2
+            sage: RIF(1/3, 1/2).simplest_rational(high_open=True)
+            1/3
+            sage: phi = ((RealIntervalField(500)(5).sqrt() + 1)/2)
+            sage: phi.simplest_rational() == fibonacci(362)/fibonacci(361)
+            True
+
+        """
+        if mpfr_equal_p(&self.value.left, &self.value.right):
+            if low_open or high_open:
+                raise ValueError, 'simplest_rational() on open, empty interval'
+            return self.lower().exact_rational()
+
+        if mpfi_has_zero(self.value):
+            return Rational(0)
+
+        if mpfi_is_neg(self.value):
+            return -(self._neg_c_impl().simplest_rational(low_open=high_open, high_open=low_open))
+
+        low = self.lower()
+        high = self.upper()
+
+        # First, we try using approximate arithmetic of slightly higher
+        # precision.
+        cdef RealIntervalFieldElement highprec
+        highprec = RealIntervalField(int(self.prec() * 1.2))(self)
+
+        cdef Rational try1 = highprec._simplest_rational_helper()
+
+        # Note that to compute "try1 >= low", SAGE converts try1 to a
+        # floating-point number rounding down, and "try1 <= high"
+        # rounds up (since "low" and "high" are in downward-rounding
+        # and upward-rounding fields, respectively).
+        if try1 >= low and try1 <= high:
+            ok = True
+            if low_open and (try1 == low.exact_rational()):
+                ok = False
+            if high_open and (try1 == high.exact_rational()):
+                ok = False
+            if ok:
+                return try1
+
+        # We could try again with higher precision; instead, we
+        # go directly to using exact arithmetic.
+        return _simplest_rational_exact(low.exact_rational(),
+                                        high.exact_rational(),
+                                        low_open,
+                                        high_open)
+
+    cdef Rational _simplest_rational_helper(self):
+        """
+        Returns the simplest rational in an interval which is
+        either equal to or slightly larger than self.  We assume
+        that both endpoints of self are nonnegative.
+        """
+
+        low = self.lower()
+
+        cdef RealIntervalFieldElement new_elt
+
+        if low <= 1:
+            if low == 0:
+                return Rational(0)
+            if self.upper() >= 1:
+                return Rational(1)
+            new_elt = ~self
+            return ~(new_elt._simplest_rational_helper())
+
+        fl = low.floor()
+        new_elt = self - fl
+        return fl + new_elt._simplest_rational_helper()
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
@@ -2541,7 +2640,76 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         return x
 
 
-RR = RealIntervalField()
+def _simplest_rational_test_helper(low, high, low_open=False, high_open=False):
+    """
+    Call _simplest_rational_exact().  Only used to allow doctests
+    on that function.
+    """
+    return _simplest_rational_exact(low, high, low_open, high_open)
+
+cdef _simplest_rational_exact(Rational low, Rational high, int low_open, int high_open):
+    """
+    Return the simplest rational between low and high.  May return low
+    or high unless low_open or high_open (respectively) are true (non-zero).
+    We assume that low and high are both nonnegative, and that high>low.
+
+    This is a helper function for simplest_rational() on RealIntervalField,
+    and should not be called directly.
+
+    EXAMPLES:
+        sage: test = sage.rings.real_mpfi._simplest_rational_test_helper
+        sage: test(1/4, 1/3, 0, 0)
+        1/3
+        sage: test(1/4, 1/3, 0, 1)
+        1/4
+        sage: test(1/4, 1/3, 1, 1)
+        2/7
+        sage: test(QQ(0), QQ(2), 0, 0)
+        0
+        sage: test(QQ(0), QQ(2), 1, 0)
+        1
+        sage: test(QQ(0), QQ(1), 1, 0)
+        1
+        sage: test(QQ(0), QQ(1), 1, 1)
+        1/2
+        sage: test(1233/1234, QQ(1), 0, 0)
+        1
+        sage: test(1233/1234, QQ(1), 0, 1)
+        1233/1234
+        sage: test(10000/32007, 10001/32007, 0, 0)
+        289/925
+        sage: test(QQ(0), 1/3, 1, 0)
+        1/3
+        sage: test(QQ(0), 1/3, 1, 1)
+        1/4
+        sage: test(QQ(0), 2/5, 1, 0)
+        1/3
+        sage: test(QQ(0), 2/5, 1, 1)
+        1/3
+    """
+    cdef Rational r
+
+    if low < 1:
+        if low == 0:
+            if low_open:
+                if high > 1:
+                    return Rational(1)
+                inv_high = ~high
+                if high_open:
+                    return ~Rational(inv_high.floor() + 1)
+                else:
+                    return ~Rational(inv_high.ceil())
+            else:
+                return Rational(0)
+
+        if high > 1:
+            return Rational(1)
+
+        r = _simplest_rational_exact(~high, ~low, high_open, low_open)
+        return ~r
+
+    fl = low.floor()
+    return fl + _simplest_rational_exact(low - fl, high - fl, low_open, high_open)
 
 
 def RealInterval(s, upper=None, int base=10, int pad=0, min_prec=53):

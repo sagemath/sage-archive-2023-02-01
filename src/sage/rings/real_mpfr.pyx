@@ -47,6 +47,7 @@ import sys
 
 include '../ext/interrupt.pxi'
 include "../ext/stdsage.pxi"
+include "../ext/random.pxi"
 
 cimport sage.rings.ring
 import  sage.rings.ring
@@ -410,10 +411,27 @@ cdef class RealField(sage.rings.ring.Field):
             sage: R(2).log()
             0.69314718055994530941723212146
         """
-        cdef RealNumber x
-        x = self._new()
+        cdef RealNumber x = self._new()
         mpfr_const_log2(x.value, self.rnd)
         return x
+
+    def random_element(self, min=-1, max=1, distribution=None):
+        """
+        Returns a uniformly distributed random number between
+        min and max (default -1 to 1).
+
+        EXAMPLES:
+            sage: RealField(100).random_element(-5, 10)
+            4.2682457657074627882421620493
+            sage: RealField(10).random_element()
+            .27
+        """
+        cdef RealNumber x = self._new()
+        mpfr_urandomb(x.value, state)
+        if min == 0 and max == 1:
+            return x
+        else:
+            return (max-min)*x + min
 
     def factorial(self, int n):
         """
@@ -877,12 +895,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a.integer_part()
             100000000000000000
         """
-        s = self.str(base=32, no_sci=True)
-        i = s.find(".")
-        if i != -1:
-            return Integer(s[:i], base=32)
-        else:
-            return Integer(s, base=32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z
 
     ########################
     #   Basic Arithmetic
@@ -1376,6 +1391,195 @@ cdef class RealNumber(sage.structure.element.RingElement):
         mpz_clear(mantissa)
 
         return gen
+
+    def exact_rational(self):
+        """
+        Returns the exact rational representation of this floating-point
+        number.
+
+        EXAMPLES:
+            sage: RR(0).exact_rational()
+            0
+            sage: RR(1/3).exact_rational()
+            6004799503160661/18014398509481984
+            sage: RR(37/16).exact_rational()
+            37/16
+            sage: RR(3^60).exact_rational()
+            42391158275216203520420085760
+            sage: RR(3^60).exact_rational() - 3^60
+            6125652559
+            sage: RealField(5)(-pi).exact_rational()
+            -25/8
+        """
+        cdef Integer mantissa = Integer()
+        cdef mp_exp_t exponent
+
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Calling exact_rational() on infinity or NaN'
+
+        exponent = mpfr_get_z_exp(mantissa.value, self.value)
+
+        return Rational(mantissa) * Integer(2) ** exponent
+
+    def simplest_rational(self):
+        """
+        Returns the simplest rational which is equal to self (in the SAGE
+        sense).  Recall that SAGE defines the equality operator by
+        coercing both sides to a single type and then comparing;
+        thus, this finds the simplest rational which (when coerced to
+        this RealField) is equal to self.
+
+        Given rationals a/b and c/d (both in lowest terms), the former
+        is simpler if b<d or if b==d and |a|<|c|.
+
+        The effect of rounding modes is slightly counter-intuitive.
+        Consider the case of round-toward-minus-infinity.  This rounding
+        is performed when coercing a rational to a floating-point
+        number; so the simplest_rational() of a round-to-minus-infinity
+        number will be either exactly equal to or slightly larger than
+        the number.
+
+        EXAMPLES:
+            sage: RRd = RealField(53, rnd='RNDD')
+            sage: RRz = RealField(53, rnd='RNDZ')
+            sage: RRu = RealField(53, rnd='RNDU')
+            sage: def check(x):
+            ...       rx = x.simplest_rational()
+            ...       assert(x == rx)
+            ...       return rx
+            sage: RRd(1/3) < RRu(1/3)
+            True
+            sage: check(RRd(1/3))
+            1/3
+            sage: check(RRu(1/3))
+            1/3
+            sage: check(RRz(1/3))
+            1/3
+            sage: check(RR(1/3))
+            1/3
+            sage: check(RRd(-1/3))
+            -1/3
+            sage: check(RRu(-1/3))
+            -1/3
+            sage: check(RRz(-1/3))
+            -1/3
+            sage: check(RR(-1/3))
+            -1/3
+            sage: check(RealField(20)(pi))
+            355/113
+            sage: check(RR(pi))
+            245850922/78256779
+            sage: check(RR(2).sqrt())
+            131836323/93222358
+            sage: check(RR(1/2^210))
+            1/1645504557321205859467264516194506011931735427766374553794641921
+            sage: check(RR(2^210))
+            1645504557321205950811116849375918117252433820865891134852825088
+            sage: (RR(17).sqrt()).simplest_rational()^2 - 17
+            -1/348729667233025
+            sage: (RR(23).cube_root()).simplest_rational()^3 - 23
+            -1404915133/264743395842039084891584
+            sage: RRd5 = RealField(5, rnd='RNDD')
+            sage: RRu5 = RealField(5, rnd='RNDU')
+            sage: RR5 = RealField(5)
+            sage: below1 = RR5(1).nextbelow()
+            sage: check(RRd5(below1))
+            31/32
+            sage: check(RRu5(below1))
+            16/17
+            sage: check(below1)
+            21/22
+            sage: below1.exact_rational()
+            31/32
+            sage: above1 = RR5(1).nextabove()
+            sage: check(RRd5(above1))
+            10/9
+            sage: check(RRu5(above1))
+            17/16
+            sage: check(above1)
+            12/11
+            sage: above1.exact_rational()
+            17/16
+            sage: check(RR(1234))
+            1234
+            sage: check(RR5(1234))
+            1185
+            sage: check(RR5(1184))
+            1120
+            sage: RRd2 = RealField(2, rnd='RNDD')
+            sage: RRu2 = RealField(2, rnd='RNDU')
+            sage: RR2 = RealField(2)
+            sage: check(RR2(8))
+            7
+            sage: check(RRd2(8))
+            8
+            sage: check(RRu2(8))
+            7
+            sage: check(RR2(13))
+            11
+            sage: check(RRd2(13))
+            12
+            sage: check(RRu2(13))
+            13
+            sage: check(RR2(16))
+            14
+            sage: check(RRd2(16))
+            16
+            sage: check(RRu2(16))
+            13
+            sage: check(RR2(24))
+            21
+            sage: check(RRu2(24))
+            17
+            sage: check(RR2(-24))
+            -21
+            sage: check(RRu2(-24))
+            -24
+        """
+        if mpfr_zero_p(self.value):
+            return Rational(0)
+
+        from real_mpfi import RealIntervalField
+
+        cdef mp_rnd_t rnd = (<RealField>self._parent).rnd
+        cdef int prec = (<RealField>self._parent).__prec
+
+        cdef RealNumber low, high
+        cdef int odd
+
+        if rnd == GMP_RNDN:
+            # hp == "high precision"
+            hp_field = RealField(prec + 1)
+            hp_val = hp_field(self)
+            hp_intv_field = RealIntervalField(prec + 1)
+            low = hp_val.nextbelow()
+            high = hp_val.nextabove()
+            hp_intv = hp_intv_field(low, high)
+            # In GMP_RNDN mode, we round to nearest, preferring even mantissas
+            # if we are exactly halfway between representable floats.
+            # Thus, the values low and high will round to self iff the
+            # mantissa of self is even.  (Note that this only matters
+            # if low or high is an integer; if they are not integers,
+            # then self is simpler than either low or high.)
+            # Is there a better (faster) way to check this?
+            odd = self._parent(low) != self
+            return hp_intv.simplest_rational(low_open=odd, high_open=odd)
+
+        if rnd == GMP_RNDZ:
+            if mpfr_sgn(self.value) > 0:
+                rnd = GMP_RNDD
+            else:
+                rnd = GMP_RNDU
+
+        intv_field = RealIntervalField(prec)
+
+        if rnd == GMP_RNDD:
+            intv = intv_field(self, self.nextabove())
+            return intv.simplest_rational(high_open = True)
+        if rnd == GMP_RNDU:
+            intv = intv_field(self.nextbelow(), self)
+            return intv.simplest_rational(low_open = True)
+
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=

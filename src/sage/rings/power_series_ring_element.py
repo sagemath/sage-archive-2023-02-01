@@ -85,6 +85,8 @@ import arith
 import sage.misc.latex as latex
 import sage.structure.coerce
 import rational_field, integer_ring
+from integer import Integer
+from integer_mod_ring import IntegerModRing
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.libs.all import PariError
@@ -821,12 +823,16 @@ class PowerSeries(ring_element.RingElement):
         return num*inv
 
     def __mod__(self, other):
+        """
+        EXAMPLES:
+            sage: R.<T> = Qp(7)[[]]
+            sage: f = (48*67 + 46*67^2)*T + (1 + 42*67 + 5*67^3)*T^2 + O(T^3)
+            sage: f % 67
+            T^2 + O(T^3)
+        """
         if isinstance(other,(int,Integer,long)):
-            try:
-                return power_series_ring.PowerSeriesRing(Zmod(other))(self)
-            except TypeError:
-                raise ZeroDivisionError
-        raise NotImplementedError, "Mod on power series ring not defined."
+            return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
+        raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
 
     def sqrt(self):
         r"""
@@ -1177,7 +1183,7 @@ class PowerSeries_poly(PowerSeries):
         """
         return self.__f
 
-    def __call__(self, x):
+    def __call__(self, *xs):
         """
         EXAMPLE:
             sage: R.<t> = GF(7)[[]]
@@ -1185,13 +1191,17 @@ class PowerSeries_poly(PowerSeries):
             sage: f(1)
             2
         """
+        if isinstance(xs[0], tuple):
+            xs = xs[0]
+        x = xs[0]
         try:
             if x.parent() is self.parent():
                 if not (self.prec() is infinity):
                     x = x.add_bigoh(self.prec()*x.valuation())
+                    xs = list(xs); xs[0] = x; xs = tuple(xs) # tuples are immutable
         except AttributeError:
             pass
-        return self.__f(x)
+        return self.__f(xs)
 
     def __setitem__(self, n, value):
         """

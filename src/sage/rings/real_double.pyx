@@ -21,6 +21,7 @@ Also, you can instantly create a space of large dimension.
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
+include '../ext/random.pxi'
 include '../ext/interrupt.pxi'
 include '../gsl/gsl.pxi'
 
@@ -30,8 +31,6 @@ import math, operator
 
 cimport sage.libs.pari.gen
 import sage.libs.pari.gen
-
-from random import random
 
 from sage.misc.sage_eval import sage_eval
 
@@ -199,7 +198,7 @@ cdef class RealDoubleField_class(Field):
         x._value = value
         return x
 
-    def random_element(self, float min=-1, float max=1):
+    def random_element(self, double min=-1, double max=1):
         """
         Return a random element of this real double field in the interval [min, max].
 
@@ -209,7 +208,7 @@ cdef class RealDoubleField_class(Field):
 	    sage: RDF.random_element(min=100, max=110)
 	    106.592535785
         """
-        return self._new_c((max-min)*random() + min)
+        return self._new_c((max-min)*(<double>random())/RAND_MAX + min)
 
     def name(self):
         return "RealDoubleField"
@@ -720,7 +719,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(4344)
             sage: r.sqrt()
             65.9090282131
-            sage: r.sqrt()^2 - r
+            sage: r.sqrt()^2 - r             # random low order bits
             0.0
 
             sage: r = RDF(-2.0)
@@ -1036,8 +1035,6 @@ cdef class RealDoubleElement(FieldElement):
         """
         cdef double denom
         cos = gsl_sf_cos(self._value)
-        if cos == 0:
-            return self._new_c(NAN)
         a = self._new_c(gsl_sf_sin(self._value) / cos)
         return a
 

@@ -23,6 +23,7 @@ AUTHORS:
 from sage.structure.sage_object import SageObject
 from sage.modular.modsym.all import ModularSymbols
 from sage.rings.arith import next_prime
+from sage.rings.infinity import unsigned_infinity as infinity
 
 def modular_symbol_space(E, sign, base_ring, bound=None):
     """
@@ -36,6 +37,9 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
 
     OUTPUT:
         a space of modular symbols
+
+    EXAMPLES:
+
     """
     _sign = int(sign)
     if _sign != sign:
@@ -57,12 +61,33 @@ def modular_symbol_space(E, sign, base_ring, bound=None):
     return V
 
 class ModularSymbol(SageObject):
-    def __init__(self, E, sign, base_ring):
+    r"""
+    A modular symbol attached to an elliptic curve, which is the map
+    from $\QQ\to \QQ$ obtained by sending $r$ to the normalized
+    symmetrized (or anti-symmetrized) integral from r to infinity.
+
+    This is as defined in Mazur-Tate-Teitelbaum.  It's possible the
+    map could be off from what you expect by -1 or +/- 2, but
+    otherwise it is definitely normalized correctly.
+
+    EXAMPLES:
+
+    """
+    def __init__(self, E, sign, normalize=True):
         """
         INPUT:
             E -- an elliptic curve
             sign -- an integer, -1 or 1
-            base_ring -- a ring
+            normalize -- (default: True); if True, the modular symbol
+                is correctly normalized (up to possibly a factor of
+                -1 or 2).  If False, the modular symbol is almost certainly
+                not correctly normalized, i.e., all values will be a
+                fixed scalar multiple of what they should be.  But
+                the initial computation of the modular symbol is
+                much faster, though evaluation of it after computing
+                it won't be any faster.
+
+        EXAMPLES:
         """
         _sign = int(sign)
         if _sign != sign:
@@ -70,22 +95,37 @@ class ModularSymbol(SageObject):
         if _sign != -1 and _sign != 1:
             raise TypeError, 'sign must -1 or 1'
         self._E = E
-        self._modsym = E.modular_symbol_space(sign=_sign, base_ring=base_ring)
+        self._modsym = E.modular_symbol_space(sign=_sign)
         self._ambient_modsym = self._modsym.ambient_module()
-        self._e = self._modsym.dual_eigenvector()
-        # todo -- here must rescale self._e
+        if normalize:
+            P = self._modsym.integral_period_mapping()
+            e = P.matrix().transpose()[0]
+            e /= 2
+        else:
+            e = self._modsym.dual_eigenvector()
+        self._e = e
 
     def sign(self):
+        """
+        Return the sign of this elliptic curve modular symbol.
+
+        EXAMPLES:
+        """
+
         return self._modsym.sign()
 
     def base_ring(self):
+        """
+        Return the base ring for this modular symbol.
+        EXAMPLES:
+        """
         return self._modsym.base_ring()
 
     def elliptic_curve(self):
         return self._E
 
-    def __call__(self, x):
-        w = self._ambient_modsym([0,x]).element()
+    def __call__(self, r):
+        w = self._ambient_modsym([infinity,r]).element()
         return (self._e).dot_product(w)
 
     def _repr_(self):

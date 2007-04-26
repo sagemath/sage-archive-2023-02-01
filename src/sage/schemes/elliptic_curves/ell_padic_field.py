@@ -159,19 +159,21 @@ class EllipticCurve_padic_field(EllipticCurve_field):
 
     def coleman_integrals_on_basis(self, P, Q):
         """
-        Return the coleman integral of dx/y and x dx/y from P to Q
+        Return the coleman integral of dx/y and x dx/y from P to Q.
 
-        sage: K = pAdicField(13, 7)
-        sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
-        sage: P = E(K(14/3), K(11/2))
-        sage: res = E.coleman_integrals_on_basis(P, 2*P); res
-        (7*13^6 + O(13^7), 2 + 7*13 + 2*13^2 + 5*13^3 + 10*13^4 + 7*13^5 + 8*13^6 + O(13^7))
+        EXAMPLES:
+            sage: K = pAdicField(13, 7)
+            sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
+            sage: P = E(K(14/3), K(11/2))
+            sage: res = E.coleman_integrals_on_basis(P, 2*P); res
+            (7*13^6 + O(13^7), 2 + 7*13 + 2*13^2 + 5*13^3 + 10*13^4 + 7*13^5 + 8*13^6 + O(13^7))
 
-        As the Coleman integral of dx/y is in invariant under translation, it should
-        evaluate to zero between a torsion point and its multiples.
+        As the Coleman integral of dx/y is in invariant under
+        translation, it should evaluate to zero between a torsion
+        point and its multiples.
 
-        sage: res[0].valuation() >= 6
-        True
+            sage: res[0].valuation() >= 6
+            True
         """
         K = self.base_field()
         p = K.prime()
@@ -216,3 +218,4 @@ class EllipticCurve_padic_field(EllipticCurve_field):
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
         return P_to_TP + TP_to_TQ + TQ_to_Q
+

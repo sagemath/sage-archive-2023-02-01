@@ -471,7 +471,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
             sage: sage.rings.ideal.Katsura(P)
-            Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (x + 2*y + 2*z - 1, x^2 + 2*y^2 + 2*z^2 - x, 2*x*y + 2*y*z - y) of Polynomial Ring in x, y, z over Rational Field
 
             sage: P.ideal([x + 2*y + 2*z-1, 2*x*y + 2*y*z-y, x^2 + 2*y^2 + 2*z^2-x])
             Ideal (x + 2*y + 2*z - 1, 2*x*y + 2*y*z - y, x^2 + 2*y^2 + 2*z^2 - x) of Polynomial Ring in x, y, z over Rational Field

@@ -238,11 +238,18 @@ cdef class MPolynomialRing_generic(ring.CommutativeRing):
         names = self.variable_names()
         order = self.term_order()
 
-        return unpickle_MPolynomialRing_generic,(base_ring, n, names, order)
+        return unpickle_MPolynomialRing_generic_v1,(base_ring, n, names, order)
 
+
+####################
+# Leave *all* old versions!
+
+def unpickle_MPolynomialRing_generic_v1(base_ring, n, names, order):
+    from sage.rings.multi_polynomial_ring import MPolynomialRing
+    return MPolynomialRing(base_ring, n, names=names, order=order)
 
 
 def unpickle_MPolynomialRing_generic(base_ring, n, names, order):
     from sage.rings.multi_polynomial_ring import MPolynomialRing
 
-    return MPolynomialRing(base_ring, n, names, order)
+    return MPolynomialRing(base_ring, n, names=names, order=order)

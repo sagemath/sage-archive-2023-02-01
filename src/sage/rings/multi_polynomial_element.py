@@ -1040,7 +1040,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
         \note{This is much faster than actually writing self == 0}
         """
-        return self._MPolynomial__element.dict()!={}
+        return self._MPolynomial_element__element.dict()!={}
 
     ############################################################################
     # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>

@@ -455,6 +455,7 @@ class JobDatabaseSQLite(JobDatabase):
         cur = self.con.cursor()
         cur.execute(query, (job_id,)) # Need to cast it to int for SAGE
         jtuple = cur.fetchone()
+
         return self.create_jdict(jtuple, cur.description)
 
     def _get_jobs_by_parameter(self, key, value):
@@ -504,7 +505,7 @@ class JobDatabaseSQLite(JobDatabase):
         'jobs' table.
 
         Parameters:
-        job -- a sage.dsage.database.Job object
+        jdict -- sage.dsage.database.Job.jdict
 
         """
 

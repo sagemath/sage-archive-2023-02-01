@@ -475,7 +475,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #self.wfile.write(notebook.worksheet_list_html())
         #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
         self.send_response(302)
-        self.send_header("Location", '/%d'%W.name())
+        self.send_header("Location", '/%s'%W.name())
         self.end_headers()
 
     #######################################################################

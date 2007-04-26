@@ -357,24 +357,24 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         one = x.parent()(1)
         if a1.is_zero() and a3.is_zero():
             if f.is_zero():
-                return [self.point((x,x.parent()(0), one), check=False)]
+                return [self.point([x,x.parent()(0), one], check=False)]
             if not f.is_square():
                 return []
             else:
                 y = f.square_root()
-                return [self.point((x,  y, one), check=False),
-                        self.point((x, -y, one), check=False)]
+                return [self.point([x,  y, one], check=False),
+                        self.point([x, -y, one], check=False)]
         else:
             b = (a1*x + a3)
             D = b*b + 4*f
             if D.is_zero():
-                return [self.point((x, -b/2), check=False)]
+                return [self.point([x, -b/2, one], check=False)]
             if not D.is_square():
                 return []
             else:
                 sqrtD = D.square_root()
-                return [self.point((x, (-b+sqrtD)/2, one), check=False),
-                        self.point((x, (-b-sqrtD)/2, one), check=False)]
+                return [self.point([x, (-b+sqrtD)/2, one], check=False),
+                        self.point([x, (-b-sqrtD)/2, one], check=False)]
 
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)

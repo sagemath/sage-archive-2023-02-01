@@ -2011,6 +2011,8 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 #*****************************************************************************
 
 
+import weakref
+
 from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing, is_IntegralDomain
@@ -2019,14 +2021,14 @@ from sage.modules.all import FreeModule, is_FreeModuleElement
 from sage.misc.profiler import Profiler
 from sage.misc.misc import repr_lincomb
 
-def matrix_of_frobenius_hyperelliptic(Q, p, prec):
+def matrix_of_frobenius_hyperelliptic(Q, p, prec, M=None):
     prof = Profiler()
     prof("setup")
-    M = adjusted_prec(p, prec)
+    if M is None:
+        M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
     real_prec_ring = pAdicField(p, prec) # pAdicField(p, prec) # To capped absolute?
-    S = SpecialHyperellipticQuotientRing_2(Q, extra_prec_ring, True)
-#    S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, p, True)
+    S = SpecialHyperellipticQuotientRing(Q, extra_prec_ring, True)
     MW = S.monsky_washnitzer()
     prof("frob basis elements")
     F = MW.frob_basis_elements(M, p)
@@ -2038,12 +2040,17 @@ def matrix_of_frobenius_hyperelliptic(Q, p, prec):
     # (it will periodically cast into this ring to reduce coefficent size)
     rational_S._prec_cap = p**M
     rational_S._p = p
+#    S._p = p
 #    rational_S(F[0]).reduce_fast()
 #    prof("reduce others")
     F = [rational_S(F_i) for F_i in F]
 
     prof("reduce")
     reduced = [F_i.reduce_fast() for F_i in F]
+#    reduced = [F_i.reduce() for F_i in F]
+
+    #print reduced[0][0].diff() - F[0]
+
     # but the coeffs are WAY more precision than they need to be
     # print reduced[0][1].H1_vector()
 
@@ -2056,7 +2063,34 @@ def matrix_of_frobenius_hyperelliptic(Q, p, prec):
     return M.transpose()
 
 
-class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
+
+
+# For uniqueness (as many of the non-trivial calculations are cached along the way).
+
+_special_ring_cache = {}
+_mw_cache = {}
+
+def SpecialHyperellipticQuotientRing(*args):
+    if _special_ring_cache.has_key(args):
+        R = _special_ring_cache[args]()
+        if R is not None:
+            return R
+    R = SpecialHyperellipticQuotientRing_class(*args)
+    _special_ring_cache[args] = weakref.ref(R)
+    return R
+
+def MonskyWashnitzerDifferentialRing(base_ring):
+    if _mw_cache.has_key(base_ring):
+        R = _mw_cache[base_ring]()
+        if R is not None:
+            return R
+
+    R = MonskyWashnitzerDifferentialRing_class(base_ring)
+    _mw_cache[base_ring] = weakref.ref(R)
+    return R
+
+
+class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
     def __init__(self, Q, R, invert_y=False):
         CommutativeAlgebra.__init__(self, R)
 
@@ -2111,17 +2145,17 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
             raise TypeError, "no such base extension"
 
     def change_ring(self, R):
-        return SpecialHyperellipticQuotientRing_2(self._Q, R, is_LaurentSeriesRing(self._series_ring))
+        return SpecialHyperellipticQuotientRing(self._Q, R, is_LaurentSeriesRing(self._series_ring))
 
     def __call__(self, val, offset=0):
-        if isinstance(val, SpecialHyperellipticQuotientElement_2) and val.parent() is self:
+        if isinstance(val, SpecialHyperellipticQuotientElement) and val.parent() is self:
             if offset == 0:
                 return val
             else:
                 return val << offset
         elif isinstance(val, MonskyWashnitzerDifferential):
             return self._monsky_washnitzer(val)
-        return SpecialHyperellipticQuotientElement_2(self, val, offset)
+        return SpecialHyperellipticQuotientElement(self, val, offset)
 
     def gens(self):
         return self._x, self._y
@@ -2221,13 +2255,13 @@ class SpecialHyperellipticQuotientRing_2(CommutativeAlgebra):
 
 
 
-class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
+class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def __init__(self, parent, val=0, offset=0):
         CommutativeAlgebraElement.__init__(self, parent)
         if isinstance(val, tuple):
             val, offset = val
-        if isinstance(val, SpecialHyperellipticQuotientElement_2):
+        if isinstance(val, SpecialHyperellipticQuotientElement):
             val = val.coeffs()
         if isinstance(val, list) and len(val) > 0 and is_FreeModuleElement(val[0]):
             val = transpose_list(val)
@@ -2235,13 +2269,16 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         if offset != 0:
             self._f = self._f.parent()([a << offset for a in self._f])
 
+    def change_ring(self, R):
+        return self.parent().change_ring(R)(self.coeffs())
+
     def __invert__(self):
         """
         The general element in our ring is not invertible, but y may be.
         We do not want to pass to the fraction field.
         """
         if self._f.degree() == 0 and self._f[0].is_unit():
-            return SpecialHyperellipticQuotientElement_2(self.parent(), ~self._f[0])
+            return SpecialHyperellipticQuotientElement(self.parent(), ~self._f[0])
         else:
             raise ZeroDivisionError, "Element not invertible"
 
@@ -2249,15 +2286,15 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         return self._f.is_zero()
 
     def __eq__(self, other):
-        if not isinstance(other, SpecialHyperellipticQuotientElement_2):
+        if not isinstance(other, SpecialHyperellipticQuotientElement):
             other = self.parent()(other)
         return self._f == other._f
 
     def _add_(self, other):
-        return SpecialHyperellipticQuotientElement_2(self.parent(), self._f + other._f)
+        return SpecialHyperellipticQuotientElement(self.parent(), self._f + other._f)
 
     def _sub_(self, other):
-        return SpecialHyperellipticQuotientElement_2(self.parent(), self._f - other._f)
+        return SpecialHyperellipticQuotientElement(self.parent(), self._f - other._f)
 
     def _mul_(self, other):
         # over laurent series, addition and subtraction can be expensive,
@@ -2273,7 +2310,7 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
             for j in range(n):
                 v[i-n+j] -= Q_coeffs[j] * v[i]
             v[i-n] += y2 * v[i]
-        return SpecialHyperellipticQuotientElement_2(parent, v[0:n])
+        return SpecialHyperellipticQuotientElement(parent, v[0:n])
 
     def _rmul_(self, c):
         coeffs = self._f.list()
@@ -2345,10 +2382,7 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         y_degree = max(self.max_pow_y(), 0)
         coeffs = []
         for a in self._f.list():
-            L = a.list()
-#            if R is not None:
-#                L = [R(x) for x in L]
-            coeffs.append( [zero] * (a.valuation()-y_offset) + L + [zero]*(y_degree - a.degree()) )
+            coeffs.append( [zero] * (a.valuation()-y_offset) + a.list() + [zero]*(y_degree - a.degree()) )
         while len(coeffs) < self.parent().degree():
             coeffs.append( [zero] * (y_degree - y_offset + 1) )
         V = FreeModule(self.base_ring() if R is None else R, self.parent().degree())
@@ -2356,7 +2390,8 @@ class SpecialHyperellipticQuotientElement_2(CommutativeAlgebraElement):
         return [V(a) for a in coeffs], y_offset
 
 
-class MonskyWashnitzerDifferentialRing(Module):
+
+class MonskyWashnitzerDifferentialRing_class(Module):
 
     def __init__(self, base_ring):
         Module.__init__(self, base_ring)
@@ -2442,11 +2477,18 @@ class MonskyWashnitzerDifferentialRing(Module):
 #        print "a =", a
 #        print "t =", t
 
-#        prof("verify")
-#        print "a*t^2 =", a * t**2
+        prof("verify")
+        print "a*t^2 =", a * t**2
 
         prof("compose")
         F_dx_y = (p * x_to_p_less_1 * t) >> (p-1)  # px^{p-1} sqrt(a) * y^{-p+1}
+
+        print F_dx_y == F_dx_y
+        print F_dx_y.change_ring(QQ).change_ring(F_dx_y.parent().base_ring()) == F_dx_y
+        print F_dx_y.extract_pow_y(-10)
+        print F_dx_y.change_ring(QQ).extract_pow_y(-10)
+        print F_dx_y.change_ring(QQ).change_ring(F_dx_y.parent().base_ring()).extract_pow_y(-10)
+
 #        print "-----", F_dx_y
 #        print "-----", x_to_p * F_dx_y
         prof("done")
@@ -2608,7 +2650,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
             else:
                 # this is a total hack to deal with the fact that we're using
                 # rational numbers to approximate fixed precision p-adics
-                if j % 3 == 0:
+                if j % 3 == -1:
                     try:
                         v = coeffs[j-offset-1]
                         for kk in range(len(v)):
@@ -2627,7 +2669,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 #        prof("recreate forms")
         f = S(forms, offset+1)
         reduced = S._monsky_washnitzer(coeffs[-1-offset:], -1)
-#        reduced = self - f.diff()
+#        print self - f.diff() - reduced
 #        prof("done")
 #        print prof
         return f, reduced

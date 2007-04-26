@@ -22,7 +22,8 @@ Elliptic curves over padic fields
 import sage.rings.ring as ring
 from ell_field import EllipticCurve_field
 import ell_point
-from sage.rings.all import PowerSeriesRing, PolynomialRing, IntegerModRing
+from sage.rings.all import PowerSeriesRing, PolynomialRing, IntegerModRing, ZZ, QQ
+from sage.misc.functional import ceil, log
 
 import sage.databases.cremona
 
@@ -83,16 +84,13 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         TODO: remove the last condition?
         """
         prec = self.base_ring().precision_cap()
-        Kt = PowerSeriesRing(self.base_ring(), 't', prec)
-        t = Kt.gen(0)
+        t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
         x = P[0]+t*(Q[0]-P[0])
-        a1, a2, a3, a4, a6 = self.a_invariants()
-        if a1 != 0 or a2 != 0:
-            raise NotImplementedError, "Curve must be in weierstrass normal form."
-        y = (x*x*x + a2*x*x + a4*x + a6).sqrt()
-        if (y(0) - P[1]).valuation() == 0:
-            y = -y
-        return self.point([x, y, Kt(0)], check=False)
+        pts = self.lift_x(x)
+        if (pts[0][1] - P[1]).valuation() > 0:
+            return pts[0]
+        else:
+            return pts[1]
 
     def tiny_integrals(self, F, P, Q):
         """
@@ -120,50 +118,67 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         R = PolynomialRing(self.base_ring(), ['x', 'y'])
         return self.tiny_integrals([R(1), R.gen(0)], P, Q)
 
-    def frobenius(self):
+
+    def frobenius(self, P=None):
 
         try:
-            return self._frob
+            frob = self._frob
         except AttributeError:
-            pass
+            K = self.base_field()
+            p = K.prime()
+            x = PolynomialRing(K, 'x').gen(0)
 
-        K = self.base_field()
-        p = K.prime()
-        x = PolynomialRing(K, 'x').gen(0)
+            a1, a2, a3, a4, a6 = self.a_invariants()
+            if a1 != 0 or a2 != 0:
+                raise NotImplementedError, "Curve must be in weierstrass normal form."
 
-        a1, a2, a3, a4, a6 = self.a_invariants()
-        if a1 != 0 or a2 != 0:
-            raise NotImplementedError, "Curve must be in weierstrass normal form."
+            f = x*x*x + a2*x*x + a4*x + a6
+            h = (f(x**p) - f**p)
 
-        f = x*x*x + a2*x*x + a4*x + a6
-        h = (f(x**p) - f**p)
+            def frob(P):
+                x0 = P[0]
+                y0 = P[1]
+                uN = (1 + h(x0)/y0**(2*p)).sqrt()
+                yres=y0**p * uN
+                xres=x0**p
+                if (yres-y0).valuation() == 0:
+                    yres=-yres
+                return self.point([xres,yres, K(1)])
 
-        def frob(P):
-            x0 = P[0]
-            y0 = P[1]
-            uN = (1 + h(x0)/y0**(2*p)).sqrt()
-            yres=y0**p * uN
-            xres=x0**p
-            if (yres-y0).valuation() == 0:
-                yres=-yres
-            return self.point((xres,yres))
+            self._frob = frob
 
-        self._frob = frob
-        return frob
+        if P is None:
+            return frob
+        else:
+            return frob(P)
 
-    def teichmuller(self, P, frob=None):
+    def teichmuller(self, P):
         """
         Find a Teichm\:uller point in the same residue class of P.
 
-        TODO: what kind of convergence am I guerenteed here?
+        Because this lift of frobenius acts as $x \mapsto x^p$,
+        take the Teichmuler lift of $x$ and then find a matching y
+        from that.
+
+        EXAMPLES:
+            sage: K = pAdicField(7, 5)
+            sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
+            sage: P = E(K(14/3), K(11/2))
+            sage: E.frobenius(P) == P
+            False
+            sage: TP = E.teichmuller(P); TP
+            (0 : 2 + 3*7 + 3*7^2 + 3*7^4 + O(7^5) : 1 + O(7^5))
+            sage: E.frobenius(TP) == TP
+            True
+            sage: (TP[0] - P[0]).valuation() > 0, (TP[1] - P[1]).valuation() > 0
+            (True, True)
         """
         x = padic_teichmuller(P[0])
-
-        if frob is None:
-            frob = self.frobenius()
-        for i in xrange(self.base_field().precision_cap()):
-            P = frob(P)
-        return P
+        pts = self.lift_x(x)
+        if (pts[0][1] - P[1]).valuation() > 0:
+            return pts[0]
+        else:
+            return pts[1]
 
 
     def coleman_integrals_on_basis(self, P, Q):
@@ -175,40 +190,47 @@ class EllipticCurve_padic_field(EllipticCurve_field):
             sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
             sage: P = E(K(14/3), K(11/2))
             sage: res = E.coleman_integrals_on_basis(P, 2*P); res
-            (7*13^6 + O(13^7), 2 + 7*13 + 2*13^2 + 5*13^3 + 10*13^4 + 7*13^5 + 8*13^6 + O(13^7))
+            (O(13^7), 2 + 7*13 + 2*13^2 + 5*13^3 + 10*13^4 + 7*13^5 + 2*13^6 + O(13^7))
 
         As the Coleman integral of dx/y is in invariant under
         translation, it should evaluate to zero between a torsion
         point and its multiples.
 
-            sage: res[0].valuation() >= 6
+            sage: res[0] == 0
             True
         """
+        from sage.misc.profiler import Profiler
+        prof = Profiler()
+        prof("setup")
         K = self.base_field()
         p = K.prime()
         from sage.modules.free_module import VectorSpace
         from sage.matrix.constructor import matrix
         V = VectorSpace(K, 2)
 
-        frob = self.frobenius()
-        TP = self.teichmuller(P, frob)
+        prof("tiny integrals")
+        TP = self.teichmuller(P)
 #        print "TP", TP
         P_to_TP = V(self.tiny_integrals_on_basis(P, TP))
 #        print " P to TP:", P_to_TP[0]
 
-        TQ = self.teichmuller(Q, frob)
+        TQ = self.teichmuller(Q)
 #        print "TQ", TQ
         TQ_to_Q = V(self.tiny_integrals_on_basis(TQ, Q))
 #        print "TQ to  Q:", TQ_to_Q[0]
 
+        prof("mw setup")
+        import monsky_washnitzer
         # TODO fis matrix_of_frobenius code to use real padics
         prec = K.precision_cap()
-        pseudo_Qp = IntegerModRing(p**prec)
+        extra_prec = monsky_washnitzer.adjusted_prec(p, prec)
+        pseudo_Qp = IntegerModRing(p**extra_prec)
         x = PolynomialRing(pseudo_Qp,'x').gen(0)
         q = x*x*x + pseudo_Qp(self.a2())*x*x + pseudo_Qp(self.a4())*x + pseudo_Qp(self.a6())
 
-        import monsky_washnitzer
-        M_frob, f0, f1 = monsky_washnitzer.matrix_of_frobenius(q, p, prec, None, True)
+        prof("mw calc")
+        M_frob, f0, f1 = monsky_washnitzer.matrix_of_frobenius(q, p, extra_prec, None, True)
+        prof("eval")
         f0 *= 2
         f1 *= 2
 
@@ -217,6 +239,7 @@ class EllipticCurve_padic_field(EllipticCurve_field):
         TQx = pseudo_Qp(TQ[0])
         TQy = pseudo_Qp(TQ[1])
 
+        prof("linalg")
         L = [K(f0(TPx)(TPy) - f0(TQx)(TQy)), K(f1(TPx)(TPy) - f1(TQx)(TQy))]
         from sage.rings.all import ZZ
         L = [ZZ(t) for t in L] # pass through ZZ due to bug in p-adics
@@ -226,11 +249,15 @@ class EllipticCurve_padic_field(EllipticCurve_field):
 
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
+        prof("done")
+        print prof
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
 
+
 # TODO: add this to padics (if it isn't there in the new version already).
-def padic_teichmuller(K, a):
+def padic_teichmuller(a):
+    K = a.parent()
     p = K.prime()
     p_less_1_inverse = ~K(p-1)
     one = K(1)

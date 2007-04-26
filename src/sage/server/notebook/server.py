@@ -494,7 +494,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
 <html>
 <head>
 """
-        s += '<title>%s | SAGE src browser</title>' % filename
+        s += '<title>%s | SAGE Source Browser</title>' % filename
         s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
         s += """
 </head>

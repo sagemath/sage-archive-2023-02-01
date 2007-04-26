@@ -70,7 +70,7 @@ class Job(Persistent):
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
         self.jdict['timeout'] = 600 # default timeout for jobs in seconds
-
+        self.jdict['private'] = False
         # These might become deprecated
         self.jdict['parent'] = parent
         self.jdict['children'] = []
@@ -247,6 +247,15 @@ class Job(Persistent):
             self.jdict['timeout']  = value
         return locals()
     timeout = property(**timeout())
+
+    def private():
+        doc = "Sets whether a job is private or not."
+        def fget(self):
+            return self.jdict['private']
+        def fset(self, value):
+            self.jdict['private'] = value
+        return locals()
+    private = property(**private())
 
     def attach(self, var, obj, file_name=None):
         """

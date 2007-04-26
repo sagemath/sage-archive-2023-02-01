@@ -1155,6 +1155,45 @@ class SymbolicExpression(RingElement):
             sage: g.laplace(x, s)
             s*laplace(f(x), x, s) - f(0)
 
+        EXAMPLE: A BATTLE BETWEEN the X-women and the Y-men (by David Joyner):
+        Solve
+        $$
+          x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
+        $$
+        This models a fight between two sides, the "X-women"
+        and the "Y-men", where the X-women have 270 initially and
+        the Y-men have 90, but the Y-men are better at fighting,
+        because of the higher factor of "-16" vs "-1", and also get
+        an occasional reinforcement, because of the "+1" term.
+
+            sage: var('t')
+            sage: x = function('x', t)
+            sage: y = function('y', t)
+            sage: de1 = x.diff(t) + 16*y
+            sage: de2 = y.diff(t) + x - 1
+            sage: de1.laplace(t, s)
+            16*laplace(y(t), t, s) + s*laplace(x(t), t, s) - x(0)
+            sage: de2.laplace(t, s)
+            s*laplace(y(t), t, s) + laplace(x(t), t, s) - (1/s) - y(0)
+
+        Next we form the augmented matrix of the above system:
+            sage: A = matrix([[s, 16, 270],[1, s, 90+1/s]])
+            sage: E = A.echelon_form()
+            sage: xt = E[0,2].inverse_laplace(s,t)
+            sage: yt = E[1,2].inverse_laplace(s,t)
+            sage: print xt
+				4 t	    - 4 t
+			   91  e      629  e
+        		 - -------- + ----------- + 1
+			      2		   2
+            sage: print yt
+				 4 t	     - 4 t
+			    91  e      629  e
+        		    -------- + -----------
+			       8	    8
+            sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
+            sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
+            sage: (p1+p2).save()
         """
         return self.parent()(self._maxima_().laplace(var(t), var(s)))
 
@@ -3115,6 +3154,7 @@ class SymbolicComposition(SymbolicOperation):
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
+        SymbolicExpression.__init__(self)
         self._tex_needs_braces = needs_braces
 
     def plot(self, *args, **kwds):
@@ -4006,6 +4046,14 @@ def function(s, *args):
         -sin(a)*b
         sage: g(cr=sin(x) + cos(x))
         (cos(a) - sin(a))*b
+
+    Basic arithmetic:
+        sage: x = var('x')
+        sage: h = function('f',x)
+        sage: 2*f
+        2*f
+        sage: 2*h
+        2*f(x)
     """
     if len(args) > 0:
         return function(s)(*args)

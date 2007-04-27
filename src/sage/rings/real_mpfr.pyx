@@ -1284,17 +1284,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Returns integer truncation of this real number.
         """
-        s = self.str(32)
-        i = s.find('.')
-        return int(s[:i], 32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z.__int__()
 
     def __long__(self):
         """
         Returns long integer truncation of this real number.
         """
-        s = self.str(32)
-        i = s.find('.')
-        return long(s[:i], 32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z.__long__()
 
     def __complex__(self):
         return complex(float(self))

@@ -16,8 +16,8 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000,
-                 name='DistributedFactor'):
+    def __init__(self, DSage, n, concurrent=10, verbosity=0,
+                 trial_division_limit=10000, name='DistributedFactor'):
         """
         Parameters:
             DSage -- an instance of a dsage connection
@@ -117,6 +117,12 @@ else:
         if prod(self.prime_factors) == self.n:
             self.done = True
             return
+
+        for factor in self.composite_factors:
+            if is_prime(factor):
+                self.prime_factors.append(factor)
+                self.composite_factors.remove(factor)
+
         if self.verbosity > 2:
             print "process_result(): ", job, job.output, job.result
         result = job.result

@@ -5,6 +5,13 @@ AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
     -- Robert Bradshaw: Move Polynomial_generic_dense to SageX
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1)
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################
@@ -99,6 +106,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Py_ssize_t i, min
         x = self.list()
+    cdef ModuleElement _neg_c_impl(self):
+        return self.polynomial([-x for x in self.list()])
+
         y = right.list()
 
         if len(x) > len(y):
@@ -518,7 +528,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -539,6 +549,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -551,6 +562,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """
@@ -966,7 +978,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
-            sage: F.mul()
+            sage: expand(F)
             2*x^10 + 2*x + 2*a
 
         Factorization also works even if the variable of the finite field is nefariously
@@ -1001,7 +1013,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
             (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
             1.0000000000000000000000000000*x^2 + 1.0000000000000000000000000000
@@ -1009,15 +1021,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = C[]
             sage: F = factor(x^2+3); F
             (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
             (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: f = C.0 * (x^2 + 1) ; f
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
-            sage: F=factor(f); F
+            sage: F = factor(f); F
             (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
         """
 
@@ -1271,9 +1283,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_gen(self):
         return bool(self._is_gen)
 
-    def is_zero(self):
-        return bool(self.degree() == -1)
-
     def leading_coefficient(self):
         return self[self.degree()]
 
@@ -1438,7 +1447,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.__pari
 
     def _pari_init_(self):
-        return str(self._pari_())
+        return repr(self._pari_())
 
     def _magma_init_(self):
         """
@@ -1483,7 +1492,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return f
 
     def _gap_init_(self):
-        return str(self)
+        return repr(self)
 
     def _gap_(self, G):
         """
@@ -1592,9 +1601,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
 
             sage: x = CC['x'].0
-            sage: f = (x-1)*(x-I)
+            sage: i = CC.0
+            sage: f = (x - 1)*(x - i)
             sage: f.roots()
             [1.00000000000000*I, 1.00000000000000]
+
+        A purely symbolic roots example:
+            sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
+            X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
+            sage: print f.roots()
+            [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
         """
         seq = []
 

@@ -20,7 +20,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, sys, signal, time, weakref, random
+import operator, os, sys, signal, time, weakref, random, resource
 
 from banner import version, banner
 
@@ -112,6 +112,9 @@ def cputime(t=0):
     time SAGE has spent using the CPU.  It does not count time
     spent by subprocesses spawned by SAGE (e.g., Gap, Singular, etc.).
 
+    This is done via a call to resource.getrusage, so it avoids the
+    wraparound problems in time.clock() on Cygwin.
+
     INPUT:
         t -- (optional) float, time in CPU seconds
     OUTPUT:
@@ -132,7 +135,8 @@ def cputime(t=0):
         t = float(t)
     except TypeError:
         t = 0.0
-    return time.clock() - t
+    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    return u+s - t
 
 def walltime(t=0):
     """

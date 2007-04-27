@@ -51,8 +51,9 @@ from sage.rings.ring import CommutativeAlgebra
 from sage.structure.element import CommutativeAlgebraElement
 from sage.matrix.matrix_space import MatrixSpace
 
-from sage.rings.arith import binomial, floor
-from sage.misc.functional import log, ceil, sqrt
+from sage.rings.arith import binomial, integer_ceil as ceil, integer_floor as floor
+from math import floor
+from sage.misc.functional import log, sqrt
 
 from ell_generic import is_EllipticCurve
 

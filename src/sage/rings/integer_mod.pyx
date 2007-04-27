@@ -471,7 +471,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
 
     def is_square(self):
-        """
+        r"""
         EXAMPLES:
             sage: Mod(3,17).is_square()
             False
@@ -493,7 +493,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             True
 
         ALGORITHM:
-            Calculate the Jacobi symbol $(self/p)$ at each prime $p dividing $n$
+            Calculate the Jacobi symbol $(self/p)$ at each prime $p$ dividing $n$
             It must be 1 or 0 for each prime, and if it is 0 mod $p$,
             where $p^k || n$, then $ord_p(self)$ must be even or greater than $k$.
 
@@ -834,9 +834,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return bool(mpz_cmp_si(self.value, 1) == 0)
 
-    def is_zero(IntegerMod_gmp self):
+    def __nonzero__(IntegerMod_gmp self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^23).is_zero()
@@ -844,7 +844,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: (mod(25,5^23)^23).is_zero()
             True
         """
-        return bool(mpz_cmp_si(self.value, 0) == 0)
+        return bool(mpz_cmp_si(self.value, 0) != 0)
 
     def is_unit(self):
         return bool(self.lift().gcd(self.modulus()) == 1)
@@ -1159,9 +1159,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return bool(self.ivalue == 1)
 
-    def is_zero(IntegerMod_int self):
+    def __nonzero__(IntegerMod_int self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5).is_zero()
@@ -1169,7 +1169,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(25,5).is_zero()
             True
         """
-        return bool(self.ivalue == 0)
+        return bool(self.ivalue != 0)
 
     def is_unit(IntegerMod_int self):
         return bool(gcd_int(self.ivalue, self.__modulus.int32) == 1)
@@ -1670,9 +1670,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return bool(self.ivalue == 1)
 
-    def is_zero(IntegerMod_int64 self):
+    def __nonzero__(IntegerMod_int64 self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^10).is_zero()
@@ -1680,7 +1680,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(5^12,5^10).is_zero()
             True
         """
-        return bool(self.ivalue == 0)
+        return bool(self.ivalue != 0)
 
     def is_unit(IntegerMod_int64 self):
         return bool(gcd_int64(self.ivalue, self.__modulus.int64) == 1)
@@ -2039,8 +2039,8 @@ cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
 ########################
 
 def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
-    """
-    Calculates the square root of a, where a is an integer mod p^e.
+    r"""
+    Calculates the square root of $a$, where $a$ is an integer mod $p^e$.
 
     ALGORITHM:
         Perform p-adically by stripping off even powers of $p$ to get
@@ -2079,17 +2079,19 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     return x
 
 def square_root_mod_prime(IntegerMod_abstract a, p=None):
-    """
+    r"""
     Calculates the square root of a, where a is an integer mod p.
 
     ALGORITHM:
         Several cases based on residue class of p mod 16.
 
-        $p$ mod 2 = 0 \Rightarrow p = 2 so \sqrt{a} = a$.
-        $p$ mod 4 = 3 \Rightarrow \sqrt{a} = a^{(p+1)/4}$.
-        $p$ mod 8 = 5 \Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}, i=\sqrt{-1}$.
-        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\F_p$.
-        $p$ mod 16 = 1$ Variant of Cipolla\202\304\354Lehmer, using Lucas functions.
+    \begin{verbatim}
+        $p$ mod 2 = 0 $\Rightarrow$ p = 2 so \sqrt{a} = a$.
+        $p$ mod 4 = 3 $\Rightarrow \sqrt{a} = a^{(p+1)/4}$.
+        $p$ mod 8 = 5 $\Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}$, $i=\sqrt{-1}$.
+        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\FF_p$.
+        $p$ mod 16 = 1$ Variant of Cipolla-Lehmer, using Lucas functions.
+    \end{verbatim}
 
     REFERENCES:
         Siguna M\:uller. 'On the Computation of Square Roots in Finite Fields'
@@ -2101,7 +2103,7 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
             \url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
 
         H. Postl. 'Fast evaluation of Dickson Polynomials'
-            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\202\304\354225
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223--225
 
     AUTHOR:
         Robert Bradshaw

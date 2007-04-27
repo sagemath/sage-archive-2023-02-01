@@ -761,6 +761,40 @@ cdef class FiniteField_givaro(FiniteField):
         _sig_off
         return ret
 
+    def fetch_int(FiniteField_givaro self, int n):
+        r"""
+        Given an integer $n$ return a finite field element in self
+        which equals $n$ under the condition that  self.gen() is set to
+        self.characteristic().
+
+        EXAMPLE:
+            sage: k.<a> = GF(2^8)
+            sage: k.fetch_int(8)
+            a^3
+            sage: e = k.fetch_int(151); e
+            a^7 + a^4 + a^2 + a + 1
+            sage: 2^7 + 2^4 + 2^2 + 2 + 1
+            151
+        """
+        cdef GivaroGfq *k = self.objectptr
+        cdef int ret = k.zero
+        cdef int a = k.sage_generator()
+        cdef int at = k.one
+        cdef unsigned int ch = k.characteristic()
+        cdef int _n, t, i
+
+        if n<0 or n>k.cardinality():
+            raise TypeError, "n must be between 0 and self.order()"
+
+        _n = n
+
+        for i from 0 <= i < k.exponent():
+            t = k.initi(t, _n%ch)
+            ret = k.axpy(ret, t, at, ret)
+            at = k.mul(at,at,a)
+            _n = _n/ch
+        return make_FiniteField_givaroElement(self, ret)
+
     def polynomial(self):
         """
         Return the defining polynomial of this field as an element of
@@ -1190,9 +1224,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return (<FiniteField_givaro>self._parent)
 
-    def is_zero(FiniteField_givaroElement self):
+    def __nonzero__(FiniteField_givaroElement self):
         r"""
-        Return True if \code{self == k(0)}.
+        Return True if \code{self != k(0)}.
 
         EXAMPLES:
             sage: k.<a> = GF(3^4); k
@@ -1202,7 +1236,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(0).is_zero()
             True
         """
-        return bool((<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
+        return not bool((<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
 
     def is_one(FiniteField_givaroElement self):
         r"""
@@ -1868,6 +1902,40 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         if len(g) == 2 or g[0][1] == 2:
             return -g[0][0][0]
         raise ValueError, "must be a perfect square."
+
+    def vector(FiniteField_givaroElement self):
+        """
+        Return a vector in self.parent().vector_space() matching self.
+
+        EXAMPLES:
+            sage: k.<a> = GF(2^4)
+            sage: e = a^2 + 1
+            sage: v = e.vector()
+            sage: v
+            (1, 0, 1, 0)
+            sage: k(v)
+            a^2 + 1
+
+            sage: k.<a> = GF(3^4)
+            sage: e = 2*a^2 + 1
+            sage: v = e.vector()
+            sage: v
+            (1, 0, 2, 0)
+            sage: k(v)
+            2*a^2 + 1
+
+        """
+        cdef FiniteField_givaro k = <FiniteField_givaro>self._parent
+
+        quo = k.log_to_int(self.element)
+        b   = int(k.characteristic())
+
+        ret = []
+        for i in range(k.degree()):
+            coeff = quo%b
+            ret.append(coeff)
+            quo = quo/b
+        return k.vector_space()(ret)
 
     def __reduce__(FiniteField_givaroElement self):
         """

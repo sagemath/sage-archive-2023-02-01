@@ -4,6 +4,12 @@ Field $\Q$ of Rational Numbers.
 The class \class{RationalField} represents the field $\Q$ of
 (arbitrary precision) rational numbers.  Each rational number is an
 instance of the class \class{Rational}.
+
+TEST:
+   sage: Q = RationalField()
+   sage: Q == loads(dumps(Q))
+   True
+
 """
 
 import random
@@ -209,7 +215,7 @@ class RationalField(_uniq, field.Field):
             - Nils Bruin (2007-02-20)
         """
 
-        from sage.rings.arith import floor
+        from sage.rings.arith import integer_floor as floor
 
         n=self(0)
         yield n

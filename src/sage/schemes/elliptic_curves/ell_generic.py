@@ -205,6 +205,84 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def _magma_init_(self):
         return 'EllipticCurve([%s])'%(','.join([x._magma_init_() for x in self.ainvs()]))
 
+    def _symbolic_(self, SR):
+        r"""
+        Many elliptic curves can be converted into a symbolic expression
+        using the \code{symbolic_expression} command.
+
+        EXAMPLES:
+        We find a torsion point on 11a.
+            sage: E = EllipticCurve('11a')
+            sage: E.torsion_subgroup().gens()
+            ((5 : 5 : 1),)
+
+        We find the corresponding symbolic equality:
+            sage: eqn = symbolic_expression(E); eqn
+            (y^2 + y) == (x^3 - x^2 - 10*x - 20)
+            sage: print eqn
+                                      2        3    2
+                                     y  + y == x  - x  - 10 x - 20
+
+        We verify that the given point is on the curve:
+            sage: eqn(x=5,y=5)
+            (30) == (30)
+            sage: bool(eqn(x=5,y=5))
+            True
+
+        We create a single expression:
+            sage: F = eqn.lhs() - eqn.rhs(); print F
+                                      2        3    2
+                                     y  + y - x  + x  + 10 x + 20
+            sage: print F.solve(y)
+            [
+                                  3      2
+                        - sqrt(4 x  - 4 x  - 40 x - 79) - 1
+                    y == -----------------------------------
+                                         2,
+                                 3      2
+                         sqrt(4 x  - 4 x  - 40 x - 79) - 1
+                     y == ---------------------------------
+                                         2
+            ]
+
+        You can also solve for x in terms of y, but the result is horrendous.
+        Continuing with the above example, we can explicitly find points
+        over random fields by substituting in values for x:
+
+            sage: v = F.solve(y)[0].rhs()
+            sage: print v
+                                            3      2
+                                  - sqrt(4 x  - 4 x  - 40 x - 79) - 1
+                                  -----------------------------------
+                                                   2
+            sage: v(3)
+            (-sqrt(127)*I - 1)/2
+            sage: v(7)
+            (-sqrt(817) - 1)/2
+            sage: v(-7)
+            (-sqrt(1367)*I - 1)/2
+            sage: v(sqrt(2))
+            (-sqrt(-32*sqrt(2) - 87) - 1)/2
+
+        We can even do arithmetic with them, as follows:
+            sage: E2 = E.change_ring(SR); E2
+            Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Symbolic Ring
+            sage: P = E2(3, v(3))
+            sage: P
+            (3 : (-sqrt(127)*I - 1)/2 : 1)
+            sage: P + P
+            (-756/127 : (sqrt(127)*I + 1)/2 + 12507*I/(127*sqrt(127)) - 1 : 1)
+
+        We can even throw in a transcendental:
+            sage: w = E2(pi,v(pi)); w
+            (pi : (-sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1)/2 : 1)
+            sage: 2*w
+            ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - ((3*pi^2 - 2*pi - 10)*((-(3*pi^2 - 2*pi - 10)^2)/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/(sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79))) - 1 : 1)
+        """
+        a = [SR(x) for x in self.a_invariants()]
+        x, y = SR.var('x, y')
+        return y**2 + a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
+
     def __cmp__(self, other):
         if not isinstance(other, EllipticCurve_generic):
             return -1
@@ -243,7 +321,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         x, y, a = P[0], P[1], self.ainvs()
         return y**2 + a[0]*x*y + a[2]*y == x**3 + a[1]*x**2 + a[3]*x + a[4]
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwds):
         """
         EXAMPLES:
             sage: E = EllipticCurve([0, 0, 1, -1, 0])
@@ -299,7 +377,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
-        return plane_curve.ProjectiveCurve_generic.__call__(self, *args)
+        return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)

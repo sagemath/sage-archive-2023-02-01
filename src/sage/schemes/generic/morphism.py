@@ -169,7 +169,7 @@ class SchemeMorphism_spec(SchemeMorphism):
         return "Affine Scheme"
 
     def _repr_defn(self):
-        return str(self.ring_homomorphism())
+        return repr(self.ring_homomorphism())
 
 
     def ring_homomorphism(self):
@@ -234,8 +234,8 @@ class SchemeMorphism_on_points_projective_space(SchemeMorphism_on_points):
             if not isinstance(polys, (list, tuple)):
                 raise TypeError, "polys (=%s) must be a list or tuple"%polys
             polys = Sequence(polys)
-            if len(polys) != parent.codomain().ngens():
-                raise ValueError, "there must be %s polynomials"%parent.codomain().ngens()
+            if len(polys) != parent.codomain().ambient_space().ngens():
+                raise ValueError, "there must be %s polynomials"%parent.codomain().ambient_space().ngens()
             polys.set_immutable()
         self.__polys = polys
         SchemeMorphism_on_points.__init__(self, parent)
@@ -360,7 +360,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
             n = len(v)
             all_zero = True
             for i in range(n):
-                if v[n-1-i] != 0:
+                if v[n-1-i]:
                     all_zero = False
                     c = v[n-1-i]
                     if c == 1:
@@ -369,7 +369,7 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
                         v[j] /= c
                     break
             if all_zero:
-                raise ValueError, "%s does not define a valid point since all entries are 0"%v
+                raise ValueError, "%s does not define a valid point since all entries are 0"%repr(v)
 
             X.codomain()._check_satisfies_equations(v)
 
@@ -380,7 +380,7 @@ class SchemeMorphism_abelian_variety_coordinates_field(AdditiveGroupElement, Sch
     def __mul__(self, n):
         if isinstance(n, (RingElement, int, long)):
             # [n]*P - multiplication by n.
-            return AdditiveGroupElement._lmul_(self, Integer(n))
+            return AdditiveGroupElement._rmul_(self, Integer(n))
         else:
             # Function composition
             return SchemeMorphism_projective_coordinates_field.__mul__(self, n)

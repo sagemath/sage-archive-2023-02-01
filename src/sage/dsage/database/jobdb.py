@@ -405,6 +405,7 @@ class JobDatabaseSQLite(JobDatabase):
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
                   self.db_file,
+                  isolation_level=None,
                   detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         sql_functions.optimize_sqlite(self.con)
         # Don't use this, slow!
@@ -451,9 +452,14 @@ class JobDatabaseSQLite(JobDatabase):
                 for jtuple in result]
 
     def get_job_by_id(self, job_id):
+        """
+        Returns a jdict given a job id.
+
+        """
+
         query = "SELECT * FROM jobs WHERE job_id = ?"
         cur = self.con.cursor()
-        cur.execute(query, (job_id,)) # Need to cast it to int for SAGE
+        cur.execute(query, (job_id,))
         jtuple = cur.fetchone()
 
         return self.create_jdict(jtuple, cur.description)
@@ -514,7 +520,7 @@ class JobDatabaseSQLite(JobDatabase):
         if job_id is None:
             job_id = self.random_string()
             if self.log_level > 3:
-                log.msg('[JobDB] Creating a new job with id:', job_id)
+                log.msg('[JobDB] Creating a new job with id: ', job_id)
             query = """INSERT INTO jobs
                     (job_id, status, creation_time) VALUES (?, ?, ?)"""
             cur = self.con.cursor()
@@ -566,6 +572,7 @@ class JobDatabaseSQLite(JobDatabase):
         cur = self.con.cursor()
         cur.execute(query)
         killed_jobs = cur.fetchall()
+
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 
@@ -598,9 +605,19 @@ class JobDatabaseSQLite(JobDatabase):
             return True
 
     def set_killed(self, job_id, killed=True):
-        self._update_value(job_id, 'killed', killed)
+        """
+        Sets the value of killed for a job.
+
+        """
+
+        return self._update_value(job_id, 'killed', killed)
 
     def get_active_jobs(self):
+        """
+        Returns a list of jdicts whose status is 'processing'
+
+        """
+
         return self._get_jobs_by_parameter('status', 'processing')
 
 class DatabasePruner(object):

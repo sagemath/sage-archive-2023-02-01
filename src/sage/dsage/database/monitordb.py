@@ -67,9 +67,10 @@ class MonitorDatabase(object):
         self.log_level = self.conf['log_level']
         self.log_file = self.conf['log_file']
         self.con = sqlite3.connect(self.db_file,
-                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+                isolation_level=None,
+                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         sql_functions.optimize_sqlite(self.con)
-        # Don't use this, slow!
+        # Don't use this, it's slow!
         # self.con.text_factory = sqlite3.OptimizedUnicode
         self.con.text_factory = str
 

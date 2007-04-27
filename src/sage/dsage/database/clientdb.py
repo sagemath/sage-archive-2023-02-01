@@ -67,7 +67,8 @@ class ClientDatabase(object):
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
         self.con = sqlite3.connect(self.db_file,
-                    detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+                isolation_level=None,
+                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         # Don't use this slow!
         # self.con.text_factory = sqlite3.OptimizedUnicode
         sql_functions.optimize_sqlite(self.con)

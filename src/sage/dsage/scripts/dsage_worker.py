@@ -149,6 +149,7 @@ class Worker(object):
                               output, result, completed)
             d = defer.Deferred()
             d.errback(error.ConnectionLost())
+
             return d
 
         if completed:
@@ -372,8 +373,8 @@ except:
             self.checker_task.stop()
 
         self.checker_timeout = self.checker_timeout * 2
-        if self.checker_timeout > 60.0:
-            self.checker_timeout = 60.0
+        if self.checker_timeout > 300.0:
+            self.checker_timeout = 300.0
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_task.start(self.checker_timeout, now=False)
         msg = 'Checking output again in %s' % self.checker_timeout

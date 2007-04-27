@@ -271,7 +271,11 @@ class MonitorPerspective(AnonymousMonitorPerspective):
 
         """
 
-        uuid = self.mind[1]['uuid']
+        try:
+            uuid = self.mind[1]['uuid']
+        except Exception, msg:
+            raise ValueError("Could not match a uuid to the monitor.")
+
         jdict = self.DSageServer.get_job(anonymous=False)
         if jdict is not None:
             self.DSageServer.set_job_uuid(jdict['job_id'], uuid)
@@ -381,30 +385,39 @@ class Realm(object):
     def __init__(self, DSageServer):
         self.DSageServer = DSageServer
         self.avatars = {}
-        self.max_connections = 2
+        self.max_connections = 100
 
     def requestAvatar(self, avatarID, mind, *interfaces):
         if not pb.IPerspective in interfaces:
             raise NotImplementedError("No supported avatar interface.")
         else:
-            if avatarID in self.avatars.keys():
-                avatar = self.avatars[avatarID]
+            if avatarID == 'admin':
+                kind = 'admin'
+            elif avatarID == 'Anonymous' and mind:
+                kind = 'anonymous_monitor'
+            elif mind:
+                kind = 'monitor'
             else:
-                if avatarID == 'admin':
+                kind = 'client'
+
+            if (avatarID, kind) in self.avatars.keys():
+                avatar = self.avatars[(avatarID, kind)]
+            else:
+                if kind == 'admin':
                     avatar = AdminPerspective(self.DSageServer, avatarID)
-                elif avatarID == 'Anonymous' and mind:
+                elif kind == 'anonymous_monitor':
                     avatar = AnonymousMonitorPerspective(self.DSageServer,
                                                          avatarID)
-                elif mind:
+                elif kind == 'monitor':
                     avatar = MonitorPerspective(self.DSageServer, avatarID)
-                else:
+                elif kind == 'client':
                     avatar = UserPerspective(self.DSageServer, avatarID)
-                self.avatars[avatarID] = avatar
+                self.avatars[(avatarID, kind)] = avatar
         if avatar.connections >= self.max_connections:
             raise ValueError('Too many connections for user %s' % avatarID)
 
         avatar.attached(avatar, mind)
-        log.msg('%s connected' % avatarID)
+        log.msg('(%s, %s) connected' % (avatarID, kind))
 
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)

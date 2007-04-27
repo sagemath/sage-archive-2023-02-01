@@ -311,7 +311,8 @@ except:
 
     def check_work(self):
         """
-        check_output periodically polls workers for new output.
+        check_work periodically polls workers for new output. The period is
+        determined by an exponential back off algorithm.
 
         This figures out whether or not there is anything new output that we
         should submit to the server.
@@ -403,8 +404,9 @@ except:
         output = sage_output[begin:end]
         output = output.strip()
         output = output.replace('\r', '')
-        if output != '':
-            import pdb; pdb.set_trace()
+
+        if 'execfile' or 'load' in output and self.got_output:
+            output = ''
 
         return output
 

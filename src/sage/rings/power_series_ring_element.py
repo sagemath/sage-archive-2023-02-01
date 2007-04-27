@@ -57,6 +57,14 @@ With power series the behavior is the same.
     gen1
     sage: huge_power_ring(gen2)
     x
+
+TESTS:
+    sage: K = pAdicField(5,20)
+    sage: R = K[['T']]
+    sage: T = R.0
+    sage: f = (1+5)*T^2 + T^7 +O(T^10)
+    sage: f/T
+    (1 + 5 + O(5^20))*T + (1 + O(5^20))*T^6 + O(T^9)
 """
 
 #*****************************************************************************

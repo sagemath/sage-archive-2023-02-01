@@ -408,7 +408,7 @@ cdef class RealIntervalField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        if isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicNumber)):
+        if isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
             return self(x)
         cdef RealNumber lower, upper
         try:
@@ -735,7 +735,7 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
                 rn1 =self._parent._upper_field()(b)
                 mpfi_interv_fr(self.value, <mpfr_t> rn.value, <mpfr_t> rn1.value)
 
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicNumber):
+        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
             d = x.interval(self._parent)
             mpfi_set(self.value, d.value)
 

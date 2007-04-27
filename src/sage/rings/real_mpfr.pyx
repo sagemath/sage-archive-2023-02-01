@@ -241,7 +241,7 @@ cdef class RealField(sage.rings.ring.Field):
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicNumber)):
+        elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
             return self(x)
         elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
@@ -585,7 +585,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, RealDoubleElement):
             rd = x
             mpfr_set_d(self.value, rd._value, parent.rnd)
-        elif isinstance(x, sage.rings.algebraic_real.AlgebraicNumber):
+        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
             d = x.real(parent)
             mpfr_set(self.value, d.value, parent.rnd)
         #elif hasattr(x, '_mpfr_'):

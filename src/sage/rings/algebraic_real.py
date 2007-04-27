@@ -982,6 +982,7 @@ class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
             sage: five_sixths.exactify()
             5/6
         """
+        op = self._op
         left = self._left
         if left is None:
             if op == '-':
@@ -1002,7 +1003,6 @@ class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
         left_value = gen(left._exact_value())
         right_value = gen(right._exact_value())
 
-        op = self._op
         if op == '+':
             value = left_value + right_value
         if op == '-':

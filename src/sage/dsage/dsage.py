@@ -96,6 +96,7 @@ class DistributedSage(object):
         can look for their respective conf files in DOT_SAGE/dsage.
         The configuration file should be self explanatory.
     """
+
     def __init__(self):
         pass
 
@@ -106,7 +107,7 @@ class DistributedSage(object):
 
         return DSage()
 
-    def server(self, blocking=True, logfile=None):
+    def server(self, blocking=True, clear_jobs=False, logfile=None):
         r"""
         Run the Distributed SAGE server.
 

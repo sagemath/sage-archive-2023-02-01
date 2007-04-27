@@ -129,23 +129,29 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
 
     def testBadLogin(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
 
         d = factory.login(None, None)
-        d.addErrback(lambda f: self.assertEquals(TypeError, f.check(TypeError)))
+        d.addErrback(lambda f: self.assertEquals(TypeError,
+                                                 f.check(TypeError)))
 
         return d
 
     def testBadLogin2(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
-        bad_creds = credentials.SSHPrivateKey('this user name should not exit',
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                            factory)
+        bad_creds = credentials.SSHPrivateKey('bad username',
                                                self.alg_name,
                                                self.blob,
                                                self.data,
                                                self.signature)
         d = factory.login(bad_creds, None)
         d.addErrback(self._BadLoginFailure)
+
         return d
 
     def _BadLoginFailure(self, failure):
@@ -153,7 +159,9 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
 
     def testBadLogin3(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname,
+                                             self.port,
+                                             factory)
         bad_creds = credentials.SSHPrivateKey(self.username,
                                               self.alg_name,
                                               None,

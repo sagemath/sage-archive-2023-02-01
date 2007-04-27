@@ -128,7 +128,7 @@ class _SSHKeyPortalWrapper(pb._PortalWrapper):
 
 class DefaultPerspective(pb.Avatar):
     """
-    Custom implementation of pb.Avatar so we can keep track of the broker.
+    Custom implementation of pb.Avatar.
 
     """
 
@@ -136,8 +136,6 @@ class DefaultPerspective(pb.Avatar):
         self.DSageServer = DSageServer
         self.avatarID = avatarID
         self.connections = 0
-
-        log.msg('%s connected' % self.avatarID)
 
     def perspectiveMessageReceived(self, broker, message, args, kw):
         self.broker = broker
@@ -165,9 +163,11 @@ class DefaultPerspective(pb.Avatar):
         self.connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
         if isinstance(mind, tuple):
-            self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
+            self.DSageServer.monitordb.set_connected(self.host_info['uuid'],
+                                                     connected=False)
         else:
-            self.DSageServer.clientdb.set_connected(self.avatarID, connected=False)
+            self.DSageServer.clientdb.set_connected(self.avatarID,
+                                                    connected=False)
 
 class AnonymousMonitorPerspective(DefaultPerspective):
     """
@@ -193,7 +193,8 @@ class AnonymousMonitorPerspective(DefaultPerspective):
     def detached(self, avatar, mind):
         self.connections -= 1
         log.msg('%s disconnected' % (self.avatarID))
-        self.DSageServer.monitordb.set_connected(self.host_info['uuid'], connected=False)
+        self.DSageServer.monitordb.set_connected(self.host_info['uuid'],
+                                                 connected=False)
 
     def perspective_get_job(self):
         """
@@ -217,7 +218,7 @@ class AnonymousMonitorPerspective(DefaultPerspective):
 
     def perspective_job_failed(self, job_id, traceback):
         if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to perspective_job_failed' % (job_id))
+            log.msg('Bad job_id %s' % (job_id))
             raise BadTypeError()
 
         uuid = self.mind[1]['uuid']
@@ -241,6 +242,7 @@ class AnonymousMonitorPerspective(DefaultPerspective):
     def perspective_submit_host_info(self, hostinfo):
         if not isinstance(hostinfo, dict):
             raise BadTypeError()
+
         return self.DSageServer.submit_host_info(hostinfo)
 
 class MonitorPerspective(AnonymousMonitorPerspective):
@@ -378,18 +380,31 @@ class Realm(object):
 
     def __init__(self, DSageServer):
         self.DSageServer = DSageServer
+        self.avatars = {}
+        self.max_connections = 2
 
     def requestAvatar(self, avatarID, mind, *interfaces):
         if not pb.IPerspective in interfaces:
             raise NotImplementedError("No supported avatar interface.")
         else:
-            if avatarID == 'admin':
-                avatar = AdminPerspective(self.DSageServer, avatarID)
-            elif avatarID == 'Anonymous' and mind:
-                avatar = AnonymousMonitorPerspective(self.DSageServer, avatarID)
-            elif mind:
-                avatar = MonitorPerspective(self.DSageServer, avatarID)
+            if avatarID in self.avatars.keys():
+                avatar = self.avatars[avatarID]
             else:
-                avatar = UserPerspective(self.DSageServer, avatarID)
+                if avatarID == 'admin':
+                    avatar = AdminPerspective(self.DSageServer, avatarID)
+                elif avatarID == 'Anonymous' and mind:
+                    avatar = AnonymousMonitorPerspective(self.DSageServer,
+                                                         avatarID)
+                elif mind:
+                    avatar = MonitorPerspective(self.DSageServer, avatarID)
+                else:
+                    avatar = UserPerspective(self.DSageServer, avatarID)
+                self.avatars[avatarID] = avatar
+        if avatar.connections >= self.max_connections:
+            raise ValueError('Too many connections for user %s' % avatarID)
+
         avatar.attached(avatar, mind)
-        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar, mind)
+        log.msg('%s connected' % avatarID)
+
+        return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
+                                                                   mind)

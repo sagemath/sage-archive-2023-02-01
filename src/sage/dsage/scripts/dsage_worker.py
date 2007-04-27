@@ -403,6 +403,8 @@ except:
         output = sage_output[begin:end]
         output = output.strip()
         output = output.replace('\r', '')
+        if output != '':
+            import pdb; pdb.set_trace()
 
         return output
 
@@ -473,8 +475,11 @@ except:
                 self.sage = Sage()
             try:
                 self.sage._start(block_during_init=True)
-            except RuntimeError, msg:
+                self.sage._expect.delaybeforesend = 0.2
+            except RuntimeError, msg: # Could not start SAGE
                 print msg
+                reactor.stop()
+                sys.exit(-1)
 
         self.get_job()
 
@@ -635,14 +640,13 @@ class Monitor(object):
 
     def _retryConnect(self):
         log.err('[Monitor] Disconnected, reconnecting in %s' % self.delay)
-        reactor.callLater(self.delay, self.connect)
+        if not self.connected:
+            reactor.callLater(self.delay, self.connect)
 
     def _catchConnectionFailure(self, failure):
-        self.connected = False
-        self._retryConnect()
-
         log.err("Error: ", failure.getErrorMessage())
         log.err("Traceback: ", failure.printTraceback())
+        self._disconnected(None)
 
     def _catch_failure(self, failure):
         log.err("Error: ", failure.getErrorMessage())
@@ -768,4 +772,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

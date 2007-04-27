@@ -419,6 +419,8 @@ class SymbolicExpression(RingElement):
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
         """
+        if not self.is_simplified():
+            self = self.simplify()
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
         if onscreen:

@@ -231,14 +231,17 @@ cdef class RealField(sage.rings.ring.Field):
              * any other mpfr real field with precision that is as large as this one
              * int, long, integer, and rational rings.
              * real mathematical constants
+	     * the field of algebraic reals
         """
+        import sage.rings.algebraic
+
         if isinstance(x, RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational)):
+        elif isinstance(x, (Integer, Rational, sage.rings.algebraic.AlgebraicNumber)):
             return self(x)
         elif self.__prec <= 53 and is_RealDoubleElement(x):
             return self(x)
@@ -554,6 +557,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._set(x, base)
 
     cdef _set(self, x, int base):
+        import sage.rings.algebraic
+
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
@@ -580,6 +585,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, RealDoubleElement):
             rd = x
             mpfr_set_d(self.value, rd._value, parent.rnd)
+        elif isinstance(x, sage.rings.algebraic.AlgebraicNumber):
+            d = x.real(parent)
+            mpfr_set(self.value, d.value, parent.rnd)
         #elif hasattr(x, '_mpfr_'):
         #    return x._mpfr_(self)
         else:

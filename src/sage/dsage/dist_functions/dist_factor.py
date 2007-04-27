@@ -76,6 +76,7 @@ else:
         job.algorithm = 'qsieve'
         job.verifiable = True
         job.type = 'qsieve'
+        job.timeout = 60*60*24
 
         return job
 
@@ -99,6 +100,7 @@ else:
         job.algorithm = 'ecm'
         job.verifiable = True
         job.type = 'ecm'
+        job.timeout = 60*60*24
         return job
 
     def process_result(self, job):

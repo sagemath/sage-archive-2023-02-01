@@ -381,6 +381,10 @@ class SymbolicExpression(RingElement):
         """
         return self.display2d(onscreen=False)
 
+    def show(self):
+        from sage.misc.functional import _do_show
+        return _do_show(self)
+
     def display2d(self, onscreen=True):
         """
         Display self using ASCII art.
@@ -415,6 +419,8 @@ class SymbolicExpression(RingElement):
                                   + (sqrt(2)  I - sqrt(2)) erf(------------------------))/8
                                                                           2
         """
+        if not self.is_simplified():
+            self = self.simplify()
         s = self._maxima_().display2d(onscreen=False)
         s = s.replace('%pi',' pi').replace('%i',' I').replace('%e', ' e')
         if onscreen:
@@ -1209,6 +1215,45 @@ class SymbolicExpression(RingElement):
             sage: g.laplace(x, s)
             s*laplace(f(x), x, s) - f(0)
 
+        EXAMPLE: A BATTLE BETWEEN the X-women and the Y-men (by David Joyner):
+        Solve
+        $$
+          x' = -16y, x(0)=270,  y' = -x + 1, y(0) = 90.
+        $$
+        This models a fight between two sides, the "X-women"
+        and the "Y-men", where the X-women have 270 initially and
+        the Y-men have 90, but the Y-men are better at fighting,
+        because of the higher factor of "-16" vs "-1", and also get
+        an occasional reinforcement, because of the "+1" term.
+
+            sage: var('t')
+            sage: x = function('x', t)
+            sage: y = function('y', t)
+            sage: de1 = x.diff(t) + 16*y
+            sage: de2 = y.diff(t) + x - 1
+            sage: de1.laplace(t, s)
+            16*laplace(y(t), t, s) + s*laplace(x(t), t, s) - x(0)
+            sage: de2.laplace(t, s)
+            s*laplace(y(t), t, s) + laplace(x(t), t, s) - (1/s) - y(0)
+
+        Next we form the augmented matrix of the above system:
+            sage: A = matrix([[s, 16, 270],[1, s, 90+1/s]])
+            sage: E = A.echelon_form()
+            sage: xt = E[0,2].inverse_laplace(s,t)
+            sage: yt = E[1,2].inverse_laplace(s,t)
+            sage: print xt
+				4 t	    - 4 t
+			   91  e      629  e
+        		 - -------- + ----------- + 1
+			      2		   2
+            sage: print yt
+				 4 t	     - 4 t
+			    91  e      629  e
+        		    -------- + -----------
+			       8	    8
+            sage: p1 = plot(xt,0,1/2,rgbcolor=(1,0,0))
+            sage: p2 = plot(yt,0,1/2,rgbcolor=(0,1,0))
+            sage: (p1+p2).save()
         """
         return self.parent()(self._maxima_().laplace(var(t), var(s)))
 
@@ -2031,6 +2076,10 @@ class Symbolic_object(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._obj = obj
 
+    #def derivative(self, *args):
+        # TODO: remove
+    #    return self.parent().zero_element()
+
     def obj(self):
         """
         EXAMPLES:
@@ -2397,10 +2446,6 @@ class SymbolicArithmetic(SymbolicOperation):
         ops = self._operands
         op = self._operator
 
-        ###############
-        # some bugs here in parenthesis -- exposed by above doctest
-        ###############
-
         s = [o._repr_(simplify=False) for o in ops]
 
         # for the left operand, we need to surround it in parens when the
@@ -2463,6 +2508,8 @@ class SymbolicArithmetic(SymbolicOperation):
         elif op is operator.mul:
             if ops[0]._has_op(operator.add) or ops[0]._has_op(operator.sub):
                 s[0] = r'\left( %s \right)' %s[0]
+            if ops[1]._has_op(operator.add) or ops[1]._has_op(operator.sub):
+                s[1] = r'\left( %s \right)' %s[1]
             return '{%s \\cdot %s}' % (s[0], s[1])
         elif op is operator.div:
             return '\\frac{%s}{%s}' % (s[0], s[1])
@@ -2594,6 +2641,8 @@ common_varnames = ['alpha',
 def tex_varify(a):
     if a in common_varnames:
         return "\\" + a
+    elif len(a) == 1:
+        return a
     else:
         return '\\mbox{%s}'%a
 
@@ -3208,6 +3257,7 @@ class SymbolicComposition(SymbolicOperation):
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
+        SymbolicExpression.__init__(self)
         self._tex_needs_braces = needs_braces
 
     def plot(self, *args, **kwds):
@@ -3343,6 +3393,7 @@ class Function_floor(PrimitiveFunction):
         5
         sage: type(floor(5.4))
         <type 'sage.rings.integer.Integer'>
+        sage: var('x')
         sage: a = floor(5.4 + x); a
         floor(x + 0.4000000000000004) + 5
         sage: a(2)
@@ -4099,6 +4150,14 @@ def function(s, *args):
         -sin(a)*b
         sage: g(cr=sin(x) + cos(x))
         (cos(a) - sin(a))*b
+
+    Basic arithmetic:
+        sage: x = var('x')
+        sage: h = function('f',x)
+        sage: 2*f
+        2*f
+        sage: 2*h
+        2*f(x)
     """
     if len(args) > 0:
         return function(s)(*args)

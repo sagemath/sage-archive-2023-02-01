@@ -4276,6 +4276,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
              (1 + O(5^20))*t + (3 + O(5))*t^2 + O(t^3)
 
+          Supply your very own value of E2:
+            sage: X = EllipticCurve("37a")
+            sage: my_E2 = X.padic_E2(5, 8)
+            sage: my_E2 = my_E2 + 5**5    # oops!!!
+            sage: X.padic_sigma(5, 10, E2=my_E2)
+            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+
           Check that sigma is ``weight 1''. [This test is disabled until
           trac \#254 is addressed. The lines f(2*t)/2 and g should return
           exactly the same answer. Currently there is some precision loss.]
@@ -4333,7 +4340,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if E2 is None:
             E2 = self.padic_E2(p, N-2, check_hypotheses=False)
-        elif E2.big_oh() < N-2:
+        elif E2.precision_absolute() < N-2:
             raise ValueError, "supplied E2 has insufficient precision"
 
         QQt = LaurentSeriesRing(RationalField(), "x")

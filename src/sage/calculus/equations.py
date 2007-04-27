@@ -49,6 +49,7 @@ symbols = {operator.lt:' < ', operator.le:' <= ', operator.eq:' == ',
 
 maxima_symbols = dict(symbols)
 maxima_symbols[operator.eq] = '='
+maxima_symbols[operator.ne] = '#'
 
 
 latex_symbols = {operator.lt:' < ', operator.le:' \\leq ', operator.eq:' = ',
@@ -75,6 +76,11 @@ class SymbolicEquation(SageObject):
 
     def __call__(self, *args, **argv):
         return self._op(self._left(*args, **argv), self._right(*args,**argv))
+
+    def substitute(self, *args, **kwds):
+        return self.__call__(*args, **kwds)
+
+    subs = substitute
 
     def __cmp__(self, right):
         """

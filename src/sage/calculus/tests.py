@@ -54,4 +54,10 @@ A polynomial over a symbolic base ring:
     (-1/(4*sqrt(2)))*x + -1/sqrt(2)
     sage: (-f).degree()
     1
+
+Something that was a printing bug.  This tests that we print
+the simplified version using ASCII art:
+    sage: A = exp(I*pi/5)
+    sage: print A*A*A*A*A*A*A*A*A*A
+                                           1
 """

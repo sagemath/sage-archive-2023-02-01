@@ -87,9 +87,12 @@ cdef class SageObject:
             return self._repr_()
         return str(type(self))
 
-    def _plot_(self, *args, **kwds):
+    def plot(self, *args, **kwds):
         import sage.plot.plot
-        return sage.plot.plot.Plot(str(self))
+        if len(args) == 0 and len(kwds) == 0:
+            return sage.plot.plot.text(str(self), (0,0))
+        else:
+            return sage.plot.plot.text(str(self), *args, **kwds)
 
     def __hash__(self):
         return hash(self.__repr__())

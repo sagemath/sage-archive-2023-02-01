@@ -79,7 +79,7 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         self.__gp = gp_cremona.ellinit(self.a_invariants(), F.characteristic())
         return self.__gp
 
-    def _plot_(self, **args):
+    def plot(self, **args):
         """
         Draw a graph of this elliptic curve over a prime finite field.
 

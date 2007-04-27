@@ -810,7 +810,7 @@ class GenericGraph(SageObject):
 
     def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
              node_size=200, graph_border=False, color_dict=None, partition=None,
-             edge_colors=None, scaling_term=0.05):
+             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 

@@ -131,7 +131,7 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
 
 qd = Extension('sage.rings.real_qdrf',
                        sources = ["sage/rings/real_qdrf.pyx"],
-                       libraries = ['qd', 'm', 'stdc++', ],
+                       libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
                        language='c++'
                        )
 
@@ -174,6 +174,13 @@ linbox = Extension('sage.libs.linbox.linbox',
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
                    libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
+
+libsingular = Extension('sage.libs.singular.singular',
+                        sources = ['sage/libs/singular/singular.pyx'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
+                        language="c++",
+                        )
+
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
@@ -264,7 +271,7 @@ gsl_callback = Extension('sage.gsl.callback',
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', 'gmp', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
@@ -333,7 +340,7 @@ ext_modules = [ \
 
     matrix_misc,
 
-    cf,
+    #cf,
 
     matrix_dense,
     matrix_generic_dense,
@@ -364,6 +371,8 @@ ext_modules = [ \
      matrix_mod2_dense,
      givaro_gfq, \
 
+     libsingular, \
+
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,
@@ -380,7 +389,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    #qd,
+    qd,
 
     complex_number,
 
@@ -415,6 +424,20 @@ ext_modules = [ \
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
+
+    Extension('sage.rings.multi_polynomial',
+              sources = ['sage/rings/multi_polynomial.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_ring_generic',
+              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_libsingular',
+              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              language="c++",
+              ), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
@@ -493,6 +516,12 @@ ext_modules = [ \
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
 
+    Extension('sage.misc.reset',
+              ['sage/misc/reset.pyx']), \
+
+    Extension('sage.calculus.var',
+              ['sage/calculus/var.pyx']), \
+
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
                'sage/modular/modsym/p1list.pyx',
@@ -570,7 +599,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries = ['csage'] + m.libraries + ['stdc++']
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -830,7 +859,7 @@ setup(name        = 'sage',
                      'sage.libs.ntl',
                      'sage.libs.ec',
                      'sage.libs.pari',
-                     'sage.libs.cf',
+                     'sage.libs.singular',
 
                      'sage.matrix',
 
@@ -873,6 +902,7 @@ setup(name        = 'sage',
                      'sage.server',
                      'sage.server.server1',
                      'sage.server.notebook',
+                     'sage.server.notebook.compress',
                      'sage.server.wiki',
                      'sage.server.trac',
 
@@ -882,19 +912,22 @@ setup(name        = 'sage',
                      'sage.dsage.database',
                      'sage.dsage.database.tests',
                      'sage.dsage.server',
+                     'sage.dsage.server.tests',
+                     'sage.dsage.interface',
+                     'sage.dsage.interface.tests',
                      'sage.dsage.errors',
-                     'sage.dsage.tests',
                      'sage.dsage.twisted',
                      'sage.dsage.twisted.tests',
                      'sage.dsage.dist_functions',
+                     'sage.dsage.dist_functions.tests',
                      'sage.dsage.misc',
-                     'sage.dsage.interface',
+                     'sage.dsage.misc.tests',
                      'sage.dsage.scripts'
                      ],
 
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
-                 'sage/dsage/scripts/dsage_setup.py',
+                 'sage/dsage/scripts/dsage_setup.py'
                 ],
 
       ext_modules = ext_modules,

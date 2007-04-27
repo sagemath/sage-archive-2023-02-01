@@ -44,6 +44,8 @@ import shutil
 import Cookie
 import cPickle
 import base64
+from gzip import GzipFile
+import struct
 from urllib import splittag
 
 #SAGE notebook libraries
@@ -139,6 +141,16 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if self.auth_worksheet(W):
             cell = W.get_cell_with_id(id)
             cell.set_cell_output_type(typ)
+
+    def set_cell_input(self):
+        C = self.get_postvars()
+        id = C['cell_id']
+        input = C['input']
+
+        W = notebook.get_worksheet_that_has_cell_with_id(id)
+        if self.auth_worksheet(W):
+            cell = W.get_cell_with_id(id)
+            cell.set_input_text(input)
 
     def hide_all(self):
         """
@@ -463,7 +475,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #self.wfile.write(notebook.worksheet_list_html())
         #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
         self.send_response(302)
-        self.send_header("Location", '/%d'%W.id())
+        self.send_header("Location", '/%s'%W.name())
         self.end_headers()
 
     #######################################################################
@@ -477,15 +489,24 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.file_not_found(path)
         filename = path[i+1:]
         file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
-        s = ''
+        file = file.replace('<','&lt;')
+        s = """
+<html>
+<head>
+"""
+        s += '<title>%s | SAGE Source Browser</title>' % filename
         s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+        s += """
+</head>
+<body>
+"""
         s += '<h1 align=center>SAGE Source Browser</h1>\n'
         s += '<h2 align=center>devel/sage/sage%s</h2>\n'%filename
         s += '<br><hr><br>\n'
         s += '<pre id="code">%s</pre>\n'%file
         s += '<br><hr><br>\n'
-        s += '<script src="/highlight/prettify.js"></script>\n'
-        s += """<script>
+        s += '<script src="/highlight/prettify.js" type="text/javascript"></script>\n'
+        s += """<script type="text/javascript">
 function get_element(id) {
   if(document.getElementById)
     return document.getElementById(id);
@@ -498,6 +519,10 @@ function get_element(id) {
 var x = get_element("code");
 x.innerHTML = prettyPrintOne(x.innerHTML);
 </script>
+"""
+        s += """
+</body>
+</html>
 """
         return self.wfile.write(s)
 
@@ -623,14 +648,14 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         s = '<head>\n'
         s += '<title>SAGE Worksheet: %s</title>\n'%W.name()
         if do_print:
-            s += '<script src="/jsmath/jsMath.js"></script>\n'
-        s += '<script language=javascript src="/__main__.js"></script>\n'
-        s += '<link rel=stylesheet href="/__main__.css"></style>\n'
+            s += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+        s += '<script type="text/javascript" src="/__main__.js"></script>\n'
+        s += '<link rel=stylesheet href="/__main__.css">\n'
         s += '</head>\n'
         s += '<body>\n'
         s += W.html(include_title=False, do_print=do_print)
         if do_print:
-            s += '<script language=javascript>jsMath.Process();</script>\n'
+            s += '<script type="text/javascript">jsMath.Process();</script>\n'
         s += '\n</body>\n'
         self.wfile.write(s)
 
@@ -644,7 +669,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         s += '<body>\n'
         s += '<pre>' + t + '</pre>\n'
         s += '<a name="bottom"></a>\n'
-        s += '<script language=javascript> window.location="#bottom"</script>\n'
+        s += '<script type="text/javascript"> window.location="#bottom"</script>\n'
         s += '</body>\n'
         self.wfile.write(s)
 
@@ -705,6 +730,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
 
         This function could be cleaned up?
         """
+        compressed = False
         path = self.path.replace('%20',' ')
         if path[-5:] == '.sobj':
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
@@ -744,38 +770,62 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.wfile.write(css.css())
             return
 
-        elif path[-5:] == '__.js':
-            if self.path[-18:-7] == '__keyboard_':
-                self.wfile.write(keyboards.get_keyboard(self.path[-7:-5]))
-                return
-            elif path[-13:-3] == '__main__':
-                self.wfile.write(js.javascript())
-                return
-        try:
-            if path in static_images: #this list is defined at the top of this file
-                binfile = self.image(path)
-            elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
-                binfile = open(SAGE_EXTCODE + "/notebook/javascript/" + path, 'rb').read()
+        elif path[-3:] == '.js':
+            try: tempv = self._js_cache
+            except: self._js_cache = {}
+
+            binfile = None
+            if self._js_cache.has_key(path):
+                text, comp = self._js_cache[path]
+                binfile, compressed = self.send_compressed(text, comp)
             else:
-                binfile = open(path, 'rb').read()
-        except IOError, msg:
-            print 'file not found', msg
-            return self.file_not_found(path)
+                text = None
+                if self.path[-18:-7] == '__keyboard_':
+                    text = keyboards.get_keyboard(self.path[-7:-5])
+                elif path[-13:-3] == '__main__':
+                    text = js.javascript()
+                else: #if path[:7] == 'jsmath/' or path[:10] == 'highlight/':
+                    try:
+                        text = open(SAGE_EXTCODE + "/notebook/javascript/" + path).read()
+                    except: pass
+
+                if text is not None:
+                    comp = gzip_compress(text)
+                    self._js_cache[path] = (text, comp)
+                    binfile, compressed = self.send_compressed(text, comp)
+
+            if binfile is None:
+                print 'file not found', path
+                return self.file_not_found(path)
+
+        else:
+            try:
+                if path in static_images: #this list is defined at the top of this file
+                    binfile = self.image(path)
+                elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
+                    binfile = open(SAGE_EXTCODE + "/notebook/javascript/" + path, 'rb').read()
+                else:
+                    binfile = open(path, 'rb').read()
+            except IOError, msg:
+                print 'file not found', msg
+                return self.file_not_found(path)
+
         self.send_response(200)
 
         mime_type = mimetypes.guess_type(self.path)[0]
         if mime_type is None:
             mime_type = "text/plain"
         self.send_header("Content-type", mime_type)
+        if compressed:
+            self.send_header("Content-Encoding", 'x-gzip')
         self.send_header("Cache-control", "no-store")
 
         self.end_headers()
 
-        f = StringIO()
+        f = StringIO(binfile)
         f.write(binfile)
         f.flush()
         f.seek(0)
-
 
 
         alarm(3)
@@ -970,7 +1020,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             if method in ['cell_output_set', 'hide_all', 'restart_sage', 'show_all', 'introspect',
                           'new_cell', 'new_cell_after', 'delete_cell', 'cell_update', 'interrupt',
                           'cell_id_list', 'add_worksheet', 'delete_worksheet', 'unlock_worksheet',
-                          'insert_wiki_cells', 'delete_cell_all', 'get_queue']:
+                          'insert_wiki_cells', 'delete_cell_all', 'get_queue', 'set_cell_input']:
                 eval("self.%s()"%method)
             else:
                 if self.path[-8:]   == '/refresh':
@@ -1009,7 +1059,15 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.send_header("Content-type", 'text/html')
         self.end_headers()
 
-
+    def send_compressed(self, text, compressed = None):
+        accept = self.headers.getheader("Accept-Encoding")
+        if accept.find("gzip") >= 0:
+            if compressed is None:
+                return gzip_compress(text, 6), True
+            else:
+                return compressed, True
+        else:
+            return text, False
 
     def image(self, filename):
         try:
@@ -1098,5 +1156,11 @@ class NotebookServer:
             else:
                 notebook.save()
 
-
+def gzip_compress(data, compresslevel=9):
+    io = StringIO()
+    gz = GzipFile(fileobj = io, mode='w', compresslevel=compresslevel)
+    gz.write(data)
+    gz.close()
+    io.seek(0)
+    return io.read()
 

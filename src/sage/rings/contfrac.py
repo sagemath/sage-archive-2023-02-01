@@ -625,25 +625,10 @@ class ContinuedFraction(FieldElement):
         s += '}'*(len(v)-1)
         return s
 
-    def square_root(self):
-        """
-        Return exact square root or raise an error if self
-        is not a perfect square.
-
-        EXAMPLES:
-            sage: a = CFF(4/25).square_root(); a
-            [0, 2, 2]
-            sage: a.value()
-            2/5
-        """
-        return ContinuedFraction(self.parent(),
-                                 self._rational_().square_root())
-
-    def sqrt(self):
+    def sqrt(self, bits=None):
         """
         Return continued fraction approximation to the
-        square root of the value of this continued fraction, if
-        it is positive.  If self is negative raise a ValueError.
+        square root of the value of this continued fraction.
 
         EXAMPLES:
             sage: a = CFF(4/19); a
@@ -654,11 +639,20 @@ class ContinuedFraction(FieldElement):
             146231375/318703893
             sage: float(b.value()^2 - a)
             4.0935373134057017e-17
+            sage: a = CFF(4/25).sqrt(); a
+            [0, 2, 2]
+            sage: a.value()
+            2/5
         """
         r = self._rational_()
         if r < 0:
             raise ValueError, "self must be positive"
-        return ContinuedFraction(self.parent(), r.sqrt())
+        if bits is None:
+            if r.is_square():
+                return ContinuedFraction(self.parent(), r.sqrt())
+            else:
+                bits = 53
+        return ContinuedFraction(self.parent(), r.sqrt_approx(bits))
 
     def list(self):
         """
@@ -763,9 +757,9 @@ class ContinuedFraction(FieldElement):
         """
         return self._rational_().is_one()
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Return True if self is zero.
+        Return False if self is zero.
 
         EXAMPLES:
             sage: continued_fraction(0).is_zero()
@@ -773,7 +767,7 @@ class ContinuedFraction(FieldElement):
             sage: continued_fraction(1).is_zero()
             False
         """
-        return self._rational_().is_zero()
+        return not self._rational_().is_zero()
 
     def _pari_(self):
         """

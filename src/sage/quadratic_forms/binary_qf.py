@@ -267,7 +267,7 @@ def BinaryQF_reduced_representatives(D):
         raise ValueError, "discriminant is not valid and positive definite"
 
     ## Find the range of allowed b's
-    bmax = (-D / ZZ(3)).sqrt().ceil()
+    bmax = (-D / ZZ(3)).sqrt_approx().ceil()
     b_range = range(-bmax, bmax+1)
 
     ## Find the set of all (possibly mutually equivalent) quadratic forms

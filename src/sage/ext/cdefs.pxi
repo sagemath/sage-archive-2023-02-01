@@ -42,6 +42,7 @@ cdef extern from "gmp.h":
     # The mpz type
     void mpz_abs (mpz_t rop, mpz_t op)
     void mpz_add (mpz_t rop, mpz_t op1, mpz_t op2)
+    void mpz_add_ui (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_addmul (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_and (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_ior (mpz_t rop, mpz_t op1, mpz_t op2)
@@ -62,6 +63,7 @@ cdef extern from "gmp.h":
     void mpz_cdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
     void mpz_tdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
     double mpz_get_d (mpz_t op)
+    double mpz_get_d_2exp (long int *exp, mpz_t op)
     unsigned long int mpz_fdiv_ui (mpz_t n, unsigned long int d)
     unsigned long int mpz_fdiv_q_ui(mpz_t q, mpz_t n, unsigned long int d)
     void mpz_fdiv_q_2exp(mpz_t q, mpz_t n, unsigned long int b)
@@ -91,6 +93,7 @@ cdef extern from "gmp.h":
     void mpz_set_si(mpz_t integer, signed long int n)
     void mpz_set_ui(mpz_t integer, unsigned long int n)
     int  mpz_set_str(mpz_t rop, char *str, int base)
+    int  mpz_set_d(mpz_t rop, double d)
     int  mpz_sgn(mpz_t op)
     void mpz_sqrt (mpz_t rop, mpz_t op)
     void mpz_sub (mpz_t rop, mpz_t op1, mpz_t op2)
@@ -113,6 +116,16 @@ cdef extern from "gmp.h":
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_xor (mpz_t rop, mpz_t op1, mpz_t op2)
     int mpz_root (mpz_t rop, mpz_t op, unsigned long int n)
+
+    int mpz_odd_p (mpz_t op)
+    int mpz_even_p (mpz_t op)
+
+    int mpz_perfect_power_p (mpz_t op)
+    int mpz_perfect_square_p (mpz_t op)
+
+    int mpz_jacobi (mpz_t a, mpz_t b)
+    int mpz_kronecker (mpz_t a, mpz_t b)
+    int mpz_kronecker_si (mpz_t a, long b)
 
     # The mpq type
     void mpq_abs (mpq_t rop, mpq_t op)

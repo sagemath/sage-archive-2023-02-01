@@ -7,10 +7,13 @@ AUTHORS:
     -- Alex Clemesha
 
 
-This file is one big raw triple-quoted string that contains a bunch of javascript.  This javascript is inserted into
-the head of the notebook web page. """
+This file is one big raw triple-quoted string that contains a bunch of
+javascript.  This javascript is inserted into the head of the notebook
+web page.
+"""
 
 from sage.misc.misc import SAGE_URL
+from compress.JavaScriptCompressor import JavaScriptCompressor
 import keyboards
 
 ###########################################################################
@@ -20,6 +23,15 @@ import keyboards
 #  Distributed under the terms of the GNU General Public License (GPL)
 #                  http://www.gnu.org/licenses/
 ###########################################################################
+
+
+def javascript():
+    s = async_lib()
+    s += notebook_lib()
+
+    s = JavaScriptCompressor().getPacked(s)
+    return s
+
 
 def async_lib():
     s = r"""
@@ -126,11 +138,8 @@ function async_release(id) {
     return s
 
 
-
-
-def javascript():
-    s = async_lib()
-    s+= r"""
+def notebook_lib():
+    s= r"""
 
 ///////////////////////////////////////////////////////////////////
 //
@@ -168,6 +177,8 @@ var cell_output_delta = update_normal_delta;
 var SEP = '___S_A_G_E___';   // this had better be the same as in the server
 var current_cell = -1;       // gets set on focus / blur
 var no_async = false; //this isn't really used -- should we think about dealing with this?
+var cell_has_changed = false;
+var cell_to_focus = -1;
 
 // introspection variables
 var introspection_loaded = false;
@@ -375,6 +386,24 @@ function time_now() {
 // Misc page functions -- for making the page work nicely
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
+
+
+// Replaces all instances of the given substring.
+// From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
+
+String.prototype.replaceAll = function(strTarget, strSubString ) {
+	var strText = this;
+	var intIndexOfMatch = strText.indexOf( strTarget );
+	// Keep looping while an instance of the target string
+	// still exists in the string.
+	while (intIndexOfMatch != -1) {
+		// Replace out the current instance.
+		strText = strText.replace( strTarget, strSubString )
+		// Get the index of any next matching substring.
+		intIndexOfMatch = strText.indexOf( strTarget );
+	}
+	return( strText );
+}
 
 function is_whitespace(s) {
     m = whitespace_pat.exec(s);
@@ -794,34 +823,45 @@ function get_cell(id) {
 }
 
 function cell_blur(id) {
-    var e = get_cell(id);
-    if(e == null) return;
-
-    e.className= "hidden";
+    var cell = get_cell(id);
+    if(cell == null) return;
+    cell.className="hidden";
 
    /* if(!in_slide_mode)
         current_cell = -1; */
 
-    var t = e.value;
-    if (t.length == 0) {
-        t = ' ';
-    }
+    var t = cell.value.replaceAll("<","&lt;");
 
     var display_cell = get_element('cell_display_' + id)
     if (t.indexOf('%hide') == -1) {
         set_class('cell_display_' + id, 'cell_input')
-    // This is nasty, but is seems like the only way to get
-    // the notation R.<x,y> = blah that we use in SAGE to not
-    // result in R. = blah after highlighting.
-        t = t.replace('<','<span class=pun><</span>')
-        display_cell.innerHTML = prettyPrintOne(t)
+        // We do this so <'s don't result in being parsed as
+        // special html tags.
+        display_cell.innerHTML = t;
+        setTimeout("prettify_cell("+id+")",10);
     } else {
         set_class('cell_display_' + id, 'cell_input_hide')
-        display_cell.innerHTML = '<font color="grey">' + t.replace('<','&lt') + '</font>'
+        display_cell.innerHTML = '<font color="grey">' + t + '</font>'
     }
 
-
+    if(cell_has_changed)
+        send_cell_input(id);
     return true;
+}
+
+function send_cell_input(id) {
+    cell = get_cell(id)
+    if(cell == null) return;
+
+    async_request("/set_cell_input", generic_callback, "cell_id="+id+"&input="+cell.value);
+}
+
+function prettify_cell(id) {
+    var cell = get_cell(id);
+    var display_cell = get_element('cell_display_' + id)
+    if(cell == null || display_cell == null) return;
+    var t = cell.value.replaceAll("<","&lt;");
+    display_cell.innerHTML = prettyPrintOne(t+' '); //add a space to keep the cell from being too skinny
 }
 
 function debug_focus() {
@@ -838,13 +878,19 @@ function debug_blur() {
         w.className = 'debug_window_inactive';
 }
 
+function refocus_cell() {
+    if(cell_to_focus < 0) return;
+    var c = cell_to_focus;  //make a temp variable so we don't trigger another body focus event
+    cell_to_focus = -1;     //and cause an infinite loop.
+    cell_focus(c);
+}
+
 //set and_delay to true if you want to refocus the browser in a keyevent
 //which expects a tab -- Opera apparently resists canceling the tab key
 //event -- so we can subvert that by breaking out of the call stack with
 //a little timeout.  Safari also has this problem.
 function cell_focus(id, bottom) {
     // make_cell_input_active(id);
-    current_cell = id;
 
     var cell = get_cell(id);
     if (cell) {
@@ -857,6 +903,9 @@ function cell_focus(id, bottom) {
         current_cell = id;
         cell.focus();
     }
+    current_cell = id;
+    cell_has_changed = false;
+
     return true;
 }
 
@@ -1115,6 +1164,8 @@ function cell_input_key_event(id, e) {
     } else if (key_request_log(e)) {
        text_log_window(worksheet_filename);
     }
+
+    cell_has_changed = true;
     return true;
 }
 
@@ -1241,6 +1292,7 @@ function evaluate_cell(id, action) {
        return;
     }
 
+    cell_has_changed = false; //stop from sending the input twice.
     if(!in_slide_mode) {
        jump_to_cell(id,1);
     }
@@ -1279,6 +1331,7 @@ function evaluate_cell_introspection(id, before, after) {
         } else if(f != null) { //we're in an open function paren -- give info on the function
             before = f[1] + "?";
         } else { //just a tab
+            cell_has_changed = true;
             do_replacement(id, '    ',false);
             return;
         }
@@ -1477,6 +1530,27 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+/*
+Could this be useful?
+    source_code.match( new RegExp( "<script\\s+?type=['\"]text/javascript['\"]>([^]+?)</script>", "i" ) )
+*/
+
+function eval_script_tags(text) {
+   var s = text.replaceAll('\n','');
+   var i = s.indexOf('<script>');
+   while (i != -1) {
+       var j = s.indexOf('</script>');
+       var code = s.slice(8+i,j);
+       try {
+           window.eval(code);
+       } catch(e) {
+           alert(e);
+       }
+       s = s.slice(j+1);
+       i = s.indexOf('<script>');
+   }
+}
+
 function check_for_cell_update_callback(status, response_text) {
     // make sure the update happens again in a few hundred milliseconds,
     // unless a problem occurs below.
@@ -1518,6 +1592,7 @@ function check_for_cell_update_callback(status, response_text) {
     var D = response_text.slice(i+1).split(SEP);
     var output_text = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
+    eval_script_tags(output_text)
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];
@@ -2041,7 +2116,6 @@ function jsmath_init() {
 function font_warning() { /* alert(jsmath_font_msg); */
 }
 
-
 """
 
     s = s.replace('SAGE_URL',SAGE_URL)
@@ -2063,6 +2137,8 @@ function is_submit(e) {
 """%keyhandler.all_tests()
     s += keyboards.get_keyboard('')
     return s
+
+
 
 
 class JSKeyHandler:

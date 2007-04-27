@@ -7,6 +7,7 @@ any SAGE base ring.
 AUTHOR:
    -- William Stein
    -- David Harvey (2006-09-11): added solve_linear_de() method
+   -- Robert Bradshaw (2007-04): sqrt, rmul, lmul, shifting
 
 EXAMPLE:
     sage: R.<x> = PowerSeriesRing(ZZ)
@@ -78,6 +79,7 @@ import operator
 from infinity import infinity, is_Infinite
 from polynomial_ring import PolynomialRing
 import polynomial_element_generic as polynomial
+import polynomial_element
 import power_series_ring
 import sage.misc.misc as misc
 import ring_element
@@ -85,13 +87,15 @@ import arith
 import sage.misc.latex as latex
 import sage.structure.coerce
 import rational_field, integer_ring
+from integer import Integer
+from integer_mod_ring import IntegerModRing
 import sage.libs.pari.all as pari
 import sage.misc.latex as latex
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
-from sage.rings.arith import ceil
+from math import ceil
 
-Polynomial = polynomial.Polynomial_generic_dense
+Polynomial = polynomial_element.Polynomial_generic_dense
 
 def is_PowerSeries(x):
     return isinstance(x, PowerSeries)
@@ -365,10 +369,10 @@ class PowerSeries(ring_element.RingElement):
             coeffs = list(d.iteritems())
             coeffs.sort()
             for (n, x) in coeffs:
-                if x != 0:
+                if x:
                     if s != ' ':
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -384,10 +388,10 @@ class PowerSeries(ring_element.RingElement):
             first = True
             for n in xrange(m):
                 x = v[n]
-                if x != 0:
+                if x:
                     if not first:
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -455,7 +459,7 @@ class PowerSeries(ring_element.RingElement):
                 if n > 0:
                     s += "%s|%s"%(x,var)
                 else:
-                    s += str(x)
+                    s += repr(x)
                 first = False
 
         if atomic_repr:
@@ -521,7 +525,7 @@ class PowerSeries(ring_element.RingElement):
 
         EXAMPLES:
             sage: R.<m> = CDF[[]]
-            sage: f = pi^2 + m^3 + e*m^4 + O(m^10); f
+            sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
             9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
             sage: f[-5]
             0
@@ -602,9 +606,9 @@ class PowerSeries(ring_element.RingElement):
         # endif
         return self._mul_(right, prec)
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
-        Return True if this power series equals 0.
+        Return True if this power series doesn't equal 0.
 
         EXAMPLES:
             sage: R.<q> = ZZ[[ ]]; R
@@ -619,7 +623,7 @@ class PowerSeries(ring_element.RingElement):
             sage: (0 + O(q^1000)).is_zero()
             True
         """
-        return self.polynomial().is_zero()
+        return not self.polynomial().is_zero()
 
     def is_unit(self):
         """
@@ -821,12 +825,53 @@ class PowerSeries(ring_element.RingElement):
         return num*inv
 
     def __mod__(self, other):
+        """
+        EXAMPLES:
+            sage: R.<T> = Qp(7)[[]]
+            sage: f = (48*67 + 46*67^2)*T + (1 + 42*67 + 5*67^3)*T^2 + O(T^3)
+            sage: f % 67
+            T^2 + O(T^3)
+        """
         if isinstance(other,(int,Integer,long)):
-            try:
-                return power_series_ring.PowerSeriesRing(Zmod(other))(self)
-            except TypeError:
-                raise ZeroDivisionError
-        raise NotImplementedError, "Mod on power series ring not defined."
+            return power_series_ring.PowerSeriesRing(IntegerModRing(other), self.variable())(self)
+        raise NotImplementedError, "Mod on power series ring elements not defined except modulo an integer."
+
+    def shift(self, n):
+        r"""
+        Returns this power series multiplied by the power $t^n$. If $n$
+        is negative, terms below $t^n$ will be discarded. Does not
+        change this power series.
+
+        NOTE:
+            Despite the fact that higher order terms are printed to the
+            right in a power series, right shifting decreases the powers
+            of $t$, while left shifting increases them. This is to be
+            consistant with polynomials, integers, etc.
+
+        EXAMPLES:
+            sage: R.<t> = PowerSeriesRing(QQ['y'], 't', 5)
+            sage: f = ~(1+t); f
+            1 + -t + t^2 + -t^3 + t^4 + O(t^5)
+            sage: f.shift(3)
+            t^3 + -t^4 + t^5 + -t^6 + t^7 + O(t^8)
+            sage: f >> 2
+            1 + -t + t^2 + O(t^3)
+            sage: f << 10
+            t^10 + -t^11 + t^12 + -t^13 + t^14 + O(t^15)
+            sage: t << 29
+            t^30
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-04-18)
+        """
+        return self.parent()(self.polynomial().shift(n), self.prec() + n)
+
+    def __lshift__(self, n):
+        return self.parent()(self.polynomial() << n, self.prec() + n)
+
+    def __rshift__(self, n):
+        return self.parent()(self.polynomial() >> n, self.prec() - n)
+
 
     def sqrt(self):
         r"""
@@ -838,17 +883,22 @@ class PowerSeries(ring_element.RingElement):
             $x_{i+1} = \frac{1}{2}( x_i + self/x_i )$
 
         EXAMPLES:
-            sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
+            sage: K.<t> = PowerSeriesRing(QQ, 5)
             sage: sqrt(t^2)
             t
             sage: sqrt(1+t)
             1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
             sage: sqrt(4+t)
             2 + 1/4*t - 1/64*t^2 + 1/512*t^3 - 5/16384*t^4 + O(t^5)
-            sage: sqrt(2+t)
-            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
 
-            sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
+        If the constant term is not a square, the result maybe be defined over a different
+        base ring or be symbolic (potentially very very slow!):
+            sage: a = sqrt(2+t+O(t^2)); a
+            sqrt(2) + 1/(2*sqrt(2))*t + O(t^2)
+            sage: parent(a)
+            Power Series Ring in t over Symbolic Ring
+
+            sage: K.<t> = PowerSeriesRing(QQ, 50)
             sage: sqrt(1+2*t+t^2)
             1 + t + O(t^50)
             sage: sqrt(t^2 +2*t^4 + t^6)
@@ -873,12 +923,16 @@ class PowerSeries(ring_element.RingElement):
             prec = self.parent().default_prec()
 
         a = self.valuation_zero_part()
-        x = sqrt(a[0])
+        try:
+            x = sqrt(a[0])
+            x = self.base_ring()(x)
+        except TypeError:
+            self = self.change_ring(x.parent())
         newp = self.parent().base_extend(x.parent())
         a = newp(a)
         half = ~newp.base_ring()(2)
 
-        for i in range (ceil(log(prec, 2))):
+        for i in range (int(ceil(log(prec, 2)))):
             x = half * (x + a/x)
 
         return newp.gen(0)**(val/2) * x
@@ -1177,7 +1231,7 @@ class PowerSeries_poly(PowerSeries):
         """
         return self.__f
 
-    def __call__(self, x):
+    def __call__(self, *xs):
         """
         EXAMPLE:
             sage: R.<t> = GF(7)[[]]
@@ -1185,13 +1239,17 @@ class PowerSeries_poly(PowerSeries):
             sage: f(1)
             2
         """
+        if isinstance(xs[0], tuple):
+            xs = xs[0]
+        x = xs[0]
         try:
             if x.parent() is self.parent():
                 if not (self.prec() is infinity):
                     x = x.add_bigoh(self.prec()*x.valuation())
+                    xs = list(xs); xs[0] = x; xs = tuple(xs) # tuples are immutable
         except AttributeError:
             pass
-        return self.__f(x)
+        return self.__f(xs)
 
     def __setitem__(self, n, value):
         """
@@ -1360,6 +1418,12 @@ class PowerSeries_poly(PowerSeries):
                                          prec,
                                          check=True)  # check, since truncation may be needed
 
+    def _rmul_(self, c):
+        return PowerSeries_poly(self.parent(), c * self.__f, self._prec, check=False)
+
+    def _lmul_(self, c):
+        return PowerSeries_poly(self.parent(), self.__f * c, self._prec, check=False)
+
 
     def __floordiv__(self, denom):
         try:
@@ -1498,7 +1562,7 @@ class PowerSeries_poly(PowerSeries):
             raise NotImplementedError
         if self.prec() is infinity:
             raise RuntimeError, "series precision must be finite for conversion to pari object."
-        return pari.pari(str(self))
+        return pari.pari(repr(self))
 
 
 

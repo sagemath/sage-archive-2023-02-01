@@ -11,6 +11,13 @@ AUTHORS:
     -- David Harvey (2006-09-15): added nth_root
     -- Pablo De Napoli (2007-04-01): corrected the implementations of
        multiplicative_order, is_one; optimzed __nonzero__ ; documented: lcm,gcd
+
+TESTS:
+    sage: a = -2/3
+    sage: a == loads(dumps(a))
+    True
+
+
 """
 
 
@@ -185,15 +192,7 @@ cdef class Rational(sage.structure.element.FieldElement):
                 mpq_set_si(self.value, 0, 1)
                 return
             if not base:
-                v = x._pari_().contfrac().contfracpnqn()
-                s = '%s/%s'%(hex(v[0,0]), hex(v[1,0]))
-                n = mpq_set_str(self.value, s, 16)
-                # this mpq_denref business is to program around a bug in GMP, where
-                # it doesn't correctly return an error code in mpq_set_str (or canonicalalize)
-                # for strings with a 0 in the denominator.   In fact, it crashes horribly.
-                if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
-                    raise TypeError, "unable to convert %s to a rational"%x
-                mpq_canonicalize(self.value)
+                set_from_Rational(self, x.simplest_rational())
             else:
                 xstr = x.str(base)
                 if '.' in xstr:
@@ -449,7 +448,7 @@ cdef class Rational(sage.structure.element.FieldElement):
     def valuation(self, p):
         return self.numerator().valuation(p) - self.denominator().valuation(p)
 
-    def sqrt(self, bits=None):
+    def sqrt_approx(self, bits=None):
         r"""
         Returns the positive square root of self as a real number to
         the given number of bits of precision if self is nonnegative,
@@ -466,34 +465,30 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         EXAMPLES:
             sage: x = 23/2
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             3.39116499156263
             sage: x = 32/5
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             2.52982212813470
             sage: x = 16/9
-            sage: x.sqrt()
-            4/3
-            sage: x.sqrt(53)
+            sage: x.sqrt_approx()
             1.33333333333333
+            sage: x.sqrt_approx(100)
+            1.3333333333333333333333333333
             sage: x = 9837/2
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             70.1320183653658
             sage: x = 645373/45
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             119.756512233040
             sage: x = -12/5
-            sage: x.sqrt()
+            sage: x.sqrt_approx()
             1.54919333848297*I
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): examples
         """
         if bits is None:
-            try:
-                return self.square_root()
-            except ValueError:
-                pass
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
         if self < 0:
@@ -503,32 +498,78 @@ cdef class Rational(sage.structure.element.FieldElement):
             R = sage.rings.real_mpfr.RealField(bits)
             return R(self).sqrt()
 
-    def square_root(self):
+    def sqrt(self):
         r"""
         Return the positive rational square root of self, or raises a
         \exception{ValueError} if self is not a perfect square.
 
         EXAMPLES:
             sage: x = 125/5
-            sage: x.square_root()
+            sage: x.sqrt()
             5
             sage: x = 64/4
-            sage: x.square_root()
+            sage: x.sqrt()
             4
             sage: x = 1000/10
-            sage: x.square_root()
+            sage: x.sqrt()
             10
             sage: x = 81/3
-            sage: x.square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: self (=27) is not a perfect square
+            sage: x.sqrt()
+            3*sqrt(3)
+            sage: x = -81/3
+            sage: x.sqrt()
+            3*sqrt(3)*I
 
         AUTHOR:
-            -- Naqi Jaffery (2006-03-05): examples
+            -- Naqi Jaffery (2006-03-05): some examples
         """
+        if self < 0:
+            from sage.calculus.calculus import sqrt
+            return sqrt(self)
         # TODO -- this could be quicker, by using GMP directly.
-        return self.numerator().square_root() / self.denominator().square_root()
+        return self.numerator().sqrt() / self.denominator().sqrt()
+
+    def period(self):
+        r"""
+        Return the period of the repeating part of the decimal
+        expansion of this rational number.
+
+        ALGORITHM: When a rational number $n/d$ with $(n,d)==1$ is
+        expanded, the period begins after $s$ terms and has length
+        $t$, where $s$ and $t$ are the smallest numbers satisfying
+        $10^s=10^(s+t) (mod d)$.  When $d$ is coprime to 10, this
+        becomes a purely periodic decimal with $10^t=1 (mod d)$.
+        (Lehmer 1941 and Mathworld).
+
+        EXAMPLES:
+            sage: (1/7).period()
+            6
+            sage: RR(1/7)
+            0.142857142857143
+            sage: (1/8).period()
+            1
+            sage: RR(1/8)
+            0.125000000000000
+            sage: RR(1/6)
+            0.166666666666667
+            sage: (1/6).period()
+            1
+            sage: x = 333/106
+            sage: x.period()
+            13
+            sage: RealField(200)(x)
+            3.1415094339622641509433962264150943396226415094339622641509
+        """
+        cdef unsigned int alpha, beta
+        d = self.denominator()
+        alpha = d.valuation(2)
+        beta = d.valuation(5)
+        P = d.parent()
+        if alpha > 0 or beta > 0:
+            d = d//(P(2)**alpha * P(5)**beta)
+        from sage.rings.integer_mod import Mod
+        a = Mod(P(10),d)
+        return a.multiplicative_order()
 
     def nth_root(self, int n):
         r"""
@@ -733,23 +774,43 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: (2/3)^5
             32/243
             sage: (-1/1)^(1/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to real or complex numbers first.
+            -1
+
+        We raise to some interesting powers:
+            sage: (2/3)^I
+            2^I/3^I
+            sage: (2/3)^sqrt(2)
+            2^sqrt(2)/3^sqrt(2)
+            sage: (2/3)^(x^n + y^n + z^n)
+            3^(-z^n - y^n - x^n)*2^(z^n + y^n + x^n)
+            sage: (-7/11)^(tan(x)+exp(x))
+            11^(-tan(x) - e^x)*-7^(tan(x) + e^x)
+            sage: (2/3)^(3/4)
+            2^(3/4)/3^(3/4)
         """
         cdef Rational _self, x
         if not isinstance(self, Rational):
             return self.__pow__(float(n))
         _self = self
-        if n < 0:
-            x = _self**(-n)
-            return x.__invert__()
         cdef unsigned int _n
         try:
             _n = integer.Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            if isinstance(n, Rational):
+                # this is the only sensible answer that avoids rounding and
+                # an infinite recursion.
+                from sage.calculus.calculus import SR
+                return SR(self)**SR(n)
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+
+        if n < 0:  # this doesn't make sense unless n is an integer.
+            x = _self**(-n)
+            return x.__invert__()
+
         x = <Rational> PY_NEW(Rational)
         cdef mpz_t num, den
 
@@ -778,7 +839,6 @@ cdef class Rational(sage.structure.element.FieldElement):
     def __nonzero__(self):
         # A rational number is zero iff its numerator is zero.
         return bool(mpz_cmp_si(mpq_numref(self.value), 0) != 0)
-
     def __abs__(self):
         cdef Rational x
         x = <Rational> PY_NEW(Rational)
@@ -1124,21 +1184,21 @@ cdef class Rational(sage.structure.element.FieldElement):
         else:
             return sage.rings.infinity.infinity
 
+    def is_square(self):
+        return self.numerator().is_square() and self.denominator().is_square()
+
     def is_one(self):
         r"""
         Determine if a rational number is one.
 
         EXAMPLES:
-
-        sage: QQ(1/2).is_one()
-        False
-        sage: QQ(4/4).is_one()
-        True
+            sage: QQ(1/2).is_one()
+            False
+            sage: QQ(4/4).is_one()
+            True
         """
         # A rational number is equal to 1 iff its numerator and denominator are equal
         return bool(mpz_cmp(mpq_numref(self.value),mpq_denref(self.value))==0)
-
-    def is_zero(self):
         r"""Test if a rational number is zero
 
         EXAMPLES:
@@ -1149,7 +1209,6 @@ cdef class Rational(sage.structure.element.FieldElement):
         True
         """
         # A rational number is zero iff its numerator is zero.
-        return bool(mpz_cmp_si(mpq_numref(self.value), 0) == 0)
 
     cdef _lshift(self, long int exp):
         r"""

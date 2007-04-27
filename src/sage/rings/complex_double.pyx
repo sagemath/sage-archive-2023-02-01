@@ -81,6 +81,10 @@ import  complex_number
 import complex_field
 CC = complex_field.ComplexField()
 
+import real_mpfr
+RR = real_mpfr.RealField()
+
+from real_double import RealDoubleElement
 
 # PREC is the precision (in decimal digits) that all PARI computations with doubles
 # are done with in this module.  A double is by definition 8 bytes or 64 bits.  Since
@@ -94,12 +98,20 @@ PREC = 28
 
 from random import random
 
+from sage.structure.parent_gens import ParentWithGens
+
+def is_ComplexDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, ComplexDoubleField_class))
+
 cdef class ComplexDoubleField_class(sage.rings.ring.Field):
     """
     The field of complex double precision numbers.
 
     ALGORITHM: Arithmetic is done using GSL (the GNU Scientific Library).
     """
+    def __init__(self):
+        ParentWithGens.__init__(self, self, ('x',), normalize=False)
+
     def is_exact(self):
         return False
     def __richcmp__(left, right, int op):
@@ -223,6 +235,8 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
                     return ComplexDoubleElement(t, 0)
                 else:
                     return t
+            elif hasattr(x, '_complex_double_'):
+                return x._complex_double_(self)
             else:
                 return ComplexDoubleElement(x, 0)
         else:
@@ -246,28 +260,14 @@ cdef class ComplexDoubleField_class(sage.rings.ring.Field):
             sage: CDF._coerce_(RDF(3.4))
             3.4
 
-        Symbolic constants canonically coerce into the complex double field,
-        but CDF does not canonically coerce to symbolic constants:
-            sage: CDF._coerce_(pi)
-            3.14159265359
-            sage: R = parent(pi)
-            sage: R(CDF.0)
-            1.0*I
-            sage: R._coerce_(CDF.0)
-            Traceback (most recent call last):
-            ...
-            TypeError: no canonical coercion of element into self.
-
-        Thus the sum of a CDF and a symbolic constant is in CDF:
+        Thus the sum of a CDF and a symbolic object is symbolic:
             sage: a = pi + CDF.0; a
-            3.14159265359 + 1.0*I
+            1.00000000000000*I + pi
             sage: parent(a)
-            Complex Double Field
+            Symbolic Ring
         """
-        import sage.functions.constants
         return self._coerce_try(x, [self.real_double_field(),
-                                    sage.functions.constants.ConstantRing,
-                                    CC])
+                                    CC, RR])
 
 
     def gen(self, n=0):
@@ -655,13 +655,13 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(1,0).arg()
             0.0
             sage: CDF(0,1).arg()
-            1.5707963267948966
+            1.57079632679
             sage: CDF(0,-1).arg()
-            -1.5707963267948966
+            -1.57079632679
             sage: CDF(-1,0).arg()
-            3.1415926535897931
+            3.14159265359
         """
-        return gsl_complex_arg(self._complex)
+        return RealDoubleElement(gsl_complex_arg(self._complex))
 
     def __abs__(self):
         """
@@ -669,13 +669,13 @@ cdef class ComplexDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: abs(CDF(1,2))
-            2.2360679774997898
+            2.2360679775
             sage: abs(CDF(1,0))
             1.0
             sage: abs(CDF(-2,3))   # slightly random-ish arch dependent output
             3.6055512754639891
         """
-        return gsl_complex_abs(self._complex)
+        return RealDoubleElement(gsl_complex_abs(self._complex))
 
     def abs(self):
         """
@@ -685,7 +685,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).abs()   # slightly random-ish arch dependent output
             3.6055512754639891
         """
-        return gsl_complex_abs(self._complex)
+        return RealDoubleElement(gsl_complex_abs(self._complex))
 
     def abs2(self):
         """
@@ -696,7 +696,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).abs2()
             13.0
         """
-        return gsl_complex_abs2(self._complex)
+        return RealDoubleElement(gsl_complex_abs2(self._complex))
 
     def norm(self):
         """
@@ -707,7 +707,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: CDF(2,3).norm()
             13.0
         """
-        return gsl_complex_abs2(self._complex)
+        return RealDoubleElement(gsl_complex_abs2(self._complex))
 
     def logabs(self):
         r"""
@@ -719,21 +719,16 @@ cdef class ComplexDoubleElement(FieldElement):
         would lead to a loss of precision in this case.
 
         EXAMPLES:
-        We try it out.
             sage: CDF(1.1,0.1).logabs()
-            0.099425429372582669
+            0.0994254293726
             sage: log(abs(CDF(1.1,0.1)))
             0.0994254293726
 
-        Which is better?
             sage: log(abs(ComplexField(200)(1.1,0.1)))
             0.099425429372582675602989386713555936556752871164033127857198
-
-        Indeed, the logabs, wins.
         """
-        return gsl_complex_logabs(self._complex)
+        return RealDoubleElement(gsl_complex_logabs(self._complex))
 
-    # TODO: real and imag should be elements of RealDoubleField, when that exists.
     def real(self):
         """
         Return the real part of this complex double.
@@ -743,7 +738,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.real()
             3.0
         """
-        return self._complex.dat[0]
+        return RealDoubleElement(self._complex.dat[0])
 
     def imag(self):
         """
@@ -754,7 +749,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a.imag()
             -2.0
         """
-        return self._complex.dat[1]
+        return RealDoubleElement(self._complex.dat[1])
 
     def parent(self):
         """
@@ -849,6 +844,12 @@ cdef class ComplexDoubleElement(FieldElement):
             0.5 + 0.866025403784*I
             sage: a^3                  # slightly random-ish arch dependent output
             -1.0 + 1.22460635382e-16*I
+
+        We raise to symbolic powers:
+            sage: CDF(1.2)^x
+            1.20000000000000^x
+            sage: CDF(1.2)^(x^n + n^x)
+            1.20000000000000^(x^n + n^x)
         """
         try:
             return z._pow_(a)
@@ -857,7 +858,14 @@ cdef class ComplexDoubleElement(FieldElement):
             return CDF(z)._pow_(a)
         except TypeError:
             # a is not a complex number
-            return z._pow_(CDF(a))
+            try:
+                return z._pow_(CDF(a))
+            except TypeError:
+                try:
+                    return a.parent()(z)**a
+                except AttributeError:
+                    raise TypeError
+
 
     def exp(self):
         r"""
@@ -1250,7 +1258,7 @@ cdef class ComplexDoubleElement(FieldElement):
         We compute eta to low precision directly from the definition.
             sage: z = CDF(1,1); z.eta()
             0.742048775837 + 0.19883137023*I
-            sage: i = CDF(0,1)
+            sage: i = CDF(0,1); pi = CDF(pi)
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.742048775837 + 0.19883137023*I
 
@@ -1258,6 +1266,7 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: z = CDF(1,1)
             sage: z.eta(omit_frac=True)
             0.998129069926
+            sage: pi = CDF(pi)
             sage: prod([1-exp(2*pi*i*n*z) for n in range(1,10)])      # slightly random-ish arch dependent output
             0.998129069926 + 4.5908467128e-19*I
 
@@ -1339,8 +1348,9 @@ cdef class ComplexDoubleElement(FieldElement):
         The principal square root is always chosen.
 
         EXAMPLES:
-            sage: (1+I).agm(2-I)
-            1.62780548487271 + 0.136827548397369*I
+            sage: i = CDF(I)
+            sage: (1+i).agm(2-i)
+            1.62780548487 + 0.136827548397*I
         """
         cdef pari_sp sp
         sp = avma
@@ -1428,7 +1438,7 @@ cdef class ComplexDoubleElement(FieldElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-            sage: z = (1/2)*(1 + sqrt(3) *CDF.0); z
+            sage: z = (1/2)*(1 + RDF(sqrt(3)) *CDF.0); z
             0.5 + 0.866025403784*I
             sage: p = z.algdep(5); p
             x^5 + x^2

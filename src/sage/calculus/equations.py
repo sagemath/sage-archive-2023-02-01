@@ -49,6 +49,7 @@ symbols = {operator.lt:' < ', operator.le:' <= ', operator.eq:' == ',
 
 maxima_symbols = dict(symbols)
 maxima_symbols[operator.eq] = '='
+maxima_symbols[operator.ne] = '#'
 
 
 latex_symbols = {operator.lt:' < ', operator.le:' \\leq ', operator.eq:' = ',

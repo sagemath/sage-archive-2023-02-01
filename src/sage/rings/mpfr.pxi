@@ -11,6 +11,7 @@ cdef extern from "mpfr.h":
     ctypedef void* mpz_t
     ctypedef struct __mpfr_struct:
         pass
+
     #ctypedef __mpfr_struct mpfr_t[1]
     ctypedef __mpfr_struct* mpfr_t
     ctypedef mpfr_t mpfr_ptr
@@ -51,6 +52,8 @@ cdef extern from "mpfr.h":
 
     void mpfr_get_z(mpz_t rop, mpfr_t op, mp_rnd_t rnd)
     mp_exp_t mpfr_get_z_exp(mpz_t rop, mpfr_t op)
+
+    void mpfr_urandomb(mpfr_t rop, void* rnd_state)
 
     # Arithmetic
     int mpfr_add (mpfr_t rop, mpfr_t op1, mpfr_t op2, mp_rnd_t rnd)

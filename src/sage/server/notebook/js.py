@@ -7,8 +7,10 @@ AUTHORS:
     -- Alex Clemesha
 
 
-This file is one big raw triple-quoted string that contains a bunch of javascript.  This javascript is inserted into
-the head of the notebook web page. """
+This file is one big raw triple-quoted string that contains a bunch of
+javascript.  This javascript is inserted into the head of the notebook
+web page.
+"""
 
 from sage.misc.misc import SAGE_URL
 from compress.JavaScriptCompressor import JavaScriptCompressor
@@ -25,7 +27,7 @@ import keyboards
 
 def javascript():
     s = async_lib()
-    s+= notebook_lib()
+    s += notebook_lib()
 
     s = JavaScriptCompressor().getPacked(s)
     return s
@@ -1528,6 +1530,27 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+/*
+Could this be useful?
+    source_code.match( new RegExp( "<script\\s+?type=['\"]text/javascript['\"]>([^]+?)</script>", "i" ) )
+*/
+
+function eval_script_tags(text) {
+   var s = text.replaceAll('\n','');
+   var i = s.indexOf('<script>');
+   while (i != -1) {
+       var j = s.indexOf('</script>');
+       var code = s.slice(8+i,j);
+       try {
+           window.eval(code);
+       } catch(e) {
+           alert(e);
+       }
+       s = s.slice(j+1);
+       i = s.indexOf('<script>');
+   }
+}
+
 function check_for_cell_update_callback(status, response_text) {
     // make sure the update happens again in a few hundred milliseconds,
     // unless a problem occurs below.
@@ -1569,6 +1592,7 @@ function check_for_cell_update_callback(status, response_text) {
     var D = response_text.slice(i+1).split(SEP);
     var output_text = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
+    eval_script_tags(output_text)
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];

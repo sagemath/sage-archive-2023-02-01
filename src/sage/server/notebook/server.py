@@ -784,7 +784,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                     text = keyboards.get_keyboard(self.path[-7:-5])
                 elif path[-13:-3] == '__main__':
                     text = js.javascript()
-                elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
+                else: #if path[:7] == 'jsmath/' or path[:10] == 'highlight/':
                     try:
                         text = open(SAGE_EXTCODE + "/notebook/javascript/" + path).read()
                     except: pass

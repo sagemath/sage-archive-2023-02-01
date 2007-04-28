@@ -1037,6 +1037,27 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
     n = G.order()
     Pi = copy(Pi)
 
+    if n == 0:
+        if lab:
+            H = copy(G)
+        if dict:
+            ddd = {}
+        if proof:
+            dd = {}
+            if dict:
+                return [[]], ddd, H, dd
+            else:
+                return [[]], H, dd
+        if lab and dict:
+            return [[]], ddd, H
+        elif lab:
+            return [[]], H
+        elif dict:
+            return [[]], ddd
+        else:
+            return [[]]
+
+
     if proof:
         lab=True
 

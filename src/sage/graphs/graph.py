@@ -2217,7 +2217,10 @@ class Graph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops())
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=self.loops())
-            a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            if len(a) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            else:
+                a = PermutationGroup([[]])
             if translation:
                 return a,b
             else:
@@ -3301,7 +3304,7 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
         return TT
 
-    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -3363,7 +3366,10 @@ class DiGraph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=True)
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=True)
-            a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            if len(a) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            else:
+                a = PermutationGroup([[]])
             if translation:
                 return a,b
             else:

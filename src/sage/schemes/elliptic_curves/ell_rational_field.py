@@ -4404,8 +4404,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
 
-    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True,
-                 algorithm="auto"):
+    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
         where $\omega$ is the usual invariant differential
@@ -4531,6 +4530,38 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
 
         """
+        frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
+
+        frob_p_n = frob_p**prec
+
+        # todo: write a coercion operator from integers mod p^n to the
+        # p-adic field (it doesn't seem to currently exist)
+        # see trac #4
+
+        # todo: think about the sign of this. Is it correct?
+
+        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
+                  + O(p**prec)
+
+        # Take into account the coordinate change.
+        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
+
+        # todo: here I should be able to write:
+        #  return E2_of_X / fudge_factor
+        # However, there is a bug in SAGE (#51 on trac) which makes this
+        # crash sometimes when prec == 1. For example,
+        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+        # makes it crash. I haven't figured out exactly what the bug
+        # is yet, but for now I use the following workaround:
+        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
+        return output_ring(E2_of_X * fudge_factor_inverse)
+
+
+    def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
+        """
+        See the parameters and documentation for padic_E2.
+        """
+        # TODO, add lots of comments like the above
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
@@ -4617,29 +4648,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     "Consistency check failed! (correct = %s, actual = %s)" % \
                     (correct_trace, trace_of_frobenius)
 
-        frob_p_n = frob_p**prec
-
-        # todo: write a coercion operator from integers mod p^n to the
-        # p-adic field (it doesn't seem to currently exist)
-        # see trac #4
-
-        # todo: think about the sign of this. Is it correct?
-
-        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
-                  + O(p**prec)
-
-        # Take into account the coordinate change.
-        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
-
-        # todo: here I should be able to write:
-        #  return E2_of_X / fudge_factor
-        # However, there is a bug in SAGE (#51 on trac) which makes this
-        # crash sometimes when prec == 1. For example,
-        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-        # makes it crash. I haven't figured out exactly what the bug
-        # is yet, but for now I use the following workaround:
-        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
-        return output_ring(E2_of_X * fudge_factor_inverse)
+        return frob_p.change_ring(Zp(p, prec))
 
 
     # This is the old version of padic_E2 that requires MAGMA:

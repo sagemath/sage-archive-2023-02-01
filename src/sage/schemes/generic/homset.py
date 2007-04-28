@@ -3,6 +3,7 @@ Set of homomorphisms between two schemes
 """
 
 import sage.rings.integer_ring
+Z = sage.rings.integer_ring.ZZ
 
 # Some naive point enumeration routines for default.
 # AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>

@@ -163,6 +163,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
     def __set_value(self, x, unsigned int base):
         cdef int n
+        cdef Rational temp_rational
 
         if isinstance(x, Rational):
             set_from_Rational(self, x)
@@ -235,6 +236,10 @@ cdef class Rational(sage.structure.element.FieldElement):
             n = mpq_set_str(self.value, s, 0)
             if n or mpz_cmp_si(mpq_denref(self.value), 0) == 0:
                 raise TypeError, "Unable to coerce %s (%s) to Rational"%(x,type(x))
+
+        elif hasattr(x, 'rational_reconstruction'):
+            temp_rational = x.rational_reconstruction()
+            mpq_set(self.value, temp_rational.value)
 
         else:
 

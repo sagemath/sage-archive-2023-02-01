@@ -837,6 +837,8 @@ cdef class PowerSeries(AlgebraElement):
             t^5 + O(t^25)
         """
         denom = <PowerSeries>denom_r
+        if denom.is_zero():
+            raise ZeroDivisionError, "Can't divide by something indistinguishable from 0"
         u = denom.valuation_zero_part()
         inv = ~u  # inverse
 
@@ -980,6 +982,8 @@ cdef class PowerSeries(AlgebraElement):
             1 + t + t^2 + 7*t^3 + O(t^50)
             sage: sqrt(K(0))
             0
+            sage: sqrt(t^2)
+            t
 
         AUTHOR:
             -- Robert Bradshaw
@@ -991,8 +995,12 @@ cdef class PowerSeries(AlgebraElement):
         if val is not infinity and val % 2 == 1:
             raise ValueError, "Square root not defined for power series of odd valuation."
 
+        if self.degree() == 0:
+            x = self.valuation_zero_part()[0].sqrt()
+            return self.parent().base_extend(x.parent())([x], val/2)
+
         prec = self.prec()
-        if prec is infinity and self.degree() > 0:
+        if prec == infinity:
             prec = self._parent.default_prec()
 
         a = self.valuation_zero_part()
@@ -1045,6 +1053,8 @@ cdef class PowerSeries(AlgebraElement):
             raise ValueError, "Square root not defined for power series of odd valuation."
         elif not self[val].is_square():
             raise ValueError, "Square root does not live in this ring."
+        elif is_Field(self.base_ring()):
+            return self.sqrt()
         else:
             try:
                 return self.parent()(self.sqrt())

@@ -13,11 +13,13 @@ from sage.schemes.generic.all import ProjectiveSpace
 from hyperelliptic_generic import HyperellipticCurve_generic
 from hyperelliptic_finite_field import HyperellipticCurve_finite_field
 from hyperelliptic_rational_field import HyperellipticCurve_rational_field
+from hyperelliptic_padic_field import HyperellipticCurve_padic_field
 from hyperelliptic_g2_generic import HyperellipticCurve_g2_generic
 from hyperelliptic_g2_finite_field import HyperellipticCurve_g2_finite_field
 from hyperelliptic_g2_rational_field import HyperellipticCurve_g2_rational_field
+from hyperelliptic_g2_padic_field import HyperellipticCurve_g2_padic_field
 
-from sage.rings.all import is_FiniteField, is_RationalField, is_Polynomial
+from sage.rings.all import is_FiniteField, is_RationalField, is_Polynomial, is_pAdicField
 
 def HyperellipticCurve(f,h=None,names=None,PP=None):
     r"""
@@ -67,6 +69,11 @@ def HyperellipticCurve(f,h=None,names=None,PP=None):
             return HyperellipticCurve_g2_rational_field(PP, f, h, names=names, genus=g)
         else:
             return HyperellipticCurve_rational_field(PP, f, h, names=names, genus=g)
+    elif is_pAdicField(R):
+        if g == 2:
+            return HyperellipticCurve_g2_padic_field(PP, f, h, names=names, genus=g)
+        else:
+            return HyperellipticCurve_padic_field(PP, f, h, names=names, genus=g)
     else:
         if g == 2:
             return HyperellipticCurve_g2_generic(PP, f, h, names=names, genus=g)

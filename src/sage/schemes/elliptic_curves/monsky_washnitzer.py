@@ -2021,9 +2021,17 @@ from sage.modules.all import FreeModule, is_FreeModuleElement
 from sage.misc.profiler import Profiler
 from sage.misc.misc import repr_lincomb
 
-def matrix_of_frobenius_hyperelliptic(Q, p, prec, M=None):
+def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     prof = Profiler()
     prof("setup")
+    if p is None:
+        try:
+            K = Q.base_ring()
+            p = K.prime()
+            prec = K.precision_cap()
+            #prec -= (adjusted_prec(p, prec) - prec)
+        except AttributeError:
+            raise ValueError, "p and prec must be specified if Q is not defined over a p-adic ring"
     if M is None:
         M = adjusted_prec(p, prec)
     extra_prec_ring = Integers(p**M) # pAdicField(p, M) # SLOW!
@@ -2037,6 +2045,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p, prec, M=None):
     # do reduction over Q in case we have non-integral entries (and it's so much faster than padics)
     rational_S = S.change_ring(QQ)
     # this is a hack until pAdics are fast
+    # (They are in the latest development bundle, but its not standard and I'd need to merge.
     # (it will periodically cast into this ring to reduce coefficent size)
     rational_S._prec_cap = p**M
     rational_S._p = p
@@ -2060,7 +2069,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p, prec, M=None):
     M += real_prec_ring(0).add_bigoh(prec)
     print prof
 #    print len(S._monomials)
-    return M.transpose()
+    return M.transpose(), [f for f, a in reduced]
 
 
 
@@ -2091,7 +2100,10 @@ def MonskyWashnitzerDifferentialRing(base_ring):
 
 
 class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
-    def __init__(self, Q, R, invert_y=False):
+    def __init__(self, Q, R=None, invert_y=True):
+        if R is None:
+            R = Q.base_ring()
+
         CommutativeAlgebra.__init__(self, R)
 
         x = PolynomialRing(R, 'x').gen(0)
@@ -2099,13 +2111,13 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             E = Q
             if E.a1() != 0 or E.a2() != 0:
                 raise NotImplementedError, "Curve must be in Weierstrass normal form."
-            Q = E.defining_polynomial()(x,0,1)
+            Q = (-E.defining_polynomial()).change_ring(R)(x,0,1)
 
         elif is_HyperellipticCurve(Q):
             C = Q
             if C.hyperelliptic_polynomials()[1] != 0:
                 raise NotImplementedError, "Curve must be of form y^2 = Q(x)."
-            Q = E.hyperelliptic_polynomials()[0]()(x)
+            Q = C.hyperelliptic_polynomials()[0].change_ring(R)
 
         if is_Polynomial(Q):
             self._Q = Q.change_ring(R)
@@ -2262,7 +2274,7 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         if isinstance(val, tuple):
             val, offset = val
         if isinstance(val, SpecialHyperellipticQuotientElement):
-            val = val.coeffs()
+            val, offset = val.coeffs()
         if isinstance(val, list) and len(val) > 0 and is_FreeModuleElement(val[0]):
             val = transpose_list(val)
         self._f = parent._poly_ring(val)
@@ -2271,6 +2283,9 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
 
     def change_ring(self, R):
         return self.parent().change_ring(R)(self.coeffs())
+
+    def __call__(self, *x):
+        return self._f(*x)
 
     def __invert__(self):
         """

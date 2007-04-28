@@ -1199,7 +1199,9 @@ class SymbolicExpression(RingElement):
             z/s + 1/(s - 1)
 
             sage: var('t0')
-            sage: log(t/t0).laplace(x, s)
+            t0
+            w
+            sage: log(t/t0).laplace(t, s)
             (-log(t0) - log(s) - euler_gamma)/s
 
         We do a formal calculation:
@@ -3957,20 +3959,21 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
     def arguments(self):
         return tuple(self._args)
 
+    def keyword_arguments(self):
+        return self._kwds
+
     def _repr_(self, simplify=True):
         if simplify:
             return self.simplify()._repr_(simplify=False)
         else:
-            kwds = ''
             args = ', '.join([x._repr_(simplify=simplify) for x in
                                                       self._args])
             if not self._kwds is None:
                 kwds = ', '.join(["%s=%s" %(x, y) for x,y in self._kwds.iteritems()])
-
-            if kwds == '':
-                return '%s(%s)' % (self._f._name, args)
-            else:
                 return '%s(%s, %s)' % (self._f._name, args, kwds)
+            else:
+                return '%s(%s)' % (self._f._name, args)
+
     def _latex_(self):
         return "{\\rm %s}(%s)"%(self._f._name, ', '.join([x._latex_() for
                                                        x in self._args]))

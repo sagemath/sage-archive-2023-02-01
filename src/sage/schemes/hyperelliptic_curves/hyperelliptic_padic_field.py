@@ -10,8 +10,10 @@ Hyperelliptic curves over a padic field.
 
 import hyperelliptic_generic
 
-from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ
+from sage.rings.all import PowerSeriesRing, PolynomialRing, ZZ, QQ, Integers
 from sage.misc.functional import ceil, log
+from sage.modules.free_module import VectorSpace
+from sage.matrix.constructor import matrix
 
 class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_generic):
 
@@ -69,6 +71,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         P and Q MUST be in the same residue disk for this result to make sense.
         """
+        if P == Q:
+            V = VectorSpace(self.base_ring(), 2*self.genus())
+            return V(0)
         R = PolynomialRing(self.base_ring(), ['x', 'y'])
         x, y = R.gens()
         return self.tiny_integrals([x**i for i in range(2*self.genus())], P, Q)
@@ -109,26 +114,18 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         prof("setup")
         K = self.base_ring()
         p = K.prime()
-        from sage.modules.free_module import VectorSpace
-        from sage.matrix.constructor import matrix
         dim = 2*self.genus()
         V = VectorSpace(K, dim)
 
         prof("tiny integrals")
         TP = self.teichmuller(P)
 #        print "TP", TP
-        if P == TP:
-            P_to_TP = V(0)
-        else:
-            P_to_TP = V(self.tiny_integrals_on_basis(P, TP))
+        P_to_TP = V(self.tiny_integrals_on_basis(P, TP))
 #        print " P to TP:", P_to_TP[0]
 
         TQ = self.teichmuller(Q)
 #        print "TQ", TQ
-        if Q == TQ:
-            TQ_to_Q = V(0)
-        else:
-            TQ_to_Q = V(self.tiny_integrals_on_basis(TQ, Q))
+        TQ_to_Q = V(self.tiny_integrals_on_basis(TQ, Q))
 #        print "TQ to  Q:", TQ_to_Q[0]
 
         prof("mw calc")
@@ -146,6 +143,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             forms = [f.change_ring(self.base_ring()) for f in forms]
             L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
         b = 2*V(L)
+#        print "b =", b
 
         prof("lin alg")
         M_sys = matrix(K, M_frob).transpose() - 1

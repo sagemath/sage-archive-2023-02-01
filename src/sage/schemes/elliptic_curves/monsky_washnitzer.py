@@ -2649,8 +2649,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
 #        prof("loop %s"%self.min_pow_y())
         forms = []
-        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
-            if coeffs[j-offset-1].is_zero():
+        for j in range(self.min_pow_y()+1, 0):
+            if (even_degree_only and j % 2 == 0) or coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
                 # this is a total hack to deal with the fact that we're using
@@ -2691,6 +2691,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         coeffs, offset = self.coeffs(R)
         V = coeffs[0].parent()
+        zeroV = V(0)
 
         if offset == 0:
             return S(0), self
@@ -2700,9 +2701,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         d_mat_1, d_mat_2 = S.monomial_diff_coeffs_matrices()
 
         forms = []
-        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
+        for j in range(self.min_pow_y()+1, 0):
             if coeffs[j-offset-1].is_zero():
-                forms.append(V(0))
+                forms.append(zeroV)
             else:
                 # this is a total hack to deal with the fact that we're using
                 # rational numbers to approximate fixed precision p-adics
@@ -2737,7 +2738,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         x, y = S.gens()
         f = S(0)
         reduced = self
-        for j in range(self.max_pow_y(), 0, -2 if even_degree_only else -1):
+        for j in range(self.max_pow_y(), 0, -1):
             for i in range(n-1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
 #                print "x^%s y^%s"%(i,j), c
@@ -2768,9 +2769,14 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         coeffs, offset = self.coeffs(R)
         V = coeffs[0].parent()
-        forms = [V(0), V(0)]
+        zeroV = V(0)
+        forms = [zeroV] * 2
 
         for j in range(self.max_pow_y(), -1, -1):
+
+            if (even_degree_only and j % 2 == 1) or coeffs[j-offset].is_zero():
+                forms.append(zeroV)
+                continue
 
             form = V(0)
             i = n-1

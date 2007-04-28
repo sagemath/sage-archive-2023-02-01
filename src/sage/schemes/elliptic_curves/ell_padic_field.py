@@ -164,13 +164,15 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         from sage.rings.all import ZZ
         L = [ZZ(t) for t in L] # pass through ZZ due to bug in p-adics
         b = V(L)
+#        print "b =", b
         M_sys = matrix(K, M_frob).transpose() - 1
+#        print M_sys
         TP_to_TQ = M_sys**(-1) * b
 
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
         prof("done")
-        print prof
+#        print prof
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
 

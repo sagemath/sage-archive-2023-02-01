@@ -138,9 +138,13 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
             M_frob, forms = self._frob_calc = monsky_washnitzer.matrix_of_frobenius_hyperelliptic(self)
 
         prof("eval f")
+        # another hack due to slow padics
         R = forms[0].base_ring()
-        L = [f(R(TP[0]), R(TP[1])) - f(R(TQ[0]), R(TQ[1])) for f in forms]
-#        L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
+        try:
+            L = [f(R(TP[0]), R(TP[1])) - f(R(TQ[0]), R(TQ[1])) for f in forms]
+        except ValueError:
+            forms = [f.change_ring(self.base_ring()) for f in forms]
+            L = [f(TP[0], TP[1]) - f(TQ[0], TQ[1]) for f in forms]
         b = 2*V(L)
 
         prof("lin alg")
@@ -150,7 +154,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 #        print "TP to TQ: ", TP_to_TQ[0]
 #        print "\n"
         prof("done")
-        print prof
+#        print prof
         return P_to_TP + TP_to_TQ + TQ_to_Q
 
     coleman_integrals_on_basis_hyperelliptic = coleman_integrals_on_basis
@@ -171,7 +175,6 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer
         S = monsky_washnitzer.SpecialHyperellipticQuotientRing(self, QQ)
         MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
-        print "w", w
         w = MW(w)
         f, vec = w.reduce_fast()
         basis_values = self.coleman_integrals_on_basis(P, Q)

@@ -112,7 +112,7 @@ class DistributedFunction(object):
         from twisted.internet import reactor, task
         if dsage.remoteobj is None:
             # XXX This is a hack because dsage.remoteobj is not set yet
-            reactor.callLater(1.0, self.restore, dsage)
+            reactor.callLater(0.5, self.restore, dsage)
             return
         self.DSage = dsage
         for job in self.waiting_jobs:

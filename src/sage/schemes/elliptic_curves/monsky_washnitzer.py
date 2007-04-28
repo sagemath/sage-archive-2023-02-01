@@ -2054,7 +2054,7 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     F = [rational_S(F_i) for F_i in F]
 
     prof("reduce")
-    reduced = [F_i.reduce_fast() for F_i in F]
+    reduced = [F_i.reduce_fast(True) for F_i in F]
 #    reduced = [F_i.reduce() for F_i in F]
 
     #print reduced[0][0].diff() - F[0]

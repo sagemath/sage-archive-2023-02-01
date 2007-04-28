@@ -180,7 +180,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
 
 
-# TODO: add this to padics (if it isn't there in the new version already).
+# TODO: add this to new padics (if it isn't there in the new version already).
 def padic_teichmuller(a):
     K = a.parent()
     p = K.prime()

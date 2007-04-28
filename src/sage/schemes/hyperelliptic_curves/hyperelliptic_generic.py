@@ -84,6 +84,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
 
+    def __cmp__(self, other):
+        if not isinstance(other, HyperellipticCurve_generic):
+            return -1
+        return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
+
     def hyperelliptic_polynomials(self, K=None, var='x'):
         if K == None:
             return self._hyperelliptic_polynomials

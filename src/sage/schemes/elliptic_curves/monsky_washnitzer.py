@@ -2029,7 +2029,6 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
             K = Q.base_ring()
             p = K.prime()
             prec = K.precision_cap()
-            #prec -= (adjusted_prec(p, prec) - prec)
         except AttributeError:
             raise ValueError, "p and prec must be specified if Q is not defined over a p-adic ring"
     if M is None:
@@ -2061,14 +2060,13 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     #print reduced[0][0].diff() - F[0]
 
     # but the coeffs are WAY more precision than they need to be
-    # print reduced[0][1].H1_vector()
+    # print reduced[0][1]
 
     prof("make matrix")
     # now take care of precision capping
-    M = matrix(real_prec_ring, [a.H1_vector() for f, a in reduced])
+    M = matrix(real_prec_ring, [a for f, a in reduced])
     M += real_prec_ring(0).add_bigoh(prec)
-    print prof
-#    print len(S._monomials)
+#    print prof
     return M.transpose(), [f for f, a in reduced]
 
 
@@ -2483,7 +2481,6 @@ class MonskyWashnitzerDifferentialRing_class(Module):
         t = self.base_ring()(1)
 #        t = self.base_ring()(three_halves) - a._rmul_(one_half)
 
-        print prec, "->", ceil(log(prec, 2))
         for _ in range(ceil(log(prec, 2))):
             t = t._rmul_(three_halves) - (t*t*t * a)._rmul_(one_half)  # t = (3/2) t - (1/2) a t^3
 #            t = three_halves * t - one_half * t*t*t * a
@@ -2500,7 +2497,7 @@ class MonskyWashnitzerDifferentialRing_class(Module):
 #        print "-----", F_dx_y
 #        print "-----", x_to_p * F_dx_y
         prof("done")
-        print prof
+#        print prof
         return MonskyWashnitzerDifferential(self, F_dx_y)
 
     def frob_basis_elements(self, prec, p):
@@ -2633,7 +2630,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         return f, reduced
 
-    def reduce_neg_y_fast(self):
+    def reduce_neg_y_fast(self, even_degree_only=False):
         """
         Use homology relations to eliminate negative powers of y.
         """
@@ -2652,7 +2649,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
 #        prof("loop %s"%self.min_pow_y())
         forms = []
-        for j in range(self.min_pow_y()+1, 0):
+        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
             if coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
@@ -2682,7 +2679,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 #        print prof
         return f, reduced
 
-    def reduce_neg_y_faster(self):
+    def reduce_neg_y_faster(self, even_degree_only=False):
         """
         Use homology relations to eliminate negative powers of y.
         """
@@ -2703,7 +2700,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         d_mat_1, d_mat_2 = S.monomial_diff_coeffs_matrices()
 
         forms = []
-        for j in range(self.min_pow_y()+1, 0):
+        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
             if coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
@@ -2740,7 +2737,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         x, y = S.gens()
         f = S(0)
         reduced = self
-        for j in range(self.max_pow_y(), 0, -1):
+        for j in range(self.max_pow_y(), 0, -2 if even_degree_only else -1):
             for i in range(n-1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
 #                print "x^%s y^%s"%(i,j), c
@@ -2761,7 +2758,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         return f, reduced
 
 
-    def reduce_pos_y_fast(self):
+    def reduce_pos_y_fast(self, even_degree_only=False):
         """
         Use homology relations to eliminate positive powers of y.
         """
@@ -2829,26 +2826,19 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         return f, a
 
-    def reduce_fast(self):
+    def reduce_fast(self, even_degree_only=False):
         """
         Use homology relations to find $a$ and $f$ such that
         $self = a + df$ where $a$ is given in terms of the $x^i dx/2y$.
         """
 #        print "max_pow_y = ", self.max_pow_y(), "min_pow_y = ", self.min_pow_y()
-        f1, reduced = self.reduce_neg_y_fast()
-        f2, reduced = reduced.reduce_pos_y_fast()
+        f1, reduced = self.reduce_neg_y_fast(even_degree_only)
+        f2, reduced = reduced.reduce_pos_y_fast(even_degree_only)
 
-        return f1+f2, reduced
-
-
-    def H1_vector(self):
-        """
-        Returns self as a element of $H^1$ under the basis $dx/2y, x dx/2y, ..., x^{n-1} dx/2y$.
-        """
-        f, reduced = self.reduce_fast()
         v = reduced.extract_pow_y(0)
         v.pop()
-        return v
+        V = FreeModule(self.base_ring().base_ring(), len(v))
+        return f1+f2, V(v)
 
     def coeffs(self, R=None):
         return self._coeff.coeffs(R)

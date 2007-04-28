@@ -173,8 +173,7 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         MW = monsky_washnitzer.MonskyWashnitzerDifferentialRing(S)
         print "w", w
         w = MW(w)
-        f, rem = w.reduce_fast()
-        vec = rem.H1_vector()
+        f, vec = w.reduce_fast()
         basis_values = self.coleman_integrals_on_basis(P, Q)
         dim = len(basis_values)
         return f(P[0], P[1]) - f(Q[0], Q[1]) + sum([vec[i] * basis_values[i] for i in range(dim)]) # this is just a dot product...

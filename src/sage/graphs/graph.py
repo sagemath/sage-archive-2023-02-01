@@ -215,6 +215,9 @@ from random import random
 from sage.structure.sage_object import SageObject
 from sage.plot.plot import Graphics, GraphicPrimitive_NetworkXGraph
 import sage.graphs.graph_fast as graph_fast
+from sage.rings.integer import Integer
+from sage.rings.integer_ring import ZZ
+
 
 class GenericGraph(SageObject):
     """
@@ -644,7 +647,7 @@ class GenericGraph(SageObject):
         """
         return self._nxg.nodes()
 
-    def relabel(self, perm, inplace=True):
+    def relabel(self, perm, inplace=True, quick=False):
         r"""
         Uses a dictionary or permutation to relabel the (di)graph.
         If perm is a dictionary, each old vertex v is a key in the
@@ -655,6 +658,10 @@ class GenericGraph(SageObject):
         assumption that V = {0,1,...,n-1} is the vertex set, and
         the permutation acts on the set {1,2,...,n}, where we think
         of n = 0.
+
+        INPUT:
+            quick -- if True, simply return the enumeration of the new graph
+        without constructing it. Requires that perm is of type list.
 
         EXAMPLES:
             sage: G = Graph({0:[1],1:[2],2:[]})
@@ -688,6 +695,17 @@ class GenericGraph(SageObject):
             [1 1 0]
         """
         if type(perm) == list:
+            if quick:
+                n = self.order()
+                numbr = 0
+                if isinstance(self, Graph):
+                    for i,j,l in self.edge_iterator():
+                        numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
+                        numbr += 1<<((n-(perm[j]+1))*n + n-(perm[i]+1))
+                elif isinstance(self, DiGraph):
+                    for i,j,l in self.arc_iterator():
+                        numbr += 1<<((n-(perm[i]+1))*n + n-(perm[j]+1))
+                return numbr
             if isinstance(self, Graph):
                 oldd = self._nxg.adj
                 newd = {}
@@ -807,7 +825,7 @@ class GenericGraph(SageObject):
 
     def plot(self, pos=None, layout=None, vertex_labels=True, edge_labels=False,
              node_size=200, graph_border=False, color_dict=None, partition=None,
-             edge_colors=None, scaling_term=0.05):
+             edge_colors=None, scaling_term=0.05, xmin=None, xmax=None):  # xmin and xmax are ignored
         """
         Returns a graphics object representing the (di)graph.
 
@@ -1140,7 +1158,6 @@ class Graph(GenericGraph):
         if format == 'graph6':
             if not isinstance(data, str):
                 raise ValueError, 'If input format is graph6, then data must be a string'
-            from sage.rings.integer import Integer
             n = data.find('\n')
             if n == -1:
                 n = len(data)
@@ -1150,30 +1167,28 @@ class Graph(GenericGraph):
             d = {}
             k = 0
             for i in range(n):
+                d[i] = {}
                 for j in range(i):
                     if m[k] == '1':
-                        if d.has_key(i):
-                            d[i][j] = None
-                        else:
-                            d[i] = {j : None}
+                        d[i][j] = None
                     k += 1
             self._nxg = networkx.XGraph(d)
         elif format == 'sparse6':
-            from sage.rings.arith import ceil, floor
+            from math import ceil, floor
             from sage.misc.functional import log
             n = data.find('\n')
             if n == -1:
                 n = len(data)
             s = data[:n]
             n, s = graph_fast.N_inverse(s[1:])
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             l = [graph_fast.binary(ord(i)-63) for i in s]
             for i in range(len(l)):
                 l[i] = '0'* (6-len(l[i])) + l[i]
             bits = ''.join(l)
             b = []
             x = []
-            for i in range(floor(len(bits)/(k+1))):
+            for i in range(int(floor(len(bits)/(k+1)))):
                 b.append(int(bits[(k+1)*i:(k+1)*i+1],2))
                 x.append(int(bits[(k+1)*i+1:(k+1)*i+k+1],2))
             v = 0
@@ -1909,9 +1924,9 @@ class Graph(GenericGraph):
             edges.sort(cmp)
 
             # encode bit vector
-            from sage.rings.arith import ceil
+            from math import ceil
             from sage.misc.functional import log
-            k = ceil(log(n,2))
+            k = int(ceil(log(n,2)))
             v = 0
             i = 0
             m = 0
@@ -2204,7 +2219,10 @@ class Graph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=self.loops())
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=self.loops())
-            a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            if len(a) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            else:
+                a = PermutationGroup([[]])
             if translation:
                 return a,b
             else:
@@ -3288,7 +3306,7 @@ class DiGraph(GenericGraph):
                           (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
         return TT
 
-    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+    def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and shows the resulting plot.
 
@@ -3350,7 +3368,10 @@ class DiGraph(GenericGraph):
                 a,b = search_tree(self, partition, dict=True, lab=False, dig=True)
             else:
                 a = search_tree(self, partition, dict=False, lab=False, dig=True)
-            a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            if len(a) != 0:
+                a = PermutationGroup([perm_group_elt(aa) for aa in a])
+            else:
+                a = PermutationGroup([[]])
             if translation:
                 return a,b
             else:
@@ -3450,9 +3471,12 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
         TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
     return TT, pos3d
 
-def enum(graph):
+def enum(graph, quick=False):
     """
     Used for isomorphism checking.
+
+    INPUT:
+        quick -- now we know that the vertices are 0,1,...,n-1
 
     EXAMPLES:
         sage: from sage.graphs.graph import enum
@@ -3463,7 +3487,8 @@ def enum(graph):
         sage: enum(graphs.FlowerSnark())
         645682215283153372602620320081348424178216159521280462146968720908564261127120716040952785862033320307812724373694972050L
         sage: enum(graphs.CubeGraph(3))
-        6100215452666565930L
+        6100215452666565930L              # 32-bit
+        6100215452666565930               # 64-bit
         sage: enum(graphs.CubeGraph(4))
         31323620658472264895128471376615338141839885567113523525061169966087480352810L
         sage: enum(graphs.CubeGraph(5))
@@ -3471,11 +3496,22 @@ def enum(graph):
         sage: enum(graphs.CubeGraph(6))
         17009933328531023098235951265708015080189260525466600242007791872273951170067729430659625711869482140011822425402311004663919203785115296476561677814427201708237805402966561863692388687547518491537427897858240566495945005294876576523289206747123399572439707189803821880345487300688962557172856432472391025950779306221469432919735886988596366979797317084123956762362685536557279604675024249987913439836592296340787741671304722135394212035449285260308821361913500205796919484488876249630521666898413890977354122918711285458724686283296097840711521153201188450783978019001984591992381570913097193343212274205747843852376395748070926193308573472616983062165141386183945049871456376379041631456999916186868438148001405477879591035696239287238767746380404501285533026300096772164676955425088646172718295360584249310479706751274583871684827338312536787740914529353458829503642591918761588296961192261166874864565050490306157300749101788751129640698534818737753110920871293122429238702542726347017441416450649382146313791818349648006634724962025571237208317435310419071153813687071275479812184286929976456778629116002591936357623320676067640749567446551071011889378108453641887998273235139859889734259803684619153716302058849155208478850L
     """
-    M = graph.am()
     enumeration = 0
     n = graph.order()
+    if quick:
+        if isinstance(graph, Graph):
+            for i, j, l in graph.edge_iterator():
+                enumeration += 1 << ((n-(i+1))*n + n-(j+1))
+                enumeration += 1 << ((n-(j+1))*n + n-(i+1))
+        elif isinstance(graph, DiGraph):
+            for i, j, l in graph.arc_iterator():
+                enumeration += 1 << ((n-(i+1))*n + n-(j+1))
+        return enumeration
+    M = graph.am()
     for i, j in M.nonzero_positions():
         enumeration += 1 << ((n-(i+1))*n + n-(j+1))
     return enumeration
+
+
 
 

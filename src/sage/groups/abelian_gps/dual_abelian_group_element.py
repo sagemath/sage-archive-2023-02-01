@@ -269,7 +269,8 @@ class DualAbelianGroupElement(MonoidElement):
         N = LCM(invs)
         if is_ComplexField(F):
             I = F.gen()
-            ans = prod([exp(2*pi*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])
+            PI = F(pi)
+            ans = prod([exp(2*PI*I*expsX[i]*expsg[i]/invs[i]) for i in range(len(expsX))])
             return ans
         ans = F(1)  ## assumes F is the cyclotomic field
         zeta = F.gen()

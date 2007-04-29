@@ -20,7 +20,7 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, sys, signal, time, weakref, random
+import operator, os, sys, signal, time, weakref, random, resource
 
 from banner import version, banner
 
@@ -112,6 +112,9 @@ def cputime(t=0):
     time SAGE has spent using the CPU.  It does not count time
     spent by subprocesses spawned by SAGE (e.g., Gap, Singular, etc.).
 
+    This is done via a call to resource.getrusage, so it avoids the
+    wraparound problems in time.clock() on Cygwin.
+
     INPUT:
         t -- (optional) float, time in CPU seconds
     OUTPUT:
@@ -132,7 +135,8 @@ def cputime(t=0):
         t = float(t)
     except TypeError:
         t = 0.0
-    return time.clock() - t
+    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    return u+s - t
 
 def walltime(t=0):
     """
@@ -451,19 +455,26 @@ def uniq(x):
     return v
 
 
-def coeff_repr(c):
-    try:
-        return c._coeff_repr()
-    except AttributeError:
-        pass
+def coeff_repr(c, is_latex=False):
+    if not is_latex:
+        try:
+            return c._coeff_repr()
+        except AttributeError:
+            pass
     if isinstance(c, (int, long, float)):
         return str(c)
-    s = str(c).replace(' ','')
+    if is_latex and hasattr(c, '_latex_'):
+        s = c._latex_()
+    else:
+        s = str(c).replace(' ','')
     if s.find("+") != -1 or s.find("-") != -1:
-        return "(%s)"%s
+        if is_latex:
+            return "\\left(%s\\right)"%s
+        else:
+            return "(%s)"%s
     return s
 
-def repr_lincomb(symbols, coeffs):
+def repr_lincomb(symbols, coeffs, is_latex=False):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
@@ -496,11 +507,20 @@ def repr_lincomb(symbols, coeffs):
 
     all_atomic = True
     for c in coeffs:
-        b = str(symbols[i])
-        if len(b) > 0:
-            b = "*" + b
+        if is_latex and hasattr(symbols[i], '_latex_'):
+            b = symbols[i]._latex_()
+        else:
+            b = str(symbols[i])
         if c != 0:
-            coeff = coeff_repr(c)
+            coeff = coeff_repr(c, is_latex)
+            if coeff == "1":
+                coeff = ""
+            elif coeff == "-1":
+                coeff = "-"
+            elif not is_latex and len(b) > 0:
+                b = "*" + b
+            elif len(coeff) > 0 and b == "1":
+                b = ""
             if not first:
                 coeff = " + %s"%coeff
             else:
@@ -516,6 +536,8 @@ def repr_lincomb(symbols, coeffs):
     elif s[:3] == "-1*":
         s = "-" + s[3:]
     s = s.replace(" 1*", " ")
+    if s == "":
+        return "1"
     return s
 
 def strunc(s, n = 60):

@@ -12,6 +12,7 @@ AUTHORS:
     -- David Harvey (2006-09-16): attempt to optimise Integer constructor
     -- Rishikesh (2007-02-25): changed quo_rem so that the rem is positive
     -- David Harvey, Martin Albrecht, Robert Bradshaw (2007-03-01): optimized Integer constructor and pool
+    -- Pablo De Napoli (2007-04-01): multiplicative_order should return +infinity for non zero numbers
     -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with Kronecker extension)
                                      Convert some methods to use GMP directly rather than pari, Integer() -> PY_NEW(Integer)
 
@@ -392,7 +393,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Return the string representation of \code{self} in the given
         base.
 
-
         EXAMPLES:
             sage: Integer(2^10).str(2)
             '10000000000'
@@ -654,10 +654,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: 2^-0
             1
             sage: (-1)^(1/3)
-            Traceback (most recent call last):
-            ...
-            TypeError: exponent (=1/3) must be an integer.
-            Coerce your numbers to real or complex numbers first.
+            -1
 
         The base need not be an integer (it can be a builtin
         Python type).
@@ -675,6 +672,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             ...
             RuntimeError: exponent must be at most 4294967294  # 32-bit
             RuntimeError: exponent must be at most 18446744073709551614 # 64-bit
+
+        We raise 2 to various interesting exponents:
+            sage: 2^x                # symbolic x
+            2^x
+            sage: 2^1.5              # real number
+            2.82842712474619
+            sage: 2^I                # complex number
+            2^I
+            sage: f = 2^(sin(x)-cos(x)); f
+            2^(sin(x) - cos(x))
+            sage: f(3)
+            2^(sin(3) - cos(3))
+            sage: 2^(x+y+z)
+            2^(z + y + x)
+            sage: 2^(1/2)
+            sqrt(2)
+            sage: 2^(-1/2)
+            1/sqrt(2)
         """
         cdef Integer _n
         cdef unsigned int _nval
@@ -689,7 +704,11 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             # an Integer or python int
             _n = Integer(n)
         except TypeError:
-            raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
+            try:
+                s = n.parent()(self)
+                return s**n
+            except AttributeError:
+                raise TypeError, "exponent (=%s) must be an integer.\nCoerce your numbers to real or complex numbers first."%n
 
         if _n < 0:
             return Integer(1)/(self**(-_n))
@@ -758,7 +777,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         if n < 1:
             raise ValueError, "n (=%s) must be positive" % n
-        if (self < 0) and not (n & 1):
+        if (mpz_sgn(self.value) < 0) and not (n & 1):
             raise ValueError, "cannot take even root of negative number"
         cdef Integer x
         cdef int is_exact
@@ -805,9 +824,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
 
            sage: x = 3^100000
-           sage: log(RR(x), 3)
+           sage: RR(log(RR(x), 3))
            100000.000000000
-           sage: log(RR(x + 100000), 3)
+           sage: RR(log(RR(x + 100000), 3))
            100000.000000000
 
            sage: x.exact_log(3)
@@ -826,7 +845,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         if _m != m:
             raise ValueError, "base of log must be an integer"
         m = _m
-        if self <= 0:
+        if mpz_sgn(self.value) <= 0:
             raise ValueError, "self must be positive"
         if m < 2:
             raise ValueError, "m must be at least 2"
@@ -1066,9 +1085,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
     def __long__(self):
         return mpz_get_pylong(self.value)
 
-    def __nonzero__(self):
-        return not self.is_zero()
-
     def __float__(self):
         return mpz_get_d(self.value)
 
@@ -1260,7 +1276,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             5 120
             6 720
         """
-        if self < 0:
+        if mpz_sgn(self.value) < 0:
             raise ValueError, "factorial -- self = (%s) must be nonnegative"%self
 
         if mpz_cmp_ui(self.value,4294967295) > 0:
@@ -1317,9 +1333,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         """
         return bool(mpz_cmp_si(self.value, 1) == 0)
 
-    def is_zero(self):
+    def __nonzero__(self):
         r"""
-        Returns \code{True} if the integers is $0$, otherwise \code{False}.
+        Returns \code{True} if the integers is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: Integer(1).is_zero()
@@ -1327,7 +1343,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(0).is_zero()
             True
         """
-        return bool(mpz_cmp_si(self.value, 0) == 0)
+        return bool(mpz_cmp_si(self.value, 0) != 0)
 
     def is_unit(self):
         r"""
@@ -1354,6 +1370,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(41).is_square()
             False
         """
+        if mpz_sgn(self.value) < 0:
+            return False
         return bool(mpz_perfect_square_p(self.value))
 
     def is_prime(self):
@@ -1402,8 +1420,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return bool(mpz_perfect_power_p(self.value))
 
     def jacobi(self, b):
-        """
-        Calculate the Jacobi symbol $\left(\frac{self,b}\right)$.
+        r"""
+        Calculate the Jacobi symbol $\left(\frac{self}{b}\right)$.
 
         EXAMPLES:
             sage: z = -1
@@ -1438,8 +1456,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return mpz_jacobi(self.value, (<Integer>b).value)
 
     def kronecker(self, b):
-        """
-        Calculate the Jacobi symbol $\left(\frac{self,b}\right)$ with the Kronecker extension
+        r"""
+        Calculate the Kronecker symbol
+        $\left(\frac{self}{b}\right)$ with the Kronecker extension
         $(self/2)=(2/self)$ when self odd, or $(self/2)=0$ when $self$ even.
 
         EXAMPLES:
@@ -1527,8 +1546,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def multiplicative_order(self):
         r"""
-        Return the multiplicative order of self, if self is a unit, or raise
-        \code{ArithmeticError} otherwise.
+        Return the multiplicative order of self.
 
         EXAMPLES:
             sage: ZZ(1).multiplicative_order()
@@ -1536,20 +1554,17 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: ZZ(-1).multiplicative_order()
             2
             sage: ZZ(0).multiplicative_order()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: no power of 0 is a unit
+            +Infinity
             sage: ZZ(2).multiplicative_order()
-            Traceback (most recent call last):
-            ...
-            ArithmeticError: no power of 2 is a unit
+            +Infinity
         """
-        if mpz_cmp_si(self.value, 1) == 0:
-            return Integer(1)
+        import sage.rings.infinity
+        if  mpz_cmp_si(self.value, 1) == 0:
+                return Integer(1)
         elif mpz_cmp_si(self.value, -1) == 0:
-            return Integer(2)
+                return Integer(2)
         else:
-            raise ArithmeticError, "no power of %s is a unit"%self
+                return sage.rings.infinity.infinity
 
     def is_squarefree(self):
         """
@@ -1614,10 +1629,10 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             sage: Integer(-102).isqrt()
             Traceback (most recent call last):
             ...
-            ValueError: square root of negative number not defined.
+            ValueError: square root of negative integer not defined.
         """
-        if self < 0:
-            raise ValueError, "square root of negative number not defined."
+        if mpz_sgn(self.value) < 0:
+            raise ValueError, "square root of negative integer not defined."
         cdef Integer x
         x = PY_NEW(Integer)
 
@@ -1628,7 +1643,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         return x
 
 
-    def sqrt(self, bits=None):
+    def sqrt_approx(self, bits=None):
         r"""
         Returns the positive square root of self, possibly as a
         \emph{a real or complex number} if self is not a perfect
@@ -1638,8 +1653,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             bits -- number of bits of precision.
                     If bits is not specified, the number of
                     bits of precision is at least twice the
-                    number of bits of self (the precision
-                    is always at least 53 bits if not specified).
+                    number of bits of self.
         OUTPUT:
             integer, real number, or complex number.
 
@@ -1648,35 +1662,33 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         EXAMPLE:
             sage: Z = IntegerRing()
-            sage: Z(4).sqrt()
-            2
-            sage: Z(4).sqrt(53)
+            sage: Z(4).sqrt_approx(53)
             2.00000000000000
-            sage: Z(2).sqrt(53)
+            sage: Z(2).sqrt_approx(53)
             1.41421356237310
-            sage: Z(2).sqrt(100)
+            sage: Z(2).sqrt_approx(100)
             1.4142135623730950488016887242
-            sage: n = 39188072418583779289; n.square_root()
+            sage: n = 39188072418583779289; n.sqrt()
             6260037733
-            sage: (100^100).sqrt()
-            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: (-1).sqrt()
+            sage: (100^100).sqrt_approx()
+            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+            sage: (-1).sqrt_approx()
             1.00000000000000*I
+            sage: (-1).sqrt()
+            I
             sage: sqrt(-2)
+            sqrt(2)*I
+            sage: sqrt(-2.0)
             1.41421356237310*I
             sage: sqrt(97)
-            9.84885780179610
-            sage: n = 97; n.sqrt(200)
+            sqrt(97)
+            sage: n = 97; n.sqrt_approx(200)
             9.8488578017961047217462114149176244816961362874427641717232
         """
         if bits is None:
-            try:
-                return self.square_root()
-            except ValueError:
-                pass
             bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
 
-        if self < 0:
+        if mpz_sgn(self.value) < 0:
             import sage.rings.complex_field
             x = sage.rings.complex_field.ComplexField(bits)(self)
             return x.sqrt()
@@ -1685,24 +1697,35 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 
-    def square_root(self):
+    def sqrt(self):
         """
         Return the positive integer square root of self, or raises a ValueError
         if self is not a perfect square.
 
         EXAMPLES:
-            sage: Integer(144).square_root()
+            sage: Integer(144).sqrt()
             12
-            sage: Integer(102).square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: self (=102) is not a perfect square
+            sage: Integer(102).sqrt()
+            sqrt(102)
         """
-        n = self.isqrt()
-        if n * n == self:
-            return n
-        raise ValueError, "self (=%s) is not a perfect square"%self
-
+        if self < 0:
+            from sage.calculus.calculus import sqrt
+            return sqrt(self)
+        #raise ValueError, "self (=%s) is not a perfect square"%self
+        cdef int non_square
+        cdef Integer z = PY_NEW(Integer)
+        cdef mpz_t tmp
+        _sig_on
+        mpz_init(tmp)
+        mpz_sqrtrem(z.value, tmp, self.value)
+        non_square = mpz_sgn(tmp) != 0
+        mpz_clear(tmp)
+        _sig_off
+        if non_square:
+            from sage.calculus.calculus import sqrt
+            return sqrt(self)
+            #raise ValueError, "self (=%s) is not a perfect square"%self
+        return z
 
     def _xgcd(self, Integer n):
         r"""

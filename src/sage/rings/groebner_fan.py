@@ -41,6 +41,14 @@ EXAMPLES:
     sage: g = i.groebner_fan()
     sage: g.reduced_groebner_bases()
     [[1 - y^2 + x^2], [-1 + y^2 - x^2]]
+
+TESTS:
+    sage: x,y = QQ['x,y'].gens()
+    sage: i = ideal(x^2 - y^2 + 1)
+    sage: g = i.groebner_fan()
+    sage: g == loads(dumps(g))
+    True
+
 """
 
 __doc_exclude = ['to_intvec', 'multiple_replace', 'forall', \
@@ -96,7 +104,7 @@ class GroebnerFan(SageObject):
             sage: I = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y])
             sage: G = I.groebner_fan(); G
             Groebner fan of the ideal:
-            Ideal (y^2*z - x, -1*y + x*z^2, -1*z + x^2*y) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (-1*z + x^2*y, y^2*z - x, -1*y + x*z^2) of Polynomial Ring in x, y, z over Rational Field
         """
         self.__is_groebner_basis = is_groebner_basis
         self.__symmetry = symmetry
@@ -118,6 +126,9 @@ class GroebnerFan(SageObject):
 
         self.__ideal = I
         self.__ring = S
+
+    def __eq__(self,right):
+        return type(self) == type(right) and self.ideal() == right.ideal()
 
     def ideal(self):
         """
@@ -194,7 +205,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y]).groebner_fan()
             sage: G._gfan_ideal()
-            '{-1*b + a*c^2, b^2*c - a, -1*c + a^2*b}'
+            '{-1*c + a^2*b, b^2*c - a, -1*b + a*c^2}'
         """
         try:
             return self.__gfan_ideal

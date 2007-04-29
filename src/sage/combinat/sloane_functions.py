@@ -35,6 +35,11 @@ You can also change how a sequence prints:
     sage: a
     The integer sequence tau(n), which is the number of divisors of n.
 
+TESTS:
+    sage: a = sloane.A000001;
+    sage: a == loads(dumps(a))
+    True
+
 AUTHORS:
     -- William Stein: framework
     -- Jaap Spies: most sequences
@@ -93,6 +98,7 @@ import inspect
 from sage.structure.sage_object import SageObject
 from sage.misc.misc import srange
 from sage.rings.integer_ring import ZZ
+import sage.calculus.all as calculus
 Integer = ZZ
 
 class SloaneSequence(SageObject):
@@ -110,6 +116,11 @@ class SloaneSequence(SageObject):
 
     def _repr_(self):
         raise NotImplementedError
+
+    def __cmp__(self, other):
+        if not isinstance(other, SloaneSequence):
+            return cmp(type(self), type(other))
+        return cmp(repr(self), repr(other))
 
     def __call__(self, n):
         m = ZZ(n)
@@ -3385,7 +3396,7 @@ class A001405(SloaneSequence):
         return "Central binomial coefficients: C(n,floor(n/2))."
 
     def _eval(self, n):
-        return arith.binomial(n,arith.floor(n//2))
+        return arith.binomial(n, int(calculus.floor(n//2)))
 
 class A000292(SloaneSequence):
     r"""

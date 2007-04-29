@@ -119,8 +119,7 @@ class Elementary:
     """
 elementary = Elementary()
 function.elementary = elementary
-import sage.functions.all
-elementary.sin = sage.functions.all.sin
-elementary.cos = sage.functions.all.cos
-
-
+import sage.calculus.all
+elementary.sin = sage.calculus.all.sin
+elementary.cos = sage.calculus.all.cos
+elementary.log = sage.calculus.all.log

@@ -5,6 +5,7 @@ AUTHOR:
     -- David Roe
     -- Genya Zaytman: documentation
     -- David Harvey: doctests
+    -- William Stein: fixes to p-adic log in case input is not in Zp.
 """
 
 #*****************************************************************************
@@ -496,10 +497,15 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         else:
             return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
-    def log(self, branch = None):
+    def log(self, branch=0):
         r"""
-        Compute the p-adic logarithm of any unit in $\Z_p$.
+        Compute the p-adic logarithm of any nonzero element of $\\Q_p$.
         (See below for normalization.)
+
+        INPUT:
+           branch -- (default: 0).  If self is not a $p$-adic unit, return
+                      the p-adic log of the unit part plus branch times
+                      the valuation of self.
 
         The usual power series for log with values in the additive
         group of $\Z_p$ only converges for 1-units (units congruent to
@@ -567,6 +573,26 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             ...       assert ll == full_log
             ...       assert ll.precision_absolute() == prec
 
+        We compute some logs of non-units:
+            sage: K = Qp(5,8); K
+            5-adic Field with capped relative precision 8
+            sage: a = K(-5^2*17); a
+            3*5^2 + 5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
+            sage: u = a.unit_part()
+            3 + 5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + O(5^8)
+            sage: b = K(1235/5); b
+            2 + 4*5 + 4*5^2 + 5^3 + O(5^8)
+            sage: log(a)
+            5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + O(5^8)
+            sage: log(a*b) - log(a) - log(b)
+            O(5^8)
+            sage: c = a^b; c
+            2*5^494 + 4*5^496 + 2*5^497 + 5^499 + 3*5^500 + 5^501 + O(5^502)
+
+        Note that we can recover b:
+            sage: log(c)/log(a)
+            2 + 4*5 + 4*5^2 + 5^3 + O(5^7)
+
 
         AUTHORS:
             -- David Harvey (2006-09-13): corrected subtle precision bug
@@ -612,7 +638,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
         elif self.is_unit():
             z = self.unit_part()
             return (z**Integer(p-1)).log() // Integer(p-1)
-        elif not branch is None and self.parent().__contains__(branch):
+        elif not branch is None:
             branch = self.parent()(branch)
             return self.unit_part().log() + branch*self.valuation()
         else:

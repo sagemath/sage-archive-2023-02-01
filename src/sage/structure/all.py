@@ -26,6 +26,8 @@ from element import (\
 
 from parent      import Parent, is_Parent
 
+from parent_base import ParentWithBase, is_ParentWithBase
+
 from parent_gens import (ParentWithGens,
                          is_ParentWithGens,
                          ParentWithAdditiveAbelianGens,

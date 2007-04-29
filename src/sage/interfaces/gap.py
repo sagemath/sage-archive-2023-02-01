@@ -591,6 +591,9 @@ class GapElement(ExpectElement):
             raise RuntimeError, "An error occured creating an object in %s from:\n'%s'\n%s"%(self.parent().name(), self._createu, s)
         return s
 
+    def __nonzero__(self):
+        return self.bool()
+
     def __len__(self):
         """
         EXAMPLES:

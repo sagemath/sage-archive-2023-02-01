@@ -80,9 +80,10 @@ We can put text in a graph:
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
 
-    sage: p1 = plot(lambda t: arg(zeta(0.5+t*I)), 1,27,rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
-    sage: p1+p2
+    sage: i = CDF.0      # define i this way for maximum speed.
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,rgbcolor=hue(0.7))
+    sage: p1 + p2
     Graphics object consisting of 2 graphics primitives
     sage: (p1+p2).save()
 
@@ -125,6 +126,8 @@ TODO:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+
+import pdb
 
 from sage.structure.sage_object import SageObject
 
@@ -467,10 +470,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: h1 = lambda x : abs(sqrt(x^3  - 1))
-            sage: h2 = lambda x : -abs(sqrt(x^3  - 1))
-            sage: g1 = plot(h1, 1, 5)
-            sage: g2 = plot(h2, 1, 5)
+            sage: g1 = plot(abs(sqrt(x^3  - 1)), 1, 5)
+            sage: g2 = plot(-abs(sqrt(x^3  - 1)), 1, 5)
             sage: h = g1 + g2
             sage: h.save()
         """
@@ -586,7 +587,7 @@ class Graphics(SageObject):
         self._extend_y_axis(ymin)
         self._extend_y_axis(ymax)
 
-    def _plot_(self, **args):
+    def plot(self, *args, **kwds):
         return self
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
@@ -1893,8 +1894,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
 
     A red, blue, and green "cool cat":
 
-        sage: ncos = lambda x: -cos(x)
-        sage: G = plot(ncos, -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
+        sage: G = plot(-cos(x), -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
         sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: H = G + P + Q
@@ -2250,38 +2250,36 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
-        sage: g = plot(sin,0,10, linestyle='-.')
+        sage: g = plot(sin(x), 0, 10, linestyle='-.')
         sage: g.save('sage.png')
     """
     def _reset(self):
         o = self.options
         o['plot_points'] = 200
-        o['plot_division'] = 1000 # is this a good value?
-        o['max_bend'] = 0.1       # is this good as well?
+        o['plot_division'] = 1000
+        o['max_bend'] = 0.1
+        o['rgbcolor'] = (0,0,0)
 
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, label='',
-                 show=None, **kwds):
+    def __call__(self, funcs, *args, **kwds):
+        do_show = False
+        if kwds.has_key('show') and kwds['show']:
+            do_show = True
+            del kwds['show']
+        if hasattr(funcs, 'plot'):
+            G = funcs.plot(*args, **kwds)
+        else:
+            G = self._call(funcs, *args, **kwds)
+        if do_show:
+            G.show()
+        return G
+
+    def _call(self, funcs, xmin=None, xmax=None, parametric=False,
+              polar=False, label='', show=None, **kwds):
         if show is None:
             show = SHOW_DEFAULT
-        try:
-            G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
-        try:
-            G = funcs.plot(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
-
         if xmin is None:
             xmin = -1
         if xmax is None:
@@ -2294,7 +2292,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         if isinstance(funcs, (list, tuple)) and not parametric:
             G = Graphics()
             for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
+                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
             if show:
                 G.show(**kwds)
             return G
@@ -2312,6 +2310,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         delta = (xmax - xmin) / plot_points
         data = []
         dd = delta
+        exceptions = 0; msg=''
         for i in xrange(plot_points + 1):
             x = xmin + i*delta
             if i < plot_points:
@@ -2320,12 +2319,18 @@ class PlotFactory(GraphicPrimitiveFactory):
                     x = xmax
             else:
                 x = xmax  # guarantee that we get the last point.
+
             try:
                 y = f(x)
                 data.append((x, float(y)))
-            except (TypeError, ValueError), msg:
+            except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
                 pass
+
+        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
+            print "Last error message: '%s'"%msg
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2427,9 +2432,7 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         other options -- passed to plot.
 
     EXAMPLE:
-        sage: f = lambda t: sin(t)
-        sage: g = lambda t: sin(2*t)
-        sage: G = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        sage: G = parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
         sage: G.save()
     """
     if show is None:
@@ -2774,9 +2777,9 @@ def graphics_array(array, n=None, m=None):
     EXAMPLE:
     Make some plots of $\sin$ functions:
 
-        sage: f = lambda x: sin(x)
-        sage: g = lambda x: sin(2*x)
-        sage: h = lambda x: sin(4*x)
+        sage: f(x) = sin(x)
+        sage: g(x) = sin(2*x)
+        sage: h(x) = sin(4*x)
         sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
         sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
         sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
@@ -2815,10 +2818,10 @@ def float_to_html(r,g,b):
     Notice how the colors don't respect the partition at all.....
     """ # TODO: figure out WTF
     from sage.rings.integer import Integer
-    from sage.rings.arith import floor
-    rr = Integer(floor(r*255)).str(base=16)
-    gg = Integer(floor(g*255)).str(base=16)
-    bb = Integer(floor(b*255)).str(base=16)
+    from math import floor
+    rr = Integer(int(floor(r*255))).str(base=16)
+    gg = Integer(int(floor(g*255))).str(base=16)
+    bb = Integer(int(floor(b*255))).str(base=16)
     rr = '0'*(2-len(rr)) + rr
     gg = '0'*(2-len(gg)) + gg
     bb = '0'*(2-len(bb)) + bb
@@ -2839,7 +2842,7 @@ def rainbow(n):
         sage: rainbow(7)
         ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
     """
-    from sage.rings.arith import floor
+    from math import floor
     R = []
     for i in range(n):
         r = 6*float(i)/n

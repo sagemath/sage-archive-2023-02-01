@@ -3,6 +3,15 @@ Quotient Rings
 
 AUTHOR:
     -- William Stein
+
+TESTS:
+    sage: R.<x> = PolynomialRing(ZZ)
+    sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+    sage: S = R.quotient_ring(I);
+    sage: S == loads(dumps(S))
+    True
+
+
 """
 
 ################################################################################
@@ -56,10 +65,10 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
     The quotient ring of $R$ by the ideal $I$.
 
     EXAMPLES:
-        sage: R = PolynomialRing(ZZ,'x')
+        sage: R.<x> = PolynomialRing(ZZ,'x')
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: S = R.quotient_ring(I); S
-        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 1, x^2 + 3*x + 4)
+        Quotient of Univariate Polynomial Ring in x over Integer Ring by the ideal (x^2 + 3*x + 4, x^2 + 1)
 
         sage: R.<x,y> = PolynomialRing(QQ)
         sage: S.<a,b> = R.quo(x^2 + y^2)
@@ -125,7 +134,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             x
             sage: l = pi.lift(); l
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2, x^2)
+              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y^2)
               To:   Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: l(x+y^3)
@@ -135,8 +144,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             return self.__cover
         except AttributeError:
             import morphism
-            pi = morphism.RingHomomorphism_cover(self.__R, self)
-            #pi = self.__R.homomorphism(self.__R.gens(), self)       # needlessly slow (!)
+            pi = morphism.RingHomomorphism_cover(self.__R.Hom(self))
             lift = self.lift()
             pi._set_lift(lift)
             self.__cover = pi

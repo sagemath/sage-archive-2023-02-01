@@ -389,7 +389,7 @@ cdef class Matrix(matrix1.Matrix):
         # is much faster in practice despite asymptotics.
         # TODO: find reasonable cutoff (Field specific, but seems to be quite large for Q[x])
         # if R.is_integral_domain() and R.is_exact() and algorithm == "hessenberg":
-        if  R.is_field() and algorithm == "hessenberg":
+        if  R.is_field() and R.is_exact() and algorithm == "hessenberg":
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -2092,14 +2092,14 @@ cdef class Matrix(matrix1.Matrix):
         for c from 0 <= c < nc:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for r from start_row <= r < nr:
-                if A.get_unsafe(r, c) != 0:
+                if A.get_unsafe(r, c):
                     pivots.append(c)
                     a_inverse = ~A.get_unsafe(r,c)
                     A.rescale_row(r, a_inverse, c)
                     A.swap_rows(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
-                            if A.get_unsafe(i,c) != 0:
+                            if A.get_unsafe(i,c):
                                 minus_b = -A.get_unsafe(i, c)
                                 A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1

@@ -1,9 +1,10 @@
 r"""
 Random variables and probability spaces
 
-This introduces a class of random variables, with the focus on discrete random
-variables (i.e. on a discrete probability space).  This avoids the problem of
-defining a measure space and measurable functions.
+This introduces a class of random variables, with the focus on
+discrete random variables (i.e. on a discrete probability space).
+This avoids the problem of defining a measure space and measurable
+functions.
 """
 
 #*****************************************************************************

@@ -1513,12 +1513,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: f = EllipticCurve('11a')
             sage: f.period_lattice()
-            (1.269209304279553421688794616754547305219492241830608667967136921230408338613, 0.6346046521397767108443973083772736526097461209153043339835684606152041693064 + 1.458816616938495229330889612903675257159243428952665161469618762450537896609*I)
+            (1.269209304279553421688794616754547305219492241830608667967136921230408338613, 0.6346046521397767108443973083772736526097461209153043339835684606152041693064 + 1.458816616938495229330889612903675257159243428952665161469618762450537896609*I)                                     # 32-bit
+            (1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075, 0.634604652139776710844397308377273652609746120915304333983568460615204169306388861345181152960756303655822648139160643718640850164238421988246357005285375 + 1.45881661693849522933088961290367525715924342895266516146961876245053789660902872639765673368315820172095257526042401249237362183079269125313009041993832*I)             # 64-bit
             sage: f.period_lattice_is_rectangular()
             False
             sage: f = EllipticCurve('37b')
             sage: f.period_lattice()
-            (1.088521592904229173504308311539594823105140504301377799086597419750048367573, 1.767610670233789475881323144497815233734289378984139837146363810096739201810*I)
+            (1.088521592904229173504308311539594823105140504301377799086597419750048367573, 1.767610670233789475881323144497815233734289378984139837146363810096739201810*I)           # 32-bit
+             (1.08852159290422917350430831153959482310514050430137779908659741975004836757281196724615591294512604175793056433512324867543024134734839104934760089947025, 1.76761067023378947588132314449781523373428937898413983714636381009673920180953691706599273805495417094215579677634900614786897226142483706622542207437740*I)   # 64-bit
             sage: f.period_lattice_is_rectangular()
             True
 
@@ -4274,6 +4276,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
              (1 + O(5^20))*t + (3 + O(5))*t^2 + O(t^3)
 
+          Supply your very own value of E2:
+            sage: X = EllipticCurve("37a")
+            sage: my_E2 = X.padic_E2(5, 8)
+            sage: my_E2 = my_E2 + 5**5    # oops!!!
+            sage: X.padic_sigma(5, 10, E2=my_E2)
+            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+
           Check that sigma is ``weight 1''. [This test is disabled until
           trac \#254 is addressed. The lines f(2*t)/2 and g should return
           exactly the same answer. Currently there is some precision loss.]
@@ -4331,7 +4340,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if E2 is None:
             E2 = self.padic_E2(p, N-2, check_hypotheses=False)
-        elif E2.big_oh() < N-2:
+        elif E2.precision_absolute() < N-2:
             raise ValueError, "supplied E2 has insufficient precision"
 
         QQt = LaurentSeriesRing(RationalField(), "x")
@@ -4404,8 +4413,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
 
 
-    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True,
-                 algorithm="auto"):
+    def padic_E2(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
         r"""
         Returns the value of the $p$-adic modular form $E2$ for $(E, \omega)$
         where $\omega$ is the usual invariant differential
@@ -4531,6 +4539,38 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
 
         """
+        frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
+
+        frob_p_n = frob_p**prec
+
+        # todo: write a coercion operator from integers mod p^n to the
+        # p-adic field (it doesn't seem to currently exist)
+        # see trac #4
+
+        # todo: think about the sign of this. Is it correct?
+
+        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
+                  + O(p**prec)
+
+        # Take into account the coordinate change.
+        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
+
+        # todo: here I should be able to write:
+        #  return E2_of_X / fudge_factor
+        # However, there is a bug in SAGE (#51 on trac) which makes this
+        # crash sometimes when prec == 1. For example,
+        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
+        # makes it crash. I haven't figured out exactly what the bug
+        # is yet, but for now I use the following workaround:
+        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
+        return output_ring(E2_of_X * fudge_factor_inverse)
+
+
+    def matrix_of_frobenius(self, p, prec=20, check=False, check_hypotheses=True, algorithm="auto"):
+        """
+        See the parameters and documentation for padic_E2.
+        """
+        # TODO, add lots of comments like the above
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
@@ -4617,29 +4657,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                     "Consistency check failed! (correct = %s, actual = %s)" % \
                     (correct_trace, trace_of_frobenius)
 
-        frob_p_n = frob_p**prec
-
-        # todo: write a coercion operator from integers mod p^n to the
-        # p-adic field (it doesn't seem to currently exist)
-        # see trac #4
-
-        # todo: think about the sign of this. Is it correct?
-
-        E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
-                  + O(p**prec)
-
-        # Take into account the coordinate change.
-        fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
-
-        # todo: here I should be able to write:
-        #  return E2_of_X / fudge_factor
-        # However, there is a bug in SAGE (#51 on trac) which makes this
-        # crash sometimes when prec == 1. For example,
-        #    EllipticCurve([1, 1, 1, 1, 1]).padic_E2(5, 1)
-        # makes it crash. I haven't figured out exactly what the bug
-        # is yet, but for now I use the following workaround:
-        fudge_factor_inverse = Qp(p, prec=(E2_of_X.precision_absolute() + 1))(1 / fudge_factor)
-        return output_ring(E2_of_X * fudge_factor_inverse)
+        return frob_p.change_ring(Zp(p, prec))
 
 
     # This is the old version of padic_E2 that requires MAGMA:

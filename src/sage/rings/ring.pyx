@@ -840,11 +840,19 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
 
 def is_Field(x):
     """
-    Return True if x is of class Field.
+    Return True if x is a field.
 
     EXAMPLES:
+        sage: is_Field(QQ)
+        True
+        sage: is_Field(ZZ)
+        False
+        sage: is_Field(pAdicField(2))
+        True
+        sage: is_Field(5)
+        False
     """
-    return bool(isinstance(x, Field))
+    return bool(isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field()))
 
 cdef class Field(PrincipalIdealDomain):
     """
@@ -1334,8 +1342,9 @@ def is_Ring(x):
     Return true if x is a ring.
 
     EXAMPLES:
-
+        sage: is_Ring(ZZ)
+        True
     """
-    return isinstance(x, Ring)
+    return bool(isinstance(x, Ring))
 
 

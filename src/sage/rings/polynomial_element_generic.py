@@ -168,7 +168,7 @@ class Polynomial_generic_sparse(Polynomial):
         r"""
         EXAMPLES:
             sage: R.<w> = PolynomialRing(CDF, sparse=True)
-            sage: f = CDF(1,2) + w^5 - pi*w + e
+            sage: f = CDF(1,2) + w^5 - CDF(pi)*w + CDF(e)
             sage: f._repr()
             '1.0*w^5 + (-3.14159265359)*w + 3.71828182846 + 2.0*I'
             sage: f._repr(name='z')
@@ -188,7 +188,7 @@ class Polynomial_generic_sparse(Polynomial):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -222,6 +222,7 @@ class Polynomial_generic_sparse(Polynomial):
 
         EXAMPLES:
             sage: R.<w> = PolynomialRing(RDF, sparse=True)
+            sage: e = RDF(e)
             sage: f = sum(e^n*w^n for n in range(4)); f
             20.0855369232*w^3 + 7.38905609893*w^2 + 2.71828182846*w + 1.0
             sage: f[1]
@@ -526,8 +527,9 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
 
         if fraction_field_element.is_FractionFieldElement(x):
-            if x.denominator() != 1:
-                raise TypeError, "denominator must be 1"
+            if x.denominator().degree() >= 1:
+                raise TypeError, "denominator must be constant"
+                x = x.numerator() * (~x.denominator()[0])
             else:
                 x = x.numerator()
 
@@ -1402,7 +1404,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
             if x.valuation() != infinity:
                 if n != m:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:

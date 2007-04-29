@@ -23,4 +23,20 @@ from guava import (HammingCode,
 
 from ag_code import ag_code
 
-from code_bounds import *
+from code_bounds import (codesize_upper_bound,
+                         dimension_upper_bound,
+                         volume_hamming,
+                         gilbert_lower_bound,
+                         plotkin_upper_bound,
+                         griesmer_upper_bound,
+                         elias_upper_bound,
+                         hamming_upper_bound,
+                         singleton_upper_bound,
+                         gv_info_rate,
+                         entropy,
+                         gv_bound_asymp,
+                         hamming_bound_asymp,
+                         singleton_bound_asymp,
+                         plotkin_bound_asymp,
+                         elias_bound_asymp,
+                         mrrw1_bound_asymp)

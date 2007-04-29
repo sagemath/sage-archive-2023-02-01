@@ -141,6 +141,13 @@ assmus_mattson_designs (implementing Assmus-Mattson Theorem).
     -- DJ (2006-09): modified decode syntax, fixed bug in is_galois_closed,
 added LinearCode_from_vectorspace, extended_code, zeta_function
     -- Nick Alexander (2006-12-10): factor GUAVA code to guava.py
+
+TESTS:
+   sage: MS = MatrixSpace(GF(2),4,7)
+   sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
+   sage: C  = LinearCode(G)
+   sage: C == loads(dumps(C))
+   True
 """
 
 #*****************************************************************************
@@ -626,7 +633,9 @@ class LinearCode(module.Module):
         return self.spectrum()
 
     def __cmp__(self, right):
-        raise NotImplementedError
+        if not isinstance(right, LinearCode):
+            return cmp(type(self), type(right))
+        return cmp(self.__gen_mat, right.__gen_mat)
 
     def decode(self, right):
         """
@@ -775,7 +784,6 @@ class LinearCode(module.Module):
         Checks if self == right.
 
         EXAMPLES:
-
         """
         slength = self.length()
         rlength = right.length()
@@ -784,23 +792,23 @@ class LinearCode(module.Module):
         sF = self.base_ring()
         rF = right.base_ring()
         if slength != rlength:
-            return 0
+            return False
         if sdim != rdim:
-            return 0
+            return False
         if sF != rF:
-            return 0
+            return False
         V = VectorSpace(sF,sdim)
         sbasis = self.gens()
         rbasis = right.gens()
         scheck = self.check_mat()
         rcheck = right.check_mat()
         for c in sbasis:
-            if rcheck*c != V(0):
-                return 0
+            if rcheck*c:
+                return False
         for c in rbasis:
-            if scheck*c != V(0):
-                return 0
-        return 1
+            if scheck*c:
+                return False
+        return True
 
     def is_permutation_automorphism(self,g):
         """

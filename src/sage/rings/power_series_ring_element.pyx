@@ -95,7 +95,7 @@ from integer_mod_ring import IntegerModRing
 import sage.libs.pari.all
 from sage.libs.all import PariError
 from sage.misc.functional import sqrt, log
-from sage.rings.arith import ceil
+from sage.rings.arith import integer_ceil as ceil
 
 from sage.rings.ring import is_Field
 

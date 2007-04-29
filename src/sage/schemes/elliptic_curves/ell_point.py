@@ -142,7 +142,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
         """
         return self.scheme()
 
-    def is_zero(self):
+    def __nonzero__(self):
         """
         Return True if this is the zero point on the curve.
 
@@ -156,7 +156,7 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             sage: P.is_zero()
             False
         """
-        return self[2] == 0
+        return bool(self[2])
 
     def is_finite_order(self):
         """

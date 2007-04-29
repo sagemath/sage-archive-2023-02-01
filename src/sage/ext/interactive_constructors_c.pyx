@@ -33,15 +33,13 @@ def inject_on(verbose=True):
         sage: inject_off()
         sage: GF(9,'c')
         Finite Field in c of size 3^2
-        sage: c
-        Traceback (most recent call last):
-        ...
-        NameError: name 'c' is not defined
+        sage: c^3
+		c^3
         sage: inject_on(verbose=False)
         sage: GF(9,'c')
         Finite Field in c of size 3^2
-        sage: c
-        c
+        sage: c^3
+		2*c + 1
 
     ROLL YOUR OWN: If a constructor you would like to auto inject
     variables isn't made to do so by running this command your options
@@ -195,7 +193,7 @@ def quotient(R, I, names, inject=True):
         sage: R = PolynomialRing(QQ, 'x,y')
         sage: S = quo(R, (x^3, x^2 + y^2), 'a,b')
         sage: S
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2, x^3)
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^3, y^2 + x^2)
         sage: a^2
         -1*b^2
         sage: a^3

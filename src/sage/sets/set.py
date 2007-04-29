@@ -33,9 +33,12 @@ def Set(X):
     Create the underlying set of $X$.
 
     If $X$ is a list, tuple, Python set, or \code{X.is_finite()} is
-    true, this returns a wrapper around Python's enumerated set type
-    with extra functionality.  Otherwise it returns a more formal
-    wrapper.
+    true, this returns a wrapper around Python's enumerated immutable
+    frozenset type with extra functionality.  Otherwise it returns a
+    more formal wrapper.
+
+    If you need the functionality of mutable sets, use Python's
+    builtin set type.
 
     EXAMPLES:
         sage: X = Set(GF(9,'a'))
@@ -45,17 +48,38 @@ def Set(X):
         <class 'sage.sets.set.Set_object_enumerated'>
         sage: Y = X.union(Set(QQ))
         sage: Y
-        Set-theoretic union of Finite Field in a of size 3^2 and Rational Field
+        Set-theoretic union of {0, 1, 2, a, a + 1, a + 2, 2*a, 2*a + 1, 2*a + 2} and Set of elements of Rational Field
         sage: type(Y)
         <class 'sage.sets.set.Set_object_union'>
+
+    Usually sets can be used as dictionary keys.
+        sage: d={Set([2*I,1+I]):10}; d
+        {{I + 1, 2*I}: 10}
+        sage: d[Set([1+I,2*I])]
+        10
+        sage: d[Set((1+I,2*I))]
+        10
+
+    The original object is often forgotten.
+        sage: v = [1,2,3]
+        sage: X = Set(v)
+        sage: X
+        {1, 2, 3}
+        sage: v.append(5)
+        sage: X
+        {1, 2, 3}
+        sage: 5 in X
+        False
     """
     if is_Set(X):
         return X
 
     if isinstance(X, Element):
         raise TypeError, "Element has no defined underlying set"
+    elif isinstance(X, (list, tuple, set, frozenset)):
+        return Set_object_enumerated(frozenset(X))
     try:
-        if isinstance(X, (list, tuple, set)) or X.is_finite():
+        if X.is_finite():
             return Set_object_enumerated(X)
     except AttributeError:
         pass
@@ -149,6 +173,9 @@ class Set_object(Set_generic):
             <class 'sage.sets.set.Set_object'>
         """
         self.__object = X
+
+    def __hash__(self):
+        return hash(self.__object)
 
     def _latex_(self):
         r"""
@@ -271,11 +298,11 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: Set(QQ).union(Set(ZZ))
-            Set-theoretic union of Rational Field and Integer Ring
+            Set-theoretic union of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: Set(QQ) + Set(ZZ)
-            Set-theoretic union of Rational Field and Integer Ring
+            Set-theoretic union of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: X = Set(QQ).union(Set(GF(3))); X
-            Set-theoretic union of Rational Field and Finite Field of size 3
+            Set-theoretic union of Set of elements of Rational Field and {0, 1, 2}
             sage: 2/3 in X
             True
             sage: GF(3)(2) in X
@@ -286,7 +313,7 @@ class Set_object(Set_generic):
             {0, 1, 2, 3, 4, 5, 6, 1, 2, 0}
         """
         if is_Set(X):
-            if self == X:
+            if self is X:
                 return self
             return Set_object_union(self, X)
         raise TypeError, "X (=%s) must be a Set"%X
@@ -297,7 +324,7 @@ class Set_object(Set_generic):
 
         EXAMPLES:
             sage: Set(RealField()) + Set(QQ^5)
-            Set-theoretic union of Real Field with 53 bits of precision and Vector space of dimension 5 over Rational Field
+             Set-theoretic union of Set of elements of Real Field with 53 bits of precision and Set of elements of Vector space of dimension 5 over Rational Field
             sage: Set(GF(3)) + Set(GF(2))
             {0, 1, 2, 0, 1}
             sage: Set(GF(2)) + Set(GF(4,'a'))
@@ -315,7 +342,7 @@ class Set_object(Set_generic):
             sage: Set([2,3]) | Set([3,4])
             {2, 3, 4}
             sage: Set(ZZ) | Set(QQ)
-            Set-theoretic union of Integer Ring and Rational Field
+            Set-theoretic union of Set of elements of Integer Ring and Set of elements of Rational Field
         """
 
         return self.union(X)
@@ -343,7 +370,7 @@ class Set_object(Set_generic):
             {}
         """
         if is_Set(X):
-            if self == X:
+            if self is X:
                 return self
             return Set_object_intersection(self, X)
         raise TypeError, "X (=%s) must be a Set"%X
@@ -372,7 +399,7 @@ class Set_object(Set_generic):
             {0, 1, 2, b, b + 1, b + 2, 2*b, 2*b + 1, 2*b + 2}
         """
         if is_Set(X):
-            if self == X:
+            if self is X:
                 return Set([])
             return Set_object_difference(self, X)
         raise TypeError, "X (=%s) must be a Set"%X
@@ -388,7 +415,7 @@ class Set_object(Set_generic):
         """
 
         if is_Set(X):
-            if self == X:
+            if self is X:
                 return Set([])
             return Set_object_symmetric_difference(self, X)
         raise TypeError, "X (=%s) must be a Set"%X
@@ -414,7 +441,7 @@ class Set_object(Set_generic):
             sage: Set([2,3]) & Set([3,4])
             {3}
             sage: Set(ZZ) & Set(QQ)
-            Set-theoretic intersection of Integer Ring and Rational Field
+            Set-theoretic intersection of Set of elements of Integer Ring and Set of elements of Rational Field
         """
 
         return self.intersection(X)
@@ -504,9 +531,8 @@ class Set_object_enumerated(Set_object):
         return '\\left\\{' + ', '.join([latex(x) for x in self.set()])  + '\\right\\}'
 
     def _repr_(self):
-        s = str(self.set())
+        s = repr(self.set())
         return "{" + s[5:-2] + "}"
-        #    return "Finite set of elements of %s"%self.__object
 
     def set(self):
         """
@@ -527,11 +553,31 @@ class Set_object_enumerated(Set_object):
             sage: type(X)
             <class 'sage.sets.set.Set_object_enumerated'>
         """
-        try:
-            return self.__set
-        except AttributeError:
-            self.__set = set(self.object())
-            return self.__set
+        return set(self.object())
+
+    def frozenset(self):
+        """
+        Return the Python frozenset object associated to this set,
+        which is an immutable set (hence hashable).
+
+        EXAMPLES:
+            sage: X = Set(GF(8,'c'))
+            sage: X
+            {0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1}
+            sage: s = X.set(); s
+            set([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            sage: hash(s)
+            Traceback (most recent call last):
+            ...
+            TypeError: set objects are unhashable
+            sage: s = X.frozenset(); s
+            frozenset([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
+            sage: hash(s)
+            -1390224788
+            sage: type(s)
+            <type 'frozenset'>
+        """
+        return frozenset(self.object())
 
     def __cmp__(self, other):
         """
@@ -641,7 +687,7 @@ class Set_object_union(Set_object):
             sage: S = Set(QQ^2)
             sage: T = Set(ZZ)
             sage: X = S.union(T); X
-            Set-theoretic union of Vector space of dimension 2 over Rational Field and Integer Ring
+            Set-theoretic union of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
 
             sage: latex(X)
             \mathbf{Q}^{2} \cup \mathbf{Z}
@@ -690,10 +736,10 @@ class Set_object_union(Set_object):
 
         EXAMPLES:
             sage: Set(ZZ).union(Set(GF(5)))
-            Set-theoretic union of Integer Ring and Finite Field of size 5
+            Set-theoretic union of Set of elements of Integer Ring and {0, 1, 2, 3, 4}
         """
-        return "Set-theoretic union of %s and %s"%(self.__X.object(),
-                                                   self.__Y.object())
+        return "Set-theoretic union of %s and %s"%(self.__X,
+                                                   self.__Y)
 
     def _latex_(self):
         r"""
@@ -762,7 +808,7 @@ class Set_object_intersection(Set_object):
             sage: S = Set(QQ^2)
             sage: T = Set(ZZ)
             sage: X = S.intersection(T); X
-            Set-theoretic intersection of Vector space of dimension 2 over Rational Field and Integer Ring
+            Set-theoretic intersection of Set of elements of Vector space of dimension 2 over Rational Field and Set of elements of Integer Ring
             sage: latex(X)
             \mathbf{Q}^{2} \cap \mathbf{Z}
 
@@ -812,13 +858,13 @@ class Set_object_intersection(Set_object):
 
         EXAMPLES:
             sage: X = Set(ZZ).intersection(Set(QQ)); X
-            Set-theoretic intersection of Integer Ring and Rational Field
+            Set-theoretic intersection of Set of elements of Integer Ring and Set of elements of Rational Field
             sage: X.rename('Z /\ Q')
             sage: X
             Z /\ Q
         """
-        return "Set-theoretic intersection of %s and %s"%(self.__X.object(),
-                                                          self.__Y.object())
+        return "Set-theoretic intersection of %s and %s"%(self.__X,
+                                                          self.__Y)
 
     def _latex_(self):
         r"""
@@ -906,7 +952,7 @@ class Set_object_difference(Set_object):
             sage: S = Set(QQ)
             sage: T = Set(ZZ)
             sage: X = S.difference(T); X
-            Set-theoretic difference between Rational Field and Integer Ring
+            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
             sage: latex(X)
             \mathbf{Q} - \mathbf{Z}
 
@@ -958,13 +1004,13 @@ class Set_object_difference(Set_object):
 
         EXAMPLES:
             sage: X = Set(QQ).difference(Set(ZZ)); X
-            Set-theoretic difference between Rational Field and Integer Ring
+            Set-theoretic difference between Set of elements of Rational Field and Set of elements of Integer Ring
             sage: X.rename('Q - Z')
             sage: X
             Q - Z
         """
-        return "Set-theoretic difference between %s and %s"%(self.__X.object(),
-                                                          self.__Y.object())
+        return "Set-theoretic difference between %s and %s"%(self.__X,
+                                                          self.__Y)
 
     def _latex_(self):
         r"""
@@ -1049,7 +1095,7 @@ class Set_object_symmetric_difference(Set_object):
             sage: S = Set(QQ)
             sage: T = Set(ZZ)
             sage: X = S.symmetric_difference(T); X
-            Set-theoretic symmetric difference of Rational Field and Integer Ring
+            Set-theoretic symmetric difference of Set of elements of Rational Field and Set of elements of Integer Ring
             sage: latex(X)
             \mathbf{Q} \bigtriangleup \mathbf{Z}
 
@@ -1095,13 +1141,13 @@ class Set_object_symmetric_difference(Set_object):
 
         EXAMPLES:
             sage: X = Set(ZZ).symmetric_difference(Set(QQ)); X
-            Set-theoretic symmetric difference of Integer Ring and Rational Field
+            Set-theoretic symmetric difference of Set of elements of Integer Ring and Set of elements of Rational Field
             sage: X.rename('Z symdif Q')
             sage: X
             Z symdif Q
         """
-        return "Set-theoretic symmetric difference of %s and %s"%(self.__X.object(),
-                                                          self.__Y.object())
+        return "Set-theoretic symmetric difference of %s and %s"%(self.__X,
+                                                          self.__Y)
 
     def _latex_(self):
         r"""

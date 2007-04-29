@@ -822,7 +822,7 @@ class BlockingJobWrapper(JobWrapper):
                 self.get_job()
         else:
             def handler(signum, frame):
-                raise RuntimeError, 'Maximum wait time exceeded.'
+                raise RuntimeError('Maximum wait time exceeded.')
             signal.signal(signal.SIGALRM, handler)
             signal.alarm(timeout)
             while self.status != 'completed':

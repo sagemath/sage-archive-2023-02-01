@@ -69,7 +69,8 @@ class Job(Persistent):
         self.jdict['result'] = None # result should be a pickled object
         self.jdict['failures'] = 0
         self.jdict['verifiable'] = False # is this job easily verified?
-
+        self.jdict['timeout'] = 600 # default timeout for jobs in seconds
+        self.jdict['private'] = False
         # These might become deprecated
         self.jdict['parent'] = parent
         self.jdict['children'] = []
@@ -82,7 +83,7 @@ class Job(Persistent):
             if not self.__dict__.has_key('jdict'):
                 self.__dict__[name] = value
             else:
-                raise ValueError, 'Do not reassign Job.jdict.'
+                raise ValueError('Do not reassign Job.jdict.')
         else:
             Persistent.__setattr__(self, name, value)
 
@@ -196,10 +197,6 @@ class Job(Persistent):
     def get_type(self):
         return self.jdict['type']
     def set_type(self, value):
-        types = ['sage', 'spyx', 'py']
-        if value not in types:
-            raise TypeError
-
         self.jdict['type'] = value
     type = property(fget=get_type, fset=set_type,
                     fdel=None, doc='Job type')
@@ -235,6 +232,26 @@ class Job(Persistent):
         if not isinstance(value, bool):
             raise TypeError
         self.jdict['verifiable'] = value
+
+    def timeout():
+        doc = "Job timeout in seconds. Set to 0 to disable."
+        def fget(self):
+            return self.jdict['timeout']
+        def fset(self, value):
+            if not isinstance(value, int):
+                raise TypeError('Timeout must be an integer.')
+            self.jdict['timeout']  = value
+        return locals()
+    timeout = property(**timeout())
+
+    def private():
+        doc = "Sets whether a job is private or not."
+        def fget(self):
+            return self.jdict['private']
+        def fset(self, value):
+            self.jdict['private'] = value
+        return locals()
+    private = property(**private())
 
     def attach(self, var, obj, file_name=None):
         """

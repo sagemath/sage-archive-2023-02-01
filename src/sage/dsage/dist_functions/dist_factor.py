@@ -16,8 +16,8 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0, trial_division_limit=10000,
-                 name='DistributedFactor'):
+    def __init__(self, DSage, n, concurrent=10, verbosity=0,
+                 trial_division_limit=10000, name='DistributedFactor'):
         """
         Parameters:
             DSage -- an instance of a dsage connection
@@ -74,6 +74,10 @@ else:
 """ % n, name='qsieve')
         job.n = int(n) # otherwise cPickle will crash
         job.algorithm = 'qsieve'
+        job.verifiable = True
+        job.type = 'qsieve'
+        job.timeout = 60*60*24
+
         return job
 
     def ecm_job(self):
@@ -94,6 +98,9 @@ else:
 """ % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
         job.n = int(n)
         job.algorithm = 'ecm'
+        job.verifiable = True
+        job.type = 'ecm'
+        job.timeout = 60*60*24
         return job
 
     def process_result(self, job):
@@ -110,6 +117,12 @@ else:
         if prod(self.prime_factors) == self.n:
             self.done = True
             return
+
+        for factor in self.composite_factors:
+            if is_prime(factor):
+                self.prime_factors.append(factor)
+                self.composite_factors.remove(factor)
+
         if self.verbosity > 2:
             print "process_result(): ", job, job.output, job.result
         result = job.result

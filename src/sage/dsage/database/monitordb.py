@@ -19,7 +19,7 @@
 
 import datetime
 import os
-import sqlite3 as sqlite
+import sqlite3
 
 from twisted.python import log
 
@@ -66,8 +66,12 @@ class MonitorDatabase(object):
                     os.mkdir(dir)
         self.log_level = self.conf['log_level']
         self.log_file = self.conf['log_file']
-        self.con = sqlite.connect(self.db_file,
-                    detect_types=sqlite.PARSE_DECLTYPES|sqlite.PARSE_COLNAMES)
+        self.con = sqlite3.connect(self.db_file,
+                isolation_level=None,
+                detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        sql_functions.optimize_sqlite(self.con)
+        # Don't use this, it's slow!
+        # self.con.text_factory = sqlite3.OptimizedUnicode
         self.con.text_factory = str
 
         if sql_functions.table_exists(self.con, self.tablename) is None:

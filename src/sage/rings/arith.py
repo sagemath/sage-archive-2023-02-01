@@ -554,9 +554,9 @@ def prime_range(start, stop=None, leave_pari=False):
         [2, 3, 5, 7]
     """
     if stop is None:
-        start, stop = 2, start
+        start, stop = 2, int(start)
     try:
-        v = pari.primes_up_to_n(stop-1)
+        v = pari.primes_up_to_n(int(stop-1))
     except OverflowError:
         return list(primes(start, stop))  # lame but works.
     Z = integer_ring.ZZ
@@ -566,7 +566,7 @@ def prime_range(start, stop=None, leave_pari=False):
         return v
     if start <= 2:
         return [Z(p) for p in v]     # this dominates runtime!
-    start = pari(start)
+    start = pari(int(start))
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
 
 def primes_first_n(n, leave_pari=False):

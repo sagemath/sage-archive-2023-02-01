@@ -247,7 +247,10 @@ class ClassicHostInfo(object):
             return self.canonical_info(host_info)
 
     def canonical_info(self, platform_host_info):
-        """Standarize host info so we can parse it easily"""
+        """
+        Standarize host info so we can parse it easily.
+
+        """
 
         unify_info = {'model name': 'cpu_model',
                           'cpu MHz': 'cpu_speed',

@@ -77,7 +77,8 @@ class DSageServer(pb.Root):
             return None
         else:
             if self.LOG_LEVEL > 3:
-                log.msg('[DSage, get_job]' + ' Returning Job %s to client' % (jdict['job_id']))
+                job_id = jdict['job_id']
+                log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
             jdict['status'] = 'processing'
             jdict = self.jobdb.store_job(jdict)
 
@@ -131,14 +132,6 @@ class DSageServer(pb.Root):
 
     def sync_job(self, job_id):
         raise NotImplementedError
-        # job = self.jobdb.get_job_by_id(job_id)
-        # new_job = copy.deepcopy(job)
-        # print new_job
-        # # Set file, data to 'Omitted' so we don't need to transfer it
-        # new_job.code = 'Omitted...'
-        # new_job.data = 'Omitted...'
-
-        # return job.pickle()
 
     def get_jobs_by_username(self, username, active=False):
         """
@@ -155,6 +148,7 @@ class DSageServer(pb.Root):
 
         if self.LOG_LEVEL > 3:
             log.msg(jobs)
+
         return jobs
 
     def submit_job(self, jdict):
@@ -174,6 +168,7 @@ class DSageServer(pb.Root):
             return False
         if jdict['name'] is None:
             jdict['name'] = 'Default'
+
         jdict['update_time'] = datetime.datetime.now()
 
         return self.jobdb.store_job(jdict)
@@ -202,9 +197,11 @@ class DSageServer(pb.Root):
     def get_killed_jobs_list(self):
         """
         Returns a list of killed job jdicts.
+
         """
 
         killed_jobs = self.jobdb.get_killed_jobs_list()
+
         return killed_jobs
 
     def get_next_job_id(self):
@@ -286,12 +283,16 @@ class DSageServer(pb.Root):
 
         if job_id == None:
             if self.LOG_LEVEL > 0:
-                log.msg('[DSage, kill_job] No such job id %s' % job_id)
+                log.msg('[DSage, kill_job] Invalid job id')
             return None
         else:
-            self.jobdb.set_killed(job_id, killed=True)
-            if self.LOG_LEVEL > 0:
-                log.msg('Killed job %s' % (job_id))
+            try:
+                self.jobdb.set_killed(job_id, killed=True)
+                if self.LOG_LEVEL > 0:
+                    log.msg('Killed job %s' % (job_id))
+            except Exception, msg:
+                log.err(msg)
+                log.msg('Failed to kill job %s' % job_id)
 
         return job_id
 
@@ -304,6 +305,7 @@ class DSageServer(pb.Root):
         tuple[2] = port
 
         """
+
         return self.monitordb.get_monitor_list()
 
     def get_client_list(self):
@@ -339,8 +341,10 @@ class DSageServer(pb.Root):
         """
 
         count = {}
-        free_workers = self.monitordb.get_worker_count(connected=True, busy=False)
-        working_workers = self.monitordb.get_worker_count(connected=True, busy=True)
+        free_workers = self.monitordb.get_worker_count(connected=True,
+                                                       busy=False)
+        working_workers = self.monitordb.get_worker_count(connected=True,
+                                                          busy=True)
 
         count['free'] = free_workers
         count['working'] = working_workers

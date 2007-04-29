@@ -19,6 +19,21 @@
 
 from twisted.python import log
 
+def optimize_sqlite(con):
+    """
+    Sets some pragma settings that are supposed to optimize SQLite.
+    Settings taken from:
+    http://web.utk.edu/~jplyon/sqlite/SQLite_optimization_FAQ.html
+
+    """
+
+    cur = con.cursor()
+    cur.execute("pragma cache_size=4000") # Use double the default cache_size
+    cur.execute("pragma synchronous=off") # do not wait for disk writes
+    cur.execute("pragma temp_store=2") # store temporary results in memory
+
+    return con
+
 def table_exists(con, tablename):
     """
     Check if a given table exists.
@@ -33,6 +48,7 @@ def table_exists(con, tablename):
     cur = con.cursor()
     cur.execute(query, (tablename,))
     result = cur.fetchone()
+
     return result
 
 def create_table(con, tablename, query):
@@ -56,6 +72,16 @@ def fields(cursor):
         results[desc[0]] = column
 
     return results
+
+def drop_table(con, table):
+    """
+    Drops a table, use with caution!
+
+    """
+
+    cur = con.cursor()
+    query = "DROP TABLE ?"
+    cursor.execute(query, (table,))
 
 def add_trigger(con, trigger):
     con.execute(trigger)

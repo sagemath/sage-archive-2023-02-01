@@ -70,6 +70,7 @@ import field
 import integral_domain
 import principal_ideal_domain
 import polynomial_element_generic
+import polynomial_element
 import multi_polynomial_element
 import rational_field
 from integer_ring import is_IntegerRing
@@ -308,7 +309,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         elif self.__is_sparse:
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse
         else:
-            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense
+            self.__polynomial_class = polynomial_element.Polynomial_generic_dense
 
     def base_extend(self, R):
         """

@@ -17,13 +17,13 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-
 import os
 import ConfigParser
 import subprocess
 import sys
 
 from sage.dsage.database.clientdb import ClientDatabase
+from sage.dsage.twisted.pubkeyauth import get_pubkey_string
 from sage.dsage.misc.constants import delimiter as DELIMITER
 from sage.dsage.__version__ import version
 
@@ -69,7 +69,6 @@ def setup_client():
     config.set('ssl', 'ssl', 1)
     config.set('log', 'log_file', 'stdout')
     config.set('log', 'log_level', '0')
-    # set public key authentication info
     print DELIMITER
     print "Generating public/private key pair for authentication..."
     print "Your key will be stored in %s/dsage_key"%DSAGE_DIR
@@ -87,12 +86,11 @@ def setup_client():
 
 def setup_worker():
     check_dsage_dir()
-     # Get ConfigParser object
     config = get_config('worker')
 
     config.set('general', 'server', 'localhost')
     config.set('general', 'port', 8081)
-    config.set('general', 'nice_level', 20)
+    config.set('general', 'priority', 20)
     config.set('general', 'workers', 2)
     config.set('uuid', 'id', '')
     config.set('ssl', 'ssl', 1)
@@ -146,16 +144,15 @@ def setup_server():
     username = c.get('auth', 'username')
     pubkey_file = c.get('auth', 'pubkey_file')
     clientdb = ClientDatabase()
-    if clientdb.get_user_and_key(username) is None:
+    if clientdb.get_user(username) is None:
         clientdb.add_user(username, pubkey_file)
-        print 'Added user %s\n' % (username)
+        print 'Added user %s.\n' % (username)
     else:
-        (user, key) = clientdb.get_user_and_key(username)
-        pubkey = open(pubkey_file).read()
-        if pubkey != key:
+        user, key = clientdb.get_user_and_key(username)
+        if key != get_pubkey_string(pubkey_file):
             clientdb.del_user(username)
             clientdb.add_user(username, pubkey_file)
-            print 'User %s exists, changing public key' % (username)
+            print "User %s's pubkey changed, setting to new one." % (username)
         else:
             print 'User %s already exists.' % (username)
 

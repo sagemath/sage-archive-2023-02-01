@@ -859,7 +859,7 @@ class ExpectElement(RingElement):
         return self.sage()
 
     def sage(self):
-        return sage.misc.sage_eval.sage_eval(str(self))
+        return sage.misc.sage_eval.sage_eval(repr(self))
 
     def __repr__(self):
         try:
@@ -913,7 +913,7 @@ class ExpectElement(RingElement):
             return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
 
     def __int__(self):
-        return int(str(self))
+        return int(repr(self))
 
     def bool(self):
         P = self.parent()
@@ -926,18 +926,18 @@ class ExpectElement(RingElement):
 
 
     def __long__(self):
-        return long(str(self))
+        return long(repr(self))
 
     def __float____(self):
-        return float(str(self))
+        return float(repr(self))
 
     def _integer_(self):
         import sage.rings.all
-        return sage.rings.all.Integer(str(self))
+        return sage.rings.all.Integer(repr(self))
 
     def _rational_(self):
         import sage.rings.all
-        return sage.rings.all.Rational(str(self))
+        return sage.rings.all.Rational(repr(self))
 
     def name(self):
         return self._name

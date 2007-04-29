@@ -228,9 +228,6 @@ cdef run_spring(int iterations, int dim, double* pos, int* edges, int n):
 
     sage_free(disp)
 
-
-
-
 def binary(n, length=None):
     """
     A quick python int to binary string conversion.

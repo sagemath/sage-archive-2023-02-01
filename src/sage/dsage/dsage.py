@@ -6,39 +6,31 @@ AUTHORS:
 """
 
 import os
+import subprocess
+import sys
 
 import sage.interfaces.cleaner
 from sage.misc.all import DOT_SAGE
-import pexpect
+from sage.misc.all import SAGE_ROOT
 
-## def spawn(cmd, logfile=None, verbose=True):
-##     pid = os.fork()
-##     if pid != 0:
-##         sage.interfaces.cleaner.cleaner(pid)
-##         if verbose:
-##             print "Started %s (pid = %s, logfile = '%s')"%(cmd, pid, logfile)
-##         return pid
-##     if pid == 0:
-##         if not logfile is None:
-##             cmd += ' 2>&1 > ' + logfile
-##         os.system(cmd)
+def spawn(cmd, logfile=None, verbose=True):
+    """
+    Spawns a process and registers it with the SAGE cleaner.
 
-## def start_process(typ, hostname, address, port):
-##     cmd = 'dsage_%s.py &'%typ
-##     os.system(cmd)
-##     dir = '%s/dsage/'%os.environ['DOT_SAGE']
-##     pid_file = '%s/server-hostname-address-port.pid'%dir
-##     while True:
-##         try:
-##             if os.path.exists(pid_file):
-##                 return int(open(pid_file).read())
-##         except Exception, msg:
-##             print msg
+    """
 
+    if not logfile is None:
+        log = open(logfile, 'a')
+    else:
+        log = sys.stdout
+
+    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)], stdout=log, stderr=log)
+    print 'Spawned %s (pid = %s, logfile = %s)' % (cmd, process.pid, log.name)
+    sage.interfaces.cleaner.cleaner(process.pid, cmd)
 
 class DistributedSage(object):
     r"""
-    DistributedSage allows you to do distributed computing using SAGE.
+    Distributed SAGE allows you to do distributed computing in SAGE.
 
     To get up and running quickly, run dsage.setup() to run the
     configuration utility.
@@ -104,6 +96,7 @@ class DistributedSage(object):
         can look for their respective conf files in DOT_SAGE/dsage.
         The configuration file should be self explanatory.
     """
+
     def __init__(self):
         pass
 
@@ -114,74 +107,32 @@ class DistributedSage(object):
 
         return DSage()
 
-##     def server(self, blocking=True, logfile=None):
-##         r"""
-##         Run the Distributed SAGE server.
-
-##         Doing \code{dsage.server()} will spawn a server process which
-##         listens by default on port 8081.
-
-##         INPUT:
-##             blocking -- boolean (default: True) -- if False the dsage
-##                         server will run and you'll still be able to
-##                         enter commands at the command prompt (though
-##                         logging will make this hard).
-##             logfile  -- only used if blocking=True; the default is
-##                         to log to $DOT_SAGE/dsage/server.log
-##         """
-##         cmd = 'dsage_server.py'
-##         if not blocking:
-##             if logfile is None:
-##                 logfile = '%s/dsage/server.log'%DOT_SAGE
-##             spawn(cmd, logfile)
-##         else:
-##             os.system(cmd)
-
-    def server(self):
+    def server(self, blocking=True, clear_jobs=False, logfile=None):
         r"""
         Run the Distributed SAGE server.
 
         Doing \code{dsage.server()} will spawn a server process which
         listens by default on port 8081.
+
+        INPUT:
+            blocking -- boolean (default: True) -- if False the dsage
+                        server will run and you'll still be able to
+                        enter commands at the command prompt (though
+                        logging will make this hard).
+            logfile  -- only used if blocking=True; the default is
+                        to log to $DOT_SAGE/dsage/server.log
+
         """
+
         cmd = 'dsage_server.py'
-        os.system(cmd)
+        if not blocking:
+            if logfile is None:
+                logfile = '%s/dsage/server.log' % (DOT_SAGE)
+            spawn(cmd, logfile)
+        else:
+            os.system(cmd)
 
-
-##     def worker(self, server=None, port=None, blocking=True, logfile=None):
-##         r"""
-##         Run the Distributed SAGE worker.
-
-##         Typing \code{sage.worker()} will launch a worker which by
-##         default connects to localhost on port 8081 to fetch jobs.
-
-##         INPUT:
-
-##             server -- (string, default: None) the server you want to
-##                       connect to if None, connects to the server
-##                       specified in .sage/dsage/worker.conf
-##             port -- (integer, default: None) the port that the server
-##                       listens on for workers.
-##             blocking -- (bool, default: True) whether or not to make a
-##                         blocking connection.
-##             logfile -- only used if blocking=True; the default is
-##                        to log to $DOT_SAGE/dsage/worker.log
-##         """
-##         cmd = 'dsage_worker.py'
-##         if blocking:
-##             cmd += ' %s' % server
-##             cmd += ' %s' % port
-##             os.system(cmd)
-##         else:
-##             if not server is None or not port is None:
-##                 args = [str(server), str(port)]
-##             else:
-##                 args = []
-##             if logfile is None:
-##                 logfile = '%s/dsage/worker.log'%DOT_SAGE
-##             spawn(cmd + ' '.join(args), logfile)
-
-    def worker(self, server=None, port=None):
+    def worker(self, server=None, port=None, blocking=True, logfile=None):
         r"""
         Run the Distributed SAGE worker.
 
@@ -195,11 +146,26 @@ class DistributedSage(object):
                       specified in .sage/dsage/worker.conf
             port -- (integer, default: None) the port that the server
                       listens on for workers.
+            blocking -- (bool, default: True) whether or not to make a
+                        blocking connection.
+            logfile -- only used if blocking=True; the default is
+                       to log to $DOT_SAGE/dsage/worker.log
         """
+
         cmd = 'dsage_worker.py'
-        cmd += ' %s' % server
-        cmd += ' %s' % port
-        os.system(cmd)
+        if blocking:
+            cmd += ' %s' % server
+            cmd += ' %s' % port
+            os.system(cmd)
+        else:
+            if not server is None or not port is None:
+                args = [str(server), str(port)]
+            else:
+                args = []
+            if logfile is None:
+                logfile = '%s/dsage/worker.log'%DOT_SAGE
+            spawn(cmd + ' '.join(args), logfile)
+
 
     def setup(self):
         r"""
@@ -210,7 +176,9 @@ class DistributedSage(object):
         configuration for just one parts, you can launch
         \code{dsage.setup_server()}, \code{dsage.setup\_worker()}
         or \code{dsage.setup()}.
+
         """
+
         cmd = 'dsage_setup.py'
         os.system(cmd)
 
@@ -218,6 +186,7 @@ class DistributedSage(object):
         """
         This method runs the configuration utility for the server.
         """
+
         cmd = 'dsage_setup.py server'
         os.system(cmd)
 
@@ -232,6 +201,7 @@ class DistributedSage(object):
         """
         This method runs the configuration utility for the client.
         """
+
         cmd = 'dsage_setup.py client'
         os.system(cmd)
 

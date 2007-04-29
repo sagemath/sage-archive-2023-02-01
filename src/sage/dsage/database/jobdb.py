@@ -359,6 +359,10 @@ class JobDatabaseSQLite(JobDatabase):
     Parameters:
     test -- set to true for unittesting purposes
 
+    AUTHORS:
+    Yi Qiang
+    Alex Clemesha
+
     """
 
     # TODO: SQLite does *NOT* enforce foreign key constraints
@@ -382,6 +386,8 @@ class JobDatabaseSQLite(JobDatabase):
      update_time timestamp,
      finish_time timestamp,
      verifiable BOOL,
+     private BOOL DEFAULT 0,
+     timeout INTEGER DEFAULT 600,
      killed BOOL DEFAULT 0
     );
     """
@@ -398,51 +404,17 @@ class JobDatabaseSQLite(JobDatabase):
 
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
-                   self.db_file,
-                   detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
-        self.con.text_factory = str # Don't want unicode objects
+                  self.db_file,
+                  isolation_level=None,
+                  detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+        sql_functions.optimize_sqlite(self.con)
+        # Don't use this, slow!
+        # self.con.text_factory = sqlite3.OptimizedUnicode
+        self.con.text_factory = str
         if not sql_functions.table_exists(self.con, self.tablename):
             sql_functions.create_table(self.con,
                                        self.tablename,
                                        self.CREATE_JOBS_TABLE)
-
-    def __add_test_data(self):
-        INSERT_JOB = """INSERT INTO jobs
-        (uid,
-         username,
-         code,
-         data,
-         output,
-         worker_id,
-         status,
-         priority,
-         creation_time,
-         update_time,
-         finish_time
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-        """
-
-        dn = lambda: datetime.datetime.now() # short hand
-        D = [(self.random_string(), 1, None, None, None, 1,
-             'new', 1, dn(), dn(), None),
-             (self.random_string(), 1, None, None, None, 1,
-             0, 1, dn(), dn(), None),
-             (self.random_string(), 1, None, None, None, 1,
-             0, 1, dn(), dn(), None)]
-
-        log.msg('Sleeping for 0.5 second to test timestamps...')
-        time.sleep(0.5)
-
-        D.extend([(self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None),
-                  (self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None),
-                  (self.random_string(), 1, None, None, None, 1,
-                   0, 1, dn(), dn(), None)])
-
-        self.con.executemany(INSERT_JOB, D)
-        self.con.commit()
 
     def _shutdown(self):
         self.con.commit()
@@ -480,10 +452,16 @@ class JobDatabaseSQLite(JobDatabase):
                 for jtuple in result]
 
     def get_job_by_id(self, job_id):
+        """
+        Returns a jdict given a job id.
+
+        """
+
         query = "SELECT * FROM jobs WHERE job_id = ?"
         cur = self.con.cursor()
-        cur.execute(query, (job_id,)) # Need to cast it to int for SAGE
+        cur.execute(query, (job_id,))
         jtuple = cur.fetchone()
+
         return self.create_jdict(jtuple, cur.description)
 
     def _get_jobs_by_parameter(self, key, value):
@@ -533,7 +511,7 @@ class JobDatabaseSQLite(JobDatabase):
         'jobs' table.
 
         Parameters:
-        job -- a sage.dsage.database.Job object
+        jdict -- sage.dsage.database.Job.jdict
 
         """
 
@@ -542,7 +520,7 @@ class JobDatabaseSQLite(JobDatabase):
         if job_id is None:
             job_id = self.random_string()
             if self.log_level > 3:
-                log.msg('[JobDB] Creating a new job with id:', job_id)
+                log.msg('[JobDB] Creating a new job with id: ', job_id)
             query = """INSERT INTO jobs
                     (job_id, status, creation_time) VALUES (?, ?, ?)"""
             cur = self.con.cursor()
@@ -589,10 +567,12 @@ class JobDatabaseSQLite(JobDatabase):
         Returns a list of jobs which have been marked as killed.
 
         """
+
         query = "SELECT * from jobs where killed = 1 AND status <> 'completed'"
         cur = self.con.cursor()
         cur.execute(query)
         killed_jobs = cur.fetchall()
+
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 
@@ -625,9 +605,19 @@ class JobDatabaseSQLite(JobDatabase):
             return True
 
     def set_killed(self, job_id, killed=True):
-        self._update_value(job_id, 'killed', killed)
+        """
+        Sets the value of killed for a job.
+
+        """
+
+        return self._update_value(job_id, 'killed', killed)
 
     def get_active_jobs(self):
+        """
+        Returns a list of jdicts whose status is 'processing'
+
+        """
+
         return self._get_jobs_by_parameter('status', 'processing')
 
 class DatabasePruner(object):

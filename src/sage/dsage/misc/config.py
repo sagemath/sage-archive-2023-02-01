@@ -32,7 +32,8 @@ from sage.dsage.misc.misc import random_str
 def check_version(old_version):
     from sage.dsage.__version__ import version
     if version != old_version:
-        msg = "Version mismatch: Has %s Needs %s" % (old_version, version)
+        msg = "Version mismatch:\nHas:\t%s\nNeeds:\t%s" % (old_version,
+                                                           version)
         raise ValueError(msg)
 
 def read_conf(config):

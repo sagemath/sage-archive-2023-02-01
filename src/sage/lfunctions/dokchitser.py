@@ -365,22 +365,32 @@ class Dokchitser(SageObject):
             sage: L = E.Lseries_dokchitser()
             sage: L.taylor_series(1)
             0.305999773834052*z + 0.186547797268162*z^2 + -0.136791463097188*z^3 + 0.0161066468496401*z^4 + 0.0185955175398802*z^5 + O(z^6)
+
+        We compute a Taylor series where each coefficient is to high precision.
+            sage: E = EllipticCurve('389a')
+            sage: L = E.Lseries_dokchitser(200)
+            sage: L.taylor_series(1,3)
+            6.2239725530250970363983975962696997888173850098274602272589e-73 + (-3.5271062035449946049211903242820246129524508593200000161038e-73)*z + 0.75931650028842677023019260789472201907809751649492435158581*z^2 + O(z^3)
         """
         self.__check_init()
         a = self.__CC(a)
         k = Integer(k)
-        z = self.gp().eval('Lseries(%s,,%s)'%(a,k-1))
-        if 'pole' in z:
-            raise ArithmeticError, z
-        elif 'Warning' in z:
-            i = z.rfind('\n')
-            msg = z[:i].replace('digits','decimal digits')
+        try:
+            z = self.gp()('Vec(Lseries(%s,,%s))'%(a,k-1))
+        except TypeError, msg:
+            raise RuntimeError, "%s\nUnable to compute Taylor expansion (try lowering the number of terms)"%msg
+        r = repr(z)
+        if 'pole' in r:
+            raise ArithmeticError, r
+        elif 'Warning' in r:
+            i = r.rfind('\n')
+            msg = r[:i].replace('digits','decimal digits')
             verbose(msg, level=-1)
-            z = z[i+1:]
-        t = self.__CC[[var]].gen(0)
-        z = z.replace('S',var).replace('.E','.0E').replace(' ','')
-        f = sage_eval(z, locals={var:t})
-        return f
+        v = list(z)
+        K = self.__CC
+        v = [K(repr(x)) for x in v]
+        R = self.__CC[[var]]
+        return R(v,len(v))
 
     def check_functional_equation(self, T=1.2):
         r"""

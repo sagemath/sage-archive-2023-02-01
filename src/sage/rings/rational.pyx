@@ -471,6 +471,27 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return bool(mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value)))
 
+    def sqrt_approx(self, prec=None, all=False):
+        """
+        EXAMPLES:
+            sage: (5/3).sqrt_approx()
+            1.29099444873581
+            sage: (990829038092384908234098239048230984/4).sqrt_approx()
+            497701978620837137.47374920870362581922510725585130996993055116540856385
+            sage: (5/3).sqrt_approx(prec=200)
+            1.2909944487358056283930884665941332036109739017638636088625
+            sage: (9/4).sqrt_approx()
+            3/2
+        """
+        try:
+            return self.sqrt(extend=False,all=all)
+        except ValueError:
+            pass
+        if prec is None:
+            prec = max(max(53, 2*(mpz_sizeinbase(mpq_numref(self.value), 2)+2)),
+                   2*(mpz_sizeinbase(mpq_denref(self.value), 2)+2))
+        return self.sqrt(prec=prec, all=all)
+
     def sqrt(self, prec=None, extend=True, all=False):
         r"""
         The square root function.

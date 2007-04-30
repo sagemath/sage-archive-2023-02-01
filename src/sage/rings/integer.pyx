@@ -1679,6 +1679,24 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return x
 
+    def sqrt_approx(self, prec=None, all=False):
+        """
+        EXAMPLES:
+            sage: 5.sqrt_approx(prec=200)
+            2.2360679774997896964091736687312762354406183596115257242709
+            sage: 5.sqrt_approx()
+            2.23606797749979
+            sage: 4.sqrt_approx()
+            2
+        """
+        try:
+            return self.sqrt(extend=False,all=all)
+        except ValueError:
+            pass
+        if prec is None:
+            prec = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
+        return self.sqrt(prec=prec, all=all)
+
     def sqrt(self, prec=None, extend=True, all=False):
         """
         The square root function.

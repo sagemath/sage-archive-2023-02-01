@@ -797,7 +797,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         else:
             return infinity.infinity
 
-    def sqrt(self, all=False):
+    def sqrt(self, all=False, **kwds):
         """
         The square root function.
 

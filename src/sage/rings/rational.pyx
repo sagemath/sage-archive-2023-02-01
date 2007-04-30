@@ -540,7 +540,7 @@ cdef class Rational(sage.structure.element.FieldElement):
 
         cdef Rational z = <Rational> PY_NEW(Rational)
         cdef mpz_t tmp
-        cdef int non_square
+        cdef int non_square = 0
 
         _sig_on
         mpz_init(tmp)

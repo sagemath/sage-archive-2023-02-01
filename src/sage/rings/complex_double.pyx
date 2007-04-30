@@ -768,7 +768,7 @@ cdef class ComplexDoubleElement(FieldElement):
     #######################################################################
     # Elementary Complex Functions
     #######################################################################
-    def sqrt(self, all=False):
+    def sqrt(self, all=False, **kwds):
         r"""
         The square root function.
 

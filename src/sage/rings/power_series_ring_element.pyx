@@ -121,7 +121,17 @@ cdef class PowerSeries(AlgebraElement):
             prec = int(prec)
         self._prec = prec
 
+    def __hash__(self):
+        return hash(self.polynomial())
+
     def __reduce__(self):
+        """
+        EXAMPLES:
+            sage: K.<t> = PowerSeriesRing(QQ, 5)
+            sage: f = 1 + t - t^3 + O(t^12)
+            sage: loads(dumps(f)) == f
+            True
+        """
         return make_element_from_parent, (self._parent, self.polynomial(), self.prec())
 
     def is_sparse(self):
@@ -387,10 +397,10 @@ cdef class PowerSeries(AlgebraElement):
             coeffs = list(d.iteritems())
             coeffs.sort()
             for (n, x) in coeffs:
-                if x != 0:
+                if x:
                     if s != ' ':
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -406,10 +416,10 @@ cdef class PowerSeries(AlgebraElement):
             first = True
             for n in xrange(m):
                 x = v[n]
-                if x != 0:
+                if x:
                     if not first:
                         s += " + "
-                    x = str(x)
+                    x = repr(x)
                     if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -462,7 +472,7 @@ cdef class PowerSeries(AlgebraElement):
         first = True
         for n in xrange(m):
             x = v[n]
-            if x != 0:
+            if x:
                 if not first:
                     s += " + "
                 x = sage.misc.latex.latex(x)
@@ -477,7 +487,7 @@ cdef class PowerSeries(AlgebraElement):
                 if n > 0:
                     s += "%s|%s"%(x,var)
                 else:
-                    s += str(x)
+                    s += repr(x)
                 first = False
 
         if atomic_repr:
@@ -543,7 +553,7 @@ cdef class PowerSeries(AlgebraElement):
 
         EXAMPLES:
             sage: R.<m> = CDF[[]]
-            sage: f = pi^2 + m^3 + e*m^4 + O(m^10); f
+            sage: f = CDF(pi)^2 + m^3 + CDF(e)*m^4 + O(m^10); f
             9.86960440109 + 1.0*m^3 + 2.71828182846*m^4 + O(m^10)
             sage: f[-5]
             0
@@ -953,14 +963,32 @@ cdef class PowerSeries(AlgebraElement):
             except TypeError:
                 return False
 
-    def sqrt(self):
+    def sqrt(self, prec=None, extend=False,
+             all=False, name=None):
         r"""
-        Return the square root of self, up to the precision of parent.
-        The leading power of x must be even.
+        The square root function.
+
+        INPUT:
+
+            prec -- integer (default: None): if not None and the series
+                 has infinite precision, truncates series at precision prec.
+            extend -- bool (default: False); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 power series ring.  For example, if extend is True
+                 the square root of a power series with odd degree
+                 leading coefficient is defined as an element of a formal
+                 extension ring.
+            name -- if extend is True, you must also specify the print name of
+                 formal square root.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
 
         ALGORITHM:
             Newton's method
-            $x_{i+1} = \frac{1}{2}( x_i + self/x_i )$
+            $$
+                x_{i+1} = \frac{1}{2}( x_i + self/x_i )
+            $$
 
         EXAMPLES:
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
@@ -970,9 +998,12 @@ cdef class PowerSeries(AlgebraElement):
             1 + 1/2*t - 1/8*t^2 + 1/16*t^3 - 5/128*t^4 + O(t^5)
             sage: sqrt(4+t)
             2 + 1/4*t - 1/64*t^2 + 1/512*t^3 - 5/16384*t^4 + O(t^5)
-            sage: sqrt(2+t)
-            1.41421356237309 + 0.353553390593274*t - 0.0441941738241592*t^2 + 0.0110485434560399*t^3 - 0.00345266983001233*t^4 + O(t^5)
-
+            sage: u = sqrt(2+t, prec=2, extend=True, name = 'alpha'); u
+            alpha
+            sage: u^2
+            2 + t
+            sage: u.parent()
+            Univariate Quotient Polynomial Ring in alpha over Power Series Ring in t over Rational Field with modulus x^2 + -2 - t
             sage: K.<t> = PowerSeriesRing(QQ, 't', 50)
             sage: sqrt(1+2*t+t^2)
             1 + t + O(t^50)
@@ -985,34 +1016,89 @@ cdef class PowerSeries(AlgebraElement):
             sage: sqrt(t^2)
             t
 
-        AUTHOR:
+            sage: K.<t> = PowerSeriesRing(CDF, 5)
+            sage: v = sqrt(-1 + t + t^3, all=True); v
+            [1.0*I + -0.5*I*t + -0.125*I*t^2 + -0.5625*I*t^3 + -0.2890625*I*t^4 + O(t^5),
+             -1.0*I + 0.5*I*t + 0.125*I*t^2 + 0.5625*I*t^3 + 0.2890625*I*t^4 + O(t^5)]
+            sage: [a^2 for a in v]
+            [-1.0 + 1.0*t + 1.0*t^3 + O(t^5), -1.0 + 1.0*t + 1.0*t^3 + O(t^5)]
+
+        A formal square root:
+            sage: K.<t> = PowerSeriesRing(QQ, 5)
+            sage: f = 2*t + t^3 + O(t^4)
+            sage: s = f.sqrt(extend=True, name='sqrtf'); s
+            sqrtf
+            sage: s^2
+            2*t + t^3 + O(t^4)
+            sage: parent(s)
+            Univariate Quotient Polynomial Ring in sqrtf over Power Series Ring in t over Rational Field with modulus x^2 + -2*t - t^3 + O(t^4)
+
+        AUTHORS:
             -- Robert Bradshaw
+            -- William Stein
         """
         if self.is_zero():
-            return self._parent(0).O(self.prec()/2)
+            ans = self._parent(0).O(self.prec()/2)
+            if all:
+                return [ans]
+            else:
+                return ans
+
+        if all and not self.base_ring().is_integral_domain():
+            raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+
+        formal_sqrt = False
+        u = self.valuation_zero_part()
+        try:
+            s = u[0].sqrt(extend=False)
+        except ValueError:
+            formal_sqrt = True
+        if self.degree() == 0:
+            if not formal_sqrt:
+                a = self.parent()([s], self.prec())
+                if all:
+                    return [a, -a]
+                else:
+                    return a
 
         val = self.valuation()
-        if val is not infinity and val % 2 == 1:
-            raise ValueError, "Square root not defined for power series of odd valuation."
+        if formal_sqrt or val % 2 == 1:
+            if extend:
+                if name is None:
+                    raise ValueError, "the square root generates an extension, so you must specify the name of the square root"
+                R = self._parent['x']
+                S = R.quotient(R([-self,0,1]), names=name)
+                a = S.gen()
+                if all:
+                    if not self.base_ring().is_integral_domain():
+                        raise NotImplementedError, 'all roots not implemented over a non-integral domain'
+                    return [a, -a]
+                else:
+                    return a
+            else:
+                raise ValueError, "power series does not have a square root since it has odd valuation."
 
-        if self.degree() == 0:
-            x = self.valuation_zero_part()[0].sqrt()
-            return self.parent().base_extend(x.parent())([x], val/2)
-
-        prec = self.prec()
-        if prec == infinity:
-            prec = self._parent.default_prec()
+        pr = self.prec()
+        if pr == infinity:
+            if prec is None:
+                pr = self._parent.default_prec()
+            else:
+                pr = prec
+        prec = pr
 
         a = self.valuation_zero_part()
-        x = a[0].sqrt()
-        newp = self._parent.base_extend(x.parent())
-        a = newp(a)
-        half = ~newp.base_ring()(2)
+        P = self._parent
+        half = ~P.base_ring()(2)
 
         for i in range (ceil(log(prec, 2))):
-            x = half * (x + a/x)
+            s = half * (s + a/s)
 
-        return newp.gen(0)**(val/2) * x
+        ans = P.gen(0)**(val/2) * s
+
+        if all:
+            return [ans, -ans]  # since over an integral domain
+        else:
+            return ans
 
     def square_root(self):
         """
@@ -1331,6 +1417,9 @@ cdef class PowerSeries_poly(PowerSeries):
         if check and not (prec is infinity):
             self.__f = self.__f.truncate(prec)
         PowerSeries.__init__(self, parent, prec, is_gen)
+
+    def __hash__(self):
+        return hash(self.__f)
 
     def __reduce__(self):
         # TODO: find out what's going on with ring pickling

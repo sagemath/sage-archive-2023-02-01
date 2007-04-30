@@ -1679,61 +1679,6 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
         return x
 
-
-    def sqrt_approx(self, bits=None):
-        r"""
-        Returns the positive square root of self, possibly as a
-        \emph{a real or complex number} if self is not a perfect
-        integer square.
-
-        INPUT:
-            bits -- number of bits of precision.
-                    If bits is not specified, the number of
-                    bits of precision is at least twice the
-                    number of bits of self.
-        OUTPUT:
-            integer, real number, or complex number.
-
-        For the guaranteed integer square root of a perfect square
-        (with error checking), use \code{self.square_root()}.
-
-        EXAMPLE:
-            sage: Z = IntegerRing()
-            sage: Z(4).sqrt_approx(53)
-            2.00000000000000
-            sage: Z(2).sqrt_approx(53)
-            1.41421356237310
-            sage: Z(2).sqrt_approx(100)
-            1.4142135623730950488016887242
-            sage: n = 39188072418583779289; n.sqrt()
-            6260037733
-            sage: (100^100).sqrt_approx()
-            10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-            sage: (-1).sqrt_approx()
-            1.00000000000000*I
-            sage: (-1).sqrt()
-            I
-            sage: sqrt(-2)
-            sqrt(2)*I
-            sage: sqrt(-2.0)
-            1.41421356237310*I
-            sage: sqrt(97)
-            sqrt(97)
-            sage: n = 97; n.sqrt_approx(200)
-            9.8488578017961047217462114149176244816961362874427641717232
-        """
-        if bits is None:
-            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
-
-        if mpz_sgn(self.value) < 0:
-            import sage.rings.complex_field
-            x = sage.rings.complex_field.ComplexField(bits)(self)
-            return x.sqrt()
-        else:
-            import real_mpfr
-            R = real_mpfr.RealField(bits)
-            return R(self).sqrt()
-
     def sqrt(self, prec=None, extend=True, all=False):
         """
         The square root function.

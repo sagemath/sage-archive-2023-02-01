@@ -559,7 +559,7 @@ cdef class QuadDoubleElement(FieldElement):
         if self.initptr.x[0] < 0.0:
             result += '-'
 
-        s = <char*>PyMem_Malloc(MAX_DIGITS)
+        s = <char*>PyMem_Malloc(MAX_DIGITS+1)
         _sig_on
         self.initptr.to_digits(s,point_index,MAX_DIGITS)
         _sig_off

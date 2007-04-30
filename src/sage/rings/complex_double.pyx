@@ -768,11 +768,16 @@ cdef class ComplexDoubleElement(FieldElement):
     #######################################################################
     # Elementary Complex Functions
     #######################################################################
-    def sqrt(self):
+    def sqrt(self, all=False):
         r"""
-        This function returns the square root of the complex number $z$,
-        $\sqrt{z}$. The branch cut is the negative real axis. The result
-        always lies in the right half of the complex plane.
+        The square root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all square roots.
+
+        If all is False, the branch cut is the negative real axis. The
+        result always lies in the right half of the complex plane.
 
         EXAMPLES:
         We compute several square roots.
@@ -788,29 +793,26 @@ cdef class ComplexDoubleElement(FieldElement):
             sage: a = CDF(-1)
             sage: a.sqrt()
             1.0*I
+
+        We compute all square roots:
+            sage: CDF(-2).sqrt(all=True)
+            [1.41421356237*I, -1.41421356237*I]
+            sage: CDF(0).sqrt(all=True)
+            [0]
         """
-        return self._new_c(gsl_complex_sqrt(self._complex))
+        z = self._new_c(gsl_complex_sqrt(self._complex))
+        if all:
+             if z.is_zero():
+                 return [z]
+             else:
+                 return [z, -z]
+        return z
 
     def is_square(self):
         """
         This function always returns true as $\C$ is algebraically closed.
         """
         return True
-
-    def square_root(self):
-        r"""
-        This function returns the square root of the complex number $z$,
-        $\sqrt{z}$. The branch cut is the negative real axis. The result
-        always lies in the right half of the complex plane.
-
-        EXAMPLES:
-            sage: a = CDF(2,3)
-            sage: b = a.square_root(); b
-            1.67414922804 + 0.89597747613*I
-            sage: b^2
-            2.0 + 3.0*I
-        """
-        return self._new_c(gsl_complex_sqrt(self._complex))
 
     def _pow_(self, ComplexDoubleElement a):
         """

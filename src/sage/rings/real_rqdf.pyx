@@ -1,27 +1,37 @@
 """
-Field of quad double numbers
+Field of real quad double numbers
 
-Quad double numbers allow us to represent real numbers
-with up to 64 digits of accuracy.
+Quad double numbers allow us to represent real numbers with 212 bits
+(or 64 decimal digits) of accuracy.  Computation of special functions
+is extremely fast in this field, and arithmetic is slightly faster
+than arithmetic in the MPFR real field.
 
 EXAMPLES:
-    RQDF numbers can be mixed with RDF and MPFR reals, Integers,
-    Rationals, etc :
-    sage: RQDF = RealQuadDoubleField()
+RQDF numbers can be mixed with RDF and MPFR reals, Integers,
+Rationals, etc.:
     sage: RQDF( 123.2) + RR (1.0)
     124.200000000000
     sage: RQDF( 12.2) + RDF (0.56)
     12.76
     sage: RQDF( 12.2) + (9)
-    21.1999999999999992894572642398998141288757324218750000000000000
+    21.19999999999999928945726423989981412887573242187500000000000000
     sage: RQDF( 12.2) + (9/3)
-    15.1999999999999992894572642398998141288757324218750000000000000
+    15.19999999999999928945726423989981412887573242187500000000000000
 
-    Note that the result will always be coerced to the field
-    with the lowest precision:
+Note that the result will always be coerced to the field
+with the lowest precision:
     sage: RR = RealField (300)
     sage: RQDF( 123.2) * RR (.543)
-    66.8976000000000062485128182743211430979273674932556746538505829
+    66.89760000000000624851281827432114309792736749325567465385058291
+
+Mixing of symbolic an quad double elements:
+    sage: a = RQDF(2) / log(10); a
+    2.00000000000000/log(10)
+    sage: parent(a)
+    Symbolic Ring
+    sage: RQDF(a)
+    0.868588963806503655302257837833210164588794011607333132228907565
+
 """
 
 #*****************************************************************************
@@ -56,9 +66,17 @@ import sage.rings.complex_field
 
 from sage.rings.integer import Integer
 from sage.rings.rational import Rational
-from sage.rings.real_mpfr import RealNumber, RealField
+from sage.rings.real_mpfr import RealNumber
 from sage.rings.real_double import RealDoubleElement
 from sage.rings.complex_field import ComplexField
+
+_R = None
+def RR():
+    global _R
+    if _R is None:
+        from real_mpfr import RealField
+        _R = RealField(212)
+    return _R
 
 from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
@@ -127,7 +145,7 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
 
 cdef class RealQuadDoubleField_class(Field):
     """
-    Quad Double Field
+    Real Quad Double Field
     """
 
     def __init__(self):
@@ -139,6 +157,9 @@ cdef class RealQuadDoubleField_class(Field):
     def is_exact(self):
         return False
 
+    cdef _an_element_c_impl(self):  # override this in SageX
+        return self(0)
+
     def _latex_(self):
         return "\\R"
 
@@ -148,10 +169,10 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF
-            Quad Double Real Field
+            Real Quad Double Field
 
         """
-        return "Quad Double Real Field"
+        return "Real Quad Double Field"
 
     def __cmp__(self, x):
         """
@@ -172,7 +193,7 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF (-1)
-            -1.00000000000000000000000000000000000000000000000000000000000000
+            -1.000000000000000000000000000000000000000000000000000000000000000
 
             sage: RQDF (-1/3)
             -0.333333333333333333333333333333333333333333333333333333333333333
@@ -183,8 +204,8 @@ cdef class RealQuadDoubleField_class(Field):
         """
         if PY_TYPE_CHECK(x, QuadDoubleElement):
             return x
-        elif hasattr(x,'_rqdf_'):
-            return x._rqdf_()
+        elif hasattr(x,'_real_rqdf_'):
+            return x._real_rqdf_(self)
         return QuadDoubleElement(x)
 
     def gen(self, i=0):
@@ -193,7 +214,7 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF.gen()
-            1.00000000000000000000000000000000000000000000000000000000000000
+            1.000000000000000000000000000000000000000000000000000000000000000
 
         """
         if i == 0:
@@ -217,7 +238,7 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF.gens()
-            [1.00000000000000000000000000000000000000000000000000000000000000]
+            [1.000000000000000000000000000000000000000000000000000000000000000]
 
         """
         return [self.gen()]
@@ -229,18 +250,16 @@ cdef class RealQuadDoubleField_class(Field):
         The rings that canonically coerce to the real quad double field are:
              * the real quad double field itself
              * int, long, integer, and rational rings
-             * real mathematical constants
-             * the mpfr real field, if its precision is greater
-               212 bits
+             * the mpfr real field, if its precision is at least 212 bits
+             * anything that canonically coerces to the mpfr real field.
 
         EXAMPLES:
-            sage: RQDF = RealQuadDoubleField()
             sage: RQDF._coerce_(1/2)
             0.500000000000000000000000000000000000000000000000000000000000000
             sage: RQDF._coerce_(26)
-            26.0000000000000000000000000000000000000000000000000000000000000
+            26.00000000000000000000000000000000000000000000000000000000000000
             sage: RQDF._coerce_(26r)
-            26.0000000000000000000000000000000000000000000000000000000000000
+            26.00000000000000000000000000000000000000000000000000000000000000
 
             sage: RR = RealField (300)
             sage: RQDF._coerce_(RR('0.245465643523545656345356677563'))
@@ -253,8 +272,7 @@ cdef class RealQuadDoubleField_class(Field):
             if  x.parent().prec() > 212:
                 return self(x)
 
-        import sage.functions.constants
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing])
+        return self._coerce_try(x, [RR()])
 
     def name(self):
         return "QuadDoubleField"
@@ -268,9 +286,9 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF.pi()
-            3.14159265358979323846264338327950288419716939937510582097494459
+            3.141592653589793238462643383279502884197169399375105820974944590
             sage: RQDF.pi().sqrt()/2
-            0.886226925452758013649083741670572591398774728061193564106903895
+            0.886226925452758013649083741670572591398774728061193564106903894
 
         """
         cdef qd z
@@ -290,7 +308,7 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF.log2()
-            0.693147180559945309417232121458176568075500134360255254120680010
+            0.693147180559945309417232121458176568075500134360255254120680009
         """
         cdef qd z
         cdef char *s
@@ -308,7 +326,7 @@ cdef class RealQuadDoubleField_class(Field):
 
         EXAMPLES:
             sage: RQDF.e()
-            2.71828182845904523536028747135266249775724709369995957496696763
+            2.718281828459045235360287471352662497757247093699959574966967630
         """
         cdef qd z
         cdef char *s
@@ -396,29 +414,28 @@ cdef class QuadDoubleElement(FieldElement):
         where $a_0$ is the most significant component.
 
         EXAMPLES:
-            sage: RQDF = RealQuadDoubleField()
             sage: RQDF('1.1111111111100001111111011')
-            1.11111111111000011111110110000000000000000000000000000000000000
+            1.111111111110000111111101100000000000000000000000000000000000000
             sage: RQDF(124/34)
-            3.64705882352941176470588235294117647058823529411764705882352941
+            3.647058823529411764705882352941176470588235294117647058823529412
             sage: RQDF(12434)
-            12434.0000000000000000000000000000000000000000000000000000000000
+            12434.00000000000000000000000000000000000000000000000000000000000
             sage: RQDF(2^60 + 9 )
             1.15292150460684698500000000000000000000000000000000000000000000e18
 
             You can also create a quad double number from a 4-tuple:
             sage: w= (2432323.0r,2.323e-12r,4.3423e-34r,-2.323e-52r)
             sage: RQDF(w)
-            2432323.00000000000232300000000000009807411354788795340507939730
+            2432323.000000000002323000000000000098074113547887953405079397297
 
             or from RDF and MPFR reals:
             sage: RQDF(RDF(3434.34342))
-            3434.34342000000015104888007044792175292968750000000000000000000
+            3434.343420000000151048880070447921752929687500000000000000000000
             sage: RQDF(RR(1091.34342))
-            1091.34341999999992367520462721586227416992187500000000000000000
+            1091.343419999999923675204627215862274169921875000000000000000000
             sage: RR = RealField (300)
             sage: RQDF(RR('1091.34342'))
-            1091.34342000000000000000000000000000000000000000000000000000000
+            1091.343420000000000000000000000000000000000000000000000000000000
         """
         fpu_fix_start(self.cw)
         self._set(x)
@@ -466,11 +483,12 @@ cdef class QuadDoubleElement(FieldElement):
     def get_doubles(self):
         """
         Return the 4 doubles that constitute this quad double real number
+
         EXAMPLES:
             sage: w= RQDF('1.34435343435344446376457677898097745635222')
             sage: t=w.get_doubles ()
             sage: RQDF (t)
-            1.34435343435344446376457677898097745635222000000000000000000000
+            1.344353434353444463764576778980977456352220000000000000000000000
             sage: RQDF (t) == w
             True
         """
@@ -483,7 +501,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: w=RQDF(2) ; w.real()
-            2.00000000000000000000000000000000000000000000000000000000000000
+            2.000000000000000000000000000000000000000000000000000000000000000
         """
         return self
 
@@ -514,7 +532,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: s = dumps(RQDF('7.123456789'))
             sage: loads(s)
-            7.12345678900000000000000000000000000000000000000000000000000000
+            7.123456789000000000000000000000000000000000000000000000000000000
         """
         doubles = self.get_doubles()
         return QuadDoubleElement,(doubles,)
@@ -535,7 +553,7 @@ cdef class QuadDoubleElement(FieldElement):
         cdef char *s
         cdef int point_index
         result = ''
-        MAX_DIGITS = 63
+        MAX_DIGITS = 64
 
         # A negative number
         if self.initptr.x[0] < 0.0:
@@ -582,14 +600,15 @@ cdef class QuadDoubleElement(FieldElement):
     def str(self):
         """
         Returns the string representation of self.
+
         If this number is less than $10^12$ and greater than $10^-12$,
         it is printed normally.
+
         Otherwise, it is printed in scientific notation
 
         EXAMPLES:
-            sage: RQDF = RealQuadDoubleField ()
             sage: r= RQDF('222222222224.00000000001111111111') ; r
-            222222222224.000000000011111111110000000000000000000000000000000
+            222222222224.0000000000111111111100000000000000000000000000000000
             sage: r= RQDF('2222222222245.00000000001111111111') ; r
             2.22222222224500000000001111111111000000000000000000000000000000e12
             sage: r= RQDF('0.00000000001111111111') ; r
@@ -624,7 +643,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
            sage: w=RQDF(-21.2) ; w.parent()
-           Quad Double Real Field
+           Real Quad Double Field
         """
         return self._parent
 
@@ -634,7 +653,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: w=RQDF('-21.2') ; copy(w)
-            -21.2000000000000000000000000000000000000000000000000000000000000
+            -21.20000000000000000000000000000000000000000000000000000000000000
         """
         return self
 
@@ -643,7 +662,6 @@ cdef class QuadDoubleElement(FieldElement):
         If in decimal this number is written n.defg, returns n.
 
         EXAMPLES:
-            sage: RQDF = RealQuadDoubleField ()
             sage: test = 253536646425647436353675786864535364746
             sage: RQDF(test).integer_part() == test
             True
@@ -665,7 +683,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: w=RQDF(1/3)
             sage: 1/w
-            3.00000000000000000000000000000000000000000000000000000000000000
+            3.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -680,7 +698,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: RQDF(1/3) + RQDF(1)
-            1.33333333333333333333333333333333333333333333333333333333333333
+            1.333333333333333333333333333333333333333333333333333333333333333
         """
 
         cdef QuadDoubleElement res
@@ -694,7 +712,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: RQDF(1/3) - RQDF(1)
-            -0.666666666666666666666666666666666666666666666666666666666666667
+            -0.666666666666666666666666666666666666666666666666666666666666666
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -707,7 +725,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: RQDF('1.3') * RQDF(10)
-            13.0000000000000000000000000000000000000000000000000000000000000
+            13.00000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -796,9 +814,9 @@ cdef class QuadDoubleElement(FieldElement):
         rounds down if fractional part is lesser than .5.
         EXAMPLES:
             sage: RQDF(0.49).round()
-            0.00000000000000000000000000000000000000000000000000000000000000
+            0.000000000000000000000000000000000000000000000000000000000000000
             sage: RQDF(0.51).round()
-            1.00000000000000000000000000000000000000000000000000000000000000
+            1.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -833,7 +851,7 @@ cdef class QuadDoubleElement(FieldElement):
 
     def ceil(self):
         """
-        Returns the ceiling of this number
+        Returns the ceiling of this number, as an integer.
 
         EXAMPLES:
             sage: RQDF(2.99).ceil()
@@ -842,6 +860,8 @@ cdef class QuadDoubleElement(FieldElement):
             2
             sage: RQDF(-5/2).ceil()
             -2
+            sage: type(RQDF(-5/2).ceil())
+            <type 'sage.rings.integer.Integer'>
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -849,6 +869,11 @@ cdef class QuadDoubleElement(FieldElement):
         return res.integer_part()
 
     def ceiling(self):
+        """
+        EXAMPLES:
+            sage: RQDF('2.000000000001').ceiling()
+            3
+        """
         return self.ceil()
 
     def trunc(self):
@@ -857,11 +882,11 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: RQDF(2.99).trunc()
-            2.00000000000000000000000000000000000000000000000000000000000000
+            2.000000000000000000000000000000000000000000000000000000000000000
             sage: RQDF(-2.00).trunc()
-            -2.00000000000000000000000000000000000000000000000000000000000000
+            -2.000000000000000000000000000000000000000000000000000000000000000
             sage: RQDF(0.00).trunc()
-            0.00000000000000000000000000000000000000000000000000000000000000
+            0.000000000000000000000000000000000000000000000000000000000000000
         """
         return QuadDoubleElement(self.floor())
 
@@ -892,10 +917,10 @@ cdef class QuadDoubleElement(FieldElement):
         Returns the floating-point value of this number
 
         EXAMPLES:
-            sage: w=RQDF(-23.79)
+            sage: w = RQDF('-23.79'); w
+            -23.79000000000000000000000000000000000000000000000000000000000000
             sage: float(w)
             -23.789999999999999
-
         """
         cdef double d
         d = qd_to_double(qd_deref(self.initptr))
@@ -904,11 +929,12 @@ cdef class QuadDoubleElement(FieldElement):
     def __int__(self):
         """
         Returns integer truncation of this real number.
+
         EXAMPLES:
-            sage: w=RQDF(-23.79)
+            sage: w = RQDF('-23.79'); w
+            -23.79000000000000000000000000000000000000000000000000000000000000
             sage: int(w)
             -23
-
         """
         cdef int i
         i = qd_to_int(qd_deref(self.initptr))
@@ -917,18 +943,88 @@ cdef class QuadDoubleElement(FieldElement):
     def __long__(self):
         """
         Returns long integer truncation of this real number.
+
+        EXAMPLES:
+            sage: w = RQDF.pi(); w
+            3.141592653589793238462643383279502884197169399375105820974944590
+            sage: long(w)
+            3L
         """
         return long(self.__int__())
 
 
-    def _complex_number_(self):
-        return  sage.rings.complex_field.ComplexField()(float(self))
+    def _real_double_(self, R):
+        """
+        EXAMPLES:
+            sage: w = RQDF.e(); w
+            2.718281828459045235360287471352662497757247093699959574966967630
+            sage: RDF(w)
+            2.71828182846
+            sage: w._real_double_(RDF)
+            2.71828182846
+        """
+        return  R(float(self))
 
-    def _complex_double_(self):
-        return  sage.rings.complex_double.ComplexDoubleField(float(self))
+    def _complex_double_(self, C):
+        """
+        EXAMPLES:
+            sage: RQDF(-1)._complex_double_(CDF)
+            -1.0
+            sage: CDF(RQDF(-1))
+            -1.0
+        """
+        return  C(float(self))
+
+    def _complex_mpfr_field_(self, K):
+        """
+        EXAMPLES:
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: w._complex_mpfr_field_(ComplexField(212))
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: ComplexField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+        """
+        return K(repr(self))
+
+    def _mpfr_(self, K):
+        """
+        EXAMPLES:
+            sage: w = RQDF('2.345001').sqrt(); w
+            1.531339609622894852128128425884749978483262262653204338472911277
+            sage: w._mpfr_(RealField(212))
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RealField(212)(w)
+            1.53133960962289485212812842588474997848326226265320433847291128
+            sage: RealField(250)(w)
+            1.5313396096228948521281284258847499784832622626532043384729112770000000000
+        """
+        return K(repr(self))
 
     def _pari_(self):
-        return  sage.libs.pari.all.pari.new_with_bits_prec("%.15e"%float(self), 64)
+        """
+        Return the PARI real number corresponding to self.
+
+        EXAMPLES:
+            sage: w = RQDF('2').sqrt(); w
+            1.414213562373095048801688724209698078569671875376948073176679738
+            sage: x = w._pari_()
+
+        Note that x appears to have lower precision:
+            sage: x
+            1.414213562373095048801688724
+
+        In fact it doesn't.
+            sage: pari.set_real_precision(100)
+            28
+            sage: x
+            1.4142135623730950488016887242096980785696718753769480731766797380000
+
+        Set the precision in PARI back.
+            sage: pari.set_real_precision(28)
+            100
+        """
+        return  sage.libs.pari.all.pari.new_with_bits_prec(repr(self), 212)
 
 
     ###########################################
@@ -938,6 +1034,7 @@ cdef class QuadDoubleElement(FieldElement):
     def is_NaN(self):
         """
         Returns True if self is NaN
+
         EXAMPLES:
             sage: w=RQDF(9)
             sage: w.is_NaN()
@@ -959,6 +1056,7 @@ cdef class QuadDoubleElement(FieldElement):
     def is_infinity(self):
         """
         Returns True if self is infinifty
+
         EXAMPLES:
             sage: w=RQDF(32)/RQDF(0) ; w.is_infinity()
             True
@@ -1025,30 +1123,58 @@ cdef class QuadDoubleElement(FieldElement):
     # Special Functions
     ############################
 
-    def sqrt(self):
+    def sqrt(self, extend=True, all=False):
         """
-        Return a square root of self.
+        The square root function.
 
-        If self is negative a complex number is returned.
-
-        If you use self.square_root() then a real number will always
-        be returned (though it will be NaN if self is negative).
+        INPUT:
+            extend -- bool (default: True); if True, return
+                a square root in a complex field if necessary
+                if self is negative; otherwise raise a ValueError
+            all -- bool (default: False); if True, return a list
+                of all square roots.
 
         EXAMPLES:
             sage: RQDF('-3233').sqrt()
-            56.8594759033179997231854940764605998992919921875000000000000000*I
+            56.8594759033179974315326998383777083570361710615905085284278958*I
             sage: RQDF('-4').sqrt()
             2.00000000000000000000000000000000000000000000000000000000000000*I
             sage: RQDF('4.1234').sqrt()
-            2.03061567018478413001852163026332257480581677068971974187159729
+            2.030615670184784130018521630263322574805816770689719741871597292
+            sage: w = RQDF(2).sqrt(); w
+            1.414213562373095048801688724209698078569671875376948073176679738
+            sage: RealField(212)(2).sqrt()
+            1.41421356237309504880168872420969807856967187537694807317667974
+            sage: w = RQDF(-2).sqrt(); w
+            1.41421356237309504880168872420969807856967187537694807317667974*I
+            sage: w = RQDF(2).sqrt(all=True); w
+            [1.414213562373095048801688724209698078569671875376948073176679738,
+            -1.414213562373095048801688724209698078569671875376948073176679738]
+
+            sage: RQDF(-2).sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: negative number -2.000000000000000000000000000000000000000000000000000000000000000 does not have a square root in the real quad double field
         """
-        if self.initptr.x[0] >=0:
-            return self.square_root()
-        cn = ComplexField(212)(self._complex_number_().sqrt())
-        return cn
+        if self.initptr.x[0] ==0:
+            if all:
+                return [self]
+            else:
+                return self
+        elif self.initptr.x[0] > 0:
+            z = self._square_root()
+            if all:
+                return [z, -z]
+            return z
 
 
-    def square_root(self):
+        if not extend:
+            raise ValueError, "negative number %s does not have a square root in the real quad double field"%self
+
+        return ComplexField(212)(self).sqrt(all=all)
+
+
+    def _square_root(self):
         """
         Return a square root of self.  A real number will always be
         returned (though it will be NaN if self is negative).
@@ -1056,9 +1182,9 @@ cdef class QuadDoubleElement(FieldElement):
         Use self.sqrt() to get a complex number if self is negative.
 
         EXAMPLES:
-            sage: RQDF('4').square_root()
-            2.00000000000000000000000000000000000000000000000000000000000000
-            sage: RQDF('-4').square_root()
+            sage: RQDF('4')._square_root()
+            2.000000000000000000000000000000000000000000000000000000000000000
+            sage: RQDF('-4')._square_root()
             NaN
         """
         cdef QuadDoubleElement res
@@ -1076,9 +1202,9 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: r = RQDF(125.0); r.cube_root()
-            5.00000000000000000000000000000000000000000000000000000000000000
+            5.000000000000000000000000000000000000000000000000000000000000000
             sage: RQDF('-8').cube_root()
-            -2.00000000000000000000000000000000000000000000000000000000000000
+            -2.000000000000000000000000000000000000000000000000000000000000000
         """
         return self.nth_root(3)
 
@@ -1087,11 +1213,12 @@ cdef class QuadDoubleElement(FieldElement):
         """
         Returns the $n^{th}$ root of self.
         Returns NaN if self is negative
+
         EXAMPLES:
             sage: r = RQDF(125.0); r.nth_root(3)
-            5.00000000000000000000000000000000000000000000000000000000000000
+            5.000000000000000000000000000000000000000000000000000000000000000
             sage: r.nth_root(5)
-            2.62652780440376723645513126649647958211566280281089853003443633
+            2.626527804403767236455131266496479582115662802810898530034436330
             sage: RQDF('-4987').nth_root(2)
             NaN
         """
@@ -1120,10 +1247,11 @@ cdef class QuadDoubleElement(FieldElement):
     def __pow__(self,n,d):
         """
         Compute self raised to the power of exponent.
+
         EXAMPLES:
             sage: a = RQDF('1.23456')
             sage: a^20
-            67.6462977038539690931854578143714216743121249206181635174910783
+            67.64629770385396909318545781437142167431212492061816351749107831
             sage: RQDF (2)^3.2
             9.18958683997628
         """
@@ -1135,11 +1263,12 @@ cdef class QuadDoubleElement(FieldElement):
     def log(self):
         """
         Returns the log of this number.
-        Returns NaN is self < 0
+
+        Returns NaN is self is negative,a nd minus infinity if self is 0.
 
         EXAMPLES:
             sage: RQDF(2).log()
-            0.693147180559945309417232121458176568075500134360255254120680010
+            0.693147180559945309417232121458176568075500134360255254120680009
             sage: RQDF(0).log()
             -inf
             sage: RQDF(-1).log()
@@ -1163,14 +1292,14 @@ cdef class QuadDoubleElement(FieldElement):
     def log10(self):
         """
         Returns log to the base 10 of self
-        Returns NaN if self < 0
+
+        Returns NaN is self is negative,a nd minus infinity if self is 0.
 
         EXAMPLES:
-            sage: RQDF = RealQuadDoubleField()
-            sage: r = RQDF('16.0'); r.log10()
-            1.20411998265592478085495557889797210707275952584843416524170984
-            sage: r.log() / log(10)
-            1.20411998266
+            sage: r = RQDF(16); r.log10()
+            1.204119982655924780854955578897972107072759525848434165241709845
+            sage: r.log() / RQDF(log(10))
+            1.204119982655924780854955578897972107072759525848434165241709844
             sage: r = RQDF('-16.0'); r.log10()
             NaN
 
@@ -1196,7 +1325,7 @@ cdef class QuadDoubleElement(FieldElement):
 
         EXAMPLES:
             sage: r = RQDF(0.0) ; r.exp()
-            1.00000000000000000000000000000000000000000000000000000000000000
+            1.000000000000000000000000000000000000000000000000000000000000000
             sage: RQDF('-32.3').exp()
             9.38184458849865778521574138078207776624385053667970865778536257e-15
             sage: r = RQDF('16.0');
@@ -1219,7 +1348,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: t.cos()
             1.14896369723693564844426231461699681566073686586801334091985338e-63
             sage: t.cos()^2 + t.sin()^2
-            1.00000000000000000000000000000000000000000000000000000000000000
+            1.000000000000000000000000000000000000000000000000000000000000000
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1250,7 +1379,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = RQDF(pi/3)
             sage: q.tan()
-            1.73205080756887729352744634150587236694280525381038062805580698
+            1.732050807568877293527446341505872366942805253810380628055806976
             sage: q = RQDF(pi/6)
             sage: q.tan()
             0.577350269189625764509148780501957455647601751270126876018602326
@@ -1269,8 +1398,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: t = RQDF(pi/6)
             sage: t.sincos()
-            (0.500000000000000000000000000000000000000000000000000000000000000,
-            0.866025403784438646763723170752936183471402626905190314027903490)
+            (0.499999999999999999999999999999999999999999999999999999999999999, 0.866025403784438646763723170752936183471402626905190314027903489)
         """
         return self.sin(), self.cos()
 
@@ -1282,9 +1410,9 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/3)
             sage: i = q.cos()
             sage: q
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
             sage: i.acos()
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1301,9 +1429,9 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/3)
             sage: i = q.sin()
             sage: q
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
             sage: i.asin()
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1320,9 +1448,9 @@ cdef class QuadDoubleElement(FieldElement):
             sage: q = RQDF(pi/3)
             sage: i = q.tan()
             sage: q
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
             sage: i.atan()
-            1.04719755119659774615421446109316762806572313312503527365831486
+            1.047197551196597746154214461093167628065723133125035273658314863
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1338,7 +1466,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = RQDF(pi/12)
             sage: q.cosh()
-            1.03446564009551056527186525117988656095983156811771754613866856
+            1.034465640095510565271865251179886560959831568117717546138668562
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1354,7 +1482,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = -RQDF(pi/12)
             sage: q.sinh()
-             -0.264800227602270757698096543949405541727737186661923151601337993
+             -0.264800227602270757698096543949405541727737186661923151601337992
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1370,7 +1498,7 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = RQDF(pi/12)
             sage: q.tanh()
-            0.255977789245684539459617840766661476446446454939881314446181623
+            0.255977789245684539459617840766661476446446454939881314446181622
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1386,11 +1514,11 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = RQDF(pi/2)
             sage: i = q.cosh() ; i
-            2.50917847865805678200999564326940594821202435814815227404797568
+            2.509178478658056782009995643269405948212024358148152274047975682
             sage: i.acosh()
-            1.57079632679489661923132169163975144209858469968755291048747230
+            1.570796326794896619231321691639751442098584699687552910487472296
             sage: q
-            1.57079632679489661923132169163975144209858469968755291048747230
+            1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1406,10 +1534,10 @@ cdef class QuadDoubleElement(FieldElement):
         EXAMPLES:
             sage: q = RQDF(pi/2)
             sage: i = q.sinh() ; i
-            2.30129890230729487346304002343442717817814651651638266597283980
+            2.301298902307294873463040023434427178178146516516382665972839798
             sage: i.asinh() ; q
-            1.57079632679489661923132169163975144209858469968755291048747230
-            1.57079632679489661923132169163975144209858469968755291048747230
+            1.570796326794896619231321691639751442098584699687552910487472296
+            1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1427,8 +1555,8 @@ cdef class QuadDoubleElement(FieldElement):
             sage: i = q.tanh() ; i
             0.917152335667274346373092921442618775367927148601088945343574124
             sage: i.atanh() ; q
-            1.57079632679489661923132169163975144209858469968755291048747229
-            1.57079632679489661923132169163975144209858469968755291048747230
+            1.570796326794896619231321691639751442098584699687552910487472291
+            1.570796326794896619231321691639751442098584699687552910487472295
         """
         cdef QuadDoubleElement res
         res = self._new()
@@ -1445,8 +1573,13 @@ cdef class QuadDoubleElement(FieldElement):
         $u_{n+1}$ is the arithmetic mean of $u_n$ and $v_n$, and
         $v_{n+1}$ is the geometric mean of u_n and v_n. If any operand
         is negative, the return value is \code{NaN}.
+
+        EXAMPLES:
+            sage: RQDF(2).sqrt().agm(RQDF(3).sqrt())
+            1.569105802869322326985195456078256167313945200090173796316846190
         """
-        return QuadDoubleElement(sage.rings.all.RR(self).agm(sage.rings.all.RR(other)))
+        R = RR()
+        return QuadDoubleElement(R(self).agm(R(other)))
 
 cdef RealQuadDoubleField_class _RQDF
 _RQDF = RealQuadDoubleField_class()

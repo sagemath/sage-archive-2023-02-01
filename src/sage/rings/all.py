@@ -87,7 +87,7 @@ Reals = RealField
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Quad double
-from real_qdrf import RealQuadDoubleField, RQDF
+from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
 
 # Algebraic reals (the intersection of the algebraic closure of the rationals
 # with the reals)

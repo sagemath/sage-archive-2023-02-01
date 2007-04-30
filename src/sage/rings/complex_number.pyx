@@ -799,6 +799,8 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
     def sqrt(self, all=False):
         """
+        The square root function.
+
         INPUT:
             all -- bool (default: False); if True, return a list
                 of all square roots.

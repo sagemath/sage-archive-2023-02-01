@@ -179,6 +179,7 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC,
+                            QuadDoubleElement,
                             PolynomialRing, ComplexField)
 
 from sage.structure.element import RingElement, is_Element
@@ -302,6 +303,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
                             PariGen,
                             ComplexNumber,
                             ComplexDoubleElement,
+                            QuadDoubleElement,
                             InfinityElement
                             )):
             return SymbolicConstant(x)
@@ -621,6 +623,9 @@ class SymbolicExpression(RingElement):
         raise TypeError
 
     def _real_double_(self, R):
+        raise TypeError
+
+    def _real_rqdf_(self, R):
         raise TypeError
 
     def _rational_(self):
@@ -2124,6 +2129,12 @@ class Symbolic_object(SymbolicExpression):
         """
         return R(self._obj)
 
+    def _real_rqdf_(self, R):
+        """
+        EXAMPLES:
+        """
+        return R(self._obj)
+
     def _repr_(self, simplify=True):
         """
         EXAMPLES:
@@ -2400,6 +2411,12 @@ class SymbolicArithmetic(SymbolicOperation):
         if not self.is_simplified():
             return self.simplify()._real_double_(field)
         rops = [op._real_double_(field) for op in self._operands]
+        return self._operator(*rops)
+
+    def _real_rqdf_(self, field):
+        if not self.is_simplified():
+            return self.simplify()._real_rqdf_(field)
+        rops = [op._real_rqdf_(field) for op in self._operands]
         return self._operator(*rops)
 
     def _is_atomic(self):
@@ -2847,6 +2864,9 @@ class CallableSymbolicExpression(SymbolicExpression):
     def _real_double_(self, R):
         return R(self._expr)
 
+    def _real_rqdf_(self, R):
+        return R(self._expr)
+
     # TODO: should len(args) == len(vars)?
     def __call__(self, *args):
         vars = self.args()
@@ -3256,6 +3276,23 @@ class SymbolicComposition(SymbolicOperation):
         if isinstance(z, SymbolicExpression):
             return field(float(z))
         return z
+
+    def _real_rqdf_(self, field):
+        """
+        Coerce to a real qdrf.
+
+        EXAMPLES:
+
+        """
+        if not self.is_simplified():
+            return self.simplify()._real_rqdf_(field)
+        f = self._operands[0]
+        g = self._operands[1]
+        z = f(g._real_rqdf_(field))
+        if isinstance(z, SymbolicExpression):
+            raise TypeError, "precision loss"
+        else:
+            return z
 
 class PrimitiveFunction(SymbolicExpression):
     def __init__(self, needs_braces=False):
@@ -4142,6 +4179,9 @@ class SymbolicFunctionEvaluation_delayed(SymbolicFunctionEvaluation):
 
     def _real_double_(self, R):
         return R(float(self))
+
+    def _real_rqdf_(self, R):
+        raise TypeError
 
     def _complex_double_(self, C):
         return C(float(self))

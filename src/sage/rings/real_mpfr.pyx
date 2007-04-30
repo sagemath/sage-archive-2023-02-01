@@ -73,7 +73,7 @@ from rational cimport Rational
 from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
 
-from real_qdrf import QuadDoubleElement
+from real_rqdf import QuadDoubleElement
 
 import sage.rings.complex_field
 
@@ -246,9 +246,9 @@ cdef class RealField(sage.rings.ring.Field):
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
         elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
             return self(x)
-        elif self.__prec <= 53 and is_RealDoubleElement(x):
-            return self(x)
         elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
+            return self(x)
+        elif is_RealDoubleElement(x) and self.__prec <= 53:
             return self(x)
         raise TypeError
 
@@ -594,8 +594,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
             d = x.real(parent)
             mpfr_set(self.value, d.value, parent.rnd)
-        #elif hasattr(x, '_mpfr_'):
-        #    return x._mpfr_(self)
+        elif hasattr(x, '_mpfr_'):
+            return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -1880,12 +1880,12 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
     def sqrt(self, extend=True, all=False):
         r"""
-        Square root.
+        The square root function.
 
         INPUT:
             extend -- bool (default: True); if True, return
-                a square root in a complex field, if self is negative;
-                otherwise raise a ValueError
+                a square root in a complex field if necessary
+                if self is negative; otherwise raise a ValueError
             all -- bool (default: False); if True, return a list
                 of all square roots.
 

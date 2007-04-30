@@ -21,6 +21,12 @@ Mathematica, Maple, Octave, and Singular:
     catalan
     sage: khinchin      # Khinchin's constant
     khinchin
+    sage: twinprime
+    twinprime
+    sage: merten
+    merten
+    sage: brun
+    brun
 
 Support for coercion into the various systems means that if, e.g.,
 you want to create $\pi$ in Maxima and Singular, you don't have
@@ -136,6 +142,61 @@ AUTHORS:
     -- William Stein
     -- Alex Clemesha \& William Stein (2006-02-20): added new constants; removed todos
     -- didier deshommes <dfdeshom@gmail.com> (2007-03-27): added constants from RQDF
+
+TESTS:
+    Coercion of each constant to the RQDF:
+        sage: RQDF(e)
+        2.71828182845904523536028747135266249775724709369995957496696763
+        sage: RQDF(pi)
+        3.14159265358979323846264338327950288419716939937510582097494459
+        sage: RQDF(e)
+        2.71828182845904523536028747135266249775724709369995957496696763
+        sage: RQDF(I)
+        Traceback (most recent call last):
+        ...
+        TypeError
+        sage: RQDF(golden_ratio)
+        1.61803398874989484820458683436563811772030917980576286213544862
+        sage: RQDF(log2)
+        0.693147180559945309417232121458176568075500134360255254120680010
+        sage: RQDF(euler_gamma)
+        0.577215664901532860606512090082402431042159335939923598805767235
+        sage: RQDF(catalan)
+        0.915965594177219015054603514932384110774149374281672134266498120
+        sage: RQDF(khinchin)
+        2.68545200106530644530971483548179569382038229399446295305115234
+        sage: RQDF(twinprime)
+        0.660161815846869573927812110014555778432623360284733413319448423
+        sage: RQDF(merten)
+        0.261497212847642783755426838608695859051566648261199206192064213
+        sage: RQDF(brun)
+        Traceback (most recent call last):
+        ...
+        TypeError: Brun's constant only available up to 41 bits
+
+
+Coercing the sum of a bunch of the constants to many different floating point rings:
+
+    sage: a = pi + e + golden_ratio + log2 + euler_gamma + catalan + khinchin + twinprime + merten; a
+    twinprime + merten + khinchin + euler_gamma + catalan + log(2) + pi + e + (sqrt(5) + 1)/2
+    sage: parent(a)
+    Symbolic Ring
+    sage: RQDF(a)
+    13.2713479401972493100988191995758139408711068200030748178329712
+    sage: RR(a)
+    13.2713479401972
+    sage: RealField(212)(a)
+    13.2713479401972493100988191995758139408711068200030748178329712
+    sage: RealField(230)(a)
+    13.271347940197249310098819199575813940871106820003074817832971189555
+    sage: CC(a)
+    13.2713479401972
+    sage: CDF(a)
+    13.2713479402
+    sage: ComplexField(230)(a)
+    13.271347940197249310098819199575813940871106820003074817832971189555
+    sage: RDF(a)
+    13.2713479402
 """
 
 #*****************************************************************************
@@ -149,7 +210,7 @@ AUTHORS:
 
 import math, operator
 
-from sage.rings.all import CommutativeRing, RealField, Integer, RingElement, RQDF
+from sage.rings.all import CommutativeRing, RealField, Integer, RingElement
 import sage.interfaces.all
 import sage.rings.all
 from sage.libs.pari.all import pari
@@ -351,8 +412,8 @@ class Pi(Constant):
     def _real_double_(self,R):
         return R.pi()
 
-    def _rqdf_(self):
-        return sage.rings.all.RQDF.pi()
+    def _real_rqdf_(self, R):
+        return R.pi()
 
     def __abs__(self):
         if self.str()[0] != '-':
@@ -420,6 +481,9 @@ class I_class(Constant):
         raise TypeError
 
     def _mpfr_(self, R):
+        raise TypeError
+
+    def _real_rqdf_(self, R):
         raise TypeError
 
     def _complex_mpfr_field_(self, R):
@@ -491,14 +555,14 @@ class E(Constant):
     def _real_double_(self, R):
         return R(1).exp()
 
-    def _rqdf_(self):
+    def _real_rqdf_(self, R):
         """
         EXAMPLES:
             sage: RQDF = RealQuadDoubleField ()
             sage: RQDF.e()
             2.71828182845904509079559829842764884233474731445312500000000000
         """
-        return sage.rings.all.RQDF.e()
+        return R.e()
 
     # This just gives a string in singular anyways, and it's
     # *REALLY* slow!
@@ -526,13 +590,13 @@ class NotANumber(Constant):
     def _real_double_(self, R):
         return R.nan()
 
-    def _rqdf_(self):
+    def _real_rqdf_(self, R):
         """
         EXAMPLES:
             sage:RQDF (NaN)
             'NaN'
         """
-        return sage.rings.all.RQDF.NaN()
+        return R.NaN()
 
 NaN = NotANumber()
 
@@ -576,8 +640,8 @@ class GoldenRatio(Constant):
         """
         return R('1.61803398874989484820458')
 
-    def _rqdf_(self):
-        return RQDF('1.61803398874989484820458683436563811772030917980576286213544862')
+    def _real_rqdf_(self, R):
+        return R('1.61803398874989484820458683436563811772030917980576286213544862')
 
     def _mpfr_(self,R):  #is this OK for _mpfr_ ?
 	return (R(1)+R(5).sqrt())*R(0.5)
@@ -636,13 +700,13 @@ class Log2(Constant):
         """
         return R.log2()
 
-    def _rqdf_(self):
+    def _real_rqdf_(self, R):
         """
         EXAMPLES:
             sage: RDF(log2)
             0.693147180559945309417232121458176568075500134360255254120680010
         """
-        return sage.rings.all.RQDF.log2()
+        return R.log2()
 
     def _mpfr_(self,R):
         return R.log2()
@@ -692,8 +756,8 @@ class EulerGamma(Constant):
         """
         return R.euler_constant()
 
-    def _rqdf_(self):
-        return RQDF('0.577215664901532860606512090082402431042159335939923598805767235')
+    def _real_rqdf_(self, R):
+        return R('0.577215664901532860606512090082402431042159335939923598805767235')
 
     def floor(self):
         return Integer(0)
@@ -729,8 +793,8 @@ class Catalan(Constant):
         """
         return R('0.91596559417721901505460351493252')
 
-    def _rqdf_(self):
-        return RQDF('0.915965594177219015054603514932384110774149374281672134266498120')
+    def _real_rqdf_(self, R):
+        return R('0.915965594177219015054603514932384110774149374281672134266498120')
 
     def __float__(self):
         """
@@ -785,8 +849,8 @@ class Khinchin(Constant):
         """
 	return R('2.685452001065306445309714835481795693820')
 
-    def _rqdf_(self):
-        return RQDF(self.__value[:63])
+    def _real_rqdf_(self, R):
+        return R(self.__value[:65])
 
     def __float__(self):
         return 2.685452001065306445309714835481795693820
@@ -838,8 +902,8 @@ class TwinPrime(Constant):
         """
 	return R('0.660161815846869573927812110014555778432')
 
-    def _rqdf_(self):
-        return RQDF(self.__value[:63])
+    def _real_rqdf_(self, R):
+        return R(self.__value[:65])
 
     def __float__(self):
         """
@@ -902,8 +966,8 @@ class Merten(Constant):
         """
         return R('0.261497212847642783755426838608695859051')
 
-    def _rqdf_(self):
-        return RQDF(self.__value[:63])
+    def _real_rqdf_(self, R):
+        return R(self.__value[:65])
 
     def __float__(self):
         """
@@ -959,7 +1023,7 @@ class Brun(Constant):
         """
         if R.precision() <= self.__bits:
             return R(self.__value)
-        raise NotImplementedError, "Brun's constant only available up to %s bits"%self.__bits
+        raise TypeError, "Brun's constant only available up to %s bits"%self.__bits
 
     def _real_double_(self, R):
         """
@@ -969,8 +1033,8 @@ class Brun(Constant):
         """
         return R('1.9021605831040')
 
-    def _rqdf_(self):
-        return RQDF(self.__value[:63])
+    def _real_rqdf_(self, R):
+        raise TypeError, "Brun's constant only available up to %s bits"%self.__bits
 
     def __float__(self):
         """

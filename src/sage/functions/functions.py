@@ -10,7 +10,7 @@ import weakref
 import sage.functions.constants
 
 from   sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
-                              is_RealNumber, is_ComplexNumber, RR, RQDF)
+                              is_RealNumber, is_ComplexNumber, RR)
 import sage.rings.rational
 import sage.rings.integer
 
@@ -473,8 +473,8 @@ class Function_arith(Function):
         """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
-    def _rqdf_(self):
-        return self.__op(self.__x._rqdf_(), self.__y._rqdf_())
+    def _real_rqdf_(self, R):
+        return self.__op(self.__x._real_rqdf_(R), self.__y._real_rqdf_(R))
 
 class Function_gen(Function):
     """
@@ -514,8 +514,8 @@ class Function_gen(Function):
     def _mpfr_(self, R):
         return R(self.__x)
 
-    def _rqdf_(self):
-        return RQDF(self.__x)
+    def _real_rqdf_(self, R):
+        return R(self.__x)
 
     def str(self, bits=None):
         if bits is None:
@@ -597,8 +597,8 @@ class Function_at(Function):
         x = R(self.__x)
         return self.__f(x)
 
-    def _rqdf_(self):
-        x = RQDF(self.__x)
+    def _real_rqdf_(self, R):
+        x = R(self.__x)
         return self.__f(x)
 
     def _maxima_init_(self):

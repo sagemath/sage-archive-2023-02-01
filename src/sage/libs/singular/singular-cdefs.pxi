@@ -272,6 +272,8 @@ cdef extern from "libsingular.h":
 
     int singclap_isSqrFree(poly *f)
 
+    poly *singclap_alglcm(poly *f, poly *g)
+
     # Numbers
     # ---------------------------------
 

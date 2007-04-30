@@ -1187,7 +1187,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.cosh() ; i
             2.50917847866
-            sage: i.acosh() == q
+            sage: abs(i.acosh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_acosh(self._value))
@@ -1200,7 +1200,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.sinh() ; i
             2.30129890231
-            sage: i.asinh() == q
+            sage: abs(i.asinh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_asinh(self._value))

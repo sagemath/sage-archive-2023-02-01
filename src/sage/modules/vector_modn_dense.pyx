@@ -6,6 +6,8 @@ AUTHOR:
 
 EXAMPLES:
     sage: v = vector(Integers(8),[1,2,3,4,5])
+    sage: type(v)
+    <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
     sage: v
     (1, 2, 3, 4, 5)
     sage: 3*v

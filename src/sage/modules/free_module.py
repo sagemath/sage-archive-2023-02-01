@@ -3638,7 +3638,7 @@ def element_class(R, is_sparse):
         return Vector_rational_dense
     elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
         from vector_modn_dense import Vector_modn_dense, MAX_MODULUS
-        if R.order < MAX_MODULUS:
+        if R.order() < MAX_MODULUS:
             return Vector_modn_dense
         else:
             return free_module_element.FreeModuleElement_generic_dense

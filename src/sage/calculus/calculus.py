@@ -179,7 +179,7 @@ from sage.rings.all import (CommutativeRing, RealField, is_Polynomial,
                             is_MPolynomial, is_MPolynomialRing,
                             is_RealNumber, is_ComplexNumber, RR,
                             Integer, Rational, CC,
-                            PolynomialRing)
+                            PolynomialRing, ComplexField)
 
 from sage.structure.element import RingElement, is_Element
 from sage.structure.parent_base import ParentWithBase
@@ -3856,17 +3856,37 @@ class Function_sqrt(PrimitiveFunction):
     def _latex_(self):
         return "\\sqrt"
 
-    def __call__(self, x):
-        # if x is an integer or rational, never call the sqrt method
+    def _do_sqrt(self, x, prec=None, extend=True, all=False):
+        if prec:
+            return ComplexField(prec)(x).sqrt(all=all)
+        z = SymbolicComposition(self, SR(x))
+        if all:
+            return [z, -z]
+        return z
+
+    def __call__(self, x, *args, **kwds):
+        """
+
+        POSSIBLE INPUTS INCLUDE:
+            x -- a number
+            prec -- integer (default: None): if None, returns an exact
+                 square root; otherwise returns a numerical square
+                 root if necessary, to the given bits of precision.
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
+        """
         if isinstance(x, float):
-            return self._approx_(x)
+            return math.float(x)
         if not isinstance(x, (Integer, Rational)):
             try:
-                return x.sqrt()
+                return x.sqrt(*args, **kwds)
             except AttributeError:
                 pass
-        return SymbolicComposition(self, SR(x))
-
+        return self._do_sqrt(x, *args, **kwds)
 
     def _approx_(self, x):
         return math.sqrt(x)

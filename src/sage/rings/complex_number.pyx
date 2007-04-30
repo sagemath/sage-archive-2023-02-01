@@ -797,8 +797,12 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         else:
             return infinity.infinity
 
-    def sqrt(self):
+    def sqrt(self, all=False):
         """
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all square roots.
+
         EXAMPLES:
             sage: C, i = ComplexField(30).objgen()
             sage: i.sqrt()
@@ -811,24 +815,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
         """
-        return self._parent(self._pari_().sqrt())
+        z = self._parent(self._pari_().sqrt())
+        if all:
+            if z.is_zero():
+                return [z]
+            else:
+                return [z, -z]
+        return z
 
     def is_square(self):
         """
         This function always returns true as $\C$ is algebraically closed.
         """
         return True
-
-    def square_root(self):
-        """
-        Return square root, which is a complex number.
-
-        EXAMPLES:
-            sage: i = ComplexField(100).0
-            sage: (-i).sqrt()
-            0.70710678118654752440084436210 - 0.70710678118654752440084436210*I
-        """
-        return self.sqrt()
 
     def zeta(self):
         """

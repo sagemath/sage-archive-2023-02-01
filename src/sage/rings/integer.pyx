@@ -1374,6 +1374,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return False
         return bool(mpz_perfect_square_p(self.value))
 
+    def is_prime_power(self, flag=0):
+        r"""
+        Returns True if $x$ is a prime power, and False otherwise.
+
+        INPUT:
+            flag (for primality testing) -- int
+                    0 (default): use a combination of algorithms.
+                    1: certify primality using the Pocklington-Lehmer Test.
+                    2: certify primality using the APRCL test.
+
+        EXAMPLES:
+            sage: (-10).is_prime_power()
+            False
+            sage: (10).is_prime_power()
+            False
+            sage: (64).is_prime_power()
+            True
+            sage: (3^10000).is_prime_power()
+            True
+            sage: (10000).is_prime_power(flag=1)
+            False
+        """
+        if self.is_zero():
+            return False
+        elif self.is_one():
+            return True
+        elif mpz_sgn(self.value) < 0:
+            return False
+        if self.is_prime():
+            return True
+        if not self.is_perfect_power():
+            return False
+        k, g = self._pari_().ispower()
+        if not k:
+            raise RuntimeError, "inconsistent results between GMP and pari"
+        return g.isprime(flag=flag)
+
     def is_prime(self):
         r"""
         Retuns \code{True} if self is prime
@@ -1697,21 +1734,54 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             R = real_mpfr.RealField(bits)
             return R(self).sqrt()
 
-    def sqrt(self):
+    def sqrt(self, prec=None, extend=True, all=False):
         """
-        Return the positive integer square root of self, or raises a ValueError
-        if self is not a perfect square.
+        The square root function.
+
+        INPUT:
+            prec -- integer (default: None): if None, returns an exact
+                 square root; otherwise returns a numerical square
+                 root if necessary, to the given bits of precision.
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                 roots of self, instead of just one.
 
         EXAMPLES:
             sage: Integer(144).sqrt()
             12
             sage: Integer(102).sqrt()
             sqrt(102)
+
+            sage: n = 2
+            sage: n.sqrt(all=True)
+            [sqrt(2), -sqrt(2)]
+            sage: n.sqrt(prec=10)
+            1.4
+            sage: n.sqrt(prec=100)
+            1.4142135623730950488016887242
+            sage: n.sqrt(prec=100,all=True)
+            [1.4142135623730950488016887242, -1.4142135623730950488016887242]
+            sage: n.sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: square root of 2 not an integer
+            sage: Integer(0).sqrt(all=True)
+            [0]
         """
-        if self < 0:
+        if mpz_sgn(self.value) < 0:
+            if not extend:
+                raise ValueError, "square root of negative number not an integer"
+            if prec:
+                from sage.rings.complex_field import ComplexField
+                K = ComplexField(prec)
+                return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
-            return sqrt(self)
-        #raise ValueError, "self (=%s) is not a perfect square"%self
+            return sqrt(self, all=all)
+
+
         cdef int non_square
         cdef Integer z = PY_NEW(Integer)
         cdef mpz_t tmp
@@ -1721,10 +1791,22 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         non_square = mpz_sgn(tmp) != 0
         mpz_clear(tmp)
         _sig_off
+
         if non_square:
+            if not extend:
+                raise ValueError, "square root of %s not an integer"%self
+            if prec:
+                from sage.rings.real_mpfr import RealField
+                K = RealField(prec)
+                return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
-            return sqrt(self)
-            #raise ValueError, "self (=%s) is not a perfect square"%self
+            return sqrt(self, all=all)
+
+        if all:
+            if z.is_zero():
+                return [z]
+            else:
+                [z, -z]
         return z
 
     def _xgcd(self, Integer n):

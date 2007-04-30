@@ -1878,17 +1878,24 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Special Functions
     ############################
 
-    def sqrt(self):
+    def sqrt(self, extend=True, all=False):
         r"""
-        Return a square root of self.
+        Square root.
 
-        If self is negative a complex number is returned.
-
-        If you use \code{self.sqrt_approx()} then a real number will
-        always be returned (though it will be NaN if self is
-        negative).
+        INPUT:
+            extend -- bool (default: True); if True, return
+                a square root in a complex field, if self is negative;
+                otherwise raise a ValueError
+            all -- bool (default: False); if True, return a list
+                of all square roots.
 
         EXAMPLES:
+            sage: r = -2.0
+            sage: r.sqrt_approx()
+            NaN
+            sage: r.sqrt()
+            1.41421356237310*I
+
             sage: r = 4.0
             sage: r.sqrt()
             2.00000000000000
@@ -1908,10 +1915,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: r = -2.0
             sage: r.sqrt()
             1.41421356237310*I
-            """
+        """
+        cdef RealNumber x
         if self >= 0:
-            return self.sqrt_approx()
-        return self._complex_number_().sqrt()
+            x = self._new()
+            _sig_on
+            mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
+            _sig_off
+            if all:
+                if x.is_zero():
+                    return [x]
+                else:
+                    return [x, -x]
+            return x
+        if not extend:
+            raise ValueError, "negative number %s does not have a square root in the real field"%self
+        return self._complex_number_().sqrt(all=all)
 
     def is_square(self):
         """
@@ -1930,26 +1949,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
             False
         """
         return bool(self >= 0)
-    def sqrt_approx(self):
-        """
-        Return a square root of self.  A real number will always be
-        returned (though it will be NaN if self is negative).
-
-        Use self.sqrt() to get a complex number if self is negative.
-
-        EXAMPLES:
-            sage: r = -2.0
-            sage: r.sqrt_approx()
-            NaN
-            sage: r.sqrt()
-            1.41421356237310*I
-        """
-        cdef RealNumber x
-        x = self._new()
-        _sig_on
-        mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
-        _sig_off
-        return x
 
     def cube_root(self):
         """

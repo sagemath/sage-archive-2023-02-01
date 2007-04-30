@@ -471,59 +471,20 @@ cdef class Rational(sage.structure.element.FieldElement):
         """
         return bool(mpq_sgn(self.value) >= 0 and mpz_perfect_square_p(mpq_numref(self.value)) and mpz_perfect_square_p(mpq_denref(self.value)))
 
+    def sqrt(self, prec=None, extend=True, all=False):
         r"""
-        Returns the positive square root of self as a real number to
-        the given number of bits of precision if self is nonnegative,
-        and raises a \exception{ValueError} exception otherwise.
+        The square root function.
 
         INPUT:
-            bits -- number of bits of precision.
-                    If bits is not specified, the number of
-                    bits of precision is at least twice the
-                    number of bits of self (the precision
-                    is always at least 53 bits if not specified).
-        OUTPUT:
-            integer, real number, or complex number.
-
-        EXAMPLES:
-            sage: x = 23/2
-            sage: x.sqrt_approx()
-            3.39116499156263
-            sage: x = 32/5
-            sage: x.sqrt_approx()
-            2.52982212813470
-            sage: x = 16/9
-            sage: x.sqrt_approx()
-            1.33333333333333
-            sage: x.sqrt_approx(100)
-            1.3333333333333333333333333333
-            sage: x = 9837/2
-            sage: x.sqrt_approx()
-            70.1320183653658
-            sage: x = 645373/45
-            sage: x.sqrt_approx()
-            119.756512233040
-            sage: x = -12/5
-            sage: x.sqrt_approx()
-            1.54919333848297*I
-
-        AUTHOR:
-            -- Naqi Jaffery (2006-03-05): examples
-        """
-        if bits is None:
-            bits = max(53, 2*(mpz_sizeinbase(self.value, 2)+2))
-
-        if self < 0:
-            x = sage.rings.complex_field.ComplexField(bits)(self)
-            return x.sqrt()
-        else:
-            R = sage.rings.real_mpfr.RealField(bits)
-            return R(self).sqrt()
-
-    def sqrt(self):
-        r"""
-        Return the positive rational square root of self, or raises a
-        \exception{ValueError} if self is not a perfect square.
+            prec -- integer (default: None): if None, returns an exact
+                 square root; otherwise returns a numerical square
+                 root if necessary, to the given bits of precision.
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base
+                 ring.
+            all -- bool (default: False); if True, return all square
+                   roots of self, instead of just one.
 
         EXAMPLES:
             sage: x = 25/9
@@ -537,38 +498,72 @@ cdef class Rational(sage.structure.element.FieldElement):
             10
             sage: x = 81/5
             sage: x.sqrt()
-            3*sqrt(3)
+            9/sqrt(5)
             sage: x = -81/3
             sage: x.sqrt()
             3*sqrt(3)*I
+
+            sage: n = 2/3
+            sage: n.sqrt()
+            sqrt(2)/sqrt(3)
+            sage: n.sqrt(prec=10)
+            0.82
+            sage: n.sqrt(prec=100)
+            0.81649658092772603273242802490
+            sage: n.sqrt(prec=100)^2
+            0.66666666666666666666666666667
+            sage: n.sqrt(prec=53, all=True)
+            [0.816496580927726, -0.816496580927726]
+            sage: n.sqrt(extend=False, all=True)
+            Traceback (most recent call last):
+            ...
+            ValueError: square root of 2/3 not a rational number
+            sage: sqrt(-2/3, all=True)
+            [sqrt(2)*I/sqrt(3), -sqrt(2)*I/sqrt(3)]
+            sage: sqrt(-2/3, prec=53)
+            0.816496580927726*I
+            sage: sqrt(-2/3, prec=53, all=True)
+            [0.816496580927726*I, -0.816496580927726*I]
 
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): some examples
         """
         if mpq_sgn(self.value) < 0:
-            raise ValueError, "self (=%s) is not a perfect square"%self
+            if not extend:
+                raise ValueError, "square root of negative number not rational"
+            if prec:
+                from sage.rings.complex_field import ComplexField
+                K = ComplexField(prec)
+                return K(self).sqrt(all=all)
+            from sage.calculus.calculus import sqrt
+            return sqrt(self, all=all)
+
         cdef Rational z = <Rational> PY_NEW(Rational)
         cdef mpz_t tmp
+        cdef int non_square
+
         _sig_on
         mpz_init(tmp)
         mpz_sqrtrem(mpq_numref(z.value), tmp, mpq_numref(self.value))
         if mpz_sgn(tmp) != 0:
-            mpz_clear(tmp)
-            _sig_off
-            raise ValueError, "self (=%s) is not a perfect square"%self
-        mpz_sqrtrem(mpq_denref(z.value), tmp, mpq_denref(self.value))
-        if mpz_sgn(tmp) != 0:
-            mpz_clear(tmp)
-            _sig_off
-            raise ValueError, "self (=%s) is not a perfect square"%self
+            non_square = 1
+        else:
+            mpz_sqrtrem(mpq_denref(z.value), tmp, mpq_denref(self.value))
+            if mpz_sgn(tmp) != 0:
+                non_square = 1
         mpz_clear(tmp)
         _sig_off
-        return z
-        if self < 0:
+
+        if non_square:
+            if not extend:
+                raise ValueError, "square root of %s not a rational number"%self
+            if prec:
+                from sage.rings.real_mpfr import RealField
+                K = RealField(prec)
+                return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
-            return sqrt(self)
-        # TODO -- this could be quicker, by using GMP directly.
-        return self.numerator().sqrt() / self.denominator().sqrt()
+            return sqrt(self, all=all)
+        return z
 
     def period(self):
         r"""

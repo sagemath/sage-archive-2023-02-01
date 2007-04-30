@@ -198,6 +198,24 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         self.__power_series_class = power_series_ring_element.PowerSeries_poly
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
         self.__is_sparse = sparse
+        self.__params = (base_ring, name, default_prec, sparse)
+
+    def __reduce__(self):
+        """
+        TESTS:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: S = loads(dumps(R)); S
+            Power Series Ring in t over Integer Ring
+            sage: type(S)
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_domain'>
+            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10, sparse=True); R
+            Sparse Power Series Ring in t over Rational Field
+            sage: S = loads(dumps(R)); S
+            Sparse Power Series Ring in t over Rational Field
+            sage: type(S)
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field'>
+        """
+        return unpickle_power_series_ring_v0, self.__params
 
     def _repr_(self):
         """
@@ -617,4 +635,8 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
             Laurent Series Ring in t over Finite Field of size 7
         """
         return self.laurent_series_ring()
+
+
+def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
+    return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)
 

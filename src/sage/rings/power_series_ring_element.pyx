@@ -132,7 +132,7 @@ cdef class PowerSeries(AlgebraElement):
             sage: loads(dumps(f)) == f
             True
         """
-        return make_element_from_parent, (self._parent, self.polynomial(), self.prec())
+        return make_element_from_parent_v0, (self._parent, self.polynomial(), self.prec())
 
     def is_sparse(self):
         """
@@ -272,7 +272,6 @@ cdef class PowerSeries(AlgebraElement):
             False
         """
         # A very common case throughout code
-        # TODO: change code to use is_zero() or equivalent
         if PY_TYPE_CHECK(right, int):
             return self.is_zero()
 
@@ -1422,9 +1421,8 @@ cdef class PowerSeries_poly(PowerSeries):
         return hash(self.__f)
 
     def __reduce__(self):
-        # TODO: find out what's going on with ring pickling
-        params = (self._parent.base_ring(), self._parent.variable_name(), self._parent.default_prec(), self._parent.variable_names(), self._parent.is_sparse())
-        return make_powerseries_poly, (params, self.__f, self._prec, 0, self.__is_gen)
+        # do *not* delete old versions.
+        return make_powerseries_poly_v0, (self._parent, self.__f, self._prec, self.__is_gen)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1894,9 +1892,8 @@ def _solve_linear_de(R, N, L, a, b, f0):
     return g
 
 
-# TODO: fix pickling of PowerSeriesRing
-def make_powerseries_poly(params, *args):
-    return PowerSeries_poly(power_series_ring.PowerSeriesRing(*params), *args)
+def make_powerseries_poly_v0(parent,  f, prec, is_gen):
+    return PowerSeries_poly(parent, f, prec, 0, is_gen)
 
-def make_element_from_parent(parent, *args):
+def make_element_from_parent_v0(parent, *args):
     return parent(*args)

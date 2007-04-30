@@ -199,9 +199,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
     import polynomial_ring as m
 
     if is_Element(arg1) and not isinstance(arg1, (int, long, m.integer.Integer)):
-        arg1 = str(arg1)
+        arg1 = repr(arg1)
     if is_Element(arg2) and not isinstance(arg2, (int, long, m.integer.Integer)):
-        arg2 = str(arg2)
+        arg2 = repr(arg2)
 
     if isinstance(arg1, (int, long, m.integer.Integer)):
         arg1, arg2 = arg2, arg1
@@ -219,9 +219,9 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
 
     R = None
     if isinstance(arg1, (list, tuple)):
-        arg1 = [repr(x) for x in arg1]
+        arg1 = [str(x) for x in arg1]
     if isinstance(arg2, (list, tuple)):
-        arg2 = [repr(x) for x in arg2]
+        arg2 = [str(x) for x in arg2]
     if isinstance(arg2, (int, long, m.integer.Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):

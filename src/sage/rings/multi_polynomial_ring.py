@@ -194,11 +194,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: parent(f)
             Polynomial Ring in x, y over Rational Field
 
-        We create an equal but not identical copy of the integer ring
-        by dumping and loading:
+        We dump and load a the polynomial ring S:
             sage: S2 = loads(dumps(S))
-            sage: S2 is S
-            False
             sage: S2 == S
             True
 
@@ -270,8 +267,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             self._singular_().set_ring()
             try:
                 return x.sage_poly(self)
-            except:
-                raise TypeError, "Unable to coerce singular object"
+            except TypeError:
+                raise TypeError, "unable to coerce singular object"
 
         elif hasattr(x, '_polynomial_'):
             return x._polynomial_(self)
@@ -280,8 +277,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             self._singular_().set_ring()
             try:
                 return self._singular_().parent(x).sage_poly(self)
-            except:
-                raise TypeError,"Unable to coerce string"
+            except TypeError:
+                raise TypeError,"unable to coerce string"
 
         elif is_Macaulay2Element(x):
             try:

@@ -577,12 +577,24 @@ class MPolynomialIdeal_singular_repr:
         f = self.ring()(f)
         g = singular(f)
         try:
+            self.ring()._singular_(singular).set_ring()
             h = g.reduce(self._singular_groebner_basis())
         except TypeError:
             # This is OK, since f is in the right ring -- type error
             # just means it's a rational
             return f
-        return self.ring()(h)
+        try:
+            return self.ring()(h)
+        except TypeError:
+            return self.ring()(h[1])
+            # Why the above?
+            # For mysterious reasons, sometimes Singular returns a length
+            # one vector with the reduced polynomial in it.
+            # This occurs in the following example:
+            #sage: R.<x,y> = PolynomialRing(QQ, 2)
+            #sage: S.<a,b> = R.quotient(x^2 + y^2)
+            #sage: phi = S.hom([b,a])
+            #sage: loads(dumps(phi))
 
 
     def syzygy_module(self):

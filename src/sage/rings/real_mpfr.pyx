@@ -1891,8 +1891,6 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
         EXAMPLES:
             sage: r = -2.0
-            sage: r.sqrt_approx()
-            NaN
             sage: r.sqrt()
             1.41421356237310*I
 

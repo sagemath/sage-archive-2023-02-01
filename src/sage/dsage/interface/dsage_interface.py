@@ -27,7 +27,10 @@ import time
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.twisted.misc import blocking_call_from_thread
-from sage.dsage.misc.config import get_conf
+from sage.dsage.misc.config import get_conf, get_bool
+
+DOT_SAGE = os.getenv('DOT_SAGE')
+DSAGE_DIR = os.path.join(DOT_SAGE, 'dsage')
 
 class DSageThread(threading.Thread):
     def run(self):
@@ -38,19 +41,26 @@ class DSageThread(threading.Thread):
 class DSage(object):
     """
     This object represents a connection to the distributed SAGE server.
+
+    Parameters:
+    server -- str
+    port -- int
+    username -- str
+    pubkey_file -- str (Default: None)
+    privkey_file -- str (Default: None)
+    log_file -- str (Default: stdout)
+    log_level -- int (Default: 0)
+    ssl -- int (Default: 1)
+
     """
 
-    def __init__(self, server=None, port=8081, username=None,
-                 pubkey_file=None, privkey_file=None):
-        """
-        Parameters:
-        server -- str
-        port -- int
-        username -- str
-        pubkey_file -- str (Default: None)
-        privkey_file -- str (Default: None)
-
-        """
+    def __init__(self, server=None, port=8081,
+                 username=None,
+                 pubkey_file=None,
+                 privkey_file=None,
+                 log_file = 'stdout',
+                 log_level = 0,
+                 ssl = True):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
@@ -79,7 +89,7 @@ class DSage(object):
         else:
             self.privkey_file = privkey_file
 
-        self.ssl = int(self.conf['ssl'])
+        self.ssl = get_bool(self.conf['ssl'])
         self.log_level = int(conf['log_level'])
         self.remoteobj = None
         self.result = None
@@ -88,12 +98,14 @@ class DSage(object):
         self.pubkey_str = keys.getPublicKeyString(filename=self.pubkey_file)
         # try getting the private key object without a passphrase first
         try:
-            self.priv_key = keys.getPrivateKeyObject(filename=self.privkey_file)
-        except keys.BadKeyError:
+            self.priv_key = keys.getPrivateKeyObject(
+                            filename=self.privkey_file)
+        except keys.BadKeyError, msg:
             passphrase = self._getpassphrase()
             self.priv_key = keys.getPrivateKeyObject(
                             filename=self.privkey_file,
                             passphrase=passphrase)
+
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
@@ -346,8 +358,14 @@ class BlockingDSage(DSage):
     This is the blocking version of the DSage interface.
 
     """
+    def __init__(self, server=None, port=8081,
+                 username=None,
+                 pubkey_file=None,
+                 privkey_file=None,
+                 log_file = 'stdout',
+                 log_level = 0,
+                 ssl = True):
 
-    def __init__(self, server=None, port=None, username=None, pubkey_file=None, privkey_file=None):
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
         from twisted.spread import banana
@@ -380,7 +398,7 @@ class BlockingDSage(DSage):
             self.privkey_file = privkey_file
 
         self.data = self.conf['data']
-        self.ssl = int(self.conf['ssl'])
+        self.ssl = get_bool(self.conf['ssl'])
         self.log_level = int(self.conf['log_level'])
         self.remoteobj = None
         self.result = None
@@ -527,7 +545,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_cluster_speed')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                         'get_cluster_speed')
 
     def get_monitors_list(self):
         """Returns a list of monitors connected to the server.
@@ -536,7 +555,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_monitor_list')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                         'get_monitor_list')
 
     def get_clients_list(self):
         """
@@ -545,7 +565,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_client_list')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                         'get_client_list')
 
     def get_worker_count(self):
         """
@@ -555,7 +576,8 @@ class BlockingDSage(DSage):
 
         self.check_connected()
 
-        return blocking_call_from_thread(self.remoteobj.callRemote, 'get_worker_count')
+        return blocking_call_from_thread(self.remoteobj.callRemote,
+                                         'get_worker_count')
 
 class JobWrapper(object):
     """
@@ -661,7 +683,8 @@ class JobWrapper(object):
     def get_job_output(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_output_by_id', self._job.job_id)
+        d = self.remoteobj.callRemote('get_job_output_by_id',
+                                      self._job.job_id)
         d.addCallback(self._got_job_output)
         d.addErrback(self._catch_failure)
 
@@ -674,7 +697,8 @@ class JobWrapper(object):
     def get_job_result(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_result_by_id', self._job.job_id)
+        d = self.remoteobj.callRemote('get_job_result_by_id',
+                                      self._job.job_id)
         d.addCallback(self._got_job_result)
         d.addErrback(self._catch_failure)
 
@@ -748,7 +772,8 @@ class BlockingJobWrapper(JobWrapper):
 
         self._update_job(job)
 
-        jdict = blocking_call_from_thread(self.remoteobj.callRemote, 'submit_job', job.reduce())
+        jdict = blocking_call_from_thread(self.remoteobj.callRemote,
+                                          'submit_job', job.reduce())
         self._job = expand_job(jdict)
 
     def __repr__(self):
@@ -771,8 +796,8 @@ class BlockingJobWrapper(JobWrapper):
         if self.status == 'completed':
             return
 
-        job = blocking_call_from_thread(
-                        self.remoteobj.callRemote, 'get_job_by_id', self._job.job_id)
+        job = blocking_call_from_thread(self.remoteobj.callRemote,
+                                        'get_job_by_id', self._job.job_id)
 
         self._update_job(expand_job(job))
 
@@ -785,7 +810,8 @@ class BlockingJobWrapper(JobWrapper):
 
         """
 
-        job_id = blocking_call_from_thread(self.remoteobj.callRemote, 'kill_job', self._job.job_id)
+        job_id = blocking_call_from_thread(self.remoteobj.callRemote,
+                                           'kill_job', self._job.job_id)
         self.job_id = job_id
         self.killed = True
 

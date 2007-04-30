@@ -53,7 +53,8 @@ try:
     LOG_FILE = config.get('server_log', 'log_file')
     SSL = config.getint('ssl', 'ssl')
     CLIENT_PORT = config.getint('server', 'client_port')
-    PUBKEY_DATABASE = os.path.expanduser(config.get('auth', 'pubkey_database'))
+    PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
+                                         'pubkey_database'))
 
     conf_file = os.path.join(DSAGE_DIR, 'client.conf')
     config = ConfigParser.ConfigParser()

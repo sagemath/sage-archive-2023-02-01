@@ -24,7 +24,9 @@ def spawn(cmd, logfile=None, verbose=True):
     else:
         log = sys.stdout
 
-    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)], stdout=log, stderr=log)
+    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)],
+                               stdout=log, stderr=log)
+
     print 'Spawned %s (pid = %s, logfile = %s)' % (cmd, process.pid, log.name)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
 

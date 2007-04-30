@@ -79,10 +79,12 @@ def startLogging(log_file):
 
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
+        log.msg('WARNING: DSAGE Server ONLY logging to stdout!')
     else:
-        print "DSAGE Server logging to file: ", log_file
         server_log = open(log_file, 'a')
+        log.startLogging(sys.stdout)
         log.startLogging(server_log)
+        log.msg("DSAGE Server: Logging to file: ", log_file)
 
 def main():
     """

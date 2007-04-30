@@ -573,12 +573,16 @@ class Monitor(object):
                                                    self.signature)
 
     def _startLogging(self, log_file):
+        import pdb; pdb.set_trace()
         if log_file == 'stdout':
             log.startLogging(sys.stdout)
+            log.msg('WARNING: Only loggint to stdout!')
         else:
-            print "Logging to file: ", log_file
-            server_log = open(log_file, 'a')
-            log.startLogging(server_log)
+            worker_log = open(log_file, 'a')
+            log.startLogging(sys.stdout)
+            log.startLogging(worker_log)
+            log.msg("Logging to file: ", log_file)
+
 
     def _get_auth_info(self):
         self.DATA =  random_str(500)

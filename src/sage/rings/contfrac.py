@@ -625,10 +625,16 @@ class ContinuedFraction(FieldElement):
         s += '}'*(len(v)-1)
         return s
 
-    def sqrt(self, bits=None):
+    def sqrt(self, prec=53, all=False):
         """
-        Return continued fraction approximation to the
-        square root of the value of this continued fraction.
+        Return continued fraction approximation to square root of the
+        value of this continued fraction.
+
+        INPUT:
+            prec -- integer (default: 53) precision of square root
+                    that is approximated
+            all -- bool (default: False); if True, return all square
+                   roots of self, instead of just one.
 
         EXAMPLES:
             sage: a = CFF(4/19); a
@@ -639,6 +645,13 @@ class ContinuedFraction(FieldElement):
             146231375/318703893
             sage: float(b.value()^2 - a)
             4.0935373134057017e-17
+            sage: b = a.sqrt(prec=100); b
+            [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 5]
+            sage: b^2
+            [0, 4, 1, 3, 49545773063556658177372134479, 1, 3, 4]
+            sage: a.sqrt(all=True)
+            [[0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2],
+             [-1, 1, 1, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]]
             sage: a = CFF(4/25).sqrt(); a
             [0, 2, 2]
             sage: a.value()
@@ -647,12 +660,11 @@ class ContinuedFraction(FieldElement):
         r = self._rational_()
         if r < 0:
             raise ValueError, "self must be positive"
-        if bits is None:
-            if r.is_square():
-                return ContinuedFraction(self.parent(), r.sqrt())
-            else:
-                bits = 53
-        return ContinuedFraction(self.parent(), r.sqrt_approx(bits))
+        X = r.sqrt(all=all, prec=prec)
+        if not all:
+            return ContinuedFraction(self.parent(), X)
+        else:
+            return [ContinuedFraction(self.parent(), x) for x in X]
 
     def list(self):
         """

@@ -578,7 +578,7 @@ class pAdicGenericElement(sage.rings.padics.local_generic_element.LocalGenericEl
             5-adic Field with capped relative precision 8
             sage: a = K(-5^2*17); a
             3*5^2 + 5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + 4*5^8 + 4*5^9 + O(5^10)
-            sage: u = a.unit_part()
+            sage: u = a.unit_part(); u
             3 + 5 + 4*5^2 + 4*5^3 + 4*5^4 + 4*5^5 + 4*5^6 + 4*5^7 + O(5^8)
             sage: b = K(1235/5); b
             2 + 4*5 + 4*5^2 + 5^3 + O(5^8)

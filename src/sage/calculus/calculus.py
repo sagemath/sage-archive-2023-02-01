@@ -20,7 +20,7 @@ EXAMPLES:
         sage: x1 = var('x1'); x1
         x1
         sage: latex(x1)
-        \mbox{x}_{1}
+        x_{1}
         sage: theta = var('theta'); theta
         theta
         sage: latex(theta)
@@ -891,7 +891,7 @@ class SymbolicExpression(RingElement):
             sage: a
             y + x^3 + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
+            <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
             sage: a.degree()
             0
 
@@ -1222,7 +1222,6 @@ class SymbolicExpression(RingElement):
 
             sage: var('t0')
             t0
-            w
             sage: log(t/t0).laplace(t, s)
             (-log(t0) - log(s) - euler_gamma)/s
 
@@ -1245,6 +1244,7 @@ class SymbolicExpression(RingElement):
         an occasional reinforcement, because of the "+1" term.
 
             sage: var('t')
+            t
             sage: x = function('x', t)
             sage: y = function('y', t)
             sage: de1 = x.diff(t) + 16*y

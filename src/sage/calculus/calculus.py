@@ -310,7 +310,7 @@ class SymbolicExpressionRing_class(CommutativeRing):
         elif isinstance(x, complex):
             return evaled_symbolic_expression_from_maxima_string('%s+%%i*%s'%(x.real,x.imag))
         else:
-            raise TypeError, 'cannot coerce %s into a SymbolicExpression.'%x
+            raise TypeError, "cannot coerce type '%s' into a SymbolicExpression."%type(x)
 
     def _repr_(self):
         return 'Symbolic Ring'
@@ -1219,7 +1219,6 @@ class SymbolicExpression(RingElement):
             1/(s^2 + 1)
             sage: (z + exp(x)).laplace(x, s)
             z/s + 1/(s - 1)
-
             sage: var('t0')
             t0
             sage: log(t/t0).laplace(t, s)
@@ -1245,6 +1244,7 @@ class SymbolicExpression(RingElement):
 
             sage: var('t')
             t
+            sage: t = var('t')
             sage: x = function('x', t)
             sage: y = function('y', t)
             sage: de1 = x.diff(t) + 16*y
@@ -1463,12 +1463,13 @@ class SymbolicExpression(RingElement):
             much faster and applies to arbitrary user defined functions.
 
         EXAMPLES:
-            sage: exp(-sqrt(x)).nintegral(x, 0, 1)
+            sage: f(x) = exp(-sqrt(x))
+            sage: f.nintegral(x, 0, 1)
             (0.52848223531423055, 4.1633141378838452e-11, 231, 0)
 
         We can also use the \code{numerical_integral} function, which calls
         the GSL C library.
-            sage: numerical_integral(exp(-sqrt(x)), 0, 1)             # random low-order bits
+            sage: numerical_integral(f, 0, 1)       # random low-order bits
             (0.52848223225314706, 6.8392846084921134e-07)
         """
         v = self._maxima_().quad_qags(var(x),
@@ -1891,7 +1892,8 @@ class SymbolicExpression(RingElement):
             **kwds  -- named parameters
 
         EXAMPLES:
-            sage: u = (x^3 - 3*y + 4*t)
+            sage: x,y,t = var('x,y,t')
+            sage: u = x^3 - 3*y + 4*t
             sage: u.substitute(x=y, y=t)
             y^3 + t
 
@@ -2320,6 +2322,7 @@ class SymbolicOperation(SymbolicExpression):
         form of self.  The ordering is alphabetic.
 
         EXAMPLES:
+            sage: x,y,z,w = var('x,y,z,w')
             sage: f = (x - x) + y^2 - z/z + (w^2-1)/(w+1); f
             y^2 + (w^2 - 1)/(w + 1) - 1
             sage: f.variables()
@@ -2349,7 +2352,7 @@ class SymbolicOperation(SymbolicExpression):
         return vars
 
 def var_cmp(x,y):
-    return cmp(str(x), str(y))
+    return cmp(repr(x), repr(y))
 
 symbols = {operator.add:' + ', operator.sub:' - ', operator.mul:'*',
             operator.div:'/', operator.pow:'^'}
@@ -2847,6 +2850,9 @@ class CallableSymbolicExpression(SymbolicExpression):
     def args(self):
         return self.parent().args()
 
+    def arguments(self):
+        return self.args()
+
     def _maxima_init_(self):
         return self._expr._maxima_init_()
 
@@ -3310,6 +3316,16 @@ class PrimitiveFunction(SymbolicExpression):
         SymbolicExpression.__init__(self)
         self._tex_needs_braces = needs_braces
 
+    def _recursive_sub(self, kwds):
+        if kwds.has_key(self):
+            return kwds[self]
+        return self
+
+    def _recursive_sub_over_ring(self, kwds, ring):
+        if kwds.has_key(self):
+            return kwds[self]
+        return self
+
     def plot(self, *args, **kwds):
         f = self(var('x'))
         return SymbolicExpression.plot(f, *args, **kwds)
@@ -3733,7 +3749,7 @@ class Function_cosh(PrimitiveFunction):
         cosh(pi)
         sage: cosh(3.1415)
         11.5908832931176
-        sage: float(cosh(pi))
+        sage: float(cosh(pi))       # random low order bits
         11.591953275521519
         sage: RR(cosh(1/2))
         1.12762596520638
@@ -3787,7 +3803,7 @@ class Function_sech(PrimitiveFunction):
         sech(pi)
         sage: sech(3.1415)
         0.0862747018248192
-        sage: float(sech(pi))
+        sage: float(sech(pi))    # random low order bits
         0.086266738334054432
         sage: RR(sech(pi))
         0.0862667383340544
@@ -3928,7 +3944,7 @@ class Function_sqrt(PrimitiveFunction):
                  roots of self, instead of just one.
         """
         if isinstance(x, float):
-            return math.float(x)
+            return math.sqrt(x)
         if not isinstance(x, (Integer, Rational)):
             try:
                 return x.sqrt(*args, **kwds)
@@ -3955,7 +3971,7 @@ class Function_exp(PrimitiveFunction):
         x*e^x^2
         sage: exp(2.5)
         12.1824939607035
-        sage: exp(float(2.5))
+        sage: exp(float(2.5))         # random low order bits
         12.182493960703473
         sage: exp(RDF('2.5'))
         12.1824939607
@@ -4011,6 +4027,7 @@ class SymbolicFunction(PrimitiveFunction):
     def _repr_(self, simplify=True):
         return self._name
 
+
     def _is_atomic(self):
         return True
 
@@ -4025,6 +4042,8 @@ class SymbolicFunction(PrimitiveFunction):
 
     def __call__(self, *args, **kwds):
         return SymbolicFunctionEvaluation(self, [SR(x) for x in args])
+
+
 
 class SymbolicFunction_delayed(SymbolicFunction):
     def simplify(self):
@@ -4141,6 +4160,9 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
                 function_sub = True
                 break
         if function_sub:
+            # Very important to make a copy, since we are mutating a dictionary
+            # that will get used again by the calling function!
+            kwds = dict(kwds)
             del kwds[x]
 
         arg = tuple([SR(x._recursive_sub(kwds)) for x in self._args])

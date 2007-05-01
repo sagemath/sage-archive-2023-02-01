@@ -20,7 +20,7 @@ EXAMPLES:
         sage: x1 = var('x1'); x1
         x1
         sage: latex(x1)
-        \mbox{x}_{1}
+        x_{1}
         sage: theta = var('theta'); theta
         theta
         sage: latex(theta)
@@ -885,7 +885,7 @@ class SymbolicExpression(RingElement):
             sage: a
             y + x^3 + sqrt(2)
             sage: type(a)
-            <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
+            <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
             sage: a.degree()
             0
 
@@ -1213,10 +1213,8 @@ class SymbolicExpression(RingElement):
             1/(s^2 + 1)
             sage: (z + exp(x)).laplace(x, s)
             z/s + 1/(s - 1)
-
             sage: var('t0')
             t0
-            w
             sage: log(t/t0).laplace(t, s)
             (-log(t0) - log(s) - euler_gamma)/s
 
@@ -1238,7 +1236,7 @@ class SymbolicExpression(RingElement):
         because of the higher factor of "-16" vs "-1", and also get
         an occasional reinforcement, because of the "+1" term.
 
-            sage: var('t')
+            sage: t = var('t')
             sage: x = function('x', t)
             sage: y = function('y', t)
             sage: de1 = x.diff(t) + 16*y
@@ -2841,6 +2839,9 @@ class CallableSymbolicExpression(SymbolicExpression):
     def args(self):
         return self.parent().args()
 
+    def arguments(self):
+        return self.args()
+
     def _maxima_init_(self):
         return self._expr._maxima_init_()
 
@@ -3727,7 +3728,7 @@ class Function_cosh(PrimitiveFunction):
         cosh(pi)
         sage: cosh(3.1415)
         11.5908832931176
-        sage: float(cosh(pi))
+        sage: float(cosh(pi))       # random low order bits
         11.591953275521519
         sage: RR(cosh(1/2))
         1.12762596520638
@@ -3781,7 +3782,7 @@ class Function_sech(PrimitiveFunction):
         sech(pi)
         sage: sech(3.1415)
         0.0862747018248192
-        sage: float(sech(pi))
+        sage: float(sech(pi))    # random low order bits
         0.086266738334054432
         sage: RR(sech(pi))
         0.0862667383340544
@@ -3949,7 +3950,7 @@ class Function_exp(PrimitiveFunction):
         x*e^x^2
         sage: exp(2.5)
         12.1824939607035
-        sage: exp(float(2.5))
+        sage: exp(float(2.5))         # random low order bits
         12.182493960703473
         sage: exp(RDF('2.5'))
         12.1824939607
@@ -4019,6 +4020,8 @@ class SymbolicFunction(PrimitiveFunction):
 
     def __call__(self, *args, **kwds):
         return SymbolicFunctionEvaluation(self, [SR(x) for x in args])
+
+
 
 class SymbolicFunction_delayed(SymbolicFunction):
     def simplify(self):

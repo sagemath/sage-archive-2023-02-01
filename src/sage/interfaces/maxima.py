@@ -429,13 +429,16 @@ class Maxima(Expect):
             self._start()
         os.write(self._expect.child_fd, str)
 
-    def _expect_expr(self, expr=None):
+    def _expect_expr(self, expr=None, timeout=None):
         if expr is None:
             expr = self._prompt_wait
         if self._expect is None:
             self._start()
         try:
-            i = self._expect.expect(expr)
+            if timeout:
+                i = self._expect.expect(expr,timeout=timeout)
+            else:
+                i = self._expect.expect(expr)
             if i > 0:
                 v = self._expect.before
                 j = v.find('Is ')
@@ -542,7 +545,7 @@ class Maxima(Expect):
         s = str(r+1)
         cmd = "1+%s;\n"%r
         self._send(cmd)
-        self._expect_expr()
+        self._expect_expr(timeout=1)
         if not s in self._before():
             self._expect_expr(s)
             self._expect_expr()

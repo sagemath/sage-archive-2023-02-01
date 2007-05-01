@@ -361,25 +361,38 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
                         the current directory is chosen automatically
                         (default:None)
             maxsize -- maximal dimension in either x or y direction of the resulting
-                       image (default: 512)
+                       image. If None or a maxsize larger than
+                       max(self.nrows(),self.ncols()) is given the image will have
+                       the same pixelsize as the matrix dimensions (default: 512)
 
         """
         import gd
         import os
 
         cdef Py_ssize_t i, j, k
-        cdef float _maxsize = float(maxsize)
         cdef float blk,invblk
         cdef int delta
         cdef int x,y,r,g,b
 
         mr, mc = self.nrows(), self.ncols()
-        if max(mr,mc) > _maxsize:
-            ir = int(mc * _maxsize/max(mr,mc))
-            ic = int(mr * _maxsize/max(mr,mc))
-            blk = max(mr,mc)/_maxsize
-            invblk = _maxsize/max(mr,mc)
+
+        if maxsize is None:
+
+            ir = mc
+            ic = mr
+            blk = 1.0
+            invblk = 1.0
+
+        elif max(mr,mc) > maxsize:
+
+            maxsize = float(maxsize)
+            ir = int(mc * maxsize/max(mr,mc))
+            ic = int(mr * maxsize/max(mr,mc))
+            blk = max(mr,mc)/maxsize
+            invblk = maxsize/max(mr,mc)
+
         else:
+
             ir = mc
             ic = mr
             blk = 1.0

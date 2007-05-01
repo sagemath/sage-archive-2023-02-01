@@ -2324,8 +2324,11 @@ cdef class Matrix(matrix1.Matrix):
             filename -- either a path or None in which case a filename in
                         the current directory is chosen automatically
                         (default:None)
+
             maxsize -- maximal dimension in either x or y direction of the resulting
-                       image (default: 512)
+                       image. If None or a maxsize larger than
+                       max(self.nrows(),self.ncols()) is given the image will have
+                       the same pixelsize as the matrix dimensions (default: 512)
 
         """
         import gd
@@ -2333,15 +2336,25 @@ cdef class Matrix(matrix1.Matrix):
 
         cdef int x, y, _x, _y, v, b2
         cdef int ir,ic
-        cdef float _maxsize = float(maxsize)
         cdef float b, fct
 
         mr, mc = self.nrows(), self.ncols()
-        if max(mr,mc) > _maxsize:
-            ir = int(mc * _maxsize/max(mr,mc))
-            ic = int(mr * _maxsize/max(mr,mc))
-            b = max(mr,mc)/_maxsize
+
+        if maxsize is None:
+
+            ir = mc
+            ic = mr
+            b = 1.0
+
+        elif max(mr,mc) > maxsize:
+
+            maxsize = float(maxsize)
+            ir = int(mc * maxsize/max(mr,mc))
+            ic = int(mr * maxsize/max(mr,mc))
+            b = max(mr,mc)/maxsize
+
         else:
+
             ir = mc
             ic = mr
             b = 1.0

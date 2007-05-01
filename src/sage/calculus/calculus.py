@@ -4135,6 +4135,9 @@ class SymbolicFunctionEvaluation(SymbolicExpression):
                 function_sub = True
                 break
         if function_sub:
+            # Very important to make a copy, since we are mutating a dictionary
+            # that will get used again by the calling function!
+            kwds = dict(kwds)
             del kwds[x]
 
         arg = tuple([SR(x._recursive_sub(kwds)) for x in self._args])

@@ -83,7 +83,7 @@ cimport matrix
 cimport matrix_sparse
 from sage.rings.integer_mod cimport IntegerMod_int, IntegerMod_abstract
 
-from sage.misc.misc import verbose, get_verbose
+from sage.misc.misc import verbose, get_verbose, graphics_filename
 
 ################
 # TODO: change this to use extern cdef's methods.
@@ -343,6 +343,98 @@ cdef class Matrix_modn_sparse(matrix_sparse.Matrix_sparse):
         self.cache('pivots',pivots)
         self.cache('in_echelon_form',True)
 
+    def visualize_structure(self, filename=None, maxsize=512):
+        """
+        Write a PNG image to 'filename' which visualizes self by putting
+        black pixels in those positions which have nonzero entries.
+
+        White pixels are put at positions with zero entries. If 'maxsize'
+        is given, then the maximal dimension in either x or y direction is
+        set to 'maxsize' depending on which is bigger. If the image is
+        scaled, the darkness of the pixel reflects how many of the
+        represented entries are nonzero. So if e.g. one image pixel
+        actually represents a 2x2 submatrix, the dot is darker the more of
+        the four values are nonzero.
+
+        INPUT:
+            filename -- either a path or None in which case a filename in
+                        the current directory is chosen automatically
+                        (default:None)
+            maxsize -- maximal dimension in either x or y direction of the resulting
+                       image (default: 512)
+
+        """
+        import gd
+        import os
+
+        cdef Py_ssize_t i, j, k
+        cdef float _maxsize = float(maxsize)
+        cdef float blk,invblk
+        cdef int delta
+        cdef int x,y,r,g,b
+
+        mr, mc = self.nrows(), self.ncols()
+        if max(mr,mc) > _maxsize:
+            ir = int(mc * _maxsize/max(mr,mc))
+            ic = int(mr * _maxsize/max(mr,mc))
+            blk = max(mr,mc)/_maxsize
+            invblk = _maxsize/max(mr,mc)
+        else:
+            ir = mc
+            ic = mr
+            blk = 1.0
+            invblk = 1.0
+
+        delta = 255.0 / blk**2
+
+        im = gd.image((ir,ic),1)
+        white = im.colorExact((255,255,255))
+        im.fill((0,0),white)
+
+        colorComponents = im.colorComponents
+        getPixel = im.getPixel
+        setPixel = im.setPixel
+        colorExact = im.colorExact
+
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self.rows[i].num_nonzero:
+                x = <int>(invblk * self.rows[i].positions[j])
+                y = <int>(invblk * i)
+                r,g,b = colorComponents( getPixel((x,y)))
+                setPixel( (x,y), colorExact((r-delta,g-delta,b-delta)) )
+
+        if filename is None:
+            filename = sage.misc.misc.graphics_filename()
+
+        im.writePng(filename)
+
+    def density(self):
+        """
+        Return the density of self.
+
+        By density we understand the ration of the number of nonzero
+        positions and the self.nrows() * self.ncols(), i.e. the number
+        of possible nonzero positions.
 
 
+        EXAMPLE:
 
+            First, note that the density parameter does not ensure
+            the density of a matrix, it is only an upper bound.
+
+            sage: A = random_matrix(GF(127),200,200,density=0.3, sparse=True)
+            sage: A.density() # somewhat random
+            643/2500
+
+            sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8],sparse=True)
+            sage: A.density()
+            2/3
+        """
+        from sage.rings.rational_field import QQ
+
+        cdef Py_ssize_t i, j, k
+        k = 0
+        for i from 0 <= i < self._nrows:
+            for j from 0 <= j < self.rows[i].num_nonzero:
+                k+=1
+        return QQ(k)/QQ(self.nrows()*self.ncols())

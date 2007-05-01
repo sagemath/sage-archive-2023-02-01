@@ -332,7 +332,8 @@ def test_file(file):
             delete_tmpfiles()
             sys.exit(1)
         elif e != 0:
-            print "A mysterious error (perphaps a memory error?) occured, which may have crashed doctest."
+            if not verbose:
+                print "A mysterious error (perphaps a memory error?) occured, which may have crashed doctest."
             sys.exit(1)
         else:
             delete_tmpfiles()

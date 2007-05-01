@@ -689,11 +689,7 @@ class Graphics(SageObject):
 
         from matplotlib.figure import Figure
         if filename is None:
-            i = 0
-            while os.path.exists('sage%s.png'%i):
-                i += 1
-            filename = 'sage%s.png'%i
-
+            filename = sage.misc.misc.graphics_filename()
         try:
             ext = os.path.splitext(filename)[1].lower()
         except IndexError:

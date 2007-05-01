@@ -341,7 +341,7 @@ A long complicated input expression:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-import os, re
+import os, re, sys
 import pexpect
 cygwin = os.uname()[0][:6]=="CYGWIN"
 
@@ -453,7 +453,7 @@ class Maxima(Expect):
             i = 0
             while True:
                 try:
-                    print "Control-C pressed.  Interrupting Maxima. Please wait..."
+                    print "Control-C pressed.  Interrupting Maxima. Please wait a few seconds..."
                     self._send('quit;\n'+chr(3))
                     self._send('quit;\n'+chr(3))
                     self.interrupt()
@@ -468,10 +468,14 @@ class Maxima(Expect):
             raise KeyboardInterrupt, msg
 
     def _interrupt(self):
-        self._send('quit;\n'+chr(3))
-        self._expect_expr()
-        self._send('quit;\n'+chr(3))
-        self._expect_expr()
+        for i in range(15):
+            try:
+                self._send('quit;\n'+chr(3))
+                self._expect_expr(timeout=2)
+            except pexpect.TIMEOUT:
+                pass
+            else:
+                return
 
     def _before(self):
         return self._expect.before
@@ -540,12 +544,36 @@ class Maxima(Expect):
 
 
     def _synchronize(self):
+        """
+        Synchronize pexpect interface.
+
+        This put a random integer (plus one!) into the output stream,
+        then waits for it, thus resynchronizing the stream.  If the
+        random integer doesn't appear within 1 second, maxima is sent
+        interrupt signals.
+
+        This way, even if you somehow left maxima in a busy state
+        computing, calling _synchronize gets everything fixed.
+
+        EXAMPLES:
+        This makes Maxima start a time-consuming calculation in the background:
+            sage: maxima._send('1/1'*10000)
+
+        When you type this command, this synchronize command is implicitly
+        called, and the above running calculation is interrupted:
+            sage: maxima('2+2')
+            4
+        """
         if self._expect is None: return
         r = random.randrange(2147483647)
         s = str(r+1)
         cmd = "1+%s;\n"%r
         self._send(cmd)
-        self._expect_expr(timeout=1)
+        try:
+            self._expect_expr(timeout=0.5)
+        except pexpect.TIMEOUT, msg:
+            self._interrupt()
+            return
         if not s in self._before():
             self._expect_expr(s)
             self._expect_expr()

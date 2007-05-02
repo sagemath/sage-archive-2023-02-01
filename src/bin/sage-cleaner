@@ -20,10 +20,12 @@
 #                  http://www.gnu.org/licenses/
 #########################################################
 
-import os, shutil, sys, time
+import os, shutil, sys, time, socket
+
+HOSTNAME = socket.gethostname()
 
 DOT_SAGE = os.environ['DOT_SAGE']
-tmp = '%s/tmp'%DOT_SAGE
+tmp = '%s/tmp/%s/'%(DOT_SAGE, HOSTNAME)
 if not os.path.exists(tmp):
     os.makedirs(tmp)
 
@@ -38,7 +40,9 @@ def is_running(pid):
         return False
 
 def cleanup():
-    D = '%s/.sage/tmp'%os.environ['HOME']
+    D = tmp
+    if not os.path.exists(tmp):
+        return 0
     tmp_dirs = os.listdir(tmp)
     for parent_pid in tmp_dirs:
         if not is_running(parent_pid):
@@ -76,7 +80,7 @@ def kill_spawned_jobs(file, parent_pid):
 
 
 def setup_daemon():
-    D = '%s/tmp_cleaner.pid'%DOT_SAGE
+    D = '%s/tmp/cleaner-%s.pid'%(DOT_SAGE, HOSTNAME)
     if os.path.exists(D):
         pid = open(D).read()
         if is_running(pid):

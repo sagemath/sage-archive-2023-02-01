@@ -55,6 +55,7 @@ from sage.rings.arith import binomial, floor
 from sage.misc.functional import log, ceil, sqrt
 
 from ell_generic import is_EllipticCurve
+from constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -2013,7 +2014,7 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 
 import weakref
 
-from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing, is_IntegralDomain
 from sage.modules.all import FreeModule, is_FreeModuleElement
@@ -2110,18 +2111,26 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             if E.a1() != 0 or E.a2() != 0:
                 raise NotImplementedError, "Curve must be in Weierstrass normal form."
             Q = (-E.defining_polynomial()).change_ring(R)(x,0,1)
+            self._curve = E
 
         elif is_HyperellipticCurve(Q):
             C = Q
             if C.hyperelliptic_polynomials()[1] != 0:
                 raise NotImplementedError, "Curve must be of form y^2 = Q(x)."
             Q = C.hyperelliptic_polynomials()[0].change_ring(R)
+            self._curve = C
 
         if is_Polynomial(Q):
             self._Q = Q.change_ring(R)
             self._coeffs = self._Q.coeffs()
             if self._coeffs.pop() != 1:
                 raise NotImplementedError, "Polynomial must be monic."
+            if not hasattr(self, '_curve'):
+                if self._Q.degree() == 3:
+                    ainvs = [0, self._Q[2], 0, self._Q[1], self._Q[0]]
+                    self._curve = EllipticCurve(ainvs)
+                else:
+                    self._curve = HyperellipticCurve(self._Q)
 
         else:
             raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
@@ -2201,7 +2210,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         $d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}$
 
-        Where $A,B$ have degree at most $n-1$ for each $i$.
+        Where $A$ has degree at most $n-1$ for each $i$.
         Pre-compute $A_i, B_i$ for each $i$ the "hard" way, and
         the rest are easy.
         """
@@ -2250,6 +2259,9 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
     def Q(self):
         return self._Q
+
+    def curve(self):
+        return self._curve
 
     def degree(self):
         return self._n
@@ -2848,5 +2860,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def coeffs(self, R=None):
         return self._coeff.coeffs(R)
+
+    def coleman_integral(self, P, Q):
+        return self.parent().base_ring().curve().coleman_integral(self, P, Q)
 
 ### end of file

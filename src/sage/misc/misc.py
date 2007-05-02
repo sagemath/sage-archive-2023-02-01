@@ -20,12 +20,14 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, sys, signal, time, weakref, random, resource
+import operator, os, socket, sys, signal, time, weakref, random, resource
 
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 SAGE_LOCAL = SAGE_ROOT + '/local/'
+
+HOSTNAME = socket.gethostname()
 
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)
@@ -56,15 +58,22 @@ if ' ' in DOT_SAGE:
         DOT_SAGE="/home/.sage"
     else:
         print "Your home directory has a space in it.  This"
-        print "will break some functionality of SAGE.  E.g.,"
+        print "will probably break some functionality of SAGE.  E.g.,"
         print "the GAP interface will not work.  A workaround"
         print "is to set the environment variable HOME to a"
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
 
-SPYX_TMP = '%s/spyx'%DOT_SAGE
+SPYX_TMP = '%s/spyx/%s'%(DOT_SAGE, HOSTNAME)
 
-SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
+if not os.path.exists(SPYX_TMP):
+    try:
+        os.makedirs(SPYX_TMP)
+    except OSError, msg:
+        print msg
+        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
+
+SAGE_TMP='%s/tmp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):
     try:
         os.makedirs(SAGE_TMP)

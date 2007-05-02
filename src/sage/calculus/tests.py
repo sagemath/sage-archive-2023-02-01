@@ -60,4 +60,14 @@ the simplified version using ASCII art:
     sage: A = exp(I*pi/5)
     sage: print A*A*A*A*A*A*A*A*A*A
                                            1
+
+We check a statement made at the beginning of Friedlander and Joshi's book
+on Distributions:
+    sage: f = sin(x^2)
+    sage: g = cos(x) + x^3
+    sage: u = f(x+t) + g(x-t)
+    sage: u
+    sin((x + t)^2) + cos(x - t) + (x - t)^3
+    sage: u.diff(t,2) - u.diff(x,2)
+    0
 """

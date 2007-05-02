@@ -56,6 +56,7 @@ from math import floor
 from sage.misc.functional import log, sqrt
 
 from ell_generic import is_EllipticCurve
+from constructor import EllipticCurve
 
 
 class SpecialCubicQuotientRing(CommutativeAlgebra):
@@ -2014,7 +2015,7 @@ def matrix_of_frobenius_alternate(a, b, p, N):
 
 import weakref
 
-from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve
+from sage.schemes.hyperelliptic_curves.all import is_HyperellipticCurve, HyperellipticCurve
 from sage.rings.padics.all import pAdicField
 from sage.rings.all import QQ, is_LaurentSeries, is_LaurentSeriesRing, is_IntegralDomain
 from sage.modules.all import FreeModule, is_FreeModuleElement
@@ -2111,18 +2112,26 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             if E.a1() != 0 or E.a2() != 0:
                 raise NotImplementedError, "Curve must be in Weierstrass normal form."
             Q = (-E.defining_polynomial()).change_ring(R)(x,0,1)
+            self._curve = E
 
         elif is_HyperellipticCurve(Q):
             C = Q
             if C.hyperelliptic_polynomials()[1] != 0:
                 raise NotImplementedError, "Curve must be of form y^2 = Q(x)."
             Q = C.hyperelliptic_polynomials()[0].change_ring(R)
+            self._curve = C
 
         if is_Polynomial(Q):
             self._Q = Q.change_ring(R)
             self._coeffs = self._Q.coeffs()
             if self._coeffs.pop() != 1:
                 raise NotImplementedError, "Polynomial must be monic."
+            if not hasattr(self, '_curve'):
+                if self._Q.degree() == 3:
+                    ainvs = [0, self._Q[2], 0, self._Q[1], self._Q[0]]
+                    self._curve = EllipticCurve(ainvs)
+                else:
+                    self._curve = HyperellipticCurve(self._Q)
 
         else:
             raise NotImplementedError, "Must be an elliptic curve or polynomial Q for y^2 = Q(x)"
@@ -2202,7 +2211,7 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
         $d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}$
 
-        Where $A,B$ have degree at most $n-1$ for each $i$.
+        Where $A$ has degree at most $n-1$ for each $i$.
         Pre-compute $A_i, B_i$ for each $i$ the "hard" way, and
         the rest are easy.
         """
@@ -2251,6 +2260,9 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
 
     def Q(self):
         return self._Q
+
+    def curve(self):
+        return self._curve
 
     def degree(self):
         return self._n
@@ -2650,8 +2662,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
 #        prof("loop %s"%self.min_pow_y())
         forms = []
-        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
-            if coeffs[j-offset-1].is_zero():
+        for j in range(self.min_pow_y()+1, 0):
+            if (even_degree_only and j % 2 == 0) or coeffs[j-offset-1].is_zero():
                 forms.append(V(0))
             else:
                 # this is a total hack to deal with the fact that we're using
@@ -2692,6 +2704,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         coeffs, offset = self.coeffs(R)
         V = coeffs[0].parent()
+        zeroV = V(0)
 
         if offset == 0:
             return S(0), self
@@ -2701,9 +2714,9 @@ class MonskyWashnitzerDifferential(ModuleElement):
         d_mat_1, d_mat_2 = S.monomial_diff_coeffs_matrices()
 
         forms = []
-        for j in range(self.min_pow_y()+1, 0, 2 if even_degree_only else 1):
+        for j in range(self.min_pow_y()+1, 0):
             if coeffs[j-offset-1].is_zero():
-                forms.append(V(0))
+                forms.append(zeroV)
             else:
                 # this is a total hack to deal with the fact that we're using
                 # rational numbers to approximate fixed precision p-adics
@@ -2738,7 +2751,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
         x, y = S.gens()
         f = S(0)
         reduced = self
-        for j in range(self.max_pow_y(), 0, -2 if even_degree_only else -1):
+        for j in range(self.max_pow_y(), 0, -1):
             for i in range(n-1, -1, -1):
                 c = reduced.extract_pow_y(j)[i]
 #                print "x^%s y^%s"%(i,j), c
@@ -2769,9 +2782,14 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
         coeffs, offset = self.coeffs(R)
         V = coeffs[0].parent()
-        forms = [V(0), V(0)]
+        zeroV = V(0)
+        forms = [zeroV] * 2
 
         for j in range(self.max_pow_y(), -1, -1):
+
+            if (even_degree_only and j % 2 == 1) or coeffs[j-offset].is_zero():
+                forms.append(zeroV)
+                continue
 
             form = V(0)
             i = n-1
@@ -2843,5 +2861,8 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def coeffs(self, R=None):
         return self._coeff.coeffs(R)
+
+    def coleman_integral(self, P, Q):
+        return self.parent().base_ring().curve().coleman_integral(self, P, Q)
 
 ### end of file

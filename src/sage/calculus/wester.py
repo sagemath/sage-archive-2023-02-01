@@ -224,7 +224,7 @@ sage: print a
                        sqrt(99983) - sqrt(13) sqrt(7691)
 sage: print bool(a==0)
 False
-sage: print float(a)
+sage: float(a)    # random low order bits
 1.13686837722e-13
 sage: print 13*7691
 99983

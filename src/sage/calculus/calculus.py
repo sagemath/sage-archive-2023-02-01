@@ -353,6 +353,12 @@ class SymbolicExpression(RingElement):
     A Symbolic Expression.
 
     EXAMPLES:
+        Some types of SymbolicExpressions:
+
+        sage: a = SR(2+2); a
+        4
+        sage: type(a)
+        <class 'sage.calculus.calculus.SymbolicConstant'>
 
     """
     def __init__(self):
@@ -1235,6 +1241,8 @@ class SymbolicExpression(RingElement):
         because of the higher factor of "-16" vs "-1", and also get
         an occasional reinforcement, because of the "+1" term.
 
+            sage: var('t')
+            t
             sage: t = var('t')
             sage: x = function('x', t)
             sage: y = function('y', t)

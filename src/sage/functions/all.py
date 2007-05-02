@@ -37,3 +37,5 @@ from functions import FunctionRing, sin, cos, airy_ai, airy_bi, var
 from constants import (pi, e, NaN, golden_ratio, log2, euler_gamma, catalan,
                        khinchin, twinprime, merten, brun, I)
 
+i = I  # alias
+

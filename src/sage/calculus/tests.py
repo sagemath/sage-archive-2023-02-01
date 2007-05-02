@@ -60,4 +60,12 @@ the simplified version using ASCII art:
     sage: A = exp(I*pi/5)
     sage: print A*A*A*A*A*A*A*A*A*A
                                            1
+
+Restoring variables after they have been turned into functions:
+    sage: x = function('x')
+    sage: sin(x).variables()
+    ()
+    sage: restore('x')
+    sage: sin(x).variables()
+    (x,)
 """

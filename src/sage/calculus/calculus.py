@@ -170,7 +170,6 @@ Substitution:
     sage: f = x
     sage: f(x=5)
     5
-
 """
 
 import weakref
@@ -1885,6 +1884,10 @@ class SymbolicExpression(RingElement):
 
         EXAMPLES:
             sage: x,y,t = var('x,y,t')
+            sage: u = 3*y
+            sage: u.substitute(y=t)
+            3*t
+
             sage: u = x^3 - 3*y + 4*t
             sage: u.substitute(x=y, y=t)
             y^3 + t
@@ -1896,8 +1899,20 @@ class SymbolicExpression(RingElement):
             sage: f(x=pi, y=t)
             32*pi^(t/2)
 
+            sage: f = x
+            sage: f.variables()
+            (x,)
+
+            sage: f = 2*x
+            sage: f.variables()
+            (x,)
+
             sage: f = 2*x^2 - sin(x)
+            sage: f.variables()
+            (x,)
             sage: f(pi)
+            2*pi^2
+            sage: f(x=pi)
             2*pi^2
 
         AUTHORS:
@@ -2333,11 +2348,8 @@ class SymbolicOperation(SymbolicExpression):
             return self.__variables
         except AttributeError:
             pass
-        if vars is None:
-            vars = []
-        else:
-            vars = list(vars)
-        vars = list(set(sum([list(op.variables()) for op in self._operands], [])))
+        vars = list(set(sum([list(op.variables()) for op in self._operands], list(vars))))
+
         vars.sort(var_cmp)
         vars = tuple(vars)
         self.__variables = vars
@@ -2574,6 +2586,9 @@ class SymbolicVariable(SymbolicExpression):
         if len(name) == 0:
             raise ValueError, "variable name must be nonempty"
 
+    def __hash__(self):
+        return hash(self._name)
+
     def _recursive_sub(self, kwds):
         # do the replacement if needed
         if kwds.has_key(self):
@@ -2688,15 +2703,15 @@ def var(s, create=True):
     elif ' ' in s:
         return tuple([var(x.strip()) for x in s.split()])
     try:
-        X = _vars[s]()
-        if not X is None:
-            return X
+        v = _vars[s]
+        _syms[s] = v
+        return v
     except KeyError:
         if not create:
             raise ValueError, "the variable '%s' has not been defined"%var
         pass
     v = SymbolicVariable(s)
-    _vars[s] = weakref.ref(v)
+    _vars[s] = v
     _syms[s] = v
     return v
 
@@ -3452,6 +3467,7 @@ class Function_floor(PrimitiveFunction):
         sage: type(floor(5.4))
         <type 'sage.rings.integer.Integer'>
         sage: var('x')
+        x
         sage: a = floor(5.4 + x); a
         floor(x + 0.4000000000000004) + 5
         sage: a(2)
@@ -4016,6 +4032,9 @@ class SymbolicFunction(PrimitiveFunction):
         PrimitiveFunction.__init__(self, needs_braces=True)
         self._name = str(name)
 
+    def __hash__(self):
+        return hash(self._name)
+
     def _repr_(self, simplify=True):
         return self._name
 
@@ -4266,19 +4285,33 @@ def function(s, *args):
     elif ' ' in s:
         return tuple([function(x.strip()) for x in s.split()])
     try:
-        X = _functions[s]()
-        if not X is None:
-            return X
+        f =  _functions[s]
+        _syms[s] = f
+        return f
     except KeyError:
         pass
     v = SymbolicFunction(s)
-    _functions[s] = weakref.ref(v)
+    _functions[s] = v
+    _syms[s] = v
     return v
 
 #######################################################
+# This is buggy as is:
+# sage: a = lim(exp(x^2)*(1-erf(x)), x=infinity)
+# sage: maxima(a)
+# 'limit(%e^x^2-%e^x^2*erf(x))
+#  ??? -- what happened to the infinity in the above.
+# With the old version one gets
+# sage: maxima(a)
+# 'limit(%e^x^2-%e^x^2*erf(x),x,inf)
+# Which is right, since:
+# (%i3) limit(%e^x^2-%e^x^2*erf(x),x,inf);
+# (%o3) 'limit(%e^x^2-%e^x^2*erf(x),x,inf)
+#a
 def dummy_limit(*args):
     s = str(args[1])
-    return SymbolicFunctionEvaluation(function('limit'), args=(args[0],),kwds={s: args[2]})
+    return SymbolicFunctionEvaluation(function('limit'), args=(args[0],), kwds={s: args[2]})
+
 ######################################i################
 
 
@@ -4302,7 +4335,7 @@ maxima_qp = re.compile("\?\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 maxima_var = re.compile("\%[a-z|A-Z|0-9|_]*")  # e.g., ?%jacobi_cd
 
 def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
-    global _syms
+    syms = dict(_syms)
 
     if len(x) == 0:
         raise RuntimeError, "invalid symbolic expression -- ''"
@@ -4316,7 +4349,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     formal_functions = maxima_tick.findall(s)
     if len(formal_functions) > 0:
         for X in formal_functions:
-            _syms[X[1:]] = function(X[1:])
+            syms[X[1:]] = function(X[1:])
         # You might think there is a potential very subtle bug if 'foo is in a string literal --
         # but string literals should *never* ever be part of a symbolic expression.
         s = s.replace("'","")
@@ -4324,7 +4357,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
     delayed_functions = maxima_qp.findall(s)
     if len(delayed_functions) > 0:
         for X in delayed_functions:
-            _syms[X[2:]] = SymbolicFunction_delayed(X[2:])
+            syms[X[2:]] = SymbolicFunction_delayed(X[2:])
         s = s.replace("?%","")
 
     s = multiple_replace(symtable, s)
@@ -4334,7 +4367,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         s = s.replace('=','==')
 
     # have to do this here, otherwise maxima_tick catches it
-    _syms['limit'] = dummy_limit
+    syms['limit'] = dummy_limit
 
     global is_simplified
     try:
@@ -4344,7 +4377,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
         last_msg = ''
         while True:
             try:
-                w = sage_eval(s, _syms)
+                w = sage_eval(s, syms)
             except NameError, msg:
                 if msg == last_msg:
                     raise NameError, msg
@@ -4353,7 +4386,7 @@ def symbolic_expression_from_maxima_string(x, equals_sub=False, maxima=maxima):
                 i = msg.find("'")
                 j = msg.rfind("'")
                 nm = msg[i+1:j]
-                _syms[nm] = var(nm)
+                syms[nm] = var(nm)
             else:
                 break
         if isinstance(w, (list, tuple)):
@@ -4371,3 +4404,8 @@ def symbolic_expression_from_maxima_element(x):
 
 def evaled_symbolic_expression_from_maxima_string(x):
     return symbolic_expression_from_maxima_string(maxima.eval(x))
+
+
+# External access used by restore
+syms_cur = _syms
+syms_default = dict(syms_cur)

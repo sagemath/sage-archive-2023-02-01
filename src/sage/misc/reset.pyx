@@ -64,6 +64,11 @@ def restore(vars=None):
     G = globals()  # this is the reason the code must be in SageX.
     import sage.all
     D = sage.all.__dict__
+    _restore(G, D, vars)
+    import sage.calculus.calculus
+    _restore(sage.calculus.calculus.syms_cur, sage.calculus.calculus.syms_default, vars)
+
+def _restore(G, D, vars):
     if vars is None:
         for k, v in D.iteritems():
             G[k] = v

@@ -1224,7 +1224,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     # Plotting
     ##############################################################################
 
-    def _plot_(self, xmin=None, xmax=None, **args):
+    def plot(self, xmin=None, xmax=None, **args):
         """
         Draw a graph of this elliptic curve.
 

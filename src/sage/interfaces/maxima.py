@@ -421,13 +421,21 @@ class Maxima(Expect):
         return 'quit();'
 
     def _sendline(self, str):
-        self._send(str)
+        self._sendstr(str)
         os.write(self._expect.child_fd, os.linesep)
 
-    def _send(self, str):
+    def _sendstr(self, str):
         if self._expect is None:
             self._start()
-        os.write(self._expect.child_fd, str)
+        try:
+            os.write(self._expect.child_fd, str)
+        except OSError:
+            self._crash_msg()
+            self.quit()
+            self._sendstr(str)
+
+    def _crash_msg(self):
+        print "Maxima crashed -- automatically restarting."
 
     def _expect_expr(self, expr=None, timeout=None):
         if expr is None:
@@ -444,8 +452,8 @@ class Maxima(Expect):
                 j = v.find('Is ')
                 v = v[j:]
                 msg = "Computation failed since Maxima requested additional constraints (use assume):\n" + v + self._ask[i-1]
-                self._send(chr(3))
-                self._send(chr(3))
+                self._sendstr(chr(3))
+                self._sendstr(chr(3))
                 self._expect_expr()
                 raise ValueError, msg
         except KeyboardInterrupt, msg:
@@ -454,8 +462,8 @@ class Maxima(Expect):
             while True:
                 try:
                     print "Control-C pressed.  Interrupting Maxima. Please wait a few seconds..."
-                    self._send('quit;\n'+chr(3))
-                    self._send('quit;\n'+chr(3))
+                    self._sendstr('quit;\n'+chr(3))
+                    self._sendstr('quit;\n'+chr(3))
                     self.interrupt()
                     self.interrupt()
                 except KeyboardInterrupt:
@@ -470,10 +478,13 @@ class Maxima(Expect):
     def _interrupt(self):
         for i in range(15):
             try:
-                self._send('quit;\n'+chr(3))
+                self._sendstr('quit;\n'+chr(3))
                 self._expect_expr(timeout=2)
             except pexpect.TIMEOUT:
                 pass
+            except pexpect.EOF:
+                self._crash_msg()
+                self.quit()
             else:
                 return
 
@@ -556,8 +567,8 @@ class Maxima(Expect):
         computing, calling _synchronize gets everything fixed.
 
         EXAMPLES:
-        This makes Maxima start a time-consuming calculation in the background:
-            sage: maxima._send('1/1'*10000)
+        This makes Maxima start a calculation:
+            sage: maxima._sendstr('1/1'*500)
 
         When you type this command, this synchronize command is implicitly
         called, and the above running calculation is interrupted:
@@ -568,15 +579,17 @@ class Maxima(Expect):
         r = random.randrange(2147483647)
         s = str(r+1)
         cmd = "1+%s;\n"%r
-        self._send(cmd)
+        self._sendstr(cmd)
         try:
             self._expect_expr(timeout=0.5)
+            if not s in self._before():
+                self._expect_expr(s,timeout=0.5)
+                self._expect_expr(timeout=0.5)
         except pexpect.TIMEOUT, msg:
             self._interrupt()
-            return
-        if not s in self._before():
-            self._expect_expr(s)
-            self._expect_expr()
+        except pexpect.EOF:
+            self._crash_msg()
+            self.quit()
 
 
 
@@ -1204,11 +1217,11 @@ class MaximaElement(ExpectElement):
         return P.get(self._name)
 
     def __repr__(self):
+        P = self._check_valid()
         try:
             return self.__repr
         except AttributeError:
             pass
-        P = self._check_valid()
         r = P.get(self._name)
         self.__repr = r
         return r

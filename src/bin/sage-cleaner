@@ -25,7 +25,7 @@ import os, shutil, sys, time, socket
 HOSTNAME = socket.gethostname()
 
 DOT_SAGE = os.environ['DOT_SAGE']
-tmp = '%s/tmp/%s/'%(DOT_SAGE, HOSTNAME)
+tmp = '%s/temp/%s/'%(DOT_SAGE, HOSTNAME)
 if not os.path.exists(tmp):
     os.makedirs(tmp)
 
@@ -80,7 +80,7 @@ def kill_spawned_jobs(file, parent_pid):
 
 
 def setup_daemon():
-    D = '%s/tmp/cleaner-%s.pid'%(DOT_SAGE, HOSTNAME)
+    D = '%s/temp/cleaner-%s.pid'%(DOT_SAGE, HOSTNAME)
     if os.path.exists(D):
         pid = open(D).read()
         if is_running(pid):

@@ -10,7 +10,7 @@ AUTHORS:
           and improve behavior of sqrt.
     -- David Harvey (2006-09-15): added nth_root
     -- Pablo De Napoli (2007-04-01): corrected the implementations of
-       multiplicative_order, is_one; optimzed __nonzero__ ; documented: lcm,gcd
+       multiplicative_order, is_one; optimized __nonzero__ ; documented: lcm,gcd
 
 TESTS:
     sage: a = -2/3
@@ -354,35 +354,58 @@ cdef class Rational(sage.structure.element.FieldElement):
             2
 
             This is consistent with the definition above, since:
-            2/3 = 2^1 * 3^{-1}*5^0
-            1/5 = 2^0 * 3^0   *5^{-1}
+            $$
+               2/3 = 2^1 * 3^{-1}*5^0
+            $$
+            $$
+               1/5 = 2^0 * 3^0   *5^{-1}
+            $$
             and hence,
-            lcm(2/3,1/5)= 2^1*3^0*5^0 = 2
+            $$
+               lcm(2/3,1/5)= 2^1*3^0*5^0 = 2.
+            $$
 
             sage: lcm(2/3,7/5)
             14
 
             In this example:
-            2/3 = 2^1*3^{-1}*5^0    * 7^0
-            7/5 = 2^0*3^0   *5^{-1} * 7^1
-            lcm(2/3,7/5) = 2^1*3^0*5^0*7^1 = 14
+            $$
+               2/3 = 2^1*3^{-1}*5^0    * 7^0
+            $$
+            $$
+               7/5 = 2^0*3^0   *5^{-1} * 7^1
+            $$
+            $$
+               lcm(2/3,7/5) = 2^1*3^0*5^0*7^1 = 14
+            $$
 
             sage: lcm(1/3,1/5)
             1
 
             In this example:
-            1/3 = 3^{-1}*5^0
-            1/5 = 3^0 * 5^{-1}
-            lcm(1/3,1/5)=3^0*5^0=1
+            $$
+               1/3 = 3^{-1}*5^0
+            $$
+            $$
+               1/5 = 3^0 * 5^{-1}
+            $$
+            $$
+               lcm(1/3,1/5)=3^0*5^0=1
+            $$
 
             sage: lcm(1/3,1/6)
             1/3
 
             In this example:
-            1/3 = 2^0*3^{-1}
-            1/6 = 2^{-1}*3^{-1}
-            lcm(1/3,1/6)=2^0*3^{-1}=1/3
-
+            $$
+               1/3 = 2^0*3^{-1}
+            $$
+            $$
+               1/6 = 2^{-1}*3^{-1}
+            $$
+            $$
+               lcm(1/3,1/6)=2^0*3^{-1}=1/3
+            $$
         """
         d = self.denom()*other.denom()
         self_d = self.numer()*other.denom()
@@ -416,34 +439,58 @@ cdef class Rational(sage.structure.element.FieldElement):
             1/15
 
             This is consistent with the definition above, since:
-            2/3 = 2^1 * 3^{-1}*5^0
-            1/5 = 2^0 * 3^0   *5^{-1}
+            $$
+               2/3 = 2^1 * 3^{-1}*5^0
+            $$
+            $$
+               1/5 = 2^0 * 3^0   *5^{-1}
+            $$
             and hence,
-            gcd(2/3,1/5)= 2^0*3^{-1}*5^{-1} = 1/15
+            $$
+               gcd(2/3,1/5)= 2^0*3^{-1}*5^{-1} = 1/15
+            $$
 
             sage: gcd(2/3,7/5)
             1/15
 
             In this example:
-            2/3 = 2^1*3^{-1}*5^0    * 7^0
-            7/5 = 2^0*3^0   *5^{-1} * 7^1
-            gcd(2/3,7/5) = 2^0*3^{-1}*5^{-1}*7^0 = 1/15
+            $$
+              2/3 = 2^1*3^{-1}*5^0    * 7^0
+            $$
+            $$
+              7/5 = 2^0*3^0   *5^{-1} * 7^1
+            $$
+            $$
+              gcd(2/3,7/5) = 2^0*3^{-1}*5^{-1}*7^0 = 1/15
+            $$
 
             sage: gcd(1/3,1/6)
             1/6
 
             In this example:
-            1/3 = 2^0*3^{-1}
-            1/6 = 2^{-1}*3^{-1}
-            gcd(1/3,1/6)=2^{-1}*3^{-1}=1/6
+            $$
+              1/3 = 2^0*3^{-1}
+            $$
+            $$
+              1/6 = 2^{-1}*3^{-1}
+            $$
+            $$
+              gcd(1/3,1/6)=2^{-1}*3^{-1}=1/6
+            $$
 
             sage: gcd(6/7,9/7)
             3/7
 
             In this example:
-            6/7 = 2^1*3^1*7^{-1}
-            9/7 = 2^0*3^2*7^{-1}
-            gcd(6/7,9/7)=2^0*3^1*7^{-1}=3/7
+            $$
+              6/7 = 2^1*3^1*7^{-1}
+            $$
+            $$
+              9/7 = 2^0*3^2*7^{-1}
+            $$
+            $$
+              gcd(6/7,9/7)=2^0*3^1*7^{-1}=3/7
+            $$
         """
         d = self.denom()*other.denom()
         self_d = self.numer()*other.denom()

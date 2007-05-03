@@ -420,7 +420,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def square_roots_of_one(self):
         """
         Return all square roots of 1 in self, i.e., all solutions
-        to x^2 - 1.
+        to $x^2 - 1$.
 
         OUTPUT:
             tuple -- the square roots of 1 in self.

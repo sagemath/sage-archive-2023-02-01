@@ -2196,12 +2196,12 @@ class SpecialHyperellipticQuotientRing_class(CommutativeAlgebra):
             return (self._x ** i) << j if b is None else self.base_ring()(b) * (self._x ** i) << j
 
     def monomial_diff_coeffs(self, i, j):
-        """
+        r"""
         The key here is that the formula for $d(x^iy^j)$ is messy
         in terms of i, but varies nicely with j.
-
-        $d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}$
-
+        $$
+        d(x^iy^j) = y^{j-1} (2ix^{i-1}y^2 + j (A_i(x) + B_i(x)y^2)) \frac{dx}{2y}
+        $$
         Where $A,B$ have degree at most $n-1$ for each $i$.
         Pre-compute $A_i, B_i$ for each $i$ the "hard" way, and
         the rest are easy.

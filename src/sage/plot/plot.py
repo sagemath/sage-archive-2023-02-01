@@ -1583,7 +1583,7 @@ class GraphicPrimitiveFactory_points(GraphicPrimitiveFactory):
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
         try:
-            return points._plot_(**kwds)
+            return points.plot(**kwds)
         except AttributeError:
             pass
         options = dict(self.options)
@@ -2164,7 +2164,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         plot(X, ...)
 
     where X is a SAGE object that either is callable and returns
-    numbers that can be coerced to floats, or has a _plot_ method
+    numbers that can be coerced to floats, or has a plot method
     that returns a GraphicPrimitive object.
 
     Type plot.options for a dictionary of the default

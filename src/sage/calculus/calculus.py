@@ -360,6 +360,9 @@ class SymbolicExpression(RingElement):
         if is_simplified:
             self._simp = self
 
+    def __hash__(self):
+        return hash(self._repr_(simplify=False))
+
     def __nonzero__(self):
         try:
             return self.__nonzero
@@ -2102,6 +2105,9 @@ class Symbolic_object(SymbolicExpression):
     def __init__(self, obj):
         SymbolicExpression.__init__(self)
         self._obj = obj
+
+    def __hash__(self):
+        return hash(self._obj)
 
     #def derivative(self, *args):
         # TODO: remove

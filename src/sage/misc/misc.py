@@ -73,7 +73,7 @@ if not os.path.exists(SPYX_TMP):
         print msg
         raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
-SAGE_TMP='%s/tmp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
+SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):
     try:
         os.makedirs(SAGE_TMP)
@@ -1061,7 +1061,7 @@ set_trace = pdb.set_trace
 
 def tmp_dir(name):
     r"""
-    Create and return a temporary directory in \code{\$HOME/.sage/tmp/pid/}
+    Create and return a temporary directory in \code{\$HOME/.sage/temp/pid/}
     """
     name = str(name)
     n = 0
@@ -1077,7 +1077,7 @@ def tmp_dir(name):
         # have privileges to write in SAGE's tmp directory.  That's OK.
         n = 0
         while True:
-            tmp = "/tmp/tmp_%s_%s"%(name, n)
+            tmp = "/temp/tmp_%s_%s"%(name, n)
             if not os.path.exists(tmp):
                 break
             n += 1

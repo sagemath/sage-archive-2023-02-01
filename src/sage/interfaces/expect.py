@@ -360,9 +360,6 @@ class Expect(ParentWithBase):
             sage: a = maxima('y')
             sage: a
             y
-            sage: maxima.quit()
-            sage: a        # since the representation is cached
-            y
             sage: a._check_valid()
             Traceback (most recent call last):
             ...

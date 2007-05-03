@@ -99,6 +99,9 @@ cdef class LaurentSeries(AlgebraElement):
     def __reduce__(self):
         return make_element_from_parent, (self._parent, self.__u, self.__n)
 
+    def change_ring(self, R):
+        return self.parent().change_ring(R)(self)
+
     def is_unit(self):
         """
         Returns True if this is Laurent series is a unit in this ring.

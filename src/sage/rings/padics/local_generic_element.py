@@ -203,7 +203,7 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
     def residue(self, prec):
         raise NotImplementedError
 
-    def sqrt(self):
+    def sqrt(self, prec=None, extend=True, all=False):
         r"""
         Returns the square root of this local ring element
 
@@ -212,7 +212,17 @@ class LocalGenericElement(sage.rings.commutative_ring_element.CommutativeRingEle
         OUTPUT:
             local ring element -- the square root of self
         """
-        return self.square_root()
+        try:
+            s = self.square_root()
+            if all:
+                return [s, -s]
+            else:
+                return s
+        except ValueError:
+            if extend:
+                raise NotImplementedError
+            else:
+                raise ValueError, "self must be a square"
 
     def square_root(self):
         raise NotImplementedError

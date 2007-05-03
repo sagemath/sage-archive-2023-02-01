@@ -167,7 +167,7 @@ def integral(f, *args, **kwds):
 integrate = integral
 
 def limit(f, dir=None, **argv):
-    """
+    r"""
     Return the limit as the variable v approaches a from the
     given direction.
 

@@ -573,7 +573,8 @@ class Set_object_enumerated(Set_object):
             sage: s = X.frozenset(); s
             frozenset([0, 1, c, c + 1, c^2, c^2 + 1, c^2 + c, c^2 + c + 1])
             sage: hash(s)
-            -1390224788
+            -1390224788            # 32-bit
+             561411537695332972    # 64-bit
             sage: type(s)
             <type 'frozenset'>
         """

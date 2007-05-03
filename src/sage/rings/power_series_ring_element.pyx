@@ -1048,8 +1048,12 @@ cdef class PowerSeries(AlgebraElement):
 
         formal_sqrt = False
         u = self.valuation_zero_part()
+        # TODO, fix underlying element sqrt()
         try:
-            s = u[0].sqrt(extend=False)
+            try:
+                s = u[0].sqrt(extend=extend)
+            except TypeError:
+                s = u[0].sqrt()
         except ValueError:
             formal_sqrt = True
         if self.degree() == 0:

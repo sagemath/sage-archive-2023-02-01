@@ -449,6 +449,7 @@ class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
 class Polynomial_generic_field(Polynomial_generic_domain,
                                EuclideanDomainElement,
                                Polynomial_singular_repr):
+
     def quo_rem(self, other):
         """
         Returns a tuple (quotient, remainder) where

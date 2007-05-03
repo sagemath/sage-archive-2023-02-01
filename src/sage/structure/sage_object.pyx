@@ -92,7 +92,10 @@ cdef class SageObject:
         if len(args) == 0 and len(kwds) == 0:
             return sage.plot.plot.text(str(self), (0,0))
         else:
-            return sage.plot.plot.text(str(self), *args, **kwds)
+            try:
+                return sage.plot.plot.text(str(self), *args, **kwds)
+            except TypeError:
+                return sage.plot.plot.text(str(self), (0,0))
 
     def __hash__(self):
         return hash(self.__repr__())

@@ -267,14 +267,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         We can even do arithmetic with them, as follows:
             sage: E2 = E.change_ring(SR); E2
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Symbolic Ring
-            sage: P = E2(3, v(3))
+            sage: P = E2.point((3, v(3), 1), check=False)
             sage: P
             (3 : (-sqrt(127)*I - 1)/2 : 1)
             sage: P + P
             (-756/127 : (sqrt(127)*I + 1)/2 + 12507*I/(127*sqrt(127)) - 1 : 1)
 
         We can even throw in a transcendental:
-            sage: w = E2(pi,v(pi)); w
+            sage: w = E2.point((pi,v(pi),1), check=False); w
             (pi : (-sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1)/2 : 1)
             sage: 2*w
             ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - ((3*pi^2 - 2*pi - 10)*((-(3*pi^2 - 2*pi - 10)^2)/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/(sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79))) - 1 : 1)
@@ -419,7 +419,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
 
         Note that there is only one lift with x-coordinate 10 in $E(\F_17)$.
             sage: E.lift_x(10)
-            [(10 : 8)]
+            [(10 : 8 : 1)]
 
         We can lift over more exotic rings too.
             sage: E = EllipticCurve('37a');
@@ -428,6 +428,13 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
             sage: E.lift_x(1+t)
             [(1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1), (1 + t : -1 - 2*t + t^2 - 5*t^3 + 21*t^4 + O(t^5) : 1)]
+
+        TEST:
+            sage: E = EllipticCurve('37a').weierstrass_model().change_ring(GF(17))
+            sage: E.lift_x(3)
+            []
+            sage: E.lift_x(7)
+            [(7 : 3 : 1), (7 : 14 : 1)]
         """
         a1, a2, a3, a4, a6 = self.ainvs()
         f = ((x + a2) * x + a4) * x + a6
@@ -439,7 +446,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             if not f.is_square():
                 return []
             else:
-                y = f.square_root()
+                y = f.sqrt(extend=False)
                 return [self.point([x,  y, one], check=False),
                         self.point([x, -y, one], check=False)]
         else:
@@ -450,7 +457,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             if not D.is_square():
                 return []
             else:
-                sqrtD = D.square_root()
+                sqrtD = D.sqrt(extend=False)
                 return [self.point([x, (-b+sqrtD)/2, one], check=False),
                         self.point([x, (-b-sqrtD)/2, one], check=False)]
 

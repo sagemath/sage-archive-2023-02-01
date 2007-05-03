@@ -124,6 +124,37 @@ cdef class Polynomial(CommutativeAlgebraElement):
         low = [x[i] + y[i] for i from 0 <= i < min]
         return self.polynomial(low + high)
 
+    def plot(self, xmin=0, xmax=1, *args, **kwds):
+        """
+        Return a plot of this polynomial.
+
+        INPUT:
+            xmin -- float
+            xmax -- float
+            *args, **kwds -- passed to either point or point
+
+        OUTPUT:
+            returns a graphic object.
+
+        EXAMPLES:
+            sage: x = polygen(GF(389))
+            sage: plot(x^2 + 1, rgbcolor=(0,0,1)).save()
+            sage: x = polygen(QQ)
+            sage: plot(x^2 + 1, rgbcolor=(1,0,0)).save()
+        """
+        R = self.base_ring()
+        from sage.plot.plot import plot, point, line
+        if R.characteristic() == 0:
+            return plot(self.__call__, xmin=xmin, xmax=xmax, *args, **kwds)
+        else:
+            if R.is_finite():
+                v = list(R)
+                v.sort()
+                w = dict([(v[i],i) for i in range(len(v))])
+                z = [(i, w[self(v[i])]) for i in range(len(v))]
+                return point(z, *args, **kwds)
+        raise NotImplementedError, "plotting of polynomials over %s not implemented"%R
+
     def _lmul_(self, left):
         """
         Multiply self on the left by a scalar.

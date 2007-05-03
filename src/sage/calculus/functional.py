@@ -199,7 +199,6 @@ def limit(f, dir=None, **argv):
     so it returns it unevaluated:
         sage: lim(exp(x^2)*(1-erf(x)), x=infinity)
          limit(e^x^2 - e^x^2*erf(x), x=+Infinity)
-
     """
     if not isinstance(f, SymbolicExpression):
         f = SR(f)

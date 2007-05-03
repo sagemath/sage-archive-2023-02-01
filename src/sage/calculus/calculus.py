@@ -367,7 +367,6 @@ class SymbolicExpression(RingElement):
         try:
             return self.__nonzero
         except AttributeError:
-            # Best to error on side of being nonzero in most cases.
             ans = not bool(self == SR.zero_element())
             self.__nonzero = ans
         return ans
@@ -1854,7 +1853,12 @@ class SymbolicExpression(RingElement):
     def expand(self):
         """
         """
-        return self.parent()(self._maxima_().expand())
+        try:
+            return self.__expand
+        except AttributeError:
+            e = self.parent()(self._maxima_().expand())
+            self.__expand = e
+        return e
 
     def expand_trig(self):
         """

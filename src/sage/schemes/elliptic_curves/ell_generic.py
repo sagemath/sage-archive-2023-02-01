@@ -267,14 +267,14 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         We can even do arithmetic with them, as follows:
             sage: E2 = E.change_ring(SR); E2
             Elliptic Curve defined by y^2 + y = x^3 - x^2 - 10*x - 20 over Symbolic Ring
-            sage: P = E2(3, v(3))
+            sage: P = E2.point((3, v(3), 1), check=False)
             sage: P
             (3 : (-sqrt(127)*I - 1)/2 : 1)
             sage: P + P
             (-756/127 : (sqrt(127)*I + 1)/2 + 12507*I/(127*sqrt(127)) - 1 : 1)
 
         We can even throw in a transcendental:
-            sage: w = E2(pi,v(pi)); w
+            sage: w = E2.point((pi,v(pi),1), check=False); w
             (pi : (-sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) - 1)/2 : 1)
             sage: 2*w
             ((3*pi^2 - 2*pi - 10)^2/(4*pi^3 - 4*pi^2 - 40*pi - 79) - 2*pi + 1 : (sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79) + 1)/2 - ((3*pi^2 - 2*pi - 10)*((-(3*pi^2 - 2*pi - 10)^2)/(4*pi^3 - 4*pi^2 - 40*pi - 79) + 3*pi - 1)/(sqrt(4*pi^3 - 4*pi^2 - 40*pi - 79))) - 1 : 1)

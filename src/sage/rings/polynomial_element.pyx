@@ -137,7 +137,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
             returns a graphic object.
 
         EXAMPLES:
-
+            sage: x = polygen(GF(389))
+            sage: plot(x^2 + 1, rgbcolor=(0,0,1)).save()
+            sage: x = polygen(QQ)
+            sage: plot(x^2 + 1, rgbcolor=(1,0,0)).save()
         """
         R = self.base_ring()
         from sage.plot.plot import plot, point, line

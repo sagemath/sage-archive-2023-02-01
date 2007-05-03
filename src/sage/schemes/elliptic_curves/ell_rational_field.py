@@ -65,6 +65,7 @@ from sage.rings.all import (
     PowerSeriesRing, LaurentSeriesRing, O,
     infinity as oo,
     Integer,
+    Integers,
     IntegerRing, RealField,
     ComplexField, RationalField)
 
@@ -4548,11 +4549,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # see trac #4
 
         # todo: think about the sign of this. Is it correct?
+        output_ring = rings.pAdicField(p, prec)
 
         E2_of_X = output_ring( (-12 * frob_p_n[0,1] / frob_p_n[1,1]).lift() ) \
                   + O(p**prec)
 
         # Take into account the coordinate change.
+        X = self.weierstrass_model()
         fudge_factor = (X.discriminant() / self.discriminant()).nth_root(6)
 
         # todo: here I should be able to write:

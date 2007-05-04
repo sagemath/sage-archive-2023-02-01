@@ -1111,7 +1111,7 @@ cdef class RingElement(ModuleElement):
                 if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
                     return (<ModuleElement>right)._rmul_c(self)
                 elif PY_TYPE_CHECK(right, Matrix):
-                    return (<Matrix>right)._rmultiply_by_scalar(left)
+                    return (<Matrix>right)._rmultiply_by_scalar(self)
                 else:
                     # Otherwise we have to do an explicit canonical coercion.
                     try:
@@ -1446,7 +1446,7 @@ cdef class Vector(ModuleElement):
         raise TypeError,arith_error_message(left, right, operator.mul)
 
     def  _vector_times_vector(left, right):
-        return self.vector_time_vector_c_impl(right)
+        return left.vector_time_vector_c_impl(right)
 
     def __div__(self, right):
         if PY_TYPE_CHECK(self, Vector):
@@ -2054,6 +2054,7 @@ def xgcd(x,y):
 def generic_power(m, dummy):
     return generic_power_c(m, dummy)
 
+# TODO: does this code actually get used anywhere?
 cdef generic_power_c(m, dummy):
     cdef int cn
 
@@ -2063,9 +2064,9 @@ cdef generic_power_c(m, dummy):
 
     if n < 0:
         n = -n
-        a = ~self
+        a = ~m
     else:
-        a = self
+        a = m
 
     if n < 4:
         # These cases will probably be called often

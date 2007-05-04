@@ -1369,7 +1369,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         \note{NTL only knows dense matrices, so if you provide a
         sparse matrix NTL will allocate memory for every zero entry.}
         """
-        return mat_ZZ(self._nrows,self._ncols, self.list())
+        import sage.libs.ntl.ntl
+        return sage.libs.ntl.ntl.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
 
 
     ####################################################################################

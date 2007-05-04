@@ -2,6 +2,7 @@ include '../ext/stdsage.pxi'
 
 from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
+import multi_polynomial_ideal
 
 
 def is_MPolynomialRing(x):

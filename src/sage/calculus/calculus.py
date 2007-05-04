@@ -15,7 +15,7 @@ EXAMPLES:
     the formal indeterminate class, SymbolicVariable. To create a
     SymbolicVariable object in \sage, use the var() method, whose
     argument is the text of that variable.  Note that \sage is
-    intelligent about {\latex}ing variable names.
+    intelligent about {\LaTeX}ing variable names.
 
         sage: x1 = var('x1'); x1
         x1
@@ -1107,7 +1107,7 @@ class SymbolicExpression(RingElement):
     # limits
     ###################################################################
     def limit(self, dir=None, **argv):
-        """
+        r"""
         Return the limit as the variable v approaches a from the
         given direction.
 

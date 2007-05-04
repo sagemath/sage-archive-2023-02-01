@@ -21,7 +21,7 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-from sage.rings.number_field.all import NumberField, is_NumberFieldExtension
+import sage.rings.number_field.all as number_field
 import polynomial_element
 import polynomial_ring
 import sage.rings.rational_field as rational_field
@@ -462,7 +462,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
 
         if not isinstance(self.base_ring(), rational_field.RationalField):
             raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
-        return NumberField(self.modulus(), self.variable_name())
+        return number_field.NumberField(self.modulus(), self.variable_name())
 
     def polynomial_ring(self):
         """
@@ -616,7 +616,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         """
 
         F = self.modulus().root_field(names)
-        if is_NumberFieldExtension(F):
+        if isinstance(F, number_field.NumberField_extension):
             if F.gen() != F.gen_relative():
                 # The issue is that there is no way to specify a homomorphism
                 # from the relative number to the poly ring quotient that
@@ -666,6 +666,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
         complex field with precision prec.
 
         EXAMPLES:
+            sage: x = polygen(QQ)
             sage: f = x^5 + x + 17
             sage: k = QQ['x'].quotient(f)
             sage: v = k.complex_embeddings(100)

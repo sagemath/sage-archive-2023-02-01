@@ -3,6 +3,7 @@
 #########################################################################################
 
 from sage.structure.parent_gens import normalize_names
+from sage.structure.element import is_Element
 import sage.rings.ring as ring
 import weakref
 import sage.rings.padics.padic_ring_capped_relative as padic_ring_capped_relative
@@ -116,6 +117,12 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: y^2 + y
         y^2 + y
 
+    Often the quotes are not needed, because of predefined symbolic variables:
+        sage: R = GF(9,a)[x]
+        sage: R
+        Univariate Polynomial Ring in x over Finite Field in a of size 3^2
+
+
     In fact, since the diamond brackets on the left determine the variable name, you can omit the
     variable from the square brackets:
         sage: R.<zz> = QQ[ ]; R
@@ -192,6 +199,12 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 4*w0*w8 + w0^2
     """
     import polynomial_ring as m
+
+    if is_Element(arg1) and not isinstance(arg1, (int, long, m.integer.Integer)):
+        arg1 = repr(arg1)
+    if is_Element(arg2) and not isinstance(arg2, (int, long, m.integer.Integer)):
+        arg2 = repr(arg2)
+
     if isinstance(arg1, (int, long, m.integer.Integer)):
         arg1, arg2 = arg2, arg1
 
@@ -207,6 +220,10 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         raise TypeError, "You must specify the names of the variables."
 
     R = None
+    if isinstance(arg1, (list, tuple)):
+        arg1 = [str(x) for x in arg1]
+    if isinstance(arg2, (list, tuple)):
+        arg2 = [str(x) for x in arg2]
     if isinstance(arg2, (int, long, m.integer.Integer)):
         # 3. PolynomialRing(base_ring, names, n, order='degrevlex'):
         if not isinstance(arg1, (list, tuple, str)):
@@ -215,7 +232,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         names = arg1
         R = _multi_variate(base_ring, names, n, sparse, order)
 
-    elif isinstance(arg1, str) or len(arg1) == 1:
+    elif isinstance(arg1, str) or (isinstance(arg1, (list,tuple)) and len(arg1) == 1):
         if not ',' in arg1:
             # 1. PolynomialRing(base_ring, name, sparse=False):
             if not arg2 is None:

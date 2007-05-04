@@ -25,7 +25,7 @@ AUTHOR:
 
 START_PRIME = 40009  # used for modular algorithms
 
-import sage.rings.polynomial.polynomial_element as polynomial
+import sage.rings.polynomial_element as polynomial
 
 include "../../ext/cdefs.pxi"
 include "../../ext/gmp.pxi"
@@ -1143,8 +1143,8 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
     def degree(self):
         return self.pq.degree
 
-    def is_zero(self):
-        return self.pq.degree == -1
+    def __nonzero__(self):
+        return self.pq.degree != -1
 
     def list(self):
         return PQ_list(self.pq)

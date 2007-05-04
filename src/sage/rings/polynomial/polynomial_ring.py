@@ -70,7 +70,6 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import polynomial_element_generic
-import multi_polynomial_element
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing
 import sage.rings.integer as integer
@@ -85,7 +84,6 @@ import sage.rings.padics.padic_ring_lazy as padic_ring_lazy
 import sage.rings.padics.padic_field_lazy as padic_field_lazy
 import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
-#import polynomial_padic_capped_relative_dense
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
@@ -173,8 +171,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-        #    return x.univariate_polynomial(self)
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         if absprec is None:
@@ -325,16 +323,16 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the base extension of this polynomial ring to R.
 
         EXAMPLES:
-        sage: R.<x> = RR[]; R
-        Univariate Polynomial Ring in x over Real Field with 53 bits of precision
-        sage: R.base_extend(CC)
-        Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
-        sage: R.base_extend(QQ)
-        Traceback (most recent call last):
-        ...
-        TypeError: no such base extension
-        sage: R.change_ring(QQ)
-        Univariate Polynomial Ring in x over Rational Field
+            sage: R.<x> = RR[]; R
+            Univariate Polynomial Ring in x over Real Field with 53 bits of precision
+            sage: R.base_extend(CC)
+            Univariate Polynomial Ring in x over Complex Field with 53 bits of precision
+            sage: R.base_extend(QQ)
+            Traceback (most recent call last):
+            ...
+            TypeError: no such base extension
+            sage: R.change_ring(QQ)
+            Univariate Polynomial Ring in x over Rational Field
         """
         if R.has_coerce_map_from(self.base_ring()):
             return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
@@ -346,10 +344,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         Return the polynomial ring in the same variable as self over R.
 
         EXAMPLES:
-        sage: R.<ZZZ> = RealIntervalField() []; R
-        Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
-        sage: R.change_ring(GF(19^2,'b'))
-        Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
+            sage: R.<ZZZ> = RealIntervalField() []; R
+            Univariate Polynomial Ring in ZZZ over Real Interval Field with 53 bits of precision
+            sage: R.change_ring(GF(19^2,'b'))
+            Univariate Polynomial Ring in ZZZ over Finite Field in b of size 19^2
         """
         return PolynomialRing(R, names=self.variable_name(), sparse=self.is_sparse())
 
@@ -472,6 +470,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if R.is_finite() and R.order() == 1:
             return True
         return False
+
+    def is_exact(self):
+        return self.base_ring().is_exact()
 
     def is_field(self):
         """
@@ -873,6 +874,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 

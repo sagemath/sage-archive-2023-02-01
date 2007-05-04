@@ -2326,11 +2326,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
-                pass
 
-        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
-            print "Last error message: '%s'"%msg
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2340,14 +2336,22 @@ class PlotFactory(GraphicPrimitiveFactory):
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
                 x = (data[i+1][0] + data[i][0])/2
-                y = float(f(x))
-                data.insert(i+1, (x, y))
+                try:
+                    y = float(f(x))
+                    data.insert(i+1, (x, y))
+                except (ZeroDivisionError, TypeError, ValueError), msg:
+                    sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                    exceptions += 1
+
                 j += 1
                 if j > plot_division:
-                    #is this wrong?
                     break
             else:
                 i += 1
+
+        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
+            print "Last error message: '%s'"%msg
         if parametric:
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:

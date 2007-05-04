@@ -10,6 +10,7 @@ from calculus import (SymbolicExpressionRing,
                       sin, cos, sec, tan, log, erf, sqrt, asin, acos, atan,
                       tanh, sinh, cosh, coth, sech, csch, ln,
                       ceil, floor,
+                      polylog,
                       abs_symbolic, exp,
                       is_SymbolicExpression,
                       is_SymbolicExpressionRing)

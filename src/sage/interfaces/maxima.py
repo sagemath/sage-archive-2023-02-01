@@ -512,7 +512,7 @@ class Maxima(Expect):
             self._error_msg(str, out)
 
     def _error_msg(self, str, out):
-        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out.replace('-- an error.  To debug this try debugmode(true);',''))
 
     def _eval_line(self, line, reformat=True, allow_use_file=False,
                    wait_for_prompt=True):

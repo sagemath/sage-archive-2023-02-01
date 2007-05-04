@@ -201,7 +201,7 @@ from sage.rings.complex_double import ComplexDoubleElement
 from sage.rings.real_mpfi import RealIntervalFieldElement
 from sage.rings.infinity import InfinityElement
 
-from sage.libs.pari.gen import pari, gen as PariGen
+from sage.libs.pari.gen import pari, PariError, gen as PariGen
 
 from sage.rings.complex_double import ComplexDoubleElement
 
@@ -3216,7 +3216,17 @@ class SymbolicComposition(SymbolicOperation):
             else:
                 return self.simplify()._repr_(simplify=False)
         ops = self._operands
-        return "%s(%s)"% (ops[0]._repr_(simplify=False), ops[1]._repr_(simplify=False))
+        try:
+            return ops[0]._repr_evaled_(ops[1]._repr_(simplify=False))
+        except AttributeError:
+            return "%s(%s)"% (ops[0]._repr_(simplify=False), ops[1]._repr_(simplify=False))
+
+    def _maxima_init_(self):
+        ops = self._operands
+        try:
+            return ops[0]._maxima_init_evaled_(ops[1]._maxima_init_())
+        except AttributeError:
+            return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _latex_(self):
         if not self.is_simplified():
@@ -3227,10 +3237,6 @@ class SymbolicComposition(SymbolicOperation):
             return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
         # ... while others (such as \cos) don't
         return r"%s \left( %s \right)"%((ops[0])._latex_(),(ops[1])._latex_())
-
-    def _maxima_init_(self):
-        ops = self._operands
-        return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _sys_init_(self, system):
         ops = self._operands
@@ -3900,12 +3906,12 @@ csch = Function_csch()
 _syms['csch'] = csch
 
 #############
-# log and exp
+# log
 #############
 
 class Function_log(PrimitiveFunction):
     """
-    The log funtion. This is a symbolic logarithm.
+    The log function.
 
     EXAMPLES:
         sage: log(e^2)
@@ -3949,6 +3955,82 @@ def log(x, base=None):
             return x.log(base)
         except AttributeError:
             return function_log(x) / function_log(base)
+
+#####################
+# The polylogarithm
+#####################
+
+
+class Function_polylog(PrimitiveFunction):
+    r"""
+    The polylog function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
+
+    INPUT:
+        n -- object
+        z -- object
+
+    EXAMPLES:
+
+    """
+    def __init__(self, n):
+        PrimitiveFunction.__init__(self)
+        self._n = n
+
+    def _repr_(self, simplify=True):
+        return "polylog(%s)"%self._n
+
+    def _repr_evaled_(self, args):
+        return 'polylog(%s, %s)'%(self._n, args)
+
+    def _maxima_init_(self):
+        if self._n in [1,2,3]:
+            return 'li[%s]'%self._n
+        else:
+            return 'polylog(%s)'%self._n
+
+    def _maxima_init_evaled_(self, args):
+        if self._n in [1,2,3]:
+            return 'li[%s](%s)'%(self._n, args)
+        else:
+            return 'polylog(%s, %s)'%(self._n, args)
+
+    def n(self):
+        return self._n
+
+    def _latex_(self):
+        return "\\text{Li}"
+
+    def _approx_(self, x):
+        try:
+            return float(pari(x).polylog(self._n))
+        except PariError:
+            raise TypeError, 'unable to coerce polylogarithm to float'
+
+
+def polylog(n, z):
+    r"""
+    The polylog function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
+
+    EXAMPLES:
+        sage: polylog(2,1)
+        pi^2/6
+        sage: polylog(2,x^2+1)
+        polylog(2, x^2 + 1)
+        sage: polylog(4,0.5)
+        polylog(4, 0.500000000000000)
+        sage: float(polylog(4,0.5))
+        0.51747906167389934
+        sage: polylog(2,z).taylor(z, 1/2, 3)
+        (-(6*log(2)^2 - pi^2))/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
+    """
+    return Function_polylog(n)(z)
+
+_syms['polylog2'] = Function_polylog(2)
+_syms['polylog3'] = Function_polylog(3)
+
+##############################
+# square root
+##############################
 
 class Function_sqrt(PrimitiveFunction):
     """
@@ -4362,7 +4444,8 @@ def dummy_limit(*args):
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
+            'li[2]':'polylog2', 'li[3]':'polylog3'}
 
 from sage.rings.infinity import infinity, minus_infinity
 

@@ -1051,7 +1051,7 @@ cdef class PowerSeries(AlgebraElement):
         # TODO, fix underlying element sqrt()
         try:
             try:
-                s = u[0].sqrt(extend=extend)
+                s = u[0].sqrt(extend=False)
             except TypeError:
                 s = u[0].sqrt()
         except ValueError:
@@ -1089,9 +1089,12 @@ cdef class PowerSeries(AlgebraElement):
                 pr = prec
         prec = pr
 
+        R = s.parent()
         a = self.valuation_zero_part()
         P = self._parent
-        half = ~P.base_ring()(2)
+        if not R is P.base_ring():
+            a = a.change_ring(R)
+        half = ~R(2)
 
         for i in range (ceil(log(prec, 2))):
             s = half * (s + a/s)

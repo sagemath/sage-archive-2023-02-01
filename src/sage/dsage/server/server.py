@@ -452,7 +452,8 @@ class DSageServer(pb.Root):
         def add_workingMegaHertz(doc, gauge):
             workingMegaHertz = doc.createElement('workingMegaHertz')
             gauge.appendChild(workingMegaHertz)
-            cpu_speed = self.monitordb.get_cpu_speed(connected=True, busy=True)
+            cpu_speed = self.monitordb.get_cpu_speed(connected=True,
+                                                     busy=True)
             mhz = doc.createTextNode(str(cpu_speed))
             workingMegaHertz.appendChild(mhz)
 

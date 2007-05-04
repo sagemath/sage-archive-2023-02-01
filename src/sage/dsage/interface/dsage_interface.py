@@ -597,7 +597,10 @@ class JobWrapper(object):
         self._update_job(job)
 
         # d = self.remoteobj.callRemote('get_next_job_id')
-        d = self.remoteobj.callRemote('submit_job', job.reduce())
+        try:
+            d = self.remoteobj.callRemote('submit_job', job.reduce())
+        except Exception, msg:
+            print msg
         d.addCallback(self._got_jdict)
         d.addErrback(self._catch_failure)
 

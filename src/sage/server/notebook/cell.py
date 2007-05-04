@@ -356,7 +356,7 @@ class Cell(Cell_generic):
                     break
                 j = s.find('</html>')
                 if j == -1:
-                    t += format(s)
+                    t += format(s[:i])
                     break
                 t += format(s[:i]) + format_html(s[i+6:j])
                 s = s[j+7:]

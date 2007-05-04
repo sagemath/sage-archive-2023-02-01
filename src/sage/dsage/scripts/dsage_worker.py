@@ -573,7 +573,6 @@ class Monitor(object):
                                                    self.signature)
 
     def _startLogging(self, log_file):
-        import pdb; pdb.set_trace()
         if log_file == 'stdout':
             log.startLogging(sys.stdout)
             log.msg('WARNING: Only loggint to stdout!')

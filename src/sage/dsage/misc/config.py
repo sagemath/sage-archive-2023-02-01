@@ -39,7 +39,11 @@ def read_conf(config):
     conf = {}
     for sec in config.sections():
         conf.update(dict(config.items(sec)))
-    check_version(conf['version'])
+    try:
+        check_version(conf['version'])
+    except ValueError, msg:
+        print msg
+        raise ValueError(msg)
 
     return conf
 

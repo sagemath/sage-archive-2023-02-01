@@ -134,16 +134,21 @@ class DistributedFunction(object):
             if isinstance(job, Job):
                 self.waiting_jobs.append(self.DSage.send_job(job, async=True))
             else:
-                self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name, async=True))
+                self.waiting_jobs.append(self.DSage.eval(job,
+                                                         job_name=job_name,
+                                                         async=True))
         else:
             if isinstance(job, Job):
-                self.waiting_jobs.append(self.DSage.send_job(job, async=False))
+                self.waiting_jobs.append(self.DSage.send_job(job,
+                                                             async=False))
             else:
-                self.waiting_jobs.append(self.DSage.eval(job, job_name=job_name))
+                self.waiting_jobs.append(self.DSage.eval(job,
+                                                         job_name=job_name))
 
     def submit_jobs(self, job_name='job', async=True):
         """
-        Repeatedly calls submit_job until we have no more jobs in outstanding_jobs
+        Repeatedly calls submit_job until we have no more jobs in
+        outstanding_jobs
 
         """
 
@@ -155,18 +160,26 @@ class DistributedFunction(object):
         self.outstanding_jobs = []
 
     def start(self):
+        """
+        Starts the Distributed Function. It will submit all jobs in the
+        outstanding_jobs queue and also start a checker tasks that polls for
+        new information about jobs in the waiting_jobs queue
+
+        """
         from twisted.internet import reactor, task
         if self.DSage is None:
             print 'Error: Not connected to a DSage server.'
             return
         self.start_time = datetime.datetime.now()
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
-        self.checker_task = blocking_call_from_thread(task.LoopingCall, self.check_results)
+        self.checker_task = blocking_call_from_thread(task.LoopingCall,
+                                                      self.check_results)
         reactor.callFromThread(self.checker_task.start, 1.0, now=True)
 
     def process_result(self):
         """
-        Any class subclassing DistributedFunction should implement this method.
+        Any class subclassing DistributedFunction should implement this
+        method.
 
         """
 

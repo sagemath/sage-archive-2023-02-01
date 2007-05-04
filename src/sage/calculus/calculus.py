@@ -170,6 +170,20 @@ Substitution:
     sage: f = x
     sage: f(x=5)
     5
+
+The symbolic Calculus package uses its own copy of Maxima for
+simplification, etc., which is separate from the default system-wide
+version:
+    sage: maxima.eval('[x,y]: [1,2]')
+    '[1,2]'
+    sage: maxima.eval('expand((x+y)^3)')
+    '27'
+
+If the copy of maxima used by the symbolic calculus package were
+the same as the default one, then the following would return 27,
+which would be very confusing indeed!
+    sage: expand((x+y)^3)
+    y^3 + 3*x*y^2 + 3*x^2*y + x^3
 """
 
 import weakref
@@ -189,7 +203,10 @@ from sage.misc.latex import latex
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
-from sage.interfaces.all import maxima
+
+# The calculus package uses its own copy of maxima, which is
+# separate from the default system-wide version.
+maxima = Maxima()
 
 from sage.misc.sage_eval import sage_eval
 
@@ -541,6 +558,12 @@ class SymbolicExpression(RingElement):
     # Coercions to interfaces
     ##################################################################
     # The maxima one is special:
+    def _maxima_(self, session=None):
+        if session is None:
+            return RingElement._maxima_(self, maxima)
+        else:
+            return RingElement._maxima_(self, session)
+
     def _maxima_init_(self):
         return self._repr_(simplify=False)
 

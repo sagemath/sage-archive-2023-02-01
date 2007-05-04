@@ -56,8 +56,8 @@ import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
 import sage.rings.rational as rational
 import sage.rings.integer as integer
-import sage.rings.polynomial_ring as polynomial_ring
-import sage.rings.polynomial_element as polynomial_element
+import sage.rings.polynomial.polynomial_ring as polynomial_ring
+import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group

@@ -29,7 +29,7 @@ import quotient_ring_element
 import sage.misc.latex as latex
 import commutative_ring
 import ideal
-import multi_polynomial_ideal
+import sage.rings.polynomial.multi_polynomial_ideal as multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 

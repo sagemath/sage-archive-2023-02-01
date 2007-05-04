@@ -929,8 +929,8 @@ pre.cell_input_pre {
 
 textarea.cell_input {
   color:#000000;
-  background-color: #e8e8e8;
- border: 2px solid white;
+  background-color: white;
+  border: 2px solid #e8e8e8;
   font-family: monospace;
   font-size:12pt;
   overflow:auto;
@@ -948,17 +948,19 @@ pre.cell_input {
   border: 2px solid #e8e8e8;
   font-family: monospace;
   font-size:12pt;
-  overflow:auto;
+  overflow:none;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;
-  width: 100%;
+  width: 1000%;
   margin-bottom:0px;
   margin-top:0px;
 
 }
 pre.cell_input:hover {
   cursor:pointer;
+  border: 2px solid  #8888fe;
+  background-color: #ffffcc;
 }
 
 textarea.cell_input_hide {
@@ -1007,6 +1009,21 @@ textarea.cell_input_active {
   margin-bottom:0px;
   width: 100%;
 }
+
+textarea.cell_input:hover{
+  background-color: #ffffcc;
+  border: 2px solid  #8888fe;
+  font-family: monospace;
+  font-size:12pt;
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
+  width: 100%;
+}
+
 
 
 span.cell_evaluate {

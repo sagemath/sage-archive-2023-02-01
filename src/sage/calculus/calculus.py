@@ -353,6 +353,12 @@ class SymbolicExpression(RingElement):
     A Symbolic Expression.
 
     EXAMPLES:
+        Some types of SymbolicExpressions:
+
+        sage: a = SR(2+2); a
+        4
+        sage: type(a)
+        <class 'sage.calculus.calculus.SymbolicConstant'>
 
     """
     def __init__(self):
@@ -1237,6 +1243,8 @@ class SymbolicExpression(RingElement):
         because of the higher factor of "-16" vs "-1", and also get
         an occasional reinforcement, because of the "+1" term.
 
+            sage: var('t')
+            t
             sage: t = var('t')
             sage: x = function('x', t)
             sage: y = function('y', t)
@@ -1339,6 +1347,10 @@ class SymbolicExpression(RingElement):
             sage: f.integral(a=-pi, b=pi)
             0
 
+            sage: f(x) = sin(x)
+            sage: f.integral(x, 0, pi/2)
+            1
+
         Constraints are sometimes needed:
             sage: integral(x^n,x)
             Traceback (most recent call last):
@@ -1401,6 +1413,10 @@ class SymbolicExpression(RingElement):
                         log(x - 4)   / x  + 2 x + 1
                         ---------- - ------------------
                             73               73
+
+        ALIASES:
+            integral() and integrate() are the same.
+
         """
 
         if v is None:
@@ -2856,6 +2872,23 @@ class CallableSymbolicExpression(SymbolicExpression):
             (y, x, z)
         """
         return self._expr.variables()
+
+    def integral(self, x=None, a=None, b=None):
+        """
+        Returns an integral of self.
+        """
+        if a is None:
+            return SymbolicExpression.integral(self, x, None, None)
+            # if l. endpoint is None, compute an indefinite integral
+        else:
+            if x is None:
+                x = self.default_variable()
+            if not isinstance(x, SymbolicVariable):
+                x = var(repr(x))
+                # if we supplied an endpoint, then we want to return a number.
+            return SR(self._maxima_().integrate(x, a, b))
+
+    integrate = integral
 
     def expression(self):
         """

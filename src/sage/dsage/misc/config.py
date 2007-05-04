@@ -42,7 +42,6 @@ def read_conf(config):
     try:
         check_version(conf['version'])
     except ValueError, msg:
-        print msg
         raise ValueError(msg)
 
     return conf

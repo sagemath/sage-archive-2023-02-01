@@ -1380,7 +1380,7 @@ class MaximaElement(ExpectElement):
 
     def __float__(self):
         try:
-            return float(str(self.numer()))
+            return float(repr(self.numer()))
         except ValueError:
             raise TypeError, "unable to coerce '%s' to float"%repr(self)
 

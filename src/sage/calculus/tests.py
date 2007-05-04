@@ -79,6 +79,7 @@ Restoring variables after they have been turned into functions:
     sage: sin(x).variables()
     (x,)
 
+MATHEMATICA:
 Some examples of integration and differentiation taken from some
 Mathematica docs:
     sage: diff(x^n, x)
@@ -145,5 +146,54 @@ can do, but SAGE currently can't do:
     sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: mathematica can do this
     integrate(ceil(x^2) + floor(x), x, 0, 5)
 
+
+MAPLE:
+The basic differentiation and integration examples in the
+Maple documentation:
+
+    sage: diff(sin(x), x)
+    cos(x)
+    sage: diff(sin(x), y)
+    0
+    sage: diff(sin(x), x, 3)
+    -cos(x)
+    sage: diff(x*sin(cos(x)), x)
+    sin(cos(x)) - x*sin(x)*cos(cos(x))
+    sage: diff(tan(x), x)
+    sec(x)^2
+    sage: f = function('f'); f
+    f
+    sage: diff(f(x), x)
+    diff(f(x), x, 1)
+    sage: diff(f(x,y), x, y)
+    diff(f(x, y), x, 1, y, 1)
+    sage: diff(f(x,y), x, y) - diff(f(x,y), y, x)
+    0
+    sage: g = function('g')
+    sage: diff(g(x,y,z), x,z,z)
+    diff(g(x, y, z), x, 1, z, 2)
+    sage: integrate(sin(x), x)
+    -cos(x)
+    sage: integrate(sin(x), x, 0, pi)
+    2
+    sage: assume(b-a>0)      # annoying -- maple doesn't require this...
+    sage: print integrate(sin(x), x, a, b)
+                                    cos(a) - cos(b)
+    sage: forget()
+
+
+    sage: integrate( x/(x^3-1), x)
+    (-log(x^2 + x + 1))/6 + atan((2*x + 1)/sqrt(3))/sqrt(3) + log(x - 1)/3
+    sage: integrate(exp(-x^2), x)
+    sqrt(pi)*erf(x)/2
+    sage: integrate(exp(-x^2)*log(x), x)       # todo: maple can compute this exactly.
+    integrate(e^(-x^2)*log(x), x)
+    sage: f = exp(-x^2)*log(x)
+    sage: f.nintegral(x, 0, 9999)
+    (-0.86797426305167702, 1.2736704155245691, 567, 4)
+    sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)     # todo: maple can do this
+    integrate(1/(sqrt(2*t^4 - 3*t^2 - 2)), t, 2, 3)
+    sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)
+    32/5
 
 """

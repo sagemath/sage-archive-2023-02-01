@@ -99,6 +99,12 @@ class DSageServer(pb.Root):
 
         """
 
+
+        import gc
+        gc.set_debug(gc.DEBUG_LEAK)
+        objects = gc.get_objects()
+        log.err('GC: %s' % (objects))
+
         jdict = self.jobdb.get_job_by_id(job_id)
         uuid = jdict['monitor_id']
         jdict['worker_info'] = self.monitordb.get_monitor(uuid)

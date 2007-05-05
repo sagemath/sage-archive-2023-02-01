@@ -38,8 +38,9 @@ _assumptions = []
 
 from sage.structure.sage_object import SageObject
 from sage.structure.sequence    import Sequence
-from sage.interfaces.maxima     import maxima
 from sage.misc.sage_eval        import sage_eval
+
+from calculus                   import maxima
 
 import operator
 
@@ -76,6 +77,13 @@ class SymbolicEquation(SageObject):
 
     def __call__(self, *args, **argv):
         return self._op(self._left(*args, **argv), self._right(*args,**argv))
+
+    # The maxima one is special:
+    def _maxima_(self, session=None):
+        if session is None:
+            return SageObject._maxima_(self, sage.calculus.calculus.maxima)
+        else:
+            return SageObject._maxima_(self, session)
 
     def substitute(self, *args, **kwds):
         return self.__call__(*args, **kwds)

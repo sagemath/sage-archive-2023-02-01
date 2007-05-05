@@ -91,8 +91,7 @@ from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational
 
-from sage.interfaces.maxima import maxima
-from sage.calculus.calculus import SR, var
+from sage.calculus.calculus import SR, var, maxima
 
 def meval(x):
     from sage.calculus.calculus import symbolic_expression_from_maxima_element

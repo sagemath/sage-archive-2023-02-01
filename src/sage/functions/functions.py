@@ -18,7 +18,7 @@ import sage.rings.all
 from   sage.structure.element import RingElement
 import operator
 from   sage.misc.latex import latex
-from   sage.interfaces.maxima import maxima, MaximaFunction
+from   sage.calculus.calculus import maxima
 import sage.functions.special as special
 from   sage.libs.all import  pari
 from   sage.structure.parent_base import ParentWithBase
@@ -766,8 +766,6 @@ gamma_function = Function_gamma()
 
 class Function_maxima(Function):
     def __init__(self, var, defn, repr, latex):
-        #if not isinstance(x, MaximaFunction):
-        #    raise TypeError, "x (=%s) must be a MaximaFunction"
         Function.__init__(self, {'maxima':defn})
         self.__var = var
         self.__defn = defn

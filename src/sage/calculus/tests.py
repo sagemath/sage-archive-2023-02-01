@@ -121,6 +121,7 @@ Mathematica docs:
                              6	       sqrt(3)	        3
     sage: integrate(1/(x^3+1), x, 0, 1)
     (6*log(2) + sqrt(3)*pi)/18 + sqrt(3)*pi/18
+
     sage: forget(); assume(c > 0)
     sage: integrate(exp(-c*x^2), x, -oo, oo)
     sqrt(pi)/sqrt(c)
@@ -133,16 +134,11 @@ can do, but SAGE currently can't do:
     sage: integrate(log(x)*exp(-x^2))        # todo -- mathematica can do this
     integrate(e^(-x^2)*log(x), x)
 
-    sage: # Todo -- Mathematica can do this and gets pi^2/15
-    sage: integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
-    Traceback (most recent call last):
-    ...
-    TypeError: Error executing code in Maxima
-    CODE:
-        sage146 : integrate(sage143,sage109,sage144,sage145)$
-    Maxima ERROR:
-    <BLANKLINE>
+    sage.: # Todo -- Mathematica can do this and gets pi^2/15
+    sage.: # integrate(log(1+sqrt(1+4*x)/2)/x, x, 0, 1)
+    [boom!]
     Integral is divergent
+
     sage: integrate(ceil(x^2 + floor(x)), x, 0, 5)    # todo: mathematica can do this
     integrate(ceil(x^2) + floor(x), x, 0, 5)
 

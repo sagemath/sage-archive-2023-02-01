@@ -80,7 +80,7 @@ class DSageServer(pb.Root):
             if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
             jdict['status'] = 'processing'
-            jdict = self.jobdb.store_job(jdict)
+            self.jobdb.store_job(jdict)
 
         return jdict
 

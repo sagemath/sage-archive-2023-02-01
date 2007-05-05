@@ -164,12 +164,11 @@ class ClientRemoteCallsTest(unittest.TestCase):
         job = jobs[0]
         job.code = "2+2"
         d = remoteobj.callRemote('submit_job', job.reduce())
-        d.addCallback(self._got_jdict)
+        d.addCallback(self._got_job_id)
         return d
 
-    def _got_jdict(self, jdict):
-        self.assertEquals(type(jdict), dict)
-        self.assertEquals(type(jdict['job_id']), str)
+    def _got_job_id(self, job_id):
+        self.assertEquals(type(job_id), str)
 
     def testremoteSubmitBadJob(self):
         """tests perspective_submit_job"""
@@ -287,7 +286,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"
-        jdict = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job.reduce())
+        jdict = self.dsage_server.get_job_by_id(job_id)
         d.addCallback(self._logged_in)
         d.addCallback(self._job_done, jdict)
 
@@ -296,13 +296,15 @@ class MonitorRemoteCallsTest(unittest.TestCase):
     def _job_done(self, remoteobj, jdict):
         job_id = jdict['job_id']
         result = jdict['result']
-        d = remoteobj.callRemote('job_done', job_id, 'Nothing.', result, False)
+        d = remoteobj.callRemote('job_done', job_id,
+                                 'Nothing.', result, False)
         d.addCallback(self._done_job)
 
         return d
 
-    def _done_job(self, jdict):
-        self.assertEquals(type(jdict), dict)
+    def _done_job(self, job_id):
+        self.assertEquals(type(job_id), str)
+        jdict = self.dsage_server.get_job_by_id(job_id)
         self.assertEquals(jdict['status'], 'new')
         self.assertEquals(jdict['output'], 'Nothing.')
 
@@ -313,7 +315,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
                                              factory)
         job = Job()
         job.code = "2+2"
-        jdict = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job.reduce())
+        jdict = self.dsage_server.get_job_by_id(job_id)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         d.addCallback(self._logged_in)
         d.addCallback(self._job_failed, jdict)
@@ -326,8 +329,9 @@ class MonitorRemoteCallsTest(unittest.TestCase):
 
         return d
 
-    def _failed_job(self, jdict):
-        self.assertEquals(type(jdict), dict)
+    def _failed_job(self, job_id):
+        self.assertEquals(type(job_id), str)
+        jdict = self.dsage_server.get_job_by_id(job_id)
         self.assertEquals(jdict['failures'], 1)
         self.assertEquals(jdict['output'], 'Failure')
 
@@ -340,7 +344,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         job = Job()
         job.code = "2+2"
         job.killed = True
-        jdict = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job.reduce())
+        jdict = self.dsage_server.get_job_by_id(job_id)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         d.addCallback(self._logged_in)
         d.addCallback(self._get_killed_jobs_list)

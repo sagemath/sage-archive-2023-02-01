@@ -1269,6 +1269,7 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             2
         """
         od = self._descr
+        if od.is_exact(): return
         self._descr = self._descr.exactify()
         new_val = self._descr.interval_fast(self.parent().default_interval_field())
         self._value = self._value.intersection(new_val)

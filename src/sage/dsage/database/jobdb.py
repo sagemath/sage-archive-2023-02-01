@@ -457,12 +457,22 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        query = "SELECT * FROM jobs WHERE job_id = ?"
+        query = """SELECT
+                job_id,
+                status,
+                output,
+                result,
+                killed,
+                verifiable,
+                monitor_id,
+                failures
+                FROM jobs WHERE job_id = ?"""
         cur = self.con.cursor()
         cur.execute(query, (job_id,))
         jtuple = cur.fetchone()
+        jdict = self.create_jdict(jtuple, cur.description)
 
-        return self.create_jdict(jtuple, cur.description)
+        return jdict
 
     def _get_jobs_by_parameter(self, key, value):
         """
@@ -515,7 +525,10 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        job_id = jdict['job_id']
+        try:
+            job_id = jdict['job_id']
+        except KeyError, msg:
+            job_id = None
 
         if job_id is None:
             job_id = self.random_string()
@@ -525,7 +538,7 @@ class JobDatabaseSQLite(JobDatabase):
                     (job_id, status, creation_time) VALUES (?, ?, ?)"""
             cur = self.con.cursor()
             cur.execute(query, (job_id, 'new', datetime.datetime.now()))
-            self.con.commit()
+            # self.con.commit()
 
         for k, v in jdict.iteritems():
             try:
@@ -538,7 +551,7 @@ class JobDatabaseSQLite(JobDatabase):
                     log.msg(msg)
                 continue
 
-        return self.get_job_by_id(job_id)
+        return job_id
 
     def create_jdict(self, jtuple, row_description):
         """
@@ -557,8 +570,14 @@ class JobDatabaseSQLite(JobDatabase):
         jdict['verifiable'] = bool(jdict['verifiable'])
 
         # Convert buffer objects back to string
-        jdict['data'] = str(jdict['data'])
-        jdict['result'] = str(jdict['result'])
+        try:
+            jdict['data'] = str(jdict['data'])
+        except Exception, msg:
+            pass
+        try:
+            jdict['result'] = str(jdict['result'])
+        except Exception, msg:
+            pass
 
         return jdict
 

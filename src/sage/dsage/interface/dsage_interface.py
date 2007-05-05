@@ -752,7 +752,11 @@ class JobWrapper(object):
         """
 
         if self.job_id is not None:
-            d = self.remoteobj.callRemote('kill_job', self.job_id)
+            try:
+                d = self.remoteobj.callRemote('kill_job', self.job_id)
+            except Exception, msg:
+                print 'Unable to kill %s because %s'  % (self.job_id, msg)
+                return
             d.addCallback(self._killed_job)
             d.addErrback(self._catch_failure)
             return d

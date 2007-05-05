@@ -63,12 +63,12 @@ class DSageServerTestCase(unittest.TestCase):
         self.assertEquals(type(jdict['job_id']), str)
 
     def testget_job_result_by_id(self):
-        job = self.create_jobs(1)[0]
+        import pdb; pdb.set_trace()
         job = expand_job(self.dsage_server.get_job())
-        job.result = 'test'
-        jdict = self.dsage_server.submit_job(job.reduce())
+        job_id = self.dsage_server.submit_job(job.reduce())
+        import pdb; pdb.set_trace()
         self.assertEquals(
-                    self.dsage_server.get_job_result_by_id(jdict['job_id']),
+                    self.dsage_server.get_job_result_by_id(job_id),
                     'test')
 
     def testget_jobs_by_username(self):

@@ -1423,7 +1423,18 @@ class MaximaElement(ExpectElement):
         n = int(n)
         if n < 0 or n >= len(self):
             raise IndexError, "n = (%s) must be between %s and %s"%(n, 0, len(self)-1)
+        # If you change the n+1 to n below, better change __iter__ as well.
         return ExpectElement.__getitem__(self, n+1)
+
+    def __iter__(self):
+        """
+        EXAMPLE:
+            sage: v = maxima('create_list(i*x^i,i,0,5)')
+            sage: list(v)
+            [0, x, 2*x^2, 3*x^3, 4*x^4, 5*x^5]
+        """
+        for i in range(len(self)):
+            yield self[i]
 
     def subst(self, val):
         return self.comma(val)

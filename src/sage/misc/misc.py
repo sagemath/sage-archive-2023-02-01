@@ -1101,6 +1101,16 @@ def tmp_filename(name='tmp'):
             break
     return tmp
 
+def graphics_filename():
+    """
+    Return the next available canonical filename for a plot/graphics
+    file.
+    """
+    i = 0
+    while os.path.exists('sage%d.png'%i):
+        i += 1
+    filename = 'sage%d.png'%i
+    return filename
 
 #################################################################
 # 32/64-bit computer?

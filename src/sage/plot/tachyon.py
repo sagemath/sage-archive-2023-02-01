@@ -216,11 +216,7 @@ class Tachyon(SageObject):
     def show(self, verbose=0, extra_opts=''):
         import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
-            i = 0
-            while os.path.exists('sage%s.png'%i):
-                i += 1
-            filename = 'sage%s.png'%i
-            self.save(filename, verbose=verbose, extra_opts=extra_opts)
+            filename = sage.misc.misc.graphics_filename()
         else:
             filename = sage.misc.misc.tmp_filename() + '.png'
             self.save(filename, verbose=verbose, extra_opts=extra_opts)

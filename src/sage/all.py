@@ -240,18 +240,15 @@ def quit_sage(verbose=True):
     #    * Kate Minola (2007-05-03)
     import resource             # Resource usage information.
     maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
-    if (maxfd == resource.RLIM_INFINITY):
-        maxfd = MAXFD
-
-    # Iterate through and close all file descriptors.
-    for fd in range(0, maxfd):
-        try:
-            os.close(fd)
-        except OSError:  # ERROR, fd wasn't open to begin with (ignored)
-            pass
+    if maxfd != resource.RLIM_INFINITY:
+        # Iterate through and close all file descriptors.
+        for fd in range(0, maxfd):
+            try:
+                os.close(fd)
+            except OSError:  # ERROR, fd wasn't open to begin with (ignored)
+                pass
 
     # Now delete the temp files
-
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 

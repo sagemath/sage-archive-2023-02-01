@@ -152,8 +152,9 @@ class DSage(object):
         if failure.check(error.ConnectionRefusedError):
             print 'Remote server %s refused the connection.'  % (self.server)
         else:
-            print "Error: ", failure.getErrorMessage()
-            print "Traceback: ", failure.printTraceback()
+            pass
+            # print "Error: ", failure.getErrorMessage()
+            # print "Traceback: ", failure.printTraceback()
 
     def _connected(self, remoteobj):
         if self.log_level > 0:
@@ -657,8 +658,9 @@ class JobWrapper(object):
         if failure.check(pb.DeadReferenceError, error.ConnectionLost):
             print 'Disconnected from server.'
         else:
-            print "Error: ", failure.getErrorMessage()
-            print "Traceback: ", failure.printTraceback()
+            pass
+            # print "Error: ", failure.getErrorMessage()
+            # print "Traceback: ", failure.printTraceback()
 
     def _got_job_id(self, job_id):
         try:

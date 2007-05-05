@@ -1376,6 +1376,24 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             self._minimal_polynomial = self._descr.minpoly()
             return self._minimal_polynomial
 
+    def degree(self):
+        """
+        Return the degree of this algebraic number (the degree of its
+        minimal polynomial, or equivalently, the degree of the smallest
+        algebraic extension of the rationals containing this number).
+
+        EXAMPLES:
+            sage: AA(5/3).degree()
+            1
+            sage: sqrt(AA(2)).degree()
+            2
+            sage: AA(17).nth_root(5).degree()
+            5
+            sage: sqrt(3+sqrt(AA(8))).degree()
+            2
+        """
+        return self.minpoly().degree()
+
     def sign(self):
         """
         Compute the sign of this algebraic number (return -1 if negative,

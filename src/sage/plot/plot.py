@@ -141,6 +141,36 @@ DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 SHOW_DEFAULT = False
 
+def show_default(default=None):
+    """
+    Set the default for showing plots using the following commands:
+        plot, parametric_plot, polar_plot, and list_plot.
+
+    If called with no arguments, returns the current default.
+
+    EXAMPLES:
+    The default starts out as False:
+        sage: show_default()
+        False
+
+    We set it to True.
+        sage: show_default(True)
+
+    We see that it is True.
+        sage: show_default()
+        True
+
+    Now certain plot commands will display their plots by default.
+
+    Turn of default display.
+        sage: show_default(False)
+
+    """
+    global SHOW_DEFAULT
+    if default is None:
+        return SHOW_DEFAULT
+    SHOW_DEFAULT = bool(default)
+
 do_verify = True
 
 import random #for plot adaptive refinement
@@ -2432,7 +2462,9 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         (f,g) -- tuple of functions
         tmin -- start value of t
         tmax -- end value of t
-        show -- whether or not to show the plot immediately (default: True)
+        show -- bool or None
+                (default: use the default as set by the show_default command)
+                 whether or not to show the plot immediately
         other options -- passed to plot.
 
     EXAMPLE:

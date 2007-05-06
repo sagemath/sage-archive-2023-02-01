@@ -64,7 +64,6 @@ class DSageServerTestCase(unittest.TestCase):
         self.assertEquals(len(job_id), 10)
 
     def testget_job_result_by_id(self):
-        import pdb; pdb.set_trace()
         job = expand_job(self.dsage_server.get_job())
         job.result = 'test'
         job_id = self.dsage_server.submit_job(job.reduce())

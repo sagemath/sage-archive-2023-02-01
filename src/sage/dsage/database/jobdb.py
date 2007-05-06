@@ -471,6 +471,7 @@ class JobDatabaseSQLite(JobDatabase):
         cur.execute(query, (job_id,))
         jtuple = cur.fetchone()
         jdict = self.create_jdict(jtuple, cur.description)
+        del jtuple
 
         return jdict
 

@@ -16,9 +16,9 @@
 #
 #                  http://www.gnu.org/licenses/
 ############################################################################
-
-import gc
-gc.set_debug(gc.DEBUG_LEAK)
+#
+# import gc
+# gc.set_debug(gc.DEBUG_LEAK)
 
 import sys
 import os

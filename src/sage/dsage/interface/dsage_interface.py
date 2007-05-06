@@ -693,6 +693,7 @@ class JobWrapper(object):
             d = self.remoteobj.callRemote('get_job_by_id', self.job_id)
         except Exception, msg:
             raise
+
         d.addCallback(self._got_job)
         d.addErrback(self._catch_failure)
 

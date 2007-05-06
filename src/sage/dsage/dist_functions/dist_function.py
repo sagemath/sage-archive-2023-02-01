@@ -120,8 +120,8 @@ class DistributedFunction(object):
         if not len(self.outstanding_jobs) == 0:
             self.submit_jobs(self.name)
 
-        self.checker_task = task.LoopingCall(self.check_results)
-        reactor.callFromThread(self.checker_task.start, 1.0, now=True)
+        self.checker_task = task.LoopingCall(self.check_waiting_jobs)
+        reactor.callFromThread(self.checker_task.start, 5.0, now=True)
 
     def submit_job(self, job, job_name='job', async=True):
         """
@@ -166,6 +166,7 @@ class DistributedFunction(object):
         new information about jobs in the waiting_jobs queue
 
         """
+
         from twisted.internet import reactor, task
         if self.DSage is None:
             print 'Error: Not connected to a DSage server.'
@@ -173,8 +174,8 @@ class DistributedFunction(object):
         self.start_time = datetime.datetime.now()
         reactor.callFromThread(self.submit_jobs, self.name, async=True)
         self.checker_task = blocking_call_from_thread(task.LoopingCall,
-                                                      self.check_results)
-        reactor.callFromThread(self.checker_task.start, 1.0, now=True)
+                                                      self.check_waiting_jobs)
+        reactor.callFromThread(self.checker_task.start, 5.0, now=True)
 
     def process_result(self):
         """
@@ -185,7 +186,12 @@ class DistributedFunction(object):
 
         pass
 
-    def check_results(self):
+    def check_waiting_jobs(self):
+        """
+        Checks the status of jobs in the waiting queue.
+
+        """
+
         from twisted.internet import reactor
         from twisted.spread import pb
         for wrapped_job in self.waiting_jobs:
@@ -195,8 +201,7 @@ class DistributedFunction(object):
             if isinstance(wrapped_job, JobWrapper):
                 try:
                     wrapped_job.get_job()
-                except pb.DeadReferenceError:
-                    print 'Disconnected from the server, stopping checker_task.'
+                except pb.DeadReferenceError, msg:
                     if self.checker_task.running:
                         reactor.callFromThread(self.checker_task.stop)
                     break

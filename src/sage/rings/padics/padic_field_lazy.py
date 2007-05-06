@@ -160,7 +160,7 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
             return lazy.pAdicLazy_mod(self, x.lift(), min(k, absprec), relprec)
         if isinstance(x, pari_gen):
             if x.type() == "t_PADIC":
-                from qp import Qp
+                from factory import Qp
                 try:
                     return lazy.pAdicLazy_otherpadic(self, Qp(parent.prime(), x.padicprec(parent.prime()) - x.valuation(parent.prime()), 'capped-rel')(x), absprec, relprec)
                 except PariError:
@@ -213,7 +213,7 @@ class pAdicFieldLazy(pAdicFieldBaseGeneric, pAdicLazyFieldGeneric):
         r"""
             Returns the integer ring of self, i.e. an appropriate implementation of $\Z_p$.
         """
-        from zp import Zp
+        from factory import Zp
         return Zp(self.prime(), self.precision_cap(), 'lazy', self.print_mode(), self.halting_parameter())
 
     def random_element(self):

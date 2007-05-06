@@ -237,6 +237,9 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 matrix_cyclo_sparse = Extension('sage.matrix.matrix_cyclo_sparse',
                                    ['sage/matrix/matrix_cyclo_sparse.pyx'])
 
+#matrix_padic_capped_relative_dense = Extension('sage.matrix.padics.matrix_padic_capped_relative_dense',
+#                                               ['sage/matrix/padics/matrix_padic_capped_relative_dense.pyx'])
+
 complex_number = Extension('sage.rings.complex_number',
 			    ['sage/rings/complex_number.pyx'],
 			    libraries = ['mpfr', 'gmp'])
@@ -357,6 +360,7 @@ ext_modules = [ \
      matrix_integer_sparse,
      matrix_real_double_dense,
      matrix_complex_double_dense,
+#     matrix_padic_capped_relative_dense,
      solve,
      linbox,
      matrix_modn_dense,
@@ -418,16 +422,16 @@ ext_modules = [ \
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
 
-    Extension('sage.rings.multi_polynomial',
-              sources = ['sage/rings/multi_polynomial.pyx']
+    Extension('sage.rings.polynomial.multi_polynomial',
+              sources = ['sage/rings/polynomial/multi_polynomial.pyx']
               ), \
 
-    Extension('sage.rings.multi_polynomial_ring_generic',
-              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+    Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
+              sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']
               ), \
 
-    Extension('sage.rings.multi_polynomial_libsingular',
-              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+    Extension('sage.rings.polynomial.multi_polynomial_libsingular',
+              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
               language="c++",
               ), \
@@ -470,6 +474,29 @@ ext_modules = [ \
               sources = ['sage/rings/integer_ring.pyx'],
               libraries=['ntl', 'gmp']), \
 
+    Extension('sage.rings.padics.pow_computer',
+              sources = ['sage/rings/padics/pow_computer.pyx'],
+              libraries=['gmp']),
+    Extension('sage.rings.padics.local_generic_element',
+              sources = ['sage/rings/padics/local_generic_element.pyx']),
+    Extension('sage.rings.padics.padic_generic_element',
+              sources = ['sage/rings/padics/padic_generic_element.pyx']),
+    Extension('sage.rings.padics.padic_base_generic_element',
+              sources = ['sage/rings/padics/padic_base_generic_element.pyx']),
+    Extension('sage.rings.padics.padic_ring_fixed_mod_element',
+              sources = ['sage/rings/padics/padic_ring_fixed_mod_element.pyx', \
+                         'sage/rings/padics/padic_generic_element.c'],
+              libraries=['gmp']),
+    Extension('sage.rings.padics.padic_ring_capped_absolute_element',
+              sources = ['sage/rings/padics/padic_ring_capped_absolute_element.pyx', \
+                         'sage/rings/padics/padic_generic_element.c'],
+              libraries=['gmp']),
+    Extension('sage.rings.padics.padic_capped_relative_element',
+              sources = ['sage/rings/padics/padic_capped_relative_element.pyx', \
+                         'sage/rings/padics/padic_generic_element.c'],
+              libraries=['gmp']),
+
+
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
               libraries=['gmp']), \
@@ -479,8 +506,8 @@ ext_modules = [ \
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
 
-    Extension('sage.rings.polynomial_element',
-              sources = ['sage/rings/polynomial_element.pyx']), \
+    Extension('sage.rings.polynomial.polynomial_element',
+              sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
     Extension('sage.rings.power_series_ring_element',
               sources = ['sage/rings/power_series_ring_element.pyx']), \
@@ -488,8 +515,8 @@ ext_modules = [ \
     Extension('sage.rings.laurent_series_ring_element',
               sources = ['sage/rings/laurent_series_ring_element.pyx']), \
 
-    Extension('sage.rings.polynomial_pyx',
-              sources = ['sage/rings/polynomial_pyx.pyx',
+    Extension('sage.rings.polynomial.polynomial_pyx',
+              sources = ['sage/rings/polynomial/polynomial_pyx.pyx',
                          'sage/ext/arith_gmp.pyx'],
               libraries=['gmp']), \
 
@@ -504,8 +531,8 @@ ext_modules = [ \
               sources = ['sage/rings/sparse_poly.pyx'],
               libraries=['gmp']), \
 
-    Extension('sage.rings.polydict',
-              sources = ['sage/rings/polydict.pyx']), \
+    Extension('sage.rings.polynomial.polydict',
+              sources = ['sage/rings/polynomial/polydict.pyx']), \
 
     Extension('sage.rings.number_field.number_field_element',
               sources = ['sage/rings/number_field/number_field_element.pyx'],
@@ -861,6 +888,7 @@ setup(name        = 'sage',
                      'sage.libs.singular',
 
                      'sage.matrix',
+#                     'sage.matrix.padics',
 
                      'sage.misc',
 
@@ -885,6 +913,8 @@ setup(name        = 'sage',
                      'sage.rings',
                      'sage.rings.number_field',
                      'sage.rings.padics',
+                     'sage.rings.polynomial',
+                     'sage.rings.polynomial.padics',
 
                      'sage.tests',
 

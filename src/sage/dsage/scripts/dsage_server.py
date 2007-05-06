@@ -17,6 +17,9 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
+import gc
+gc.set_debug(gc.DEBUG_LEAK)
+
 import sys
 import os
 from optparse import OptionParser

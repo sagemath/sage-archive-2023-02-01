@@ -139,6 +139,7 @@ class DSage(object):
     def __getstate__(self):
         d = copy.copy(self.__dict__)
         d['remoteobj'] = None
+
         return d
 
     def _getpassphrase(self):
@@ -636,7 +637,7 @@ class JobWrapper(object):
 
     def wait(self):
         from twisted.internet import reactor
-        timeout = 0.1
+        timeout = 0.5
         while self._job.result is None:
             reactor.iterate(timeout)
 
@@ -688,7 +689,10 @@ class JobWrapper(object):
             raise NotConnectedException
         if self.job_id is None:
             return
-        d = self.remoteobj.callRemote('get_job_by_id', self.job_id)
+        try:
+            d = self.remoteobj.callRemote('get_job_by_id', self.job_id)
+        except Exception, msg:
+            raise
         d.addCallback(self._got_job)
         d.addErrback(self._catch_failure)
 
@@ -697,8 +701,12 @@ class JobWrapper(object):
     def get_job_output(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_output_by_id',
-                                      self._job.job_id)
+        try:
+            d = self.remoteobj.callRemote('get_job_output_by_id',
+                                          self._job.job_id)
+        except Exception, msg:
+            raise
+
         d.addCallback(self._got_job_output)
         d.addErrback(self._catch_failure)
 
@@ -711,8 +719,12 @@ class JobWrapper(object):
     def get_job_result(self):
         if self.remoteobj == None:
             return
-        d = self.remoteobj.callRemote('get_job_result_by_id',
-                                      self._job.job_id)
+        try:
+            job_id = self._job.job_id
+            d = self.remoteobj.callRemote('get_job_result_by_id', job_id)
+        except Exception, msg:
+            raise
+
         d.addCallback(self._got_job_result)
         d.addErrback(self._catch_failure)
 

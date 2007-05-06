@@ -3,14 +3,10 @@
 #########################################################
 # This is the sage monitor *daemon*, which cleans up after SAGE.
 # Some things that it cleans up:
-#   * $HOME/.sage/tmp/pid directories
+#   * $HOME/.sage/temp/pid directories
 #   * Processes that SAGE spawns.  If a copy of SAGE isn't
 #     running, then any process it spawned should have its
 #     process group killed
-#
-# Triva Note: For the name "sage-cleaner", think of the
-# "The Cleaner" from Pulp Fiction:
-#      http://www.frankjankowski.de/quiz/illus/keitel.jpg
 #
 #########################################################
 #   SAGE: System for Algebra and Geometry Experimentation

@@ -87,12 +87,12 @@ TESTS:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-from ideal import Ideal_generic
+from sage.rings.ideal import Ideal_generic
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.interfaces.all import macaulay2 as macaulay2_default
 from sage.interfaces.all import is_SingularElement
 singular = singular_default
-from integer import Integer
+from sage.rings.integer import Integer
 from sage.structure.sequence import Sequence
 from sage.misc.sage_eval import sage_eval
 import sage.rings.integer_ring

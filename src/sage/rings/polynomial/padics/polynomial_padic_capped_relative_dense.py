@@ -27,6 +27,15 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
             return
+	elif is_gen:
+            from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+            self._poly = PolynomialRing(ZZ, parent.variable_name()).gen()
+            self._valbase = 0
+            self._valaddeds = [infinity, 0]
+            self._relprecs = [infinity, parent.base_ring().precision_cap()]
+            self._normalized = True
+            self._list = None
+            return
 
         #First we list the types that are turned into Polynomials
         if isinstance(x, ZZX_class):
@@ -208,6 +217,31 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._list is None:
             self._comp_list()
         return self._list
+
+    def _repr(self, name=None):
+        s = " "
+        m = self.degree() + 1
+        r = reversed(xrange(m))
+        if name is None:
+            name = self.parent().variable_name()
+        atomic_repr = self.parent().base_ring().is_atomic_repr()
+        coeffs = self.list()
+        for n in r:
+            x = coeffs[n]
+            if x.valuation() < infinity:
+                if n != m-1:
+                    s += " + "
+                x = "(%s)"%x
+                if n > 1:
+                    var = "*%s^%s"%(name,n)
+                elif n==1:
+                    var = "*%s"%name
+                else:
+                    var = ""
+                s += "%s%s"%(x,var)
+        if s==" ":
+            return "0"
+        return s[1:]
 
     def content(self):
         if self._normalized:

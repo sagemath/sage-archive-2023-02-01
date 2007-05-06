@@ -26,7 +26,7 @@ pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRing
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
 Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
-pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
+#pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 pAdicExtensionGenericElement = sage.rings.padics.padic_extension_generic_element.pAdicExtensionGenericElement
 

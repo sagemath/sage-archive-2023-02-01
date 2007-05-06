@@ -30,9 +30,9 @@ from sage.rings.integer cimport Integer
 from sage.rings.rational cimport Rational
 from sage.rings.padics.pow_computer cimport PowComputer_class
 
-import sage.rings.padics.padic_ring_generic_element
-import sage.rings.padics.padic_field_generic_element
-import sage.rings.padics.padic_lazy_element
+#import sage.rings.padics.padic_ring_generic_element
+#import sage.rings.padics.padic_field_generic_element
+#import sage.rings.padics.padic_lazy_element
 import sage.rings.integer_mod
 import sage.libs.pari.gen
 import sage.rings.integer

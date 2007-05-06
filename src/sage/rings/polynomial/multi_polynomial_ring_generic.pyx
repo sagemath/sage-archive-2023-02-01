@@ -1,4 +1,4 @@
-include '../ext/stdsage.pxi'
+include '../../ext/stdsage.pxi'
 
 from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
@@ -7,9 +7,9 @@ import sage.misc.latex
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
 
-cdef class MPolynomialRing_generic(ring.CommutativeRing):
+cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
-        if not isinstance(base_ring, ring.CommutativeRing):
+        if not isinstance(base_ring, sage.rings.ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
         n = int(n)
         if n < 0:

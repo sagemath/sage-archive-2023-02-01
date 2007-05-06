@@ -429,16 +429,16 @@ ext_modules = [ \
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
 
-    Extension('sage.rings.multi_polynomial',
-              sources = ['sage/rings/multi_polynomial.pyx']
+    Extension('sage.rings.polynomial.multi_polynomial',
+              sources = ['sage/rings/polynomial/multi_polynomial.pyx']
               ), \
 
-    Extension('sage.rings.multi_polynomial_ring_generic',
-              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+    Extension('sage.rings.polynomial.multi_polynomial_ring_generic',
+              sources = ['sage/rings/polynomial/multi_polynomial_ring_generic.pyx']
               ), \
 
-    Extension('sage.rings.multi_polynomial_libsingular',
-              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+    Extension('sage.rings.polynomial.multi_polynomial_libsingular',
+              sources = ['sage/rings/polynomial/multi_polynomial_libsingular.pyx'],
               libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
               language="c++",
               ), \

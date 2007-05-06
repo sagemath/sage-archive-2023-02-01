@@ -35,27 +35,27 @@ AUTHORS:
 
 import operator
 
-import arith
+import sage.rings.arith as arith
 
 from sage.structure.element import CommutativeRingElement, Element
 
 from sage.interfaces.all import singular, macaulay2
 
 import sage.misc.misc as misc
-import integer
+import sage.rings.integer as integer
 
 import polydict
 
 from sage.structure.factorization import Factorization
 
-from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+from polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.structure.sequence import Sequence
 
 import multi_polynomial_ring
 import polynomial_ring
 
-from integer_ring import ZZ
+from sage.rings.integer_ring import ZZ
 
 from multi_polynomial import MPolynomial
 

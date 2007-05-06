@@ -1106,7 +1106,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             n -= self.valuation()
         return L[:n] + [zero] * (n - len(L))
 
-    def precision_absolute(self):
+    def precision_absolute(pAdicCappedRelativeElement self):
         """
         Returns the absolute precision of self
          INPUT:
@@ -1120,6 +1120,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             4
         """
         cdef Integer ans
+        if mpz_sgn(self.unit) == -1:
+            return infinity
         ans = PY_NEW(Integer)
         mpz_add_ui(ans.value, self.ordp, self.relprec)
         return ans

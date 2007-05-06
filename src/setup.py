@@ -116,11 +116,6 @@ pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
                  libraries = ['pari', 'gmp'])
 
-cf = Extension('sage.libs.cf.cf',
-               sources = ["sage/libs/cf/cf.pyxe", "sage/libs/cf/ftmpl_inst.cc"],
-               libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
-               )
-
 
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
@@ -339,8 +334,6 @@ ext_modules = [ \
     matrix,
 
     matrix_misc,
-
-    #cf,
 
     matrix_dense,
     matrix_generic_dense,

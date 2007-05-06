@@ -2891,7 +2891,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             1.00000000000000
             sage: EllipticCurve('37a').sha_an_numerical()
             1.00000000000000
-            sage: EllipticCurve('389a').sha_an_numerical()
+            sage: EllipticCurve('389a').sha_an_numerical()    # random low order bits
             1.00000000000000
             sage: EllipticCurve('66b3').sha_an_numerical()
             4.00000000000000

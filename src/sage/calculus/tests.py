@@ -185,8 +185,8 @@ Maple documentation:
     sage: integrate(exp(-x^2)*log(x), x)       # todo: maple can compute this exactly.
     integrate(e^(-x^2)*log(x), x)
     sage: f = exp(-x^2)*log(x)
-    sage: f.nintegral(x, 0, 9999)
-    (-0.86797426305167702, 1.2736704155245691, 567, 4)
+    sage: f.nintegral(x, 0, 999)
+    (-0.87005772672831549, 7.5584116743243612e-10, 567, 0)
     sage: integral(1/sqrt(2*t^4 - 3*t^2 - 2), t, 2, 3)     # todo: maple can do this
     integrate(1/(sqrt(2*t^4 - 3*t^2 - 2)), t, 2, 3)
     sage: integral(integral(x*y^2, x, 0, y), y, -2, 2)

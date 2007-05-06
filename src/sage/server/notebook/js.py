@@ -37,8 +37,10 @@ def async_lib():
     s = r"""
 ///////////////////////////////////////////////////////////////////
 // An AJAX framework for connections back to the
-// SAGE server (written by Tom Boothby).
+// SAGE server (written by Tom Boothby and William Stein).
 ///////////////////////////////////////////////////////////////////
+
+
 //globals
 
 var async_oblist = [null,null,null,null,null];

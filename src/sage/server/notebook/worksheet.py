@@ -1198,7 +1198,8 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
-    def html(self, include_title=True, do_print=False, authorized=False):
+    def html(self, include_title=True, do_print=False,
+             authorized=False, confirm_before_leave=False):
         n = len(self.__cells)
         s = ''
         if include_title:
@@ -1246,6 +1247,16 @@ class Worksheet:
             s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+
+        if not do_print and confirm_before_leave:
+            s += """<script type="text/javascript">
+            window.onbeforeunload = confirmBrowseAway;
+            function confirmBrowseAway()
+            {
+            return "Unsubmitted cells will be lost.";
+            }
+            </script>
+            """
         return s
 
     def show_all(self):

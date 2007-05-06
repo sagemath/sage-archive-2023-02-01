@@ -948,7 +948,6 @@ pre.cell_input {
   border: 2px solid #e8e8e8;
   font-family: monospace;
   font-size:12pt;
-  overflow:none;
   padding-left:5px;
   padding-top:3px;
   padding-bottom:0px;

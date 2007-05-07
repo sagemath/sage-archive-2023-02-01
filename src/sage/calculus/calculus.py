@@ -915,7 +915,7 @@ class SymbolicExpression(RingElement):
             sage: a
             y + x^3 + sqrt(2)
             sage: type(a)
-            <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
             sage: a.degree()
             0
 

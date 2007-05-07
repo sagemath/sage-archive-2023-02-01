@@ -4,7 +4,7 @@ include "../../libs/ntl/decl.pxi"
 import sage.structure.element
 cimport sage.structure.element
 from sage.rings.integer cimport Integer
-from sage.rings.polynomial_element cimport Polynomial
+from sage.rings.polynomial.polynomial_element cimport Polynomial
 from sage.structure.element cimport FieldElement, RingElement, ModuleElement
 from sage.structure.parent_base cimport ParentWithBase
 

@@ -83,7 +83,7 @@ import sage.rings.integer
 import sage.rings.integer_mod_ring
 import sage.rings.padics.padic_ring_base_generic
 #import sage.rings.padics.padic_field_generic
-import padic_fixed_mod_ring_generic
+#import padic_fixed_mod_ring_generic
 import sage.rings.padics.padic_ring_fixed_mod_element
 #import sage.rings.padics.padic_ring_capped_absolute_element
 #import sage.rings.integer_mod
@@ -91,14 +91,14 @@ import sage.rings.padics.padic_ring_fixed_mod_element
 Integer = sage.rings.integer.Integer
 Integers = sage.rings.integer_mod_ring.IntegerModRing
 #infinity = sage.rings.infinity.infinity
-pAdicFixedModRingGeneric = padic_fixed_mod_ring_generic.pAdicFixedModRingGeneric
+#pAdicFixedModRingGeneric = padic_fixed_mod_ring_generic.pAdicFixedModRingGeneric
 pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGeneric
 #pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric
 pAdicRingFixedModElement = sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement
 #pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
 #Mod = sage.rings.integer_mod.Mod
 
-class pAdicRingFixedMod(pAdicRingBaseGeneric, pAdicFixedModRingGeneric):
+class pAdicRingFixedMod(pAdicRingBaseGeneric):
     r"""
     An implementation of the p-adic integers using fixed modulus.
     """

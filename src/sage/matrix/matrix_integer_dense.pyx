@@ -65,7 +65,7 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ, IntegerRing_class
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.rings.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.structure.sequence import Sequence
 
@@ -339,8 +339,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         (VERY UNSAFE -- value *must* be of type Integer).
 
         INPUT:
-            ij -- tuple (i,j), where i is the row and j the column
-        Alternatively, ij can be an integer, and the ij-th row is set.
+        i -- row
+        j -- column
+        value -- The value to set self[i,j] to.  value MUST be of type Integer
 
         EXAMPLES:
             sage: a = matrix(ZZ,2,3, range(6)); a
@@ -929,6 +930,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         result = left.new_matrix(left.nrows(), right.ncols())
         _lift_crt(result, res, mm)  # changes result
         return result
+
+    cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus):
+        # Used for p-adic matrices.
+        if mpz_cmp(self._matrix[i][j], modulus.value) >= 0 or mpz_cmp_ui(self._matrix[i][j], 0) < 0:
+            mpz_mod(self._matrix[i][j], self._matrix[i][j], modulus.value)
 
     def _mod_int(self, modulus):
         return self._mod_int_c(modulus)

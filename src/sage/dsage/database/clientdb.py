@@ -112,13 +112,13 @@ class ClientDatabase(object):
 
         return result
 
-    def add_user(self, username, pubkey_file):
+    def add_user(self, username, pubkey):
         """
         Adds a user to the database.
 
         Parameters:
         username -- username
-        pubkey_file -- path to the file containing the users public key
+        pubkey -- public key string (must be pre-parsed already)
 
         """
 
@@ -127,7 +127,6 @@ class ClientDatabase(object):
                    VALUES (?, ?, ?)
                 """
 
-        pubkey = get_pubkey_string(pubkey_file)
         cur = self.con.cursor()
         cur.execute(query, (username, pubkey, datetime.datetime.now()))
         self.con.commit()

@@ -28,7 +28,7 @@ from twisted.python import log
 
 from sage.dsage.errors.exceptions import AuthenticationError
 
-def get_pubkey_string(pubkey_file):
+def get_pubkey_string(pubkey_file=None, data=''):
     try:
         f = open(pubkey_file)
         type_, key = f.readlines()[0].split()[:2]

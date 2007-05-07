@@ -23,6 +23,7 @@ from glob import glob
 import cPickle
 import zlib
 import uuid
+import base64
 
 from twisted.trial import unittest
 from twisted.spread import pb
@@ -42,50 +43,16 @@ from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.job import Job
 from sage.dsage.errors.exceptions import BadJobError
 from sage.dsage.misc.hostinfo import ClassicHostInfo
+from sage.dsage.twisted.tests.test_pubkeyauth import TEST_PUB_KEY
+from sage.dsage.twisted.tests.test_pubkeyauth import TEST_PRIV_KEY
 
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-# Begin reading configuration
-try:
-    conf_file = os.path.join(DSAGE_DIR, 'server.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-
-    LOG_FILE = config.get('server_log', 'log_file')
-    SSL = config.getint('ssl', 'ssl')
-    CLIENT_PORT = config.getint('server', 'client_port')
-    PUBKEY_DATABASE = os.path.expanduser(config.get('auth',
-                                         'pubkey_database'))
-
-    conf_file = os.path.join(DSAGE_DIR, 'client.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-
-    LOG_FILE = config.get('log', 'log_file')
-    SSL = config.getint('ssl', 'ssl')
-    USERNAME = config.get('auth', 'username')
-    PRIVKEY_FILE = os.path.expanduser(config.get('auth', 'privkey_file'))
-    PUBKEY_FILE = os.path.expanduser(config.get('auth', 'pubkey_file'))
-
-    conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
-    config = ConfigParser.ConfigParser()
-    config.read(conf_file)
-    if len(config.get('uuid', 'id')) != 36:
-        config.set('uuid', 'id', str(uuid.uuid1()))
-        f = open(conf_file, 'w')
-        config.write(f)
-    UUID = config.get('uuid', 'id')
-    WORKERS = config.getint('general', 'workers')
-
-except Exception, msg:
-    log.msg(msg)
-    raise
-# End reading configuration
 hf = ClassicHostInfo().host_info
-hf['uuid'] = UUID
-hf['workers'] = WORKERS
+hf['uuid'] = ''
+hf['workers'] = 2
 
-Data =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
-                range(500)]])
+RANDOM_DATA =  ''.join([chr(i) for i in [random.randint(65, 123) for n in
+                       range(500)]])
 
 class ClientRemoteCallsTest(unittest.TestCase):
     """
@@ -107,33 +74,32 @@ class ClientRemoteCallsTest(unittest.TestCase):
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(self.realm))
         self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.p.portal.registerChecker(
+                            PublicKeyCredentialsCheckerDB(self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.server = reactor.listenTCP(0, self.client_factory)
         self.port = self.server.getHost().port
 
         # public key authentication information
-        self.username = USERNAME
-        self.pubkey_file = PUBKEY_FILE
-        self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(filename=self.pubkey_file)
-        self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
-        self.public_key = keys.getPublicKeyObject(self.public_key_string)
+        self.username = 'unit_test'
+        self.pubkey_file = TEST_PUB_KEY
+        self.privkey_file = TEST_PRIV_KEY
+        self.data = RANDOM_DATA
+        self.public_key_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
+        self.private_key = keys.getPrivateKeyObject(
+                            data=TEST_PRIV_KEY)
+        self.public_key = keys.getPublicKeyObject(self.public_key_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
-        self.data = Data
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
                                                self.blob,
                                                self.data,
                                                self.signature)
-        c = ConfigParser.ConfigParser()
-        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
-        username = c.get('auth', 'username')
-        pubkey_file = c.get('auth', 'pubkey_file')
-        self.clientdb.add_user(username, pubkey_file)
+        pubkey = base64.encodestring(self.public_key_str).strip()
+        self.clientdb.add_user(self.username, pubkey)
 
     def tearDown(self):
         self.connection.disconnect()
@@ -221,28 +187,26 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         self.hostname = 'localhost'
         self.server = reactor.listenTCP(0, self.client_factory)
         self.port = self.server.getHost().port
+
         # public key authentication information
-        self.username = USERNAME
-        self.pubkey_file = PUBKEY_FILE
-        self.privkey_file = PRIVKEY_FILE
-        self.public_key_string = keys.getPublicKeyString(
-                                 filename=self.pubkey_file)
-        self.private_key = keys.getPrivateKeyObject(filename=self.privkey_file)
-        self.public_key = keys.getPublicKeyObject(self.public_key_string)
+        self.username = 'unit_test'
+        self.pubkey_file = TEST_PUB_KEY
+        self.privkey_file = TEST_PRIV_KEY
+        self.data = RANDOM_DATA
+        self.public_key_str = keys.getPublicKeyString(data=TEST_PUB_KEY)
+        self.private_key = keys.getPrivateKeyObject(
+                            data=TEST_PRIV_KEY)
+        self.public_key = keys.getPublicKeyObject(self.public_key_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.public_key)
-        self.data = Data
         self.signature = keys.signData(self.private_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
                                                self.blob,
                                                self.data,
                                                self.signature)
-        c = ConfigParser.ConfigParser()
-        c.read(os.path.join(DSAGE_DIR, 'client.conf'))
-        username = c.get('auth', 'username')
-        pubkey_file = c.get('auth', 'pubkey_file')
-        self.clientdb.add_user(username, pubkey_file)
+        pubkey = base64.encodestring(self.public_key_str).strip()
+        self.clientdb.add_user(self.username, pubkey)
 
     def tearDown(self):
         self.connection.disconnect()

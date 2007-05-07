@@ -272,7 +272,10 @@ cdef extern from "libsingular.h":
 
     int singclap_isSqrFree(poly *f)
 
-    poly *singclap_alglcm(poly *f, poly *g)
+    poly *kNF(ideal *F, ideal *Q, poly *p)
+
+    # this guy actually calculates with napoly not poly
+    #poly *singclap_alglcm(poly *f, poly *g)
 
     # Numbers
     # ---------------------------------

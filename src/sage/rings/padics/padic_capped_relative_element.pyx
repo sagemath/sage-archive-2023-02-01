@@ -287,10 +287,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def __reduce__(self):
         # Necessary for pickling.  See integer.pyx for more info.
-        cdef Integer relprec
+        cdef Integer relprec, unit, ordp
         relprec = PY_NEW(Integer)
         mpz_set_ui(relprec.value, self.relprec)
-        return sage.rings.padics.padic_capped_relative_element.make_pcre, (self.parent(), self.lift(), relprec,)
+        unit = PY_NEW(Integer)
+        mpz_set(unit.value, self.unit)
+        ordp = PY_NEW(Integer)
+        mpz_set(ordp.value, self.ordp)
+        return unpickle_pcre_v1, (self.parent(), unit, ordp, relprec)
 
     cdef ModuleElement _neg_c_impl(self):
         """
@@ -1356,5 +1360,18 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             self.set_precs(mpz_get_si(absprec.value))
             sage.rings.padics.padic_generic_element.teichmuller_set_c(self.unit, self.p, self.modulus)
 
-def make_pcre(R, x, relprec):
-    return pAdicCappedRelativeElement(R, x, relprec = relprec)
+def unpickle_pcre_v1(R, unit, ordp, relprec):
+    cdef pAdicCappedRelativeElement ans
+    ans = PY_NEW(pAdicCappedRelativeElement)
+    ans._parent = R
+    if R.is_field():
+        ans.in_field = 1
+    else:
+        ans.in_field = 0
+    mpz_init_set(ans.p, (<Integer>R.prime()).value)
+    mpz_init_set(ans.unit, (<Integer>unit).value)
+    mpz_init_set(ans.ordp, (<Integer>ordp).value)
+    cdef PowComputer_class powerer
+    powerer = R.prime_pow
+    powerer.pow_mpz_mpz(ans.modulus, (<Integer>relprec).value)
+    return ans

@@ -1389,9 +1389,9 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
             sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-abs', print_mode = 'val-unit'))
             sage: f = 24 + R(4/3)*w + w^4
             sage: f._repr()
-            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + 24 + O(5^5)'
+            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + (24 + O(5^5))'
             sage: f._repr(name='z')
-            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + 24 + O(5^5)'
+            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + (24 + O(5^5))'
 
         AUTHOR:
             -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()

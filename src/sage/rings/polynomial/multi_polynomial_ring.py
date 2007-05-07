@@ -214,11 +214,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: type(x)
             <class 'sage.calculus.calculus.SymbolicVariable'>
             sage: type(R(x))
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
             sage: f = R(x^3 + y^3 - z^3); f
             -1*z^3 + y^3 + x^3
             sage: type(f)
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <class 'sage.rings.polynomial.multi_polynomial_element.MPolynomial_polydict'>
             sage: parent(f)
             Polynomial Ring in x, y, z over Rational Field
 

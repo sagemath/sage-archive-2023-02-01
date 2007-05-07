@@ -206,7 +206,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
     #def residue(self, prec):
     #    raise NotImplementedError
 
-    def sqrt(self):
+    def sqrt(self, extend = True, all = False):
         r"""
         Returns the square root of this local ring element
 
@@ -215,7 +215,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
         OUTPUT:
             local ring element -- the square root of self
         """
-        return self.square_root()
+        return self.square_root(extend, all)
 
     #def square_root(self):
     #    raise NotImplementedError

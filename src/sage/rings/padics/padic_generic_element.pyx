@@ -784,21 +784,22 @@ cdef class pAdicGenericElement(LocalGenericElement):
         r = sage.rings.arith.rational_reconstruction(alpha, m)
         return (Rational(p)**self.valuation())*r
 
-    def square_root(self):
+    def square_root(self, extend = True, all = False):
         r"""
         Returns the square root of this p-adic number
 
         INPUT:
             self -- a p-adic element
+            extend -- bool (default: True); if True, return a square root
+                in an extension if necessary; if False and no root exists
+                in the given ring or field, raise a ValueError
+            all -- bool (default: False); if True, return a list of all
+                square roots
         OUTPUT:
             p-adic element -- the square root of this p-adic number
 
-            The square root chosen is the one whose reduction mod p is in
+            If all = False, the square root chosen is the one whose reduction mod p is in
             the range [0, p/2).
-
-            If no square root exists, a ValueError is raised.
-            (This may be changed later to return an element of an extension
-            field.)
 
         EXAMPLES:
             sage: R = Zp(3,20,'capped-rel', 'val-unit')
@@ -806,7 +807,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             0
             sage: R(1).square_root()
             1 + O(3^20)
-            sage: R(2).square_root()
+            sage: R(2).square_root(extend = False)
             Traceback (most recent call last):
             ...
             ValueError: element is not a square
@@ -825,10 +826,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             sage: R2(4).square_root()
             2 + O(2^20)
 
-        # todo: the following doctest is currently disabled because the
-        # second argument to the __call__ method is not yet implemented
-
-            sage.: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)   # WARNING -- this is not implemented yet!
+            sage: R2(9).square_root() == R2(3, 19) or R2(9).square_root() == R2(-3, 19)
             True
 
             sage: R2(17).square_root()
@@ -883,11 +881,18 @@ cdef class pAdicGenericElement(LocalGenericElement):
 
         try:
             # use pari
-            return self.parent()(pari(self).sqrt())
+            ans = self.parent()(pari(self).sqrt())
+            if all:
+                return [ans, -ans]
+            else:
+                return ans
         except PariError:
             # todo: should eventually change to return an element of
             # an extension field
-            raise ValueError, "element is not a square"
+            if extend:
+                raise NotImplementedError, "extending using the sqrt function not yet implemented"
+            else:
+                raise ValueError, "element is not a square"
 
     def trace(self, ground=None):
         """

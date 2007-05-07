@@ -566,18 +566,25 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
     def lift_to_precision(self, absprec):
         cdef pAdicRingCappedAbsoluteElement ans
         cdef int prec_cap
+        cdef int dest_prec
         prec_cap = mpz_get_ui((<Integer>self.parent().precision_cap()).value)
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if mpz_fits_sint_p((<Integer>absprec).value) == 0:
-            if mpz_sgn((<Integer>absprec).value) == 1:
-                ans = self._new_c()
-                ans.set_precs(prec_cap)
-                mpz_set(ans.value, self.value)
-            else:
+            ans = self._new_c()
+            ans.set_precs(prec_cap)
+            mpz_set(ans.value, self.value)
+        else:
+            dest_prec = mpz_get_ui((<Integer>absprec).value)
+            if prec_cap < dest_prec:
+                dest_prec = prec_cap
+            if dest_prec <= self.absprec:
                 return self
-        absprec = min(absprec, self.parent().precision_cap())
-        return pAdicRingCappedAbsoluteElement(self.parent(), (Mod(self._value, self.parent().prime_pow(absprec)), absprec), construct = True)
+            else:
+                ans = self._new_c()
+                ans.set_precs(dest_prec)
+                mpz_set(ans.value, self.value)
+        return ans
 
     def list(pAdicRingCappedAbsoluteElement self, lift_mode = 'simple'):
         """

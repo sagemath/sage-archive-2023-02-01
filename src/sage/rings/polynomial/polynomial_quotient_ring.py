@@ -21,15 +21,15 @@ EXAMPLES:
 #                  http://www.gnu.org/licenses/
 ################################################################################
 
-import sage.rings.number_field.all as number_field
+import sage.rings.number_field.all
 import polynomial_element
 import polynomial_ring
-import sage.rings.rational_field as rational_field
-import sage.rings.complex_field as complex_field
+import sage.rings.rational_field
+import sage.rings.complex_field
 
-import sage.rings.commutative_ring as commutative_ring
+import sage.rings.commutative_ring
 import sage.rings.field as field
-import sage.rings.integral_domain as integral_domain
+import sage.rings.integral_domain
 
 import polynomial_quotient_ring_element
 
@@ -133,7 +133,7 @@ def PolynomialQuotientRing(ring, polynomial, names=None):
     if not c.is_unit():
         raise TypeError, "polynomial must have unit leading coefficient"
     R = ring.base_ring()
-    if isinstance(R, integral_domain.IntegralDomain):
+    if isinstance(R, sage.rings.integral_domain.IntegralDomain):
         try:
             if polynomial.is_irreducible():
                 if isinstance(R, field.Field):
@@ -149,7 +149,7 @@ def is_PolynomialQuotientRing(x):
     return isinstance(x, PolynomialQuotientRing_generic)
 
 
-class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
+class PolynomialQuotientRing_generic(sage.rings.commutative_ring.CommutativeRing):
     """
     Quotient of a univariate polynomial ring by an ideal.
 
@@ -460,9 +460,9 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         if self.characteristic() != 0:
             raise ArithmeticError, "Polynomial quotient ring is not isomorphic to a number field (it has positive characteristic)."
 
-        if not isinstance(self.base_ring(), rational_field.RationalField):
+        if not isinstance(self.base_ring(), sage.rings.rational_field.RationalField):
             raise NotImplementedError, "Computation of number field only implemented for quotients of the polynomial ring over the rational field."
-        return number_field.NumberField(self.modulus(), self.variable_name())
+        return sage.rings.number_field.all.NumberField(self.modulus(), self.variable_name())
 
     def polynomial_ring(self):
         """
@@ -477,7 +477,7 @@ class PolynomialQuotientRing_generic(commutative_ring.CommutativeRing):
         return self.__ring
 
 
-class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_domain.IntegralDomain):
+class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, sage.rings.integral_domain.IntegralDomain):
     """
     EXAMPLES:
         sage: R.<x> = PolynomialRing(ZZ)
@@ -616,7 +616,7 @@ class PolynomialQuotientRing_domain(PolynomialQuotientRing_generic, integral_dom
         """
 
         F = self.modulus().root_field(names)
-        if isinstance(F, number_field.NumberField_extension):
+        if sage.rings.number_field.all.is_NumberFieldExtension(F):
             if F.gen() != F.gen_relative():
                 # The issue is that there is no way to specify a homomorphism
                 # from the relative number to the poly ring quotient that
@@ -673,7 +673,7 @@ class PolynomialQuotientRing_field(PolynomialQuotientRing_domain, field.Field):
             sage: [phi(k.0^2) for phi in v]
             [0.92103906697304693634806949137 - 3.0755331188457794473265418086*I, 0.92103906697304693634806949137 + 3.0755331188457794473265418086*I, 2.9757207403766761469671194565, -2.4088994371613850098316292196 - 1.9025410530350528612407363802*I, -2.4088994371613850098316292196 + 1.9025410530350528612407363802*I]
         """
-        CC = complex_field.ComplexField(prec)
+        CC = sage.rings.complex_field.ComplexField(prec)
         f = self.modulus().base_extend(CC)
         v = f.roots()
         return [self.hom([a], check=False) for a in v]

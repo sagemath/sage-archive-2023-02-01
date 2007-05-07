@@ -338,7 +338,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         cdef pAdicCappedRelativeElement ans
         cdef mpz_t absprec
         if not PY_TYPE_CHECK(right, Integer):
-            raise ValueError, "we don't currently support non-integer exponents"
+            right = Integer(right)
         # if right < 0, we return (~self)^(-right)
         if mpz_sgn((<Integer>right).value) == -1:
             return self._invert_c_impl().__pow__(-right)
@@ -828,10 +828,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         if prec is None:
             return bool(mpz_sgn(self.unit) <= 0)
-        if not PY_TYPE_CHECK(prec, Integer):
-            prec = Integer(prec)
         if mpz_sgn(self.unit) == -1:
             return True
+        if not PY_TYPE_CHECK(prec, Integer):
+            prec = Integer(prec)
         elif mpz_sgn(self.unit) == 0:
             if mpz_cmp(self.ordp, (<Integer>prec).value) >= 0:
                 return True

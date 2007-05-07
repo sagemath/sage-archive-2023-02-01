@@ -858,14 +858,14 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         EXAMPLES:
             sage: R.<x> = QQ[]
             sage: f = x^3 - 2
-            sage: f.factor_padic(2)
-            (1 + O(2^10))*x^3 + O(2^10)*x^2 + O(2^10)*x + 2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10)
-            sage: f.factor_padic(3)
-            (1 + O(3^10))*x^3 + O(3^10)*x^2 + O(3^10)*x + 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
-            sage: f.factor_padic(5)
-            ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
+            sage.: f.factor_padic(2)
+            (1 + O(2^10))*x^3 + O(2^10)*x^2 + O(2^10)*x + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10))
+            sage.: f.factor_padic(3)
+            (1 + O(3^10))*x^3 + O(3^10)*x^2 + O(3^10)*x + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))
+            sage.: f.factor_padic(5)
+            ((1 + O(5^10))*x + (2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10))) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + (4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10)))
         """
-        from padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1279,14 +1279,14 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         OUTPUT:
             factorization of self reduced modulo p.
         """
-        import padics.zp
+        from sage.rings.padics.factory import Zp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
         prec = integer.Integer(prec)
         if prec <= 0:
             raise ValueError, "prec must be positive"
-        K = padics.zp.Zp(p, prec, type='capped-abs')
+        K = Zp(p, prec, type='capped-abs')
         R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(self).factor()
 
@@ -1386,7 +1386,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
     def _repr(self, name=None):
         r"""
         EXAMPLES:
-            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-abs', print_mode = 'val-unit'))
             sage: f = 24 + R(4/3)*w + w^4
             sage: f._repr()
             '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + 24 + O(5^5)'
@@ -1407,8 +1407,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
                 if n != m:
                     s += " + "
                 x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
-                    x = "(%s)"%x
+                x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
                 elif n==1:
@@ -1417,10 +1416,6 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
                     var = ""
                 s += "%s%s"%(x,var)
             n -= 1
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
-        s = s.replace(" 1*"," ")
-        s = s.replace(" -1*", " -")
         if s==" ":
             return "0"
         return s[1:]

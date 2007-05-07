@@ -44,7 +44,7 @@ from sage.interfaces.all import singular, macaulay2
 import sage.misc.misc as misc
 import sage.rings.integer as integer
 
-import polydict
+import sage.rings.polynomial.polydict
 
 from sage.structure.factorization import Factorization
 
@@ -345,8 +345,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: loads(dumps(x)) == x
             True
         """
-        if not isinstance(x, polydict.PolyDict):
-            x = polydict.PolyDict(x, parent.base_ring()(0), remove_zero=True)
+        if not isinstance(x, sage.rings.polynomial.polydict.PolyDict):
+            x = sage.rings.polynomial.polydict.PolyDict(x, parent.base_ring()(0), remove_zero=True)
         MPolynomial_element.__init__(self, parent, x)
 
     def __neg__(self):
@@ -612,7 +612,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if len(k) != 1:
             return False
         k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
+        if k != sage.rings.polynomial.polydict.ETuple([0]*self.parent().ngens()):
             return False
         return bool(d[k].is_unit())
 
@@ -622,7 +622,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if len(k) != 1:
             raise ArithmeticError, "is not a unit"
         k = k[0]
-        if k != polydict.ETuple([0]*self.parent().ngens()):
+        if k != sage.rings.polynomial.polydict.ETuple([0]*self.parent().ngens()):
             raise ArithmeticError, "is not a unit"
         return ~d[k]
 
@@ -739,7 +739,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         except AttributeError:
             ring = self.parent()
             one = self.parent().base_ring()(1)
-            self.__monomials = [ MPolynomial_polydict(ring, polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
+            self.__monomials = [ MPolynomial_polydict(ring, sage.rings.polynomial.polydict.PolyDict( {m:one}, force_int_exponents=False,  force_etuples=False ) ) \
                                 for m in self._MPolynomial_element__element.dict().keys() ]
             return self.__monomials
 
@@ -759,7 +759,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         #v = (0,)*int(self.parent().ngens())
         d = self.element().dict()
         try:
-            return d[polydict.ETuple({},self.parent().ngens())]
+            return d[sage.rings.polynomial.polydict.ETuple({},self.parent().ngens())]
         except KeyError:
             return self.parent().base_ring()(0)
 
@@ -846,7 +846,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         for degree in range( 0 , max([ m[var_idx] for m in monomial_coefficients.keys() ])+1 ):
             lookup[var_idx]=int(degree);
             try:
-                coefficients.append( monomial_coefficients[ polydict.ETuple(lookup) ] ) #if we find something, add the coefficient
+                coefficients.append( monomial_coefficients[ sage.rings.polynomial.polydict.ETuple(lookup) ] ) #if we find something, add the coefficient
             except KeyError:
                 coefficients.append( 0 ) #else add zero
 
@@ -977,7 +977,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             R = self.parent()
             f = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
             one = R.base_ring()(1)
-            self.__lm = MPolynomial_polydict(R,polydict.PolyDict({f:one},force_int_exponents=False,  force_etuples=False))
+            self.__lm = MPolynomial_polydict(R,sage.rings.polynomial.polydict.PolyDict({f:one},force_int_exponents=False,  force_etuples=False))
             return self.__lm
 
     def lc(self):
@@ -1007,7 +1007,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             R = self.parent()
             f = self._MPolynomial_element__element.dict()
             res = self._MPolynomial_element__element.lcmt( R.term_order().greater_tuple )
-            self.__lt = MPolynomial_polydict(R,polydict.PolyDict({res:f[res]},force_int_exponents=False, force_etuples=False))
+            self.__lt = MPolynomial_polydict(R,sage.rings.polynomial.polydict.PolyDict({res:f[res]},force_int_exponents=False, force_etuples=False))
             return self.__lt
 
     def __eq__(self,right):
@@ -1238,7 +1238,7 @@ def degree_lowest_rational_function(r,x):
         sage: degree_lowest_rational_function(r,c)
               (-1, 4)
     """
-    from fraction_field import FractionField
+    from sage.rings.fraction_field import FractionField
     R = r.parent()
     F = FractionField(R)
     r = F(r)

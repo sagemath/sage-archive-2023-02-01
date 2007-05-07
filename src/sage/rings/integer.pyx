@@ -1663,9 +1663,9 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         CPU times: user 0.08 s, sys: 0.01 s, total: 0.09 s
         Wall time: 0.10
         """
-        if mpz_sgn(self.value) < 0:
-            return False
-        return bool(mpz_perfect_square_p(self.value))
+        if not PY_TYPE_CHECK(n, Integer):
+            n = Integer(n)
+        return bool(self._is_power_of(n))
 
     def is_prime_power(self, flag=0):
         r"""

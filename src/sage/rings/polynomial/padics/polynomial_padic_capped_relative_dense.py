@@ -63,8 +63,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             elif x.base_ring() is ZZ:
                 self._poly = x
                 self._valbase = Integer(0)
+                p = parent.base_ring().prime()
+                self._relprecs = [c.valuation(p) + parent.base_ring().precision_cap() for c in x.list()]
                 self._comp_valaddeds()
-                self._relprecs = [c + parent.base_ring().precision_cap() for c in self._valaddeds]
                 self._normalized = len(self._valaddeds) == 0 or (min(self._valaddeds) == 0)
                 self._list = None
                 if not absprec is infinity or not relprec is infinity:
@@ -224,7 +225,6 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
-        atomic_repr = self.parent().base_ring().is_atomic_repr()
         coeffs = self.list()
         for n in r:
             x = coeffs[n]
@@ -361,18 +361,19 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return answer
 
     def _lmul_(self, right):
-        val, unit = right._val_unit()
-        self._comp_valaddeds()
-        right_rprec = right.precision_relative()
-        relprecs = [min(right_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._lmul_(unit.lift()), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
+        return self._rmul_(right)
 
     def _rmul_(self, left):
-        val, unit = left._val_unit()
         self._comp_valaddeds()
-        left_rprec = left.precision_relative()
-        relprecs = [min(left_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
-        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit.lift()), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
+        if left != 0:
+            val, unit = left._val_unit()
+            left_rprec = left.precision_relative()
+            relprecs = [min(left_rprec + self._valaddeds[i], self._relprecs[i]) for i in range(len(self._relprecs))]
+        elif left._is_exact_zero():
+            return Polynomial_padic_capped_relative_dense(self.parent(), [])
+        else:
+            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.parent()(0), self._valbase + left.valuation(), self._valaddeds, False, self._valaddeds, None), construct = True)
+        return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
 
     def _neg_(self):
         return Polynomial_padic_capped_relative_dense(self.parent(), (-self._poly, self._valbase, self._relprecs, False, self._valaddeds, None), construct = True)
@@ -645,8 +646,19 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self._poly.factor_mod(self.base_ring().prime())
 
     def factor(self):
-        raise NotImplementedError
-
+        # This will eventually be improved.
+        if self == 0:
+            raise ValueError, "Factorization of the zero polynomial not defined"
+	from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
+        from sage.rings.padics.factory import ZpCA
+        base = self.base_ring()
+        print self.list()
+        m = min([x.precision_absolute() for x in self.list()])
+        print m
+        R = ZpCA(base.prime(), prec = m)
+        S = PolynomialRing(R, self.parent().variable_name())
+        F = S(self).factor()
+        return Factorization([(self.parent()(a), b) for (a, b) in F], base(F.unit()))
 
 def _extend_by_infinity(L, n):
     return L + [infinity] * (n - len(L))

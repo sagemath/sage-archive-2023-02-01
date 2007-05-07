@@ -78,13 +78,8 @@ from sage.libs.all import pari
 import sage.misc.defaults
 import sage.misc.latex as latex
 import multi_polynomial_element
-import sage.rings.padics.padic_ring_capped_relative as padic_ring_capped_relative
-import sage.rings.padics.padic_field_capped_relative as padic_field_capped_relative
-import sage.rings.padics.padic_ring_lazy as padic_ring_lazy
-import sage.rings.padics.padic_field_lazy as padic_field_lazy
-import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
-import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
+import sage.rings.polynomial.padics.polynomial_padic_flat
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
@@ -288,6 +283,13 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         return "%s[%s]"%(latex.latex(self.base_ring()), latex.latex(self.variable_name()))
 
     def __set_polynomial_class(self, cls=None):
+        from sage.rings.padics.padic_ring_capped_relative import pAdicRingCappedRelative
+        from sage.rings.padics.padic_field_capped_relative import pAdicFieldCappedRelative
+        from sage.rings.padics.padic_ring_lazy import pAdicRingLazy
+        from sage.rings.padics.padic_field_lazy import pAdicFieldLazy
+        from sage.rings.padics.padic_ring_capped_absolute import pAdicRingCappedAbsolute
+        from sage.rings.padics.padic_ring_fixed_mod import pAdicRingFixedMod
+
         if not (cls is None):
             self.__polynomial_class = cls
             return
@@ -296,18 +298,18 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_element_generic.Polynomial_rational_dense
         elif is_IntegerRing(R) and not self.is_sparse():
             self.__polynomial_class = polynomial_element_generic.Polynomial_integer_dense
-        elif isinstance(R, padic_ring_lazy.pAdicRingLazy):
+        elif isinstance(R, pAdicRingLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
-        elif isinstance(R, padic_field_lazy.pAdicFieldLazy):
+        elif isinstance(R, pAdicFieldLazy):
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
-        elif isinstance(R, padic_ring_capped_relative.pAdicRingCappedRelative):
+        elif isinstance(R, pAdicRingCappedRelative):
             self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
-        elif isinstance(R, padic_field_capped_relative.pAdicFieldCappedRelative):
+        elif isinstance(R, pAdicFieldCappedRelative):
             self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
-        elif isinstance(R, padic_ring_capped_absolute.pAdicRingCappedAbsolute):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
-        elif isinstance(R, padic_ring_fixed_mod.pAdicRingFixedMod):
-            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense # Fix
+        elif isinstance(R, pAdicRingCappedAbsolute):
+            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
+        elif isinstance(R, pAdicRingFixedMod):
+            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
         elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field

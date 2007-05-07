@@ -6,6 +6,8 @@
 #                  http://www.gnu.org/licenses/
 ###############################################################################
 
+include "../ext/stdsage.pxi"
+
 ## def make_parent_with_base_v0(_class, _dict, base, has_coerce_map_from):
 ##     """
 ##     This should work for any Python class deriving from this, as long

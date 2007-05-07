@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             i += 1
 
         # it must have infinite order
-        self.__multiplicative_order = infinity.infinity
+        self.__multiplicative_order = sage.rings.infinity.infinity
         return self.__multiplicative_order
 
     def trace(self):

@@ -70,6 +70,8 @@ from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
 from sage.misc.sage_eval import sage_eval
+from sage.misc.latex import latex
+
 
 # shared library loading
 cdef extern from "dlfcn.h":
@@ -1346,6 +1348,15 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
     def __pow__(MPolynomial_libsingular self,int exp,ignored):
         """
+        Return self^(exp).
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y>=MPolynomialRing_libsingular(QQ,2)
+            sage: f = x^3 + y
+            sage: f^2
+            x^6 + 2*x^3*y + y^2
+
         """
         cdef ring *_ring
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
@@ -1362,6 +1373,16 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
 
     def __neg__(self):
+        """
+        Return -self.
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y>=MPolynomialRing_libsingular(QQ,2)
+            sage: f = x^3 + y
+            sage: -f
+            -x^3 - y
+        """
         cdef ring *_ring
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
@@ -1398,12 +1419,80 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         s = p_String(self._poly, (<MPolynomialRing_libsingular>self._parent)._ring, (<MPolynomialRing_libsingular>self._parent)._ring)
         return s
 
-    def _latex(self):
-        #do it for real, may be slow
-        raise NotImplementedError
+    def _latex_(self):
+        """
+        Return a polynomial latex representation of self.
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
+            sage: latex(f)
+            - x^{2}y - \frac{25}{27} y^{3} - z^{2}
+
+        """
+        cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef int n = _ring.N
+        cdef int j, e
+        cdef poly *p = self._poly
+        poly = ""
+        gens = self.parent().gens()
+        base = self.parent().base()
+
+        while p:
+            sign_switch = False
+
+            # First determine the multinomial:
+            multi = ""
+            for j from 1 <= j <= n:
+                e = p_GetExp(p, j, _ring)
+                if e > 0:
+                    multi += str(gens[j-1])
+                if e > 1:
+                    multi += "^{%d}"%e
+
+            # Next determine coefficient of multinomial
+            c =  co.si2sa( p_GetCoeff(p, _ring), _ring, base)
+            if len(multi) == 0:
+                multi = latex(c)
+            elif c != 1:
+                if  c == -1:
+                    if len(poly) > 0:
+                        sign_switch = True
+                    else:
+                        multi = "- %s"%(multi)
+                else:
+                    multi = "%s %s"%(latex(c),multi)
+
+            # Now add on coefficiented multinomials
+            if len(poly) > 0:
+                if sign_switch:
+                    poly = poly + " - "
+                else:
+                    poly = poly + " + "
+            poly = poly + multi
+
+            p = pNext(p)
+
+        poly = poly.lstrip().rstrip()
+        poly = poly.replace("+ -","- ")
+
+        if len(poly) == 0:
+            return "0"
+        return poly
 
     def _repr_with_changed_varnames(self, varnames):
         """
+        Return string representing self but change the variable names
+        to varnames.
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: f = - 1*x^2*y - 25/27 * y^3 - z^2
+            sage: print f._repr_with_changed_varnames(['FOO', 'BAR', 'FOOBAR'])
+            -FOO^2*BAR - 25/27*BAR^3 - FOOBAR^2
+
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         cdef char **_names
@@ -1614,6 +1703,18 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return (<MPolynomialRing_libsingular>self._parent)._base(0)
 
     def dict(self):
+        """
+        Return a dictionary representing self. This dictionary is in
+        the same format as the generic MPolynomial: The dictionary
+        consists of ETuple:coefficient pairs.
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y,z> = MPolynomialRing_libsingular(QQ, 3)
+            sage: f=2*x*y^3*z^2 + 1/7*x^2 + 2/3
+            sage: f.dict()
+            {(2, 0, 0): 1/7, (0, 0, 0): 2/3, (1, 3, 2): 2}
+        """
         cdef poly *p
         cdef ring *r
         cdef int n
@@ -1624,7 +1725,6 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         pd = dict()
         while p:
             d = dict()
-            # assuming that SINGULAR stores monomial dense
             for v from 1 <= v <= r.N:
                 n = p_GetExp(p,v,r)
                 if n!=0:
@@ -1786,7 +1886,61 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return bool(pIsHomogeneous(self._poly))
 
     def homogenize(self, var='h'):
-        raise NotImplementedError
+        """
+        Return self is self is homogeneous.  Otherwise return a
+        homogeneous polynomial. If a string is given, return a
+        polynomial in one more variable such that setting that
+        variable equal to 1 yields self. This variable is added to the
+        end of the variables. If either a variable in self.parent() or
+        an index is given, this variable is used to homogenize the
+        polynomial.
+
+        INPUT:
+            var -- either a string (default: 'h'); a variable name for the new variable
+                   to be added in when homogenizing or a variable/index to specify the existing
+                   variable to be used.
+
+        OUTPUT:
+            a multivariate polynomial
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y> = MPolynomialRing_libsingular(QQ,2)
+            sage: f = x^2 + y + 1 + 5*x*y^10
+            sage: g = f.homogenize('z'); g
+            5*x*y^10 + x^2*z^9 + y*z^10 + z^11
+            sage: g.parent()
+            Polynomial Ring in x, y, z over Rational Field
+            sage: f.homogenize(x)
+            2*x^11 + x^10*y + 5*x*y^10
+
+        """
+        cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
+        cdef MPolynomial_libsingular f
+
+        if self.is_homogeneous():
+            return self
+
+        if PY_TYPE_CHECK(var, MPolynomial_libsingular):
+            if (<MPolynomial_libsingular>var)._parent is self._parent:
+                var = var._variable_indices_()
+                if len(var) == 1:
+                    var = var[0]
+                else:
+                    raise TypeError, "parameter var must be single variable"
+
+        if PY_TYPE_CHECK(var,str):
+            names = [str(e) for e in parent.gens()] + [var]
+            P = MPolynomialRing_libsingular(parent.base(),parent.ngens()+1, names, order=parent.term_order())
+            f = P(str(self))
+            return new_MP(P, pHomogen(f._poly,len(names)))
+        elif PY_TYPE_CHECK(var,int) or PY_TYPE_CHECK(var,Integer):
+            if var < parent._ring.N:
+                return new_MP(parent, pHomogen(p_Copy(self._poly, parent._ring), var+1))
+            else:
+                raise TypeError, "var must be < self.parent().ngens()"
+        else:
+            raise TypeError, "parameter var not understood"
 
     def is_monomial(self):
         return not self._poly.next
@@ -2278,11 +2432,15 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 ##         return new_MP(self._parent, ret)
 
     def is_square_free(self):
+        """
+        """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
         if(_ring != currRing): rChangeCurrRing(_ring)
         return bool(singclap_isSqrFree(self._poly))
 
     def quo_rem(self, MPolynomial_libsingular right):
+        """
+        """
         if self._parent is not right._parent:
             right = self._parent._coerce_c(right)
         raise NotImplementedError

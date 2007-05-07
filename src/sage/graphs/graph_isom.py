@@ -1290,7 +1290,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
         elif state == 17:
             if verbosity > 0: print 'state: 17'
             if e[k] == 0:
-                l = W[k]
+                li = W[k]
                 for i in range(1,l+1):
                     boo = True
                     for j in range(1,k):
@@ -1298,7 +1298,7 @@ def search_tree(G, Pi, lab=True, dig=False, dict=False, proof=False, verbosity=0
                             boo = False
                             break
                     if boo:
-                        l = [v for v in l if v in Omega[i]]
+                        li = [v for v in li if v in Omega[i]]
                     W[k] = l
             e[k] = 1
             VVV = [v for v in W[k] if v > v[k]]

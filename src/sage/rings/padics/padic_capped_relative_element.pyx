@@ -1067,7 +1067,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 powerer.pow_mpz_ui(ppow, curpower)
             else:
                 mpz_set_ui(list_elt.ordp, 0)
-                mpz_set_precs(preccap)
+                list_elt.set_precs(preccap)
                 sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.unit, self.p, list_elt.modulus)
                 mpz_sub(tmp, tmp, list_elt.unit)
                 mpz_divexact(tmp, tmp, self.p)

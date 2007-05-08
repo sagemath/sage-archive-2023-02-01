@@ -39,7 +39,6 @@ QQ = sage.rings.rational_field.QQ
 
 cdef class pAdicGenericElement(LocalGenericElement):
     def __richcmp__(left, right, int op):
-        print "rich"
         return (<Element>left)._richcmp(right, op)
 
     cdef int _cmp_c_impl(left, Element right) except -2:

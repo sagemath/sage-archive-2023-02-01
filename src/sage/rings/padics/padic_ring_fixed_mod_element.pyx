@@ -211,6 +211,13 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         mpz_clear(self.value)
 
     def __reduce__(self):
+        """
+        sage: a = ZpFM(5)(-3)
+        sage: type(a)
+        <type 'sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement'>
+        sage: loads(dumps(a)) == a
+        True
+        """
         return make_pAdicRingFixedModElement, (self.parent(), self.lift())
 
     cdef void set_from_mpz(pAdicRingFixedModElement self, mpz_t value):

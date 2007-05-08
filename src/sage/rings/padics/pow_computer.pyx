@@ -8,9 +8,11 @@ include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 
+#TODO: doctests and explination of what this file is
 
 cdef class PowComputer_class(SageObject):
     def __new__(self, Integer base, unsigned int log_of_dense_limit):
+        # TODO: what here could/should be moved to __init__?
         cdef Py_ssize_t i
         cdef Integer x
         self._initialized = 0
@@ -27,8 +29,7 @@ cdef class PowComputer_class(SageObject):
         self.dense_list_Integer = []
         self.dense_mask -= 1 # fixing self.dense_mask to its correct value
         mpz_init_set_si(self.dense_mask_mpz, self.dense_mask)
-        self.basex = PY_NEW(Integer)
-        mpz_set(self.basex.value, base.value)
+        self.basex = base
 
         mpz_init_set_ui(self.dense_list[0], 1)
         x = PY_NEW(Integer)
@@ -64,6 +65,13 @@ cdef class PowComputer_class(SageObject):
             for i from 0 <= i <= self.dense_mask:
                 mpz_clear(self.dense_list[i])
             sage_free(self.dense_list)
+
+    def __reduce__(self):
+        """
+        P = PowComputer(5, 7)
+        loads(dumps(P))
+        """
+        return PowComputer, (self.basex, self.log_of_dense_limit)
 
     def base(self):
         return self.basex

@@ -282,10 +282,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         mpz_clear(self.modulus)
         mpz_clear(self.ordp)
 
-    def __richcmp__(left, right, int op):
-        return (<Element>left)._richcmp(right, op)
-
     def __reduce__(self):
+        """
+        sage: a = ZpCR(5)(-3)
+        sage: type(a)
+        <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+        sage: loads(dumps(a)) == a
+        True
+        """
         # Necessary for pickling.  See integer.pyx for more info.
         cdef Integer relprec, unit, ordp
         relprec = PY_NEW(Integer)
@@ -295,6 +299,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         ordp = PY_NEW(Integer)
         mpz_set(ordp.value, self.ordp)
         return unpickle_pcre_v1, (self.parent(), unit, ordp, relprec)
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
 
     cdef ModuleElement _neg_c_impl(self):
         """
@@ -1067,7 +1074,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 powerer.pow_mpz_ui(ppow, curpower)
             else:
                 mpz_set_ui(list_elt.ordp, 0)
-                # ??? mpz_set_precs(preccap)
+                list_elt_set_precs(preccap)
                 sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.unit, self.p, list_elt.modulus)
                 mpz_sub(tmp, tmp, list_elt.unit)
                 mpz_divexact(tmp, tmp, self.p)

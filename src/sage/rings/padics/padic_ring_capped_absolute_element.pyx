@@ -144,6 +144,13 @@ cdef class pAdicRingCappedAbsoluteElement(pAdicBaseGenericElement):
         mpz_clear(self.value)
 
     def __reduce__(self):
+        """
+        sage: a = ZpCA(5)(-3)
+        sage: type(a)
+        <type 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
+        sage: loads(dumps(a)) == a
+        True
+        """
         return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
     cdef void set_precs(pAdicRingCappedAbsoluteElement self, unsigned int absprec):

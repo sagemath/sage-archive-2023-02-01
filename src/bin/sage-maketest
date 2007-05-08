@@ -3,12 +3,12 @@
 sage -b
 
 # Run DSAGE unit tests
-# sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log
+sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log
 
 # Run SAGE library doctests, which end with a summary report.
 ./sage -t devel/sage/sage 2>&1 | tee -a test.log
 
 # Print the small summary report for dsage unit tests, if necessary.
-# grep "ERROR occurred" .test-dsage.log
+grep "ERROR occurred" .test-dsage.log
 
 exit 0

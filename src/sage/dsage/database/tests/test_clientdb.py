@@ -68,7 +68,7 @@ class ClientDatabaseTestCase(unittest.TestCase):
         self.assertEquals(pre_login_time, None)
         self.clientdb.update_login_time(username)
         post_login_time = self.clientdb.get_parameter(username, 'last_login')
-        self.assert_(datetime.datetime.now() > post_login_time)
+        self.assert_(datetime.datetime.now() >= post_login_time)
 
 if __name__ == '__main__':
 	unittest.main()

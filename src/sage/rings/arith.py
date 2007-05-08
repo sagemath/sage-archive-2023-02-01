@@ -96,8 +96,8 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     """
 
     # TODO -- change to use PARI C library???
-    import sage.rings.polynomial_ring
-    x = sage.rings.polynomial_ring.PolynomialRing(
+    import sage.rings.polynomial.polynomial_ring
+    x = sage.rings.polynomial.polynomial_ring.PolynomialRing(
         integer_ring.IntegerRing(), 'x').gen()
 
     if isinstance(z, (int, long, integer.Integer)):

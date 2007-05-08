@@ -1464,9 +1464,9 @@ cdef class ComplexDoubleElement(FieldElement):
         P = sage.libs.pari.gen.pari
         _sig_on
         f = P.new_gen(algdep0(self._gen(), n, 0, PREC))
-        import polynomial_ring
-        import integer_ring
-        R = polynomial_ring.PolynomialRing(integer_ring.ZZ ,'x')
+        from polynomial.polynomial_ring import PolynomialRing
+        from integer_ring import ZZ
+        R = PolynomialRing(ZZ ,'x')
         return R(list(reversed(eval(str(f.Vec())))))
 
 

@@ -147,9 +147,12 @@ class pAdicLazyElement(pAdicBaseGenericElement):
         #Add zero support
         return pAdicLazy_pow(self, right)
 
-    def _repr_(self, mode = None, do_latex = False):
+    def _repr_(self):
+        return self._repr()
+
+    def _repr(self, mode = None, do_latex = False):
         self._recompute()
-        return pAdicBaseGenericElement._repr_(self, mode, do_latex)
+        return pAdicBaseGenericElement._repr(self, mode, do_latex)
 
     def _sub_(self, right):
         if isinstance(right, pAdicLazy_zero):
@@ -368,13 +371,13 @@ class pAdicLazy_otherpadic(pAdicLazyElement):
         self._x = x
         prec = min(parent.precision_cap(), relprec, absprec - self._base_valuation, x.precision_relative())
         self._set_cache_prec(prec)
-        self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(prec)))
+        self._set_cache(Mod(x.unit_part().lift(), self.parent().prime_pow(prec)))
 
     def set_precision_relative(self, n, halt = None):
         if n > self._cache_prec:
             if n > x.precision_relative():
                 raise PrecisionLimitError, "Cannot compute more p-adic digits"
-            self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(n)))
+            self._set_cache(Mod(x.unit_part().lift(), self.parent().prime_pow(n)))
             self._set_cache_prec(n)
 
     def set_precision_absolute(self, n, halt = None):
@@ -382,7 +385,7 @@ class pAdicLazy_otherpadic(pAdicLazyElement):
             if n > self._x.precision_absolute():
                 raise PrecisionLimitError, "Cannot compute more p-adic digits"
             self._set_cache_prec(n - self._base_valuation)
-            self._set_cache(Mod(x._unit_part(), self.parent().prime_pow(self._cache_prec)))
+            self._set_cache(Mod(x.unit_part().lift(), self.parent().prime_pow(self._cache_prec)))
 
 class pAdicLazy_mod(pAdicLazyElement):
     def __init__(self, parent, x, ppow):
@@ -395,7 +398,7 @@ class pAdicLazy_zero(pAdicLazyElement):
         self._set_cache(Mod(0,1))
         self._set_cache_prec(0)
 
-    def _repr_(self, mode = None, do_latex = False):
+    def _repr(self, mode = None, do_latex = False):
         return "0"
 
     def set_precision_relative(self, n, halt = None):
@@ -424,22 +427,29 @@ class pAdicLazy_teichmuller(pAdicLazyElement):
         p = parent.prime()
         prec = min(parent.precision_cap(), relprec, absprec)
         x = Mod(x,parent.prime_pow(prec))
-        xnew = x**p
+        u = 1/Mod(1-p,parent.prime_pow(prec))
+        delta = u*(1 - x**(p-1))
+        xnew = x - x*delta*(1-p*delta)
         while x != xnew:
             x = xnew
-            xnew = x**p
+            delta = u*(1 - x**(p-1))
+            xnew = x - x*delta*(1-p*delta)
         self._set_cache(x)
         self._set_cache_prec(prec)
         self._set_base_valuation(Integer(0))
 
     def set_precision_relative(self, n, halt = None):
         if n > self.precision_relative():
-            old = Mod(self._cache, self.parent().prime_pow(n))
-            new = old**self.parent().prime()
-            while old != new:
-                old = new
-                new = old**self.parent().prime()
-            self._set_cache(new)
+            p = self.parent().prime()
+            x = Mod(self._cache, self.parent().prime_pow(n))
+            u = 1 / Mod(1 - p, self.parent().prime_pow(n))
+            delta = u * (1 - x ** (p - 1))
+            xnew = x - x*delta*(1 - p * delta)
+            while x != xnew:
+                x = xnew
+                delta = u*(1-x**(p-1))
+                xnew = x - x*delta*(1-p*delta)
+            self._set_cache(xnew)
             self._set_cache_prec(n)
 
     def set_precision_absolute(self, n, halt = None):

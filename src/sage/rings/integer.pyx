@@ -15,6 +15,7 @@ AUTHORS:
     -- Pablo De Napoli (2007-04-01): multiplicative_order should return +infinity for non zero numbers
     -- Robert Bradshaw (2007-04-12): is_perfect_power, Jacobi symbol (with Kronecker extension)
                                      Convert some methods to use GMP directly rather than pari, Integer() -> PY_NEW(Integer)
+    -- David Roe (2007-03-21): sped up valuation and is_square, added val_unit, is_power, is_power_of and divide_knowing_divisible_by
 
 EXAMPLES:
    Add 2 integers:
@@ -1159,6 +1160,53 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         _sig_off
         return bool(t)
 
+    cdef RingElement _valuation(Integer self, Integer p):
+        r"""
+        Return the p-adic valuation of self.
+
+        We do not require that p be prime, but it must be at least 2.
+        For more documentation see \code{valuation}
+
+        AUTHOR:
+            -- David Roe (3/31/07)
+        """
+        if mpz_sgn(self.value) == 0:
+            return sage.rings.infinity.infinity
+        if mpz_cmp_ui(p.value, 2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
+        cdef Integer v
+        v = PY_NEW(Integer)
+        cdef mpz_t u
+        mpz_init(u)
+        _sig_on
+        mpz_set_ui(v.value, mpz_remove(u, self.value, p.value))
+        _sig_off
+        mpz_clear(u)
+        return v
+
+    cdef object _val_unit(Integer self, Integer p):
+        r"""
+        Returns a pair: the p-adic valuation of self, and the p-adic unit of self.
+
+        We do not require the p be prime, but it must be at least 2.
+        For more documentation see \code{val_unit}
+
+        AUTHOR:
+            -- David Roe (3/31/07)
+        """
+        cdef Integer v, u
+        if mpz_cmp_ui(p.value, 2) < 0:
+            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
+        if self == 0:
+            u = ONE
+            Py_INCREF(ONE)
+            return (sage.rings.infinity.infinity, u)
+        v = PY_NEW(Integer)
+        u = PY_NEW(Integer)
+        _sig_on
+        mpz_set_ui(v.value, mpz_remove(u.value, self.value, p.value))
+        _sig_off
+        return (v, u)
 
     def valuation(self, p):
         """
@@ -1168,34 +1216,49 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             p -- an integer at least 2.
 
         EXAMPLE:
-            sage: n = 60
-            sage: n.valuation(2)
-            2
-            sage: n.valuation(3)
-            1
-            sage: n.valuation(7)
-            0
-            sage: n.valuation(1)
-            Traceback (most recent call last):
-            ...
-            ValueError: You can only compute the valuation with respect to a integer larger than 1.
+        sage: n = 60
+        sage: n.valuation(2)
+        2
+        sage: n.valuation(3)
+        1
+        sage: n.valuation(7)
+        0
+        sage: n.valuation(1)
+        Traceback (most recent call last):
+        ...
+        ValueError: You can only compute the valuation with respect to a integer larger than 1.
 
         We do not require that p is a prime:
-            sage: (2^11).valuation(4)
-            5
+        sage: (2^11).valuation(4)
+        5
         """
-        if self == 0:
-            return sage.rings.infinity.infinity
-        cdef Integer _p
-        _p = Integer(p)
-        if mpz_cmp_ui(_p.value,2) < 0:
-            raise ValueError, "You can only compute the valuation with respect to a integer larger than 1."
-        cdef int k
-        k = 0
-        while self % _p == 0:
-            k = k + 1
-            self = self.__floordiv__(_p)
-        return Integer(k)
+        return self._valuation(Integer(p))
+
+    def val_unit(self, p):
+        r"""
+        Returns a pair: the p-adic valuation of self, and the p-adic unit of self.
+
+        INPUT:
+            p -- an integer at least 2.
+
+        OUTPUT:
+            v_p(self) -- the p-adic valuation of self
+            u_p(self) -- self / p^{v_p(self)}
+
+        EXAMPLE:
+        sage: n = 60
+        sage: n.val_unit(2)
+        (2, 15)
+        sage: n.val_unit(3)
+        (1, 20)
+        sage: n.val_unit(7)
+        (0, 60)
+        sage: (2^11).val_unit(4)
+        (5, 2)
+        sage: 0.val_unit(2)
+        (+Infinity, 1)
+        """
+        return self._val_unit(Integer(p))
 
     def ord(self, p=None):
         """Synonym for valuation
@@ -1206,6 +1269,43 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         1
         """
         return self.valuation(p)
+
+    cdef Integer _divide_knowing_divisible_by(Integer self, Integer right):
+        r"""
+        Returns the integer self / right when self is divisible by right.
+
+        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+        For more documentation see \code{divide_knowing_divisible_by}
+
+        AUTHOR:
+            -- David Roe (3/31/07)
+        """
+        if mpz_cmp_ui(right.value, 0) == 0:
+            raise ZeroDivisionError
+        cdef Integer x
+        x = PY_NEW(Integer)
+        if mpz_size(self.value) + mpz_size((<Integer>right).value) > 100000:
+            # Only use the signal handler (to enable ctrl-c out) when the
+            # quotient might take a while to compute
+            _sig_on
+            mpz_divexact(x.value, self.value, right.value)
+            _sig_off
+        else:
+            mpz_divexact(x.value, self.value, right.value)
+        return x
+
+    def divide_knowing_divisible_by(self, right):
+        r"""
+        Returns the integer self / right when self is divisible by right.
+
+        If self is not divisible by right, the return value is undefined, but seems to be close to self/right.
+
+        EXAMPLES:
+        sage: a = 8; b = 4
+        sage: a.divide_knowing_divisible_by(b)
+        2
+        """
+        return self._divide_knowing_divisible_by(right)
 
     def _lcm(self, Integer n):
         """
@@ -1350,13 +1450,13 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns \code{true} if this integer is a unit, i.e., 1 or $-1$.
 
         EXAMPLES:
-            sage: for n in srange(-2,3):
-            ...    print n, n.is_unit()
-            -2 False
-            -1 True
-            0 False
-            1 True
-            2 False
+        sage: for n in srange(-2,3):
+        ...    print n, n.is_unit()
+        -2 False
+        -1 True
+        0 False
+        1 True
+        2 False
         """
         return bool(mpz_cmp_si(self.value, -1) == 0 or mpz_cmp_si(self.value, 1) == 0)
 
@@ -1365,14 +1465,207 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
         Returns \code{True} if self is a perfect square
 
         EXAMPLES:
-            sage: Integer(4).is_square()
-            True
-            sage: Integer(41).is_square()
-            False
+        sage: Integer(4).is_square()
+        True
+        sage: Integer(41).is_square()
+        False
         """
-        if mpz_sgn(self.value) < 0:
-            return False
         return bool(mpz_perfect_square_p(self.value))
+
+    def is_power(self):
+        r"""
+        Returns \code{True} if self is a perfect power, ie if there exist integers a and b, b > 1 with self = a^b.
+
+        EXAMPLES:
+        sage: Integer(-27).is_power()
+        True
+        sage: Integer(12).is_power()
+        False
+        """
+        return bool(mpz_perfect_power_p(self.value))
+
+    cdef int _is_power_of(Integer self, Integer n):
+        r"""
+        Returns a non-zero int if there is an integer b with self = n^b
+
+        For more documentation see \code{is_power_of}
+
+        AUTHOR:
+            -- David Roe (3/31/07)
+        """
+        cdef int a
+        cdef unsigned long b, c
+        cdef mpz_t u, sabs, nabs
+        a = mpz_cmp_ui(n.value, 2)
+        if a <= 0: # n <= 2
+            if a == 0: # n == 2
+                if mpz_popcount(self.value) == 1: #number of bits set in self == 1
+                    return 1
+                else:
+                    return 0
+            a = mpz_cmp_si(n.value, -2)
+            if a >= 0: # -2 <= n < 2:
+                a = mpz_get_si(n.value)
+                if a == 1: # n == 1
+                    if mpz_cmp_ui(self.value, 1) == 0: # Only 1 is a power of 1
+                        return 1
+                    else:
+                        return 0
+                elif a == 0: # n == 0
+                    if mpz_cmp_ui(self.value, 0) == 0 or mpz_cmp_ui(self.value, 1) == 0: # 0^0 = 1, 0^x = 0
+                        return 1
+                    else:
+                        return 0
+                elif a == -1: # n == -1
+                    if mpz_cmp_ui(self.value, 1) == 0 or mpz_cmp_si(self.value, -1) == 0: # 1 and -1 are powers of -1
+                        return 1
+                    else:
+                        return 0
+                elif a == -2: # n == -2
+                    mpz_init(sabs)
+                    mpz_abs(sabs, self.value)
+                    if mpz_popcount(sabs) == 1: # number of bits set in |self| == 1
+                        b = mpz_scan1(sabs, 0) % 2 # b == 1 if |self| is an odd power of 2, 0 if |self| is an even power
+                        mpz_clear(sabs)
+                        if (b == 1 and mpz_cmp_ui(self.value, 0) < 0) or (b == 0 and mpz_cmp_ui(self.value, 0) > 0):
+                            # An odd power of -2 is negative, an even power must be positive.
+                            return 1
+                        else: # number of bits set in |self| is not 1, so self cannot be a power of -2
+                            return 0
+                    else: # |self| is not a power of 2, so self cannot be a power of -2
+                        return 0
+            else: # n < -2
+                mpz_init(nabs)
+                mpz_neg(nabs, n.value)
+                if mpz_popcount(nabs) == 1: # |n| = 2^k for k >= 2.  We special case this for speed
+                    mpz_init(sabs)
+                    mpz_abs(sabs, self.value)
+                    if mpz_popcount(sabs) == 1: # |self| = 2^L for some L >= 0.
+                        b = mpz_scan1(sabs, 0) # the bit that self is set at
+                        c = mpz_scan1(nabs, 0) # the bit that n is set at
+                        # Having obtained b and c, we're done with nabs and sabs (on this branch anyway)
+                        mpz_clear(nabs)
+                        mpz_clear(sabs)
+                        if b % c == 0: # Now we know that |self| is a power of |n|
+                            b = (b // c) % 2 # Whether b // c is even or odd determines whether (-2^c)^(b // c) is positive or negative
+                            a = mpz_cmp_ui(self.value, 0)
+                            if b == 0 and a > 0 or b == 1 and a < 0:
+                                # These two cases are that b // c is even and self positive, or b // c is odd and self negative
+                                return 1
+                            else: # The sign of self is wrong
+                                return 0
+                        else: # Since |self| is not a power of |n|, self cannot be a power of n
+                            return 0
+                    else: # self is not a power of 2, and thus cannot be a power of n, which is a power of 2.
+                        mpz_clear(nabs)
+                        mpz_clear(sabs)
+                        return 0
+                else: # |n| is not a power of 2, so we use mpz_remove
+                    mpz_init(u)
+                    _sig_on
+                    b = mpz_remove(u, self.value, nabs)
+                    _sig_off
+                    # Having obtained b and u, we're done with nabs
+                    mpz_clear(nabs)
+                    if mpz_cmp_ui(u, 1) == 0: # self is a power of |n|
+                        mpz_clear(u)
+                        if b % 2 == 0: # an even power of |n|, and since self > 0, this means that self is a power of n
+                            return 1
+                        else:
+                            return 0
+                    elif mpz_cmp_si(u, -1) == 0: # -self is a power of |n|
+                        mpz_clear(u)
+                        if b % 2 == 1: # an odd power of |n|, and thus self is a power of n
+                            return 1
+                        else:
+                            return 1
+                    else: # |self| is not a power of |n|, so self cannot be a power of n
+                        mpz_clear(u)
+                        return 0
+        elif mpz_popcount(n.value) == 1: # n > 2 and in fact n = 2^k for k >= 2
+            if mpz_popcount(self.value) == 1: # since n is a power of 2, so must self be.
+                if mpz_scan1(self.value, 0) % mpz_scan1(n.value, 0) == 0: # log_2(self) is divisible by log_2(n)
+                    return 1
+                else:
+                    return 0
+            else: # self is not a power of 2, and thus not a power of n
+                return 0
+        else: # n > 2, but not a power of 2, so we use mpz_remove
+            mpz_init(u)
+            _sig_on
+            mpz_remove(u, self.value, n.value)
+            _sig_off
+            a = mpz_cmp_ui(u, 1)
+            mpz_clear(u)
+            if a == 0:
+                return 1
+            else:
+                return 0
+
+    def is_power_of(Integer self, n):
+        r"""
+        Returns \code{True} if there is an integer b with self = n^b
+
+        EXAMPLES:
+        sage: Integer(64).is_power_of(4)
+        True
+        sage: Integer(64).is_power_of(16)
+        False
+
+        TESTS:
+        sage: Integer(-64).is_power_of(-4)
+        True
+        sage: Integer(-32).is_power_of(-2)
+        True
+        sage: Integer(1).is_power_of(1)
+        True
+        sage: Integer(-1).is_power_of(-1)
+        True
+        sage: Integer(0).is_power_of(1)
+        False
+        sage: Integer(0).is_power_of(0)
+        True
+        sage: Integer(1).is_power_of(0)
+        True
+        sage: Integer(1).is_power_of(8)
+        True
+        sage: Integer(-8).is_power_of(2)
+        False
+
+        NOTES:
+        For large integers self, is_power_of() is faster than is_power().  The following examples gives some indication of how much faster.
+        sage.: b = lcm(range(1,10000))
+        sage.: b.exact_log(2)
+        14446
+        sage.: time for a in range(2, 1000): k = b.is_power()
+        CPU times: user 1.68 s, sys: 0.01 s, total: 1.69 s
+        Wall time: 1.71
+        sage.: time for a in range(2, 1000): k = b.is_power_of(2)
+        CPU times: user 0.00 s, sys: 0.00 s, total: 0.00 s
+        Wall time: 0.01
+        sage.: time for a in range(2, 1000): k = b.is_power_of(3)
+        CPU times: user 0.05 s, sys: 0.00 s, total: 0.05 s
+        Wall time: 0.05
+
+        sage.: b = lcm(range(1, 1000))
+        sage.: b.exact_log(2)
+        1437
+        sage.: time for a in range(2, 10000): k = b.is_power() # note that we change the range from the example above
+        CPU times: user 0.40 s, sys: 0.00 s, total: 0.40 s
+        Wall time: 0.40
+        sage.: for a in range(2, 10000): k = b.is_power_of(TWO)
+        CPU times: user 0.03 s, sys: 0.00 s, total: 0.03 s
+        Wall time: 0.03
+        sage.: time for a in range(2, 10000): k = b.is_power_of(3)
+        CPU times: user 0.11 s, sys: 0.01 s, total: 0.12 s
+        Wall time: 0.13
+        sage.: time for a in range(2, 10000): k = b.is_power_of(a)
+        CPU times: user 0.08 s, sys: 0.01 s, total: 0.09 s
+        Wall time: 0.10
+        """
+        if not PY_TYPE_CHECK(n, Integer):
+            n = Integer(n)
+        return bool(self._is_power_of(n))
 
     def is_prime_power(self, flag=0):
         r"""

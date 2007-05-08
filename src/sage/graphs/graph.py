@@ -2036,15 +2036,20 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
+    def plot3d(self, bgcolor=(1,1,1),
+               vertex_color=(1,0,0), vertex_size=0.06,
+               edge_color=(0,0,0), edge_size=0.02,
+               pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
 
         INPUT:
-            bgcolor
-            vertex_color
-            edge_color
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            edge_color -- rgb tuple (default: (0,0,0))
+            edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
             **kwds -- passed on to the Tachyon command
 
@@ -2059,11 +2064,12 @@ class Graph(GenericGraph):
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d, **kwds)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+                                        vertex_size=vertex_size, pos3d=pos3d, **kwds)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
         for u,v,l in self.edges():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge')
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
@@ -3266,15 +3272,22 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
+    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0),
+               vertex_size=0.06,
+               arc_size=0.02,
+               arc_size2=0.0325,
+               arc_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
 
         INPUT:
-            bgcolor
-            vertex_color
-            arc_color
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            arc_color -- rgb tuple (default: (0,0,0))
+            arc_size -- float (default: 0.02)
+            arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
             **kwds -- passed on to the Tachyon command
 
@@ -3297,15 +3310,16 @@ class DiGraph(GenericGraph):
             # However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d, **kwds)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+                                        vertex_size=vertex_size, pos3d=pos3d, **kwds)
         TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
         for u,v,l in self.arcs():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'arc')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc')
             TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
                            0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
                            0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc')
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
@@ -3434,8 +3448,9 @@ class DiGraph(GenericGraph):
             return b
 
 def tachyon_vertex_plot(g, bgcolor=(1,1,1),
-                        vertex_color=(1,0,0), pos3d=None,
-                        **kwds):
+                        vertex_color=(1,0,0),
+                        vertex_size=0.06,
+                        pos3d=None, **kwds):
     import networkx
     from math import sqrt
     from sage.plot.tachyon import Tachyon
@@ -3472,7 +3487,7 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1),
     TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
     TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
     for v in verts:
-        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), vertex_size, 'node')
     return TT, pos3d
 
 def enum(graph, quick=False):

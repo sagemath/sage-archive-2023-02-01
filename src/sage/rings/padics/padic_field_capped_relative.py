@@ -169,5 +169,5 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         OUTPUT:
             the p-adic ring that is the integer ring of this field
         """
-        from sage.rings.padics.zp import Zp
+        from sage.rings.padics.factory import Zp
         return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())

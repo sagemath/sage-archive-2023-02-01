@@ -29,7 +29,7 @@ import quotient_ring_element
 import sage.misc.latex as latex
 import commutative_ring
 import ideal
-import multi_polynomial_ideal
+import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
@@ -232,7 +232,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
 
     def _can_convert_to_singular(self):
         return self.__R._can_convert_to_singular()

@@ -534,7 +534,7 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         try:
             return self.__modulus
         except AttributeError:
-            from polynomial_ring import PolynomialRing
+            from polynomial.polynomial_ring import PolynomialRing
             x = PolynomialRing(self, 'x').gen()
             self.__modulus = x - 1
             return self.__modulus

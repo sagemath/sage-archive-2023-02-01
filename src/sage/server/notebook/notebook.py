@@ -864,7 +864,7 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://sage.math.washington.edu/sage">'
+        body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
         body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
@@ -986,7 +986,7 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" target="_new" href="http://sage.math.washington.edu/sage">'
+        body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
         body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
@@ -1529,12 +1529,12 @@ def notebook(dir         ='sage_notebook',
 
     \begin{enumerate}
     \item Figure out the external address of your server, say
-          'sage.math.washington.edu', for example.
+          'www.sagemath.org', for example.
     \item On your server, type
-        notebook('mysession', address='sage.math.washington.edu')
+        notebook('mysession', address='www.sagemath.org')
     \item Assuming you have permission to open a port on that
        machine, it will startup and display a URL, e.g.,
-           \url{http://sage.math.washington.edu:8000}
+           \url{http://www.sagemath.org:8000}
        Note this URL.
     \item Go to any computer in the world (!), or at least
        behind your firewall, and use any web browser to

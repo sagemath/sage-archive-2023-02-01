@@ -23,6 +23,16 @@ Polynomial_integer_dense = sage.rings.polynomial.polynomial_element_generic.Poly
 
 class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
+        """
+        TESTS:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: R([K(13), K(1)])
+        (1 + O(13^7))*t + (13 + O(13^8))
+        sage: T.<t> = ZZ[]
+        sage: R(t + 2)
+        (1 + O(13^7))*t + (2 + O(13^7))
+        """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
             (self._poly, self._valbase, self._relprecs, self._normalized, self._valaddeds, self._list) = x #the last two of these may be None
@@ -215,6 +225,27 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                                    [(0 if (c is infinity) else (one << (n * c))) for c in self._relprecs[len(self._valaddeds):]])
 
     def list(self):
+        """
+        Returns a list of coefficients of self.
+
+        NOTE:
+        The length of the list returned may be greater
+        than expected since it includes any leading zeros
+        that have finite absolute precision.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = 2*t^3 + 169*t - 1
+        sage: a
+        (2 + O(13^7))*t^3 + (13^2 + O(13^9))*t + (12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7))
+        sage: a.list()
+        [12 + 12*13 + 12*13^2 + 12*13^3 + 12*13^4 + 12*13^5 + 12*13^6 + O(13^7),
+         13^2 + O(13^9),
+         0,
+         2 + O(13^7)]
+         """
+
         if self._list is None:
             self._comp_list()
         return self._list
@@ -244,6 +275,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return s[1:]
 
     def content(self):
+        """
+        Returns the content of self.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+        sage: a.content()
+        13^2 + O(13^9)
+        """
         if self._normalized:
             return self._valbase
         if self._valaddeds is None:
@@ -251,21 +292,66 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self.base_ring()(self.base_ring().prime_pow(min(self._valaddeds) + self._valbase))
 
     def lift(self):
-        return self._poly
+        """
+        Returns an integer polynomial congruent to this one modulo the precision of each coefficient.
+
+        NOTE: The lift that is returned will not necessarily be the same for polynomials with
+              the same coefficients (ie same values and precisions): it will depend on how
+              the polynomials are created.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+        sage: a.lift()
+        62748517*t^3 + 169*t - 28561
+        """
+        return self.base_ring().prime_pow(self._valbase) * self._poly
 
     def __getitem__(self, n):
+        """
+        Returns the coefficient of x^n
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+        sage: a[1]
+        13^2 + O(13^4)
+        """
         if n >= len(self._relprecs):
             return self.base_ring()(0)
         if not self._list is None:
             return self._list[n]
-        return self.base_ring()(self._poly[n], absprec = self._valbase + self._relprecs[n])
+        return self.base_ring()(self.base_ring().prime_pow(self._valbase) * self._poly[n], absprec = self._valbase + self._relprecs[n])
 
     def __getslice__(self, i, j):
+        """
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = 13^7*t^3 + K(169,4)*t - 13^4
+        sage: a[1:2]
+        (13^2 + O(13^4))*t
+        """
         if j > len(self._relprecs):
             j = len(self._relprecs)
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly[i:j], self._valbase, [infinity]*i + self._relprecs[i:j], False, None if self._valaddeds is None else [infinity]*i + self._valaddeds[i:j], None if self._list is None else [self.base_ring()(0)] * i + self._list[i:j]), construct = True)
 
     def _add_(self, right):
+        """
+        Returns the sum of self and right.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = t^4 + 17*t^2 + 1
+        sage: b = -t^4 + 9*t^2 + 13*t - 1
+        sage: c = a + b; c
+        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        sage: c.list()
+        [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
+        """
         selfpoly = self._poly
         rightpoly = right._poly
         if self._valbase > right._valbase:
@@ -286,6 +372,19 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                                                        False, None, None), construct = True)
 
     def _sub_(self, right):
+        """
+        Returns the sum of self and right.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = t^4 + 17*t^2 + 1
+        sage: b = t^4 - 9*t^2 - 13*t + 1
+        sage: c = a - b; c
+        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        sage: c.list()
+        [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
+        """
         selfpoly = self._poly
         rightpoly = right._poly
         if self._valbase > right._valbase:
@@ -343,9 +442,29 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         Since we're working 'N-adically' we can just consider
         $N^{\infty} = 0$.
 
-        NOTE: When polynomials are normalized in arithmetic operations
+        NOTE: The timing of normalization in arithmetic operations
         may very well change as we do more tests on the relative time
         requirements of these operations.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = t^4 + 17*t^2 + 1
+        sage: b = -t^4 + 9*t^2 + 13*t - 1
+        sage: c = a + b; c
+        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        sage: d = R([K(1,4), K(2, 6), K(1, 5)]); d
+        (1 + O(13^5))*t^2 + (2 + O(13^6))*t + (1 + O(13^4))
+        sage: e = c * d; e
+        (2*13 + O(13^6))*t^4 + (5*13 + O(13^6))*t^3 + (4*13 + O(13^5))*t^2 + (13 + O(13^5))*t + (O(13^7))
+        sage: e.list()
+        [O(13^7),
+         13 + O(13^5),
+         4*13 + O(13^5),
+         5*13 + O(13^6),
+         2*13 + O(13^6),
+         O(13^7),
+         O(13^7)]
         """
         self._normalize()
         right._normalize()
@@ -355,7 +474,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         precpoly2 = self._getvalpoly(n) * right._getprecpoly(n)
         # These two will be the same length
         tn = Integer(1) << n
-        preclist = [min(a, b).valuation(tn) for (a, b) in zip(precpoly1.list(), precpoly2.list())]
+        preclist = [min(a.valuation(tn), b.valuation(tn)) for (a, b) in zip(precpoly1.list(), precpoly2.list())]
         answer = Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase + right._valbase, preclist, False, None, None), construct = True)
         answer._reduce_poly()
         return answer
@@ -364,6 +483,16 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self._rmul_(right)
 
     def _rmul_(self, left):
+        """
+        Returns self multiplied by a constant
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: a = t^4 + K(13,5)*t^2 + 13
+        sage: K(13,7) * a
+        (13 + O(13^7))*t^4 + (13^2 + O(13^6))*t^2 + (13^2 + O(13^8))
+        """
         self._comp_valaddeds()
         if left != 0:
             val, unit = left._val_unit()
@@ -376,9 +505,29 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly._rmul_(unit), self._valbase + val, relprecs, False, self._valaddeds, None), construct = True)
 
     def _neg_(self):
+        """
+        Returns the negation of self.
+
+        EXAMPLES:
+        sage: K = Qp(13,2)
+        sage: R.<t> = K[]
+        sage: a = t^4 + 13*t^2 + 4
+        sage: -a
+        (12 + 12*13 + O(13^2))*t^4 + (12*13 + 12*13^2 + O(13^3))*t^2 + (9 + 12*13 + O(13^2))
+        """
         return Polynomial_padic_capped_relative_dense(self.parent(), (-self._poly, self._valbase, self._relprecs, False, self._valaddeds, None), construct = True)
 
     def lshift_coeffs(self, shift, no_list = False):
+        """
+        Returns a new polynomials whose coefficients are multiplied by p^shift.
+
+        EXAMPLES:
+        sage: K = Qp(13, 4)
+        sage: R.<t> = K[]
+        sage: a = t + 52
+        sage: a.lshift_coeffs(3)
+        (13^3 + O(13^7))*t + (4*13^4 + O(13^8))
+        """
         if shift < 0:
             return self.rshift_coeffs(-shift, no_list)
         if no_list or self._list is None:
@@ -387,6 +536,25 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly, self._valbase + shift, self._relprecs, False, self._valaddeds, [c.__lshift__(shift) for c in self._list]), construct = True)
 
     def rshift_coeffs(self, shift, no_list = False):
+        """
+        Returns a new polynomial whose coefficients are p-adiclly shifted to the right by shift.
+
+        NOTES: Type Qp(5)(0).__rshift__? for more information.
+
+        EXAMPLES:
+        sage: K = Zp(13, 4)
+        sage: R.<t> = K[]
+        sage: a = t^2 + K(13,3)*t + 169; a
+        (1 + O(13^4))*t^2 + (13 + O(13^3))*t + (13^2 + O(13^6))
+        sage: b = a.rshift_coeffs(1); b
+        (1 + O(13^2))*t + (13 + O(13^5))
+        sage: b.list()
+        [13 + O(13^5), 1 + O(13^2), O(13^3)]
+        sage: b = a.rshift_coeffs(2); b
+        (1 + O(13^4))
+        sage: b.list()
+        [1 + O(13^4), O(13^1), O(13^2)]
+        """
         if shift < 0:
             return self.lshift_coeffs(-shift, no_list) # We can't just absorb this into the next if statement because we allow rshift to preserve _normalized
         if self.base_ring().is_field() or shift <= self._valbase:
@@ -395,8 +563,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             else:
                 return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly, self._valbase - shift, self._relprecs, self._normalized, self._valaddeds, [c.__rshift__(shift) for c in self._list]), construct = True)
         else:
-            fdiv = self.base_ring().prime_pow(shift - self._valbase)
-            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly // fdiv, 0, self._relprecs, False, None, None), construct = True)
+            shift = shift - self._valbase
+            fdiv = self.base_ring().prime_pow(shift)
+            return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly // fdiv, 0, [0 if a <= shift else a - shift for a in self._relprecs], False, None, None), construct = True)
 
     def __floordiv__(self, right):
         if is_Polynomial(right) and right.is_constant() and right[0] in self.base_ring():
@@ -408,6 +577,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self._rmul_(self.base_ring()(~d.unit_part())).rshift_coeffs(d.valuation())
 
     def _unsafe_mutate(self, n, value):
+        """
+        It's a really bad idea to use this function for p-adic polynomials.  There are speed issues, and it may not be bug-free currently.
+        """
         n = int(n)
         value = self.base_ring()(value)
         if self.is_gen():
@@ -477,17 +649,47 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.copy(), self._valbase, copy.copy(self._relprecs), self._normalized, copy.copy(self._valaddeds), copy.copy(self._list)), construct = True)
 
     def degree(self):
+        """
+        Returns the degree of self, ie the largest n so that the coefficient of x^n is distinguishable from 0.
+        """
         return self._poly.degree()
 
     def prec_degree(self):
+        """
+        Returns the largest n so that precision information is stored about the coefficient of x^n.
+
+        Always greater than or equal to degree.
+        """
         return len(self._relprecs) - 1
 
     def precision_absolute(self, n = None):
+        """
+        Returns absolute precision information about self.
+
+        INPUT:
+        self -- a p-adic polynomial
+        n -- None or an integer (default None).
+
+        OUTPUT:
+        If n == None, returns a list of absolute precisions of coefficients.  Otherwise,
+        returns the absolute precision of the coefficient of x^n.
+        """
         if n is None:
             return [c + self._valbase for c in self._relprecs]
         return self._relprecs[n] + self._valbase
 
     def precision_relative(self, n = None):
+        """
+        Returns relative precision information about self.
+
+        INPUT:
+        self -- a p-adic polynomial
+        n -- None or an integer (default None).
+
+        OUTPUT:
+        If n == None, returns a list of relative precisions of coefficients.  Otherwise,
+        returns the relative precision of the coefficient of x^n.
+        """
         if n is None:
             self._normalize()
             return copy.copy(self._relprecs)
@@ -500,6 +702,17 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             return self._relprecs[n] - self._valaddeds[n]
 
     def valuation_of_coefficient(self, n = None):
+        """
+        Returns valuation information about self's coefficients.
+
+        INPUT:
+        self -- a p-adic polynomial
+        n -- None or an integer (default None).
+
+        OUTPUT:
+        If n == None, returns a list of valuations of coefficients.  Otherwise,
+        returns the valuation of the coefficient of x^n.
+        """
         if n is None:
             self._normalize()
             return [c + self._valbase for c in self._valadded]
@@ -512,6 +725,17 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             return self._valbase + self._valaddeds[n]
 
     def valuation(self, val_of_var = None):
+        """
+        Returns the valuation of self
+
+        INPUT:
+        self -- a p-adic polynomial
+        val_of_var -- None or a rational (default None).
+
+        OUTPUT:
+        If val_of_var == None, returns the largest power of the variable dividing self.  Otherwise,
+        returns the valuation of self where the variable is assigned valuation val_of_var
+        """
         if val_of_var is None:
             return self._poly.valuation()
         if self._valaddeds is None:
@@ -519,6 +743,28 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return self._valbase + min([self._valaddeds[i] + val_of_var * i for i in range(len(self._valaddeds))])
 
     def reverse(self, n = None):
+        """
+        Returns a new polynomial whose coefficients are the reversed coefficients of self, where self is considered as a polynomial of degree n.
+
+        If n is None, defaults to the degree of self.
+        If n is smaller than the degree of self, some coefficients will be discarded.
+
+        EXAMPLES:
+        sage: K = Qp(13,7)
+        sage: R.<t> = K[]
+        sage: f = t^3 + 4*t; f
+        (1 + O(13^7))*t^3 + (4 + O(13^7))*t
+        sage: f.reverse()
+        (4 + O(13^7))*t^2 + (1 + O(13^7))
+        sage: f.reverse(3)
+        (4 + O(13^7))*t^2 + (1 + O(13^7))
+        sage: f.reverse(2)
+        (4 + O(13^7))*t
+        sage: f.reverse(4)
+        (4 + O(13^7))*t^3 + (1 + O(13^7))*t
+        sage: f.reverse(6)
+        (4 + O(13^7))*t^5 + (1 + O(13^7))*t^3
+        """
         if n is None:
             n = self._poly.degree()
         zzlist = self._poly.list()[:(n+1)] + [0] * (n - self._poly.degree())
@@ -533,13 +779,21 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._list is None:
             L = None
         else:
-            L = self._list[:(n+1)] + [infinity] * (n - self.prec_degree())
+            L = self._list[:(n+1)] + [self.base_ring()(0)] * (n - self.prec_degree())
             L.reverse()
         return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly.parent()(zzlist), self._valbase, relprec, self._normalized, valadded, L), construct = True)
 
     def rescale(self, a):
         r"""
         Return f(a*X)
+
+        NOTE:  Need to write this function for integer polynomials before this works.
+
+        EXAMPLES:
+        sage.: K = Zp(13, 5)
+        sage.: R.<t> = K[]
+        sage.: f = t^3 + K(13, 3) * t
+        sage.: f.rescale(2)
         """
         negval = False
         try:
@@ -550,7 +804,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             else:
                 raise ValueError, msg
         if negval:
-            return parent.base_extend(self.base_ring().fraction_field())(self).rescale(a)
+            return self.parent().base_extend(self.base_ring().fraction_field())(self).rescale(a)
         if self.base_ring().is_field() and a.valuation() < 0:
             D = self.prec_degree()
             return a**D * self.reverse(D).rescale(~a).reverse(D)
@@ -559,7 +813,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         if self._valaddeds is None:
             self._comp_valaddeds()
         valadded = [self._valaddeds[i] + aval * i for i in range(len(self._valaddeds))]
-        relprec = [self._relprecs[0] if (i == 0) else (min(self._relprecs[i] - self._valaddeds[i], arprec) + aval * i) for i in range(len(self._relprecs))]
+        relprec = [infinity if (self._relprecs[i] is infinity) else (min(self._relprecs[i] - self._valaddeds[i], arprec) + aval * i + self._valaddeds[i]) for i in range(len(self._relprecs))]
+        relprec[0] = self._relprecs[0]
         if a == 0:
             zzpoly = self._poly.parent()(0)
         else:
@@ -588,6 +843,18 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         raise NotImplementedError
 
     def newton_slopes(self):
+        """
+        Returns a list of the Newton slopes of this polynomial.  These are the valuations of the roots of this polynomial.
+
+        EXAMPLES:
+        sage: K = Qp(13)
+        sage: R.<t> = K[]
+        sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+        sage: f.newton_polygon()
+        [(0, 7), (1, 2), (4, 0)]
+        sage: f.newton_slopes()
+        [5, 2/3, 2/3, 2/3]
+        """
         polygon = self.newton_polygon()
         if polygon == []:
             return []
@@ -595,7 +862,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         for m in range(1, len(polygon)):
             dx = polygon[m][0] - polygon[m - 1][0]
             dy = polygon[m][1] - polygon[m - 1][1]
-            answer.extend([dy / dx] * dx)
+            answer.extend([-dy / dx] * dx)
         return answer
 
     def newton_polygon(self):
@@ -604,6 +871,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         NOTES:
         The vertices are listed so that the first coordinates are strictly increasing, up to the polynomial's degree (not the limit of available precision information).  Also note that if some coefficients have very low precision an error is raised.
+
+        EXAMPLES:
+        sage: K = Qp(13)
+        sage: R.<t> = K[]
+        sage: f = t^4 + 13^5*t^2 + 4*13^2*t - 13^7
+        sage: f.newton_polygon()
+        [(0, 7), (1, 2), (4, 0)]
         """
         if self._poly == 0:
             return []
@@ -628,7 +902,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                 yrel = self._valaddeds[i]
                 answer.append((i, self._valbase + yrel))
                 curslope = (yfrel - yrel) / (xf - i)
-        answer.append((xf, self._valbase + self._valadded[xf]))
+        answer.append((xf, self._valbase + self._valaddeds[xf]))
         return answer
 
     def hensel_lift(self, a):

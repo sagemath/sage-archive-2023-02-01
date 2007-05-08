@@ -2,6 +2,12 @@ from sage.structure.element cimport RingElement, ModuleElement, Element, FieldEl
 from sage.rings.ring cimport Field
 from sage.structure.parent  cimport Parent
 
+cdef extern from *:
+    int finite(double)
+    int isinf(double)
+    double NAN
+    double INFINITY
+
 cdef extern from "stdsage.h":
     object PY_NEW(object t)
     void* PY_TYPE(object o)
@@ -21,14 +27,17 @@ cdef extern from "qd/qd_real.h":
         qd _pi
         qd _log2
         qd _nan
+        qd _e
         # Methods
         void (* write)(char *s, int prec, int show, int upper)
-
+        void (* to_digits)(char *s, int expn, int prec)
+        int (* is_negative)()
     # Init
     qd *qd_from_str "new qd_real"(char *a)
     qd *qd_from_double "new qd_real"(double a)
     qd *new_qd_real "new qd_real"()
     qd *qd_from_qd "new qd_real"(double x0, double x1, double x2, double x3)
+    qd *qd_from_int "new qd_real"(int i)
 
     # Conversions
     int qd_to_int "to_int"(qd a)
@@ -37,7 +46,6 @@ cdef extern from "qd/qd_real.h":
     # Nan, inf
     int qd_is_nan "isnan"(qd a)
     int qd_is_inf "isinf"(qd a)
-
 
 # C interface to qd
 cdef extern from "qd/c_qd.h":
@@ -94,12 +102,23 @@ cdef extern from "qd/c_qd.h":
     void delete "delete "(void *o)
     qd qd_deref "*"(qd *q)
 
-cdef class QuadDoubleRealField_class(Field):
+# For controlling the round-to-double bit on x86 machines
+# These functions have no effects on other platforms
+cdef extern from "qd/fpu.h":
+    void fpu_fix_start(unsigned int *old_cw)
+    void fpu_fix_end(unsigned int *old_cw)
+
+cdef class RealQuadDoubleField_class(Field):
     # so it is possible to make weakrefs to this finite field
     cdef object __weakref__
+    # round-to-double bit
+    cdef unsigned int *cwf
 
 cdef class QuadDoubleElement(FieldElement):
     cdef qd *initptr #
+    # round-to-double bit
+    cdef unsigned int *cw
+
     cdef _set(self,x)
     cdef _new(self)
     cdef _new_c(self,qd a)

@@ -671,7 +671,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             0.000000000000000555111512312578 + 1.73205080756888*I
             sage: abs(e.gauss_sum_numerical())
             1.73205080756888
-            sage: sqrt(3)
+            sage: sqrt(3.0)
             1.73205080756888
             sage: e.gauss_sum_numerical(a=2)
             -0.00000000000000111022302462516 - 1.73205080756888*I
@@ -683,7 +683,7 @@ class DirichletCharacter(MultiplicativeGroupElement):
             -3.07497205899524 + 1.88269669261902*I
             sage: abs(e.gauss_sum_numerical())
             3.60555127546399
-            sage: sqrt(13)
+            sage: sqrt(13.0)
             3.60555127546399
         """
         G = self.parent()

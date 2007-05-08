@@ -4,6 +4,14 @@ Univariate Polynomial Base Class
 AUTHORS:
     -- William Stein: first version
     -- Martin Albrecht: Added singular coercion.
+    -- Robert Bradshaw: Move Polynomial_generic_dense to SageX
+
+TESTS:
+     sage: R.<x> = ZZ[]
+     sage: f = x^5 + 2*x^2 + (-1)
+     sage: f == loads(dumps(f))
+     True
+
 """
 
 ################################################################################
@@ -29,6 +37,7 @@ import integer_mod_ring
 import polynomial_pyx
 import rational_field
 import complex_field
+import fraction_field_element
 #import padic_field
 from infinity import infinity
 import sage.misc.misc as misc
@@ -43,7 +52,7 @@ from real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
 
 from sage.structure.element import RingElement
-from sage.structure.element cimport Element
+from sage.structure.element cimport Element, RingElement, ModuleElement, MonoidElement
 
 from rational_field import QQ
 from integer_ring import ZZ
@@ -65,7 +74,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         sage: f = x*y; f
         y*x
         sage: type(f)
-        <class 'sage.rings.polynomial_element_generic.Polynomial_generic_dense'>
+        <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
     """
     def __init__(self, parent, is_gen = False, construct=False):
         """
@@ -94,18 +103,57 @@ cdef class Polynomial(CommutativeAlgebraElement):
         CommutativeAlgebraElement.__init__(self, parent)
         self._is_gen = is_gen
 
-    def _add_(self, right):
-        if self.degree() >= right.degree():
-            x = list(self.list())
-            y = right.list()
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t i, min
+        x = self.list()
+    cdef ModuleElement _neg_c_impl(self):
+        return self.polynomial([-x for x in self.list()])
+
+        y = right.list()
+
+        if len(x) > len(y):
+            min = len(y)
+            high = x[min:]
+        elif len(x) < len(y):
+            min = len(x)
+            high = y[min:]
         else:
-            x = list(right.list())
-            y = self.list()
+            min = len(x)
+            high = []
 
-        for i in xrange(len(y)):
-            x[i] += y[i]
+        low = [x[i] + y[i] for i from 0 <= i < min]
+        return self.polynomial(low + high)
 
-        return self.polynomial(x)
+    def plot(self, xmin=0, xmax=1, *args, **kwds):
+        """
+        Return a plot of this polynomial.
+
+        INPUT:
+            xmin -- float
+            xmax -- float
+            *args, **kwds -- passed to either point or point
+
+        OUTPUT:
+            returns a graphic object.
+
+        EXAMPLES:
+            sage: x = polygen(GF(389))
+            sage: plot(x^2 + 1, rgbcolor=(0,0,1)).save()
+            sage: x = polygen(QQ)
+            sage: plot(x^2 + 1, rgbcolor=(1,0,0)).save()
+        """
+        R = self.base_ring()
+        from sage.plot.plot import plot, point, line
+        if R.characteristic() == 0:
+            return plot(self.__call__, xmin=xmin, xmax=xmax, *args, **kwds)
+        else:
+            if R.is_finite():
+                v = list(R)
+                v.sort()
+                w = dict([(v[i],i) for i in range(len(v))])
+                z = [(i, w[self(v[i])]) for i in range(len(v))]
+                return point(z, *args, **kwds)
+        raise NotImplementedError, "plotting of polynomials over %s not implemented"%R
 
     def _lmul_(self, left):
         """
@@ -122,6 +170,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        if left == 0:
+            return self.parent()(0)
         return self.parent()(left) * self
 
     def _rmul_(self, right):
@@ -139,6 +189,8 @@ cdef class Polynomial(CommutativeAlgebraElement):
         # todo -- Should multiply individual coefficients??
         #         that could be in derived class.
         #         Note that we are guaranteed that right is in the base ring, so this could be fast.
+        if right == 0:
+            return self.parent()(0)
         return self * self.parent()(right)
 
     def __call__(self, *x):
@@ -387,7 +439,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             raise TypeError, "cannot coerce nonconstant polynomial to long"
         return long(self[0])
 
-    def _mul_(self, right):
+    cdef RingElement _mul_c_impl(self, RingElement right):
         """
         EXAMPLES:
             sage: R.<x> = ZZ[]
@@ -464,7 +516,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return RingElement.__div__(self, right)
 
 
-    def _pow(self, right):
+    def __pow__(self, right, dummy):
         """
         EXAMPLES:
             sage: R.<x> = ZZ[]
@@ -478,7 +530,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.parent()(self[0]**right)
         if right < 0:
             return (~self)**(-right)
-        if self._is_gen:   # special case x**n should be faster!
+        if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
+            v = [0]*right + [1]
+            return self.parent()(v, check=True)
+        return arith.generic_power(self, right, self.parent()(1))
+
+    def _pow(self, right):
+        # TODO: fit __pow__ into the arithmatic structure
+        if self.degree() <= 0:
+            return self.parent()(self[0]**right)
+        if right < 0:
+            return (~self)**(-right)
+        if (<Polynomial>self)._is_gen:   # special case x**n should be faster!
             v = [0]*right + [1]
             return self.parent()(v, check=True)
         return arith.generic_power(self, right, self.parent()(1))
@@ -496,7 +559,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             if x != 0:
                 if n != m-1:
                     s += " + "
-                x = str(x)
+                x = repr(x)
                 if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                     x = "(%s)"%x
                 if n > 1:
@@ -517,6 +580,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _repr_(self):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: f = x^3+2/3*x^2 - 5/3
             sage: f._repr_()
             'x^3 + 2/3*x^2 - 5/3'
@@ -529,6 +593,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def _latex_(self, name=None):
         r"""
         EXAMPLES:
+			sage: x = polygen(QQ)
             sage: latex(x^3+2/3*x^2 - 5/3)
              x^{3} + \frac{2}{3}x^{2} - \frac{5}{3}
         """
@@ -599,13 +664,44 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return PyBool_FromLong(self.degree() == self.valuation())
 
     def _mul_generic(self, right):
-        d1 = self.degree()
-        d2 = right.degree()
-        d = d1 + d2
-        w = [sum([self[i]*right[k-i] for i in range(0,min(d1,k)+1) if \
-                  i <= d1 and k-i <= d2 and self[i]!=0 and right[k-i]!=0]) \
-                for k in range(d+1)]
-        return self.parent()(w)
+        if self is right:
+            return self._square_generic()
+        x = self.list()
+        y = right.list()
+        cdef Py_ssize_t i, k, start, end
+        cdef Py_ssize_t d1 = len(x)-1, d2 = len(y)-1
+        if d1 == -1:
+            return self
+        elif d2 == -1:
+            return right
+        elif d1 == 0:
+            c = x[0]
+            return self._parent([c*a for a in y])
+        elif d2 == 0:
+            c = y[0]
+            return self._parent([a*c for a in x])
+        coeffs = []
+        for k from 0 <= k <= d1+d2:
+            start = 0 if k <= d2 else k-d2 # max(0, k-d2)
+            end =   k if k <= d1 else d1    # min(k, d1)
+            sum = x[start] * y[k-start]
+            for i from start < i <= end:
+                sum += x[i] * y[k-i]
+            coeffs.append(sum)
+        return self._parent(coeffs)
+
+    def _square_generic(self):
+        x = self.list()
+        cdef Py_ssize_t i, j
+        cdef Py_ssize_t d = len(x)-1
+        zero = self._parent.base_ring()(0)
+        two = self._parent.base_ring()(2)
+        coeffs = [zero] * (2 * d + 1)
+        for i from 0 <= i <= d:
+            coeffs[2*i] = x[i] * x[i]
+            for j from 0 <= j < i:
+                coeffs[i+j] += two * x[i] * x[j]
+        return self._parent(coeffs)
 
     def _mul_fateman(self, right):
         r"""
@@ -738,7 +834,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
          * The MAGMA documentation appears to give no information about how
            polynomial multiplication is implemented.
         """
-        return self.parent()(do_karatsuba(self.list(), right.list()))
+        return self._parent(do_karatsuba(self.list(), right.list()))
 
     def base_ring(self):
         """
@@ -878,7 +974,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return d
 
     def derivative(self):
-        return self.polynomial([self[n]*n for n in xrange(1,self.degree()+1)])
+        if self.is_zero():
+            return self
+        cdef Py_ssize_t n, degree = self.degree()
+        if degree == 0:
+            return self.parent()(0)
+        coeffs = self.list()
+        return self.polynomial([n*coeffs[n] for n from 1 <= n <= degree])
 
     def integral(self):
         try:
@@ -938,7 +1040,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (2) * (x + a + 2) * (x^2 + 3*x + 4*a + 4) * (x^2 + (a + 1)*x + a + 2) * (x^5 + (3*a + 4)*x^4 + (3*a + 3)*x^3 + 2*a*x^2 + (3*a + 1)*x + 3*a + 1)
 
         Notice that the unit factor is included when we multiply $F$ back out.
-            sage: F.mul()
+            sage: expand(F)
             2*x^10 + 2*x + 2*a
 
         Factorization also works even if the variable of the finite field is nefariously
@@ -973,7 +1075,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = RealField(100)[]
             sage: F = factor(x^2-3); F
             (1.0000000000000000000000000000*x + 1.7320508075688772935274463415) * (1.0000000000000000000000000000*x - 1.7320508075688772935274463415)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 - 3.0000000000000000000000000000
             sage: factor(x^2 + 1)
             1.0000000000000000000000000000*x^2 + 1.0000000000000000000000000000
@@ -981,15 +1083,15 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: R.<x> = C[]
             sage: F = factor(x^2+3); F
             (1.0000000000000000000000000000*x + -1.7320508075688772935274463415*I) * (1.0000000000000000000000000000*x + 1.7320508075688772935274463415*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*x^2 + 3.0000000000000000000000000000
             sage: factor(x^2+1)
             (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: f = C.0 * (x^2 + 1) ; f
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
-            sage: F=factor(f); F
+            sage: F = factor(f); F
             (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
-            sage: F.mul()
+            sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
         """
 
@@ -1243,9 +1345,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     def is_gen(self):
         return bool(self._is_gen)
 
-    def is_zero(self):
-        return bool(self.degree() == -1)
-
     def leading_coefficient(self):
         return self[self.degree()]
 
@@ -1354,7 +1453,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return L
 
     def polynomial(self, *args, **kwds):
-        return self.parent()(*args, **kwds)
+        return self._parent(*args, **kwds)
 
     def newton_slopes(self, p):
         """
@@ -1410,7 +1509,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             return self.__pari
 
     def _pari_init_(self):
-        return str(self._pari_())
+        return repr(self._pari_())
 
     def _magma_init_(self):
         """
@@ -1455,7 +1554,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return f
 
     def _gap_init_(self):
-        return str(self)
+        return repr(self)
 
     def _gap_(self, G):
         """
@@ -1564,9 +1663,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             [-1.67726703399418, 0.199954796285057, 0.200045306115242, 1.57630351618444, 1.10042307611716 + 1.15629902427493*I, 1.10042307611716 - 1.15629902427493*I, -1.20040047425969 + 1.15535958549432*I, -1.20040047425969 - 1.15535958549432*I, -0.0495408941527470 + 1.63445468021367*I, -0.0495408941527470 - 1.63445468021367*I]
 
             sage: x = CC['x'].0
-            sage: f = (x-1)*(x-I)
+            sage: i = CC.0
+            sage: f = (x - 1)*(x - i)
             sage: f.roots()
             [1.00000000000000*I, 1.00000000000000]
+
+        A purely symbolic roots example:
+            sage: f = expand((X-1)*(X-I)^3*(X^2 - sqrt(2))); f
+            X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
+            sage: print f.roots()
+            [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
         """
         seq = []
 
@@ -1745,8 +1851,16 @@ cdef class Polynomial(CommutativeAlgebraElement):
             sage: p.shift(2)
              x^4 + 2*x^3 + 4*x^2
 
+        One can also use the infix shift operator:
+            sage: f = x^3 + x
+            sage: f >> 2
+            x
+            sage: f << 2
+            x^5 + x^3
+
         AUTHOR:
             -- David Harvey (2006-08-06)
+            -- Robert Bradshaw (2007-04-18) Added support for infix operator.
         """
         if n == 0:
             return self   # safe because immutable.
@@ -1759,6 +1873,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 return self.polynomial([])
             else:
                 return self.polynomial(self.coeffs()[-int(n):], check=False)
+
+    def __lshift__(self, k):
+        return self.shift(k)
+
+    def __rshift__(self, k):
+        return self.shift(-k)
+
 
     def truncate(self, n):
         r"""
@@ -1787,7 +1908,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
 # Sagex can't handle function definitions inside other function
 
 
-def _karatsuba_sum(v,w):
+cdef _karatsuba_sum(v,w):
     if len(v)>=len(w):
         x = list(v)
         y = w
@@ -1798,7 +1919,7 @@ def _karatsuba_sum(v,w):
         x[i] = x[i] + y[i]
     return x
 
-def _karatsuba_dif(v,w):
+cdef _karatsuba_dif(v,w):
     if len(v)>=len(w):
         x = list(v)
         y = w
@@ -1809,13 +1930,15 @@ def _karatsuba_dif(v,w):
         x[i] -= y[i]
     return x
 
-def do_karatsuba(left, right):
+cdef do_karatsuba(left, right):
     if len(left) == 0 or len(right) == 0:
         return []
     if len(left) == 1:
-        return [left[0]*a for a in right]
+        c = left[0]
+        return [c*a for a in right]
     if len(right) == 1:
-        return [right[0]*a for a in left]
+        c = right[0]
+        return [c*a for a in left]
     if len(left) == 2 and len(right) == 2:
         b = left[0]
         a = left[1]
@@ -1835,3 +1958,300 @@ def do_karatsuba(left, right):
     t1 = zeros + _karatsuba_dif(do_karatsuba(_karatsuba_sum(a,b),_karatsuba_sum(c,d)),_karatsuba_sum(ac,bd))
     t0 = bd
     return _karatsuba_sum(t0,_karatsuba_sum(t1,t2))
+
+
+
+cdef class Polynomial_generic_dense(Polynomial):
+    """
+    A generic dense polynomial.
+
+    EXAMPLES:
+        sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'))
+        sage: f = x^3 - x + 17
+        sage: type(f)
+        <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+        sage: loads(f.dumps()) == f
+        True
+    """
+    def __init__(self, parent, x=None, int check=1, is_gen=False, int construct=0, absprec=None):
+        Polynomial.__init__(self, parent, is_gen=is_gen)
+
+        if x is None:
+            self.__coeffs = []
+            return
+        R = parent.base_ring()
+
+        if PY_TYPE_CHECK(x, Polynomial):
+            if (<Element>x)._parent is self._parent:
+                x = list(x.list())
+            elif (<Element>x)._parent is R or (<Element>x)._parent == R:
+                x = [x]
+            elif absprec is None:
+                x = [R(a) for a in x.list()]
+                check = 0
+            else:
+                x = [R(a, absprec = absprec) for a in x.list()]
+                check = 0
+
+        elif PY_TYPE_CHECK(x, list):
+            pass
+
+        elif PY_TYPE_CHECK(x, int) and x == 0:
+            self.__coeffs = []
+            return
+
+        elif fraction_field_element.is_FractionFieldElement(x):
+            if x.denominator() != 1:
+                raise TypeError, "denominator must be 1"
+            else:
+                x = x.numerator()
+
+        elif isinstance(x, dict):
+            zero = R(0)
+            n = max(x.keys())
+            v = [zero for _ in xrange(n+1)]
+            for i, z in x.iteritems():
+                v[i] = z
+            x = v
+        elif isinstance(x, pari_gen):
+            if absprec is None:
+                x = [R(w) for w in x.Vecrev()]
+            else:
+                x = [R(w, absprec = absprec) for w in x.Vecrev()]
+            check = True
+        elif not isinstance(x, list):
+            x = [x]   # constant polynomials
+        if check:
+            if absprec is None:
+                self.__coeffs = [R(z) for z in x]
+            else:
+                self.__coeffs = [R(z, absprec=absprec) for z in x]
+        else:
+            self.__coeffs = x
+        if check:
+            self.__normalize()
+
+    def __reduce__(self):
+        return make_generic_polynomial, (self._parent, self.__coeffs)
+
+    def __hash__(self):
+        if self.degree() >= 1:
+            return hash(tuple(self.__coeffs))
+        else:
+            return hash(self[0])
+
+    cdef void __normalize(self):
+        x = self.__coeffs
+        cdef Py_ssize_t n = len(x) - 1
+        while n >= 0 and x[n].is_zero():
+#        while n > 0 and x[n] == 0:
+            del x[n]
+            n -= 1
+
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
+    def __getitem__(self, Py_ssize_t n):
+        """
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = (1+2*x)^5; f
+            32*x^5 + 80*x^4 + 80*x^3 + 40*x^2 + 10*x + 1
+            sage: f[-1]
+            0
+            sage: f[2]
+            40
+            sage: f[6]
+            0
+        """
+        if n < 0 or n >= len(self.__coeffs):
+            return self.base_ring()(0)
+        return self.__coeffs[n]
+
+    def __getslice__(self, Py_ssize_t i, j):
+        """
+        EXAMPLES:
+            sage: R.<x> = RDF[]
+            sage: f = (1+2*x)^5; f
+            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2 + 10.0*x + 1.0
+            sage: f[:3]
+            40.0*x^2 + 10.0*x + 1.0
+            sage: f[2:5]
+            80.0*x^4 + 80.0*x^3 + 40.0*x^2
+            sage: f[2:]
+            32.0*x^5 + 80.0*x^4 + 80.0*x^3 + 40.0*x^2
+        """
+        if i <= 0:
+            i = 0
+            zeros = []
+        elif i > 0:
+            zeros = [self._parent.base_ring()(0)] * i
+        return self._parent(zeros + self.__coeffs[i:j])
+
+    def _unsafe_mutate(self, n, value):
+        """
+        Never use this unless you really know what you are doing.
+
+        WARNING: This could easily introduce subtle bugs, since SAGE
+        assumes everywhere that polynomials are immutable.  It's OK to
+        use this if you really know what you're doing.
+
+        EXAMPLES:
+            sage: R.<x> = ZZ[]
+            sage: f = (1+2*x)^2; f
+            4*x^2 + 4*x + 1
+            sage: f._unsafe_mutate(1, -5)
+            sage: f
+            4*x^2 - 5*x + 1
+        """
+        n = int(n)
+        value = self.base_ring()(value)
+        if n >= 0 and n < len(self.__coeffs):
+            self.__coeffs[n] = value
+            if n == len(self.__coeffs) and value == 0:
+                self.__normalize()
+        elif n < 0:
+            raise IndexError, "polynomial coefficient index must be nonnegative"
+        elif value != 0:
+            zero = self.base_ring()(0)
+            for _ in xrange(len(self.__coeffs), n):
+                self.__coeffs.append(zero)
+            self.__coeffs.append(value)
+
+    def __floordiv__(self, right):
+        """
+        Return the quotient upon division (no remainder).
+
+        EXAMPLES:
+            sage: R.<x> = QQ[]
+            sage: f = (1+2*x)^3 + 3*x; f
+            8*x^3 + 12*x^2 + 9*x + 1
+            sage: g = f // (1+2*x); g
+            4*x^2 + 4*x + 5/2
+            sage: f - g * (1+2*x)
+            -3/2
+            sage: f.quo_rem(1+2*x)
+            (4*x^2 + 4*x + 5/2, -3/2)
+        """
+        if right.parent() == self.parent():
+            return Polynomial.__floordiv__(self, right)
+        d = self.parent().base_ring()(right)
+        return self.polynomial([c // d for c in self.__coeffs], check=False)
+
+    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) > len(y):
+            min = len(y)
+            high = x[min:]
+        elif len(x) < len(y):
+            min = len(x)
+            high = y[min:]
+        else:
+            min = len(x)
+        low = [x[i] + y[i] for i from 0 <= i < min]
+        if len(x) == len(y):
+            res = self._parent(low, check=0)
+            (<Polynomial_generic_dense>res).__normalize()
+            return res
+        else:
+            return self._parent(low + high, check=0)
+
+    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        cdef Py_ssize_t check=0, i, min
+        x = (<Polynomial_generic_dense>self).__coeffs
+        y = (<Polynomial_generic_dense>right).__coeffs
+        if len(x) > len(y):
+            min = len(y)
+            high = x[min:]
+        elif len(x) < len(y):
+            min = len(x)
+            high = [-y[i] for i from min <= i < len(y)]
+        else:
+            min = len(x)
+        low = [x[i] - y[i] for i from 0 <= i < min]
+        if len(x) == len(y):
+            res = self._parent(low, check=0)
+            (<Polynomial_generic_dense>res).__normalize()
+            return res
+        else:
+            return self._parent(low + high, check=0)
+
+    def _rmul_(self, c):
+        if len(self.__coeffs) == 0:
+            return self
+        v = [c * a for a in self.__coeffs]
+        res = self._parent(v, check=0)
+        if v[len(v)-1].is_zero():
+            (<Polynomial_generic_dense>res).__normalize()
+        return res
+
+    def _lmul_(self, c):
+        if len(self.__coeffs) == 0:
+            return self
+        v = [a * c for a in self.__coeffs]
+        res = self._parent(v, check=0)
+        if v[len(v)-1].is_zero():
+            (<Polynomial_generic_dense>res).__normalize()
+        return res
+
+    def list(self):
+        """
+        Return a new copy of the list of the underlying
+        elements of self.
+
+        EXAMPLES:
+            sage: R.<x> = GF(17)[]
+            sage: f = (1+2*x)^3 + 3*x; f
+            8*x^3 + 12*x^2 + 9*x + 1
+            sage: f.list()
+            [1, 9, 12, 8]
+        """
+        return list(self.__coeffs)
+
+    def degree(self):
+        """
+        EXAMPLES:
+            sage: R.<x> = RDF[]
+            sage: f = (1+2*x^7)^5
+            sage: f.degree()
+            35
+        """
+        return len(self.__coeffs) - 1
+
+    def shift(self, Py_ssize_t n):
+        r"""
+        Returns this polynomial multiplied by the power $x^n$. If $n$
+        is negative, terms below $x^n$ will be discarded. Does not
+        change this polynomial.
+
+        EXAMPLES:
+            sage: R.<x> = PolynomialRing(PolynomialRing(QQ,'y'), 'x')
+            sage: p = x^2 + 2*x + 4
+            sage: type(p)
+            <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+            sage: p.shift(0)
+             x^2 + 2*x + 4
+            sage: p.shift(-1)
+             x + 2
+            sage: p.shift(2)
+             x^4 + 2*x^3 + 4*x^2
+
+        AUTHOR:
+            -- David Harvey (2006-08-06)
+        """
+        if n == 0:
+            return self
+        if n > 0:
+            output = [self.base_ring()(0)] * n
+            output.extend(self.__coeffs)
+            return self.polynomial(output, check=False)
+        if n < 0:
+            if n > len(self.__coeffs) - 1:
+                return self.polynomial([])
+            else:
+                return self.polynomial(self.__coeffs[-int(n):], check=False)
+
+def make_generic_polynomial(parent, coeffs):
+    return parent(coeffs)

@@ -140,7 +140,7 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
         return self.__Y
 
     def _error_bad_coords(self, v):
-        raise TypeError, "coordinates %s do not define a point on %s"%(v,self)
+        raise TypeError, "Coordinates %s do not define a point on %s"%(v,self)
 
     def _check_satisfies_equations(self, v):
         """
@@ -154,37 +154,18 @@ class AlgebraicScheme_quasi(AlgebraicScheme):
             if f(v) == 0:
                 self._error_bad_coords(v)
 
-    def rational_points(self, F=None, B=0):
+    def rational_points(self, F=None, bound=0):
         """
         Return the set of rational points over its base ring.
-
-        EXAMPLES:
-            sage: E = EllipticCurve('37a')
-            sage: Etilde = E.base_extend(GF(3))
-            sage: Etilde.rational_points()
-            [(0 : 0 : 1),
-             (0 : 0 : 1),
-             (1 : 0 : 1),
-             (2 : 0 : 1),
-             (0 : 0 : 1),
-             (1 : 0 : 1),
-             (2 : 0 : 1),
-             (0 : 2 : 1),
-             (1 : 2 : 1),
-             (2 : 2 : 1),
-             (0 : 1 : 0),
-             (0 : 1 : 0)]
         """
         if F is None:
             F = self.base_ring()
 
-        if B == 0:
+        if bound == 0:
             if is_RationalField(F):
-                raise TypeError, \
-                      "A positive bound B (= %s) must be specified."%B
+                raise TypeError, "A positive bound (= %s) must be specified."%bound
             if not is_FiniteField(F):
-                raise TypeError, \
-                      "Argument F (= %s) must be a finite field."%F
+                raise TypeError, "Argument F (= %s) must be a finite field."%F
         pts = []
         polys = self.__X.defining_polynomials()
         qolys = self.__Y.defining_polynomials()
@@ -233,7 +214,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return tuple(G)
 
     def _error_bad_coords(self, v):
-        raise TypeError, "coordinates %s do not define a point on %s"%(v,self)
+        raise TypeError, "coordinates %s do not define a point on %s"%(list(v),self)
 
     def _check_satisfies_equations(self, v):
         """
@@ -289,8 +270,8 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
 
         We define what is clearly a union of four hypersurfaces in
         $\P^4_{\Q}$ then find the irreducible components.
-            sage: P.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
-            sage: V = P.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
+            sage: PP.<x,y,z,w,v> = ProjectiveSpace(4,QQ)
+            sage: V = PP.subscheme( (x^2 - y^2 - z^2)*(w^5 -  2*v^2*z^3)* w * (v^3 - x^2*z) )
             sage: V.irreducible_components()
             [
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
@@ -430,15 +411,60 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         return A.subscheme_complement(
             self.defining_ideal(), self.defining_ideal() + other.defining_ideal())
 
-    def rational_points(self, F=None, B=0):
+    def rational_points(self, F=None, bound=0):
+        """
+        EXAMPLES:
+
+	One can enumerate points up to a given bound on a projective scheme
+        over the rationals.
+
+            sage: E = EllipticCurve('37a')
+            sage: E.rational_points(bound=8)
+            [(0 : 0 : 1),
+             (1 : 0 : 1),
+             (-1 : 0 : 1),
+             (0 : -1 : 1),
+             (1 : -1 : 1),
+             (-1 : -1 : 1),
+             (2 : 2 : 1),
+             (2 : -3 : 1),
+             (1/4 : -3/8 : 1),
+             (1/4 : -5/8 : 1),
+             (0 : 1 : 0)]
+
+	For a small finite field, the complete set of points can be enumerated.
+
+            sage: Etilde = E.base_extend(GF(3))
+            sage: Etilde.rational_points()
+	    [(0 : 0 : 1), (1 : 0 : 1), (2 : 0 : 1), (0 : 2 : 1), (1 : 2 : 1), (2 : 2 : 1), (0 : 1 : 0)]
+
+	The class of hyperelliptic curves does not (yet) support desingularization
+        of the places at infinity into two points.
+
+	     sage: FF = FiniteField(7)
+	     sage: P.<x> = PolynomialRing(FiniteField(7))
+	     sage: C = HyperellipticCurve(x^8+x+1)
+	     sage: C.rational_points()
+             [(2 : 0 : 1), (4 : 0 : 1), (0 : 1 : 1), (6 : 1 : 1), (0 : 6 : 1), (6 : 6 : 1), (0 : 1 : 0)]
+
+        TODO:
+
+	1. The above algorithms enumerate all projective points and
+        test whether they lie on the scheme; Implement a more naive
+        sieve at least for covers of the projective line.
+
+        2. Implement Stoll's model in weighted projective space to
+        resolve singularities and find two points (1 : 1 : 0) and
+        (-1 : 1 : 0) at infinity.
+        """
         if F == None:
             F = self.base_ring()
         X = self(F)
         if is_RationalField(F) or F == ZZ:
-            if not B > 0:
-                raise TypeError, "A positive bound B (= %s) must be specified."%B
+            if not bound > 0:
+                raise TypeError, "A positive bound (= %s) must be specified."%bound
             try:
-                return X.points(B)
+                return X.points(bound)
             except TypeError:
                 raise TypeError, "Unable to enumerate points over %s."%F
         try:

@@ -31,6 +31,15 @@ An iterated example:
     sage: S.base_ring()
     Power Series Ring in t over Integer Ring
 
+We compute with power series over the symbolic ring.
+    sage: K.<t> = PowerSeriesRing(SR, 5)
+    sage: f = a + b*t + c*t^2 + O(t^3)
+    sage: f*f
+    a^2 + ((b + a)^2 - b^2 - a^2)*t + ((c + b + a)^2 - (c + b)^2 - (b + a)^2 + 2*b^2)*t^2 + O(t^3)
+    sage: f = sqrt(2) + sqrt(3)*t + O(t^3)
+    sage: f^2
+    2 + ((sqrt(3) + sqrt(2))^2 - 5)*t + 3*t^2 + O(t^3)
+
 Elements are first coerced to constants in base_ring, then coerced into the
 PowerSeriesRing:
     sage: R.<t> = PowerSeriesRing(ZZ)
@@ -55,6 +64,16 @@ We make a sparse Laurent series from a power series generator:
 AUTHOR:
     -- William Stein: the code
     -- Jeremy Cho (2006-05-17): some examples (above)
+
+TESTS:
+    sage: R.<t> = PowerSeriesRing(QQ)
+    sage: R == loads(dumps(R))
+    True
+
+    sage: R.<x> = PowerSeriesRing(QQ, sparse=True)
+    sage: R == loads(dumps(R))
+    True
+
 """
 
 import weakref
@@ -103,13 +122,15 @@ def PowerSeriesRing(base_ring, name=None, default_prec=20, names=None, sparse=Fa
         sage: R = PowerSeriesRing(QQ, 10)
         Traceback (most recent call last):
         ...
-        TypeError: illegal variable name
+        ValueError: first letter of variable name must be a letter
 
         sage: S = PowerSeriesRing(QQ, 'x', default_prec = 15); S
         Power Series Ring in x over Rational Field
         sage: S.default_prec()
         15
     """
+    if isinstance(name, (int,long,integer.Integer)):
+        default_prec = name
     if not names is None:
         name = names
     try:
@@ -177,6 +198,24 @@ class PowerSeriesRing_generic(commutative_ring.CommutativeRing, Nonexact):
         self.__power_series_class = power_series_ring_element.PowerSeries_poly
         self.__generator = self.__power_series_class(self, [0,1], check=True, is_gen=True)
         self.__is_sparse = sparse
+        self.__params = (base_ring, name, default_prec, sparse)
+
+    def __reduce__(self):
+        """
+        TESTS:
+            sage: R.<t> = PowerSeriesRing(ZZ)
+            sage: S = loads(dumps(R)); S
+            Power Series Ring in t over Integer Ring
+            sage: type(S)
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_domain'>
+            sage: R.<t> = PowerSeriesRing(QQ, default_prec=10, sparse=True); R
+            Sparse Power Series Ring in t over Rational Field
+            sage: S = loads(dumps(R)); S
+            Sparse Power Series Ring in t over Rational Field
+            sage: type(S)
+            <class 'sage.rings.power_series_ring.PowerSeriesRing_over_field'>
+        """
+        return unpickle_power_series_ring_v0, self.__params
 
     def _repr_(self):
         """
@@ -596,4 +635,8 @@ class PowerSeriesRing_over_field(PowerSeriesRing_domain):
             Laurent Series Ring in t over Finite Field of size 7
         """
         return self.laurent_series_ring()
+
+
+def unpickle_power_series_ring_v0(base_ring, name, default_prec, sparse):
+    return PowerSeriesRing(base_ring, name=name, default_prec = default_prec, sparse=sparse)
 

@@ -569,6 +569,13 @@ cdef class PolyDict:
             raise ArithmeticError, "%s not supported",T
 
     def __reduce__(PolyDict self):
+        """
+        sage: from sage.rings.polydict import PolyDict
+        sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+        sage: loads(dumps(f)) == f
+        True
+
+        """
         return make_PolyDict,(self.__repn,)
 
 
@@ -831,6 +838,14 @@ cdef class ETuple:
         return str(tuple(res))
 
     def __reduce__(ETuple self):
+        """
+        EXAMPLES:
+            sage: from sage.rings.polydict import ETuple
+            sage: e = ETuple([1,1,0])
+            sage: bool(e == loads(dumps(e)))
+            True
+        """
+
         return make_ETuple,(self._data,self._length)
 
     # additional methods

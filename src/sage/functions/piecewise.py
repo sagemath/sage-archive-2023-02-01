@@ -1,12 +1,9 @@
 r"""
 Piecewise-defined Functions.
 
-\sage implements a very simple class of piecewise-defined functions.
-Functions must be piecewise polynomial, though some methods apply more
-generally. Only compactly supported functions are currently
-implemented. Moreover, the coefficients should be rational and the
-support should be 'connected'. The intervals of polynomial support can
-be in terms of rationals and $\pi$, or in terms of floats.
+\sage implements a very simple class of piecewise-defined functions.  Functions
+may be any type of symbolic expression.  Infinite intervals are not supported.
+The endpoints of each interval must line up.
 
 Implemented methods:
     latex outout
@@ -58,10 +55,6 @@ TODO:
       way is to use an element class and only define _mul_, and
       have a parent, so anything gets coerced properly.
 
-(For more general non-polynomial piecewise functions, it appears
-a new class of functions (for example, 'ElementaryFunctionRing') is
-needed. This a preliminary 'todo'.)
-
 AUTHOR: David Joyner (2006-04) -- initial version
         DJ (2006-09) -- added __eq__, extend_by_zero_to, unextend, convolution,
                         trapezoid, trapezoid_integral_approximation, riemann_sum,
@@ -98,6 +91,13 @@ from sage.rings.real_mpfr import RealField
 from sage.misc.sage_eval import sage_eval
 from sage.rings.all import QQ, RR, Integer, Rational
 
+from sage.calculus.calculus import SR, var, maxima
+
+def meval(x):
+    from sage.calculus.calculus import symbolic_expression_from_maxima_element
+    return symbolic_expression_from_maxima_element(maxima(x))
+
+
 class PiecewisePolynomial:
     def __init__(self, list_of_pairs):
         r"""
@@ -124,45 +124,54 @@ class PiecewisePolynomial:
         return 'Piecewise defined function with %s parts, %s'%(
             self.length(),self.list())
 
-    def latex(self):
-	"""
+    def _latex_(self):
+	r"""
 	EXAMPLES:
-            sage: f1 = lambda x:1
-            sage: f2 = lambda x:1-x
+            sage: f1(x) = 1
+            sage: f2(x) = 1 - x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: f.latex()
-            '\\begin{array}{ll} \\left\\{ 1,& 0 < x < 1 ,\\right. \\end{array}'
+            sage: latex(f)
+            \begin{cases}
+            x \ {\mapsto}\ 1 &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ 1 - x &\text{on $(1, 2)$}
+            \end{cases}
 
+            sage: f(x) = sin(x*pi/2)
+            sage: g(x) = 1-(x-1)^2
+            sage: h(x) = -x
+            sage: P = Piecewise([[(0,1), f], [(1,3),g], [(3,5), h]])
+            sage: latex(P)
+            \begin{cases}
+            x \ {\mapsto}\ \sin \left( \frac{{\pi \cdot x}}{2} \right) &\text{on $(0, 1)$}\cr
+            x \ {\mapsto}\ 1 - {\left( x - 1 \right)}^{2}  &\text{on $(1, 3)$}\cr
+            x \ {\mapsto}\ -x &\text{on  $(3, 5)$}
+            \end{cases}
 	"""
-        x = PolynomialRing(QQ,'x').gen()
-        intvls = self.intervals()
-        fcn_list = [p[1] for p in self.list()]
-        tex = ["\\begin{array}{ll} \left\\{"]
-        for i in range(len(fcn_list)):
-	    f = fcn_list[i]
-	    a = intvls[i][0]
-	    b = intvls[i][1]
-            tex.append(str(f(x)))
-	    tex.append(",& %s < x < %s ,\\"%(a,b))
-        tex = tex[:-2]
-	tex.append("\right\. \end{array}")
-	ltex = ""
-        for i in range(len(tex)-1):
-            ltex = ltex + tex[i]
-        ltex = ltex + str(tex[len(tex)-1]).replace("%","")
-        ltex = ltex.replace("\\\right\\.","\\right.")
-        ltex = ltex.replace("\\left\\{","\\left\{ ")
-        return ltex
+        intervals = self.intervals()
+        funcs = [p[1] for p in self.list()]
+        tex = ['\\begin{cases}\n']
+        for i in range(len(funcs)):
+            f = funcs[i]
+            # left endpoint
+            a = intervals[i][0]
+            # right endpoint
+            b = intervals[i][1]
+            tex.append(r'%s &\text{on $(%s, %s)$}' % (f._latex_(), a, b))
+            tex.append('\\cr\n')
+        # remove the last TeX newline
+        tex = tex[:-1]
+        tex.append('\n\\end{cases}')
+        return ''.join(tex)
 
     def intervals(self):
         """
 	A piecewise non-polynomial example.
 
         EXAMPLES:
-            sage: f1 = lambda x:1
-            sage: f2 = lambda x:1-x
-            sage: f3 = lambda x:exp(x)
-            sage: f4 = lambda x:sin(2*x)
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f.intervals()
             [(0, 1), (1, 2), (2, 3), (3, 10)]
@@ -175,6 +184,15 @@ class PiecewisePolynomial:
     def functions(self):
         """
         Returns the list of functions (the "pieces").
+
+        EXAMPLES:
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
+            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f.functions()
+            [x |--> 1, x |--> 1 - x, x |--> e^x, x |--> sin(2*x)]
         """
         return self._functions
 
@@ -243,20 +261,20 @@ class PiecewisePolynomial:
         Returns the piecewise line function defined by the
         Riemann sums in numerical integration based on a subdivision
         into N subintervals.
-	Set mode="midpoint" for the height of the rectangles to be
-	determined by the midpoint of the subinterval;
+    	Set mode="midpoint" for the height of the rectangles to be
+        determined by the midpoint of the subinterval;
         set mode="right" for the height of the rectangles to be
-	determined by the right-hand endpoint of the subinterval;
-	the default is mode="left" (the height of the rectangles to be
-	determined by the leftt-hand endpoint of the subinterval).
+        determined by the right-hand endpoint of the subinterval;
+        the default is mode="left" (the height of the rectangles to be
+        determined by the leftt-hand endpoint of the subinterval).
 
         EXAMPLES:
-            sage: f1 = lambda x:x^2                   ## example 1
-            sage: f2 = lambda x:5-x^2
+            sage: f1 = x^2                   ## example 1
+            sage: f2 = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.riemann_sum_integral_approximation(6)
             17/6
-	    sage: f.riemann_sum_integral_approximation(6,mode="right")
+            sage: f.riemann_sum_integral_approximation(6,mode="right")
             19/6
             sage: f.riemann_sum_integral_approximation(6,mode="midpoint")
             3
@@ -302,12 +320,11 @@ class PiecewisePolynomial:
 	determined by the leftt-hand endpoint of the subinterval).
 
         EXAMPLES:
-            sage: f1 = lambda x:x^2                   ## example 1
-            sage: f2 = lambda x:5-x^2
+            sage: f1(x) = x^2
+            sage: f2(x) = 5-x^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.riemann_sum(6,mode="midpoint")
             Piecewise defined function with 6 parts, [[(0, 1/3), 1/36], [(1/3, 2/3), 1/4], [(2/3, 1), 25/36], [(1, 4/3), 131/36], [(4/3, 5/3), 11/4], [(5/3, 2), 59/36]]
-            sage: x = PolynomialRing(QQ,'x').gen()        ## example 2
             sage: f = Piecewise([[(-1,1),1-x^2]])
             sage: rsf = f.riemann_sum(7)
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
@@ -393,8 +410,8 @@ class PiecewisePolynomial:
         into N subintervals.
 
         EXAMPLES:
-            sage: f1 = lambda x:x^2                      ## example 1
-            sage: f2 = lambda x:1-(1-x)^2
+            sage: f1(x) = x^2                      ## example 1
+            sage: f2(x) = 1-(1-x)^2
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: P = f.plot(rgbcolor=(0.7,0.1,0.5), plot_points=40)
             sage: tf = f.trapezoid(6)
@@ -426,35 +443,43 @@ class PiecewisePolynomial:
 
     def critical_points(self):
         """
-        Function to return the critical points. Uses maxima, which
-        prints the warning to use results with caution. Only works for
-        piecewise functions whose parts are polynomials with real
-        critical not occurring on the interval endpoints.
+        Return the critical points of this piecewise function.
+
+        WARNINGS: Uses maxima, which prints the warning to use results
+        with caution. Only works for piecewise functions whose parts
+        are polynomials with real critical not occurring on the
+        interval endpoints.
 
         EXAMPLES:
             sage: x = PolynomialRing(QQ, 'x').0
             sage: f1 = x^0
-            sage: f2 = 1-x
-            sage: f3 = 2*x
-            sage: f4 = 10*x-x^2
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
+            sage: f2 = 10*x - x^2
+            sage: f3 = 3*x^4 - 156*x^3 + 3036*x^2 - 26208*x
+            sage: f = Piecewise([[(0,3),f1],[(3,10),f2],[(10,20),f3]])
             sage: f.critical_points()
-            [5.0]
+            [5.0, 12.000000000000171, 12.9999999999996, 14.000000000000229]
         """
         maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()
         fcns = self.functions()
         N = len(fcns)
         crit_pts = []
+        I = self.intervals()
         for i in range(N):
             maxima.eval("eqn:diff(%s,x)=0"%fcns[i])
             ans = maxima.eval("allroots(eqn)")
-            if "[x =" in ans:
-                i1 = ans.index("[x =")
-                i2 = ans.index("]")
-                r = eval(ans[i1+4:i2])
-                if self.intervals()[i][0] < r < self.intervals()[i][1]:
+            while True:
+                start = ans.find('x=')
+                if start == -1:
+                    break
+                ans = ans[start+2:]
+                end = ans.find(',')
+                if end == -1:
+                    end = ans.find(']')
+                r = float(ans[:end])
+                if I[i][0] < r < I[i][1]:
                     crit_pts.append(r)
+                ans = ans[end+1:]
         return crit_pts
 
     def base_ring(self):
@@ -474,19 +499,19 @@ class PiecewisePolynomial:
     def __call__(self,x0):
         """
         Evaluates self at x0. Returns the average value of the jump if x0 is
-	an interior endpoint of one of the intervals of self and the
-	usual value otherwise.
+        an interior endpoint of one of the intervals of self and the
+        usual value otherwise.
 
         EXAMPLES:
-            sage: f1 = lambda x:1
-            sage: f2 = lambda x:1-x
-            sage: f3 = lambda x:exp(x)
-            sage: f4 = lambda x:sin(2*x)
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
+            sage: f3(x) = exp(x)
+            sage: f4(x) = sin(2*x)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f(0.5)
             1
             sage: f(2.5)
-            12.1824939607035
+            12.18249396070347
             sage: f(1)
             1/2
         """
@@ -510,14 +535,13 @@ class PiecewisePolynomial:
         Returns the function piece used to evaluate self at x0.
 
         EXAMPLES:
-	    sage: x = PolynomialRing(QQ,'x').gen()
-            sage: f1 = lambda z:1
+            sage: f1 = z
             sage: f2 = 1-x
-            sage: f3 = lambda y:exp(y)
-            sage: f4 = lambda t:sin(2*t)
+            sage: f3 = exp(y)
+            sage: f4 = sin(2*t)
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2],[(2,3),f3],[(3,10),f4]])
             sage: f.which_function(3/2)
-	    -x + 1
+            1 - x
         """
         n = self.length()
         endpts = self.end_points()
@@ -533,29 +557,33 @@ class PiecewisePolynomial:
                 return self.functions()[i]
         raise ValueError,"Function not defined outside of domain."
 
-    def integral(self):
+    def integral(self, x=None):
         r"""
         Returns the definite integral (as computed by maxima)
         $\sum_I \int_I self|_I$, as I runs over the intervals
         belonging to self.
 
         EXAMPLES:
-            sage: f1 = lambda x:1
-            sage: f2 = lambda x:1-x
+            sage: f1(x) = 1
+            sage: f2(x) = 1-x
             sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
             sage: f.integral()
             1/2
-	    sage: f1 = lambda x:-1
-            sage: f2 = lambda x:2
+            sage: f1(x) = -1
+            sage: f2(x) = 2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.integral()
-            (pi/2)
+            pi/2
         """
-        maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ,'x').gen()
-        ints = [maxima('%s'%p[1](x)).integral('x', p[0][0], p[0][1]) \
-                 for p in self.list()]
-        return sage_eval(str(sum(ints)).replace("%",""))
+        #maxima = sage.interfaces.all.maxima
+        #x = PolynomialRing(QQ,'x').gen()
+        #ints = [maxima('%s'%p[1](x)).integral('x', p[0][0], p[0][1]) \
+        #         for p in self.list()]
+        #RETURN MEVAl(repr(sum(ints)))
+        funcs = self.functions()
+        invs = self.intervals()
+        n = len(funcs)
+        return sum([funcs[i].integral(x,invs[i][0],invs[i][1]) for i in range(n)])
 
     def convolution(self,other):
         """
@@ -595,7 +623,7 @@ class PiecewisePolynomial:
         g0 = g.functions()[0]
         R1 = f0.parent()
         xx = R1.gen()
-        var = str(xx)
+        var = repr(xx)
         if len(f.intervals())==1 and len(g.intervals())==1:
             f = f.unextend()
             g = g.unextend()
@@ -603,8 +631,8 @@ class PiecewisePolynomial:
             a2 = f.intervals()[0][1]
             b1 = g.intervals()[0][0]
             b2 = g.intervals()[0][1]
-            i1 = str(f0).replace(var,str(uu))
-            i2 = str(g0).replace(var,"("+str(tt-uu)+")")
+            i1 = repr(f0).replace(var,repr(uu))
+            i2 = repr(g0).replace(var,"("+repr(tt-uu)+")")
             cmd1 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, a1,    tt-b1)    ## if a1+b1 < tt < a2+b1
             cmd2 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, tt-b2, tt-b1)    ## if a1+b2 < tt < a2+b1
             cmd3 = "integrate((%s)*(%s),%s,%s,%s)"%(i1,i2, uu, tt-b2, a2)       ## if a1+b2 < tt < a2+b2
@@ -613,10 +641,12 @@ class PiecewisePolynomial:
             conv2 = maxima.eval(cmd2)
             conv3 = maxima.eval(cmd3)
             conv4 = maxima.eval(cmd4)
-            fg1 = sage_eval(conv1.replace("tt",var)) ## should be = R2(conv1)
-            fg2 = sage_eval(conv2.replace("tt",var)) ## should be = R2(conv2)
-            fg3 = sage_eval(conv3.replace("tt",var)) ## should be = R2(conv3)
-            fg4 = sage_eval(conv4.replace("tt",var)) ## should be = R2(conv4)
+            # this is a very, very, very ugly hack
+            x = PolynomialRing(QQ,'x').gen()
+            fg1 = sage_eval(conv1.replace("tt",var), {'x':x}) ## should be = R2(conv1)
+            fg2 = sage_eval(conv2.replace("tt",var), {'x':x}) ## should be = R2(conv2)
+            fg3 = sage_eval(conv3.replace("tt",var), {'x':x}) ## should be = R2(conv3)
+            fg4 = sage_eval(conv4.replace("tt",var), {'x':x}) ## should be = R2(conv4)
             if a1-b1<a2-b2:
                 if a2+b1!=a1+b2:
                     h = Piecewise([[(a1+b1,a1+b2),fg1],[(a1+b2,a2+b1),fg4],[(a2+b1,a2+b2),fg3]])
@@ -627,8 +657,8 @@ class PiecewisePolynomial:
                     h = Piecewise([[(a1+b1,a2+b1),fg1],[(a2+b1,a1+b2),fg2],[(a1+b2,a2+b2),fg3]])
                 else:
                     h = Piecewise([[(a1+b1,a2+b1),fg1],[(a2+b1,a2+b2),fg3]])
-            #return h.unextend()
             return h
+
         if len(f.intervals())>1 or len(g.intervals())>1:
             z = Piecewise([[(-3*abs(N-M),3*abs(N-M)),0*xx**0]])
             ff = f.functions()
@@ -659,14 +689,16 @@ class PiecewisePolynomial:
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.derivative()
-            Piecewise defined function with 2 parts, [[(0, (pi/2)), 0], [((pi/2), pi), 0]]
+            Piecewise defined function with 2 parts, [[(0, pi/2), 0], [(pi/2, pi), 0]]
         """
         maxima = sage.interfaces.all.maxima
         R = PolynomialRing(QQ,'x')
         x = R.gen()
         diffs = [maxima('%s'%p[1](x)).diff('x') \
                  for p in self.list()]
-        dlist = [[(p[0][0], p[0][1]), R(sage_eval(str(maxima('%s'%p[1](x)).diff('x')).replace("%","")))] for p in self.list()]
+        dlist = [[(p[0][0], p[0][1]),
+            R(sage_eval(repr(maxima('%s'%p[1](x)).diff('x')).replace("%",""),
+                {'x':x}))] for p in self.list()]
         return Piecewise(dlist)
 
     def tangent_line(self,pt):
@@ -691,7 +723,7 @@ class PiecewisePolynomial:
         dlist = [[(p[0][0], p[0][1]), tanline] for p in self.list()]
         return Piecewise(dlist)
 
-    def plot(self, **kwds):
+    def plot(self, *args, **kwds):
         """
         Returns the plot of self.
 
@@ -711,7 +743,7 @@ class PiecewisePolynomial:
         then open it in a graphics viewer such as GIMP.
         """
         plot = sage.plot.plot.plot
-        return sum([plot(p[1], p[0][0], p[0][1], **kwds ) for p in self.list()])
+        return sum([plot(p[1], p[0][0], p[0][1], *args, **kwds ) for p in self.list()])
 
     def fourier_series_cosine_coefficient(self,n,L):
         r"""
@@ -729,7 +761,7 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_cosine_coefficient(2,1)
-            (1/(pi^2))
+            1/pi^2
 	    sage: f = lambda x:x^2
             sage: f = Piecewise([[(-pi,pi),f]])
             sage: float(f.fourier_series_cosine_coefficient(2,pi))
@@ -738,7 +770,7 @@ class PiecewisePolynomial:
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_cosine_coefficient(5,pi)
-            (-3/(5*pi))
+            -3/(5*pi)
         """
         maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()
@@ -746,13 +778,13 @@ class PiecewisePolynomial:
         for p in self.list():
             fcn = '(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
             fcn = fcn.replace("pi","%"+"pi")
-	    a = str(p[0][0]).replace("pi","%"+"pi")
-	    b = str(p[0][1]).replace("pi","%"+"pi")
+	    a = repr(p[0][0]).replace("pi","%"+"pi")
+	    b = repr(p[0][1]).replace("pi","%"+"pi")
 	    cmd = "integrate("+fcn+", x, %s, %s )"%(a, b)
 	    int = maxima(cmd).trigsimp()
             ints.append(int)
         ans = sum(ints)
-        return sage_eval(str(ans).replace("%",""))
+        return meval(repr(ans))
 
     def fourier_series_sine_coefficient(self,n,L):
         r"""
@@ -778,13 +810,13 @@ class PiecewisePolynomial:
         for p in self.list():
             fcn = '(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
             fcn = fcn.replace("pi","%"+"pi")
-	    a = str(p[0][0]).replace("pi","%"+"pi")
-	    b = str(p[0][1]).replace("pi","%"+"pi")
+	    a = repr(p[0][0]).replace("pi","%"+"pi")
+	    b = repr(p[0][1]).replace("pi","%"+"pi")
 	    cmd = "integrate("+fcn+", x, %s, %s )"%(a, b)
 	    int = maxima(cmd).trigsimp()
             ints.append(int)
         ans = sum(ints)
-        return sage_eval(str(ans).replace("%",""))
+        return meval(repr(ans))
 
     def fourier_series_partial_sum(self,N,L):
         r"""
@@ -799,22 +831,21 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum(3,1)
-            '1/3 + ((-4/(pi^2))*cos(1*pi*x/1) + 0*sin(1*pi*x/1)) + ((1/(pi^2))*cos(2*pi*x/1) + 0*sin(2*pi*x/1))'
+            cos(2*pi*x)/pi^2 - (4*cos(pi*x)/pi^2) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum(3,pi)
-            '1/4 + ((-3/pi)*cos(1*pi*x/pi) + (1/pi)*sin(1*pi*x/pi)) + (0*cos(2*pi*x/pi) + (-3/pi)*sin(2*pi*x/pi))'
-
+            -3*sin(2*x)/pi + sin(x)/pi - (3*cos(x)/pi) + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
-        A = [str(self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
-        B = [str(self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        A = [repr(self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = [repr(self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
         FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
-        sumFS = str(a0/2)+" + "
+        sumFS = repr(a0/2)+" + "
         for s in FS:
             sumFS = sumFS+s+ " + "
-        return sumFS[:-3]
+        return meval(sumFS[:-3])
 
     def fourier_series_partial_sum_cesaro(self,N,L):
         r"""
@@ -829,22 +860,22 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_cesaro(3,1)
-            '1/3 + ((2/3*(-4/(pi^2)))*cos(1*pi*x/1) + 0*sin(1*pi*x/1)) + ((1/3*(1/(pi^2)))*cos(2*pi*x/1) + 0*sin(2*pi*x/1))'
+            cos(2*pi*x)/(3*pi^2) - (8*cos(pi*x)/(3*pi^2)) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_cesaro(3,pi)
-            '1/4 + ((2/3*(-3/pi))*cos(1*pi*x/pi) + (2/3*(1/pi))*sin(1*pi*x/pi)) + (0*cos(2*pi*x/pi) + (1/3*(-3/pi))*sin(2*pi*x/pi))'
+            -sin(2*x)/pi + 2*sin(x)/(3*pi) - (2*cos(x)/pi) + 1/4
 
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
-        A = [str((1-n/N)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
-        B = [str((1-n/N)*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        A = [repr((1-n/N)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = [repr((1-n/N)*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
         FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
-        sumFS = str(a0/2)+" + "
+        sumFS = repr(a0/2)+" + "
         for s in FS:
             sumFS = sumFS+s+ " + "
-        return sumFS[:-3]
+        return meval(sumFS[:-3])
 
     def fourier_series_partial_sum_hann(self,N,L):
         r"""
@@ -859,22 +890,21 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_hann(3,1)
-            '1/3 + ((1+cos(pi*1/3))*(0.5*(-4/(pi^2)))*cos(1*pi*x/1) + (1+cos(pi*1/3))*0.0*sin(1*pi*x/1)) + ((1+cos(pi*2/3))*(0.5*(1/(pi^2)))*cos(2*pi*x/1) + (1+cos(pi*2/3))*0.0*sin(2*pi*x/1))'
+            0.500000000000000*(cos(2*pi/3) + 1)*cos(2*pi*x)/pi^2 - (2.00000000000000*(cos(pi/3) + 1)*cos(pi*x)/pi^2) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_hann(3,pi)
-            '1/4 + ((1+cos(pi*1/3))*(0.5*(-3/pi))*cos(1*pi*x/pi) + (1+cos(pi*1/3))*(0.5*(1/pi))*sin(1*pi*x/pi)) + ((1+cos(pi*2/3))*0.0*cos(2*pi*x/pi) + (1+cos(pi*2/3))*(0.5*(-3/pi))*sin(2*pi*x/pi))'
-
+            -1.50000000000000*(cos(2*pi/3) + 1)*sin(2*x)/pi + 0.500000000000000*(cos(pi/3) + 1)*sin(x)/pi - (1.50000000000000*(cos(pi/3) + 1)*cos(x)/pi) + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
-        A = ["(1+cos(pi*%s/%s))*"%(n,N)+str((0.5)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
-        B = ["(1+cos(pi*%s/%s))*"%(n,N)+str((0.5)*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        A = ["(1+cos(pi*%s/%s))*"%(n,N)+repr((0.5)*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = ["(1+cos(pi*%s/%s))*"%(n,N)+repr((0.5)*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
         FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
-        sumFS = str(a0/2)+" + "
+        sumFS = repr(a0/2)+" + "
         for s in FS:
             sumFS = sumFS+s+ " + "
-        return sumFS[:-3]
+        return meval(sumFS[:-3])
 
     def fourier_series_partial_sum_filtered(self,N,L,F):
         r"""
@@ -890,22 +920,21 @@ class PiecewisePolynomial:
             sage: f = lambda x:x^2
             sage: f = Piecewise([[(-1,1),f]])
             sage: f.fourier_series_partial_sum_filtered(3,1,[1,1,1])
-            '1/3 + ((1*(-4/(pi^2)))*cos(1*pi*x/1) + 0*sin(1*pi*x/1)) + ((1*(1/(pi^2)))*cos(2*pi*x/1) + 0*sin(2*pi*x/1))'
+            cos(2*pi*x)/pi^2 - (4*cos(pi*x)/pi^2) + 1/3
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.fourier_series_partial_sum_filtered(3,pi,[1,1,1])
-            '1/4 + ((1*(-3/pi))*cos(1*pi*x/pi) + (1*(1/pi))*sin(1*pi*x/pi)) + (0*cos(2*pi*x/pi) + (1*(-3/pi))*sin(2*pi*x/pi))'
-
+            -3*sin(2*x)/pi + sin(x)/pi - (3*cos(x)/pi) + 1/4
         """
         a0 = self.fourier_series_cosine_coefficient(0,L)
-        A = [str((F[n])*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
-        B = [str((F[n])*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        A = [repr((F[n])*self.fourier_series_cosine_coefficient(n,L))+"*cos(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
+        B = [repr((F[n])*self.fourier_series_sine_coefficient(n,L))+"*sin(%s*pi*x/%s)"%(n,L) for n in range(1,N)]
         FS =  ["("+A[i] +" + " + B[i]+")" for i in range(0,N-1)]
-        sumFS = str(a0/2)+" + "
+        sumFS = repr(a0/2)+" + "
         for s in FS:
             sumFS = sumFS+s+ " + "
-        return sumFS[:-3]
+        return meval(sumFS[:-3])
 
     def plot_fourier_series_partial_sum(self,N,L,xmin,xmax, **kwds):
         r"""
@@ -940,8 +969,8 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",str(RR(pi)))
-            yi = sage_eval(yi.replace("x",str(xi)))
+            yi = ff.replace("pi",repr(RR(pi)))
+            yi = sage_eval(yi.replace("x",repr(xi)))
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -978,8 +1007,8 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",str(RR(pi)))
-            yi = sage_eval(yi.replace("x",str(xi)))
+            yi = ff.replace("pi",repr(RR(pi)))
+            yi = sage_eval(yi.replace("x",repr(xi)))
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1016,8 +1045,8 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",str(RR(pi)))
-            yi = sage_eval(yi.replace("x",str(xi)))
+            yi = ff.replace("pi",repr(RR(pi)))
+            yi = sage_eval(yi.replace("x",repr(xi)))
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1056,8 +1085,8 @@ class PiecewisePolynomial:
         for i in range(n):
             pi = 3.14159265
             xi = xmin + i*h
-            yi = ff.replace("pi",str(RR(pi)))
-            yi = sage_eval(yi.replace("x",str(xi)))
+            yi = ff.replace("pi",repr(RR(pi)))
+            yi = sage_eval(yi.replace("x",repr(xi)))
             pts.append([xi,yi])
         return line(pts, **kwds)
 
@@ -1138,16 +1167,16 @@ class PiecewisePolynomial:
             sage: f.cosine_series_coefficient(2,1)
             0
             sage: f.cosine_series_coefficient(3,1)
-            (-4/(9*(pi^2)))
+            -4/(9*pi^2)
             sage: f1 = lambda x:-1
             sage: f2 = lambda x:2
             sage: f = Piecewise([[(0,pi/2),f1],[(pi/2,pi),f2]])
             sage: f.cosine_series_coefficient(2,pi)
             0
             sage: f.cosine_series_coefficient(3,pi)
-            (2/pi)
+            2/pi
             sage: f.cosine_series_coefficient(111,pi)
-            (2/(37*pi))
+            2/(37*pi)
 
         """
 	maxima = sage.interfaces.all.maxima
@@ -1156,13 +1185,14 @@ class PiecewisePolynomial:
         for p in self.list():
             fcn = '2*(%s)*cos('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
             fcn = fcn.replace("pi","%"+"pi")
-	    a = str(p[0][0]).replace("pi","%"+"pi")
-	    b = str(p[0][1]).replace("pi","%"+"pi")
+	    a = repr(p[0][0]).replace("pi","%"+"pi")
+	    b = repr(p[0][1]).replace("pi","%"+"pi")
 	    cmd = "integrate("+fcn+", x, %s, %s )"%(a, b)
 	    I = maxima(cmd).trigsimp()
             ints.append(I)
         ans = sum(ints)
-        return sage_eval(str(ans).replace("%",""))
+        return meval(repr(ans))
+
 
     def sine_series_coefficient(self,n,L):
         r"""
@@ -1186,8 +1216,7 @@ class PiecewisePolynomial:
             sage: f.sine_series_coefficient(2,1)
             0
             sage: f.sine_series_coefficient(3,1)
-            (4/(3*pi))
-
+            4/(3*pi)
         """
 	maxima = sage.interfaces.all.maxima
         x = PolynomialRing(QQ,'x').gen()
@@ -1195,55 +1224,49 @@ class PiecewisePolynomial:
         for p in self.list():
             fcn = '2*(%s)*sin('%p[1](x) + 'pi*x*%s/%s)/%s'%(n,L,L)
             fcn = fcn.replace("pi","%"+"pi")
-	    a = str(p[0][0]).replace("pi","%"+"pi")
-	    b = str(p[0][1]).replace("pi","%"+"pi")
+	    a = repr(p[0][0]).replace("pi","%"+"pi")
+	    b = repr(p[0][1]).replace("pi","%"+"pi")
 	    cmd = "integrate("+fcn+", x, %s, %s )"%(a, b)
 	    I = maxima(cmd).trigsimp()
             ints.append(I)
         ans = sum(ints)
-        return sage_eval(str(ans).replace("%",""))
+        return meval(repr(ans))
 
-    def laplace_transform(self,var = "s",latex_output=0):
+    def laplace(self, x, s):
         r"""
-        Returns the laplace transform of self, as a function of var.
+        Returns the Laplace transform of self with respect to the
+        variable var.
+
+        INPUT:
+            x -- variable of self
+            s -- variable of Laplace transform.
+
         We assume that a piecewise function is 0 outside of its domain
         and that the left-most endpoint of the domain is 0.
 
         EXAMPLES:
-            sage: f1 = lambda x:1
-            sage: f2 = lambda x:1-x
-            sage: f = Piecewise([[(0,1),f1],[(1,2),f2]])
-            sage: f.laplace_transform()
-            '1/s - e^-s/s + (s + 1)*e^-(2*s)/s^2 - e^-s/s^2'
-            sage: f.laplace_transform("w",latex_output=1)
-            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
-            sage: f.laplace_transform("w",True)
-            ' - {{e^{ - w}}\\over{w}} - {{e^{ - w}}\\over{w^2}} + {{\\left(w + 1\\right)\\,e^{ - 2\\,w}}\\over{w^2}} + {{1}\\over{w}}'
-            sage: f.laplace_transform("w")
-            '1/w - e^-w/w + (w + 1)*e^-(2*w)/w^2 - e^-w/w^2'
+            sage: f = Piecewise([[(0,1),1],[(1,2), 1-x]])
+            sage: f.laplace(x, s)
+            -e^(-s)/s - (e^(-s)/s^2) + (s + 1)*e^(-2*s)/s^2 + 1/s
+            sage: f.laplace(x, w)
+            -e^(-w)/w - (e^(-w)/w^2) + (w + 1)*e^(-2*w)/w^2 + 1/w
 
+            sage: f = Piecewise([[(1,2), 1-y]])
+            sage: f.laplace(y, t)
+            (t + 1)*e^(-2*t)/t^2 - (e^(-t)/t^2)
         """
-        maxima = sage.interfaces.all.maxima
-        x = PolynomialRing(QQ,'x').gen()
+        x = var(x)
+        s = var(s)
         ints = []
         for p in self.list():
-            fcn = '(%s)*exp(-%s*x)'%(p[1](x),var)
-            ints.append(maxima(fcn).integral('x', p[0][0], p[0][1]))
+            g = SR(p[1])
+            fcn = maxima('(%s)*exp(-%s*%s)'%(g._maxima_init_(), s, x))
+            ints.append(fcn.integral(x, p[0][0], p[0][1]))
         ans = ""
-        ans_latex = ""
         for i in range(len(ints)-1):
-            ans = ans+str(ints[i]).replace("%","")+" + "
-            ans_latex = ans_latex+str(ints[i])+" + "
-        ans = ans+str(ints[len(ints)-1]).replace("%","")
-        ans_latex = ans_latex + str(ints[len(ints)-1])
-
-        if latex_output == 0:
-            return ans
-        if latex_output == 1:
-            ans0 = maxima.eval("tex("+ans_latex+")")
-            ans0 = ans0.replace("$$","")
-            ans0 = ans0.replace("false","")
-            return ans0
+            ans = ans+repr(ints[i]) + " + "
+        ans = ans+repr(ints[len(ints)-1])
+        return meval(ans)
 
     def __add__(self,other):
 	"""

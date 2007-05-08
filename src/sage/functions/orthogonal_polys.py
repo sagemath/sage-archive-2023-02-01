@@ -385,11 +385,11 @@ def gen_legendre_P(n,m,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, "t").gen()
         sage: gen_legendre_P(2,0,t)
-        '3*(1 - t)^2/2 - 3*(1 - t) + 1'
+        '3*(1-t)^2/2-3*(1-t)+1'
         sage: legendre_P(2,t)
         3/2*t^2 - 1/2
         sage: gen_legendre_P(3,1,t)
-        '-6*(5*(1 - t)^2/4 - 5*(1 - t)/2 + 1)*sqrt(1 - t^2)'
+        '-6*(5*(1-t)^2/4-5*(1-t)/2+1)*sqrt(1-t^2)'
     """
     _init()
     n0 = ZZ(n) # n must be an integer
@@ -411,9 +411,9 @@ def gen_legendre_Q(n,m,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, "t").gen()
         sage: gen_legendre_Q(2,0,t)
-        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
+        '(3*log(-(t+1)/(t-1))*t^2-6*t-log(-(t+1)/(t-1)))/4'
         sage: legendre_Q(2,t)
-        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
+        '(3*log(-(t+1)/(t-1))*t^2-6*t-log(-(t+1)/(t-1)))/4'
         sage: gen_legendre_Q(3,1,0.5)
         2.49185259171
     """
@@ -522,7 +522,7 @@ def legendre_Q(n,x):
     EXAMPLES:
         sage: t = PolynomialRing(QQ, 't').gen()
         sage: legendre_Q(2,t)
-        '(3*log( - (t + 1)/(t - 1))*t^2 - 6*t - log( - (t + 1)/(t - 1)))/4'
+        '(3*log(-(t+1)/(t-1))*t^2-6*t-log(-(t+1)/(t-1)))/4'
         sage: legendre_Q(3,0.5)
         -0.198654771479
         sage: legendre_Q(4,2)

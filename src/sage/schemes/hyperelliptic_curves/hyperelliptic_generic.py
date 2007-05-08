@@ -55,6 +55,13 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         self._hyperelliptic_polynomials = (f,h)
         self._genus = genus
 
+    def chage_ring(self, R):
+        from constructor import HyperellipticCurve
+        f, h = self._hyperelliptic_polynomials
+        y = self._printing_ring.gen()
+        x = self._printing_ring.base_ring().gen()
+        return HyperellipticCurve(f.change_ring(R), h, "%s,%s"%(x,y))
+
     def _repr_(self):
         """
         String representation hyperelliptic curves.
@@ -77,6 +84,11 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         else:
             return "Hyperelliptic Curve over %s defined by %s + %s = %s"%(R, y**2, h(x)*y, f(x))
 
+    def __cmp__(self, other):
+        if not isinstance(other, HyperellipticCurve_generic):
+            return -1
+        return cmp(self._hyperelliptic_polynomials, other._hyperelliptic_polynomials)
+
     def hyperelliptic_polynomials(self, K=None, var='x'):
         if K == None:
             return self._hyperelliptic_polynomials
@@ -84,6 +96,32 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             f, h = self._hyperelliptic_polynomials
             P = PolynomialRing(K, var)
             return (P(f),P(h))
+
+    def lift_x(self, x):
+        f, h = self._hyperelliptic_polynomials
+        x += self.base_ring()(0)
+        one = x.parent()(1)
+        if h.is_zero():
+            y2 = f(x)
+            if y2.is_zero():
+                return self.point([x, y2, one], check=False)
+            elif y2.is_square():
+                y = y2.square_root()
+                return [self.point([x, y, one], check=False),
+                        self.point([x,-y, one], check=False)]
+            else:
+                return []
+        else:
+            b = h(x)
+            D = b*b + 4*f(x)
+            if D.is_zero():
+                return [self.point([x, -b/2, one], check=False)]
+            elif D.is_square():
+                sqrtD = D.square_root()
+                return [self.point([x, (-b+sqrtD)/2, one], check=False),
+                        self.point([x, (-b-sqrtD)/2, one], check=False)]
+            else:
+                return []
 
     def genus(self):
         return self._genus

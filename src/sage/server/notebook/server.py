@@ -475,7 +475,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         #self.wfile.write(notebook.worksheet_list_html())
         #self.wfile.write(notebook.html(W.id(), authorized=self.authorize()))
         self.send_response(302)
-        self.send_header("Location", '/%d'%W.name())
+        self.send_header("Location", '/%s'%W.name())
         self.end_headers()
 
     #######################################################################
@@ -489,8 +489,17 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
             return self.file_not_found(path)
         filename = path[i+1:]
         file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
-        s = ''
-        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css">\n'
+        file = file.replace('<','&lt;')
+        s = """
+<html>
+<head>
+"""
+        s += '<title>%s | SAGE Source Browser</title>' % filename
+        s += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css" />\n'
+        s += """
+</head>
+<body>
+"""
         s += '<h1 align=center>SAGE Source Browser</h1>\n'
         s += '<h2 align=center>devel/sage/sage%s</h2>\n'%filename
         s += '<br><hr><br>\n'
@@ -510,6 +519,10 @@ function get_element(id) {
 var x = get_element("code");
 x.innerHTML = prettyPrintOne(x.innerHTML);
 </script>
+"""
+        s += """
+</body>
+</html>
 """
         return self.wfile.write(s)
 
@@ -771,7 +784,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                     text = keyboards.get_keyboard(self.path[-7:-5])
                 elif path[-13:-3] == '__main__':
                     text = js.javascript()
-                elif path[:7] == 'jsmath/' or path[:10] == 'highlight/':
+                else: #if path[:7] == 'jsmath/' or path[:10] == 'highlight/':
                     try:
                         text = open(SAGE_EXTCODE + "/notebook/javascript/" + path).read()
                     except: pass

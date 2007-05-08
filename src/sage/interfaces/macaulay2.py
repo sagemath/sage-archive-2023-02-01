@@ -376,9 +376,9 @@ class Macaulay2Element(ExpectElement):
         else:
             return self.parent().new('%s %% %s'%(self.name(), x.name()))
 
-    def is_zero(self):
+    def __nonzero__(self):
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == 'true'
+        return P.eval('%s == 0'%self.name()) == 'false'
 
     def sage_polystring(self):
 	"""

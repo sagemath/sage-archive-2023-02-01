@@ -56,7 +56,7 @@ class FractionFieldElement(field_element.FieldElement):
         else:
             self.__numerator = numerator
             self.__denominator = denominator
-        if reduce:
+        if reduce and parent.is_exact():
             try:
                 self.reduce()
             except ArithmeticError:

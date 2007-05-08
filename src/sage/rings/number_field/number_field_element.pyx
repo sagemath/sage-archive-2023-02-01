@@ -232,17 +232,17 @@ cdef class NumberFieldElement(FieldElement):
         """
         Return PARI C-library object corresponding to self.
 
-        NOTE: This is not the actual underlying object that represents
-        this element, since that is a polynomial in x (as PARI
-        polynomials are rather constrained in their possible variable
-        names, e.g., I cannot be the name of a variable).
-
         EXAMPLES:
             sage: k.<j> = QuadraticField(-1)
             sage: j._pari_()
             Mod(j, j^2 + 1)
             sage: pari(j)
             Mod(j, j^2 + 1)
+
+            sage: y = QQ['y'].gen()
+            sage: k.<j> = NumberField(y^3 - 2)
+            sage: pari(j)
+            Mod(j, j^3 - 2)
 
         If you try do coerce a generator called I to PARI, hell may
         break loose:
@@ -275,10 +275,13 @@ cdef class NumberFieldElement(FieldElement):
             g = g.replace("y", gsub)
         else:
             f = self.polynomial()._pari_()
-            g = self.parent().polynomial()._pari_()
+            gp = self.parent().polynomial()
+            g = gp._pari_()
+            gv = str(gp.parent().gen())
             if var != 'x':
                 f = f.subst("x",var)
-                g = g.subst("x",var)
+            if var != gv:
+                g = g.subst(gv, var)
         h = f.Mod(g)
         self.__pari[var] = h
         return h

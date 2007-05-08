@@ -15,103 +15,110 @@ Sequences:
 \begin{itemize}
 \item Bell numbers, \code{bell_number}
 
-\item Bernoulli numbers, \code{bernoulli_number} (though PARI's bernoulli is
-  better)
+\item Bernoulli numbers, \code{bernoulli_number} (though PARI's
+  bernoulli is better)
 
-\item Catalan numbers, \code{catalan_number} (not to be confused with the
-  Catalan constant)
+\item Catalan numbers, \code{catalan_number} (not to be confused with
+  the Catalan constant)
 
 \item Eulerian/Euler numbers, \code{euler_number} (Maxima)
 
-\item Fibonacci numbers, \code{fibonacci} (PARI) and \code{fibonacci_number} (GAP)
-  The PARI version is better.
+\item Fibonacci numbers, \code{fibonacci} (PARI) and
+  \code{fibonacci_number} (GAP) The PARI version is better.
 
 \item Lucas numbers, \code{lucas_number1}, \code{lucas_number2}.
 
-\item Stirling numbers, \code{stirling_number1}, \code{stirling_number2}.
+\item Stirling numbers, \code{stirling_number1},
+\code{stirling_number2}.
+
 \end{itemize}
 
 Set-theoretic constructions:
 \begin{itemize}
-\item Combinations of a multiset, \code{combinations}, \code{combinations_iterator},
-and \code{number_of_combinations}. These are unordered selections without
-repetition of k objects from a multiset S.
 
-\item Arrangements of a multiset, \code{arrangements} and \code{number_of_arrangements}
-  These are ordered selections without repetition of k objects from a
-  multiset S.
+\item Combinations of a multiset, \code{combinations},
+\code{combinations_iterator}, and \code{number_of_combinations}. These
+are unordered selections without repetition of k objects from a
+multiset S.
 
-\item Derangements of a multiset, \code{derangements} and \code{number_of_derangements}.
+\item Arrangements of a multiset, \code{arrangements} and
+  \code{number_of_arrangements} These are ordered selections without
+  repetition of k objects from a multiset S.
+
+\item Derangements of a multiset, \code{derangements} and
+\code{number_of_derangements}.
 
 \item Tuples of a multiset, \code{tuples} and \code{number_of_tuples}.
   An ordered tuple of length k of set S is a ordered selection with
   repetitions of S and is represented by a sorted list of length k
   containing elements from S.
 
-\item Unordered tuples of a set, \code{unordered_tuple} and \code{number_of_unordered_tuples}.
-  An unordered tuple of length k of set S is a unordered selection with
-  repetitions of S and is represented by a sorted list of length k
-  containing elements from S.
+\item Unordered tuples of a set, \code{unordered_tuple} and
+  \code{number_of_unordered_tuples}.  An unordered tuple of length k
+  of set S is a unordered selection with repetitions of S and is
+  represented by a sorted list of length k containing elements from S.
 
-\item Permutations of a multiset, \code{permutations}, \code{permutations_iterator},
-\code{number_of_permutations}. A permutation is a list that contains exactly the same elements but
+\item Permutations of a multiset, \code{permutations},
+\code{permutations_iterator}, \code{number_of_permutations}. A
+permutation is a list that contains exactly the same elements but
 possibly in different order.
+
 \end{itemize}
 
 Partitions:
 \begin{itemize}
-\item Partitions of a set, \code{partitions_set}, \code{number_of_partitions_set}.
-  An unordered partition of set S is a set of pairwise disjoint
-  nonempty sets with union S and is represented by a sorted list of
-  such sets.
 
-\item Partitions of an integer, \code{partitions_list}, \code{number_of_partitions_list}.
-  An unordered partition of n is an unordered sum
-  $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is represented by
-  the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
-  $p1\geq p_2 ...\geq p_k$.
+\item Partitions of a set, \code{partitions_set},
+  \code{number_of_partitions_set}.  An unordered partition of set S is
+  a set of pairwise disjoint nonempty sets with union S and is
+  represented by a sorted list of such sets.
+
+\item Partitions of an integer, \code{partitions_list},
+  \code{number_of_partitions_list}.  An unordered partition of n is an
+  unordered sum $n = p_1+p_2 +\ldots+ p_k$ of positive integers and is
+  represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
+  order, i.e., $p1\geq p_2 ...\geq p_k$.
 
 \item Ordered partitions of an integer, \code{ordered_partitions},
-  \code{number_of_ordered_partitions}.
-  An ordered partition of n is an ordered sum $n = p_1+p_2 +\ldots+ p_k$
-  of positive integers and is represented by
-  the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing order, i.e.,
-  $p1\geq p_2 ...\geq p_k$.
+  \code{number_of_ordered_partitions}.  An ordered partition of n is
+  an ordered sum $n = p_1+p_2 +\ldots+ p_k$ of positive integers and
+  is represented by the list $p = [p_1,p_2,\ldots,p_k]$, in
+  nonincreasing order, i.e., $p1\geq p_2 ...\geq p_k$.
 
-\item Restricted partitions of an integer, \code{partitions_restricted},
-  \code{number_of_partitions_restricted}.
-  An unordered restricted partition of n is an unordered sum
-  $n = p_1+p_2 +\ldots+ p_k$ of positive integers $p_i$ belonging to a
-  given set $S$, and is represented by the list $p = [p_1,p_2,\ldots,p_k]$,
-  in nonincreasing order, i.e., $p1\geq p_2 ...\geq p_k$.
+\item Restricted partitions of an integer,
+  \code{partitions_restricted},
+  \code{number_of_partitions_restricted}.  An unordered restricted
+  partition of n is an unordered sum $n = p_1+p_2 +\ldots+ p_k$ of
+  positive integers $p_i$ belonging to a given set $S$, and is
+  represented by the list $p = [p_1,p_2,\ldots,p_k]$, in nonincreasing
+  order, i.e., $p1\geq p_2 ...\geq p_k$.
 
-\item \code{partitions_greatest}
-   implements a special type of restricted partition.
+\item \code{partitions_greatest} implements a special type of
+   restricted partition.
 
-\item \code{partitions_greatest_eq} is another type of restricted partition.
+\item \code{partitions_greatest_eq} is another type of restricted
+partition.
 
 \item Tuples of partitions, \code{partition_tuples},
-  \code{number_of_partition_tuples}.
-  A $k$-tuple of partitions is represented by a list of all $k$-tuples
-  of partitions which together form a partition of $n$.
+  \code{number_of_partition_tuples}.  A $k$-tuple of partitions is
+  represented by a list of all $k$-tuples of partitions which together
+  form a partition of $n$.
 
-\item Powers of a partition, \code{partition_power(pi, k)}.
-  The power of a partition corresponds to the $k$-th power of a
-  permutation with cycle structure $\pi$.
+\item Powers of a partition, \code{partition_power(pi, k)}.  The power
+  of a partition corresponds to the $k$-th power of a permutation with
+  cycle structure $\pi$.
 
-\item Sign of a partition, \code{partition_sign( pi ) }
-  This means the sign of a permutation with cycle structure given by the
-  partition pi.
+\item Sign of a partition, \code{partition_sign( pi ) } This means the
+  sign of a permutation with cycle structure given by the partition
+  pi.
 
-\item Associated partition, \code{partition_associated( pi )}
-  The ``associated'' (also called ``conjugate'' in the literature)
+\item Associated partition, \code{partition_associated( pi )} The
+  ``associated'' (also called ``conjugate'' in the literature)
   partition of the partition pi which is obtained by transposing the
   corresponding Ferrers diagram.
 
-\item Ferrers diagram, \code{ferrers_diagram}.
-  Analogous to the Young diagram of an irredicible representation
-  of $S_n$.
-  \end{itemize}
+\item Ferrers diagram, \code{ferrers_diagram}.  Analogous to the Young
+  diagram of an irredicible representation of $S_n$.  \end{itemize}
 
 Related functions:
 
@@ -258,7 +265,7 @@ def catalan_number(n):
         sage: [catalan_number(i) for i in range(7)]
         [1, 1, 2, 5, 14, 42, 132]
         sage: maxima.eval("-(1/2)*taylor (sqrt (1-4*x^2), x, 0, 15)")
-        '-1/2 + x^2 + x^4 + 2*x^6 + 5*x^8 + 14*x^10 + 42*x^12 + 132*x^14'
+        '-1/2+x^2+x^4+2*x^6+5*x^8+14*x^10+42*x^12+132*x^14'
         sage: [catalan_number(i) for i in range(-7,7) if i != -1]
         [0, 0, 0, 0, 0, 0, 1, 1, 2, 5, 14, 42, 132]
         sage: catalan_number(-1)
@@ -286,7 +293,7 @@ def euler_number(n):
         sage: [euler_number(i) for i in range(10)]
         [1, 0, -1, 0, 5, 0, -61, 0, 1385, 0]
         sage: maxima.eval("taylor (2/(exp(x)+exp(-x)), x, 0, 10)")
-        '1 - x^2/2 + 5*x^4/24 - 61*x^6/720 + 277*x^8/8064 - 50521*x^10/3628800'
+        '1-x^2/2+5*x^4/24-61*x^6/720+277*x^8/8064-50521*x^10/3628800'
         sage: [euler_number(i)/factorial(i) for i in range(11)]
         [1, 0, -1/2, 0, 5/24, 0, -61/720, 0, 277/8064, 0, -50521/3628800]
         sage: euler_number(-1)

@@ -37,15 +37,14 @@ def set_global_complex_round_mode(n):
 #from sage.databases.odlyzko import zeta_zeroes
 
 def is_ComplexNumber(x):
-    return isinstance(x, ComplexNumber)
+    return bool(isinstance(x, ComplexNumber))
 
 cdef class ComplexNumber(sage.structure.element.FieldElement):
     """
     A complex number.
 
     EXAMPLES:
-        sage: C = ComplexField()
-        sage: I = C.0
+        sage: I = CC.0
         sage: b = 1.5 + 2.5*I
         sage: loads(b.dumps()) == b
         True
@@ -116,11 +115,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Pickling support
 
         EXAMPLES:
-            sage: a = 1+I
+            sage: a = CC(1 + I)
             sage: loads(dumps(a)) == a
             True
         """
-        # TODO: This is potentially very slow -- make a 1 version that
+        # TODO: This is potentially slow -- make a 1 version that
         # is native and much faster -- doesn't use .real()/.imag()
         return (make_ComplexNumber0, (self._parent, self._multiplicative_order, self.real(), self.imag()))
 
@@ -260,7 +259,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def __pow__(self, right, modulus):
         """
         EXAMPLES:
-            sage: C, i = ComplexField(20).objgen()
+            sage: C.<i> = ComplexField(20)
             sage: a = i^2; a
             -1.0000
             sage: a.parent()
@@ -278,11 +277,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         if isinstance(right, (int, long, integer.Integer)):
             return sage.rings.ring_element.RingElement.__pow__(self, right)
-        z = self._pari_()
-        P = (<ComplexNumber>self)._parent
-        w = P(right)._pari_()
-        m = z**w
-        return P(m)
+        try:
+            P = self.parent()
+            right = P(right)
+            z = self._pari_()
+            w = P(right)._pari_()
+            m = z**w
+            return P(m)
+        except TypeError:
+            try:
+                self = right.parent()(self)
+                return self**right
+            except AttributeError:
+                raise TypeError
 
     def prec(self):
         """
@@ -347,6 +354,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         Return the multiplicative inverse.
 
         EXAMPLES:
+            sage: I = CC.0
             sage: a = ~(5+I)
             sage: a * (5+I)
             1.00000000000000
@@ -415,7 +423,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         a NotImplementedError.
 
         EXAMPLES:
-            sage: C, i = ComplexField().objgen()
+            sage: C.<i> = ComplexField()
             sage: i.multiplicative_order()
             4
             sage: C(1).multiplicative_order()
@@ -428,7 +436,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             4
             sage: C(2).multiplicative_order()
             +Infinity
-            sage: w = (1+sqrt(-3))/2; w
+            sage: w = (1+sqrt(-3.0))/2; w
             0.500000000000000 + 0.866025403784439*I
             sage: abs(w)
             1.00000000000000
@@ -461,7 +469,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def acos(self):
         """
         EXAMPLES:
-            sage: (1+I).acos()
+            sage: (1+CC(I)).acos()
             0.904556894302381 - 1.06127506190504*I
         """
         return self._parent(self._pari_().acos())
@@ -469,7 +477,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def acosh(self):
         """
         EXAMPLES:
-            sage: (1+I).acosh()
+            sage: (1+CC(I)).acosh()
             1.06127506190504 + 0.904556894302381*I
         """
         return self._parent(self._pari_().acosh())
@@ -477,7 +485,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def asin(self):
         """
         EXAMPLES:
-            sage: (1+I).asin()
+            sage: (1+CC(I)).asin()
             0.666239432492515 + 1.06127506190504*I
         """
         return self._parent(self._pari_().asin())
@@ -485,7 +493,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def asinh(self):
         """
         EXAMPLES:
-            sage: (1+I).asinh()
+            sage: (1+CC(I)).asinh()
             1.06127506190504 + 0.666239432492515*I
         """
         return self._parent(self._pari_().asinh())
@@ -493,7 +501,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def atan(self):
         """
         EXAMPLES:
-            sage: (1+I).atan()
+            sage: (1+CC(I)).atan()
             1.01722196789785 + 0.402359478108525*I
         """
         return self._parent(self._pari_().atan())
@@ -501,15 +509,40 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def atanh(self):
         """
         EXAMPLES:
-            sage: (1+I).atanh()
+            sage: (1+CC(I)).atanh()
             0.402359478108525 + 1.01722196789785*I
         """
         return self._parent(self._pari_().atanh())
 
+    def coth(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).coth()
+            0.86801414289592494863584920892 - 0.21762156185440268136513424361*I
+        """
+        return 1/self.tanh()
+
+    def csch(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).csch()
+            0.30393100162842645033448560451 - 0.62151801717042842123490780586*I
+        """
+        return 1/self.sinh()
+
+    def sech(self):
+        """
+        EXAMPLES:
+            sage: ComplexField(100)(1,1).sech()
+            0.49833703055518678521380589177 - 0.59108384172104504805039169297*I
+        """
+        return 1/self.cosh()
+
+
     def cotan(self):
         """
         EXAMPLES:
-            sage: (1+I).cotan()
+            sage: (1+CC(I)).cotan()
             0.217621561854403 - 0.868014142895925*I
             sage: i = ComplexField(200).0
             sage: (1+i).cotan()
@@ -523,7 +556,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def cos(self):
         """
         EXAMPLES:
-            sage: (1+I).cos()
+            sage: (1+CC(I)).cos()
             0.833730025131149 - 0.988897705762865*I
         """
         return self._parent(self._pari_().cos())
@@ -531,7 +564,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def cosh(self):
         """
         EXAMPLES:
-            sage: (1+I).cosh()
+            sage: (1+CC(I)).cosh()
             0.833730025131149 + 0.988897705762865*I
         """
         return self._parent(self._pari_().cosh())
@@ -567,6 +600,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         We compute eta to low precision directly from the definition.
             sage: z = 1 + i; z.eta()
             0.742048775836565 + 0.198831370229911*I
+            sage: pi = CC(pi)        # otherwise we will get a symbolic result.
             sage: exp(pi * i * z / 12) * prod([1-exp(2*pi*i*n*z) for n in range(1,10)])
             0.742048775836565 + 0.198831370229911*I
 
@@ -589,7 +623,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             ValueError: value must be in the upper half plane
 
         You can also use functional notation.
-            sage: eta(1+I)
+            sage: eta(1+CC(I))
             0.742048775836565 + 0.198831370229911*I
         """
         try:
@@ -601,7 +635,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def sin(self):
         """
         EXAMPLES:
-            sage: (1+I).sin()
+            sage: (1+CC(I)).sin()
             1.29845758141598 + 0.634963914784736*I
         """
         return self._parent(self._pari_().sin())
@@ -609,7 +643,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def sinh(self):
         """
         EXAMPLES:
-            sage: (1+I).sinh()
+            sage: (1+CC(I)).sinh()
             0.634963914784736 + 1.29845758141598*I
         """
         return self._parent(self._pari_().sinh())
@@ -617,7 +651,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def tan(self):
         """
         EXAMPLES:
-            sage: (1+I).tan()
+            sage: (1+CC(I)).tan()
             0.271752585319512 + 1.08392332733869*I
         """
         return self._parent(self._pari_().tan())
@@ -625,7 +659,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def tanh(self):
         """
         EXAMPLES:
-            sage: (1+I).tanh()
+            sage: (1+CC(I)).tanh()
             1.08392332733869 + 0.271752585319512*I
         """
         return self._parent(self._pari_().tanh())
@@ -634,7 +668,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
     def agm(self, right):
         """
         EXAMPLES:
-            sage: (1+I).agm(2-I)
+            sage: (1+CC(I)).agm(2-I)
             1.62780548487271 + 0.136827548397369*I
         """
         t = self._parent(right)._pari_()
@@ -763,8 +797,14 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         else:
             return infinity.infinity
 
-    def sqrt(self):
+    def sqrt(self, all=False, **kwds):
         """
+        The square root function.
+
+        INPUT:
+            all -- bool (default: False); if True, return a list
+                of all square roots.
+
         EXAMPLES:
             sage: C, i = ComplexField(30).objgen()
             sage: i.sqrt()
@@ -777,18 +817,19 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             sage: i.sqrt()
             0.70710678118654752440084436210484903928483593768847403658834 + 0.70710678118654752440084436210484903928483593768847403658834*I
         """
-        return self._parent(self._pari_().sqrt())
+        z = self._parent(self._pari_().sqrt())
+        if all:
+            if z.is_zero():
+                return [z]
+            else:
+                return [z, -z]
+        return z
 
-    def square_root(self):
+    def is_square(self):
         """
-        Return square root, which is a complex number.
-
-        EXAMPLES:
-            sage: i = ComplexField(100).0
-            sage: (-i).sqrt()
-            0.70710678118654752440084436210 - 0.70710678118654752440084436210*I
+        This function always returns true as $\C$ is algebraically closed.
         """
-        return self.sqrt()
+        return True
 
     def zeta(self):
         """
@@ -815,7 +856,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
 
         EXAMPLE:
             sage: C = ComplexField()
-            sage: z = (1/2)*(1 + sqrt(3) *C.0); z
+            sage: z = (1/2)*(1 + sqrt(3.0) *C.0); z
             0.500000000000000 + 0.866025403784439*I
             sage: p = z.algdep(5); p
             x^5 + x^2

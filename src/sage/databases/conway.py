@@ -65,7 +65,7 @@ import os
 
 import sage.misc.misc
 import sage.databases.db   # very important that this be fully qualified
-_CONWAYDATA = "%s/data/src/conway/conway_table.py.bz2"%sage.misc.misc.SAGE_ROOT
+_CONWAYDATA = "%s/conway_polynomials/"%sage.databases.db.DB_HOME
 
 
 class ConwayPolynomials(sage.databases.db.Database):
@@ -83,9 +83,10 @@ class ConwayPolynomials(sage.databases.db.Database):
 
     def _init(self):
         if not os.path.exists(_CONWAYDATA):
-            raise RuntimeError, "In order to initialize the database, the file %s must exist."%_CONWAYDATA
-        os.system("cp %s ."%_CONWAYDATA)
-        os.system("bunzip2 conway_table.py.bz2")
+            raise RuntimeError, "In order to initialize the database, the directory must exist."%_CONWAYDATA
+        os.chdir(_CONWAYDATA)
+        if os.system("bunzip2 -k conway_table.py.bz2"):
+            raise RuntimeError, "error decompressing table"
         from conway_table import conway_polynomials
         for X in conway_polynomials:
             (p, n, v) = tuple(X)
@@ -93,7 +94,8 @@ class ConwayPolynomials(sage.databases.db.Database):
                 self[p] = {}
             self[p][n] = v
             self[p] = self[p]  # so database knows it was changed
-        os.system("bzip2 conway_table.py; rm conway_table.pyc; cp conway_table.py %s"%_CONWAYDATA)
+        os.unlink("conway_table.pyc")
+        os.unlink("conway_table.py")
         self.commit()
 
     def __repr__(self):

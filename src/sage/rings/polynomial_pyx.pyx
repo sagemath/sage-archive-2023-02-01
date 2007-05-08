@@ -1143,8 +1143,8 @@ cdef class Polynomial_rational(sage.structure.element.RingElement):
     def degree(self):
         return self.pq.degree
 
-    def is_zero(self):
-        return self.pq.degree == -1
+    def __nonzero__(self):
+        return self.pq.degree != -1
 
     def list(self):
         return PQ_list(self.pq)

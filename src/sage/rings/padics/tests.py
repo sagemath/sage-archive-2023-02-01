@@ -25,6 +25,4 @@ Loading and saving elements of various types:
 
     sage: a = Zp(5)(-3); loads(dumps(a)) == a
     True
-    sage: a = ZpL(5)(-3); loads(dumps(a)) == a
-    True
 """

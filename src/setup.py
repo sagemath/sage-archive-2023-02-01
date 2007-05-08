@@ -116,11 +116,6 @@ pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
                  libraries = ['pari', 'gmp'])
 
-cf = Extension('sage.libs.cf.cf',
-               sources = ["sage/libs/cf/cf.pyxe", "sage/libs/cf/ftmpl_inst.cc"],
-               libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
-               )
-
 
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
@@ -129,9 +124,9 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        )
 
 
-qd = Extension('sage.rings.real_qdrf',
-                       sources = ["sage/rings/real_qdrf.pyx"],
-                       libraries = ['qd', 'm', 'stdc++', ],
+qd = Extension('sage.rings.real_rqdf',
+                       sources = ["sage/rings/real_rqdf.pyx"],
+                       libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
                        language='c++'
                        )
 
@@ -174,6 +169,13 @@ linbox = Extension('sage.libs.linbox.linbox',
                    # For this to work on cygwin, linboxwrap *must* be before ntl.
                    libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
+
+libsingular = Extension('sage.libs.singular.singular',
+                        sources = ['sage/libs/singular/singular.pyx'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
+                        language="c++",
+                        )
+
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
@@ -264,7 +266,7 @@ gsl_callback = Extension('sage.gsl.callback',
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', 'gmp', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
@@ -333,8 +335,6 @@ ext_modules = [ \
 
     matrix_misc,
 
-    cf,
-
     matrix_dense,
     matrix_generic_dense,
 
@@ -364,6 +364,8 @@ ext_modules = [ \
      matrix_mod2_dense,
      givaro_gfq, \
 
+     libsingular, \
+
 ##     matrix_rational_sparse,
 
 ##     matrix_cyclo_dense,
@@ -380,7 +382,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    #qd,
+    qd,
 
     complex_number,
 
@@ -415,6 +417,20 @@ ext_modules = [ \
 
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
+
+    Extension('sage.rings.multi_polynomial',
+              sources = ['sage/rings/multi_polynomial.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_ring_generic',
+              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_libsingular',
+              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              language="c++",
+              ), \
 
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
@@ -466,6 +482,12 @@ ext_modules = [ \
     Extension('sage.rings.polynomial_element',
               sources = ['sage/rings/polynomial_element.pyx']), \
 
+    Extension('sage.rings.power_series_ring_element',
+              sources = ['sage/rings/power_series_ring_element.pyx']), \
+
+    Extension('sage.rings.laurent_series_ring_element',
+              sources = ['sage/rings/laurent_series_ring_element.pyx']), \
+
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',
                          'sage/ext/arith_gmp.pyx'],
@@ -495,6 +517,9 @@ ext_modules = [ \
 
     Extension('sage.misc.reset',
               ['sage/misc/reset.pyx']), \
+
+    Extension('sage.calculus.var',
+              ['sage/calculus/var.pyx']), \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
@@ -833,7 +858,7 @@ setup(name        = 'sage',
                      'sage.libs.ntl',
                      'sage.libs.ec',
                      'sage.libs.pari',
-                     'sage.libs.cf',
+                     'sage.libs.singular',
 
                      'sage.matrix',
 

@@ -43,6 +43,13 @@ class SubstitutionCryptosystem(SymmetricKeyCryptosystem):
             sage: m = M("THECATINTHEHAT")
             sage: e(m)
             GSVXZGRMGSVSZG
+
+        TESTS:
+            sage: M = AlphabeticStrings()
+            sage: E = SubstitutionCryptosystem(M)
+            sage: E == loads(dumps(E))
+            True
+
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -140,6 +147,13 @@ class TranspositionCryptosystem(SymmetricKeyCryptosystem):
             sage: e = E(K)
             sage: e(S("THECATINTHEHAT"))
             TAHEHTNITACEHT
+
+        EXAMPLES:
+            sage: S = AlphabeticStrings()
+            sage: E = TranspositionCryptosystem(S,14)
+            sage: E == loads(dumps(E))
+            True
+
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S
@@ -234,6 +248,13 @@ class VigenereCryptosystem(SymmetricKeyCryptosystem):
             ABCDEFGHIJKLMN
             sage: e(S("THECATINTHEHAT"))
             TIGFEYOUBQOSMG
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,14)
+            sage: E == loads(dumps(E))
+            True
+
         """
         if not isinstance(S, StringMonoid_class):
             raise TypeError, "S (= %s) must be a string monoid."%S

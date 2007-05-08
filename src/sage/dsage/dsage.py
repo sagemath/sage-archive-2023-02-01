@@ -142,7 +142,6 @@ class DistributedSage(object):
         default connects to localhost on port 8081 to fetch jobs.
 
         INPUT:
-
             server -- (string, default: None) the server you want to
                       connect to if None, connects to the server
                       specified in .sage/dsage/worker.conf

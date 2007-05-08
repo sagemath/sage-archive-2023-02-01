@@ -87,9 +87,15 @@ cdef class SageObject:
             return self._repr_()
         return str(type(self))
 
-    def _plot_(self, *args, **kwds):
+    def plot(self, *args, **kwds):
         import sage.plot.plot
-        return sage.plot.plot.Plot(str(self))
+        if len(args) == 0 and len(kwds) == 0:
+            return sage.plot.plot.text(repr(self), (0,0))
+        else:
+            try:
+                return sage.plot.plot.text(repr(self), *args, **kwds)
+            except TypeError:
+                return sage.plot.plot.text(repr(self), (0,0))
 
     def __hash__(self):
         return hash(self.__repr__())
@@ -236,10 +242,13 @@ cdef class SageObject:
             s = self.__getattribute__('_%s_init_'%I.name())()
         except AttributeError, msg0:
             try:
-                s = self._interface_init_()
-            except AttributeError, msg1:
-                raise NotImplementedError, "coercion of object to %s not implemented:\n%s\n%s"%\
-                      (I, msg0, msg1)
+                s = self._system_init_(I.name())
+            except AttributeError:
+                try:
+                    s = self._interface_init_()
+                except AttributeError, msg1:
+                    raise NotImplementedError, "coercion of object %s to %s not implemented:\n%s\n%s"%\
+                          (repr(self), I, msg0, msg1)
         X = I(s)
         if c:
             try:
@@ -249,7 +258,7 @@ cdef class SageObject:
         return X
 
     def _interface_init_(self):
-        return str(self)
+        return repr(self)
 
     def _interface_is_cached_(self):
         """

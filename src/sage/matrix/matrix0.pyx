@@ -716,7 +716,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # compute column widths
         S = []
         for x in self.list():
-            S.append(str(x))
+            S.append(repr(x))
 
         tmp = []
         for x in S:

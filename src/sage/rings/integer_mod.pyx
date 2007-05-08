@@ -21,6 +21,7 @@ AUTHORS:
     -- Didier Deshommes (bit shifting)
     -- William Stein (editing and polishing; new arith architecture)
     -- Robert Bradshaw (implement native is_square and square_root)
+    -- William Stein (sqrt)
 
 TESTS:
     sage: R = Integers(101^3)
@@ -109,7 +110,11 @@ def IntegerMod(parent, value):
             res = value % modulus.int64
             if res < 0:
                 res = res + modulus.int64
-            return modulus.lookup(res)
+            a = modulus.lookup(res)
+            if (<Element>a)._parent is not parent:
+               (<Element>a)._parent = parent
+#                print (<Element>a)._parent, " is not ", parent
+            return a
     if modulus.int32 != -1:
         return IntegerMod_int(parent, value)
     elif modulus.int64 != -1:
@@ -471,7 +476,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
 
     def is_square(self):
-        """
+        r"""
         EXAMPLES:
             sage: Mod(3,17).is_square()
             False
@@ -493,7 +498,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             True
 
         ALGORITHM:
-            Calculate the Jacobi symbol $(self/p)$ at each prime $p dividing $n$
+            Calculate the Jacobi symbol $(self/p)$ at each prime $p$ dividing $n$
             It must be 1 or 0 for each prime, and if it is 0 mod $p$,
             where $p^k || n$, then $ord_p(self)$ must be even or greater than $k$.
 
@@ -534,67 +539,158 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
                     return 0
             return 1
 
+    def sqrt(self, extend=True, all=False):
+        r"""
+        Returns square root or square roots of self modulo n.
 
-    def sqrt(self):
-        """
-        Same as self.square_root().
-        """
-        return self.square_root()
+        INPUT:
+            extend -- bool (default: True); if True, return a square
+                 root in an extension ring, if necessary. Otherwise,
+                 raise a ValueError if the square is not in the base ring.
+            all -- bool (default: False); if True, return *all* square
+                   roots of self, instead of just one.
 
+        ALGORITHM: Calculates the square roots mod $p$ for each of the
+        primes $p$ dividing the order of the ring, then lifts them
+        p-adically and uses the CRT to find a square root mod $n$.
 
-    def square_root(self):
-        """
-        Calculates the square roots mod $p$ for each of the primes $p$ dividing
-        the order of the ring, then lifts p-adically and uses crt to
-        find a square root mod $n$.
-
-        See also \code{square_root_mod_prime_power} and \code{square_root_mod_prime}
-        (in this module) algorithms details.
+        See also \code{square_root_mod_prime_power} and
+        \code{square_root_mod_prime} (in this module) for more
+        algorithmic details.
 
         EXAMPLES:
-            sage: mod(-1, 17).square_root()
+            sage: mod(-1, 17).sqrt()
             4
-            sage: mod(5, 389).square_root()
+            sage: mod(5, 389).sqrt()
             86
-            sage: mod(7, 18).square_root()
+            sage: mod(7, 18).sqrt()
             5
-            sage: a = mod(14, 5^60).square_root()
+            sage: a = mod(14, 5^60).sqrt()
             sage: a*a
             14
-            sage: mod(15, 389).square_root()
+            sage: mod(15, 389).sqrt(extend=False)
             Traceback (most recent call last):
             ...
-            ValueError: Self must be a square.
-            sage: Mod(1/9, next_prime(2^40)).square_root()^(-2)
+            ValueError: self must be a square
+            sage: Mod(1/9, next_prime(2^40)).sqrt()^(-2)
             9
-            sage: Mod(1/25, next_prime(2^90)).square_root()^(-2)
+            sage: Mod(1/25, next_prime(2^90)).sqrt()^(-2)
             25
 
+            sage: a = Mod(3,5); a
+            3
+            sage: x = Mod(-1, 360)
+            sage: x.sqrt(extend=False)
+            Traceback (most recent call last):
+            ...
+            ValueError: self must be a square
+            sage: y = x.sqrt(); y
+            sqrt359
+            sage: y.parent()
+            Univariate Quotient Polynomial Ring in sqrt359 over Ring of integers modulo 360 with modulus x^2 + 1
+            sage: y^2
+            359
+
+        We compute all square roots in several cases:
+            sage: R = Integers(5*2^3*3^2); R
+            Ring of integers modulo 360
+            sage: R(40).sqrt(all=True)
+            [20, 160, 200, 340]
+            sage: [x for x in R if x^2 == 40]  # Brute force verification
+            [20, 160, 200, 340]
+            sage: R(1).sqrt(all=True)
+            [1, 19, 71, 89, 91, 109, 161, 179, 181, 199, 251, 269, 271, 289, 341, 359]
+
+            sage: R = Integers(5*13^2*37); R
+            Ring of integers modulo 31265
+            sage: v = R(-1).sqrt(all=True); v
+            [3817, 5507, 13252, 14942, 16323, 18013, 25758, 27448]
+            sage: [x^2 for x in v]
+            [31264, 31264, 31264, 31264, 31264, 31264, 31264, 31264]
+
+        Modulo a power of 2:
+            sage: R = Integers(2^7); R
+            Ring of integers modulo 128
+            sage: a = R(17)
+            sage: a.sqrt()
+            23
+            sage: a.sqrt(all=True)
+            [23, 41, 87, 105]
+            sage: [x for x in R if x^2==17]
+            [23, 41, 87, 105]
         """
-        if self.is_zero() or self.is_one():
-            return self
+        if self.is_one():
+            if all:
+                return list(self.parent().square_roots_of_one())
+            else:
+                return self
 
         if not self.is_square_c():
-            raise ValueError, "Self must be a square."
+            if extend:
+                R = self.parent()['x']
+                y = 'sqrt%s'%self
+                Q = R.quotient(R.gen()**2 - R(self), names=(y,))
+                z = Q.gen()
+                if all:
+                    # TODO
+                    raise NotImplementedError
+                return z
+            raise ValueError, "self must be a square"
 
-        moduli = self._parent.factored_order()
-        if len(moduli) == 1:
-            p, e = moduli[0]
+        F = self._parent.factored_order()
+        if len(F) == 1:
+            p, e = F[0]
+
+            if all and e > 1 and not self.is_unit():
+                # TODO -- this is the *one* and only remaining STUPID SLOW CASE.
+                v = [x for x in self.parent() if x*x == self]
+                return v
+
             if e > 1:
                 x = square_root_mod_prime_power(mod(self, p**e), p, e)
             else:
                 x = square_root_mod_prime(self, p)
+            x = x._balanced_abs()
 
+            if not all:
+                return x
+
+            v = list(set([x*a for a in self.parent().square_roots_of_one()]))
+            v.sort()
+            return v
         else:
-            # return product of square roots mod each prime power
-            sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in moduli if e == 1] + \
-                    [square_root_mod_prime_power(mod(self, p**e), p, e) for p, e in moduli if e != 1]
+            if not all:
+                # Use CRT to combine together a square root modulo each prime power
+                sqrts = [square_root_mod_prime(mod(self, p), p) for p, e in F if e == 1] + \
+                        [square_root_mod_prime_power(mod(self, p**e), p, e) for p, e in F if e != 1]
 
-            x = sqrts.pop()
-            for y in sqrts:
-                x = x.crt(y)
-
-        return x._balanced_abs()
+                x = sqrts.pop()
+                for y in sqrts:
+                    x = x.crt(y)
+                return x._balanced_abs()
+            else:
+                # Use CRT to combine together all square roots modulo each prime power
+                vmod = []
+                moduli = []
+                P = self.parent()
+                from integer_mod_ring import IntegerModRing
+                for p, e in F:
+                    k = p**e
+                    R = IntegerModRing(p**e)
+                    w = [P(x) for x in R(self).sqrt(all=True)]
+                    vmod.append(w)
+                    moduli.append(k)
+                # Now combine in all possible ways using the CRT
+                from arith import CRT_basis
+                basis = CRT_basis(moduli)
+                from sage.misc.mrange import cartesian_product_iterator
+                v = []
+                for x in cartesian_product_iterator(vmod):
+                    # x is a specific choice of roots modulo each prime power divisor
+                    a = sum([basis[i]*x[i] for i in range(len(x))])
+                    v.append(a)
+                v.sort()
+                return v
 
     def _balanced_abs(self):
         """
@@ -834,9 +930,9 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
         """
         return bool(mpz_cmp_si(self.value, 1) == 0)
 
-    def is_zero(IntegerMod_gmp self):
+    def __nonzero__(IntegerMod_gmp self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^23).is_zero()
@@ -844,7 +940,7 @@ cdef class IntegerMod_gmp(IntegerMod_abstract):
             sage: (mod(25,5^23)^23).is_zero()
             True
         """
-        return bool(mpz_cmp_si(self.value, 0) == 0)
+        return bool(mpz_cmp_si(self.value, 0) != 0)
 
     def is_unit(self):
         return bool(self.lift().gcd(self.modulus()) == 1)
@@ -1095,8 +1191,8 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         if self.__modulus.table is not None:
             return self.__modulus.lookup(value)
         cdef IntegerMod_int x = PY_NEW(IntegerMod_int)
-        x.__modulus = self.__modulus
         x._parent = self._parent
+        x.__modulus = self.__modulus
         x.ivalue = value
         return x
 
@@ -1159,9 +1255,9 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         """
         return bool(self.ivalue == 1)
 
-    def is_zero(IntegerMod_int self):
+    def __nonzero__(IntegerMod_int self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5).is_zero()
@@ -1169,7 +1265,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
             sage: mod(25,5).is_zero()
             True
         """
-        return bool(self.ivalue == 0)
+        return bool(self.ivalue != 0)
 
     def is_unit(IntegerMod_int self):
         return bool(gcd_int(self.ivalue, self.__modulus.int32) == 1)
@@ -1670,9 +1766,9 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
         """
         return bool(self.ivalue == 1)
 
-    def is_zero(IntegerMod_int64 self):
+    def __nonzero__(IntegerMod_int64 self):
         """
-        Returns \code{True} if this is $0$, otherwise \code{False}.
+        Returns \code{True} if this is not $0$, otherwise \code{False}.
 
         EXAMPLES:
             sage: mod(13,5^10).is_zero()
@@ -1680,7 +1776,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
             sage: mod(5^12,5^10).is_zero()
             True
         """
-        return bool(self.ivalue == 0)
+        return bool(self.ivalue != 0)
 
     def is_unit(IntegerMod_int64 self):
         return bool(gcd_int64(self.ivalue, self.__modulus.int64) == 1)
@@ -2039,12 +2135,12 @@ cdef int jacobi_int64(int_fast64_t a, int_fast64_t m) except -2:
 ########################
 
 def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
-    """
-    Calculates the square root of a, where a is an integer mod p^e.
+    r"""
+    Calculates the square root of $a$, where $a$ is an integer mod $p^e$.
 
     ALGORITHM:
         Perform p-adically by stripping off even powers of $p$ to get
-        a unit and lifting $\sqrt{unit} mod p$ via newton's method.
+        a unit and lifting $\sqrt{unit} mod p$ via Newton's method.
 
     AUTHOR:
         -- Robert Bradshaw
@@ -2053,7 +2149,12 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
         return a
 
     if p == 2:
-        return a if e == 1 else self.parent()(self.pari().sqrt())  # TODO: implement directly
+        if e == 1:
+            return a
+        # TODO: implement something that isn't totally idiotic.
+        for x in a.parent():
+            if x**2 == a:
+                return x
 
     # strip off even powers of p
     cdef int i, val = a.lift().valuation(p)
@@ -2067,8 +2168,8 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     # find square root of unit mod p
     x = unit.parent()(square_root_mod_prime(mod(unit, p), p))
 
-    # lift p-adically using newton iteration
-    # this is done to higher precision than neccisary except at the last step
+    # lift p-adically using Newton iteration
+    # this is done to higher precision than neccesary except at the last step
     one_half = ~(a._new_c_from_long(2))
     for i from 0 <= i <  ceil(log(e)/log(2)) - val/2:
         x = (x+unit/x) * one_half
@@ -2079,17 +2180,19 @@ def square_root_mod_prime_power(IntegerMod_abstract a, p, e):
     return x
 
 def square_root_mod_prime(IntegerMod_abstract a, p=None):
-    """
+    r"""
     Calculates the square root of a, where a is an integer mod p.
 
     ALGORITHM:
         Several cases based on residue class of p mod 16.
 
-        $p$ mod 2 = 0 \Rightarrow p = 2 so \sqrt{a} = a$.
-        $p$ mod 4 = 3 \Rightarrow \sqrt{a} = a^{(p+1)/4}$.
-        $p$ mod 8 = 5 \Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}, i=\sqrt{-1}$.
-        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\F_p$.
-        $p$ mod 16 = 1$ Variant of Cipolla\202\304\354Lehmer, using Lucas functions.
+    \begin{verbatim}
+        $p$ mod 2 = 0 $\Rightarrow$ p = 2 so \sqrt{a} = a$.
+        $p$ mod 4 = 3 $\Rightarrow \sqrt{a} = a^{(p+1)/4}$.
+        $p$ mod 8 = 5 $\Rightarrow \sqrt{a} = \zeta i a$ where $\zeta = (2a)^{(p-5)/8}$, $i=\sqrt{-1}$.
+        $p$ mod 16 = 9$ Similar, work in a bi-quadratic extension of $\FF_p$.
+        $p$ mod 16 = 1$ Variant of Cipolla-Lehmer, using Lucas functions.
+    \end{verbatim}
 
     REFERENCES:
         Siguna M\:uller. 'On the Computation of Square Roots in Finite Fields'
@@ -2101,14 +2204,14 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
             \url{http://citeseer.ist.psu.edu/atkin92probabilistic.html}
 
         H. Postl. 'Fast evaluation of Dickson Polynomials'
-            Contrib. to General Algebra, Vol. 6 (1988) pp. 223\202\304\354225
+            Contrib. to General Algebra, Vol. 6 (1988) pp. 223--225
 
     AUTHOR:
         Robert Bradshaw
 
     TESTS:
         Every case appears in the first hundred primes.
-        sage: all([(a*a).square_root()^2 == a*a for p in prime_range(100) for a in Integers(p)])
+        sage: all([(a*a).sqrt()^2 == a*a for p in prime_range(100) for a in Integers(p)])
         True
     """
     if a.is_zero() or a.is_one():
@@ -2125,24 +2228,24 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
         return a
 
     elif p_mod_16 % 4 == 3:
-        return a ** ((p+1)/4)
+        return a ** ((p+1)//4)
 
     elif p_mod_16 % 8 == 5:
         two_a = a+a
-        zeta = two_a ** ((p-5)/8)
-        i = two_a ** ((p-1)/4)
+        zeta = two_a ** ((p-5)//8)
+        i = two_a ** ((p-1)//4)
         return zeta*a*(i-1)
 
     elif p_mod_16 == 9:
-        s = (a+a) ** ((p-1)/4)
+        s = (a+a) ** ((p-1)//4)
         if s.is_one():
             d = a._parent.quadratic_nonresidue()
             d2 = d*d
-            z = (2 * d2 * a) ** ((p-9)/16)
+            z = (2 * d2 * a) ** ((p-9)//16)
             i = 2 * d2 * z*z * a
             return z*d*a*(i-1)
         else:
-            z = (a+a) ** ((p-9)/16)
+            z = (a+a) ** ((p-9)//16)
             i = 2 * z*z * a
             return z*a*(i-1)
 

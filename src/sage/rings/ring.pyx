@@ -128,6 +128,9 @@ cdef class Ring(ParentWithGens):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
               "in Python, and has the wrong precedence."
 
+    cdef _an_element_c_impl(self):  # override this in SageX
+        return self.zero_element()
+
     def base_extend(self, R):
         """
         EXAMPLES:
@@ -160,7 +163,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y> = QQ[]
             sage: R.ideal((x,y))
-            Ideal (y, x) of Polynomial Ring in x, y over Rational Field
+            Ideal (x, y) of Polynomial Ring in x, y over Rational Field
             sage: R.ideal(x+y^2)
             Ideal (y^2 + x) of Polynomial Ring in x, y over Rational Field
             sage: R.ideal([x^3,y^3+x^3])
@@ -667,7 +670,7 @@ cdef class CommutativeRing(Ring):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = R.quotient((x^2, y))
             sage: S
-            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
+            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
             sage: S.gens()
             (a, 0)
             sage: a == b
@@ -690,7 +693,7 @@ cdef class CommutativeRing(Ring):
             sage: R.<x,y> = PolynomialRing(QQ,2)
             sage: S.<a,b> = R.quo((x^2, y))
             sage: S
-            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y, x^2)
+            Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2, y)
             sage: S.gens()
             (a, 0)
             sage: a == b
@@ -837,11 +840,19 @@ cdef class EuclideanDomain(PrincipalIdealDomain):
 
 def is_Field(x):
     """
-    Return True if x is of class Field.
+    Return True if x is a field.
 
     EXAMPLES:
+        sage: is_Field(QQ)
+        True
+        sage: is_Field(ZZ)
+        False
+        sage: is_Field(pAdicField(2))
+        True
+        sage: is_Field(5)
+        False
     """
-    return bool(isinstance(x, Field))
+    return bool(isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field()))
 
 cdef class Field(PrincipalIdealDomain):
     """
@@ -1331,8 +1342,9 @@ def is_Ring(x):
     Return true if x is a ring.
 
     EXAMPLES:
-
+        sage: is_Ring(ZZ)
+        True
     """
-    return isinstance(x, Ring)
+    return bool(isinstance(x, Ring))
 
 

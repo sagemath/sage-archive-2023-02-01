@@ -20,12 +20,14 @@ __doc_exclude=["cached_attribute", "cached_class_attribute", "lazy_prop",
                "typecheck", "prop", "strunc",
                "assert_attribute", "LOGFILE"]
 
-import operator, os, sys, signal, time, weakref, random
+import operator, os, socket, sys, signal, time, weakref, random, resource
 
 from banner import version, banner
 
 SAGE_ROOT = os.environ["SAGE_ROOT"]
 SAGE_LOCAL = SAGE_ROOT + '/local/'
+
+HOSTNAME = socket.gethostname()
 
 if not os.path.exists(SAGE_ROOT):
     os.makedirs(SAGE_ROOT)
@@ -56,15 +58,22 @@ if ' ' in DOT_SAGE:
         DOT_SAGE="/home/.sage"
     else:
         print "Your home directory has a space in it.  This"
-        print "will break some functionality of SAGE.  E.g.,"
+        print "will probably break some functionality of SAGE.  E.g.,"
         print "the GAP interface will not work.  A workaround"
         print "is to set the environment variable HOME to a"
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
 
-SPYX_TMP = '%s/spyx'%DOT_SAGE
+SPYX_TMP = '%s/spyx/%s'%(DOT_SAGE, HOSTNAME)
 
-SAGE_TMP='%s/tmp/%s/'%(DOT_SAGE,os.getpid())
+if not os.path.exists(SPYX_TMP):
+    try:
+        os.makedirs(SPYX_TMP)
+    except OSError, msg:
+        print msg
+        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
+
+SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):
     try:
         os.makedirs(SAGE_TMP)
@@ -112,6 +121,9 @@ def cputime(t=0):
     time SAGE has spent using the CPU.  It does not count time
     spent by subprocesses spawned by SAGE (e.g., Gap, Singular, etc.).
 
+    This is done via a call to resource.getrusage, so it avoids the
+    wraparound problems in time.clock() on Cygwin.
+
     INPUT:
         t -- (optional) float, time in CPU seconds
     OUTPUT:
@@ -132,7 +144,8 @@ def cputime(t=0):
         t = float(t)
     except TypeError:
         t = 0.0
-    return time.clock() - t
+    u,s = resource.getrusage(resource.RUSAGE_SELF)[:2]
+    return u+s - t
 
 def walltime(t=0):
     """
@@ -451,19 +464,26 @@ def uniq(x):
     return v
 
 
-def coeff_repr(c):
-    try:
-        return c._coeff_repr()
-    except AttributeError:
-        pass
+def coeff_repr(c, is_latex=False):
+    if not is_latex:
+        try:
+            return c._coeff_repr()
+        except AttributeError:
+            pass
     if isinstance(c, (int, long, float)):
         return str(c)
-    s = str(c).replace(' ','')
+    if is_latex and hasattr(c, '_latex_'):
+        s = c._latex_()
+    else:
+        s = str(c).replace(' ','')
     if s.find("+") != -1 or s.find("-") != -1:
-        return "(%s)"%s
+        if is_latex:
+            return "\\left(%s\\right)"%s
+        else:
+            return "(%s)"%s
     return s
 
-def repr_lincomb(symbols, coeffs):
+def repr_lincomb(symbols, coeffs, is_latex=False):
     """
     Compute a string representation of a linear combination of some
     formal symbols.
@@ -496,11 +516,20 @@ def repr_lincomb(symbols, coeffs):
 
     all_atomic = True
     for c in coeffs:
-        b = str(symbols[i])
-        if len(b) > 0:
-            b = "*" + b
+        if is_latex and hasattr(symbols[i], '_latex_'):
+            b = symbols[i]._latex_()
+        else:
+            b = str(symbols[i])
         if c != 0:
-            coeff = coeff_repr(c)
+            coeff = coeff_repr(c, is_latex)
+            if coeff == "1":
+                coeff = ""
+            elif coeff == "-1":
+                coeff = "-"
+            elif not is_latex and len(b) > 0:
+                b = "*" + b
+            elif len(coeff) > 0 and b == "1":
+                b = ""
             if not first:
                 coeff = " + %s"%coeff
             else:
@@ -516,6 +545,8 @@ def repr_lincomb(symbols, coeffs):
     elif s[:3] == "-1*":
         s = "-" + s[3:]
     s = s.replace(" 1*", " ")
+    if s == "":
+        return "1"
     return s
 
 def strunc(s, n = 60):
@@ -1030,7 +1061,7 @@ set_trace = pdb.set_trace
 
 def tmp_dir(name):
     r"""
-    Create and return a temporary directory in \code{\$HOME/.sage/tmp/pid/}
+    Create and return a temporary directory in \code{\$HOME/.sage/temp/hostname/pid/}
     """
     name = str(name)
     n = 0
@@ -1046,7 +1077,7 @@ def tmp_dir(name):
         # have privileges to write in SAGE's tmp directory.  That's OK.
         n = 0
         while True:
-            tmp = "/tmp/tmp_%s_%s"%(name, n)
+            tmp = "/temp/tmp_%s_%s"%(name, n)
             if not os.path.exists(tmp):
                 break
             n += 1
@@ -1070,6 +1101,16 @@ def tmp_filename(name='tmp'):
             break
     return tmp
 
+def graphics_filename():
+    """
+    Return the next available canonical filename for a plot/graphics
+    file.
+    """
+    i = 0
+    while os.path.exists('sage%d.png'%i):
+        i += 1
+    filename = 'sage%d.png'%i
+    return filename
 
 #################################################################
 # 32/64-bit computer?

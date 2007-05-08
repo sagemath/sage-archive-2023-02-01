@@ -61,7 +61,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         x^2 - 2
 
     This example involves a complex number.
-        sage: z = (1/2)*(1 + sqrt(3) *CC.0); z
+        sage: z = (1/2)*(1 + RDF(sqrt(3)) *CC.0); z
         0.500000000000000 + 0.866025403784439*I
         sage: p = algdep(z, 6); p
         x^5 + x^2
@@ -421,8 +421,9 @@ def is_pseudoprime(n, flag=0):
 
 def is_prime_power(n, flag=0):
     r"""
-    Returns True if $x$ is a prime power, and False otherwise.  The result
-    is proven correct -- {\em this is NOT a pseudo-primality test!}.
+    Returns True if $x$ is a prime power, and False otherwise.
+    The result is proven correct -- {\em this is NOT a
+    pseudo-primality test!}.
 
     INPUT:
         n -- an integer
@@ -431,10 +432,6 @@ def is_prime_power(n, flag=0):
                 1: certify primality using the Pocklington-Lehmer Test.
                 2: certify primality using the APRCL test.
 
-    OUTPUT:
-        bool -- True or False
-
-    IMPLEMENTATION: Calls the PARI isprime and ispower functions.
 
     EXAMPLES::
         sage: is_prime_power(389)
@@ -453,17 +450,7 @@ def is_prime_power(n, flag=0):
         True
     """
     Z = integer_ring.ZZ
-    n = Z(n)
-    if n == 1:
-        return True
-    if n < 1:
-        return False
-    if is_prime(n, flag):
-        return True
-    k, g = pari(n).ispower()
-    if not k:
-        return False
-    return g.isprime(flag)
+    return Z(n).is_prime_power(flag=flag)
 
 def valuation(m, p):
     """
@@ -554,9 +541,9 @@ def prime_range(start, stop=None, leave_pari=False):
         [2, 3, 5, 7]
     """
     if stop is None:
-        start, stop = 2, start
+        start, stop = 2, int(start)
     try:
-        v = pari.primes_up_to_n(stop-1)
+        v = pari.primes_up_to_n(int(stop-1))
     except OverflowError:
         return list(primes(start, stop))  # lame but works.
     Z = integer_ring.ZZ
@@ -566,7 +553,7 @@ def prime_range(start, stop=None, leave_pari=False):
         return v
     if start <= 2:
         return [Z(p) for p in v]     # this dominates runtime!
-    start = pari(start)
+    start = pari(int(start))
     return [Z(p) for p in v if p >= start]     # this dominates runtime!
 
 def primes_first_n(n, leave_pari=False):
@@ -1223,7 +1210,7 @@ def generic_power(a, m, one=1):
         sage: generic_power(2,-3)
         1/8
     """
-    if a == one:
+    if bool(a == one):
         return a
     if m < 0:
         a = ~a
@@ -1482,7 +1469,7 @@ def __factor_using_pari(n, int_=False, debug_level=0):
 #todo: add a limit option to factor, so it will only split off
 # primes at most a given limit.
 
-def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
+def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     """
     Returns the factorization of the integer n as a sorted list of
     tuples (p,e).
@@ -1535,7 +1522,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0):
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
         try:
-            return n.factor()
+            return n.factor(**kwds)
         except AttributeError:
             raise TypeError, "unable to factor n"
     #n = abs(n)
@@ -2259,7 +2246,7 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: continued_fraction_list(sqrt(2))
         [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1]
         sage: continued_fraction_list(sqrt(4/19))
-        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 15, 2]
+        [0, 2, 5, 1, 1, 2, 1, 16, 1, 2, 1, 1, 5, 4, 5, 1, 1, 2, 1, 18]
         sage: continued_fraction_list(RR(pi), partial_convergents=True)
         ([3, 7, 15, 1, 292, 1, 1, 1, 2, 1, 3, 1, 14, 3],
          [(3, 1),
@@ -2283,8 +2270,23 @@ def continued_fraction_list(x, partial_convergents=False, bits=None):
         sage: print continued_fraction_list(RealField(200)(e))
         [2, 1, 2, 1, 1, 4, 1, 1, 6, 1, 1, 8, 1, 1, 10, 1, 1, 12, 1, 1, 14, 1, 1, 16, 1, 1, 18, 1, 1, 20, 1, 1, 22, 1, 1, 24, 1, 1, 26, 1, 1, 28, 1, 1, 30, 1, 1, 32, 1, 1, 34, 1, 1, 36, 1, 1, 38, 1, 1]
     """
+    import sage.calculus.calculus
+    import sage.functions.constants
+    # if x is a SymbolicExpression, try coercing it to a real number
     if not bits is None:
-        x = sage.rings.real_mpfr.RealField(bits)(x)
+        try:
+            x = sage.rings.real_mpfr.RealField(bits)(x)
+        except  TypeError:
+            raise TypeError, "can only find the continued fraction of a number"
+    elif isinstance(x, float):
+        from real_double import RDF
+        x = RDF(x)
+    elif isinstance(x, (sage.calculus.calculus.SymbolicExpression,
+                        sage.functions.constants.Constant)):
+        try:
+            x = sage.rings.real_mpfr.RealField(53)(x)
+        except TypeError:
+            raise TypeError, "can only find the continued fraction of a number"
     elif not partial_convergents and \
            isinstance(x, (integer.Integer, sage.rings.rational.Rational,
                       int, long)):
@@ -2614,9 +2616,11 @@ def falling_factorial(x, a):
         sage: falling_factorial(1+I, I)
         0.652965496420167 + 0.343065839816545*I
         sage: falling_factorial(1+I, 4)
-        2.00000000000000 + 4.00000000000000*I
+        (I - 2)*(I - 1)*I*(I + 1)
+        sage: expand(falling_factorial(1+I, 4))
+        4*I + 2
         sage: falling_factorial(I, 4)
-        -10.0000000000000
+        (I - 3)*(I - 2)*(I - 1)*I
 
         sage: M = MatrixSpace(ZZ, 4, 4)
         sage: A = M([1,0,1,0,1,0,1,0,1,0,10,10,1,0,1,1])
@@ -2675,12 +2679,14 @@ def rising_factorial(x, a):
         sage: rising_factorial(1+I, I)
         0.266816390637832 + 0.122783354006372*I
 
-        sage: rising_factorial(I, 4)
-        -10.0000000000000
+        sage: a = rising_factorial(I, 4); a
+        I*(I + 1)*(I + 2)*(I + 3)
+        sage: expand(a)
+        -10
 
     See falling_factorial(I, 4).
 
-        sage: R = ZZ['x']
+        sage: x = polygen(ZZ)
         sage: rising_factorial(x, 4)
         x^4 + 6*x^3 + 11*x^2 + 6*x
 
@@ -2695,9 +2701,13 @@ def rising_factorial(x, a):
 
 
 
-def ceil(x):
+def integer_ceil(x):
     """
     Return the ceiling of x.
+
+    EXAMPLES:
+        sage: integer_ceil(5.4)
+        6
     """
     try:
         return sage.rings.all.Integer(x.ceil())
@@ -2706,11 +2716,9 @@ def ceil(x):
             return sage.rings.all.Integer(int(math.ceil(float(x))))
         except TypeError:
             pass
-    raise NotImplementedError, "computation of floor of %s not implemented"%x
+    raise NotImplementedError, "computation of floor of %s not implemented"%repr(x)
 
-ceiling = ceil
-
-def floor(x):
+def integer_floor(x):
     r"""
     Return the largest integer $\leq x$.
 
@@ -2721,13 +2729,13 @@ def floor(x):
         an Integer
 
     EXAMPLES:
-        sage: floor(5.4)
+        sage: integer_floor(5.4)
         5
-        sage: floor(float(5.4))
+        sage: integer_floor(float(5.4))
         5
-        sage: floor(-5/2)
+        sage: integer_floor(-5/2)
         -3
-        sage: floor(RDF(-5/2))
+        sage: integer_floor(RDF(-5/2))
         -3
     """
     try:

@@ -31,7 +31,8 @@ import sage.server.support as support
 
 from cell import Cell, TextCell
 
-INTERRUPT_TRIES = 20
+INTERRUPT_TRIES = 15
+
 INITIAL_NUM_CELLS = 1
 HISTORY_MAX_OUTPUT = 92*5
 HISTORY_NCOLS = 90
@@ -648,7 +649,7 @@ class Worksheet:
             else:
                 C.set_introspect_html(out, completing=False)
         else:
-            C.set_output_text(out, C.files_html(), sage=self.sage())
+            C.set_output_text(out, C.files_html(out), sage=self.sage())
             C.set_introspect_html('')
             history = "Worksheet '%s' (%s)\n"%(self.name(), time.strftime("%Y-%m-%d at %H:%M",time.localtime(time.time())))
             history += C.edit_text(ncols=HISTORY_NCOLS, prompts=False,
@@ -761,31 +762,7 @@ class Worksheet:
         except AttributeError:
             pass
         else:
-            E = S._expect
-            tm = 0.3
-            al = INTERRUPT_TRIES * tm
-            print "Trying to interrupt for at most %s seconds"%al
-            try:
-                for i in range(INTERRUPT_TRIES):
-                    E.sendline('q')
-                    E.sendline(chr(3))
-                    try:
-                        E.expect(S._prompt, timeout=tm)
-                        #E.expect(S._prompt, timeout=tm)
-                        success = True
-                        break
-                    except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                        print msg
-                        verbose("Trying again to interrupt SAGE (try %s)..."%i)
-            except Exception, msg:
-                print msg
-
-            if not success:
-                pid = self.__sage.pid()
-                cmd = 'kill -9 -%s'%pid
-                print cmd
-                os.system(cmd)
-                self.__sage._expect = None
+            success = S.interrupt(INTERRUPT_TRIES, timeout=0.3)
 
         # empty the queue
         for C in self.__queue:
@@ -1221,7 +1198,8 @@ class Worksheet:
             s += div%F + '%s</div>'%F
         return s
 
-    def html(self, include_title=True, do_print=False, authorized=False):
+    def html(self, include_title=True, do_print=False,
+             authorized=False, confirm_before_leave=False):
         n = len(self.__cells)
         s = ''
         if include_title:
@@ -1241,7 +1219,7 @@ class Worksheet:
             menu += '    <a class="plain_text" href="%s?edit">Edit</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="doctest_window(\'%s\')">Text</a>'%self.filename() + vbar
             menu += '    <a class="doctest_text" onClick="print_window(\'%s\')">Print</a>'%self.filename() + vbar
-            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate</a>' + vbar
+            menu += '    <a class="evaluate" onClick="evaluate_all()">Evaluate All</a>' + vbar
             menu += '    <a class="hide" onClick="hide_all()">Hide</a>' + vbar
             menu += '    <a class="hide" onClick="show_all()">Show</a>' + vbar
             #menu += '     <a onClick="show_upload_worksheet_menu()" class="upload_worksheet">Upload</a>' + vbar
@@ -1269,6 +1247,16 @@ class Worksheet:
             s += 'for(i=0;i<cell_id_list.length;i++) prettify_cell(cell_id_list[i]);</script>\n'
         else:
             s += '<script language=javascript>jsMath.ProcessBeforeShowing();</script>\n'
+
+        if not do_print and confirm_before_leave:
+            s += """<script type="text/javascript">
+            window.onbeforeunload = confirmBrowseAway;
+            function confirmBrowseAway()
+            {
+            return "Unsubmitted cells will be lost.";
+            }
+            </script>
+            """
         return s
 
     def show_all(self):

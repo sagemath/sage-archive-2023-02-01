@@ -3,66 +3,67 @@ Set of homomorphisms between two schemes
 """
 
 import sage.rings.integer_ring
+from sage.rings.arith import gcd
+Z = sage.rings.integer_ring.ZZ
 
 # Some naive point enumeration routines for default.
 # AUTHOR: David R. Kohel <kohel@maths.usyd.edu.au>
 
 def enum_projective_rational_field(X,B):
-    n = X.codomain().ngens()
-    R = [ k-B for k in range(2*B+1) ]
+    n = X.codomain().ambient_space().ngens()
     Q = [ k+1 for k in range(B) ]
+    R = [ 0 ] + [ s*k for k in Q for s in [1,-1] ]
     pts = []
     i = int(n-1)
     while not i < 0:
         P = [ 0 for _ in range(n) ]; P[i] = 1
-        m = Z(0)
         try:
             pts.append(X(P))
         except:
             pass
         iters = [ iter(R) for _ in range(i) ]
+        [ iters[j].next() for j in range(i) ]
         j = 0
         while j < i:
             try:
-                aj = Z(iters[j].next())
-                m = m.gcd(aj)
+                aj = ZZ(iters[j].next())
                 P[j] = aj
                 for ai in Q:
                     P[i] = ai
-                    if m.gcd(ai) == 1:
+                    if gcd(P) == 1:
                         try:
                             pts.append(X(P))
                         except:
                             pass
                 j = 0
-                m = Z(0)
             except StopIteration:
                 iters[j] = iter(R)  # reset
-                iters[j].next() # put at zero
                 P[j] = 0
+                P[j] = iters[j].next() # reset P[j] to 0 and increment
                 j += 1
         i -= 1
     return pts
 
 def enum_affine_rational_field(X,B):
-    n = X.codomain().ngens()
-    R = [ k-B for k in range(2*B+1) ]
-    if X.value_ring() is Z:
+    n = X.codomain().ambient_space().ngens()
+    if X.value_ring() is ZZ:
         Q = [ 1 ]
     else: # rational field
         Q = [ k+1 for k in range(B) ]
+    R = [ 0 ] + [ s*k for k in range(1,B+1) for s in [1,-1] ]
     pts = []
     P = [ 0 for _ in range(n) ]
-    m = Z(0)
+    m = ZZ(0)
     try:
         pts.append(X(P))
     except:
         pass
     iters = [ iter(R) for _ in range(n) ]
+    [ iters[j].next() for j in range(n) ]
     i = 0
     while i < n:
         try:
-            a = Z(iters[i].next())
+            a = ZZ(iters[i].next())
             m = m.gcd(a)
             P[i] = a
             for b in Q:
@@ -72,16 +73,15 @@ def enum_affine_rational_field(X,B):
                     except:
                         pass
             i = 0
-            m = Z(0)
+            m = ZZ(0)
         except StopIteration:
-            iters[i] = iter(R)  # reset
-            iters[i].next() # put at zero
-            P[i] = 0
+            iters[i] = iter(R) # reset
+	    P[i] = iters[i].next() # reset P[i] to 0 and increment
             i += 1
     return pts
 
 def enum_projective_finite_field(X):
-    n = X.codomain().ngens()
+    n = X.codomain().ambient_space().ngens()
     R = X.value_ring()
     pts = []
     i = int(n-1)
@@ -91,7 +91,9 @@ def enum_projective_finite_field(X):
             pts.append(X(P))
         except:
             pass
+	# define some iterators and increment them:
         iters = [ iter(R) for _ in range(i) ]
+        [ iters[j].next() for j in range(i) ]
         j = 0
         while j < i:
             try:
@@ -101,17 +103,15 @@ def enum_projective_finite_field(X):
                 except:
                     pass
                 j = 0
-                m = sage.rings.integer_ring.ZZ(0)
             except StopIteration:
-                iters[j] = iter(R)  # reset
-                iters[j].next() # put at zero
-                P[j] = 0
+                iters[j] = iter(R) # reset iterator at j
+                P[j] = iters[j].next() # reset P[j] to 0 and increment
                 j += 1
         i -= 1
     return pts
 
 def enum_affine_finite_field(X):
-    n = X.codomain().ngens()
+    n = X.codomain().ambient_space().ngens()
     R = X.value_ring()
     pts = []
     zero = R(0)

@@ -29,7 +29,7 @@ def is_ComplexField(x):
     return isinstance(x, ComplexField_class)
 
 cache = {}
-def ComplexField(prec=53):
+def ComplexField(prec=53, names=None):
     """
     Return the complex field with real and imaginary parts having prec
     *bits* of precision.
@@ -41,6 +41,9 @@ def ComplexField(prec=53):
         Complex Field with 100 bits of precision
         sage: ComplexField(100).base_ring()
         Real Field with 100 bits of precision
+        sage: i = ComplexField(200).gen()
+        sage: i^2
+        -1.0000000000000000000000000000000000000000000000000000000000
     """
     global cache
     if cache.has_key(prec):
@@ -98,6 +101,9 @@ class ComplexField_class(field.Field):
         True
         sage: loads(CC.dumps()) == CC
         True
+        sage: k = ComplexField(100)
+        sage: loads(dumps(k)) == k
+        True
 
     This illustrates basic properties of a complex field.
         sage: CC = ComplexField(200)
@@ -120,6 +126,9 @@ class ComplexField_class(field.Field):
     def __init__(self, prec=53):
         self._prec = int(prec)
         ParentWithGens.__init__(self, self._real_field(), ('I',), False)
+
+    def __reduce__(self):
+        return ComplexField, (self._prec, )
 
     def is_exact(self):
         return False

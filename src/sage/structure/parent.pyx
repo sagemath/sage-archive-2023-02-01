@@ -197,8 +197,8 @@ cdef class Parent(sage_object.SageObject):
             self._coerce_c((<Parent>S)._an_element_c())
         except TypeError:
             return False
-        except NotImplementedError:
-            raise NotImplementedError, "please implement has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%self
+        except NotImplementedError, msg:
+            raise NotImplementedError, "%s\nAlso, please make sure you have implemented has_coerce_map_from_impl or has_coerce_map_from_c_impl (or better _an_element_c_impl or _an_element_impl if possible) for %s"%(msg,self)
         return True
 
     def _an_element_impl(self):     # override this in Python

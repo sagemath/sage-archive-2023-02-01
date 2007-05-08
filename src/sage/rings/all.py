@@ -87,7 +87,12 @@ Reals = RealField
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Quad double
-#from real_qdrf import RealQuadDoubleField, RQDF
+from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
+
+# Algebraic reals (the intersection of the algebraic closure of the rationals
+# with the reals)
+from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
+                            AlgebraicRealNumber, is_AlgebraicRealNumber)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
@@ -115,7 +120,7 @@ from power_series_ring_element import PowerSeries, is_PowerSeries
 
 # Laurent series ring in one variable
 from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
-from laurent_series_ring_element import LaurentSeries
+from laurent_series_ring_element import LaurentSeries, is_LaurentSeries
 
 # Float interval arithmetic
 # (deprecated)

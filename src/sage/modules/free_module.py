@@ -106,6 +106,7 @@ import sage.misc.latex as latex
 import sage.rings.commutative_ring as commutative_ring
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.field as field
+import sage.rings.finite_field as finite_field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.ring as ring
 import sage.rings.integer_ring
@@ -2654,6 +2655,24 @@ class FreeModule_ambient_field(FreeModule_generic_field, FreeModule_ambient_pid)
         """
         return self.base_ring()
 
+    def __call__(self, e, coerce=True, copy=True, check=True):
+        """
+
+        EXAMPLE:
+            sage: k.<a> = GF(3^4)
+            sage: VS = k.vector_space()
+            sage: VS(a)
+            (0, 1, 0, 0)
+
+        """
+        try:
+            k = e.parent()
+            if finite_field.is_FiniteField(k) and k.base_ring() == self.base_ring() and k.degree() == self.degree():
+                return self(e.vector())
+        except AttributeError:
+            pass
+        return FreeModule_generic_field.__call__(self,e)
+
 
 ###############################################################################
 #
@@ -3618,8 +3637,11 @@ def element_class(R, is_sparse):
         from vector_rational_dense import Vector_rational_dense
         return Vector_rational_dense
     elif sage.rings.integer_mod_ring.is_IntegerModRing(R) and not is_sparse:
-        from vector_modn_dense import Vector_modn_dense
-        return Vector_modn_dense
+        from vector_modn_dense import Vector_modn_dense, MAX_MODULUS
+        if R.order() < MAX_MODULUS:
+            return Vector_modn_dense
+        else:
+            return free_module_element.FreeModuleElement_generic_dense
     else:
         if is_sparse:
             return free_module_element.FreeModuleElement_generic_sparse

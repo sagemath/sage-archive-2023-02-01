@@ -1,3 +1,7 @@
+"""
+Cryptosystems.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -9,7 +13,7 @@
 from sage.sets.set import Set_generic
 
 class Cryptosystem(Set_generic):
-      """
+      r"""
       A cryptosystem is a pair of maps
       $$
       E : {\mathcal K} \rightarrow {\rm Hom}({\mathcal M},{\mathcal C})

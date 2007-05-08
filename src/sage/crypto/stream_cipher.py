@@ -120,7 +120,7 @@ class ShrinkingGeneratorCipher(SymmetricKeyCipher):
         return self.key()[1]
 
     def __call__(self, M, mode = "ECB"):
-        """
+        r"""
         EXAMPLES:
             sage: FF = FiniteField(2)
             sage: P.<x> = PolynomialRing(FF)

@@ -177,12 +177,12 @@ class GraphGenerators():
         horizontal center of the second complete graph.
 
         EXAMPLES:
-            # Construct and show a barbell graph
-            # Bar = 4, Bells = 9
+        Construct and show a barbell graph
+        Bar = 4, Bells = 9
             sage: g = graphs.BarbellGraph(9,4)
             sage.: g.show()
 
-            # Create several barbell graphs in a SAGE graphics array
+        Create several barbell graphs in a SAGE graphics array
             sage: g = []
             sage: j = []
             sage: for i in range(6):
@@ -236,7 +236,7 @@ class GraphGenerators():
         node 2.
 
         EXAMPLES:
-            # Construct and show a bull graph
+        Construct and show a bull graph
             sage: g = graphs.BullGraph()
             sage.: g.show()
         """
@@ -267,11 +267,11 @@ class GraphGenerators():
         well.
 
         EXAMPLES:
-            # Construct and show a circular ladder graph with 26 nodes
+        Construct and show a circular ladder graph with 26 nodes
             sage: g = graphs.CircularLadderGraph(13)
             sage.: g.show()
 
-            # Create several circular ladder graphs in a SAGE graphics array
+        Create several circular ladder graphs in a SAGE graphics array
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -311,10 +311,10 @@ class GraphGenerators():
         See CompleteBipartiteGraph.
 
         EXAMPLES:
-            # Show a Claw graph
+        Show a Claw graph
             sage.: (graphs.ClawGraph()).show()
 
-            # Inspect a Claw graph
+        Inspect a Claw graph
             sage: G = graphs.ClawGraph()
             sage: G
             Claw graph: Graph on 4 vertices
@@ -346,28 +346,16 @@ class GraphGenerators():
         resulting plots should be similar (in cases of small n).
 
         Filling the position dictionary in advance adds O(n) to the
-        constructor.  Feel free to race the constructors below in the
-        examples section.  The much larger difference is the time added
-        by the spring-layout algorithm when plotting.  (Also shown in the
-        example below).  The spring  model is typically described as O(n^3),
-        as appears to be the case in the NetworkX source code.
+        constructor.
 
         EXAMPLES:
-            # Compare the constructors (results will vary)
+        Compare plotting using the predefined layout and networkx:
             sage: import networkx
-            sage.: time n = networkx.cycle_graph(3989); spring3989 = Graph(n)
-            # CPU time: 0.05 s,  Wall time: 0.07 s
-            sage.: time posdict3989 = graphs.CycleGraph(3989)
-            # CPU time: 5.18 s,  Wall time: 6.17 s
-
-            # Compare the plotting speeds (results will vary)
             sage: n = networkx.cycle_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CycleGraph(23)
-            sage.: time spring23.show()
-            # CPU time: 2.04 s,  Wall time: 2.72 s
-            sage.: time posdict23.show()
-            # CPU time: 0.57 s,  Wall time: 0.71 s
+            sage.: spring23.show()
+            sage.: posdict23.show()
 
         We next view many cycle graphs as a SAGE graphics array.
         First we use the \code{CycleGraph} constructor, which fills in
@@ -431,7 +419,7 @@ class GraphGenerators():
         second and third node connected.
 
         EXAMPLES:
-            # Construct and show a diamond graph
+        Construct and show a diamond graph
             sage: g = graphs.DiamondGraph()
             sage.: g.show()
         """
@@ -456,12 +444,12 @@ class GraphGenerators():
         the flat spring-layout over a future implementation.
 
         EXAMPLES:
-            # Construct and show a Dodecahdedral graph
+        Construct and show a Dodecahdedral graph
             sage: g = graphs.DodecahedralGraph()
             sage.: g.show()
 
-            # Create several dodecahedral graphs in a SAGE graphics array
-            # They will be drawn differently due to the use of the spring-layout algorithm
+        Create several dodecahedral graphs in a SAGE graphics array
+        They will be drawn differently due to the use of the spring-layout algorithm
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -493,12 +481,12 @@ class GraphGenerators():
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
-            # Add one vertex to an empty graph and then show:
+        Add one vertex to an empty graph and then show:
             sage: empty1 = graphs.EmptyGraph()
             sage: empty1.add_vertex()
             sage.: empty1.show()
 
-            # Use for loops to build a graph from an empty graph:
+        Use for loops to build a graph from an empty graph:
             sage: empty2 = graphs.EmptyGraph()
             sage: for i in range(5):
             ...    empty2.add_vertex() # add 5 nodes, labeled 0-4
@@ -531,8 +519,8 @@ class GraphGenerators():
         position dictionary.
 
         EXAMPLES:
-            # Construct and show a grid 2d graph
-            # Rows = 5, Columns = 7
+        Construct and show a grid 2d graph
+        Rows = 5, Columns = 7
             sage: g = graphs.Grid2dGraph(5,7)
             sage.: g.show()
         """
@@ -566,7 +554,7 @@ class GraphGenerators():
         only to the third and fourth.
 
         EXAMPLES:
-            # Construct and show a house graph
+        Construct and show a house graph
             sage: g = graphs.HouseGraph()
             sage.: g.show()
         """
@@ -596,7 +584,7 @@ class GraphGenerators():
         only to the third and fourth.
 
         EXAMPLES:
-            # Construct and show a house X graph
+        Construct and show a house X graph
             sage: g = graphs.HouseXGraph()
             sage.: g.show()
         """
@@ -637,7 +625,7 @@ class GraphGenerators():
         example for visualization.
 
         EXAMPLE:
-            # Construct and show a Krackhardt kite graph
+        Construct and show a Krackhardt kite graph
             sage: g = graphs.KrackhardtKiteGraph()
             sage.: g.show()
         """
@@ -663,11 +651,11 @@ class GraphGenerators():
         right on the top horizontal line.
 
         EXAMPLES:
-            # Construct and show a ladder graph with 14 nodes
+        Construct and show a ladder graph with 14 nodes
             sage: g = graphs.LadderGraph(7)
             sage.: g.show()
 
-            # Create several ladder graphs in a SAGE graphics array
+        Create several ladder graphs in a SAGE graphics array
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -710,12 +698,12 @@ class GraphGenerators():
         graph, leading directly into the path graph.
 
         EXAMPLES:
-            # Construct and show a lollipop graph
-            # Candy = 13, Stick = 4
+        Construct and show a lollipop graph
+        Candy = 13, Stick = 4
             sage: g = graphs.LollipopGraph(13,4)
             sage.: g.show()
 
-            # Create several lollipop graphs in a SAGE graphics array
+        Create several lollipop graphs in a SAGE graphics array
             sage: g = []
             sage: j = []
             sage: for i in range(6):
@@ -764,12 +752,12 @@ class GraphGenerators():
         the flat spring-layout over a future implementation.
 
         EXAMPLES:
-            # Construct and show an Octahedral graph
+        Construct and show an Octahedral graph
             sage: g = graphs.OctahedralGraph()
             sage.: g.show()
 
-            # Create several octahedral graphs in a SAGE graphics array
-            # They will be drawn differently due to the use of the spring-layout algorithm
+        Create several octahedral graphs in a SAGE graphics array
+        They will be drawn differently due to the use of the spring-layout algorithm
             sage: g = []
             sage: j = []
             sage: for i in range(9):
@@ -817,20 +805,20 @@ class GraphGenerators():
         10 < n < 41 and as a 'line' for all other n.
 
         EXAMPLES:
-            # Show default drawing by size:
-            # 'line': n < 11
+        Show default drawing by size:
+        'line': n < 11
             sage: p = graphs.PathGraph(10)
             sage.: p.show()
 
-            # 'circle': 10 < n < 41
+        'circle': 10 < n < 41
             sage: q = graphs.PathGraph(25)
             sage.: q.show()
 
-            # 'line': n > 40
+        'line': n > 40
             sage: r = graphs.PathGraph(55)
             sage.: r.show()
 
-            # Override the default drawing:
+        Override the default drawing:
             sage: s = graphs.PathGraph(5,'circle')
             sage.: s.show()
         """
@@ -902,30 +890,15 @@ class GraphGenerators():
         other nodes away from the (0) node, and thus look very similar to
         this constructor's positioning.
 
-        Filling the position dictionary in advance adds O(n) to the
-        constructor.  Feel free to race the constructors below in the
-        examples section.  The much larger difference is the time added
-        by the spring-layout algorithm when plotting.  (Also shown in the
-        example below).  The spring model is typically described as O(n^3),
-        as appears to be the case in the NetworkX source code.
-
         EXAMPLES:
             sage: import networkx
 
-        Compare the constructors (results will vary)
-            sage.: time n = networkx.star_graph(3989); spring3989 = Graph(n)
-            # CPU time: 0.08 s,  Wall time: 0.10 s
-            sage.: time posdict3989 = graphs.StarGraph(3989)
-            # CPU time: 5.43 s,  Wall time: 7.41 s
-
-        Compare the plotting speeds (results will vary)
+        Compare the plots:
             sage: n = networkx.star_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.StarGraph(23)
-            sage.: time spring23.show()
-            # CPU time: 2.31 s,  Wall time: 3.14 s
-            sage.: time posdict23.show()
-            # CPU time: 0.68 s,  Wall time: 0.80 s
+            sage.: spring23.show()
+            sage.: posdict23.show()
 
         View many star graphs as a SAGE Graphics Array
 
@@ -994,16 +967,16 @@ class GraphGenerators():
         (x,y) pairs.
 
         EXAMPLES:
-            # Construct and show a Tetrahedral graph
+        Construct and show a Tetrahedral graph
             sage: g = graphs.TetrahedralGraph()
             sage: g.save('sage.png')
 
-            # The following example requires networkx:
+        The following example requires networkx:
             sage: import networkx as NX
 
-            # Compare this Tetrahedral, Wheel(4), Complete(4), and the
-            # Tetrahedral plotted with the spring-layout algorithm below
-            # in a SAGE graphics array:
+        Compare this Tetrahedral, Wheel(4), Complete(4), and the
+        Tetrahedral plotted with the spring-layout algorithm below
+        in a SAGE graphics array:
             sage: tetra_pos = graphs.TetrahedralGraph()
             sage: tetra_spring = Graph(NX.tetrahedral_graph())
             sage: wheel = graphs.WheelGraph(4)
@@ -1042,13 +1015,6 @@ class GraphGenerators():
         at all for the spring-layout to give a counter-intuitive display.
         (See Graphics Array examples below).
 
-        Filling the position dictionary in advance adds O(n) to the
-        constructor.  Feel free to race the constructors below in the
-        examples section.  The much larger difference is the time added
-        by the spring-layout algorithm when plotting.  (Also shown in the
-        example below).  The spring model is typically described as O(n^3),
-        as appears to be the case in the NetworkX source code.
-
         EXAMPLES:
         We view many wheel graphs with a SAGE Graphics Array, first
         with this constructor (i.e., the position dictionary filled):
@@ -1085,20 +1051,12 @@ class GraphGenerators():
             sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
 
-        Compare the constructors (results will vary):
-            sage.: time n = networkx.wheel_graph(3989); spring3989 = Graph(n)
-            # CPU time: 0.07 s,  Wall time: 0.09 s
-            sage.: time posdict3989 = graphs.WheelGraph(3989)
-            # CPU time: 5.99 s,  Wall time: 8.74 s
-
-            # Compare the plotting speeds (results will vary)
+        Compare the plotting:
             sage: n = networkx.wheel_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.WheelGraph(23)
-            sage.: time spring23.show()
-            # CPU time: 2.24 s,  Wall time: 3.00 s
-            sage.: time posdict23.show()
-            # CPU time: 0.68 s,  Wall time: 1.14 s
+            sage.: spring23.show()
+            sage.: posdict23.show()
         """
         pos_dict = {}
         pos_dict[0] = [0,0]
@@ -1132,14 +1090,14 @@ class GraphGenerators():
             Weisstein, E. (1999). "Flower Snark -- from Wolfram MathWorld". [Online] Available: http://mathworld.wolfram.com/FlowerSnark.html [2007, February 17]
 
         EXAMPLES:
-            # Inspect a flower snark:
+        Inspect a flower snark:
             sage: F = graphs.FlowerSnark()
             sage: F
             Flower Snark: Graph on 20 vertices
             sage: F.graph6_string()
             'ShCGHC@?GGg@?@?Gp?K??C?CA?G?_G?Cc'
 
-            # Now show it:
+        Now show it:
             sage.: F.show()
         """
         pos_dict = {}
@@ -1370,13 +1328,6 @@ class GraphGenerators():
         the graph to appear as a 3-dimensional pointy ball.  (See examples
         below).
 
-        Filling the position dictionary in advance adds O(n) to the
-        constructor.  Feel free to race the constructors below in the
-        examples section.  The much larger difference is the time added
-        by the spring-layout algorithm when plotting.  (Also shown in the
-        example below).  The spring model is typically described as O(n^3),
-        as appears to be the case in the NetworkX source code.
-
         EXAMPLES:
         We view many Complete graphs with a SAGE Graphics Array, first
         with this constructor (i.e., the position dictionary filled):
@@ -1412,20 +1363,21 @@ class GraphGenerators():
             ...
             sage.: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show()
-            # Compare the constructors (results will vary)
-            sage.: time n = networkx.complete_graph(1559); spring1559 = Graph(n)
-            # CPU time: 6.85 s,  Wall time: 9.71 s
-            sage.: time posdict1559 = graphs.CompleteGraph(1559)
-            #CPU time: 9.67 s,  Wall time: 11.75 s
 
-        We compare the plotting speeds (results will vary):
+        Compare the constructors (results will vary)
+            sage: import networkx
+            sage.: time n = networkx.complete_graph(1559); spring1559 = Graph(n)
+            CPU time: 6.85 s,  Wall time: 9.71 s
+            sage.: time posdict1559 = graphs.CompleteGraph(1559)
+            CPU time: 9.67 s,  Wall time: 11.75 s
+
+        We compare plotting:
+            sage: import networkx
             sage: n = networkx.complete_graph(23)
             sage: spring23 = Graph(n)
             sage: posdict23 = graphs.CompleteGraph(23)
-            sage.: time spring23.show()
-            # CPU time: 3.51 s,  Wall time: 4.29 s
-            sage.: time posdict23.show()
-            # CPU time: 0.82 s,  Wall time: 0.96 s
+            sage.: spring23.show()
+            sage.: posdict23.show()
         """
         pos_dict = {}
         for i in range(n):
@@ -1469,7 +1421,7 @@ class GraphGenerators():
         constructor.  Feel free to race the constructors below in the
         examples section.  The much larger difference is the time added by
         the spring-layout algorithm when plotting.  (Also shown in the
-        example below).  The spring model is typically described as O(n^3),
+        example below).  The spring model is typically described as $O(n^3)$,
         as appears to be the case in the NetworkX source code.
 
         EXAMPLES:
@@ -1557,7 +1509,7 @@ class GraphGenerators():
         See commented source code.
 
         EXAMPLES:
-            # Plot several n-cubes in a SAGE Graphics Array
+        Plot several n-cubes in a SAGE Graphics Array
             sage: g = []
             sage: j = []
             sage: for i in range(6):
@@ -1573,7 +1525,7 @@ class GraphGenerators():
             sage: G = sage.plot.plot.GraphicsArray(j)
             sage.: G.show(figsize=[6,4])
 
-            # Use the plot options to display larger n-cubes
+        Use the plot options to display larger n-cubes
             sage: g = graphs.CubeGraph(9)
             sage.: g.show(figsize=[12,12],vertex_labels=False, node_size=20)
         """
@@ -1659,13 +1611,13 @@ class GraphGenerators():
         RandomGNPFast for sparse and dense graphs:
 
             time regular_sparse = graphs.RandomGNP(1559,.22)
-            # CPU time: 31.79 s,  Wall time: 38.78 s
+            CPU time: 31.79 s,  Wall time: 38.78 s
             time fast_sparse =  graphs.RandomGNPFast(1559,.22)
-            # CPU time: 21.72 s,  Wall time: 26.44 s
+            CPU time: 21.72 s,  Wall time: 26.44 s
             time regular_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 38.75 s,  Wall time: 47.65 s
+            CPU time: 38.75 s,  Wall time: 47.65 s
             time fast_dense = graphs.RandomGNP(1559,.88)
-            # CPU time: 39.15 s,  Wall time: 48.22 s
+            CPU time: 39.15 s,  Wall time: 48.22 s
         """
         import networkx
         G = networkx.gnp_random_graph(n, p, seed)
@@ -1683,11 +1635,11 @@ class GraphGenerators():
         algorithm, unless a position dictionary is specified.
 
         EXAMPLES:
-            # Plot a random graph on 12 nodes with p = .71
+        Plot a random graph on 12 nodes with p = .71
             sage: fast = graphs.RandomGNPFast(12,.71)
             sage.: fast.show()
 
-            # View many random graphs using a SAGE Graphics Array
+        View many random graphs using a SAGE Graphics Array
             sage: g = []
             sage: j = []
             sage: for i in range(9):

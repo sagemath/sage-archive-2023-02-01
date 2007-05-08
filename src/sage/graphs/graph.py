@@ -7,7 +7,7 @@ AUTHOR:
     -- Robert L. Miller (2007-01-13): refactoring, adjusting for
         NetworkX-0.33, fixed plotting bugs
                         (2007-01-23): basic tutorial, edge labels, loops,
-        multiple edges & arcs
+                                      multiple edges and arcs
                         (2007-02-07): graph6 and sparse6 formats, matrix input
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
@@ -652,12 +652,12 @@ class GenericGraph(SageObject):
         Uses a dictionary or permutation to relabel the (di)graph.
         If perm is a dictionary, each old vertex v is a key in the
         dictionary, and its new label is d[v]. If perm is a list,
-        we think of it as a map i \mapsto perm[i] (only for graphs
-        with V = {0,1,...,n-1} ). If perm is a per mutation, the
+        we think of it as a map $i \mapsto perm[i]$ (only for graphs
+        with $V = \{0,1,...,n-1\}$ ). If perm is a per mutation, the
         permutation is simply applied to the graph, under the
-        assumption that V = {0,1,...,n-1} is the vertex set, and
-        the permutation acts on the set {1,2,...,n}, where we think
-        of n = 0.
+        assumption that $V = \{0,1,...,n-1\}$ is the vertex set, and
+        the permutation acts on the set $\{1,2,...,n\}$, where we think
+        of $n = 0$.
 
         INPUT:
             quick -- if True, simply return the enumeration of the new graph
@@ -3223,7 +3223,7 @@ class DiGraph(GenericGraph):
         """
         Returns a copy of digraph with arcs reversed in direction.
 
-        TODO: results in error because of the following NetworkX bug (0.33) - trac #92
+        TODO: results in error because of the following NetworkX bug (0.33) - trac 92
 
         EXAMPLES:
             sage: import networkx
@@ -3297,17 +3297,17 @@ class DiGraph(GenericGraph):
             of this algorithm. The following example illustrates this.
 
         EXAMPLE:
-            # This is a running example
+        This is a running example
 
-            # A directed version of the dodecahedron
+        A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
 
-            # If I use an undirected version of my graph, the output is as expected
+        If I use an undirected version of my graph, the output is as expected
             sage: import networkx
             sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
             sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
 
-            # However, if I use the directed version, everything gets skewed bizarrely:
+        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
         TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
@@ -3338,17 +3338,17 @@ class DiGraph(GenericGraph):
             of this algorithm. The following example illustrates this.
 
         EXAMPLE:
-            # This is a running example
+        This is a running example
 
-            # A directed version of the dodecahedron
+        A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
 
-            # If I use an undirected version of my graph, the output is as expected
+        If I use an undirected version of my graph, the output is as expected
             sage: import networkx
             sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
             sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
 
-            # However, if I use the directed version, everything gets skewed bizarrely:
+        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)

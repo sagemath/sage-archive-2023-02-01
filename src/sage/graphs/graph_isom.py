@@ -29,9 +29,9 @@ it will know which leaf corresponds to the canonical label. In the process,
 generators for the automorphism group are also produced.
 
 AUTHORS:
-    Robert L. Miller -- (2007-03-20) initial version
-    Tom Boothby -- (2007-03-20) help with indicator function
-    Robert L. Miller -- (2007-04-07--17) optimizations
+    * Robert L. Miller -- (2007-03-20) initial version
+    * Tom Boothby -- (2007-03-20) help with indicator function
+    * Robert L. Miller -- (2007-04-07--17) optimizations
 
 REFERENCE:
     [1] McKay, Brendan D. Practical Graph Isomorphism. Congressus Numerantium,
@@ -166,7 +166,7 @@ def orbit_partition(gamma, list_perm=False):
 
     INPUT:
         list_perm -- if True, assumes gamma is a list representing the map
-    i \mapsto gamma[i].
+                     i \mapsto gamma[i].
 
     EXAMPLES:
         sage: import sage.graphs.graph_isom
@@ -499,10 +499,6 @@ def indicator(G, Pi, V, k=None, bool_matrix_format=False):
     Takes a labelled graph, an ordered partition, and a partition nest, and
     outputs an integer, which is the same under any fixed permutation.
 
-    AUTHORS:
-        Tom Boothby -- sum then product method
-        Robert Miller -- vertex degree check
-
     EXAMPLES:
         sage: import sage.graphs.graph_isom
         sage: from sage.graphs.graph_isom import indicator, partition_nest
@@ -534,6 +530,10 @@ def indicator(G, Pi, V, k=None, bool_matrix_format=False):
         sage: H.relabel(g)
         sage: indicator(G, [range(93)], partition_nest(G, [range(93)], V)) == indicator(H, [range(93)], partition_nest(H, [range(93)], [g.list()[v-1] for v in V]))
         True
+
+    AUTHORS:
+        * Tom Boothby -- sum then product method
+        * Robert Miller -- vertex degree check
     """
     if k is not None:
         V = V[:k]

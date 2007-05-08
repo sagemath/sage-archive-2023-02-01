@@ -1,4 +1,6 @@
 """
+Further examples from Wester's paper
+
 These are all the problems at
     http://yacas.sourceforge.net/essaysmanual.html
 

@@ -1,5 +1,6 @@
 """
-TESTS
+Further Examples.
+
 Compute the Christoffel symbol.
 
     sage: var('r theta phi')

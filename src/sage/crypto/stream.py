@@ -1,3 +1,7 @@
+"""
+Stream Cryptosystems.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #

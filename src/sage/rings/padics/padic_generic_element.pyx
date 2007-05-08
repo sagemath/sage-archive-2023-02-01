@@ -20,6 +20,8 @@ include "../../ext/gmp.pxi"
 include "../../ext/interrupt.pxi"
 include "../../ext/stdsage.pxi"
 
+import sys
+
 from __future__ import with_statement
 cimport sage.rings.padics.local_generic_element
 from sage.rings.padics.local_generic_element cimport LocalGenericElement
@@ -134,7 +136,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         NOTES:
         The element returned is an element of the fraction field.
         """
-        return self.parent().fraction_field()(self, relprec = relprec).__invert__()
+        return self.parent().fraction_field()(self, relprec = self.relprec).__invert__()
 
     def __mod__(self, right):
         if right == 0:

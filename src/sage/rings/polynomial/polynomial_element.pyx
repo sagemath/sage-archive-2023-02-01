@@ -104,9 +104,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         cdef Py_ssize_t i, min
         x = self.list()
-    cdef ModuleElement _neg_c_impl(self):
-        return self.polynomial([-x for x in self.list()])
-
         y = right.list()
 
         if len(x) > len(y):
@@ -121,6 +118,9 @@ cdef class Polynomial(CommutativeAlgebraElement):
 
         low = [x[i] + y[i] for i from 0 <= i < min]
         return self.polynomial(low + high)
+
+    cdef ModuleElement _neg_c_impl(self):
+        return self.polynomial([-x for x in self.list()])
 
     def plot(self, xmin=0, xmax=1, *args, **kwds):
         """

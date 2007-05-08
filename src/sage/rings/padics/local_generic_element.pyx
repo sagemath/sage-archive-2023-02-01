@@ -100,7 +100,7 @@ cdef class LocalGenericElement(CommutativeRingElement):
             integer -- the additive order of self
         """
         if self.is_zero(prec):
-            return Integer(1)
+            return sage.rings.integer.Integer(1)
         else:
             return infinity
 

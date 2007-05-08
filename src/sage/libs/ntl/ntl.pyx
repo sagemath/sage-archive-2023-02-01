@@ -580,7 +580,11 @@ cdef class ntl_ZZX:
             sage: g
             [1 0 0 2]
         """
-        return bool(ZZX_is_monic(self.x))
+        if ZZX_is_zero(self.x):
+             return False
+        return bool(ZZ_is_one(ZZX_leading_coefficient(self.x)))
+
+        # return bool(ZZX_is_monic(self.x))
 
     def __neg__(self):
         """
@@ -1627,8 +1631,18 @@ cdef class ntl_ZZ_pX:
             False
             sage: g
             [1 0 0 2]
+            sage: f = ntl.ZZ_pX([1,2,0,3,0,2])
+            sage: f.is_monic()
+            False
         """
-        return bool(ZZ_pX_is_monic(self.x))
+        # The following line is what we should have.  However, strangely this is *broken*
+        # on PowerPC Intel in NTL, so we program around
+        # the problem.  (William Stein)
+        #return bool(ZZ_pX_is_monic(self.x))
+
+        if ZZ_pX_is_zero(self.x):
+             return False
+        return bool(ZZ_p_is_one(ZZ_pX_leading_coefficient(self.x)))
 
     def __neg__(self):
         """

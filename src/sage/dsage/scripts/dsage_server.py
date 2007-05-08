@@ -74,6 +74,15 @@ def write_stats(dsage_server, stats_file):
         print 'Error writing stats: %s' % (msg)
         return
 
+def create_manhole():
+    from twisted.manhole import telnet
+    factory = telnet.ShellFactory()
+    factory.username = 'yqiang'
+    factory.password = 'foo'
+    port = reactor.listenTCP(2000, factory)
+
+    return port
+
 def startLogging(log_file):
     """
     This method initializes the logging facilities for the server.
@@ -192,7 +201,7 @@ def main():
 
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
-
+    reactor.callWhenRunning(create_manhole)
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":

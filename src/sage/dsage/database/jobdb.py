@@ -475,6 +475,7 @@ class JobDatabaseSQLite(JobDatabase):
                 monitor_id,
                 failures
                 FROM jobs WHERE job_id = ?"""
+
         cur = self.con.cursor()
         cur.execute(query, (job_id,))
         jtuple = cur.fetchone()
@@ -596,7 +597,9 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        query = "SELECT * from jobs where killed = 1 AND status <> 'completed'"
+        query = """SELECT * from jobs
+                   WHERE killed = 1
+                   AND status <> 'completed'"""
         cur = self.con.cursor()
         cur.execute(query)
         killed_jobs = cur.fetchall()

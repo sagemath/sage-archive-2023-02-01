@@ -290,6 +290,7 @@ class UserPerspective(DefaultPerspective):
     Defines the perspective of a regular user to the server.
 
     """
+
     def __init__(self, DSageServer, avatarID):
         DefaultPerspective.__init__(self, DSageServer, avatarID)
 

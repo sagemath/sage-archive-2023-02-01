@@ -368,8 +368,8 @@ class DSageServer(pb.Root):
 
     def generate_xml_stats(self):
         """
-        This method returns a an XML document to be consumed by the Dashboard
-        widget
+        This method returns a an XML document to be consumed by the
+        Mac OS X Dashboard widget
 
         """
 

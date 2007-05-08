@@ -278,7 +278,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             baseval = self._valbase
         # Currently we don't reduce the coefficients of the answer modulo the appropriate power of p or normalize
         return Polynomial_padic_capped_relative_dense(self.parent(), \
-                                                      (self._poly + right._poly, \
+                                                      (selfpoly + rightpoly, \
                                                        baseval, \
                                                        [min(a + self._valbase - baseval, b + right._valbase - baseval) for (a, b) in
                                                               zip(_extend_by_infinity(self._relprecs, max(len(self._relprecs), len(right._relprecs))), \
@@ -298,7 +298,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             baseval = self._valbase
         # Currently we don't reduce the coefficients of the answer modulo the appropriate power of p or normalize
         return Polynomial_padic_capped_relative_dense(self.parent(), \
-                                                      (self._poly - right._poly, \
+                                                      (selfpoly - rightpoly, \
                                                        baseval, \
                                                        [min(a + self._valbase - baseval, b + right._valbase - baseval) for (a, b) in
                                                               zip(_extend_by_infinity(self._relprecs, max(len(self._relprecs), len(right._relprecs))), \

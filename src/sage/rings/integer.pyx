@@ -2144,7 +2144,7 @@ def make_integer(s):
     r._reduce_set(s)
     return r
 
-
+# TODO: where is this used? Never doctested. Should I call IntegerRing.random_element()?
 from random import randint
 def random_integer(min=-2, max=2):
     cdef Integer x
@@ -2153,7 +2153,7 @@ def random_integer(min=-2, max=2):
         _min = min
         _max = max
         x = PY_NEW(Integer)
-        r = random() % (_max - _min + 1) + _min
+        r = randint() % (_max - _min + 1) + _min
         mpz_set_si(x.value, r)
         return x
     except OverflowError:

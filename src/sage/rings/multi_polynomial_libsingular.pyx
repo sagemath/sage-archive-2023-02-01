@@ -1,4 +1,4 @@
-"""
+"""nodoctest
 Multivariate polynomials over QQ and GF(p) implemented using SINGULAR as backend.
 
 AUTHORS:

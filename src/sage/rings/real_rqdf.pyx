@@ -86,6 +86,7 @@ import sage.structure.coerce
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
+cdef extern from "cygwinfix.h": pass
 
 
 cdef qd *qd_from_mpz(mpz_t z):

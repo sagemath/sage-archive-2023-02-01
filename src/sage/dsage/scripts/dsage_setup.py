@@ -139,19 +139,24 @@ def setup_server():
     print "Server configuration finished.\n\n"
 
     # add default user
+    from twisted.conch.ssh import keys
+    import base64
+
     c = ConfigParser.ConfigParser()
     c.read(os.path.join(DSAGE_DIR, 'client.conf'))
     username = c.get('auth', 'username')
     pubkey_file = c.get('auth', 'pubkey_file')
     clientdb = ClientDatabase()
+    pubkey = base64.encodestring(
+                    keys.getPublicKeyString(filename=pubkey_file).strip())
     if clientdb.get_user(username) is None:
-        clientdb.add_user(username, pubkey_file)
+        clientdb.add_user(username, pubkey)
         print 'Added user %s.\n' % (username)
     else:
         user, key = clientdb.get_user_and_key(username)
-        if key != get_pubkey_string(pubkey_file):
+        if key != pubkey:
             clientdb.del_user(username)
-            clientdb.add_user(username, pubkey_file)
+            clientdb.add_user(username, pubkey)
             print "User %s's pubkey changed, setting to new one." % (username)
         else:
             print 'User %s already exists.' % (username)

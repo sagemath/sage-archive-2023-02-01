@@ -56,11 +56,11 @@ class ClientDatabase(object):
 
         """
 
-        self.conf = get_conf(type='clientdb')
         self.tablename = self.TABLENAME
         if test:
             self.db_file = 'clientdb_test.db'
         else:
+            self.conf = get_conf(type='clientdb')
             self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
@@ -89,7 +89,9 @@ class ClientDatabase(object):
 
         """
 
-        query = """SELECT username, public_key FROM clients WHERE username = ?"""
+        query = """SELECT username, public_key
+                   FROM clients
+                   WHERE username = ?"""
 
         cur = self.con.cursor()
         cur.execute(query, (username,))

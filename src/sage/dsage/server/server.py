@@ -220,7 +220,7 @@ class DSageServer(pb.Root):
         job_done is called by the workers check_output method.
 
         Parameters:
-        job_id -- job id (str)
+        job_id -- job id (string)
         output -- the stdout from the worker (string)
         result -- the result from the client (compressed pickle string)
                   result could be 'None'

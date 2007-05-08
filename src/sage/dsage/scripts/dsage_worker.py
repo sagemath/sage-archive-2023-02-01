@@ -71,7 +71,7 @@ class Worker(object):
         self.log_level = self.conf['log_level']
         self.delay = self.conf['delay']
         self.checker_task = task.LoopingCall(self.check_work)
-        self.checker_timeout = 1.0
+        self.checker_timeout = 0.5
         self.got_output = False
         self.start()
 
@@ -173,8 +173,8 @@ class Worker(object):
                 log.msg(LOG_PREFIX % self.id + msg)
             reactor.callLater(sleep_time, self.get_job)
         else:
-            print "Error: ", failure.getErrorMessage()
-            print "Traceback: ", failure.printTraceback()
+            log.err("Error: ", failure.getErrorMessage())
+            log.err("Traceback: ", failure.printTraceback())
 
     def setup_tmp_dir(self, job):
         """
@@ -335,7 +335,8 @@ except:
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
-            log.err(LOG_PREFIX % self.id + '%s' % msg)
+            done = False
+            log.err(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
@@ -760,7 +761,7 @@ def main():
             try:
                 hostname = str(hostname)
             except Exception, msg:
-                print msg
+                log.err(msg)
                 hostname = None
     else:
         hostname = port = None

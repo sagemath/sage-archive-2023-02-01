@@ -54,18 +54,20 @@ class MonitorDatabase(object):
     """
 
     def __init__(self, test=False):
-        self.conf = get_conf(type='monitordb')
         self.tablename = 'monitors'
         if test:
-            self.db_file = 'monitordb-test.db'
+            self.db_file = 'monitordb_test.db'
+            self.log_level = 5
+            self.log_file = 'monitordb_test.log'
         else:
+            self.conf = get_conf(type='monitordb')
             self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
-        self.log_level = self.conf['log_level']
-        self.log_file = self.conf['log_file']
+            self.log_level = self.conf['log_level']
+            self.log_file = self.conf['log_file']
         self.con = sqlite3.connect(self.db_file,
                 isolation_level=None,
                 detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)

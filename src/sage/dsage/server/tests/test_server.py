@@ -82,7 +82,8 @@ class DSageServerTestCase(unittest.TestCase):
         job.username = 'testing123'
         job.code = ''
         jdict = self.dsage_server.submit_job(job.reduce())
-        j = expand_job(self.dsage_server.get_jobs_by_username('testing123')[0])
+        j = expand_job(
+                self.dsage_server.get_jobs_by_username('testing123')[0])
         self.assertEquals(j.username, job.username)
 
     def testsubmit_job(self):

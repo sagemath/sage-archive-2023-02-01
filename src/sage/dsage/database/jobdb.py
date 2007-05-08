@@ -41,13 +41,21 @@ class JobDatabase(object):
 
     """
 
-    def __init__(self):
-        self.conf = get_conf(type='jobdb')
-        self.db_file = self.conf['db_file']
-        self.job_failure_threshold = int(self.conf['job_failure_threshold'])
-        self.log_file = self.conf['log_file']
-        self.log_level = int(self.conf['log_level'])
-        self.prune_in_days = int(self.conf['prune_in_days'])
+    def __init__(self, test=False):
+        if test:
+            self.db_file = 'dsage_test.db'
+            self.log_file = 'dsage_test.log'
+            self.log_level = 5
+            self.prune_in_days = 10
+            self.job_failure_threshold = 3
+        else:
+            self.conf = get_conf(type='jobdb')
+            self.db_file = self.conf['db_file']
+            self.job_failure_threshold =int(
+                                        self.conf['job_failure_threshold'])
+            self.log_file = self.conf['log_file']
+            self.log_level = int(self.conf['log_level'])
+            self.prune_in_days = int(self.conf['prune_in_days'])
 
     def random_string(self, length=10):
         """
@@ -84,7 +92,7 @@ class JobDatabaseZODB(JobDatabase):
     logging.getLogger("ZODB.Connection").setLevel(10000000)
 
     def __init__(self, test=False, read_only=False):
-        JobDatabase.__init__(self)
+        JobDatabase.__init__(self, test=test)
         if test:
             self.db_file = 'test_db.db'
         else:
@@ -393,7 +401,7 @@ class JobDatabaseSQLite(JobDatabase):
     """
 
     def __init__(self, test=False):
-        JobDatabase.__init__(self)
+        JobDatabase.__init__(self, test=test)
         if test:
             self.db_file = 'test_jobdb.db'
         else:

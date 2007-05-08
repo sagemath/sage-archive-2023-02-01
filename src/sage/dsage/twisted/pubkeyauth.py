@@ -28,9 +28,9 @@ from twisted.python import log
 
 from sage.dsage.errors.exceptions import AuthenticationError
 
-def get_pubkey_string(pubkey_file=None, data=''):
+def get_pubkey_string(filename=None):
     try:
-        f = open(pubkey_file)
+        f = open(filename)
         type_, key = f.readlines()[0].split()[:2]
         f.close()
         if not type_ == 'ssh-rsa':

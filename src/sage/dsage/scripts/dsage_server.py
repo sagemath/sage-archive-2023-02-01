@@ -156,7 +156,8 @@ def main():
                 port_used = False
             if not port_used:
                 if SSL:
-                    ssl_context = ssl.DefaultOpenSSLContextFactory(SSL_PRIVKEY, SSL_CERT)
+                    ssl_context = ssl.DefaultOpenSSLContextFactory(
+                                    SSL_PRIVKEY, SSL_CERT)
                     reactor.listenSSL(NEW_CLIENT_PORT,
                                       client_factory,
                                       contextFactory = ssl_context)

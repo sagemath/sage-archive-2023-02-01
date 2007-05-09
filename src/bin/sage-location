@@ -61,7 +61,7 @@ def __mysig(a,b):
     raise KeyboardInterrupt, "computation timed out because alarm was set for %s seconds"%__alarm_time
 
 import signal
-signal.alarm(60)
+signal.alarm(360)
 
 if __name__ ==  '__main__':
     # Check if SAGE has moved, and if so delete all .pyo and .pyc files
@@ -70,6 +70,7 @@ if __name__ ==  '__main__':
     if t:
         print "The SAGE install tree may have moved."
         print "Regenerating Python.pyo and .pyc files that hardcode the install PATH (please wait less than a minute)..."
+        print "Please do not interrupt this."
 	update_library_files(R)
         update_hardcoded_files(SAGE_ROOT + '/local/lib/python/')
 

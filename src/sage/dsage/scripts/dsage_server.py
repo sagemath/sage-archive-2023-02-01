@@ -201,7 +201,7 @@ def main():
 
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
-    reactor.callWhenRunning(create_manhole)
+    # reactor.callWhenRunning(create_manhole)
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":

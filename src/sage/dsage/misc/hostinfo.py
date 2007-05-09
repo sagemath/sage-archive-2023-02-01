@@ -165,7 +165,7 @@ class ClassicHostInfo(object):
 
     def get_host_info(self, platform):
         host_info = {}
-        if platform == 'linux2' or platform == 'linux':
+        if platform in ('linux', 'linux2', 'cygwin'):
             try:
                 # os
                 host_info['os'] = platform
@@ -205,8 +205,8 @@ class ClassicHostInfo(object):
                 raise
 
             host_info['os'] = platform
-            return self.canonical_info(host_info)
 
+            return self.canonical_info(host_info)
         if platform == 'darwin':
             try:
                 # os

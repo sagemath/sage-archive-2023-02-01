@@ -409,7 +409,7 @@ except:
         output = output.strip()
         output = output.replace('\r', '')
 
-        if 'execfile' or 'load' in output and self.got_output:
+        if ('execfile' in output or 'load' in output) and self.got_output:
             output = ''
 
         return output

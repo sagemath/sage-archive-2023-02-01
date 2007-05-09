@@ -337,7 +337,7 @@ def expand_job(jdict):
     """
 
     if jdict is None:
-        raise ValueError('Did not pass a jdict to expand_job')
+        return None
 
     job = Job()
 

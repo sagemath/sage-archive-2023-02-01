@@ -231,7 +231,7 @@ class ClassicHostInfo(object):
                         host_info['MemFree'] = mem_free
                     elif l[0] == 'machdep.cpu.brand_string':
                         host_info['model name'] = l[1]
-                    elif l[0] == 'hw.model':
+                    elif l[0] == 'hw.model': # OS X PPC
                         host_info['model name'] = l[1]
 
                 # hostname
@@ -244,7 +244,6 @@ class ClassicHostInfo(object):
             except IOError, msg:
                 log.msg(msg)
                 raise
-
 
             host_info['os'] = platform
 

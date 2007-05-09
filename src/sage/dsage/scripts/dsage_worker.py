@@ -502,8 +502,7 @@ except:
         """
 
         delta = datetime.datetime.now() - self.job_start_time
-        # if delta.minutes >= 10:
-        if delta.seconds >= (60*5):
+        if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
             self.stop(hard_reset=True)
         else:
             self.stop()

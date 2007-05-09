@@ -435,9 +435,15 @@ class JobDatabaseSQLite(JobDatabase):
         """
 
         if anonymous:
-            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+            query = """SELECT * FROM jobs
+                       WHERE status = 'new' AND killed = 0
+                       LIMIT 1
+                    """
         else:
-            query = "SELECT * FROM jobs WHERE status = 'new' AND killed = 0"
+            query = """SELECT * FROM jobs
+                       WHERE status = 'new' AND killed = 0
+                       LIMIT 1
+                    """
         cur = self.con.cursor()
         cur.execute(query)
         jtuple = cur.fetchone()
@@ -512,11 +518,11 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        query = """UPDATE jobs
-        SET %s=?
-        WHERE job_id=?
-        """ % (key)
         cur = self.con.cursor()
+        query = """UPDATE jobs
+                   SET %s=?
+                   WHERE job_id=?
+                """ % (key)
         if key == 'data' or key == 'result': # Binary objects
             if value != None:
                 cur.execute(query, (sqlite3.Binary(value), job_id))
@@ -597,13 +603,20 @@ class JobDatabaseSQLite(JobDatabase):
 
         """
 
-        query = """SELECT * from jobs
-                   WHERE killed = 1
-                   AND status <> 'completed'"""
+        query = """SELECT
+                   job_id,
+                   status,
+                   killed,
+                   verifiable,
+                   monitor_id,
+                   failures,
+                   update_time
+                   FROM jobs
+                   WHERE killed = 1 AND status <> 'completed'"""
+
         cur = self.con.cursor()
         cur.execute(query)
         killed_jobs = cur.fetchall()
-
         return [self.create_jdict(jdict, cur.description)
                 for jdict in killed_jobs]
 

@@ -64,6 +64,8 @@ def update():
     for X in loggers:
         X._update()
 
+REFRESH = '<meta http-equiv="REFRESH" content="4">'
+
 class Log:
     """
     This is the base logger class.  The two classes that you

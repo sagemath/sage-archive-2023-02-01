@@ -40,6 +40,11 @@ import sage.rings.complex_field
 import sage.rings.integer
 import sage.rings.rational
 
+from sage.rings.integer cimport Integer
+
+def is_RealDoubleField(x):
+    return bool(PY_TYPE_CHECK(x, RealDoubleField_class))
+
 cdef class RealDoubleField_class(Field):
     """
     The field of real double precision numbers.
@@ -111,6 +116,8 @@ cdef class RealDoubleField_class(Field):
             sage: b == RR(a)
             True
         """
+        if hasattr(x, '_real_double_'):
+            return x._real_double_(self)
         return RealDoubleElement(x)
 
     cdef _coerce_c_impl(self, x):
@@ -134,13 +141,14 @@ cdef class RealDoubleField_class(Field):
             Complex Double Field
             sage: parent(CDF(5) + RDF(3))
             Complex Double Field
+            sage: CDF.gen(0) + 5.0
+            5.0 + 1.0*I
         """
         if isinstance(x, (int, long, sage.rings.integer.Integer,
                           sage.rings.rational.Rational)):
             return self(x)
         import real_mpfr
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing,
-                                    real_mpfr.RR])
+        return self._coerce_try(x, [real_mpfr.RR])
 
 
     def gen(self, n=0):
@@ -658,11 +666,31 @@ cdef class RealDoubleElement(FieldElement):
         """
         return long(self._value)
 
-    def _complex_number_(self):
-        return sage.rings.complex_field.ComplexField()(self)
+    def _complex_mpfr_field_(self, CC):
+        """
+        EXAMPLES:
+            sage: a = RDF(1/3)
+            sage: CC(a)
+            0.333333333333333
+            sage: a._complex_mpfr_field_(CC)
+            0.333333333333333
 
-    def _complex_double_(self):
-        return sage.rings.complex_double.ComplexDoubleField()(self)
+        If we coerce to a higher-precision field the extra bits appear
+        random; they are actualy 0's in base 2.
+            sage: a._complex_mpfr_field_(ComplexField(100))
+            0.33333333333333331482961625625
+            sage: a._complex_mpfr_field_(ComplexField(100)).str(2)
+            '0.01010101010101010101010101010101010101010101010101010100000000000000000000000000000000000000000000000'
+        """
+        return CC(self._value)
+
+    def _complex_double_(self, CDF):
+        """
+        EXAMPLES:
+            sage: CDF(RDF(1/3))
+            0.333333333333
+        """
+        return CDF(self._value)
 
     def _pari_(self):
         cdef sage.libs.pari.gen.PariInstance P = sage.libs.pari.gen.pari
@@ -700,14 +728,16 @@ cdef class RealDoubleElement(FieldElement):
     # Special Functions
     ############################
 
-    def sqrt(self):
+    def sqrt(self, extend=True, all=False):
         """
-        Return a square root of self.
+        The square root function.
 
-        If self is negative a complex number is returned.
-
-        If you use self.square_root() then a real number will always
-        be returned (though it will be NaN if self is negative).
+        INPUT:
+            extend -- bool (default: True); if True, return
+                a square root in a complex field if necessary
+                if self is negative; otherwise raise a ValueError
+            all -- bool (default: False); if True, return a list
+                of all square roots.
 
         EXAMPLES:
             sage: r = RDF(4.0)
@@ -725,27 +755,42 @@ cdef class RealDoubleElement(FieldElement):
             sage: r = RDF(-2.0)
             sage: r.sqrt()
             1.41421356237*I
-            """
-        if self._value >= 0:
-            return self.square_root()
-        return self._complex_double_().sqrt()
 
-
-    def square_root(self):
+            sage: RDF(2).sqrt(all=True)
+            [1.41421356237, -1.41421356237]
+            sage: RDF(0).sqrt(all=True)
+            [0.0]
+            sage: RDF(-2).sqrt(all=True)
+            [1.41421356237*I, -1.41421356237*I]
         """
-        Return a square root of self.  A real number will always be
-        returned (though it will be NaN if self is negative).
+        if self._value >= 0:
+            x = self._new_c(sqrt(self._value))
+            if all:
+                if x.is_zero():
+                    return [x]
+                else:
+                    return [x, -x]
+            else:
+                return x
+        if not extend:
+            raise ValueError, "negative number %s does not have a square root in the real field"%self
+        return self._complex_double_(sage.rings.complex_double.CDF).sqrt(all=all)
 
-        Use self.sqrt() to get a complex number if self is negative.
+
+    def is_square(self):
+        """
+        Returns whether or not this number is a square in this field.
+        For the real numbers, this is True if and only if self is non-negative.
 
         EXAMPLES:
-            sage: r = RDF(-2.0)
-            sage: r.square_root()
-            nan
-            sage: r.sqrt()
-            1.41421356237*I
+            sage: RDF(3.5).is_square()
+            True
+            sage: RDF(0).is_square()
+            True
+            sage: RDF(-4).is_square()
+            False
         """
-        return self._new_c(sqrt(self._value))
+        return bool(self._value >= 0)
 
     def cube_root(self):
         """
@@ -817,18 +862,27 @@ cdef class RealDoubleElement(FieldElement):
             67.6462977039
             sage: a^a
             1.29711148178
+
+        Symbolic examples:
+            sage: RDF('-2.3')^(x+y^3+sin(x))
+            -2.30000000000000^(y^3 + sin(x) + x)
+            sage: RDF('-2.3')^x
+            -2.30000000000000^x
         """
         cdef RealDoubleElement x
-        if PY_TYPE_CHECK(self, RealDoubleElement):
+        if PY_TYPE_CHECK(exponent, RealDoubleElement):
             return self.__pow(RealDoubleElement(exponent))
         elif PY_TYPE_CHECK(exponent, int):
             return self.__pow_int(exponent)
         elif PY_TYPE_CHECK(exponent, Integer) and exponent < INT_MAX:
             return self.__pow_int(int(exponent))
-        elif not isinstance(exponent, RealDoubleElement):
-            x = RealDoubleElement(exponent)
-        else:
-            x = exponent
+        try:
+            x = self.parent()(exponent)
+        except TypeError:
+            try:
+                return exponent.parent()(self)**exponent
+            except AttributeError:
+                raise TypeError
         return self.__pow(x)
 
 
@@ -899,7 +953,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF('16.0'); r.log10()
             1.20411998266
-            sage: r.log() / log(10)
+            sage: r.log() / RDF(log(10))
             1.20411998266
             sage: r = RDF('39.9'); r.log10()
             1.60097289569
@@ -916,7 +970,7 @@ cdef class RealDoubleElement(FieldElement):
         EXAMPLES:
             sage: r = RDF(16); r.logpi()
             2.42204624559
-            sage: r.log() / log(pi)
+            sage: r.log() / RDF(log(pi))
             2.42204624559
             sage: r = RDF('39.9'); r.logpi()
             3.22030233461
@@ -1111,7 +1165,6 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/12
             sage: q.sinh()
             0.264800227602
-
         """
         return self._new_c(gsl_ldexp( gsl_sf_expm1(self._value) - gsl_sf_expm1(-self._value), -1)) # (e^x - x^-x)/2
 
@@ -1134,7 +1187,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.cosh() ; i
             2.50917847866
-            sage: i.acosh() == q
+            sage: abs(i.acosh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_acosh(self._value))
@@ -1147,7 +1200,7 @@ cdef class RealDoubleElement(FieldElement):
             sage: q = RDF.pi()/2
             sage: i = q.sinh() ; i
             2.30129890231
-            sage: i.asinh() == q
+            sage: abs(i.asinh()-q) < 1e-15
             True
         """
         return self._new_c(gsl_asinh(self._value))
@@ -1164,6 +1217,42 @@ cdef class RealDoubleElement(FieldElement):
             -4.4408920985e-16
         """
         return self._new_c(gsl_atanh(self._value))
+
+    def sech(self):
+        r"""
+        This function returns the  hyperbolic secant.
+
+        EXAMPLES:
+            sage: RDF(pi).sech()
+            0.0862667383341
+            sage: CDF(pi).sech()
+            0.0862667383341
+        """
+        return 1/self.cosh()
+
+    def csch(self):
+        r"""
+        This function returns the hyperbolic cosecant.
+
+        EXAMPLES:
+            sage: RDF(pi).csch()
+            0.08658953753
+            sage: CDF(pi).csch()
+            0.08658953753
+        """
+        return 1/self.sinh()
+
+    def coth(self):
+        r"""
+        This function returns the hyperbolic cotangent.
+
+        EXAMPLES:
+            sage: RDF(pi).coth()
+            1.0037418732
+            sage: CDF(pi).coth()
+            1.0037418732
+        """
+        return self.cosh() / self.sinh()
 
     def agm(self, other):
         """

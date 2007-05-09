@@ -255,6 +255,7 @@ class LargeCremonaDatabase(sage.databases.db.Database):
         sage: c = CremonaDatabase()
         sage: c.allcurves(11)
         {'a1': [[0, -1, 1, -10, -20], 0, 5], 'a3': [[0, -1, 1, 0, 0], 0, 5], 'a2': [[0, -1, 1, -7820, -263580], 0, 1]}
+
     """
     def __init__(self, read_only=True):
         """

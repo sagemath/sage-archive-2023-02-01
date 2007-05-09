@@ -1,5 +1,5 @@
 """
-Jacobian "morphism" as class in Picard group
+Jacobian ``morphism'' as a class in the Picard group
 """
 
 #*****************************************************************************
@@ -177,5 +177,5 @@ class JacobianMorphism_divisor_class(SchemeMorphism):
     def __rmul__(self, n):
         return self.__mul__(n)
 
-    def is_zero(self):
-        return self.__polys[0] == 1
+    def __nonzero__(self):
+        return self.__polys[0] != 1

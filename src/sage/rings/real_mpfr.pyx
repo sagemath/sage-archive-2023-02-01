@@ -8,6 +8,7 @@ AUTHORS:
    -- David Harvey (2006-09-20): compatibility with Element._parent
    -- William Stein (2006-10): default printing truncates to avoid base-2
               rounding confusing (fix suggested by Bill Hart)
+   -- didier deshommes <dfdeshom@gmail.com>: special constructor for QD numbers
 
 EXAMPLES:
 
@@ -71,6 +72,8 @@ from rational cimport Rational
 
 from real_double cimport RealDoubleElement
 from real_double import is_RealDoubleElement
+
+from real_rqdf import QuadDoubleElement
 
 import sage.rings.complex_field
 
@@ -216,10 +219,6 @@ cdef class RealField(sage.rings.ring.Field):
             '1.1001000000000000000'
         """
         if hasattr(x, '_mpfr_'):
-            # This design with the hasattr is very annoying.
-            # The only thing that uses it right now is symbolic constants
-            # and symbolic function evaluation.
-            # Getting rid of this would speed things up.
             return x._mpfr_(self)
         cdef RealNumber z
         z = self._new()
@@ -235,19 +234,23 @@ cdef class RealField(sage.rings.ring.Field):
              * any other mpfr real field with precision that is as large as this one
              * int, long, integer, and rational rings.
              * real mathematical constants
+	     * the field of algebraic reals
         """
+        import sage.rings.algebraic_real
+
         if isinstance(x, RealNumber):
             P = x.parent()
             if (<RealField> P).__prec >= self.__prec:
                 return self(x)
             else:
                 raise TypeError, "Canonical coercion from lower to higher precision not defined"
-        elif isinstance(x, (Integer, Rational)):
+        elif isinstance(x, (Integer, Rational, sage.rings.algebraic_real.AlgebraicRealNumber)):
             return self(x)
-        elif self.__prec <= 53 and is_RealDoubleElement(x):
+        elif isinstance(x,QuadDoubleElement) and self.__prec <=212:
             return self(x)
-        import sage.functions.constants
-        return self._coerce_try(x, [sage.functions.constants.ConstantRing])
+        elif is_RealDoubleElement(x) and self.__prec <= 53:
+            return self(x)
+        raise TypeError
 
     def __cmp__(self, other):
         """
@@ -557,6 +560,8 @@ cdef class RealNumber(sage.structure.element.RingElement):
         self._set(x, base)
 
     cdef _set(self, x, int base):
+        import sage.rings.algebraic_real
+
         # This should not be called except when the number is being created.
         # Real Numbers are supposed to be immutable.
         cdef RealNumber _x, n, d
@@ -583,8 +588,14 @@ cdef class RealNumber(sage.structure.element.RingElement):
         elif PY_TYPE_CHECK(x, RealDoubleElement):
             rd = x
             mpfr_set_d(self.value, rd._value, parent.rnd)
-        #elif hasattr(x, '_mpfr_'):
-        #    return x._mpfr_(self)
+        elif PY_TYPE_CHECK(x, QuadDoubleElement):
+            qd = x
+            self._set_from_qd(qd)
+        elif isinstance(x, sage.rings.algebraic_real.AlgebraicRealNumber):
+            d = x.real(parent)
+            mpfr_set(self.value, d.value, parent.rnd)
+        elif hasattr(x, '_mpfr_'):
+            return x._mpfr_(self)
         else:
             s = str(x).replace(' ','')
             if mpfr_set_str(self.value, s, base, parent.rnd):
@@ -596,6 +607,34 @@ cdef class RealNumber(sage.structure.element.RingElement):
                     mpfr_set_inf(self.value, -1)
                 else:
                     raise TypeError, "Unable to convert x (='%s') to real number."%s
+
+    cdef _set_from_qd(self,q):
+        """
+        Extract an MPFR number from a quad double
+        real number.
+
+        EXAMPLES:
+            sage: RR = RealField (53)
+            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
+            324324.009873663
+
+            sage: RR = RealField (200)
+            sage: RR(RQDF('324324.0098736633445565765349760000276353865'))
+            324324.00987366334455657653497600002763538650000000000000000
+        """
+        cdef int i
+        cdef double d
+        cdef mpfr_t curr
+        doubles = q.get_doubles()
+        rnd = (<RealField>self._parent).rnd
+        mpfr_init2(curr, mpfr_get_prec(self.value))
+        mpfr_set_d(self.value,doubles[0],rnd)
+        for i from 1 <= i < 4:
+            d = doubles[i]
+            mpfr_set_d(curr,d,rnd)
+            mpfr_add(self.value, self.value,curr,rnd)
+
+        mpfr_clear(curr)
 
     cdef _set_from_GEN_REAL(self, GEN g):
         """
@@ -1287,17 +1326,17 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Returns integer truncation of this real number.
         """
-        s = self.str(32)
-        i = s.find('.')
-        return int(s[:i], 32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z.__int__()
 
     def __long__(self):
         """
         Returns long integer truncation of this real number.
         """
-        s = self.str(32)
-        i = s.find('.')
-        return long(s[:i], 32)
+        cdef Integer z = Integer()
+        mpfr_get_z(z.value, self.value, GMP_RNDZ)
+        return z.__long__()
 
     def __complex__(self):
         return complex(float(self))
@@ -1580,6 +1619,182 @@ cdef class RealNumber(sage.structure.element.RingElement):
             intv = intv_field(self.nextbelow(), self)
             return intv.simplest_rational(low_open = True)
 
+    def nearby_rational(self, max_error=None, max_denominator=None):
+        """
+        Find a rational near to self.  Exactly one of max_error
+        or max_denominator must be specified.  If max_error is specified,
+        then this returns the simplest rational in the range
+        [self-max_error .. self+max_error].  If max_denominator is
+        specified, then this returns the rational closest to self with
+        denominator at most max_denominator.  (In case of ties, we
+        pick the simpler rational.)
+
+        EXAMPLES:
+            sage: (0.333).nearby_rational(max_error=0.001)
+            1/3
+            sage: (0.333).nearby_rational(max_error=1)
+            0
+            sage: (-0.333).nearby_rational(max_error=0.0001)
+            -257/772
+
+            sage: (0.333).nearby_rational(max_denominator=100)
+            1/3
+            sage: RR(1/3 + 1/1000000).nearby_rational(max_denominator=2999999)
+            777780/2333333
+            sage: RR(1/3 + 1/1000000).nearby_rational(max_denominator=3000000)
+            1000003/3000000
+            sage: (-0.333).nearby_rational(max_denominator=1000)
+            -333/1000
+            sage: RR(3/4).nearby_rational(max_denominator=2)
+            1
+            sage: RR(pi).nearby_rational(max_denominator=120)
+            355/113
+            sage: RR(pi).nearby_rational(max_denominator=10000)
+            355/113
+            sage: RR(pi).nearby_rational(max_denominator=100000)
+            312689/99532
+            sage: RR(pi).nearby_rational(max_denominator=1)
+            3
+            sage: RR(-3.5).nearby_rational(max_denominator=1)
+            -3
+        """
+        if ((max_error is None and max_denominator is None) or
+            (max_error is not None and max_denominator is not None)):
+            raise ValueError, 'Must specify exactly one of max_error or max_denominator in nearby_rational()'
+
+        if max_error is not None:
+            from real_mpfi import RealIntervalField
+
+            intv_field = RealIntervalField(self.prec())
+            intv = intv_field(self - max_error, self + max_error)
+
+            return intv.simplest_rational()
+
+        cdef int sgn = mpfr_sgn(self.value)
+
+        if sgn == 0:
+            return Rational(0)
+
+        cdef Rational self_r = self.exact_rational()
+
+        cdef Integer self_d = self_r.denominator()
+
+        if self_d <= max_denominator:
+            return self_r
+
+        if sgn < 0:
+            self_r = -self_r
+
+        cdef Integer fl = self_r.floor()
+        cdef Rational target = self_r - fl
+
+        cdef int low_done = 0
+        cdef int high_done = 0
+
+        # We use the Stern-Brocot tree to find the nearest neighbors of
+        # self with denominator at most max_denominator.  However,
+        # navigating the Stern-Brocot tree in the straightforward way
+        # can be very slow; for instance, to get to 1/1000000 takes a
+        # million steps.  Instead, we perform many steps at once;
+        # this probably slows down the average case, but it drastically
+        # speeds up the worst case.
+
+        # Suppose we have a/b < c/d < e/f, where a/b and e/f are
+        # neighbors in the Stern-Brocot tree and c/d is the target.
+        # We alternate between moving the low and the high end toward
+        # the target as much as possible.  Suppose that there are
+        # k consecutive rightward moves in the Stern-Brocot tree
+        # traversal; then we end up with (a+k*e)/(b+k*f).  We have
+        # two constraints on k.  First, the result must be <= c/d;
+        # this gives us the following:
+        # (a+k*e)/(b+k*f) <= c/d
+        # d*a + k*(d*e) <= c*b + k*(c*f)
+        # k*(d*e) - k*(c*f) <= c*b - d*a
+        # k <= (c*b - d*a)/(d*e - c*f)
+        # when moving the high side, we get
+        # (k*a+e)/(k*b+f) >= c/d
+        # k*(d*a) + d*e >= k*(c*b) + c*f
+        # d*e - c*f >= k*(c*b - d*a)
+        # k <= (d*e - c*f)/(c*b - d*a)
+
+        # We also need the denominator to be <= max_denominator; this
+        # gives (b+k*f) <= max_denominator or
+        # k <= (max_denominator - b)/f
+        # or
+        # k <= (max_denominator - f)/b
+
+        # We use variables with the same names as in the math above.
+
+        cdef Integer a = Integer(0)
+        cdef Integer b = Integer(1)
+        cdef Integer c = target.numerator()
+        cdef Integer d = target.denominator()
+        cdef Integer e = Integer(1)
+        cdef Integer f = Integer(1)
+
+        cdef Integer k
+
+        while (not low_done) or (not high_done):
+            # Move the low side
+            k = (c*b - d*a) // (d*e - c*f)
+
+            if b+k*f > max_denominator:
+                k = (max_denominator - b) // f
+                low_done = True
+
+            if k == 0:
+                low_done = True
+
+            a = a + k*e
+            b = b + k*f
+
+            # Move the high side
+            k = (d*e - c*f) // (c*b - d*a)
+
+            if k*b + f >= max_denominator:
+                k = (max_denominator - f) // b
+                high_done = True
+
+            if k == 0:
+                high_done = True
+
+            e = k*a + e
+            f = k*b + f
+
+        # Now a/b and e/f are rationals surrounding c/d.  We know that
+        # neither is equal to c/d, since d > max_denominator and
+        # b and f are both <= max_denominator.  (We know that
+        # d > max_denominator because we return early (before we
+        # get here) if d <= max_denominator.)
+
+        low = a/b
+        high = e/f
+
+        cdef int compare = cmp(target - low, high - target)
+
+        if compare > 0:
+            result = high
+        elif compare < 0:
+            result = low
+        else:
+            compare = cmp(b, f)
+            if compare > 0:
+                result = high
+            elif compare < 0:
+                result = low
+            else:
+                compare = cmp(a, e)
+                if compare > 0:
+                    result = high
+                else:
+                    result = low
+
+        result = fl + result
+
+        if sgn < 0:
+            return -result
+        return result
+
 
     ###########################################
     # Comparisons: ==, !=, <, <=, >, >=
@@ -1663,16 +1878,22 @@ cdef class RealNumber(sage.structure.element.RingElement):
     # Special Functions
     ############################
 
-    def sqrt(self):
-        """
-        Return a square root of self.
+    def sqrt(self, extend=True, all=False):
+        r"""
+        The square root function.
 
-        If self is negative a complex number is returned.
-
-        If you use self.square_root() then a real number will always
-        be returned (though it will be NaN if self is negative).
+        INPUT:
+            extend -- bool (default: True); if True, return
+                a square root in a complex field if necessary
+                if self is negative; otherwise raise a ValueError
+            all -- bool (default: False); if True, return a list
+                of all square roots.
 
         EXAMPLES:
+            sage: r = -2.0
+            sage: r.sqrt()
+            1.41421356237310*I
+
             sage: r = 4.0
             sage: r.sqrt()
             2.00000000000000
@@ -1681,41 +1902,51 @@ cdef class RealNumber(sage.structure.element.RingElement):
 
             sage: r = 4344
             sage: r.sqrt()
-            65.9090282131363
+            2*sqrt(1086)
+
+            sage: r = 4344.0
             sage: r.sqrt()^2 == r
             True
             sage: r.sqrt()^2 - r
-             0.000000000000000
+            0.000000000000000
 
             sage: r = -2.0
-            sage: r.sqrt()
-            1.41421356237310*I
-            """
-        if self >= 0:
-            return self.square_root()
-        return self._complex_number_().sqrt()
-
-
-    def square_root(self):
-        """
-        Return a square root of self.  A real number will always be
-        returned (though it will be NaN if self is negative).
-
-        Use self.sqrt() to get a complex number if self is negative.
-
-        EXAMPLES:
-            sage: r = -2.0
-            sage: r.square_root()
-            NaN
             sage: r.sqrt()
             1.41421356237310*I
         """
         cdef RealNumber x
-        x = self._new()
-        _sig_on
-        mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
-        _sig_off
-        return x
+        if self >= 0:
+            x = self._new()
+            _sig_on
+            mpfr_sqrt(x.value, self.value, (<RealField>self._parent).rnd)
+            _sig_off
+            if all:
+                if x.is_zero():
+                    return [x]
+                else:
+                    return [x, -x]
+            return x
+        if not extend:
+            raise ValueError, "negative number %s does not have a square root in the real field"%self
+        return self._complex_number_().sqrt(all=all)
+
+    def is_square(self):
+        """
+        Returns whether or not this number is a square in this field.
+        For the real numbers, this is True if and only if self is non-negative.
+
+        EXAMPLES:
+            sage: r = 3.5
+            sage: r.is_square()
+            True
+            sage: r = 0.0
+            sage: r.is_square()
+            True
+            sage: r = -4.0
+            sage: r.is_square()
+            False
+        """
+        return bool(self >= 0)
 
     def cube_root(self):
         """
@@ -1766,13 +1997,25 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: b^(1/2)
             1.0000000*I                    # 32-bit
             -1.0842022e-19 + 1.0000000*I   # 64-bit
+
+        We raise a real number to a symbolic object:
+            sage: 1.5^x
+            1.50000000000000^x
+            sage: -2.3^(x+y^3+sin(x))
+            -2.30000000000000^(y^3 + sin(x) + x)
         """
         cdef RealNumber x
         if not PY_TYPE_CHECK(self, RealNumber):
             return self.__pow__(float(exponent))
         if not PY_TYPE_CHECK(exponent, RealNumber):
-            x = self
-            exponent = x._parent(exponent)
+            try:
+                x = self
+                exponent = x._parent(exponent)
+            except TypeError:
+                try:
+                    return exponent.parent()(self)**exponent
+                except AttributeError:
+                    raise TypeError
         return self.__pow(exponent)
 
     def log(self, base='e'):
@@ -2107,6 +2350,30 @@ cdef class RealNumber(sage.structure.element.RingElement):
         _sig_off
         return x
 
+    def coth(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).coth()
+            1.0373147207275480958778097648
+        """
+        return 1/self.tanh()
+
+    def csch(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).csch()
+            0.27572056477178320775835148216
+        """
+        return 1/self.sinh()
+
+    def sech(self):
+        """
+        EXAMPLES:
+            sage: RealField(100)(2).sech()
+            0.26580222883407969212086273982
+        """
+        return 1/self.cosh()
+
     def acosh(self):
         """
         Returns the hyperbolic inverse cosine of this number
@@ -2267,7 +2534,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
         ALGORITHM: Uses the PARI C-library algdep command.
 
         EXAMPLE:
-             sage: r = sqrt(2); r
+             sage: r = sqrt(2.0); r
              1.41421356237310
              sage: r.algdep(5)
              x^2 - 2
@@ -2284,7 +2551,7 @@ cdef class RealNumber(sage.structure.element.RingElement):
          ALGORITHM: Uses the PARI C-library algdep command.
 
          EXAMPLE:
-              sage: r = sqrt(2); r
+              sage: r = sqrt(2.0); r
               1.41421356237310
               sage: r.algdep(5)
               x^2 - 2
@@ -2384,10 +2651,10 @@ def create_RealNumber(s, int base=10, int pad=0, rnd="RNDN", min_prec=53):
 
 
 def is_RealField(x):
-    return PY_TYPE_CHECK(x, RealField)
+    return bool(PY_TYPE_CHECK(x, RealField))
 
 def is_RealNumber(x):
-    return PY_TYPE_CHECK(x, RealNumber)
+    return bool(PY_TYPE_CHECK(x, RealNumber))
 
 def __create__RealField_version0(prec, sci_not, rnd):
     return RealField(prec, sci_not, rnd)

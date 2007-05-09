@@ -1,16 +1,9 @@
 """
 SAGE Functions Class
 
-EXAMPLES:
-    sage: f = 5*sin(x)
-    sage: f
-    (5*sin(x))
-    sage: f(2)
-    (5*sin(2))
-    sage: f(pi)
-    (5*sin(((1*pi) + 0)))
-    sage: float(f(pi))
-    6.1232339957367663e-16
+AUTHORS:
+   -- William Stein
+   -- didier deshommes <dfdeshom@gmail.com>(2007-03-26): added support for RQDF
 """
 import weakref
 
@@ -25,7 +18,7 @@ import sage.rings.all
 from   sage.structure.element import RingElement
 import operator
 from   sage.misc.latex import latex
-from   sage.interfaces.maxima import maxima, MaximaFunction
+from   sage.calculus.calculus import maxima
 import sage.functions.special as special
 from   sage.libs.all import  pari
 from   sage.structure.parent_base import ParentWithBase
@@ -112,8 +105,6 @@ class FunctionRing_class(CommutativeRing):
         return Function_gen(x)
 
     def _coerce_impl(self, x):
-        if is_Polynomial(x):
-            return self(x)
         return self(x)
 
     def characteristic(self):
@@ -217,13 +208,8 @@ class Function(RingElement):
     def _singular_init_(self):
         """
         EXAMPLES:
-            sage: singular(e)
+            sage: s = singular(e); s
             2.71828182845905
-            sage: P = e.parent()
-            sage: old_prec = P.set_precision(200)
-            sage: singular(e)
-            2.7182818284590452353602874713526624977572470936999595749670
-            sage: _ = P.set_precision(old_prec)
         """
         try:
             return self._conversions['singular']
@@ -263,18 +249,18 @@ class Function(RingElement):
         """
         EXAMPLES:
             sage: s = e + pi
-            sage: s == 0
+            sage: bool(s == 0)
             False
             sage: t = e^2  +pi
-            sage: s == t
+            sage: bool(s == t)
             False
-            sage: s == s
+            sage: bool(s == s)
             True
-            sage: t == t
+            sage: bool(t == t)
             True
-            sage: s < t
+            sage: bool(s < t)
             True
-            sage: t < s
+            sage: bool(t < s)
             False
         """
         if self is right:
@@ -334,20 +320,20 @@ class Function_arith(Function):
     EXAMPLES:
         sage: s = (pi + pi) * e + e
         sage: s
-        (((pi + pi)*e) + e)
+        2*e*pi + e
         sage: RR(s)
         19.7977502738062
         sage: maxima(s)
-        2*%e*%pi + %e
+        2*%e*%pi+%e
 
         sage: t = e^2 + pi + 2/3; t
-        (((e^2) + pi) + 2/3)
+        pi + e^2 + 2/3
         sage: RR(t)
         11.1973154191871
         sage: maxima(t)
-        %pi + %e^2 + 2/3
+        %pi+%e^2+2/3
         sage: t^e
-        ((((e^2) + pi) + 2/3)^e)
+        (pi + e^2 + 2/3)^e
         sage: RR(t^e)
         710.865247688858
     """
@@ -359,11 +345,18 @@ class Function_arith(Function):
         self.__y = y
         self.__op = op  # a binary operator, e.g., operator.sub
 
+    def _maxima_init_(self):
+        x = self.__x
+        y = self.__y
+        op = self.__op
+        return '(%s) %s (%s)'%(x._maxima_init_(), symbols[op] ,y._maxima_init_())
+
+
     def _repr_(self):
         """
         EXAMPLES:
             sage: log2 * e + pi^2/2
-            ((log2*e) + ((pi^2)/2))
+            e*log(2) + pi^2/2
         """
         return '(%s%s%s)'%(self.__x, symbols[self.__op], self.__y)
 
@@ -371,11 +364,11 @@ class Function_arith(Function):
         r"""
         EXAMPLES:
             sage: latex(log2 * e + pi^2/2)
-            \log(2) \cdot e + \frac{\pi^{2}}{2}
+            {e \cdot \log \left( 2 \right)} + \frac{{\pi}^{2} }{2}
             sage: latex(NaN^3 + 1/golden_ratio)
-            \text{NaN}^{3} + \frac{1}{\phi}
+            {\text{NaN}}^{3}  + \frac{2}{\sqrt{ 5 } + 1}
             sage: latex(log2 + euler_gamma + catalan + khinchin + twinprime + merten + brun)
-            \log(2) + \gamma + K + \text{khinchin} + \text{twinprime} + \text{merten} + \text{brun}
+            \text{twinprime} + \text{merten} + \text{khinchin} + \gamma + \text{catalan} + \text{brun} + \log \left( 2 \right)
         """
         if self.__op == operator.div:
             return '\\frac{%s}{%s}'%(latex(self.__x), latex(self.__y))
@@ -399,7 +392,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: gap(e + pi)
-            "5.85987448204884"
+            "pi + e"
         """
         return '"%s"'%self.str()
 
@@ -440,7 +433,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: maxima(e + pi)
-            %pi + %e
+            %pi+%e
         """
         return self.__op(self.__x._maxima_(maxima), self.__y._maxima_(maxima))
 
@@ -468,7 +461,7 @@ class Function_arith(Function):
         """
         EXAMPLES:
             sage: singular(e + pi)
-            5.85987448204884
+            pi + e
         """
         return '"%s"'%self.str()
 
@@ -480,6 +473,8 @@ class Function_arith(Function):
         """
         return self.__op(self.__x._mpfr_(R), self.__y._mpfr_(R))
 
+    def _real_rqdf_(self, R):
+        return self.__op(self.__x._real_rqdf_(R), self.__y._real_rqdf_(R))
 
 class Function_gen(Function):
     """
@@ -489,9 +484,9 @@ class Function_gen(Function):
     EXAMPLES:
         sage: a = pi/2 + e
         sage: a
-        ((pi/2) + e)
+        pi/2 + e
         sage: maxima(a)
-        %pi/2 + %e
+        %pi/2+%e
         sage: RR(a)
         4.28907815525394
         sage: RealField(200)(a)
@@ -499,7 +494,7 @@ class Function_gen(Function):
 
         sage: b = e + 5/7
         sage: maxima(b)
-        %e + 5/7
+        %e+5/7
         sage: RR(b)
         3.43256754274476
     """
@@ -517,6 +512,9 @@ class Function_gen(Function):
         return latex(self.__x)
 
     def _mpfr_(self, R):
+        return R(self.__x)
+
+    def _real_rqdf_(self, R):
         return R(self.__x)
 
     def str(self, bits=None):
@@ -596,6 +594,10 @@ class Function_at(Function):
         return '%s(%s)'%(self.__f, self.__x)
 
     def _mpfr_(self, R):
+        x = R(self.__x)
+        return self.__f(x)
+
+    def _real_rqdf_(self, R):
         x = R(self.__x)
         return self.__f(x)
 
@@ -764,8 +766,6 @@ gamma_function = Function_gamma()
 
 class Function_maxima(Function):
     def __init__(self, var, defn, repr, latex):
-        #if not isinstance(x, MaximaFunction):
-        #    raise TypeError, "x (=%s) must be a MaximaFunction"
         Function.__init__(self, {'maxima':defn})
         self.__var = var
         self.__defn = defn

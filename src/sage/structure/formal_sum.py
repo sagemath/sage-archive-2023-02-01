@@ -154,13 +154,13 @@ class FormalSum(ModuleElement):
     def _rmul_(self, s):
         return self.__class__([(s*c, x) for (c, x) in self], check=False, parent=self.parent())
 
-    def is_zero(self):
+    def __nonzero__(self):
         if len(self._data) == 0:
-            return True
+            return False
         for c, _ in self._data:
             if not c.is_zero():
-                return False
-        return True
+                return True
+        return False
 
     def reduce(self):
         if len(self) == 0:

@@ -1097,7 +1097,7 @@ class _PolytopeFace(SageObject):
         r"""
         Return a string representation of this face.
         """
-        return str(self._vertices)
+        return repr(self._vertices)
 
     def boundary_points(self):
         r"""

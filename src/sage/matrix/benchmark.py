@@ -24,8 +24,11 @@ def report(F, title):
             except KeyboardInterrupt:
                 t = -timeout
             alarm(0)
-            w.append(t)
-        w.append(w[0]/w[1])
+            w.append(float(t))
+        if w[1] == 0:
+            w.append(0.0)
+        else:
+            w.append(w[0]/w[1])
         w = tuple(w)
 
         print ('%15.3f'*len(w))%w
@@ -514,14 +517,14 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
-def det_GF(n=400, p=16411 ,min=1, max=100, system='sage'):
+def det_GF(n=400, p=16411 , system='sage'):
     """
     Dense integer determinant over GF.
     Given an n x n (with n=400) matrix A over GF with random entries
-    between min=1 and max=100, inclusive, compute det(A).
+    compute det(A).
     """
     if system == 'sage':
-        A = random_matrix(GF(p), n, n, x=min, y=max+1)
+        A = random_matrix(GF(p), n, n)
         t = cputime()
         d = A.determinant()
         return cputime(t)

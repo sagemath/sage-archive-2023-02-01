@@ -70,6 +70,7 @@ import field
 import integral_domain
 import principal_ideal_domain
 import polynomial_element_generic
+import polynomial_element
 import multi_polynomial_element
 import rational_field
 from integer_ring import is_IntegerRing
@@ -167,8 +168,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
-        # elif isinstance(x, multi_polynomial_element.MPolynomial_polydict):
-        #    return x.univariate_polynomial(self)
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
         if absprec is None:
@@ -308,7 +309,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         elif self.__is_sparse:
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse
         else:
-            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense
+            self.__polynomial_class = polynomial_element.Polynomial_generic_dense
 
     def base_extend(self, R):
         """
@@ -434,6 +435,9 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         if R.is_finite() and R.order() == 1:
             return True
         return False
+
+    def is_exact(self):
+        return self.base_ring().is_exact()
 
     def is_field(self):
         """
@@ -827,6 +831,8 @@ class PolynomialRing_dense_mod_p(PolynomialRing_dense_mod_n,
                 return self._singular_().parent(x).sage_poly(self)
             except:
                 raise TypeError,"Unable to coerce string"
+        elif hasattr(x, '_polynomial_'):
+            return x._polynomial_(self)
         return polynomial_element_generic.Polynomial_dense_mod_p(self, x, check, is_gen,construct=construct)
 
 

@@ -1,5 +1,20 @@
 """
 Free algebra quotients
+
+TESTS:
+    sage: n = 2
+    sage: A = FreeAlgebra(QQ,n,'x')
+    sage: F = A.monoid()
+    sage: i, j = F.gens()
+    sage: mons = [ F(1), i, j, i*j ]
+    sage: r = len(mons)
+    sage: M = MatrixSpace(QQ,r)
+    sage: mats = [M([0,1,0,0, -1,0,0,0, 0,0,0,-1, 0,0,1,0]), M([0,0,1,0, 0,0,0,1, -1,0,0,0, 0,-1,0,0]) ]
+    sage: H2.<i,j> = A.quotient(mons,mats)
+    sage: H2 == loads(dumps(H2))
+    True
+    sage: i == loads(dumps(i))
+    True
 """
 
 #*****************************************************************************
@@ -76,8 +91,8 @@ class FreeAlgebraQuotient(Algebra, object):
         if not is_FreeAlgebra(A):
             raise TypeError, "Argument A must be an algebra."
         R = A.base_ring()
-        if not R.is_field():
-            raise TypeError, "Base ring of argument A must be a field."
+#        if not R.is_field():  # TODO: why?
+#            raise TypeError, "Base ring of argument A must be a field."
         n = A.ngens()
         assert n == len(mats)
         self.__free_algebra = A
@@ -87,6 +102,15 @@ class FreeAlgebraQuotient(Algebra, object):
         self.__matrix_action = mats
         self.__monomial_basis = mons # elements of free monoid
         ParentWithGens.__init__(self, R, names, normalize=False)
+
+    def __eq__(self,right):
+        return type(self) == type(right) and \
+               self.ngens() == right.ngens() and \
+               self.rank() == right.rank() and \
+               self.module() == right.module() and \
+               self.matrix_action() == right.matrix_action() and \
+               self.monomial_basis() == right.monomial_basis()
+
 
     def __call__(self, x):
         if isinstance(x, FreeAlgebraQuotientElement) and x.parent() is self:
@@ -137,6 +161,12 @@ class FreeAlgebraQuotient(Algebra, object):
         The rank of the algebra (as a free module).
         """
         return self.__dim
+
+    def matrix_action(self):
+        return self.__matrix_action
+
+    def monomial_basis(self):
+        return self.__monomial_basis
 
     def rank(self):
         """

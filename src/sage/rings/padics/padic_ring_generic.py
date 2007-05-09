@@ -50,11 +50,11 @@ In the capped absolute type, instead of having a cap on the relative precision o
     sage: (a * b) // 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) // 5^3)
-    <class 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
+    <type 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
     sage: (a * b) / 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) / 5^3)
-    <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+    <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 The fixed modulus type is the leanest of the p-adic rings: it is basically just a wrapper around $\Z / p^n \Z$ providing a unified interface with the rest of the p-adics.  This is the type you should use if your primary interest is in speed.  It does not track precision of elements.
     sage: R = Zp(5,5,'fixed-mod','series'); a = R(4005); a

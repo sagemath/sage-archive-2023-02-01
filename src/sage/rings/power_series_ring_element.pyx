@@ -624,13 +624,14 @@ cdef class PowerSeries(AlgebraElement):
             return f._prec
 
     cdef RingElement _mul_c_impl(self, RingElement right_r):
+        # TODO: doctest
         cdef PowerSeries right = <PowerSeries>right_r
         if self.is_zero():
             return self
         if right.is_zero():
             return right
         sp = self._prec
-        rp = right_.prec
+        rp = right._prec
         if sp is infinity:
             if rp is infinity:
                 prec = infinity

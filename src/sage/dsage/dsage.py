@@ -62,7 +62,10 @@ class DistributedSage(object):
 
         sage: dsage.worker()
 
-    This starts a worker connecting the localhost.
+    This starts a worker connecting the localhost. By default the worker will
+    connect to localhost and the port the last server started is listening on.
+    All of these settings are configurable via changing
+    \code{\$DOT\_SAGE/dsage/worker.conf}
 
     Open yet another terminal and type:
         sage: D = DSage()

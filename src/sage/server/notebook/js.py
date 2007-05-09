@@ -7,8 +7,10 @@ AUTHORS:
     -- Alex Clemesha
 
 
-This file is one big raw triple-quoted string that contains a bunch of javascript.  This javascript is inserted into
-the head of the notebook web page. """
+This file is one big raw triple-quoted string that contains a bunch of
+javascript.  This javascript is inserted into the head of the notebook
+web page.
+"""
 
 from sage.misc.misc import SAGE_URL
 from compress.JavaScriptCompressor import JavaScriptCompressor
@@ -25,7 +27,7 @@ import keyboards
 
 def javascript():
     s = async_lib()
-    s+= notebook_lib()
+    s += notebook_lib()
 
     s = JavaScriptCompressor().getPacked(s)
     return s
@@ -35,8 +37,10 @@ def async_lib():
     s = r"""
 ///////////////////////////////////////////////////////////////////
 // An AJAX framework for connections back to the
-// SAGE server (written by Tom Boothby).
+// SAGE server (written by Tom Boothby and William Stein).
 ///////////////////////////////////////////////////////////////////
+
+
 //globals
 
 var async_oblist = [null,null,null,null,null];
@@ -384,6 +388,24 @@ function time_now() {
 // Misc page functions -- for making the page work nicely
 // (this is a crappy descriptor)
 ///////////////////////////////////////////////////////////////////
+
+
+// Replaces all instances of the given substring.
+// From http://www.bennadel.com/blog/142-Ask-Ben-Javascript-String-Replace-Method.htm
+
+String.prototype.replaceAll = function(strTarget, strSubString ) {
+	var strText = this;
+	var intIndexOfMatch = strText.indexOf( strTarget );
+	// Keep looping while an instance of the target string
+	// still exists in the string.
+	while (intIndexOfMatch != -1) {
+		// Replace out the current instance.
+		strText = strText.replace( strTarget, strSubString )
+		// Get the index of any next matching substring.
+		intIndexOfMatch = strText.indexOf( strTarget );
+	}
+	return( strText );
+}
 
 function is_whitespace(s) {
     m = whitespace_pat.exec(s);
@@ -805,19 +827,25 @@ function get_cell(id) {
 function cell_blur(id) {
     var cell = get_cell(id);
     if(cell == null) return;
+
+    /* Disable coloring and change to div for now */
+    cell.className="cell_input";
+    cell_input_minimize_size(cell);
+    return true;  /* disable for now */
+
+
     cell.className="hidden";
 
    /* if(!in_slide_mode)
         current_cell = -1; */
 
-    var t = cell.value.replace("<","&lt;");
+    var t = cell.value.replaceAll("<","&lt;");
 
     var display_cell = get_element('cell_display_' + id)
     if (t.indexOf('%hide') == -1) {
         set_class('cell_display_' + id, 'cell_input')
-    // This is nasty, but is seems like the only way to get
-    // the notation R.<x,y> = blah that we use in SAGE to not
-    // result in R. = blah after highlighting.
+        // We do this so <'s don't result in being parsed as
+        // special html tags.
         display_cell.innerHTML = t;
         setTimeout("prettify_cell("+id+")",10);
     } else {
@@ -841,8 +869,7 @@ function prettify_cell(id) {
     var cell = get_cell(id);
     var display_cell = get_element('cell_display_' + id)
     if(cell == null || display_cell == null) return;
-
-    var t = cell.value.replace('<','<span><</span>');
+    var t = cell.value.replaceAll("<","&lt;");
     display_cell.innerHTML = prettyPrintOne(t+' '); //add a space to keep the cell from being too skinny
 }
 
@@ -1512,6 +1539,27 @@ function set_attached_files_list(objects) {
     objlist.innerHTML = objects;
 }
 
+/*
+Could this be useful?
+    source_code.match( new RegExp( "<script\\s+?type=['\"]text/javascript['\"]>([^]+?)</script>", "i" ) )
+*/
+
+function eval_script_tags(text) {
+   var s = text.replaceAll('\n','');
+   var i = s.indexOf('<script>');
+   while (i != -1) {
+       var j = s.indexOf('</script>');
+       var code = s.slice(8+i,j);
+       try {
+           window.eval(code);
+       } catch(e) {
+           alert(e);
+       }
+       s = s.slice(j+1);
+       i = s.indexOf('<script>');
+   }
+}
+
 function check_for_cell_update_callback(status, response_text) {
     // make sure the update happens again in a few hundred milliseconds,
     // unless a problem occurs below.
@@ -1553,6 +1601,7 @@ function check_for_cell_update_callback(status, response_text) {
     var D = response_text.slice(i+1).split(SEP);
     var output_text = D[0] + ' ';
     var output_text_wrapped = D[1] + ' ';
+    eval_script_tags(output_text)
     var output_html = D[2];
     var new_cell_input = D[3];
     var interrupted = D[4];

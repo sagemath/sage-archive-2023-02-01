@@ -60,6 +60,13 @@ Working with a polynomial ring over ZZ:
     True
     sage: 0 in j                                                # optional
     True
+
+TESTS:
+    sage: x,y,z = QQ['x,y,z'].gens()
+    sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
+    sage: I == loads(dumps(I))
+    True
+
 """
 
 #*****************************************************************************
@@ -169,8 +176,8 @@ class MPolynomialIdeal_singular_repr:
             sage: I = R.ideal([x^3 + y, y])
             sage: S = I._singular_()
             sage: S
-            y,
-            x^3+y
+            x^3+y,
+            y
         """
         if singular is None: singular = singular_default
         try:
@@ -329,10 +336,10 @@ class MPolynomialIdeal_singular_repr:
             self.__dimension = Integer(singular(v,"ideal").dim())
         return self.__dimension
 
-    def _singular_groebner_basis(self, algorithm="groebner"):
+    def _groebner_basis_using_singular(self, algorithm="groebner"):
         """
         Return a Groebner basis of this ideal. If a groebner basis for
-        this ideal has been calculated before the cached groebner
+        this ideal has been calculated before the cached Groebner
         basis is returned regardless of the requested algorithm.
 
         ALGORITHM: Uses Singular.
@@ -356,14 +363,8 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
             sage: I = sage.rings.ideal.Cyclic(R,4); I
             Ideal (d + c + b + a, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c, -1 + a*b*c*d) of Polynomial Ring in a, b, c, d over Rational Field
-            sage: I.groebner_basis()
+            sage: I._groebner_basis_using_singular()
             [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
-
-        \note{Some Groebner basis calculations crash on 64-bit
-        opterons with \SAGE's singular build, but work fine with an
-        official binary.  If you download and install a Singular
-        binary from the Singular website it will not have this problem
-        (you can use it with \SAGE by putting it in local/bin/).}
         """
         try:
             return self.__groebner_basis
@@ -385,6 +386,27 @@ class MPolynomialIdeal_singular_repr:
             self.__groebner_basis = Sequence([R(S[i+1]) for i in range(len(S))], R,
                                              check=False, immutable=True)
         return self.__groebner_basis
+
+    def _singular_groebner_basis(self):
+        try:
+            S = self.__singular_groebner_basis
+        except AttributeError:
+            G = self.groebner_basis()
+            try:
+                return self.__singular_groebner_basis
+            except AttributeError:
+                pass
+
+        try:
+            S._check_valid()
+            return S
+        except ValueError:
+            G = self.groebner_basis()
+            S = singular(G)
+            self.__singular_groebner_basis = S
+        return S
+
+
 
     def genus(self):
         """
@@ -416,7 +438,7 @@ class MPolynomialIdeal_singular_repr:
             sage: K = I.intersection(J); K
             Ideal (y^2, x*y, x^2) of Polynomial Ring in x, y over Rational Field
             sage: IJ = I*J; IJ
-            Ideal (y^3, x*y, x^2*y^2, x^3) of Polynomial Ring in x, y over Rational Field
+            Ideal (x^2*y^2, x^3, y^3, x*y) of Polynomial Ring in x, y over Rational Field
             sage: IJ == K
             False
         """
@@ -440,7 +462,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (-1*z^2 + y, 2 + z^3) of Polynomial Ring in x, y, z over Rational Field, Ideal (-1*z^2 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -508,7 +530,7 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y> = QQ[]
             sage: I = ideal([x^2,x*y^4,y^5])
             sage: I.integral_closure()
-            [x^2, y^5, x*y^3]
+            [x^2, y^5, -1*x*y^3]
 
         ALGORITHM: Use Singular
 
@@ -548,20 +570,31 @@ class MPolynomialIdeal_singular_repr:
             return self._reduce_using_macaulay2(f)
 
         try:
-            singular = self.__singular_groebner_basis.parent()
-        except AttributeError:
-            self.groebner_basis()
-            singular = self.__singular_groebner_basis.parent()
+            singular = self._singular_groebner_basis().parent()
+        except (AttributeError, RuntimeError):
+            singular = self._singular_groebner_basis().parent()
 
         f = self.ring()(f)
         g = singular(f)
         try:
-            h = g.reduce(self.__singular_groebner_basis)
+            self.ring()._singular_(singular).set_ring()
+            h = g.reduce(self._singular_groebner_basis())
         except TypeError:
             # This is OK, since f is in the right ring -- type error
             # just means it's a rational
             return f
-        return self.ring()(h)
+        try:
+            return self.ring()(h)
+        except (TypeError, RuntimeError):
+            return self.ring()(h[1])
+            # Why the above?
+            # For mysterious reasons, sometimes Singular returns a length
+            # one vector with the reduced polynomial in it.
+            # This occurs in the following example:
+            #sage: R.<x,y> = PolynomialRing(QQ, 2)
+            #sage: S.<a,b> = R.quotient(x^2 + y^2)
+            #sage: phi = S.hom([b,a])
+            #sage: loads(dumps(phi))
 
 
     def syzygy_module(self):
@@ -808,7 +841,7 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
         EXAMPLES:
             sage: R.<x,y> = PolynomialRing(IntegerRing(), 2, order='lex')
             sage: R.ideal([x, y])
-            Ideal (y, x) of Polynomial Ring in x, y over Integer Ring
+            Ideal (x, y) of Polynomial Ring in x, y over Integer Ring
             sage: R.<x0,x1> = GF(3)[]
             sage: R.ideal([x0^2, x1^3])
             Ideal (x0^2, x1^3) of Polynomial Ring in x0, x1 over Finite Field of size 3
@@ -855,9 +888,9 @@ class MPolynomialIdeal( MPolynomialIdeal_singular_repr, \
             if self.ring().base_ring() == sage.rings.integer_ring.ZZ:
                 return self._macaulay2_groebner_basis()
             else:
-                return self._singular_groebner_basis("groebner")
+                return self._groebner_basis_using_singular("groebner")
         elif algorithm.startswith('singular:'):
-            return self._singular_groebner_basis(algorithm[9:])
+            return self._groebner_basis_using_singular(algorithm[9:])
         elif algorithm == 'macaulay2:gb':
             return self._macaulay2_groebner_basis()
         elif algorithm == 'magma:GroebnerBasis':

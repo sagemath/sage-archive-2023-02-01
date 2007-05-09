@@ -59,31 +59,43 @@ def Ideal(R, gens=[], coerce=True):
         sage: R, x = PolynomialRing(ZZ, 'x').objgen()
         sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
         sage: I
-        Ideal (x^2 + 1, x^2 + 3*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: Ideal(R, [4 + 3*x + x^2, 1 + x^2])
-        Ideal (x^2 + 1, x^2 + 3*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: Ideal((4 + 3*x + x^2, 1 + x^2))
-        Ideal (x^2 + 1, x^2 + 3*x + 4) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 + 3*x + 4, x^2 + 1) of Univariate Polynomial Ring in x over Integer Ring
 
         sage: ideal(x^2-2*x+1, x^2-1)
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
         sage: ideal([x^2-2*x+1, x^2-1])
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
-        sage: ideal(x^2-2*x+1, x^2-1)
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
-        sage: ideal([x^2-2*x+1, x^2-1])
-        Ideal (x^2 - 2*x + 1, x^2 - 1) of Univariate Polynomial Ring in x over Integer Ring
+        Ideal (x^2 - 1, x^2 - 2*x + 1) of Univariate Polynomial Ring in x over Integer Ring
+
 
     This example illustrates how SAGE finds a common ambient ring for the ideal, even though
     1 is in the integers (in this case).
         sage: R.<t> = ZZ['t']
         sage: i = ideal(1,t,t^2)
         sage: i
-        Ideal (1, t, t^2) of Univariate Polynomial Ring in t over Integer Ring
+        Ideal (t, 1, t^2) of Univariate Polynomial Ring in t over Integer Ring
         sage: i = ideal(1/2,t,t^2)
         Traceback (most recent call last):
         ...
         TypeError: unable to find common ring into which all ideal generators map
+
+    TESTS:
+        sage: R, x = PolynomialRing(ZZ, 'x').objgen()
+        sage: I = R.ideal([4 + 3*x + x^2, 1 + x^2])
+        sage: I == loads(dumps(I))
+        True
+
+        sage: I = Ideal(R, [4 + 3*x + x^2, 1 + x^2])
+        sage: I == loads(dumps(I))
+        True
+
+        sage: I = Ideal((4 + 3*x + x^2, 1 + x^2))
+        sage: I == loads(dumps(I))
+        True
+
     """
     if isinstance(R, Ideal_generic):
         return Ideal(R.ring(), R.gens())
@@ -122,7 +134,6 @@ def Ideal(R, gens=[], coerce=True):
         gens = [R(g) for g in gens]
 
     gens = list(set(gens))
-
     if isinstance(R, sage.rings.principal_ideal_domain.PrincipalIdealDomain):
         # Use GCD algorithm to obtain a principal ideal
         g = gens[0]
@@ -149,31 +160,22 @@ class Ideal_generic(MonoidElement):
             gens = [gens]
         if coerce:
             gens = [ring(x) for x in gens]
-        gens = list(set(gens))
 
-        # Regarding the "important" comment below: Otherwise the
-        # generators will be in a completely random order, given the
-        # code that comes before that line.  A basic design choice in
-        # SAGE is that as much as possible lists of objects (e.g.,
-        # list(R), where R is finite), should not be in a random
-        # order.  Feel free to add this as a comment.  It would be
-        # fine to replace the sort by something else, if it yields the
-        # same answer.  However, I don't think randomizing the orders
-        # of things, e.g., lists of generators, for no reason, is a
-        # good idea in SAGE.  This is another "rule of thumb" for the
-        # programmer's guide.
-        gens.sort()    # important!
         self.__gens = tuple(gens)
         MonoidElement.__init__(self, ring.ideal_monoid())
 
     def _repr_short(self):
         return '(%s)'%(', '.join([str(x) for x in self.gens()]))
 
-    def _repr_(self):
+    def __repr__(self):
         return "Ideal %s of %s"%(self._repr_short(), self.ring())
 
     def __cmp__(self, other):
-        return cmp(set(self.gens()), set(other.gens()))
+        S = set(self.gens())
+        T = set(other.gens())
+        if S == T:
+            return 0
+        return cmp(self.gens(), other.gens())
 
     def __contains__(self, x):
         try:
@@ -185,8 +187,8 @@ class Ideal_generic(MonoidElement):
         # check if x, which is assumed to be in the ambient ring, is actually in this ideal.
         raise NotImplementedError
 
-    def is_zero(self):
-        return self.gens() == [self.ring()(0)]
+    def __nonzero__(self):
+        return self.gens() != [self.ring()(0)]
 
     def base_ring(self):
         return self.ring().base_ring()
@@ -261,7 +263,7 @@ class Ideal_principal(Ideal_generic):
     def __init__(self, ring, gen):
         Ideal_generic.__init__(self, ring, [gen])
 
-    def _repr_(self):
+    def __repr__(self):
         return "Principal ideal (%s) of %s"%(self.gen(), self.ring())
 
     def is_principal(self):

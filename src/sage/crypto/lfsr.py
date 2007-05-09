@@ -1,6 +1,5 @@
-"""
-Linear feedback shift register (LFSR) sequence commands
-
+r"""
+Linear feedback shift register (LFSR) sequence commands.
 
 Stream ciphers have been used for
 a long time as a source of pseudo-random number generators.

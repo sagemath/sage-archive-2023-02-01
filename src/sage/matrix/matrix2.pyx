@@ -17,9 +17,10 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 from   sage.structure.sequence import _combinations, Sequence
-from   sage.misc.misc import verbose, get_verbose
+from   sage.misc.misc import verbose, get_verbose, graphics_filename
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
+from   sage.rings.rational_field import QQ
 
 import sage.modules.free_module
 import matrix_space
@@ -389,7 +390,7 @@ cdef class Matrix(matrix1.Matrix):
         # is much faster in practice despite asymptotics.
         # TODO: find reasonable cutoff (Field specific, but seems to be quite large for Q[x])
         # if R.is_integral_domain() and R.is_exact() and algorithm == "hessenberg":
-        if  R.is_field() and algorithm == "hessenberg":
+        if  R.is_field() and R.is_exact() and algorithm == "hessenberg":
             c = self.charpoly('x')[0]
             if self._nrows % 2:
                 c = -c
@@ -2092,14 +2093,14 @@ cdef class Matrix(matrix1.Matrix):
         for c from 0 <= c < nc:
             if PyErr_CheckSignals(): raise KeyboardInterrupt
             for r from start_row <= r < nr:
-                if A.get_unsafe(r, c) != 0:
+                if A.get_unsafe(r, c):
                     pivots.append(c)
                     a_inverse = ~A.get_unsafe(r,c)
                     A.rescale_row(r, a_inverse, c)
                     A.swap_rows(r, start_row)
                     for i from 0 <= i < nr:
                         if i != start_row:
-                            if A.get_unsafe(i,c) != 0:
+                            if A.get_unsafe(i,c):
                                 minus_b = -A.get_unsafe(i, c)
                                 A.add_multiple_of_row(i, start_row, minus_b, c)
                     start_row = start_row + 1
@@ -2306,7 +2307,117 @@ cdef class Matrix(matrix1.Matrix):
                         return False
         return True
 
+    def visualize_structure(self, filename=None, maxsize=512):
+        """
+        Write a PNG image to 'filename' which visualizes self by putting
+        black pixels in those positions which have nonzero entries.
 
+        White pixels are put at positions with zero entries. If 'maxsize'
+        is given, then the maximal dimension in either x or y direction is
+        set to 'maxsize' depending on which is bigger. If the image is
+        scaled, the darkness of the pixel reflects how many of the
+        represented entries are nonzero. So if e.g. one image pixel
+        actually represents a 2x2 submatrix, the dot is darker the more of
+        the four values are nonzero.
+
+        INPUT:
+            filename -- either a path or None in which case a filename in
+                        the current directory is chosen automatically
+                        (default:None)
+
+            maxsize -- maximal dimension in either x or y direction of the resulting
+                       image. If None or a maxsize larger than
+                       max(self.nrows(),self.ncols()) is given the image will have
+                       the same pixelsize as the matrix dimensions (default: 512)
+
+        """
+        import gd
+        import os
+
+        cdef int x, y, _x, _y, v, b2
+        cdef int ir,ic
+        cdef float b, fct
+
+        mr, mc = self.nrows(), self.ncols()
+
+        if maxsize is None:
+
+            ir = mc
+            ic = mr
+            b = 1.0
+
+        elif max(mr,mc) > maxsize:
+
+            maxsize = float(maxsize)
+            ir = int(mc * maxsize/max(mr,mc))
+            ic = int(mr * maxsize/max(mr,mc))
+            b = max(mr,mc)/maxsize
+
+        else:
+
+            ir = mc
+            ic = mr
+            b = 1.0
+
+        b2 = b**2
+        fct = 255.0/b2
+
+        im = gd.image((ir,ic),1)
+        white = im.colorExact((255,255,255))
+        im.fill((0,0),white)
+
+        # these speed things up a bit
+        colorExact = im.colorExact
+        setPixel = im.setPixel
+
+        for x from 0 <= x < ic:
+            for y from 0 <= y < ir:
+                v = b2
+                for _x from 0 <= _x < b:
+                    for _y from 0 <= _y < b:
+                        if not self.get_unsafe(<int>(x*b + _x), <int>(y*b + _y)).is_zero():
+                            v-=1 #increase darkness
+
+                v = int(v*fct)
+                val = colorExact((v,v,v))
+                setPixel((y,x), val)
+
+        if filename is None:
+            filename = graphics_filename()
+
+        im.writePng(filename)
+
+    def density(self):
+        """
+        Return the density of self.
+
+        By density we understand the ration of the number of nonzero
+        positions and the self.nrows() * self.ncols(), i.e. the number
+        of possible nonzero positions.
+
+        EXAMPLE:
+
+            First, note that the density parameter does not ensure
+            the density of a matrix, it is only an upper bound.
+
+            sage: A = random_matrix(GF(127),200,200,density=0.3)
+            sage: A.density() # somewhat random
+            643/2500
+
+            sage: A = matrix(QQ,3,3,[0,1,2,3,0,0,6,7,8])
+            sage: A.density()
+            2/3
+
+        """
+        cdef int x,y,k
+        k = 0
+        nr = self.nrows()
+        nc = self.ncols()
+        for x from 0 <= x < nr:
+            for y from 0 <= y < nc:
+                if not self.get_unsafe(x,y).is_zero():
+                    k+=1
+        return QQ(k)/QQ(nr*nc)
 
 
 cdef decomp_seq(v):

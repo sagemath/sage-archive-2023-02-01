@@ -1,5 +1,5 @@
 r"""
-3D Ray Tracer
+3D Plotting Using Tachyon
 
 AUTHOR:
     -- John E. Stone (johns@megapixel.com): wrote tachyon ray tracer
@@ -34,7 +34,7 @@ class Tachyon(SageObject):
                  zoom = 1.0,
                  antialiasing = False,
                  aspectratio = 1.0,
-                 raydepth = 12,
+                 raydepth = 5,
                  camera_center = (-3, 0, 0),
                  updir = (0, 0, 1),
                  look_at = (0,0,0),
@@ -163,7 +163,7 @@ class Tachyon(SageObject):
                  zoom = 1.0,
                  antialiasing = False,
                  aspectratio = 1.0,
-                 raydepth = 12,
+                 raydepth = 8,
                  camera_center = (-3, 0, 0),
                  updir = (0, 0, 1),
                  look_at = (0,0,0),
@@ -191,6 +191,7 @@ class Tachyon(SageObject):
 
     def save(self, filename='sage.png', verbose=0, block=True, extra_opts=''):
         """
+        INPUT:
             filename -- (default: 'sage.png')
                        output filename; the extension of
                        the filename determines the type.
@@ -216,16 +217,12 @@ class Tachyon(SageObject):
     def show(self, verbose=0, extra_opts=''):
         import sage.server.support
         if sage.server.support.EMBEDDED_MODE:
-            i = 0
-            while os.path.exists('sage%s.png'%i):
-                i += 1
-            filename = 'sage%s.png'%i
+            filename = sage.misc.misc.graphics_filename()
             self.save(filename, verbose=verbose, extra_opts=extra_opts)
         else:
             filename = sage.misc.misc.tmp_filename() + '.png'
             self.save(filename, verbose=verbose, extra_opts=extra_opts)
             os.system('%s %s 2>/dev/null 1>/dev/null &'%(sage.misc.viewer.browser(), filename))
-
 
     def _res(self):
         return '\nresolution %s %s\n'%(self._xres, self._yres)

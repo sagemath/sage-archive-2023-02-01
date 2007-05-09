@@ -51,9 +51,9 @@ def arg(x):
     Return the argument of a complex number $x$.
 
     EXAMPLES:
-        sage: z = 1+2*I
+        sage: z = CC(1,2)
         sage: theta = arg(z)
-        sage: cos(theta)*abs(z)   # slightly random output on cygwin
+        sage: cos(theta)*abs(z)
         1.00000000000000
         sage: sin(theta)*abs(z)
         2.00000000000000
@@ -145,11 +145,6 @@ def acos(x):
     """
     Return the arc cosine of x.
 
-    EXAMPLES:
-        sage: acos(0.5)
-        1.04719755119660
-        sage: acos(1 + I*1.0)
-        0.904556894302381 - 1.06127506190504*I
     """
     try: return x.acos()
     except AttributeError: return RDF(x).acos()
@@ -158,11 +153,6 @@ def asin(x):
     """
     Return the arc sine of x.
 
-    EXAMPLES:
-        sage: asin(0.5)
-        0.523598775598299
-        sage: asin(1 + I*1.0)
-        0.666239432492515 + 1.06127506190504*I
     """
     try: return x.asin()
     except AttributeError: return RDF(x).asin()
@@ -171,11 +161,6 @@ def atan(x):
     """
     Return the arc tangent of x.
 
-    EXAMPLES:
-        sage: atan(1/2)
-        0.463647609001
-        sage: atan(1 + I)
-        1.01722196789785 + 0.402359478108525*I
     """
     try: return x.atan()
     except AttributeError: return RDF(x).atan()
@@ -300,7 +285,7 @@ def eta(x):
 
     EXAMPLES:
         sage: eta(1+I)
-        0.742048775836565 + 0.198831370229911*I
+        0.742048775837 + 0.19883137023*I
     """
     try: return x.eta()
     except AttributeError: return CDF(x).eta()
@@ -344,11 +329,11 @@ def fcp(x, var='x'):
     try: return x.fcp(var)
     except AttributeError: return factor(charpoly(x, var))
 
-def floor(x):
-    try:
-        return x.floor()
-    except AttributeError:
-        return sage.rings.all.floor(x)
+## def floor(x):
+##     try:
+##         return x.floor()
+##     except AttributeError:
+##         return sage.rings.all.floor(x)
 
 def gen(x):
     """
@@ -422,13 +407,13 @@ def imaginary(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: imaginary(z)
-        2.00000000000000
+        2
         sage: imag(z)
-        2.00000000000000
+        2
     """
     return imag(x)
 
-def integral(x, var=None, algorithm='maxima'):
+def integral(x, *args, **kwds):
     """
     Return an indefinite integral of an object x.
 
@@ -440,21 +425,20 @@ def integral(x, var=None, algorithm='maxima'):
         sage: f = cyclotomic_polynomial(10)
         sage: integral(f)
         1/5*x^5 - 1/4*x^4 + 1/3*x^3 - 1/2*x^2 + x
+        sage: integral(sin(x),x)
+        -cos(x)
+        sage: integral(sin(x),y)
+        sin(x)*y
+        sage: integral(sin(x), x, 0, pi/2)
+        1
+        sage: sin(x).integral(x, 0,pi/2)
+        1
     """
-    if var is None:
-        try:
-            return x.integral()
-        except AttributeError:
-            pass
-    import sage.interfaces.all as I
-    if var is None:
-        var = 'x'
-    if algorithm == 'maxima':
-        return I.maxima(x).integrate(var)
-    elif algorithm == 'mathematica':
-        return I.mathematica(x).Integrate(var)
+    if hasattr(x, 'integral'):
+        return x.integral(*args, **kwds)
     else:
-        raise ValueError, 'no algorithm %s'%algorithm
+        from sage.calculus.calculus import SR
+        return SR(x).integral(*args, **kwds)
 
 def integral_closure(x):
     return x.integral_closure()
@@ -603,15 +587,6 @@ def log(x,b=None):
     ordering, so the base can be viewed as an optional second
     argument.}
 
-    EXAMPLES:
-        sage: log(10,2)
-        3.32192809489
-        sage: log(8,2)
-        3.0
-        sage: log(10)
-        2.30258509299
-        sage: log(2.718)
-        0.999896315728952
     """
     if b is None:
         if hasattr(x, 'log'):
@@ -655,6 +630,10 @@ def norm(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: norm(z)
+        5
+        sage: norm(CDF(z))
+        5.0
+        sage: norm(CC(z))
         5.00000000000000
     """
     return x.norm()
@@ -738,7 +717,7 @@ def rank(x):
         2
 
     We compute the rank of an elliptic curve:
-        sage: E=EllipticCurve([0,0,1,-1,0])
+        sage: E = EllipticCurve([0,0,1,-1,0])
         sage: rank(E)
         1
     """
@@ -751,7 +730,7 @@ def real(x):
     EXAMPLES:
         sage: z = 1+2*I
         sage: real(z)
-        1.00000000000000
+        1
     """
     try: return x.real()
     except AttributeError: return CDF(x).real()
@@ -808,10 +787,15 @@ def show(x, *args, **kwds):
             return x.show(*args, **kwds)
         except AttributeError:
             pass
+    _do_show(x)
+
+def _do_show(x):
     if sage.server.support.EMBEDDED_MODE:
         print '<html><div class="math">%s</div></html>'%sage.misc.latex.latex(x)
-        return sage.misc.latex.LatexExpr('') # so not visible output
-    raise AttributeError, "object %s does not support show."%x
+        return sage.misc.latex.LatexExpr('') # so no visible output
+    from latex import view
+    view(x)
+    #raise AttributeError, "object %s does not support show."%(x, )
 
 def sqrt(x):
     """
@@ -882,34 +866,20 @@ def square_free_part(x):
 
 squarefree_part = square_free_part
 
-def square_root(x):
-    """
-    Return a square root of x with the same parent as x, if possible,
-    otherwise raise a ValueError.
-
-    EXAMPLES:
-        sage: square_root(9)
-        3
-        sage: square_root(100)
-        10
-    """
-    try:
-        return x.square_root()
-    except AttributeError:
-        raise NotImplementedError
-
-def tan(x):
-    """
-    Return the tangent of x.
-
-    EXAMPLES:
-        sage: tan(3.1415)
-        -0.0000926535900581913
-        sage: tan(3.1415/4)
-        0.999953674278156
-    """
-    try: return x.tan()
-    except AttributeError: return RDF(x).tan()
+## def square_root(x):
+##     """
+##     Return a square root of x with the same parent as x, if possible,
+##     otherwise raise a ValueError.
+##     EXAMPLES:
+##         sage: square_root(9)
+##         3
+##         sage: square_root(100)
+##         10
+##     """
+##     try:
+##         return x.square_root()
+##     except AttributeError:
+##         raise NotImplementedError
 
 def transpose(x):
     """

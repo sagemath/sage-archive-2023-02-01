@@ -70,7 +70,7 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
-#from sage.calculus.all   import *
+from sage.calculus.all   import *
 from sage.server.all     import *
 from sage.dsage.all      import *
 import sage.tests.all as tests
@@ -113,7 +113,6 @@ except:
 
 # very useful 2-letter shortcuts
 CC = ComplexField()
-I = CC.gen(0)
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
@@ -135,7 +134,7 @@ true = True
 false = False
 
 oo = infinity
-x = PolynomialRing(QQ,'x').gen()
+#x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()
@@ -232,6 +231,24 @@ def quit_sage(verbose=True):
                t1m,t1s,t2m,t2s)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
+
+
+    # The following code close all open file descriptors,
+    # so that on shared file systems the delete_tmpfiles
+    # command below works.
+    # AUTHOR:
+    #    * Kate Minola (2007-05-03)
+    import resource             # Resource usage information.
+    maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+    if maxfd != resource.RLIM_INFINITY:
+        # Iterate through and close all file descriptors.
+        for fd in range(0, maxfd):
+            try:
+                os.close(fd)
+            except OSError:  # ERROR, fd wasn't open to begin with (ignored)
+                pass
+
+    # Now delete the temp files
     from sage.misc.misc import delete_tmpfiles
     delete_tmpfiles()
 

@@ -155,25 +155,25 @@ class GraphDatabase():
         \end{verbatim}
 
         EXAMPLES:
-            # Obtain a list of graphs:
+        Obtain a list of graphs:
             sage: glist = graphs_query.get_list_of_graphs(max_degree=4, min_degree=3)
 
-            # Inspect and display graphs individually:
+        Inspect and display graphs individually:
             sage: glist[0]
             Graph on 5 vertices
             sage.: glist[8].show(layout='circular')
 
-            # Now we can use functions from the graphs_list.
-            # Convert to graph6 format:
+        Now we can use functions from the graphs_list.
+        Convert to graph6 format:
             sage: graph6list = graphs_list.to_graph6(glist, output_list=True)
 
-            # View the graph6 format of the first graph:
+        View the graph6 format of the first graph:
             sage: graph6list[0]
             'Dl{'
 
-            # Convert to list of graphics arrays:
+        Convert to list of graphics arrays:
             garray = graphs_list.to_graphics_arrays(glist)
-            # Show the last graphics array in the list:
+        Show the last graphics array in the list:
             sage.: garray[len(garray)-1].show()
         """
         data = self.__query__(data_dict=data_dict, edges=edges, nodes=nodes, density=density, max_degree=max_degree, min_degree=min_degree, diameter=diameter, radius=radius, connected=connected)
@@ -214,8 +214,8 @@ class GraphDatabase():
             connected -- True if it is and False if it is not
 
         EXAMPLES:
-            # Recursive searching:
-            # First note the following sizes of output:
+        Recursive searching:
+        First note the following sizes of output:
             sage: graphs_query.number_of(nodes=5)
             34
             sage: graphs_query.number_of(edges=4)
@@ -223,13 +223,13 @@ class GraphDatabase():
             sage: graphs_query.number_of(nodes=5, edges=4)
             6
 
-            # Now find all graphs with 5 vertices and 4 edges:
+        Now find all graphs with 5 vertices and 4 edges:
             sage: data = graphs_query.get_data_set(nodes=5)
             sage: redata = graphs_query.get_data_set(data_dict=data, edges=4)
             sage: len(redata)
             6
 
-            # Note that this is equivalent to searching both at once:
+        Note that this is equivalent to searching both at once:
             sage: redata == graphs_query.get_data_set(nodes=5, edges=4)
             True
         """
@@ -279,23 +279,24 @@ class GraphDatabase():
         \end{verbatim}
 
         EXAMPLES:
-            # Can obtain a list of graphics arrays for all graphs with 7 or fewer nodes:
-            # (pretty fast too -- time it)
+        Can obtain a list of graphics arrays for all graphs with 7 or fewer nodes:
+        (pretty fast too -- time it)
             sage: all_7 = graphs_query.get_list_of_graphics_arrays()
 
-            # And notice that Networkx's ordering structure is preserved.
-            # Display the first graphics array in the list:
+        And notice that Networkx's ordering structure is preserved.
+        Display the first graphics array in the list:
             sage.: all_7[0].show()
-            # And the last:
+
+        And the last:
             sage.: all_7[len(all_7)-1].show()
 
-            # And also notice that displaying properties will make the list longer:
-            # (Twice as many graphics objects in the arrays)
+        And also notice that displaying properties will make the list longer:
+        (Twice as many graphics objects in the arrays)
             sage: all_7_with_props = graphs_query.get_list_of_graphics_arrays(with_properties=True)
             sage: len(all_7) < len(all_7_with_props)
             True
 
-            # Properties are displayed to the right of each graph
+        Properties are displayed to the right of each graph
             sage.: all_7_with_props[5].show()
         """
         if ( with_properties == False):
@@ -415,24 +416,25 @@ class GraphDatabase():
         \end{verbatim}
 
         EXAMPLES:
-            # Properties are displayed to the right of each graph:
+        Properties are displayed to the right of each graph:
             sage.: graphs_query.show_graphs(nodes=3, with_properties=True)
 
-            # Without properties, you can show up to 20 graphs.
-            # But with properties, you are limited to 10.
+        Without properties, you can show up to 20 graphs.
+        But with properties, you are limited to 10.
             sage: graphs_query.number_of(nodes=4)
             11
 
-            # Without displaying properties (default):
+        Without displaying properties (default):
             sage.: graphs_query.show_graphs(nodes=4)
-            # But with properties, we will raise an exception:
+
+        But with properties, we will raise an exception:
             sage: graphs_query.show_graphs(nodes=4, with_properties=True)
             Traceback (most recent call last):
             ...
             ValueError: Too many graphs to display in graphics array.
             If more than 10 graphs, try get_list_of_graphics_arrays.
 
-            # In this case, use get_list_of_graphics_arrays:
+        In this case, use get_list_of_graphics_arrays:
             sage: garray = graphs_query.get_list_of_graphics_arrays(nodes=4, with_properties=True)
             sage.: garray[0].show()
             sage.: garray[1].show()

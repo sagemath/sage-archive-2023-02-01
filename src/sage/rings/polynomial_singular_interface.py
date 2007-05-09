@@ -4,6 +4,11 @@ Polynomial Interfaces to Singular
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-04-21)
 
+TESTS:
+    sage: R = MPolynomialRing(GF(2**8,'a'),10,'x', order='revlex')
+    sage: R == loads(dumps(R))
+    True
+
 """
 
 #*****************************************************************************
@@ -29,6 +34,8 @@ import finite_field
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from complex_field import is_ComplexField
 from real_mpfr import is_RealField
+from complex_double import is_ComplexDoubleField
+from real_double import is_RealDoubleField
 from integer_ring import ZZ
 import sage.rings.arith
 
@@ -163,22 +170,32 @@ class PolynomialRing_singular_repr:
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = self.base_ring().precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
-            self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order)
+            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            self.__singular = singular.ring("(real,%d,0)"%digits, _vars, order=order, check=False)
 
         elif is_ComplexField(self.base_ring()):
             # singular converts to bits from base_10 in mpr_complex.cc by:
             #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
             precision = self.base_ring().precision()
-            digits = sage.rings.arith.ceil((2*precision - 2)/7.0)
-            self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order)
+            digits = sage.rings.arith.integer_ceil((2*precision - 2)/7.0)
+            self.__singular = singular.ring("(complex,%d,0,I)"%digits, _vars,  order=order, check=False)
+
+        elif is_RealDoubleField(self.base_ring()):
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            self.__singular = singular.ring("(real,15,0)", _vars, order=order, check=False)
+
+        elif is_ComplexDoubleField(self.base_ring()):
+            # singular converts to bits from base_10 in mpr_complex.cc by:
+            #  size_t bits = 1 + (size_t) ((float)digits * 3.5);
+            self.__singular = singular.ring("(complex,15,0,I)", _vars,  order=order, check=False)
 
         elif self.base_ring().is_prime_field() or (self.base_ring() is ZZ and force):
-            self.__singular = singular.ring(self.characteristic(), _vars, order=order)
+            self.__singular = singular.ring(self.characteristic(), _vars, order=order, check=False)
 
         elif self.base_ring().is_finite(): #must be extension field
             gen = str(self.base_ring().gen())
-            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order)
+            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
             self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
             singular.eval("minpoly=%s"%(self.__minpoly) )
 
@@ -201,6 +218,8 @@ class PolynomialRing_singular_repr:
                  or base_ring.is_prime_field()
                  or is_RealField(base_ring)
                  or is_ComplexField(base_ring)
+                 or is_RealDoubleField(base_ring)
+                 or is_ComplexDoubleField(base_ring)
                  or base_ring is ZZ )
 
 

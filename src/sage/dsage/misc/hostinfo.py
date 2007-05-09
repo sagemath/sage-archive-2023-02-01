@@ -229,6 +229,8 @@ class ClassicHostInfo(object):
                                                int(l[1]) / int(1024*2))
                     elif l[0] == 'machdep.cpu.brand_string':
                         host_info['model name'] = l[1]
+                    elif l[0] == 'hw.model':
+                        host_info['model name'] = l[1]
 
                 # hostname
                 hostname = os.popen('hostname').readline().strip()

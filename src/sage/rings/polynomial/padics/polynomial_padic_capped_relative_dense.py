@@ -822,6 +822,12 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return Polynomial_padic_capped_relative_dense(self.parent(), (zzpoly, self._valbase, relprec, False, valadded, None), construct = True)
 
     def quo_rem(self, right):
+        return self._quo_rem_naive(right)
+
+    def _quo_rem_naive(self, right):
+        """
+        An implementation of quo_rem that doesn't have good run-time or precision characteristics.
+        """
         raise NotImplementedError
 
     def gcd(self, right):

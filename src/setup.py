@@ -99,6 +99,7 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                          "sage/libs/hanke/GMP_class_extras/vectors.cc" ],
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
+
 # NOTE: It is *very* important (for cygwin) that csage be the first library
 # listed below for ntl.
 ntl = Extension('sage.libs.ntl.ntl',
@@ -478,6 +479,13 @@ ext_modules = [ \
               sources = ['sage/rings/bernoulli_mod_p.pyx', 'sage/ext/arith.pyx'],
               libraries=['ntl'],
               include_dirs=['sage/libs/ntl/']), \
+
+    Extension('sage.schemes.hyperelliptic_curves.frobenius',
+                 sources = ['sage/schemes/hyperelliptic_curves/frobenius.pyx',
+                            'sage/schemes/hyperelliptic_curves/frobenius_cpp.cpp'],
+                 libraries = ['ntl', 'stdc++'],
+                 language = 'c++',
+                 include_dirs=['sage/libs/ntl/']), \
 
     Extension('sage.rings.polynomial_element',
               sources = ['sage/rings/polynomial_element.pyx']), \

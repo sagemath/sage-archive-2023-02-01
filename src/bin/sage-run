@@ -20,13 +20,13 @@ if file[0] == '-':
 if file[-5:] == '.sage':
     if os.system('sage -preparse %s'%file):
         sys.exit(1)
-    e = os.system('sage-python %s.py %s'%(file[:-5], options))
+    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s.py %s'%(file[:-5], options))
     sys.exit(e)
 elif file[-5:] == '.spyx':
-    e = os.system('sage-sagex %s'%file)
+    e = os.system('"$SAGE_LOCAL/bin/sage-sagex" %s'%file)
     sys.exit(e)
 else:
-    e = os.system('sage-python %s %s'%(file, options))
+    e = os.system('"$SAGE_LOCAL/bin/sage-python" %s %s'%(file, options))
     if e:
         print "sage: Error running %s using Python"%file
     sys.exit(e)

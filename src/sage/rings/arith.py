@@ -2349,6 +2349,8 @@ def convergent(v, n):
         sage: convergent([2, 1, 2, 1, 1, 4, 1, 1], 7)
         193/71
     """
+    if hasattr(v, 'convergent'):
+        return v.convergent(n)
     Q = sage.rings.rational_field.RationalField()
     i = int(n)
     x = Q(v[i])
@@ -2379,6 +2381,8 @@ def convergents(v):
         sage: convergents([2, 1, 2, 1, 1, 4, 1, 1])
         [2, 3, 8/3, 11/4, 19/7, 87/32, 106/39, 193/71]
     """
+    if hasattr(v, 'convergents'):
+        return v.convergents()
     Q = sage.rings.rational_field.RationalField()
     if not isinstance(v, list):
         v = pari(v).contfrac()

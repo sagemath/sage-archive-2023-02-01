@@ -3521,8 +3521,8 @@ class Function_ceil(PrimitiveFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, float):
-                return math.ceil(x)
+            if isinstance(x, (float, int, long, complex)):
+                return int(math.ceil(x))
         return SymbolicComposition(self, SR(x))
 
 ceil = Function_ceil()
@@ -3560,8 +3560,8 @@ class Function_floor(PrimitiveFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, float):
-                return math.floor(x)
+            if isinstance(x, (float, int, long, complex)):
+                return int(math.floor(x))
         return SymbolicComposition(self, SR(x))
 
 floor = Function_floor()

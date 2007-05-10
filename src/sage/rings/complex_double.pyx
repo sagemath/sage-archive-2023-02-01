@@ -323,7 +323,7 @@ def new_ComplexDoubleElement():
     return z
 
 def is_ComplexDoubleElement(x):
-    return PY_TYPE_CHECK(x, ComplexDoubleElement)
+    return bool(PY_TYPE_CHECK(x, ComplexDoubleElement))
 
 cdef class ComplexDoubleElement(FieldElement):
     """

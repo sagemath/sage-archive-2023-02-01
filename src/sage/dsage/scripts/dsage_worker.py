@@ -24,6 +24,7 @@ import ConfigParser
 import cPickle
 import zlib
 import pexpect
+import datetime
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -73,6 +74,7 @@ class Worker(object):
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
         self.got_output = False
+        self.job_start_time = None
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -292,6 +294,7 @@ except:
 
         f = os.path.join(self.tmp_job_dir, job_filename)
         self.sage._send("execfile('%s')" % (f))
+        self.job_start_time = datetime.datetime.now()
         if self.log_level > 2:
             msg = 'File to execute: %s' % f
             log.msg(LOG_PREFIX % self.id + msg)
@@ -406,7 +409,7 @@ except:
         output = output.strip()
         output = output.replace('\r', '')
 
-        if 'execfile' or 'load' in output and self.got_output:
+        if ('execfile' in output or 'load' in output) and self.got_output:
             output = ''
 
         return output
@@ -429,38 +432,44 @@ except:
         else:
             return False
 
-    def stop(self):
+    def stop(self, hard_reset=False):
         """
         Stops the current worker and resets it's internal state.
 
         """
 
-        INTERRUPT_TRIES = 20
-        timeout = 0.3
-        e = self.sage._expect
-        try:
-            for i in range(INTERRUPT_TRIES):
-                self.sage._expect.sendline('q')
-                self.sage._expect.sendline(chr(3))  # send ctrl-c
-                try:
-                    e.expect(self.sage._prompt, timeout=timeout)
-                    success = True
-                    break
-                except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                    if self.log_level > 3:
-                        log.msg("Trying to interrupt SAGE (try %s)..." % i)
-        except Exception, msg:
-            success = False
-            log.err(msg)
-            log.err(LOG_PREFIX % self.id + "Performing hard reset.")
-
-        if not success:
-            pid = self.sage.pid()
-            cmd = 'kill -9 -%s'%pid
-            os.system(cmd)
+        if hard_reset:
+            log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
+            self.sage.quit()
             self.sage = Sage()
+        else: # try for a soft reset
+            INTERRUPT_TRIES = 20
+            timeout = 0.3
+            e = self.sage._expect
+            try:
+                for i in range(INTERRUPT_TRIES):
+                    self.sage._expect.sendline('q')
+                    self.sage._expect.sendline(chr(3))  # send ctrl-c
+                    try:
+                        e.expect(self.sage._prompt, timeout=timeout)
+                        success = True
+                        break
+                    except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        if self.log_level > 3:
+                            msg = 'Interrupting SAGE (try %s)' % i
+                            log.msg(LOG_PREFIX % self.id + msg)
+            except Exception, msg:
+                success = False
+                log.err(msg)
+                log.err(LOG_PREFIX % self.id + "Performing hard reset.")
 
-        self.sage.reset()
+            if not success:
+                pid = self.sage.pid()
+                cmd = 'kill -9 -%s'%pid
+                os.system(cmd)
+                self.sage = Sage()
+            else:
+                self.sage.reset()
         self.free = True
         self.job = None
 
@@ -492,7 +501,12 @@ except:
 
         """
 
-        self.stop()
+        delta = datetime.datetime.now() - self.job_start_time
+        if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+            self.stop(hard_reset=True)
+        else:
+            self.stop()
+        self.job_start_time = None
         self.start()
         self.reset_checker()
         log.msg('[Worker: %s] Restarting...' % (self.id))

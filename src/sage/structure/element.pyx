@@ -1179,6 +1179,12 @@ cdef class RingElement(ModuleElement):
             True
             sage: a^200 * a^(-64) == a^136
             True
+
+        TESTS:
+        This crashed in sage-2.5 due to a mistake in missing type below.
+            sage: 2r**(SR(2)-1-1r)
+            1
+
         """
         cdef int cn
 
@@ -1197,7 +1203,10 @@ cdef class RingElement(ModuleElement):
             # and don't benifit from the code below
             cn = n
             if cn == 0:
-                return (<Element>a)._parent(1)
+                if PY_TYPE_CHECK(a, Element):
+                    return (<Element>a)._parent(1)
+                else:
+                    return (<Element>m)._parent(a)**m
             elif cn == 1:
                 return a
             elif cn == 2:

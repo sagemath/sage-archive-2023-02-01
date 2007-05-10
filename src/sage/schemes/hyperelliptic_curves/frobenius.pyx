@@ -89,7 +89,7 @@ def frobenius(p, N, Q):
       raise ValueError, "Q must be a monic polynomial of odd degree >= 3"
    QQ = ZZX(Q)
 
-   bound = len(Q) * (2*N - 1)
+   bound = (len(Q) - 1) * (2*N - 1)
    if p < bound:
       raise ValueError, "In the current implementation, p must be at least (2g+1)(2N-1) = %s" % bound
 

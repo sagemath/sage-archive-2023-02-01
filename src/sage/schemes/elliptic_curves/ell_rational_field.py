@@ -72,6 +72,7 @@ from sage.rings.all import (
 import gp_cremona
 import padic_height
 import monsky_washnitzer
+import sage.schemes.hyperelliptic_curves.frobenius
 import sea
 
 from gp_simon import simon_two_descent
@@ -4525,10 +4526,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             algorithm -- one of "standard", "sqrtp", or "auto". This
                  selects which version of Kedlaya's algorithm is used. The
                  "standard" one is the one described in Kedlaya's paper.
-                 The "sqrtp" one has better performance for large $p$;
-                 however it is not as well tested yet, and might not work
-                 properly when $p$ is too small. The "auto" option selects
-                 "sqrtp" when $p$ is at least 3000, and "standard" otherwise.
+                 The "sqrtp" one has better performance for large $p$, but
+                 only works when $p > 6N$ ($N=$ prec). The "auto" option
+                 selects "sqrtp" whenever possible.
+
                  Note that if the "sqrtp" algorithm is used, a consistency
                  check will automatically be applied, regardless of the
                  setting of the "check" flag.
@@ -4540,6 +4541,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             -- If the discriminant of the curve has nonzero valuation at p,
                then the result will not be returned mod $p^\text{prec}$, but
                it still *will* have prec *digits* of precision.
+
+        TODO:
+            -- Once we have a better implementation of the "standard"
+               algorithm, the algorithm selection strategy for "auto"
+               needs to be revisited.
 
         AUTHOR:
             -- David Harvey (2006-09-01): partly based on code written by
@@ -4626,7 +4632,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
         Here's one using the $p^{1/2}$ algorithm:
-            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")  # long time (< 10s)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")
             1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
 
         """
@@ -4667,11 +4673,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
-        # The cutoff p = 3000 is pretty arbitrary. It seems to work well
-        # on sage.math for low precision problems. In reality the optimal
-        # crossover will depend on the precision, and also on the architecture.
         if algorithm == "auto":
-            algorithm = "standard" if p < 3000 else "sqrtp"
+            algorithm = "standard" if p < 6*prec else "sqrtp"
+        elif algorithm == "sqrtp" and p < 6*prec:
+            raise ValueError, "sqrtp algorithm is only available when p > 6*prec"
 
         if algorithm not in ["standard", "sqrtp"]:
             raise ValueError, "unknown algorithm '%s'" % algorithm
@@ -4732,10 +4737,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                              Q, p, adjusted_prec, trace)
 
         else:   # algorithm == "sqrtp"
-            base_ring = rings.Integers(p**prec)
-            output_ring = rings.pAdicField(p, prec)
-            frob_p = monsky_washnitzer.matrix_of_frobenius_alternate(
-                          X.a4(), X.a6(), p, prec)
+            p_to_prec = p**prec
+            R = rings.PolynomialRing(Integers(), "x")
+            Q = R([X.a6() % p_to_prec, X.a4() % p_to_prec, 0, 1])
+            frob_p = sage.schemes.hyperelliptic_curves.frobenius.frobenius(p, prec, Q)
 
             # let's force a trace-check since this algorithm is fairly new
             # and we don't want to get caught with our pants down...

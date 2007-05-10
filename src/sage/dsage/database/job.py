@@ -71,6 +71,7 @@ class Job(Persistent):
         self.jdict['verifiable'] = False # is this job easily verified?
         self.jdict['timeout'] = 600 # default timeout for jobs in seconds
         self.jdict['private'] = False
+        self.jdict['depends'] = {}
         # These might become deprecated
         self.jdict['parent'] = parent
         self.jdict['children'] = []
@@ -136,7 +137,8 @@ class Job(Persistent):
                 result = cPickle.loads(zlib.decompress(self.jdict['result']))
             except Exception, msg2:
                 try:
-                    result = cPickle.loads(bz2.decompress(self.jdict['result']))
+                    result = cPickle.loads(
+                                bz2.decompress(self.jdict['result']))
                 except:
                     result = self.jdict['result']
         return result
@@ -252,6 +254,17 @@ class Job(Persistent):
             self.jdict['private'] = value
         return locals()
     private = property(**private())
+
+    def depends():
+        doc = "The depends property."
+        def fget(self):
+            return self.jdict['depends']
+        def fset(self, value):
+            self.jdict['depends'] = value
+        def fdel(self):
+            del self.jdict['depends']
+        return locals()
+    depends = property(**depends())
 
     def attach(self, var, obj, file_name=None):
         """

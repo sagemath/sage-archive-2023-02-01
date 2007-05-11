@@ -1406,15 +1406,15 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = R(9.5, 11.3); a
             [9.5000000000000000000000000000000 .. 11.300000000000000710542735760101]
             sage: floor(a)
-            9
+            [9.0000000000000000000000000000000 .. 11.000000000000000000000000000000]
             sage: a.floor()
-            9
+            [9.0000000000000000000000000000000 .. 11.000000000000000000000000000000]
             sage: ceil(a)
-            12
+            [10.000000000000000000000000000000 .. 12.000000000000000000000000000000]
             sage: a.ceil()
-            12
+            [10.000000000000000000000000000000 .. 12.000000000000000000000000000000]
         """
-        return self.lower().floor()
+        return self.parent()(self.lower().floor(), self.upper().floor())
 
     def ceil(self):
         """
@@ -1434,11 +1434,13 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
             sage: a = R(-9.5, -11.3); a
             [-11.300000012 .. -9.5000000000]
             sage: a.floor()
-            -12
+            [-12.000000000 .. -10.000000000]
             sage: a.ceil()
-            -9
+            [-11.000000000 .. -9.0000000000]
+            sage: ceil(a)
+            [-11.000000000 .. -9.0000000000]
         """
-        return self.upper().ceil()
+        return self.parent()(self.lower().ceil(), self.upper().ceil())
 
     def ceiling(self):
          return self.ceil()

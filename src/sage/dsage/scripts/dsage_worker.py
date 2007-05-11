@@ -20,7 +20,6 @@
 
 import sys
 import os
-import ConfigParser
 import cPickle
 import zlib
 import pexpect
@@ -680,22 +679,24 @@ class Monitor(object):
             return
 
         factory = pb.PBClientFactory()
-
-        log.msg(DELIMITER)
-        log.msg('DSAGE Worker')
-        log.msg('Started with PID: %s' % (os.getpid()))
-        log.msg('Connecting to %s:%s' % (self.server, self.port))
-        log.msg(DELIMITER)
-
         self.factory = PBClientFactory()
         if self.ssl:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.server, self.port,
                                self.factory, contextFactory)
-            log.msg('Using SSL...')
         else:
             reactor.connectTCP(self.server, self.port, self.factory)
+
+        log.msg(DELIMITER)
+        log.msg('DSAGE Worker')
+        log.msg('Started with PID: %s' % (os.getpid()))
+        log.msg('Connecting to %s:%s' % (self.server, self.port))
+        if self.ssl:
+            log.msg('Using SSL: True')
+        else:
+            log.msg('Using SSL: False')
+        log.msg(DELIMITER)
 
         if not self.anonymous:
             log.msg('Connecting as authenticated worker...\n')
@@ -773,26 +774,31 @@ def usage():
                       help='hostname. Default is localhost')
     parser.add_option('-p', '--port',
                       dest='port',
+                      type='int',
                       default=8081,
                       help='port to connect to. default=8081')
     parser.add_option('-d', '--delay',
                       dest='delay',
+                      type='int',
                       default=5,
                       help='delay before checking for new job. default=5')
     parser.add_option('-a', '--anonymous',
                       dest='anonymous',
                       default=False,
-                      help='W')
+                      action='store_true',
+                      help='Connect as anonymous worker. default=False')
     parser.add_option('-f', '--logfile',
                       dest='logfile',
                       default=os.path.join(DSAGE_DIR, 'worker.log'),
                       help='log file')
     parser.add_option('-l', '--loglevel',
                       dest='loglevel',
+                      type='int',
                       default=0,
                       help='log level. default=0')
     parser.add_option('--ssl',
                       dest='ssl',
+                      action='store_true',
                       default=True,
                       help='enable or disable ssl. default=True')
     parser.add_option('--privkey',
@@ -807,6 +813,7 @@ def usage():
                            '~/.sage/dsage/dsage_key.pub')
     parser.add_option('-w', '--workers',
                       dest='workers',
+                      type='int',
                       default=2,
                       help='number of workers. default=2')
     parser.add_option('--priority',
@@ -815,7 +822,8 @@ def usage():
                       help='priority of workers. default=20')
     parser.add_option('-u', '--username',
                       dest='username',
-                      default=getuser())
+                      default=getuser(),
+                      help='username')
     (options, args) = parser.parse_args()
 
     return options

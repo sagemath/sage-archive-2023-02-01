@@ -55,6 +55,7 @@ def usage():
     parser = OptionParser(usage=''.join(usage))
     parser.add_option('-p', '--port',
                       dest='port',
+                      type='int',
                       default=8081,
                       help='port to listen on')
     parser.add_option('-f', '--logfile',
@@ -63,6 +64,7 @@ def usage():
                       help='log file. default=~/.sage/dsage/server.log')
     parser.add_option('-l', '--loglevel',
                       dest='loglevel',
+                      type='int',
                       default=0,
                       help='log level, higher means more verbose')
     parser.add_option('--statsfile',
@@ -72,6 +74,7 @@ def usage():
                            'default=~/.sage/dsage/dsage.xml')
     parser.add_option('--ssl',
                       dest='ssl',
+                      action='store_true',
                       default=True,
                       help='enable or disable ssl')
     parser.add_option('-k', '--privkey',
@@ -88,6 +91,7 @@ def usage():
                       help='database file')
     parser.add_option('--job_failures',
                       dest='job_failure_threshold',
+                      type='int',
                       default=3,
                       help='sets the threshold for job failures')
 
@@ -237,8 +241,10 @@ def main(options):
     log.msg('DSAGE Server')
     log.msg('Started with PID: %s' % (os.getpid()))
     if SSL:
-        log.msg('Using SSL...')
-    log.msg('Listening on %s' % (NEW_CLIENT_PORT))
+        log.msg('Using SSL: True')
+    else:
+        log.msg('Using SSL: False')
+    log.msg('Listening on port: %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
     # from sage.dsage.misc.countrefs import logInThread

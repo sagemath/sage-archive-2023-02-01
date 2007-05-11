@@ -499,7 +499,7 @@ class Expect(ParentWithBase):
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
         """
-        if not isinstance(code, str):
+        if not isinstance(code, basestring):
             raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:

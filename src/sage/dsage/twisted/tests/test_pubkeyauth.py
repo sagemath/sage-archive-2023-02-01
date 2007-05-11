@@ -112,7 +112,11 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
                                                self.data,
                                                self.signature)
         pubkey = base64.encodestring(self.public_key_str).strip()
-        self.clientdb.add_user(self.username, pubkey)
+        try:
+            self.clientdb.del_user(self.username)
+            self.clientdb.add_user(self.username, pubkey)
+        except:
+            self.clientdb.add_user(self.username, pubkey)
 
     def tearDown(self):
         self.connection.disconnect()

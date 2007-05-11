@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -146,10 +147,14 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             except KeyError:
                 pass
 
-        import sage.version
-        canonical_info['sage_version'] = sage.version.version
+        try:
+            import sage.version
+            canonical_info['sage_version'] = sage.version.version
+        except ImportError:
+            canonical_info['sage_version'] = 'unknown'
 
         self.host_info = canonical_info
+
         return self.host_info
 
 class ClassicHostInfo(object):
@@ -259,11 +264,14 @@ class ClassicHostInfo(object):
             except KeyError:
                 pass
 
-        import sage.version
-        canonical_info['sage_version'] = sage.version.version
+        try:
+            import sage.version
+            canonical_info['sage_version'] = sage.version.version
+        except ImportError:
+            canonical_info['sage_version'] = 'unknown'
 
         return canonical_info
 
-if __name__ == 'main':
-    h = HostInfo().get_host_info()
-    reactor.run()
+if __name__ == '__main__':
+    h = ClassicHostInfo()
+    print h

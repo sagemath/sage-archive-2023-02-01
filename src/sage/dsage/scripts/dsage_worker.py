@@ -346,7 +346,8 @@ except:
             done = False
             if self.log_level > 2:
                 log.msg(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
-                log.msg("Don't worry, the above error is a non-fatal SAGE failure")
+                log.msg("Don't worry, the above error " +
+                        " is a non-fatal SAGE failure")
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet

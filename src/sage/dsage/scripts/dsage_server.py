@@ -60,7 +60,7 @@ def usage():
     parser.add_option('-f', '--logfile',
                       dest='logfile',
                       default=os.path.join(DSAGE_DIR, 'server.log'),
-                      help='log file')
+                      help='log file. default=~/.sage/dsage/server.log')
     parser.add_option('-l', '--loglevel',
                       dest='loglevel',
                       default=0,
@@ -68,7 +68,8 @@ def usage():
     parser.add_option('--statsfile',
                       dest='statsfile',
                       default=os.path.join(DSAGE_DIR, 'dsage.xml'),
-                      help='xml file for dsage statistics')
+                      help='xml file for dsage statistics. ' +
+                           'default=~/.sage/dsage/dsage.xml')
     parser.add_option('--ssl',
                       dest='ssl',
                       default=True,
@@ -214,7 +215,8 @@ def main(options):
                     reactor.listenTCP(NEW_CLIENT_PORT, client_factory)
                     break
             else:
-                raise SystemError('Trying to bind to open port: %s.' % (NEW_CLIENT_PORT))
+                raise SystemError('Trying to bind to open port: '
+                                  + '%s.' % (NEW_CLIENT_PORT))
         except (SystemError, error.CannotListenError):
             attempts += 1
             NEW_CLIENT_PORT += 1
@@ -222,7 +224,8 @@ def main(options):
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)
         log.msg("***NOTICE***")
-        log.msg("Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
+        log.msg("Changing listening port in server.conf " +
+                "to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
         import ConfigParser
         cparser = ConfigParser.ConfigParser()
@@ -244,6 +247,5 @@ def main(options):
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
-    # import pdb; pdb.set_trace()
     options = usage()
     main(options)

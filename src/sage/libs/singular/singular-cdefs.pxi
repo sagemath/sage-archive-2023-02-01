@@ -28,6 +28,7 @@ cdef extern from "dlfcn.h":
 cdef extern from "stdlib.h":
     void *calloc(size_t nmemb, size_t size)
     void free(void *ptr)
+    void delete "delete" (void *ptr)
 
 cdef extern from "libsingular.h":
 

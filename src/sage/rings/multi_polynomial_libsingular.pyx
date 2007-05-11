@@ -2312,7 +2312,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         F = Factorization(v)
         F.sort()
 
-        omFree(iv)
+        delete(iv)
         id_Delete(&I,_ring)
 
         return F

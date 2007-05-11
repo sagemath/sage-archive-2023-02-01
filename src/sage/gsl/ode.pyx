@@ -271,7 +271,6 @@ class ode_solver(object):
          sage.: T.algorithm="bsimp"
          sage.: vander = van_der_pol()
          sage.: T.function=vander
-         sage.: vander = van_der_pol()
 	 sage.: T.ode_solve(y_0=[1,0],t_span=[0,2000],num_points=1000)
 	 sage.: T.plot_solution(i=0, filename='sage.png')
 

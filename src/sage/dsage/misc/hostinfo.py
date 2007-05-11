@@ -190,7 +190,7 @@ class ClassicHostInfo(object):
             host_info['cpus'] = cpus
 
             uptime = open('/proc/uptime', 'r').readline().split(' ')
-            host_info['uptime'] = int(uptime[0])
+            host_info['uptime'] = int(float(uptime[0]))
 
             meminfo = open('/proc/meminfo', 'r').readlines()
             for line in meminfo:

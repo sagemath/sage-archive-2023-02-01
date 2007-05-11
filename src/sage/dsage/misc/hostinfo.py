@@ -241,17 +241,17 @@ class ClassicHostInfo(object):
         """
 
         unify_info = {'model name': 'cpu_model',
-                          'cpu MHz': 'cpu_speed',
-                          'MemTotal': 'mem_total',
-                          'MemFree': 'mem_free',
-                          'kernel_version': 'kernel_version',
-                          'processor': 'processors',
-                          'cache size': 'cpu_cache_size',
-                          'fpu': 'fpu',
-                          'hostname': 'hostname',
-                          'cpus': 'cpus',
-                          'ip': 'ip',
-                          'os': 'os'}
+                      'cpu MHz': 'cpu_speed',
+                      'MemTotal': 'mem_total',
+                      'MemFree': 'mem_free',
+                      'kernel_version': 'kernel_version',
+                      'processor': 'processors',
+                      'cache size': 'cpu_cache_size',
+                      'fpu': 'fpu',
+                      'hostname': 'hostname',
+                      'cpus': 'cpus',
+                      'ip': 'ip',
+                      'os': 'os'}
         canonical_info = {}
         for k,v in platform_host_info.iteritems():
             try:

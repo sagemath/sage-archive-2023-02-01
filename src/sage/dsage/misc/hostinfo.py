@@ -193,10 +193,10 @@ class ClassicHostInfo(object):
             for line in meminfo:
                 s = line.split(':')
                 if s != ['\n']:
-                    if s[0] == 'MemTotal':
+                    if s[0].strip() == 'MemTotal':
                         mem_total = int(int(s[1].split()[0].strip()) / 1024)
                         host_info[s[0].strip()] = mem_total
-                    elif s[0] == 'MemFree':
+                    elif s[0].strip() == 'MemFree':
                         mem_free = int(int(s[1].split()[0].strip()) / 1024)
                         host_info[s[0].strip()] = mem_free
                     host_info[s[0].strip()] = s[1].strip()

@@ -41,7 +41,7 @@ mkdir $TMP
 
 cd $SAGE_ROOT
 cp -$OPT examples local makefile *.txt *.sage sage ipython matplotlibrc data $TMP/
-cp -L$OPT doc $TMP/
+cp -L$OPT devel/doc/html $TMP/doc
 
 if [ -d devel/sage-main ]; then
    mkdir $TMP/devel/
@@ -56,14 +56,14 @@ if [ -d devel/sage-main ]; then
    ln -sf ../../../../devel/sage/build/sage .
 fi
 
-if [ -d devel/doc-main ]; then
-   if [ ! -d $TMP/devel ];
-       mkdir $TMP/devel/
-   fi
-   cp -L$OPT devel/doc-main $TMP/devel/doc-main
-   cd $TMP/devel
-   ln -s doc-main doc
-fi
+#if [ -d devel/doc-main ]; then
+#   if [ ! -d $TMP/devel ];  then
+#       mkdir $TMP/devel/
+#   fi
+#   cp -L$OPT devel/doc-main $TMP/devel/doc-main
+#   cd $TMP/devel
+#   ln -s doc-main doc
+#fi
 
 cd $SAGE_ROOT
 if [ -d $PKGDIR ]; then

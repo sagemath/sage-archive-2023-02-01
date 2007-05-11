@@ -21,7 +21,6 @@ import datetime
 import os
 import random
 import string
-import time
 import sqlite3
 
 from twisted.python import log
@@ -32,7 +31,7 @@ import transaction
 
 from sage.dsage.database.job import Job
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.config import get_conf
+from sage.dsage.misc.constants import DSAGE_DIR
 
 class JobDatabase(object):
     """
@@ -41,21 +40,22 @@ class JobDatabase(object):
 
     """
 
-    def __init__(self, db_file=None, test=False):
-        if test:
+    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
+                 job_failure_threshold=3,
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
+                 log_level=0, test=False):
+        self.test = test
+        if self.test:
             self.db_file = 'dsage_test.db'
             self.log_file = 'dsage_test.log'
             self.log_level = 5
             self.prune_in_days = 10
             self.job_failure_threshold = 3
         else:
-            self.conf = get_conf(type='jobdb')
-            self.db_file = self.conf['db_file']
-            self.job_failure_threshold =int(
-                                        self.conf['job_failure_threshold'])
-            self.log_file = self.conf['log_file']
-            self.log_level = int(self.conf['log_level'])
-            self.prune_in_days = int(self.conf['prune_in_days'])
+            self.db_file = db_file
+            self.job_failure_threshold = job_failure_threshold
+            self.log_file = log_file
+            self.log_level = log_level
 
     def random_string(self, length=10):
         """
@@ -400,16 +400,20 @@ class JobDatabaseSQLite(JobDatabase):
     );
     """
 
-    def __init__(self, test=False):
-        JobDatabase.__init__(self, test=test)
-        if test:
+    def __init__(self, db_file=None, job_failure_threshold=3,
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
+                 log_level=0, test=False):
+        JobDatabase.__init__(self, db_file=db_file,
+                             job_failure_threshold=job_failure_threshold,
+                             log_file=log_file, log_level=log_level,
+                             test=test)
+        if self.test:
             self.db_file = 'test_jobdb.db'
         else:
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
-
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
                   self.db_file,

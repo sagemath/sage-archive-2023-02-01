@@ -24,13 +24,12 @@ import cPickle
 import zlib
 import threading
 import time
+from getpass import getuser
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.twisted.misc import blocking_call_from_thread
-from sage.dsage.misc.config import get_conf, get_bool
-
-DOT_SAGE = os.getenv('DOT_SAGE')
-DSAGE_DIR = os.path.join(DOT_SAGE, 'dsage')
+from sage.dsage.misc.misc import random_str
+from sage.dsage.misc.constants import DSAGE_DIR
 
 class DSageThread(threading.Thread):
     def run(self):
@@ -46,51 +45,55 @@ class DSage(object):
     server -- str
     port -- int
     username -- str
-    pubkey_file -- str (Default: None)
-    privkey_file -- str (Default: None)
-    log_file -- str (Default: stdout)
+    pubkey_file -- str (Default: ~/.sage/dsage/dsage_key.pub)
+    privkey_file -- str (Default: ~/.sage/dsage/dsage_key)
     log_level -- int (Default: 0)
     ssl -- int (Default: 1)
 
     """
 
-    def __init__(self, server=None, port=8081,
-                 username=None,
-                 pubkey_file=None,
-                 privkey_file=None,
-                 log_file = 'stdout',
-                 log_level = 0,
-                 ssl = True):
+    def __init__(self, server='localhost', port=8081,
+                 username=getuser(),
+                 pubkey_file=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
+                 privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
+                 log_level=0,
+                 ssl=True):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
         from twisted.spread import banana
         banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
-        conf = get_conf(type='client')
 
-        if server is None:
-            self.server = self.conf['server']
-        else:
-            self.server = server
-        if port is None:
-            self.port = self.conf['port']
-        else:
-            self.port = port
-        if username is None:
-            self.username = self.conf['username']
-        else:
-            self.username = username
-        if pubkey_file is None:
-            self.pubkey_file = self.conf['pubkey_file']
-        else:
-            self.pubkey_file = pubkey_file
-        if privkey_file is None:
-            self.privkey_file = self.conf['privkey_file']
-        else:
-            self.privkey_file = privkey_file
+        self.server = server
+        self.port = port
+        self.username = username
+        self.data = random_str(500)
+        self.ssl = ssl
+        self.log_level = log_level
+        self.pubkey_file = pubkey_file
+        self.privkey_file = privkey_file
 
-        self.ssl = get_bool(self.conf['ssl'])
-        self.log_level = int(conf['log_level'])
+        # if server is None:
+        #     self.server = self.conf['server']
+        # else:
+        #     self.server = server
+        # if port is None:
+        #     self.port = self.conf['port']
+        # else:
+        #     self.port = port
+        # if username is None:
+        #     self.username = self.conf['username']
+        # else:
+        #     self.username = username
+        # if pubkey_file is None:
+        #     self.pubkey_file = self.conf['pubkey_file']
+        # else:
+        #     self.pubkey_file = pubkey_file
+        # if privkey_file is None:
+        #     self.privkey_file = self.conf['privkey_file']
+        # else:
+        #     self.privkey_file = privkey_file
+
         self.remoteobj = None
         self.result = None
 
@@ -109,7 +112,6 @@ class DSage(object):
         self.pub_key = keys.getPublicKeyObject(self.pubkey_str)
         self.alg_name = 'rsa'
         self.blob = keys.makePublicKeyBlob(self.pub_key)
-        self.data = self.conf['data']
         self.signature = keys.signData(self.priv_key, self.data)
         self.creds = credentials.SSHPrivateKey(self.username,
                                                self.alg_name,
@@ -360,48 +362,55 @@ class BlockingDSage(DSage):
     This is the blocking version of the DSage interface.
 
     """
-    def __init__(self, server=None, port=8081,
-                 username=None,
-                 pubkey_file=None,
-                 privkey_file=None,
-                 log_file = 'stdout',
-                 log_level = 0,
-                 ssl = True):
+    def __init__(self, server='localhost', port=8081,
+                 username=getuser(),
+                 pubkey_file=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
+                 privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
+                 log_level=0,
+                 ssl=True):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
         from twisted.spread import banana
         banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
-        self.conf = get_conf(type='client')
-        if server is None:
-            self.server = self.conf['server']
-        else:
-            self.server = server
-        if port is None:
-            if self.server == 'localhost':
-                conf = get_conf(type='server')
-                self.port = int(conf['client_port'])
-            else:
-                self.port = int(self.conf['port'])
-        else:
-            self.port = port
-        if username is None:
-            self.username = self.conf['username']
-        else:
-            self.username = username
-        if pubkey_file is None:
-            self.pubkey_file = self.conf['pubkey_file']
-        else:
-            self.pubkey_file = pubkey_file
-        if privkey_file is None:
-            self.privkey_file = self.conf['privkey_file']
-        else:
-            self.privkey_file = privkey_file
+        self.server = server
+        self.port = port
+        self.username = username
+        self.data = random_str(500)
+        self.ssl = ssl
+        self.log_level = log_level
+        self.privkey_file = privkey_file
+        self.pubkey_file = pubkey_file
 
-        self.data = self.conf['data']
-        self.ssl = get_bool(self.conf['ssl'])
-        self.log_level = int(self.conf['log_level'])
+        # if server is None:
+        #     self.server = self.conf['server']
+        # else:
+        #     self.server = server
+        # if port is None:
+        #     if self.server == 'localhost':
+        #         conf = get_conf(type='server')
+        #         self.port = int(conf['client_port'])
+        #     else:
+        #         self.port = int(self.conf['port'])
+        # else:
+        #     self.port = port
+        # if username is None:
+        #     self.username = self.conf['username']
+        # else:
+        #     self.username = username
+        # if pubkey_file is None:
+        #     self.pubkey_file = self.conf['pubkey_file']
+        # else:
+        #     self.pubkey_file = pubkey_file
+        # if privkey_file is None:
+        #     self.privkey_file = self.conf['privkey_file']
+        # else:
+        #     self.privkey_file = privkey_file
+        #
+        # self.data = self.conf['data']
+        # self.ssl = get_bool(self.conf['ssl'])
+        # self.log_level = int(self.conf['log_level'])
         self.remoteobj = None
         self.result = None
 

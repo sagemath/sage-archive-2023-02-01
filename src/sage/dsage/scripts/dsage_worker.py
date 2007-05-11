@@ -41,11 +41,10 @@ from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
 
 pb.setUnjellyableForClass(HostInfo, HostInfo)
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
@@ -675,18 +674,22 @@ class Monitor(object):
         This method connects the monitor to a remote PB server.
 
         """
+
         if self.connected: # Don't connect multiple times
             return
 
         factory = pb.PBClientFactory()
         self.factory = PBClientFactory()
-        if self.ssl:
-            from twisted.internet import ssl
-            contextFactory = ssl.ClientContextFactory()
-            reactor.connectSSL(self.server, self.port,
-                               self.factory, contextFactory)
-        else:
-            reactor.connectTCP(self.server, self.port, self.factory)
+        try:
+            if self.ssl:
+                from twisted.internet import ssl
+                contextFactory = ssl.ClientContextFactory()
+                reactor.connectSSL(self.server, self.port,
+                                   self.factory, contextFactory)
+            else:
+                reactor.connectTCP(self.server, self.port, self.factory)
+        except Exception, msg:
+            self._retryConnect()
 
         log.msg(DELIMITER)
         log.msg('DSAGE Worker')

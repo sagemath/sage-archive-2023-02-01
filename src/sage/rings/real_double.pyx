@@ -1360,7 +1360,7 @@ def RealDoubleField():
 
 
 def is_RealDoubleElement(x):
-    return PY_TYPE_CHECK(x, RealDoubleElement)
+    return bool(PY_TYPE_CHECK(x, RealDoubleElement))
 
 
 

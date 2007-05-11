@@ -184,7 +184,7 @@ class ClassicHostInfo(object):
                 s = line.split(':')
                 if s != ['\n']:
                     if s[0].strip() == 'cpu MHz':
-                        host_info[s[0].strip()] = int(s[1].strip())
+                        host_info[s[0].strip()] = int(float(s[1].strip()))
                     else:
                         host_info[s[0].strip()] = s[1].strip()
             host_info['cpus'] = cpus

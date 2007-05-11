@@ -1390,46 +1390,60 @@ cdef class RealIntervalFieldElement(sage.structure.element.RingElement):
 #         mpfr_round(x.value, self.value)
 #         return x
 
-#     def floor(self):
-#         """
-#         Returns the floor of this number
+    def floor(self):
+        """
+        Returns the floor of this number
 
-#         EXAMPLES:
-#             sage: R = RealIntervalField()
-#             sage: (2.99).floor()
-#             2
-#             sage: (2.00).floor()
-#             2
-#             sage: floor(RR(-5/2))
-#             -3
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_floor(x.value, self.value)
-#         return x.integer_part()
+        EXAMPLES:
+            sage: R = RealIntervalField()
+            sage: (2.99).floor()
+            2
+            sage: (2.00).floor()
+            2
+            sage: floor(RR(-5/2))
+            -3
+            sage: R = RealIntervalField(100)
+            sage: a = R(9.5, 11.3); a
+            [9.5000000000000000000000000000000 .. 11.300000000000000710542735760101]
+            sage: floor(a)
+            [9.0000000000000000000000000000000 .. 11.000000000000000000000000000000]
+            sage: a.floor()
+            [9.0000000000000000000000000000000 .. 11.000000000000000000000000000000]
+            sage: ceil(a)
+            [10.000000000000000000000000000000 .. 12.000000000000000000000000000000]
+            sage: a.ceil()
+            [10.000000000000000000000000000000 .. 12.000000000000000000000000000000]
+        """
+        return self.parent()(self.lower().floor(), self.upper().floor())
 
-#     def ceil(self):
-#         """
-#         Returns the ceiling of this number
+    def ceil(self):
+        """
+        Returns the ceiling of this number
 
-#         OUTPUT:
-#             integer
+        OUTPUT:
+            integer
 
-#         EXAMPLES:
-#             sage: (2.99).ceil()
-#             3
-#             sage: (2.00).ceil()
-#             2
-#             sage: (2.01).ceil()
-#             3
-#         """
-#         cdef RealIntervalFieldElement x
-#         x = self._new()
-#         mpfr_ceil(x.value, self.value)
-#         return x.integer_part()
+        EXAMPLES:
+            sage: (2.99).ceil()
+            3
+            sage: (2.00).ceil()
+            2
+            sage: (2.01).ceil()
+            3
+            sage: R = RealIntervalField(30)
+            sage: a = R(-9.5, -11.3); a
+            [-11.300000012 .. -9.5000000000]
+            sage: a.floor()
+            [-12.000000000 .. -10.000000000]
+            sage: a.ceil()
+            [-11.000000000 .. -9.0000000000]
+            sage: ceil(a)
+            [-11.000000000 .. -9.0000000000]
+        """
+        return self.parent()(self.lower().ceil(), self.upper().ceil())
 
-#     def ceiling(self):
-#         return self.ceil()
+    def ceiling(self):
+         return self.ceil()
 
 #     def trunc(self):
 #         """

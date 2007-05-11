@@ -84,8 +84,8 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))
         self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(
+                                      self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.r = reactor.listenTCP(0, self.client_factory)

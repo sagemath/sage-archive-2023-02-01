@@ -23,7 +23,11 @@ from twisted.internet import reactor, utils, defer
 from twisted.python import log
 
 class HostInfo(pb.Copyable, pb.RemoteCopy):
-    """Class to gather computer specifications on the running host."""
+    """
+    Class to gather computer specifications on the running host.
+
+    """
+
     def __str__(self):
         return str(self.host_info)
 
@@ -201,15 +205,15 @@ class ClassicHostInfo(object):
                 kernel_version = os.popen('uname -r').readline().strip()
                 host_info['kernel_version'] = kernel_version
 
-            except IOError:
+                # if the model name was not in /proc/cpuinfo
+                if not host_info.has_key('model name'):
+                    model = os.popen('uname -p').readline().strip()
+                    host_info['model name'] = model
+            except IOError, msg:
                 raise
-
-            host_info['os'] = platform
-
-            return self.canonical_info(host_info)
         if platform == 'darwin':
+            host_info['os'] = platform
             try:
-                # os
                 for line in os.popen('sysctl -a hw machdep').readlines():
                     l = line.strip()
                     if '=' in l:
@@ -245,9 +249,7 @@ class ClassicHostInfo(object):
                 log.msg(msg)
                 raise
 
-            host_info['os'] = platform
-
-            return self.canonical_info(host_info)
+        return self.canonical_info(host_info)
 
     def canonical_info(self, platform_host_info):
         """

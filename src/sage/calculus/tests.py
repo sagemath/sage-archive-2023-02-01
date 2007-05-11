@@ -195,8 +195,9 @@ Maple documentation:
 
 We verify several standard differentiation rules:
     sage: function('f, g')
+    (f, g)
     sage: diff(f(t)*g(t),t)
-    f(x)*diff(g(x), x, 1) + g(x)*diff(f(x), x, 1)
+    f(t)*diff(g(t), t, 1) + g(t)*diff(f(t), t, 1)
     sage: diff(f(t)/g(t), t)
     diff(f(t), t, 1)/g(t) - (f(t)*diff(g(t), t, 1)/g(t)^2)
     sage: diff(f(t) + g(t), t)

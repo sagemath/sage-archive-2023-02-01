@@ -172,11 +172,11 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_weakly_reduced()
-            True
+            False
 
             sage: Q = BinaryQF([2,1,3])
             sage: Q.is_weakly_reduced()
-            False
+            True
 
             sage: Q = BinaryQF([1,-1,1])
             sage: Q.is_weakly_reduced()
@@ -184,7 +184,7 @@ class BinaryQF(SageObject):
         """
         if self.discriminant() >= 0:
             raise NotImplementedError, "only implemented for negative discriminant"
-        return (self.a <= abs(self.b)) and (abs(self.b) <= self.c)
+        return (abs(self.b) <= self.a) and (self.a <= self.c)
 
 
     def is_reduced(self):
@@ -196,11 +196,11 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_reduced()
-            True
+            False
 
             sage: Q = BinaryQF([2,1,3])
             sage: Q.is_reduced()
-            False
+            True
 
             sage: Q = BinaryQF([1,-1,1])
             sage: Q.is_reduced()

@@ -16,6 +16,8 @@
 #                  http://www.gnu.org/licenses/
 #########################################################
 
+#print "starting the cleaner"
+
 import os, shutil, sys, time, socket
 
 HOSTNAME = socket.gethostname()
@@ -36,12 +38,16 @@ def is_running(pid):
         return False
 
 def cleanup():
+    #print "doing a cleanup"
     D = tmp
     if not os.path.exists(tmp):
         return 0
     tmp_dirs = os.listdir(tmp)
+    #print "tmp_dirs = ", tmp_dirs
     for parent_pid in tmp_dirs:
+        #print "checking on %s"%parent_pid
         if not is_running(parent_pid):
+            #print "it is no longer running, so we clean up"
             T = '%s/%s'%(D,parent_pid)
             spawned_processes = '%s/spawned_processes'%T
             e = os.path.exists(spawned_processes)
@@ -52,12 +58,16 @@ def cleanup():
                     shutil.rmtree(d)
                 except OSError, msg:
                     pass
+        #else:
+            #print "it is running"
 
     return len(tmp_dirs)
 
 def kill_spawned_jobs(file, parent_pid):
+    #print "killing %s's spawned jobs"%parent_pid
     killed_them_all = True
     for L in open(file).readlines():
+        #print L
         i = L.find(' ')
         pid = L[:i].strip()
         cmd = L[i+1:].strip()
@@ -68,6 +78,7 @@ def kill_spawned_jobs(file, parent_pid):
             #print msg
             pass
         if is_running(pid):
+            #print "try again later to kill %s"%pid
             # try again later
             killed_them_all = False
     return killed_them_all
@@ -75,13 +86,14 @@ def kill_spawned_jobs(file, parent_pid):
 
 
 
+pidfile = '%s/temp/cleaner-%s.pid'%(DOT_SAGE, HOSTNAME)
 def setup_daemon():
-    D = '%s/temp/cleaner-%s.pid'%(DOT_SAGE, HOSTNAME)
-    if os.path.exists(D):
-        pid = open(D).read()
+    if os.path.exists(pidfile):
+        pid = open(pidfile).read()
         if is_running(pid):
             sys.exit(0)
-    open(D,'w').write(str(os.getpid()))
+    open(pidfile,'w').write(str(os.getpid()))
+
 
 if __name__ == '__main__':
     setup_daemon()
@@ -94,3 +106,6 @@ if __name__ == '__main__':
     time.sleep(wait + 3)
     while cleanup() > 0:
         time.sleep(wait)
+
+    if os.path.exists(pidfile):
+        os.unlink(pidfile)

@@ -18,13 +18,33 @@ argv = [X for X in argv if X[0] != '-']
 
 t0 = time.time()
 
-CUR = os.path.abspath(os.curdir)
+def abspath(x):
+    return strip_automount_prefix(os.path.abspath(x))
+
+def strip_automount_prefix(filename):
+    """
+    Strip prefixes added on automounted filesystems in some cases,
+    which make the absolute path appear hidden.
+
+    AUTHOR:
+        -- Kate Minola
+    """
+    str = filename.split("/",2)
+    new = "/" + str[2]
+    if os.path.exists(new):
+        inode1 = os.stat(filename)[1]
+        inode2 = os.stat(new)[1]
+        if inode1 == inode2:
+            filename = new
+    return filename
+
+CUR = abspath(os.curdir)
 
 def abs(f):
-    return "sage -t %s %s"%(opts, os.path.abspath(f)[len(CUR)+1:])
+    return "sage -t %s %s"%(opts, abspath(f)[len(CUR)+1:])
 
 def skip(F):
-    G = os.path.abspath(F)
+    G = abspath(F)
     i = G.rfind('/')
     if os.path.exists('%s/nodoctest.py'%G[:i]):
         print "%s (skipping) -- nodoctest.py file in directory"%abs(F)

@@ -25,12 +25,9 @@ import cStringIO
 from twisted.spread import pb
 from twisted.python import log
 
-from sage.dsage.misc.hostinfo import HostInfo
-from sage.dsage.server.hostinfo_tracker import hostinfo_list
 from sage.dsage.errors.exceptions import BadTypeError
 from sage.dsage.database.job import expand_job
 
-pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 class DSageServer(pb.Root):
     """
@@ -321,18 +318,8 @@ class DSageServer(pb.Root):
         Returns an approximation of the total CPU speed of the cluster.
 
         """
+        raise NotImplementedError
 
-        cluster_speed = 0
-        if self.LOG_LEVEL > 3:
-            log.msg(hostinfo_list)
-            log.msg(len(hostinfo_list))
-        for h in hostinfo_list:
-            speed_multiplier = int(h['cpus'])
-            for k,v in h.iteritems():
-                if k == 'cpu_speed':
-                    cluster_speed += float(v) * speed_multiplier
-
-        return cluster_speed
 
     def get_worker_count(self):
         """
@@ -350,21 +337,6 @@ class DSageServer(pb.Root):
         count['working'] = working_workers
 
         return count
-
-    def submit_host_info(self, h):
-        """
-        Takes a dict of workers machine specs.
-
-        """
-
-        if self.LOG_LEVEL > 0:
-            log.msg(h)
-        if len(hostinfo_list) == 0:
-            hostinfo_list.append(h)
-        else:
-            for h in hostinfo_list:
-                if h['uuid'] not in h.values():
-                    hostinfo_list.append(h)
 
     def generate_xml_stats(self):
         """
@@ -582,10 +554,3 @@ class DSageWorkerServer(DSageServer):
 
     def remote_get_killed_jobs_list(self):
         return DSageServer.get_killed_jobs_list(self)
-
-    def remote_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            log.msg('BadType in remote_submit_host_info')
-            raise BadTypeError()
-        return DSageServer.submit_host_info(self, hostinfo)
-

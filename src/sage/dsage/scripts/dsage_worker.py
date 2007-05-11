@@ -37,14 +37,12 @@ from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
+from sage.dsage.misc.hostinfo import ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import delimiter as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
-
-pb.setUnjellyableForClass(HostInfo, HostInfo)
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
@@ -630,7 +628,6 @@ class Monitor(object):
         else:
             for worker in self.worker_pool:
                 worker.remoteobj = self.remoteobj # Update workers
-        # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
         log.msg('Lost connection to the server.')

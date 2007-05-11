@@ -239,12 +239,6 @@ class AnonymousMonitorPerspective(DefaultPerspective):
 
         return self.DSageServer.job_done(job_id, output, result, completed)
 
-    def perspective_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            raise BadTypeError()
-
-        return self.DSageServer.submit_host_info(hostinfo)
-
 class MonitorPerspective(AnonymousMonitorPerspective):
     """
     Defines the perspective of an authenticated worker to the server.
@@ -365,11 +359,6 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_worker_count(self):
         return self.DSageServer.get_worker_count()
-
-    def perspective_submit_host_info(self, hostinfo):
-        if not isinstance(hostinfo, dict):
-            raise BadTypeError()
-        return self.DSageServer.submit_host_info(hostinfo)
 
     def perspective_get_killed_jobs_list(self):
         return self.DSageServer.get_killed_jobs_list()

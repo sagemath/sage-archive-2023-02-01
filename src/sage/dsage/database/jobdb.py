@@ -41,7 +41,7 @@ class JobDatabase(object):
 
     """
 
-    def __init__(self, test=False):
+    def __init__(self, db_file=None, test=False):
         if test:
             self.db_file = 'dsage_test.db'
             self.log_file = 'dsage_test.log'

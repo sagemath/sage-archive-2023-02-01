@@ -113,7 +113,8 @@ class DistributedSage(object):
 
         return DSage()
 
-    def server(self, blocking=True, clear_jobs=False, logfile=None):
+    def server(self, blocking=True, port=8081, log_level=0, logfile=None,
+               ssl=True):
         r"""
         Run the Distributed SAGE server.
 

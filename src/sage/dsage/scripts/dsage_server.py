@@ -43,25 +43,55 @@ from sage.dsage.misc.constants import delimiter as DELIMITER
 DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 def usage():
-    """Prints usage help."""
+    """
+    Prints usage help.
+
+    """
 
     # usage options
-    usage = ['usage: %progr [options]\n',
-              'required options: --jobdir\n\n',
+    usage = ['usage: %prog [options]\n',
               'Bug reports to <yqiang@gmail.com>']
 
     parser = OptionParser(usage=''.join(usage))
-    parser.add_option("-j", "--jobdir", dest="dir",
-                        help="directory containing jobs")
+    parser.add_option('-p', '--port',
+                      dest='port',
+                      default=8081,
+                      help='port to listen on')
+    parser.add_option('-f', '--logfile',
+                      dest='logfile',
+                      default=os.path.join(DSAGE_DIR, 'server.log'),
+                      help='log file')
+    parser.add_option('-l', '--loglevel',
+                      dest='loglevel',
+                      default=0,
+                      help='log level, higher means more verbose')
+    parser.add_option('--statsfile',
+                      dest='statsfile',
+                      default=os.path.join(DSAGE_DIR, 'dsage.xml'),
+                      help='xml file for dsage statistics')
+    parser.add_option('--ssl',
+                      dest='ssl',
+                      default=True,
+                      help='enable or disable ssl')
+    parser.add_option('-k', '--privkey',
+                      dest='privkey',
+                      default=os.path.join(DSAGE_DIR, 'cacert.pem'),
+                      help='private key for ssl certificate')
+    parser.add_option('-c', '--cert',
+                      dest='cert',
+                      default=os.path.join(DSAGE_DIR, 'pubcert.pem'),
+                      help='ssl certificate')
+    parser.add_option('-d', '--dbfile',
+                      dest='dbfile',
+                      default=os.path.join(DSAGE_DIR, 'dsage.db'),
+                      help='database file')
+    parser.add_option('--job_failures',
+                      dest='job_failure_threshold',
+                      default=3,
+                      help='sets the threshold for job failures')
 
     (options, args) = parser.parse_args()
-#    if options.dir == None:
-#        parser.print_help()
-#        sys.exit(0)
-#        parser.error("Please specify a valid job directory with the \
-#                    --jobdir flag.")
 
-#     sys.path.append(os.path.abspath(options.dir))
     return options
 
 def write_stats(dsage_server, stats_file):
@@ -98,21 +128,30 @@ def startLogging(log_file):
         log.startLogging(server_log)
         log.msg("DSAGE Server: Logging to file: ", log_file)
 
-def main():
+def main(options):
     """
     Main execution loop of the server.
 
     """
 
-    config = get_conf('server')
-    LOG_FILE = config['log_file']
-    LOG_LEVEL = config['log_level']
-    SSL = get_bool(config['ssl'])
-    SSL_PRIVKEY = config['privkey_file']
-    SSL_CERT = config['cert_file']
-    CLIENT_PORT = int(config['client_port'])
-    PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
-    STATS_FILE = config['stats_file']
+    # config = get_conf('server')
+    # LOG_FILE = config['log_file']
+    # LOG_LEVEL = config['log_level']
+    # SSL = get_bool(config['ssl'])
+    # SSL_PRIVKEY = config['privkey_file']
+    # SSL_CERT = config['cert_file']
+    # CLIENT_PORT = int(config['client_port'])
+    # PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
+    # STATS_FILE = config['stats_file']
+
+    LOG_FILE = options.logfile
+    LOG_LEVEL = options.loglevel
+    SSL = options.ssl
+    SSL_PRIVKEY = options.privkey
+    SSL_CERT = options.cert
+    CLIENT_PORT = options.port
+    PUBKEY_DATABASE = options.dbfile
+    STATS_FILE = options.statsfile
 
     # start logging
     startLogging(LOG_FILE)
@@ -205,4 +244,6 @@ def main():
     reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
-    main()
+    # import pdb; pdb.set_trace()
+    options = usage()
+    main(options)

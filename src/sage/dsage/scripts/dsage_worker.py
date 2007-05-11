@@ -75,6 +75,7 @@ class Worker(object):
         self.checker_timeout = 0.5
         self.got_output = False
         self.job_start_time = None
+        self.sleep_time = 5.0
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -119,6 +120,7 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
         try:
+            self.sleep_time = 5.0 # Sets it to the default
             self.doJob(self.job)
         except Exception, msg:
             log.err(msg)
@@ -168,10 +170,13 @@ class Worker(object):
 
         """
 
-        sleep_time = 5.0
         if failure.check(NoJobException):
+            if self.sleep_time >= 60:
+                self.sleep_time = 60
+            else:
+                self.sleep_time = self.sleep_time * 2
             if self.log_level > 3:
-                msg = 'Sleeping for %s seconds' % sleep_time
+                msg = 'Sleeping for %s seconds' % self.sleep_time
                 log.msg(LOG_PREFIX % self.id + msg)
             reactor.callLater(sleep_time, self.get_job)
         else:
@@ -756,31 +761,62 @@ class Monitor(object):
         # self.tsk1.stop()
         self.tsk2.stop()
 
+def usage():
+    """
+    Prints usage help.
+
+    """
+
+    from optparse import OptionParser
+
+    usage = ['usage: %prog [options]\n',
+              'Bug reports to <yqiang@gmail.com>']
+    parser = OptionParser(usage=''.join(usage))
+    parser.add_option('-s', '--server',
+                      dest='server',
+                      default='localhost',
+                      help='hostname. Default is localhost')
+    parser.add_option('-p', '--port',
+                      dest='port',
+                      default=8081,
+                      help='port to connect to. default=8081')
+    parser.add_option('-d', '--delay',
+                      dest='delay',
+                      default=5,
+                      help='delay before checking for new job. default=5')
+    parser.add_option('-a', '--anonymous',
+                      dest='anonymous',
+                      default=False,
+                      help='W')
+    parser.add_option('-f', '--logfile',
+                      dest='logfile',
+                      default=os.path.join(DSAGE_DIR, 'worker.log'),
+                      help='log file')
+    parser.add_option('-l', '--loglevel',
+                      dest='loglevel',
+                      default=0,
+                      help='log level. default=0')
+    parser.add_option('--ssl',
+                      dest='ssl',
+                      default=True,
+                      help='enable or disable ssl. default=True')
+    parser.add_option('-k', '--privkey',
+                      dest='privkey',
+                      default=os.path.join(DSAGE_DIR, 'cacert.pem'),
+                      help='private key for ssl certificate')
+    parser.add_option('-w', '--workers',
+                      dest='workers',
+                      default=2,
+                      help='number of workers. default=2')
+
+
+    (options, args) = parser.parse_args()
+
+    return options
+
 def main():
-    """
-    argv[1] == hostname
-    argv[2] == port
-
-    """
-
-    if len(sys.argv) == 3:
-        hostname, port = sys.argv[1:3]
-        try:
-            port = int(port)
-        except:
-            port = None
-        if hostname == 'None':
-            hostname = None
-        else:
-            try:
-                hostname = str(hostname)
-            except Exception, msg:
-                log.err(msg)
-                hostname = None
-    else:
-        hostname = port = None
-
-    monitor = Monitor(hostname, port)
+    options = usage()
+    monitor = Monitor(options.server, options.port)
 
     monitor.connect()
     monitor.start_looping_calls()
@@ -791,4 +827,5 @@ def main():
         sys.exit()
 
 if __name__ == '__main__':
+    usage()
     main()

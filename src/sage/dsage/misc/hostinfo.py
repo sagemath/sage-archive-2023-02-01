@@ -199,7 +199,8 @@ class ClassicHostInfo(object):
                     elif s[0].strip() == 'MemFree':
                         mem_free = int(int(s[1].split()[0].strip()) / 1024)
                         host_info[s[0].strip()] = mem_free
-                    host_info[s[0].strip()] = s[1].strip()
+                    else:
+                        host_info[s[0].strip()] = s[1].strip()
 
             hostname = os.popen('hostname').readline().strip()
             host_info['hostname'] = hostname

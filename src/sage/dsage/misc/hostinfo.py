@@ -183,11 +183,14 @@ class ClassicHostInfo(object):
                     cpus += 1
                 s = line.split(':')
                 if s != ['\n']:
-                    host_info[s[0].strip()] = s[1].strip()
+                    if s[0].strip() == 'cpu MHz':
+                        host_info[s[0].strip()] = int(s[1].strip())
+                    else:
+                        host_info[s[0].strip()] = s[1].strip()
             host_info['cpus'] = cpus
 
             uptime = open('/proc/uptime', 'r').readline().split(' ')
-            host_info['uptime'] = uptime[0]
+            host_info['uptime'] = int(uptime[0])
 
             meminfo = open('/proc/meminfo', 'r').readlines()
             for line in meminfo:
@@ -257,7 +260,6 @@ class ClassicHostInfo(object):
                       'MemTotal': 'mem_total',
                       'MemFree': 'mem_free',
                       'kernel_version': 'kernel_version',
-                      'processor': 'processors',
                       'cache size': 'cpu_cache_size',
                       'fpu': 'fpu',
                       'hostname': 'hostname',

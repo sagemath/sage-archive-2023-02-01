@@ -43,6 +43,22 @@ def read_conf(config):
         check_version(conf['version'])
     except ValueError, msg:
         raise ValueError(msg)
+    try:
+        conf['log_level'] = int(conf['log_level'])
+    except Exception, msg:
+        pass
+    try:
+        conf['workers'] = int(conf['workers'])
+    except Exception, msg:
+        pass
+    try:
+        conf['delay'] = float(conf['delay'])
+    except Exception, msg:
+        pass
+    try:
+        conf['priority'] = int(conf['priority'])
+    except Exception, msg:
+        pass
 
     return conf
 

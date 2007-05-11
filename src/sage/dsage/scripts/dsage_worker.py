@@ -69,7 +69,7 @@ class Worker(object):
         self.free = True
         self.job = None
         self.conf = get_conf('monitor')
-        self.log_level = self.conf['log_level']
+        self.log_level = int(self.conf['log_level'])
         self.delay = self.conf['delay']
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
@@ -123,7 +123,7 @@ class Worker(object):
             self.sleep_time = 5.0 # Sets it to the default
             self.doJob(self.job)
         except Exception, msg:
-            log.err(msg)
+            log.msg(msg)
             d = self.remoteobj.callRemote('job_failed', self.job.job_id, msg)
             d.addErrback(self._catch_failure)
             self.restart()
@@ -180,8 +180,8 @@ class Worker(object):
                 log.msg(LOG_PREFIX % self.id + msg)
             reactor.callLater(sleep_time, self.get_job)
         else:
-            log.err("Error: ", failure.getErrorMessage())
-            log.err("Traceback: ", failure.printTraceback())
+            log.msg("Error: ", failure.getErrorMessage())
+            log.msg("Traceback: ", failure.printTraceback())
 
     def setup_tmp_dir(self, job):
         """
@@ -237,7 +237,7 @@ class Worker(object):
                             msg = 'Loaded %s' % fname
                             log.msg(LOG_PREFIX % self.id + msg)
             except Exception, msg:
-                log.err(LOG_PREFIX % self.id + msg)
+                log.msg(LOG_PREFIX % self.id + msg)
 
     def write_job_file(self, job):
         """
@@ -278,8 +278,7 @@ except:
 
         """
 
-        if self.log_level > 3:
-            log.msg(LOG_PREFIX % self.id + 'Executing job %s ' % job.job_id)
+        log.msg(LOG_PREFIX % self.id + 'Starting job %s ' % job.job_id)
 
         self.free = False
         self.got_output = False
@@ -290,7 +289,8 @@ except:
         except AssertionError:
             self.checker_task.stop()
             self.checker_task.start(self.checker_timeout, now=False)
-        log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
+        if self.log_level > 2:
+            log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
 
         self.tmp_job_dir = self.setup_tmp_dir(job)
         self.extract_job_data(job)
@@ -344,7 +344,9 @@ except:
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
             done = False
-            log.err(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
+            if self.log_level > 2:
+                log.msg(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
+                log.msg("Don't worry, the above error is a non-fatal SAGE failure")
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
@@ -368,8 +370,8 @@ except:
 
     def report_failure(self, failure):
         msg = 'Job %s failed!' % (self.job.job_id)
-        log.err(LOG_PREFIX % self.id + msg)
-        log.err('Traceback: \n%s' % failure)
+        log.msg(LOG_PREFIX % self.id + msg)
+        log.msg('Traceback: \n%s' % failure)
         d = self.remoteobj.callRemote('job_failed', self.job.job_id, failure)
         d.addErrback(self._catch_failure)
 
@@ -387,8 +389,9 @@ except:
             self.checker_timeout = 300.0
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_task.start(self.checker_timeout, now=False)
-        msg = 'Checking output again in %s' % self.checker_timeout
-        log.msg(LOG_PREFIX % self.id + msg)
+        if self.log_level > 0:
+            msg = 'Checking output again in %s' % self.checker_timeout
+            log.msg(LOG_PREFIX % self.id + msg)
 
     def clean_output(self, sage_output):
         """
@@ -465,8 +468,8 @@ except:
                             log.msg(LOG_PREFIX % self.id + msg)
             except Exception, msg:
                 success = False
-                log.err(msg)
-                log.err(LOG_PREFIX % self.id + "Performing hard reset.")
+                log.msg(msg)
+                log.msg(LOG_PREFIX % self.id + "Performing hard reset.")
 
             if not success:
                 pid = self.sage.pid()
@@ -531,16 +534,15 @@ class Monitor(object):
     def __init__(self, server='localhost', port=8081, ssl=True,
                  workers=2, anonymous=False, priority=20, delay=5.0,
                  log_level=0):
-
         self.conf = get_conf('monitor')
         self.uuid = self.conf['id']
-        self.workers = int(self.conf['workers'])
+        self.workers = self.conf['workers']
         self.log_file = self.conf['log_file']
         self.log_level = self.conf['log_level']
-        self.delay = float(self.conf['delay'])
+        self.delay = self.conf['delay']
         self.anonymous = get_bool(self.conf['anonymous'])
         self.ssl = get_bool(self.conf['ssl'])
-        self.priority = int(self.conf['priority'])
+        self.priority = self.conf['priority']
         if server is None:
             self.server = self.conf['server']
         else:
@@ -566,7 +568,7 @@ class Monitor(object):
         try:
             os.nice(self.priority)
         except OSError, msg:
-            log.err('Error setting priority: %s' % (self.priority))
+            log.msg('Error setting priority: %s' % (self.priority))
             pass
         if not self.anonymous:
             from twisted.cred import credentials
@@ -641,7 +643,7 @@ class Monitor(object):
         # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
-        log.err('Lost connection to the server.')
+        log.msg('Lost connection to the server.')
         self.connected = False
         self._retryConnect()
 
@@ -664,18 +666,18 @@ class Monitor(object):
                     worker.restart()
 
     def _retryConnect(self):
-        log.err('[Monitor] Disconnected, reconnecting in %s' % self.delay)
+        log.msg('[Monitor] Disconnected, reconnecting in %s' % self.delay)
         if not self.connected:
             reactor.callLater(self.delay, self.connect)
 
     def _catchConnectionFailure(self, failure):
-        log.err("Error: ", failure.getErrorMessage())
-        log.err("Traceback: ", failure.printTraceback())
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
         self._disconnected(None)
 
     def _catch_failure(self, failure):
-        log.err("Error: ", failure.getErrorMessage())
-        log.err("Traceback: ", failure.printTraceback())
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
 
     def connect(self):
         """

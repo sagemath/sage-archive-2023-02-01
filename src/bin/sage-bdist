@@ -56,12 +56,14 @@ if [ -d devel/sage-main ]; then
    ln -sf ../../../../devel/sage/build/sage .
 fi
 
-#if [ -d devel/doc-main ]; then
-#   mkdir $TMP/devel/
-#   cp -L$OPT devel/doc-main $TMP/devel/doc-main
-#   cd $TMP/devel
-#   ln -s doc-main doc
-#fi
+if [ -d devel/doc-main ]; then
+   if [ ! -d $TMP/devel ];
+       mkdir $TMP/devel/
+   fi
+   cp -L$OPT devel/doc-main $TMP/devel/doc-main
+   cd $TMP/devel
+   ln -s doc-main doc
+fi
 
 cd $SAGE_ROOT
 if [ -d $PKGDIR ]; then

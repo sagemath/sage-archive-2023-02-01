@@ -53,7 +53,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
 
             l = [li.strip() for li in l]
             if l[0] == 'hw.cpufrequency':
-                host_info['cpu Mhz'] = str(int(l[1]) / 1000000.0)
+                host_info['cpu Mhz'] = (int(l[1]) / 1000000.0)
             elif l[0] == 'hw.availcpu':
                 host_info['cpus'] = int(l[1])
             elif l[0] == 'hw.physmem':
@@ -183,7 +183,14 @@ class ClassicHostInfo(object):
                     cpus += 1
                 s = line.split(':')
                 if s != ['\n']:
-                    host_info[s[0].strip()] = s[1].strip()
+                    if s[0] == 'MemTotal':
+                        mem_total = int(int(s[1].split()[0].strip()) / 1024)
+                        host_info[s[0].strip()] = mem_total
+                    elif s[0] == 'MemFree':
+                        mem_free = int(int(s[1].split()[0].strip()) / 1024)
+                        host_info[s[0].strip()] = mem_free
+                    else:
+                        host_info[s[0].strip()] = s[1].strip()
             host_info['cpus'] = cpus
 
             uptime = open('/proc/uptime', 'r').readline().split(' ')
@@ -218,11 +225,11 @@ class ClassicHostInfo(object):
                 elif l[0] == 'hw.availcpu':
                     host_info['cpus'] = int(l[1])
                 elif l[0] == 'hw.physmem':
-                    host_info['MemTotal'] = l[1]
+                    host_info['MemTotal'] = int(int(l[1]) / (1024*1024))
                 elif l[0] == 'hw.usermem':
                     mem_total = int(host_info['MemTotal'])
-                    user_mem = int(l[1])
-                    mem_free = int((mem_total - user_mem) / (1024*1024))
+                    user_mem = int(l[1]) / (1024*1024)
+                    mem_free = int(mem_total - user_mem)
                     host_info['MemFree'] = mem_free
                 elif l[0] == 'machdep.cpu.brand_string':
                     host_info['model name'] = l[1]

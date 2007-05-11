@@ -305,7 +305,8 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_jobs_by_username(self, username, active=True):
         if not (isinstance(username, str)):
-            log.msg('Bad username [%s] passed to perspective_get_jobs_by_username' % (username))
+            log.msg('Bad username [%s] passed to ' +
+                    'perspective_get_jobs_by_username' % (username))
             raise BadTypeError()
 
         jobs = self.DSageServer.get_jobs_by_username(username, active)
@@ -314,14 +315,16 @@ class UserPerspective(DefaultPerspective):
 
     def perspective_get_job_result_by_id(self, job_id):
         if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to perspective_get_job_result_by_id' % (job_id))
+            log.msg('Bad job_id [%s] passed to' +
+                    'perspective_get_job_result_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_result_by_id(job_id)
 
     def perspective_get_job_output_by_id(self, job_id):
         if not isinstance(job_id, str):
-            log.msg('Bad job_id [%s] passed to get_job_output_by_id' % (job_id))
+            log.msg('Bad job_id [%s] passed to ' +
+                    'get_job_output_by_id' % (job_id))
             raise BadTypeError()
 
         return self.DSageServer.get_job_output_by_id(job_id)
@@ -418,7 +421,12 @@ class Realm(object):
             raise ValueError('Too many connections for user %s' % avatarID)
 
         avatar.attached(avatar, mind)
-        log.msg('(%s, %s) connected' % (avatarID, kind))
+
+        if kind == 'monitor':
+            log.msg('(%s, %s) id: %s connected' % (avatarID, kind,
+                                                   mind[1]['uuid']))
+        else:
+            log.msg('(%s, %s) connected' % (avatarID, kind))
 
         return pb.IPerspective, avatar, lambda a=avatar:a.detached(avatar,
                                                                    mind)

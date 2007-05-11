@@ -25,6 +25,8 @@ import cPickle
 import zlib
 import pexpect
 import datetime
+import uuid
+from getpass import getuser
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -37,7 +39,6 @@ from sage.misc.preparser import preparse_file
 
 from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
-from sage.dsage.misc.config import get_conf, get_bool
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import delimiter as DELIMITER
@@ -63,14 +64,13 @@ class Worker(object):
 
     """
 
-    def __init__(self, remoteobj, id):
+    def __init__(self, remoteobj, id, log_level=0, delay=5.0):
         self.remoteobj = remoteobj
         self.id = id
         self.free = True
         self.job = None
-        self.conf = get_conf('monitor')
-        self.log_level = int(self.conf['log_level'])
-        self.delay = self.conf['delay']
+        self.log_level = log_level
+        self.delay = delay
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
         self.got_output = False
@@ -178,7 +178,7 @@ class Worker(object):
             if self.log_level > 3:
                 msg = 'Sleeping for %s seconds' % self.sleep_time
                 log.msg(LOG_PREFIX % self.id + msg)
-            reactor.callLater(sleep_time, self.get_job)
+            reactor.callLater(self.sleep_time, self.get_job)
         else:
             log.msg("Error: ", failure.getErrorMessage())
             log.msg("Traceback: ", failure.printTraceback())
@@ -532,36 +532,46 @@ class Monitor(object):
 
     """
 
-    def __init__(self, server='localhost', port=8081, ssl=True,
-                 workers=2, anonymous=False, priority=20, delay=5.0,
-                 log_level=0):
-        self.conf = get_conf('monitor')
-        self.uuid = self.conf['id']
-        self.workers = self.conf['workers']
-        self.log_file = self.conf['log_file']
-        self.log_level = self.conf['log_level']
-        self.delay = self.conf['delay']
-        self.anonymous = get_bool(self.conf['anonymous'])
-        self.ssl = get_bool(self.conf['ssl'])
-        self.priority = self.conf['priority']
-        if server is None:
-            self.server = self.conf['server']
-        else:
-            self.server = server
-        if port is None:
-            if self.server == 'localhost':
-                self.port = int(get_conf('server')['client_port'])
-            else:
-                self.port = int(self.conf['port'])
-        else:
-            self.port = port
+    def __init__(self, server='localhost', port=8081,
+                 username=getuser(),
+                 ssl=True,
+                 workers=2,
+                 anonymous=False,
+                 priority=20,
+                 delay=5.0,
+                 log_level=0,
+                 log_file=os.path.join(DSAGE_DIR, 'worker.log'),
+                 pubkey_file=None,
+                 privkey_file=None):
+        self.server = server
+        self.port = port
+        self.username = username
+        self.ssl = ssl
+        self.workers = workers
+        self.anonymous = anonymous
+        self.priority = priority
+        self.delay = delay
+        self.log_level = log_level
+        self.log_file = log_file
+        self.pubkey_file = pubkey_file
+        self.privkey_file = privkey_file
+
         self.remoteobj = None
         self.connected = False
         self.reconnecting = False
         self.worker_pool = None
+        self.sleep_time = 1.0
 
         self.host_info = ClassicHostInfo().host_info
-        self.host_info['uuid'] = self.uuid
+        try:
+            uuid_file = os.path.join(DSAGE_DIR, 'worker.uuid')
+            uuid_ = open(uuid_file).readlines()[0]
+        except Exception, e:
+            uuid_ = str(uuid.uuid1())
+            f = open(uuid_file, 'w')
+            f.write(uuid_)
+            f.close()
+        self.host_info['uuid'] = uuid_
         self.host_info['workers'] = self.workers
 
         self._startLogging(self.log_file)
@@ -574,7 +584,7 @@ class Monitor(object):
         if not self.anonymous:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
-            self._get_auth_info()
+            self.DATA =  random_str(500)
             # public key authentication information
             self.pubkey_str =keys.getPublicKeyString(self.pubkey_file)
             # try getting the private key object without a passphrase first
@@ -604,25 +614,6 @@ class Monitor(object):
             log.startLogging(sys.stdout)
             log.startLogging(worker_log)
             log.msg("Logging to file: ", log_file)
-
-
-    def _get_auth_info(self):
-        self.DATA =  random_str(500)
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
-        try:
-            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-
-            self.username = config.get('auth', 'username')
-            self.privkey_file = os.path.expanduser(config.get('auth',
-                                                   'privkey_file'))
-            self.pubkey_file = os.path.expanduser(config.get('auth',
-                                                  'pubkey_file'))
-        except Exception, msg:
-            print msg
-            raise
 
     def _getpassphrase(self):
         import getpass
@@ -726,7 +717,8 @@ class Monitor(object):
         """
 
         log.msg('[Monitor] Starting %s workers...' % (self.workers))
-        self.worker_pool = [Worker(remoteobj, x) for x in range(self.workers)]
+        self.worker_pool = [Worker(remoteobj, x, self.log_level, self.delay)
+                            for x in range(self.workers)]
 
     def check_killed_jobs(self):
         """
@@ -803,24 +795,45 @@ def usage():
                       dest='ssl',
                       default=True,
                       help='enable or disable ssl. default=True')
-    parser.add_option('-k', '--privkey',
-                      dest='privkey',
-                      default=os.path.join(DSAGE_DIR, 'cacert.pem'),
-                      help='private key for ssl certificate')
+    parser.add_option('--privkey',
+                      dest='privkey_file',
+                      default=os.path.join(DSAGE_DIR, 'dsage_key'),
+                      help='private key file. default = ' +
+                           '~/.sage/dsage/dsage_key')
+    parser.add_option('--pubkey',
+                      dest='pubkey_file',
+                      default=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
+                      help='public key file. default = ' +
+                           '~/.sage/dsage/dsage_key.pub')
     parser.add_option('-w', '--workers',
                       dest='workers',
                       default=2,
                       help='number of workers. default=2')
-
-
+    parser.add_option('--priority',
+                      dest='priority',
+                      default=20,
+                      help='priority of workers. default=20')
+    parser.add_option('-u', '--username',
+                      dest='username',
+                      default=getuser())
     (options, args) = parser.parse_args()
 
     return options
 
 def main():
     options = usage()
-    monitor = Monitor(options.server, options.port)
-
+    monitor = Monitor(server=options.server,
+                      port=options.port,
+                      username=options.username,
+                      ssl=options.ssl,
+                      workers=options.workers,
+                      anonymous=options.anonymous,
+                      priority=options.priority,
+                      delay=options.delay,
+                      log_file=options.logfile,
+                      log_level=options.loglevel,
+                      pubkey_file=options.pubkey_file,
+                      privkey_file=options.privkey_file)
     monitor.connect()
     monitor.start_looping_calls()
 

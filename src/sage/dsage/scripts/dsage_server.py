@@ -37,7 +37,7 @@ from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer
-from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 
 def usage():
@@ -156,6 +156,7 @@ def main(options):
     STATS_FILE = options.statsfile
     DB_FILE = options.dbfile
     FAILURE_THRESHOLD = options.job_failure_threshold
+
     # start logging
     startLogging(LOG_FILE)
 

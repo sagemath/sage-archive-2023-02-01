@@ -40,7 +40,7 @@ from sage.dsage.database.job import Job, expand_job
 from sage.dsage.misc.hostinfo import ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
-from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
 
@@ -779,7 +779,7 @@ def usage():
                       help='port to connect to. default=8081')
     parser.add_option('-d', '--delay',
                       dest='delay',
-                      type='int',
+                      type='float',
                       default=5,
                       help='delay before checking for new job. default=5')
     parser.add_option('-a', '--anonymous',
@@ -818,6 +818,7 @@ def usage():
                       help='number of workers. default=2')
     parser.add_option('--priority',
                       dest='priority',
+                      type='int',
                       default=20,
                       help='priority of workers. default=20')
     parser.add_option('-u', '--username',

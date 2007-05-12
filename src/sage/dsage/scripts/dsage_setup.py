@@ -23,7 +23,7 @@ import subprocess
 import sys
 
 from sage.dsage.database.clientdb import ClientDatabase
-from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.constants import DELIMITER as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.__version__ import version
 

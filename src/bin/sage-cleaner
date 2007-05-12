@@ -75,7 +75,10 @@ def kill_spawned_jobs(file, parent_pid):
             #print "SAGE-Cleaner: trying to kill %s with parent %s"%(pid, parent_pid)
             os.killpg(int(pid), 9)
         except OSError, msg:
-            #print msg
+            try:
+                os.kill(int(pid), 9)
+            except OSError, msg:
+                pass
             pass
         if is_running(pid):
             #print "try again later to kill %s"%pid

@@ -26,16 +26,29 @@ Siegel modular forms.
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from sage.libs.pari.all import pari
 from sage.rings.all import (is_fundamental_discriminant, ZZ, divisors)
 from sage.structure.sage_object import SageObject
 
 class BinaryQF(SageObject):
+    """
+    BinaryQF([a,b,c])
 
+    INPUT:
+        v -- a list of 3 entries:  [a,b,c]
+
+    OUTPUT:
+        the binary quadratic form a*x^2 + b*x*y + c*y^2.
+
+    EXAMPLES:
+        sage: b = BinaryQF([1,2,3])
+        sage: b.discriminant()
+        -8
+    """
     ## Initializes the form with a 3-element list
     def __init__(self, abc_triple):
         """
-        Creates a binary quadratic form ax^2 + bxy + cy^2 from the
+        Creates the binary quadratic form $ax^2 + bxy + cy^2$ from the
         triple [a,b,c] over IntegerRing().
 
         EXAMPLES:
@@ -44,11 +57,36 @@ class BinaryQF(SageObject):
             x^2  + 2xy  + 3y^2
         """
         assert len(abc_triple) == 3  ## Check we have three coefficients
-        assert (abc_triple[0] in ZZ) and (abc_triple[1] in ZZ) and (abc_triple[2] in ZZ)  ## Check we have integer coefficients
         self.a = ZZ(abc_triple[0])
         self.b = ZZ(abc_triple[1])
         self.c = ZZ(abc_triple[2])
 
+    def __getitem__(self, n):
+        """
+        EXAMPLES:
+            sage: Q = BinaryQF([2,3,4])
+            sage: Q[0]
+            2
+            sage: Q[2]
+            4
+            sage: tuple(Q)
+            (2, 3, 4)
+            sage: list(Q)
+            [2, 3, 4]
+        """
+        if n == 0:
+            return self.a
+        elif n == 1:
+            return self.b
+        elif n == 2:
+            return self.c
+        else:
+            raise IndexError
+
+    def __cmp__(self, right):
+        if not isinstance(right, BinaryQF):
+            return cmp(type(self), type(right))
+        return cmp((self.a,self.b,self.c), (right.a,right.b,right.c))
 
     def __add__(self, Q):
         """
@@ -186,6 +224,19 @@ class BinaryQF(SageObject):
             raise NotImplementedError, "only implemented for negative discriminant"
         return (self.a <= abs(self.b)) and (abs(self.b) <= self.c)
 
+    def reduce(self):
+        """
+        EXAMPLES:
+            sage: a = BinaryQF([37,17,2])
+            sage: a.is_reduced()
+            False
+            sage: b = a.reduce(); b
+            x^2  + xy  + 2y^2
+            sage: b.is_reduced()
+            True
+        """
+        v = eval(repr(pari('Vec(qfbred(Qfb(%s,%s,%s)))'%(self.a,self.b,self.c))))
+        return BinaryQF(v)
 
     def is_reduced(self):
         """
@@ -210,6 +261,7 @@ class BinaryQF(SageObject):
             sage: Q.is_reduced()
             True
         """
+        return self.reduce() == self
         if self.discriminant() >= 0:
             raise NotImplementedError, "discriminant must be negative (for now)"
 

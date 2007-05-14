@@ -115,8 +115,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         cdef RingElement ordp
         mpz_init(self.unit)
-        CommutativeRingElement.__init__(self, parent)
-        self.prime_pow = <PowComputer_class>parent.prime_pow
+        pAdicGenericElement.__init__(self, parent)
         if empty:
             self._normalized = 0
             return
@@ -453,7 +452,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 mpz_mul(ans.unit, self.unit, self.prime_pow.dense_list[tmpL])
             mpz_add(ans.unit, ans.unit, (<pAdicCappedRelativeElement>right).unit)
             if (<pAdicCappedRelativeElement>right).relprec <= tmpL + self.relprec:
-                ans.set_precs(right.relprec)
+                ans.set_precs((<pAdicCappedRelativeElement>right).relprec)
             else:
                 ans.set_precs(tmpL + self.relprec)
             ans._normalized = 0
@@ -535,7 +534,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         # We compute the quotient of the unit parts.
         # One might want to compute this inverse to the precision it's actually needed to for speed's sake...
         _sig_on
-        mpz_invert(ans.unit, (<pAdicCappedRelativeElement>right).unit, self.prime_pow.dense_list[right.relprec])
+        mpz_invert(ans.unit, (<pAdicCappedRelativeElement>right).unit, self.prime_pow.dense_list[(<pAdicCappedRelativeElement>right).relprec])
         mpz_mul(ans.unit, ans.unit, self.unit)
         _sig_off
         # The relative precision is now the minimum of the relative precisions of self and right (though this may decrease)
@@ -799,7 +798,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             boolean -- whether self is zero
 
         """
-        if prec is None:
+        if absprec is None:
             return bool(mpz_sgn(self.unit) <= 0)
         if mpz_sgn(self.unit) == -1:
             return True
@@ -1160,13 +1159,10 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             raise ValueError, "Element must have non-negative valuation in order to compute residue."
         if mpz_sgn(self.unit) <= 0:
             modulus = PY_NEW(Integer)
-            if self.ordp + self.relprec < self.prime_pow._cache_limit:
-                mpz_set(modulus.value, self.prime_pow.dense_list[self.ordp + self.relprec])
-            else:
-                _sig_on
-                mpz_pow_ui(modulus.value, self.prime_pow.prime.value, self.ordp + self.relprec)
-                _sig_off
-            return Mod(0, modulus)
+            mpz_set(modulus.value, self.prime_pow.dense_list[aprec])
+            selfvalue = PY_NEW(Integer)
+            mpz_set_ui(selfvalue.value, 0)
+            return Mod(selfvalue, modulus)
         else:
             # Need to do this better.
             selfvalue = PY_NEW(Integer)
@@ -1178,11 +1174,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 mpz_pow_ui(selfvalue.value, self.prime_pow.prime.value, self.ordp)
                 mpz_mul(selfvalue.value, selfvalue.value, self.unit)
                 _sig_off
-            if self.ordp + self.relprec < self.prime_pow._cache_limit:
-                mpz_set(modulus.value, self.prime_pow.dense_list[self.ordp + self.relprec])
-            else:
-                _sig_on
-                mpz_pow_ui(selfvalue.value, self.prime_pow.prime.value, self.ordp + self.relprec)
+            mpz_set(modulus.value, self.prime_pow.dense_list[aprec])
             return Mod(selfvalue, modulus)
 
     def unit_part(self):
@@ -1331,9 +1323,9 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         sage: a.val_unit()
         (2, 3 + O(5^18))
         sage: R(0).val_unit()
-        (+Infinity, 0 + O(5^0))
+        (+Infinity, O(5^0))
         sage: R(0, 10).val_unit()
-        (10, 0 + O(5^0))
+        (10, O(5^0))
         """
         return self.val_unit_c()
 
@@ -1381,4 +1373,5 @@ def unpickle_pcre_v1(R, unit, ordp, relprec):
     mpz_init_set(ans.unit, (<Integer>unit).value)
     ans.ordp = mpz_get_si((<Integer>ordp).value)
     ans.relprec = mpz_get_ui((<Integer>relprec).value)
+    ans._normalized = 0
     return ans

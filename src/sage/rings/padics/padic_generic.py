@@ -67,7 +67,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
     def __init__(self, p, prec, print_mode, names, element_class):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
-        self.prime_pow = PowComputer(p, prec)
+        self.prime_pow = PowComputer(p, prec, self.is_field())
         self.__set_print_mode(print_mode)
         self._element_class = element_class
 

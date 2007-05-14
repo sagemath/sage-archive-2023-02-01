@@ -39,7 +39,8 @@ QQ = sage.rings.rational_field.QQ
 
 cdef class pAdicGenericElement(LocalGenericElement):
     def __init__(self, parent):
-        self.prime_pow = parent.prime_pow
+        self.prime_pow = <PowComputer_class> parent.prime_pow
+        LocalGenericElement.__init__(self, parent)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -79,7 +80,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if x_ordp == infinity:
                 return 0 # since both are zero
             else:
-                p = left.prime_pow.prime()
+                p = left.prime_pow.prime
                 a = left.unit_part().lift()
                 b = right.unit_part().lift()
                 prec = min(left.precision_relative(), right.precision_relative())
@@ -227,10 +228,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
                 else:
                     return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
         else:
-            #should change over to using list()
             slist = self.list()
             s = ""
-            p = self.prime_pow.prime()
+            p = self.prime_pow.prime
             if self.parent().is_field():
                 exp = self.valuation()
             else:
@@ -925,7 +925,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         cdef int neg, curpower
         cdef Integer list_elt
         cdef unsigned long preccap
-        preccap = self.prime_pow.prec_cap
+        preccap = self.prime_pow._cache_limit
         ans = PyList_New(0)
         mpz_init_set(tmp, value)
         if lift_mode == 'simple':

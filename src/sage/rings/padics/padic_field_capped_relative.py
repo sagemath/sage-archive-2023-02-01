@@ -139,6 +139,7 @@ pAdicCappedRelativeElement = sage.rings.padics.padic_capped_relative_element.pAd
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
     def __init__(self, p, prec, print_mode, names):
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
+        self.prime_pow._set_in_field(True)
 
     r"""
     An implementation of p-adic fields with capped relative precision.

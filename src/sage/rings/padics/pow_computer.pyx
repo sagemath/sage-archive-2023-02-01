@@ -87,9 +87,17 @@ cdef class PowComputer_class(SageObject):
 
     def __cmp__(self, other):
         if isinstance(other, PowComputer_class):
-            if self.prime < other.prime:
+            if self.prime < (<PowComputer_class>other).prime:
                 return -1
-            elif self.prime > other.prime:
+            elif self.prime > (<PowComputer_class>other).prime:
+                return 1
+            elif self._cache_limit < (<PowComputer_class>other)._cache_limit:
+                return -1
+            elif self._cache_limit > (<PowComputer_class>other)._cache_limit:
+                return 1
+            elif self.in_field < (<PowComputer_class>other).in_field:
+                return -1
+            elif self.in_field > (<PowComputer_class>other).in_field:
                 return 1
             else:
                 return 0
@@ -103,9 +111,6 @@ cdef class PowComputer_class(SageObject):
         sage: R = loads(dumps(P))
         sage: P == R
         True
-        sage: R.cache_limit()
-        10
-        sage: P.cache_limit()
         """
         return PowComputer, (self.prime, self._cache_limit)
 
@@ -137,6 +142,15 @@ cdef class PowComputer_class(SageObject):
         ans = PY_NEW(Integer)
         mpz_set(ans.value, self.modulus)
         return ans
+
+    def _in_field(self):
+        """
+        For use by p-adic rings and fields.  Feel free to ignore if you're using a PowComputer otherwise.
+        """
+        if self.in_field == 1:
+            return True
+        else:
+            return False
 
     def _set_in_field(self, value):
         """
@@ -243,21 +257,22 @@ cdef class PowComputer_class(SageObject):
             return self.prime.__pow__(_n)
 
 pow_comp_cache = {}
-cdef PowComputer_class PowComputer_c(Integer m, Integer L):
+cdef PowComputer_class PowComputer_c(Integer m, Integer L, in_field):
     if L < 0:
         raise ValueError, "L must be non-negative."
-    key = (m, L)
+    key = (m, L, in_field)
     if pow_comp_cache.has_key(key):
         PC = pow_comp_cache[key]()
         if PC is not None:
             return PC
     PC = PowComputer_class(m, mpz_get_ui(L.value))
+    PC._set_in_field(in_field)
     pow_comp_cache[key] = weakref.ref(PC)
     return PC
 
 # To speed up the creation of PowComputers with the same m, we might eventually want to copy over data from an existing PowComputer.
 
-def PowComputer(m, L):
+def PowComputer(m, L, in_field = False):
     """
     Returns a PowComputer that caches the values $1, m, m^2, \ldots, m^L$.
 
@@ -283,5 +298,5 @@ def PowComputer(m, L):
         L = Integer(L)
     if L < 0:
         raise ValueError, "L must be positive"
-    return PowComputer_c(m, L)
+    return PowComputer_c(m, L, in_field)
 

@@ -121,8 +121,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         """
         mpz_init(self.value)
-        self.prime_pow = <PowComputer_class> parent.prime_pow
-        CommutativeRingElement.__init__(self,parent)
+        pAdicGenericElement.__init__(self,parent)
         if empty:
             return
         cdef Integer tmp
@@ -689,7 +688,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         mpz_set_si(ans.value, diff)
         return ans
 
-    def residue(self, prec):
+    def residue(self, absprec):
         r"""
         Reduces this mod $p^prec$
 
@@ -708,7 +707,19 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         selfvalue = PY_NEW(Integer)
         modulus = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
-        mpz_set(modulus.value, self.prime_pow.modulus)
+        cdef unsigned long aprec
+        if not PY_TYPE_CHECK(absprec, Integer):
+            absprec = Integer(absprec)
+        if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
+            raise ValueError, "When calling residue, use the exponent of p, not the integer p^exp."
+        else:
+            aprec = mpz_get_ui((<Integer>absprec).value)
+        if aprec > self.prime_pow._cache_limit:
+            _sig_on
+            mpz_pow_ui(modulus.value, self.prime_pow.prime.value, aprec)
+            _sig_off
+        else:
+            mpz_set(modulus.value, self.prime_pow.dense_list[aprec])
         return Mod(selfvalue, modulus)
 
     #def square_root(self):

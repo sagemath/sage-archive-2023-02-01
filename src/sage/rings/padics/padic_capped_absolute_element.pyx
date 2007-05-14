@@ -47,8 +47,7 @@ PariError = sage.libs.pari.gen.PariError
 cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
     def __init__(pAdicCappedAbsoluteElement self, parent, x, absprec=infinity, relprec = infinity, empty=False):
         mpz_init(self.value)
-        self.prime_pow = <PowComputer_class>self.parent().prime_pow
-        CommutativeRingElement.__init__(self,parent)
+        pAdicGenericElement.__init__(self,parent)
         if empty:
             return
         if absprec > parent.precision_cap():
@@ -142,7 +141,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         sage: a = ZpCA(5)(-3)
         sage: type(a)
-        <type 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement'>
+        <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
         sage: loads(dumps(a)) == a
         True
         """
@@ -188,7 +187,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         return self._invert_c_impl()
 
     cdef RingElement _invert_c_impl(self):
-        return self.parent().fraction_field()(self)._invert_c()
+        return self.parent().fraction_field()(self).__invert__()
 
     cdef ModuleElement _neg_c_impl(self):
         """
@@ -738,7 +737,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         if absprec > self.precision_absolute():
             raise PrecisionError, "Not enough precision known in order to compute residue."
-        elif prec < 0:
+        elif absprec < 0:
             raise ValueError, "cannot reduce modulo a negative power of p"
         cdef Integer selfvalue
         selfvalue = PY_NEW(Integer)
@@ -804,7 +803,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             sage: a.unit_part()
                 18 + O(17^3)
             sage: type(a)
-                <type 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement'>
+                <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
         """
         return self.unit_part_c()
 
@@ -860,7 +859,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         sage: R = ZpCA(5)
         sage: a = R(75, 6); b = a - a
         sage: a.val_unit()
-        (3, 3 + O(5^4))
+        (2, 3 + O(5^4))
         sage: b.val_unit()
         (6, O(5^0))
         """

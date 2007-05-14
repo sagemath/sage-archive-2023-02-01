@@ -14,7 +14,7 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 
 cdef class pAdicFixedModElement(pAdicBaseGenericElement):
     cdef mpz_t value
-    cdef PowComputer_class prime_pow
+    #cdef PowComputer_class prime_pow
     cdef void set_from_mpz(pAdicFixedModElement self, mpz_t value)
     cdef pAdicFixedModElement _new_c(self)
     cdef RingElement _invert_c_impl(self)

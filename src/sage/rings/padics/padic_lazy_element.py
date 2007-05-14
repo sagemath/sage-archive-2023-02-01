@@ -227,8 +227,8 @@ class pAdicLazyElement(pAdicBaseGenericElement):
             else:
                 return [n % p] + plist(n // p, p, prec - 1)
         if self.parent().is_field():
-            return plist(self._cache, self.parent().prime(), self._cache_prec)
-        return ([0] * self._base_valuation) + plist(self._cache, self.parent().prime())
+            return plist(self._cache.lift(), self.parent().prime(), self._cache_prec)
+        return ([0] * self._base_valuation) + plist(self._cache.lift(), self.parent().prime(), self._cache_prec)
 
     def log(self):
         if not self.is_unit():

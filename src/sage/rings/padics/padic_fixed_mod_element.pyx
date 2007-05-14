@@ -48,8 +48,8 @@ pari = sage.libs.pari.gen.pari
 pari_gen = sage.libs.pari.gen.gen
 PariError = sage.libs.pari.gen.PariError
 
-cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
-    def __init__(pAdicRingFixedModElement self, parent, x, absprec = None, relprec = None, empty = False):
+cdef class pAdicFixedModElement(pAdicBaseGenericElement):
+    def __init__(pAdicFixedModElement self, parent, x, absprec = None, relprec = None, empty = False):
         r"""
         INPUT:
             parent -- a pAdicRingFixedMod object.
@@ -121,29 +121,16 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
 
         """
         mpz_init(self.value)
-
-        # what I want to do is kinda sketchy: we're direcly copying the mpz_t's, which point
-        # to the actual data.  I think this is okay: parent's
-        # prime_pow instance will cache p^parent.precision_cap(),
-        # holding a reference and thus preventing Python from garbage
-        # collecting it, and parent's _p field will store the prime.
-
-        #self.modulus = (<Integer>parent.prime_pow(parent.precision_cap())).value
-        #self.p = (<Integer>parent.prime()).value
-
-        #Pyrex won't let me, so I'm doing it the less sketchy way.
-        mpz_init(self.modulus)
-        mpz_set(self.modulus, (<Integer>parent.prime_pow(parent.precision_cap())).value)
-        mpz_init(self.p)
-        mpz_set(self.p, (<Integer>parent.prime()).value)
-
+        self.prime_pow = <PowComputer_class> parent.prime_pow
         CommutativeRingElement.__init__(self,parent)
         if empty:
             return
-
-        #if PY_TYPE_CHECK(x, pAdicGenericElement) and x.valuation() < 0:
-        #    raise ValueError, "element has negative valuation"
         cdef Integer tmp
+        if PY_TYPE_CHECK(x, pAdicGenericElement):
+            if x.valuation() < 0:
+                raise ValueError, "element has negative valuation"
+            if parent.prime() != x.parent().prime():
+                raise TypeError, "Cannot coerce between p-adic parents with different primes."
         #if PY_TYPE_CHECK(x, pAdicLazyElement):
         #    try:
         #        x.set_precision_absolute(absprec)
@@ -154,15 +141,10 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         #    else:
         #        mpz_set(self.value, (<pAdicLazyElement>x).value)
         #    return
-        if PY_TYPE_CHECK(x, pAdicGenericElement):
-            if x.valuation() < 0:
-                raise ValueError, "element has negative valuation"
-            if parent.prime() != x.parent().prime():
-                raise TypeError, "Cannot coerce between p-adic parents with different primes."
         if PY_TYPE_CHECK(x, pAdicBaseGenericElement):
             tmp = <Integer> x.lift()
-            if mpz_cmp(tmp.value, self.modulus) >= 0:
-                mpz_mod(self.value, tmp.value, self.modulus)
+            if mpz_cmp(tmp.value, self.prime_pow.modulus) >= 0:
+                mpz_mod(self.value, tmp.value, self.prime_pow.modulus)
             else:
                 mpz_set(self.value, tmp.value)
             return
@@ -193,7 +175,7 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         if PY_TYPE_CHECK(x, Integer):
             self.set_from_mpz((<Integer>x).value)
         elif isinstance(x, Rational):
-            if parent.prime().divides(x.denominator()):
+            if self.prime_pow.prime.divides(x.denominator()):
                 raise ValueError, "p divides the denominator"
             else:
                 tmp = <Integer> x % parent.prime_pow(parent.precision_cap())
@@ -205,38 +187,30 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             raise TypeError, "unable to create p-adic element"
 
     def __dealloc__(self):
-        # If we switch to using the pointer copying method for setting self.modulus and self.p, the corresponding mpz_clear's here should be removed
-        mpz_clear(self.modulus)
-        mpz_clear(self.p)
         mpz_clear(self.value)
 
     def __reduce__(self):
         """
         sage: a = ZpFM(5)(-3)
         sage: type(a)
-        <type 'sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement'>
+        <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
         sage: loads(dumps(a)) == a
         True
         """
-        return make_pAdicRingFixedModElement, (self.parent(), self.lift())
+        return make_pAdicFixedModElement, (self.parent(), self.lift())
 
-    cdef void set_from_mpz(pAdicRingFixedModElement self, mpz_t value):
-        if mpz_sgn(value) == -1 or mpz_cmp(value, self.modulus) >= 0:
-            mpz_mod(self.value, value, self.modulus)
+    cdef void set_from_mpz(pAdicFixedModElement self, mpz_t value):
+        if mpz_sgn(value) == -1 or mpz_cmp(value, self.prime_pow.modulus) >= 0:
+            mpz_mod(self.value, value, self.prime_pow.modulus)
         else:
             mpz_set(self.value, value)
 
-    cdef pAdicRingFixedModElement _new_c(self):
-        cdef pAdicRingFixedModElement x
-        x = PY_NEW(pAdicRingFixedModElement)
+    cdef pAdicFixedModElement _new_c(self):
+        cdef pAdicFixedModElement x
+        x = PY_NEW(pAdicFixedModElement)
         x._parent = self._parent
         mpz_init(x.value)
-        # I want to just copy the pointers:
-        #x.modulus = self.modulus
-        #x.p = self.p
-        # ... but Pyrex apparently won't let me.
-        mpz_init_set(x.modulus, self.modulus)
-        mpz_init_set(x.p, self.p)
+        x.prime_pow = self.prime_pow
         return x
 
     def __richcmp__(left, right, op):
@@ -263,92 +237,69 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         return self._invert_c_impl()
 
     cdef RingElement _invert_c_impl(self):
-        cdef int t
-        cdef pAdicRingFixedModElement ans
-        t = mpz_divisible_p(self.value, self.p)
-        if t:
+        cdef pAdicFixedModElement ans
+        if mpz_divisible_p(self.value, self.prime_pow.prime.value) != 0:
             raise ValueError, "cannot invert non-unit"
         else:
             ans = self._new_c()
             _sig_on
-            mpz_invert(ans.value, self.value, self.modulus)
+            mpz_invert(ans.value, self.value, self.prime_pow.modulus)
             _sig_off
             return ans
 
-    cdef pAdicRingFixedModElement _lshift_c(pAdicRingFixedModElement self, int shift):
-        cdef pAdicRingFixedModElement ans
-        cdef int prec_cap
-        cdef mpz_t ppow, low_mod
-        cdef PowComputer_class powerer
+    cdef pAdicFixedModElement _lshift_c(pAdicFixedModElement self, long shift):
+        cdef pAdicFixedModElement ans
+        cdef unsigned long prec_cap
         if shift < 0:
             return self._rshift_c(-shift)
-        prec_cap = mpz_get_si((<Integer>self.parent().precision_cap()).value)
+        prec_cap = self.prime_pow._cache_limit
         if shift >= prec_cap:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             return ans
         elif shift > 0:
             ans = self._new_c()
-            powerer = <PowComputer_class>self.parent().prime_pow
-            # We could revise PowComputer_class to provide direct
-            # access to the entries stored in dense_list; this would
-            # prevent having to call mpz_init and clear
-            mpz_init(ppow)
-            mpz_init(low_mod)
-            powerer.pow_mpz_ui(low_mod, prec_cap - shift)
-            if mpz_cmp(low_mod, self.value) <= 0:
-                mpz_mod(ans.value, self.value, low_mod)
+            if mpz_cmp(self.value, self.prime_pow.dense_list[prec_cap - shift]) >= 0:
+                mpz_mod(ans.value, self.value, self.prime_pow.dense_list[prec_cap - shift])
             else:
                 mpz_set(ans.value, self.value)
-            powerer.pow_mpz_ui(ppow, shift)
-            mpz_mul(ans.value, ans.value, ppow)
-            mpz_clear(low_mod)
-            mpz_clear(ppow)
+            mpz_mul(ans.value, ans.value, self.prime_pow.dense_list[shift])
             return ans
         else:
             return self
 
-    def __lshift__(pAdicRingFixedModElement self, shift):
-        cdef pAdicRingFixedModElement ans
+    def __lshift__(pAdicFixedModElement self, shift):
+        cdef pAdicFixedModElement ans
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
-        if mpz_fits_sint_p((<Integer>shift).value) == 0:
+        if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             return ans
         return self._lshift_c(mpz_get_si((<Integer>shift).value))
 
-    cdef pAdicRingFixedModElement _rshift_c(pAdicRingFixedModElement self, int shift):
-        cdef pAdicRingFixedModElement ans
-        cdef int prec_cap
-        cdef mpz_t ppow, low_mod
-        cdef PowComputer_class powerer
+    cdef pAdicFixedModElement _rshift_c(pAdicFixedModElement self, long shift):
+        cdef pAdicFixedModElement ans
+        cdef unsigned long prec_cap
         if shift < 0:
             return self._lshift_c(-shift)
-        prec_cap = mpz_get_si((<Integer>self.parent().precision_cap()).value)
+        prec_cap = self.prime_pow._cache_limit
         if shift >= prec_cap:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             return ans
         elif shift > 0:
             ans = self._new_c()
-            powerer = <PowComputer_class>self.parent().prime_pow
-            # We could revise PowComputer_class to provide direct
-            # access to the entries stored in dense_list; this would
-            # prevent having to call mpz_init and clear
-            mpz_init(ppow)
-            powerer.pow_mpz_ui(ppow, shift)
-            mpz_fdiv_q(ans.value, self.value, ppow)
-            mpz_clear(ppow)
+            mpz_fdiv_q(ans.value, self.value, self.prime_pow.dense_list[shift])
             return ans
         else:
             return self
 
-    def __rshift__(pAdicRingFixedModElement self, shift):
-        cdef pAdicRingFixedModElement ans
+    def __rshift__(pAdicFixedModElement self, shift):
+        cdef pAdicFixedModElement ans
         if not PY_TYPE_CHECK(shift, Integer):
             shift = Integer(shift)
-        if mpz_fits_sint_p((<Integer>shift).value) == 0:
+        if mpz_fits_slong_p((<Integer>shift).value) == 0:
             ans = self._new_c()
             mpz_set_ui(ans.value, 0)
             return ans
@@ -365,18 +316,18 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         """
         if mpz_sgn(self.value) == 0:
             return self
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
-        mpz_sub(ans.value, self.modulus, self.value)
+        mpz_sub(ans.value, self.prime_pow.modulus, self.value)
         return ans
 
-    def __pow__(pAdicRingFixedModElement self, right, m): # NOTE: m ignored, always use self.modulus
+    def __pow__(pAdicFixedModElement self, right, m): # NOTE: m ignored, always use self.prime_pow.modulus
         if not PY_TYPE_CHECK(right, Integer):
             right = Integer(right) #Need to make sure that this works for p-adic exponents
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
         _sig_on
-        mpz_powm(ans.value, self.value, (<Integer>right).value, self.modulus)
+        mpz_powm(ans.value, self.value, (<Integer>right).value, self.prime_pow.modulus)
         _sig_off
         return ans
 
@@ -393,11 +344,11 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: x + y
             7 + 2*7^3 + O(7^4)
         """
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
-        mpz_add(ans.value, self.value, (<pAdicRingFixedModElement>right).value)
-        if mpz_cmp(ans.value, self.modulus) >= 0:
-            mpz_sub(ans.value, ans.value, self.modulus)
+        mpz_add(ans.value, self.value, (<pAdicFixedModElement>right).value)
+        if mpz_cmp(ans.value, self.prime_pow.modulus) >= 0:
+            mpz_sub(ans.value, ans.value, self.prime_pow.modulus)
         return ans
 
     cdef RingElement _mul_c_impl(self, RingElement right):
@@ -411,10 +362,10 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: R(1/2) * R(2)
             1 + O(7^4)
         """
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
-        mpz_mul(ans.value, self.value, (<pAdicRingFixedModElement>right).value)
-        mpz_fdiv_r(ans.value, ans.value, self.modulus)
+        mpz_mul(ans.value, self.value, (<pAdicFixedModElement>right).value)
+        mpz_fdiv_r(ans.value, ans.value, self.prime_pow.modulus)
         return ans
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
@@ -430,11 +381,11 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: x - y
             5 + 7^3 + O(7^4)
         """
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
-        mpz_sub(ans.value, self.value, (<pAdicRingFixedModElement>right).value)
+        mpz_sub(ans.value, self.value, (<pAdicFixedModElement>right).value)
         if mpz_sgn(ans.value) == -1:
-            mpz_add(ans.value, ans.value, self.modulus)
+            mpz_add(ans.value, ans.value, self.prime_pow.modulus)
         return ans
 
     cdef RingElement _div_c_impl(self, RingElement right):
@@ -456,50 +407,42 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             ValueError: cannot invert non-unit
         """
         cdef int t
-        cdef pAdicRingFixedModElement ans
-        t = mpz_divisible_p((<pAdicRingFixedModElement>right).value, self.p)
-        if t:
+        cdef pAdicFixedModElement ans
+        if mpz_divisible_p((<pAdicFixedModElement>right).value, self.prime_pow.prime.value) != 0:
             raise ValueError, "cannot invert non-unit"
         else:
             ans = self._new_c()
-            # Can the cast be inside _sig_on?
             _sig_on
-            mpz_invert(ans.value, (<pAdicRingFixedModElement>right).value, self.modulus)
+            mpz_invert(ans.value, (<pAdicFixedModElement>right).value, self.prime_pow.modulus)
             mpz_mul(ans.value, ans.value, self.value)
-            mpz_fdiv_r(ans.value, ans.value, self.modulus)
+            mpz_fdiv_r(ans.value, ans.value, self.prime_pow.modulus)
             _sig_off
             return ans
 
-    def add_bigoh(self, prec):
+    def add_bigoh(self, absprec):
         """
-        Returns a new element with precision decreased to prec
+        Returns a new element with precision decreased to absprec
         INPUT:
             self -- a p-adic element
-            prec -- an integer
+            absprec -- an integer
         OUTPUT:
-            element -- self with precision set to the minimum of  self's precision and prec
+            element -- self with precision set to the minimum of self's precision and absprec
 
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)
             1 + O(7^4)
         """
-        cdef pAdicRingFixedModElement ans
-        cdef mpz_t ppow
-        cdef PowComputer_class powerer
-        if not PY_TYPE_CHECK(prec, Integer):
-            prec = Integer(prec)
-        if mpz_cmp((<Integer>prec).value, (<Integer>self.parent().precision_cap()).value) >= 0:
+        cdef pAdicFixedModElement ans
+        if not PY_TYPE_CHECK(absprec, Integer):
+            absprec = Integer(absprec)
+        if mpz_cmp_ui((<Integer>absprec).value, self.prime_pow._cache_limit) >= 0:
             return self
         ans = self._new_c()
-        mpz_init(ppow)
-        powerer = <PowComputer_class> self.parent().prime_pow
-        powerer.pow_mpz_mpz(ppow, (<Integer>prec).value)
-        mpz_mod(ans.value, self.value, ppow)
-        mpz_clear(ppow)
+        mpz_mod(ans.value, self.value, self.prime_pow.dense_list[mpz_get_ui((<Integer>absprec).value)])
         return ans
 
     def copy(self):
-        cdef pAdicRingFixedModElement ans
+        cdef pAdicFixedModElement ans
         ans = self._new_c()
         mpz_set(ans.value, self.value)
         return ans
@@ -510,31 +453,28 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
     def gamma(self):
         raise NotImplementedError
 
-    def is_zero(self, prec = None):
+    def is_zero(self, absprec = None):
         r"""
-        Returns whether self is zero modulo $p^{\mbox{prec}}$.
+        Returns whether self is zero modulo $p^{\mbox{absprec}}$.
 
         INPUT:
             self -- a p-adic element
-            prec -- an integer
+            absprec -- an integer
         OUTPUT:
             boolean -- whether self is zero
 
         """
         if prec is None:
             return bool(mpz_sgn(self.value) == 0)
-        if not PY_TYPE_CHECK(prec, Integer):
-            prec = Integer(prec)
-        if mpz_cmp((<Integer>prec).value, (<Integer>self.parent().precision_cap()).value) >= 0:
+        if not PY_TYPE_CHECK(absprec, Integer):
+            absprec = Integer(absprec)
+        cdef unsigned long aprec
+        aprec = mpz_get_ui((<Integer>absprec).value)
+        if aprec >= self.prime_pow._cache_limit:
             return bool(mpz_sgn(self.value) == 0)
-        cdef mpz_t ppow, tmp
-        cdef PowComputer_class powerer
-        mpz_init(ppow)
+        cdef mpz_t tmp
         mpz_init(tmp)
-        powerer = <PowComputer_class> self.parent().prime_pow
-        powerer.pow_mpz_mpz(ppow, (<Integer>prec).value)
-        mpz_mod(tmp, self.value, ppow)
-        mpz_clear(ppow)
+        mpz_mod(tmp, self.value, self.prime_pow.dense_list[aprec])
         if mpz_sgn(tmp) == 0:
             mpz_clear(tmp)
             return True
@@ -542,34 +482,33 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             mpz_clear(tmp)
             return False
 
-    def is_equal_to(self, right, prec = None): #assumes they have the same parent
+    def is_equal_to(self, right, absprec = None): #assumes they have the same parent
         r"""
-        Returns whether self is equal to right modulo $p^{\mbox{prec}}$.
+        Returns whether self is equal to right modulo $p^{\mbox{absprec}}$.
 
         INPUT:
             self -- a p-adic element
-            right -- a p-addic element
-            prec -- an integer
+            right -- a p-addic element with the same parent
+            absprec -- a positive integer
         OUTPUT:
             boolean -- whether self is equal to right
 
         """
         if prec is None:
-            return bool(mpz_cmp(self.value, (<pAdicRingFixedModElement>right).value) == 0)
-        if not PY_TYPE_CHECK(prec, Integer):
-            prec = Integer(prec)
-        if mpz_cmp((<Integer>prec).value, (<Integer>self.parent().precision_cap()).value) >= 0:
-            return bool(mpz_cmp(self.value, (<pAdicRingFixedModElement>right).value) == 0)
-        cdef mpz_t ppow, tmp1, tmp2
-        cdef PowComputer_class powerer
-        mpz_init(ppow)
+            return bool(mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0)
+        if not PY_TYPE_CHECK(absprec, Integer):
+            absprec = Integer(absprec)
+        if absprec < 0:
+            return True
+        cdef unsigned long aprec
+        aprec = mpz_get_ui((<Integer>absprec).value)
+        if aprec >= self.prime_pow._cache_limit:
+            return bool(mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0)
+        cdef mpz_t tmp1, tmp2
         mpz_init(tmp1)
         mpz_init(tmp2)
-        powerer = <PowComputer_class> self.parent().prime_pow
-        powerer.pow_mpz_mpz(ppow, (<Integer>prec).value)
-        mpz_mod(tmp1, self.value, ppow)
-        mpz_mod(tmp2, (<pAdicRingFixedModElement>right).value, ppow)
-        mpz_clear(ppow)
+        mpz_mod(tmp1, self.value, self.prime_pow.dense_list[aprec])
+        mpz_mod(tmp2, (<pAdicFixedModElement>right).value, self.prime_pow.dense_list[aprec])
         if mpz_cmp(tmp1, tmp2) == 0:
             mpz_clear(tmp1)
             mpz_clear(tmp2)
@@ -595,7 +534,7 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         """
         return self.lift_c()
 
-    cdef Integer lift_c(pAdicRingFixedModElement self):
+    cdef Integer lift_c(pAdicFixedModElement self):
         cdef Integer ans
         ans = PY_NEW(Integer)
         mpz_set(ans.value, self.value)
@@ -604,102 +543,88 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
     def lift_to_precision(self, absprec):
         return self
 
-    def list(self, lift_mode = None):
+    def list(self, lift_mode = 'simple'):
         r"""
-        Returns a list of coefficients of p starting with $p^0$.
-
+        Returns a list of coefficients of p starting with $p^0$
         INPUT:
             self -- a p-adic element
-            lift_mode -- 'simple' (default), 'smallest', 'teichmuller'
+            lift_mode -- 'simple', 'smallest' or 'teichmuller' (default 'simple')
         OUTPUT:
+            list -- the list of coeficients of self
 
-            list -- a list [a_0, ..., a_k] such that self is congruent
-            to a_0 + a_1*p + ... +a_k*p^k.  If lift_mode is 'simple'
-            or 'smallest' the a_i will be Integers; if it is 'teichmuller'
-            they will be pAdicRingFixedModElements
+        NOTES:
+        Returns a list [a_0, a_1, \ldots, a_n] so that each a_i is an integer
+        and \sum_{i = 0}^n a_i * p^i = self, modulo the precision cap.
+        If lift_mode = 'simple', 0 <= a_i < p.
+        If lift_mode = 'smallest', -p/2 < a_i <= p/2.
+        If lift_mode = 'teichmuller', a_i^p = a_i, modulo the precision cap.
 
         EXAMPLES:
-            sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.list()
-            [0, 2, 1]
-
-        NOTE:
-            this differs from the list method of padic_field_element
+        sage: R = Zp(7,4,'fixed-mod'); a = R(2*7+7**2); a.list()
+        [0, 2, 1]
         """
-        if lift_mode is None:
-            lift_mode = 'simple'
-        elif lift_mode == 'teichmuller':
+        if lift_mode == 'teichmuller':
             return self.teichmuller_list()
-        return self.base_p_list(self.value, self.p, lift_mode, self.parent().prime_pow, mpz_get_si((<Integer>self.parent().precision_cap()).value))
+        return self.base_p_list(self.value, lift_mode)
 
-    cdef object teichmuller_list(pAdicRingFixedModElement self):
+    cdef object teichmuller_list(pAdicFixedModElement self):
         # May eventually want to add a dict to store teichmuller lifts already seen, if p small enough
-        cdef int curpower, preccap
-        cdef mpz_t ppow, tmp
-        cdef pAdicRingFixedModElement list_elt
-        cdef PowComputer_class powerer
-        powerer = <PowComputer_class>self.parent().prime_pow
+        cdef unsigned long curpower, preccap
+        cdef mpz_t tmp
+        cdef pAdicFixedModElement list_elt
         ans = PyList_New(0)
-        preccap = mpz_get_si((<Integer>self.parent().precision_cap()).value)
+        preccap = self.prime_pow._cache_limit
         curpower = preccap
-        mpz_init(ppow)
         mpz_init_set(tmp, self.value)
         while mpz_sgn(tmp) != 0:
             curpower -= 1
             list_elt = self._new_c()
-            mpz_mod(list_elt.value, tmp, self.p)
-            powerer.pow_mpz_ui(ppow, preccap)
-            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.p, ppow)
+            mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
+            sage.rings.padics.padic_generic_element.teichmuller_set_c(list_elt.value, self.prime_pow.prime.value, self.prime_pow.dense_list[preccap])
             mpz_sub(tmp, tmp, list_elt.value)
-            mpz_divexact(tmp, tmp, self.p)
-            powerer.pow_mpz_ui(ppow, curpower)
-            mpz_mod(tmp, tmp, ppow)
+            mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
+            mpz_mod(tmp, tmp, self.prime_pow.dense_list[curpower])
             PyList_Append(ans, list_elt)
-        mpz_clear(ppow)
         mpz_clear(tmp)
         return ans
 
-    def _teichmuller_set(self, Integer n, Integer prec):
-        cdef mpz_t ppow
-        mpz_init(ppow)
+    def _teichmuller_set(self, Integer n, Integer absprec):
+        cdef unsigned long aprec
         mpz_set(self.value, n.value)
-        if mpz_fits_slong_p(prec.value) == 0:
-            raise ValueError, "cannot computer teichmuller lift to that high precision"
-        if mpz_sgn(prec.value) != 1:
+        if mpz_fits_ulong_p(absprec.value) == 0:
+            aprec = self.prime_pow._cache_limit
+        if mpz_sgn(absprec.value) != 1:
             raise ValueError, "can only compute to positive precision"
-        (<PowComputer_class>self.parent().prime_pow).pow_mpz_mpz(ppow, prec.value)
-        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.p, ppow)
-        mpz_clear(ppow)
-
-    def log_artin_hasse(self):
-        raise NotImplementedError
+        aprec = mpz_get_ui(absprec.value)
+        if aprec > self.prime_pow._cache_limit:
+            aprec = self.prime_pow._cache_limit
+        sage.rings.padics.padic_generic_element.teichmuller_set_c(self.value, self.prime_pow.prime.value, self.prime_pow.dense_list[aprec])
 
     def multiplicative_order(self):
         r"""
-        Returns the multiplicative order of self, where self is considered to
-        be 1 if it is 1 modulo $p^{\mbox{prec}}$.
+        Returns the minimum possible multiplicative order of self.
 
         INPUT:
             self -- a p-adic element
-            prec -- an integer
         OUTPUT:
-            integer -- the multiplicative order of self
+            integer -- the multiplicative order of self.  This is the minimum multiplicative order of all elements of Z_p lifting self to infinite precision.
         """
         cdef mpz_t tmp
         cdef Integer ans
-        if mpz_divisible_p(self.value, self.p):
+        if mpz_divisible_p(self.value, self.prime_pow.prime.value):
             return infinity
         if mpz_cmp_ui(self.value, 1):
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 1)
             return ans
         mpz_init(tmp)
-        mpz_sub_ui(tmp, self.modulus, 1)
+        mpz_sub_ui(tmp, self.prime_pow.modulus, 1)
         if mpz_cmp(self.value, tmp) == 0:
             ans = PY_NEW(Integer)
             mpz_set_ui(ans.value, 2)
             return ans
         # check if self is an approximation to a teichmuller lift:
-        mpz_powm(tmp, self.value, self.p, self.modulus)
+        mpz_powm(tmp, self.value, self.prime_pow.prime.value, self.prime_pow.modulus)
         if mpz_cmp(tmp, self.value) == 0:
             mpz_clear(tmp)
             return self.residue(1).multiplicative_order()
@@ -757,14 +682,11 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: a = R(0); a.precision_relative()
             0
         """
-        cdef Integer ans, preccap
-        cdef mpz_t val
-        mpz_init(val)
-        preccap = <Integer> self.parent().precision_cap()
+        cdef unsigned long diff
+        cdef Integer ans
         ans = PY_NEW(Integer)
-        mpz_set_si(val, self.valuation_c())
-        mpz_sub(ans.value, preccap.value, val)
-        mpz_clear(val)
+        diff = self.prime_pow._cache_limit - self.valuation_c()
+        mpz_set_si(ans.value, diff)
         return ans
 
     def residue(self, prec):
@@ -782,73 +704,75 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: R = Zp(7,4,'fixed-mod'); a = R(8); a.residue(1)
             1
         """
-        cdef Integer selfvalue
+        cdef Integer selfvalue, modulus
         selfvalue = PY_NEW(Integer)
+        modulus = PY_NEW(Integer)
         mpz_set(selfvalue.value, self.value)
-        return Mod(selfvalue, self.parent().prime_pow(prec))
+        mpz_set(modulus.value, self.prime_pow.modulus)
+        return Mod(selfvalue, modulus)
 
-    def square_root(self):
-        r"""
-        Returns the square root of this p-adic number
+    #def square_root(self):
+    #    r"""
+    #    Returns the square root of this p-adic number
 
-        INPUT:
-            self -- a p-adic element
-        OUTPUT:
-            p-adic element -- the square root of this p-adic number
+    #    INPUT:
+    #        self -- a p-adic element
+    #    OUTPUT:
+    #        p-adic element -- the square root of this p-adic number
 
-            The square root chosen is the one whose reduction mod p is in
-            the range [0, p/2).
+    #        The square root chosen is the one whose reduction mod p is in
+    #        the range [0, p/2).
 
-            Note that because this is a fixed modulus ring, garbage digits
-            may be introduced, if either
-            (a) the valuation of the input is positive, or
-            (b) p = 2.
+    #        Note that because this is a fixed modulus ring, garbage digits
+    #        may be introduced, if either
+    #        (a) the valuation of the input is positive, or
+    #        (b) p = 2.
 
-            If no square root exists, a ValueError is raised.
-            (This may be changed later to return an element of an extension
-            field.)
+    #        If no square root exists, a ValueError is raised.
+    #        (This may be changed later to return an element of an extension
+    #        field.)
 
-        EXAMPLES:
-            sage: R = Zp(3,20,'fixed-mod')
-            sage: R(0).square_root()
-                O(3^20)
-            sage: R(1).square_root()
-                1 + O(3^20)
-            sage: R(2).square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: element is not a square
-            sage: R(4).square_root() == R(-2)
-                True
-            sage: R(9).square_root()
-                3 + O(3^20)
-            sage: R2 = Zp(2,20,'fixed-mod')
-            sage: R2(0).square_root()
-                O(2^20)
-            sage: R2(1).square_root()
-                1 + O(2^20)
-            sage: R2(4).square_root()
-                2 + O(2^20)
-            sage: R2(9).square_root() == R2(3) or R2(9).square_root() == R2(-3)
-                True
-            sage: R2(17).square_root()
-                1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
-            sage: R3 = Zp(5,20,'fixed-mod', 'terse')
-            sage: R3(0).square_root()
-                0 + O(5^20)
-            sage: R3(1).square_root()
-                1 + O(5^20)
-            sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
-                True
-        """
-        #todo: make more efficient
-        try:
-            # use pari
-            return self.parent()(pari(self).sqrt())
-        except PariError:
-            # todo: should eventually change to return an element of
-            # an extension field
-            raise ValueError, "element is not a square"
+    #    EXAMPLES:
+    #        sage: R = Zp(3,20,'fixed-mod')
+    #        sage: R(0).square_root()
+    #            O(3^20)
+    #        sage: R(1).square_root()
+    #            1 + O(3^20)
+    #        sage: R(2).square_root()
+    #        Traceback (most recent call last):
+    #        ...
+    #        ValueError: element is not a square
+    #        sage: R(4).square_root() == R(-2)
+    #            True
+    #        sage: R(9).square_root()
+    #            3 + O(3^20)
+    #        sage: R2 = Zp(2,20,'fixed-mod')
+    #        sage: R2(0).square_root()
+    #            O(2^20)
+    #        sage: R2(1).square_root()
+    #            1 + O(2^20)
+    #        sage: R2(4).square_root()
+    #            2 + O(2^20)
+    #        sage: R2(9).square_root() == R2(3) or R2(9).square_root() == R2(-3)
+    #            True
+    #        sage: R2(17).square_root()
+    #            1 + 2^3 + 2^5 + 2^6 + 2^7 + 2^9 + 2^10 + 2^13 + 2^16 + 2^17 + O(2^20)
+    #        sage: R3 = Zp(5,20,'fixed-mod', 'terse')
+    #        sage: R3(0).square_root()
+    #            0 + O(5^20)
+    #        sage: R3(1).square_root()
+    #            1 + O(5^20)
+    #        sage: R3(-1).square_root() == R3.teichmuller(2) or R3(-1).square_root() == R3.teichmuller(3)
+    #            True
+    #    """
+    #    #todo: make more efficient
+    #    try:
+    #        # use pari
+    #        return self.parent()(pari(self).sqrt())
+    #    except PariError:
+    #        # todo: should eventually change to return an element of
+    #        # an extension field
+    #        raise ValueError, "element is not a square"
 
     def unit_part(self):
         r"""
@@ -872,15 +796,17 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
             sage: R(0).unit_part()
             O(17^4)
             sage: type(R(5).unit_part())
-            <type 'sage.rings.padics.padic_ring_fixed_mod_element.pAdicRingFixedModElement'>
+            <type 'sage.rings.padics.padic_fixed_mod_element.pAdicFixedModElement'>
         """
         return self.unit_part_c()
 
-    cdef pAdicRingFixedModElement unit_part_c(pAdicRingFixedModElement self):
-        cdef pAdicRingFixedModElement ans
-        if mpz_divisible_p(self.value, self.p):
+    cdef pAdicFixedModElement unit_part_c(pAdicFixedModElement self):
+        cdef pAdicFixedModElement ans
+        if mpz_sgn(self.value) == 0:
+            return self
+        elif mpz_divisible_p(self.value, self.prime_pow.prime.value):
             ans = self._new_c()
-            mpz_remove(ans.value, self.value, self.p)
+            mpz_remove(ans.value, self.value, self.prime_pow.prime.value)
             return ans
         else:
             return self
@@ -922,13 +848,13 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
         mpz_set_si(ans.value, self.valuation_c())
         return ans
 
-    cdef int valuation_c(self):
+    cdef unsigned long valuation_c(self):
         if mpz_sgn(self.value) == 0:
-            return mpz_get_si((<Integer>self.parent().precision_cap()).value)
+            return self.prime_pow._cache_limit
         cdef mpz_t tmp
-        cdef int ans
+        cdef unsigned long ans
         mpz_init(tmp)
-        ans = mpz_remove(tmp, self.value, self.p)
+        ans = mpz_remove(tmp, self.value, self.prime_pow.prime.value)
         mpz_clear(tmp)
         return ans
 
@@ -937,13 +863,12 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
 
     cdef val_unit_c(self):
         cdef Integer val
-        cdef pAdicRingFixedModElement unit
-        cdef int v
+        cdef pAdicFixedModElement unit
         if mpz_sgn(self.value) == 0:
             return (self.parent().precision_cap(), self)
         val = PY_NEW(Integer)
         unit = self._new_c()
-        mpz_set_ui(val.value, mpz_remove(unit.value, self.value, self.p))
+        mpz_set_ui(val.value, mpz_remove(unit.value, self.value, self.prime_pow.prime.value))
         return (val, unit)
 
     def __hash__(self):
@@ -952,9 +877,9 @@ cdef class pAdicRingFixedModElement(pAdicBaseGenericElement):
     cdef long _hash(self) except -1:
         cdef Integer ans
         ans = PY_NEW(Integer)
-        mpz_xor(ans.value, self.modulus, self.value)
+        mpz_set(ans.value, self.value)
         return hash(ans)
 
-def make_pAdicRingFixedModElement(parent, value):
+def make_pAdicFixedModElement(parent, value):
     return parent(value)
 

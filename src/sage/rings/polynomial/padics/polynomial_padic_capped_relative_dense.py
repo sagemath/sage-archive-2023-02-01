@@ -923,6 +923,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             raise ValueError, "Polynomial does not have integral coefficients"
         elif self._valbase > 0:
             raise ValueError, "Factorization of the zero polynomial not defined"
+        elif min(self._relprecs) <= 0:
+            raise PrecisionError, "Polynomial is not known to high enough precision"
         return self._poly.factor_mod(self.base_ring().prime())
 
     def factor(self):
@@ -932,9 +934,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 	from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
         from sage.rings.padics.factory import ZpCA
         base = self.base_ring()
-        print self.list()
+        #print self.list()
         m = min([x.precision_absolute() for x in self.list()])
-        print m
+        #print m
         R = ZpCA(base.prime(), prec = m)
         S = PolynomialRing(R, self.parent().variable_name())
         F = S(self).factor()

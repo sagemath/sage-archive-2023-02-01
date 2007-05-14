@@ -483,12 +483,12 @@ ext_modules = [ \
               sources = ['sage/rings/padics/padic_generic_element.pyx']),
     Extension('sage.rings.padics.padic_base_generic_element',
               sources = ['sage/rings/padics/padic_base_generic_element.pyx']),
-    Extension('sage.rings.padics.padic_ring_fixed_mod_element',
-              sources = ['sage/rings/padics/padic_ring_fixed_mod_element.pyx', \
+    Extension('sage.rings.padics.padic_fixed_mod_element',
+              sources = ['sage/rings/padics/padic_fixed_mod_element.pyx', \
                          'sage/rings/padics/padic_generic_element.c'],
               libraries=['gmp']),
-    Extension('sage.rings.padics.padic_ring_capped_absolute_element',
-              sources = ['sage/rings/padics/padic_ring_capped_absolute_element.pyx', \
+    Extension('sage.rings.padics.padic_capped_absolute_element',
+              sources = ['sage/rings/padics/padic_capped_absolute_element.pyx', \
                          'sage/rings/padics/padic_generic_element.c'],
               libraries=['gmp']),
     Extension('sage.rings.padics.padic_capped_relative_element',

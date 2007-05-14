@@ -133,7 +133,7 @@ pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 pAdicLazyElement = padic_lazy_element.pAdicLazyElement
 pAdicCappedRelativeElement = sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
 #pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
-#pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#pAdicCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement
 #Zp = sage.rings.padics.zp.Zp
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):

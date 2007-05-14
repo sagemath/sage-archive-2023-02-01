@@ -67,9 +67,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
     def __init__(self, p, prec, print_mode, names, element_class):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
-        self.prime_pow = PowComputer(p, 5)
-        self.prime_pow.cache(prec)
-        self._p = p
+        self.prime_pow = PowComputer(p, prec)
         self.__set_print_mode(print_mode)
         self._element_class = element_class
 
@@ -87,8 +85,6 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             return self.__call__(x)
         else:
             raise TypeError, "no canonical coercion of %s of type %s into %s"%(x, type(x), self)
-
-
 
     def __cmp__(self, other):
         if isinstance(other, type(self)):
@@ -197,27 +193,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.prime()
                 3
         """
-        return self._p
-
-    #def prime_pow(self, n):
-    #    """
-    #    Returns the prime raised to the nth power.
-    #
-    #    INPUT:
-    #        self -- a p-adic field
-    #
-    #    OUTPUT:
-    #        integer -- p^n
-    #
-    #    EXAMPLES:
-    #        sage: R = Zp(3)
-    #        sage: R.prime_pow(5)
-    #            243
-    #    """
-    #    if n is infinity:
-    #        return 0
-    #    else:
-    #        return self._p ** n
+        return self.prime_pow._prime()
 
     def uniformizer_pow(self, n):
         if n is infinity:
@@ -422,7 +398,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.uniformizer()
                 3 + O(3^5)
         """
-        return self(self._p)
+        return self(self.prime_pow._prime())
 
     def has_pth_root(self):
         r"""

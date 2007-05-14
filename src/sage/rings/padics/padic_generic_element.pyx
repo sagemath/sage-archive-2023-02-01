@@ -38,6 +38,9 @@ pari = sage.libs.pari.gen.pari
 QQ = sage.rings.rational_field.QQ
 
 cdef class pAdicGenericElement(LocalGenericElement):
+    def __init__(self, parent):
+        self.prime_pow = parent.prime_pow
+
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
 
@@ -76,7 +79,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
             if x_ordp == infinity:
                 return 0 # since both are zero
             else:
-                p = left.parent().prime()
+                p = left.prime_pow.prime()
                 a = left.unit_part().lift()
                 b = right.unit_part().lift()
                 prec = min(left.precision_relative(), right.precision_relative())
@@ -113,7 +116,7 @@ cdef class pAdicGenericElement(LocalGenericElement):
         if isinstance(n, slice):
             if n.start == 0:
                 raise ValueError, "due to limitations in Python 2.5, you must call the slice() function rather than using the [:] syntax in this case"
-            if n.stop == sys.MAXINT:
+            if n.stop == sys.maxint:
                 return self.slice(n.start, None, n.step)
             return self.slice(n.start, n.stop, n.step)
         if n < self.valuation():
@@ -225,31 +228,32 @@ cdef class pAdicGenericElement(LocalGenericElement):
                     return "%s + O(%s^%s)"%(self.lift(), pprint, self.precision_absolute())
         else:
             #should change over to using list()
-            exp = self.valuation()
-            p = self.parent().prime()
-            v = self.unit_part().lift()
+            slist = self.list()
             s = ""
-            while v != 0:
-                var = pprint
-                coeff = v % p
-                if coeff != 0:
+            p = self.prime_pow.prime()
+            if self.parent().is_field():
+                exp = self.valuation()
+            else:
+                exp = 0
+            for a in slist:
+                if a != 0:
                     if exp == 0:
-                        s += "%s + "%coeff
+                        s += "%s + "%a
                     else:
+                        var = pprint
                         if exp != 1:
                             if do_latex:
                                 var += "^{%s}"%exp
                             else:
                                 var += "^%s"%exp
-                        if coeff != 1:
+                        if a != 1:
                             if do_latex:
-                                s += "%s \\cdot %s + "%(coeff, var)
+                                s += "%s \\cdot %s + "%(a, var)
                             else:
-                                s += "%s*%s + "%(coeff, var)
+                                s += "%s*%s + "%(a, var)
                         else:
                             s += "%s + "%var
                 exp += 1
-                v = (v - coeff) / p
             s += "O(%s"%(pprint)
             if self.precision_absolute() == 1:
                 s += ")"
@@ -879,7 +883,6 @@ cdef class pAdicGenericElement(LocalGenericElement):
         # whose square root is a real number....!
         if self.valuation() is infinity:
             return self
-
         try:
             # use pari
             ans = self.parent()(pari(self).sqrt())
@@ -917,43 +920,42 @@ cdef class pAdicGenericElement(LocalGenericElement):
     def _val_unit(self):
         return self.valuation(), self.unit_part().lift()
 
-    cdef base_p_list(self, mpz_t value, mpz_t p, lift_mode, PowComputer_class powerer, int preccap):
-        cdef mpz_t tmp, halfp, ppow
+    cdef base_p_list(self, mpz_t value, lift_mode):
+        cdef mpz_t tmp, halfp
         cdef int neg, curpower
         cdef Integer list_elt
+        cdef unsigned long preccap
+        preccap = self.prime_pow.prec_cap
         ans = PyList_New(0)
         mpz_init_set(tmp, value)
         if lift_mode == 'simple':
             while mpz_sgn(tmp) != 0:
                 list_elt = PY_NEW(Integer)
-                mpz_mod(list_elt.value, tmp, p)
+                mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
                 mpz_sub(tmp, tmp, list_elt.value)
-                mpz_divexact(tmp, tmp, p)
+                mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
                 PyList_Append(ans, list_elt)
         elif lift_mode == 'smallest':
             neg = 0
             curpower = preccap
             mpz_init(halfp)
-            mpz_init(ppow)
-            mpz_fdiv_q_2exp(halfp, p, 1)
+            mpz_fdiv_q_2exp(halfp, self.prime_pow.prime.value, 1)
             while mpz_sgn(tmp) != 0:
                 curpower -= 1
                 list_elt = PY_NEW(Integer)
-                mpz_mod(list_elt.value, tmp, p)
+                mpz_mod(list_elt.value, tmp, self.prime_pow.prime.value)
                 if mpz_cmp(list_elt.value, halfp) >= 0:
-                    mpz_sub(list_elt.value, list_elt.value, p)
+                    mpz_sub(list_elt.value, list_elt.value, self.prime_pow.prime.value)
                     neg = 1
                 else:
                     neg = 0
                 mpz_sub(tmp, tmp, list_elt.value)
-                mpz_divexact(tmp, tmp, p)
+                mpz_divexact(tmp, tmp, self.prime_pow.prime.value)
                 if neg == 1:
-                    powerer.pow_mpz_ui(ppow, curpower)
-                    if mpz_cmp(tmp, ppow) >= 0:
-                        mpz_sub(tmp, tmp, ppow)
+                    if mpz_cmp(tmp, self.prime_pow.dense_list[curpower]) >= 0:
+                        mpz_sub(tmp, tmp, self.prime_pow.dense_list[curpower])
                 PyList_Append(ans, list_elt)
             mpz_clear(halfp)
-            mpz_clear(ppow)
         else:
             mpz_clear(tmp)
             raise ValueError, "lift mode must be one of 'simple', 'smallest' or 'teichmuller'"

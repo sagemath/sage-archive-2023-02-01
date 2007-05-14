@@ -802,7 +802,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         multivariate polynomial.
 
         INPUT:
-            R -- (defualt: None) PolynomialRing
+            R -- (default: None) PolynomialRing
 
         If this polynomial is not in at most one variable, then a
         ValueError exception is raised.  This is checked using the

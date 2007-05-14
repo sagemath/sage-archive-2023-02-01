@@ -1,15 +1,10 @@
-"""nodoctest
+"""
 Multivariate polynomials over QQ and GF(p) implemented using SINGULAR as backend.
 
 AUTHORS:
     Martin Albrecht <malb@informatik.uni-bremen.de>
 
-
-
 TODO:
-   * implement every method from multi_polynomial_ring and multi_polynomial_element
-   * check SINGULAR code base for 'interesting' methods to add
-   * add required methods for F4, Buchberger etc.
    * implement GF(p^n)
    * implement block orderings
    * implement Real, Complex
@@ -42,6 +37,7 @@ co = Conversion()
 from sage.rings.multi_polynomial_ring import singular_name_mapping, TermOrder
 from sage.rings.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polydict import ETuple
+from sage.rings.polynomial_ring import PolynomialRing
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
@@ -62,6 +58,9 @@ from sage.structure.element cimport EuclideanDomainElement, \
      ModuleElement, \
      Element, \
      CommutativeRingElement
+
+from sage.structure.sequence import Sequence
+
 
 from sage.rings.integer cimport Integer
 
@@ -709,11 +708,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                                                                                                map(str, self.gens()),
                                                                                                self.term_order() )
 
-    ### The following methods are handy for implementing e.g. F4. They
-    ### do only superficial type/sanity checks and should be called
-    ### carefully.
+    ### The following methods are handy for implementing Groebner
+    ### basis algorithms. They do only superficial type/sanity checks
+    ### and should be called carefully.
 
-    def monomial_m_div_n(self, MPolynomial_libsingular f, MPolynomial_libsingular g, coeff=False):
+    def monomial_quotient(self, MPolynomial_libsingular f, MPolynomial_libsingular g, coeff=False):
         """
         Return f/g, where both f and g are treated as
         monomials. Coefficients are ignored by default.
@@ -726,45 +725,43 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
-            sage: P.monomial_m_div_n(3/2*x*y,x)
+            sage: P.monomial_quotient(3/2*x*y,x)
             y
 
-            sage: P.monomial_m_div_n(3/2*x*y,x,coeff=True)
+            sage: P.monomial_quotient(3/2*x*y,x,coeff=True)
             3/2*y
 
         TESTS:
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: R.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
             sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
-            sage: P.monomial_m_div_n(x*y,x)
+            sage: P.monomial_quotient(x*y,x)
             y
 
-            sage: P.monomial_m_div_n(x*y,R.gen())
+            sage: P.monomial_quotient(x*y,R.gen())
             y
 
-            sage: P.monomial_m_div_n(P(0),P(1))
+            sage: P.monomial_quotient(P(0),P(1))
             0
 
-            sage: P.monomial_m_div_n(P(1),P(0))
+            sage: P.monomial_quotient(P(1),P(0))
             Traceback (most recent call last):
             ...
             ZeroDivisionError
 
-            sage: P.monomial_m_div_n(P(3/2),P(2/3), coeff=True)
+            sage: P.monomial_quotient(P(3/2),P(2/3), coeff=True)
             9/4
 
-            sage: P.monomial_m_div_n(x,y) # Note the wrong result
+            sage: P.monomial_quotient(x,y) # Note the wrong result
             x*y^1048575*z^1048575 # 64-bit
             x*y^65535*z^65535 # 32-bit
 
-            sage: P.monomial_m_div_n(x,P(1))
+            sage: P.monomial_quotient(x,P(1))
             x
 
         NOTE: Assumes that the head term of f is a multiple of the
         head term of g and return the multiplicant m. If this rule is
         violated, funny things may happen.
-
-
 
         """
         cdef poly *res
@@ -788,6 +785,52 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         else:
             p_SetCoeff(res, n_Init(1, r), r)
         return new_MP(self, res)
+
+    def monomial_is_divisible_by(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
+        """
+        Return False if b does not divide a and True otherwise.
+
+        INPUT:
+            a -- monomial
+            b -- monomial
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
+            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
+            True
+            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
+            False
+
+        TESTS:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
+            sage: P.monomial_is_divisible_by(P(0),P(1))
+            True
+            sage: P.monomial_is_divisible_by(x,P(1))
+            True
+
+        """
+        cdef poly *_a
+        cdef poly *_b
+        cdef ring *_r
+        if a._parent is not b._parent:
+            b = (<MPolynomialRing_libsingular>a._parent)._coerce_c(b)
+
+        _a = a._poly
+        _b = b._poly
+        _r = (<MPolynomialRing_libsingular>a._parent)._ring
+
+        if _b == NULL:
+            raise ZeroDivisionError
+        if _a == NULL:
+            return True
+
+        if not p_DivisibleBy(_b, _a, _r):
+            return False
+        else:
+            return True
+
 
     def monomial_lcm(self, MPolynomial_libsingular f, MPolynomial_libsingular g):
         """
@@ -947,55 +990,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 return False
         return True
 
-    def monomial_is_divisible_by(self, MPolynomial_libsingular a, MPolynomial_libsingular b):
-        """
-        Return 0 if b does not divide a and the factor
-        otherwise. Coefficients are ignored.
-
-        INPUT:
-            a -- monomial
-            b -- monomial
-
-        EXAMPLES:
-            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
-            sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
-            sage: P.monomial_is_divisible_by(x^3*y^2*z^4, x*y*z)
-            x^2*y*z^3
-            sage: P.monomial_is_divisible_by(x*y*z, x^3*y^2*z^4)
-            0
-
-        TESTS:
-            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
-            sage: P.<x,y,z>=MPolynomialRing_libsingular(QQ,3)
-            sage: P.monomial_is_divisible_by(P(0),P(1))
-            0
-            sage: P.monomial_is_divisible_by(x,P(1))
-            x
-
-        """
-        cdef poly *_a
-        cdef poly *_b
-        cdef ring *_r
-        cdef poly *ret
-        if a._parent is not b._parent:
-            b = (<MPolynomialRing_libsingular>a._parent)._coerce_c(b)
-
-        _a = a._poly
-        _b = b._poly
-        _r = (<MPolynomialRing_libsingular>a._parent)._ring
-        if(_r != currRing): rChangeCurrRing(_r)
-
-        if _b == NULL:
-            raise ZeroDivisionError
-        if _a == NULL:
-            return self._zero
-
-        if not p_DivisibleBy(_b, _a, _r):
-           return self._zero
-        else:
-            ret = pDivide(_a,_b)
-            p_SetCoeff(ret, n_Init(1, _r), _r)
-            return new_MP(self,ret)
 
 def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     """
@@ -1793,8 +1787,86 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         p_Delete(&m,r)
         return (<MPolynomialRing_libsingular>self._parent)._base(0)
 
-    def coefficient(self, mon):
-        raise NotImplementedError
+    def coefficient(self, MPolynomial_libsingular mon):
+        """
+        Return the coefficient of mon in self, where mon must have the
+        same parent as self.  The coefficient is defined as follows.
+        If f is this polynomial, then the coefficient is the sum T/mon
+        where the sum is over terms T in f that are exactly divisible
+        by mon.
+
+        A monomial m(x,y) 'exactly divides' f(x,y) if m(x,y)|f(x,y)
+        and neither x*m(x,y) nor y*m(x,y) divides f(x,y).
+
+        INPUT:
+            mon -- a monomial
+
+        OUTPUT:
+            element of the parent of self
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y> = MPolynomialRing_libsingular(QQ, 2)
+
+        The coefficient returned is an element of the parent of self; in
+        this case, QQ[x, y].
+
+            sage: f = 2 * x * y
+            sage: c = f.coefficient(x*y); c
+            2
+            sage: c.parent()
+            Polynomial Ring in x, y over Rational Field
+            sage: c in P
+            True
+
+            sage: f = y^2 - x^9 - 7*x + 5*x*y
+            sage: f.coefficient(y)
+            5*x
+            sage: f = y - x^9*y - 7*x + 5*x*y
+            sage: f.coefficient(y)
+            -x^9 + 5*x + 1
+
+            sage: f = y^2 - x^9 - 7*x*y^2 + 5*x*y
+            sage: f.coefficient(x*y)
+            5
+            sage: f.coefficient(x*y^2)
+            -7
+            sage: f.coefficient(y)
+            5*x
+            sage: f.coefficient(x)
+            -7*y^2 + 5*y
+
+        The coefficient of 1 is also an element of the multivariate
+        polynomial ring:
+
+            sage: R.<x,y> = MPolynomialRing_libsingular(GF(389),2)
+            sage: parent(R(x*y+5).coefficient(R(1)))
+            Polynomial Ring in x, y over Finite Field of size 389
+        """
+        cdef poly *p = self._poly
+        cdef poly *m = mon._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef poly *res = p_ISet(0,r)
+        cdef poly *t
+        cdef int exactly_divisible, i
+        if(r != currRing): rChangeCurrRing(r)
+
+        if not mon._parent is self._parent:
+            raise TypeError, "mon must have same parent as self"
+
+        while(p):
+            exactly_divisible = 1
+            for i from 1 <= i <= r.N:
+                if (p_GetExp(m,i,r) != 0) and (p_GetExp(p,i,r) != p_GetExp(m,i,r)):
+                    exactly_divisible = 0
+                    break
+            if exactly_divisible:
+                t = pDivide(p,m)
+                p_SetCoeff(t, n_Div( p_GetCoeff(p, r) , p_GetCoeff(m, r), r), r)
+                res = p_Add_q(res, t , r )
+            p = pNext(p)
+
+        return new_MP(self._parent, res)
 
     def exponents(self):
         """
@@ -2050,8 +2122,33 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         return l
 
-    def constant_coefficent(self):
-        raise NotImplementedError
+    def constant_coefficient(self):
+        """
+        Return the constant coefficient of this multivariate polynomial.
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x, y> = MPolynomialRing_libsingular(QQ,2)
+            sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
+            sage: f.constant_coefficient()
+            5
+            sage: f = 3*x^2
+            sage: f.constant_coefficient()
+            0
+        """
+
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if p == NULL:
+            return (<MPolynomialRing_libsingular>self._parent)._zero
+
+        while p.next:
+            p = pNext(p)
+
+        if p_LmIsConstant(p, r):
+            return co.si2sa( p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base )
+        else:
+            return (<MPolynomialRing_libsingular>self._parent)._zero
 
     def is_univariate(self):
         """
@@ -2074,7 +2171,54 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return bool(len(self._variable_indices_(sort=False))<2)
 
     def univariate_polynomial(self, R=None):
-        raise NotImplementedError
+        """
+        Returns a univariate polynomial associated to this
+        multivariate polynomial.
+
+        INPUT:
+            R -- (default: None) PolynomialRing
+
+        If this polynomial is not in at most one variable, then a
+        ValueError exception is raised.  This is checked using the
+        is_univariate() method.  The new Polynomial is over the same
+        base ring as the given MPolynomial and in the variable 'x' if
+        no ring 'ring' is provided.
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x, y> = MPolynomialRing_libsingular(QQ,2)
+            sage: f = 3*x^2 - 2*y + 7*x^2*y^2 + 5
+            sage: f.univariate_polynomial()
+            Traceback (most recent call last):
+            ...
+            TypeError: polynomial must involve at most one variable
+            sage: g = f.fix({x:10}); g
+            700*y^2 - 2*y + 305
+            sage: g.univariate_polynomial ()
+            700*x^2 - 2*x + 305
+            sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
+            700*z^2 - 2*z + 305
+        """
+        cdef poly *p = self._poly
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        k = self.base_ring()
+
+        if not self.is_univariate():
+            raise TypeError, "polynomial must involve at most one variable"
+
+        #construct ring if none
+        if R == None:
+            R =  PolynomialRing(k,'x')
+
+        zero = k(0)
+        coefficients = [zero] * (self.degree() + 1)
+
+        while p:
+            coefficients[pTotaldegree(p, r)] = co.si2sa(p_GetCoeff(p, r), r, k)
+            p = pNext(p)
+
+        return R(coefficients)
+
 
     def _variable_indices_(self, sort=True):
         """
@@ -2262,8 +2406,54 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         else:
             return False
 
-    def __floordiv__(self,right):
-        raise NotImplementedError
+    def __floordiv__(self, right):
+        """
+        Perform division with remainder and return the quotient.
+
+        INPUT:
+            right -- something coercable to an MPolynomial_libsingular in self.parent()
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y,z> = MPolynomialRing_libsingular(GF(32003),3)
+            sage: f = y*x^2 + x + 1
+            sage: f//x
+            x*y + 1
+            sage: f//y
+            x^2
+        """
+        cdef ideal *selfI
+        cdef ideal *rightI
+        cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>(<MPolynomial_libsingular>self)._parent
+        cdef ring *r = parent._ring
+        cdef ideal *R, *res
+        cdef int i,j
+        if(r != currRing): rChangeCurrRing(r)
+        cdef MPolynomial_libsingular _self, _right
+
+        _self = self
+
+
+        if not PY_TYPE_CHECK(right, MPolynomial_libsingular) or (<ParentWithBase>parent is not (<MPolynomial_libsingular>right)._parent):
+            _right = parent._coerce_c(right)
+        else:
+            _right = right
+
+        if right.is_zero():
+            raise ZeroDivisionError
+
+        selfI = idInit(1,1)
+        rightI = idInit(1,1)
+        selfI.m[0] = p_Copy(_self._poly, r)
+        rightI.m[0] = p_Copy(_right._poly, r)
+        res = idLift(rightI, selfI, NULL, 0, 0, 1);
+
+        quo = new_MP(parent, pTakeOutComp1(&res.m[0],1))
+
+        id_Delete(&selfI, r)
+        id_Delete(&rightI, r)
+        id_Delete(&res, r)
+        return quo
 
     def factor(self, param=0):
         """
@@ -2318,9 +2508,60 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         return F
 
     def lift(self, I):
-        #m = idLift(Ideal(self), I, NULL, FALSE, TRUE );
-        #matrix_to_list(m)
-        raise NotImplementedError
+        """
+        given an ideal I = (f_1,...,f_r) and some g (== self) in I,
+        find s_1,...,s_r such that g = s_1 f_1 + ... + s_r f_r
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: A.<x,y> = MPolynomialRing_libsingular(QQ,2,order='degrevlex')
+            sage: I = A.ideal([x^10 + x^9*y^2, y^8 - x^2*y^7 ])
+            sage: f = x*y^13 + y^12
+            sage: M = f.lift(I)
+            sage: M
+            [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
+            sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
+            True
+        """
+
+        cdef ideal *fI = idInit(1,1)
+        cdef ideal *_I
+        cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
+        cdef int i = 0
+        cdef int j
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef ideal *res
+
+        if PY_TYPE_CHECK(I, MPolynomialIdeal):
+            I = I.gens()
+
+        _I = idInit(len(I),1)
+
+        for f in I:
+            if not (PY_TYPE_CHECK(f,MPolynomial_libsingular) \
+                    and <MPolynomialRing_libsingular>(<MPolynomial_libsingular>f)._parent is parent):
+                try:
+                    f = parent._coerce_c(f)
+                except TypeError, msg:
+                    id_Delete(&fI,r)
+                    id_Delete(&_I,r)
+                    raise TypeError, msg
+
+            _I.m[i] = p_Copy((<MPolynomial_libsingular>f)._poly, r)
+            i+=1
+
+        fI.m[0]= p_Copy(self._poly, r)
+
+        res = idLift(_I, fI, NULL, 0, 0, 0)
+        l = []
+        for i from 0 <= i < IDELEMS(res):
+            for j from 1 <= j <= IDELEMS(_I):
+                l.append( new_MP(parent, pTakeOutComp1(&res.m[i], j)) )
+
+        id_Delete(&fI, r)
+        id_Delete(&_I, r)
+        id_Delete(&res, r)
+        return Sequence(l, check=False, immutable=True)
 
     def reduce(self,I):
         """
@@ -2440,10 +2681,56 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
     def quo_rem(self, MPolynomial_libsingular right):
         """
+        Returns quotient and remainder of self and right.
+
+        EXAMPLES:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y> = MPolynomialRing_libsingular(QQ,2)
+            sage: f = y*x^2 + x + 1
+            sage: f.quo_rem(x)
+            (x*y + 1, 1)
+            sage: f.quo_rem(y)
+            (x^2, x + 1)
+
+        TESTS:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x,y> = MPolynomialRing_libsingular(QQ,2)
+            sage: R(0).quo_rem(R(1))
+            (0, 0)
+            sage: R(1).quo_rem(R(0))
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError
+
         """
+        cdef ideal *selfI
+        cdef ideal *rightI
+        cdef MPolynomialRing_libsingular parent = <MPolynomialRing_libsingular>self._parent
+        cdef ring *r = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef ideal *R, *res
+        cdef int i,j
+        if(r != currRing): rChangeCurrRing(r)
+
         if self._parent is not right._parent:
             right = self._parent._coerce_c(right)
-        raise NotImplementedError
+
+        if right.is_zero():
+            raise ZeroDivisionError
+
+        selfI = idInit(1,1)
+        rightI = idInit(1,1)
+        selfI.m[0] = p_Copy(self._poly, r)
+        rightI.m[0] = p_Copy(right._poly, r)
+        res = idLift(rightI, selfI, &R, 0, 0, 1);
+
+        quo = new_MP(parent, pTakeOutComp1(&res.m[0],1))
+        rem = new_MP(parent, p_Copy(R.m[0],r))
+
+        id_Delete(&selfI, r)
+        id_Delete(&rightI, r)
+        id_Delete(&R, r)
+        id_Delete(&res, r)
+        return quo,rem
 
     def _magma_(self, magma=None):
         """

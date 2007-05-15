@@ -175,9 +175,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Note that some reduction may be applied so that the lift of a reduction
         need not equal the original element.
             sage: z = pi(x^3 + 2*y^2); z
-            -1*xbar*ybar^2 + 2*ybar^2
+            -xbar*ybar^2 + 2*ybar^2
             sage: L(z)
-            -1*x*y^2 + 2*y^2
+            -x*y^2 + 2*y^2
             sage: L(z) == x^3 + 2*y^2
             False
         """
@@ -222,7 +222,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.__R
 
     def ideal(self, gens, coerce=False):
-        if not self.__R._has_singular:
+        from multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
             # pass through
             MPolynomialRing_generic.ideal(self,gens,coerce)
         if is_SingularElement(gens):
@@ -268,7 +269,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S._coerce_(2/3)
             2/3
             sage: S._coerce_(a^2 - b)
-            -1*b^2 - b
+            -b^2 - b
             sage: S._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...

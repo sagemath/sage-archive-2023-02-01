@@ -95,9 +95,9 @@ EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
     sage: phi
     Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + 1)
       Defn: a |--> a^2
-            b |--> -1*b
+            b |--> -b
     sage: phi(b)
-    -1*b
+    -b
     sage: phi(a^2 + b^2)
     a^4 - 1
 

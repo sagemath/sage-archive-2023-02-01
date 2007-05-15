@@ -335,7 +335,7 @@ cdef class Matrix(matrix1.Matrix):
             [x3 x4 x5]
             [x6 x7 x8]
             sage: A.determinant()
-            -1*x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
+            -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
         We create a matrix over $\Z[x,y]$ and compute its determinant.
             sage: R.<x,y> = MPolynomialRing(IntegerRing(),2)

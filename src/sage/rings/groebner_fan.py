@@ -40,7 +40,7 @@ EXAMPLES:
     sage: i = ideal(x^2 - y^2 + 1)
     sage: g = i.groebner_fan()
     sage: g.reduced_groebner_bases()
-    [[x^2 - y^2 + 1], [-1*x^2 + y^2 - 1]]
+    [[x^2 - y^2 + 1], [-x^2 + y^2 - 1]]
 
 TESTS:
     sage: x,y = QQ['x,y'].gens()
@@ -104,7 +104,7 @@ class GroebnerFan(SageObject):
             sage: I = R.ideal([x^2*y - z, y^2*z - x, z^2*x - y])
             sage: G = I.groebner_fan(); G
             Groebner fan of the ideal:
-            Ideal (x^2*y - z, -1*x + y^2*z, x*z^2 - y) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (x^2*y - z, -x + y^2*z, x*z^2 - y) of Polynomial Ring in x, y, z over Rational Field
         """
         self.__is_groebner_basis = is_groebner_basis
         self.__symmetry = symmetry
@@ -261,10 +261,10 @@ class GroebnerFan(SageObject):
             Ideal (z^15 - z, y - z^11, x - z^9) of Polynomial Ring in x, y, z over Rational Field
             sage: X[:5]
             [[z^15 - z, y - z^11, x - z^9],
-            [-1*y + z^11, y*z^4 - z, y^2 - z^8, x - z^9],
-            [-1*y^2 + z^8, y*z^4 - z, y^2*z^3 - y, y^3 - z^5, x - y^2*z],
-            [-1*y^3 + z^5, y*z^4 - z, y^2*z^3 - y, y^4 - z^2, x - y^2*z],
-            [-1*y^4 + z^2, y^6*z - y, y^9 - z, x - y^2*z]]
+            [-y + z^11, y*z^4 - z, y^2 - z^8, x - z^9],
+            [-y^2 + z^8, y*z^4 - z, y^2*z^3 - y, y^3 - z^5, x - y^2*z],
+            [-y^3 + z^5, y*z^4 - z, y^2*z^3 - y, y^4 - z^2, x - y^2*z],
+            [-y^4 + z^2, y^6*z - y, y^9 - z, x - y^2*z]]
         """
         try:
             return self.__reduced_groebner_bases
@@ -330,7 +330,7 @@ class GroebnerFan(SageObject):
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x - z^3, y^2 - x + x^2 - z^3*x]).groebner_fan()
             sage: G.buchberger ()
-            [-1*z^3 + y^2, -1*z^3 + x]
+            [-z^3 + y^2, -z^3 + x]
         """
         try:
             return self.__buchberger
@@ -664,7 +664,7 @@ class ReducedGroebnerBasis(SageObject, list):
             sage: R.<x,y,z> = PolynomialRing(QQ,3)
             sage: G = R.ideal([x - z^3, y^2 - 13*x]).groebner_fan()
             sage: G[0].ideal()
-            Ideal (-13*z^3 + y^2, -1*z^3 + x) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (-13*z^3 + y^2, -z^3 + x) of Polynomial Ring in x, y, z over Rational Field
         """
         return self.__groebner_fan.ring().ideal(self)
 

@@ -12,9 +12,10 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
     cdef int is_constant_c(self)
 
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
-    cdef ring *_ring
+    cdef object __weakref__
     cdef object __singular
     cdef object __macaulay2
+    cdef ring *_ring
     cdef MPolynomial_libsingular _zero
     cdef int _cmp_c_impl(left, Parent right) except -2
 

@@ -462,7 +462,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (z^3 + 2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^3 + 2, -z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, -z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -530,7 +530,7 @@ class MPolynomialIdeal_singular_repr:
             sage: R.<x,y> = QQ[]
             sage: I = ideal([x^2,x*y^4,y^5])
             sage: I.integral_closure()
-            [x^2, y^5, -1*x*y^3]
+            [x^2, y^5, -x*y^3]
 
         ALGORITHM: Use Singular
 

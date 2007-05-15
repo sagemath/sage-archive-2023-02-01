@@ -34,7 +34,8 @@ from sage.libs.singular.singular cimport Conversion
 cdef Conversion co
 co = Conversion()
 
-from sage.rings.multi_polynomial_ring import singular_name_mapping, TermOrder
+from sage.rings.multi_polynomial_ring import TermOrder, MPolynomialRing_polydict_domain
+from sage.rings.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polydict import ETuple
 from sage.rings.polynomial_ring import PolynomialRing
@@ -68,6 +69,7 @@ from sage.structure.parent cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
+from sage.misc.misc import mul
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 
@@ -184,10 +186,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         else:
             raise NotImplementedError, "Only GF(p) and QQ are supported right now, sorry"
 
-        try:
-            order = singular_name_mapping[order]
-        except KeyError:
-            pass
+        order = TermOrder(order).singular_str()
 
         self._ring = rDefault(characteristic, n, _names)
         if(self._ring != currRing): rChangeCurrRing(self._ring)
@@ -275,10 +274,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef poly *_p
         cdef ring *_ring
         cdef number *_n
-        cdef poly *rm
-        cdef int ok
-        cdef int i
-        cdef ideal *from_id, *to_id, *res_id
+        cdef poly *mon
 
         _ring = self._ring
 
@@ -292,6 +288,17 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 _p = p_Copy((<MPolynomial_libsingular>element)._poly, _ring)
             else:
                 raise TypeError, "parents do not match"
+
+        elif PY_TYPE_CHECK(element, MPolynomial_polydict):
+            if element.parent() == self:
+                _p = p_ISet(0, _ring)
+                for (m,c) in element.element().dict().iteritems():
+                    mon = p_Init(_ring)
+                    p_SetCoeff(mon, co.sa2si(c, _ring), _ring)
+                    for pos in m.nonzero_positions():
+                        p_SetExp(mon, pos+1, m[pos], _ring)
+                    p_Setm(mon, _ring)
+                    _p = p_Add_q(_p, mon, _ring)
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # Accepting ZZ
@@ -330,11 +337,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         EXAMPLE:
             Call supports all conversions _coerce_ supports, plus:
 
+        Coercion form strings:
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
             sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
             sage: P('x+y + 1/4')
             x + y + 1/4
 
+        Coercion from SINGULAR elements:
             sage: P._singular_()
             //   characteristic : 0
             //   number of vars : 3
@@ -344,34 +353,60 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
             sage: P(singular('x + 3/4'))
             x + 3/4
+
+        Coercion from symbolic variables:
+            sage: x,y,z = var('x,y,z')
+            sage: R = QQ[x,y,z]
+            sage: R(x)
+            x
+
+        Coercion from 'similar' rings:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: R.<a,b,c> = MPolynomialRing(ZZ,3)
+            sage: P(a)
+            x
+
         """
-        cdef poly *_m, *_p, *_tmp
-        cdef ring *_r
+        cdef poly *_p, *mon
+        cdef ring *_ring = self._ring
 
         if PY_TYPE_CHECK(element, SingularElement):
             element = str(element)
 
         if PY_TYPE_CHECK(element,str):
             # let python do the the parsing
-            return sage_eval(element,self.gens_dict())
+            element = sage_eval(element,self.gens_dict())
 
-               # this almost does what I want, besides variables with 0-9 in their names
-##             _r = self._ring
-##             if(_r != currRing): rChangeCurrRing(_r)
-##             # improve this
-##             element = element.replace('^','').replace('**','').replace(' ','').strip()
-##             monomials = element.split('+')
-##             _p = p_ISet(0, _r)
-##             # wrong for e.g. x0,..,x7
-##             for m in monomials:
-##                 _m = p_ISet(1,_r)
-##                 for var in m.split('*'):
-##                     p_Read(var, _tmp, _r)
-##                     _m = p_Mult_q(_m,_tmp, _r)
+            # we need to do this, to make sure that we actually get an
+            # element in self.
+            return self._coerce_c(element)
 
-##                 _p = p_Add_q(_p,_m,_r)
+        if PY_TYPE_CHECK(element, MPolynomial_polydict):
+            if element.parent().ngens() == self.ngens():
+                # Map the variables in some crazy way (but in order,
+                # of course).  This is here since R(blah) is supposed
+                # to be "make an element of R if at all possible with
+                # no guarantees that this is mathematically solid."
+                _p = p_ISet(0, _ring)
+                K = self.base_ring()
+                for (m,c) in element.element().dict().iteritems():
+                    try:
+                        c = K(c)
+                    except TypeError, msg:
+                        p_Delete(&_p, _ring)
+                        raise TypeError, msg
+                    mon = p_Init(_ring)
+                    p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
+                    for pos in m.nonzero_positions():
+                        p_SetExp(mon, pos+1, m[pos], _ring)
+                    p_Setm(mon, _ring)
+                    _p = p_Add_q(_p, mon, _ring)
+                return new_MP(self, _p)
 
-##             return new_MP(self,_p)
+        if hasattr(element,'_polynomial_'):
+            # SymbolicVariable
+            return element._polynomial_(self)
 
         return self._coerce_c_impl(element)
 
@@ -682,7 +717,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
 
         """
-        if PY_TYPE_CHECK(right, MPolynomialRing_libsingular):
+        if PY_TYPE_CHECK(right, MPolynomialRing_libsingular) or PY_TYPE_CHECK(right, MPolynomialRing_polydict_domain):
             return cmp( (left.base_ring(), map(str, left.gens()), left.term_order()),
                         (right.base_ring(), map(str, right.gens()), right.term_order())
                         )
@@ -707,6 +742,36 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         return sage.rings.multi_polynomial_libsingular.unpickle_MPolynomialRing_libsingular, ( self.base_ring(),
                                                                                                map(str, self.gens()),
                                                                                                self.term_order() )
+
+
+    def __temporarily_change_names(self, names, latex_names):
+        """
+        This is used by the variable names context manager.
+        """
+        cdef ring *_ring = (<MPolynomialRing_libsingular>self)._ring
+        cdef char **_names, **_orig_names
+        cdef char *_name
+        cdef int i
+
+        if len(names) != _ring.N:
+            raise TypeError, "len(names) doesn't equal self.ngens()"
+
+        old = self._names, self._latex_names
+        (self._names, self._latex_names) = names, latex_names
+
+        _names = <char**>omAlloc0(sizeof(char*)*_ring.N)
+        for i from 0 <= i < _ring.N:
+            _name = names[i]
+            _names[i] = omStrDup(_name)
+
+        _orig_names = _ring.names
+        _ring.names = _names
+
+        for i from 0 <= i < _ring.N:
+            omFree(_orig_names[i])
+        omFree(_orig_names)
+
+        return old
 
     ### The following methods are handy for implementing Groebner
     ### basis algorithms. They do only superficial type/sanity checks
@@ -991,11 +1056,18 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         return True
 
 
+
 def unpickle_MPolynomialRing_libsingular(base_ring, names, term_order):
     """
     inverse function for MPolynomialRing_libsingular.__reduce__
 
     """
+    from sage.rings.polynomial_ring_constructor import _get_from_cache
+    key = (base_ring,  tuple(names), len(names), False, term_order)
+    R = _get_from_cache(key)
+    if not R is None:
+        return R
+
     return MPolynomialRing_libsingular(base_ring, len(names), names, term_order)
 
 cdef MPolynomial_libsingular new_MP(MPolynomialRing_libsingular parent, poly *juice):
@@ -1016,10 +1088,12 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         """
         Construct a zero element in parent.
         """
+        self._poly = NULL
         self._parent = <ParentWithBase>parent
 
     def __dealloc__(self):
-        if self._poly:
+        # for some mysterious reason, this may be NULL in some cases
+        if (<MPolynomialRing_libsingular>self._parent)._ring != NULL:
             p_Delete(&self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
     def __call__(self, *x):
@@ -1058,34 +1132,38 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         cdef poly *_p
 
+        if l == 1 and PY_TYPE_CHECK(x, tuple):
+            x = x[0]
+            l = len(x)
+
         if l != parent._ring.N:
             raise TypeError, "number of arguments does not match number of variables in parent"
 
-        return self.fix(dict(zip(parent.gens(), x)))
+        #return self.fix(dict(zip(parent.gens(), x)))
 
         ### the following is going to be faster at some size, but slower in general
         ### TODO: find the crossover point
-##         cdef ideal *to_id = idInit(l,1)
+        cdef ideal *to_id = idInit(l,1)
 
-##         try:
-##             for i from 0 <= i < l:
-##                 e = x[i] # TODO: optimize this line
-##                 to_id.m[i]= p_Copy( (<MPolynomial_libsingular>(<MPolynomialRing_libsingular>parent._coerce_c(x[i])))._poly, _ring)
+        try:
+            for i from 0 <= i < l:
+                e = x[i] # TODO: optimize this line
+                to_id.m[i]= p_Copy( (<MPolynomial_libsingular>(<MPolynomialRing_libsingular>parent._coerce_c(x[i])))._poly, _ring)
 
-##         except TypeError:
-##             id_Delete(&to_id, _ring)
-##             raise TypeError, "cannot coerce in arguments"
+        except TypeError:
+            id_Delete(&to_id, _ring)
+            raise TypeError, "cannot coerce in arguments"
 
-##         cdef ideal *from_id=idInit(1,1)
-##         from_id.m[0] = p_Copy(self._poly, _ring)
+        cdef ideal *from_id=idInit(1,1)
+        from_id.m[0] = p_Copy(self._poly, _ring)
 
-##         cdef ideal *res_id = fast_map(from_id, _ring, to_id, _ring)
-##         cdef poly *res = p_Copy(res_id.m[0], _ring)
+        cdef ideal *res_id = fast_map(from_id, _ring, to_id, _ring)
+        cdef poly *res = p_Copy(res_id.m[0], _ring)
 
-##         id_Delete(&to_id, _ring)
-##         id_Delete(&from_id, _ring)
-##         id_Delete(&res_id, _ring)
-##         return new_MP(parent, res)
+        id_Delete(&to_id, _ring)
+        id_Delete(&from_id, _ring)
+        id_Delete(&res_id, _ring)
+        return new_MP(parent, res)
 
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)
@@ -1430,7 +1508,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         cdef int j, e
         cdef poly *p = self._poly
         poly = ""
-        gens = self.parent().gens()
+        gens = self.parent().latex_variable_names()
         base = self.parent().base()
 
         while p:
@@ -1441,7 +1519,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             for j from 1 <= j <= n:
                 e = p_GetExp(p, j, _ring)
                 if e > 0:
-                    multi += str(gens[j-1])
+                    multi += gens[j-1]
                 if e > 1:
                     multi += "^{%d}"%e
 
@@ -2493,13 +2571,14 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         iv = NULL
         I = singclap_factorize ( self._poly, &iv , int(param)) #delete iv at some point
 
-        if param!=1:
+        if param==1:
+            v = [(new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]
+        else:
             ivv = iv.ivGetVec()
             v = [(new_MP(parent, p_Copy(I.m[i],_ring)) , ivv[i])   for i in range(I.ncols)]
-        else:
-            v = [(new_MP(parent, p_Copy(I.m[i],_ring)) , 1)   for i in range(I.ncols)]
-
-        # TODO: peel of 1
+            oo = (new_MP(parent, p_ISet(1,_ring)),1)
+            if oo in v:
+                v.remove(oo)
 
         F = Factorization(v)
         F.sort()
@@ -2933,6 +3012,28 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         """
         return sage.rings.multi_polynomial_libsingular.unpickle_MPolynomial_libsingular, ( self._parent, self.dict() )
+
+    def _im_gens_(self, codomain, im_gens):
+        """
+
+        INPUT:
+            codomain
+            im_gens
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(QQ, 2)
+            sage: f = R.hom([y,x], R)
+            sage: f(x^2 + 3*y^5)
+            3*x^5 + y^2
+        """
+        #TODO: very slow
+        n = self.parent().ngens()
+        if n == 0:
+            return codomain._coerce_(self)
+        y = codomain(0)
+        for (m,c) in self.dict().iteritems():
+            y += codomain(c)*mul([ im_gens[i]**m[i] for i in range(n) ])
+        return y
 
 def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
     """

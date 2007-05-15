@@ -11,6 +11,8 @@ import padics.padic_field_generic
 import padics.padic_ring_lazy
 import padics.padic_field_lazy
 
+from rational_field import QQ
+
 _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
@@ -336,7 +338,11 @@ def _multi_variate(base_ring, names, n, sparse, order):
         return R
 
     if m.integral_domain.is_IntegralDomain(base_ring):
-        R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
+        if base_ring is QQ:
+            from multi_polynomial_libsingular import MPolynomialRing_libsingular
+            R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        else:
+            R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
         R = m.MPolynomialRing_polydict(base_ring, n, names, order)
 

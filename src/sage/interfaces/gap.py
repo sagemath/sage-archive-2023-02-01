@@ -62,7 +62,7 @@ generators of a polynomial ring, so the eval command works.
     sage: s = F[1][3].sage_polystring(); s
     '-x**5+y**2'
     sage: g = eval(s); g
-    -1*x^5 + y^2
+    -x^5 + y^2
 
 Next we create a polynomial ring in GAP and obtain its indeterminates:
 

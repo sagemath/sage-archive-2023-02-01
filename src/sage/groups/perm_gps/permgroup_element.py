@@ -350,7 +350,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: f = x^2 + y^2 - z^2 + 2*u^2
             sage: sigma, tau = G.gens()
             sage: f*sigma
-            -1*x^2 + y^2 + z^2 + 2*v^2
+            -x^2 + y^2 + z^2 + 2*v^2
             sage: f*tau
             y^2 + z^2 - u^2 + 2*v^2
             sage: f*(sigma*tau)

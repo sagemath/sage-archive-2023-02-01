@@ -61,7 +61,7 @@ class QuotientRingElement(ring_element.RingElement):
         sage: b.lift()
         y
         sage: (a^3 + b^2).lift()
-        -1*x*y^2 + y^2
+        -x*y^2 + y^2
     """
     def __init__(self, parent, rep, reduce=True):
         ring_element.RingElement.__init__(self, parent)

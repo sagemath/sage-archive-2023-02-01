@@ -85,7 +85,6 @@ from sage.structure.parent_gens import ParentWithGens
 
 from multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
 
-
 class MPolynomialRing_macaulay2_repr:
     """
     """
@@ -216,11 +215,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: type(x)
             <class 'sage.calculus.calculus.SymbolicVariable'>
             sage: type(R(x))
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: f = R(x^3 + y^3 - z^3); f
             x^3 + y^3 - z^3
             sage: type(f)
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: parent(f)
             Polynomial Ring in x, y, z over Rational Field
 
@@ -235,6 +234,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             0
 
         """
+        from sage.rings.multi_polynomial_libsingular import MPolynomial_libsingular
+
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
             if P is self:
@@ -248,6 +249,23 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
+                for i, a in D.iteritems():
+                    D[i] = K(a)
+                return multi_polynomial_element.MPolynomial_polydict(self, D)
+            else:
+                raise TypeError
+
+        if isinstance(x, MPolynomial_libsingular):
+            P = x.parent()
+            if P == self:
+                return multi_polynomial_element.MPolynomial_polydict(self, x.dict())
+            elif len(P.variable_names()) == len(self.variable_names()):
+                # Map the variables in some crazy way (but in order,
+                # of course).  This is here since R(blah) is supposed
+                # to be "make an element of R if at all possible with
+                # no guarantees that this is mathematically solid."
+                K = self.base_ring()
+                D = x.dict()
                 for i, a in D.iteritems():
                     D[i] = K(a)
                 return multi_polynomial_element.MPolynomial_polydict(self, D)

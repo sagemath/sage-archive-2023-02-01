@@ -263,16 +263,6 @@ class MPolynomial_element(MPolynomial):
             sage: f.parent()
             Fraction Field of Polynomial Ring in x, y over Integer Ring
 
-        Note that / is still a constructor for elements of the
-        fraction field in all cases as long as both arguments have the
-        same parent.
-            sage: R.<x,y> = PolynomialRing(QQ, 2)
-            sage: f = x^3 + y
-            sage: g = R(3)
-            sage: h = f/g; h
-            1/3*x^3 + 1/3*y
-            sage: h.parent()
-            Fraction Field of Polynomial Ring in x, y over Rational Field
         """
         try:
             if not isinstance(right, Element) or right.parent() != self.parent():
@@ -578,7 +568,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             5*x
             sage: f = y - x^9*y - 7*x + 5*x*y
             sage: f.coefficient(y)
-            -1*x^9 + 5*x + 1
+            -x^9 + 5*x + 1
 
         The coefficient of 1 is also an element of the multivariate
         polynomial ring:
@@ -601,7 +591,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
            sage: R.<a,b,c> = PolynomialRing(QQ, 3)
            sage: f = a^3 + b + 2*b^2
            sage: f.exponents()
-           [(3, 0, 0), (0, 1, 0), (0, 2, 0)]
+           [(3, 0, 0), (0, 2, 0), (0, 1, 0)]
         """
         return self.element().exponents()
 
@@ -703,7 +693,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     # (and documented by W. Stein)
     ############################################################################
 
-    def fix(self, fixed):
+    def fix(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
@@ -715,7 +705,8 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         should be much faster.
 
         INPUT:
-            fixed -- dict with variable:value pairs
+            fixed -- (optional) dictionary of inputs
+            **kw  -- named parameters
 
         OUTPUT:
             new MPolynomial

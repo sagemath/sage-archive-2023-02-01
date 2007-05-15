@@ -393,7 +393,7 @@ sage: print d
 a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
 
 sage: print d.factor()
-(-1) * (c - d) * (b - d) * (b - c) * (-1*a + b) * (a - d) * (a - c)
+(-1) * (a - d) * (-a + b) * (b - d) * (a - c) * (b - c) * (c - d)
 
 sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])

@@ -420,14 +420,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     #  Etc.
     ####################################################################
 
-    def aplist(self, pmax):
-        """
-        Return list of pairs (p, a_p(E)) for p up to pmax.
-        """
-        v = arith.prime_range(pmax)
-        return [(p,self.ap(p)) for p in v]
+    def aplist(self, n, python_ints=False):
+        r"""
+        The Fourier coefficients up to and including $a_p$ of the
+        modular form attached to this elliptic curve, for all primes
+        $p\leq n$.
 
-    def anlist(self, n, pari_ints=False):
+        INPUT:
+            n -- integer
+            python_ints -- bool (default: False); if True return a list of
+                      Python ints instead of SAGE integers.
+
+        OUTPUT:
+            -- list of integers
+
+        EXAMPLES:
+            sage: e = EllipticCurve('37a')
+            sage: e.aplist(1)
+            []
+            sage: e.aplist(2)
+            [-2]
+            sage: e.aplist(10)
+            [-2, -3, -2, -1]
+            sage: v = e.aplist(13); v
+            [-2, -3, -2, -1, -5, -2]
+            sage: type(v[0])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(e.aplist(13, python_ints=True)[0])
+            <type 'int'>
+        """
+        e = self.pari_mincurve()
+        v = e.ellaplist(n, python_ints=True)
+        if python_ints:
+            return v
+        else:
+            return [Integer(a) for a in v]
+
+
+
+    def anlist(self, n, python_ints=False):
         """
         The Fourier coefficients up to and including $a_n$ of the
         modular form attached to this elliptic curve.  The ith element
@@ -435,14 +466,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         INPUT:
             n -- integer
-            pari_ints -- bool (default: False); if True return a list of
-                      PARI ints instead of SAGE integers; this can
-                      be much faster for large n.
+            python_ints -- bool (default: False); if True return a list of
+                      Python ints instead of SAGE integers.
 
         OUTPUT:
             -- list of integers
-
-        If pari_ints is False, the result is cached.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
@@ -454,23 +482,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
         """
         n = int(n)
-        if not pari_ints:
-            try:
-                if len(self.__anlist) > n:
-                    return self.__anlist[:n+1]
-            except AttributeError:
-                pass
-        E = self.pari_mincurve()
+        e = self.pari_mincurve()
         if n >= 2147483648:
             raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
 
-        if not pari_ints:
-            ZZ = rings.Integer
-            v = [ZZ(0)] + [ZZ(x) for x in E.ellan(n)]
-        else:
-            v = E.ellan(n)
-        if not pari_ints:
-            self.__anlist = v
+        v = [0] + e.ellan(n, python_ints=True)
+        if not python_ints:
+            v = [Integer(x) for x in v]
         return v
 
 

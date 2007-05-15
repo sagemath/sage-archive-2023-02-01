@@ -47,8 +47,8 @@ include '../../ext/stdsage.pxi'
 # The unique running Pari instance.
 cdef PariInstance pari_instance, P
 #pari_instance = PariInstance(200000000, 500000)
-#pari_instance = PariInstance(100000000, 500000)
-pari_instance = PariInstance(75000000, 500000)
+pari_instance = PariInstance(100000000, 500000)
+#pari_instance = PariInstance(75000000, 500000)
 #pari_instance = PariInstance(50000000, 500000)
 P = pari_instance   # shorthand notation
 
@@ -771,7 +771,6 @@ cdef class gen(sage.structure.element.RingElement):
 
         This is about 5 times faster than the usual int conversion.
         """
-        _sig_on
         return gtolong(self.g)
 
     def intvec_unsafe(self):
@@ -3788,8 +3787,17 @@ cdef class gen(sage.structure.element.RingElement):
         return self.new_gen(akell(self.g, t0))
 
 
-    def ellan(self, long n):
+    def ellan(self, long n, python_ints=False):
         """
+        Return the Fourier coefficients of the modular form attached
+        to this elliptic curve.
+
+        INPUT:
+            n -- a long integer
+            python_ints -- bool (default is False); if True, return a
+                           list of Python ints instead of a PARI gen
+                           wrapper.
+
         EXAMPLES:
             sage: e = pari([0, -1, 1, -10, -20]).ellinit()
             sage: e.ellan(3)
@@ -3798,9 +3806,22 @@ cdef class gen(sage.structure.element.RingElement):
             [1, -2, -1, 2, 1, 2, -2, 0, -2, -2, 1, -2, 4, 4, -1, -4, -2, 4, 0, 2]
             sage: e.ellan(-1)
             []
+            sage: v = e.ellan(10, python_ints=True); v
+            [1, -2, -1, 2, 1, 2, -2, 0, -2, -2]
+            sage: type(v)
+            <type 'list'>
+            sage: type(v[0])
+            <type 'int'>
         """
         _sig_on
-        return self.new_gen(anell(self.g, n))
+        cdef GEN g
+        if python_ints:
+            g = anell(self.g, n)
+            v = [gtolong(<GEN> g[i+1]) for i in range(glength(g))]
+            (<PariInstance>pari).clear_stack()
+            return v
+        else:
+            return self.new_gen(anell(self.g, n))
 
     def ellap(self, p):
         r"""
@@ -3816,7 +3837,7 @@ cdef class gen(sage.structure.element.RingElement):
         by ellinit. For this function to work for every n and not just
         those prime to the conductor, e must be a minimal Weierstrass
         equation. If this is not the case, use the function
-        ellminimalmodel first before using ellak (or you will get
+        ellminimalmodel first before using ellap (or you will get
         INCORRECT RESULTS!)
         \end{notice}
 
@@ -3836,6 +3857,71 @@ cdef class gen(sage.structure.element.RingElement):
         t0GEN(p)
         _sig_on
         return self.new_gen(apell(self.g, t0))
+
+
+    def ellaplist(self, long n, python_ints=False):
+        r"""
+        e.ellaplist(n): Returns a PARI list of all the prime-indexed
+        coefficient $a_p$ of the $L$-function of the elliptic curve
+        $e$, i.e. the coefficient of a newform of weight 2 newform.
+
+        INPUT:
+            n -- a long integer
+            python_ints -- bool (default is False); if True, return a
+                           list of Python ints instead of a PARI gen
+                           wrapper.
+
+        \begin{notice}
+        The curve e must be a medium or long vector of the type given
+        by ellinit. For this function to work for every n and not just
+        those prime to the conductor, e must be a minimal Weierstrass
+        equation. If this is not the case, use the function
+        ellminimalmodel first before using ellanlist (or you will get
+        INCORRECT RESULTS!)
+        \end{notice}
+
+        INPUT:
+            e -- a PARI elliptic curve.
+            n -- an integer
+
+        EXAMPLES:
+            sage: e = pari([0, -1, 1, -10, -20]).ellinit()
+            sage: v = e.ellaplist(10); v
+            [-2, -1, 1, -2]
+            sage: type(v)
+            <type 'sage.libs.pari.gen.gen'>
+            sage: v.type()
+            't_VEC'
+            sage: e.ellan(10)
+            [1, -2, -1, 2, 1, 2, -2, 0, -2, -2]
+            sage: v = e.ellaplist(10, python_ints=True); v
+            [-2, -1, 1, -2]
+            sage: type(v)
+            <type 'list'>
+            sage: type(v[0])
+            <type 'int'>
+        """
+        # 1. make a table of primes up to n.
+        if n < 2:
+            return self.new_gen(zerovec(0))
+        cdef GEN g
+        pari.init_primes(n+1)
+        t0GEN(n)
+        _sig_on
+        g = primes(gtolong(primepi(t0)))
+
+        # 2. Replace each prime in the table by apell of it.
+        cdef long i
+
+        if python_ints:
+            v = [gtolong(apell(self.g, <GEN> g[i+1])) \
+                        for i in range(glength(g))]
+            (<PariInstance>pari).clear_stack()
+            return v
+        else:
+            for i from 0 <= i < glength(g):
+                g[i+1] = <long> apell(self.g, <GEN> g[i+1])
+            return self.new_gen(g)
 
 
     def ellbil(self, z0, z1):
@@ -5293,7 +5379,7 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
 
     cdef gen new_gen(self, GEN x):
         """
-        Create a new gen, then free the *entire* stack.
+        Create a new gen, then free the *entire* stack and call _sig_off.
         """
         cdef gen g
         g = _new_gen(x)
@@ -5302,6 +5388,14 @@ cdef class PariInstance(sage.structure.parent_base.ParentWithBase):
         avma = mytop
         _sig_off
         return g
+
+    cdef void clear_stack(self):
+        """
+        Clear the entire PARI stack and turn off call _sig_off.
+        """
+        global mytop, avma
+        avma = mytop
+        _sig_off
 
     cdef gen new_gen_noclear(self, GEN x):
         """

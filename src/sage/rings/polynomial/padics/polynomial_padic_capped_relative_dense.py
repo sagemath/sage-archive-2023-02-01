@@ -828,7 +828,18 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         An implementation of quo_rem that doesn't have good run-time or precision characteristics.
         """
-        raise NotImplementedError
+        K = self.base_ring().fraction_field()
+        f = self.base_extend(K)
+        g = right.base_extend(K)
+        if g == 0:
+            raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
+        x = self.parent().gen()
+        quo = self.parent()(0)
+        while f.degree() >= g.degree():
+            a = f.leading_coefficient() / g.leading_coefficient()
+            quo = quo + a * (x ** (f.degree() - g.degree()))
+            f = f - a * (x ** (f.degree() - g.degree())) * g
+        return (quo, f)
 
     def gcd(self, right):
         raise NotImplementedError

@@ -109,7 +109,7 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.polynomial()
-            3*y^2 + 2*x*y + x^2
+            x^2 + 2*x*y + 3*y^2
         """
         M = ZZ['x,y']
         (x,y) = M.gens()

@@ -86,20 +86,20 @@ EXAMPLE: A map from a multivariate polynomial ring to itself:
             y |--> z
             z |--> x^2
     sage: phi(x+y+z)
-    z + y + x^2
+    x^2 + y + z
 
 EXAMPLE: An endomorphism of a quotient of a multi-variate polynomial ring:
     sage: R.<x,y> = PolynomialRing(QQ)
     sage: S.<a,b> = quo(R, ideal(1 + y^2))
     sage: phi = S.hom([a^2, -b])
     sage: phi
-    Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (1 + y^2)
+    Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + 1)
       Defn: a |--> a^2
             b |--> -1*b
     sage: phi(b)
     -1*b
     sage: phi(a^2 + b^2)
-    -1 + a^4
+    a^4 - 1
 
 EXAMPLE: The reduction map from the integers to the integers modulo 8,
 viewed as a quotient ring:
@@ -344,7 +344,7 @@ class RingMap_lift(RingMap):
         sage: S.<xbar,ybar> = R.quo( (x^2 + y^2, y) )
         sage: S.lift()
         Set-theoretic ring morphism:
-          From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2, y)
+          From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2, y)
           To:   Polynomial Ring in x, y over Rational Field
           Defn: Choice of lifting map
         sage: S.lift() == 0
@@ -510,9 +510,9 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f1 == R.hom([b,a])
             False
             sage: f1(x^3 + x + y^2)
-            6*b + a
+            a + 6*b
             sage: f2(x^3 + x + y^2)
-            6*b + a
+            a + 6*b
 
         TEST:
             sage: loads(dumps(f2)) == f2
@@ -541,10 +541,10 @@ class RingHomomorphism_cover(RingHomomorphism):
         sage: phi = S.cover(); phi
         Ring morphism:
           From: Polynomial Ring in x, y over Rational Field
-          To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+          To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
           Defn: Natural quotient map
         sage: phi(x+y)
-        b + a
+        a + b
     """
     def __init__(self, parent):
         RingHomomorphism.__init__(self, parent)
@@ -594,12 +594,12 @@ class RingHomomorphism_from_quotient(RingHomomorphism):
         sage: R.<x, y, z> = PolynomialRing(QQ, 3)
         sage: S.<a, b, c> = R.quo(x^3 + y^3 + z^3)
         sage: phi = S.hom([b, c, a]); phi
-        Ring endomorphism of Quotient of Polynomial Ring in x, y, z over Rational Field by the ideal (z^3 + y^3 + x^3)
+        Ring endomorphism of Quotient of Polynomial Ring in x, y, z over Rational Field by the ideal (x^3 + y^3 + z^3)
           Defn: a |--> b
                 b |--> c
                 c |--> a
         sage: phi(a+b+c)
-        c + b + a
+        a + b + c
         sage: loads(dumps(phi)) == phi
         True
 

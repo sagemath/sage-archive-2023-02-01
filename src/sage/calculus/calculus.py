@@ -862,11 +862,11 @@ class SymbolicExpression(RingElement):
             sage: f = pi^3*x - y^2*e - I; f
             -1*e*y^2 + pi^3*x - I
             sage: f.polynomial(CDF)
-            -1.0*I + (-2.71828182846)*y^2 + 31.0062766803*x
+            (-2.71828182846)*y^2 + 31.0062766803*x - 1.0*I
             sage: f.polynomial(CC)
-            -1.00000000000000*I + (-2.71828182845905)*y^2 + 31.0062766802998*x
+            (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
             sage: f.polynomial(ComplexField(70))
-            -1.0000000000000000000*I + (-2.7182818284590452354)*y^2 + 31.006276680299820175*x
+            (-2.7182818284590452354)*y^2 + 31.006276680299820175*x - 1.0000000000000000000*I
 
         Another polynomial:
             sage: f = sum((e*I)^n*x^n for n in range(5)); f
@@ -880,7 +880,7 @@ class SymbolicExpression(RingElement):
             sage: f = (3*x^5 - 5*y^5)^7; f
             (3*x^5 - 5*y^5)^7
             sage: g = f.polynomial(GF(7)); g
-            2*y^35 + 3*x^35
+            3*x^35 + 2*y^35
             sage: parent(g)
             Polynomial Ring in x, y over Finite Field of size 7
         """
@@ -900,7 +900,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: R = QQ[x,y,z]
             sage: R(x^2 + y)
-            y + x^2
+            x^2 + y
             sage: R = QQ[w]
             sage: R(w^3 + w + 1)
             w^3 + w + 1
@@ -924,12 +924,12 @@ class SymbolicExpression(RingElement):
             pi*y^3 + e*x^3 + I + sqrt(2)
             sage: R = CDF[x,y]
             sage: R(f)
-            1.41421356237 + 1.0*I + 3.14159265359*y^3 + 2.71828182846*x^3
+            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
         We coerce to a higher-precision polynomial ring
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
-            1.4142135623730950066967437806 + 1.0000000000000000000000000000*I + 3.1415926535897932384626433833*y^3 + 2.7182818284590452353602874714*x^3
+            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950066967437806 + 1.0000000000000000000000000000*I
 
         """
         vars = self.variables()
@@ -2295,7 +2295,7 @@ class SymbolicPolynomial(Symbolic_object):
 
         sage: R.<x,y,theta> = ZZ[]
         sage: f = SR(x^3 + x + y + theta^2); f
-        theta^2 + y + x + x^3
+        x^3 + theta^2 + x + y
         sage: f(x=y, theta=y)
         y^3 + y^2 + 2*y
         sage: f(x=5)

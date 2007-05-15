@@ -364,8 +364,8 @@ sage: R.<a,b> = QQ[]
 sage: m = matrix(2,2,[a,b,  1, a*b])
 sage: zz = m^(-1)
 sage: print zz
-[       a/(-1 + a^2)     (-1)/(-1 + a^2)]
-[(-1)/(-1*b + a^2*b)    a/(-1*b + a^2*b)]
+[     a/(a^2 - 1)   (-1)/(a^2 - 1)]
+[(-1)/(a^2*b - b)    a/(a^2*b - b)]
 
 sage: # (YES) Compute and factor the determinant of the 4x4 Vandermonde matrix in a, b, c, d.
 sage: restore('a,b,c,d')
@@ -390,9 +390,10 @@ sage: print m
 [  1   d d^2 d^3]
 sage: d = m.determinant()
 sage: print d
-b*c^2*d^3 - b*c^3*d^2 - b^2*c*d^3 + b^2*c^3*d + b^3*c*d^2 - b^3*c^2*d - a*c^2*d^3 + a*c^3*d^2 + a*b^2*d^3 - a*b^2*c^3 - a*b^3*d^2 + a*b^3*c^2 + a^2*c*d^3 - a^2*c^3*d - a^2*b*d^3 + a^2*b*c^3 + a^2*b^3*d - a^2*b^3*c - a^3*c*d^2 + a^3*c^2*d + a^3*b*d^2 - a^3*b*c^2 - a^3*b^2*d + a^3*b^2*c
+a^3*b^2*c - a^2*b^3*c - a^3*b*c^2 + a*b^3*c^2 + a^2*b*c^3 - a*b^2*c^3 - a^3*b^2*d + a^2*b^3*d + a^3*c^2*d - b^3*c^2*d - a^2*c^3*d + b^2*c^3*d + a^3*b*d^2 - a*b^3*d^2 - a^3*c*d^2 + b^3*c*d^2 + a*c^3*d^2 - b*c^3*d^2 - a^2*b*d^3 + a*b^2*d^3 + a^2*c*d^3 - b^2*c*d^3 - a*c^2*d^3 + b*c^2*d^3
+
 sage: print d.factor()
-(-1) * (-1*d + c) * (-1*d + b) * (-1*c + b) * (b - a) * (-1*d + a) * (-1*c + a)
+(-1) * (c - d) * (b - d) * (b - c) * (-1*a + b) * (a - d) * (a - c)
 
 sage: # Find the eigenvalues of a 3x3 integer matrix.
 sage: m = matrix(QQ, 3, [5,-3,-7, -2,1,2, 2,-3,-4])

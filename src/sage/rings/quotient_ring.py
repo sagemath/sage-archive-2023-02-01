@@ -85,7 +85,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: S.<a,b> = R.quo(1 + y^2)
         sage: T.<c,d> = S.quo(a)
         sage: T
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, 1 + y^2)
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
         sage: T.gens()
         (0, d)
     """
@@ -160,11 +160,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: pi = S.cover(); pi
             Ring morphism:
               From: Polynomial Ring in x, y over Rational Field
-              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               Defn: Natural quotient map
             sage: L = S.lift(); L
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               To:   Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: L(S.0)
@@ -175,9 +175,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Note that some reduction may be applied so that the lift of a reduction
         need not equal the original element.
             sage: z = pi(x^3 + 2*y^2); z
-            2*ybar^2 - xbar*ybar^2
+            -1*xbar*ybar^2 + 2*ybar^2
             sage: L(z)
-            2*y^2 - x*y^2
+            -1*x*y^2 + 2*y^2
             sage: L(z) == x^3 + 2*y^2
             False
         """
@@ -268,7 +268,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S._coerce_(2/3)
             2/3
             sage: S._coerce_(a^2 - b)
-            -1*b - b^2
+            -1*b^2 - b
             sage: S._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...

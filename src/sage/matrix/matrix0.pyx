@@ -132,16 +132,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,[x,y,x*y, y,x,2*x+y]); a
             [      x       y     x*y]
-            [      y       x y + 2*x]
+            [      y       x 2*x + y]
             sage: v = a.list(); v
-             [x, y, x*y, y, x, y + 2*x]
+            [x, y, x*y, y, x, 2*x + y]
 
         Notice that changing the returned list does not change a (the
         list is a copy):
             sage: v[0] = 25
             sage: a
             [      x       y     x*y]
-            [      y       x y + 2*x]
+            [      y       x 2*x + y]
         """
         return list(self._list())
 
@@ -202,16 +202,16 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,[x,y,0, 0,0,2*x+y]); a
             [      x       y       0]
-            [      0       0 y + 2*x]
+            [      0       0 2*x + y]
             sage: d = a.dict(); d
-            {(0, 1): y, (1, 2): y + 2*x, (0, 0): x}
+            {(0, 1): y, (1, 2): 2*x + y, (0, 0): x}
 
         Notice that changing the returned list does not change a (the
         list is a copy):
             sage: d[0,0] = 25
             sage: a
             [      x       y       0]
-            [      0       0 y + 2*x]
+            [      0       0 2*x + y]
         """
         return dict(self._dict())
 
@@ -789,8 +789,8 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: b = a*a
             sage: latex(b)
             \left(\begin{array}{rr}
-            z_{1}z_{2} + z_{0}^{2}&z_{1}z_{3} + z_{0}z_{1}\\
-            z_{2}z_{3} + z_{0}z_{2}&z_{3}^{2} + z_{1}z_{2}
+            z_{0}^{2} + z_{1}z_{2}&z_{0}z_{1} + z_{1}z_{3}\\
+            z_{0}z_{2} + z_{2}z_{3}&z_{1}z_{2} + z_{3}^{2}
             \end{array}\right)
         """
         cdef Py_ssize_t nr, nc, r, c
@@ -907,7 +907,7 @@ cdef class Matrix(sage.structure.element.Matrix):
             sage: M = MatrixSpace(QQ, 2)
             sage: A = M([1,2,3,4])
             sage: A.act_on_polynomial(f)
-            -12*y^2 - 20*x*y - 8*x^2
+            -8*x^2 - 20*x*y - 12*y^2
         """
         cdef Py_ssize_t i, j, n
 
@@ -1793,11 +1793,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
-            [       1        x        y]
-            [  -1*x*y    y + x -1*y + x]
+            [     1      x      y]
+            [-1*x*y  x + y  x - y]
             sage: (x*y) * a
-            [             x*y            x^2*y            x*y^2]
-            [      -1*x^2*y^2    x*y^2 + x^2*y -1*x*y^2 + x^2*y]
+            [          x*y         x^2*y         x*y^2]
+            [   -1*x^2*y^2 x^2*y + x*y^2 x^2*y - x*y^2]
 
             sage: R.<x,y> = FreeAlgebra(ZZ,2)
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
@@ -1869,19 +1869,19 @@ cdef class Matrix(sage.structure.element.Matrix):
         We multiply matrices over $\QQ[x,y]$.
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
-            [       1        x        y]
-            [  -1*x*y    y + x -1*y + x]
+            [     1      x      y]
+            [-1*x*y  x + y  x - y]
             sage: b = a.transpose(); b
-            [       1   -1*x*y]
-            [       x    y + x]
-            [       y -1*y + x]
+            [     1 -1*x*y]
+            [     x  x + y]
+            [     y  x - y]
             sage: a*b
-            [          1 + y^2 + x^2      -1*y^2 + x*y + x^2]
-            [     -1*y^2 + x*y + x^2 2*y^2 + 2*x^2 + x^2*y^2]
+            [          x^2 + y^2 + 1         x^2 + x*y - y^2]
+            [        x^2 + x*y - y^2 x^2*y^2 + 2*x^2 + 2*y^2]
             sage: b*a
-            [        1 + x^2*y^2   x - x*y^2 - x^2*y   y + x*y^2 - x^2*y]
-            [  x - x*y^2 - x^2*y y^2 + 2*x*y + 2*x^2  -1*y^2 + x*y + x^2]
-            [  y + x*y^2 - x^2*y  -1*y^2 + x*y + x^2 2*y^2 - 2*x*y + x^2]
+            [         x^2*y^2 + 1 -1*x^2*y - x*y^2 + x -1*x^2*y + x*y^2 + y]
+            [-1*x^2*y - x*y^2 + x  2*x^2 + 2*x*y + y^2      x^2 + x*y - y^2]
+            [-1*x^2*y + x*y^2 + y      x^2 + x*y - y^2  x^2 - 2*x*y + 2*y^2]
 
         We verify that the matrix multiplies are correct by comparing them
         with what PARI gets:

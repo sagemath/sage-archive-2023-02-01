@@ -276,10 +276,10 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: pd = I.complete_primary_decomposition(); pd
-            [(Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field), (Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (z^2 + 1, y + 1) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y + 1) of Polynomial Ring in x, y, z over Rational Field), (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Polynomial Ring in x, y, z over Rational Field)]
 
             sage: I.complete_primary_decomposition(algorithm = 'gtz')
-            [(Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field), (Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field)]
+            [(Ideal (z^2 + 1, y - z^2) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, y - z^2) of Polynomial Ring in x, y, z over Rational Field), (Ideal (z^6 + 4*z^3 + 4, y - z^2) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^3 + 2, y - z^2) of Polynomial Ring in x, y, z over Rational Field)]
         """
         try:
             return self.__complete_primary_decomposition[algorithm]
@@ -307,7 +307,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.primary_decomposition()
-            [Ideal (1 + z^2, 1 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (4 + 4*z^3 + z^6, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^2 + 1, y + 1) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^6 + 4*z^3 + 4, y - z^2) of Polynomial Ring in x, y, z over Rational Field]
 
         """
         return [I for I, _ in self.complete_primary_decomposition(algorithm)]
@@ -319,7 +319,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.associated_primes()
-            [Ideal (1 + y, 1 + z^2) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 - y, 2 + y*z, 2*z + y^2) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (y + 1, z^2 + 1) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 - y, y*z + 2, y^2 + 2*z) of Polynomial Ring in x, y, z over Rational Field]
         """
         return [P for _,P in self.complete_primary_decomposition(algorithm)]
 
@@ -362,9 +362,9 @@ class MPolynomialIdeal_singular_repr:
 
             sage: R.<a,b,c,d> = PolynomialRing(QQ, 4, order='lex')
             sage: I = sage.rings.ideal.Cyclic(R,4); I
-            Ideal (d + c + b + a, c*d + b*c + a*d + a*b, b*c*d + a*c*d + a*b*d + a*b*c, -1 + a*b*c*d) of Polynomial Ring in a, b, c, d over Rational Field
+            Ideal (a + b + c + d, a*b + a*d + b*c + c*d, a*b*c + a*b*d + a*c*d + b*c*d, a*b*c*d - 1) of Polynomial Ring in a, b, c, d over Rational Field
             sage: I._groebner_basis_using_singular()
-            [1 - d^4 - c^2*d^2 + c^2*d^6, -1*d - c + c^2*d^3 + c^3*d^2, -1*d + d^5 - b + b*d^4, -1*d^2 - d^6 + c*d + c^2*d^4 - b*d^5 + b*c, d^2 + 2*b*d + b^2, d + c + b + a]
+            [c^2*d^6 - c^2*d^2 - d^4 + 1, c^3*d^2 + c^2*d^3 - c - d, b*d^4 - b + d^5 - d, b*c - b*d^5 + c^2*d^4 + c*d - d^6 - d^2, b^2 + 2*b*d + d^2, a + b + c + d]
         """
         try:
             return self.__groebner_basis
@@ -462,7 +462,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.minimal_associated_primes ()
-            [Ideal (2 + z^3, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (1 + z^2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
+            [Ideal (z^3 + 2, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field, Ideal (z^2 + 1, -1*z^2 + y) of Polynomial Ring in x, y, z over Rational Field]
 
         ALGORITHM: Uses Singular.
         """
@@ -491,7 +491,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y-z^2)*R
             sage: I.radical()
-            Ideal (z^2 - y, 2 + 2*y + y*z + y^2*z) of Polynomial Ring in x, y, z over Rational Field
+            Ideal (z^2 - y, y^2*z + y*z + 2*y + 2) of Polynomial Ring in x, y, z over Rational Field
 
         \note{(From Singular manual) A combination of the algorithms
         of Krick/Logar and Kemper is used.  Works also in positive
@@ -501,7 +501,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y - z^2)*R
             sage: I.radical()
-            Ideal (z^2 + 36*y, 2 + 2*y + y*z + y^2*z) of Polynomial Ring in x, y, z over Finite Field of size 37
+            Ideal (z^2 + 36*y, y^2*z + y*z + 2*y + 2) of Polynomial Ring in x, y, z over Finite Field of size 37
         """
         S = self.ring()
         I = self._singular_()
@@ -699,14 +699,14 @@ class MPolynomialIdeal_singular_repr:
            sage: S.<z,x,y> = PolynomialRing(QQ,3,order='lex')
            sage: J = Ideal(I.transformed_basis('fglm',S))
            sage: J
-           Ideal (y^3 + y^4, -1*y^3 + x*y^3, y^3 + x^2, -1*y + y^3 + z^4) of Polynomial Ring in z, x, y over Rational Field
+           Ideal (y^4 + y^3, x*y^3 - y^3, x^2 + y^3, z^4 + y^3 - y) of Polynomial Ring in z, x, y over Rational Field
            sage: # example from the Singular manual page of gwalk
            sage: R.<z,y,x>=PolynomialRing(GF(32003),3,order='lex')
            sage: I=Ideal([y^3+x*y*z+y^2*z+x*z^3,3+x*y+x^2*y+y^2*z])
            sage: I.transformed_basis('gwalk')
-           [31976*x + 31976*y*x^2 + 31976*y*x^3 + 31994*y^2*x^3 + 31985*y^2*x^4 + 31994*y^2*x^5 + 32002*y^3*x^4 + 32000*y^3*x^5 + 32000*y^3*x^6 + 32002*y^3*x^7 + 32000*y^5*x + 32000*y^6 + 32002*y^6*x^2 + 32002*y^6*x^3 + 32002*y^7*x + 32002*y^7*x^2 + y^9,
-           x^3 + 2*x^4 + x^5 + 17780*y*x^4 + 21337*y*x^5 + 21337*y*x^6 + 17780*y*x^7 + 23706*y^2*x^5 + 30818*y^2*x^6 + 14224*y^2*x^7 + 30818*y^2*x^8 + 23706*y^2*x^9 + 21335*y^3*x + 21335*y^4 + 3556*y^4*x^2 + 3556*y^4*x^3 + 3556*y^5*x + 3556*y^5*x^2 + 23706*y^5*x^3 + 15409*y^5*x^4 + 23706*y^5*x^5 + 23706*y^6*x^2 + 15409*y^6*x^3 + 23706*y^6*x^4 + 3556*y^7 + 8297*y^8*x + 8297*y^8*x^2 + z*x,
-           3 + y*x + y*x^2 + z*y^2]
+           [y^9 + 32002*y^7*x^2 + 32002*y^7*x + 32002*y^6*x^3 + 32002*y^6*x^2 + 32000*y^6 + 32000*y^5*x + 32002*y^3*x^7 + 32000*y^3*x^6 + 32000*y^3*x^5 + 32002*y^3*x^4 + 31994*y^2*x^5 + 31985*y^2*x^4 + 31994*y^2*x^3 + 31976*y*x^3 + 31976*y*x^2 + 31976*x,
+           z*x + 8297*y^8*x^2 + 8297*y^8*x + 3556*y^7 + 23706*y^6*x^4 + 15409*y^6*x^3 + 23706*y^6*x^2 + 23706*y^5*x^5 + 15409*y^5*x^4 + 23706*y^5*x^3 + 3556*y^5*x^2 + 3556*y^5*x + 3556*y^4*x^3 + 3556*y^4*x^2 + 21335*y^4 + 21335*y^3*x + 23706*y^2*x^9 + 30818*y^2*x^8 + 14224*y^2*x^7 + 30818*y^2*x^6 + 23706*y^2*x^5 + 17780*y*x^7 + 21337*y*x^6 + 21337*y*x^5 + 17780*y*x^4 + x^5 + 2*x^4 + x^3,
+           z*y^2 + y*x^2 + y*x + 3]
 
 
         ALGORITHM: Uses Singular

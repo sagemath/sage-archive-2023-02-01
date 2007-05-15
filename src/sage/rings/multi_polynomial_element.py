@@ -150,7 +150,7 @@ class MPolynomial_element(MPolynomial):
             sage: x = MPolynomialRing(RationalField(),'x',3).gens()
             sage: f = x[0] + x[1] - 2*x[1]*x[2]
             sage: f
-            x1 - 2*x1*x2 + x0
+            -2*x1*x2 + x0 + x1
             sage: f(1,2,0)
             3
             sage: f(1,2,5)
@@ -224,7 +224,7 @@ class MPolynomial_element(MPolynomial):
             sage: R.<x,y> = PolynomialRing(QQ, 2)
             sage: f = R.hom([y,x], R)
             sage: f(x^2 + 3*y^5)
-            y^2 + 3*x^5
+            3*x^5 + y^2
         """
         n = self.parent().ngens()
         if n == 0:
@@ -270,7 +270,7 @@ class MPolynomial_element(MPolynomial):
             sage: f = x^3 + y
             sage: g = R(3)
             sage: h = f/g; h
-            1/3*y + 1/3*x^3
+            1/3*x^3 + 1/3*y
             sage: h.parent()
             Fraction Field of Polynomial Ring in x, y over Rational Field
         """
@@ -353,16 +353,31 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         return self*(-1)
 
     def _repr_(self):
+        try:
+            cmpfn = self.parent().term_order().compare_tuples
+        except AttributeError:
+            cmpfn = None
+
         return self.element().poly_repr(self.parent().variable_names(),
-                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr())
+                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr(),cmpfn=cmpfn )
 
     def _latex_(self):
+        try:
+            cmpfn = self.parent().term_order().compare_tuples
+        except AttributeError:
+            cmpfn = None
+
         return self.element().latex(self.parent().latex_variable_names(),
-                                    atomic_coefficients=self.parent().base_ring().is_atomic_repr())
+                                    atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
 
     def _repr_with_changed_varnames(self, varnames):
+        try:
+            cmpfn = self.parent().term_order().compare_tuples
+        except AttributeError:
+            cmpfn = None
+
         return self.element().poly_repr(varnames,
-                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr())
+                                        atomic_coefficients=self.parent().base_ring().is_atomic_repr(), cmpfn=cmpfn)
 
 
     def degree(self, x=None):
@@ -514,7 +529,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: R.<x> = PolynomialRing(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
-            3 + 5*x^2
+            5*x^2 + 3
             sage: f[2]
             5
         """
@@ -563,7 +578,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             5*x
             sage: f = y - x^9*y - 7*x + 5*x*y
             sage: f.coefficient(y)
-            1 + 5*x - x^9
+            -1*x^9 + 5*x + 1
 
         The coefficient of 1 is also an element of the multivariate
         polynomial ring:
@@ -664,7 +679,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: x,y = MPolynomialRing(RationalField(),2,['x','y']).gens()
             sage: f = x^2 + y + 1 + 5*x*y^10
             sage: g = f.homogenize('z'); g
-            z^11 + y*z^10 + 5*x*y^10 + x^2*z^9
+            5*x*y^10 + x^2*z^9 + y*z^10 + z^11
             sage: g.parent()
             Polynomial Ring in x, y, z over Rational Field
         """
@@ -709,9 +724,9 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: f.fix({x:5})
-            30 + y + 25*y^2
+            25*y^2 + y + 30
         """
         variables = list(self.parent().gens())
         for i in range(0,len(variables)):
@@ -773,7 +788,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f.is_univariate()
             False
             sage: g = f.fix({x:10}); g
-            305 - 2*y + 700*y^2
+            700*y^2 - 2*y + 305
             sage: g.is_univariate()
             True
             sage: f = x^0
@@ -818,7 +833,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             ...
             TypeError: polynomial must involve at most one variable
             sage: g = f.fix({x:10}); g
-            305 - 2*y + 700*y^2
+            700*y^2 - 2*y + 305
             sage: g.univariate_polynomial ()
             700*x^2 - 2*x + 305
             sage: g.univariate_polynomial(PolynomialRing(QQ,'z'))
@@ -872,7 +887,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f.variables()
             [x, y]
             sage: g = f.fix({x:10}); g
-            305 - 2*y + 700*y^2
+            700*y^2 - 2*y + 305
             sage: g.variables()
             [y]
         """
@@ -903,7 +918,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f.nvariables ()
             2
             sage: g = f.fix({x:10}); g
-            305 - 2*y + 700*y^2
+            700*y^2 - 2*y + 305
             sage: g.nvariables ()
             1
         """
@@ -1065,20 +1080,20 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         EXAMPLES:
             sage: x, y = PolynomialRing(QQ, 2, ['x','y']).gens()
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
-            2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
+            x^5 + 2*x^3*y^2 + x^4 + 2*x^2*y^2 + x^3 + 2*x*y^2
             sage: F = f.factor()
             sage: F
-            x * (1 + x + x^2) * (2*y^2 + x^2)
+            x * (x^2 + x + 1) * (x^2 + 2*y^2)
 
         Next we factor the same polynomial, but over the finite field
         of order $3$.
 
             sage: x, y = PolynomialRing(GF(3), 2, ['x','y']).gens()
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
-            2*x*y^2 + 2*x^2*y^2 + x^3 + 2*x^3*y^2 + x^4 + x^5
+            x^5 + 2*x^3*y^2 + x^4 + 2*x^2*y^2 + x^3 + 2*x*y^2
             sage: F = f.factor()
             sage: F
-            2 * x * (y + x) * (y + 2*x) * (2 + x)^2
+            2 * x * (x + y) * (2*x + y) * (x + 2)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how
@@ -1115,7 +1130,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = x*y^13 + y^12
             sage: M = f.lift(I)
             sage: M
-            [y^7, y^4 + x*y^5 + x^2*y^3 + x^3*y^4 + x^4*y^2 + x^5*y^3 + x^6*y + x^7*y^2 + x^8]
+            [y^7, x^7*y^2 + x^8 + x^5*y^3 + x^6*y + x^3*y^4 + x^4*y^2 + x*y^5 + x^2*y^3 + y^4]
             sage: sum( map( mul , zip( M, I.gens() ) ) ) == f
             True
         """
@@ -1230,7 +1245,7 @@ def degree_lowest_rational_function(r,x):
     Consider the quotient $f/g = \frac{4 + 3 bc^{2}}{ac + 2 ab^{3}c^{6}}$ (note
     the cancellation).
         sage: r = f/g; r
-        (4 + 3*b*c^2)/(a*c + 2*a*b^3*c^6)
+        (3*b*c^2 + 4)/(2*a*b^3*c^6 + a*c)
         sage: degree_lowest_rational_function(r,a)
               (-1, 4)
         sage: degree_lowest_rational_function(r,b)

@@ -123,7 +123,7 @@ class AffineCurve_generic(Curve_generic):
             sage: f = y^2-x^9-x
             sage: C = Curve(f)
             sage: C.local_coordinates(pt, 9)
-            [2 + t, 3 + 3*t^2 + t^3 + 3*t^4 + 3*t^6 + 3*t^7 + t^8 + 2*t^9 + 3*t^11 + 3*t^12]
+            [t + 2, 3*t^12 + 3*t^11 + 2*t^9 + t^8 + 3*t^7 + 3*t^6 + 3*t^4 + t^3 + 3*t^2 + 3]
         """
         f = self.defining_polynomial()
         R = f.parent()
@@ -185,7 +185,7 @@ class AffineCurve_finite_field(AffineCurve_generic):
             sage: A, (x,y) = AffineSpace(2,GF(9,'a')).objgens()
             sage: C = Curve(x^2 + y^2 - 1)
             sage: C
-            Affine Curve over Finite Field in a of size 3^2 defined by 2 + x1^2 + x0^2
+            Affine Curve over Finite Field in a of size 3^2 defined by x0^2 + x1^2 + 2
             sage: C.rational_points()
             [(0, 1), (0, 2), (1, 0), (2, 0), (a + 1, a + 1), (a + 1, 2*a + 2), (2*a + 2, a + 1), (2*a + 2, 2*a + 2)]
         """
@@ -280,7 +280,7 @@ class AffineCurve_prime_finite_field(AffineCurve_finite_field):
             sage: x, y = (GF(5)['x,y']).gens()
             sage: f = y^2 - x^9 - x
             sage: C = Curve(f); C
-            Affine Curve over Finite Field of size 5 defined by y^2 + 4*x + 4*x^9
+            Affine Curve over Finite Field of size 5 defined by 4*x^9 + y^2 + 4*x
             sage: C.rational_points(algorithm='bn')
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: C = Curve(x - y + 1)

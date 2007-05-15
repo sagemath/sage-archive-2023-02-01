@@ -133,7 +133,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: A.permanent()
-            x*y^2 + x^2*y
+            x^2*y + x*y^2
 
 
         AUTHOR:
@@ -335,13 +335,13 @@ cdef class Matrix(matrix1.Matrix):
             [x3 x4 x5]
             [x6 x7 x8]
             sage: A.determinant()
-            -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
+            -1*x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
         We create a matrix over $\Z[x,y]$ and compute its determinant.
             sage: R.<x,y> = MPolynomialRing(IntegerRing(),2)
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
-            x*y^2 - x^2*y
+            -1*x^2*y + x*y^2
 
         TEST:
             sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
@@ -529,16 +529,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
-            x^2 + (-1*y^2 - x)*x + x*y^2 - x^2*y
+            x^2 + (-1*y^2 - x)*x + -x^2*y + x*y^2
 
         It's a little difficult to distinguish the variables.  To fix this,
         we temporarily view the indeterminate as $Z$:
             sage: with localvars(f.parent(), 'Z'): print f
-            Z^2 + (-1*y^2 - x)*Z + x*y^2 - x^2*y
+            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
-            Z^2 + (-1*y^2 - x)*Z + x*y^2 - x^2*y
+            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
         """
         D = self.fetch('charpoly')
         if not D is None:

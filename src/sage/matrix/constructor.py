@@ -168,7 +168,7 @@ def matrix(arg0=None, arg1=None, arg2=None, arg3=None, sparse=None):
         [x3 x4 x5]
         [x6 x7 x8]
         sage: det(A)
-        -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
+        -1*x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
     CREATING SPARSE MATRICES FROM DICTS:
         sage: a = matrix({(1,2):10, (2,3):5/1})

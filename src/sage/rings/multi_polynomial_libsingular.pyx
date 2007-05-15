@@ -1738,7 +1738,8 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
                  ring x can also be an integer.
 
         EXAMPLES:
-            sage: R.<x, y> = PolynomialRing(QQ, 2)
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x, y> = MPolynomialRing_libsingular(QQ, 2)
             sage: f = -10*x^3*y + 17*x*y
             sage: f[3,1]
             -10
@@ -1747,10 +1748,11 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             sage: f[0,1]
             0
 
-            sage: R.<x> = PolynomialRing(GF(7),1); R
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: R.<x> = MPolynomialRing_libsingular(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
-            3 + 5*x^2
+            -2*x^2 + 3
             sage: f[2]
             5
         """

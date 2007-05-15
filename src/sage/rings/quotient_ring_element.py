@@ -46,7 +46,7 @@ class QuotientRingElement(ring_element.RingElement):
 
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S = R.quo(x^2 + y^2); S
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
         sage: S.gens()
         (xbar, ybar)
 
@@ -61,7 +61,7 @@ class QuotientRingElement(ring_element.RingElement):
         sage: b.lift()
         y
         sage: (a^3 + b^2).lift()
-        y^2 - x*y^2
+        -1*x*y^2 + y^2
     """
     def __init__(self, parent, rep, reduce=True):
         ring_element.RingElement.__init__(self, parent)

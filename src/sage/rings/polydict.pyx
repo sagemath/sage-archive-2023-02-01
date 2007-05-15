@@ -303,7 +303,7 @@ cdef class PolyDict:
             H[ETuple(f)] = val
         return PolyDict(H, zero=self.__zero, force_etuples=False)
 
-    def latex(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True):
+    def latex(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True, cmpfn = None):
         """
         Return a nice polynomial latex representation of this PolyDict, where
         the vars are substituted in.
@@ -317,18 +317,21 @@ cdef class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.latex(['a','WW'])
-            '3 aWW^{2} + 4 a^{2}WW + 2 a^{2}WW^{3}'
+            '2 a^{2}WW^{3} + 4 a^{2}WW + 3 aWW^{2}'
 
         When atomic_exponents is False, the exponents are surrounded
         in parenthesis, since ^ has such high precedence.
             sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: f.latex(['a','b','c'], atomic_exponents=False)
-            '2 a^{2/3}b^{3}c^{5} + 3 ab^{2}c + 4 a^{2}bc'
+            '4 a^{2}bc + 3 ab^{2}c + 2 a^{2/3}b^{3}c^{5}'
         """
         n = len(vars)
         poly = ""
         E = self.__repn.keys()
-        E.sort()
+        if cmpfn:
+            E.sort(cmp = cmpfn, reverse=True)
+        else:
+            E.sort(reverse=True)
         for e in E:
             c = self.__repn[e]
             if c != 0:
@@ -366,7 +369,7 @@ cdef class PolyDict:
         return poly
 
 
-    def poly_repr(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True):
+    def poly_repr(PolyDict self, vars, atomic_exponents=True, atomic_coefficients=True, cmpfn = None):
         """
         Return a nice polynomial string representation of this PolyDict, where
         the vars are substituted in.
@@ -380,18 +383,21 @@ cdef class PolyDict:
             sage: from sage.rings.polydict import PolyDict
             sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
             sage: f.poly_repr(['a','WW'])
-            '3*a*WW^2 + 4*a^2*WW + 2*a^2*WW^3'
+            '2*a^2*WW^3 + 4*a^2*WW + 3*a*WW^2'
 
         When atomic_exponents is False, the exponents are surrounded
         in parenthesis, since ^ has such high precedence.
             sage: f = PolyDict({(2/3,3,5):2, (1,2,1):3, (2,1,1):4}, force_int_exponents=False)
             sage: f.poly_repr(['a','b','c'], atomic_exponents=False)
-            '2*a^(2/3)*b^(3)*c^(5) + 3*a*b^(2)*c + 4*a^(2)*b*c'
+            '4*a^(2)*b*c + 3*a*b^(2)*c + 2*a^(2/3)*b^(3)*c^(5)'
         """
         n = len(vars)
         poly = ""
         E = self.__repn.keys()
-        E.sort()
+        if cmpfn:
+            E.sort(cmp = cmpfn, reverse=True)
+        else:
+            E.sort(reverse=True)
         for e in E:
             c = self.__repn[e]
             if c != 0:
@@ -484,7 +490,7 @@ cdef class PolyDict:
 
         Finally we print the result in a nice format.
             sage: (f*g).poly_repr(['a','b','c'], atomic_exponents = False)
-            '6*a^(4/3)*b^(6)*c^(10) + 9*a^(5/3)*b^(5)*c^(6) + 12*a^(8/3)*b^(4)*c^(6)'
+            '12*a^(8/3)*b^(4)*c^(6) + 9*a^(5/3)*b^(5)*c^(6) + 6*a^(4/3)*b^(6)*c^(10)'
         """
         newpoly = {}
         k = self.__repn.keys()

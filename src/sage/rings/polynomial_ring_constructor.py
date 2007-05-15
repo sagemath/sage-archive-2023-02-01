@@ -73,11 +73,11 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             sage: with localvars(R, ['z','w']):
             ...     print f
             ...
-            -2*w^2 + z^2
+            z^2 - 2*w^2
 
         After the with block the names revert to what they were before.
             sage: print f
-            -2*y^2 + x^2
+            x^2 - 2*y^2
 
 
     SQUARE BRACKETS NOTATION: You can alternatively create a single or
@@ -186,7 +186,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.inject_variables()
         Defining x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97
         sage: (x2 + x41 + x71)^2
-        x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
+        x2^2 + 2*x2*x41 + x41^2 + 2*x2*x71 + 2*x41*x71 + x71^2
 
     You can also call \code{injvar}, which is a convenient shortcut for \code{inject_variables()}.
         sage: R = PolynomialRing(GF(7),15,'w'); R
@@ -194,7 +194,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.injvar()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2
-        w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 4*w0*w8 + w0^2
+        w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
     """
     import polynomial_ring as m
 

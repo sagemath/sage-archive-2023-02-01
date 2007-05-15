@@ -143,7 +143,7 @@ cdef class Matrix_generic_dense(matrix_dense.Matrix_dense):
             [  x   y]
             [x^2 y^2]
             sage: a*a
-            [  x^2 + x^2*y     y^3 + x*y]
+            [  x^2*y + x^2     y^3 + x*y]
             [x^2*y^2 + x^3   y^4 + x^2*y]
             sage: a.det()^2 == (a*a).det()
             True

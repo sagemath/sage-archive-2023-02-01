@@ -381,7 +381,7 @@ def fibonacci_sequence(start, stop=None, algorithm='pari'):
     for n in range(start, stop):
         yield fibonacci(n, algorithm=algorithm)
 
-def fibonacci_range(start, stop, algorithm='pari'):
+def fibonacci_range(start, stop=None, algorithm='pari'):
     r"""
     Returns an iterator over all of the Fibonacci numbers in the given range
     from \code{f_n = start} to \code{f_n = stop}
@@ -396,6 +396,10 @@ def fibonacci_range(start, stop, algorithm='pari'):
         sage: fibs = [i for i in fibonacci_range(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
+
+    A solution to the second Project Euler problem:
+        sage: sum([i for i in fibonacci_range(10^6) if is_even(i)])
+        1089154
 
     AUTHOR:
         Bobby Moretti

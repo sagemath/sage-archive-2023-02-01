@@ -7,6 +7,7 @@ AUTHORS:
                       refinements, and bug fixes in corner cases
         -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
                       combinations_iterator from Python Cookbook, edited docs.
+        -- Bobby Moretti (2007-05) added a lazy fibonacci sequence generator
 
 This module implements some combinatorial functions, as listed
 below. For a more detailed description, see the relevant docstrings.
@@ -353,6 +354,72 @@ def fibonacci(n, algorithm="pari"):
         return ZZ(gap.eval("Fibonacci(%s)"%n))
     else:
         raise ValueError, "no algorithm %s"%algorithm
+
+def fibonacci_sequence(start, stop=None, algorithm='pari'):
+    r"""
+    Returns an iterator over the Fibonacci sequence, for all fibonacci numbers
+    $f_n$ from \code{n = start} up to (but not including) \code{n = stop}
+
+    EXAMPLES:
+        sage: fibs = [i for i in fibonacci_sequence(10, 20)]
+        sage: fibs
+        [55, 89, 144, 233, 377, 610, 987, 1597, 2584, 4181]
+
+        sage: sum([i for i in fibonacci_sequence(100, 110)])
+        69919376923075308730013
+
+    AUTHOR:
+        Bobby Moretti
+    """
+    from sage.rings.integer_ring import ZZ
+    start = ZZ(start)
+    if stop == None:
+        stop = start
+        start = ZZ(0)
+    else:
+        stop = ZZ(stop)
+    for n in range(start, stop):
+        yield fibonacci(n, algorithm=algorithm)
+
+def fibonacci_range(start, stop, algorithm='pari'):
+    r"""
+    Returns an iterator over all of the Fibonacci numbers in the given range
+    from \code{f_n = start} to \code{f_n = stop}
+
+    EXAMPLES:
+        sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
+        sage: len(fibs_in_some_range)
+        3
+        sage: fibs_in_some_range
+        sage: [24157817, 39088169, 63245986]
+
+        sage: fibs = fibonacci_range(10, 100)
+        sage: fibs
+        [13, 21, 34, 55, 89]
+    """
+    from sage.rings.integer_ring import ZZ
+    start = ZZ(start)
+    if stop == None:
+        stop = start
+        start = ZZ(0)
+    else:
+        stop = ZZ(stop)
+    # iterate until we've gotten high enough
+    fn = 0
+    n = 0
+    while fn < start:
+        fn = fibonacci(n)
+        print n, fn
+        n += 1
+
+    while True:
+        fn = fibonacci(n)
+        n += 1
+        if fn < stop:
+            yield fn
+        else:
+            return
+
 
 def lucas_number1(n,P,Q):
     """

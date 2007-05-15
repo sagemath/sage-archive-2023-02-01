@@ -1793,11 +1793,11 @@ cdef class Matrix(sage.structure.element.Matrix):
 
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
-            [     1      x      y]
-            [-1*x*y  x + y  x - y]
+            [    1     x     y]
+            [ -x*y x + y x - y]
             sage: (x*y) * a
             [          x*y         x^2*y         x*y^2]
-            [   -1*x^2*y^2 x^2*y + x*y^2 x^2*y - x*y^2]
+            [     -x^2*y^2 x^2*y + x*y^2 x^2*y - x*y^2]
 
             sage: R.<x,y> = FreeAlgebra(ZZ,2)
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
@@ -1869,19 +1869,19 @@ cdef class Matrix(sage.structure.element.Matrix):
         We multiply matrices over $\QQ[x,y]$.
             sage: R.<x,y> = QQ[]
             sage: a = matrix(R,2,3,[1,x,y,-x*y,x+y,x-y]); a
-            [     1      x      y]
-            [-1*x*y  x + y  x - y]
+            [    1     x     y]
+            [ -x*y x + y x - y]
             sage: b = a.transpose(); b
-            [     1 -1*x*y]
-            [     x  x + y]
-            [     y  x - y]
+            [    1  -x*y]
+            [    x x + y]
+            [    y x - y]
             sage: a*b
             [          x^2 + y^2 + 1         x^2 + x*y - y^2]
             [        x^2 + x*y - y^2 x^2*y^2 + 2*x^2 + 2*y^2]
             sage: b*a
-            [         x^2*y^2 + 1 -1*x^2*y - x*y^2 + x -1*x^2*y + x*y^2 + y]
-            [-1*x^2*y - x*y^2 + x  2*x^2 + 2*x*y + y^2      x^2 + x*y - y^2]
-            [-1*x^2*y + x*y^2 + y      x^2 + x*y - y^2  x^2 - 2*x*y + 2*y^2]
+            [        x^2*y^2 + 1  -x^2*y - x*y^2 + x  -x^2*y + x*y^2 + y]
+            [ -x^2*y - x*y^2 + x 2*x^2 + 2*x*y + y^2     x^2 + x*y - y^2]
+            [ -x^2*y + x*y^2 + y     x^2 + x*y - y^2 x^2 - 2*x*y + 2*y^2]
 
         We verify that the matrix multiplies are correct by comparing them
         with what PARI gets:

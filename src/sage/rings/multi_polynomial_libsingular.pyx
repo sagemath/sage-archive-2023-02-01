@@ -1097,8 +1097,11 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             p_Delete(&self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
     def __call__(self, *x):
-        """
-        Evaluate a polynomial at the given point x
+        r"""
+        Evaluate this multi-variate polynomial at $x$, where $x$ is
+        either the tuple of values to substitute in, or one can use
+        functional notation $f(a_0,a_1,a_2, \ldots)$ to evaluate $f$
+        with the ith variable replaced by $a_i$.
 
         INPUT:
             x -- a list of elements in self.parent()
@@ -1132,27 +1135,26 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         cdef poly *_p
 
-        if l == 1 and PY_TYPE_CHECK(x, tuple):
+        if l == 1 and (PY_TYPE_CHECK(x, tuple) or PY_TYPE_CHECK(x, list)):
             x = x[0]
             l = len(x)
 
         if l != parent._ring.N:
             raise TypeError, "number of arguments does not match number of variables in parent"
 
-        #return self.fix(dict(zip(parent.gens(), x)))
-
-        ### the following is going to be faster at some size, but slower in general
-        ### TODO: find the crossover point
-        cdef ideal *to_id = idInit(l,1)
-
         try:
-            for i from 0 <= i < l:
-                e = x[i] # TODO: optimize this line
-                to_id.m[i]= p_Copy( (<MPolynomial_libsingular>(<MPolynomialRing_libsingular>parent._coerce_c(x[i])))._poly, _ring)
-
+            x = [parent._coerce_c(e) for e in x]
         except TypeError:
-            id_Delete(&to_id, _ring)
-            raise TypeError, "cannot coerce in arguments"
+            # give up, evaluate functional
+            y = parent.base_ring()(0)
+            for (m,c) in self.dict().iteritems():
+                y += c*mul([ x[i]**m[i] for i in m.nonzero_positions()])
+            return y
+
+        cdef ideal *to_id = idInit(l,1)
+        for i from 0 <= i < l:
+            e = x[i] # TODO: optimize this line
+            to_id.m[i]= p_Copy( (<MPolynomial_libsingular>x[i])._poly, _ring)
 
         cdef ideal *from_id=idInit(1,1)
         from_id.m[0] = p_Copy(self._poly, _ring)
@@ -1428,16 +1430,18 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             sage: f = x^3 + y
             sage: f^2
             x^6 + 2*x^3*y + y^2
-
+            sage: g = f^(-1); g
+            1/(x^3 + y)
+            sage: type(g)
+            <class 'sage.rings.fraction_field_element.FractionFieldElement'>
         """
         cdef ring *_ring
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 
         cdef poly *_p
 
-
         if exp < 0:
-            raise ArithmeticError, "Cannot comput negative powers of polynomials"
+            return 1/(self**(-exp))
 
         if(_ring != currRing): rChangeCurrRing(_ring)
         _p = pPower( p_Copy(self._poly,(<MPolynomialRing_libsingular>self._parent)._ring),exp)
@@ -2097,7 +2101,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
     def is_monomial(self):
         return not self._poly.next
 
-    def fix(self, fixed):
+    def fix(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
         returns the changed multivariate polynomials. The polynomial
@@ -2109,7 +2113,8 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         should be much faster if only few variables are to be fixed.
 
         INPUT:
-            fixed -- dict with variable:value pairs
+            fixed -- (optional) dict with variable:value pairs
+            **kw -- names parameters
 
         OUTPUT:
             new MPolynomial
@@ -2122,6 +2127,8 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             25*y^2 + y + 30
             sage: f.fix({x:5})
             25*y^2 + y + 30
+            sage: f.subs(x=5)
+            25*y^2 + y + 30
 
         TESTS:
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -2129,6 +2136,11 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
             sage: f = y
             sage: f.fix({y:x}).fix({x:z})
             z
+
+        NOTE: The evaluation is performed by evalutating every
+        variable:value pair separately.  This has side effects if
+        e.g. x=y, y=z is provided. If x=y is evaluated first, all x
+        variables will be replaced by z eventually.
 
         """
         cdef int mi, i
@@ -2140,18 +2152,29 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         cdef poly *_p = p_Copy(self._poly, _ring)
 
-        for m,v in fixed.iteritems():
-            if PY_TYPE_CHECK(m,int) or PY_TYPE_CHECK(m,Integer):
-                mi = m+1
-            elif PY_TYPE_CHECK(m,MPolynomial_libsingular) and <MPolynomialRing_libsingular>m.parent() is parent:
-                for i from 0 < i <= _ring.N:
-                    if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
-                        mi = i
-                        break
-                if i > _ring.N:
-                    raise TypeError, "key does not match"
-            else:
-                raise TypeError, "keys do not match self's parent"
+        if fixed is not None:
+            for m,v in fixed.iteritems():
+                if PY_TYPE_CHECK(m,int) or PY_TYPE_CHECK(m,Integer):
+                    mi = m+1
+                elif PY_TYPE_CHECK(m,MPolynomial_libsingular) and <MPolynomialRing_libsingular>m.parent() is parent:
+                    for i from 0 < i <= _ring.N:
+                        if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
+                            mi = i
+                            break
+                    if i > _ring.N:
+                        raise TypeError, "key does not match"
+                else:
+                    raise TypeError, "keys do not match self's parent"
+                _p = pSubst(_p, mi, (<MPolynomial_libsingular>parent._coerce_c(v))._poly)
+
+        for m,v in kw.iteritems():
+            m = parent(m)
+            for i from 0 < i <= _ring.N:
+                if p_GetExp((<MPolynomial_libsingular>m)._poly, i, _ring) != 0:
+                    mi = i
+                    break
+            if i > _ring.N:
+                raise TypeError, "key does not match"
             _p = pSubst(_p, mi, (<MPolynomial_libsingular>parent._coerce_c(v))._poly)
 
         return new_MP(parent,_p)

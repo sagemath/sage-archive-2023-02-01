@@ -367,7 +367,7 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
         We can also use the notation "+" for the union:
             sage: A.subscheme([x]) + A.subscheme([y^2 - (x^3+1)])
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            -1*x^4 + x*y^2 - x
+            -x^4 + x*y^2 - x
 
         Saving and loading:
             sage: loads(S.dumps()) == S

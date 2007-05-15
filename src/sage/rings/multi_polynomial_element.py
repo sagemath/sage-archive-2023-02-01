@@ -10,7 +10,6 @@ AUTHORS:
               some Singular features
     -- William Stein (2006-04-19): added e.g., \code{f[1,3]} to get coeff of $xy^3$;
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
-
     -- Martin Albrecht: improved singular coercions (restructed class hierarchy) and added
                         ETuples
 """
@@ -70,64 +69,6 @@ class MPolynomial_element(MPolynomial):
     def _repr_(self):
         return "%s"%self.__element
 
-    ####################
-    # Some standard conversions
-    ####################
-    def __int__(self):
-        if self.degree() == 0:
-            return int(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def __long__(self):
-        if self.degree() == 0:
-            return long(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def __float__(self):
-        if self.degree() == 0:
-            return float(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def _mpfr_(self, R):
-        if self.degree() == 0:
-            return R(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def _complex_mpfr_field_(self, R):
-        if self.degree() == 0:
-            return R(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def _complex_double_(self, R):
-        if self.degree() == 0:
-            return R(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def _real_double_(self, R):
-        if self.degree() == 0:
-            return R(self.constant_coefficient())
-        else:
-            raise TypeError
-
-    def _rational_(self):
-        if self.degree() == 0:
-            from rational import Rational
-            return Rational(repr(self))
-        else:
-            raise TypeError
-
-    def _integer_(self):
-        if self.degree() == 0:
-            from integer import Integer
-            return Integer(repr(self))
-        else:
-            raise TypeError
 
 
     ####################
@@ -687,12 +628,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
     def is_monomial(self):
         return len(self.element().dict().keys()) == 1
 
-
-    ############################################################################
-    # Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>
-    # (and documented by W. Stein)
-    ############################################################################
-
     def fix(self, fixed=None, **kw):
         """
         Fixes some given variables in a given multivariate polynomial and
@@ -701,8 +636,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         to be provided as dictionary of the form {variable:value}.
 
         This is a special case of evaluating the polynomial with some of
-        the variables constants and the others the original variables, but
-        should be much faster.
+        the variables constants and the others the original variables.
 
         INPUT:
             fixed -- (optional) dictionary of inputs
@@ -721,10 +655,11 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         """
         variables = list(self.parent().gens())
         for i in range(0,len(variables)):
-            if fixed.has_key(variables[i]):
+            if kw.has_key(str(variables[i])):
+                variables[i]=kw[str(variables[i])]
+            elif fixed and fixed.has_key(variables[i]):
                 variables[i] = fixed[variables[i]]
         return self(tuple(variables))
-
 
     def monomials(self):
         """
@@ -1050,10 +985,6 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         \note{This is much faster than actually writing self == 0}
         """
         return self._MPolynomial_element__element.dict()!={}
-
-    ############################################################################
-    # END: Some functions added by Martin Albrecht <malb@informatik.uni-bremen.de>
-    ############################################################################
 
     def __floordiv__(self,right):
         """

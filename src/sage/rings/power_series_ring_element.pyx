@@ -80,9 +80,8 @@ include "../ext/stdsage.pxi"
 import operator
 
 from infinity import infinity, is_Infinite
-from polynomial_ring import PolynomialRing
-import polynomial_element_generic
-import polynomial_element
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
 import ring_element
@@ -99,7 +98,7 @@ from sage.rings.arith import integer_ceil as ceil
 
 from sage.rings.ring import is_Field
 
-Polynomial = polynomial_element.Polynomial_generic_dense
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
 

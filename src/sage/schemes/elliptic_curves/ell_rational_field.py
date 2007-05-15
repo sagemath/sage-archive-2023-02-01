@@ -1451,7 +1451,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if not self.__kodaira_type.has_key(p):
             v = self.pari_mincurve().elllocalred(p)
             self.__kodaira_type[p] = str(v[1])
-            self.__tamagawa_number[p] = int(v[3])
+            self.__tamagawa_number[p] = Integer(v[3])
         return self.__kodaira_type[p]
 
     def tamagawa_number(self, p):
@@ -1475,6 +1475,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.__tamagawa_number[p]
 
     def tamagawa_numbers(self):
+        """
+        Return a list of all Tamagawa numbers for all prime divisors of
+        the conductor (in order).
+
+        EXAMPLES:
+            sage: e = EllipticCurve('30a1')
+            sage: e.tamagawa_numbers()
+            [2, 3, 1]
+            sage: vector(e.tamagawa_numbers())
+            (2, 3, 1)
+        """
         return [self.tamagawa_number(p) for p in arith.prime_divisors(self.conductor())]
 
     def tamagawa_product(self):

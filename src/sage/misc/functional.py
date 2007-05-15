@@ -781,6 +781,14 @@ quo = quotient
 def show(x, *args, **kwds):
     """
     Show a graphics object x.
+
+    OPTIONAL INPUT:
+        filename -- (default: None) string
+        dpi -- dots per inch
+        figsize -- [width, height] (same for square aspect)
+        axes -- (default: True)
+        fontsize -- positive integer
+        frame -- (default: False) draw a MATLAB-like frame around the image
     """
     if not isinstance(x, (sage.interfaces.expect.Expect, sage.interfaces.expect.ExpectElement)):
         try:

@@ -468,7 +468,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ZZ = rings.Integer
             v = [ZZ(0)] + [ZZ(x) for x in E.ellan(n)]
         else:
-            v = E.ellan(n)
+            v = E.ellan(n, python_ints=True)
         if not pari_ints:
             self.__anlist = v
         return v

@@ -389,13 +389,16 @@ def fibonacci_range(start, stop, algorithm='pari'):
     EXAMPLES:
         sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
         sage: len(fibs_in_some_range)
-        3
+        4
         sage: fibs_in_some_range
-        sage: [24157817, 39088169, 63245986]
+        [14930352, 24157817, 39088169, 63245986]
 
-        sage: fibs = fibonacci_range(10, 100)
+        sage: fibs = [i for i in fibonacci_range(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
+
+    AUTHOR:
+        Bobby Moretti
     """
     from sage.rings.integer_ring import ZZ
     start = ZZ(start)
@@ -408,9 +411,8 @@ def fibonacci_range(start, stop, algorithm='pari'):
     fn = 0
     n = 0
     while fn < start:
-        fn = fibonacci(n)
-        print n, fn
         n += 1
+        fn = fibonacci(n)
 
     while True:
         fn = fibonacci(n)

@@ -18,9 +18,11 @@ AUTHOR: Martin Albrecht <malb@informatik.uni-bremen.de>
 
 include "singular-cdefs.pxi"
 
+cdef extern from "limits.h":
+    long INT_MAX
+
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
-
 
 cdef extern from "stdsage.h":
     ctypedef void PyObject
@@ -91,8 +93,18 @@ cdef class Conversion:
     cdef public number *sa2si_QQ(self, Rational r, ring *_ring):
         """
         """
-        cdef number *z
         return nlInit2gmp( mpq_numref(r.value), mpq_denref(r.value) )
+
+    cdef public number *sa2si_ZZ(self, Integer d, ring *_ring):
+        """
+        """
+        cdef number *n
+        if d<INT_MAX:
+            return nlInit(int(d))
+        else:
+            n = nlRInit(0)
+            mpz_init_set(&n.z, d.value)
+            return n
 
     cdef public object si2sa(self, number *n, ring *_ring, object base):
         if PY_TYPE_CHECK(base, FiniteField_prime_modn):

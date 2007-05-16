@@ -81,9 +81,9 @@ We can convert $f$ and each exponent back to SAGE objects as well.
 
     sage: R.<x, y> = MPolynomialRing(QQ,2)
     sage: g = eval(f.sage_polystring()); g
-    9*y^8 - 9*x^2*y^7 - 18*x^3*y^6 - 18*x^5*y^6 + 9*x^6*y^4 + 18*x^7*y^5 + 36*x^8*y^4 + 9*x^10*y^4 - 18*x^11*y^2 - 9*x^12*y^3 - 18*x^13*y^2 + 9*x^16
+    9*x^16 - 18*x^13*y^2 - 9*x^12*y^3 + 9*x^10*y^4 - 18*x^11*y^2 + 36*x^8*y^4 + 18*x^7*y^5 - 18*x^5*y^6 + 9*x^6*y^4 - 18*x^3*y^6 - 9*x^2*y^7 + 9*y^8
     sage: eval(F[1][2].sage_polystring())
-    y^4 - x^2*y^3 - 2*x^3*y^2 + x^6
+    x^6 - 2*x^3*y^2 - x^2*y^3 + y^4
 
 This example illustrates polynomial GCD's:
     sage: R2 = singular.ring(0, '(x,y,z)', 'lp')
@@ -857,12 +857,13 @@ class SingularElement(ExpectElement):
             sage: f._singular_().sage_poly(R)==f
             True
 
-            sage: R.<XxZaa5,y> = PolynomialRing(QQ, 2)
-            sage: f = XxZaa5 * y^3 -(1/9)* XxZaa5 + 1
+            sage: P.<x,y> = PolynomialRing(QQ, 2)
+            sage: f = x*y**3 - 1/9 * x + 1; f
+            x*y^3 - 1/9*x + 1
             sage: singular(f)
-            XxZaa5*y^3-1/9*XxZaa5+1
-            sage: R(singular(f))
-            1 - 1/9*XxZaa5 + XxZaa5*y^3
+            x*y^3-1/9*x+1
+            sage: P(singular(f))
+            x*y^3 - 1/9*x + 1
 
         AUTHOR: Martin Albrecht (2006-05-18)
 

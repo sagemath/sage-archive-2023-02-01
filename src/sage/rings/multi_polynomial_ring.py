@@ -14,18 +14,18 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])
     sage: frob(x^2 + 2*y - z^4)
-    4*z^20 + 2*y^5 + x^10
+    -z^20 + x^10 + 2*y^5
     sage: frob((x + 2*y)^3)
-    3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
+    x^15 + x^10*y^5 + 2*x^5*y^10 - 2*y^15
     sage: (x^5 + 2*y^5)^3
-    3*y^15 + 2*x^5*y^10 + x^10*y^5 + x^15
+    x^15 + x^10*y^5 + 2*x^5*y^10 - 2*y^15
 
 We make a polynomial ring in one variable over a polynomial ring in
 two variables:
     sage: R.<x, y> = PolynomialRing(QQ, 2)
     sage: S.<t> = PowerSeriesRing(R)
     sage: t*(x+y)
-    (y + x)*t
+    (x + y)*t
 """
 
 #*****************************************************************************
@@ -84,7 +84,6 @@ from sage.rings.polynomial_ring_constructor import PolynomialRing as MPolynomial
 from sage.structure.parent_gens import ParentWithGens
 
 from multi_polynomial_ring_generic import MPolynomialRing_generic, is_MPolynomialRing
-
 
 class MPolynomialRing_macaulay2_repr:
     """
@@ -216,11 +215,11 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: type(x)
             <class 'sage.calculus.calculus.SymbolicVariable'>
             sage: type(R(x))
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: f = R(x^3 + y^3 - z^3); f
-            -1*z^3 + y^3 + x^3
+            x^3 + y^3 - z^3
             sage: type(f)
-            <class 'sage.rings.multi_polynomial_element.MPolynomial_polydict'>
+            <type 'sage.rings.multi_polynomial_libsingular.MPolynomial_libsingular'>
             sage: parent(f)
             Polynomial Ring in x, y, z over Rational Field
 
@@ -235,6 +234,8 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             0
 
         """
+        from sage.rings.multi_polynomial_libsingular import MPolynomial_libsingular
+
         if isinstance(x, multi_polynomial_element.MPolynomial_polydict):
             P = x.parent()
             if P is self:
@@ -248,6 +249,23 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
                 # no guarantees that this is mathematically solid."
                 K = self.base_ring()
                 D = x.element().dict()
+                for i, a in D.iteritems():
+                    D[i] = K(a)
+                return multi_polynomial_element.MPolynomial_polydict(self, D)
+            else:
+                raise TypeError
+
+        if isinstance(x, MPolynomial_libsingular):
+            P = x.parent()
+            if P == self:
+                return multi_polynomial_element.MPolynomial_polydict(self, x.dict())
+            elif len(P.variable_names()) == len(self.variable_names()):
+                # Map the variables in some crazy way (but in order,
+                # of course).  This is here since R(blah) is supposed
+                # to be "make an element of R if at all possible with
+                # no guarantees that this is mathematically solid."
+                K = self.base_ring()
+                D = x.dict()
                 for i, a in D.iteritems():
                     D[i] = K(a)
                 return multi_polynomial_element.MPolynomial_polydict(self, D)

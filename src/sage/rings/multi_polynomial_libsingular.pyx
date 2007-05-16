@@ -408,7 +408,14 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # SymbolicVariable
             return element._polynomial_(self)
 
-        return self._coerce_c_impl(element)
+        try:
+            return self._coerce_c_impl(element)
+        except TypeError:
+            element = self.base_ring()(element)
+            _p = p_NSet(co.sa2si_QQ(element,_ring), _ring)
+            return new_MP(self,_p)
+
+        raise TypeError, "cannot coerce element"
 
     def _repr_(self):
         """

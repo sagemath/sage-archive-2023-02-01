@@ -510,9 +510,9 @@ class RingHomomorphism_im_gens(RingHomomorphism):
             sage: f1 == R.hom([b,a])
             False
             sage: f1(x^3 + x + y^2)
-            a + 6*b
+            a - b
             sage: f2(x^3 + x + y^2)
-            a + 6*b
+            a - b
 
         TEST:
             sage: loads(dumps(f2)) == f2

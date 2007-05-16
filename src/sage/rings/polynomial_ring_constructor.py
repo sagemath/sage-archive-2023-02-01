@@ -12,6 +12,7 @@ import padics.padic_ring_lazy
 import padics.padic_field_lazy
 
 from rational_field import QQ
+from ring import is_FiniteField
 
 _cache = {}
 
@@ -196,7 +197,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.injvar()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2
-        w0^2 + 4*w0*w8 + 4*w8^2 + 2*w0*w13 + 4*w8*w13 + w13^2
+        w0^2 - 3*w0*w8 - 3*w8^2 + 2*w0*w13 - 3*w8*w13 + w13^2
     """
     import polynomial_ring as m
 
@@ -337,9 +338,13 @@ def _multi_variate(base_ring, names, n, sparse, order):
     if not R is None:
         return R
 
+    from multi_polynomial_libsingular import MPolynomialRing_libsingular
+
     if m.integral_domain.is_IntegralDomain(base_ring):
         if base_ring is QQ:
-            from multi_polynomial_libsingular import MPolynomialRing_libsingular
+            R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        elif is_FiniteField(base_ring) and base_ring.is_prime_field() and base_ring.characteristic() <= 2147483629:
+
             R = MPolynomialRing_libsingular(base_ring, n, names, order)
         else:
             R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)

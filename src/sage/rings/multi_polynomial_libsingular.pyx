@@ -178,7 +178,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             _names[i] = strdup(_name)
 
         if PY_TYPE_CHECK(base_ring, FiniteField_prime_modn):
-            characteristic = base_ring.characteristic()
+            if base_ring.characteristic() <= 2147483629:
+                characteristic = base_ring.characteristic()
+            else:
+                raise TypeError, "p must be <= 2147483629"
 
         elif PY_TYPE_CHECK(base_ring, RationalField):
             characteristic = 0
@@ -381,6 +384,29 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             # we need to do this, to make sure that we actually get an
             # element in self.
             return self._coerce_c(element)
+
+        if PY_TYPE_CHECK(element, MPolynomial_libsingular):
+            if element.parent() is not self and element.parent() != self and  element.parent().ngens() == self.ngens():
+                # Map the variables in some crazy way (but in order,
+                # of course).  This is here since R(blah) is supposed
+                # to be "make an element of R if at all possible with
+                # no guarantees that this is mathematically solid."
+                # TODO: We can do this faster without the dict
+                _p = p_ISet(0, _ring)
+                K = self.base_ring()
+                for (m,c) in element.dict().iteritems():
+                    try:
+                        c = K(c)
+                    except TypeError, msg:
+                        p_Delete(&_p, _ring)
+                        raise TypeError, msg
+                    mon = p_Init(_ring)
+                    p_SetCoeff(mon, co.sa2si(c , _ring), _ring)
+                    for pos in m.nonzero_positions():
+                        p_SetExp(mon, pos+1, m[pos], _ring)
+                    p_Setm(mon, _ring)
+                    _p = p_Add_q(_p, mon, _ring)
+                return new_MP(self, _p)
 
         if PY_TYPE_CHECK(element, MPolynomial_polydict):
             if element.parent().ngens() == self.ngens():
@@ -1346,6 +1372,9 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 
         if(_ring != currRing): rChangeCurrRing(_ring)
+
+        if not left:
+            return (<MPolynomialRing_libsingular>self._parent)._zero
 
         if PY_TYPE_CHECK((<MPolynomialRing_libsingular>self._parent)._base, FiniteField_prime_modn):
             _n = n_Init(int(left),_ring)

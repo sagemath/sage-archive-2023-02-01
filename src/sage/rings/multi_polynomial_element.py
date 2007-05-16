@@ -460,7 +460,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: R.<x> = PolynomialRing(GF(7),1); R
             Polynomial Ring in x over Finite Field of size 7
             sage: f = 5*x^2 + 3; f
-            5*x^2 + 3
+            -2*x^2 + 3
             sage: f[2]
             5
         """
@@ -514,7 +514,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         The coefficient of 1 is also an element of the multivariate
         polynomial ring:
             sage: R.<x,y> = GF(389)[]
-            sage: parent(R(x*y+5).coefficient(1))
+            sage: parent(R(x*y+5).coefficient(R(1)))
             Polynomial Ring in x, y over Finite Field of size 389
         """
         R = self.parent()
@@ -1012,10 +1012,10 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
 
             sage: x, y = PolynomialRing(GF(3), 2, ['x','y']).gens()
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
-            x^5 + 2*x^3*y^2 + x^4 + 2*x^2*y^2 + x^3 + 2*x*y^2
+            x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
             sage: F = f.factor()
             sage: F
-            2 * x * (x + y) * (2*x + y) * (x + 2)^2
+            (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
         \note{Singular multi-variate polynomial factorization is very
         slow in \SAGE.  This \emph{not} a fault of Singular but of how
@@ -1167,7 +1167,7 @@ def degree_lowest_rational_function(r,x):
     Consider the quotient $f/g = \frac{4 + 3 bc^{2}}{ac + 2 ab^{3}c^{6}}$ (note
     the cancellation).
         sage: r = f/g; r
-        (3*b*c^2 + 4)/(2*a*b^3*c^6 + a*c)
+        (-2*b*c^2 - 1)/(2*a*b^3*c^6 + a*c)
         sage: degree_lowest_rational_function(r,a)
               (-1, 4)
         sage: degree_lowest_rational_function(r,b)
@@ -1181,18 +1181,18 @@ def degree_lowest_rational_function(r,x):
     r = F(r)
     if r == 0:
         return (0, F(0))
-    L = x.element().dict().keys()[0]
+    L = x.dict().keys()[0]
     for ix in range(len(L)):
         if L[ix] != 0:
             break
     f = r.numerator()
     g = r.denominator()
-    M = f.element().dict()
+    M = f.dict()
     numtermsf = len(M)
     degreesf = [M.keys()[j][ix] for j in range(numtermsf)]
     lowdegf = min(degreesf)
     cf = M[M.keys()[degreesf.index(lowdegf)]] ## constant coeff of lowest degree term
-    M = g.element().dict()
+    M = g.dict()
     numtermsg = len(M)
     degreesg = [M.keys()[j][ix] for j in range(numtermsg)]
     lowdegg = min(degreesg)

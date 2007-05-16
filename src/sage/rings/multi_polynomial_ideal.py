@@ -501,7 +501,7 @@ class MPolynomialIdeal_singular_repr:
             sage: p = z^2 + 1; q = z^3 + 2
             sage: I = (p*q^2, y - z^2)*R
             sage: I.radical()
-            Ideal (z^2 + 36*y, y^2*z + y*z + 2*y + 2) of Polynomial Ring in x, y, z over Finite Field of size 37
+            Ideal (z^2 - y, y^2*z + y*z + 2*y + 2) of Polynomial Ring in x, y, z over Finite Field of size 37
         """
         S = self.ring()
         I = self._singular_()
@@ -704,8 +704,8 @@ class MPolynomialIdeal_singular_repr:
            sage: R.<z,y,x>=PolynomialRing(GF(32003),3,order='lex')
            sage: I=Ideal([y^3+x*y*z+y^2*z+x*z^3,3+x*y+x^2*y+y^2*z])
            sage: I.transformed_basis('gwalk')
-           [y^9 + 32002*y^7*x^2 + 32002*y^7*x + 32002*y^6*x^3 + 32002*y^6*x^2 + 32000*y^6 + 32000*y^5*x + 32002*y^3*x^7 + 32000*y^3*x^6 + 32000*y^3*x^5 + 32002*y^3*x^4 + 31994*y^2*x^5 + 31985*y^2*x^4 + 31994*y^2*x^3 + 31976*y*x^3 + 31976*y*x^2 + 31976*x,
-           z*x + 8297*y^8*x^2 + 8297*y^8*x + 3556*y^7 + 23706*y^6*x^4 + 15409*y^6*x^3 + 23706*y^6*x^2 + 23706*y^5*x^5 + 15409*y^5*x^4 + 23706*y^5*x^3 + 3556*y^5*x^2 + 3556*y^5*x + 3556*y^4*x^3 + 3556*y^4*x^2 + 21335*y^4 + 21335*y^3*x + 23706*y^2*x^9 + 30818*y^2*x^8 + 14224*y^2*x^7 + 30818*y^2*x^6 + 23706*y^2*x^5 + 17780*y*x^7 + 21337*y*x^6 + 21337*y*x^5 + 17780*y*x^4 + x^5 + 2*x^4 + x^3,
+           [y^9 - y^7*x^2 - y^7*x - y^6*x^3 - y^6*x^2 - 3*y^6 - 3*y^5*x - y^3*x^7 - 3*y^3*x^6 - 3*y^3*x^5 - y^3*x^4 - 9*y^2*x^5 - 18*y^2*x^4 - 9*y^2*x^3 - 27*y*x^3 - 27*y*x^2 - 27*x,
+           z*x + 8297*y^8*x^2 + 8297*y^8*x + 3556*y^7 - 8297*y^6*x^4 + 15409*y^6*x^3 - 8297*y^6*x^2 - 8297*y^5*x^5 + 15409*y^5*x^4 - 8297*y^5*x^3 + 3556*y^5*x^2 + 3556*y^5*x + 3556*y^4*x^3 + 3556*y^4*x^2 - 10668*y^4 - 10668*y^3*x - 8297*y^2*x^9 - 1185*y^2*x^8 + 14224*y^2*x^7 - 1185*y^2*x^6 - 8297*y^2*x^5 - 14223*y*x^7 - 10666*y*x^6 - 10666*y*x^5 - 14223*y*x^4 + x^5 + 2*x^4 + x^3,
            z*y^2 + y*x^2 + y*x + 3]
 
 

@@ -59,7 +59,7 @@ class ProjectiveCurve_generic(Curve_generic_projective):
         EXAMPLE:
             sage: x,y,z = MPolynomialRing(GF(5), 3, 'xyz').gens()
             sage: C = Curve(y^2*z^7 - x^9 - x*z^8); C
-            Projective Curve over Finite Field of size 5 defined by 4*x^9 + y^2*z^7 + 4*x*z^8
+            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C.arithmetic_genus()
             28
             sage: C.genus()
@@ -232,7 +232,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by 4*x^9 + y^2*z^7 + 4*x*z^8
+            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C._points_via_singular()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
             sage: v = C._points_via_singular(sort=True)
@@ -349,7 +349,7 @@ class ProjectiveCurve_prime_finite_field(ProjectiveCurve_finite_field):
             sage: x, y, z = MPolynomialRing(GF(5), 3, 'xyz').gens()
             sage: f = y^2*z^7 - x^9 - x*z^8
             sage: C = Curve(f); C
-            Projective Curve over Finite Field of size 5 defined by 4*x^9 + y^2*z^7 + 4*x*z^8
+            Projective Curve over Finite Field of size 5 defined by -x^9 + y^2*z^7 - x*z^8
             sage: C.rational_points()
             [(0 : 0 : 1), (0 : 1 : 0), (2 : 2 : 1), (2 : 3 : 1), (3 : 1 : 1), (3 : 4 : 1)]
             sage: C = Curve(x - y + z)

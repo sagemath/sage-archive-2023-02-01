@@ -98,9 +98,9 @@ class Divisor_generic(FormalSum):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor(pts[0])*3 - C.divisor(pts[1]); D
-            -(x + 3, y + 3) + 3*(x, y)
+            -(x - 2, y - 2) + 3*(x, y)
             sage: D.scheme()
-            Affine Curve over Finite Field of size 5 defined by 4*x^9 + y^2 + 4*x
+            Affine Curve over Finite Field of size 5 defined by -x^9 + y^2 - x
         """
         return self.parent().scheme()
 
@@ -221,7 +221,7 @@ class Divisor_curve(Divisor_generic):
             sage: pts = C.rational_points(); pts
             [(0, 0), (2, 2), (2, 3), (3, 1), (3, 4)]
             sage: D = C.divisor([(3,pts[0]), (-1, pts[1])]); D
-            -(x + 3, y + 3) + 3*(x, y)
+            -(x - 2, y - 2) + 3*(x, y)
             sage: D.support()
             [(0, 0), (2, 2)]
         """
@@ -247,7 +247,7 @@ class Divisor_curve(Divisor_generic):
             sage: D.coeff(pts[0])
             1
             sage: D = C.divisor([(3,pts[0]), (-1,pts[1])]); D
-            -(x + 3, y + 3) + 3*(x, y)
+            -(x - 2, y - 2) + 3*(x, y)
             sage: D.coeff(pts[0])
             3
             sage: D.coeff(pts[1])

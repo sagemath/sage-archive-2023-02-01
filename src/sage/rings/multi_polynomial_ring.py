@@ -14,11 +14,11 @@ We construct the Frobenius morphism on $\mbox{\rm F}_{5}[x,y,z]$ over $\F_5$:
     sage: R, (x,y,z) = PolynomialRing(GF(5), 3, 'xyz').objgens()
     sage: frob = R.hom([x^5, y^5, z^5])
     sage: frob(x^2 + 2*y - z^4)
-    4*z^20 + x^10 + 2*y^5
+    -z^20 + x^10 + 2*y^5
     sage: frob((x + 2*y)^3)
-    x^15 + x^10*y^5 + 2*x^5*y^10 + 3*y^15
+    x^15 + x^10*y^5 + 2*x^5*y^10 - 2*y^15
     sage: (x^5 + 2*y^5)^3
-    x^15 + x^10*y^5 + 2*x^5*y^10 + 3*y^15
+    x^15 + x^10*y^5 + 2*x^5*y^10 - 2*y^15
 
 We make a polynomial ring in one variable over a polynomial ring in
 two variables:

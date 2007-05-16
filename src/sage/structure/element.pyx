@@ -163,6 +163,7 @@ import operator
 
 from sage.structure.parent      cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.parent_gens import is_ParentWithGens
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -273,6 +274,83 @@ cdef class Element(sage_object.SageObject):
             return self._parent
         else:
             return self._parent(x)
+
+
+    def subs(self, in_dict=None, **kwds):
+        """
+        Substitutes given generators with given values while not touching
+        other generators. This is a generic wrapper around __call__.
+        The syntax is meant to be compatible with the corresponding method
+        for symbolic expressions.
+
+        INPUT:
+            in_dict -- (optional) dictionary of inputs
+            **kwds  -- named parameters
+
+        OUTPUT:
+            new object if substitution is possible, otherwise self.
+
+        EXAMPLES:
+            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: f = x^2 + y + x^2*y^2 + 5
+            sage: f((5,y))
+            30 + y + 25*y^2
+            sage: f.subs({x:5})
+            30 + y + 25*y^2
+            sage: f.subs(x=5)
+            30 + y + 25*y^2
+            sage: (1/f).subs(x=5)
+            1/(30 + y + 25*y^2)
+            sage: Integer(5).subs(x=4)
+            5
+        """
+        if not hasattr(self,'__call__'):
+            return self
+        parent=self.parent()
+        if not is_ParentWithGens(parent):
+            return self
+        variables=[]
+        # use "gen" instead of "gens" as a ParentWithGens is not
+        # required to have the latter
+        for i in xrange(0,parent.ngens()):
+            gen=parent.gen(i)
+            if kwds.has_key(str(gen)):
+                variables.append(kwds[str(gen)])
+            elif in_dict and in_dict.has_key(gen):
+                variables.append(in_dict[gen])
+            else:
+                variables.append(gen)
+        return self(*variables)
+
+    def substitute(self,in_dict=None,**kwds):
+        """
+        This is an alias for self.subs().
+
+        INPUT:
+            in_dict -- (optional) dictionary of inputs
+            **kwds  -- named parameters
+
+        OUTPUT:
+            new object if substitution is possible, otherwise self.
+
+        EXAMPLES:
+            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: f = x^2 + y + x^2*y^2 + 5
+            sage: f((5,y))
+            30 + y + 25*y^2
+            sage: f.substitute({x:5})
+            30 + y + 25*y^2
+            sage: f.substitute(x=5)
+            30 + y + 25*y^2
+            sage: (1/f).substitute(x=5)
+            1/(30 + y + 25*y^2)
+            sage: Integer(5).substitute(x=4)
+            5
+         """
+        return self.subs(in_dict,**kwds)
+
+
+
 
     def __xor__(self, right):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\

@@ -300,10 +300,12 @@ cdef extern from "libsingular.h":
     long SR_HDL(mpz_t )
 
     # QQ
+    number *nlInit(int)
     number *nlInit2gmp(mpz_t i, mpz_t j)
     number *nlInit2(int i, int j)
     number *nlGetNom(number *n, ring *r)
     number *nlGetDenom(number *n, ring *r)
+    number *nlRInit(int)
 
 
     #

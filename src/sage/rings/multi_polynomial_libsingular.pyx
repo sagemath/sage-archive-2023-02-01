@@ -306,7 +306,11 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # Accepting ZZ
             if element.parent() is IntegerRing():
-                _p = p_ISet(int(element), _ring)
+                if PY_TYPE_CHECK(self._base, RationalField):
+                    _n = co.sa2si_ZZ(element,_ring)
+                    _p = p_NSet(_n, _ring)
+                else: # GF(p)
+                    _p = p_ISet(int(element),_ring)
 
             elif  <Parent>element.parent() is self._base:
                 # Accepting GF(p)

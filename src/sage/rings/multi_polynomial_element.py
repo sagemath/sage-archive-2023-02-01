@@ -1014,7 +1014,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
             x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
             sage: F = f.factor()
-            sage: F
+            sage: F # order is somewhat random
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
         \note{Singular multi-variate polynomial factorization is very

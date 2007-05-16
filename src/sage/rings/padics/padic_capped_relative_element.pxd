@@ -25,17 +25,13 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef void _normalize(pAdicCappedRelativeElement self)
     cdef ModuleElement _neg_c_impl(self)
-    cdef ModuleElement _add_c_impl(self, ModuleElement right)
-    cdef RingElement _invert_c_impl(self)
     cdef RingElement _floordiv_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement _lshift_c(pAdicCappedRelativeElement self, long shift)
     cdef pAdicCappedRelativeElement _rshift_c(pAdicCappedRelativeElement self, long shift)
-    cdef RingElement _mul_c_impl(self, RingElement right)
-    cdef RingElement _div_c_impl(self, RingElement right)
     cdef pAdicCappedRelativeElement lift_to_precision_c(pAdicCappedRelativeElement self, long absprec)
     cdef teichmuller_list(pAdicCappedRelativeElement self)
     cdef val_unit_c(self)
     cdef pAdicCappedRelativeElement unit_part_c(self)
     cdef valuation_c(self)
-    cdef long _hash(self) except -1
+    cdef lift_c(self)
 

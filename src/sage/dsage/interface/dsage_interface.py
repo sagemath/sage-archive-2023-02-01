@@ -841,6 +841,7 @@ class BlockingJobWrapper(JobWrapper):
         job = blocking_call_from_thread(self.remoteobj.callRemote,
                                         'get_job_by_id', self._job.job_id)
 
+        self._job = expand_job(job)
         self._update_job(expand_job(job))
 
     def async_get_job(self):
@@ -886,6 +887,7 @@ class BlockingJobWrapper(JobWrapper):
 
         if timeout is None:
             while self.status != 'completed':
+                # print 'Wating...'
                 time.sleep(1.0)
                 self.get_job()
         else:

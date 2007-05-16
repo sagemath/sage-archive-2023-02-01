@@ -17,7 +17,8 @@ class DistributedFactor(DistributedFunction):
     """
 
     def __init__(self, DSage, n, concurrent=10, verbosity=0,
-                 trial_division_limit=10000, name='DistributedFactor'):
+                 trial_division_limit=10000, name='DistributedFactor',
+                 use_qsieve=False):
         """
         Parameters:
             DSage -- an instance of a dsage connection
@@ -41,6 +42,7 @@ class DistributedFactor(DistributedFunction):
         self.concurrent = concurrent
         self.verbosity = verbosity
         self.name = name
+        self.use_qsieve = use_qsieve
         # Trial division first to peel off some factors
         for d in prime_range(2, trial_division_limit):
             while d.divides(n):
@@ -53,7 +55,8 @@ class DistributedFactor(DistributedFunction):
             self.prime_factors.append(n)
         else:
             self.composite_factors.append(n)
-            self.outstanding_jobs = [self.qsieve_job()]
+            if self.use_qsieve:
+                self.outstanding_jobs = [self.qsieve_job()]
             for i in range(concurrent-1):
                 self.outstanding_jobs.append(self.ecm_job())
 
@@ -203,8 +206,9 @@ else:
                         self.qsieve_count += 1
             for job in to_be_removed_jobs:
                 self.waiting_jobs.remove(job)
-            if self.qsieve_count == 0:
-                self.submit_job(self.qsieve_job(), self.name, async=True)
+            if self.use_qsieve:
+                if self.qsieve_count == 0:
+                    self.submit_job(self.qsieve_job(), self.name, async=True)
             self.submit_job(self.ecm_job(), self.name, async=True)
 
         self.prime_factors.sort()

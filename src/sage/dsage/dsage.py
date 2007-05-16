@@ -7,11 +7,9 @@ AUTHORS:
 
 import os
 import subprocess
-import sys
 from getpass import getuser
 
 import sage.interfaces.cleaner
-from sage.misc.all import DOT_SAGE
 from sage.misc.all import SAGE_ROOT
 from sage.dsage.misc.constants import DSAGE_DIR
 
@@ -24,9 +22,9 @@ def spawn(cmd, verbose=True):
     null = open('/dev/null', 'a')
     proc = '%s/%s' % (SAGE_ROOT + '/local/bin', cmd)
     process = subprocess.Popen(proc, shell=True, stdout=null, stderr=null)
-
-    print 'Spawned %s (pid = %s)' % (cmd, process.pid)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
+    if verbose:
+        print 'Spawned %s (pid = %s)\n' % (cmd, process.pid)
 
 class DistributedSage(object):
     r"""
@@ -104,19 +102,30 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self):
-        self.server(blocking=False)
-        self.worker(blocking=False)
+    def start_all(self, port=8081, log_level=0, verbose=True):
+        """
+        Start the server and worker and returns a connection to the server.
+
+        """
+
         from sage.dsage.interface.dsage_interface import BlockingDSage
 
-        return BlockingDSage()
+        self.server(port=port, log_level=log_level, blocking=False,
+                    verbose=verbose)
+        self.worker(port=port, log_level=log_level, blocking=False,
+                    verbose=verbose)
+
+        d = BlockingDSage(server='localhost', port=port)
+
+        return d
 
     def server(self, blocking=True, port=8081, log_level=0, ssl=True,
                db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
                log_file=os.path.join(DSAGE_DIR, 'server.log'),
                privkey=os.path.join(DSAGE_DIR, 'cacert.pem'),
                cert=os.path.join(DSAGE_DIR, 'pubcert.pem'),
-               stats_file=os.path.join(DSAGE_DIR, 'dsage.xml')):
+               stats_file=os.path.join(DSAGE_DIR, 'dsage.xml'),
+               verbose=True):
         r"""
         Run the Distributed SAGE server.
 
@@ -134,13 +143,12 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_server.py -d %s -p %s -l %s -f %s ' + \
-                              '-c %s -k %s --statsfile=%s '
-        if ssl:
-            cmd += '--ssl'
+                              '-c %s -k %s --statsfile=%s --ssl=%s'
         cmd = cmd % (db_file, port, log_level, log_file, cert, privkey,
-                     stats_file)
+                     stats_file, ssl)
         if not blocking:
-            spawn(cmd)
+            cmd += ' --noblock'
+            spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 
@@ -149,7 +157,8 @@ class DistributedSage(object):
                anonymous=False, priority=20,
                privkey=os.path.join(DSAGE_DIR, 'dsage_key'),
                pubkey=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
-               log_file=os.path.join(DSAGE_DIR, 'worker.log')):
+               log_file=os.path.join(DSAGE_DIR, 'worker.log'),
+               verbose=True):
         r"""
         Run the Distributed SAGE worker.
 
@@ -174,7 +183,8 @@ class DistributedSage(object):
                      log_file, privkey, pubkey, priority)
 
         if not blocking:
-            spawn(cmd)
+            cmd += ' --noblock'
+            spawn(cmd, verbose=verbose)
         else:
             os.system(cmd)
 

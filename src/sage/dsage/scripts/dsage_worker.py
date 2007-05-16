@@ -334,16 +334,16 @@ except:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
         try:
-            foo, output, new = self.sage._so_far()
             os.chdir(self.tmp_job_dir)
+            foo, output, new = self.sage._so_far(wait=0.5)
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
             done = False
             if self.log_level > 2:
                 log.msg(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
-                log.msg("Don't worry, the above error " +
-                        " is a non-fatal SAGE failure")
+                log.msg("Don't worry, the RuntimeError above " +
+                        "is a non-fatal SAGE failure")
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
@@ -357,7 +357,6 @@ except:
             self.report_failure(new)
             self.restart()
             return
-
         sanitized_output = self.clean_output(new)
         if sanitized_output == '' and not done:
             self.increase_checker_task_timeout()
@@ -492,12 +491,13 @@ except:
                 self.sage = Sage()
             try:
                 self.sage._start(block_during_init=True)
-                self.sage._expect.delaybeforesend = 0.2
             except RuntimeError, msg: # Could not start SAGE
                 print msg
+                print 'Failed to start a worker, probably Expect issues.'
                 reactor.stop()
                 sys.exit(-1)
 
+        self.sage._get()
         self.get_job()
 
     def restart(self):
@@ -506,11 +506,14 @@ except:
 
         """
 
-        delta = datetime.datetime.now() - self.job_start_time
-        if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+        try:
+            delta = datetime.datetime.now() - self.job_start_time
+            if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+                self.stop(hard_reset=True)
+            else:
+                self.stop()
+        except TypeError:
             self.stop(hard_reset=True)
-        else:
-            self.stop()
         self.job_start_time = None
         self.start()
         self.reset_checker()
@@ -825,6 +828,11 @@ def usage():
                       dest='username',
                       default=getuser(),
                       help='username')
+    parser.add_option('--noblock',
+                      dest='noblock',
+                      action='store_true',
+                      help='tells that the server was ' +
+                           'started in blocking mode')
     (options, args) = parser.parse_args()
 
     return options
@@ -847,8 +855,12 @@ def main():
     monitor.start_looping_calls()
 
     try:
-        reactor.run()
+        if options.noblock:
+            reactor.run(installSignalHandlers=0)
+        else:
+            reactor.run(installSignalHandlers=1)
     except:
+        log.msg('Error starting the twisted reactor, exiting...')
         sys.exit()
 
 if __name__ == '__main__':

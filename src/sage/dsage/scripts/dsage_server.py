@@ -39,6 +39,7 @@ from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.config import get_bool
 
 def usage():
     """
@@ -72,7 +73,6 @@ def usage():
                            'default=~/.sage/dsage/dsage.xml')
     parser.add_option('--ssl',
                       dest='ssl',
-                      action='store_true',
                       default=True,
                       help='enable or disable ssl')
     parser.add_option('-k', '--privkey',
@@ -92,6 +92,11 @@ def usage():
                       type='int',
                       default=3,
                       help='sets the threshold for job failures')
+    parser.add_option('--noblock',
+                      dest='noblock',
+                      action='store_true',
+                      help='tells that the server was ' +
+                           'started in blocking mode')
 
     (options, args) = parser.parse_args()
 
@@ -108,6 +113,12 @@ def write_stats(dsage_server, stats_file):
         return
 
 def create_manhole():
+    """
+    This is a manhole backdoor to inspect a running server.
+    ONLY turn it on for debugging, otherwise you can get pwn3d.
+
+    """
+
     from twisted.manhole import telnet
     factory = telnet.ShellFactory()
     factory.username = 'yqiang'
@@ -149,7 +160,7 @@ def main(options):
 
     LOG_FILE = options.logfile
     LOG_LEVEL = options.loglevel
-    SSL = options.ssl
+    SSL = get_bool(options.ssl)
     SSL_PRIVKEY = options.privkey
     SSL_CERT = options.cert
     CLIENT_PORT = options.port
@@ -163,7 +174,7 @@ def main(options):
     # Job database
     jobdb = JobDatabaseSQLite(db_file=DB_FILE,
                               job_failure_threshold=FAILURE_THRESHOLD,
-                              log_file=LOG_FILE, log_level=LOG_FILE)
+                              log_file=LOG_FILE, log_level=LOG_LEVEL)
     # Worker database
     monitordb = MonitorDatabase(db_file=DB_FILE,
                                 log_file=LOG_FILE, log_level=LOG_LEVEL)
@@ -243,10 +254,15 @@ def main(options):
     log.msg('Listening on port: %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
+    # Code below can be turned on to do countrefs
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
     # reactor.callWhenRunning(create_manhole)
-    reactor.run(installSignalHandlers=1)
+
+    if options.noblock:
+        reactor.run(installSignalHandlers=0)
+    else:
+        reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
     options = usage()

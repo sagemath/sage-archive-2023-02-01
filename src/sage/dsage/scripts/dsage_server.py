@@ -40,6 +40,7 @@ from sage.dsage.server.server import DSageServer
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.config import get_bool
+from sage.dsage.misc.config import check_dsage_dir
 
 def usage():
     """
@@ -133,6 +134,8 @@ def startLogging(log_file):
     This method initializes the logging facilities for the server.
 
     """
+
+    check_dsage_dir()
 
     if log_file == 'stdout':
         log.startLogging(sys.stdout)

@@ -28,6 +28,15 @@ import uuid
 
 from sage.dsage.misc.misc import random_str
 
+
+def check_dsage_dir():
+    DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+    if os.path.exists(DSAGE_DIR):
+        return
+    else:
+        print "Creating " + DSAGE_DIR
+        os.mkdir(DSAGE_DIR)
+
 def check_version(old_version):
     from sage.dsage.__version__ import version
     if version != old_version:

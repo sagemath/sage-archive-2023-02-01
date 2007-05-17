@@ -25,18 +25,12 @@ import sys
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.misc.constants import DELIMITER as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.confg import check_dsage_dir
 from sage.dsage.__version__ import version
 
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')
 SAGE_ROOT = os.getenv('SAGE_ROOT')
 DSAGE_VERSION = version
-
-def check_dsage_dir():
-    if os.path.exists(DSAGE_DIR):
-        return
-    else:
-        print "Creating " + DSAGE_DIR
-        os.mkdir(DSAGE_DIR)
 
 def get_config(type):
     config = ConfigParser.ConfigParser()

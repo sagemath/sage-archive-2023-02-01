@@ -178,9 +178,10 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
-                               '--privkey %s --pubkey %s --priority %s'
+                               '--privkey=%s --pubkey=%s --priority=%s ' + \
+                               '--ssl=%s'
         cmd = cmd % (server, port, username, workers, delay, log_level,
-                     log_file, privkey, pubkey, priority)
+                     log_file, privkey, pubkey, priority, ssl)
 
         if not blocking:
             cmd += ' --noblock'

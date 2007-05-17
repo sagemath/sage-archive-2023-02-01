@@ -699,7 +699,8 @@ cdef class ETuple:
         """
         x.__getitem__(i) <==> x[i]
         """
-        return self._data.get(i,0)
+
+        return self._data.get(i%self._length,0)
 
     def __getslice__(ETuple self, Py_ssize_t i, Py_ssize_t j):
         """

@@ -2295,7 +2295,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         while p:
             t = pNext(p)
             p.next = NULL
-            p_SetCoeff(p, n_Init(int(1),_ring), _ring)
+            p_SetCoeff(p, n_Init(1,_ring), _ring)
             p_Setm(p, _ring)
             l.append( new_MP(parent,p) )
             p = t
@@ -2542,7 +2542,7 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
         cdef ring *_ring
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
         _p = p_Head(self._poly, _ring)
-        p_SetCoeff(_p, n_Init(int(1),_ring), _ring)
+        p_SetCoeff(_p, n_Init(1,_ring), _ring)
         p_Setm(_p,_ring)
         return new_MP((<MPolynomialRing_libsingular>self._parent), _p)
 

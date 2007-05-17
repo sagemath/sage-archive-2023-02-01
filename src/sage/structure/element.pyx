@@ -294,13 +294,13 @@ cdef class Element(sage_object.SageObject):
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: f.subs({x:5})
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: f.subs(x=5)
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: (1/f).subs(x=5)
-            1/(30 + y + 25*y^2)
+            1/(25*y^2 + y + 30)
             sage: Integer(5).subs(x=4)
             5
         """
@@ -337,13 +337,13 @@ cdef class Element(sage_object.SageObject):
             sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
             sage: f = x^2 + y + x^2*y^2 + 5
             sage: f((5,y))
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: f.substitute({x:5})
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: f.substitute(x=5)
-            30 + y + 25*y^2
+            25*y^2 + y + 30
             sage: (1/f).substitute(x=5)
-            1/(30 + y + 25*y^2)
+            1/(25*y^2 + y + 30)
             sage: Integer(5).substitute(x=4)
             5
          """

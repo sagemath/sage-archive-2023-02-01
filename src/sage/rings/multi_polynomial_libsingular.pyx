@@ -980,6 +980,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if(self._ring != currRing): rChangeCurrRing(self._ring)
 
         pLcm(f._poly, g._poly, m)
+        p_Setm(m, self._ring)
         return new_MP(self,m)
 
     def monomial_reduce(self, MPolynomial_libsingular f, G):
@@ -1091,6 +1092,42 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             if p_GetExp(p,i,r) and p_GetExp(q,i,r):
                 return False
         return True
+
+
+
+    def monomial_all_divisors(self, MPolynomial_libsingular t):
+        """
+        Return a list of all monomials that divide t, coefficients are
+        ignored.
+
+        INPUT:
+            t -- a monomial
+
+        OUTPUT:
+            a list of monomials
+
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: P.monomial_all_divisors(x^2*z^3)
+            [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
+
+        ALGORITHM: addwithcarry idea by Toon Segers
+        """
+
+        M = list()
+
+        cdef ring *_ring = self._ring
+        cdef poly *maxvector = t._poly
+        cdef poly *tempvector = p_ISet(1, _ring)
+
+        pos = 1
+
+        while not p_ExpVectorEqual(tempvector, maxvector, _ring):
+          tempvector = addwithcarry(tempvector, maxvector, pos, _ring)
+          M.append(new_MP(self, p_Copy(tempvector,_ring)))
+        return M
 
 
 
@@ -2804,17 +2841,37 @@ cdef class MPolynomial_libsingular(sage.rings.multi_polynomial.MPolynomial):
 
         return new_MP((<MPolynomialRing_libsingular>self._parent), _res)
 
-##     def lcm(self, MPolynomial_libsingular g):
-##         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
-##         cdef poly *ret
-##         if(_ring != currRing): rChangeCurrRing(_ring)
+    def lcm(self, MPolynomial_libsingular g):
+        """
+        Return the least common multiple of self and g.
 
-##         if self._parent is not g._parent:
-##             g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+        INPUT:
+            g -- polynomial
 
-##         # This guy calculates on napoly not poly
-##         ret = singclap_alglcm(self._poly, (<MPolynomial_libsingular>g)._poly)
-##         return new_MP(self._parent, ret)
+        OUTPUT:
+            polynomial
+
+        EXAMPLE:
+            sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
+            sage: P.<x,y,z> = MPolynomialRing_libsingular(QQ,3)
+            sage: p = (x+y)*(y+z)
+            sage: q = (z^4+2)*(y+z)
+            sage: lcm(p,q)
+            x*y*z^4 + y^2*z^4 + x*z^5 + y*z^5 + 2*x*y + 2*y^2 + 2*x*z + 2*y*z
+
+        NOTE: This only works for GF(p) and QQ as base rings
+        """
+        cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
+        cdef poly *ret
+        if(_ring != currRing): rChangeCurrRing(_ring)
+
+        if self._parent is not g._parent:
+            g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
+
+        ret = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
+        ret = singclap_pdivide( pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring),
+                                ret )
+        return new_MP(self._parent, ret)
 
     def is_square_free(self):
         """
@@ -3129,3 +3186,13 @@ def unpickle_MPolynomial_libsingular(MPolynomialRing_libsingular R, d):
         p_Setm(m,r)
         p = p_Add_q(p,m,r)
     return new_MP(R,p)
+
+
+cdef poly *addwithcarry(poly *tempvector, poly *maxvector, int pos, ring *_ring):
+    if p_GetExp(tempvector, pos, _ring) < p_GetExp(maxvector, pos, _ring):
+      p_SetExp(tempvector, pos, p_GetExp(tempvector, pos, _ring)+1, _ring)
+    else:
+      p_SetExp(tempvector, pos, 0, _ring)
+      tempvector = addwithcarry(tempvector, maxvector, pos + 1, _ring)
+    p_Setm(tempvector, _ring)
+    return tempvector

@@ -5,8 +5,8 @@ on their system:
 WARNING: Currently these non-blocking startups leave processes
 hanging around!
 
-   sage: dsage.server(blocking=False, verbose=False)
-   sage: dsage.worker(blocking=False, verbose=False)
+   sage: dsage.server(blocking=False, verbose=False, ssl=False)
+   sage: dsage.worker(blocking=False, verbose=False, ssl=False)
    sage: d = DSage()
    sage: sleep(0.5)
    sage: a = d('2 + 3')

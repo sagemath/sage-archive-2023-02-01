@@ -121,8 +121,7 @@ class Worker(object):
             self.doJob(self.job)
         except Exception, msg:
             log.msg(msg)
-            d = self.remoteobj.callRemote('job_failed', self.job.job_id, msg)
-            d.addErrback(self._catch_failure)
+            self.report_failure(msg)
             self.restart()
 
     def job_done(self, output, result, completed):
@@ -366,11 +365,21 @@ except:
             d.addErrback(self._catch_failure)
 
     def report_failure(self, failure):
+        """
+        Reports failure of a job.
+
+        """
+
+        import shutil
+        shutil.move(self.tmp_job_dir, self.tmp_job_dir + '_failed')
+
         msg = 'Job %s failed!' % (self.job.job_id)
         log.msg(LOG_PREFIX % self.id + msg)
         log.msg('Traceback: \n%s' % failure)
         d = self.remoteobj.callRemote('job_failed', self.job.job_id, failure)
         d.addErrback(self._catch_failure)
+
+        return d
 
     def increase_checker_task_timeout(self):
         """

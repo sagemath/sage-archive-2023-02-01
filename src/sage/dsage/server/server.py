@@ -166,6 +166,9 @@ class DSageServer(pb.Root):
         if jdict['name'] is None:
             jdict['name'] = 'Default'
 
+        # New jobs should not have a job_id
+        jdict['job_id'] = None
+
         jdict['update_time'] = datetime.datetime.now()
 
         return self.jobdb.store_job(jdict)

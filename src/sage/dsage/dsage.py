@@ -102,7 +102,7 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, log_level=0, verbose=True):
+    def start_all(self, port=8081, workers=2, log_level=0, verbose=True):
         """
         Start the server and worker and returns a connection to the server.
 
@@ -112,8 +112,8 @@ class DistributedSage(object):
 
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
-        self.worker(port=port, log_level=log_level, blocking=False,
-                    verbose=verbose)
+        self.worker(port=port, workers=workers, log_level=log_level,
+                    blocking=False, verbose=verbose)
 
         import time
         time.sleep(1)  # Allow the server to start completely before trying

@@ -464,18 +464,19 @@ cdef class Matrix(sage.structure.element.Matrix):
     def __iter__(self):
         return matrix_misc.row_iterator(self)
 
-    def __getitem__(self, ij):
+    def __getitem__(self, key):
         """
-        Return element or row of self.
+        Return element, row, or slice of self.
 
         INPUT:
-            ij -- tuple (i,j) with i, j integers
-        or
-            ij -- integer
+            key -- tuple (i,j) with i, j integers
+         or key -- integer
+         or key -- slice object, created via [i:j]
 
         USAGE:
-            A[i, j] -- the i,j of A, and
-            A[i]    -- the i-th row of A.
+            A[i, j] -- the i,j of A, or
+            A[i]    -- the i-th row of A, or
+            A[i:j]  -- the i-th through (j-1)-st rows of A.
 
         EXAMPLES:
             sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
@@ -500,44 +501,41 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             IndexError: matrix index out of range
-        """
-        cdef Py_ssize_t i, j
-        cdef object x
 
-        if PyTuple_Check(ij):
-            # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
-                raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
-            self.check_bounds(i, j)
-            return self.get_unsafe(i, j)
-        else:
-            # If ij is not a tuple, coerce to an integer and get the row.
-            i = ij
-            return self.row(i)
-
-    def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
-        """
-        Returns a submatrix of this matrix got from the i-th through j-th rows.
-
-        USAGE:
-            A[i:j] -- return submatrix from those rows.
-
-        EXAMPLES:
             sage: n=10;a=matrix(QQ,n,range(n^2))
             sage: a[0:3]
             [ 0  1  2  3  4  5  6  7  8  9]
             [10 11 12 13 14 15 16 17 18 19]
             [20 21 22 23 24 25 26 27 28 29]
+            sage: a[:2]
+            [ 0  1  2  3  4  5  6  7  8  9]
+            [10 11 12 13 14 15 16 17 18 19]
+            sage: a[8:]
+            [80 81 82 83 84 85 86 87 88 89]
+            [90 91 92 93 94 95 96 97 98 99]
+
+            sage: a[9]
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+            sage: a[-1]
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
         """
-        if i < 0: i = self._nrows + i
-        if j < 0: j = self._nrows + j
-        if i >= self._nrows:
-            i = self._nrows - 1
-        if j >= self._nrows:
-            j = self._nrows - 1
-        return self.matrix_from_rows(range(i,j))
+        cdef Py_ssize_t i, j
+        cdef object x
+
+        if PyTuple_Check(key):
+            # key is a tuple, so we get i and j efficiently, construct corresponding integer entry.
+            if PyTuple_Size(key) != 2:
+                raise IndexError, "index must be an integer or pair of integers"
+            i = <object> PyTuple_GET_ITEM(key, 0)
+            j = <object> PyTuple_GET_ITEM(key, 1)
+            self.check_bounds(i, j)
+            return self.get_unsafe(i, j)
+        elif isinstance(key, slice):
+            # Slice interpretation is passed to the sequence constructed by range
+            return self.matrix_from_rows(range(0, self._nrows).__getitem__(key))
+        else:
+            # If key is not a tuple, coerce to an integer and get the row.
+            return self.row(int(key))
 
     def __setitem__(self, ij, x):
         """

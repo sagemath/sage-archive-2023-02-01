@@ -240,6 +240,13 @@ def main(options):
         except (SystemError, error.CannotListenError):
             attempts += 1
             NEW_CLIENT_PORT += 1
+        except Exception, msg:
+            if SSL:
+                print 'Error starting server with SSL enabled, please ' + \
+                      'check your configuration'
+            else:
+                print 'Error starting server, please check your configuration'
+            print msg
 
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)

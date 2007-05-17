@@ -589,9 +589,9 @@ class JobWrapper(object):
 
     def __repr__(self):
         if self._job.status == 'completed' and not self._job.output:
-            return 'No output.'
+            return 'No output. (Done)'
         elif not self._job.output:
-            return 'No output yet.'
+            return 'No output yet. (Not done)'
 
         return self._job.output
 

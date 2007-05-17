@@ -115,6 +115,9 @@ class DistributedSage(object):
         self.worker(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
 
+        import time
+        time.sleep(1)  # Allow the server to start completely before trying
+                       # to connect
         d = BlockingDSage(server='localhost', port=port)
 
         return d

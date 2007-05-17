@@ -469,6 +469,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         self._normalize()
         right._normalize()
         zzpoly = self._poly * right._poly
+        if len(self._relprecs) == 0 or len(right._relprecs) == 0:
+            return self.parent()(0)
         n = Integer(len(self._relprecs) + len(right._relprecs) - 1).exact_log(2) + 1
         precpoly1 = self._getprecpoly(n) * right._getvalpoly(n)
         precpoly2 = self._getvalpoly(n) * right._getprecpoly(n)

@@ -247,6 +247,7 @@ def main(options):
             else:
                 print 'Error starting server, please check your configuration'
             print msg
+            break
 
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)

@@ -43,6 +43,7 @@ from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
+from sage.dsage.misc.config import get_bool
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
@@ -801,9 +802,8 @@ def usage():
                       help='log level. default=0')
     parser.add_option('--ssl',
                       dest='ssl',
-                      action='store_true',
                       default=True,
-                      help='enable or disable ssl. default=True')
+                      help='enable or disable ssl')
     parser.add_option('--privkey',
                       dest='privkey_file',
                       default=os.path.join(DSAGE_DIR, 'dsage_key'),
@@ -831,6 +831,7 @@ def usage():
     parser.add_option('--noblock',
                       dest='noblock',
                       action='store_true',
+                      default=False,
                       help='tells that the server was ' +
                            'started in blocking mode')
     (options, args) = parser.parse_args()
@@ -839,10 +840,11 @@ def usage():
 
 def main():
     options = usage()
+    SSL = get_bool(options.ssl)
     monitor = Monitor(server=options.server,
                       port=options.port,
                       username=options.username,
-                      ssl=options.ssl,
+                      ssl=SSL,
                       workers=options.workers,
                       anonymous=options.anonymous,
                       priority=options.priority,
@@ -853,7 +855,6 @@ def main():
                       privkey_file=options.privkey_file)
     monitor.connect()
     monitor.start_looping_calls()
-
     try:
         if options.noblock:
             reactor.run(installSignalHandlers=0)

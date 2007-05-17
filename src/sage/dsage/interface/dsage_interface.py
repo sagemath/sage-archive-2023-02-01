@@ -382,35 +382,6 @@ class BlockingDSage(DSage):
         self.log_level = log_level
         self.privkey_file = privkey_file
         self.pubkey_file = pubkey_file
-
-        # if server is None:
-        #     self.server = self.conf['server']
-        # else:
-        #     self.server = server
-        # if port is None:
-        #     if self.server == 'localhost':
-        #         conf = get_conf(type='server')
-        #         self.port = int(conf['client_port'])
-        #     else:
-        #         self.port = int(self.conf['port'])
-        # else:
-        #     self.port = port
-        # if username is None:
-        #     self.username = self.conf['username']
-        # else:
-        #     self.username = username
-        # if pubkey_file is None:
-        #     self.pubkey_file = self.conf['pubkey_file']
-        # else:
-        #     self.pubkey_file = pubkey_file
-        # if privkey_file is None:
-        #     self.privkey_file = self.conf['privkey_file']
-        # else:
-        #     self.privkey_file = privkey_file
-        #
-        # self.data = self.conf['data']
-        # self.ssl = get_bool(self.conf['ssl'])
-        # self.log_level = int(self.conf['log_level'])
         self.remoteobj = None
         self.result = None
 

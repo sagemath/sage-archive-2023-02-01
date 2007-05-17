@@ -25,7 +25,7 @@ import sys
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.misc.constants import DELIMITER as DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
-from sage.dsage.misc.confg import check_dsage_dir
+from sage.dsage.misc.config import check_dsage_dir
 from sage.dsage.__version__ import version
 
 DB_DIR = os.path.join(DSAGE_DIR, 'db/')

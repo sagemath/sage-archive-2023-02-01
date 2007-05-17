@@ -494,7 +494,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
             sage: f = x*y^2
             sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
             sage: P.monomial_reduce(f,G)
-            (1/4*x*y + 2/7, y)
+            (y, 1/4*x*y + 2/7)
 
         TESTS:
             sage: from sage.rings.multi_polynomial_ring import MPolynomialRing_polydict_domain
@@ -514,7 +514,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
         for g in G:
             t = g.lm()
             if self.monomial_is_divisible_by(f,t):
-                return g,self.monomial_quotient(f,t)
+                return self.monomial_quotient(f,t),g
         return 0,0
 
 

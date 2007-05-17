@@ -985,7 +985,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
     def monomial_reduce(self, MPolynomial_libsingular f, G):
         """
-        Try to find a g in G where g.lm() divides f. If found (g,flt)
+        Try to find a g in G where g.lm() divides f. If found (flt,g)
         is returned, (0,0) otherwise, where flt is f/g.lm().
 
         It is assumed that G is iterable and contains ONLY elements in
@@ -1001,7 +1001,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: f = x*y^2
             sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, 1/2  ]
             sage: P.monomial_reduce(f,G)
-            (1/4*x*y + 2/7, y)
+            (y, 1/4*x*y + 2/7)
 
         TESTS:
             sage: from sage.rings.multi_polynomial_libsingular import MPolynomialRing_libsingular
@@ -1030,7 +1030,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 flt = pDivide(f._poly, (<MPolynomial_libsingular>g)._poly)
                 #p_SetCoeff(flt, n_Div( p_GetCoeff(f._poly, r) , p_GetCoeff((<MPolynomial_libsingular>g)._poly, r), r), r)
                 p_SetCoeff(flt, n_Init(1, r), r)
-                return g, new_MP(self,flt)
+                return new_MP(self,flt), g
         return self._zero,self._zero
 
     def monomial_pairwise_prime(self, MPolynomial_libsingular g, MPolynomial_libsingular h):

@@ -7,7 +7,7 @@ hanging around!
 
    sage: dsage.server(blocking=False, verbose=False, ssl=False)
    sage: dsage.worker(blocking=False, verbose=False, ssl=False)
-   sage: d = DSage()
+   sage: d = DSage(ssl=False)
    sage: sleep(0.5)
    sage: a = d('2 + 3')
    sage: a.wait()

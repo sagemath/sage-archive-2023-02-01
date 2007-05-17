@@ -4376,17 +4376,17 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
+            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
-             (1 + O(5^20))*t + O(t^2)
+             (1 + O(5))*t + O(t^2)
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
-             (1 + O(5^20))*t + (3 + O(5))*t^2 + O(t^3)
+             (1 + O(5^2))*t + (3 + O(5))*t^2 + O(t^3)
 
           Supply your very own value of E2:
             sage: X = EllipticCurve("37a")
@@ -4658,10 +4658,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         frob_p_n = frob_p**prec
 
-        # todo: write a coercion operator from integers mod p^n to the
-        # p-adic field (it doesn't seem to currently exist)
-        # see trac #4
-
         # todo: think about the sign of this. Is it correct?
         output_ring = rings.pAdicField(p, prec)
 
@@ -4755,6 +4751,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             frob_p = monsky_washnitzer.matrix_of_frobenius(
                              Q, p, adjusted_prec, trace)
 
+
         else:   # algorithm == "sqrtp"
             base_ring = rings.Integers(p**prec)
             output_ring = rings.pAdicField(p, prec)
@@ -4766,6 +4763,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             trace = self.ap(p)
             check = True
 
+
+        return frob_p
 
         if check:
             trace_of_frobenius = frob_p.trace().lift() % p**prec

@@ -113,6 +113,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         # todo: doctests for converting from other types of p-adic rings
 
         """
+        #print "x = %s, type = %s, absprec = %s, relprec = %s"%(x, type(x),absprec, relprec)
         cdef RingElement ordp
         mpz_init(self.unit)
         pAdicGenericElement.__init__(self, parent)
@@ -179,12 +180,14 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         cdef mpz_t modulus
         cdef Integer tmp
-        cdef int k
+        cdef unsigned long k
         if sage.rings.integer_mod.is_IntegerMod(x):
             mpz_init_set(modulus, (<Integer>x.modulus()).value)
             k = mpz_remove(modulus, modulus, self.prime_pow.prime.value)
             if mpz_cmp_ui(modulus, 1) == 0:
-                absprec = min(k, absprec)
+                tmp = PY_NEW(Integer)
+                mpz_set_ui(tmp.value, k)
+                absprec = min(tmp, absprec)
                 x = x.lift()
                 mpz_clear(modulus)
             else:

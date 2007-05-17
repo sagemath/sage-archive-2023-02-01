@@ -241,20 +241,21 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             _sig_off
         return ans
 
-    cdef ModuleElement _add_c_impl(self, ModuleElement right):
+    cdef ModuleElement _add_c_impl(self, ModuleElement _right):
         cdef pAdicCappedAbsoluteElement ans
+        cdef pAdicCappedAbsoluteElement right = <pAdicCappedAbsoluteElement> _right
         ans = self._new_c()
-        if self.absprec < (<pAdicCappedAbsoluteElement>right).absprec:
+        if self.absprec < right.absprec:
             ans.absprec = self.absprec
         else:
-            ans.absprec = (<pAdicCappedAbsoluteElement>right).absprec
-        mpz_add(ans.value, self.value, (<pAdicCappedAbsoluteElement>right).value)
+            ans.absprec = right.absprec
+        mpz_add(ans.value, self.value, right.value)
         if mpz_cmp(ans.value, self.prime_pow.dense_list[ans.absprec]) >= 0:
             mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
         return ans
 
     cdef RingElement _div_c_impl(self, RingElement right):
-        return self * (<pAdicCappedAbsoluteElement>right)._invert_c_impl()
+        return self * (~right)
 
     def __lshift__(pAdicCappedAbsoluteElement self, shift):
         """
@@ -367,7 +368,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             return self
 
-    cdef RingElement _mul_c_impl(self, RingElement right):
+    cdef RingElement _mul_c_impl(self, RingElement _right):
         """
         EXAMPLES:
         sage: R = ZpCA(5)
@@ -375,14 +376,15 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         2*5^3 + 2*5^4 + O(5^5)
         """
         cdef pAdicCappedAbsoluteElement ans
+        cdef pAdicCappedAbsoluteElement right = <pAdicCappedAbsoluteElement> _right
         cdef unsigned long sval, rval, prec1, prec2, prec_cap
-        ans = (<pAdicCappedAbsoluteElement>self)._new_c()
+        ans = self._new_c()
         prec_cap = self.prime_pow._cache_limit
-        sval = (<pAdicCappedAbsoluteElement>self).valuation_c()
-        rval = (<pAdicCappedAbsoluteElement>right).valuation_c()
+        sval = self.valuation_c()
+        rval = right.valuation_c()
         # Need to think about the possibility that the following overflows (too big for long).
-        prec1 = sval + (<pAdicCappedAbsoluteElement>right).absprec
-        prec2 = rval + (<pAdicCappedAbsoluteElement>self).absprec
+        prec1 = sval + right.absprec
+        prec2 = rval + self.absprec
         if prec1 < prec2:
             if prec_cap < prec1:
                 ans.set_precs(prec_cap)
@@ -393,18 +395,19 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 ans.set_precs(prec_cap)
             else:
                 ans.set_precs(prec2)
-        mpz_mul(ans.value, self.value, (<pAdicCappedAbsoluteElement>right).value)
+        mpz_mul(ans.value, self.value, right.value)
         mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
         return ans
 
-    cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+    cdef ModuleElement _sub_c_impl(self, ModuleElement _right):
         cdef pAdicCappedAbsoluteElement ans
+        cdef pAdicCappedAbsoluteElement right = <pAdicCappedAbsoluteElement> _right
         ans = self._new_c()
-        if self.absprec < (<pAdicCappedAbsoluteElement>right).absprec:
+        if self.absprec < right.absprec:
             ans.absprec = self.absprec
         else:
-            ans.absprec = (<pAdicCappedAbsoluteElement>right).absprec
-        mpz_sub(ans.value, self.value, (<pAdicCappedAbsoluteElement>right).value)
+            ans.absprec = right.absprec
+        mpz_sub(ans.value, self.value, right.value)
         if mpz_sgn(ans.value) == -1 or mpz_cmp(ans.value, self.prime_pow.dense_list[ans.absprec]) >= 0:
             mpz_mod(ans.value, ans.value, self.prime_pow.dense_list[ans.absprec])
         return ans
@@ -425,9 +428,12 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long newprec
+        cdef Integer _absprec
         if not PY_TYPE_CHECK(absprec, Integer):
-            absprec = Integer(absprec)
-        if mpz_fits_ulong_p((<Integer>absprec).value) == 0:
+            _absprec = Integer(absprec)
+        else:
+            _absprec = <Integer>absprec
+        if mpz_fits_ulong_p(_absprec.value) == 0:
             if mpz_sgn((<Integer>prec).value) == -1:
                 ans = self._new_c()
                 ans.set_precs(0)
@@ -435,7 +441,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
                 return ans
             else:
                 return self
-        newprec = mpz_get_ui((<Integer>absprec).value)
+        newprec = mpz_get_ui(_absprec.value)
         if newprec >= self.absprec:
             return self
         elif newprec <= 0:
@@ -477,14 +483,17 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         """
         if absprec is None:
             return bool(mpz_sgn(self.value) == 0)
+        cdef Integer _absprec
         if not PY_TYPE_CHECK(absprec, Integer):
-            absprec = Integer(absprec)
-        if mpz_cmp_ui((<Integer>absprec).value, self.absprec) > 0:
+            _absprec = Integer(absprec)
+        else:
+            _absprec = <Integer>absprec
+        if mpz_cmp_ui(_absprec.value, self.absprec) > 0:
             raise PrecisionError, "Not enough precision to determine if element is zero"
         cdef mpz_t tmp
         mpz_init(tmp)
         cdef unsigned long aprec
-        aprec = mpz_get_ui((<Integer>absprec).value)
+        aprec = mpz_get_ui(_absprec.value)
         mpz_mod(tmp, self.value, self.prime_pow.dense_list[aprec])
         if mpz_sgn(tmp) == 0:
             mpz_clear(tmp)

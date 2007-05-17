@@ -569,14 +569,14 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             fdiv = self.base_ring().prime_pow(shift)
             return Polynomial_padic_capped_relative_dense(self.parent(), (self._poly // fdiv, 0, [0 if a <= shift else a - shift for a in self._relprecs], False, None, None), construct = True)
 
-    def __floordiv__(self, right):
-        if is_Polynomial(right) and right.is_constant() and right[0] in self.base_ring():
-            d = self.base_ring()(right[0])
-        elif (right in self.base_ring()):
-            d = self.base_ring()(right)
-        else:
-            raise NotImplementedError
-        return self._rmul_(self.base_ring()(~d.unit_part())).rshift_coeffs(d.valuation())
+    #def __floordiv__(self, right):
+    #    if is_Polynomial(right) and right.is_constant() and right[0] in self.base_ring():
+    #        d = self.base_ring()(right[0])
+    #    elif (right in self.base_ring()):
+    #        d = self.base_ring()(right)
+    #    else:
+    #        raise NotImplementedError
+    #    return self._rmul_(self.base_ring()(~d.unit_part())).rshift_coeffs(d.valuation())
 
     def _unsafe_mutate(self, n, value):
         """
@@ -654,6 +654,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         """
         Returns the degree of self, ie the largest n so that the coefficient of x^n is distinguishable from 0.
         """
+	self._normalize()
         return self._poly.degree()
 
     def prec_degree(self):
@@ -835,31 +836,31 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         g = right.base_extend(K)
         if g == 0:
             raise ZeroDivisionError, "cannot divide by a polynomial indistinguishable from 0"
-        x = self.parent().gen()
-        quo = self.parent()(0)
+        x = f.parent().gen()
+        quo = f.parent()(0)
         while f.degree() >= g.degree():
             a = f.leading_coefficient() / g.leading_coefficient()
             quo = quo + a * (x ** (f.degree() - g.degree()))
             f = f - a * (x ** (f.degree() - g.degree())) * g
         return (quo, f)
 
-    def gcd(self, right):
-        raise NotImplementedError
+    #def gcd(self, right):
+    #    raise NotImplementedError
 
-    def lcm(self, right):
-        raise NotImplementedError
+    #def lcm(self, right):
+    #    raise NotImplementedError
 
     def xgcd(self, right):
-        raise NotImplementedError
+        return self._xgcd(right)
 
-    def discriminant(self):
-        raise NotImplementedError
+    #def discriminant(self):
+    #    raise NotImplementedError
 
     def disc(self):
         return self.discriminant()
 
-    def resultant(self):
-        raise NotImplementedError
+    #def resultant(self):
+    #    raise NotImplementedError
 
     def newton_slopes(self):
         """

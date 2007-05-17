@@ -44,7 +44,7 @@ class pAdicLseries(SageObject):
         3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L.series(2)
         WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.
-        ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T + ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T^2 + O(T^3)
+        ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
 
     An ordinary example:
         sage: e = EllipticCurve('389a')
@@ -477,9 +477,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: L = EllipticCurve('37a').padic_lseries(3)
             sage: L.series(2)
             WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.
-            ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T + ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T^2 + O(T^3)
+            ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
             sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + 3 + O(3^3)
+            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
         n = ZZ(n)
         if n < 1:

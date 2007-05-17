@@ -1692,6 +1692,9 @@ def is_FieldElement(x):
 
 cdef class FieldElement(CommutativeRingElement):
 
+    def __floordiv__(self, other):
+        return self / other
+
     def is_unit(self):
         """
         Return True if self is a unit in its parent ring.

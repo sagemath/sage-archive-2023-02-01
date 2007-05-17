@@ -122,7 +122,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         # try to use about 51 bits of our 32-bit value.  Similarly
         # bad things would happen on a 64-bit machine with RealField(65).)
         log2 = 0.301029995665
-        digits = int(log2 * z.prec())
+        digits = int(log2 * z.prec()) - 2
         if known_bits is not None:
             known_digits = log2 * known_bits
         if known_digits is not None:

@@ -26,8 +26,8 @@ def DSage(server='localhost', port=8081,
           username=os.getenv('USER'),
           pubkey_file=os.path.join(DSAGE_DIR,'dsage_key.pub'),
           privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
-          log_level = 0,
-          ssl = True):
+          log_level=0,
+          ssl=True):
       """
       This object represents a connection to the distributed SAGE server.
 

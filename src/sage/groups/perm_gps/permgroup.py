@@ -531,8 +531,23 @@ class PermutationGroup_generic(group.FiniteGroup):
            sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
            sage: G.orbits()
            [[1, 3, 4], [2]]
+           sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
+           sage: G.orbits()
+           [[1, 2, 3, 4, 10], [5], [6], [7], [8], [9]]
+
+        The answer is cached:
+           sage: G.orbits() is G.orbits()
+           True
+
+        AUTHOR:
+             -- Nathan Dunfield
         """
-        return self._gap_().Orbits("[1..%d]" % self.largest_moved_point()).sage()
+        try:
+            return self.__orbits
+        except AttributeError:
+            O = self._gap_().Orbits("[1..%d]" % self.largest_moved_point()).sage()
+            self.__orbits = O
+            return O
 
     def _repr_(self):
         G = self.gens()

@@ -335,7 +335,7 @@ except:
             log.msg(LOG_PREFIX % self.id + msg)
         try:
             os.chdir(self.tmp_job_dir)
-            foo, output, new = self.sage._so_far(wait=0.5)
+            foo, output, new = self.sage._so_far(wait=0.1)
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
@@ -446,6 +446,15 @@ except:
         else:
             return False
 
+    def kill_sage(self):
+        try:
+            pid = self.sage.pid()
+            cmd = 'kill -9 -%s'%pid
+            os.system(cmd)
+            self.start()
+        except Exception, msg:
+            self.start()
+
     def stop(self, hard_reset=False):
         """
         Stops the current worker and resets it's internal state.
@@ -454,8 +463,7 @@ except:
 
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
-            self.sage.quit()
-            self.sage = Sage()
+            self.kill_sage()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -478,10 +486,8 @@ except:
                 log.msg(LOG_PREFIX % self.id + "Performing hard reset.")
 
             if not success:
-                pid = self.sage.pid()
-                cmd = 'kill -9 -%s'%pid
-                os.system(cmd)
-                self.sage = Sage()
+                self.kill_sage()
+                self.start()
             else:
                 self.sage.reset()
         self.free = True
@@ -496,9 +502,9 @@ except:
         if not hasattr(self, 'sage'):
             if self.log_level > 3:
                 logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
-                self.sage = Sage(logfile=logfile)
+                self.sage = Sage(maxread=1, logfile=logfile)
             else:
-                self.sage = Sage()
+                self.sage = Sage(maxread=1)
             try:
                 self.sage._start(block_during_init=True)
             except RuntimeError, msg: # Could not start SAGE

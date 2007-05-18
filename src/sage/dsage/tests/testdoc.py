@@ -4,11 +4,12 @@ on their system:
 
 WARNING: Currently these non-blocking startups leave processes
 hanging around!
-
-   sage: dsage.server(blocking=False, verbose=False, ssl=False)
-   sage: dsage.worker(blocking=False, verbose=False, ssl=False)
-   sage: d = DSage(ssl=False)
-   sage: sleep(0.5)
+   sage: port = randint(8000, 9000)
+   sage: dsage.server(blocking=False, port=port, verbose=False, ssl=False)
+   sage: dsage.worker(blocking=False, port=port, verbose=False, ssl=False)
+   sage: sleep(1.0)
+   sage: d = DSage(port=port, ssl=False)
+   sage: sleep(1.0)
    sage: a = d('2 + 3')
    sage: a.wait()
    sage: a

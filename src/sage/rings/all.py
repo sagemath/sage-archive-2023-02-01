@@ -85,6 +85,9 @@ from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleEl
 # Quad double
 from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
 
+# Polynomial Rings and Polynomial Quotient Rings
+from polynomial.all import *
+
 # Algebraic reals (the intersection of the algebraic closure of the rationals
 # with the reals)
 from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
@@ -101,9 +104,6 @@ from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
-
-# Polynomial Rings and Polynomial Quotient Rings
-from polynomial.all import *
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing

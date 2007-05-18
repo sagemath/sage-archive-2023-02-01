@@ -215,10 +215,8 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             sage: print latex(f)
             5 x_{1}^{10} + x_{0}^{3}
         """
-        try:
-            return self.__latex_variable_names
-        except AttributeError:
-            pass
+        if self._latex_names is not None:
+            return self._latex_names
         names = []
         for g in self.variable_names():
             i = len(g)-1
@@ -227,7 +225,7 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             if i < len(g)-1:
                 g = '%s_{%s}'%(g[:i+1], g[i+1:])
             names.append(g)
-        self.__latex_variable_names = names
+        self._latex_names = names
         return names
 
     def __reduce__(self):

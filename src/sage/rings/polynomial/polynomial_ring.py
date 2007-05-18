@@ -318,7 +318,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         elif self.__is_sparse:
             self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse
         else:
-            self.__polynomial_class = polynomial_element_generic.Polynomial_generic_dense
+            self.__polynomial_class = polynomial_element.Polynomial_generic_dense
 
     def base_extend(self, R):
         """
@@ -921,7 +921,7 @@ def polygens(base_ring, names="x"):
     EXAMPLES:
         sage: x,y,z = polygens(QQ,'x,y,z')
         sage: (x+y+z)^2
-        z^2 + 2*y*z + y^2 + 2*x*z + 2*x*y + x^2
+        x^2 + 2*x*y + y^2 + 2*x*z + 2*y*z + z^2
         sage: parent(x)
         Polynomial Ring in x, y, z over Rational Field
         sage: t = polygens(QQ,['x','yz','abc'])

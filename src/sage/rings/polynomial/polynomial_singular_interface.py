@@ -36,6 +36,7 @@ from sage.rings.complex_double import is_ComplexDoubleField
 from sage.rings.real_double import is_RealDoubleField
 from sage.rings.integer_ring import ZZ
 import sage.rings.arith
+import sage.rings.ring
 
 class PolynomialRing_singular_repr:
     """
@@ -211,9 +212,8 @@ class PolynomialRing_singular_repr:
 
         GF(p), GF(p^n), Rationals, Reals, and Complexes are supported.
         """
-        import sage.rings.finite_field as finite_field
         base_ring = self.base_ring()
-        return ( finite_field.is_FiniteField(base_ring)
+        return ( sage.rings.ring.is_FiniteField(base_ring)
                  or base_ring.is_prime_field()
                  or is_RealField(base_ring)
                  or is_ComplexField(base_ring)
@@ -263,11 +263,11 @@ class Polynomial_singular_repr:
             True
             sage: R.<x,y> = PolynomialRing(GF(7), 2)
             sage: f = (x^3 + 2*y^2*x)^7; f
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: h = f._singular_(); h
             x^21+2*x^7*y^14
             sage: R(h)
-            2*x^7*y^14 + x^21
+            x^21 + 2*x^7*y^14
             sage: R(h^20) == f^20
             True
         """
@@ -315,7 +315,7 @@ class Polynomial_singular_repr:
             sage: a = r.base_ring().0
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
-            a^5*x^4 + (a^4 + a^3 + a)*x^4*y + (a^2 + a)*x^6*y
+            (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + a^5*x^4
         """
         lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
         return lcm.sage_poly(self.parent())
@@ -334,16 +334,16 @@ class Polynomial_singular_repr:
             sage: R.<x,y> = PolynomialRing(RR,2)
             sage: f = 3*x^3*y^2 + 5*y^2 + 3*x + 2
             sage: f.diff(x)
-            3.00000000000000 + 9.00000000000000*x^2*y^2
+            9.00000000000000*x^2*y^2 + 3.00000000000000
             sage: f.diff(y)
-            10.0000000000000*y + 6.00000000000000*x^3*y
+            6.00000000000000*x^3*y + 10.0000000000000*y
 
             The derivate is also defined over finite fields:
 
             sage: R.<x,y> = PolynomialRing(GF(2**8, 'a'),2)
             sage: f = x^3*y^2 + y^2 + x + 2
             sage: f.diff(x)
-            1 + x^2*y^2
+            x^2*y^2 + 1
 
             The new coefficients are coerced to the base ring:
 

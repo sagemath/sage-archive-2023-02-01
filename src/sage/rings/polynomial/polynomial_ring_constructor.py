@@ -13,6 +13,9 @@ import sage.rings.padics.padic_field_lazy as padic_field_lazy
 import sage.rings.padics.padic_ring_capped_absolute as padic_ring_capped_absolute
 import sage.rings.padics.padic_ring_fixed_mod as padic_ring_fixed_mod
 
+from sage.rings.rational_field import QQ
+from sage.rings.ring import is_FiniteField
+
 _cache = {}
 
 def PolynomialRing(base_ring, arg1=None, arg2=None,
@@ -75,11 +78,11 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
             sage: with localvars(R, ['z','w']):
             ...     print f
             ...
-            -2*w^2 + z^2
+            z^2 - 2*w^2
 
         After the with block the names revert to what they were before.
             sage: print f
-            -2*y^2 + x^2
+            x^2 - 2*y^2
 
 
     SQUARE BRACKETS NOTATION: You can alternatively create a single or
@@ -188,7 +191,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.inject_variables()
         Defining x2, x3, x5, x7, x11, x13, x17, x19, x23, x29, x31, x37, x41, x43, x47, x53, x59, x61, x67, x71, x73, x79, x83, x89, x97
         sage: (x2 + x41 + x71)^2
-        x71^2 + 2*x41*x71 + x41^2 + 2*x2*x71 + 2*x2*x41 + x2^2
+        x2^2 + 2*x2*x41 + x41^2 + 2*x2*x71 + 2*x41*x71 + x71^2
 
     You can also call \code{injvar}, which is a convenient shortcut for \code{inject_variables()}.
         sage: R = PolynomialRing(GF(7),15,'w'); R
@@ -196,7 +199,7 @@ def PolynomialRing(base_ring, arg1=None, arg2=None,
         sage: R.injvar()
         Defining w0, w1, w2, w3, w4, w5, w6, w7, w8, w9, w10, w11, w12, w13, w14
         sage: (w0 + 2*w8 + w13)^2
-        w13^2 + 4*w8*w13 + 4*w8^2 + 2*w0*w13 + 4*w0*w8 + w0^2
+        w0^2 - 3*w0*w8 - 3*w8^2 + 2*w0*w13 - 3*w8*w13 + w13^2
     """
     import polynomial_ring as m
 
@@ -343,8 +346,15 @@ def _multi_variate(base_ring, names, n, sparse, order):
     if not R is None:
         return R
 
+    from multi_polynomial_libsingular import MPolynomialRing_libsingular
     if m.integral_domain.is_IntegralDomain(base_ring):
-        R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
+        if base_ring is QQ:
+            R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        elif is_FiniteField(base_ring) and base_ring.is_prime_field() and base_ring.characteristic() <= 2147483629:
+
+            R = MPolynomialRing_libsingular(base_ring, n, names, order)
+        else:
+            R = m.MPolynomialRing_polydict_domain(base_ring, n, names, order)
     else:
         R = m.MPolynomialRing_polydict(base_ring, n, names, order)
 

@@ -513,7 +513,6 @@ except:
                 reactor.stop()
                 sys.exit(-1)
 
-        self.sage._get()
         self.get_job()
 
     def restart(self):

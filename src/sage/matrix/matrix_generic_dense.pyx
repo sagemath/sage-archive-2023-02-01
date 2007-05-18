@@ -312,7 +312,7 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
         for i from 0 <= i < self._nrows:
             A_ix = (i+A._row)*self._matrix._ncols + A._col
             for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < start + self._ncols:
-                self._matrix._entries[self_ix] = slef._matrix._entries[self_ix] + A._matrix._entries[A_ix]
+                self._matrix._entries[self_ix] = self._matrix._entries[self_ix] + A._matrix._entries[A_ix]
                 A_ix = A_ix + 1
 
 
@@ -321,7 +321,7 @@ cdef class MatrixWindow(matrix_window.MatrixWindow):
         cdef Py_ssize_t start, self_ix
         cdef Py_ssize_t A_ix
         for i from 0 <= i < self._nrows:
-            A_ix = A._matrix._ncols*(i+A._row) + a._col
+            A_ix = A._matrix._ncols*(i+A._row) + A._col
             for self_ix from self._ncols*(i+self._row) + self._col <= self_ix < start + self._ncols:
                 self._matrix._entries[self_ix] = self._matrix._entries[self_ix] - A._matrix._entries[A_ix]
                 A_ix = A_ix + 1

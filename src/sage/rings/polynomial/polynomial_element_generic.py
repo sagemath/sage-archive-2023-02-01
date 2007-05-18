@@ -37,16 +37,15 @@ from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 from sage.structure.factorization import Factorization
 
-from infinity import infinity
-from rational_field import QQ
-from integer_ring import ZZ
-import integer
-import complex_field
-import arith
-import finite_field
+from sage.rings.infinity import infinity
+from sage.rings.rational_field import QQ
+from sage.rings.integer_ring import ZZ
+import sage.rings.integer as integer
+import sage.rings.complex_field as complex_field
+import sage.rings.arith as arith
 
-import fraction_field_element
-import sage.rings.polynomial_ring
+import sage.rings.fraction_field_element as fraction_field_element
+import sage.rings.polynomial.polynomial_ring
 
 
 class Polynomial_generic_sparse(Polynomial):
@@ -57,7 +56,7 @@ class Polynomial_generic_sparse(Polynomial):
         sage: R.<x> = PolynomialRing(PolynomialRing(QQ, 'y'), sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial_element_generic.Polynomial_generic_sparse'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
         sage: loads(f.dumps()) == f
         True
     """
@@ -385,7 +384,7 @@ class Polynomial_generic_sparse(Polynomial):
             sage: R.<x> = PolynomialRing(ZZ, sparse=True)
             sage: p = x^100000 + 2*x + 4
             sage: type(p)
-            <class 'sage.rings.polynomial_element_generic.Polynomial_generic_sparse'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse'>
             sage: p.shift(0)
              x^100000 + 2*x + 4
             sage: p.shift(-1)
@@ -497,7 +496,7 @@ class Polynomial_generic_sparse_field(Polynomial_generic_sparse, Polynomial_gene
         sage: R.<x> = PolynomialRing(RR, sparse=True)
         sage: f = x^3 - x + 17
         sage: type(f)
-        <class 'sage.rings.polynomial_element_generic.Polynomial_generic_sparse_field'>
+        <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_generic_sparse_field'>
         sage: loads(f.dumps()) == f
         True
     """
@@ -836,12 +835,13 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             sage: (x^5 + 2).factor_mod(5)
             (x + 2)^5
         """
+        import sage.rings.finite_field as finite_field
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
         G = self._pari_().factormod(p)
         K = finite_field.FiniteField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
     def factor_padic(self, p, prec=10):
@@ -858,14 +858,14 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         EXAMPLES:
             sage: R.<x> = QQ[]
             sage: f = x^3 - 2
-            sage: f.factor_padic(2)
-            (1 + O(2^10))*x^3 + O(2^10)*x^2 + O(2^10)*x + 2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10)
-            sage: f.factor_padic(3)
-            (1 + O(3^10))*x^3 + O(3^10)*x^2 + O(3^10)*x + 1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10)
-            sage: f.factor_padic(5)
-            ((1 + O(5^10))*x + 2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10)) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + 4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10))
+            sage.: f.factor_padic(2)
+            (1 + O(2^10))*x^3 + O(2^10)*x^2 + O(2^10)*x + (2 + 2^2 + 2^3 + 2^4 + 2^5 + 2^6 + 2^7 + 2^8 + 2^9 + O(2^10))
+            sage.: f.factor_padic(3)
+            (1 + O(3^10))*x^3 + O(3^10)*x^2 + O(3^10)*x + (1 + 2*3 + 2*3^2 + 2*3^3 + 2*3^4 + 2*3^5 + 2*3^6 + 2*3^7 + 2*3^8 + 2*3^9 + O(3^10))
+            sage.: f.factor_padic(5)
+            ((1 + O(5^10))*x + (2 + 4*5 + 2*5^2 + 2*5^3 + 5^4 + 3*5^5 + 4*5^7 + 2*5^8 + 5^9 + O(5^10))) * ((1 + O(5^10))*x^2 + (3 + 2*5^2 + 2*5^3 + 3*5^4 + 5^5 + 4*5^6 + 2*5^8 + 3*5^9 + O(5^10))*x + (4 + 5 + 2*5^2 + 4*5^3 + 4*5^4 + 3*5^5 + 3*5^6 + 4*5^7 + 4*5^9 + O(5^10)))
         """
-        from padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -873,7 +873,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
         if prec <= 0:
             raise ValueError, "prec must be positive"
         K = Qp(p, prec, type='capped-rel')
-        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(self).factor(absprec = prec)
 
     def list(self):
@@ -961,7 +961,7 @@ class Polynomial_rational_dense(Polynomial_generic_field):
             y.append(g)
         H = self._pari_().polhensellift(y, p, e)
         R = integer_mod_ring.IntegerModRing(p**e)
-        S = sage.rings.polynomial_ring.PolynomialRing(R, self.parent().variable_name())
+        S = sage.rings.polynomial.polynomial_ring.PolynomialRing(R, self.parent().variable_name())
         return [S(eval(str(m.Vec().Polrev().Vec()))) for m in H]
 
 class Polynomial_integer_dense(Polynomial_generic_domain,
@@ -1193,7 +1193,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f(alpha)
             0
         """
-        R = sage.rings.polynomial_ring.PolynomialRing(QQ, 'x')
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, 'x')
         return R(self.list()).complex_roots()
 
 ##     def __copy__(self):
@@ -1255,6 +1255,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             sage: f.factor_mod(7)
             (2) * x * (x + 5)^2
         """
+        import sage.rings.finite_field as finite_field
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
@@ -1263,7 +1264,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             raise ValueError, "factorization of 0 not defined"
         G = f.factormod(p)
         k = finite_field.FiniteField(p)
-        R = sage.rings.polynomial_ring.PolynomialRing(k, names=self.parent().variable_name())
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(k, names=self.parent().variable_name())
         return R(1)._factor_pari_helper(G, unit=R(self).leading_coefficient())
 
 
@@ -1278,15 +1279,15 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         OUTPUT:
             factorization of self reduced modulo p.
         """
-        import padics.zp
+        from sage.rings.padics.factory import Zp
         p = integer.Integer(p)
         if not p.is_prime():
             raise ValueError, "p must be prime"
         prec = integer.Integer(prec)
         if prec <= 0:
             raise ValueError, "prec must be positive"
-        K = padics.zp.Zp(p, prec, type='capped-abs')
-        R = sage.rings.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
+        K = Zp(p, prec, type='capped-abs')
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(K, names=self.parent().variable_name())
         return R(self).factor()
 
     def list(self):
@@ -1385,12 +1386,12 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
     def _repr(self, name=None):
         r"""
         EXAMPLES:
-            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-rel', print_mode = 'val-unit'))
+            sage: R.<w> = PolynomialRing(Zp(5, prec=5, type = 'capped-abs', print_mode = 'val-unit'))
             sage: f = 24 + R(4/3)*w + w^4
             sage: f._repr()
-            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + 24 + O(5^5)'
+            '(1 + O(5^5))*w^4 + (1043 + O(5^5))*w + (24 + O(5^5))'
             sage: f._repr(name='z')
-            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + 24 + O(5^5)'
+            '(1 + O(5^5))*z^4 + (1043 + O(5^5))*z + (24 + O(5^5))'
 
         AUTHOR:
             -- David Roe (2007-03-03), based on Polynomial_generic_dense._repr()
@@ -1406,8 +1407,7 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
                 if n != m:
                     s += " + "
                 x = repr(x)
-                if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
-                    x = "(%s)"%x
+                x = "(%s)"%x
                 if n > 1:
                     var = "*%s^%s"%(name,n)
                 elif n==1:
@@ -1416,10 +1416,6 @@ class Polynomial_padic_generic_dense(Polynomial_generic_dense, Polynomial_generi
                     var = ""
                 s += "%s%s"%(x,var)
             n -= 1
-        if atomic_repr:
-            s = s.replace(" + -", " - ")
-        s = s.replace(" 1*"," ")
-        s = s.replace(" -1*", " -")
         if s==" ":
             return "0"
         return s[1:]

@@ -35,12 +35,12 @@ AUTHOR:
 import operator
 import sage.structure.element as element
 import sage.rings.arith as arith
-import commutative_ring_element
+import sage.rings.commutative_ring_element as commutative_ring_element
 
 import polynomial_element
 import polynomial_quotient_ring
 
-import number_field.number_field
+import sage.rings.number_field.number_field as number_field
 
 
 
@@ -385,7 +385,7 @@ class PolynomialQuotientRingElement(commutative_ring_element.CommutativeRingElem
 ##             ...
 ##             ValueError: polynomial must be irreducible
         F = self.parent().modulus().root_field(names)
-        if isinstance(F, number_field.number_field.NumberField_extension):
+        if isinstance(F, number_field.NumberField_extension):
             if F.gen() != F.gen_relative():
                 # The issue is that there is no way to specify a homomorphism
                 # from the relative number to the poly ring quotient that

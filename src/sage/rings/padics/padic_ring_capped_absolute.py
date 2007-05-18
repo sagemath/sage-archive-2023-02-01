@@ -41,11 +41,11 @@ In the capped absolute type, instead of having a cap on the relative precision o
     sage: (a * b) // 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) // 5^3)
-    <class 'sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement'>
+    <type 'sage.rings.padics.padic_capped_absolute_element.pAdicCappedAbsoluteElement'>
     sage: (a * b) / 5^3
     1 + 2*5 + O(5^2)
     sage: type((a * b) / 5^3)
-    <class 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
+    <type 'sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement'>
 
 p-Adic rings should be created using the creation function Zp as above.  This will ensure that there is only one instance of $\Z_p$ of a given type, p and precision.  It also saves typing very long class names.
     sage: Zp(17,10,'capped-rel')
@@ -101,7 +101,7 @@ import sage.rings.integer
 import padic_ring_base_generic
 import padic_capped_absolute_ring_generic
 #import sage.rings.padics.padic_ring_fixed_mod
-import sage.rings.padics.padic_ring_capped_absolute_element
+from sage.rings.padics.padic_capped_absolute_element import pAdicCappedAbsoluteElement
 #import sage.rings.padics.padic_ring_capped_relative_element
 #import sage.rings.padics.padic_lazy_element
 #import sage.rings.infinity
@@ -114,7 +114,7 @@ pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 #pAdicFieldBaseGeneric = sage.rings.padics.padic_field_base_generic.pAdicFieldBaseGeneric
 #pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
-pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#pAdicCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement
 #pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
 #pAdicLazyElement = sage.rings.padics.padic_lazy_element.pAdicLazyElement
 pAdicCappedAbsoluteRingGeneric = padic_capped_absolute_ring_generic.pAdicCappedAbsoluteRingGeneric
@@ -124,7 +124,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
     An implementation of the p-adic integers with capped absolute precision.
     """
     def __init__(self, p, prec, print_mode, names):
-        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicRingCappedAbsoluteElement)
+        pAdicRingBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedAbsoluteElement)
 
     def _repr_(self, do_latex = False):
         return "%s-adic Ring with capped absolute precision %s"%(self.prime(), self.precision_cap())
@@ -149,7 +149,7 @@ class pAdicRingCappedAbsolute(pAdicRingBaseGeneric, pAdicCappedAbsoluteRingGener
         r"""
         Returns the fraction field of self.
         """
-        from sage.rings.padics.qp import Qp
+        from sage.rings.padics.factory import Qp
         return Qp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())
 
     def random_element(self):

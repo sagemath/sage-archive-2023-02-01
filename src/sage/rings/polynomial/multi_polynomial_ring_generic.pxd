@@ -1,9 +1,9 @@
-import ring
-cimport ring
+import sage.rings.ring
+cimport sage.rings.ring
 
 from sage.structure.parent cimport Parent
 
-cdef class MPolynomialRing_generic(ring.CommutativeRing):
+cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     cdef object __ngens
     cdef object __term_order
     cdef object _has_singular

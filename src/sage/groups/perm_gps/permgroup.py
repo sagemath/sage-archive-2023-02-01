@@ -523,6 +523,32 @@ class PermutationGroup_generic(group.FiniteGroup):
         """
         return self._gap_().SmallestMovedPoint()
 
+    def orbits(self):
+        """
+        Returns the orbits of [1,2,...,degree] under the group action.
+
+        EXAMPLES:
+           sage: G = PermutationGroup([ [(3,4)], [(1,3)] ])
+           sage: G.orbits()
+           [[1, 3, 4], [2]]
+           sage: G = PermutationGroup([[(1,2),(3,4)], [(1,2,3,4,10)]])
+           sage: G.orbits()
+           [[1, 2, 3, 4, 10], [5], [6], [7], [8], [9]]
+
+        The answer is cached:
+           sage: G.orbits() is G.orbits()
+           True
+
+        AUTHOR:
+             -- Nathan Dunfield
+        """
+        try:
+            return self.__orbits
+        except AttributeError:
+            O = self._gap_().Orbits("[1..%d]" % self.largest_moved_point()).sage()
+            self.__orbits = O
+            return O
+
     def _repr_(self):
         G = self.gens()
         return "Permutation Group with generators %s"%list(self.gens())

@@ -49,6 +49,12 @@ We create a polynomial ring over a quaternion algebra:
     w^2 + (i + j)*w + k
     sage: g * f
     w^2 + (i + j)*w + -k
+
+TESTS:
+    sage: K.<x>=FractionField(QQ['x'])
+    sage: V.<z> = K[]
+    sage: x+z
+    z + x
 """
 
 
@@ -60,6 +66,7 @@ We create a polynomial ring over a quaternion algebra:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+from sage.structure.element import is_Element
 import random
 import sage.algebras.algebra
 import commutative_ring
@@ -156,6 +163,8 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
+        elif is_Element(x) and x.parent() == self.base_ring():
+            return self([x])
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
             try:

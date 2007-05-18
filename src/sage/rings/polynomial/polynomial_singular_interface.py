@@ -246,28 +246,30 @@ class Polynomial_singular_repr:
                          False)
 
             force -- polynomials over ZZ may be coerced to Singular by
-                     treating them as polynomials over RR. This is
+                     treating them as polynomials over QQ. This is
                      inexact but works for some cases where the
                      coeffients are not considered (default: False).
 
 
         EXAMPLES:
-            sage: R.<x> = PolynomialRing(GF(7))
-            sage: f = (x^3 + 2*x^2*x)^7; f
-            3*x^21
+            sage: P.<a,b> = PolynomialRing(GF(7), 2)
+            sage: f = (a^3 + 2*b^2*a)^7; f
+            a^21 + 2*a^7*b^14
             sage: h = f._singular_(); h
-            3*x^21
-            sage: R(h)
-            3*x^21
-            sage: R(h^20) == f^20
+            a^21+2*a^7*b^14
+            sage: P(h)
+            a^21 + 2*a^7*b^14
+            sage: P(h^20) == f^20
             True
-            sage: R.<x,y> = PolynomialRing(GF(7), 2)
-            sage: f = (x^3 + 2*y^2*x)^7; f
-            x^21 + 2*x^7*y^14
+
+            sage: R.<x> = PolynomialRing(GF(7))
+            sage: f = (x^3 + 2*x^2*x)^7
+	    sage: f
+            3*x^21
             sage: h = f._singular_(); h
-            x^21+2*x^7*y^14
+            3*x^21
             sage: R(h)
-            x^21 + 2*x^7*y^14
+            3*x^21
             sage: R(h^20) == f^20
             True
         """

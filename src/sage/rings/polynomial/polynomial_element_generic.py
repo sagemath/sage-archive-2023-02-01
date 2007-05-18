@@ -27,11 +27,11 @@ We test coercion in a particularly complicated situation:
 
 import copy
 
-from polynomial_element import Polynomial, is_Polynomial, Polynomial_generic_dense
+from sage.rings.polynomial.polynomial_element import Polynomial, is_Polynomial, Polynomial_generic_dense
 from sage.structure.element import (IntegralDomainElement, EuclideanDomainElement,
                                     PrincipalIdealDomainElement)
 
-from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.all import pari, pari_gen
 from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus

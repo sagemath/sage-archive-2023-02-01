@@ -677,8 +677,6 @@ class TermOrder(SageObject):
     def __init__(self, name='lex'):
         if isinstance(name, TermOrder):
             name = name.__name
-        if not isinstance(name, str):
-            name = name.__name
         name = name.lower()
         self.__name = name
 

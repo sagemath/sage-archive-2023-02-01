@@ -222,7 +222,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.__R
 
     def ideal(self, gens, coerce=False):
-        from multi_polynomial_libsingular import MPolynomialRing_libsingular
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
         if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
             # pass through
             MPolynomialRing_generic.ideal(self,gens,coerce)

@@ -4,7 +4,7 @@ Big O for various types (power series, p-adics, etc.)
 
 import arith
 import laurent_series_ring_element
-import padics.qp
+import padics.factory
 import padics.padic_generic
 import power_series_ring_element
 import integer
@@ -26,7 +26,7 @@ def O(x):
         if len(F) != 1:
             raise ArithmeticError, "x must be prime power"
         p, r = F[0]
-        return padics.zp.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
+        return padics.factory.Zp(p, prec = r, type = 'capped-rel')(0, absprec = r)
 
     elif isinstance(x, padics.padic_generic.pAdicGeneric):
          return x.parent()(0, absprec = x.valuation())

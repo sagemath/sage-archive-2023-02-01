@@ -805,7 +805,7 @@ class pAdicLazy_log(pAdicLazyElement):
         extra_prec = 0
         while extra_prec < Integer(prec + extra_prec).exact_log(p):
             extra_prec += 1
-        from sage.rings.padics.zp import Zp
+        from sage.rings.padics.factory import Zp
         working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
         x = working_ring(Integer(1) - self._x.residue(prec).lift())
         xpow = x
@@ -852,7 +852,7 @@ class pAdicLazy_exp(pAdicLazyElement):
             prec = self._x.precision_absolute()
             max_term = ((p-1)*(prec-1)) // ((p-1) * val - 1) + 1
             extra_prec = max_term // (p - 1)
-            from sage.rings.padics.zp import Zp
+            from sage.rings.padics.factory import Zp
             working_ring = Zp(p, prec + extra_prec, type = 'capped-abs')
             x = working_ring(self._x.lift())
             term = ans = working_ring(1)

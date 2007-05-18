@@ -70,6 +70,7 @@ import sage.rings.field as field
 import sage.rings.integral_domain as integral_domain
 import sage.rings.principal_ideal_domain as principal_ideal_domain
 import polynomial_element_generic
+import polynomial_element
 import sage.rings.rational_field as rational_field
 from sage.rings.integer_ring import is_IntegerRing
 import sage.rings.integer as integer

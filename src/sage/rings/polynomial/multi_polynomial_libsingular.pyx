@@ -14,6 +14,8 @@ TODO:
 # We do this as we get a link error for init_csage(). However, on
 # obscure plattforms (Windows) we might need to link to csage anyway.
 
+include "sage/ext/interrupt.pxi"
+
 cdef extern from "stdsage.h":
     ctypedef void PyObject
     object PY_NEW(object t)
@@ -34,11 +36,11 @@ from sage.libs.singular.singular cimport Conversion
 cdef Conversion co
 co = Conversion()
 
-from sage.rings.multi_polynomial_ring import TermOrder, MPolynomialRing_polydict_domain
-from sage.rings.multi_polynomial_element import MPolynomial_polydict
-from sage.rings.multi_polynomial_ideal import MPolynomialIdeal
-from sage.rings.polydict import ETuple
-from sage.rings.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.multi_polynomial_ring import TermOrder, MPolynomialRing_polydict_domain
+from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
+from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
+from sage.rings.polynomial.polydict import ETuple
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 
 from sage.rings.rational_field import RationalField
 from sage.rings.finite_field import FiniteField_prime_modn
@@ -377,6 +379,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         """
         cdef poly *_p, *mon
         cdef ring *_ring = self._ring
+        rChangeCurrRing(_ring)
 
         if PY_TYPE_CHECK(element, SingularElement):
             element = str(element)
@@ -1516,12 +1519,19 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         _ring = (<MPolynomialRing_libsingular>self._parent)._ring
 
         cdef poly *_p
+        cdef int _exp
 
-        if exp < 0:
-            return 1/(self**(-exp))
+        _exp = exp
+
+        if _exp < 0:
+            return 1/(self**(-_exp))
+        if _exp > 65535:
+            raise TypeError,  "exponent is too large, max. is 65535"
 
         if(_ring != currRing): rChangeCurrRing(_ring)
-        _p = pPower( p_Copy(self._poly,(<MPolynomialRing_libsingular>self._parent)._ring),exp)
+
+        _p = pPower( p_Copy(self._poly,_ring),_exp)
+
         return new_MP((<MPolynomialRing_libsingular>self._parent),_p)
 
 
@@ -1873,6 +1883,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         cdef int n
         cdef int v
         r = (<MPolynomialRing_libsingular>self._parent)._ring
+        if r!=currRing: rChangeCurrRing(r)
         base = (<MPolynomialRing_libsingular>self._parent)._base
         p = self._poly
         pd = dict()

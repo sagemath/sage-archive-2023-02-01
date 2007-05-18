@@ -47,7 +47,7 @@ import polydict
 
 from sage.structure.factorization import Factorization
 
-from sage.rings.polynomial_singular_interface import Polynomial_singular_repr
+from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.structure.sequence import Sequence
 

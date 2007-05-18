@@ -52,14 +52,14 @@ cdef class MPolynomial(CommutativeRingElement):
 
     def _rational_(self):
         if self.degree() == 0:
-            from rational import Rational
+            from sage.rings.rational import Rational
             return Rational(repr(self))
         else:
             raise TypeError
 
     def _integer_(self):
         if self.degree() == 0:
-            from integer import Integer
+            from sage.rings.integer import Integer
             return Integer(repr(self))
         else:
             raise TypeError

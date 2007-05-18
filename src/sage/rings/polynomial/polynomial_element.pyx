@@ -34,7 +34,6 @@ import sage.rings.arith
 import sage.rings.integer_ring
 import sage.rings.rational_field
 import sage.rings.integer_mod_ring
-import polynomial_pyx
 import sage.rings.complex_field
 import sage.rings.fraction_field_element
 from sage.rings.infinity import infinity
@@ -60,7 +59,7 @@ from sage.rings.integral_domain import is_IntegralDomain
 import polynomial_fateman
 
 def is_Polynomial(f):
-    return PY_TYPE_CHECK(f, Polynomial)
+    return bool(PY_TYPE_CHECK(f, Polynomial))
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """

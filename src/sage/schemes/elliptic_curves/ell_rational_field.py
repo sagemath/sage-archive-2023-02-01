@@ -39,8 +39,7 @@ import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
-from sage.rings.padics.zp import Zp
-from sage.rings.padics.qp import Qp
+from sage.rings.padics.factory import Zp, Qp
 
 # Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.

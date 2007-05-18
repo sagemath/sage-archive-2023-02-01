@@ -1881,16 +1881,16 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 
         EXAMPLES:
             sage: k.<a> = GF(7^2)
-            sage: k(2).square_root()
+            sage: k(2).sqrt()
             4
-            sage: k(3).square_root()
+            sage: k(3).sqrt()
             5*a + 1
-            sage: k(3).square_root()**2
+            sage: k(3).sqrt()**2
             3
-            sage: k(4).square_root()
+            sage: k(4).sqrt()
             5
             sage: k.<a> = GF(7^3)
-            sage: k(3).square_root()
+            sage: k(3).sqrt()
             Traceback (most recent call last):
             ...
             ValueError: must be a perfect square.

@@ -1474,7 +1474,8 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_power(self):
         r"""
-        Returns \code{True} if self is a perfect power, ie if there exist integers a and b, b > 1 with self = a^b.
+        Returns \code{True} if self is a perfect power, ie if there
+        exist integers a and b, $b > 1$ with $self = a^b$.
 
         EXAMPLES:
         sage: Integer(-27).is_power()
@@ -1486,7 +1487,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     cdef int _is_power_of(Integer self, Integer n):
         r"""
-        Returns a non-zero int if there is an integer b with self = n^b
+        Returns a non-zero int if there is an integer b with $self = n^b$.
 
         For more documentation see \code{is_power_of}
 
@@ -1604,7 +1605,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
 
     def is_power_of(Integer self, n):
         r"""
-        Returns \code{True} if there is an integer b with self = n^b
+        Returns \code{True} if there is an integer b with $self = n^b$.
 
         EXAMPLES:
         sage: Integer(64).is_power_of(4)

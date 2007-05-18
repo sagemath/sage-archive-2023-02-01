@@ -182,10 +182,10 @@ class Cell(Cell_generic):
                     #    s += '<BLANKLINE>\n'
                     elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
-                        s += '...' + v + '\n'
+                        s += '...   ' + v + '\n'
                     elif v[:5] == 'else:':
                         in_loop = True
-                        s += '... ' + v + '\n'
+                        s += '...   ' + v + '\n'
                     else:
                         if in_loop:
                             s += '...\n'

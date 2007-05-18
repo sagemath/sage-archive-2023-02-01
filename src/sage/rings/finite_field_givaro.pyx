@@ -1874,7 +1874,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return hash(self.log_to_int())
 
-    def square_root(FiniteField_givaroElement self):
+    def sqrt(FiniteField_givaroElement self, all=False):
         """
         Return a square root of this finite field element in its
         parent, if there is one.  Otherwise, raise a ValueError.
@@ -1900,7 +1900,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         f = R([-self, 0, 1])
         g = f.factor()
         if len(g) == 2 or g[0][1] == 2:
-            return -g[0][0][0]
+            a = -g[0][0][0]
+            if all:
+                return [a, -a]
+            else:
+                return a
         raise ValueError, "must be a perfect square."
 
     def vector(FiniteField_givaroElement self):

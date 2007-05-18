@@ -252,7 +252,7 @@ def main(options):
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)
         log.msg("***NOTICE***")
-        log.msg("Changing listening port in server.conf " +
+        log.msg("Changing listening port " +
                 "to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
 

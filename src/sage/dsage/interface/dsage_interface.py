@@ -427,12 +427,12 @@ class BlockingDSage(DSage):
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             blocking_call_from_thread(reactor.connectSSL,
-                                   self.server, self.port,
-                                   self.factory, contextFactory)
+                                      self.server, self.port,
+                                      self.factory, contextFactory)
         else:
             blocking_call_from_thread(reactor.connectTCP,
-                                   self.server, self.port,
-                                   self.factory)
+                                      self.server, self.port,
+                                      self.factory)
 
         d = self.factory.login(self.creds, None)
         d.addCallback(self._connected)

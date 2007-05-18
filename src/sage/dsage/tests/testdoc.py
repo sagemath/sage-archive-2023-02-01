@@ -16,9 +16,9 @@ hanging around!
    5
    sage: v = [d('%s^2'%i) for i in range(100,103)]
 
-Set timeout to 10 seconds it it will not hang the doctests indefinitely.
+Set timeout to 30 seconds so it will not hang the doctests indefinitely.
 
-   sage: _ = [x.wait(timeout=15) for x in v]
+   sage: _ = [x.wait(timeout=30) for x in v]
    sage: print v
    [10000, 10201, 10404]
 """

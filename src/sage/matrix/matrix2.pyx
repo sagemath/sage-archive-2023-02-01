@@ -1194,6 +1194,13 @@ cdef class Matrix(matrix1.Matrix):
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
+
+            sage: m = Matrix(Integers(5),2,2,[2,2,2,2]);
+            sage: m.row_space()
+            Vector space of degree 2 and dimension 1 over Fraction Field of Ring of integers modulo 5
+            Basis matrix:
+            [1 1]
+
         """
         return self.row_module(base_ring=base_ring)
 

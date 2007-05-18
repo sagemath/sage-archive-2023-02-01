@@ -589,7 +589,6 @@ cdef class CommutativeRing(Ring):
             import sage.rings.fraction_field
             K = sage.rings.fraction_field.FractionField_generic(self)
             self.__fraction_field = K
-            K._assign_names(self.variable_names())
         return self.__fraction_field
 
     def __pow__(self, n, _):

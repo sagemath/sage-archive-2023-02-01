@@ -225,6 +225,18 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         list.__init__(self, x)
         self._is_immutable = immutable
 
+    def reverse(self):
+        """
+        Reverse the elements of self, in place.
+
+        EXAMPLES:
+            sage: B = Sequence([1,2,3])
+            sage: B.reverse(); B
+            [3, 2, 1]
+        """
+        self._require_mutable()
+        list.reverse(self)
+
     def __setitem__(self, n, x):
         self._require_mutable()
         y = self.__universe(x)
@@ -288,6 +300,73 @@ class Sequence(sage.structure.sage_object.SageObject, list):
         y = self.__universe(x)
         list.append(self, y)
 
+    def extend(self, iterable):
+        """
+        Extend list by appending elements from the iterable.
+
+        EXAMPLES:
+            sage: B = Sequence([1,2,3])
+            sage: B.extend(range(4))
+            sage: B
+            [1, 2, 3, 0, 1, 2, 3]
+        """
+        self._require_mutable()
+        v = [self.__universe(x) for x in iterable]
+        list.extend(self, v)
+
+    def insert(self, index, object):
+        """
+        Insert object before index.
+
+        EXAMPLES:
+            sage: B = Sequence([1,2,3])
+            sage: B.insert(10, 5)
+            sage: B
+            [1, 2, 3, 5]
+        """
+        self._require_mutable()
+        list.insert(self, index, self.__universe(object))
+
+    def pop(self, index=-1):
+        """
+        remove and return item at index (default last)
+
+        EXAMPLES:
+            sage: B = Sequence([1,2,3])
+            sage: B.pop(1)
+            2
+            sage: B
+            [1, 3]
+        """
+        self._require_mutable()
+        return list.pop(self, index)
+
+    def remove(self, value):
+        """
+        Remove first occurrence of value
+
+        EXAMPLES:
+            sage: B = Sequence([1,2,3])
+            sage: B.remove(2)
+            sage: B
+            [1, 3]
+        """
+        self._require_mutable()
+        list.remove(self, value)
+
+    def sort(self):
+        """
+        Sort this list.
+
+        EXAMPLES:
+            sage: B = Sequence([3,2,1/5])
+            sage: B.sort()
+            sage: B
+            [1/5, 2, 3]
+        """
+        self._require_mutable()
+        list.sort(self)
+
     def __hash__(self):
         if self.__hash is None:
             self.__hash = hash(tuple(self))
@@ -295,9 +374,12 @@ class Sequence(sage.structure.sage_object.SageObject, list):
 
     def _repr_(self):
         if self.__cr:
-            return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
+            return '[\n' + ',\n'.join([repr(x) for x in self]) + '\n]'
         else:
             return list.__repr__(self)
+
+    def __str__(self):
+        return '[\n' + ',\n'.join([str(x) for x in self]) + '\n]'
 
     def category(self):
         import sage.categories.all

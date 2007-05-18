@@ -80,9 +80,10 @@ We can put text in a graph:
 We plot the Riemann zeta function along the critical line and
 see the first few zeros:
 
-    sage: p1 = plot(lambda t: arg(zeta(0.5+t*I)), 1,27,rgbcolor=(0.8,0,0))
-    sage: p2 = plot(lambda t: abs(zeta(0.5+t*I)), 1,27,rgbcolor=hue(0.7))
-    sage: p1+p2
+    sage: i = CDF.0      # define i this way for maximum speed.
+    sage: p1 = plot(lambda t: arg(zeta(0.5+t*i)), 1,27,rgbcolor=(0.8,0,0))
+    sage: p2 = plot(lambda t: abs(zeta(0.5+t*i)), 1,27,rgbcolor=hue(0.7))
+    sage: p1 + p2
     Graphics object consisting of 2 graphics primitives
     sage: (p1+p2).save()
 
@@ -94,6 +95,13 @@ Here is a pretty graph:
     ...    g = g + p
     ...
     sage: g.save(dpi=200, axes=False)
+
+Another graph:
+    sage: P = plot(lambda x: sin(x)/x, -4,4, rgbcolor=(0,0,1)) + \
+    ...    plot(lambda x: x*cos(x), -4,4, rgbcolor=(1,0,0)) + \
+    ...    plot(lambda x: tan(x),-4,4,rgbcolor=(0,1,0))
+    ...
+    sage: P.save('sage.png', ymin=-pi,ymax=pi)
 
 AUTHORS:
     -- Alex Clemesha and William Stein (2006-04-10): initial version
@@ -119,6 +127,8 @@ TODO:
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
+import pdb
+
 from sage.structure.sage_object import SageObject
 
 ## IMPORTANT: Do not import matplotlib at module scope.  It takes a
@@ -130,6 +140,36 @@ DEFAULT_FIGSIZE=[6, 5]
 DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 SHOW_DEFAULT = False
+
+def show_default(default=None):
+    """
+    Set the default for showing plots using the following commands:
+        plot, parametric_plot, polar_plot, and list_plot.
+
+    If called with no arguments, returns the current default.
+
+    EXAMPLES:
+    The default starts out as False:
+        sage: show_default()
+        False
+
+    We set it to True.
+        sage: show_default(True)
+
+    We see that it is True.
+        sage: show_default()
+        True
+
+    Now certain plot commands will display their plots by default.
+
+    Turn of default display.
+        sage: show_default(False)
+
+    """
+    global SHOW_DEFAULT
+    if default is None:
+        return SHOW_DEFAULT
+    SHOW_DEFAULT = bool(default)
 
 do_verify = True
 
@@ -460,10 +500,8 @@ class Graphics(SageObject):
         G4 = G1 + G2 + G3
 
         EXAMPLES:
-            sage: h1 = lambda x : abs(sqrt(x^3  - 1))
-            sage: h2 = lambda x : -abs(sqrt(x^3  - 1))
-            sage: g1 = plot(h1, 1, 5)
-            sage: g2 = plot(h2, 1, 5)
+            sage: g1 = plot(abs(sqrt(x^3  - 1)), 1, 5)
+            sage: g2 = plot(-abs(sqrt(x^3  - 1)), 1, 5)
             sage: h = g1 + g2
             sage: h.save()
         """
@@ -481,7 +519,8 @@ class Graphics(SageObject):
 
     def append(self, primitive):
         """
-        Append an arbitrary GraphicPrimitive to a Graphics object
+        Append an arbitrary GraphicPrimitive to a Graphics object. Low level- only
+        appends the primitive to the objects list, that's it.
         """
         if not isinstance(primitive, GraphicPrimitive):
             raise TypeError, "primitive (=%s) must be a GraphicPrimitive"%primitive
@@ -578,7 +617,7 @@ class Graphics(SageObject):
         self._extend_y_axis(ymin)
         self._extend_y_axis(ymax)
 
-    def _plot_(self, **args):
+    def plot(self, *args, **kwds):
         return self
 
     def show(self, xmin=None, xmax=None, ymin=None, ymax=None,
@@ -588,6 +627,14 @@ class Graphics(SageObject):
              **args):
         """
         Show this graphics image with the default image viewer.
+
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
 
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
@@ -681,11 +728,7 @@ class Graphics(SageObject):
 
         from matplotlib.figure import Figure
         if filename is None:
-            i = 0
-            while os.path.exists('sage%s.png'%i):
-                i += 1
-            filename = 'sage%s.png'%i
-
+            filename = sage.misc.misc.graphics_filename()
         try:
             ext = os.path.splitext(filename)[1].lower()
         except IndexError:
@@ -1275,7 +1318,12 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         vertex_labels -- determines whether labels for nodes are plotted
         node_size -- node size
         color_dict -- a dictionary specifying node colors: each key is a color recognized by
-        matplotlib, and each entry is a list of vertices.
+                        matplotlib, and each entry is a list of vertices.
+        edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of edges.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
 
     EXAMPLES:
         sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
@@ -1308,64 +1356,82 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
         sage: g.append(NGP)
         sage: g.axes(False)
         sage: g.save('sage.png')
+
+        sage: from sage.plot.plot import rainbow
+        sage: from sage.plot.plot import GraphicPrimitive_NetworkXGraph
+        sage: import networkx
+        sage: C = graphs.CubeGraph(5)
+        sage: pos = C.__get_pos__()
+        sage: G = C.networkx_graph()
+        sage: R = rainbow(5)
+        sage: edge_colors = {}
+        sage: for i in range(5):
+        ...    edge_colors[R[i]] = []
+        sage: for u,v,l in C.edges():
+        ...    for i in range(5):
+        ...        if u[i] != v[i]:
+        ...            edge_colors[R[i]].append((u,v,l))
+        sage: NGP = GraphicPrimitive_NetworkXGraph(G, pos=pos, vertex_labels=False, node_size=0, edge_colors=edge_colors)
+        sage: G = Graphics()
+        sage: G.append(NGP)
+        sage: G.range(xmin=-1.1, xmax=2.2, ymin=0, ymax=3.25)
+        sage: G.axes(False)
+        sage: G.save('sage.png')
     """
-    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None):
+    def __init__(self, graph, pos=None, vertex_labels=True, node_size=300, color_dict=None, edge_colors=None, scaling_term=0.05):
         self.__nxg = graph
         self.__node_size = node_size
         self.__vertex_labels = vertex_labels
         self.__color_dict = color_dict
+        self.__edge_colors = edge_colors
         if len(self.__nxg) != 0:
             import networkx as NX
             if pos is None:
                 self.__pos = NX.drawing.spring_layout(self.__nxg)
             else:
                 self.__pos = pos
-                for v in self.__nxg.nodes():
-                    if not v in self.__pos:
-                        from random import random
-                        self.__pos[v] = [random(),random()]
+
+            nodelist=self.__nxg.nodes()
+
+            xes = [self.__pos[v][0] for v in nodelist]
+            ys = [self.__pos[v][1] for v in nodelist]
+            xmin = min(xes)
+            xmax = max(xes)
+            ymin = min(ys)
+            ymax = max(ys)
+            if xmax == xmin:
+                xmax += 1
+                xmin -= 1
+            if ymax == ymin:
+                ymax += 1
+                ymin -= 1
+            dx = xmax - xmin
+            dy = ymax - ymin
+
+            if not pos is None:
+                missing = []
+                for e in nodelist:
+                    if not e in self.__pos:
+                        missing.append(e)
+                for e in missing:
+                    from random import random
+                    self.__pos[v] = [xmin + dx*random(),ymin + dy*random()]
 
             # adjust the plot
-            # TODO: right now, the bounds are assumed to be +-1
-            nodelist=self.__nxg.nodes()
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            st = float(0.125) # scaling term: looks better, maybe should
-                              # depend on node_size?
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
-            for v in nodelist:
-                self.__pos[v][0] = ((2 + (2*st))/(xmax-xmin))*(self.__pos[v][0] - xmax) + st + 1
-                self.__pos[v][1] = ((2 + (2*st))/(ymax-ymin))*(self.__pos[v][1] - ymax) + st + 1
-            xes = [self.__pos[v][0] for v in nodelist]
-            ys = [self.__pos[v][1] for v in nodelist]
-            xmin = min(xes)
-            xmax = max(xes)
-            ymin = min(ys)
-            ymax = max(ys)
-            if xmax == xmin:
-                xmax += 1
-                xmin -= 1
-            if ymax == ymin:
-                ymax += 1
-                ymin -= 1
+            xmin -= scaling_term*dx
+            xmax += scaling_term*dx
+            ymin -= scaling_term*dy
+            ymax += scaling_term*dy
+
             self._xmin = xmin
             self._xmax = xmax
             self._ymin = ymin
             self._ymax = ymax
         else:
             self.__pos = {}
-            self._xmin = 0
+            self._xmin = -1
             self._xmax = 1
-            self._ymin = 0
+            self._ymin = -1
             self._ymax = 1
 
     def _render_on_subplot(self, subplot):
@@ -1377,7 +1443,11 @@ class GraphicPrimitive_NetworkXGraph(GraphicPrimitive):
             else:
                 for i in self.__color_dict:
                     NX.draw_networkx_nodes(G=self.__nxg, nodelist=self.__color_dict[i], node_color=i, pos=self.__pos, ax=subplot, node_size=node_size)
-            NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            if self.__edge_colors is None:
+                NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, ax=subplot, node_size=node_size)
+            else:
+                for i in self.__edge_colors:
+                    NX.draw_networkx_edges(G=self.__nxg, pos=self.__pos, edgelist=self.__edge_colors[i], edge_color=i, ax=subplot, node_size=node_size)
             if self.__vertex_labels:
                 labels = {}
                 for v in self.__nxg:
@@ -1547,7 +1617,7 @@ class GraphicPrimitiveFactory_points(GraphicPrimitiveFactory):
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
         try:
-            return points._plot_(**kwds)
+            return points.plot(**kwds)
         except AttributeError:
             pass
         options = dict(self.options)
@@ -1654,13 +1724,22 @@ bar_chart = BarChartFactory()
 
 class CircleFactory(GraphicPrimitiveFactory_circle):
     """
-
-    A circle at a point = (x,y) with radius = r
+    Return a circle at a point = (x,y) with radius = r.
     Type circle.options to see all options
 
+    circle(center, radius, **kwds)
+
+    INPUT:
+        center -- a 2-tuple (x,y)
+        radius -- a positive number
+        alpha -- default: 1
+        fill -- default: False
+        thickness -- default: 1
+        rgbcolor -- default: (0,0,0)
+
     EXAMPLES:
-    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage: c.save()
+        sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+        sage: c.save()
 
     To correct the apect ratio of certain graphics, it is necessary
     to show with a 'figsize' of square dimensions.
@@ -1701,7 +1780,25 @@ class ContourPlotFactory(GraphicPrimitiveFactory_contour_plot):
     \code{contour_plot} takes a function of two variables, f(x,y)
     and plots contour lines of the function over the specified
     xrange and yrange as demonstrated below.
-    contour_plot(f, (xmin, xmax), (ymin, ymax))
+
+      contour_plot(f, (xmin, xmax), (ymin, ymax), ...)
+
+    INPUT:
+        f -- a function of two variables
+        (xmin, xmax) -- 2-tuple, the range of x values
+        (ymin, ymax) -- 2-tuple, the range of y values
+    The following inputs must all be passed in as named parameters:
+        plot_points  -- integer (default: 25); number of points to plot
+                        in each direction of the grid
+        fill         -- bool (default: True), whether to color in the area
+                        between contour lines
+        cmap         -- string (default: 'gray'), the color map to use:
+                        autumn, bone, cool, copper, gray, hot, hsv,
+                        jet, pink, prism, spring, summer, winter
+        contours     -- integer (default: None), the number of contour
+                        lines to draw.  If None, determined automatically,
+                        and usually about 5.
+
 
     EXAMPLES:
 
@@ -1840,8 +1937,7 @@ class LineFactory(GraphicPrimitiveFactory_from_point_list):
 
     A red, blue, and green "cool cat":
 
-        sage: ncos = lambda x: -cos(x)
-        sage: G = plot(ncos, -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
+        sage: G = plot(-cos(x), -2, 2, thickness=5, rgbcolor=(0.5,1,0.5))
         sage: P = polygon([[1,2], [5,6], [5,0]], rgbcolor=(1,0,0))
         sage: Q = polygon([(-x,y) for x,y in P[0]], rgbcolor=(0,0,1))
         sage: H = G + P + Q
@@ -2111,7 +2207,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         plot(X, ...)
 
     where X is a SAGE object that either is callable and returns
-    numbers that can be coerced to floats, or has a _plot_ method
+    numbers that can be coerced to floats, or has a plot method
     that returns a GraphicPrimitive object.
 
     Type plot.options for a dictionary of the default
@@ -2197,38 +2293,36 @@ class PlotFactory(GraphicPrimitiveFactory):
 
     We can change the line style to one of '--' (dashed), '-.' (dash dot),
     '-' (solid), 'steps', ':' (dotted):
-        sage: g = plot(sin,0,10, linestyle='-.')
+        sage: g = plot(sin(x), 0, 10, linestyle='-.')
         sage: g.save('sage.png')
     """
     def _reset(self):
         o = self.options
         o['plot_points'] = 200
-        o['plot_division'] = 1000 # is this a good value?
-        o['max_bend'] = 0.1       # is this good as well?
+        o['plot_division'] = 1000
+        o['max_bend'] = 0.1
+        o['rgbcolor'] = (0,0,0)
 
     def _repr_(self):
         return "plot; type plot? for help and examples."
 
-    def __call__(self, funcs, xmin=None, xmax=None, parametric=False,
-                 polar=False, label='',
-                 show=None, **kwds):
+    def __call__(self, funcs, *args, **kwds):
+        do_show = False
+        if kwds.has_key('show') and kwds['show']:
+            do_show = True
+            del kwds['show']
+        if hasattr(funcs, 'plot'):
+            G = funcs.plot(*args, **kwds)
+        else:
+            G = self._call(funcs, *args, **kwds)
+        if do_show:
+            G.show()
+        return G
+
+    def _call(self, funcs, xmin=None, xmax=None, parametric=False,
+              polar=False, label='', show=None, **kwds):
         if show is None:
             show = SHOW_DEFAULT
-        try:
-            G = funcs._plot_(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
-        try:
-            G = funcs.plot(xmin=xmin, xmax=xmax, **kwds)
-            if show:
-                G.show(**kwds)
-            return G
-        except AttributeError:
-            pass
-
         if xmin is None:
             xmin = -1
         if xmax is None:
@@ -2241,7 +2335,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         if isinstance(funcs, (list, tuple)) and not parametric:
             G = Graphics()
             for i in range(0, len(funcs)):
-                G += plot(funcs[i], xmin, xmax, polar=polar, **kwds)
+                G += plot(funcs[i], xmin=xmin, xmax=xmax, polar=polar, **kwds)
             if show:
                 G.show(**kwds)
             return G
@@ -2259,6 +2353,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         delta = (xmax - xmin) / plot_points
         data = []
         dd = delta
+        exceptions = 0; msg=''
         for i in xrange(plot_points + 1):
             x = xmin + i*delta
             if i < plot_points:
@@ -2267,12 +2362,14 @@ class PlotFactory(GraphicPrimitiveFactory):
                     x = xmax
             else:
                 x = xmax  # guarantee that we get the last point.
+
             try:
                 y = f(x)
                 data.append((x, float(y)))
-            except (TypeError, ValueError), msg:
-                #raise ValueError, "%s\nUnable to compute f(%s)"%(msg, x)
-                pass
+            except (ZeroDivisionError, TypeError, ValueError), msg:
+                sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                exceptions += 1
+
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2282,14 +2379,22 @@ class PlotFactory(GraphicPrimitiveFactory):
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
                 x = (data[i+1][0] + data[i][0])/2
-                y = float(f(x))
-                data.insert(i+1, (x, y))
+                try:
+                    y = float(f(x))
+                    data.insert(i+1, (x, y))
+                except (ZeroDivisionError, TypeError, ValueError), msg:
+                    sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                    exceptions += 1
+
                 j += 1
                 if j > plot_division:
-                    #is this wrong?
                     break
             else:
                 i += 1
+
+        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
+            print "Last error message: '%s'"%msg
         if parametric:
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:
@@ -2370,13 +2475,13 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         (f,g) -- tuple of functions
         tmin -- start value of t
         tmax -- end value of t
-        show -- whether or not to show the plot immediately (default: True)
+        show -- bool or None
+                (default: use the default as set by the show_default command)
+                 whether or not to show the plot immediately
         other options -- passed to plot.
 
     EXAMPLE:
-        sage: f = lambda t: sin(t)
-        sage: g = lambda t: sin(2*t)
-        sage: G = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
+        sage: G = parametric_plot( (sin(t), sin(2*t)), 0, 2*pi, rgbcolor=hue(0.6) )
         sage: G.save()
     """
     if show is None:
@@ -2441,6 +2546,85 @@ def list_plot(data, plotjoined=False, show=None, **kwargs):
     if show:
         P.show(**kwargs)
     return P
+
+def networkx_plot(graph, pos=None, vertex_labels=True, node_size=300, color_dict=None,
+                  edge_colors=None, graph_border=False, scaling_term=0.05):
+    """
+    Creates a graphics object ready to display a NetworkX graph.
+
+    INPUT:
+        graph -- a NetworkX graph
+        pos -- an optional positioning dictionary: for example, the
+        spring layout from NetworkX for the 5-cycle is
+            {   0: [-0.91679746, 0.88169588,],
+                1: [ 0.47294849, 1.125     ,],
+                2: [ 1.125     ,-0.12867615,],
+                3: [ 0.12743933,-1.125     ,],
+                4: [-1.125     ,-0.50118505,]   }
+        vertex_labels -- determines whether labels for nodes are plotted
+        node_size -- node size
+        color_dict -- a dictionary specifying node colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of vertices.
+        edge_colors -- a dictionary specifying edge colors: each key is a color recognized by
+                        matplotlib, and each entry is a list of edges.
+        scaling_term -- default is 0.05. if nodes are getting chopped off, increase; if graph
+                        is too small, decrease. should be positive, but values much bigger than
+                        1/8 won't be useful unless the nodes are huge
+
+    EXAMPLES:
+        sage: import networkx
+        sage: D = networkx.dodecahedral_graph()
+        sage: g = networkx_plot(D)
+        sage: g.save('sage.png')
+
+        sage: import networkx
+        sage: from math import sin, cos, pi
+        sage: P = networkx.petersen_graph()
+        sage: d = {'#FF0000':[0,5], '#FF9900':[1,6], '#FFFF00':[2,7], '#00FF00':[3,8], '#0000FF':[4,9]}
+        sage: pos_dict = {}
+        sage: for i in range(5):
+        ...    x = float(cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: for i in range(10)[5:]:
+        ...    x = float(0.5*cos(pi/2 + ((2*pi)/5)*i))
+        ...    y = float(0.5*sin(pi/2 + ((2*pi)/5)*i))
+        ...    pos_dict[i] = [x,y]
+        ...
+        sage: g = networkx_plot(graph=P, color_dict=d, pos=pos_dict)
+        sage: g.save('sage.png')
+
+        sage: C = graphs.CubeGraph(5)
+        sage: from sage.plot.plot import rainbow
+        sage: R = rainbow(5)
+        sage: edge_colors = {}
+        sage: for i in range(5):
+        ...    edge_colors[R[i]] = []
+        sage: for u,v,l in C.edges():
+        ...    for i in range(5):
+        ...        if u[i] != v[i]:
+        ...            edge_colors[R[i]].append((u,v,l))
+        sage: P = networkx_plot(C._nxg, pos=C.__get_pos__(), edge_colors=edge_colors, vertex_labels=False, node_size=0)
+        sage: P.save('sage.png')
+    """
+    g = Graphics()
+    NGP = GraphicPrimitive_NetworkXGraph(graph, pos=pos, vertex_labels=vertex_labels, node_size=node_size, color_dict=color_dict, edge_colors=edge_colors, scaling_term=scaling_term)
+    g.append(NGP)
+    xmin = NGP._xmin
+    xmax = NGP._xmax
+    ymin = NGP._ymin
+    ymax = NGP._ymax
+    g.range(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
+    if graph_border:
+        from sage.plot.plot import line
+        dx = (xmax - xmin)/10
+        dy = (ymax - ymin)/10
+        border = (line([( xmin - dx, ymin - dy), ( xmin - dx, ymax + dy ), ( xmax + dx, ymax + dy ), ( xmax + dx, ymin - dy ), ( xmin - dx, ymin - dy )], thickness=1.3))
+        border.range(xmin = (xmin - dx), xmax = (xmax + dx), ymin = (ymin - dy), ymax = (ymax + dy))
+        g = g + border
+    g.axes(False)
+    return g
 
 def to_float_list(v):
     return [float(x) for x in v]
@@ -2588,6 +2772,14 @@ class GraphicsArray(SageObject):
              axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
+
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if EMBEDDED_MODE:
@@ -2642,9 +2834,9 @@ def graphics_array(array, n=None, m=None):
     EXAMPLE:
     Make some plots of $\sin$ functions:
 
-        sage: f = lambda x: sin(x)
-        sage: g = lambda x: sin(2*x)
-        sage: h = lambda x: sin(4*x)
+        sage: f(x) = sin(x)
+        sage: g(x) = sin(2*x)
+        sage: h(x) = sin(4*x)
         sage: p1 = plot(f,-2*pi,2*pi,rgbcolor=hue(0.5))
         sage: p2 = plot(g,-2*pi,2*pi,rgbcolor=hue(0.9))
         sage: p3 = parametric_plot((f,g),0,2*pi,rgbcolor=hue(0.6))
@@ -2671,9 +2863,59 @@ def graphics_array(array, n=None, m=None):
         array = reshape(array, n, m)
     return GraphicsArray(array)
 
-"""
-Clean up the png's left laying around during the test process:
+def float_to_html(r,g,b):
+    """
+    This is a function to present tuples of RGB floats as HTML-happy hex
+    for matplotlib. This may not seem necessary, but there are some odd
+    cases where matplotlib is just plain schizophrenic- for an example, do
 
-   sage: os.system('rm *.png')
-   0
-"""
+    sage.: color_dict = {(1.0, 0.8571428571428571, 0.0): [4, 5, 6], (0.28571428571428559, 0.0, 1.0): [14, 15, 16], (1.0, 0.0, 0.0): [0, 1, 2, 3], (0.0, 0.57142857142857162, 1.0): [12, 13], (1.0, 0.0, 0.85714285714285676): [17, 18, 19], (0.0, 1.0, 0.57142857142857162): [10, 11], (0.28571428571428581, 1.0, 0.0): [7, 8, 9]}
+    sage.: graphs.DodecahedralGraph().show(color_dict=color_dict)
+
+    Notice how the colors don't respect the partition at all.....
+    """ # TODO: figure out WTF
+    from sage.rings.integer import Integer
+    from math import floor
+    rr = Integer(int(floor(r*255))).str(base=16)
+    gg = Integer(int(floor(g*255))).str(base=16)
+    bb = Integer(int(floor(b*255))).str(base=16)
+    rr = '0'*(2-len(rr)) + rr
+    gg = '0'*(2-len(gg)) + gg
+    bb = '0'*(2-len(bb)) + bb
+    return '#' + rr\
+               + gg\
+               + bb
+
+def rainbow(n):
+    """
+    Given an integer n, returns a list of colors, represented in HTML hex,
+    that changes smoothly in hue from one end of the spectrum to the other.
+    Written in order to easily represent vertex partitions on graphs.
+
+    AUTHOR: Robert L. Miller
+
+    EXAMPLE:
+        sage: from sage.plot.plot import rainbow
+        sage: rainbow(7)
+        ['#ff0000', '#ffda00', '#48ff00', '#00ff91', '#0091ff', '#4800ff', '#ff00da']
+    """
+    from math import floor
+    R = []
+    for i in range(n):
+        r = 6*float(i)/n
+        h = floor(r)
+        r = float(r - h)
+        if h == 0:#RED
+            R.append(float_to_html(1.,r,0.))
+        elif h == 1:
+            R.append(float_to_html(1. - r,1.,0.))
+        elif h == 2:#GREEN
+            R.append(float_to_html(0.,1.,r))
+        elif h == 3:
+            R.append(float_to_html(0.,1. - r,1.))
+        elif h == 4:#BLUE
+            R.append(float_to_html(r,0.,1.))
+        elif h == 5:
+            R.append(float_to_html(1.,0.,1. - r))
+    return R
+

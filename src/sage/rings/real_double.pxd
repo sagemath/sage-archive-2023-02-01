@@ -4,6 +4,9 @@ cimport sage.rings.ring
 from sage.structure.element cimport RingElement, ModuleElement, Element, FieldElement
 from sage.rings.ring cimport Field
 
+cdef extern from "limits.h":
+    int INT_MAX
+    double NAN
 
 cdef class RealDoubleField_class(Field):
     cdef _new_c(self, double value)

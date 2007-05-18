@@ -1,3 +1,6 @@
+"""nodoctest
+"""
+
 ###############################################################################
 #   SAGE: System for Algebra and Geometry Experimentation
 #       Copyright (C) 2007 William Stein <wstein@gmail.com>
@@ -14,8 +17,9 @@ import os
 import sage.misc.misc as misc
 F = '%s/spawned_processes'%misc.SAGE_TMP
 
-def cleaner(pid, cmd):
-    cmd = cmd.strip().split()[0]
+def cleaner(pid, cmd=''):
+    if cmd != '':
+        cmd = cmd.strip().split()[0]
     # This is safe, since only this process writes to this file.
     if os.path.exists(F):
         o = open(F,'a')

@@ -9,18 +9,14 @@ from distutils.core import setup, Extension
 ## if you change this!!
 if os.environ.has_key('SAGE_BLAS'):
     BLAS=os.environ['SAGE_BLAS']
-    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libcblas.dylib') or \
      os.path.exists('/usr/lib/libcblas.so'):
     BLAS='cblas'
-    LINBOX_BLAS=BLAS
 elif os.path.exists('/usr/lib/libblas.dll.a'):
     BLAS='gslcblas'
-    LINBOX_BLAS='gslcblas'   # linbox can only use a CBLAS and Cygwin doesn't have one.
 else:
     # This is very slow  (?), but *guaranteed* to be available.
     BLAS='gslcblas'
-    LINBOX_BLAS=BLAS
 
 if len(sys.argv) > 1 and sys.argv[1] == "sdist":
     sdist = True
@@ -103,9 +99,11 @@ hanke = Extension(name = "sage.libs.hanke.hanke",
                          "sage/libs/hanke/GMP_class_extras/vectors.cc" ],
                    libraries = ["gmp", "gmpxx", "stdc++"])
 
+# NOTE: It is *very* important (for cygwin) that csage be the first library
+# listed below for ntl.
 ntl = Extension('sage.libs.ntl.ntl',
-                 sources = ["sage/libs/ntl/ntl.pyx", "sage/libs/ntl/ntl_wrap.cc"],
-                 libraries = ["ntl", "gmp", "gmpxx", "m", "stdc++"]
+                 sources = ["sage/libs/ntl/ntl.pyx"],
+                 libraries = ["csage", "ntl", "gmp", "gmpxx", "m", "stdc++"]
                  )
 
 mwrank =  Extension("sage.libs.mwrank.mwrank",
@@ -118,11 +116,6 @@ pari = Extension('sage.libs.pari.gen',
                  sources = ["sage/libs/pari/gen.pyx"],
                  libraries = ['pari', 'gmp'])
 
-cf = Extension('sage.libs.cf.cf',
-               sources = ["sage/libs/cf/cf.pyxe", "sage/libs/cf/ftmpl_inst.cc"],
-               libraries = ['cf', 'cfmem', 'gmp', 'stdc++', 'm']
-               )
-
 
 givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        sources = ["sage/rings/finite_field_givaro.pyx"],
@@ -131,9 +124,9 @@ givaro_gfq = Extension('sage.rings.finite_field_givaro',
                        )
 
 
-qd = Extension('sage.rings.real_qdrf',
-                       sources = ["sage/rings/real_qdrf.pyx"],
-                       libraries = ['qd', 'm', 'stdc++', ],
+qd = Extension('sage.rings.real_rqdf',
+                       sources = ["sage/rings/real_rqdf.pyx"],
+                       libraries = ['qd', 'm', 'stdc++','gmp','mpfr' ],
                        language='c++'
                        )
 
@@ -172,13 +165,28 @@ matrix_integer_2x2 = Extension('sage.matrix.matrix_integer_2x2',
                                  libraries = ['gmp'])
 
 linbox = Extension('sage.libs.linbox.linbox',
-                   ['sage/libs/linbox/linbox.pyx',
-                    'sage/libs/linbox/linbox_wrap.cpp'],
-                   libraries = ['linbox', 'ntl', 'gmp', 'gmpxx', 'stdc++', 'givaro', LINBOX_BLAS],
+                   ['sage/libs/linbox/linbox.pyx'],
+                   # For this to work on cygwin, linboxwrap *must* be before ntl.
+                   libraries = ['linboxwrap', 'ntl', 'linbox', 'gmp', 'gmpxx', 'stdc++', 'givaro', BLAS],
                    language = 'c++')
+
+libsingular = Extension('sage.libs.singular.singular',
+                        sources = ['sage/libs/singular/singular.pyx'],
+                        libraries = ['gmp', 'm', 'readline', 'singular', 'singfac', 'singcf', 'omalloc'],
+                        language="c++",
+                        )
+
 
 matrix_modn_dense = Extension('sage.matrix.matrix_modn_dense',
                               ['sage/matrix/matrix_modn_dense.pyx'],
+                              libraries = ['gmp'])
+
+matrix_mod2_dense = Extension('sage.matrix.matrix_mod2_dense',
+                              ['sage/matrix/matrix_mod2_dense.pyx',
+                               'sage/libs/m4ri/packedmatrix.c',
+                               'sage/libs/m4ri/matrix.c',
+                               'sage/libs/m4ri/brilliantrussian.c',
+                               'sage/libs/m4ri/grayflex.c',],
                               libraries = ['gmp'])
 
 matrix_modn_sparse = Extension('sage.matrix.matrix_modn_sparse',
@@ -205,7 +213,7 @@ matrix_rational_sparse = Extension('sage.matrix.matrix_rational_sparse',
 # TODO -- change to use BLAS at some point.
 matrix_integer_dense = Extension('sage.matrix.matrix_integer_dense',
                                  ['sage/matrix/matrix_integer_dense.pyx'],
-                                  libraries = ['gmp', 'iml', 'm', BLAS])
+                                  libraries = ['iml', 'gmp', 'm', BLAS])  # order matters for cygwin!!
 
 matrix_real_double_dense=Extension('sage.matrix.matrix_real_double_dense',
    ['sage/matrix/matrix_real_double_dense.pyx'],libraries=['gsl',BLAS],
@@ -258,7 +266,7 @@ gsl_callback = Extension('sage.gsl.callback',
 
 real_double = Extension('sage.rings.real_double',
                 ['sage/rings/real_double.pyx'],
-                libraries = ['gsl', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
+                libraries = ['gsl', 'gmp', BLAS],define_macros=[('GSL_DISABLE_DEPRECATED','1')])
 
 complex_double = Extension('sage.rings.complex_double',
                            ['sage/rings/complex_double.pyx'],
@@ -327,8 +335,6 @@ ext_modules = [ \
 
     matrix_misc,
 
-    cf,
-
     matrix_dense,
     matrix_generic_dense,
 
@@ -355,7 +361,10 @@ ext_modules = [ \
      linbox,
      matrix_modn_dense,
      matrix_modn_sparse,
+     matrix_mod2_dense,
      givaro_gfq, \
+
+     libsingular, \
 
 ##     matrix_rational_sparse,
 
@@ -373,7 +382,7 @@ ext_modules = [ \
     gsl_integration,
     real_double,
     complex_double,
-    #qd,
+    qd,
 
     complex_number,
 
@@ -409,6 +418,20 @@ ext_modules = [ \
     Extension('sage.rings.ring',
               sources = ['sage/rings/ring.pyx']), \
 
+    Extension('sage.rings.multi_polynomial',
+              sources = ['sage/rings/multi_polynomial.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_ring_generic',
+              sources = ['sage/rings/multi_polynomial_ring_generic.pyx']
+              ), \
+
+    Extension('sage.rings.multi_polynomial_libsingular',
+              sources = ['sage/rings/multi_polynomial_libsingular.pyx'],
+              libraries = ['gmp', 'm', 'readline', 'singular', 'singcf', 'singfac', 'omalloc'],
+              language="c++",
+              ), \
+
     Extension('sage.groups.group',
               sources = ['sage/groups/group.pyx']), \
 
@@ -441,11 +464,11 @@ ext_modules = [ \
     Extension('sage.rings.integer',
               sources = ['sage/ext/arith.pyx', 'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.integer_ring',
               sources = ['sage/rings/integer_ring.pyx'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.memory', \
               sources = ['sage/rings/memory.pyx'], \
@@ -459,6 +482,12 @@ ext_modules = [ \
     Extension('sage.rings.polynomial_element',
               sources = ['sage/rings/polynomial_element.pyx']), \
 
+    Extension('sage.rings.power_series_ring_element',
+              sources = ['sage/rings/power_series_ring_element.pyx']), \
+
+    Extension('sage.rings.laurent_series_ring_element',
+              sources = ['sage/rings/laurent_series_ring_element.pyx']), \
+
     Extension('sage.rings.polynomial_pyx',
               sources = ['sage/rings/polynomial_pyx.pyx',
                          'sage/ext/arith_gmp.pyx'],
@@ -469,7 +498,7 @@ ext_modules = [ \
                          'sage/ext/arith.pyx', \
                          'sage/rings/integer.pyx', \
                          'sage/ext/mpn_pylong.c', 'sage/ext/mpz_pylong.c'],
-              libraries=['gmp']), \
+              libraries=['ntl', 'gmp']), \
 
     Extension('sage.rings.sparse_poly',
               sources = ['sage/rings/sparse_poly.pyx'],
@@ -478,8 +507,19 @@ ext_modules = [ \
     Extension('sage.rings.polydict',
               sources = ['sage/rings/polydict.pyx']), \
 
+    Extension('sage.rings.number_field.number_field_element',
+              sources = ['sage/rings/number_field/number_field_element.pyx'],
+              libraries=['ntl','gmp'],
+              language = 'c++'), \
+
     Extension('sage.misc.search',
               ['sage/misc/search.pyx']), \
+
+    Extension('sage.misc.reset',
+              ['sage/misc/reset.pyx']), \
+
+    Extension('sage.calculus.var',
+              ['sage/calculus/var.pyx']), \
 
     Extension('sage.modular.modsym.heilbronn',
               ['sage/modular/modsym/heilbronn.pyx',
@@ -558,7 +598,7 @@ if DEVEL:
     #ext_modules.append(mpc)
 
 for m in ext_modules:
-    m.libraries += ['csage']
+    m.libraries = ['csage'] + m.libraries + ['stdc++', 'ntl']
     m.library_dirs += ['%s/lib' % SAGE_LOCAL]
 
 
@@ -579,7 +619,7 @@ def is_older(file1, file2):
         return False
     if not os.path.exists(file2):
         return True
-    if os.path.getctime(file2) < os.path.getctime(file1):
+    if os.path.getmtime(file2) < os.path.getmtime(file1):
         return True
     return False
 
@@ -818,7 +858,7 @@ setup(name        = 'sage',
                      'sage.libs.ntl',
                      'sage.libs.ec',
                      'sage.libs.pari',
-                     'sage.libs.cf',
+                     'sage.libs.singular',
 
                      'sage.matrix',
 
@@ -861,6 +901,7 @@ setup(name        = 'sage',
                      'sage.server',
                      'sage.server.server1',
                      'sage.server.notebook',
+                     'sage.server.notebook.compress',
                      'sage.server.wiki',
                      'sage.server.trac',
 
@@ -870,19 +911,22 @@ setup(name        = 'sage',
                      'sage.dsage.database',
                      'sage.dsage.database.tests',
                      'sage.dsage.server',
+                     'sage.dsage.server.tests',
+                     'sage.dsage.interface',
+                     'sage.dsage.interface.tests',
                      'sage.dsage.errors',
-                     'sage.dsage.tests',
                      'sage.dsage.twisted',
                      'sage.dsage.twisted.tests',
                      'sage.dsage.dist_functions',
+                     'sage.dsage.dist_functions.tests',
                      'sage.dsage.misc',
-                     'sage.dsage.interface',
+                     'sage.dsage.misc.tests',
                      'sage.dsage.scripts'
                      ],
 
       scripts = ['sage/dsage/scripts/dsage_server.py',
                  'sage/dsage/scripts/dsage_worker.py',
-                 'sage/dsage/scripts/dsage_setup.py',
+                 'sage/dsage/scripts/dsage_setup.py'
                 ],
 
       ext_modules = ext_modules,

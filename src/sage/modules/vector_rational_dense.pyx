@@ -28,6 +28,11 @@ We make a large zero vector:
     sage: v = k(0)
     sage: v[:10]
     (0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+
+TESTS:
+    sage: v = vector(QQ, [1,2/5,-3/8,4])
+    sage: loads(dumps(v)) == v
+    True
 """
 
 ###############################################################################
@@ -49,6 +54,11 @@ cimport free_module_element
 
 
 cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
+    cdef int is_dense_c(self):
+        return 1
+    cdef int is_sparse_c(self):
+        return 0
+
     cdef _new_c(self):
         cdef Vector_rational_dense y
         y = PY_NEW(Vector_rational_dense)

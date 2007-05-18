@@ -168,9 +168,15 @@ class HeckeAlgebraElement(sage.algebras.algebra_element.AlgebraElement):
         T = self.hecke_module_morphism()
         return T(x)
 
-    def charpoly(self, var):
+    def charpoly(self, var='x'):
         """
         Return the characteristic polynomial of this Hecke operator.
+
+        INPUT:
+            var -- string (default: 'x')
+
+        OUTPUT:
+            a monic polynomial in the given variable.
 
         EXAMPLES:
             sage: M = ModularSymbols(Gamma1(6),4)

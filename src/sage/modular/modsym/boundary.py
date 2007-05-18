@@ -66,7 +66,11 @@ class BoundarySpaceElement(hecke.HeckeModuleElement):
                  field of parent.
         """
         self.__x = x
-        hecke.HeckeModuleElement.__init__(self, parent, parent.free_module()(x))
+        self.__vec = parent.free_module()(x)
+        hecke.HeckeModuleElement.__init__(self, parent, self.__vec)
+
+    def coordinate_vector(self):
+        return self.__vec
 
     def _repr_(self):
         """
@@ -152,6 +156,12 @@ class BoundarySpace(hecke.HeckeModule_generic):
         self._known_gens_repr = []
         self._is_zero = []
         hecke.HeckeModule_generic.__init__(self, base_ring, group.level())
+
+    def _known_cusps(self):
+        """
+        Return cusps found so far.
+        """
+        return list(self._known_gens)
 
     def is_ambient(self):
         return True

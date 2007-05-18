@@ -28,7 +28,7 @@ class ModularFormsAmbient_R(ambient.ModularFormsAmbient):
         if self.base_ring().characteristic() == 0:
             B = self.__M.q_expansion_basis(prec)
         else:
-            B = self.__M.q_expansion_integral_basis(prec)
+            B = self.__M.q_integral_basis(prec)
         R = self._q_expansion_ring()
         return [R(f) for f in B]
 

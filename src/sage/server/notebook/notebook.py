@@ -16,8 +16,9 @@ beautiful antialised images.  To try it out immediately, do this:
 
 \subsection{Supported Browsers}
 
-The SAGE notebook should fully work with Firefox (and Mozilla),
-Safari, and Opera. The notebook works somewhat in Internet Explorer.
+The SAGE notebook should fully work with Firefox (and Mozilla).  It
+may work to some extent with Safari and Opera.  Internet Explorer is
+not supported.
 
 \subsection{Tutorial}
 Here are some things to try in the the notebook to get a feeling
@@ -346,6 +347,7 @@ import re           # regular expressions
 from   sage.structure.sage_object import SageObject, load
 from   sage.misc.viewer     import browser
 from   sage.misc.misc       import alarm, cancel_alarm
+from   sage.server.misc import print_open_msg
 
 # SAGE Notebook
 import css          # style
@@ -650,7 +652,7 @@ class Notebook(SageObject):
 
     def create_new_worksheet(self, name='untitled', passcode=''):
         if name in self.__worksheets.keys():
-            raise KeyError, 'name (=%s) already taken.'%name
+            return self.__worksheets[name]
         name = str(name)
         passcode = str(passcode)
         wids = self.worksheet_ids()
@@ -774,20 +776,9 @@ class Notebook(SageObject):
             else:
                 break
 
-        s = "Open your web browser to http://%s:%s"%(address, port)
-        t = len(s)
-        if t%2:
-            t += 1
-            s += ' '
-        n = max(t+4, 50)
-        k = n - t  - 1
-        j = k/2
-        print '*'*n
-        print '*'+ ' '*(n-2) + '*'
-        print '*' + ' '*j + s + ' '*j + '*'
-        print '*'+ ' '*(n-2) + '*'
-        print '*'*n
-        print "WARNING: The SAGE Notebook works best with Firefox/Mozilla, Safari, and Opera."
+        print_open_msg(address, port)
+        print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
+
 
         if open_viewer:
             cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
@@ -845,19 +836,20 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script language=javascript src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css"/>\n'
+        head += '\n<script  type="text/javascript" src="/__main__.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" id="main_css">\n'
 
         if css_href:
-            head += '\n<link rel=stylesheet type="text/css" href=%s />\n'%(css_href)
+            head += '\n<link rel=stylesheet type="text/css" href=%s>\n'%(css_href)
 
         if JSMATH:
-            head += '<script>jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
-            #head += '<script src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
-            head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script src="/jsmath/jsMath.js"></script>\n'
-            head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-        #head += '<script language=javascript>' + js.javascript() + '</script>\n'
+            head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 125}}}</script>\n'
+            #head += '<script type="text/javascript" src="/jsmath/plugins/spriteImageFonts.js"></script>\n'
+            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
+            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
+        #head += '<script type="text/javascript">' + js.javascript() + '</script>\n'
         return head
 
     def _doc_html_body(self, worksheet_id):
@@ -866,14 +858,14 @@ class Notebook(SageObject):
             interrupt_class = "interrupt"
         else:
             interrupt_class = "interrupt_grey"
-        main_body = worksheet.html(authorized = True)
+        main_body = worksheet.html(authorized = True, confirm_before_leave=False)
 
         vbar = '<span class="vbar"></span>'
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" href="http://sage.math.washington.edu/sage">'
-        body += '  <img src="sagelogo.png"/></a></span>\n'
+        body += '  <span class="banner"><a class="banner" href="http://www.sagemath.org">'
+        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
@@ -884,22 +876,22 @@ class Notebook(SageObject):
 
         #these divs appear in backwards order because they're float:right
         body += '  <div class="hidden" id="slide_controls">\n'
-        body += '    <div class="slideshow_control">'
-        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
-        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
-        body += '    </div>'
-        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">'
-        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>'
-        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>'
-        body += '    </div>'
-        body += '    <div class="slideshow_control">'
-        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>'
-        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>'
-        body += '    </div>'
-        body += '  </span>\n'
+        body += '    <div class="slideshow_control">\n'
+        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
+        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
+        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
+        body += '    </div>\n'
+        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
+        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
+        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>\n'
+        body += '    </div>\n'
+        body += '    <div class="slideshow_control">\n'
+        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>\n'
+        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>\n'
+        body += '    </div>\n'
+        body += '  </div>\n'
 
-        body += '</div>'
+        body += '</div>\n'
         body += '\n<div class="slideshow" id="worksheet">\n'
 
         body += main_body + '\n</div>\n'
@@ -914,16 +906,17 @@ class Notebook(SageObject):
         body += '</td></tr></table></span>\n'
 
         body += '  <div class="worksheet_list" id="worksheet_list">%s</div>\n'%self.worksheet_list_html(worksheet)
-        body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script language=javascript>jsmath_init();</script>\n'
-        body += '<script language=javascript>worksheet_locked=false;</script>'
+        body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
+        body += '<script type="text/javascript">jsmath_init();</script>\n'
+        body += '<script type="text/javascript">worksheet_locked=false;</script>'
 
         if worksheet.computing():
             # Set the update checking back in motion.
-            body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
-            body += 'for(var i = 0; i < active_cell_list.length; i++)'
-            body += '    cell_set_running(active_cell_list[i]); \n'
-            body += 'start_update_check(); </script>\n'
+            # body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
+            # body += 'for(var i = 0; i < active_cell_list.length; i++)'
+            # body += '    cell_set_running(active_cell_list[i]); \n'
+            # body += 'start_update_check(); </script>\n'
+            body += '<script type="text/javascript">sync_active_cell_list();</script>'
         return body
 
     def _html_head(self, worksheet_id):
@@ -932,15 +925,17 @@ class Notebook(SageObject):
             head = '\n<title>%s (%s)</title>'%(worksheet.name(), self.directory())
         else:
             head = '\n<title>SAGE Notebook | Welcome</title>'
-        head += '\n<script language=javascript src="/__main__.js"></script>\n'
-        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css" />\n'
+        head += '\n<script type="text/javascript" src="/__main__.js"></script>\n'
+        head += '\n<link rel=stylesheet href="/__main__.css" type="text/css">\n'
 
         if JSMATH:
-            head += '<script>jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
-            head +=' <script src="/jsmath/plugins/noImageFonts.js"></script>\n'
-            head += '<script src="/jsmath/jsMath.js"></script>\n'
-            head += "<script>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
-        #head += '<script language=javascript>' + js.javascript() + '</script>\n'
+            head += '<script type="text/javascript">jsMath = {Controls: {cookie: {scale: 115}}}</script>\n'
+            head +=' <script type="text/javascript" src="/jsmath/plugins/noImageFonts.js"></script>\n'
+            head += '<script type="text/javascript" src="/jsmath/jsMath.js"></script>\n'
+            head += "<script type='text/javascript'>jsMath.styles['#jsMath_button'] = jsMath.styles['#jsMath_button'].replace('right','left');</script>\n"
+
+        head +=' <script type="text/javascript" src="/highlight/prettify.js"></script>\n'
+        head += '<link rel=stylesheet href="/highlight/prettify.css" type="text/css">\n'
 
         return head
 
@@ -991,37 +986,37 @@ class Notebook(SageObject):
 
         body = ''
         body += '<div class="top_control_bar">\n'
-        body += '  <span class="banner"><a class="banner" target="_new" href="http://sage.math.washington.edu/sage">'
-        body += '  <img src="sagelogo.png"/></a></span>\n'
+        body += '  <span class="banner"><a class="banner" target="_new" href="http://www.sagemath.org">'
+        body += '  <img src="sagelogo.png" alt="SAGE"></a></span>\n'
         body += '  <span class="control_commands" id="cell_controls">\n'
         body += '    <a class="%s" onClick="interrupt()" id="interrupt">Interrupt</a>'%interrupt_class + vbar
         body += '    <a class="restart_sage" onClick="restart_sage()" id="restart_sage">Restart</a>' + vbar
         body += '    <a class="history_link" onClick="history_window()">History</a>' + vbar
-        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Toggle Panel</a>' + vbar
+        body += '     <a onClick="toggle_left_pane()" class="worksheets_button" id="worksheets_button">Left Panel</a>' + vbar
         #body += '    <a class="doc_browser" onClick="show_doc_browser()">Documentation</a>' + vbar
-        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="help" onClick="show_help_window()">Help</a>' + vbar
+        body += '    <a href="/doc_browser?/?index.html">Documentation</a>' + vbar
         body += '    <a class="slide_mode" onClick="slide_mode()">Slideshow</a>'
         body += '  </span>\n'
 
         #these divs appear in backwards order because they're float:right
         body += '  <div class="hidden" id="slide_controls">\n'
-        body += '    <div class="slideshow_control">'
-        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>'
-        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>' + vbar
-        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>'
-        body += '    </div>'
-        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">'
-        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>'
-        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>'
-        body += '    </div>'
-        body += '    <div class="slideshow_control">'
-        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>'
-        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>'
-        body += '    </div>'
-        body += '  </span>\n'
+        body += '    <div class="slideshow_control">\n'
+        body += '      <a class="slide_arrow" onClick="slide_next()">&gt;</a>\n'
+        body += '      <a class="slide_arrow" onClick="slide_last()">&gt;&gt;</a>\n' + vbar
+        body += '      <a class="cell_mode" onClick="cell_mode()">Worksheet</a>\n'
+        body += '    </div>\n'
+        body += '    <div class="slideshow_progress" id="slideshow_progress" onClick="slide_next()">\n'
+        body += '      <div class="slideshow_progress_bar" id="slideshow_progress_bar">&nbsp;</div>\n'
+        body += '      <div class="slideshow_progress_text" id="slideshow_progress_text">&nbsp;</div>\n'
+        body += '    </div>\n'
+        body += '    <div class="slideshow_control">\n'
+        body += '      <a class="slide_arrow" onClick="slide_first()">&lt;&lt;</a>\n'
+        body += '      <a class="slide_arrow" onClick="slide_prev()">&lt;</a>\n'
+        body += '    </div>\n'
+        body += '  </div>\n'
 
-        body += '</div>'
+        body += '</div>\n'
         body += '\n<div class="worksheet" id="worksheet">\n'
         if self.__show_debug or show_debug:
             body += "<div class='debug_window'>"
@@ -1072,22 +1067,22 @@ class Notebook(SageObject):
         body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
         body += endpanespan
-        body += '<script language=javascript>focus(%s)</script>\n'%(worksheet[0].id())
-        body += '<script language=javascript>jsmath_init();</script>\n'
+        body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
+        body += '<script type="text/javascript">jsmath_init();</script>\n'
 
         if worksheet_authorized:
-            body += '<script language=javascript>worksheet_locked=false;</script>'
+            body += '<script type="text/javascript">worksheet_locked=false;</script>'
         else:
-            body += '<script language=javascript>worksheet_locked=true;</script>'
+            body += '<script type="text/javascript">worksheet_locked=true;</script>'
 
         if worksheet.computing():
             # Set the update checking back in motion.
-            body += '<script language=javascript> active_cell_list = %r; \n'%worksheet.queue_id_list()
+            body += '<script type="text/javascript"> active_cell_list = %r; \n'%worksheet.queue_id_list()
             body += 'for(var i = 0; i < active_cell_list.length; i++)'
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
 
-        body += '<script language=javascript>toggle_left_pane()</script>'
+        body += '<script type="text/javascript">toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):
@@ -1126,11 +1121,13 @@ Output
 
 
         s = """
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html><head><title>SAGE Wiki cell text </title>
         <style type="text/css">
 
         textarea.edit {
-            font-family: monospace;
+            font-family: courier, monospace;
+            font-size:12pt;
             border: 1px solid #8cacbb;
             color: black;
             background-color: white;
@@ -1140,7 +1137,7 @@ Output
         }
         </style>
 
-        <script language=javascript> <!--
+        <script type="text/javascript"> <!--
 
         %s
 
@@ -1205,6 +1202,7 @@ Output
 
     def help_window(self):
         help = [
+            ('Full Text Search of Docs and Source', 'Search the SAGE documentation by typing <pre>search_doc("my query")</pre> in an input cell and press shift-enter.  Search the source code of SAGE by typing <pre>search_src("my query")</pre> and pressing shift-enter.  Arbitrary regular expressions are allowed as queries.'),
             ('HTML', 'Begin an input block with %html and it will be output as HTML.  Use the &lt;sage>...&lt;/sage> tag to do computations in an HTML block and have the typeset output inserted.  Use &lt;$>...&lt;/$> and &lt;$$>...&lt;/$$> to insert typeset math in the HTML block.  This does <i>not</i> require latex.'),
             ('Shell', 'Begin a block with %sh to have the rest of the block evaluated as a shell script.  The current working directory is maintained.'),
             ('Autoevaluate Cells on Load', 'Any cells with "#auto" in the input is automatically evaluated when the worksheet is first opened.'),
@@ -1230,7 +1228,7 @@ Output
                 ('Documentation',
                  'Click on <a href="/doc_browser?/?index.html">Documentation</a> in the upper right to browse the SAGE tutorial, reference manual, and other documentation.'),
                 ('Insert New Cell',
-                 'Put mouse between an output and input until the horizontal line appears and click.  Also if you press control-enter in a cell, a new cell is inserted after it.'),
+                 'Put mouse between an output and input until the horizontal line appears and click.  If you press Alt-Enter in a cell, the cell is evaluated and a new cell is inserted after it.'),
                 ('Delete Cell',
                  'Delete cell contents the press backspace.'),
                 ('Text of Worksheet', 'Click the <u>Text</u> and <u>Doctext</u> links, which are very useful if you need to cut and paste chunks of your session into email or documentation.'),
@@ -1317,11 +1315,12 @@ Output
 
     def upload_window(self):
         return """
+          <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
           <html>
             <head>
               <title>Upload File</title>
               <style>%s</style>
-              <script language=javascript>%s</script>
+              <script type='text/javascript'>%s</script>
             </head>
             <body onLoad="if(window.focus) window.focus()">
               <div class="upload_worksheet_menu" id="upload_worksheet_menu">
@@ -1353,9 +1352,10 @@ Output
         head = self._doc_html_head(worksheet_id, css_href)
         body = self._doc_html_body(worksheet_id)
         if worksheet_id is not None:
-           body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
+           body += '<script type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s"; toggle_left_pane(); </script>'%(worksheet_id, W.filename(), W.name())
 
         return """
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html>
         <head>%s</head>
         <body>%s</body>
@@ -1377,17 +1377,21 @@ Output
                 W = self.create_new_worksheet(worksheet_id)
                 worksheet_id = W.id()
 
+
         if authorized:
             body = self._html_body(worksheet_id, show_debug=show_debug,
                                    worksheet_authorized=worksheet_authorized)
         else:
             body = self._html_authorize()
 
-        if worksheet_id is not None:
-            body += '<script language=javascript>worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
 
         head = self._html_head(worksheet_id)
+
+        if worksheet_id is not None:
+            head += '<script  type="text/javascript">worksheet_id="%s"; worksheet_filename="%s"; worksheet_name="%s";</script>'%(worksheet_id, W.filename(), W.name())
+
         return """
+        <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
         <html>
         <head>%s</head>
         <body>%s</body>
@@ -1435,7 +1439,7 @@ Output
                     lists.append([])
                 cell = """
    <li id='completion%s_%s_%s' class='completion_menu_two'>
-    <a onClick='do_replacement(%s, "%s")'
+    <a onClick='do_replacement(%s, "%s"); return false;'
        onMouseOver='this.focus(); select_replacement(%s,%s);'
     >%s</a>
    </li>"""%(cell_id, i, j, cell_id, row[j], i,j,
@@ -1459,7 +1463,7 @@ import time
 def notebook(dir         ='sage_notebook',
              port        = 8000,
              address     = 'localhost',
-             open_viewer = False,
+             open_viewer = True,
              max_tries   = 10,
              username    = None,
              password    = None,
@@ -1467,7 +1471,7 @@ def notebook(dir         ='sage_notebook',
              system      = None,
              jsmath      = True,
              show_debug  = False,
-             splashpage  = None,
+             splashpage  = True,
              warn        = True,
              ignore_lock = False,
              log_server = False,
@@ -1486,7 +1490,7 @@ def notebook(dir         ='sage_notebook',
         port -- (default: 8000) port on computer where the server is served
         address -- (default: 'localhost') address that the server
                    will listen on
-        open_viewer -- bool (default:False); if True, pop up a web browser at the URL
+        open_viewer -- bool (default: True); if True, pop up a web browser at the URL
         max_tries -- (default: 10) maximum number of ports > port to try in
                      case given port can't be opened.
         username -- user name used for authenticated logins
@@ -1525,12 +1529,12 @@ def notebook(dir         ='sage_notebook',
 
     \begin{enumerate}
     \item Figure out the external address of your server, say
-          'sage.math.washington.edu', for example.
+          'www.sagemath.org', for example.
     \item On your server, type
-       server_http1('mysession', address='sage.math.washington.edu')
+        notebook('mysession', address='www.sagemath.org')
     \item Assuming you have permission to open a port on that
        machine, it will startup and display a URL, e.g.,
-           \url{http://sage.math.washington.edu:8000}
+           \url{http://www.sagemath.org:8000}
        Note this URL.
     \item Go to any computer in the world (!), or at least
        behind your firewall, and use any web browser to

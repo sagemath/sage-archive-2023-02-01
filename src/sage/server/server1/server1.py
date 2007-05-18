@@ -638,7 +638,7 @@ def server_http1(dir       ='sage_server',
     that command on.  You don't connect to another
     machine.  It's kind of like starting apache
     on a server.  So do this if you want to start
-    a SAGE notebook accessible from anywher.
+    a SAGE notebook accessible from anywhere.
 
     \begin{enumerate}
     \item Figure out the external IP address of your server, say
@@ -712,7 +712,7 @@ def server_http1(dir       ='sage_server',
             httpd = BaseHTTPServer.HTTPServer(server_address,
                                               HTML_Interface)
             sa = httpd.socket.getsockname()
-            httpd.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
+            httpd.socket.setsockopt(socket.SOL_SOCKET, 1)
         except socket.error, msg:
             print msg
             port += 1

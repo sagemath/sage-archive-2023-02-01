@@ -15,6 +15,7 @@ import os, socket, sys
 import sage.misc.misc as misc
 
 from   sage.misc.viewer     import browser
+from   sage.server.misc import print_open_msg
 
 # if you change the default sage_wiki, you must also change local/bin/sage-wiki
 def wiki_create_instance(directory='sage_wiki'):
@@ -38,7 +39,70 @@ def wiki_create_instance(directory='sage_wiki'):
 def wiki(directory='sage_wiki',
          port=9000,
          address='localhost',
-         open_viewer = False):
+         threads=10):
+    r"""
+    Create (if necessary) and start up a Moin Moin wiki.
+
+    The wiki will be served on the given port.
+
+    The moin package contains a modified version of moin moin, which
+    comes with jsmath latex typesetting preconfigured; use dollar
+    signs to typeset.
+    """
+    if not os.path.exists(directory):
+        wiki_create_instance(directory)
+    os.chdir(directory)
+
+    moin = '%s/share/moin/'%misc.SAGE_LOCAL
+    port = int(port)
+
+
+    def run(port):
+        ## Create the config file
+        config = open('twistedconf.py', 'w')
+        config.write("""
+import sys
+sys.path.insert(0, '%s')
+from MoinMoin.server.twistedmoin import TwistedConfig, makeApp
+class Config(TwistedConfig):
+    name = 'mointwisted'
+    docs = '%s/local/share/moin/htdocs'
+    user = 'www-data'
+    group = 'www-data'
+    port = %s
+    interfaces = ['']
+    threads = %s
+    logPath_twisted = None
+
+application = makeApp(Config)
+"""%(directory,
+     misc.SAGE_ROOT,
+     port,
+     threads))
+
+        config.close()
+
+        ## Start up twisted
+        print_open_msg(address, port)
+        e = os.system('twistd -n --python twistedconf.py')
+        if not e:
+            raise socket.error
+
+
+    for i in range(256):
+        try:
+            run(port + i)
+        except socket.error:
+            print "Port %s is already in use.  Trying next port..."%port
+        else:
+            break
+
+    return True
+
+
+def wiki_simple_http(directory='sage_wiki',
+         port=9000,
+         address='localhost'):
     r"""
     Create (if necessary) and start up a Moin Moin wiki.
 
@@ -120,12 +184,9 @@ def wiki(directory='sage_wiki',
         ## hotshotProfile = name + '.prof'
 
 
-    if open_viewer:
-        cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
-        os.system(cmd)
-
     for i in range(256):
         try:
+            print_open_msg(address, port)
             run(Config)
         except socket.error:
             print "Port %s is already in use.  Trying next port..."%(Config.port)
@@ -135,3 +196,4 @@ def wiki(directory='sage_wiki',
 
 
     return True
+

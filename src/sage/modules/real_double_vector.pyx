@@ -4,6 +4,11 @@ Real double vectors
 AUTHOR:
     -- Josh Kantor (2006-10)
     -- William Stein (2006) rewrite
+
+TESTS:
+    sage: v = vector(RDF, [1,2,3,4])
+    sage: loads(dumps(v)) == v
+    True
 """
 ###############################################################################
 #   SAGE: System for Algebra and Geometry Experimentation
@@ -60,10 +65,17 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         y.v = v
         return y
 
+    cdef int is_dense_c(self):
+        return 1
+    cdef int is_sparse_c(self):
+        return 0
+
     cdef gsl_vector* gsl_vector_copy(self) except NULL:
         """
         Return a copy of the underlying GSL vector of self.
         """
+        if not self.v:
+            return NULL
         cdef gsl_vector* v
         v = <gsl_vector*> gsl_vector_alloc(self.v.size)
         if v is NULL:
@@ -78,12 +90,18 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     def __new__(self, parent=None,x=None,coerce=True,copy=True):
         self.v = NULL
 
+    def __reduce__(self):
+        return (unpickle_v0, (self._parent, self.list(), self._degree))
+
     def __init__(self,parent,x,coerce=True,copy=True):
         self._parent = parent
         self._degree = parent.degree()
         cdef int n
         cdef int i
         n = parent.rank()
+        if n == 0:
+            self.v = NULL
+            return
 
         try:
             length = len(x)
@@ -116,11 +134,13 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             gsl_vector_free(self.v)
 
     def __len__(self):
+        if not self.v:
+            return 0
         return self.v.size
 
     def __setitem__(self,size_t i,x):
-        if i < 0 or i >=self.v.size:
-            raise IndexError
+        if not self.v or i < 0 or i >=self.v.size:
+            raise IndexError, "index out of bounds"
         else:
             gsl_vector_set(self.v,i,x)
 
@@ -141,7 +161,7 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             IndexError: index out of range
         """
         cdef RealDoubleElement x
-        if i < 0 or i >=self.v.size:
+        if not self.v or i < 0 or i >=self.v.size:
             raise IndexError, 'index out of range'
         else:
             x = new_RealDoubleElement()
@@ -149,6 +169,8 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             return x
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
+        if not self.v:
+            return self
         cdef gsl_vector* v
         gsl_set_error_handler_off()
         v = self.gsl_vector_copy()
@@ -158,6 +180,8 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
 
 
     cdef ModuleElement _sub_c_impl(self, ModuleElement right):
+        if not self.v:
+            return self
         cdef gsl_vector* v
         gsl_set_error_handler_off()
         v = self.gsl_vector_copy()
@@ -166,6 +190,8 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         return self._new_c(v)
 
     cdef Vector _vector_times_vector_c_impl(self, Vector right):
+        if not self.v:
+            return self
         cdef gsl_vector* v
         gsl_set_error_handler_off()
         v = self.gsl_vector_copy()
@@ -174,12 +200,16 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         return self._new_c(v)
 
     cdef ModuleElement _rmul_c_impl(self, RingElement left):
+        if not self.v:
+            return self
         cdef gsl_vector* v
         v = self.gsl_vector_copy()
         gsl_vector_scale(v, (<RealDoubleElement>left)._value)
         return self._new_c(v)
 
     cdef ModuleElement _lmul_c_impl(self, RingElement right):
+        if not self.v:
+            return self
         cdef gsl_vector* v
         v = self.gsl_vector_copy()
         gsl_vector_scale(v, (<RealDoubleElement>right)._value)
@@ -188,7 +218,17 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
     def change_ring(self, R):
         """
         EXAMPLES:
-
+            sage: v = vector(RDF,4,range(4)); v
+            (0.0, 1.0, 2.0, 3.0)
+            sage: v.change_ring(CC)
+            (0, 1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: v.change_ring(CDF)
+            (0, 1.0, 2.0, 3.0)
+            sage: v.change_ring(RR)
+            (0.000000000000000, 1.00000000000000, 2.00000000000000, 3.00000000000000)
+            sage: v = vector(RDF,0)
+            sage: v.change_ring(CC)
+            ()
         """
         if isinstance(R, sage.rings.complex_double.ComplexDoubleField_class):
             return self.complex_vector()
@@ -199,7 +239,19 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         """
         Return the associated complex vector, i.e., this vector but with
         coefficients viewed as complex numbers.
+
+        EXAMPLES:
+            sage: v = vector(RDF,4,range(4)); v
+            (0.0, 1.0, 2.0, 3.0)
+            sage: v.complex_vector()
+            (0, 1.0, 2.0, 3.0)
+            sage: v = vector(RDF,0)
+            sage: v.complex_vector()
+            ()
         """
+        if not self.v:
+            return self.parent().change_ring(sage.rings.complex_double.CDF).zero_vector()
+
         cdef complex_double_vector.ComplexDoubleVectorSpaceElement result
         cdef gsl_vector_complex* v
         v = <gsl_vector_complex*> gsl_vector_complex_calloc(self.v.size)
@@ -214,12 +266,45 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
             (result.v).data[2*i]= self.v.data[i]
         return result
 
-    def fft(self):
+    def fft(self, direction = "forward"):
+        """
+        Return the fast Fourier transform of this vector over the complex numbers.
+
+        INPUT:
+           direction -- 'forward' (default) or 'backward'
+
+        EXAMPLES:
+            sage: v = vector(RDF,4,range(4)); v
+            (0.0, 1.0, 2.0, 3.0)
+            sage: v.fft()
+            (6.0, -2.0 + 2.0*I, -2.0, -2.0 - 2.0*I)
+            sage: v.fft(direction='backward')
+            (1.5, -0.5 - 0.5*I, -0.5, -0.5 + 0.5*I)
+            sage: v.fft(direction='backward').fft()     # random low order bits
+            (0, 1.0 - 5.74627151417e-18*I, 2.0, 3.0 + 5.74627151417e-18*I)
+        """
+        if not self.v:
+            return self
         v = self.complex_vector()
-        v.fft(inplace=True)
+        v.fft(direction = direction, inplace=True)
         return v
 
     def numpy(self):
+        """
+        Return numpy array corresponding to this vector.
+
+        EXAMPLES:
+            sage: v = vector(RDF,4,range(4))
+            sage: v.numpy()
+            array([ 0.,  1.,  2.,  3.])
+            sage: v = vector(RDF,0)
+            sage: v.numpy()
+            array([], shape=(1, 0), dtype=float64)
+        """
+        if not self.v:
+            import numpy
+            return numpy.array([[]])
+
         import_array() #This must be called before using the numpy C/api or you will get segfault
         cdef RealDoubleVectorSpaceElement _V,_result_vector
         _V=self
@@ -239,9 +324,49 @@ cdef class RealDoubleVectorSpaceElement(free_module_element.FreeModuleElement):
         return _n
 
     def _replace_self_with_numpy(self,numpy_array):
+        if not self.v:
+            return
         cdef double *p
         cdef ndarray n
         n=numpy_array
         p=<double *>n.data
         memcpy(self.v.data,p,self.v.size*sizeof(double))
 
+    #############################
+    # statistics
+    #############################
+    def mean(self):
+        return gsl_stats_mean(self.v.data, self.v.stride, self.v.size)
+
+    def variance(self):
+        return gsl_stats_variance(self.v.data, self.v.stride, self.v.size)
+
+    #def covariance(self):
+    #    return gsl_stats_covariance(self.v.data, self.v.stride, self.v.size)
+
+    def standard_deviation(self):
+        """
+        EXAMPLES:
+        sage: v = vector(RDF, 5, [1,2,3,4,5])
+        sage: v.standard_deviation()
+        1.5811388300841898
+        """
+        return gsl_stats_sd(self.v.data, self.v.stride, self.v.size)
+
+    def stats_skew(self):
+        return gsl_stats_skew(self.v.data, self.v.stride, self.v.size)
+
+    def stats_kurtosis(self):
+        return gsl_stats_kurtosis(self.v.data, self.v.stride, self.v.size)
+
+    def stats_lag1_autocorrelation(self):
+        return gsl_stats_lag1_autocorrelation(self.v.data, self.v.stride, self.v.size)
+
+
+
+def unpickle_v0(parent, entries, degree):
+    # If you think you want to change this function, don't.
+    # Instead make a new version with a name like
+    #    make_FreeModuleElement_generic_dense_v1
+    # and changed the reduce method below.
+    return parent(entries)

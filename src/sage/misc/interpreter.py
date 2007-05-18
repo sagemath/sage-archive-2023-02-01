@@ -225,7 +225,7 @@ def do_prefilter_paste(line, continuation):
         try:
             name = str(eval(line[6:]))
         except:
-            name = line[6:].strip()
+            name = str(line[6:].strip())
         try:
             F = open(name)
         except IOError:
@@ -260,9 +260,9 @@ def do_prefilter_paste(line, continuation):
         # The -i so the file is run with the same environment,
         # e.g., including the "from sage import *"
         try:
-            name = eval(line[5:])
+            name = str(eval(line[5:]))
         except:
-            name = line[5:].strip()
+            name = str(line[5:].strip())
         if isinstance(name, str):
             if not os.path.exists(name):
                 raise ImportError, "File '%s' not found (be sure to give .sage, .py, or .spyx extension)"%name
@@ -313,9 +313,9 @@ def do_prefilter_paste(line, continuation):
         # The -i so the file is run with the same environment,
         # e.g., including the "from sage import *"
         try:
-            name = eval(line[7:])
+            name = str(eval(line[7:]))
         except:
-            name = line[7:].strip()
+            name = str(line[7:].strip())
         name = os.path.abspath(name)
         if not os.path.exists(name):
             raise ImportError, "File '%s' not found  (be sure to give .sage, .py, or .spyx extension)."%name

@@ -83,6 +83,7 @@ import sage.rings.arith
 
 from sage.rings.ring import is_Ring
 import sage.rings.integer_ring
+import sage.rings.integer
 from sage.rings.real_double import RDF
 from sage.rings.complex_double import CDF
 
@@ -91,7 +92,7 @@ from sage.rings.complex_double import CDF
 def is_FreeModuleElement(x):
     return isinstance(x, FreeModuleElement)
 
-def vector(arg0, arg1=None, sparse=None):
+def vector(arg0, arg1=None, arg2=None, sparse=None):
     r"""
     Return a vector over R with given entries.
 
@@ -100,6 +101,8 @@ def vector(arg0, arg1=None, sparse=None):
         2. vector(ring, object)
         3. vector(object, ring)
         4. vector(numpy_array)
+
+    In each case, give sparse=[True|False] as an option.
 
     INPUT:
         elts -- entries of a vector (either a list or dict).
@@ -172,6 +175,14 @@ def vector(arg0, arg1=None, sparse=None):
 
     if hasattr(arg1, '_vector_'):
         return arg1._vector_(arg0)
+
+    if sage.rings.integer.is_Integer(arg1):
+        if arg2 is None:
+            arg1 = [0]*arg1
+        else:
+            if len(arg2) != arg1:
+                raise ValueError, "incompatible degrees in vector constructor"
+            arg1 = arg2
 
     if is_Ring(arg0):
         R = arg0
@@ -341,9 +352,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: parent(V % 7)
             Ambient free module of rank 4 over the principal ideal domain Integer Ring
         """
-        return eval('self.parent()([x % p for x in self.list()], \
-                     copy=False, coerce=False, check=False)',
-                    {'self':self, 'p':p})
+        return self.parent()([x % p for x in self.list()], copy=False, coerce=False, check=False)
 
     def Mod(self, p):
         """
@@ -394,7 +403,7 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         d = self.degree()
         if d == 0: return "()"
         # compute column widths
-        S = eval('[str(x) for x in self.list(copy=False)]', {'self':self})
+        S = [str(x) for x in self.list(copy=False)]
         #width = max([len(x) for x in S])
         s = "("
         for i in xrange(d):
@@ -526,14 +535,55 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             sage: v.dot_product(w)
             2
         """
-        if not isinstance(right, FreeModuleElement):
+        if not PY_TYPE_CHECK(right, FreeModuleElement):
             raise TypeError, "right must be a free module element"
-        r = right.list()
-        l = self.list()
+        r = right.list(copy=False)
+        l = self.list(copy=False)
         if len(r) != len(l):
-            raise ArithmeticError, "degrees must be the same"%(len(l),len(r))
-        zero = self.parent().base_ring()(0)
-        return sum(eval('[l[i]*r[i] for i in xrange(len(l))]', {'l':l,'r':r}), zero)
+            raise ArithmeticError, "degrees (%s and %s) must be the same"%(len(l),len(r))
+        if len(r) == 0:
+            return self._parent.base_ring()(0)
+        sum = l[0] * r[0]
+        cdef Py_ssize_t i
+        for i from 1 <= i < len(l):
+            sum += l[i] * r[i]
+        return sum
+
+    def pairwise_product(self, right):
+        """
+        Return the dot product of self and right, which is a vector of
+        of the product of the corresponding entries.
+
+        This is a synonym for self * right.
+
+        INPUT:
+            right -- vector of the same degree as self.  it need not
+                     be in the same vector space as self, as long as
+                     the coefficients can be multiplied.
+
+        EXAMPLES:
+            sage: V = FreeModule(ZZ, 3)
+            sage: v = V([1,2,3])
+            sage: w = V([4,5,6])
+            sage: v.pairwise_product(w)
+            (4, 10, 18)
+            sage: sum(v.pairwise_product(w)) == v.dot_product(w)
+            True
+
+            sage: W = VectorSpace(GF(3),3)
+            sage: w = W([0,1,2])
+            sage: w.pairwise_product(v)
+            (0, 2, 0)
+            sage: w.pairwise_product(v).parent()
+            Vector space of dimension 3 over Finite Field of size 3
+
+        Implicit coercion is well defined (irregardless of order), so
+        we get 2 even if we do the dot product in the other order.
+
+            sage: v.pairwise_product(w).parent()
+            Vector space of dimension 3 over Finite Field of size 3
+        """
+        return self * right
 
     def element(self):
         return self
@@ -592,9 +642,15 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
             return A.linear_combination_of_rows(v).dot_product(w)
 
     def is_dense(self):
+        return bool(self.is_dense_c())
+
+    cdef int is_dense_c(self):
         return self.parent().is_dense()
 
     def is_sparse(self):
+        return bool(self.is_sparse_c())
+
+    cdef int is_sparse_c(self):
         return self.parent().is_sparse()
 
     def is_vector(self):
@@ -615,8 +671,8 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         z = self.base_ring()(0)
         v = self.list()
-        return eval('[i for i in xrange(self.degree()) if v[i] != z]',
-                    {'self':self, 'z':z, 'v':v})
+        cdef Py_ssize_t i
+        return [i for i from 0 <= i < self.degree() if v[i] != z]
 
     def support(self):   # do not override.
         """
@@ -637,6 +693,18 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         if len(self.list()) > 0:
             s = s[:-1]  # get rid of last comma
         return s + '\\right)'
+
+    def dense_vector(self):
+        if self.is_dense():
+            return self
+        else:
+            return self.parent().ambient_module().dense_module()(self.list())
+
+    def sparse_vector(self):
+        if self.is_sparse():
+            return self
+        else:
+            return self.parent().ambient_module().sparse_module()(self.list())
 
 
 #############################################
@@ -674,6 +742,12 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
         x._degree = self._degree
         return x
 
+    cdef int is_dense_c(self):
+        return 1
+
+    cdef int is_sparse_c(self):
+        return 0
+
     def _hash(self):
         return hash(tuple(list(self)))
 
@@ -695,7 +769,7 @@ cdef class FreeModuleElement_generic_dense(FreeModuleElement):
                             self.degree()
             if coerce:
                 try:
-                    entries = eval('[R(x) for x in entries]',{'R':R, 'entries':entries})
+                    entries = [R(x) for x in entries]
                 except TypeError:
                     raise TypeError, "Unable to coerce entries (=%s) to %s"%(entries, R)
             elif copy:
@@ -844,7 +918,7 @@ def _sparse_dot_product(v, w):
     v and w are dictionaries with integer keys.
     """
     x = set(v.keys()).intersection(set(w.keys()))
-    return eval('sum([v[k]*w[k] for k in x])', {'v':v, 'w':w, 'x':x})
+    return sum([v[k]*w[k] for k in x])
 
 def make_FreeModuleElement_generic_sparse(parent, entries, degree):
     cdef FreeModuleElement_generic_sparse v
@@ -884,6 +958,12 @@ cdef class FreeModuleElement_generic_sparse(FreeModuleElement):
         x._entries = v
         x._degree = self._degree
         return x
+
+    cdef int is_dense_c(self):
+        return 0
+
+    cdef int is_sparse_c(self):
+        return 1
 
     def __copy__(self):
         return self._new_c(dict(self._entries))

@@ -319,7 +319,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
         if alpha.is_infinity():
             return self.manin_symbol((i,0,1), check=False)
         QQ = rings.Rational
-        v = arith.continued_fraction(QQ(alpha))
+        v = arith.continued_fraction_list(QQ(alpha))
         c = [QQ(0), QQ(1)] + arith.convergents(v)
         a = self(0)
         if self.weight() > 2:
@@ -460,8 +460,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: m._compute_hecke_matrix_prime(3).charpoly('x')
             x^6 + 3*x^4 - 19*x^3 + 24*x^2 - 9*x
         """
+        # note -- p doesn't have to be prime despite the function name
         p = int(p)
-        assert arith.is_prime(p), "p must be prime."
+        # NOTE -- it is actually NOT necessary that p be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:
@@ -640,6 +641,16 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             H = cat.Hom(self, B)
             self.__boundary_map = H(A, "boundary map")
             return self.__boundary_map
+
+    def cusps(self):
+        try:
+            return self.__cusps
+        except AttributeError:
+            f = self.boundary_map()
+            B = f.codomain()
+            C = B._known_cusps()
+            self.__cusps = C
+            return C
 
     def boundary_space(self):
         raise NotImplementedError
@@ -970,7 +981,7 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def modular_symbols_of_sign(self, sign):
         """
         Returns a space of modular symbols with the same defining
-        properties (weight, sign, etc.) as this space except with
+        properties (weight, level, etc.) as this space except with
         given sign.
 
         EXAMPLES:
@@ -983,6 +994,8 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: M.modular_symbols_of_sign(-1)
             Modular Symbols space of dimension 1 for Gamma_1(11) of weight 2 with sign -1 and over Rational Field
         """
+        if sign == self.sign():
+            return self
         return modsym.ModularSymbols(self.group(), self.weight(), sign=sign, base_ring=self.base_ring())
 
 
@@ -997,8 +1010,9 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
             sage: M.modular_symbols_of_weight(3)
             Modular Symbols space of dimension 4 for Gamma_1(6) of weight 3 with sign 0 and over Rational Field
         """
+        if k == self.weight():
+            return self
         return modsym.ModularSymbols(self.group(), weight=k, sign=self.sign(), base_ring=self.base_ring())
-
 
     def _compute_sign_submodule(self, sign, compute_dual=True):
         """
@@ -1038,8 +1052,12 @@ class ModularSymbolsAmbient(space.ModularSymbolsSpace, hecke.AmbientHeckeModule)
     def submodule(self, M, dual_free_module=None, check=True):
         if check:
             if not free_module.is_FreeModule(M):
-                raise TypeError, "M must be a free module."
-            if not M.is_submodule(self.free_module()):
+                V = self.free_module()
+                if isinstance(M, (list,tuple)):
+                    M = V.span([V(x.element()) for x in M])
+                else:
+                    M = V.span(M)
+            elif not M.is_submodule(self.free_module()):
                 raise ArithmeticError, "M must be a submodule of the free module of self."
         return subspace.ModularSymbolsSubspace(self, M, dual_free_module=dual_free_module, check=check)
 
@@ -1335,7 +1353,7 @@ class ModularSymbolsAmbient_wt2_g0(ModularSymbolsAmbient_wtk_g0):
             sage: m._compute_hecke_matrix_prime(2).charpoly('x')
             x^5 + x^4 - 8*x^3 - 12*x^2
         """
-        assert arith.is_prime(p), "p must be prime."
+        # note -- p doesn't have to be prime.
         if isinstance(rows, list):
             rows = tuple(rows)
         try:

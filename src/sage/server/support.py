@@ -118,7 +118,13 @@ def docstring(obj_name, globs):
         return "No object '%s' currently defined."%obj_name
     s  = ''
     try:
-        s += 'File:        %s\n'%sageinspect.sage_getfile(obj)
+        filename = sageinspect.sage_getfile(obj)
+        #i = filename.find('site-packages/sage/')
+        #if i == -1:
+        s += 'File:        %s\n'%filename
+        #else:
+        #    file = filename[i+len('site-packages/sage/'):]
+        #    s += 'File:        <html><a href="src_browser?%s">%s</a></html>\n'%(file,file)
     except TypeError:
         pass
     s += 'Type:        %s\n'%type(obj)

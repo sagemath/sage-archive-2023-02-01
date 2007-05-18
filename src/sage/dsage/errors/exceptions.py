@@ -53,3 +53,14 @@ class BadSignatureException(pb.Error):
 
 class BadKeyException(pb.Error):
     pass
+
+class AuthenticationError(pb.Error):
+    """
+    Return this when credential checking has failed.
+
+    """
+
+    def __init__(self, value, data=None):
+        Exception.__init__(self, value, data)
+        self.value = value
+        self.data = data

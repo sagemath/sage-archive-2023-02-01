@@ -51,7 +51,7 @@ from extended_integer_ring import ExtendedIntegerRing
 
 # Rational integers.
 from integer_ring import IntegerRing, ZZ, crt_basis
-from integer import Integer
+from integer import Integer, is_Integer
 
 # Rational numbers
 from rational_field import RationalField, QQ, is_RationalField
@@ -76,13 +76,8 @@ from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotie
 from polynomial_quotient_ring_element import PolynomialQuotientRingElement
 
 # p-adic field
-#from padic_field import pAdicField, Qp, is_pAdicField
-#from padic import pAdic
-# To turn on the new p-adics, comment out the above two lines and uncomment the two below.
-from padics.zp import Zp, Zq, Zp as pAdicRing
-from padics.qp import Qp, Qq, Qp as pAdicField
 
-from padics.padic_ring_extension import pAdicRingExtension
+from padics.all import *
 
 # Real numbers
 from real_mpfr import (RealField, is_RealField, is_RealNumber, RR,
@@ -92,7 +87,12 @@ Reals = RealField
 from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleElement
 
 # Quad double
-#from real_qdrf import RealQuadDoubleField, RQDF
+from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
+
+# Algebraic reals (the intersection of the algebraic closure of the rationals
+# with the reals)
+from algebraic_real import (AlgebraicRealField, is_AlgebraicRealField, AA,
+                            AlgebraicRealNumber, is_AlgebraicRealNumber)
 
 # Intervals
 from real_mpfi import (RealIntervalField, is_RealIntervalField,
@@ -120,7 +120,7 @@ from power_series_ring_element import PowerSeries, is_PowerSeries
 
 # Laurent series ring in one variable
 from laurent_series_ring import LaurentSeriesRing, is_LaurentSeriesRing
-from laurent_series_ring_element import LaurentSeries
+from laurent_series_ring_element import LaurentSeries, is_LaurentSeries
 
 # Float interval arithmetic
 # (deprecated)
@@ -137,6 +137,9 @@ from fraction_field import FractionField, is_FractionField
 Frac = FractionField
 from fraction_field_element import is_FractionFieldElement
 
+# continued fractions
+from contfrac import continued_fraction, CFF, ContinuedFractionField
+
 # Arithmetic
 from arith import *
 
@@ -150,3 +153,4 @@ from homset import is_RingHomset
 
 CC = ComplexField()
 I = CC.gen()
+

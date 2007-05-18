@@ -100,8 +100,14 @@ class LaurentSeriesRing_generic(commutative_ring.CommutativeRing):
         ParentWithGens.__init__(self, base_ring, name)
         self.__sparse = sparse
 
+    def change_ring(self, R):
+        return LaurentSeriesRing(R, self.variable_name(), sparse=self.__sparse)
+
     def is_sparse(self):
         return self.__sparse
+
+    def is_field(self):
+        return True
 
     def is_dense(self):
         return not self.__sparse

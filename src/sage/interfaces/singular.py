@@ -261,6 +261,7 @@ from expect import Expect, ExpectElement, FunctionElement, ExpectFunction, tmp
 from sage.structure.element import RingElement
 
 import sage.misc.misc as misc
+import sage.rings.integer
 
 
 class Singular(Expect):
@@ -545,14 +546,18 @@ class Singular(Expect):
             s = self.eval('matrix %s[%s][%s] = %s'%(name, nrows, ncols, entries))
         return SingularElement(self, None, name, True)
 
-    def ring(self, char=0, vars='(x)', order='lp'):
+    def ring(self, char=0, vars='(x)', order='lp', check=True):
         r"""
         Create a Singular ring and makes it the current ring.
 
         INPUT:
-            char -- characteristic of the base ring (see examples below)
+            char -- characteristic of the base ring (see examples below),
+                    which must be either 0, prime (!), or one of
+                    several special codes (see examples below).
             vars -- a tuple or string that defines the variable names
             order -- string -- the monomial order (default: 'lp')
+            check -- if True, check primality of the characteristic
+                     if it is an integer.
 
         OUTPUT:
             a Singular ring
@@ -581,7 +586,7 @@ class Singular(Expect):
         field of order $7$:
             sage: R3 = singular.ring(7, '(x(1..10))', 'ds')
 
-        This is a polynomial ring over the transcendtal extension $\Q(a)$ of $\Q$:
+        This is a polynomial ring over the transcendental extension $\Q(a)$ of $\Q$:
             sage: R4 = singular.ring('(0,a)', '(mu,nu)', 'lp')
 
         This is a ring over the field of single-precision floats:
@@ -606,6 +611,11 @@ class Singular(Expect):
             self.eval('kill %s'%(str(vars)[1:-1]))
         except RuntimeError, TypeError:  # error if variable is not already defined.
             pass
+        if check and isinstance(char, (int, long, sage.rings.integer.Integer)):
+            if char != 0:
+                n = sage.rings.integer.Integer(char)
+                if not n.is_prime():
+                    raise ValueError, "the characteristic must be 0 or prime"
         R = self('%s,%s,%s'%(char, vars, order), 'ring')
         self.eval('short=0')  # make output include *'s for multiplication for *THIS* ring.
         return R
@@ -793,9 +803,9 @@ class SingularElement(ExpectElement):
         else:
             P.eval('%s[%s] = %s'%(self.name(), n, value.name()))
 
-    def is_zero(self):
+    def __nonzero__(self):
         P = self.parent()
-        return P.eval('%s == 0'%self.name()) == '1'
+        return P.eval('%s == 0'%self.name()) == '0'
 
     def sage_polystring(self):
 	"""

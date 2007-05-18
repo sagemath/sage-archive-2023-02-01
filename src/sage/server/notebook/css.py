@@ -33,6 +33,14 @@ div.fivepix {
   height:5px;
 }
 
+textarea.hidden {
+   display:none;
+}
+
+pre.hidden {
+   display:none;
+}
+
 /**** TOP CONTROL BAR ************************/
 
 div.top_control_bar {
@@ -66,7 +74,7 @@ span.worksheet_control_commands {
    font-weight:normal;
    font-family:arial;
    font-size:12px;
-   padding:5;
+   padding:5px;
 }
 
 div.slide_control_commands {
@@ -92,7 +100,7 @@ span.vbar {
 div.top_control_bar a {
    color: #0000BB;
    text-decoration: none;
-   padding:5;
+   padding:5px;
 }
 
 div.top_control_bar a:hover {
@@ -180,7 +188,7 @@ div.top_control_bar a.history_link:hover {
 span.worksheet_control_commands a {
    color: #0000BB;
    text-decoration: none;
-   padding:5;
+   padding:5px;
 }
 
 span.worksheet_control_commands a:hover {
@@ -256,7 +264,7 @@ div.introspection {
 }
 
 pre.introspection {
-  font-family:courier, monospace;
+  font-family: monospace;
   font-size:15px;
   background-color: #efefef;
   border: solid 1px black;
@@ -273,7 +281,7 @@ ul.completion_menu_one {
   border: solid 1px black;
   display:inline;
   margin: 5px;
-  font-family:courier, monospace;
+  font-family: monospace;
   font-size:15px;
   padding:5px;
 }
@@ -310,7 +318,7 @@ li.completion_menu_two:hover{
 span.search_doc_topbar {
    z-index: 12;
    height: 24px;
-   font-family:courier;
+   font-family:monospace;
    font-size: 12px;
    width:158px;
    top: 40px;
@@ -345,7 +353,7 @@ input.search_input {
    width: 160px;
    padding: 4px;
    z-index: 12;
-   font-family:courier;
+   font-family:monospace;
    font-size:14px;
    color: #222222;
    color: #808080;
@@ -374,7 +382,7 @@ span.search_doc {
 
 span.pane {
    z-index:30;
-   font-family:courier, monospace;
+   font-family: monospace;
    font-size:12px;
    position: fixed;
    left: 5px;
@@ -391,7 +399,7 @@ span.pane {
 span.plusminus {
   color:black;
   font-size:8pt;
-  font-family:courier, monospace;
+  font-family:monospace;
 }
 span.plusminus:hover {
     cursor:pointer;
@@ -699,7 +707,7 @@ span.pane a.worksheet_other_computing {
    font-size:12px;
    padding-left:1ex;
    border-top:1px solid <color1>;
-   background-color:ffd1d1;
+   background-color:#ffd1d1;
    text-decoration:none;
    color:black;
 }
@@ -764,7 +772,7 @@ div.control_area{
 
 span.control {
     border:1px solid white;
-    font-family: courier, monospace;
+    font-family: monospace;
     font-size:14pt;
     font-weight:bold;
 }
@@ -834,7 +842,7 @@ span.banner a.banner:hover {
 }
 
 input.btn {
-  font-family: courier;
+  font-family: monospace;
   font-size:13pt;
   font-weight:bold;
   color:#808080;
@@ -885,7 +893,7 @@ td.cell_number_running {
    font-size:12pt;
    font-family:arial, monospace;
    color:#bbbbbb;
-   background-color: 99ff99;
+   background-color: #99ff99;
    text-align:left;
 }
 
@@ -908,7 +916,7 @@ div.cellbox {
 pre.cell_input_pre {
   background-color: white;
   border: 0px solid white;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:0px;
@@ -921,9 +929,9 @@ pre.cell_input_pre {
 
 textarea.cell_input {
   color:#000000;
-  background-color: #e8e8e8;
-  border: 2px solid white;
-  font-family: courier, monospace;
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: monospace;
   font-size:12pt;
   overflow:auto;
   padding-left:5px;
@@ -934,11 +942,30 @@ textarea.cell_input {
   margin-top:0px;
 }
 
+pre.cell_input {
+  color:#000000;
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: monospace;
+  font-size:12pt;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  width: 1000%;
+  margin-bottom:0px;
+  margin-top:0px;
+
+}
+pre.cell_input:hover {
+  cursor:pointer;
+  border: 2px solid  #8888fe;
+  background-color: #ffffcc;
+}
 
 textarea.cell_input_hide {
   background-color: white;
   border: 0px solid white;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:hidden;
   padding-left:3px;
@@ -950,10 +977,28 @@ textarea.cell_input_hide {
 }
 
 
+pre.cell_input_hide {
+  background-color: white;
+  border: 2px solid #e8e8e8;
+  font-family: monospace;
+  font-size:12pt;
+  overflow:hidden;
+  padding-left:3px;
+  padding-top:0px;
+  padding-bottom:0px;
+  width: 100%;
+  height:1em;
+  margin:0px;
+}
+
+pre.cell_input_hide:hover {
+  cursor:pointer;
+}
+
 textarea.cell_input_active {
   background-color: white;
   border: 2px solid  #8888fe;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:auto;
   padding-left:5px;
@@ -963,6 +1008,21 @@ textarea.cell_input_active {
   margin-bottom:0px;
   width: 100%;
 }
+
+textarea.cell_input:hover{
+  background-color: #ffffcc;
+  border: 2px solid  #8888fe;
+  font-family: monospace;
+  font-size:12pt;
+  overflow:auto;
+  padding-left:5px;
+  padding-top:3px;
+  padding-bottom:0px;
+  margin-top:0px;
+  margin-bottom:0px;
+  width: 100%;
+}
+
 
 
 span.cell_evaluate {
@@ -975,7 +1035,7 @@ span.cell_evaluate {
 /************ CELL OUTPUT **************************/
 
 div.cell_output {
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   width: 95%;
   margin-top:-5px;
@@ -1030,11 +1090,11 @@ span.cell_output_nowrap_hidden {
 }
 
 span.cell_output_html_wrap {
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
 }
 span.cell_output_html_nowrap {
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
 }
 span.cell_output_html_hidden {
@@ -1042,7 +1102,7 @@ span.cell_output_html_hidden {
 }
 
 div.cell_output_running {
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   width: 100%;
   margin:0px;
@@ -1067,6 +1127,7 @@ div.cell_output_hidden {
 
 pre.shrunk {
 /*   height:0px; */
+  font-size:12pt;
    display:inline;
 }
 
@@ -1079,7 +1140,7 @@ pre.cell_output_hide {
 }
 
 a.file_link {
-  text_decoration:underline;
+  text-decoration:underline;
 }
 
 
@@ -1126,7 +1187,7 @@ div.debug_window_inactive {
 div.debug_output {
   background-color: white;
   border: 0px;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:10pt;
   overflow:scroll;
   padding-left:3px;
@@ -1140,7 +1201,7 @@ div.debug_output {
 textarea.debug_input {
   background-color: white;
   border: 1px solid #8888fe;
-  font-family: courier, monospace;
+  font-family: monospace;
   font-size:12pt;
   overflow:scroll;
   padding-left:3px;
@@ -1152,12 +1213,6 @@ textarea.debug_input {
 span.red{
   color:red;
 }
-
-
-/***********************************************************/
-/*                     wiki css styling                    */
-/***********************************************************/
-
 
 
 """

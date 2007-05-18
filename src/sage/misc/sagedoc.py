@@ -148,18 +148,60 @@ def format_src(s):
 
 ###############################
 
-def search_sage(s, extra=''):
+def search_src(s, extra=''):
     """
     Search sage source code for lines containing s.  The search is not
     case sensitive.
-
-    For this to work the "sage" command must be in your PATH,
-    and you must have grep installed.
     """
-    from sage.misc.all import pager
     cmd = 'sage -grep "%s" | grep "%s"'%(s,extra)
-    print cmd
-    pager()(os.popen(cmd).read())
+    r = os.popen(cmd).read()
+    from sage.server.support import EMBEDDED_MODE
+    if EMBEDDED_MODE:   # I.e., running from the notebook
+        print format_search_as_html('Source Code', r, s + extra)
+    else:
+        from sage.misc.all import pager
+        pager()(r)
+
+def format_search_as_html(what, r, search):
+    s = '<html>'
+    s += '<font color="black">'
+    s += '<h2>Search %s: %s</h2>'%(what, search)
+    s += '</font>'
+    s += '<font color="darkpurple">'
+    s += '<ol>'
+
+    files = set([])
+    for L in r.splitlines()[4:]:
+        i = L.find(':')
+        if i != -1:
+            files.add(L[:i])
+    files = list(files)
+    files.sort()
+    for F in files:
+        if F.endswith('.html'):
+            url = '/doc_browser?/' + F.replace('/','/?')
+        else:
+            # source code
+            url = '/src_browser?/' + F
+        s += '<li><a href="%s"><tt>%s</tt></a>\n'%(url, F)
+    s += '</ol>'
+    s += '</font>'
+    s += '</html>'
+    return s
+
+def search_doc(s, extra=''):
+    """
+    Full text search of the SAGE HTML documentation for lines
+    containing s.  The search is not case sensitive.
+    """
+    cmd = 'sage -grepdoc "%s" | grep "%s"'%(s,extra)
+    r = os.popen(cmd).read()
+    from sage.server.support import EMBEDDED_MODE
+    if EMBEDDED_MODE:   # I.e., running from the notebook
+        print format_search_as_html('Documentation', r, s + extra)
+    else:
+        from sage.misc.all import pager
+        pager()(r)
 
 
 

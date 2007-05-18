@@ -29,20 +29,12 @@ exit = quit
 
 import os, sys
 
-if sys.version_info[:2] < (2, 4):
-    print >>sys.stderr, "SAGE requires Python 2.4 or newer"
-    sys.exit(1)
+if not os.environ.has_key('SAGE_ROOT'):
+    raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
 
-try:
-    _l = '%s/local/lib'%os.environ['SAGE_ROOT']
-    if os.environ.has_key('LD_LIBRARY_PATH'):
-        if not _l in os.environ['LD_LIBRARY_PATH']:
-            raise KeyError
-        elif not _l in os.environ['DYLD_LIBRARY_PATH']:
-            raise KeyError
-    del _l
-except KeyError:
-     raise RuntimeError, "To use the SAGE libraries, set the environment variable SAGE_ROOT to the SAGE build directory and LD_LIBRARY_PATH to $SAGE_ROOT/local/lib"
+if sys.version_info[:2] < (2, 5):
+    print >>sys.stderr, "SAGE requires Python 2.5 or newer"
+    sys.exit(1)
 
 
 ###################################################################
@@ -78,7 +70,7 @@ from sage.sets.all       import *
 from sage.probability.all import *
 from sage.interfaces.all import *
 from sage.functions.all  import *
-#from sage.calculus.all   import *
+from sage.calculus.all   import *
 from sage.server.all     import *
 from sage.dsage.all      import *
 import sage.tests.all as tests
@@ -121,7 +113,6 @@ except:
 
 # very useful 2-letter shortcuts
 CC = ComplexField()
-I = CC.gen(0)
 QQ = RationalField()
 RR = RealField()  # default real field
 ZZ = IntegerRing()
@@ -143,7 +134,7 @@ true = True
 false = False
 
 oo = infinity
-x = PolynomialRing(QQ,'x').gen()
+#x = PolynomialRing(QQ,'x').gen()
 
 # grab signal handling back from PARI or other C libraries
 get_sigs()
@@ -240,13 +231,34 @@ def quit_sage(verbose=True):
                t1m,t1s,t2m,t2s)
     from sage.interfaces.quit import expect_quitall
     expect_quitall(verbose=verbose)
-    from sage.misc.misc import delete_tmpfiles
-    delete_tmpfiles()
 
-    # stop the twisted reactor
-    from twisted.internet import reactor
-    if reactor.running:
-        reactor.callFromThread(reactor.stop)
+    ### The following is removed -- since it would cleanup
+    ### the tmp directory that the sage cleaner depends upon.
+    # The following code close all open file descriptors,
+    # so that on shared file systems the delete_tmpfiles
+    # command below works.
+    # AUTHOR:
+    #    * Kate Minola (2007-05-03)
+    #import resource             # Resource usage information.
+    #maxfd = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+    #if maxfd != resource.RLIM_INFINITY:
+        # Iterate through and close all file descriptors.
+    #    for fd in range(0, maxfd):
+    #        try:
+    #            os.close(fd)
+    #        except OSError:  # ERROR, fd wasn't open to begin with (ignored)
+    #            pass
+    # Now delete the temp files
+    #from sage.misc.misc import delete_tmpfiles
+    #delete_tmpfiles()
+
+    try:
+       # stop the twisted reactor
+       from twisted.internet import reactor
+       if reactor.running:
+          reactor.callFromThread(reactor.stop)
+    except ImportError:
+       pass
 
 def _quit_sage_(self):
     import sage.misc.preparser_ipython

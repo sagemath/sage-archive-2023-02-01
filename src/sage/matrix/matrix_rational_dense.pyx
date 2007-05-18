@@ -31,6 +31,11 @@ operations with it.
     [1 0 0]
     [0 1 0]
     [0 0 1]
+
+TESTS:
+    sage: a = matrix(QQ,2,range(4), sparse=False)
+    sage: loads(dumps(a)) == a
+    True
 """
 
 ##############################################################################
@@ -818,7 +823,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         K = self.fetch('kernel')
         if not K is None:
             return K
-        if algorithm == 'padic' or algorithm == 'default':
+        if self._nrows > 0 and self._ncols > 0 and  \
+            (algorithm == 'padic' or algorithm == 'default'):
             A, _ = self.transpose()._clear_denom()
             K = A._rational_kernel_iml().change_ring(QQ)
             V = K.column_space()
@@ -1481,11 +1487,13 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         return QA
 
 
-    def randomize(self, density=1, num_bound=2, den_bound=2):
+    def randomize(self, density=1, num_bound=2, den_bound=2, distribution=None):
         """
-        Randomize density proportion of the entries of this matrix to
-        be rationals with numerators and denominators at most the
-        given bounds.
+        Randomize density proportion of the entries of this matrix,
+        leaving the rest unchanged.
+
+        If x and y are given, randomized entries of this matrix have numerators and denominators
+        bounded by x and y and have density 1.
         """
         density = float(density)
         if density == 0:
@@ -1507,7 +1515,10 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
 
         _sig_on
         if density == 1:
-            if mpz_cmp_si(C.value, 2):   # denom is > 1
+            if distribution == "1/n":
+                for i from 0 <= i < self._nrows*self._ncols:
+                    mpq_randomize_entry_recip_uniform(self._entries[i])
+            elif mpz_cmp_si(C.value, 2):   # denom is > 1
                 for i from 0 <= i < self._nrows*self._ncols:
                     mpq_randomize_entry(self._entries[i], B.value, C.value)
             else:
@@ -1516,7 +1527,12 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         else:
             nc = self._ncols
             num_per_row = int(density * nc)
-            if mpz_cmp_si(C.value, 2):   # denom is > 1
+            if distribution == "1/n":
+                for i from 0 <= i < self._nrows:
+                    for j from 0 <= j < num_per_row:
+                        k = random()%nc
+                        mpq_randomize_entry_recip_uniform(self._matrix[i][k])
+            elif mpz_cmp_si(C.value, 2):   # denom is > 1
                 for i from 0 <= i < self._nrows:
                     for j from 0 <= j < num_per_row:
                         k = random()%nc

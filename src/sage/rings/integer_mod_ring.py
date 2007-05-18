@@ -23,10 +23,16 @@ direction.
     sage: parent(r(1) + s(1))
     Finite Field of size 7
 
+We list the elements of $\Z/3\Z$
+    sage: R = Integers(3)
+    sage: list(R)
+    [0, 1, 2]
+
 AUTHORS
     -- William Stein (initial code)
     -- David Joyner (2005-12-22): most examples
-    -- Robert Bradshaw (2006-08-24) Convert to SageX
+    -- Robert Bradshaw (2006-08-24): convert to SageX
+    -- William Stein (2007-04-29): square_roots_of_one
 """
 
 #*****************************************************************************
@@ -225,6 +231,25 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         H = [i for i in range(N) if gcd(i, N) == 1]
         return H
 
+    def multiplicative_subgroups(self):
+        r"""
+        Return generators for each subgroup of $(\ZZ/N\ZZ)^*$.
+
+        EXAMPLES:
+            sage: Integers(5).multiplicative_subgroups()
+            [[2], [4], [1]]
+            sage: Integers(15).multiplicative_subgroups()
+            [[11, 7], [11, 4], [11, 1], [1, 7], [1, 4], [1, 1]]
+        """
+        from sage.rings.arith import divisors
+        from sage.misc.mrange import cartesian_product_iterator
+        U = self.unit_gens()
+        D = [divisors(u.multiplicative_order()) for u in U]
+        a = []
+        for exps in cartesian_product_iterator(D):
+           a.append([integer_ring.ZZ(U[i]**exps[i]) for i in range(len(exps))])
+        return a
+
     def is_finite(self):
         """
         Return True since Z/NZ is finite for all positive N.
@@ -320,12 +345,17 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
         # need to; really it just needs to know if n is a prime power or not,
         # which is easier than factoring.
 
-        F = arith.factor(n)
-        if len(F) > 1:
+        if n.is_perfect_power():
+            F = arith.factor(n)
+            if len(F) > 1:
+                return False
+            if F[0][0] == 2:
+                return False
+            return True
+
+        else:
             return False
-        if F[0][0] == 2:
-            return False
-        return True
+
 
     def multiplicative_generator(self):
         """
@@ -367,6 +397,94 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
                 raise ValueError, "multiplicative group of this ring is not cyclic"
             self.__mult_gen = a
             return a
+
+    def quadratic_nonresidue(self):
+        """
+        Return a quadratic non-residue in self.
+
+        EXAMPLES:
+            sage: R = Integers(17)
+            sage: R.quadratic_nonresidue()
+            3
+            sage: R(3).is_square()
+            False
+        """
+        try:
+            return self._nonresidue
+        except AttributeError:
+            for a in self:
+                if not a.is_square():
+                    self._nonresidue = a
+                    return a
+
+    def square_roots_of_one(self):
+        """
+        Return all square roots of 1 in self, i.e., all solutions
+        to $x^2 - 1$.
+
+        OUTPUT:
+            tuple -- the square roots of 1 in self.
+
+        EXAMPLES:
+            sage: R = Integers(2^10)
+            sage: [x for x in R if x^2 == 1]
+            [1, 511, 513, 1023]
+            sage: R.square_roots_of_one()
+            (1, 511, 513, 1023)
+
+            sage: v = Integers(9*5).square_roots_of_one(); v
+            (1, 19, 26, 44)
+            sage: [x^2 for x in v]
+            [1, 1, 1, 1]
+            sage: v = Integers(9*5*8).square_roots_of_one(); v
+            (1, 19, 71, 89, 91, 109, 161, 179, 181, 199, 251, 269, 271, 289, 341, 359)
+            sage: [x^2 for x in v]
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        """
+        try:
+            return self.__square_roots_of_one
+        except AttributeError:
+            pass
+        n = self.__order
+        if n.is_prime_power():
+            if n % 2 == 0:
+                # power of 2
+                if n == 2:
+                    v = [self(1)]
+                elif n == 4:
+                    v = [self(1), self(3)]
+                else: # n >= 8
+                    half_ord = n//2
+                    v = [self(1), self(-1), self(half_ord-1), self(half_ord+1)]
+            else:
+                v = [self(1), self(-1)]
+        else:
+            # Reduce to the prime power case.
+            F = self.factored_order()
+            vmod = []
+            moduli = []
+            for p, e in F:
+                k = p**e
+                R = IntegerModRing(p**e)
+                w = [self(x) for x in R.square_roots_of_one()]
+                vmod.append(w)
+                moduli.append(k)
+            # Now combine in all possible ways using the CRT
+            from arith import CRT_basis
+            basis = CRT_basis(moduli)
+            from sage.misc.mrange import cartesian_product_iterator
+            v = []
+            for x in cartesian_product_iterator(vmod):
+                # x is a specific choice of roots modulo each prime power divisor
+                a = sum([basis[i]*x[i] for i in range(len(x))])
+                v.append(a)
+            #end for
+        #end if
+
+        v.sort()
+        v = tuple(v)
+        self.__square_roots_of_one = v
+        return v
 
     def factored_order(self):
         """
@@ -424,6 +542,9 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
     def order(self):
         return self.__order
 
+    def cardinality(self):
+        return self.order()
+
     def _pari_order(self):
         try:
             return self.__pari_order
@@ -452,10 +573,14 @@ class IntegerModRing_generic(quotient_ring.QuotientRing_generic):
             0
             1
             2
+            sage: L = [i for i in R]
+            sage: L[0].parent()
+            Ring of integers modulo 3
         """
-        i = integer.Integer(0)
-        while i < self.__order:
-            yield i
+        i = 0
+        order = int(self.__order)
+        while i < order:
+            yield self(i)
             i = i + 1
 
     def _coerce_impl(self, x):

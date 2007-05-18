@@ -6,6 +6,8 @@ AUTHOR:
 
 EXAMPLES:
     sage: v = vector(Integers(8),[1,2,3,4,5])
+    sage: type(v)
+    <type 'sage.modules.vector_modn_dense.Vector_modn_dense'>
     sage: v
     (1, 2, 3, 4, 5)
     sage: 3*v
@@ -34,6 +36,16 @@ We multiply a vector by a matrix:
     sage: a*m
     (53, 63, 73, 83, 93)
 
+TESTS:
+    sage: v = vector(Integers(8), [1,2,3,4,5])
+    sage: loads(dumps(v)) == v
+    True
+    sage: v = vector(Integers(389), [1,2,3,4,5])
+    sage: loads(dumps(v)) == v
+    True
+    sage: v = vector(Integers(next_prime(10^20)), [1,2,3,4,5])
+    sage: loads(dumps(v)) == v
+    True
 """
 
 ###############################################################################
@@ -52,12 +64,20 @@ from sage.structure.element cimport Element, ModuleElement, RingElement, Vector
 
 cimport free_module_element
 
+MAX_MODULUS = MOD_INT_OVERFLOW
+
 cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef _new_c(self):
         cdef Vector_modn_dense y
         y = PY_NEW(Vector_modn_dense)
         y._init(self._degree, self._parent, self._p)
         return y
+
+    cdef int is_dense_c(self):
+        return 1
+
+    cdef int is_sparse_c(self):
+        return 0
 
     def __copy__(self):
         cdef Vector_modn_dense y

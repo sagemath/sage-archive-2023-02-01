@@ -1,3 +1,7 @@
+"""
+Classical Ciphers.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -31,8 +35,17 @@ class SubstitutionCipher(SymmetricKeyCipher):
 	    sage: m = S("THECATINTHEHAT")
 	    sage: e(m)
 	    GSVXZGRMGSVSZG
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = SubstitutionCryptosystem(S)
+            sage: E == loads(dumps(E))
+            True
         """
 	SymmetricKeyCipher.__init__(self, parent, key)
+
+    def __eq__(self, right):
+        return type(self) == type(right) and self.parent() == right.parent() and self.key() == right.key()
 
     def __call__(self, M):
 	S = self.domain() # = plaintext_space = ciphertext_space
@@ -83,6 +96,14 @@ class TranspositionCipher(SymmetricKeyCipher):
 	    sage: e = E(g)
 	    sage: e(m)
 	    EHTTACDNAEHTTAH
+
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = TranspositionCryptosystem(S,14)
+            sage: E == loads(dumps(E))
+            True
+
         """
 	n = parent.block_length()
 	if isinstance(key, list) and not len(key) == n:
@@ -130,6 +151,13 @@ class VigenereCipher(SymmetricKeyCipher):
             sage: m = S("THECATINTHEHAT")
             sage: e(m)
             LOEMELXRTYIZHT
+
+        TESTS:
+            sage: S = AlphabeticStrings()
+            sage: E = VigenereCryptosystem(S,11)
+            sage: E == loads(dumps(E))
+            True
+
         """
 	SymmetricKeyCipher.__init__(self, parent, key)
 

@@ -81,7 +81,7 @@ cdef class Matrix(matrix0.Matrix):
             sage: a = maxima(m); a
             matrix([0,1,2],[3,4,5],[6,7,8])
             sage: a.charpoly('x').expand()
-            -x^3 + 12*x^2 + 18*x
+            -x^3+12*x^2+18*x
             sage: m.charpoly()
             x^3 - 12*x^2 - 18*x
         """
@@ -533,6 +533,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: a.column(-1)
             (2, 5)
         """
+        if self._ncols == 0:
+            raise IndexError, "matrix has no rows"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols
@@ -572,6 +574,8 @@ cdef class Matrix(matrix0.Matrix):
             sage: a.row(-1)  # last row
             (3, 4, 5)
         """
+        if self._nrows == 0:
+            raise IndexError, "matrix has no rows"
         i = i % self._nrows
         if i < 0:
             i = i + self._nrows

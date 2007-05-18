@@ -71,6 +71,12 @@ tmp='%s/tmp'%SAGE_TMP_INTERFACE
 p = os.environ['PATH'].split(':')
 os.environ['PATH'] = ':'.join([v for v in p if v.strip() != '.'])
 
+class AsciiArtString(str):
+    def __init__(self, x):
+        str.__init__(self, x)
+
+    def __repr__(self):
+        return str(self)
 
 
 class Expect(ParentWithBase):
@@ -338,9 +344,9 @@ class Expect(ParentWithBase):
             try:
                 self._expect.close = dummy
             except Exception, msg:
-                print msg
+                pass
         except Exception, msg:
-            print msg
+            pass
 
     def cputime(self):
         """
@@ -349,26 +355,34 @@ class Expect(ParentWithBase):
         raise NotImplementedError
 
     def quit(self, verbose=False):
+        """
+        EXAMPLES:
+            sage: a = maxima('y')
+            sage: maxima.quit()
+            sage: a._check_valid()
+            Traceback (most recent call last):
+            ...
+            ValueError: The maxima session in which this object was defined is no longer running.
+        """
+        self._session_number += 1
         if self._expect is None:
             return
         # Send a kill -9 to the process *group*.
         # this is *very useful* when external binaries are started up
         # by shell scripts, and killing the shell script doesn't
         # kill the binary.
+        E = self._expect
         if verbose:
             print "Exiting spawned %s process."%self
         try:
-            self._expect.sendline(self._quit_string())
+            E.sendline(self._quit_string())
             self._so_far(wait=0.25)
-            os.killpg(self._expect.pid, 9)
-            os.kill(self._expect.pid, 9)
-        except OSError, msg:
+            os.killpg(E.pid, 9)
+            os.kill(E.pid, 9)
+        except (RuntimeError, OSError), msg:
             pass
-        #try:
-        #    self._expect.close(9)
-        #except Exception:
-        #    pass
         self._expect = None
+        return
 
     def _quit_string(self):
         return 'quit'
@@ -454,6 +468,30 @@ class Expect(ParentWithBase):
             self._expect.expect(self._prompt)
             raise KeyboardInterrupt, "Ctrl-c pressed while running %s"%self
 
+    def interrupt(self, tries=20, timeout=0.3):
+        E = self._expect
+        if E is None:
+            return True
+        success = False
+        try:
+            for i in range(tries):
+                E.sendline(self._quit_string())
+                E.sendline(chr(3))
+                try:
+                    E.expect(self._prompt, timeout=timeout)
+                    success= True
+                    break
+                except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                    #print msg
+                    pass
+        except Exception, msg:
+            pass
+        if success:
+            pass
+        else:
+            self.quit()
+        return success
+
     def eval(self, code, strip=True):
         """
         INPUT:
@@ -461,14 +499,15 @@ class Expect(ParentWithBase):
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
         """
-        code = str(code)
+        if not isinstance(code, basestring):
+            raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:
             return '\n'.join([self._eval_line(L) for L in code.split('\n') if L != ''])
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:
-            return 'error evaluating "%s":\n%s'%(code,s)
+            raise TypeError, 'error evaluating "%s":\n%s'%(code,s)
 
     def execute(self, *args, **kwds):
         return self.eval(*args, **kwds)
@@ -739,7 +778,7 @@ class ExpectElement(RingElement):
         return reduce_load, (self.parent(), self._reduce())
 
     def _reduce(self):
-        return str(self)
+        return repr(self)
 
     def _r_action(self, x):   # used for coercion
         raise AttributeError
@@ -780,8 +819,8 @@ class ExpectElement(RingElement):
         """
         try:
             P = self.parent()
-            if P is None is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
-                          (P._restart_on_ctrlc and P._session_number != self._session_number):
+            if P is None or P._session_number == BAD_SESSION or self._session_number == -1 or \
+                          P._session_number != self._session_number:
                 raise ValueError, "The %s session in which this object was defined is no longer running."%P.name()
         except AttributeError:
             raise ValueError, "The session in which this object was defined is no longer running."
@@ -804,7 +843,8 @@ class ExpectElement(RingElement):
                 P = self.parent()
                 if not (P is None):
                     P.clear(self._name)
-        except RuntimeError, msg:    # needed to avoid infinite loops in some rare cases
+
+        except (RuntimeError, pexpect.ExceptionPexpect), msg:    # needed to avoid infinite loops in some rare cases
             #print msg
             pass
 
@@ -815,7 +855,7 @@ class ExpectElement(RingElement):
         return self.sage()
 
     def sage(self):
-        return sage.misc.sage_eval.sage_eval(str(self))
+        return sage.misc.sage_eval.sage_eval(repr(self))
 
     def __repr__(self):
         try:
@@ -869,7 +909,7 @@ class ExpectElement(RingElement):
             return P.new('%s[%s]'%(self._name, str(n)[1:-1]))
 
     def __int__(self):
-        return int(str(self))
+        return int(repr(self))
 
     def bool(self):
         P = self.parent()
@@ -882,18 +922,18 @@ class ExpectElement(RingElement):
 
 
     def __long__(self):
-        return long(str(self))
+        return long(repr(self))
 
     def __float____(self):
-        return float(str(self))
+        return float(repr(self))
 
     def _integer_(self):
         import sage.rings.all
-        return sage.rings.all.Integer(str(self))
+        return sage.rings.all.Integer(repr(self))
 
     def _rational_(self):
         import sage.rings.all
-        return sage.rings.all.Rational(str(self))
+        return sage.rings.all.Rational(repr(self))
 
     def name(self):
         return self._name

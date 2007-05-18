@@ -4,6 +4,12 @@ Field $\Q$ of Rational Numbers.
 The class \class{RationalField} represents the field $\Q$ of
 (arbitrary precision) rational numbers.  Each rational number is an
 instance of the class \class{Rational}.
+
+TEST:
+   sage: Q = RationalField()
+   sage: Q == loads(dumps(Q))
+   True
+
 """
 
 import random
@@ -12,6 +18,8 @@ import ring
 import sage.rings.rational
 import sage.structure.factorization
 import infinity
+
+ZZ = None
 
 from sage.structure.parent_gens import ParentWithGens
 
@@ -90,6 +98,9 @@ class RationalField(_uniq, field.Field):
         ParentWithGens.__init__(self, self)
         self._assign_names(('x'),normalize=False)
 
+    def __hash__(self):
+        return -11115808
+
     def _repr_(self):
         return "Rational Field"
 
@@ -156,7 +167,7 @@ class RationalField(_uniq, field.Field):
             1.26920930427955342168879461675454730521949224183060866796713692123040833861277772269036230592151260731164529627832128743728170032847684397649271401057075        # 64-bit
             sage: t = L/O; t
             0.200000000000000
-            sage: QQ(t)
+            sage: QQ(RealField(45)(t))
             1/5
         """
         if isinstance(x, sage.rings.rational.Rational):
@@ -164,7 +175,8 @@ class RationalField(_uniq, field.Field):
         return sage.rings.rational.Rational(x, base)
 
     def _coerce_impl(self, x):
-        if isinstance(x, (int, long, sage.rings.integer.Integer)):
+        if isinstance(x, (int, long, sage.rings.integer.Integer,
+                          sage.rings.rational.Rational)):
             return self(x)
         raise TypeError, 'no implicit coercion of element to the rational numbers'
 
@@ -203,7 +215,7 @@ class RationalField(_uniq, field.Field):
             - Nils Bruin (2007-02-20)
         """
 
-        from sage.rings.arith import floor
+        from sage.rings.arith import integer_floor as floor
 
         n=self(0)
         yield n
@@ -231,6 +243,13 @@ class RationalField(_uniq, field.Field):
 
     def ngens(self):
         return 1
+
+    def is_subring(self, K):
+        if K.is_field():
+            return K.characteristic() == 0
+        if K.characteristic() != 0:
+            return False
+        raise NotImplementedError
 
     def is_field(self):
         """
@@ -275,17 +294,47 @@ class RationalField(_uniq, field.Field):
         """
         return infinity.infinity
 
-    def random_element(self, num_bound=2, den_bound=2):
+    def random_element(self, num_bound=None, den_bound=None, distribution=None):
         """
         EXAMPLES:
             sage: QQ.random_element(10,10)
             -5/3
         """
-
-        return self("%s/%s"%(random.randrange(-num_bound, num_bound+1), \
-                             random.randrange(1,den_bound+1)))
-
+        global ZZ
+        if ZZ is None:
+            import integer_ring
+            ZZ = integer_ring.ZZ
+        if num_bound == None:
+            return self((ZZ.random_element(distribution=distribution),
+                         ZZ.random_element(distribution=distribution)))
+        else:
+            if num_bound == 0:
+                num_bound = 2
+            if den_bound is None:
+                den_bound = num_bound
+                if den_bound < 1:
+                    den_bound = 2
+            return self((ZZ.random_element(-num_bound, num_bound+1, distribution=distribution),
+                         ZZ.random_element(1, den_bound+1, distribution=distribution)))
     def zeta(self, n=2):
+        """
+        Return a root of unity in self.
+
+        INPUT:
+            n -- integer (default: 2) order of the root of unity
+
+        EXAMPLES:
+            sage: QQ.zeta()
+            -1
+            sage: QQ.zeta(2)
+            -1
+            sage: QQ.zeta(1)
+            1
+            sage: QQ.zeta(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: no n-th root of unity in rational field
+        """
         if n == 1:
             return sage.rings.rational.Rational(1)
         elif n == 2:

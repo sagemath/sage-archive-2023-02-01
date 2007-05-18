@@ -1,3 +1,7 @@
+"""
+Cryptosystems.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -9,7 +13,7 @@
 from sage.sets.set import Set_generic
 
 class Cryptosystem(Set_generic):
-      """
+      r"""
       A cryptosystem is a pair of maps
       $$
       E : {\mathcal K} \rightarrow {\rm Hom}({\mathcal M},{\mathcal C})
@@ -41,6 +45,15 @@ class Cryptosystem(Set_generic):
 	  self._key_space = key_space
 	  self._block_length = block_length
 	  self._period = period
+
+      def __eq__(self,right):
+            return type(self) == type(right) and  \
+                   self._cipher_domain == right._cipher_domain and \
+                   self._cipher_codomain == right._cipher_codomain and \
+                   self._key_space ==  right._key_space and \
+                   self._block_length == right._block_length and \
+                   self._period == right._period
+
 
       def plaintext_space(self):
 	  return self._cipher_domain

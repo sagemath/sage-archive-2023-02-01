@@ -19,10 +19,17 @@ list of cells.
 #       print "hello world"
 # On the other hand, we don't want to loose the output of big matrices
 # and numbers, so don't make this too small.
+
 MAX_OUTPUT = 65536
 
 TRACEBACK = 'Traceback (most recent call last):'
 
+import re
+
+# This regexp matches "cell://blah..." in a non-greedy way (the ?), so
+# we don't get several of these combined in one.
+re_cell = re.compile('"cell://.*?"')
+re_cell_2 = re.compile("'cell://.*?'")   # same, but with single quotes
 
 import os, shutil
 
@@ -175,10 +182,10 @@ class Cell(Cell_generic):
                     #    s += '<BLANKLINE>\n'
                     elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
-                        s += '...' + v + '\n'
+                        s += '...   ' + v + '\n'
                     elif v[:5] == 'else:':
                         in_loop = True
-                        s += '... ' + v + '\n'
+                        s += '...   ' + v + '\n'
                     else:
                         if in_loop:
                             s += '...\n'
@@ -313,12 +320,26 @@ class Cell(Cell_generic):
             self.__introspect_html = ''
             return ''
 
-    def output_text(self, ncols=0, html=True):
+    def process_cell_urls(self, x):
+        end = '?%d"'%self.version()
+        begin = '"%s/'%self.directory()
+        for s in re_cell.findall(x) + re_cell_2.findall(x):
+            x = x.replace(s,begin + s[7:-1] + end)
+        return x
+
+    def output_text(self, ncols=0, html=True, raw=False):
         s = self.__out
+
+        if raw:
+            return s
 
         if html:
             def format(x):
                 return word_wrap(x.replace('<','&lt;'), ncols=ncols)
+
+            def format_html(x):
+                x = self.process_cell_urls(x)
+                return x
 
             # if there is an error in the output,
             # specially format it.
@@ -335,9 +356,9 @@ class Cell(Cell_generic):
                     break
                 j = s.find('</html>')
                 if j == -1:
-                    t += format(s)
+                    t += format(s[:i])
                     break
-                t += format(s[:i]) + s[i+6:j]
+                t += format(s[:i]) + format_html(s[i+6:j])
                 s = s[j+7:]
             s = t
             if not self.is_html() and len(s.strip()) > 0:
@@ -477,17 +498,25 @@ class Cell(Cell_generic):
         r = len(t.splitlines())
 
         s += """
-           <textarea class="%s" rows=%s cols=100000 columns=100000
+           <textarea class="%s" rows=%s cols=100000
               id         = 'cell_input_%s'
               onKeyPress = 'return input_keypress(%s,event);'
-              oninput   = 'cell_input_resize(this);'
-              onFocus = 'return cell_focus(%s)'
-              onBlur  = 'return cell_blur(%s)'
+              onInput   = 'cell_input_resize(this); return true;'
+              onBlur  = 'cell_blur(%s); return true;'
            >%s</textarea>
-        """%(cls, r, id, id, id, id, t)
+        """%('hidden', r, id, id, id, t)
+
+        t = t.replace("<","&lt;")+" "
+
+        s += """
+           <pre class="%s"
+              id         = 'cell_display_%s'
+              onClick  = 'cell_focus(%s, false); return false;'
+           >%s</pre>
+        """%(cls, id, id, t)
         return s
 
-    def files_html(self):
+    def files_html(self, out=''):
         dir = self.directory()
         D = os.listdir(dir)
         D.sort()
@@ -499,6 +528,8 @@ class Cell(Cell_generic):
         # the async request requests the output text for a computation.
         # This is inspired by http://www.irt.org/script/416.htm/.
         for F in D:
+            if 'cell://%s'%F in out:
+                continue
             if F[-4:] in ['.png', '.bmp']:
                 images.append('<img src="%s/%s?%d">'%(dir,F,self.version()))
             elif F[-4:] == '.svg':
@@ -633,5 +664,6 @@ def math_parse(s):
         if typ == 'div':
             s = s[1:]
     return t
+
 
 

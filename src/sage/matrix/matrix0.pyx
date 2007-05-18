@@ -464,18 +464,19 @@ cdef class Matrix(sage.structure.element.Matrix):
     def __iter__(self):
         return matrix_misc.row_iterator(self)
 
-    def __getitem__(self, ij):
+    def __getitem__(self, key):
         """
-        Return element or row of self.
+        Return element, row, or slice of self.
 
         INPUT:
-            ij -- tuple (i,j) with i, j integers
-        or
-            ij -- integer
+            key -- tuple (i,j) with i, j integers
+         or key -- integer
+         or key -- slice object, created via [i:j]
 
         USAGE:
-            A[i, j] -- the i,j of A, and
-            A[i]    -- the i-th row of A.
+            A[i, j] -- the i,j of A, or
+            A[i]    -- the i-th row of A, or
+            A[i:j]  -- the i-th through (j-1)-st rows of A.
 
         EXAMPLES:
             sage: A = Matrix(Integers(2006),2,2,[-1,2,3,4])
@@ -500,44 +501,41 @@ cdef class Matrix(sage.structure.element.Matrix):
             Traceback (most recent call last):
             ...
             IndexError: matrix index out of range
-        """
-        cdef Py_ssize_t i, j
-        cdef object x
 
-        if PyTuple_Check(ij):
-            # ij is a tuple, so we get i and j efficiently, construct corresponding integer entry.
-            if PyTuple_Size(ij) != 2:
-                raise IndexError, "index must be an integer or pair of integers"
-            i = <object> PyTuple_GET_ITEM(ij, 0)
-            j = <object> PyTuple_GET_ITEM(ij, 1)
-            self.check_bounds(i, j)
-            return self.get_unsafe(i, j)
-        else:
-            # If ij is not a tuple, coerce to an integer and get the row.
-            i = ij
-            return self.row(i)
-
-    def __getslice__(self,  Py_ssize_t i,  Py_ssize_t j):
-        """
-        Returns a submatrix of this matrix got from the i-th through j-th rows.
-
-        USAGE:
-            A[i:j] -- return submatrix from those rows.
-
-        EXAMPLES:
             sage: n=10;a=matrix(QQ,n,range(n^2))
             sage: a[0:3]
             [ 0  1  2  3  4  5  6  7  8  9]
             [10 11 12 13 14 15 16 17 18 19]
             [20 21 22 23 24 25 26 27 28 29]
+            sage: a[:2]
+            [ 0  1  2  3  4  5  6  7  8  9]
+            [10 11 12 13 14 15 16 17 18 19]
+            sage: a[8:]
+            [80 81 82 83 84 85 86 87 88 89]
+            [90 91 92 93 94 95 96 97 98 99]
+
+            sage: a[9]
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+            sage: a[-1]
+            (90, 91, 92, 93, 94, 95, 96, 97, 98, 99)
         """
-        if i < 0: i = self._nrows + i
-        if j < 0: j = self._nrows + j
-        if i >= self._nrows:
-            i = self._nrows - 1
-        if j >= self._nrows:
-            j = self._nrows - 1
-        return self.matrix_from_rows(range(i,j))
+        cdef Py_ssize_t i, j
+        cdef object x
+
+        if PyTuple_Check(key):
+            # key is a tuple, so we get i and j efficiently, construct corresponding integer entry.
+            if PyTuple_Size(key) != 2:
+                raise IndexError, "index must be an integer or pair of integers"
+            i = <object> PyTuple_GET_ITEM(key, 0)
+            j = <object> PyTuple_GET_ITEM(key, 1)
+            self.check_bounds(i, j)
+            return self.get_unsafe(i, j)
+        elif isinstance(key, slice):
+            # Slice interpretation is passed to the sequence constructed by range
+            return self.matrix_from_rows(range(0, self._nrows).__getitem__(key))
+        else:
+            # If key is not a tuple, coerce to an integer and get the row.
+            return self.row(int(key))
 
     def __setitem__(self, ij, x):
         """
@@ -716,7 +714,7 @@ cdef class Matrix(sage.structure.element.Matrix):
         # compute column widths
         S = []
         for x in self.list():
-            S.append(str(x))
+            S.append(repr(x))
 
         tmp = []
         for x in S:
@@ -1373,7 +1371,11 @@ cdef class Matrix(sage.structure.element.Matrix):
         self.echelon_form()
         x = self.fetch('pivots')
         if x is None:
-            raise RuntimeError, "bug in matrix pivots functions, matrix parent = '%s'"%self.parent()
+            print self
+            print self.nrows()
+            print self.dict()
+            self.save('/home/was/a')
+            raise RuntimeError, "BUG: matrix pivots should have been set but weren't, matrix parent = '%s'"%self.parent()
         return x
 
     def rank(self):
@@ -1596,19 +1598,40 @@ cdef class Matrix(sage.structure.element.Matrix):
             (9, 17)
             sage: -1*B.column(0) + 5*B.column(1)
             (9, 17)
+
+        We mix dense and sparse over different rings:
+            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
+            sage: m = matrix(QQ,3,range(9))
+            sage: v*m
+            (24, 30, 36)
+            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
+            sage: m = matrix(QQ,3,range(9), sparse=True)
+            sage: v*m
+            (24, 30, 36)
         """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.ncols(), sparse=self.is_sparse())
-        if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
-            v = M(v)
         if self.nrows() != v.degree():
             raise ArithmeticError, "number of rows of matrix must equal degree of vector"
         s = M(0)
-        for i in xrange(self.nrows()):
-            if v[i] != 0:
-                s = s + v[i]*self.row(i)
+        zero = self.base_ring()(0)
+        cdef Py_ssize_t i
+        for i from 0 <= i < self._nrows:
+            if v[i] != zero:
+                s += v[i]*self.row(i)
         return s
 
     cdef Vector _matrix_times_vector_c_impl(self, Vector v):
+        """
+        EXAMPLES:
+            sage: v = FreeModule(ZZ,3,sparse=True)([1,2,3])
+            sage: m = matrix(QQ,3,range(9))
+            sage: m*v
+            (8, 26, 44)
+            sage: v = FreeModule(ZZ,3,sparse=False)([1,2,3])
+            sage: m = matrix(QQ,3,range(9), sparse=True)
+            sage: m*v
+            (8, 26, 44)
+        """
         M = sage.modules.free_module.FreeModule(self._base_ring, self.nrows(), sparse=self.is_sparse())
         if not PY_TYPE_CHECK(v, sage.modules.free_module_element.FreeModuleElement):
             v = M(v)

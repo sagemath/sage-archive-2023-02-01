@@ -2,6 +2,49 @@
 Frank Luebeck's tables of Conway polynomials over finite fields.
 """
 
+
+## On 3/29/07, David Joyner <wdjoyner@gmail.com> wrote:
+## > I guessed what you would do to create the *.bz2 file
+## > and I think it turned out to be right. (You did things the simplest way,
+## > as far as I can see.) The file is posted at
+## > http://sage.math.washington.edu/home/wdj/patches/conway_table.py.bz2
+## > I think what you did was (a) take the data file from
+## > http://www.math.rwth-aachen.de/~Frank.Luebeck/data/ConwayPol/CPimport.txt
+## > (b) renamed the file conway_table.py
+## > (c) used an editor to make a few changes to the first few and last
+## > few lines of the data file,
+## > (d) packed it using bzip2.
+## >
+## > I did this and placed the *bz2 file in the correct directory
+## > (as determined by conway.py). Here's a test
+## >
+## > sage: R = PolynomialRing(GF(2),"x")
+## > sage: R(ConwayPolynomials()[2][3])
+## > x^3 + x + 1
+## >
+## > If I am reading conway.py correctly then this test shows that the
+## > file I created is what you want.
+## >
+## > If you agree, then I will add the new data (you forwarded by
+## > separate emails) to it.
+## >
+## > Please let me know if this is reasonable.
+
+## Yes, you did exactly the right thing, which I verified as follows:
+
+## (1) delete SAGE_ROOT/data/conway_polynomials/*
+## (2) put your conway_polynomial.py.bz2 file in a new directory
+##      /home/was/s/data/src/conway/
+## (3) Start SAGE:
+## sage: c = ConwayPolynomials(read_only=False)
+## sage: c._init()       # builds database
+## sage: c.polynomial(3,10)
+## [2, 1, 0, 0, 2, 2, 2, 0, 0, 0, 1]
+## (4) restart and test:
+## sage: conway_polynomial(3,10)
+## x^10 + 2*x^6 + 2*x^5 + 2*x^4 + x + 2
+
+
 #*****************************************************************************
 #
 #       SAGE: Copyright (C) 2005 William Stein <wstein@gmail.com>
@@ -22,7 +65,7 @@ import os
 
 import sage.misc.misc
 import sage.databases.db   # very important that this be fully qualified
-_CONWAYDATA = "%s/data/src/conway/conway_table.py.bz2"%sage.misc.misc.SAGE_ROOT
+_CONWAYDATA = "%s/conway_polynomials/"%sage.databases.db.DB_HOME
 
 
 class ConwayPolynomials(sage.databases.db.Database):
@@ -40,9 +83,10 @@ class ConwayPolynomials(sage.databases.db.Database):
 
     def _init(self):
         if not os.path.exists(_CONWAYDATA):
-            raise RuntimeError, "In order to initialize the database, the file %s must exist."%_CONWAYDATA
-        os.system("cp %s ."%_CONWAYDATA)
-        os.system("bunzip2 conway_table.py.bz2")
+            raise RuntimeError, "In order to initialize the database, the directory must exist."%_CONWAYDATA
+        os.chdir(_CONWAYDATA)
+        if os.system("bunzip2 -k conway_table.py.bz2"):
+            raise RuntimeError, "error decompressing table"
         from conway_table import conway_polynomials
         for X in conway_polynomials:
             (p, n, v) = tuple(X)
@@ -50,7 +94,8 @@ class ConwayPolynomials(sage.databases.db.Database):
                 self[p] = {}
             self[p][n] = v
             self[p] = self[p]  # so database knows it was changed
-        os.system("bzip2 conway_table.py; rm conway_table.pyc; cp conway_table.py %s"%_CONWAYDATA)
+        os.unlink("conway_table.pyc")
+        os.unlink("conway_table.py")
         self.commit()
 
     def __repr__(self):

@@ -8,6 +8,17 @@ cygwin = os.uname()[0][:6]=="CYGWIN"
 
 import sage.rings.integer
 
+from sage.misc.all import tmp_dir
+
+_tmp_dir = False
+def tmpdir():
+    global _tmp_dir
+    if _tmp_dir:
+        return
+    X = tmp_dir('qsieve')
+    os.environ['TMPDIR'] = X
+    _tmp_dir = True
+
 def qsieve(n, block=True, time=False, verbose=False):
     r"""
     Run Hart's quadratic sieve and return the distinct proper factors
@@ -30,7 +41,8 @@ def qsieve(n, block=True, time=False, verbose=False):
         block -- (default: True) if True, you must wait until the
             sieve computation is complete before using SAGE further.
             If False, SAGE will run while the sieve computation
-            runs in parallel.
+            runs in parallel.  If q is the returned object, use
+            q.quit() to terminate a running factorization.
         time -- (default: False) if True, time the command using
             the UNIX "time" command (which you might have to install).
         verbose -- (default: False) if True, print out verbose
@@ -74,6 +86,7 @@ def qsieve_block(n, time, verbose=False):
         t = 'time '
     else:
         t = ''
+    tmpdir()
     out = os.popen('echo "%s" | %s QuadraticSieve 2>&1'%(n,t)).read()
     z = data_to_list(out, n, time=time)
     if verbose:
@@ -151,6 +164,7 @@ class qsieve_nonblock:
             cmd = 'time QuadraticSieve'
         else:
             cmd = 'QuadraticSieve'
+        tmpdir()
         self._p = pexpect.spawn(cmd)
         cleaner.cleaner(self._p.pid, 'QuadraticSieve')
         self._p.sendline(str(self._n)+'\n\n\n')
@@ -183,6 +197,8 @@ class qsieve_nonblock:
         Return a text representation of self.
         """
         if self._done:
+            if hasattr(self, '_killed') and self._killed:
+                return "Factorization was terminated early."
             v = data_to_list(self._get(), self._n, self._do_time)
             if self._do_time:
                 return str(v[:2])
@@ -238,8 +254,20 @@ class qsieve_nonblock:
         """
         Terminate the QuadraticSieve process, in case you want
         to give up on computing this factorization.
+
+        EXAMPLES:
+            sage: n = next_prime(2^110)*next_prime(2^100)
+            sage: qs = qsieve(n, block=False)
+            sage: qs
+            Proper factors so far: []
+            sage: qs.quit()
+            sage: qs
+            Factorization was terminated early.
         """
-        self._p.close()
+        pid = self.pid()
+        os.killpg(int(pid),9)
+        #self._p.close()
+        self._killed = True
         self._done = True
 
     def _get(self, timeout=0.1):

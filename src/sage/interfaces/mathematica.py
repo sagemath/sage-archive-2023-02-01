@@ -77,9 +77,9 @@ If you assign the mathematica $5$ to a variable $c$ in SAGE,
 this does not affect the $c$ in Mathematica.
 
     sage: c = m(5)
-    sage: m('b + c x')
+    sage: print m('b + c x')
                  b + c x
-    sage: m('b') + c*m('x')
+    sage: print m('b') + c*m('x')
              b + 5 x
 
 The SAGE interfaces changes SAGE lists into Mathematica lists:
@@ -181,7 +181,7 @@ saving and loading Mathematica objects possible.  The first
 examples test saving and loading to strings.
 
     sage: x = mathematica(pi/2)
-    sage: x
+    sage: print x
              Pi
              --
              2
@@ -192,12 +192,6 @@ examples test saving and loading to strings.
                   1.5707963267948966192313216916397514420985846996876
     sage: loads(dumps(n)) == n
     True
-
-This example illustrates saving to a file in the local directory
-and to one in the \sage database directory.
-
-    sage.: n.save('n')
-    sage.: n.db('n')
 
 AUTHOR:
     -- William Stein (2005): first version
@@ -221,7 +215,8 @@ AUTHOR:
 
 import os
 
-from expect import Expect, ExpectElement, ExpectFunction, FunctionElement
+from expect import (Expect, ExpectElement, ExpectFunction,
+                    FunctionElement, AsciiArtString)
 
 from sage.misc.misc import verbose
 
@@ -320,9 +315,9 @@ command-line version of Mathematica.
     def eval(self, code, strip=True):
         s = Expect.eval(self, code)
         if strip:
-            return clean_output(s)
+            return AsciiArtString(clean_output(s))
         else:
-            return s
+            return AsciiArtString(s)
 
     #def _keyboard_interrupt(self):
     #    print "Keyboard interrupt pressed; trying to recover."
@@ -440,11 +435,11 @@ class MathematicaElement(ExpectElement):
 
     def __repr__(self):
         P = self._check_valid()
-        return P.get(self._name, ascii_art=True)
+        return P.get(self._name, ascii_art=False).strip()
 
     def __str__(self):
         P = self._check_valid()
-        return P.get(self._name, ascii_art=False).strip()
+        return P.get(self._name, ascii_art=True)
 
     def str(self):
         return str(self)

@@ -21,17 +21,41 @@ import base64
 from twisted.conch import error
 from twisted.conch.ssh import keys
 from twisted.cred import checkers, credentials
+from twisted.cred.credentials import IAnonymous
 from zope.interface import implements
 from twisted.internet import defer
+from twisted.python import log
+
+from sage.dsage.errors.exceptions import AuthenticationError
+
+def get_pubkey_string(filename=None):
+    try:
+        f = open(filename)
+        type_, key = f.readlines()[0].split()[:2]
+        f.close()
+        if not type_ == 'ssh-rsa':
+            raise TypeError('Invalid key type.')
+    except IOError, msg:
+        key = pubkey_file
+
+    return key
 
 class PublicKeyCredentialsChecker(object):
+    """
+    This class provides authentication checking using ssh public keys.
+
+    """
+
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
     def __init__(self, pubkeydb):
         self.authorizedKeys = self.getAuthorizedKeys(pubkeydb)
 
     def requestAvatarId(self, credentials):
+        if IAnonymous.providedBy(credentials):
+             return 'Anonymous'
+
         # read the authentication table to make sure we have a fresh copy
         self.authorizedKeys = self.getAuthorizedKeys(self.file_name)
 
@@ -68,31 +92,42 @@ class PublicKeyCredentialsChecker(object):
 
 class PublicKeyCredentialsCheckerDB(object):
     implements(checkers.ICredentialsChecker)
-    credentialInterfaces = (credentials.ISSHPrivateKey,)
+    credentialInterfaces = (credentials.ISSHPrivateKey, credentials.IAnonymous)
 
-    def __init__(self, userdb):
-        self.userdb = userdb
-
-    def getUser(self, username):
-        if not self.userdb.has_key('username'):
-            return False
-        return self.userdb[username]
+    def __init__(self, clientdb):
+        from sage.dsage.database.clientdb import ClientDatabase
+        if not isinstance(clientdb, ClientDatabase):
+            raise TypeError
+        self.clientdb = clientdb
 
     def requestAvatarId(self, credentials):
-        user = self.getUser(credentials.username)
+        if IAnonymous.providedBy(credentials):
+            return 'Anonymous'
+        try:
+            user, key = self.get_user(credentials.username)
+        except TypeError:
+            log.msg("Invalid username: '%s'" % credentials.username)
+            return defer.fail(AuthenticationError('Login failed.'))
         if user:
-            userKey = user['public_key']
-            if not credentials.blob == base64.decodestring(userKey):
-                return defer.fail(error.ConchError("Invalid key."))
+            if not credentials.blob == base64.decodestring(key):
+                log.msg('Invalid key for user %s' % (credentials.username))
+                return defer.fail(AuthenticationError('Login failed.'))
             if not credentials.signature:
-                return defer.fail(error.ValidPublicKey())
-
-            pubKey = keys.getPublicKeyObject(data=credentials.blob)
-            if keys.verifySignature(pubKey, credentials.signature,
+                log.msg('No signature for user %s ' % (credentials.username))
+                return defer.fail(AuthenticationError('Login failed.'))
+            pub_key = keys.getPublicKeyObject(data=credentials.blob)
+            if keys.verifySignature(pub_key, credentials.signature,
                                     credentials.sigData):
+                # If we get to this stage, it means the user is already
+                # logged in
+                self.clientdb.update_login_time(credentials.username)
                 return credentials.username
             else:
-                return defer.fail(error.ConchError("Invalid signature."))
+                log.msg('Invalid signature.')
+                return defer.fail(AuthenticationError('Login failed.'))
         else:
-            return defer.fail(error.ConchError("Invalid username."))
+            log.msg('Invalid username.')
+            return defer.fail(AuthenticationError('Login failed.'))
 
+    def get_user(self, username):
+        return self.clientdb.get_user_and_key(username)

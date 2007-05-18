@@ -110,7 +110,7 @@ def matrix_integer_dense_rational_reconstruction(Matrix_integer_dense A, Integer
 
     cdef Integer _bnd
     import math
-    _bnd = Integer(int((N//2).sqrt()))
+    _bnd = Integer(int((N//2).sqrt_approx()))
     mpz_init_set(bnd, _bnd.value)
     mpz_sub(other_bnd, N.value, bnd)
 
@@ -187,7 +187,7 @@ def matrix_integer_sparse_rational_reconstruction(Matrix_integer_sparse A, Integ
 
     cdef Integer _bnd
     import math
-    _bnd = Integer(int((N//2).sqrt()))
+    _bnd = Integer(int((N//2).sqrt_approx()))
     mpz_init_set(bnd, _bnd.value)
     mpz_sub(other_bnd, N.value, bnd)
 
@@ -382,8 +382,7 @@ def matrix_rational_echelon_form_multimodular(Matrix self, height_guess=None, pr
                 prod = prod * p
             else:
                 # do not save A since it is bad.
-                if LEVEL > 1:
-                    verbose("Excluding this prime (bad pivots).", caller_name="multimod echelon")
+                verbose("Excluding this prime (bad pivots).", caller_name="multimod echelon")
             t = verbose("time for pivot compare", t, level=2, caller_name="multimod echelon")
             p = previous_prime(p)
         # Find set of best matrices.

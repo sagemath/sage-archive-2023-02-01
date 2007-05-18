@@ -82,9 +82,9 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     33'rd bit.
         sage: z = sqrt(RealField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: factor(p)
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: algdep(z, 4, known_bits=32)
         x^2 - 2
         sage: algdep(z, 4, known_digits=10)

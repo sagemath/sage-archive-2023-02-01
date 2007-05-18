@@ -477,6 +477,7 @@ except:
                         success = True
                         break
                     except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        success = False
                         if self.log_level > 3:
                             msg = 'Interrupting SAGE (try %s)' % i
                             log.msg(LOG_PREFIX % self.id + msg)

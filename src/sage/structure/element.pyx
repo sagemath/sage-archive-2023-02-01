@@ -163,6 +163,7 @@ import operator
 
 from sage.structure.parent      cimport Parent
 from sage.structure.parent_base cimport ParentWithBase
+from sage.structure.parent_gens import is_ParentWithGens
 
 # This classes uses element.pxd.  To add data members, you
 # must change that file.
@@ -273,6 +274,83 @@ cdef class Element(sage_object.SageObject):
             return self._parent
         else:
             return self._parent(x)
+
+
+    def subs(self, in_dict=None, **kwds):
+        """
+        Substitutes given generators with given values while not touching
+        other generators. This is a generic wrapper around __call__.
+        The syntax is meant to be compatible with the corresponding method
+        for symbolic expressions.
+
+        INPUT:
+            in_dict -- (optional) dictionary of inputs
+            **kwds  -- named parameters
+
+        OUTPUT:
+            new object if substitution is possible, otherwise self.
+
+        EXAMPLES:
+            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: f = x^2 + y + x^2*y^2 + 5
+            sage: f((5,y))
+            25*y^2 + y + 30
+            sage: f.subs({x:5})
+            25*y^2 + y + 30
+            sage: f.subs(x=5)
+            25*y^2 + y + 30
+            sage: (1/f).subs(x=5)
+            1/(25*y^2 + y + 30)
+            sage: Integer(5).subs(x=4)
+            5
+        """
+        if not hasattr(self,'__call__'):
+            return self
+        parent=self.parent()
+        if not is_ParentWithGens(parent):
+            return self
+        variables=[]
+        # use "gen" instead of "gens" as a ParentWithGens is not
+        # required to have the latter
+        for i in xrange(0,parent.ngens()):
+            gen=parent.gen(i)
+            if kwds.has_key(str(gen)):
+                variables.append(kwds[str(gen)])
+            elif in_dict and in_dict.has_key(gen):
+                variables.append(in_dict[gen])
+            else:
+                variables.append(gen)
+        return self(*variables)
+
+    def substitute(self,in_dict=None,**kwds):
+        """
+        This is an alias for self.subs().
+
+        INPUT:
+            in_dict -- (optional) dictionary of inputs
+            **kwds  -- named parameters
+
+        OUTPUT:
+            new object if substitution is possible, otherwise self.
+
+        EXAMPLES:
+            sage: x, y = MPolynomialRing(ZZ,2,'xy').gens()
+            sage: f = x^2 + y + x^2*y^2 + 5
+            sage: f((5,y))
+            25*y^2 + y + 30
+            sage: f.substitute({x:5})
+            25*y^2 + y + 30
+            sage: f.substitute(x=5)
+            25*y^2 + y + 30
+            sage: (1/f).substitute(x=5)
+            1/(25*y^2 + y + 30)
+            sage: Integer(5).substitute(x=4)
+            5
+         """
+        return self.subs(in_dict,**kwds)
+
+
+
 
     def __xor__(self, right):
         raise RuntimeError, "Use ** for exponentiation, not '^', which means xor\n"+\
@@ -1111,7 +1189,7 @@ cdef class RingElement(ModuleElement):
                 if (<RingElement>self)._parent is (<ModuleElement>right)._parent._base:
                     return (<ModuleElement>right)._rmul_c(self)
                 elif PY_TYPE_CHECK(right, Matrix):
-                    return (<Matrix>right)._rmultiply_by_scalar(left)
+                    return (<Matrix>right)._rmultiply_by_scalar(self)
                 else:
                     # Otherwise we have to do an explicit canonical coercion.
                     try:
@@ -1179,6 +1257,12 @@ cdef class RingElement(ModuleElement):
             True
             sage: a^200 * a^(-64) == a^136
             True
+
+        TESTS:
+        This crashed in sage-2.5 due to a mistake in missing type below.
+            sage: 2r**(SR(2)-1-1r)
+            1
+
         """
         cdef int cn
 
@@ -1197,7 +1281,10 @@ cdef class RingElement(ModuleElement):
             # and don't benifit from the code below
             cn = n
             if cn == 0:
-                return (<Element>a)._parent(1)
+                if PY_TYPE_CHECK(a, Element):
+                    return (<Element>a)._parent(1)
+                else:
+                    return (<Element>m)._parent(a)**m
             elif cn == 1:
                 return a
             elif cn == 2:
@@ -1380,7 +1467,7 @@ cdef class CommutativeRingElement(RingElement):
         and an ideal:
             sage: R.<x,y,z> = PolynomialRing(QQ, 3)
             sage: (x^2 + y^2 + z^2).mod(x+y+z)
-            2*z^2 + 2*y*z + 2*y^2
+            2*y^2 + 2*y*z + 2*z^2
 
         Notice above that $x$ is eliminated.  In the next example,
         both $y$ and $z$ are eliminated.
@@ -1388,13 +1475,13 @@ cdef class CommutativeRingElement(RingElement):
             sage: (x^2 + y^2 + z^2).mod( (x - y, y - z) )
             3*z^2
             sage: f = (x^2 + y^2 + z^2)^2; f
-            z^4 + 2*y^2*z^2 + y^4 + 2*x^2*z^2 + 2*x^2*y^2 + x^4
+            x^4 + 2*x^2*y^2 + y^4 + 2*x^2*z^2 + 2*y^2*z^2 + z^4
             sage: f.mod( (x - y, y - z) )
             9*z^4
 
         In this example $y$ is eliminated.
             sage: (x^2 + y^2 + z^2).mod( (x^3, y - z) )
-            2*z^2 + x^2
+            x^2 + 2*z^2
         """
         from sage.rings.all import is_Ideal
         if not is_Ideal(I) or not I.ring() is self.parent():
@@ -1446,7 +1533,7 @@ cdef class Vector(ModuleElement):
         raise TypeError,arith_error_message(left, right, operator.mul)
 
     def  _vector_times_vector(left, right):
-        return self.vector_time_vector_c_impl(right)
+        return left.vector_time_vector_c_impl(right)
 
     def __div__(self, right):
         if PY_TYPE_CHECK(self, Vector):
@@ -1682,6 +1769,9 @@ def is_FieldElement(x):
     return IS_INSTANCE(x, FieldElement)
 
 cdef class FieldElement(CommutativeRingElement):
+
+    def __floordiv__(self, other):
+        return self / other
 
     def is_unit(self):
         """
@@ -2054,6 +2144,7 @@ def xgcd(x,y):
 def generic_power(m, dummy):
     return generic_power_c(m, dummy)
 
+# TODO: does this code actually get used anywhere?
 cdef generic_power_c(m, dummy):
     cdef int cn
 
@@ -2063,9 +2154,9 @@ cdef generic_power_c(m, dummy):
 
     if n < 0:
         n = -n
-        a = ~self
+        a = ~m
     else:
-        a = self
+        a = m
 
     if n < 4:
         # These cases will probably be called often

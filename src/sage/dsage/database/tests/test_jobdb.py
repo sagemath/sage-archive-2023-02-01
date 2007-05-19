@@ -72,7 +72,7 @@ class JobDatabaseZODBTestCase(unittest.TestCase):
         for job in jobs:
             job_id = self.jobdb.new_job(job)
             self.assertEquals(job, self.jobdb.get_job_by_id(job_id))
-            self.assert_(self.jobdb.get_job_by_id(job_id).update_time <
+            self.assert_(self.jobdb.get_job_by_id(job_id).update_time <=
                          datetime.datetime.now())
 
     def testget_jobs_by_username(self):

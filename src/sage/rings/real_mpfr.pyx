@@ -2654,6 +2654,20 @@ def is_RealField(x):
     return bool(PY_TYPE_CHECK(x, RealField))
 
 def is_RealNumber(x):
+    """
+    Return True if x is of type RealNumber, meaning that it is an
+    element of the MPFR real field with some precision.
+
+    EXAMPLES:
+        sage: is_RealNumber(2.5)
+        True
+        sage: is_RealNumber(float(2.3))
+        False
+        sage: is_RealNumber(RDF(2))
+        False
+        sage: is_RealNumber(pi)
+        False
+    """
     return bool(PY_TYPE_CHECK(x, RealNumber))
 
 def __create__RealField_version0(prec, sci_not, rnd):

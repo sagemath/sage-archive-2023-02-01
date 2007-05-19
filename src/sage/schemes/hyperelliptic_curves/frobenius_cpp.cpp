@@ -3,6 +3,8 @@
 An implementation of the algorithm described in
     "Kedlaya's Algorithm in Larger Characteristic"
 
+version 1.1
+
 Copyright (C) 2007, David Harvey
 
 This program is free software; you can redistribute it and/or modify
@@ -1489,6 +1491,77 @@ int padic_xgcd(ZZ_pX& a, ZZ_pX& b, const ZZ_pX& f, const ZZ_pX& g,
 
 
 /*
+Given a matrix A over Z/p^N that is invertible mod p, this routine computes
+the inverse B = A^(-1) over Z/p^N.
+
+PRECONDITIONS:
+   The current NTL modulus should be p^N, and should be the one used to create
+   the matrix A.
+
+NOTE:
+   It's not clear to me (from the code or the documentation) whether NTL's
+   matrix inversion is guaranteed to work over a non-field. So I implemented
+   this one just in case.
+
+*/
+void padic_invert_matrix(mat_ZZ_p& B, const mat_ZZ_p& A, const ZZ& p, int N)
+{
+   ZZ_pContext modulus;
+   modulus.save();
+
+   int n = A.NumRows();
+
+   // =================================================
+   // First do it mod p using NTL matrix inverse
+
+   // lift to Z
+   mat_ZZ A_lift;
+   A_lift.SetDims(n, n);
+   for (int y = 0; y < n; y++)
+      for (int x = 0; x < n; x++)
+         A_lift[y][x] = rep(A[y][x]);
+
+   // reduce down to Z/p
+   ZZ_p::init(p);
+   mat_ZZ_p A_red;
+   A_red.SetDims(n, n);
+   for (int y = 0; y < n; y++)
+      for (int x = 0; x < n; x++)
+         conv(A_red[y][x], A_lift[y][x]);
+
+   // invert matrix mod p
+   mat_ZZ_p B_red;
+   inv(B_red, A_red);
+
+   // lift result to Z
+   mat_ZZ B_lift;
+   B_lift.SetDims(n, n);
+   for (int y = 0; y < n; y++)
+      for (int x = 0; x < n; x++)
+         B_lift[y][x] = rep(B_red[y][x]);
+
+   // reduce back to Z/p^N
+   modulus.restore();
+   B.SetDims(n, n);
+   for (int y = 0; y < n; y++)
+      for (int x = 0; x < n; x++)
+         conv(B[y][x], B_lift[y][x]);
+
+   // =================================================
+   // Now improve the approximation until we have enough precision
+
+   mat_ZZ_p two;
+   ident(two, n);
+   two *= 2;
+
+   for (int prec = 1; prec < N; prec *= 2)
+      // if BA = I + error, then ((2I - BA)B)A = (I - err)(I + err) = I - err^2
+      B = (two - B*A) * B;
+}
+
+
+
+/*
 The main function exported from this module. See frobenius.h for information.
 */
 int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
@@ -1510,6 +1583,7 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
    modulus_caller.save();
 
    // Create moduli for working mod p^N and mod p^(N+1)
+
    ZZ_pContext modulus0, modulus1;
 
    ZZ_p::init(power(p, N));
@@ -1519,6 +1593,12 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
 
    // =========================================================================
    // Compute vertical reduction matrix M_V(t) and denominator D_V(t).
+
+   // If N > 1 we need to do this to precision p^(N+1).
+   // If N = 1 we can get away with precision N, since the last reduction
+   // of length (p-1)/2 doesn't involve any divisions by p.
+   ZZ_pContext modulusV = (N == 1) ? modulus0 : modulus1;
+   modulusV.restore();
 
    // To compute the vertical reduction matrices, for each 0 <= i < 2g, we need
    // to find R_i(x) and S_i(x) satisfying x^i = R_i(x) Q(x) + S_i(x) Q'(x).
@@ -1601,6 +1681,18 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
       }
    }
 
+   // Compute inverse of the vandermonde matrix that will be used in the
+   // horizontal reduction phase
+   mat_ZZ_p vand_in, vand;
+   vand_in.SetDims(N, N);
+   for (int y = 1; y <= N; y++)
+   {
+      vand_in[y-1][0] = 1;
+      for (int x = 1; x < N; x++)
+         vand_in[y-1][x] = vand_in[y-1][x-1] * y;
+   }
+   padic_invert_matrix(vand, vand_in, p, N);
+
    // =========================================================================
    // Compute B_{j, r} coefficients.
    // These are done to precision p^(N+1).
@@ -1652,17 +1744,70 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
    for (int j = 0; j < N; j++)
    {
       // Compute the transition matrices, mod p^N, between the indices
-      // kp-2g-2 and kp, for each k.
+      // kp-2g-2 and kp, for each k. We compute at most N matrices (the others
+      // will be deduced more efficiently using the vandermonde matrix below)
       modulus0.restore();
       vector<ZZ> s;
-      for (int k = 0; k < (2*g+1)*(j+1); k++)
+      int L = (2*g+1)*(j+1) - 1;
+      int L_effective = min(L, N);
+      for (int k = 0; k < L_effective; k++)
       {
          s.push_back(k*p);
          s.push_back((k+1)*p - 2*g - 2);
       }
       vector<mat_ZZ_p> MH, DH;
+      MH.reserve(L);
+      DH.reserve(L);
       large_interval_products_wrapper(MH, MH0[j], MH1[j], s);
       large_interval_products_wrapper(DH, DH0[j], DH1[j], s);
+
+      // Use the vandermonde matrix to extend all the way up to L if necessary.
+      if (L > N)
+      {
+         // First compute X[r] = F^{(r)}(0) p^r / r! for r = 0, ..., N-1,
+         // where F is the matrix corresponding to M as described in the paper;
+         // and do the same for Y corresponding to the denominator D.
+         vector<mat_ZZ_p> X(N);
+         vector<ZZ_p> Y(N);
+         for (int r = 0; r < N; r++)
+         {
+            X[r].SetDims(2*g+1, 2*g+1);
+            for (int h = 0; h < N; h++)
+            {
+               ZZ_p& v = vand[r][h];
+
+               for (int y = 0; y < 2*g+1; y++)
+                  for (int x = 0; x < 2*g+1; x++)
+                     X[r][y][x] += v * MH[h][y][x];
+
+               Y[r] += v * DH[h][0][0];
+            }
+         }
+
+         // Now use those taylor coefficients to get the remaining MH's
+         // and DH's.
+         MH.resize(L);
+         DH.resize(L);
+         for (int k = N; k < L; k++)
+         {
+            MH[k].SetDims(2*g+1, 2*g+1);
+            DH[k].SetDims(1, 1);
+
+            // this is actually a power of k+1, since the indices into
+            // MH and DH are one-off from what's written in the paper
+            ZZ_p k_pow;
+            k_pow = 1;
+
+            for (int h = 0; h < N; h++, k_pow *= (k+1))
+            {
+               for (int y = 0; y < 2*g+1; y++)
+                  for (int x = 0; x < 2*g+1; x++)
+                     MH[k][y][x] += k_pow * X[h][y][x];
+
+               DH[k][0][0] += k_pow * Y[h];
+            }
+         }
+      }
 
       // Divide out each MH[k] by DH[k].
       for (int k = 0; k < MH.size(); k++)
@@ -1706,7 +1851,7 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
                sum[0] = 0;
 
                // add in contribution from c (these follow from the explicit
-               // formulae for the horizontal reductions;
+               // formulae for the horizontal reductions)
                ZZ s = k*p - u;
                c /= to_ZZ_p((2*g+1)*tt - 2*s);
                for (int m = 0; m <= 2*g; m++)
@@ -1780,6 +1925,20 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
       }
    }
 
+   if (N == 1)
+   {
+      // If N == 1, then the vertical matrices are stored at precision 1
+      // (instead of at N+1), so we reduce "reduced" to precision 1 here.
+      modulus0.restore();
+      vector<vector<vec_ZZ_p> > reduced_temp(N, vector<vec_ZZ_p>(2*g));
+      for (int j = 0; j < N; j++)
+         for (int i = 0; i < 2*g; i++)
+            change_vec_modulus(reduced_temp[j][i], modulus0,
+                               reduced[j][i], modulus1);
+
+      reduced.swap(reduced_temp);
+   }
+
    // =========================================================================
    // Vertical reductions.
 
@@ -1793,6 +1952,7 @@ int frobenius(mat_ZZ& output, const ZZ& p, int N, const ZZX& Q)
       s.push_back(s.back());
       s.push_back(s.back() + p);
    }
+   modulusV.restore();
    vector<mat_ZZ_p> MV, DV;
    large_interval_products_wrapper(MV, MV0, MV1, s);
    large_interval_products_wrapper(DV, DV0, DV1, s);

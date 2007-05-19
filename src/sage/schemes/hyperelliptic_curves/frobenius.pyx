@@ -90,8 +90,8 @@ def frobenius(p, N, Q):
    QQ = ZZX(Q)
 
    bound = (len(Q) - 1) * (2*N - 1)
-   if p < bound:
-      raise ValueError, "In the current implementation, p must be at least (2g+1)(2N-1) = %s" % bound
+   if p <= bound:
+      raise ValueError, "In the current implementation, p must be greater than (2g+1)(2N-1) = %s" % bound
 
    pp = ZZ(p)
 

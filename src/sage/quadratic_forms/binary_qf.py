@@ -147,7 +147,7 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.polynomial()
-            3*y^2 + 2*x*y + x^2
+            x^2 + 2*x*y + 3*y^2
         """
         M = ZZ['x,y']
         (x,y) = M.gens()
@@ -210,11 +210,11 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_weakly_reduced()
-            True
+            False
 
             sage: Q = BinaryQF([2,1,3])
             sage: Q.is_weakly_reduced()
-            False
+            True
 
             sage: Q = BinaryQF([1,-1,1])
             sage: Q.is_weakly_reduced()
@@ -222,7 +222,7 @@ class BinaryQF(SageObject):
         """
         if self.discriminant() >= 0:
             raise NotImplementedError, "only implemented for negative discriminant"
-        return (self.a <= abs(self.b)) and (abs(self.b) <= self.c)
+        return (abs(self.b) <= self.a) and (self.a <= self.c)
 
     def reduce(self):
         """
@@ -247,11 +247,11 @@ class BinaryQF(SageObject):
         EXAMPLES:
             sage: Q = BinaryQF([1,2,3])
             sage: Q.is_reduced()
-            True
+            False
 
             sage: Q = BinaryQF([2,1,3])
             sage: Q.is_reduced()
-            False
+            True
 
             sage: Q = BinaryQF([1,-1,1])
             sage: Q.is_reduced()
@@ -262,18 +262,18 @@ class BinaryQF(SageObject):
             True
         """
         return self.reduce() == self
-        if self.discriminant() >= 0:
-            raise NotImplementedError, "discriminant must be negative (for now)"
+        #if self.discriminant() >= 0:
+        #    raise NotImplementedError, "discriminant must be negative (for now)"
 
         ## Check that the form is weakly reduced
-        if self.is_weakly_reduced() == False:
-            return False
+        #if self.is_weakly_reduced() == False:
+        #    return False
 
         ## Check that b >= 0 when a = |b| or c = |b|, since it's weakly reduced
-        if self.b >= 0:
-            return True
-        else:
-            return (self.a != abs(self.b)) and (self.c != abs(self.b))
+        #if self.b >= 0:
+        #    return True
+        #else:
+        #    return (self.a != abs(self.b)) and (self.c != abs(self.b))
 
 
     def complex_point(self):

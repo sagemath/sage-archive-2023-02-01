@@ -41,6 +41,9 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         prec = self.base_ring().precision_cap()
         t = PowerSeriesRing(self.base_ring(), 't', prec).gen(0)
+#        print Q[0]
+#        print P[0]
+#        print Q[0] - P[0]
         x = P[0]+t*(Q[0]-P[0])
         pts = self.lift_x(x)
         if (pts[0][1] - P[1]).valuation() > 0:
@@ -55,8 +58,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 
         P and Q MUST be in the same residue disk for this result to make sense.
         """
+#        print "sage-working"
         x, y, z = self.local_analytic_interpolation(P, Q)
         dt = x.derivative() / y
+#        print "x", x
+#        print "dt", dt
         integrals = []
         for f in F:
             f = f(x,y)
@@ -70,6 +76,14 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         by formally integrating a power series in a local parameter $t$
 
         P and Q MUST be in the same residue disk for this result to make sense.
+
+        TEST:
+            sage: K = pAdicField(17, 5)
+            sage: E = EllipticCurve(K, [-31/3, -2501/108]) # 11a
+            sage: P = E(K(14/3), K(11/2))
+            sage: TP = E.teichmuller(P);
+            sage: E.tiny_integrals_on_basis(P, TP)
+            [2*17 + 11*17^2 + 3*17^3 + 16*17^4 + O(17^5), 15*17 + 11*17^2 + 16*17^3 + 11*17^4 + O(17^5)]
         """
         if P == Q:
             V = VectorSpace(self.base_ring(), 2*self.genus())

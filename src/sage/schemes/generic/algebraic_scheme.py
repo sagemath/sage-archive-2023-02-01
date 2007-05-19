@@ -56,7 +56,7 @@ def is_AlgebraicScheme(x):
         sage: A, x = AffineSpace(10, QQ).objgens()
         sage: X = A.subscheme([sum(x)]); X
         Closed subscheme of Affine Space of dimension 10 over Rational Field defined by:
-          x9 + x8 + x7 + x6 + x5 + x4 + x3 + x2 + x1 + x0
+        x0 + x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8 + x9
         sage: is_AlgebraicScheme(X)
         True
 
@@ -275,13 +275,13 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: V.irreducible_components()
             [
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-              w^5 - 2*z^3*v^2,
+            w^5 - 2*z^3*v^2,
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-              -1*v^3 + x^2*z,
+            x^2*z - v^3,
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-              -1*z^2 - y^2 + x^2,
+            x^2 - y^2 - z^2,
             Closed subscheme of Projective Space of dimension 4 over Rational Field defined by:
-              w
+            w
             ]
         """
         try:
@@ -308,25 +308,25 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: A.<x,y> = AffineSpace(2, QQ)
             sage: X = A.subscheme([(x-1)^2*(x-y)^3]); X
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*y^3 + 3*x*y^2 + 2*x*y^3 - 3*x^2*y - 6*x^2*y^2 - x^2*y^3 + x^3 + 6*x^3*y + 3*x^3*y^2 - 2*x^4 - 3*x^4*y + x^5
+              x^5 - 3*x^4*y + 3*x^3*y^2 - x^2*y^3 - 2*x^4 + 6*x^3*y - 6*x^2*y^2 + 2*x*y^3 + x^3 - 3*x^2*y + 3*x*y^2 - y^3
             sage: X.dimension()
             1
 
         Then we compute the corresponding reduced scheme.
             sage: Y = X.reduce(); Y
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              y - x - x*y + x^2
+              x^2 - x*y - x + y
 
         Finally, we verify that the reduced scheme $Y$ is the union of those two lines.
             sage: L1 = A.subscheme([x-1]); L1
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1 + x
+              x - 1
             sage: L2 = A.subscheme([x-y]); L2
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*y + x
+              x - y
             sage: W = L1.union(L2); W             # taken in ambient space
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              y - x - x*y + x^2
+              x^2 - x*y - x + y
             sage: Y == W
             True
         """
@@ -353,21 +353,21 @@ class AlgebraicScheme_subscheme(AlgebraicScheme):
             sage: L = A.subscheme([y-1])
             sage: S = L.union(P); S
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*y^3 + y^4
-              -1*x*y^2 + x*y^3
-              -1*x^2*y + x^2*y^2
-              -1*x^3 + x^3*y
+            y^4 - y^3
+            x*y^3 - x*y^2
+            x^2*y^2 - x^2*y
+            x^3*y - x^3
             sage: S.dimension()
             1
             sage: S.reduce()
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*y + y^2
-              -1*x + x*y
+            y^2 - y
+            x*y - x
 
         We can also use the notation "+" for the union:
             sage: A.subscheme([x]) + A.subscheme([y^2 - (x^3+1)])
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              -1*x + x*y^2 - x^4
+            -x^4 + x*y^2 - x
 
         Saving and loading:
             sage: loads(S.dumps()) == S
@@ -496,10 +496,10 @@ class AlgebraicScheme_subscheme_affine(AlgebraicScheme_subscheme):
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
-              x^2
-              z^2 + x^2*y^2
-              -1*w^2 + z^2
-              w^2 - z^2 + 10*x^2
+            x^2
+            x^2*y^2 + z^2
+            z^2 - w^2
+            10*x^2 - z^2 + w^2
             sage: X.dimension()
             1
         """
@@ -589,10 +589,10 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: X = A.subscheme([x^2, x^2*y^2 + z^2, z^2 - w^2, 10*x^2 + w^2 - z^2])
             sage: X
             Closed subscheme of Affine Space of dimension 4 over Rational Field defined by:
-              x^2
-              z^2 + x^2*y^2
-              -1*w^2 + z^2
-              w^2 - z^2 + 10*x^2
+            x^2
+            x^2*y^2 + z^2
+            z^2 - w^2
+            10*x^2 - z^2 + w^2
             sage: X.dimension()
             1
         """
@@ -621,13 +621,13 @@ class AlgebraicScheme_subscheme_projective(AlgebraicScheme_subscheme):
             sage: U = C.affine_patch(0)
             sage: U
             Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-            x1^3 + x0 + x0^3*x1
+            x0^3*x1 + x1^3 + x0
             sage: U.projective_embedding()
             Scheme morphism:
               From: Closed subscheme of Affine Space of dimension 2 over Rational Field defined by:
-              x1^3 + x0 + x0^3*x1
+              x0^3*x1 + x1^3 + x0
               To:   Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-              Y^3*Z + X*Z^3 + X^3*Y
+              X^3*Y + Y^3*Z + X*Z^3
               Defn: Defined on coordinates by sending (x0, x1) to
                     (1 : x0 : x1)
         """

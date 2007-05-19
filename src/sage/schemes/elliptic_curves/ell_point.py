@@ -41,7 +41,7 @@ Arithmetic with a point over an extension of a finite field:
 
 import sage.plot.all as plot
 
-from sage.rings.padics.qp import Qp
+from sage.rings.padics.factory import Qp
 
 import ell_generic
 import sage.rings.all as rings

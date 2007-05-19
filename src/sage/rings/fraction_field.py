@@ -117,14 +117,19 @@ class FractionField_generic(field.Field):
     def __init__(self, R):
         """
         Create the fraction field of the integral domain R.
+
         INPUT:
             R -- an integral domain
+
         EXAMPLES:
             sage: Frac(QQ['x'])
             Fraction Field of Univariate Polynomial Ring in x over Rational Field
+            sage: Frac(QQ['x,y']).variable_names()
+            ('x', 'y')
         """
         self.__R = R
         ParentWithBase.__init__(self, R)
+        self._assign_names(R._names)
 
     def is_field(self):
         """

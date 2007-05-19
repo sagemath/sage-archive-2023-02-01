@@ -4397,7 +4397,7 @@ cdef class gen(sage.structure.element.RingElement):
         variable of y, or to the main variable of x if y is omitted
         """
         _sig_on
-        return self.new_gen(integ(self.g, self.get_var(v)))
+        return self.new_gen(integ(self.g, self.get_var(y)))
 
     def padicappr(self, a):
         """

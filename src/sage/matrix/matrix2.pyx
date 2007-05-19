@@ -133,7 +133,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: A.permanent()
-            x*y^2 + x^2*y
+            x^2*y + x*y^2
 
 
         AUTHOR:
@@ -335,13 +335,13 @@ cdef class Matrix(matrix1.Matrix):
             [x3 x4 x5]
             [x6 x7 x8]
             sage: A.determinant()
-            -1*x2*x4*x6 + x2*x3*x7 + x1*x5*x6 - x1*x3*x8 - x0*x5*x7 + x0*x4*x8
+            -x2*x4*x6 + x1*x5*x6 + x2*x3*x7 - x0*x5*x7 - x1*x3*x8 + x0*x4*x8
 
         We create a matrix over $\Z[x,y]$ and compute its determinant.
             sage: R.<x,y> = MPolynomialRing(IntegerRing(),2)
             sage: A = MatrixSpace(R,2)([x, y, x**2, y**2])
             sage: A.determinant()
-            x*y^2 - x^2*y
+            -1*x^2*y + x*y^2
 
         TEST:
             sage: A = matrix(5, 5, [next_prime(i^2) for i in range(25)])
@@ -529,16 +529,16 @@ cdef class Matrix(matrix1.Matrix):
             sage: R.<x,y> = MPolynomialRing(ZZ,2)
             sage: A = MatrixSpace(R,2)([x, y, x^2, y^2])
             sage: f = A.charpoly('x'); f
-            x^2 + (-1*y^2 - x)*x + x*y^2 - x^2*y
+            x^2 + (-1*y^2 - x)*x + -x^2*y + x*y^2
 
         It's a little difficult to distinguish the variables.  To fix this,
         we temporarily view the indeterminate as $Z$:
             sage: with localvars(f.parent(), 'Z'): print f
-            Z^2 + (-1*y^2 - x)*Z + x*y^2 - x^2*y
+            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
 
         We could also compute f in terms of Z from the start:
             sage: A.charpoly('Z')
-            Z^2 + (-1*y^2 - x)*Z + x*y^2 - x^2*y
+            Z^2 + (-1*y^2 - x)*Z + -x^2*y + x*y^2
         """
         D = self.fetch('charpoly')
         if not D is None:
@@ -605,7 +605,7 @@ cdef class Matrix(matrix1.Matrix):
             sage: A.denominator()
             1
 
-        Denominators are note defined for real numbers:
+        Denominators are not defined for real numbers:
             sage: A = MatrixSpace(RealField(),2)([1,2,3,4])
             sage: A.denominator()
             Traceback (most recent call last):
@@ -1194,6 +1194,13 @@ cdef class Matrix(matrix1.Matrix):
             Basis matrix:
             [ 1  0 -1]
             [ 0  1  2]
+
+            sage: m = Matrix(Integers(5),2,2,[2,2,2,2]);
+            sage: m.row_space()
+            Vector space of degree 2 and dimension 1 over Fraction Field of Ring of integers modulo 5
+            Basis matrix:
+            [1 1]
+
         """
         return self.row_module(base_ring=base_ring)
 
@@ -1346,7 +1353,7 @@ cdef class Matrix(matrix1.Matrix):
         Compute the decomposition of this matrix using the spin algorithm.
 
         INPUT:
-            self -- a matrix with integer entries
+            self -- a matrix with field entries
 
         OUTPUT:
             a list of reduced row echelon form basis
@@ -1593,7 +1600,7 @@ cdef class Matrix(matrix1.Matrix):
         WARNING:
         This function returns an nxn matrix, where V has dimension n.
         It does \emph{not} check that V is in fact invariant under
-        self, unless check is True (not the default).
+        self, unless check is True.
 
         EXAMPLES:
             sage: V = VectorSpace(QQ, 3)
@@ -2274,9 +2281,15 @@ cdef class Matrix(matrix1.Matrix):
         """
         return self.is_scalar(1)
 
-    def is_scalar(self, a):
+    def is_scalar(self, a = None):
         """
-        Return True if this matrix is the identity matrix.
+        Return True if this matrix is a scalar matrix.
+
+        INPUT -- base_ring element a, which is chosen as self[0][0] if
+                 a = None
+
+        OUTPUT -- whether self is a scalar matrix (in fact the scalar
+                  matrix aI if a is input)
 
         EXAMPLES:
             sage: m = matrix(QQ,2,range(4))
@@ -2295,7 +2308,12 @@ cdef class Matrix(matrix1.Matrix):
         if not self.is_square():
             return False
         cdef Py_ssize_t i, j
-        a = self.base_ring()(a)
+        if a is None:
+            if self._nrows == 0:
+                return True
+            a = self.get_unsafe(0,0)
+        else:
+            a = self.base_ring()(a)
         zero = self.base_ring()(0)
         for i from 0 <= i < self._nrows:
             for j from 0 <= j < self._ncols:

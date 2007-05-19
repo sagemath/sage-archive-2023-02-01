@@ -3,6 +3,7 @@ Matrix windows
 """
 
 include '../ext/stdsage.pxi'
+include '../ext/python_tuple.pxi'
 
 cdef extern from "stdsage.h":
     object PY_NEW(PyObject *)

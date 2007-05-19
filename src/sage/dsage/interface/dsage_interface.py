@@ -803,8 +803,10 @@ class BlockingJobWrapper(JobWrapper):
 
         self._update_job(job)
 
+        job_id = blocking_call_from_thread(self.remoteobj.callRemote,
+                                           'submit_job', job.reduce())
         jdict = blocking_call_from_thread(self.remoteobj.callRemote,
-                                          'submit_job', job.reduce())
+                                          'get_job_by_id', job_id)
         self._job = expand_job(jdict)
 
     def __repr__(self):

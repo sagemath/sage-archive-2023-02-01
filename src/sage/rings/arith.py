@@ -82,9 +82,9 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     33'rd bit.
         sage: z = sqrt(RealField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: factor(p)
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: algdep(z, 4, known_bits=32)
         x^2 - 2
         sage: algdep(z, 4, known_digits=10)
@@ -96,8 +96,8 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     """
 
     # TODO -- change to use PARI C library???
-    import sage.rings.polynomial_ring
-    x = sage.rings.polynomial_ring.PolynomialRing(
+    import sage.rings.polynomial.polynomial_ring
+    x = sage.rings.polynomial.polynomial_ring.PolynomialRing(
         integer_ring.IntegerRing(), 'x').gen()
 
     if isinstance(z, (int, long, integer.Integer)):
@@ -122,7 +122,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         # try to use about 51 bits of our 32-bit value.  Similarly
         # bad things would happen on a 64-bit machine with RealField(65).)
         log2 = 0.301029995665
-        digits = int(log2 * z.prec())
+        digits = int(log2 * z.prec()) - 2
         if known_bits is not None:
             known_digits = log2 * known_bits
         if known_digits is not None:
@@ -2349,6 +2349,8 @@ def convergent(v, n):
         sage: convergent([2, 1, 2, 1, 1, 4, 1, 1], 7)
         193/71
     """
+    if hasattr(v, 'convergent'):
+        return v.convergent(n)
     Q = sage.rings.rational_field.RationalField()
     i = int(n)
     x = Q(v[i])
@@ -2379,6 +2381,8 @@ def convergents(v):
         sage: convergents([2, 1, 2, 1, 1, 4, 1, 1])
         [2, 3, 8/3, 11/4, 19/7, 87/32, 106/39, 193/71]
     """
+    if hasattr(v, 'convergents'):
+        return v.convergents()
     Q = sage.rings.rational_field.RationalField()
     if not isinstance(v, list):
         v = pari(v).contfrac()
@@ -2437,11 +2441,11 @@ def continuant(v, n=None):
         517656/190435
         sage: x = MPolynomialRing(RationalField(),'x',5).gens()
         sage: continuant(x)
-        x4 + x2 + x2*x3*x4 + x0 + x0*x3*x4 + x0*x1*x4 + x0*x1*x2 + x0*x1*x2*x3*x4
+        x0*x1*x2*x3*x4 + x0*x1*x2 + x0*x1*x4 + x0*x3*x4 + x2*x3*x4 + x0 + x2 + x4
         sage: continuant(x, 3)
-        x2 + x0 + x0*x1*x2
+        x0*x1*x2 + x0 + x2
         sage: continuant(x,2)
-        1 + x0*x1
+        x0*x1 + 1
 
         $K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}$:
 

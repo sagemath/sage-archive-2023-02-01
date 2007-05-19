@@ -77,13 +77,13 @@ cdef class Ring(ParentWithGens):
 
         """
 
-        from sage.rings.polynomial_element import is_Polynomial
+        from sage.rings.polynomial.polynomial_element import is_Polynomial
         if is_Polynomial(x):
             x = str(x)
 
 
         if not isinstance(x, list):
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             P = PolynomialRing(self, x)
             return P
 
@@ -96,7 +96,7 @@ cdef class Ring(ParentWithGens):
             P = PowerSeriesRing
 
         elif isinstance(x, (tuple, str)):
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             P = PolynomialRing
             if isinstance(x, tuple):
                 y = []
@@ -105,7 +105,7 @@ cdef class Ring(ParentWithGens):
                 x = tuple(y)
 
         else:
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             P = PolynomialRing
             x = (str(x),)
 
@@ -167,7 +167,7 @@ cdef class Ring(ParentWithGens):
             sage: R.ideal(x+y^2)
             Ideal (y^2 + x) of Polynomial Ring in x, y over Rational Field
             sage: R.ideal([x^3,y^3+x^3])
-            Ideal (x^3, y^3 + x^3) of Polynomial Ring in x, y over Rational Field
+            Ideal (x^3, x^3 + y^3) of Polynomial Ring in x, y over Rational Field
         """
         C = self._ideal_class_()
         return C(self, x, coerce=coerce)
@@ -180,9 +180,9 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y,z> = GF(7)[]
             sage: (x+y)*R
-            Ideal (y + x) of Polynomial Ring in x, y, z over Finite Field of size 7
+            Ideal (x + y) of Polynomial Ring in x, y, z over Finite Field of size 7
             sage: (x+y,z+y^3)*R
-            Ideal (y + x, z + y^3) of Polynomial Ring in x, y, z over Finite Field of size 7
+            Ideal (x + y, y^3 + z) of Polynomial Ring in x, y, z over Finite Field of size 7
         """
         if isinstance(self, Ring):
             return self.ideal(x)
@@ -203,7 +203,7 @@ cdef class Ring(ParentWithGens):
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
             sage: R.principal_ideal(x+2*y)
-            Ideal (2*y + x) of Polynomial Ring in x, y over Integer Ring
+            Ideal (x + 2*y) of Polynomial Ring in x, y over Integer Ring
         """
         return self.ideal([gen], coerce=coerce)
 
@@ -589,7 +589,6 @@ cdef class CommutativeRing(Ring):
             import sage.rings.fraction_field
             K = sage.rings.fraction_field.FractionField_generic(self)
             self.__fraction_field = K
-            K._assign_names(self.variable_names())
         return self.__fraction_field
 
     def __pow__(self, n, _):
@@ -1272,7 +1271,7 @@ cdef class FiniteField(Field):
             sage: k.polynomial_ring()
             Univariate Polynomial Ring in alpha over Finite Field of size 3
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         from sage.rings.finite_field import GF
 
         if self.__polynomial_ring is not None:

@@ -174,6 +174,7 @@ cdef class Matrix_integer_2x2(matrix_dense.Matrix_dense):
 
     def __invert__(self):
         MS = self._matrix_(QQ).parent()
+        D = self.determinant()
         return MS([self.get_unsafe(1,1)/D, -self.get_unsafe(0,1)/D, -self.get_unsafe(1,0)/D, self.get_unsafe(0,0)/D], coerce=False, copy=False)
 
     def __invert__unit(self):

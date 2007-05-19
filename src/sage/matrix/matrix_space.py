@@ -35,6 +35,8 @@ import matrix_integer_sparse
 import matrix_rational_dense
 import matrix_rational_sparse
 
+#import padics.matrix_padic_capped_relative_dense
+
 ## import matrix_cyclo_dense
 ## import matrix_cyclo_sparse
 
@@ -60,6 +62,7 @@ import sage.rings.principal_ideal_domain as principal_ideal_domain
 import sage.rings.integral_domain as integral_domain
 import sage.rings.number_field.all
 import sage.rings.integer_mod_ring
+import sage.rings.padics.padic_ring_capped_relative
 import sage.misc.latex as latex
 #import sage.rings.real_double as real_double
 from sage.misc.misc import xsrange
@@ -416,17 +419,19 @@ class MatrixSpace_generic(parent_gens.ParentWithGens):
                 if R.order() == 2:
                     return matrix_mod2_dense.Matrix_mod2_dense
                 return matrix_modn_dense.Matrix_modn_dense
+            #elif isinstance(R, sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative):
+            #    return padics.matrix_padic_capped_relative_dense
             # the default
             return matrix_generic_dense.Matrix_generic_dense
 
         else:
             if sage.rings.integer_mod_ring.is_IntegerModRing(R) and R.order() < matrix_modn_sparse.MAX_MODULUS:
                 return matrix_modn_sparse.Matrix_modn_sparse
-            # the default
             elif sage.rings.rational_field.is_RationalField(R):
                 return matrix_rational_sparse.Matrix_rational_sparse
             elif sage.rings.integer_ring.is_IntegerRing(R):
                 return matrix_integer_sparse.Matrix_integer_sparse
+            # the default
             return matrix_generic_sparse.Matrix_generic_sparse
 
 

@@ -1169,8 +1169,8 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         self._parent = <ParentWithBase>parent
 
     def __dealloc__(self):
-        # for some mysterious reason, this may be NULL in some cases
-        if (<MPolynomialRing_libsingular>self._parent)._ring != NULL:
+        # for some mysterious reason, various things may be NULL in some cases
+        if self._parent is not <ParentWithBase>None and (<MPolynomialRing_libsingular>self._parent)._ring != NULL and self._poly != NULL:
             p_Delete(&self._poly, (<MPolynomialRing_libsingular>self._parent)._ring)
 
     def __call__(self, *x):

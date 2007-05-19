@@ -335,6 +335,7 @@ except:
             log.msg(LOG_PREFIX % self.id + msg)
         try:
             os.chdir(self.tmp_job_dir)
+            self.sage.__so_far = ''
             foo, output, new = self.sage._so_far(wait=0.5)
             result = open('result.sobj', 'rb').read()
             done = True

@@ -335,7 +335,7 @@ except:
             log.msg(LOG_PREFIX % self.id + msg)
         try:
             os.chdir(self.tmp_job_dir)
-            foo, output, new = self.sage._so_far(wait=0.1)
+            foo, output, new = self.sage._so_far(wait=0.5)
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()

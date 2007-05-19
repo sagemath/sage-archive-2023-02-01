@@ -1,14 +1,14 @@
 #import sage.rings.padics.padic_ring_generic_element
 import sage.rings.padics.padic_generic_element
 import sage.rings.padics.padic_extension_generic_element
-import sage.rings.polynomial_element
+import sage.rings.polynomial.polynomial_element
 import sage.rings.padics.unramified_extension_generic_element
 import sage.rings.infinity
 from sage.rings.padics.misc import min
 
 Integer = sage.rings.integer.Integer
 infinity = sage.rings.infinity.infinity
-Polynomial = sage.rings.polynomial_element.Polynomial
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 #pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicExtensionGenericElement = sage.rings.padics.padic_extension_generic_element.pAdicExtensionGenericElement

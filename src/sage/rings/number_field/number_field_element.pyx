@@ -34,8 +34,8 @@ include "../../ext/stdsage.pxi"
 
 import sage.rings.field_element
 import sage.rings.infinity
-import sage.rings.polynomial_element
-import sage.rings.polynomial_ring
+import sage.rings.polynomial.polynomial_element
+import sage.rings.polynomial.polynomial_ring
 import sage.rings.rational_field
 import sage.rings.rational
 import sage.rings.integer_ring
@@ -133,7 +133,7 @@ cdef class NumberFieldElement(FieldElement):
         if isinstance(f, pari_gen):
             f = f.lift()
             f = ppr(f)
-        if not isinstance(f, sage.rings.polynomial_element.Polynomial):
+        if not isinstance(f, sage.rings.polynomial.polynomial_element.Polynomial):
             f = ppr(f)
         if f.degree() >= parent.degree():
             if isinstance(parent, sage.rings.number_field.number_field.NumberField_extension):
@@ -709,7 +709,7 @@ cdef class NumberFieldElement(FieldElement):
             i += 1
 
         # it must have infinite order
-        self.__multiplicative_order = infinity.infinity
+        self.__multiplicative_order = sage.rings.infinity.infinity
         return self.__multiplicative_order
 
     def trace(self):
@@ -785,7 +785,7 @@ cdef class NumberFieldElement(FieldElement):
         # the characteristic polynomial.
         # TODO: factoring to find the square-free part is idiotic.
         # Instead use a GCD algorithm!
-        f = sage.rings.polynomial_ring.PolynomialRing(QQ, str(var))(1)
+        f = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, str(var))(1)
         for g, _ in self.charpoly(var).factor():
             f *= g
         return f

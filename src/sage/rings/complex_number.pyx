@@ -845,7 +845,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         """
         return self._parent(self._pari_().zeta())
 
-    def algdep(self, n):
+    def algdep(self, n, **kwds):
         """
         Returns a polynomial of degree at most $n$ which is approximately
         satisfied by this complex number.  Note that the returned polynomial
@@ -853,6 +853,9 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
         approximation to an algebraic number of degree less than $n$.
 
         ALGORITHM: Uses the PARI C-library algdep command.
+
+        INPUT: Type algdep? at the top level prompt. All additional
+        parameters are passed onto the top-level algdep command.
 
         EXAMPLE:
             sage: C = ComplexField()
@@ -866,7 +869,7 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             0.000000000000000111022302462516
         """
         import sage.rings.arith
-        return sage.rings.arith.algdep(self,n)
+        return sage.rings.arith.algdep(self,n, **kwds)
 
     def algebraic_dependancy( self, n ):
         return self.algdep( n )

@@ -71,10 +71,6 @@ from finite_field_element import FiniteFieldElement, is_FiniteFieldElement
 # Number field
 from number_field.all import *
 
-# Quotient of polynomial ring
-from polynomial_quotient_ring import PolynomialQuotientRing, is_PolynomialQuotientRing
-from polynomial_quotient_ring_element import PolynomialQuotientRingElement
-
 # p-adic field
 
 from padics.all import *
@@ -88,6 +84,9 @@ from real_double import RealDoubleField, RDF, RealDoubleElement, is_RealDoubleEl
 
 # Quad double
 from real_rqdf import RealQuadDoubleField, RQDF, QuadDoubleElement
+
+# Polynomial Rings and Polynomial Quotient Rings
+from polynomial.all import *
 
 # Algebraic reals (the intersection of the algebraic closure of the rationals
 # with the reals)
@@ -105,14 +104,6 @@ from complex_number import ComplexNumber, is_ComplexNumber
 Complexes = ComplexField
 
 from complex_double import ComplexDoubleField, ComplexDoubleElement, CDF, is_ComplexDoubleElement
-
-# Univariate Polynomial Rings
-from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
-from polynomial_element import is_Polynomial
-
-# Multivariate Polynomial Rings
-from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
-from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial
 
 # Power series ring in one variable
 from power_series_ring import PowerSeriesRing, is_PowerSeriesRing

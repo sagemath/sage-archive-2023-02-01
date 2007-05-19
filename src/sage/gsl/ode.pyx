@@ -400,13 +400,13 @@ class ode_solver(object):
       if self.a == False and self.a_dydt==False:
          c  = gsl_odeiv_control_y_new (self.error_abs, self.error_rel)
       elif self.a !=False and self.a_dydt != False:
-         if scale_abs==False:
+         if self.scale_abs==False:
             c = gsl_odeiv_control_standard_new(self.error_abs,self.error_rel,self.a,self.a_dydt)
-         elif hasattr(scale_abs,'__len__'):
-            if len(scale_abs)==dim:
+         elif hasattr(self.scale_abs,'__len__'):
+            if len(self.scale_abs)==dim:
                scale_abs_array =<double *> malloc(dim*sizeof(double))
                for i from 0 <=i<dim:
-                  scale_abs_array[i]=scale_abs[i]
+                  scale_abs_array[i]=self.scale_abs[i]
                c = gsl_odeiv_control_scaled_new(self.error_abs,self.error_rel,self.a,self.a_dydt,scale_abs_array,dim)
 
       if c == NULL:

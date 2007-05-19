@@ -534,7 +534,7 @@ cdef class Matrix(matrix0.Matrix):
             (2, 5)
         """
         if self._ncols == 0:
-            raise IndexError, "matrix has no rows"
+            raise IndexError, "matrix has no columns"
         i = i % self._ncols
         if i < 0:
             i = i + self._ncols

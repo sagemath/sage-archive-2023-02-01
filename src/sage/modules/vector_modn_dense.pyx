@@ -23,6 +23,20 @@ EXAMPLES:
     sage: v * v
     (1, 4, 1, 0, 1)
 
+    sage: v = vector(Integers(8),[1,2,3,4,5])
+    sage: u = vector(Integers(8),[1,2,3,4,4])
+    sage: v - u
+    (0, 0, 0, 0, 1)
+    sage: u - v
+    (0, 0, 0, 0, 7)
+
+    sage: v = vector((Integers(5)(1),2,3,4,4))
+    sage: u = vector((Integers(5)(1),2,3,4,3))
+    sage: v - u
+    (0, 0, 0, 0, 1)
+    sage: u - v
+    (0, 0, 0, 0, 4)
+
 We make a large zero vector:
     sage: k = Integers(8)^100000; k
     Ambient free module of rank 100000 over Ring of integers modulo 8

@@ -198,7 +198,7 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         z = self._new_c()
         cdef Py_ssize_t i
         for i from 0 <= i < self._degree:
-            z._entries[i] = (self._entries[i] - r._entries[i]) % self._p
+            z._entries[i] = (self._p + self._entries[i] - r._entries[i]) % self._p
         return z
 
     cdef Vector _vector_times_vector_c_impl(self, Vector right):

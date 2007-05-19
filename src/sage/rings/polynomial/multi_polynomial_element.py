@@ -1025,6 +1025,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         local/bin/).}
         """
         R = self.parent()
+        R._singular_().set_ring()
         S = self._singular_().factorize()
         factors = S[1]
         exponents = S[2]
@@ -1086,6 +1087,16 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             2*x
             sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
             3*x*y
+
+        TESTS:
+            sage: F.<u> = GF(31^2)
+            sage: R.<x,y,z> = F[]
+            sage: p = x^3 + (1+u)*y^3 + z^3
+            sage: q = p^3
+            sage: gcd(p,q)
+            x^3 + (u + 1)*y^3 + z^3
+            sage: gcd(p,q)  # yes, twice -- tests that singular ring is properly set.
+            x^3 + (u + 1)*y^3 + z^3
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():
             raise TypeError, "self and f must have the same parent"
@@ -1095,12 +1106,14 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         # PARI uses the coefficents btw.
         # TODO: This is slow
 
-        if self.parent().base_ring() is ZZ:
+        P = self.parent()
+        if P.base_ring() == ZZ:
             res = self.parent()(self._singular_(force=True).gcd(f._singular_(force=True)))
             coef = sage.rings.arith.gcd(self.element().dict().values() + f.element().dict().values(),True)
             return coef*res
 
-        return self.parent()(self._singular_().gcd(f._singular_()))
+        P._singular_().set_ring()
+        return P(self._singular_().gcd(f._singular_()))
 
     def quo_rem(self, right):
         """
@@ -1111,6 +1124,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         if not isinstance(right, MPolynomial) or right.parent() != self.parent():
             right = self.parent()(right)
         R = self.parent()
+        R._singular_().set_ring()
         X = self._singular_().division(right._singular_())
         return R(X[1][1,1]), R(X[2][1])
 

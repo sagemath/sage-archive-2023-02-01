@@ -783,12 +783,30 @@ cdef class NumberFieldElement(FieldElement):
         # The minimal polynomial is square-free and
         # divisible by same irreducible factors as
         # the characteristic polynomial.
-        # TODO: factoring to find the square-free part is idiotic.
-        # Instead use a GCD algorithm!
-        f = sage.rings.polynomial_ring.PolynomialRing(QQ, str(var))(1)
-        for g, _ in self.charpoly(var).factor():
-            f *= g
-        return f
+        f = self.charpoly(var)
+        return f // f.gcd(f.derivative())
+
+    def is_integral(self):
+        r"""
+        Determine if a number is in the ring of integers
+        of this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 + 23, 'a')
+            sage: a.is_integral()
+            True
+            sage: t = (1+a)/2
+            sage: t.is_integral()
+            True
+            sage: t.minpoly()
+            x^2 - x + 6
+            sage: t = a/2
+            sage: t.is_integral()
+            False
+            sage: t.minpoly()
+            x^2 + 23/4
+        """
+        return all([a in ZZ for a in self.minpoly()])
 
     def matrix(self):
         r"""

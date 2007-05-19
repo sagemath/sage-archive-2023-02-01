@@ -840,10 +840,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             limtriv -- (default: 10) limite des points triviaux sur la
                                      courbe elliptique
             maxprob -- (default: 20)
-            limbigprime -- (default: 30)  pour distinguer un petit 1nombre premier
-                                     d'un grand utilise un test probabiliste pour
-                                     les grands si LIMBIGPRIME = 0, n'utilise
-                                     aucun test probabiliste
+            limbigprime -- (default: 30)  to distinguish between small and large prime
+                                          numbers. Use probabilistic tests for large
+                                          primes. If 0, don't any probabilistic tests.
 
         OUTPUT:
             integer -- "probably" the rank of self

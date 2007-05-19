@@ -27,35 +27,59 @@ from sage.misc.sage_eval import sage_eval
 from sage.rings.all import PolynomialRing, ZZ, QQ
 
 gp = None
-def init(K):
+def init(K, two_torsion):
     global gp
     if gp is None:
         gp = Gp(script_subdirectory='simon')
         gp.read("ell.gp")
-        if K == QQ:
+        if K == QQ and two_torsion == 1:
             gp.read("ellQ.gp")
         gp.read("qfsolve.gp")
         gp.read("resultant3.gp")
 
 
 def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=20, limbigprime=30):
+
     K = A.parent()
-    init(K)
+    x = PolynomialRing(K, 'x').gen(0)
+    f = x**3 + A*x**2 + B*x + C
+    factors = f.factor()
+    two_torsion = 1 << (len(factors) - 1)
+
+    init(K, two_torsion)
     shift = 0
+
     if K == QQ:
-        cmd = 'main(%s,%s,%s);'%(A,B,C)
+        gp.eval("K = bnfinit(y-1)") # TODO: Is there a better way to get QQ?
     else:
-        # Simon's program requires that the coefficients do NOT all lie in a subfield of K
-        if A.minpoly().degree() != K.degree():
-            shift = a = K.gen()
-            x = PolynomialRing(K, 'x').gen(0)
-            shifted = (x+a)**3 + A*(x+a)**2 + B*(x+a) + C
-            C, B, A, _ = shifted
         # Simon's program requires that this name be y.
         with localvars(K.polynomial().parent(), 'y'):
             gp.eval("K = bnfinit(%s);" % K.polynomial())
         gp.eval("%s = Mod(y,K.pol);" % K.gen())
-        cmd = 'main(K, %s,%s,%s);'%(A,B,C)
+
+    if two_torsion == 1:
+        if K == QQ:
+            cmd = 'main(%s,%s,%s);'%(A,B,C)
+        else:
+            # Simon's program requires that the coefficients do NOT all lie in a subfield of K
+            if A.minpoly().degree() != K.degree():
+                shift = K.gen()
+                shifted = (x+shift)**3 + A*(x+shift)**2 + B*(x+shift) + C
+                C, B, A, _ = shifted
+            cmd = 'main(K, %s,%s,%s);'%(A,B,C)
+
+    elif two_torsion == 2:
+        if C != 0:
+            # If E[2] = Z/2Z, it must be of the form y^2 = x^3 + Ax^2 + Bx
+            shift = -factors[0][0][0]
+            print f, "=", factors, "->", shift
+            shifted = (x+shift)**3 + A*(x+shift)**2 + B*(x+shift) + C
+            print shifted
+            C, B, A, _ = shifted
+        cmd = 'main2(K, [0, %s, 0, %s, 0])'%(A,B)
+
+    else:  # two_torsion == 4:
+        cmd = 'complete(K, %s,%s,%s)'%(factors[0][0][0], factors[1][0][0], factors[2][0][0])
 
     gp('DEBUGLEVEL=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
         verbose, lim1, lim3, limtriv, maxprob, limbigprime))

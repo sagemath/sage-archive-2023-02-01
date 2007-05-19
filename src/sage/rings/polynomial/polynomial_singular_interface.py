@@ -28,6 +28,8 @@ TESTS:
 #
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
+import sage.rings.finite_field
+import sage.rings.number_field as number_field
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 from sage.rings.complex_field import is_ComplexField
@@ -37,6 +39,7 @@ from sage.rings.real_double import is_RealDoubleField
 from sage.rings.integer_ring import ZZ
 import sage.rings.arith
 import sage.rings.ring
+
 
 class PolynomialRing_singular_repr:
     """
@@ -124,11 +127,20 @@ class PolynomialRing_singular_repr:
             //        block   1 : ordering dp
             //                  : names    x y
             //        block   2 : ordering C
+            sage: R.<x,y> = PolynomialRing(NumberField(w^2+1,'s'))
+            sage: R._singular_()
+            //   characteristic : 0
+            //   1 parameter    : s
+            //   minpoly        : (s^2+1)
+            //   number of vars : 2
+            //        block   1 : ordering dp
+            //                  : names    x y
+            //        block   2 : ordering C
 
         WARNING:
-           If the base ring is a finite extension field the ring will
-           not only be returned but also be set as the current ring in
-           Singular.
+           If the base ring is a finite extension field or a number field
+           the ring will not only be returned but also be set as the current
+           ring in Singular.
 
         NOTE:
             Singular represents precision of floating point numbers base 10
@@ -141,7 +153,8 @@ class PolynomialRing_singular_repr:
             R._check_valid()
             if self.base_ring() is ZZ or self.base_ring().is_prime_field():
                 return R
-            if self.base_ring().is_finite():
+            if sage.rings.ring.is_FiniteField(self.base_ring()) or\
+                    number_field.number_field.is_NumberField(self.base_ring()):
                 R.set_ring() #sorry for that, but needed for minpoly
                 if  singular.eval('minpoly') != self.__minpoly:
                     singular.eval("minpoly=%s"%(self.__minpoly))
@@ -192,13 +205,27 @@ class PolynomialRing_singular_repr:
         elif self.base_ring().is_prime_field() or (self.base_ring() is ZZ and force):
             self.__singular = singular.ring(self.characteristic(), _vars, order=order, check=False)
 
-        elif self.base_ring().is_finite(): #must be extension field
+        elif sage.rings.ring.is_FiniteField(self.base_ring()):
+            # not the prime field!
             gen = str(self.base_ring().gen())
             r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
             self.__minpoly = "("+(str(self.base_ring().modulus()).replace("x",gen)).replace(" ","")+")"
             singular.eval("minpoly=%s"%(self.__minpoly) )
 
             self.__singular = r
+        elif number_field.number_field.is_NumberField(self.base_ring()):
+            # not the rationals!
+            gen = str(self.base_ring().gen())
+            poly=self.base_ring().polynomial()
+            poly_gen=str(poly.parent().gen())
+            poly_str=str(poly).replace(poly_gen,gen)
+            r = singular.ring( "(%s,%s)"%(self.characteristic(),gen), _vars, order=order, check=False)
+            self.__minpoly = "("+(poly_str).replace(" ","")+")"
+            singular.eval("minpoly=%s"%(self.__minpoly) )
+
+            self.__singular = r
+
+
         else:
             raise TypeError, "no conversion to a Singular ring defined"
 
@@ -210,7 +237,8 @@ class PolynomialRing_singular_repr:
         Singular. If this is true then this polynomial ring can be
         represented in Singular.
 
-        GF(p), GF(p^n), Rationals, Reals, and Complexes are supported.
+        GF(p), GF(p^n), Rationals, NumberFields Reals, and Complexes are
+        supported.
         """
         base_ring = self.base_ring()
         return ( sage.rings.ring.is_FiniteField(base_ring)
@@ -219,6 +247,7 @@ class PolynomialRing_singular_repr:
                  or is_ComplexField(base_ring)
                  or is_RealDoubleField(base_ring)
                  or is_ComplexDoubleField(base_ring)
+                 or number_field.number_field.is_NumberField(base_ring)
                  or base_ring is ZZ )
 
 
@@ -318,6 +347,11 @@ class Polynomial_singular_repr:
             sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
             sage: f.lcm(x^4)
             (a^2 + a)*x^6*y + (a^4 + a^3 + a)*x^4*y + a^5*x^4
+            sage: r.<x,y> = MPolynomialRing(NumberField(w^4+1,'a'),2)
+            sage: a = r.base_ring().0
+            sage: f = (a^2+a)*x^2*y + (a^4+a^3+a)*y + a^5
+            sage: f.lcm(x^4)
+            (a^2 + a)*x^6*y + (a^3 + a - 1)*x^4*y + (-a)*x^4
         """
         lcm = self._singular_(have_ring=have_ring).lcm(right._singular_(have_ring=have_ring))
         return lcm.sage_poly(self.parent())
@@ -351,6 +385,12 @@ class Polynomial_singular_repr:
 
             sage: f.diff(y)
             0
+
+            sage: R.<x,y> = PolynomialRing(NumberField(w^3-2, 'a'),2)
+            sage: a=R.base_ring().0
+            sage: f = x^3*y^2 + y^2 + a*x + 2
+            sage: f.diff(x)
+            3*x^2*y^2 + a
 
         ALGORITHM: Singular
 

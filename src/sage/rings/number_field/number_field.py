@@ -274,6 +274,10 @@ class NumberField_generic(field.Field):
             elif x.parent() == self:
                 return number_field_element.NumberFieldElement(self, x.polynomial())
             return self._coerce_from_other_number_field(x)
+        elif isinstance(x,str):  # provide string coercion, as
+                                 # for finite fields
+                return sage.misc.all.sage_eval(x,locals=\
+                                          {self.variable_name():self.gen()})
         return self._coerce_non_number_field_element_in(x)
 
     def _coerce_from_other_number_field(self, x):

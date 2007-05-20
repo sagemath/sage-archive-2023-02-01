@@ -233,12 +233,12 @@ class PolynomialRing_singular_repr:
 
     def _can_convert_to_singular(self):
         """
-        Returns True if this rings base field/ring can be represented in
-        Singular. If this is true then this polynomial ring can be
-        represented in Singular.
+        Returns True if this ring's base field or ring can be
+        represented in Singular.  If this is True then this polynomial
+        ring can be represented in Singular.
 
-        GF(p), GF(p^n), Rationals, NumberFields Reals, and Complexes are
-        supported.
+        The following base rings are supported: $GF(p)$, $GF(p^n)$,
+        rationals, number fields, and real and complex fields.
         """
         base_ring = self.base_ring()
         return ( sage.rings.ring.is_FiniteField(base_ring)

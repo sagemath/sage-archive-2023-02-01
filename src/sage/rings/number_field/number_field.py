@@ -32,6 +32,8 @@ import sage.rings.arith
 import sage.rings.complex_field
 import sage.rings.ring
 
+from sage.structure.element import is_Element
+
 import sage.structure.parent_gens
 
 _gp = None
@@ -267,6 +269,17 @@ class NumberField_generic(field.Field):
     def __call__(self, x):
         """
         Coerce x into this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: K(a) is a
+            True
+            sage: K('a^2 + 2/3*a + 5')
+            a^2 + 2/3*a + 5
+            sage: K('1').parent()
+            Number Field in a with defining polynomial x^3 + 17
+            sage: K(3/5).parent()
+            Number Field in a with defining polynomial x^3 + 17
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
@@ -274,11 +287,19 @@ class NumberField_generic(field.Field):
             elif x.parent() == self:
                 return number_field_element.NumberFieldElement(self, x.polynomial())
             return self._coerce_from_other_number_field(x)
-        elif isinstance(x,str):  # provide string coercion, as
-                                 # for finite fields
-                return sage.misc.all.sage_eval(x,locals=\
-                                          {self.variable_name():self.gen()})
+        elif isinstance(x,str):
+            return self._coerce_from_str(x)
         return self._coerce_non_number_field_element_in(x)
+
+    def _coerce_from_str(self, x):
+        # provide string coercion, as
+        # for finite fields
+        w = sage.misc.all.sage_eval(x,locals=\
+                                  {self.variable_name():self.gen()})
+        if not (is_Element(w) and w.parent() is self):
+            return self(w)
+        else:
+            return w
 
     def _coerce_from_other_number_field(self, x):
         f = x.polynomial()
@@ -1277,6 +1298,8 @@ class NumberField_cyclotomic(NumberField_generic):
                 return self._coerce_from_other_number_field(x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
+        elif isinstance(x,str):
+            return self._coerce_from_str(x)
         else:
             return self._coerce_non_number_field_element_in(x)
 

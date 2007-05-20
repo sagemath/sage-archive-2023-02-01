@@ -126,7 +126,7 @@ def regexp(expr, item):
 
 class GraphDatabase():
     r"""
-Graph Database
+    Graph Database
 
     This class interfaces with the sqlite database graphs.db.  The database
     contains all unlabeled graphs with 7 or fewer nodes.  This class will
@@ -210,7 +210,7 @@ Graph Database
     """
 
     def cursor(self, query=None, with_regexp=False):
-        """
+        r"""
         Allows the user to interact directly with the database by establishing
         a connection and creating a cursor (i.e.: pysqlite).
 
@@ -218,14 +218,12 @@ Graph Database
 
         See class docstrings for information about the structure of graphs.db.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) Any sqlite call pertaining to graphs.db (see
                               examples below).
             with_regexp -- (Boolean) True to define the sqlite function regexp
                                           (for querying with regular expressions).
                                      False otherwise.
-        \end{verbatim}
 
         EXAMPLES:
             sage: b = graphs_query.cursor(query='select * from graph_data where num_vertices=5',with_regexp=False)
@@ -277,7 +275,6 @@ Graph Database
         Displays the results of a query in a table, including all stored
         properties and an image for each graph.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
@@ -410,7 +407,6 @@ Graph Database
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
-            \end{verbatim}
 
         EXAMPLES:
         The basics:
@@ -552,7 +548,6 @@ Graph Database
         Displays the results of a query in a table, including all stored
         properties from the specified database tables and an image for each graph.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
@@ -689,7 +684,6 @@ Graph Database
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
-            \end{verbatim}
 
         EXAMPLES:
         The basics:
@@ -851,7 +845,6 @@ Graph Database
         Displays the results of a query in a table, including all specified
         properties and an image for each graph.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
@@ -987,7 +980,6 @@ Graph Database
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
-            \end{verbatim}
 
         EXAMPLES:
         The basics:
@@ -1176,7 +1168,6 @@ Graph Database
         r"""
         Returns a list of SAGE graphs according to provided parameters.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
@@ -1305,7 +1296,6 @@ Graph Database
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
-            \end{verbatim}
 
         EXAMPLES:
             sage: g = graphs_query.get_list(num_vertices=5,lovasz_number=3.0,\
@@ -1379,7 +1369,6 @@ Graph Database
         Returns the integer that represents the number of unlabeled graphs with 7 or
         fewer vertices that meet the provided search parameters.
 
-        \begin{verbatim}
         INPUT:
             query -- (String) A sqlite query for graphs.db (See examples below).
                               The query string currently must lower case and begin with:
@@ -1508,7 +1497,6 @@ Graph Database
                                           entry represents an inequality:
                                           '=','>','<','>=','<='
             vertex_transitive -- (Boolean)
-            \end{verbatim}
 
         EXAMPLES:
             sage: graphs_query.number_of()

@@ -108,7 +108,9 @@ import graph
 import re
 from sqlite3 import dbapi2 as sqlite
 import os
-dblocation = os.getenv('SAGE_ROOT') + '/devel/sage/sage/graphs/graphs.db'
+
+from sage.databases.db import DB_HOME
+dblocation = DB_HOME + '/graphs/graphs.db'
 
 def regexp(expr, item):
     """

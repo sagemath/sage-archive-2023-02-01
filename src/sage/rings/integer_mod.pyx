@@ -49,6 +49,7 @@ cdef extern from "math.h":
 
 import operator
 
+
 import integer_mod_ring
 import arith
 import rational
@@ -625,11 +626,6 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             sage: [x for x in R if x^2==17]
             [23, 41, 87, 105]
 
-        TESTS:
-            sage: p = next_prime(50000)
-            sage: q = next_prime(60000)
-            sage: R = Integers(p**3 * q)
-
         """
         if self.is_one():
             if all:
@@ -639,9 +635,15 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         if not self.is_square_c():
             if extend:
-                R = self.parent()['x']
                 y = 'sqrt%s'%self
-                Q = R.quotient(R.gen()**2 - R(self), names=(y,))
+                R = self.parent()['x']
+                modulus = R.gen()**2 - R(self)
+                if self._parent.is_field():
+                    import finite_field
+                    Q = finite_field.FiniteField(self.__modulus.sageInteger**2, y, modulus)
+                else:
+                    R = self.parent()['x']
+                    Q = R.quotient(modulus, names=(y,))
                 z = Q.gen()
                 if all:
                     # TODO
@@ -1563,9 +1565,10 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                     return 0
             return 1
 
-    def sqrt_new(self, extend=True, all=False):
-        moduli = self._parent.factored_order()
+    def sqrt(self, extend=True, all=False):
         cdef int_fast32_t i, n = self.__modulus.int32
+        if n > 100:
+            moduli = self._parent.factored_order()
         # Unless the modulus is tiny, test to see if we're in the really
         # easy case of n prime, n = 3 mod 4.
         if n > 100 and n % 4 == 3 and len(moduli) == 1 and moduli[0][1] == 1:
@@ -1585,7 +1588,7 @@ cdef class IntegerMod_int(IntegerMod_abstract):
         # Now we use a heuristic to guess whether or not it will
         # be faster to just brute-force search for squares in a c loop...
         # TODO: more tuning?
-        elif n / (1 << len(moduli)) < 5000:
+        elif n <= 100 or n / (1 << len(moduli)) < 5000:
             if all:
                 return [self._new_c(i) for i from 0 <= i < n if (i*i) % n == self.ivalue]
             else:

@@ -272,7 +272,7 @@ class Polymake:
             sage: e = f.exponents()
             sage: a = [[1] + list(v) for v in e]
             sage: a
-            [[1, 0, 0, 3], [1, 1, 1, 1], [1, 3, 0, 0], [1, 0, 3, 0]]
+            [[1, 3, 0, 0], [1, 0, 3, 0], [1, 1, 1, 1], [1, 0, 0, 3]]
             sage: n = polymake.convex_hull(a)       # optional: needs polymake
             sage: n                                 # optional
             Convex hull of points [[1, 0, 0, 3], [1, 0, 3, 0], [1, 1, 1, 1], [1, 3, 0, 0]]

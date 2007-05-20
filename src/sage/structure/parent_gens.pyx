@@ -575,7 +575,7 @@ class localvars:
         sage: with localvars(R, 'z,w'):
         ...       print x^3 + y^3 - x*y
         ...
-        w^3 - z*w + z^3
+        z^3 + w^3 - z*w
 
     NOTES: I wrote this because it was needed to print elements of the
     quotient of a ring R by an ideal I using the print function for

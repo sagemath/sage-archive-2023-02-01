@@ -1207,10 +1207,10 @@ class LinearCode(module.Module):
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
             sage: C.zeta_function()
-            (1/5 + 2/5*T + 2/5*T^2)/(1 - 3*T + 2*T^2)
+            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
             sage: C = ExtendedTernaryGolayCode()
             sage: C.zeta_function()
-            (1/7 + 3/7*T + 3/7*T^2)/(1 - 4*T + 3*T^2)
+            (3/7*T^2 + 3/7*T + 1/7)/(3*T^2 - 4*T + 1)
 
         Both these examples occur in Duursma's paper below.
 
@@ -1221,7 +1221,7 @@ class LinearCode(module.Module):
         I don't fully understand. However, when it does return a polynomial, the answer is
         (as far as I know) correct.
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         from sage.rings.fraction_field import FractionField
         from sage.rings.power_series_ring import PowerSeriesRing
         R = PolynomialRing(QQ,3,"xyT")

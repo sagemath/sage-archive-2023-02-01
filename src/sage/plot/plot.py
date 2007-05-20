@@ -701,7 +701,8 @@ class Graphics(SageObject):
 
         return xmin,xmax,ymin,ymax
 
-    def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
+    def save(self, filename='sage.png',
+             xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):

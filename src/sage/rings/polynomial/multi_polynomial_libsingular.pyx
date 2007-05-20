@@ -573,13 +573,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         EXAMPLES:
             sage: R.<x,y> = ZZ[]
-            sage: macaulay2(R)
+            sage: macaulay2(R)        # optional
             ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: R.<x,y> = QQ[]
-            sage: macaulay2(R)
+            sage: macaulay2(R)        # optional
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: R.<x,y> = GF(17)[]
-            sage: macaulay2(R)
+            sage: macaulay2(R)        # optional
             ZZ
             -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             17
@@ -595,9 +595,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         return self.__macaulay2
 
     def _macaulay2_set_ring(self, macaulay2):
-        try:
+        if not self.__m2_set_ring_cache is None:
             base_str, gens, order = self.__m2_set_ring_cache
-        except AttributeError:
+        else:
             if self.base_ring().is_prime_field():
                 if self.characteristic() == 0:
                     base_str = "QQ"

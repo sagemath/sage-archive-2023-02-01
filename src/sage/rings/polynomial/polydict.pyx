@@ -561,26 +561,27 @@ cdef class PolyDict:
             return self.__one()
         return generic_power(self, _n, self.__one())
 
-    def lcmt(PolyDict self,greater_etuple):
+    def lcmt(PolyDict self, greater_etuple):
         """
         Provides functionality of lc, lm, and lt by calling the tuple
         compare function on the provided term order T.
 
         INPUT:
-            T -- a term order
+            greater_etuple -- a term order
         """
         try:
             return ETuple(reduce(greater_etuple,self.__repn.keys()))
         except KeyError:
-            raise ArithmeticError, "%s not supported",T
+            raise ArithmeticError, "%s not supported",greater_etuple
 
     def __reduce__(PolyDict self):
         """
-        sage: from sage.rings.polynomial.polydict import PolyDict
-        sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
-        sage: loads(dumps(f)) == f
-        True
 
+        EXAMPLES:
+            sage: from sage.rings.polynomial.polydict import PolyDict
+            sage: f = PolyDict({(2,3):2, (1,2):3, (2,1):4})
+            sage: loads(dumps(f)) == f
+            True
         """
         return make_PolyDict,(self.__repn,)
 

@@ -141,6 +141,36 @@ DEFAULT_DPI = 100
 EMBEDDED_MODE = False
 SHOW_DEFAULT = False
 
+def show_default(default=None):
+    """
+    Set the default for showing plots using the following commands:
+        plot, parametric_plot, polar_plot, and list_plot.
+
+    If called with no arguments, returns the current default.
+
+    EXAMPLES:
+    The default starts out as False:
+        sage: show_default()
+        False
+
+    We set it to True.
+        sage: show_default(True)
+
+    We see that it is True.
+        sage: show_default()
+        True
+
+    Now certain plot commands will display their plots by default.
+
+    Turn of default display.
+        sage: show_default(False)
+
+    """
+    global SHOW_DEFAULT
+    if default is None:
+        return SHOW_DEFAULT
+    SHOW_DEFAULT = bool(default)
+
 do_verify = True
 
 import random #for plot adaptive refinement
@@ -598,6 +628,14 @@ class Graphics(SageObject):
         """
         Show this graphics image with the default image viewer.
 
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
+
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
             sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
@@ -663,7 +701,8 @@ class Graphics(SageObject):
 
         return xmin,xmax,ymin,ymax
 
-    def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
+    def save(self, filename='sage.png',
+             xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):
@@ -690,11 +729,7 @@ class Graphics(SageObject):
 
         from matplotlib.figure import Figure
         if filename is None:
-            i = 0
-            while os.path.exists('sage%s.png'%i):
-                i += 1
-            filename = 'sage%s.png'%i
-
+            filename = sage.misc.misc.graphics_filename()
         try:
             ext = os.path.splitext(filename)[1].lower()
         except IndexError:
@@ -1583,7 +1618,7 @@ class GraphicPrimitiveFactory_points(GraphicPrimitiveFactory):
 class GraphicPrimitiveFactory_from_point_list(GraphicPrimitiveFactory):
     def __call__(self, points, coerce=True, **kwds):
         try:
-            return points._plot_(**kwds)
+            return points.plot(**kwds)
         except AttributeError:
             pass
         options = dict(self.options)
@@ -1690,13 +1725,22 @@ bar_chart = BarChartFactory()
 
 class CircleFactory(GraphicPrimitiveFactory_circle):
     """
-
-    A circle at a point = (x,y) with radius = r
+    Return a circle at a point = (x,y) with radius = r.
     Type circle.options to see all options
 
+    circle(center, radius, **kwds)
+
+    INPUT:
+        center -- a 2-tuple (x,y)
+        radius -- a positive number
+        alpha -- default: 1
+        fill -- default: False
+        thickness -- default: 1
+        rgbcolor -- default: (0,0,0)
+
     EXAMPLES:
-    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage: c.save()
+        sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+        sage: c.save()
 
     To correct the apect ratio of certain graphics, it is necessary
     to show with a 'figsize' of square dimensions.
@@ -2164,7 +2208,7 @@ class PlotFactory(GraphicPrimitiveFactory):
         plot(X, ...)
 
     where X is a SAGE object that either is callable and returns
-    numbers that can be coerced to floats, or has a _plot_ method
+    numbers that can be coerced to floats, or has a plot method
     that returns a GraphicPrimitive object.
 
     Type plot.options for a dictionary of the default
@@ -2326,11 +2370,7 @@ class PlotFactory(GraphicPrimitiveFactory):
             except (ZeroDivisionError, TypeError, ValueError), msg:
                 sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
                 exceptions += 1
-                pass
 
-        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
-            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
-            print "Last error message: '%s'"%msg
         # adaptive refinement
         i, j = 0, 0
         max_bend = float(options['max_bend'])
@@ -2340,14 +2380,22 @@ class PlotFactory(GraphicPrimitiveFactory):
         while i < len(data) - 1:
             if abs(data[i+1][1] - data[i][1]) > max_bend:
                 x = (data[i+1][0] + data[i][0])/2
-                y = float(f(x))
-                data.insert(i+1, (x, y))
+                try:
+                    y = float(f(x))
+                    data.insert(i+1, (x, y))
+                except (ZeroDivisionError, TypeError, ValueError), msg:
+                    sage.misc.misc.verbose("%s\nUnable to compute f(%s)"%(msg, x),1)
+                    exceptions += 1
+
                 j += 1
                 if j > plot_division:
-                    #is this wrong?
                     break
             else:
                 i += 1
+
+        if (len(data) == 0 and exceptions > 0) or exceptions > 10:
+            print "WARNING: When plotting, failed to evaluate function at %s points."%exceptions
+            print "Last error message: '%s'"%msg
         if parametric:
             data = [(fdata, g(x)) for x, fdata in data]
         if polar:
@@ -2428,7 +2476,9 @@ def parametric_plot((f,g), tmin, tmax, show=None, **kwargs):
         (f,g) -- tuple of functions
         tmin -- start value of t
         tmax -- end value of t
-        show -- whether or not to show the plot immediately (default: True)
+        show -- bool or None
+                (default: use the default as set by the show_default command)
+                 whether or not to show the plot immediately
         other options -- passed to plot.
 
     EXAMPLE:
@@ -2723,6 +2773,14 @@ class GraphicsArray(SageObject):
              axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
+
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if EMBEDDED_MODE:

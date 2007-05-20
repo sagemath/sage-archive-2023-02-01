@@ -170,6 +170,20 @@ Substitution:
     sage: f = x
     sage: f(x=5)
     5
+
+The symbolic Calculus package uses its own copy of Maxima for
+simplification, etc., which is separate from the default system-wide
+version:
+    sage: maxima.eval('[x,y]: [1,2]')
+    '[1,2]'
+    sage: maxima.eval('expand((x+y)^3)')
+    '27'
+
+If the copy of maxima used by the symbolic calculus package were
+the same as the default one, then the following would return 27,
+which would be very confusing indeed!
+    sage: expand((x+y)^3)
+    y^3 + 3*x*y^2 + 3*x^2*y + x^3
 """
 
 import weakref
@@ -189,7 +203,10 @@ from sage.misc.latex import latex
 from sage.structure.sage_object import SageObject
 
 from sage.interfaces.maxima import MaximaElement, Maxima
-from sage.interfaces.all import maxima
+
+# The calculus package uses its own copy of maxima, which is
+# separate from the default system-wide version.
+maxima = Maxima()
 
 from sage.misc.sage_eval import sage_eval
 
@@ -201,7 +218,7 @@ from sage.rings.complex_double import ComplexDoubleElement
 from sage.rings.real_mpfi import RealIntervalFieldElement
 from sage.rings.infinity import InfinityElement
 
-from sage.libs.pari.gen import pari, gen as PariGen
+from sage.libs.pari.gen import pari, PariError, gen as PariGen
 
 from sage.rings.complex_double import ComplexDoubleElement
 
@@ -353,6 +370,12 @@ class SymbolicExpression(RingElement):
     A Symbolic Expression.
 
     EXAMPLES:
+        Some types of SymbolicExpressions:
+
+        sage: a = SR(2+2); a
+        4
+        sage: type(a)
+        <class 'sage.calculus.calculus.SymbolicConstant'>
 
     """
     def __init__(self):
@@ -535,6 +558,12 @@ class SymbolicExpression(RingElement):
     # Coercions to interfaces
     ##################################################################
     # The maxima one is special:
+    def _maxima_(self, session=None):
+        if session is None:
+            return RingElement._maxima_(self, maxima)
+        else:
+            return RingElement._maxima_(self, session)
+
     def _maxima_init_(self):
         return self._repr_(simplify=False)
 
@@ -833,11 +862,11 @@ class SymbolicExpression(RingElement):
             sage: f = pi^3*x - y^2*e - I; f
             -1*e*y^2 + pi^3*x - I
             sage: f.polynomial(CDF)
-            -1.0*I + (-2.71828182846)*y^2 + 31.0062766803*x
+            (-2.71828182846)*y^2 + 31.0062766803*x - 1.0*I
             sage: f.polynomial(CC)
-            -1.00000000000000*I + (-2.71828182845905)*y^2 + 31.0062766802998*x
+            (-2.71828182845905)*y^2 + 31.0062766802998*x - 1.00000000000000*I
             sage: f.polynomial(ComplexField(70))
-            -1.0000000000000000000*I + (-2.7182818284590452354)*y^2 + 31.006276680299820175*x
+            (-2.7182818284590452354)*y^2 + 31.006276680299820175*x - 1.0000000000000000000*I
 
         Another polynomial:
             sage: f = sum((e*I)^n*x^n for n in range(5)); f
@@ -851,7 +880,7 @@ class SymbolicExpression(RingElement):
             sage: f = (3*x^5 - 5*y^5)^7; f
             (3*x^5 - 5*y^5)^7
             sage: g = f.polynomial(GF(7)); g
-            2*y^35 + 3*x^35
+            3*x^35 + 2*y^35
             sage: parent(g)
             Polynomial Ring in x, y over Finite Field of size 7
         """
@@ -871,7 +900,7 @@ class SymbolicExpression(RingElement):
         EXAMPLES:
             sage: R = QQ[x,y,z]
             sage: R(x^2 + y)
-            y + x^2
+            x^2 + y
             sage: R = QQ[w]
             sage: R(w^3 + w + 1)
             w^3 + w + 1
@@ -886,7 +915,7 @@ class SymbolicExpression(RingElement):
             sage: a
             y + x^3 + sqrt(2)
             sage: type(a)
-            <type 'sage.rings.polynomial_element.Polynomial_generic_dense'>
+            <type 'sage.rings.polynomial.polynomial_element.Polynomial_generic_dense'>
             sage: a.degree()
             0
 
@@ -895,12 +924,12 @@ class SymbolicExpression(RingElement):
             pi*y^3 + e*x^3 + I + sqrt(2)
             sage: R = CDF[x,y]
             sage: R(f)
-            1.41421356237 + 1.0*I + 3.14159265359*y^3 + 2.71828182846*x^3
+            2.71828182846*x^3 + 3.14159265359*y^3 + 1.41421356237 + 1.0*I
 
         We coerce to a higher-precision polynomial ring
             sage: R = ComplexField(100)[x,y]
             sage: R(f)
-            1.4142135623730950066967437806 + 1.0000000000000000000000000000*I + 3.1415926535897932384626433833*y^3 + 2.7182818284590452353602874714*x^3
+            2.7182818284590452353602874714*x^3 + 3.1415926535897932384626433833*y^3 + 1.4142135623730950066967437806 + 1.0000000000000000000000000000*I
 
         """
         vars = self.variables()
@@ -1237,6 +1266,8 @@ class SymbolicExpression(RingElement):
         because of the higher factor of "-16" vs "-1", and also get
         an occasional reinforcement, because of the "+1" term.
 
+            sage: var('t')
+            t
             sage: t = var('t')
             sage: x = function('x', t)
             sage: y = function('y', t)
@@ -1339,6 +1370,10 @@ class SymbolicExpression(RingElement):
             sage: f.integral(a=-pi, b=pi)
             0
 
+            sage: f(x) = sin(x)
+            sage: f.integral(x, 0, pi/2)
+            1
+
         Constraints are sometimes needed:
             sage: integral(x^n,x)
             Traceback (most recent call last):
@@ -1401,6 +1436,10 @@ class SymbolicExpression(RingElement):
                         log(x - 4)   / x  + 2 x + 1
                         ---------- - ------------------
                             73               73
+
+        ALIASES:
+            integral() and integrate() are the same.
+
         """
 
         if v is None:
@@ -2256,7 +2295,7 @@ class SymbolicPolynomial(Symbolic_object):
 
         sage: R.<x,y,theta> = ZZ[]
         sage: f = SR(x^3 + x + y + theta^2); f
-        theta^2 + y + x + x^3
+        x^3 + theta^2 + x + y
         sage: f(x=y, theta=y)
         y^3 + y^2 + 2*y
         sage: f(x=5)
@@ -2857,6 +2896,23 @@ class CallableSymbolicExpression(SymbolicExpression):
         """
         return self._expr.variables()
 
+    def integral(self, x=None, a=None, b=None):
+        """
+        Returns an integral of self.
+        """
+        if a is None:
+            return SymbolicExpression.integral(self, x, None, None)
+            # if l. endpoint is None, compute an indefinite integral
+        else:
+            if x is None:
+                x = self.default_variable()
+            if not isinstance(x, SymbolicVariable):
+                x = var(repr(x))
+                # if we supplied an endpoint, then we want to return a number.
+            return SR(self._maxima_().integrate(x, a, b))
+
+    integrate = integral
+
     def expression(self):
         """
         Return the underlying symbolic expression (i.e., forget the
@@ -3183,7 +3239,17 @@ class SymbolicComposition(SymbolicOperation):
             else:
                 return self.simplify()._repr_(simplify=False)
         ops = self._operands
-        return "%s(%s)"% (ops[0]._repr_(simplify=False), ops[1]._repr_(simplify=False))
+        try:
+            return ops[0]._repr_evaled_(ops[1]._repr_(simplify=False))
+        except AttributeError:
+            return "%s(%s)"% (ops[0]._repr_(simplify=False), ops[1]._repr_(simplify=False))
+
+    def _maxima_init_(self):
+        ops = self._operands
+        try:
+            return ops[0]._maxima_init_evaled_(ops[1]._maxima_init_())
+        except AttributeError:
+            return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _latex_(self):
         if not self.is_simplified():
@@ -3194,10 +3260,6 @@ class SymbolicComposition(SymbolicOperation):
             return r"%s{ %s }" % ( (ops[0])._latex_(), (ops[1])._latex_())
         # ... while others (such as \cos) don't
         return r"%s \left( %s \right)"%((ops[0])._latex_(),(ops[1])._latex_())
-
-    def _maxima_init_(self):
-        ops = self._operands
-        return '%s(%s)' % (ops[0]._maxima_init_(), ops[1]._maxima_init_())
 
     def _sys_init_(self, system):
         ops = self._operands
@@ -3459,8 +3521,8 @@ class Function_ceil(PrimitiveFunction):
         try:
             return x.ceil()
         except AttributeError:
-            if isinstance(x, float):
-                return math.ceil(x)
+            if isinstance(x, (float, int, long, complex)):
+                return int(math.ceil(x))
         return SymbolicComposition(self, SR(x))
 
 ceil = Function_ceil()
@@ -3498,8 +3560,8 @@ class Function_floor(PrimitiveFunction):
         try:
             return x.floor()
         except AttributeError:
-            if isinstance(x, float):
-                return math.floor(x)
+            if isinstance(x, (float, int, long, complex)):
+                return int(math.floor(x))
         return SymbolicComposition(self, SR(x))
 
 floor = Function_floor()
@@ -3867,12 +3929,12 @@ csch = Function_csch()
 _syms['csch'] = csch
 
 #############
-# log and exp
+# log
 #############
 
 class Function_log(PrimitiveFunction):
     """
-    The log funtion. This is a symbolic logarithm.
+    The log function.
 
     EXAMPLES:
         sage: log(e^2)
@@ -3916,6 +3978,82 @@ def log(x, base=None):
             return x.log(base)
         except AttributeError:
             return function_log(x) / function_log(base)
+
+#####################
+# The polylogarithm
+#####################
+
+
+class Function_polylog(PrimitiveFunction):
+    r"""
+    The polylog function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
+
+    INPUT:
+        n -- object
+        z -- object
+
+    EXAMPLES:
+
+    """
+    def __init__(self, n):
+        PrimitiveFunction.__init__(self)
+        self._n = n
+
+    def _repr_(self, simplify=True):
+        return "polylog(%s)"%self._n
+
+    def _repr_evaled_(self, args):
+        return 'polylog(%s, %s)'%(self._n, args)
+
+    def _maxima_init_(self):
+        if self._n in [1,2,3]:
+            return 'li[%s]'%self._n
+        else:
+            return 'polylog(%s)'%self._n
+
+    def _maxima_init_evaled_(self, args):
+        if self._n in [1,2,3]:
+            return 'li[%s](%s)'%(self._n, args)
+        else:
+            return 'polylog(%s, %s)'%(self._n, args)
+
+    def n(self):
+        return self._n
+
+    def _latex_(self):
+        return "\\text{Li}"
+
+    def _approx_(self, x):
+        try:
+            return float(pari(x).polylog(self._n))
+        except PariError:
+            raise TypeError, 'unable to coerce polylogarithm to float'
+
+
+def polylog(n, z):
+    r"""
+    The polylog function $\text{Li}_n(z) = \sum_{k=1}^{\infty} z^k / k^n$.
+
+    EXAMPLES:
+        sage: polylog(2,1)
+        pi^2/6
+        sage: polylog(2,x^2+1)
+        polylog(2, x^2 + 1)
+        sage: polylog(4,0.5)
+        polylog(4, 0.500000000000000)
+        sage: float(polylog(4,0.5))
+        0.51747906167389934
+        sage: polylog(2,z).taylor(z, 1/2, 3)
+        (-(6*log(2)^2 - pi^2))/12 + 2*log(2)*(z - 1/2) + (-2*log(2) + 2)*(z - 1/2)^2 + (8*log(2) - 4)*(z - 1/2)^3/3
+    """
+    return Function_polylog(n)(z)
+
+_syms['polylog2'] = Function_polylog(2)
+_syms['polylog3'] = Function_polylog(3)
+
+##############################
+# square root
+##############################
 
 class Function_sqrt(PrimitiveFunction):
     """
@@ -4329,7 +4467,8 @@ def dummy_limit(*args):
 
 #######################################################
 
-symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma'}
+symtable = {'%pi':'pi', '%e': 'e', '%i':'I', '%gamma':'euler_gamma',
+            'li[2]':'polylog2', 'li[3]':'polylog3'}
 
 from sage.rings.infinity import infinity, minus_infinity
 

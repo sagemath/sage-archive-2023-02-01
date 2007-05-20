@@ -57,6 +57,9 @@ import sage.rings.padics.local_generic
 import sage.rings.integer_mod
 import sage.rings.ring
 
+from sage.rings.padics.pow_computer import PowComputer
+from sage.rings.integer import Integer
+
 infinity = sage.rings.infinity.infinity
 Mod = sage.rings.integer_mod.Mod
 
@@ -64,7 +67,11 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
                    sage.rings.padics.local_generic.LocalGeneric):
     def __init__(self, p, prec, print_mode, names, element_class):
         sage.rings.padics.local_generic.LocalGeneric.__init__(self, prec, names)
-        self._p = p
+        #if prec <= 100:
+        #    self.prime_pow = PowComputer(p, prec, prec, self.is_field())
+        #else:
+        #    self.prime_pow = PowComputer(p, 3, prec, self.is_field())
+        self.prime_pow = PowComputer(p, prec, self.is_field())
         self.__set_print_mode(print_mode)
         self._element_class = element_class
 
@@ -82,8 +89,6 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             return self.__call__(x)
         else:
             raise TypeError, "no canonical coercion of %s of type %s into %s"%(x, type(x), self)
-
-
 
     def __cmp__(self, other):
         if isinstance(other, type(self)):
@@ -192,27 +197,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.prime()
                 3
         """
-        return self._p
-
-    def prime_pow(self, n):
-        """
-        Returns the prime raised to the nth power.
-
-        INPUT:
-            self -- a p-adic field
-
-        OUTPUT:
-            integer -- p^n
-
-        EXAMPLES:
-            sage: R = Zp(3)
-            sage: R.prime_pow(5)
-                243
-        """
-        if n is infinity:
-            return 0
-        else:
-            return self._p ** n
+        return self.prime_pow._prime()
 
     def uniformizer_pow(self, n):
         if n is infinity:
@@ -293,16 +278,19 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R = Zp(5, 10, 'fixed-mod', 'series')
             sage: R.teichmuller(2)
             2 + 5 + 2*5^2 + 5^3 + 3*5^4 + 4*5^5 + 2*5^6 + 3*5^7 + 3*5^9 + O(5^10)
+
+        AUTHORS:
+        Initial version: David Roe
+        Quadratic time version: Kiran Kedlaya <kedlaya@math.mit.edu> (3/27/07)
         """
         if prec is None:
             prec = self.precision_cap()
-        p = self.prime()
-        x = Mod(x,self.prime_pow(prec))
-        xnew = x**p
-        while x != xnew:
-            x = xnew
-            xnew = x**p
-        return self._element_class(self, x)
+        else:
+            prec = min(Integer(prec), self.precision_cap())
+        x = Integer(x)
+        ans = self._element_class(self, None, empty = True)
+        ans._teichmuller_set(x, prec)
+        return ans
 
     def teichmuller_system(self):
         r"""
@@ -414,7 +402,7 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             sage: R.uniformizer()
                 3 + O(3^5)
         """
-        return self(self._p)
+        return self(self.prime_pow._prime())
 
     def has_pth_root(self):
         r"""

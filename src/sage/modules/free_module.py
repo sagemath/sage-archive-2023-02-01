@@ -258,7 +258,7 @@ def FreeModule(base_ring, rank, sparse=False, inner_product_matrix=None):
         M = FreeModule_ambient_pid(base_ring, rank,
                                    sparse=sparse, inner_product_matrix=inner_product_matrix)
 
-    elif isinstance(base_ring, integral_domain.IntegralDomain):
+    elif isinstance(base_ring, integral_domain.IntegralDomain) or base_ring.is_integral_domain():
         M = FreeModule_ambient_domain(base_ring, rank,
                                          sparse=sparse, inner_product_matrix=inner_product_matrix)
 

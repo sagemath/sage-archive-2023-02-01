@@ -260,6 +260,13 @@ class Constant(Function):
         self._conversions = conversions
         RingElement.__init__(self, sage.calculus.calculus.SR)
 
+    # The maxima one is special:
+    def _maxima_(self, session=None):
+        if session is None:
+            return RingElement._maxima_(self, maxima)
+        else:
+            return RingElement._maxima_(self, session)
+
     def _has_op(self, x):
         return False
 

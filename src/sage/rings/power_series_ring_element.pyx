@@ -80,9 +80,8 @@ include "../ext/stdsage.pxi"
 import operator
 
 from infinity import infinity, is_Infinite
-from polynomial_ring import PolynomialRing
-import polynomial_element_generic
-import polynomial_element
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
 import ring_element
@@ -99,7 +98,7 @@ from sage.rings.arith import integer_ceil as ceil
 
 from sage.rings.ring import is_Field
 
-Polynomial = polynomial_element.Polynomial_generic_dense
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
 
@@ -624,13 +623,14 @@ cdef class PowerSeries(AlgebraElement):
             return f._prec
 
     cdef RingElement _mul_c_impl(self, RingElement right_r):
+        # TODO: doctest
         cdef PowerSeries right = <PowerSeries>right_r
         if self.is_zero():
             return self
         if right.is_zero():
             return right
         sp = self._prec
-        rp = right_.prec
+        rp = right._prec
         if sp is infinity:
             if rp is infinity:
                 prec = infinity
@@ -1051,7 +1051,7 @@ cdef class PowerSeries(AlgebraElement):
         # TODO, fix underlying element sqrt()
         try:
             try:
-                s = u[0].sqrt(extend=extend)
+                s = u[0].sqrt(extend=False)
             except TypeError:
                 s = u[0].sqrt()
         except ValueError:
@@ -1089,9 +1089,12 @@ cdef class PowerSeries(AlgebraElement):
                 pr = prec
         prec = pr
 
+        R = s.parent()
         a = self.valuation_zero_part()
         P = self._parent
-        half = ~P.base_ring()(2)
+        if not R is P.base_ring():
+            a = a.change_ring(R)
+        half = ~R(2)
 
         for i in range (ceil(log(prec, 2))):
             s = half * (s + a/s)

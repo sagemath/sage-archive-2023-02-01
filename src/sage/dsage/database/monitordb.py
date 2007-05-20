@@ -54,18 +54,20 @@ class MonitorDatabase(object):
     """
 
     def __init__(self, test=False):
-        self.conf = get_conf(type='monitordb')
         self.tablename = 'monitors'
         if test:
-            self.db_file = 'monitordb-test.db'
+            self.db_file = 'monitordb_test.db'
+            self.log_level = 5
+            self.log_file = 'monitordb_test.log'
         else:
+            self.conf = get_conf(type='monitordb')
             self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
-        self.log_level = self.conf['log_level']
-        self.log_file = self.conf['log_file']
+            self.log_level = self.conf['log_level']
+            self.log_file = self.conf['log_file']
         self.con = sqlite3.connect(self.db_file,
                 isolation_level=None,
                 detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
@@ -128,8 +130,9 @@ class MonitorDatabase(object):
         self.con.commit()
 
     def get_monitor(self, uuid):
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors
-        WHERE uuid=?"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os
+                   FROM monitors
+                   WHERE uuid=?"""
         cur = self.con.cursor()
         cur.execute(query, (uuid,))
         result = cur.fetchone()
@@ -149,8 +152,9 @@ class MonitorDatabase(object):
 
         """
 
-        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os FROM monitors
-        WHERE connected"""
+        query = """SELECT uuid, hostname, ip, anonymous, sage_version, os
+                   FROM monitors
+                   WHERE connected"""
         cur = self.con.cursor()
         cur.execute(query)
         result = cur.fetchall()

@@ -56,11 +56,11 @@ class ClientDatabase(object):
 
         """
 
-        self.conf = get_conf(type='clientdb')
         self.tablename = self.TABLENAME
         if test:
             self.db_file = 'clientdb_test.db'
         else:
+            self.conf = get_conf(type='clientdb')
             self.db_file = self.conf['db_file']
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
@@ -89,7 +89,9 @@ class ClientDatabase(object):
 
         """
 
-        query = """SELECT username, public_key FROM clients WHERE username = ?"""
+        query = """SELECT username, public_key
+                   FROM clients
+                   WHERE username = ?"""
 
         cur = self.con.cursor()
         cur.execute(query, (username,))
@@ -112,13 +114,13 @@ class ClientDatabase(object):
 
         return result
 
-    def add_user(self, username, pubkey_file):
+    def add_user(self, username, pubkey):
         """
         Adds a user to the database.
 
         Parameters:
         username -- username
-        pubkey_file -- path to the file containing the users public key
+        pubkey -- public key string (must be pre-parsed already)
 
         """
 
@@ -127,7 +129,6 @@ class ClientDatabase(object):
                    VALUES (?, ?, ?)
                 """
 
-        pubkey = get_pubkey_string(pubkey_file)
         cur = self.con.cursor()
         cur.execute(query, (username, pubkey, datetime.datetime.now()))
         self.con.commit()

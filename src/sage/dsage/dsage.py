@@ -24,7 +24,9 @@ def spawn(cmd, logfile=None, verbose=True):
     else:
         log = sys.stdout
 
-    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)], stdout=log, stderr=log)
+    process = subprocess.Popen(['%s/%s' % (SAGE_ROOT + '/local/bin', cmd)],
+                               stdout=log, stderr=log)
+
     print 'Spawned %s (pid = %s, logfile = %s)' % (cmd, process.pid, log.name)
     sage.interfaces.cleaner.cleaner(process.pid, cmd)
 
@@ -60,7 +62,10 @@ class DistributedSage(object):
 
         sage: dsage.worker()
 
-    This starts a worker connecting the localhost.
+    This starts a worker connecting the localhost. By default the worker will
+    connect to localhost and the port the last server started is listening on.
+    All of these settings are configurable via changing
+    \code{\$DOT\_SAGE/dsage/worker.conf}
 
     Open yet another terminal and type:
         sage: D = DSage()
@@ -95,6 +100,7 @@ class DistributedSage(object):
         To customize how the worker, server, or client behaves, you
         can look for their respective conf files in DOT_SAGE/dsage.
         The configuration file should be self explanatory.
+
     """
 
     def __init__(self):

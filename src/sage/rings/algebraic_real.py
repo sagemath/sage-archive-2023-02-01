@@ -144,7 +144,7 @@ from sage.structure.sage_object import SageObject
 from sage.structure.parent_gens import ParentWithGens
 from sage.rings.real_mpfr import RR
 from sage.rings.real_mpfi import RealIntervalField, RIF, RealIntervalFieldElement
-from sage.rings.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.rings.integer_ring import ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.number_field.number_field import NumberField

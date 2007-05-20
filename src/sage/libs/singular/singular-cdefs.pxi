@@ -28,6 +28,7 @@ cdef extern from "dlfcn.h":
 cdef extern from "stdlib.h":
     void *calloc(size_t nmemb, size_t size)
     void free(void *ptr)
+    void delete "delete" (void *ptr)
 
 cdef extern from "libsingular.h":
 
@@ -156,6 +157,8 @@ cdef extern from "libsingular.h":
     int p_GetExp(poly *p, int v, ring *r)
     unsigned long p_SetComp(poly *p, unsigned long v, ring *r)
     unsigned long p_GetComp(poly *p, ring *r)
+    poly *pTakeOutComp1(poly **, int)
+
 
     void pLcm(poly *a, poly *b, poly *m)
 
@@ -251,6 +254,7 @@ cdef extern from "libsingular.h":
 
 
     int p_IsConstant(poly *, ring *)
+    int p_LmIsConstant(poly *p, ring *)
     int p_IsUnit(poly *, ring *)
 
     poly *pSubst(poly *, int varidx, poly *value)
@@ -272,6 +276,11 @@ cdef extern from "libsingular.h":
 
     int singclap_isSqrFree(poly *f)
 
+    poly *kNF(ideal *F, ideal *Q, poly *p)
+
+    # this guy actually calculates with napoly not poly
+    #poly *singclap_alglcm(poly *f, poly *g)
+
     # Numbers
     # ---------------------------------
 
@@ -291,10 +300,12 @@ cdef extern from "libsingular.h":
     long SR_HDL(mpz_t )
 
     # QQ
+    number *nlInit(int)
     number *nlInit2gmp(mpz_t i, mpz_t j)
     number *nlInit2(int i, int j)
     number *nlGetNom(number *n, ring *r)
     number *nlGetDenom(number *n, ring *r)
+    number *nlRInit(int)
 
 
     #
@@ -304,3 +315,6 @@ cdef extern from "libsingular.h":
     ideal *idInit(int size, int rank)
     void id_Delete(ideal **, ring *)
     ideal *fast_map(ideal *, ring *, ideal *, ring *)
+    ideal *idLift(ideal *mod, ideal *submod, ideal **rest, int goodShape, int isSB, int divide)
+    void idShow(ideal *i)
+    int IDELEMS(ideal *i)

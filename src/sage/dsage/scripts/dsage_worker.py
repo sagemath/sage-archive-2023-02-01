@@ -24,6 +24,7 @@ import ConfigParser
 import cPickle
 import zlib
 import pexpect
+import datetime
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -71,8 +72,9 @@ class Worker(object):
         self.log_level = self.conf['log_level']
         self.delay = self.conf['delay']
         self.checker_task = task.LoopingCall(self.check_work)
-        self.checker_timeout = 1.0
+        self.checker_timeout = 0.5
         self.got_output = False
+        self.job_start_time = None
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -173,8 +175,8 @@ class Worker(object):
                 log.msg(LOG_PREFIX % self.id + msg)
             reactor.callLater(sleep_time, self.get_job)
         else:
-            print "Error: ", failure.getErrorMessage()
-            print "Traceback: ", failure.printTraceback()
+            log.err("Error: ", failure.getErrorMessage())
+            log.err("Traceback: ", failure.printTraceback())
 
     def setup_tmp_dir(self, job):
         """
@@ -292,6 +294,7 @@ except:
 
         f = os.path.join(self.tmp_job_dir, job_filename)
         self.sage._send("execfile('%s')" % (f))
+        self.job_start_time = datetime.datetime.now()
         if self.log_level > 2:
             msg = 'File to execute: %s' % f
             log.msg(LOG_PREFIX % self.id + msg)
@@ -335,7 +338,8 @@ except:
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
-            log.err(LOG_PREFIX % self.id + '%s' % msg)
+            done = False
+            log.err(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
@@ -405,7 +409,7 @@ except:
         output = output.strip()
         output = output.replace('\r', '')
 
-        if 'execfile' or 'load' in output and self.got_output:
+        if ('execfile' in output or 'load' in output) and self.got_output:
             output = ''
 
         return output
@@ -428,38 +432,44 @@ except:
         else:
             return False
 
-    def stop(self):
+    def stop(self, hard_reset=False):
         """
         Stops the current worker and resets it's internal state.
 
         """
 
-        INTERRUPT_TRIES = 20
-        timeout = 0.3
-        e = self.sage._expect
-        try:
-            for i in range(INTERRUPT_TRIES):
-                self.sage._expect.sendline('q')
-                self.sage._expect.sendline(chr(3))  # send ctrl-c
-                try:
-                    e.expect(self.sage._prompt, timeout=timeout)
-                    success = True
-                    break
-                except (pexpect.TIMEOUT, pexpect.EOF), msg:
-                    if self.log_level > 3:
-                        log.msg("Trying to interrupt SAGE (try %s)..." % i)
-        except Exception, msg:
-            success = False
-            log.err(msg)
-            log.err(LOG_PREFIX % self.id + "Performing hard reset.")
-
-        if not success:
-            pid = self.sage.pid()
-            cmd = 'kill -9 -%s'%pid
-            os.system(cmd)
+        if hard_reset:
+            log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
+            self.sage.quit()
             self.sage = Sage()
+        else: # try for a soft reset
+            INTERRUPT_TRIES = 20
+            timeout = 0.3
+            e = self.sage._expect
+            try:
+                for i in range(INTERRUPT_TRIES):
+                    self.sage._expect.sendline('q')
+                    self.sage._expect.sendline(chr(3))  # send ctrl-c
+                    try:
+                        e.expect(self.sage._prompt, timeout=timeout)
+                        success = True
+                        break
+                    except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        if self.log_level > 3:
+                            msg = 'Interrupting SAGE (try %s)' % i
+                            log.msg(LOG_PREFIX % self.id + msg)
+            except Exception, msg:
+                success = False
+                log.err(msg)
+                log.err(LOG_PREFIX % self.id + "Performing hard reset.")
 
-        self.sage.reset()
+            if not success:
+                pid = self.sage.pid()
+                cmd = 'kill -9 -%s'%pid
+                os.system(cmd)
+                self.sage = Sage()
+            else:
+                self.sage.reset()
         self.free = True
         self.job = None
 
@@ -491,7 +501,12 @@ except:
 
         """
 
-        self.stop()
+        delta = datetime.datetime.now() - self.job_start_time
+        if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+            self.stop(hard_reset=True)
+        else:
+            self.stop()
+        self.job_start_time = None
         self.start()
         self.reset_checker()
         log.msg('[Worker: %s] Restarting...' % (self.id))
@@ -502,15 +517,15 @@ class Monitor(object):
 
     It monitors the workers and checks on their status
 
+    Parameters:
+    hostname -- the hostname of the server we want to connect to (str)
+    port -- the port of the server we want to connect to (int)
+
     """
 
-    def __init__(self, server, port):
-        """
-        Parameters:
-        hostname -- the hostname of the server we want to connect to (str)
-        port -- the port of the server we want to connect to (int)
-
-        """
+    def __init__(self, server='localhost', port=8081, ssl=True,
+                 workers=2, anonymous=False, priority=20, delay=5.0,
+                 log_level=0):
 
         self.conf = get_conf('monitor')
         self.uuid = self.conf['id']
@@ -575,10 +590,13 @@ class Monitor(object):
     def _startLogging(self, log_file):
         if log_file == 'stdout':
             log.startLogging(sys.stdout)
+            log.msg('WARNING: Only loggint to stdout!')
         else:
-            print "Logging to file: ", log_file
-            server_log = open(log_file, 'a')
-            log.startLogging(server_log)
+            worker_log = open(log_file, 'a')
+            log.startLogging(sys.stdout)
+            log.startLogging(worker_log)
+            log.msg("Logging to file: ", log_file)
+
 
     def _get_auth_info(self):
         self.DATA =  random_str(500)
@@ -671,7 +689,7 @@ class Monitor(object):
         log.msg(DELIMITER)
 
         self.factory = PBClientFactory()
-        if self.ssl == 1:
+        if self.ssl:
             from twisted.internet import ssl
             contextFactory = ssl.ClientContextFactory()
             reactor.connectSSL(self.server, self.port,
@@ -757,7 +775,7 @@ def main():
             try:
                 hostname = str(hostname)
             except Exception, msg:
-                print msg
+                log.err(msg)
                 hostname = None
     else:
         hostname = port = None

@@ -512,10 +512,10 @@ class Maxima(Expect):
             self._error_msg(str, out)
 
     def _error_msg(self, str, out):
-        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out)
+        raise TypeError, "Error executing code in Maxima\nCODE:\n\t%s\nMaxima ERROR:\n\t%s"%(str, out.replace('-- an error.  To debug this try debugmode(true);',''))
 
-    def _eval_line(self, line, reformat=True, allow_use_file=False,
-                   wait_for_prompt=True):
+    def _eval_line(self, line, allow_use_file=False,
+                   wait_for_prompt=True, reformat=True, error_check=True):
         if len(line) == 0:
             return ''
         line = line.rstrip()
@@ -536,7 +536,8 @@ class Maxima(Expect):
         self._expect_expr(self._display_prompt)
         self._expect_expr()
         out = self._before()
-        self._error_check(line, out)
+        if error_check:
+            self._error_check(line, out)
 
         if not reformat:
             return out
@@ -637,22 +638,25 @@ class Maxima(Expect):
         else:
             os.system('maxima -r "demo(%s);"'%s)
 
-    def completions(self, s):
+    def completions(self, s, verbose=True):
         """
         Return all commands that complete the command starting with the
         string s.   This is like typing s[tab] in the maple interpreter.
         """
-        s = self.eval('apropos(%s)'%s).replace('\\ - ','-')
+        if verbose:
+            print s,
+            sys.stdout.flush()
+        s = self._eval_line('apropos(%s)'%s, error_check=False).replace('\\ - ','-')
         return [x for x in s[1:-1].split(',') if x[0] != '?']
 
-    def _commands(self):
+    def _commands(self, verbose=True):
         """
         Return list of all commands defined in Maxima.
         """
         try:
             return self.__commands
         except AttributeError:
-            self.__commands = sum([self.completions(chr(97+n)) for n in range(26)], [])
+            self.__commands = sum([self.completions(chr(97+n), verbose=verbose) for n in range(26)], [])
         return self.__commands
 
     def trait_names(self, verbose=True, use_disk_cache=True):
@@ -670,7 +674,8 @@ class Maxima(Expect):
                 print "\nBuilding Maxima command completion list (this takes"
                 print "a few seconds only the first time you do it)."
                 print "To force rebuild later, delete %s."%COMMANDS_CACHE
-            v = self._commands()
+            v = self._commands(verbose=verbose)
+            print "\nDone!"
             self.__trait_names = v
             sage.misc.persist.save(v, COMMANDS_CACHE)
             return v
@@ -1380,7 +1385,7 @@ class MaximaElement(ExpectElement):
 
     def __float__(self):
         try:
-            return float(str(self.numer()))
+            return float(repr(self.numer()))
         except ValueError:
             raise TypeError, "unable to coerce '%s' to float"%repr(self)
 
@@ -1423,7 +1428,18 @@ class MaximaElement(ExpectElement):
         n = int(n)
         if n < 0 or n >= len(self):
             raise IndexError, "n = (%s) must be between %s and %s"%(n, 0, len(self)-1)
+        # If you change the n+1 to n below, better change __iter__ as well.
         return ExpectElement.__getitem__(self, n+1)
+
+    def __iter__(self):
+        """
+        EXAMPLE:
+            sage: v = maxima('create_list(i*x^i,i,0,5)')
+            sage: list(v)
+            [0, x, 2*x^2, 3*x^3, 4*x^4, 5*x^5]
+        """
+        for i in range(len(self)):
+            yield self[i]
 
     def subst(self, val):
         return self.comma(val)

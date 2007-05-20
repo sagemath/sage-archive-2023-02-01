@@ -1,3 +1,7 @@
+"""
+Stream Cryptosystems.
+"""
+
 #*****************************************************************************
 #       Copyright (C) 2007 David Kohel <kohel@maths.usyd.edu.au>
 #
@@ -8,8 +12,8 @@
 
 from sage.monoids.string_monoid import BinaryStrings
 from sage.rings.finite_field import FiniteField
-from sage.rings.polynomial_ring import PolynomialRing
-from sage.rings.polynomial_element import is_Polynomial
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_element import is_Polynomial
 from stream_cipher import LFSRCipher, ShrinkingGeneratorCipher
 
 from cryptosystem import SymmetricKeyCryptosystem

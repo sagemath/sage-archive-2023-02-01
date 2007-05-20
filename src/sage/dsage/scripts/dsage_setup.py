@@ -87,14 +87,14 @@ def setup_client():
 def setup_worker():
     check_dsage_dir()
     config = get_config('worker')
-
+    LOG_FILE = os.path.join(DSAGE_DIR, 'worker.log')
     config.set('general', 'server', 'localhost')
     config.set('general', 'port', 8081)
     config.set('general', 'priority', 20)
     config.set('general', 'workers', 2)
     config.set('uuid', 'id', '')
     config.set('ssl', 'ssl', 1)
-    config.set('log', 'log_file', 'stdout')
+    config.set('log', 'log_file', LOG_FILE)
     config.set('log', 'log_level', '0')
     config.set('general', 'delay', '5')
     config.set('general', 'anonymous', False)
@@ -104,13 +104,13 @@ def setup_worker():
 
 def setup_server():
     check_dsage_dir()
-    # Get ConfigParser object
     config = get_config('server')
+    LOG_FILE = os.path.join(DSAGE_DIR, 'server.log')
     config.set('server', 'client_port', 8081)
     config.set('ssl', 'ssl', 1)
-    config.set('server_log', 'log_file', 'stdout')
+    config.set('server_log', 'log_file', LOG_FILE)
     config.set('server_log', 'log_level', '0')
-    config.set('db_log', 'log_file', 'stdout')
+    config.set('db_log', 'log_file', LOG_FILE)
     config.set('db_log', 'log_level', '0')
     config.set('auth', 'pubkey_database', os.path.join(DB_DIR, 'dsage.db'))
     config.set('db', 'db_file', os.path.join(DB_DIR, 'dsage.db'))
@@ -139,19 +139,24 @@ def setup_server():
     print "Server configuration finished.\n\n"
 
     # add default user
+    from twisted.conch.ssh import keys
+    import base64
+
     c = ConfigParser.ConfigParser()
     c.read(os.path.join(DSAGE_DIR, 'client.conf'))
     username = c.get('auth', 'username')
     pubkey_file = c.get('auth', 'pubkey_file')
     clientdb = ClientDatabase()
+    pubkey = base64.encodestring(
+                    keys.getPublicKeyString(filename=pubkey_file).strip())
     if clientdb.get_user(username) is None:
-        clientdb.add_user(username, pubkey_file)
+        clientdb.add_user(username, pubkey)
         print 'Added user %s.\n' % (username)
     else:
         user, key = clientdb.get_user_and_key(username)
-        if key != get_pubkey_string(pubkey_file):
+        if key != pubkey:
             clientdb.del_user(username)
-            clientdb.add_user(username, pubkey_file)
+            clientdb.add_user(username, pubkey)
             print "User %s's pubkey changed, setting to new one." % (username)
         else:
             print 'User %s already exists.' % (username)

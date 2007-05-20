@@ -92,7 +92,7 @@ class RingHomset_quo_ring(RingHomset_generic):
         sage: R.<x,y> = PolynomialRing(QQ, 2)
         sage: S.<a,b> = R.quotient(x^2 + y^2)
         sage: phi = S.hom([b,a]); phi
-        Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+        Ring endomorphism of Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
           Defn: a |--> b
                 b |--> a
         sage: phi(a)

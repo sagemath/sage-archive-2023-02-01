@@ -51,10 +51,13 @@ cdef extern from "gmp.h":
     int  mpz_cmpabs(mpz_t op1, mpz_t op2)
     int  mpz_cmp_si(mpz_t op1, signed long int op2)
     int  mpz_cmp_ui(mpz_t op1, unsigned long int op2)
+    int  mpz_cmpabs(mpz_t op1, mpz_t op2)
+    int  mpz_cmpabs_ui(mpz_t op1, unsigned long int op2)
     void mpz_divexact (mpz_t q, mpz_t n, mpz_t d)
     void mpz_divexact_ui (mpz_t q, mpz_t n, unsigned long int d)
-    int mpz_divisible_p (mpz_t n, mpz_t d)
-    int mpz_divisible_ui_p (mpz_t n, unsigned long int d)
+    int  mpz_divisible_p (mpz_t n, mpz_t d)
+    int  mpz_divisible_ui_p (mpz_t n, unsigned long int d)
+    int  mpz_divisible_2exp_p (mpz_t n, unsigned long int d)
     void mpz_fac_ui (mpz_t rop, unsigned long int op)
     void mpz_fdiv_q  (mpz_t q, mpz_t n, mpz_t d)
     void mpz_fdiv_qr (mpz_t q, mpz_t r, mpz_t n, mpz_t d)
@@ -76,7 +79,7 @@ cdef extern from "gmp.h":
     void mpz_init_set(mpz_t rop, mpz_t op)
     void mpz_init_set_si(mpz_t integer, signed long int n)
     void mpz_init_set_ui(mpz_t integer, unsigned long int n)
-    int mpz_init_set_str(mpz_t rop, char* str, int base)
+    int  mpz_init_set_str(mpz_t rop, char* str, int base)
 
     int mpz_invert (mpz_t rop, mpz_t op1, mpz_t op2)
     void mpz_lcm(mpz_t rop, mpz_t op1, mpz_t op2)
@@ -117,7 +120,6 @@ cdef extern from "gmp.h":
     void mpz_fdiv_q_2exp (mpz_t rop, mpz_t op1, unsigned long int op2)
     void mpz_xor (mpz_t rop, mpz_t op1, mpz_t op2)
     int mpz_root (mpz_t rop, mpz_t op, unsigned long int n)
-
     int mpz_odd_p (mpz_t op)
     int mpz_even_p (mpz_t op)
 
@@ -127,6 +129,17 @@ cdef extern from "gmp.h":
     int mpz_jacobi (mpz_t a, mpz_t b)
     int mpz_kronecker (mpz_t a, mpz_t b)
     int mpz_kronecker_si (mpz_t a, long b)
+    unsigned long int mpz_remove(mpz_t rop, mpz_t op, mpz_t f)
+    unsigned long int mpz_popcount(mpz_t op)
+    int mpz_perfect_square_p(mpz_t op)
+    int mpz_perfect_power_p(mpz_t op)
+    unsigned long int mpz_scan0(mpz_t op, unsigned long int starting_bit)
+    unsigned long int mpz_scan1(mpz_t op, unsigned long int starting_bit)
+    int mpz_fits_sint_p(mpz_t op)
+    int mpz_fits_uint_p(mpz_t op)
+    int mpz_fits_slong_p(mpz_t op)
+    int mpz_fits_ulong_p(mpz_t op)
+
 
     # The mpq type
     void mpq_abs (mpq_t rop, mpq_t op)

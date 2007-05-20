@@ -59,17 +59,16 @@ class DSageServerTestCase(unittest.TestCase):
     def testget_job_by_id(self):
         job = Job()
         job.code = '2+2'
-        jdict = self.dsage_server.submit_job(job.reduce())
-        self.assertEquals(type(jdict['job_id']), str)
+        job_id = self.dsage_server.submit_job(job.reduce())
+        self.assertEquals(type(job_id), str)
+        self.assertEquals(len(job_id), 10)
 
     def testget_job_result_by_id(self):
-        job = self.create_jobs(1)[0]
         job = expand_job(self.dsage_server.get_job())
         job.result = 'test'
-        jdict = self.dsage_server.submit_job(job.reduce())
-        self.assertEquals(
-                    self.dsage_server.get_job_result_by_id(jdict['job_id']),
-                    'test')
+        job_id = self.dsage_server.submit_job(job.reduce())
+        result = self.dsage_server.get_job_result_by_id(job_id)
+        self.assertEquals(result, 'test')
 
     def testget_jobs_by_username(self):
         self.assertEquals(
@@ -83,15 +82,16 @@ class DSageServerTestCase(unittest.TestCase):
         job.username = 'testing123'
         job.code = ''
         jdict = self.dsage_server.submit_job(job.reduce())
-        j = expand_job(self.dsage_server.get_jobs_by_username('testing123')[0])
+        j = expand_job(
+                self.dsage_server.get_jobs_by_username('testing123')[0])
         self.assertEquals(j.username, job.username)
 
     def testsubmit_job(self):
         jobs = self.create_jobs(10)
         for job in jobs:
-            jdict = self.dsage_server.submit_job(job.reduce())
-            self.assertEquals(type(jdict), dict)
-            j = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
+            job_id = self.dsage_server.submit_job(job.reduce())
+            self.assertEquals(type(job_id), str)
+            j = expand_job(self.dsage_server.get_job_by_id(job_id))
             self.assert_(isinstance(j, Job))
 
     def testget_all_jobs(self):
@@ -141,8 +141,9 @@ class DSageServerTestCase(unittest.TestCase):
         result = 'done'
         output = 'done '
         completed = True
-        jdict = self.dsage_server.job_done(job.job_id, output, result, completed)
-        job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
+        job_id = self.dsage_server.job_done(job.job_id,
+                                            output, result, completed)
+        job = expand_job(self.dsage_server.get_job_by_id(job_id))
         self.assertEquals(job.output, output)
         self.assertEquals(job.result, result)
         self.assertEquals(job.status, 'completed')
@@ -151,8 +152,9 @@ class DSageServerTestCase(unittest.TestCase):
         result = ['testing', '123']
         output = 'testing'
         completed = False
-        jdict = self.dsage_server.job_done(job.job_id, output, result, completed)
-        job = expand_job(self.dsage_server.get_job_by_id(jdict['job_id']))
+        job_id = self.dsage_server.job_done(job.job_id, output, result,
+                                            completed)
+        job = expand_job(self.dsage_server.get_job_by_id(job_id))
         self.assert_(isinstance(job.output, str))
         self.assert_(job.status != 'completed')
 

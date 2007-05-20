@@ -86,6 +86,7 @@ import sage.structure.coerce
 from sage.structure.parent_base cimport ParentWithBase
 from sage.structure.parent_gens cimport ParentWithGens
 
+cdef extern from "cygwinfix.h": pass
 
 
 cdef qd *qd_from_mpz(mpz_t z):
@@ -771,17 +772,17 @@ cdef class QuadDoubleElement(FieldElement):
         c_qd_abs(self.initptr.x,res.initptr.x)
         return res
 
-    def __lshift__(x, y):
+    def __lshift__(self, n):
         """
         LShifting a quad double is not supported
         """
-        raise TypeError, "unsupported operand type(s) for <<: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for <<: '%s' and '%s'"%(type(self), type(n))
 
-    def __rshift__(x, y):
+    def __rshift__(self, n):
         """
         RShifting a quad double is not supported
         """
-        raise TypeError, "unsupported operand type(s) for >>: '%s' and '%s'"%(typeof(self), typeof(n))
+        raise TypeError, "unsupported operand type(s) for >>: '%s' and '%s'"%(type(self), type(n))
 
     def multiplicative_order(self):
         """

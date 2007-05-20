@@ -1061,7 +1061,7 @@ set_trace = pdb.set_trace
 
 def tmp_dir(name):
     r"""
-    Create and return a temporary directory in \code{\$HOME/.sage/temp/pid/}
+    Create and return a temporary directory in \code{\$HOME/.sage/temp/hostname/pid/}
     """
     name = str(name)
     n = 0
@@ -1101,6 +1101,16 @@ def tmp_filename(name='tmp'):
             break
     return tmp
 
+def graphics_filename():
+    """
+    Return the next available canonical filename for a plot/graphics
+    file.
+    """
+    i = 0
+    while os.path.exists('sage%d.png'%i):
+        i += 1
+    filename = 'sage%d.png'%i
+    return filename
 
 #################################################################
 # 32/64-bit computer?

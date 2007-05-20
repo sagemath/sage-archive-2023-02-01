@@ -1,5 +1,5 @@
 """
-Jacobian "morphism" as class in Picard group
+Jacobian ``morphism'' as a class in the Picard group
 """
 
 #*****************************************************************************

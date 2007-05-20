@@ -76,11 +76,11 @@ class DSageServer(pb.Root):
                 log.msg('[DSage, get_job]' + ' Job db is empty.')
             return None
         else:
+            job_id = jdict['job_id']
             if self.LOG_LEVEL > 3:
-                job_id = jdict['job_id']
                 log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
             jdict['status'] = 'processing'
-            jdict = self.jobdb.store_job(jdict)
+            self.jobdb.store_job(jdict)
 
         return jdict
 
@@ -220,7 +220,7 @@ class DSageServer(pb.Root):
         job_done is called by the workers check_output method.
 
         Parameters:
-        job_id -- job id (str)
+        job_id -- job id (string)
         output -- the stdout from the worker (string)
         result -- the result from the client (compressed pickle string)
                   result could be 'None'
@@ -368,8 +368,8 @@ class DSageServer(pb.Root):
 
     def generate_xml_stats(self):
         """
-        This method returns a an XML document to be consumed by the Dashboard
-        widget
+        This method returns a an XML document to be consumed by the
+        Mac OS X Dashboard widget
 
         """
 
@@ -452,7 +452,8 @@ class DSageServer(pb.Root):
         def add_workingMegaHertz(doc, gauge):
             workingMegaHertz = doc.createElement('workingMegaHertz')
             gauge.appendChild(workingMegaHertz)
-            cpu_speed = self.monitordb.get_cpu_speed(connected=True, busy=True)
+            cpu_speed = self.monitordb.get_cpu_speed(connected=True,
+                                                     busy=True)
             mhz = doc.createTextNode(str(cpu_speed))
             workingMegaHertz.appendChild(mhz)
 

@@ -7,7 +7,7 @@ AUTHOR:
     -- Robert L. Miller (2007-01-13): refactoring, adjusting for
         NetworkX-0.33, fixed plotting bugs
                         (2007-01-23): basic tutorial, edge labels, loops,
-        multiple edges & arcs
+                                      multiple edges and arcs
                         (2007-02-07): graph6 and sparse6 formats, matrix input
     -- Emily Kirkmann (2007-02-11): added graph_border option to plot and show
     -- Robert L. Miller (2007-02-12): vertex color-maps, graph boundaries,
@@ -141,7 +141,7 @@ TUTORIAL:
             sage: S.density()
             1/2
 
-            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
         3. Labels
@@ -183,7 +183,7 @@ TUTORIAL:
 
         and hit tab.
 
-            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
         6. Visualization
@@ -652,12 +652,12 @@ class GenericGraph(SageObject):
         Uses a dictionary or permutation to relabel the (di)graph.
         If perm is a dictionary, each old vertex v is a key in the
         dictionary, and its new label is d[v]. If perm is a list,
-        we think of it as a map i \mapsto perm[i] (only for graphs
-        with V = {0,1,...,n-1} ). If perm is a per mutation, the
+        we think of it as a map $i \mapsto perm[i]$ (only for graphs
+        with $V = \{0,1,...,n-1\}$ ). If perm is a per mutation, the
         permutation is simply applied to the graph, under the
-        assumption that V = {0,1,...,n-1} is the vertex set, and
-        the permutation acts on the set {1,2,...,n}, where we think
-        of n = 0.
+        assumption that $V = \{0,1,...,n-1\}$ is the vertex set, and
+        the permutation acts on the set $\{1,2,...,n\}$, where we think
+        of $n = 0$.
 
         INPUT:
             quick -- if True, simply return the enumeration of the new graph
@@ -2036,16 +2036,22 @@ class Graph(GenericGraph):
 
     ### Visualization
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None):
+    def plot3d(self, bgcolor=(1,1,1),
+               vertex_color=(1,0,0), vertex_size=0.06,
+               edge_color=(0,0,0), edge_size=0.02,
+               pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
 
         INPUT:
-            bgcolor
-            vertex_color
-            edge_color
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            edge_color -- rgb tuple (default: (0,0,0))
+            edge_size -- float (default: 0.02)
             pos3d -- a position dictionary for the vertices
+            **kwds -- passed on to the Tachyon command
 
         EXAMPLES:
             sage: D = graphs.DodecahedralGraph()
@@ -2058,11 +2064,12 @@ class Graph(GenericGraph):
             sage: C = graphs.CubeGraph(4)
             sage: C.plot3d(edge_color=(0,1,0), vertex_color=(1,1,1), bgcolor=(0,0,0)).save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+                                        vertex_size=vertex_size, pos3d=pos3d, **kwds)
         TT.texture('edge', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=edge_color)
         for u,v,l in self.edges():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'edge')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), edge_size,'edge')
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), edge_color=(0,0,0), pos3d=None, **kwds):
@@ -2175,7 +2182,7 @@ class Graph(GenericGraph):
         currently only act on positive integers).
 
         EXAMPLES:
-            sage: L = graphs_query.get_list_of_graphs(nodes=4)
+            sage: L = graphs_query.get_list(num_vertices=4)
             sage.: graphs_list.show_graphs(L)
             sage: for g in L:
             ...    G = g.automorphism_group()
@@ -2183,13 +2190,13 @@ class Graph(GenericGraph):
             (24, ((2,3), (1,2), (1,4)))
             (4, ((2,3), (1,4)))
             (2, ((1,2),))
-            (8, ((2,3), (1,4), (1,3)(2,4)))
-            (6, ((2,3), (1,2)))
+            (8, ((1,2), (1,4)(2,3)))
             (6, ((1,2), (1,4)))
+            (6, ((2,3), (1,2)))
             (2, ((1,4)(2,3),))
             (2, ((1,2),))
-            (8, ((1,3), (1,4)(2,3)))
-            (4, ((2,4), (1,3)))
+            (8, ((2,3), (1,4), (1,3)(2,4)))
+            (4, ((2,3), (1,4)))
             (24, ((2,3), (1,2), (1,4)))
 
             sage: C = graphs.CubeGraph(4)
@@ -3216,7 +3223,7 @@ class DiGraph(GenericGraph):
         """
         Returns a copy of digraph with arcs reversed in direction.
 
-        TODO: results in error because of the following NetworkX bug (0.33) - trac #92
+        TODO: results in error because of the following NetworkX bug (0.33) - trac 92
 
         EXAMPLES:
             sage: import networkx
@@ -3265,16 +3272,24 @@ class DiGraph(GenericGraph):
 
     ### Visualization
 
-    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None):
+    def plot3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0),
+               vertex_size=0.06,
+               arc_size=0.02,
+               arc_size2=0.0325,
+               arc_color=(0,0,0), pos3d=None, **kwds):
         """
         Plots the graph using Tachyon, and returns a Tachyon object containing
         a representation of the graph.
 
         INPUT:
-            bgcolor
-            vertex_color
-            arc_color
+            bgcolor -- rgb tuple (default: (1,1,1))
+            vertex_color -- rgb tuple (default: (1,0,0))
+            vertex_size -- float (default: 0.06)
+            arc_color -- rgb tuple (default: (0,0,0))
+            arc_size -- float (default: 0.02)
+            arc_size2 -- float (default: 0.0325)
             pos3d -- a position dictionary for the vertices
+            **kwds -- passed on to the Tachyon command
 
         NOTE:
             The weaknesses of the NetworkX spring layout are illustrated even further in the
@@ -3282,28 +3297,29 @@ class DiGraph(GenericGraph):
             of this algorithm. The following example illustrates this.
 
         EXAMPLE:
-            # This is a running example
+        This is a running example
 
-            # A directed version of the dodecahedron
+        A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
 
-            # If I use an undirected version of my graph, the output is as expected
+        If I use an undirected version of my graph, the output is as expected
             sage: import networkx
             sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
             sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
 
-            # However, if I use the directed version, everything gets skewed bizarrely:
+        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
-        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color, pos3d=pos3d)
+        TT, pos3d = tachyon_vertex_plot(self, bgcolor=bgcolor, vertex_color=vertex_color,
+                                        vertex_size=vertex_size, pos3d=pos3d, **kwds)
         TT.texture('arc', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=arc_color)
         for u,v,l in self.arcs():
             TT.fcylinder( (pos3d[u][0],pos3d[u][1],pos3d[u][2]),\
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .02,'arc')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size,'arc')
             TT.fcylinder( (0.25*pos3d[u][0] + 0.75*pos3d[v][0],\
                            0.25*pos3d[u][1] + 0.75*pos3d[v][1],\
                            0.25*pos3d[u][2] + 0.75*pos3d[v][2],),
-                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), .0325,'arc')
+                          (pos3d[v][0],pos3d[v][1],pos3d[v][2]), arc_size2,'arc')
         return TT
 
     def show3d(self, bgcolor=(1,1,1), vertex_color=(1,0,0), arc_color=(0,0,0), pos3d=None, **kwds):
@@ -3322,17 +3338,17 @@ class DiGraph(GenericGraph):
             of this algorithm. The following example illustrates this.
 
         EXAMPLE:
-            # This is a running example
+        This is a running example
 
-            # A directed version of the dodecahedron
+        A directed version of the dodecahedron
             sage: D = DiGraph( { 0: [1, 10, 19], 1: [8, 2], 2: [3, 6], 3: [19, 4], 4: [17, 5], 5: [6, 15], 6: [7], 7: [8, 14], 8: [9], 9: [10, 13], 10: [11], 11: [12, 18], 12: [16, 13], 13: [14], 14: [15], 15: [16], 16: [17], 17: [18], 18: [19], 19: []} )
 
-            # If I use an undirected version of my graph, the output is as expected
+        If I use an undirected version of my graph, the output is as expected
             sage: import networkx
             sage: pos3d=networkx.spring_layout(graphs.DodecahedralGraph()._nxg, dim=3)
             sage: D.plot3d(pos3d=pos3d).save('sage.png') # long time
 
-            # However, if I use the directed version, everything gets skewed bizarrely:
+        However, if I use the directed version, everything gets skewed bizarrely:
             sage: D.plot3d().save('sage.png') # long time
         """
         self.plot3d(bgcolor=bgcolor, vertex_color=vertex_color, arc_color=arc_color).show(**kwds)
@@ -3431,7 +3447,10 @@ class DiGraph(GenericGraph):
             a,b = search_tree(self, partition, dig=True)
             return b
 
-def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
+def tachyon_vertex_plot(g, bgcolor=(1,1,1),
+                        vertex_color=(1,0,0),
+                        vertex_size=0.06,
+                        pos3d=None, **kwds):
     import networkx
     from math import sqrt
     from sage.plot.tachyon import Tachyon
@@ -3462,13 +3481,13 @@ def tachyon_vertex_plot(g, bgcolor=(1,1,1), vertex_color=(1,0,0), pos3d=None):
         pos3d[v][0] = pos3d[v][0]/r
         pos3d[v][1] = pos3d[v][1]/r
         pos3d[v][2] = pos3d[v][2]/r
-    TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13)
+    TT = Tachyon(camera_center=(1.4,1.4,1.4), antialiasing=13, **kwds)
     TT.light((4,3,2), 0.02, (1,1,1))
     TT.texture('node', ambient=0.1, diffuse=0.9, specular=0.03, opacity=1.0, color=vertex_color)
     TT.texture('bg', ambient=1, diffuse=1, specular=0, opacity=1.0, color=bgcolor)
     TT.plane((-1.6,-1.6,-1.6), (1.6,1.6,1.6), 'bg')
     for v in verts:
-        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), .06, 'node')
+        TT.sphere((pos3d[v][0],pos3d[v][1],pos3d[v][2]), vertex_size, 'node')
     return TT, pos3d
 
 def enum(graph, quick=False):
@@ -3481,20 +3500,19 @@ def enum(graph, quick=False):
     EXAMPLES:
         sage: from sage.graphs.graph import enum
         sage: enum(graphs.DodecahedralGraph())
-        646827340296833569479885332381965103655612500627043016896502674924517797573929148319427466126170568392555309533861838850L
+        646827340296833569479885332381965103655612500627043016896502674924517797573929148319427466126170568392555309533861838850
         sage: enum(graphs.MoebiusKantorGraph())
-        29627597595494233374689380190219099810725571659745484382284031717525232288040L
+        29627597595494233374689380190219099810725571659745484382284031717525232288040
         sage: enum(graphs.FlowerSnark())
-        645682215283153372602620320081348424178216159521280462146968720908564261127120716040952785862033320307812724373694972050L
+        645682215283153372602620320081348424178216159521280462146968720908564261127120716040952785862033320307812724373694972050
         sage: enum(graphs.CubeGraph(3))
-        6100215452666565930L              # 32-bit
-        6100215452666565930               # 64-bit
+        6100215452666565930
         sage: enum(graphs.CubeGraph(4))
-        31323620658472264895128471376615338141839885567113523525061169966087480352810L
+        31323620658472264895128471376615338141839885567113523525061169966087480352810
         sage: enum(graphs.CubeGraph(5))
-        56178607138625465573345383656463935701397275938329921399526324254684498525419117323217491887221387354861371989089284563861938014744765036177184164647909535771592043875566488828479926184925998575521710064024379281086266290501476331004707336065735087197243607743454550839234461575558930808225081956823877550090L
+        56178607138625465573345383656463935701397275938329921399526324254684498525419117323217491887221387354861371989089284563861938014744765036177184164647909535771592043875566488828479926184925998575521710064024379281086266290501476331004707336065735087197243607743454550839234461575558930808225081956823877550090
         sage: enum(graphs.CubeGraph(6))
-        17009933328531023098235951265708015080189260525466600242007791872273951170067729430659625711869482140011822425402311004663919203785115296476561677814427201708237805402966561863692388687547518491537427897858240566495945005294876576523289206747123399572439707189803821880345487300688962557172856432472391025950779306221469432919735886988596366979797317084123956762362685536557279604675024249987913439836592296340787741671304722135394212035449285260308821361913500205796919484488876249630521666898413890977354122918711285458724686283296097840711521153201188450783978019001984591992381570913097193343212274205747843852376395748070926193308573472616983062165141386183945049871456376379041631456999916186868438148001405477879591035696239287238767746380404501285533026300096772164676955425088646172718295360584249310479706751274583871684827338312536787740914529353458829503642591918761588296961192261166874864565050490306157300749101788751129640698534818737753110920871293122429238702542726347017441416450649382146313791818349648006634724962025571237208317435310419071153813687071275479812184286929976456778629116002591936357623320676067640749567446551071011889378108453641887998273235139859889734259803684619153716302058849155208478850L
+        17009933328531023098235951265708015080189260525466600242007791872273951170067729430659625711869482140011822425402311004663919203785115296476561677814427201708237805402966561863692388687547518491537427897858240566495945005294876576523289206747123399572439707189803821880345487300688962557172856432472391025950779306221469432919735886988596366979797317084123956762362685536557279604675024249987913439836592296340787741671304722135394212035449285260308821361913500205796919484488876249630521666898413890977354122918711285458724686283296097840711521153201188450783978019001984591992381570913097193343212274205747843852376395748070926193308573472616983062165141386183945049871456376379041631456999916186868438148001405477879591035696239287238767746380404501285533026300096772164676955425088646172718295360584249310479706751274583871684827338312536787740914529353458829503642591918761588296961192261166874864565050490306157300749101788751129640698534818737753110920871293122429238702542726347017441416450649382146313791818349648006634724962025571237208317435310419071153813687071275479812184286929976456778629116002591936357623320676067640749567446551071011889378108453641887998273235139859889734259803684619153716302058849155208478850
     """
     enumeration = 0
     n = graph.order()
@@ -3510,7 +3528,7 @@ def enum(graph, quick=False):
     M = graph.am()
     for i, j in M.nonzero_positions():
         enumeration += 1 << ((n-(i+1))*n + n-(j+1))
-    return enumeration
+    return ZZ(enumeration)
 
 
 

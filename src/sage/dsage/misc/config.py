@@ -23,7 +23,6 @@ Gets the different configuration options for the various components of DSAGE.
 """
 
 import os
-import random
 import ConfigParser
 import uuid
 
@@ -40,12 +39,18 @@ def read_conf(config):
     conf = {}
     for sec in config.sections():
         conf.update(dict(config.items(sec)))
-    check_version(conf['version'])
+    try:
+        check_version(conf['version'])
+    except ValueError, msg:
+        raise ValueError(msg)
 
     return conf
 
-def get_conf(type):
-    DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+def get_conf(type, test=False):
+    if test:
+        DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'tmp')
+    else:
+        DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
     config = ConfigParser.ConfigParser()
     try:
         if type == 'client':

@@ -216,10 +216,10 @@ def to_graphics_arrays(list):
         ...
         sage: garray = graphs_list.to_graphics_arrays(glist)
 
-        # Display the first graphics array in the list.
+    Display the first graphics array in the list.
         sage.: garray[0].show()
 
-        # Display the last graphics array in the list.
+    Display the last graphics array in the list.
         sage.: garray[len(garray)-1].show()
     """
     from sage.plot.plot import graphics_array
@@ -279,7 +279,7 @@ def show_graphs(list):
     layout algorithm for many graphs.
 
     EXAMPLES:
-        # Create a list of graphs:
+    Create a list of graphs:
         sage: glist = []
         sage: glist.append(graphs.CompleteGraph(6))
         sage: glist.append(graphs.CompleteBipartiteGraph(4,5))
@@ -296,14 +296,14 @@ def show_graphs(list):
         sage: glist.append(graphs.StarGraph(17))
         sage: glist.append(graphs.WheelGraph(9))
 
-        # Check that length is <= 20:
+    Check that length is <= 20:
         sage: len(glist)
         14
 
-        # Show the graphs in a graphics array:
+    Show the graphs in a graphics array:
         sage.: graphs_list.show_graphs(glist)
 
-        # But more than 20 graphs will raise an exception:
+    But more than 20 graphs will raise an exception:
         sage: glist21 = []
         sage: for i in range(21):
         ...    glist21.append(graphs.RandomGNP(6,.45))
@@ -313,7 +313,7 @@ def show_graphs(list):
         ...
         ValueError: List is too long to display in a graphics array.  Try using the to_graphics_arrays function.
 
-        # In this case, use to_graphics_arrays instead:
+    In this case, use to_graphics_arrays instead:
         sage: garrays = graphs_list.to_graphics_arrays(glist21)
         sage.: garrays[0].show()
         sage.: garrays[1].show()

@@ -182,10 +182,10 @@ class Cell(Cell_generic):
                     #    s += '<BLANKLINE>\n'
                     elif len(v.lstrip()) != len(v):  # starts with white space
                         in_loop = True
-                        s += '...' + v + '\n'
+                        s += '...   ' + v + '\n'
                     elif v[:5] == 'else:':
                         in_loop = True
-                        s += '... ' + v + '\n'
+                        s += '...   ' + v + '\n'
                     else:
                         if in_loop:
                             s += '...\n'
@@ -356,7 +356,7 @@ class Cell(Cell_generic):
                     break
                 j = s.find('</html>')
                 if j == -1:
-                    t += format(s)
+                    t += format(s[:i])
                     break
                 t += format(s[:i]) + format_html(s[i+6:j])
                 s = s[j+7:]

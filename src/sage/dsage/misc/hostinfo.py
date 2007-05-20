@@ -165,7 +165,7 @@ class ClassicHostInfo(object):
 
     def get_host_info(self, platform):
         host_info = {}
-        if platform == 'linux2' or platform == 'linux':
+        if platform in ('linux', 'linux2', 'cygwin'):
             try:
                 # os
                 host_info['os'] = platform
@@ -205,8 +205,8 @@ class ClassicHostInfo(object):
                 raise
 
             host_info['os'] = platform
-            return self.canonical_info(host_info)
 
+            return self.canonical_info(host_info)
         if platform == 'darwin':
             try:
                 # os
@@ -225,9 +225,13 @@ class ClassicHostInfo(object):
                     elif l[0] == 'hw.physmem':
                         host_info['MemTotal'] = l[1]
                     elif l[0] == 'hw.usermem':
-                        host_info['MemFree'] = int(int(host_info['MemTotal']) -
-                                               int(l[1]) / int(1024*2))
+                        mem_total = int(host_info['MemTotal'])
+                        user_mem = int(l[1])
+                        mem_free = int((mem_total - user_mem) / (1024*1024))
+                        host_info['MemFree'] = mem_free
                     elif l[0] == 'machdep.cpu.brand_string':
+                        host_info['model name'] = l[1]
+                    elif l[0] == 'hw.model': # OS X PPC
                         host_info['model name'] = l[1]
 
                 # hostname
@@ -240,7 +244,6 @@ class ClassicHostInfo(object):
             except IOError, msg:
                 log.msg(msg)
                 raise
-
 
             host_info['os'] = platform
 

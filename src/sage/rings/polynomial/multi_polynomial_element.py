@@ -261,8 +261,8 @@ class MPolynomial_macaulay2_repr:
                 return self.__macaulay2
         except AttributeError:
             pass
-        self.parent()._macaulay2_(macaulay2)
-        self.__macaulay2 = macaulay2(str(self))
+        self.parent()._macaulay2_set_ring(macaulay2)
+        self.__macaulay2 = macaulay2(repr(self))
         return self.__macaulay2
 
 
@@ -1000,7 +1000,7 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         ALGORITHM: Use Singular.
 
         EXAMPLES:
-            sage: x, y = PolynomialRing(QQ, 2, ['x','y']).gens()
+            sage: R.<x, y> = QQ[]
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
             x^5 + 2*x^3*y^2 + x^4 + 2*x^2*y^2 + x^3 + 2*x*y^2
             sage: F = f.factor()
@@ -1010,20 +1010,30 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
         Next we factor the same polynomial, but over the finite field
         of order $3$.
 
-            sage: x, y = PolynomialRing(GF(3), 2, ['x','y']).gens()
+            sage: R.<x, y> = GF(3)[]
             sage: f = (x^3 + 2*y^2*x) * (x^2 + x + 1); f
             x^5 - x^3*y^2 + x^4 - x^2*y^2 + x^3 - x*y^2
             sage: F = f.factor()
             sage: F # order is somewhat random
             (-1) * x * (-x + y) * (x + y) * (x - 1)^2
 
-        \note{Singular multi-variate polynomial factorization is very
-        slow in \SAGE.  This \emph{not} a fault of Singular but of how
-        the \SAGE NTL is built.  If you download and install a
-        Singular binary from the Singular website it will not have
-        this problem (you can use it with \SAGE by putting it in
-        local/bin/).}
+        Next we factor a polynomial over a number field.
+            sage: K.<s> = NumberField(p^3-2)
+            sage: KXY.<x,y> = K[]
+            sage: factor(x^3 - 2*y^3)
+            (x + (-s)*y) * (x^2 + s*x*y + s^2*y^2)
+            sage: k = (x^3-2*y^3)^5*(x+s*y)^2*(2/3 + s^2)
+            sage: k.factor()
+            (s^2 + 2/3) * (x + s*y)^2 * (x + (-s)*y)^5 * (x^2 + s*x*y + s^2*y^2)^5
         """
+        # I do not think this applied anymore.  Or at least it's
+        # more relevant to optimizing the NTL build.
+        #\note{Singular multi-variate polynomial factorization is very
+        #slow in \SAGE.  This \emph{not} a fault of Singular but of how
+        #the \SAGE NTL is built.  If you download and install a
+        #Singular binary from the Singular website it will not have
+        #this problem (you can use it with \SAGE by putting it in
+        #local/bin/).}
         R = self.parent()
         R._singular_().set_ring()
         S = self._singular_().factorize()
@@ -1088,14 +1098,23 @@ class MPolynomial_polydict(Polynomial_singular_repr, MPolynomial_macaulay2_repr,
             sage: gcd(9*x*y*(x^2-y^2), 15*x*y^2*(x^2+y^2))
             3*x*y
 
-        TESTS:
+        We compute a gcd over a finite field.
             sage: F.<u> = GF(31^2)
             sage: R.<x,y,z> = F[]
             sage: p = x^3 + (1+u)*y^3 + z^3
-            sage: q = p^3
+            sage: q = p^3 * (x - y + z*u)
             sage: gcd(p,q)
             x^3 + (u + 1)*y^3 + z^3
             sage: gcd(p,q)  # yes, twice -- tests that singular ring is properly set.
+            x^3 + (u + 1)*y^3 + z^3
+
+        We compute a gcd over a number field:
+            sage: x = polygen(QQ)
+            sage: F.<u> = NumberField(x^3 - 2)
+            sage: R.<x,y,z> = F[]
+            sage: p = x^3 + (1+u)*y^3 + z^3
+            sage: q = p^3 * (x - y + z*u)
+            sage: gcd(p,q)
             x^3 + (u + 1)*y^3 + z^3
         """
         if not isinstance(f, MPolynomial) and self.parent() is f.parent():

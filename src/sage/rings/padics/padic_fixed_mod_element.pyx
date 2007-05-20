@@ -463,7 +463,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             boolean -- whether self is zero
 
         """
-        if prec is None:
+        if absprec is None:
             return bool(mpz_sgn(self.value) == 0)
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
@@ -493,7 +493,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
             boolean -- whether self is equal to right
 
         """
-        if prec is None:
+        if absprec is None:
             return bool(mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0)
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)

@@ -83,7 +83,6 @@ mul = misc.mul
 next_prime = arith.next_prime
 
 Q = RationalField()
-Z = IntegerRing()
 C = ComplexField()
 R = RealField()
 
@@ -113,15 +112,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
 
     def _set_rank(self, r):
-        self.__rank = r
+        self.__rank = Integer(r)
     def _set_torsion_order(self, t):
-        self.__torsion_order = t
+        self.__torsion_order = Integer(t)
     def _set_cremona_label(self, L):
         self.__cremona_label = L
     def _set_conductor(self, N):
-        self.__conductor_pari = Z(N)
+        self.__conductor_pari = Integer(N)
     def _set_modular_degree(self, deg):
-        self.__modular_degree = deg
+        self.__modular_degree = Integer(deg)
 
     def _set_gens(self, gens):
         self.__gens = [self.point(x, check=True) for x in gens]
@@ -132,7 +131,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         try:
             return self.__is_integral
         except AttributeError:
-            one = Z(1)
+            one = Integer(1)
             self.__is_integral = bool(misc.mul([x.denominator() == 1 for x in self.ainvs()]))
             return self.__is_integral
 
@@ -194,14 +193,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             try:
                 return self.__conductor_pari
             except AttributeError:
-                self.__conductor_pari = Z(self.pari_mincurve().ellglobalred()[0])
+                self.__conductor_pari = Integer(self.pari_mincurve().ellglobalred()[0])
             return self.__conductor_pari
 
         elif algorithm == "gp":
             try:
                 return self.__conductor_gp
             except AttributeError:
-                self.__conductor_gp = Z(gp.eval('ellglobalred(ellinit(%s,0))[1]'%self.a_invariants()))
+                self.__conductor_gp = Integer(gp.eval('ellglobalred(ellinit(%s,0))[1]'%self.a_invariants()))
                 return self.__conductor_gp
 
         elif algorithm == "mwrank":
@@ -209,9 +208,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 return self.__conductor_mwrank
             except AttributeError:
                 if self.is_integral():
-                    self.__conductor_mwrank = Z(self.mwrank_curve().conductor())
+                    self.__conductor_mwrank = Integer(self.mwrank_curve().conductor())
                 else:
-                    self.__conductor_mwrank = Z(self.minimal_model().mwrank_curve().conductor())
+                    self.__conductor_mwrank = Integer(self.minimal_model().mwrank_curve().conductor())
             return self.__conductor_mwrank
 
         elif algorithm == "all":
@@ -2297,11 +2296,26 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.cremona_label(space)
 
     def label(self):
+        r"""
+        Exactly the same as the \code{cremona_label()} command.
+        """
         return self.cremona_label()
 
     def torsion_order(self):
         """
         Return the order of the torsion subgroup.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.torsion_order()
+            5
+            sage: type(e.torsion_order())
+            <type 'sage.rings.integer.Integer'>
+            sage: e = EllipticCurve([1,2,3,4,5])
+            sage: e.torsion_order()
+            1
+            sage: type(e.torsion_order())
+            <type 'sage.rings.integer.Integer'>
         """
         try:
             return self.__torsion_order
@@ -3036,7 +3050,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             T = E.torsion_subgroup().order()
             Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
             try:
-                Sha = Z(Sha)
+                Sha = Integer(Sha)
             except ValueError:
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
@@ -3060,7 +3074,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             omega = E.omega()
             Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
-                Sha = Z(Sha)
+                Sha = Integer(Sha)
             except ValueError:
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha

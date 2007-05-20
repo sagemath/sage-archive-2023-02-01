@@ -141,7 +141,7 @@ TUTORIAL:
             sage: S.density()
             1/2
 
-            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
         3. Labels
@@ -183,7 +183,7 @@ TUTORIAL:
 
         and hit tab.
 
-            sage: L = graphs_query.get_list_of_graphs(nodes=7, diameter=5)
+            sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
         6. Visualization
@@ -2182,7 +2182,7 @@ class Graph(GenericGraph):
         currently only act on positive integers).
 
         EXAMPLES:
-            sage: L = graphs_query.get_list_of_graphs(nodes=4)
+            sage: L = graphs_query.get_list(num_vertices=4)
             sage.: graphs_list.show_graphs(L)
             sage: for g in L:
             ...    G = g.automorphism_group()
@@ -2190,13 +2190,13 @@ class Graph(GenericGraph):
             (24, ((2,3), (1,2), (1,4)))
             (4, ((2,3), (1,4)))
             (2, ((1,2),))
-            (8, ((2,3), (1,4), (1,3)(2,4)))
-            (6, ((2,3), (1,2)))
+            (8, ((1,2), (1,4)(2,3)))
             (6, ((1,2), (1,4)))
+            (6, ((2,3), (1,2)))
             (2, ((1,4)(2,3),))
             (2, ((1,2),))
-            (8, ((1,3), (1,4)(2,3)))
-            (4, ((2,4), (1,3)))
+            (8, ((2,3), (1,4), (1,3)(2,4)))
+            (4, ((2,3), (1,4)))
             (24, ((2,3), (1,2), (1,4)))
 
             sage: C = graphs.CubeGraph(4)

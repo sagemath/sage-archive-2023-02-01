@@ -44,9 +44,19 @@ def viewer():
         PDF_VIEWER = BROWSER
         PNG_VIEWER = BROWSER
 
+    elif cmd_exists('xdg-open'):
+
+        # On other OS'es try xdg-open if present.
+        # See http://portland.freedesktop.org/xdg-utils-1.0.
+
+            BROWSER = 'xdg-open'
+            DVI_VIEWER = BROWSER
+            PDF_VIEWER = BROWSER
+            PNG_VIEWER = BROWSER
+
     else:
 
-        # Try to get something from the environment on other OS's (namely Linux?)
+        # If all fails try to get something from the environment.
 
         try:
             BROWSER = os.environ['BROWSER']
@@ -55,6 +65,7 @@ def viewer():
             for cmd in ['firefox', 'konqueror', 'mozilla', 'mozilla-firefox']:
                 if cmd_exists(cmd):
                     BROWSER = cmd
+                    break
         DVI_VIEWER = BROWSER
         PDF_VIEWER = BROWSER
         PNG_VIEWER = BROWSER
@@ -66,7 +77,7 @@ def viewer():
             for cmd in ['xdvi', 'kdvi']:
                 if cmd_exists(cmd):
                     DVI_VIEWER = cmd
-
+                    break
         try:
             PDF_VIEWER = os.environ['PDF_VIEWER']
         except KeyError:

@@ -1299,7 +1299,6 @@ cdef class FiniteField(Field):
 def is_FiniteField(x):
     return IS_INSTANCE(x, FiniteField)
 
-
 cdef class Algebra(Ring):
     """
     Generic algebra

@@ -53,7 +53,7 @@ from sage.structure.factorization import Factorization
 
 from sage.rings.complex_field import is_ComplexField
 from sage.rings.real_mpfr import is_RealField
-
+from sage.rings.integer_ring import is_IntegerRing
 
 from sage.rings.integer_ring import IntegerRing
 from sage.structure.element cimport EuclideanDomainElement, \
@@ -570,6 +570,19 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         INPUT:
             macaulay2 -- M2 interpreter (default: macaulay2_default)
+
+        EXAMPLES:
+            sage: R.<x,y> = ZZ[]
+            sage: macaulay2(R)        # optional
+            ZZ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: R.<x,y> = QQ[]
+            sage: macaulay2(R)        # optional
+            QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            sage: R.<x,y> = GF(17)[]
+            sage: macaulay2(R)        # optional
+            ZZ
+            -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
+            17
         """
         try:
             R = self.__macaulay2
@@ -578,6 +591,13 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             R._check_valid()
             return R
         except (AttributeError, ValueError):
+            self.__macaulay2 = self._macaulay2_set_ring(macaulay2)
+        return self.__macaulay2
+
+    def _macaulay2_set_ring(self, macaulay2):
+        if not self.__m2_set_ring_cache is None:
+            base_str, gens, order = self.__m2_set_ring_cache
+        else:
             if self.base_ring().is_prime_field():
                 if self.characteristic() == 0:
                     base_str = "QQ"
@@ -587,9 +607,10 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                 base_str = "ZZ"
             else:
                 raise TypeError, "no conversion of to a Macaulay2 ring defined"
-            self.__macaulay2 = macaulay2.ring(base_str, str(self.gens()), \
-                                              self.term_order().macaulay2_str())
-        return self.__macaulay2
+            gens = str(self.gens())
+            order = self.term_order().macaulay2_str()
+            self.__m2_set_ring_cache = (base_str, gens, order)
+        return macaulay2.ring(base_str, gens, order)
 
     def _singular_(self, singular=singular_default):
         """

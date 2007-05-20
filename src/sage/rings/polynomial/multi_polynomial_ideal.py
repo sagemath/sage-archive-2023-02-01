@@ -61,6 +61,21 @@ Working with a polynomial ring over ZZ:
     sage: 0 in j                                                # optional
     True
 
+We do a Groebner basis computation over a number field:
+    sage: K.<zeta> = CyclotomicField(3)
+    sage: R.<x,y,z> = K[]; R
+    Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2
+    sage: i = ideal(x - zeta*y + 1, x^3 - zeta*y^3); i
+    Ideal (x + (-zeta)*y + 1, x^3 + (-zeta)*y^3) of Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2
+    sage: i.groebner_basis()
+    [x + (-zeta)*y + 1, 3*y^3 + (6*zeta + 3)*y^2 + (3*zeta - 3)*y - zeta - 2]
+    sage: S = R.quotient(i); S
+    Quotient of Polynomial Ring in x, y, z over Cyclotomic Field of order 3 and degree 2 by the ideal (x + (-zeta)*y + 1, x^3 + (-zeta)*y^3)
+    sage: S.0  - zeta*S.1
+    -1
+    sage: S.0^3 - zeta*S.1^3
+    0
+
 TESTS:
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)

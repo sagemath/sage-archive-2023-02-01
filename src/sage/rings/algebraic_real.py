@@ -900,6 +900,9 @@ class AlgebraicRealNumberRational(AlgebraicRealNumberDescr):
     def is_exact(self):
         return True
 
+    def minpoly(self):
+        return QQx_x - self._value
+
 class AlgebraicRealNumberExpression(AlgebraicRealNumberDescr):
     """
     The subclass of AlgebraicRealNumberDescr that represents the sum,
@@ -1269,6 +1272,7 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
             2
         """
         od = self._descr
+        if od.is_exact(): return
         self._descr = self._descr.exactify()
         new_val = self._descr.interval_fast(self.parent().default_interval_field())
         self._value = self._value.intersection(new_val)
@@ -1346,6 +1350,49 @@ class AlgebraicRealNumber(sage.structure.element.FieldElement):
         prec = self._value.prec()
         field = RealIntervalField(prec * 2)
         self._value = self._descr.interval_fast(field)
+
+    def minpoly(self):
+        """
+        Compute the minimal polynomial of this algebraic number.
+        The minimal polynomial is the monic polynomial of least degree
+        having this number as a root; it is unique.
+
+        EXAMPLES:
+            sage: AA(4).sqrt().minpoly()
+            x - 2
+            sage: ((AA(2).nth_root(4))^2).minpoly()
+            x^2 - 2
+            sage: v = sqrt(AA(2)) + sqrt(AA(3)); v
+            [3.1462643699419721 .. 3.1462643699419726]
+            sage: p = v.minpoly(); p
+            x^4 - 10*x^2 + 1
+            sage: p(RR(v))
+            0.0000000000000131006316905768
+        """
+        try:
+            return self._minimal_polynomial
+        except AttributeError:
+            self.exactify()
+            self._minimal_polynomial = self._descr.minpoly()
+            return self._minimal_polynomial
+
+    def degree(self):
+        """
+        Return the degree of this algebraic number (the degree of its
+        minimal polynomial, or equivalently, the degree of the smallest
+        algebraic extension of the rationals containing this number).
+
+        EXAMPLES:
+            sage: AA(5/3).degree()
+            1
+            sage: sqrt(AA(2)).degree()
+            2
+            sage: AA(17).nth_root(5).degree()
+            5
+            sage: sqrt(3+sqrt(AA(8))).degree()
+            2
+        """
+        return self.minpoly().degree()
 
     def sign(self):
         """
@@ -2109,6 +2156,9 @@ class AlgebraicRealNumberExtensionElement(AlgebraicRealNumberDescr):
 
     def field_element_value(self):
         return self._value
+
+    def minpoly(self):
+        return self._value.minpoly()
 
     def interval_fast(self, field):
         gen_val = self._generator.interval_fast(field)

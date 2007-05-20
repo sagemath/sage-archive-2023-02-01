@@ -261,8 +261,8 @@ class MPolynomial_macaulay2_repr:
                 return self.__macaulay2
         except AttributeError:
             pass
-        self.parent()._macaulay2_(macaulay2)
-        self.__macaulay2 = macaulay2(str(self))
+        self.parent()._macaulay2_set_ring(macaulay2)
+        self.__macaulay2 = macaulay2(repr(self))
         return self.__macaulay2
 
 

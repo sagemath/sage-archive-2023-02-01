@@ -434,7 +434,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         else:
             _absprec = <Integer>absprec
         if mpz_fits_ulong_p(_absprec.value) == 0:
-            if mpz_sgn((<Integer>prec).value) == -1:
+            if mpz_sgn((<Integer>absprec).value) == -1:
                 ans = self._new_c()
                 ans.set_precs(0)
                 mpz_set_ui(ans.value, 0)

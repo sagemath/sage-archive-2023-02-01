@@ -335,8 +335,8 @@ except:
             log.msg(LOG_PREFIX % self.id + msg)
         try:
             os.chdir(self.tmp_job_dir)
-            self.sage.__so_far = ''
-            foo, output, new = self.sage._so_far(wait=0.5)
+            # foo, output, new = self.sage._so_far()
+            done, new = self.sage._get()
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
@@ -358,7 +358,11 @@ except:
             self.report_failure(new)
             self.restart()
             return
+        if self.log_level > 3:
+            print 'Output before sanitizing: \n' , sanitized_output
         sanitized_output = self.clean_output(new)
+        if self.log_level > 3:
+            print 'Output after sanitizing: \n', sanitized_output
         if sanitized_output == '' and not done:
             self.increase_checker_task_timeout()
         else:
@@ -514,7 +518,8 @@ except:
                 print 'Failed to start a worker, probably Expect issues.'
                 reactor.stop()
                 sys.exit(-1)
-
+        self.sage._send('')
+        self.sage._get()
         self.get_job()
 
     def restart(self):

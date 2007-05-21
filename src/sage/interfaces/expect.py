@@ -182,7 +182,7 @@ class Expect(ParentWithBase):
                 self.__so_far = new
             return False, self.__so_far, new
         except AttributeError:   # no __so_far
-            raise RuntimeError
+            raise RuntimeError('self.__so_far is not defined')
 
     def is_remote(self):
         return self.__is_remote

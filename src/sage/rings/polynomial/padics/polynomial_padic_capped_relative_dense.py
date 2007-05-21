@@ -103,6 +103,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
+        if len(x) == 1 and not x[0]:
+            x = []
         self._list = x
         self._valaddeds = [a.valuation() for a in x]
         self._valbase = sage.rings.padics.misc.min(self._valaddeds)
@@ -146,6 +148,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         self._poly.ntl_set_directly([Integer(0) if (e is infinity) else (c % prime_pow(e)) for (c, e) in zip(selflist, self._relprecs)])
 
     def _comp_list(self):
+        if self.degree() == -1 and self._valbase == infinity:
+            return []
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
@@ -248,9 +252,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         if self._list is None:
             self._comp_list()
-        return self._list
+        return list(self._list)
 
     def _repr(self, name=None):
+        # TODO: what is new here (that doesn't come from parent class)?
         s = " "
         m = self.degree() + 1
         r = reversed(xrange(m))

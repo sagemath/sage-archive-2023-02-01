@@ -329,7 +329,6 @@ except:
             if self.checker_task.running:
                 self.checker_task.stop()
             return
-
         if self.log_level > 1:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
@@ -518,8 +517,13 @@ except:
                 print 'Failed to start a worker, probably Expect issues.'
                 reactor.stop()
                 sys.exit(-1)
-        self.sage._send('')
-        self.sage._get()
+        E = self.sage.expect()
+        E.sendline('\n')
+        E.expect('>>>')
+        cmd = 'from sage.all import *;'
+        cmd += 'from sage.all_notebook import *;'
+        cmd += 'import sage.server.support as _support_; '
+        E.sendline(cmd)
         self.get_job()
 
     def restart(self):

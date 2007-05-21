@@ -39,8 +39,7 @@ import sage.functions.constants as constants
 import sage.modular.modform.constructor
 import sage.modular.modform.element
 from sage.misc.functional import log
-from sage.rings.padics.zp import Zp
-from sage.rings.padics.qp import Qp
+from sage.rings.padics.factory import Zp, Qp
 
 # Use some interval arithmetic to guarantee correctness.  We assume
 # that alpha is computed to the precision of a float.
@@ -72,6 +71,7 @@ from sage.rings.all import (
 import gp_cremona
 import padic_height
 import monsky_washnitzer
+import sage.schemes.hyperelliptic_curves.frobenius
 import sea
 
 from gp_simon import simon_two_descent
@@ -83,7 +83,6 @@ mul = misc.mul
 next_prime = arith.next_prime
 
 Q = RationalField()
-Z = IntegerRing()
 C = ComplexField()
 R = RealField()
 
@@ -113,15 +112,15 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise TypeError, "Base field (=%s) must be the Rational Field."%self.base_ring()
 
     def _set_rank(self, r):
-        self.__rank = r
+        self.__rank = Integer(r)
     def _set_torsion_order(self, t):
-        self.__torsion_order = t
+        self.__torsion_order = Integer(t)
     def _set_cremona_label(self, L):
         self.__cremona_label = L
     def _set_conductor(self, N):
-        self.__conductor_pari = Z(N)
+        self.__conductor_pari = Integer(N)
     def _set_modular_degree(self, deg):
-        self.__modular_degree = deg
+        self.__modular_degree = Integer(deg)
 
     def _set_gens(self, gens):
         self.__gens = [self.point(x, check=True) for x in gens]
@@ -132,7 +131,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         try:
             return self.__is_integral
         except AttributeError:
-            one = Z(1)
+            one = Integer(1)
             self.__is_integral = bool(misc.mul([x.denominator() == 1 for x in self.ainvs()]))
             return self.__is_integral
 
@@ -194,14 +193,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             try:
                 return self.__conductor_pari
             except AttributeError:
-                self.__conductor_pari = Z(self.pari_mincurve().ellglobalred()[0])
+                self.__conductor_pari = Integer(self.pari_mincurve().ellglobalred()[0])
             return self.__conductor_pari
 
         elif algorithm == "gp":
             try:
                 return self.__conductor_gp
             except AttributeError:
-                self.__conductor_gp = Z(gp.eval('ellglobalred(ellinit(%s,0))[1]'%self.a_invariants()))
+                self.__conductor_gp = Integer(gp.eval('ellglobalred(ellinit(%s,0))[1]'%self.a_invariants()))
                 return self.__conductor_gp
 
         elif algorithm == "mwrank":
@@ -209,9 +208,9 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                 return self.__conductor_mwrank
             except AttributeError:
                 if self.is_integral():
-                    self.__conductor_mwrank = Z(self.mwrank_curve().conductor())
+                    self.__conductor_mwrank = Integer(self.mwrank_curve().conductor())
                 else:
-                    self.__conductor_mwrank = Z(self.minimal_model().mwrank_curve().conductor())
+                    self.__conductor_mwrank = Integer(self.minimal_model().mwrank_curve().conductor())
             return self.__conductor_mwrank
 
         elif algorithm == "all":
@@ -420,14 +419,45 @@ class EllipticCurve_rational_field(EllipticCurve_field):
     #  Etc.
     ####################################################################
 
-    def aplist(self, pmax):
-        """
-        Return list of pairs (p, a_p(E)) for p up to pmax.
-        """
-        v = arith.prime_range(pmax)
-        return [(p,self.ap(p)) for p in v]
+    def aplist(self, n, python_ints=False):
+        r"""
+        The Fourier coefficients up to and including $a_p$ of the
+        modular form attached to this elliptic curve, for all primes
+        $p\leq n$.
 
-    def anlist(self, n, pari_ints=False):
+        INPUT:
+            n -- integer
+            python_ints -- bool (default: False); if True return a list of
+                      Python ints instead of SAGE integers.
+
+        OUTPUT:
+            -- list of integers
+
+        EXAMPLES:
+            sage: e = EllipticCurve('37a')
+            sage: e.aplist(1)
+            []
+            sage: e.aplist(2)
+            [-2]
+            sage: e.aplist(10)
+            [-2, -3, -2, -1]
+            sage: v = e.aplist(13); v
+            [-2, -3, -2, -1, -5, -2]
+            sage: type(v[0])
+            <type 'sage.rings.integer.Integer'>
+            sage: type(e.aplist(13, python_ints=True)[0])
+            <type 'int'>
+        """
+        e = self.pari_mincurve()
+        v = e.ellaplist(n, python_ints=True)
+        if python_ints:
+            return v
+        else:
+            return [Integer(a) for a in v]
+
+
+
+    def anlist(self, n, python_ints=False):
         """
         The Fourier coefficients up to and including $a_n$ of the
         modular form attached to this elliptic curve.  The ith element
@@ -435,14 +465,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         INPUT:
             n -- integer
-            pari_ints -- bool (default: False); if True return a list of
-                      PARI ints instead of SAGE integers; this can
-                      be much faster for large n.
+            python_ints -- bool (default: False); if True return a list of
+                      Python ints instead of SAGE integers.
 
         OUTPUT:
             -- list of integers
-
-        If pari_ints is False, the result is cached.
 
         EXAMPLES:
             sage: E = EllipticCurve([0, -1, 1, -10, -20])
@@ -454,23 +481,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             [0, 1, 0, 0, 0, 0, 0, -4, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 8, 0]
         """
         n = int(n)
-        if not pari_ints:
-            try:
-                if len(self.__anlist) > n:
-                    return self.__anlist[:n+1]
-            except AttributeError:
-                pass
-        E = self.pari_mincurve()
+        e = self.pari_mincurve()
         if n >= 2147483648:
             raise RuntimeError, "anlist: n (=%s) must be < 2147483648."%n
 
-        if not pari_ints:
-            ZZ = rings.Integer
-            v = [ZZ(0)] + [ZZ(x) for x in E.ellan(n)]
-        else:
-            v = E.ellan(n)
-        if not pari_ints:
-            self.__anlist = v
+        v = [0] + e.ellan(n, python_ints=True)
+        if not python_ints:
+            v = [Integer(x) for x in v]
         return v
 
 
@@ -2279,11 +2296,26 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             return self.cremona_label(space)
 
     def label(self):
+        r"""
+        Exactly the same as the \code{cremona_label()} command.
+        """
         return self.cremona_label()
 
     def torsion_order(self):
         """
         Return the order of the torsion subgroup.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.torsion_order()
+            5
+            sage: type(e.torsion_order())
+            <type 'sage.rings.integer.Integer'>
+            sage: e = EllipticCurve([1,2,3,4,5])
+            sage: e.torsion_order()
+            1
+            sage: type(e.torsion_order())
+            <type 'sage.rings.integer.Integer'>
         """
         try:
             return self.__torsion_order
@@ -3018,7 +3050,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             T = E.torsion_subgroup().order()
             Sha = (L1_over_omega * T * T) / Q(E.tamagawa_product())
             try:
-                Sha = Z(Sha)
+                Sha = Integer(Sha)
             except ValueError:
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
@@ -3042,7 +3074,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             omega = E.omega()
             Sha = int(round ( (L1 * T * T) / (E.tamagawa_product() * regulator * omega) ))
             try:
-                Sha = Z(Sha)
+                Sha = Integer(Sha)
             except ValueError:
                 raise RuntimeError, \
                       "There is a bug in sha_an, since the computed conjectural order of Sha is %s, which is not an integer."%Sha
@@ -4251,6 +4283,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ...       assert E.padic_height(5, prec)(P) == full   # long time
 
         """
+        #print "pre-setup"
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
@@ -4258,6 +4291,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if prec < 1:
             raise ValueError, "prec (=%s) must be at least 1" % prec
 
+        #print "now1"
         # For notation and definitions, see "Efficient Computation of
         # p-adic Heights", David Harvey (unpublished)
 
@@ -4266,16 +4300,23 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         n = arith.LCM(n1, n2)
         m = int(n / n2)
 
+        #print "now2"
+
         adjusted_prec = prec + 2 * arith.valuation(n, p) + 1
         R = rings.Integers(p ** adjusted_prec)
 
+        #print "now2.5"
+
         if sigma is None:
             sigma = self.padic_sigma(p, adjusted_prec, check_hypotheses=False)
+
+        #print "now3"
 
         # K is the field for the final result
         K = Qp(p, prec=prec)
         E = self
 
+        #print "post-setup"
 
         def height(P, check=True):
             if check:
@@ -4309,6 +4350,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
                        "answer with precision at least prec, but we didn't."
             return K(answer.lift(), prec - answer.valuation())
 
+        #print "post height def"
 
         # (man... I love python's local function definitions...)
         return height
@@ -4366,24 +4408,24 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
+            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
-             (1 + O(5^20))*t + O(t^2)
+             (1 + O(5))*t + O(t^2)
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 2)
-             (1 + O(5^20))*t + (3 + O(5))*t^2 + O(t^3)
+             (1 + O(5^2))*t + (3 + O(5))*t^2 + O(t^3)
 
           Supply your very own value of E2:
             sage: X = EllipticCurve("37a")
             sage: my_E2 = X.padic_E2(5, 8)
             sage: my_E2 = my_E2 + 5**5    # oops!!!
             sage: X.padic_sigma(5, 10, E2=my_E2)
-            (1 + O(5^20))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Check that sigma is ``weight 1''. [This test is disabled until
           trac \#254 is addressed. The lines f(2*t)/2 and g should return
@@ -4426,15 +4468,16 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             if N < 1:
                 raise ValueError, "N (=%s) must be at least 1" % prec
 
-            K = Qp(p)
-
             if N == 1:
                 # return simply t + O(t^2)
-                return PowerSeriesRing(K, "t")([K(0), K(1)], prec=2)
+                K = Qp(p, 2)
+                return PowerSeriesRing(K, "t")([K(0), K(1, 1)], prec=2)
+
 
             if N == 2:
                 # return t + a_1/2 t^2 + O(t^3)
-                return PowerSeriesRing(K, "t")([K(0), K(1),
+                K = Qp(p, 3)
+                return PowerSeriesRing(K, "t")([K(0), K(1, 2),
                                                 K(self.a1()/2, 1)], prec=3)
 
         if self.discriminant().valuation(p) != 0:
@@ -4481,10 +4524,12 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         # [Note: there are actually more digits available, but it's a bit
         # tricky to figure out exactly how many, and we only need $p^(N-k+1)$
         # for p-adic height purposes anyway]
-        K = rings.pAdicField(p)
+        K = rings.pAdicField(p, N + 1)
+
         sigma = sigma.padded_list(N+1)
-        sigma[0] = K(0)
-        sigma[1] = K(1)
+
+        sigma[0] = K(0, N +1)
+        sigma[1] = K(1, N)
         for n in range(2, N+1):
             sigma[n] = K(sigma[n].lift(), N - n + 1)
 
@@ -4536,10 +4581,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             algorithm -- one of "standard", "sqrtp", or "auto". This
                  selects which version of Kedlaya's algorithm is used. The
                  "standard" one is the one described in Kedlaya's paper.
-                 The "sqrtp" one has better performance for large $p$;
-                 however it is not as well tested yet, and might not work
-                 properly when $p$ is too small. The "auto" option selects
-                 "sqrtp" when $p$ is at least 3000, and "standard" otherwise.
+                 The "sqrtp" one has better performance for large $p$, but
+                 only works when $p > 6N$ ($N=$ prec). The "auto" option
+                 selects "sqrtp" whenever possible.
+
                  Note that if the "sqrtp" algorithm is used, a consistency
                  check will automatically be applied, regardless of the
                  setting of the "check" flag.
@@ -4551,6 +4596,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             -- If the discriminant of the curve has nonzero valuation at p,
                then the result will not be returned mod $p^\text{prec}$, but
                it still *will* have prec *digits* of precision.
+
+        TODO:
+            -- Once we have a better implementation of the "standard"
+               algorithm, the algorithm selection strategy for "auto"
+               needs to be revisited.
 
         AUTHOR:
             -- David Harvey (2006-09-01): partly based on code written by
@@ -4637,17 +4687,13 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             2 + 4*5 + 2*5^3 + 5^4 + 3*5^5 + 2*5^6 + 5^8 + 3*5^9 + 4*5^10 + 2*5^11 + 2*5^12 + 2*5^14 + 3*5^15 + 3*5^16 + 3*5^17 + 4*5^18 + 2*5^19 + 4*5^20 + 5^21 + 4*5^22 + 2*5^23 + 3*5^24 + 3*5^26 + 2*5^27 + 3*5^28 + O(5^30)
 
         Here's one using the $p^{1/2}$ algorithm:
-            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")  # long time (< 10s)
+            sage: EllipticCurve([-1, 1/4]).padic_E2(3001, 3, algorithm="sqrtp")
             1907 + 2819*3001 + 1124*3001^2 + O(3001^3)
 
         """
         frob_p = self.matrix_of_frobenius(p, prec, check, check_hypotheses, algorithm).change_ring(Integers(p**prec))
 
         frob_p_n = frob_p**prec
-
-        # todo: write a coercion operator from integers mod p^n to the
-        # p-adic field (it doesn't seem to currently exist)
-        # see trac #4
 
         # todo: think about the sign of this. Is it correct?
         output_ring = rings.pAdicField(p, prec)
@@ -4678,11 +4724,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
 
-        # The cutoff p = 3000 is pretty arbitrary. It seems to work well
-        # on sage.math for low precision problems. In reality the optimal
-        # crossover will depend on the precision, and also on the architecture.
         if algorithm == "auto":
-            algorithm = "standard" if p < 3000 else "sqrtp"
+            algorithm = "standard" if p < 6*prec else "sqrtp"
+        elif algorithm == "sqrtp" and p < 6*prec:
+            raise ValueError, "sqrtp algorithm is only available when p > 6*prec"
 
         if algorithm not in ["standard", "sqrtp"]:
             raise ValueError, "unknown algorithm '%s'" % algorithm
@@ -4742,17 +4787,20 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             frob_p = monsky_washnitzer.matrix_of_frobenius(
                              Q, p, adjusted_prec, trace)
 
+
         else:   # algorithm == "sqrtp"
-            base_ring = rings.Integers(p**prec)
-            output_ring = rings.pAdicField(p, prec)
-            frob_p = monsky_washnitzer.matrix_of_frobenius_alternate(
-                          X.a4(), X.a6(), p, prec)
+            p_to_prec = p**prec
+            R = rings.PolynomialRing(Integers(), "x")
+            Q = R([X.a6() % p_to_prec, X.a4() % p_to_prec, 0, 1])
+            frob_p = sage.schemes.hyperelliptic_curves.frobenius.frobenius(p, prec, Q)
 
             # let's force a trace-check since this algorithm is fairly new
             # and we don't want to get caught with our pants down...
             trace = self.ap(p)
             check = True
 
+
+        return frob_p
 
         if check:
             trace_of_frobenius = frob_p.trace().lift() % p**prec

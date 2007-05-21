@@ -851,7 +851,22 @@ cdef class Matrix_modn_dense(matrix_dense.Matrix_dense):
         return R(v)
 
     def rank(self):
-        if self.p > 2:
+        """
+        Return the rank of this matrix.
+
+        EXAMPLES:
+            sage: m = matrix(GF(7),5,range(25))
+            sage: m.rank()
+            2
+
+        Rank is not implemented over the integers modulo a composite yet.
+            sage: m = matrix(Integers(4), 2, [2,2,2,2])
+            sage: m.rank()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Echelon form not implemented over 'Ring of integers modulo 4'.
+        """
+        if self.p > 2 and is_prime(self.p):
             x = self.fetch('rank')
             if not x is None:
                 return x

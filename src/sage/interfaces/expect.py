@@ -492,18 +492,20 @@ class Expect(ParentWithBase):
             self.quit()
         return success
 
-    def eval(self, code, strip=True):
+    def eval(self, code, strip=True, **kwds):
         """
         INPUT:
             code -- text to evaluate
             strip -- bool; whether to strip output prompts, etc.
                      (ignored in the base class).
+            **kwds -- All other arguments are passed onto the _eval_line method.
+                     An often useful example is reformat=False.
         """
         if not isinstance(code, basestring):
             raise TypeError, 'input code must be a string.'
         code = code.strip()
         try:
-            return '\n'.join([self._eval_line(L) for L in code.split('\n') if L != ''])
+            return '\n'.join([self._eval_line(L, **kwds) for L in code.split('\n') if L != ''])
         except KeyboardInterrupt:
             self._keyboard_interrupt()
         except TypeError, s:

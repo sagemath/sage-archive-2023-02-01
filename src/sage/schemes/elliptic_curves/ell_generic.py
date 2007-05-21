@@ -286,7 +286,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def __cmp__(self, other):
         if not isinstance(other, EllipticCurve_generic):
             return -1
-        return misc.generic_cmp(self.ainvs(), other.ainvs())
+        t = cmp(self.base_ring(), other.base_ring())
+        if t:
+            return t
+        return cmp(self.ainvs(), other.ainvs())
 
     def __contains__(self, P):
         """
@@ -373,10 +376,23 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             (a : 0 : 1)
             sage: P+P
             (0 : 1 : 0)
+
+        Another example involving p-adics:
+            sage: E = EllipticCurve('37a1')
+            sage: P = E([0,0]); P
+            (0 : 0 : 1)
+            sage: R = pAdicField(3,20)
+            sage: Ep = E.base_extend(R); Ep
+            Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 + (2+2*3+2*3^2+2*3^3+2*3^4+2*3^5+2*3^6+2*3^7+2*3^8+2*3^9+2*3^10+2*3^11+2*3^12+2*3^13+2*3^14+2*3^15+2*3^16+2*3^17+2*3^18+2*3^19+O(3^20))*x over 3-adic Field with capped relative precision 20
+            sage: Ep(P)
+            (0 : 0 : 1 + O(3^20))
         """
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
+        if isinstance(args[0],
+              (ell_point.EllipticCurvePoint_field, ell_point.EllipticCurvePoint)):
+            args = tuple(args[0])
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
     def lift_x(self, x):

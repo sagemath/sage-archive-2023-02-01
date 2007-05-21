@@ -33,8 +33,8 @@ as ready to use variables.
 For example, we use $x,y,z$ to define the intersection of two lines.
     sage: V = P2.subscheme([x+y+z, x+y-z]); V
     Closed subscheme of Projective Space of dimension 2 over Rational Field defined by:
-      z + y + x
-      -1*z + y + x
+     x + y + z
+     x + y - z
     sage: V.dimension()
     0
 """

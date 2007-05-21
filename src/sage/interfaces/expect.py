@@ -181,8 +181,8 @@ class Expect(ParentWithBase):
             except (AttributeError, TypeError):
                 self.__so_far = new
             return False, self.__so_far, new
-        except AttributeError:   # no __so_far
-            raise RuntimeError
+        except AttributeError, msg:   # no __so_far
+            raise RuntimeError(msg)
 
     def is_remote(self):
         return self.__is_remote

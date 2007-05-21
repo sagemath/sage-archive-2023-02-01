@@ -21,6 +21,7 @@ from sage.libs.ntl.ntl cimport ntl_ZZ, ntl_ZZX, ntl_mat_ZZ
 from sage.libs.ntl.all import ZZ, ZZX
 from sage.matrix.all import Matrix
 from sage.rings.all import Qp, O as big_oh
+from sage.rings.arith import is_prime
 
 include "sage/libs/ntl/decl.pxi"
 include "sage/ext/interrupt.pxi"
@@ -48,7 +49,7 @@ def frobenius(p, N, Q):
 
    ALGORITHM:
       Described in ``Kedlaya's algorithm in larger characteristic'' by David
-      Harvey. Running time is theoretically soft-$O(p^{1/2} N^{5/2} g^{7/2})$.
+      Harvey. Running time is theoretically soft-$O(p^{1/2} N^{5/2} g^3)$.
 
    TODO:
       Remove the restriction on $p$. Probably by merging in Robert's code,
@@ -59,16 +60,21 @@ def frobenius(p, N, Q):
       sage: R.<x> = PolynomialRing(ZZ)
       sage: f = x^5 + 2*x^2 + x + 1; p = 101
       sage: M = frobenius(p, 4, f); M
-       [     51*101 + 14*101^2 + 89*101^3 + O(101^4)      11*101 + 17*101^2 + 37*101^3 + O(101^4) 93 + 14*101 + 19*101^2 + 43*101^3 + O(101^4)  62 + 4*101 + 51*101^2 + 11*101^3 + O(101^4)]
-       [     22*101 + 77*101^2 + 90*101^3 + O(101^4)      22*101 + 55*101^2 + 47*101^3 + O(101^4) 55 + 79*101 + 72*101^2 + 51*101^3 + O(101^4)  19 + 7*101 + 63*101^2 + 59*101^3 + O(101^4)]
-       [      8*101 + 63*101^2 + 75*101^3 + O(101^4)      13*101 + 88*101^2 + 58*101^3 + O(101^4) 65 + 97*101 + 26*101^2 + 98*101^3 + O(101^4) 42 + 94*101 + 58*101^2 + 54*101^3 + O(101^4)]
-       [     84*101 + 92*101^2 + 56*101^3 + O(101^4)      77*101 + 32*101^2 + 79*101^3 + O(101^4) 89 + 39*101 + 79*101^2 + 82*101^3 + O(101^4)  29 + 31*101 + 4*101^2 + 68*101^3 + O(101^4)]
+       [ 91844754 + O(101^4)  38295665 + O(101^4)  44498269 + O(101^4)  11854028 + O(101^4)]
+       [ 93514789 + O(101^4)  48987424 + O(101^4)  53287857 + O(101^4)  61431148 + O(101^4)]
+       [ 77916046 + O(101^4)  60656459 + O(101^4) 101244586 + O(101^4)  56237448 + O(101^4)]
+       [ 58643832 + O(101^4)  81727988 + O(101^4)  85294589 + O(101^4)  70104432 + O(101^4)]
       sage: -M.trace()
        7 + O(101^4)
       sage: sum([legendre_symbol(f(i), p) for i in range(p)])
        7
       sage: ZZ(M.det())
        10201
+      sage: M = frobenius(p, 1, f); M
+       [ 0 + O(101^1)  0 + O(101^1) 93 + O(101^1) 62 + O(101^1)]
+       [ 0 + O(101^1)  0 + O(101^1) 55 + O(101^1) 19 + O(101^1)]
+       [ 0 + O(101^1)  0 + O(101^1) 65 + O(101^1) 42 + O(101^1)]
+       [ 0 + O(101^1)  0 + O(101^1) 89 + O(101^1) 29 + O(101^1)]
 
    AUTHORS:
       -- David Harvey (2007-05)
@@ -92,6 +98,9 @@ def frobenius(p, N, Q):
    bound = (len(Q) - 1) * (2*N - 1)
    if p <= bound:
       raise ValueError, "In the current implementation, p must be greater than (2g+1)(2N-1) = %s" % bound
+
+   if not is_prime(p):
+      raise ValueError, "p (= %s) must be prime" % p
 
    pp = ZZ(p)
 
@@ -117,9 +126,9 @@ def frobenius(p, N, Q):
    _sig_off
 
    if not result:
-      raise ValueError, "Could not compute frobenius matrix. Perhaps the curve was singular at p."
+      raise ValueError, "Could not compute frobenius matrix, because the curve is singular at p."
 
-   R = Qp(p, N)
+   R = Qp(p, N, print_mode="terse")
    prec = big_oh(p**N)
    data = [[mm[j, i].get_as_sage_int() + prec for i from 0 <= i < 2*g] for j from 0 <= j < 2*g]
    return Matrix(R, data)

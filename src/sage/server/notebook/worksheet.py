@@ -40,11 +40,6 @@ HISTORY_NCOLS = 90
 
 import notebook as _notebook
 
-#SAGE_BEGIN='__SAGE_BEGIN__'
-#SAGE_END='__SAGE_END__'
-#SAGE_ERROR='error' + SAGE_END
-#SAGE_VARS='__SAGE_VARS__'
-
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
@@ -53,6 +48,20 @@ SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 SAGE_VARS=SC+'v'
+
+
+_a_sage = None
+def init_sage_prestart():
+    global _a_sage
+    _a_sage = Sage(maxread = 1)
+    _a_sage._start(block_during_init=False)
+
+def one_prestarted_sage():
+    global _a_sage
+    X = _a_sage
+    _a_sage = Sage(maxread = 1)
+    _a_sage._start(block_during_init=False)
+    return X
 
 class Worksheet:
     def __init__(self, name, notebook, id, system=None, passcode = ''):
@@ -349,11 +358,11 @@ class Worksheet:
     def sage(self):
         try:
             S = self.__sage
-            if S._expect != None:
+            if not S._expect is None:
                 return S
         except AttributeError:
-            S = Sage(maxread = 1, path = self.__dir)
-        S._start(block_during_init=False)
+            pass
+        S = one_prestarted_sage()
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__sage = S

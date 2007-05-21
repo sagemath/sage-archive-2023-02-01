@@ -270,7 +270,6 @@ def main(options):
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
     # reactor.callWhenRunning(create_manhole)
-    # import pdb; pdb.set_trace()
     if options.noblock:
         reactor.run(installSignalHandlers=0)
     else:

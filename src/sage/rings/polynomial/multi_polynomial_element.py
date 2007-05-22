@@ -124,20 +124,7 @@ class MPolynomial_element(MPolynomial):
     def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
-        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
-        accepted.
-
-        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
-        the left-most nonzero entry is positive.
-
-        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
-        the right-most nonzero entry is positive.
-
-        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
-
-        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        right-most nonzero entry of $a -b \in Z^n$ is negative.
+        self.parent().
 
         EXAMPLES:
              sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')

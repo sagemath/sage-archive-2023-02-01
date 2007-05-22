@@ -331,8 +331,11 @@ def _multi_variate(base_ring, names, n, sparse, order):
     names = normalize_names(n, names)
 
     import multi_polynomial_ring as m
+    from term_order import TermOrder
 
-    order = m.TermOrder(order)
+    order = TermOrder(order)
+    if order.length != 0 and order.length != n:
+        raise TypeError, "Term order length does not match number of generators"
 
     if isinstance(names, list):
         names = tuple(names)

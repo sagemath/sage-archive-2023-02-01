@@ -26,5 +26,6 @@ from polynomial_ring import PolynomialRing, polygen, polygens, is_PolynomialRing
 from polynomial_element import is_Polynomial
 
 # Multivariate Polynomial Rings
-from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing, TermOrder
+from multi_polynomial_ring import MPolynomialRing, is_MPolynomialRing
+from term_order import TermOrder
 from multi_polynomial_element import degree_lowest_rational_function, is_MPolynomial

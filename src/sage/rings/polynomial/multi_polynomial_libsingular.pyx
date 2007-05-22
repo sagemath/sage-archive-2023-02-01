@@ -2,13 +2,13 @@
 Multivariate polynomials over QQ and GF(p) implemented using SINGULAR as backend.
 
 AUTHORS:
-    Martin Albrecht <malb@informatik.uni-bremen.de>
+    -- Martin Albrecht <malb@informatik.uni-bremen.de>
 
 TODO:
-   * implement GF(p^n)
-   * implement block orderings
-   * implement Real, Complex
-   * test under CYGWIN (link error)
+   -- implement $GF(p^n)$
+   -- implement block orderings
+   -- implement Real, Complex
+   -- test under CYGWIN (link error)
 
 """
 # We do this as we get a link error for init_csage(). However, on
@@ -36,7 +36,8 @@ from sage.libs.singular.singular cimport Conversion
 cdef Conversion co
 co = Conversion()
 
-from sage.rings.polynomial.multi_polynomial_ring import TermOrder, MPolynomialRing_polydict_domain
+from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
@@ -118,6 +119,15 @@ cdef init_singular():
 # call it
 init_singular()
 
+order_dict = {"dp":ringorder_dp,
+              "Dp":ringorder_Dp,
+              "lp":ringorder_lp,
+              "rp":ringorder_rp,
+              "ds":ringorder_ds,
+              "Ds":ringorder_Ds,
+              "ls":ringorder_ls,
+              }
+
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     """
     A multivariate polynomial ring over QQ or GF(p) implemented using SINGULAR.
@@ -161,6 +171,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef char **_names
         cdef char *_name
         cdef int i
+        cdef int nblcks
+        cdef int offset
         cdef int characteristic
 
         n = int(n)
@@ -191,7 +203,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         else:
             raise NotImplementedError, "Only GF(p) and QQ are supported right now, sorry"
 
-        order = TermOrder(order).singular_str()
+        order = TermOrder(order)
 
         self._ring = rDefault(characteristic, n, _names)
         if(self._ring != currRing): rChangeCurrRing(self._ring)
@@ -203,26 +215,31 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         omFree(self._ring.block0)
         omFree(self._ring.block1)
 
-        self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
-        self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
-        self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
-        self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
+        nblcks = len(order.blocks)
+        offset = 0
 
-        if order == "dp":
-            self._ring.order[0] = ringorder_dp
-        elif order == "Dp":
-            self._ring.order[0] = ringorder_Dp
-        elif order == "lp":
-            self._ring.order[0] = ringorder_lp
-        elif order == "rp":
-            self._ring.order[0] = ringorder_rp
+        if nblcks == 0:
+            self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
+            self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
+            self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
+            self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
+            self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
+            self._ring.order[1] = ringorder_C
+            self._ring.block0[0] = 1
+            self._ring.block1[0] = n
         else:
-            self._ring.order[0] = ringorder_lp
+            self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
+            self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+            self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+            self._ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
 
-        self._ring.order[1] = ringorder_C
+            for i from 0 <= i < nblcks:
+                self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+                self._ring.block0[i] = offset + 1
+                self._ring.block1[i] = offset + order.blocks[i][1]
+                offset = self._ring.block1[i]
 
-        self._ring.block0[0] = 1
-        self._ring.block1[0] = n
+            self._ring.order[nblcks] = ringorder_C
 
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0

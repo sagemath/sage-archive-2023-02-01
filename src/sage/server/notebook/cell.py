@@ -275,9 +275,6 @@ class Cell(Cell_generic):
 
     def set_output_text(self, output, html, sage=None):
         output = output.replace('\r','')
-        i = output.find(worksheet.SAGE_VARS)
-        if i != -1:
-            output = output[:i]
         if len(output) > MAX_OUTPUT:
             if not self.computing():
                 file = "%s/full_output.txt"%self.directory()

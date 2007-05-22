@@ -893,7 +893,8 @@ td.cell_number_running {
    font-size:12pt;
    font-family:arial, monospace;
    color:#bbbbbb;
-   background-color: #cccccc;
+   border-left:4px solid #aaffaa;
+   /* background-color: #eeeeee; */
    text-align:left;
 }
 

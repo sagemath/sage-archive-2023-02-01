@@ -617,7 +617,7 @@ class Notebook(SageObject):
         s = []
         a = '<a href="/%s.sobj" class="object_name">\n'
         for name in self.objects():
-            s.append(a%name + name + '&nbsp;'*(m-len(name)) + '</a>\n')
+            s.append(a%name + name + '</a>\n')  # '&nbsp;'*(m-len(name)) +
         return '<br>\n'.join(s)
 
     def defaults(self):
@@ -1054,12 +1054,14 @@ class Notebook(SageObject):
         body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
         body += '     Saved Objects</div>\n'
         body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
-        body += '<div class="fivepix"></div>\n'
-        body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
-        body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
-        body += '     Variables</div>\n'
-        body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
-                worksheet.variables_html()
+
+        #body += '<div class="fivepix"></div>\n'
+        #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
+        #body += '     <span class="plusminus" id="variable_list_hider">[-]</span>'
+        #body += '     Variables</div>\n'
+        #body += '  <div class="variable_list" id="variable_list">%s</div>\n'%\
+        #        worksheet.variables_html()
+
         body += '<div class="fivepix"></div>\n'
         body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
         body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
@@ -1443,7 +1445,9 @@ Output
        onMouseOver='this.focus(); select_replacement(%s,%s);'
     >%s</a>
    </li>"""%(cell_id, i, j, cell_id, row[j], i,j,
-             row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
+             row[j])
+             #row[j] + '&nbsp;'*(column_width[j]-len(row[j])) )
+
                 lists[j].append(cell)
 
         grid = "<ul class='completion_menu_one'>"

@@ -47,7 +47,6 @@ SC='\x01'
 SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
-SAGE_VARS=SC+'v'
 
 
 _a_sage = None
@@ -61,7 +60,6 @@ def init_sage_prestart():
     cmd = 'from sage.all import *;'
     cmd += 'from sage.all_notebook import *;'
     cmd += 'import sage.server.support as _support_; '
-    #cmd += '__SAGENB__globals = set(globals().keys()); '  # only needed for SAGE_VAR functionality
     E.sendline(cmd)
 
 def one_prestarted_sage():
@@ -577,11 +575,6 @@ class Worksheet:
         if C.time() and not C.introspect():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
-        ## TODO: Disabled since it isn't working anyways, and it
-        ## should be off if left panel is disabled.
-        ## If this is enabled, also enable SAGENB__globals at the top of this file.
-        #if not C.introspect():
-        #    input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
         input = self.synchronize(input)
         # Unfortunately, this has to go here at the beginning of the file until Python 2.6,
@@ -738,16 +731,6 @@ class Worksheet:
             i = s.rfind('>>>')
             if i >= 0:
                 return s[:i-1]
-        else:
-            i = s.rfind(SAGE_VARS)
-            if i != -1:
-                t = s[i+len(SAGE_VARS)+1:]
-                t = t.replace("<type '","").replace("<class '","").replace("'>","")
-                try:
-                    self.__variables = eval(t)
-                except:
-                    self.__variables = []
-                s = s[:i-1]
         return s
 
     def is_last_id_and_previous_is_nonempty(self, id):

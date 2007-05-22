@@ -40,11 +40,6 @@ HISTORY_NCOLS = 90
 
 import notebook as _notebook
 
-#SAGE_BEGIN='__SAGE_BEGIN__'
-#SAGE_END='__SAGE_END__'
-#SAGE_ERROR='error' + SAGE_END
-#SAGE_VARS='__SAGE_VARS__'
-
 #If you make any changes to this, be sure to change the
 # error line below that looks like this:
 #         cmd += 'print "\\x01r\\x01e%s"'%self.synchro()
@@ -53,6 +48,27 @@ SAGE_BEGIN=SC+'b'
 SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 SAGE_VARS=SC+'v'
+
+
+_a_sage = None
+def init_sage_prestart():
+    global _a_sage
+    _a_sage = Sage(maxread = 1)
+    _a_sage._start(block_during_init=False)
+    E = _a_sage.expect()
+    E.sendline('\n')
+    E.expect('>>>')
+    cmd = 'from sage.all import *;'
+    cmd += 'from sage.all_notebook import *;'
+    cmd += 'import sage.server.support as _support_; '
+    #cmd += '__SAGENB__globals = set(globals().keys()); '  # only needed for SAGE_VAR functionality
+    E.sendline(cmd)
+
+def one_prestarted_sage():
+    global _a_sage
+    X = _a_sage
+    init_sage_prestart()
+    return X
 
 class Worksheet:
     def __init__(self, name, notebook, id, system=None, passcode = ''):
@@ -349,11 +365,11 @@ class Worksheet:
     def sage(self):
         try:
             S = self.__sage
-            if S._expect != None:
+            if not S._expect is None:
                 return S
         except AttributeError:
-            S = Sage(maxread = 1, path = self.__dir)
-        S._start(block_during_init=False)
+            pass
+        S = one_prestarted_sage()
         verbose("Initializing SAGE.")
         os.environ['PAGER'] = 'cat'
         self.__sage = S
@@ -369,13 +385,10 @@ class Worksheet:
         # We do exactly one eval below of one long line instead of
         # a whole bunch of short ones.
         try:
-            cmd = 'from sage.all_notebook import *; '
-            cmd += '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
-            cmd += 'import sage.server.support as _support_; '
-            cmd += '__SAGENB__globals = set(globals().keys()); '
+            cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
             cmd += '_support_.init("%s", globals()); '%object_directory
-            # S.eval(cmd)
-            S._send(cmd)   # so web server doesn't lock. -- drawback -- we won't know if something bad happened loading SAGE?!
+            #S.eval(cmd)
+            S._send(cmd)   # so web server doesn't lock.
         except Exception, msg:
             print "ERROR initializing compute process:\n"
             print msg
@@ -564,8 +577,11 @@ class Worksheet:
         if C.time() and not C.introspect():
             input += 'print "CPU time: %.2f s,  Wall time: %.2f s"%(cputime(__SAGE_t__), walltime(__SAGE_w__))\n'
 
-        if not C.introspect():
-            input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
+        ## TODO: Disabled since it isn't working anyways, and it
+        ## should be off if left panel is disabled.
+        ## If this is enabled, also enable SAGENB__globals at the top of this file.
+        #if not C.introspect():
+        #    input += 'print "\\n\\n%s'%SAGE_VARS + '=%s"%_support_.variables(True)'
 
         input = self.synchronize(input)
         # Unfortunately, this has to go here at the beginning of the file until Python 2.6,

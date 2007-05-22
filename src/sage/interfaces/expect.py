@@ -121,7 +121,7 @@ class Expect(ParentWithBase):
         self._session_number = 0
         self.__init_code = init_code
         self.__max_startup_time = max_startup_time
-        if isinstance(logfile, str):
+        if isinstance(logfile, basestring):
             logfile = open(logfile,'w')
         self.__logfile = logfile
         quit.expect_objects.append(weakref.ref(self))
@@ -181,8 +181,8 @@ class Expect(ParentWithBase):
             except (AttributeError, TypeError):
                 self.__so_far = new
             return False, self.__so_far, new
-        except AttributeError:   # no __so_far
-            raise RuntimeError
+        except AttributeError, msg:   # no __so_far
+            raise RuntimeError(msg)
 
     def is_remote(self):
         return self.__is_remote
@@ -427,7 +427,7 @@ class Expect(ParentWithBase):
 
             if len(line)>0:
                 try:
-                    if isinstance(wait_for_prompt, str):
+                    if isinstance(wait_for_prompt, basestring):
                         E.expect(wait_for_prompt)
                     else:
                         E.expect(self._prompt)
@@ -532,7 +532,7 @@ class Expect(ParentWithBase):
 
         if isinstance(x, cls) and x.parent() is self:
             return x
-        if isinstance(x, str):
+        if isinstance(x, basestring):
             return cls(self, x)
         try:
             return self._coerce_impl(x)
@@ -751,7 +751,7 @@ class ExpectElement(RingElement):
         # idea: Joe Wetherell -- try to find out if the output
         # is too long aqnd if so get it using file, otherwise
         # don't.
-        if isinstance(value, str) and parent._eval_using_file_cutoff and \
+        if isinstance(value, basestring) and parent._eval_using_file_cutoff and \
            parent._eval_using_file_cutoff < len(value):
             self._get_using_file = True
 

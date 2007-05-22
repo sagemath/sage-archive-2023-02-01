@@ -359,13 +359,13 @@ cdef class SageObject:
     def _octave_init_(self):
         return self._interface_init_()
 
-    def _singular_(self, G=None):
+    def _singular_(self, G=None, have_ring=False):
         if G is None:
             import sage.interfaces.singular
             G = sage.interfaces.singular.singular
         return self._interface_(G)
 
-    def _singular_init_(self):
+    def _singular_init_(self, have_ring=False):
         return self._interface_init_()
 
     # PARI (slightly different, since is via C library, hence instance is unique)

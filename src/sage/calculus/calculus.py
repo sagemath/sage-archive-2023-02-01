@@ -257,6 +257,15 @@ def is_SymbolicExpressionRing(x):
     """
     return isinstance(x, SymbolicExpressionRing_class)
 
+cache = {}
+class uniq(object):
+    def __new__(cls):
+        global cache
+        if cache.has_key(cls):
+            return cache[cls]
+        O = object.__new__(cls)
+        cache[cls] = O
+        return O
 
 class SymbolicExpressionRing_class(CommutativeRing):
     """
@@ -271,6 +280,12 @@ class SymbolicExpressionRing_class(CommutativeRing):
     def __init__(self):
         self._default_precision = 53 # default precision bits
         ParentWithBase.__init__(self, RR)
+
+    def __cmp__(self, other):
+        return cmp(type(self), type(other))
+
+    def __reduce__(self):
+        return SymbolicExpressionRing, tuple([])
 
     def __call__(self, x):
         """

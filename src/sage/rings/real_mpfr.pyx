@@ -934,6 +934,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
             sage: a.integer_part()
             100000000000000000
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert infinity or NaN to SAGE Integer'
+
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)
         return z
@@ -1338,6 +1341,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Returns integer truncation of this real number.
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert infinity or NaN to Python int'
+
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)
         return z.__int__()
@@ -1346,6 +1352,9 @@ cdef class RealNumber(sage.structure.element.RingElement):
         """
         Returns long integer truncation of this real number.
         """
+        if not mpfr_number_p(self.value):
+            raise ValueError, 'Cannot convert infinity or NaN to Python long'
+
         cdef Integer z = Integer()
         mpfr_get_z(z.value, self.value, GMP_RNDZ)
         return z.__long__()

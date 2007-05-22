@@ -662,6 +662,47 @@ class SymbolicExpression(RingElement):
         """
         return long(int(self))
 
+    def numerical_approximation(self, prec=53):
+        """
+        Get a numerical approximation of self as either a real or complex
+        number.
+
+        INPUT:
+            prec -- the precision (in bits), or a field in which to coerce
+
+        OUTPUT:
+            An RealNumber or ComplexNumber approximation of self with prec bits
+            of precision.
+
+        EXAMPLES:
+            sage: cos(3).numerical_approximation()
+            -0.989992496600445
+
+            sage: cos(3).numerical_approximation(200)
+            -0.98999249660044545727157279473126130239367909661558832881409
+
+            sage: SR(i + 1).numerical_approximation(32)
+            1.00000000 + 1.00000000*I
+
+        ALIASES:
+            numerical_aproximation and numerical_approx are the same.
+
+        """
+        # make sure the field is of the right precision
+        try:
+            field = RealField(prec)
+        except TypeError:
+            field = prec
+
+        try:
+            approx = self._mpfr_(field)
+        except TypeError:
+            # try to return a complex result
+            approx = self._complex_mpfr_field_(ComplexField(field.prec()))
+
+        return approx
+
+    numerical_approx = numerical_approximation
 
     def _mpfr_(self, field):
         raise TypeError

@@ -445,9 +445,9 @@ class Polynomial_generic_domain(Polynomial, IntegralDomainElement):
             return False
         return self[0].is_unit()
 
-class Polynomial_generic_field(Polynomial_generic_domain,
-                               EuclideanDomainElement,
-                               Polynomial_singular_repr):
+class Polynomial_generic_field(Polynomial_singular_repr,
+                               Polynomial_generic_domain,
+                               EuclideanDomainElement):
 
     def quo_rem(self, other):
         """

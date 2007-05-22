@@ -2360,7 +2360,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if p_LmIsConstant(p, r):
             return co.si2sa( p_GetCoeff(p, r), r, (<MPolynomialRing_libsingular>self._parent)._base )
         else:
-            return (<MPolynomialRing_libsingular>self._parent)._zero
+            return (<MPolynomialRing_libsingular>self._parent)._base(0)
 
     def is_univariate(self):
         """

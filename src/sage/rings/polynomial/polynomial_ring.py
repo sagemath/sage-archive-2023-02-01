@@ -316,10 +316,10 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
         elif isinstance(R, pAdicFieldCappedRelative):
             self.__polynomial_class = polynomial_padic_capped_relative_dense.Polynomial_padic_capped_relative_dense
-#        elif isinstance(R, pAdicRingCappedAbsolute):
-#            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
-#        elif isinstance(R, pAdicRingFixedMod):
-#            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
+        elif isinstance(R, pAdicRingCappedAbsolute):
+            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
+        elif isinstance(R, pAdicRingFixedMod):
+            self.__polynomial_class = sage.rings.polynomial.padics.polynomial_padic_flat.Polynomial_padic_flat # Fix
         elif isinstance(R, field.Field):
             if self.__is_sparse:
                 self.__polynomial_class = polynomial_element_generic.Polynomial_generic_sparse_field

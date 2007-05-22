@@ -1562,6 +1562,10 @@ def notebook(dir         ='sage_notebook',
     and in "Open links from other apps" select the middle button
     instead of the bottom button.
     """
+
+    import worksheet
+    worksheet.init_sage_prestart()
+
     if restart_on_crash:
         # Start a new subprocess
         def f(x):  # format for passing on

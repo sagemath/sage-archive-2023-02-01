@@ -344,8 +344,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         continously request the evaluation of this function
         to serve two purposes:
         1) To see if the long calculation is done, or
-        2) To interupt the long running calculation.
-
+        2) To interrupt the long running calculation.
         """
         C = self.get_postvars()
         worksheet_id = C['worksheet_id']

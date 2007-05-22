@@ -153,10 +153,8 @@ class DistributedFunction(object):
         """
 
         for job in self.outstanding_jobs:
-            try:
+            if isinstance(job, Job):
                self.submit_job(job, job_name, async)
-            except Exception, msg:
-               print msg
         self.outstanding_jobs = []
 
     def start(self):

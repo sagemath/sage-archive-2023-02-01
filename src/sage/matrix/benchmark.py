@@ -46,6 +46,7 @@ def report_ZZ():
     """
     F = [vecmat_ZZ, rank_ZZ, rank2_ZZ, charpoly_ZZ, smithform_ZZ,
          det_ZZ, det_QQ, matrix_multiply_ZZ, matrix_add_ZZ,
+         matrix_add_ZZ_2,
          nullspace_ZZ]
 
     title = 'Dense benchmarks over ZZ'
@@ -53,11 +54,11 @@ def report_ZZ():
 
 # Integer Nullspace
 
-def nullspace_ZZ(n=300, min=0, max=2**16, system='sage'):
+def nullspace_ZZ(n=400, min=0, max=2**32, system='sage'):
     """
     Nullspace over ZZ:
-    Given a n+1 x n (with n=300) matrix over ZZ with random entries
-    with 16 bits, compute the nullspace.
+    Given a n+1 x n (with n=400) matrix over ZZ with random entries
+    with 32 bits, compute the nullspace.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n+1, n, x=min, y=max+1).change_ring(QQ)
@@ -79,10 +80,10 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
-def charpoly_ZZ(n=100, min=0, max=9, system='sage'):
+def charpoly_ZZ(n=300, min=0, max=9, system='sage'):
     """
     Characteristic polynomial over ZZ:
-    Given a n x n (with n=100) matrix over ZZ with random entries
+    Given a n x n (with n=300) matrix over ZZ with random entries
     between min=0 and max=9, compute the charpoly.
     """
     if system == 'sage':
@@ -105,10 +106,10 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
-def rank_ZZ(n=500, min=0, max=9, system='sage'):
+def rank_ZZ(n=700, min=0, max=9, system='sage'):
     """
     Rank over ZZ:
-    Given a n x (n+10) (with n=500) matrix over ZZ with random entries
+    Given a n x (n+10) (with n=700) matrix over ZZ with random entries
     between min=0 and max=9, compute the rank.
     """
     if system == 'sage':
@@ -130,10 +131,10 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
-def rank2_ZZ(n=200, min=0, max=2**64, system='sage'):
+def rank2_ZZ(n=400, min=0, max=2**64, system='sage'):
     """
     Rank 2 over ZZ:
-    Given a (n + 10) x n (with n=200) matrix over ZZ with random entries
+    Given a (n + 10) x n (with n=400) matrix over ZZ with random entries
     between with 64 bits, compute the rank.
     """
     if system == 'sage':
@@ -183,10 +184,10 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
-def matrix_multiply_ZZ(n=200, min=-9, max=9, system='sage', times=1):
+def matrix_multiply_ZZ(n=300, min=-9, max=9, system='sage', times=1):
     """
     Matrix multiplication over ZZ
-    Given an n x n (with n=200) matrix A over ZZ with random entries
+    Given an n x n (with n=300) matrix A over ZZ with random entries
     between min=-9 and max=9, inclusive, compute A * (A+1).
     """
     if system == 'sage':
@@ -213,11 +214,11 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
-def matrix_add_ZZ(n=500, min=-9, max=9, system='sage', times=10):
+def matrix_add_ZZ(n=500, min=-9, max=9, system='sage', times=50):
     """
     Matrix addition over ZZ
     Given an n x n (with n=500) matrix A and B over ZZ with random entries
-    between min=-9 and max=9, inclusive, compute A + B.
+    between min=-9 and max=9, inclusive, compute A + B 50 times.
     """
     if system == 'sage':
         A = random_matrix(ZZ, n, n, x=min, y=max+1)
@@ -245,6 +246,14 @@ s := Cputime(t);
     else:
         raise ValueError, 'unknown system "%s"'%system
 
+def matrix_add_ZZ_2(n=500, bits=16, system='sage', times=50):
+    """
+    Matrix addition over ZZ.
+    Given an n x n (with n=500) matrix A and B over ZZ with random 16-bit
+    entries, compute A + B 50 times.
+    """
+    b = 2**bits
+    return matrix_add_ZZ(n=n, min=-b, max=b,system=system, times=times)
 
 def det_ZZ(n=400, min=1, max=100, system='sage'):
     """
@@ -299,11 +308,11 @@ s := Cputime(t);
         raise ValueError, 'unknown system "%s"'%system
 
 
-def vecmat_ZZ(n=500, system='sage', min=-9, max=9, times=200):
+def vecmat_ZZ(n=750, system='sage', min=-9, max=9, times=200):
     """
     Vector matrix multiplication over ZZ.
 
-    Given an n x n (with n=500) matrix A over ZZ with random entries
+    Given an n x n (with n=750) matrix A over ZZ with random entries
     between min=-9 and max=9, inclusive, and v the first row of A,
     compute the product v * A  200 times.
     """

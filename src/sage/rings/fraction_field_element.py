@@ -143,14 +143,46 @@ class FractionFieldElement(field_element.FieldElement):
                                  latex.latex(self.__denominator))
 
     def _add_(self, right):
+        try:
+            gcd_denom = self.__denominator.gcd(right.__denominator)
+            if not gcd_denom.is_unit():
+                right_mul = self.__denominator // gcd_denom
+                self_mul = right.__denominator // gcd_denom
+                numer = self.__numerator * self_mul + right.__numerator * right_mul
+                denom = self.__denominator * self_mul
+                new_gcd = numer.gcd(denom)
+                if not new_gcd.is_unit():
+                    numer = numer // new_gcd
+                    denom = denom // new_gcd
+                return FractionFieldElement(self.parent(), numer, denom, coerce=False, reduce=False)
+            # else: no reduction necessary
+        except NameError: # missing gcd or quo_rem, don't reduce
+            pass
+        except NotImplementedError: # unimplemented gcd or quo_rem, don't reduce
+            pass
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__denominator + self.__denominator*right.__numerator,
-           self.__denominator*right.__denominator, coerce=False)
+           self.__denominator*right.__denominator,  coerce=False, reduce=False)
 
     def _sub_(self, right):
+        try:
+            gcd_denom = self.__denominator.gcd(right.__denominator)
+            if not gcd_denom.is_unit():
+                right_mul = self.__denominator // gcd_denom
+                self_mul = right.__denominator // gcd_denom
+                numer = self.__numerator * self_mul -  right.__numerator * right_mul
+                denom = self.__denominator * self_mul
+                new_gcd = numer.gcd(denom)
+                if not new_gcd.is_unit():
+                    numer = numer // new_gcd
+                    denom = denom // new_gcd
+                return FractionFieldElement(self.parent(), numer, denom, coerce=False, reduce=False)
+            # else: no reduction necessary
+        except NameError: # missing gcd or quo_rem, don't reduce
+            pass
         return FractionFieldElement(self.parent(),
            self.__numerator*right.__denominator - self.__denominator*right.__numerator,
-           self.__denominator*right.__denominator,  coerce=False)
+           self.__denominator*right.__denominator,  coerce=False, reduce=False)
 
     def _mul_(self, right):
         return FractionFieldElement(self.parent(),
@@ -209,7 +241,7 @@ class FractionFieldElement(field_element.FieldElement):
         if self.is_zero():
             raise ZeroDivisionError, "Cannot invert 0"
         return FractionFieldElement(self.parent(),
-           self.__denominator, self.__numerator)
+           self.__denominator, self.__numerator, coerce=False, reduce=False)
 
     def __float__(self):
         return float(self.__numerator) / float(self.__denominator)

@@ -1433,7 +1433,9 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     prof("make matrix")
     # now take care of precision capping
     M = matrix(real_prec_ring, [a for f, a in reduced])
-    M += real_prec_ring(0).add_bigoh(prec)
+    for i in range(M.ncols()):
+        for j in range(M.nrows()):
+            M[i,j] = M[i,j].add_bigoh(prec)
 #    print prof
     return M.transpose(), [f for f, a in reduced]
 
@@ -2230,5 +2232,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def coleman_integral(self, P, Q):
         return self.parent().base_ring().curve().coleman_integral(self, P, Q)
+
+    integrate = coleman_integral
 
 ### end of file

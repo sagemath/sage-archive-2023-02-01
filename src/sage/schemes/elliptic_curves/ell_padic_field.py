@@ -116,8 +116,9 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         translation, it should evaluate to zero between a torsion
         point and its multiples.
 
-            sage: res[0] == 0
-            True
+            sage: w = E.invariant_differential()
+            sage: w.coleman_integral(P, 2*P)
+            O(13^7)
         """
         from sage.misc.profiler import Profiler
         prof = Profiler()

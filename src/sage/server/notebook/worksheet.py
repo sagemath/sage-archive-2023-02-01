@@ -1326,10 +1326,10 @@ def extract_first_compute_cell(text):
     i = text.find('{{{')
     if i == -1:
         raise EOFError
-    j = text.find('}}}')
+    j = text.find('\n}}}')
     if j <= i:
         j = len(text)
-    k = text.find('///')
+    k = text.find('\n///')
     if k == -1 or k > j:
         input = text[i+3:j]
         output = ''
@@ -1337,12 +1337,12 @@ def extract_first_compute_cell(text):
     else:
         input = text[i+3:k].strip()
         # Find the graphics block, if there is one.
-        l = text[k+3:].find('///')
-        if l != -1 and l+k+3 < j:
-            graphics = text[l+k+3+3:j]
+        l = text[k+4:].find('\n///')
+        if l != -1 and l+k+4 < j:
+            graphics = text[l+k+4+3:j]
         else:
             graphics = ''
             l = j
-        output = text[k+3:l].strip()
-    return input.strip(), output, graphics, j+3
+        output = text[k+4:l].strip()
+    return input.strip(), output, graphics, j+4
 

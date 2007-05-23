@@ -3,13 +3,14 @@ include '../../ext/stdsage.pxi'
 from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
-
+from term_order import TermOrder
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
+        order = TermOrder(order,n)
         if not isinstance(base_ring, sage.rings.ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
         n = int(n)

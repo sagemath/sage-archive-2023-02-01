@@ -1,10 +1,10 @@
 r"""
-Monomiales orderings.
+Term Orderings.
 
-SAGE supports the following term orderings:
+\SAGE supports the following term orderings:
 
 \begin{description}
-\item[Lexicographic term ordering (\emph{lex})], defined as
+\item[Lexicographic (\emph{lex})], defined as
 
 $x^a < x^b \Leftrightarrow \exists\; 1 \le i \le n : a_1 = b_1, \ldots, a_{i-1} = b_{i-1}, a_i < b_i$
 
@@ -21,7 +21,7 @@ EXAMPLES:
     sage: x^3*y^2*z^4 < x^3*y^2*z^1
     False
 
-\item[Reverse Lexicographic (\emph{revlex})], defined as
+\item[Reverse lexicographic (\emph{revlex})], defined as
 
 $x^a < x^b \Leftrightarrow \exists\; 1 \le i \le n : a_n = b_n, \ldots, a_{i+1} = b_{i+1}, a_i > b_i.$
 
@@ -33,7 +33,8 @@ EXAMPLES:
     True
     sage: x > 1
     False
-
+    sage: x*y > z
+    True
 
 \item[Degree reverse lexicographic (\emph{degrevlex})], defined as:
 
@@ -82,14 +83,14 @@ EXAMPLES:
     sage: P.<x,y,z> = PolynomialRing(QQ,3,order='neglex')
     sage: x > y
     False
-    sage: x > y^2
-    False
     sage: x > 1
     False
     sage: x^1*y^2 > y^3*z^4
     False
     sage: x^3*y^2*z^4 < x^3*y^2*z^1
     True
+    sage: x*y > z
+    False
 
 \item[Negative degree reverse lexicographic (\emph{negdegrevlex})], defined as:
 
@@ -163,11 +164,22 @@ EXAMPLE:
    sage: e > f^2
    False
 
+   The same result can be achieved by:
+
+   sage: T1 = TermOrder('degrevlex',4)
+   sage: T2 = TermOrder('neglex',2)
+   sage: T = T1 + T2
+   sage: P.<a,b,c,d,e,f> = PolynomialRing(GF(127),6,order=T)
+   sage: a > c^4
+   False
+   sage: a > e^4
+   True
+
+
 If any other unsupported term ordering is given the provided string is
 passed through as is to SINGULAR, Macaulay2, and MAGMA. This ensures
 that it is for example possible to calculated a Groebner basis with
-respect to some term ordering SINGULAR supports but SAGE doesn't from
-within SAGE.
+respect to some term ordering SINGULAR supports but SAGE doesn't.
 
 AUTHORS:
     -- David Joyner and William Stein: initial version multi_polynomial_ring
@@ -178,31 +190,42 @@ AUTHORS:
 import re
 from sage.structure.sage_object import SageObject
 
-print_name_mapping = {'lex':'Lexicographic',
-                      'revlex':'Reverse Lexicographic',
-                      'degrevlex':'Degree reverse lexicographic',
-                      'deglex':'Degree lexicographic',
-                      'neglex':'Negative lexicographic',
-                      'negdegrevlex' : 'Negative degree reverse lexicographic',
-                      'negdeglex': 'Negative degree lexicographic'}
+print_name_mapping =     {'lex'          :'Lexicographic',
+                          'revlex'       :'Reverse Lexicographic',
+                          'degrevlex'    :'Degree reverse lexicographic',
+                          'deglex'       :'Degree lexicographic',
+                          'neglex'       :'Negative lexicographic',
+                          'negdegrevlex' :'Negative degree reverse lexicographic',
+                          'negdeglex'    :'Negative degree lexicographic'}
 
-singular_name_mapping ={'lex':'lp',
-                        'revlex':'rp',
-                        'degrevlex':'dp',
-                        'deglex':'Dp',
-                        'neglex':'ls',
-                        'negdegrevlex' : 'ds',
-                        'negdeglex': 'Ds'}
+singular_name_mapping =  {'lex'          :'lp',
+                          'revlex'       :'rp',
+                          'degrevlex'    :'dp',
+                          'deglex'       :'Dp',
+                          'neglex'       :'ls',
+                          'negdegrevlex' :'ds',
+                          'negdeglex'    :'Ds'}
 
-macaulay2_name_mapping = {'lex':'Lex',
-                          'revlex':'RevLex, Global=>false',
-                          'degrevlex':'GRevLex',
-                          'deglex':'GLex'}
+macaulay2_name_mapping = {'lex'          :'Lex',
+                          'revlex'       :'RevLex, Global=>false',
+                          'degrevlex'    :'GRevLex',
+                          'deglex'       :'GLex'}
 
-magma_name_mapping = {'lex': '"lex"',
-                      'revlex' : '"revlex"',
-                      'deglex' : '"glex"',
-                      'degrevlex' : '"grevlex"'}
+magma_name_mapping =     {'lex'          :'"lex"',
+                          'revlex'       :'"revlex"',
+                          'degrevlex'    :'"grevlex"',
+                          'deglex'       :'"glex"'}
+
+
+inv_singular_name_mapping ={'lp':'lex'          ,
+                            'rp':'revlex'       ,
+                            'dp':'degrevlex'    ,
+                            'Dp':'deglex'       ,
+                            'ls':'neglex'       ,
+                            'ds':'negdegrevlex' ,
+                            'Ds':'negdeglex'    }
+
+
 
 class TermOrder(SageObject):
     """
@@ -210,34 +233,57 @@ class TermOrder(SageObject):
     conversion to MAGMA, SINGULAR, and Macaulay2.
 
     EXAMPLES:
+
         sage: t = TermOrder('lex')
         sage: t
         Lexicographic term order
         sage: loads(dumps(t)) == t
         True
+
+        We can construct block orderings directly as
+
+        sage: TermOrder('degrevlex(3),neglex(2)')
+        degrevlex(3),neglex(2) term order
+
+        or by adding together the blocks:
+
+        sage: t1 = TermOrder('degrevlex',3)
+        sage: t2 = TermOrder('neglex',2)
+        sage: t1 + t2
+        degrevlex(3),neglex(2) term order
+        sage: t2 + t1
+        neglex(2),degrevlex(3) term order
+
     """
-    def __init__(self, name='lex'):
+    def __init__(self, name='lex', n = 0):
         """
         Construct a new term ordering object.
 
-        See term_order.py for details which term orderings are
+        See \code{term_order.py} for details which term orderings are
         supported in SAGE.
 
         INPUT:
             name -- name of the term ordering (default: lex)
+            n -- number of variables in the polynomial ring (default: 0)
+
+        NOTE: The optional $n$ parameter is not necessary if only
+        simple orderings like $deglex$ are constructed. However, it is
+        useful if block orderings are to be constructed from this term
+        order object later.
 
         """
         if isinstance(name, TermOrder):
+            if n == 0 and name.length > 0:
+                n = name.length
             name = name.__name
         name = name.lower()
 
-        self.blocks = []
-        self.length = 0 # length null signals that no blocks are used
-
-        #treat block orderings first
+        #Block Orderings
         if "," in name:
             pattern  = re.compile("\(([0-9]+)\)$")
 
+            self.blocks = []
+            self.length = 0
             self.__name = ""
             self.__singular_str = "("
             self.__macaulay2_str = "{"
@@ -259,28 +305,33 @@ class TermOrder(SageObject):
 
                 self.length += length
 
+            if n!=0 and self.length != n:
+                raise TypeError, "Term order length does not match number of generators"
+
             # remove trailing ,
             self.__singular_str = self.__singular_str[:-1] + ")"
             self.__name = self.__name[:-1]
             self.__macaulay2_str = self.__macaulay2_str[:-1] + "}"
 
         else:
+            self.length = n
             self.__name = name
             self.__singular_str = singular_name_mapping.get(name,name)
             self.__macaulay2_str = macaulay2_name_mapping.get(name,name)
             self.__magma_str = magma_name_mapping.get(name,name)
+            self.blocks = [(self.__singular_str,n)]
 
     def __getattr__(self,name):
         """
         Return the correct compare_tuples/greater_tuple function.
         """
         if name=='compare_tuples':
-            if self.blocks == []:
+            if len(self.blocks) == 1:
                 return getattr(self,'compare_tuples_'+self.__singular_str)
             else:
                 return self.compare_tuples_block
         elif name=='greater_tuple':
-            if self.blocks == []:
+            if len(self.blocks) == 1:
                 return getattr(self,'greater_tuple_'+self.__singular_str)
             else:
                 return self.greater_tuple_block
@@ -424,6 +475,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the
         lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         return f > g and f or g
 
@@ -431,6 +485,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the
         reversed lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         return f.reversed() < g.reversed()   and f or g
 
@@ -438,6 +495,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the total
         degree lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
                 or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f  > g )) and f or g
@@ -446,6 +506,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the total
         degree reversed lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         return (sum(f.nonzero_values(sort=False))>sum(g.nonzero_values(sort=False))
                 or (sum(f.nonzero_values(sort=False))==sum(g.nonzero_values(sort=False)) and f.reversed() < g.reversed())) and f or g
@@ -454,6 +517,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the
         negative degree reverse lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         if self.greater_tuple_dp(f,g) is f:
             return g
@@ -464,6 +530,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the
         negative degree lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         if self.greater_tuple_Dp(f,g) is f:
             return g
@@ -474,6 +543,9 @@ class TermOrder(SageObject):
         """
         Returns the greater exponent tuple with respect to the
         negative lexicographical term order.
+
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         """
         if self.greater_tuple_lp(f,g) is f:
             return g
@@ -485,23 +557,23 @@ class TermOrder(SageObject):
         Compares two exponent tuple with respec to the block ordering
         as specified when constructing this element.
 
+        This method is called by the lm/lc/lt methods of \code{MPolynomial_polydict}.
+
         EXAMPLE:
             sage: P.<a,b,c,d,e,f>=PolynomialRing(ZZ,6, order='degrevlex(3),degrevlex(3)')
-            sage: a > c^3
-            False
-            sage: a > d^4
-            True
-
+            sage: f = a + c^4; f.lm()
+            c^4
+            sage: g = a + e^4; g.lm()
+            a
         """
         n = 0
         for order,length in self.blocks:
             r = getattr(self,"compare_tuples_"+order)(f[n:n+length],g[n:n+length])
-            print r
             if r != 0:
                 if r < 0:
-                    return f
-                else:
                     return g
+                else:
+                    return f
             n += length
         return f
 
@@ -543,10 +615,8 @@ class TermOrder(SageObject):
             sage: P = PolynomialRing(GF(127),8,names='x',order='degrevlex(3),lex(5)')
             sage: P._macaulay2_()
             ZZ
-            --- [x0, x1, x2, x3, x4, x5, x6, x7, MonomialOrder => {GRevLex => 3, Lex =>
+            --- [x0, x1, x2, x3, x4, x5, x6, x7, MonomialOrder => {GRevLex => 3, Lex => 5}, MonomialSize => 16]
             127
-            ---------------------------------------------------------------------------
-            5}, MonomialSize => 16]
         """
         return self.__macaulay2_str
 
@@ -573,3 +643,31 @@ class TermOrder(SageObject):
             else:
                 return cmp(type(self), type(other))
         return cmp(self.__singular_str, other.__singular_str)
+
+
+    def __add__(self, other):
+        """
+        Block ordering constructor.
+
+        INPUT:
+            other -- a term order
+
+        OUTPUT:
+            a block ordering
+
+        EXAMPLE:
+            sage: from sage.rings.polynomial.term_order import TermOrder
+            sage: TermOrder('deglex',2) + TermOrder('degrevlex(3),neglex(3)')
+            deglex(2),degrevlex(3),neglex(3) term order
+        """
+        if not isinstance(other,TermOrder):
+            other = TermOrder(other)
+        if self.length == 0 or other.length == 0:
+            raise ArithmeticError, "Can only concatenate term orders with length attribute."
+
+        name = []
+        for o,l in self.blocks+other.blocks:
+            name.append("%s(%d)"%(inv_singular_name_mapping.get(o,o),l))
+
+        name = ",".join(name)
+        return TermOrder(name, self.length+other.length)

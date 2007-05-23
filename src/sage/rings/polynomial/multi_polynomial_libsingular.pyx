@@ -1,5 +1,5 @@
 """
-Multivariate polynomials over QQ and GF(p) implemented using SINGULAR as backend.
+Multivariate polynomials via libSINGULAR.
 
 AUTHORS:
     -- Martin Albrecht <malb@informatik.uni-bremen.de>
@@ -181,7 +181,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         self.__ngens = n
 
-        MPolynomialRing_generic.__init__(self, base_ring, n, names, TermOrder(order))
+        order = TermOrder(order, n)
+
+        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
 
         self._has_singular = True
 
@@ -203,8 +205,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         else:
             raise NotImplementedError, "Only GF(p) and QQ are supported right now, sorry"
 
-        order = TermOrder(order)
-
         self._ring = rDefault(characteristic, n, _names)
         if(self._ring != currRing): rChangeCurrRing(self._ring)
 
@@ -218,28 +218,31 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         nblcks = len(order.blocks)
         offset = 0
 
-        if nblcks == 0:
-            self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
-            self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
-            self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
-            self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
-            self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
-            self._ring.order[1] = ringorder_C
-            self._ring.block0[0] = 1
-            self._ring.block1[0] = n
-        else:
-            self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
-            self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
-            self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
-            self._ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+##         if nblcks == 1:
+##             self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
+##             self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
+##             self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
+##             self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
+##             self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
+##             self._ring.order[1] = ringorder_C
+##             self._ring.block0[0] = 1
+##             self._ring.block1[0] = n
+##         else:
+        self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
+        self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+        self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+        self._ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
 
-            for i from 0 <= i < nblcks:
-                self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
-                self._ring.block0[i] = offset + 1
+        for i from 0 <= i < nblcks:
+            self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+            self._ring.block0[i] = offset + 1
+            if order.blocks[i][1] == 0: # may be zero in some cases
+                self._ring.block1[i] = offset + n
+            else:
                 self._ring.block1[i] = offset + order.blocks[i][1]
-                offset = self._ring.block1[i]
+            offset = self._ring.block1[i]
 
-            self._ring.order[nblcks] = ringorder_C
+        self._ring.order[nblcks] = ringorder_C
 
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0
@@ -1621,7 +1624,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return a polynomial latex representation of self.
 
         EXAMPLE:

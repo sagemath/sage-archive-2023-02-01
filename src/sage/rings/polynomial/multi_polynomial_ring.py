@@ -6,6 +6,7 @@ AUTHORS:
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               Singular features
     -- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular rep
+    -- Martin Albrecht: refactored to link in MPolynomialRing_libsingular
 
 EXAMPLES:
 
@@ -129,6 +130,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
         True
     """
     def __init__(self, base_ring, n, names, order):
+        order = TermOrder(order,n)
         MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
         # Construct the generators
         v = [0 for _ in xrange(n)]
@@ -325,6 +327,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
                                       PolynomialRing_singular_repr,
                                       MPolynomialRing_macaulay2_repr):
     def __init__(self, base_ring, n, names, order):
+        order = TermOrder(order, n)
         MPolynomialRing_polydict.__init__(self, base_ring, n, names, order)
         self._has_singular = self._can_convert_to_singular()
 
@@ -368,7 +371,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLE:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ, 3, order='degrevlex')
             sage: P.monomial_quotient(3/2*x*y,x)
             y
 
@@ -377,8 +380,8 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_quotient(x*y,x)
             y
 
@@ -437,14 +440,14 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLE:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_lcm(3/2*x*y,x)
             x*y
 
         TESTS:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: R.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_lcm(x*y,R.gen())
             x*y
 
@@ -488,7 +491,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: f = x*y^2
             sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
             sage: P.monomial_reduce(f,G)
@@ -496,7 +499,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: f = x*y^2
             sage: G = [ 3/2*x^3 + y^2 + 1/2, 1/4*x*y + 2/7, P(1/2)  ]
 
@@ -567,7 +570,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLES:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_pairwise_prime(x^2*z^3, y^4)
             True
 
@@ -576,8 +579,8 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         TESTS:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
-            sage: Q.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
+            sage: Q.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_pairwise_prime(x^2*z^3, Q('y^4'))
             True
 
@@ -612,7 +615,7 @@ class MPolynomialRing_polydict_domain(integral_domain.IntegralDomain,
 
         EXAMPLE:
             sage: from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
-            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order=TermOrder('degrevlex'))
+            sage: P.<x,y,z>=MPolynomialRing_polydict_domain(QQ,3, order='degrevlex')
             sage: P.monomial_all_divisors(x^2*z^3)
             [x, x^2, z, x*z, x^2*z, z^2, x*z^2, x^2*z^2, z^3, x*z^3, x^2*z^3]
 

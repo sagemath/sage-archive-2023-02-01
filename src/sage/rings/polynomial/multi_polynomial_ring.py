@@ -170,7 +170,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: f = U[2]; f                                            # optional
              3 2    3
             x y  + y
-            sage: R(f)                                                   # optional
+            sage: R(repr(f))                                             # optional
             y^3 + x^3*y^2
 
         Some other subtle coercions.  We create polynomial rings in 2 variables

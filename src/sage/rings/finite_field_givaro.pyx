@@ -31,10 +31,7 @@ EXAMPLES:
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
      -- William Stein (2006-12-07): editing, lots of docs, etc.
-
-TODO:
-    * Need a finite_field_givaro.pxd file, so functionality can be
-      used directly from other SageX code.
+     -- Robert Bradshaw (2007-05-23): is_square/sqrt, pow.
 """
 
 
@@ -1288,16 +1285,80 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             [True, True, True, True, True]
             sage: [x.is_square() for x in k if not x in v]
             [False, False, False, False]
-        """
-        #copied from finite_field_element.py
-        cdef FiniteField_givaro K
-        K = self._parent
-        if K.characteristic() == 2:
-            return True
-        n = K.order_c() - 1
-        a = self**(n / 2)
-        return bool(a == 1) or bool (a == 0)
 
+        ALGORITHM:
+            Elements are stored as powers of generators, so we simply check
+            to see if it is an even power of a generator.
+
+        TESTS:
+            sage: K = GF(27, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+            sage: K = GF(25, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+            sage: K = GF(16, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+        """
+        cdef FiniteField_givaro field = <FiniteField_givaro>self._parent
+        if field.objectptr.characteristic() == 2:
+            return True
+        elif self.element == field.objectptr.one:
+            return True
+        else:
+            return self.element % 2 == 0
+
+    def sqrt(FiniteField_givaroElement self, all=False, extend=False):
+        """
+        Return a square root of this finite field element in its
+        parent, if there is one.  Otherwise, raise a ValueError.
+
+        EXAMPLES:
+            sage: k.<a> = GF(7^2)
+            sage: k(2).sqrt()
+            3
+            sage: k(3).sqrt()
+            2*a + 6
+            sage: k(3).sqrt()**2
+            3
+            sage: k(4).sqrt()
+            2
+            sage: k.<a> = GF(7^3)
+            sage: k(3).sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a perfect square.
+
+        ALGORITHM:
+            Self is stored as $a^k$ for some generator $a$.
+            Return $a^(k/2)$ for even $k$.
+
+        TESTS:
+            sage: K = GF(49, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+            sage: K = GF(27, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+            sage: K = GF(8, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+        """
+        if all:
+            a = self.sqrt()
+            return [a, -a] if -a != a else [a]
+        cdef FiniteField_givaro field = <FiniteField_givaro>self._parent
+        if self.element == field.objectptr.one:
+            return make_FiniteField_givaroElement(field, field.objectptr.one)
+        elif self.element % 2 == 0:
+            return make_FiniteField_givaroElement(field, self.element/2)
+        elif field.objectptr.characteristic() == 2:
+            return make_FiniteField_givaroElement(field, (field.objectptr.cardinality() - 1 + self.element)/2)
+        elif extend:
+            raise NotImplementedError # TODO: fix this once we have nested embeddings of finite fields
+        else:
+            raise ValueError, "must be a perfect square."
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
@@ -1883,39 +1944,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return hash(self.log_to_int())
 
-    def sqrt(FiniteField_givaroElement self, all=False):
-        """
-        Return a square root of this finite field element in its
-        parent, if there is one.  Otherwise, raise a ValueError.
-
-        EXAMPLES:
-            sage: k.<a> = GF(7^2)
-            sage: k(2).sqrt()
-            4
-            sage: k(3).sqrt()
-            5*a + 1
-            sage: k(3).sqrt()**2
-            3
-            sage: k(4).sqrt()
-            5
-            sage: k.<a> = GF(7^3)
-            sage: k(3).sqrt()
-            Traceback (most recent call last):
-            ...
-            ValueError: must be a perfect square.
-        """
-        from sage.rings.polynomial.polynomial_ring import PolynomialRing
-        R = PolynomialRing(parent_object(self), 'x')
-        f = R([-self, 0, 1])
-        g = f.factor()
-        if len(g) == 2 or g[0][1] == 2:
-            a = -g[0][0][0]
-            if all:
-                return [a, -a]
-            else:
-                return a
-        raise ValueError, "must be a perfect square."
-
     def vector(FiniteField_givaroElement self):
         """
         Return a vector in self.parent().vector_space() matching self.
@@ -1966,10 +1994,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     return make_FiniteField_givaroElement(parent, x)
 
-cdef FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
+cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     cdef FiniteField_givaroElement y
     cdef PyObject** w
-
 
     if parent._array is None:
         #y = FiniteField_givaroElement(parent)

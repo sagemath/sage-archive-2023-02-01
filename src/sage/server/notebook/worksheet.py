@@ -85,9 +85,9 @@ class Worksheet:
         dir = ''.join(dir)
         self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
-        while os.path.exists(self.__dir):
-            self.__dir += "_"
-            self.__filename += '_'
+        #while os.path.exists(self.__dir):
+        #    self.__dir += "_"
+        #    self.__filename += '_'
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)

@@ -223,9 +223,15 @@ class EllipticCurvePoint_field(SchemeMorphism_abelian_variety_coordinates_field)
             return E(0) # point at infinity
 
         if x1 == x2 and y1 == y2:
-            m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
+            try:
+                m = (3*x1*x1 + 2*a2*x1 + a4 - a1*y1) / (2*y1 + a1*x1 + a3)
+            except ZeroDivisionError:
+                raise ZeroDivisionError, "Inverse of %s does not exist"%(2*y1 + a1*x1 + a3)
         else:
-            m = (y1-y2)/(x1-x2)
+            try:
+                m = (y1-y2)/(x1-x2)
+            except ZeroDivisionError:
+                raise ZeroDivisionError, "Inverse of %s does not exist"%(x1-x2)
 
         x3 = -x1 - x2 - a2 + m*(m+a1)
         y3 = -y1 - a3 - a1*x3 + m*(x1-x3)

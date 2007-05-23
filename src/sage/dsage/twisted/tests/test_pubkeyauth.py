@@ -16,7 +16,6 @@
 #                  http://www.gnu.org/licenses/
 ############################################################################
 
-import ConfigParser
 import os
 import random
 import base64
@@ -37,8 +36,6 @@ from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.monitordb import MonitorDatabase
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.errors.exceptions import AuthenticationError
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 TEST_PUB_KEY = """ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAusOUk3wZof9orc7YuKZP/wxog2uAU5BsagK4lkHgdfBc+ZR3s+Rk+k6prvuNuUXIfn2A+UkPa0xmjtQnMlqClrZXXMHhDV8iXto/vM1BopF+Ja1Y+pCK2vRRZVsZsdzL7XqyVc+kstsgKWrrguNCMIuEyc37wcsgdd1PxPmuB8Mwm3YZmNRV6yEq8Qq3IprZHfBl5S6htmwTXt4VEzvJgX1PJBLg4BauJtLxeEzYgMLY4VG3buJ2VDwlqwVPO/oVZwK3uXifXtxVx6VJO4pKUBdDSyjudPQTHxogos+8scaClx0XMh0eM7xw92j4SpA+mtzXnAKM4CqCSFH3w+/LbQ== yqiang@six
 """
@@ -87,8 +84,8 @@ class PublicKeyCredentialsCheckerTest(unittest.TestCase):
         self.realm = Realm(self.dsage_server)
         self.p = _SSHKeyPortalRoot(portal.Portal(Realm(self.dsage_server)))
         self.clientdb = ClientDatabase(test=True)
-        self.p.portal.registerChecker(
-        PublicKeyCredentialsCheckerDB(self.clientdb))
+        self.p.portal.registerChecker(PublicKeyCredentialsCheckerDB(
+                                      self.clientdb))
         self.client_factory = pb.PBServerFactory(self.p)
         self.hostname = 'localhost'
         self.r = reactor.listenTCP(0, self.client_factory)

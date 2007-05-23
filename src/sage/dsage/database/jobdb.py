@@ -21,7 +21,6 @@ import datetime
 import os
 import random
 import string
-import time
 import sqlite3
 
 from twisted.python import log
@@ -32,7 +31,8 @@ import transaction
 
 from sage.dsage.database.job import Job
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.config import get_conf
+from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.constants import DELIMITER
 
 class JobDatabase(object):
     """
@@ -41,21 +41,29 @@ class JobDatabase(object):
 
     """
 
-    def __init__(self, test=False):
-        if test:
+    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
+                 job_failure_threshold=3,
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
+                 log_level=0, test=False):
+        self.test = test
+        if self.test:
+            self.db_file = 'test_jobdb.db'
             self.db_file = 'dsage_test.db'
             self.log_file = 'dsage_test.log'
             self.log_level = 5
             self.prune_in_days = 10
             self.job_failure_threshold = 3
         else:
-            self.conf = get_conf(type='jobdb')
-            self.db_file = self.conf['db_file']
-            self.job_failure_threshold =int(
-                                        self.conf['job_failure_threshold'])
-            self.log_file = self.conf['log_file']
-            self.log_level = int(self.conf['log_level'])
-            self.prune_in_days = int(self.conf['prune_in_days'])
+            self.db_file = db_file
+            if not os.path.exists(self.db_file):
+                dir, file = os.path.split(self.db_file)
+                if dir == '':
+                  pass
+                elif not os.path.isdir(dir):
+                    os.mkdir(dir)
+            self.job_failure_threshold = job_failure_threshold
+            self.log_file = log_file
+            self.log_level = log_level
 
     def random_string(self, length=10):
         """
@@ -202,7 +210,8 @@ class JobDatabaseZODB(JobDatabase):
         if is_active:
             if job_name:
                 jobs = [job for job in self.get_active_jobs()
-                        if (job.username == username and job.name == job_name)]
+                        if (job.username == username
+                            and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_active_jobs()
                         if job.username == username]
@@ -210,7 +219,8 @@ class JobDatabaseZODB(JobDatabase):
         else:
             if job_name:
                 jobs = [job for job in self.get_jobs_list()
-                        if (job.username == username and job.name == job_name)]
+                        if (job.username == username
+                            and job.name == job_name)]
             else:
                 jobs = [job for job in self.get_jobs_list()
                         if job.username == username]
@@ -400,16 +410,13 @@ class JobDatabaseSQLite(JobDatabase):
     );
     """
 
-    def __init__(self, test=False):
-        JobDatabase.__init__(self, test=test)
-        if test:
-            self.db_file = 'test_jobdb.db'
-        else:
-            if not os.path.exists(self.db_file):
-                dir, file = os.path.split(self.db_file)
-                if not os.path.isdir(dir):
-                    os.mkdir(dir)
-
+    def __init__(self, db_file=None, job_failure_threshold=3,
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'),
+                 log_level=0, test=False):
+        JobDatabase.__init__(self, db_file=db_file,
+                             job_failure_threshold=job_failure_threshold,
+                             log_file=log_file, log_level=log_level,
+                             test=test)
         self.tablename = 'jobs'
         self.con = sqlite3.connect(
                   self.db_file,
@@ -549,7 +556,7 @@ class JobDatabaseSQLite(JobDatabase):
         if job_id is None:
             job_id = self.random_string()
             if self.log_level > 3:
-                log.msg('[JobDB] Creating a new job with id: ', job_id)
+                log.msg('[JobDB] Creating a new job with id:', job_id)
             query = """INSERT INTO jobs
                     (job_id, status, creation_time) VALUES (?, ?, ?)"""
             cur = self.con.cursor()
@@ -563,8 +570,11 @@ class JobDatabaseSQLite(JobDatabase):
                     sqlite3.OperationalError,
                     sqlite3.IntegrityError), msg:
                 if self.log_level > 3:
+                    log.msg(DELIMITER)
+                    log.msg('The following error is probably NOT BAD')
                     log.msg('key: %s, value: %s' % (k, v))
                     log.msg(msg)
+                    log.msg(DELIMITER)
                 continue
 
         return job_id

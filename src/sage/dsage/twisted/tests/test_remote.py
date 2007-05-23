@@ -254,7 +254,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
 
     def testremote_job_done(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"

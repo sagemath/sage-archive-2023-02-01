@@ -35,19 +35,17 @@ cdef class poly_dag:
 cdef class generic_pd:
     cdef object value
     cdef int refs, hits
-    cdef void eval(generic_pd, object, object)
+    cdef void eval(self, x, coeffs)
     cdef void accelerate(generic_pd)
 
 cdef class var_pd(generic_pd):
     cdef int index
-    cdef void eval(var_pd, object, object)
 
 cdef class univar_pd(generic_pd):
-    cdef void eval(univar_pd, object, object)
+    pass
 
 cdef class coeff_pd(generic_pd):
     cdef int index
-    cdef void eval(con_pd, object, object)
 
 
 cdef class unary_pd(generic_pd):
@@ -56,11 +54,10 @@ cdef class unary_pd(generic_pd):
     cdef void accelerate(unary_pd)
 
 cdef class sqr_pd(unary_pd):
-    cdef void eval(sqr_pd, object, object)
+    pass
 
 cdef class pow_pd(unary_pd):
     cdef object exponent
-    cdef void eval(pow_pd, object, object)
 
 
 cdef class binary_pd(generic_pd):
@@ -69,14 +66,13 @@ cdef class binary_pd(generic_pd):
     cdef void accelerate(binary_pd)
 
 cdef class add_pd(binary_pd):
-    cdef void eval(add_pd, object, object)
+    pass
 
 cdef class mul_pd(binary_pd):
-    cdef void eval(mul_pd, object, object)
+    pass
 
 cdef class abc_pd(binary_pd):
     cdef int index
-    cdef void eval(abc_pd, object, object)
 
 
 

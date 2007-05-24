@@ -291,7 +291,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
-        elif d < 4:
+        elif d < 4 and self._compiled is None:
             while i >= 0:
                 result = result * a + self[i]
                 i -= 1
@@ -300,6 +300,11 @@ cdef class Polynomial(CommutativeAlgebraElement):
                 self._compiled = CompiledPolynomialFunction(self.list())
             result = self._compiled.eval(a)
         return result
+
+    def _compile(self):
+        # For testing
+        self._compiled = CompiledPolynomialFunction(self.list())
+        return self._compiled
 
     cdef int _cmp_c_impl(self, Element other) except -2:
         """

@@ -20,7 +20,7 @@ Elliptic curves over a general ring
 
 import math
 
-from sage.rings.all import MPolynomialRing
+from sage.rings.all import MPolynomialRing, PolynomialRing
 
 import sage.plot.all as plot
 
@@ -1333,3 +1333,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__formal_group
 
     formal = formal_group
+
+
+    def hyperelliptic_polynomials(self):
+        K = self.base_ring()
+        R = PolynomialRing(K, 'x')
+        x = R.gen(0)
+        a1, a2, a3, a4, a6 = self.ainvs()
+        return R([a6, a4, a2, 1]), R([a3, a1])
+

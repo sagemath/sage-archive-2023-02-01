@@ -2686,7 +2686,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 ##         id_Delete(&res, r)
 ##         return quo
 
-        quo = singclap_pdivide( p_Copy(_self._poly, r), p_Copy(_right._poly, r) )
+        quo = singclap_pdivide( _self._poly, _right._poly )
         return new_MP(parent, quo)
 
     def factor(self, param=0):
@@ -2916,15 +2916,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         NOTE: This only works for GF(p) and QQ as base rings
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
-        cdef poly *ret
+        cdef poly *ret, *prod, *gcd
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if self._parent is not g._parent:
             g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
 
-        ret = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
-        ret = singclap_pdivide( pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring),
-                                ret )
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
+        prod = pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring)
+        ret = singclap_pdivide(prod , gcd )
+        p_Delete(&prod, _ring)
+        p_Delete(&gcd, _ring)
         return new_MP(self._parent, ret)
 
     def is_square_free(self):
@@ -2971,24 +2973,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
-        quo = singclap_pdivide( p_Copy(self._poly, r), p_Copy(right._poly, r) )
+        quo = singclap_pdivide( self._poly, right._poly )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
         return new_MP(parent, quo), new_MP(parent, rem)
-
-##         selfI = idInit(1,1)
-##         rightI = idInit(1,1)
-##         selfI.m[0] = p_Copy(self._poly, r)
-##         rightI.m[0] = p_Copy(right._poly, r)
-##         res = idLift(rightI, selfI, &R, 0, 0, 1);
-
-##         quo = new_MP(parent, pTakeOutComp1(&res.m[0],1))
-##         rem = new_MP(parent, p_Copy(R.m[0],r))
-
-##         id_Delete(&selfI, r)
-##         id_Delete(&rightI, r)
-##         id_Delete(&R, r)
-##         id_Delete(&res, r)
-##         return quo,rem
 
     def _magma_(self, magma=None):
         """

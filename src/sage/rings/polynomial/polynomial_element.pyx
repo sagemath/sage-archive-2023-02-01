@@ -61,6 +61,8 @@ import polynomial_fateman
 def is_Polynomial(f):
     return bool(PY_TYPE_CHECK(f, Polynomial))
 
+from polynomial_compiled cimport CompiledPolynomialFunction
+
 cdef class Polynomial(CommutativeAlgebraElement):
     """
     A polynomial.
@@ -263,12 +265,13 @@ cdef class Polynomial(CommutativeAlgebraElement):
                is determined by the arithmetic
             -- William Stein, 2007-03-24: fix parent being determined in the constant case!
             -- Robert Bradshaw, 2007-04-09: add support for nested calling
+            -- Tom Boothby, 2007-05-01: evaluation done by CompiledPolynomialFunction
         """
         if isinstance(x[0], tuple):
             x = x[0]
         a = x[0]
+        cdef long i, d = self.degree()
 
-        d = self.degree()
         result = self[d]
         if len(x) > 1:
             other_args = x[1:]
@@ -288,10 +291,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
             while i >= 0:
                 result = result * a + self[i](other_args)
                 i -= 1
-        else:
+        elif d < 4:
             while i >= 0:
                 result = result * a + self[i]
                 i -= 1
+        else:
+            if self._compiled is None:
+                self._compiled = CompiledPolynomialFunction(self.list())
+            result = self._compiled.eval(a)
         return result
 
     cdef int _cmp_c_impl(self, Element other) except -2:

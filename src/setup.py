@@ -514,6 +514,9 @@ ext_modules = [ \
                  language = 'c++',
                  include_dirs=['sage/libs/ntl/']), \
 
+    Extension('sage.rings.polynomial.polynomial_compiled',
+               sources = ['sage/rings/polynomial/polynomial_compiled.pyx']), \
+
     Extension('sage.rings.polynomial.polynomial_element',
               sources = ['sage/rings/polynomial/polynomial_element.pyx']), \
 
@@ -608,6 +611,8 @@ ext_modules = [ \
               ['sage/graphs/graph_fast.pyx'],
               libraries = ['gmp']
               ), \
+
+
 
     ]
 

@@ -8,12 +8,6 @@ AUTHORS:
 include '../ext/stdsage.pxi'
 include '../ext/python.pxi'
 
-
-cdef struct binary_tree_node:
-    int key
-    binary_tree_node *left, *right
-    void *value
-
 cdef binary_tree_node *BinaryTreeNode(int key, object value):
     cdef binary_tree_node *t
     t = <binary_tree_node *>sage_malloc(sizeof(binary_tree_node))
@@ -149,11 +143,45 @@ cdef binary_tree_node *binary_tree_head_excise(binary_tree_node *self):
     free_binary_tree_node(self)
     return cur
 
+
+cdef int LIST_PREORDER, LIST_POSTORDER, LIST_INORDER, LIST_KEYS, LIST_VALUES
+LIST_PREORDER  = 1
+LIST_INORDER = 2
+LIST_POSTORDER = 4
+LIST_KEYS = 8
+LIST_VALUES = 16
+
+cdef object binary_tree_list(binary_tree_node *cur, int behavior):
+    if behavior & LIST_KEYS:
+        item = int(cur.key)
+    else:
+        item = <object>cur.value
+
+    if behavior & LIST_PREORDER:
+        arry = [item]
+    else:
+        arry = []
+
+    if cur.left != NULL:
+        arry.extend(binary_tree_list(cur.left, behavior))
+
+    if behavior & LIST_INORDER:
+        arry.append(item)
+
+    if cur.right != NULL:
+        arry.extend(binary_tree_list(cur.right, behavior))
+
+    if behavior & LIST_POSTORDER:
+        arry.append(item)
+
+    return arry
+
+
+
 cdef class BinaryTree:
     """
     A simple binary tree with integer keys.
     """
-    cdef binary_tree_node *head
     def __init__(BinaryTree self):
         self.head = NULL
     def __dealloc__(BinaryTree self):
@@ -368,6 +396,35 @@ cdef class BinaryTree:
             return True
         else:
             return False
+
+    def keys(BinaryTree self, order = "inorder"):
+        """
+        Returns the keys sorted according to "order" parameter, which can be one of
+        "inorder", "preorder", or "postorder"
+        """
+        if self.head == NULL:
+            return []
+
+        if order == "postorder": o = LIST_POSTORDER
+        elif order == "inorder": o = LIST_INORDER
+        else:                    o = LIST_PREORDER
+
+        return binary_tree_list(self.head, LIST_KEYS + o)
+
+    def values(BinaryTree self, order = "inorder"):
+        """
+        Returns the keys sorted according to "order" parameter, which can be one of
+        "inorder", "preorder", or "postorder"
+        """
+        if self.head == NULL:
+            return []
+
+        if order == "postorder": o = LIST_POSTORDER
+        elif order == "inorder": o = LIST_INORDER
+        else:                    o = LIST_PREORDER
+
+        return binary_tree_list(self.head, LIST_VALUES + o)
+
     def _headkey_(BinaryTree self):
         """
         Used by the stress tester.  Don't think a user would care.

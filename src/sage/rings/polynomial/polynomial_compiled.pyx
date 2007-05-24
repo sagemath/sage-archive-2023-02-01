@@ -40,9 +40,11 @@ cdef class CompiledPolynomialFunction:
 
 
     def __init__(self, coeffs, method='quick'):
+        cdef generic_pd max_gap
         self._coeffs = coeffs
         gaps, dag = self._parse_structure()
-        if gaps.get_max().get_label() > 1:
+        max_gap = <generic_pd>(gaps.get_max())
+        if max_gap.label > 1:
             if method == 'quick':
                 self._fill_gaps_quick(gaps)
             elif method == 'pippenger':
@@ -51,7 +53,7 @@ cdef class CompiledPolynomialFunction:
             else:
                 raise RuntimeError, "Method '%s' not supported."
 
-        self._dag = dag.accelerate()
+        self._dag = dag.nodummies()
 
     cdef object eval(CompiledPolynomialFunction self, object x):
         cdef object temp
@@ -66,55 +68,56 @@ cdef class CompiledPolynomialFunction:
     cdef object _parse_structure(CompiledPolynomialFunction self):
         cdef BinaryTree gaps
         cdef int d, i
-        cdef poly_dag s
+        cdef generic_pd s
 
-        s = univar_dag()
-        s.set_label(1)
+        s = univar_pd()
         gaps = BinaryTree()
         gaps.insert(1, s)
 
         d = len(self._coeffs)-1
 
-        s = coeff_dag(d)
+        s = coeff_pd(d)
         gap_width = 0
 
         d-= 1
         while d > 0:
             gap_width += 1
             if self._coeffs[d] != 0:
-                s = abc_dag(s, self._get_gap(gaps, gap_width), d)
+                s = abc_pd(s, self._get_gap(gaps, gap_width), d)
                 gap_width = 0
             d-=1
 
         gap_width += 1
         if self._coeffs[0] != 0:
-            s = abc_dag(s, self._get_gap(gaps, gap_width), 0)
+            s = abc_pd(s, self._get_gap(gaps, gap_width), 0)
         else:
-            s*= self._get_gap(gaps, gap_width)
+            s = mul_pd(s, self._get_gap(gaps, gap_width))
 
         return gaps, s
 
-    cdef poly_dag _get_gap(CompiledPolynomialFunction self, BinaryTree gaps, int gap):
-        cdef poly_dag g
+    cdef generic_pd _get_gap(CompiledPolynomialFunction self, BinaryTree gaps, int gap):
+        cdef generic_pd g
         g = gaps.get(gap)
         if g is not None:
             return g
         else:
-            g = poly_dag()
-            g.set_label(gap)
+            g = dummy_pd(gap)
             gaps.insert(gap,g)
             return g
 
     cdef void _fill_gaps_quick(CompiledPolynomialFunction self, BinaryTree gaps):
         cdef int m,n,k,r,half
-        cdef poly_dag N,M,H
-        N = gaps.pop_max()
-        while N is not None:
+        cdef generic_pd T,M,H
+        cdef dummy_pd N
+        T = gaps.pop_max()
+        while T is not None:
             M = gaps.get_max()
             if M is None:
                 return
-            m = M.get_label()
-            n = N.get_label()
+            else:
+                N = <dummy_pd>T
+            m = M.label
+            n = N.label
             k = n/m
             r = n%m
             half = n/2
@@ -134,106 +137,10 @@ cdef class CompiledPolynomialFunction:
                 else:
                     N.set_mul(self._get_gap(gaps, m*(k-1)), M)
 
-            N = gaps.pop_max()
+            T = gaps.pop_max()
 
 
 
-
-
-
-cdef class poly_dag:
-    def __init__(self, op=None, value=None, left=None, right=None, label = 0, index=0):
-        self.dag = None
-        self.label = label
-        if op == pdCOEFF:
-            self.dag = coeff_pd(index)
-        elif op == pdSQR:
-            self.dag = sqr_pd(left)
-        elif op == pdMUL:
-            self.dag = mul_pd(left,right)
-        elif op == pdADD:
-            self.dag = add_pd(left,right)
-        elif op == pdPOW:
-            self.dag = pow_pd(left, right)
-        elif op == pdVAR:
-            self.dag = var_pd(index)
-        elif op == pdUNIVAR:
-            self.dag = univar_pd()
-        elif op == pdABC:
-            self.dag = abc_pd(left, right, index)
-
-
-    def set_label(self, label):
-        self.label = label
-    def get_label(self):
-        return self.label
-
-    def __add__(self,other):
-        return add_dag(self,other);
-    def __mul__(self,other):
-        return mul_dag(self,other);
-    def __sqr__(self):
-        return sqr_dag(self)
-
-    def value(self, vars, coeffs):
-        return self.val(vars, coeffs)
-
-    cdef object val(poly_dag self, object vars, object coeffs):
-        cdef object temp
-        try:
-            pd_eval(self.dag, vars, coeffs)
-            temp = self.dag.value
-            pd_clean(self.dag)
-            return temp
-        except:
-            raise RuntimeError, "Polynomial evaluation error in val()!"
-
-    def set_mul(self, left, right):
-        if self.dag is not None:
-            raise RuntimeError, "Cannot re-cast a dag that's already been set"
-        self.dag = mul_pd(left,right)
-
-    def set_add(self,left, right):
-        if self.dag is not None:
-            raise RuntimeError, "Cannot re-cast a dag that's already been set"
-        self.dag = add_pd(left, right)
-
-    def set_sqr(self,left):
-        if self.dag is not None:
-            raise RuntimeError, "Cannot re-cast a dag that's already been set"
-        self.dag = sqr_pd(left)
-
-    def set_pow(self, base, pow):
-        if self.dag is not None:
-            raise RuntimeError, "Cannot re-cast a dag that's already been set"
-        self.dag = pow_pd(base, pow)
-
-    def clone(self, poly_dag other):
-        if self.dag is not None:
-            raise RuntimeError, "Cannot re-cast a dag that's already been set"
-        self.dag = other.dag
-
-    def accelerate(self):
-        self.dag.accelerate()
-        return self.dag
-
-
-def add_dag(left, right):
-    return poly_dag(op = pdADD, left = left, right = right)
-def mul_dag(left, right):
-    return poly_dag(op = pdMUL, left = left, right = right)
-def abc_dag(left, right, index):
-    return poly_dag(op = pdABC, left = left, right = right, index = index)
-def pow_dag(left, right):
-    return poly_dag(op = pdPOW, left = left, right = right)
-def sqr_dag(left):
-    return poly_dag(op = pdSQR, left = left)
-def coeff_dag(index):
-    return poly_dag(op = pdCOEFF, index = index)
-def var_dag(index):
-    return poly_dag(op = pdVAR, index = index)
-def univar_dag():
-    return poly_dag(op = pdUNIVAR)
 
 
 cdef inline void pd_eval(generic_pd pd, object vars, object coeffs):
@@ -251,12 +158,28 @@ cdef class generic_pd:
         self.value = None
         self.hits = 0
         self.refs = 0
+        self.label = -1
 
     cdef void eval(generic_pd self, object vars, object coeffs):
         raise NotImplementedError
 
-    cdef void accelerate(generic_pd self):
-        pass
+    cdef generic_pd nodummies(generic_pd self):
+        return self
+
+cdef class dummy_pd(generic_pd):
+    def __init__(dummy_pd self, int label):
+        self.label = label
+
+    cdef void set_sqr(dummy_pd self, generic_pd other):
+        self.link = sqr_pd(other)
+
+    cdef void set_mul(dummy_pd self, generic_pd left, generic_pd right):
+        self.link = mul_pd(left, right)
+
+    cdef generic_pd nodummies(dummy_pd self):
+        #sorry guys, this is my stop
+        self.link.refs = self.refs
+        return self.link
 
 cdef class var_pd(generic_pd):
     def __init__(var_pd self, int index):
@@ -266,6 +189,9 @@ cdef class var_pd(generic_pd):
         self.value = vars[self.index]
 
 cdef class univar_pd(generic_pd):
+    def __init__(univar_pd self):
+        generic_pd.__init__(self)
+        self.label = 1
     cdef void eval(univar_pd self, object var, object coeffs):
         self.value = var
 
@@ -277,15 +203,14 @@ cdef class coeff_pd(generic_pd):
         self.value = coeffs[self.index]
 
 cdef class unary_pd(generic_pd):
-    def __init__(unary_pd self, poly_dag operand):
+    def __init__(unary_pd self, generic_pd operand):
         generic_pd.__init__(self)
-        self.operand_p = operand
-    cdef void accelerate(unary_pd self):
-        self.operand = self.operand_p.dag
-        self.operand_p = None
+        self.operand = operand
         self.operand.refs += 1
-        if self.operand.refs == 1:
-            self.operand.accelerate()
+
+    def nodummies(unary_pd self):
+        self.operand = self.operand.nodummies()
+
 
 cdef class sqr_pd(unary_pd):
     cdef void eval(sqr_pd self, object vars, object coeffs):
@@ -294,7 +219,7 @@ cdef class sqr_pd(unary_pd):
         pd_clean(self.operand)
 
 cdef class pow_pd(unary_pd):
-    def __init__(unary_pd self, poly_dag base, object exponent):
+    def __init__(unary_pd self, generic_pd base, object exponent):
         unary_pd.__init__(self, base)
         self.exponent = exponent
 
@@ -306,26 +231,16 @@ cdef class pow_pd(unary_pd):
 
 
 cdef class binary_pd(generic_pd):
-    def __init__(binary_pd self, poly_dag left, poly_dag right):
+    def __init__(binary_pd self, generic_pd left, generic_pd right):
         generic_pd.__init__(self)
-        self.left_p = left
-        self.right_p = right
+        self.left = left
+        self.right = right
+        self.left.refs+= 1
+        self.right.refs+= 1
 
-    cdef void accelerate(binary_pd self):
-        self.left = self.left_p.dag
-        self.left_p = None
-        self.left.refs += 1
-        if self.left.refs == 1:
-            self.left.accelerate()
-
-        self.right = self.right_p.dag
-        self.right_p = None
-        self.right.refs += 1
-        if self.right.refs == 1:
-            self.right.accelerate()
-
-
-
+    def nodummies(binary_pd self):
+        self.left = self.left.nodummies()
+        self.right = self.right.nodummies()
 
 cdef class add_pd(binary_pd):
     cdef void eval(add_pd self, object vars, object coeffs):
@@ -344,7 +259,7 @@ cdef class mul_pd(binary_pd):
         pd_clean(self.right)
 
 cdef class abc_pd(binary_pd):
-    def __init__(abc_pd self, poly_dag left, poly_dag right, int index):
+    def __init__(abc_pd self, generic_pd left, generic_pd right, int index):
         binary_pd.__init__(self, left, right)
         self.index = index
 

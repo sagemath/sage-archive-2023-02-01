@@ -13,7 +13,6 @@ cdef enum:
     pdABC
 
 
-cdef class poly_dag
 cdef class generic_pd
 
 cdef class CompiledPolynomialFunction:
@@ -21,22 +20,22 @@ cdef class CompiledPolynomialFunction:
     cdef object _coeffs
 
     cdef object _parse_structure(CompiledPolynomialFunction)
-    cdef poly_dag _get_gap(CompiledPolynomialFunction, BinaryTree, int)
+    cdef generic_pd _get_gap(CompiledPolynomialFunction, BinaryTree, int)
     cdef void _fill_gaps_quick(CompiledPolynomialFunction, BinaryTree)
     cdef object eval(CompiledPolynomialFunction, object)
-
-cdef class poly_dag:
-    cdef generic_pd dag
-    cdef int label
-    cdef object val(poly_dag, object, object)
-#    cdef generic_pd get_dag(poly_dag)
-
 
 cdef class generic_pd:
     cdef object value
     cdef int refs, hits
+    cdef int label
     cdef void eval(generic_pd, object, object)
-    cdef void accelerate(generic_pd)
+    cdef generic_pd nodummies(generic_pd)
+
+cdef class dummy_pd(generic_pd):
+    cdef generic_pd link
+    cdef void set_mul(dummy_pd, generic_pd, generic_pd)
+    cdef void set_sqr(dummy_pd, generic_pd)
+    cdef generic_pd nodummies(dummy_pd)
 
 cdef class var_pd(generic_pd):
     cdef int index
@@ -52,8 +51,7 @@ cdef class coeff_pd(generic_pd):
 
 cdef class unary_pd(generic_pd):
     cdef generic_pd operand
-    cdef poly_dag operand_p
-    cdef void accelerate(unary_pd)
+    cdef generic_pd nodummies(unary_pd)
 
 cdef class sqr_pd(unary_pd):
     cdef void eval(sqr_pd, object, object)
@@ -65,8 +63,7 @@ cdef class pow_pd(unary_pd):
 
 cdef class binary_pd(generic_pd):
     cdef generic_pd left, right
-    cdef poly_dag left_p, right_p
-    cdef void accelerate(binary_pd)
+    cdef generic_pd nodummies(binary_pd)
 
 cdef class add_pd(binary_pd):
     cdef void eval(add_pd, object, object)

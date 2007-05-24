@@ -40,7 +40,7 @@ cdef class CompiledPolynomialFunction:
 
 
     def __init__(self, coeffs, method='quick'):
-        cdef generic_pd max_gap
+        cdef generic_pd max_gap, dag
         self._coeffs = coeffs
         gaps, dag = self._parse_structure()
         max_gap = <generic_pd>(gaps.get_max())
@@ -54,6 +54,9 @@ cdef class CompiledPolynomialFunction:
                 raise RuntimeError, "Method '%s' not supported."
 
         self._dag = dag.nodummies()
+
+    def __repr__(self):
+        return "CompiledPolynomialFunction(%s)"%(self._dag)
 
     cdef object eval(CompiledPolynomialFunction self, object x):
         cdef object temp
@@ -126,16 +129,16 @@ cdef class CompiledPolynomialFunction:
             if n % 2 == 0 and m >= half:
                 H = gaps.get(half)
                 if H is not None:
-                    N.set_sqr(H)
+                    N.fill(sqr_pd(H))
                     found = True
 
             if not found:
                 if r > 0:
-                    N.set_mul(self._get_gap(gaps, m*k), self._get_gap(gaps, r))
+                    N.fill(mul_pd(self._get_gap(gaps, m*k), self._get_gap(gaps, r)))
                 elif k % 2 == 0:
-                    N.set_sqr(self._get_gap(gaps, m*k/2))
+                    N.fill(sqr_pd(self._get_gap(gaps, m*k/2)))
                 else:
-                    N.set_mul(self._get_gap(gaps, m*(k-1)), M)
+                    N.fill(mul_pd(self._get_gap(gaps, m*(k-1)), M))
 
             T = gaps.pop_max()
 
@@ -170,16 +173,13 @@ cdef class dummy_pd(generic_pd):
     def __init__(dummy_pd self, int label):
         self.label = label
 
-    cdef void set_sqr(dummy_pd self, generic_pd other):
-        self.link = sqr_pd(other)
-
-    cdef void set_mul(dummy_pd self, generic_pd left, generic_pd right):
-        self.link = mul_pd(left, right)
+    cdef void fill(dummy_pd self, generic_pd link):
+        self.link = link
 
     cdef generic_pd nodummies(dummy_pd self):
         #sorry guys, this is my stop
         self.link.refs = self.refs
-        return self.link
+        return self.link.nodummies()
 
 cdef class var_pd(generic_pd):
     def __init__(var_pd self, int index):
@@ -187,6 +187,9 @@ cdef class var_pd(generic_pd):
         self.index = index
     cdef void eval(var_pd self, object vars, object coeffs):
         self.value = vars[self.index]
+    def __repr__(self):
+        return "x[%s]"%(self.index)
+
 
 cdef class univar_pd(generic_pd):
     def __init__(univar_pd self):
@@ -194,6 +197,8 @@ cdef class univar_pd(generic_pd):
         self.label = 1
     cdef void eval(univar_pd self, object var, object coeffs):
         self.value = var
+    def __repr__(self):
+        return "x"
 
 cdef class coeff_pd(generic_pd):
     def __init__(coeff_pd self, int index):
@@ -201,6 +206,8 @@ cdef class coeff_pd(generic_pd):
         self.index = index
     cdef void eval(coeff_pd self, object vars, object coeffs):
         self.value = coeffs[self.index]
+    def __repr__(self):
+        return "a%s"%(self.index)
 
 cdef class unary_pd(generic_pd):
     def __init__(unary_pd self, generic_pd operand):
@@ -208,15 +215,17 @@ cdef class unary_pd(generic_pd):
         self.operand = operand
         self.operand.refs += 1
 
-    def nodummies(unary_pd self):
+    cdef generic_pd nodummies(self):
         self.operand = self.operand.nodummies()
-
+        return self
 
 cdef class sqr_pd(unary_pd):
     cdef void eval(sqr_pd self, object vars, object coeffs):
         pd_eval(self.operand, vars, coeffs)
         self.value = self.operand.value * self.operand.value
         pd_clean(self.operand)
+    def __repr__(self):
+        return "(%s)^2"%(self.operand)
 
 cdef class pow_pd(unary_pd):
     def __init__(unary_pd self, generic_pd base, object exponent):
@@ -228,6 +237,9 @@ cdef class pow_pd(unary_pd):
         self.value = self.operand.value ** self.exponent
         pd_clean(self.operand)
 
+    def __repr__(self):
+        return "(%s^%s)"%(self.left, self.exponent)
+
 
 
 cdef class binary_pd(generic_pd):
@@ -238,9 +250,10 @@ cdef class binary_pd(generic_pd):
         self.left.refs+= 1
         self.right.refs+= 1
 
-    def nodummies(binary_pd self):
+    cdef generic_pd nodummies(self):
         self.left = self.left.nodummies()
         self.right = self.right.nodummies()
+        return self
 
 cdef class add_pd(binary_pd):
     cdef void eval(add_pd self, object vars, object coeffs):
@@ -249,6 +262,8 @@ cdef class add_pd(binary_pd):
         self.value = self.left.value + self.right.value
         pd_clean(self.left)
         pd_clean(self.right)
+    def __repr__(self):
+        return "(%s+%s)"%(self.left, self.right)
 
 cdef class mul_pd(binary_pd):
     cdef void eval(mul_pd self, object vars, object coeffs):
@@ -257,11 +272,16 @@ cdef class mul_pd(binary_pd):
         self.value = self.left.value * self.right.value
         pd_clean(self.left)
         pd_clean(self.right)
+    def __repr__(self):
+        return "(%s*%s)"%(self.left, self.right)
 
 cdef class abc_pd(binary_pd):
     def __init__(abc_pd self, generic_pd left, generic_pd right, int index):
         binary_pd.__init__(self, left, right)
         self.index = index
+
+    def __repr__(self):
+        return "(%s*%s+a%s)"%(self.left, self.right, self.index)
 
     cdef void eval(abc_pd self, object vars, object coeffs):
         pd_eval(self.left, vars, coeffs)

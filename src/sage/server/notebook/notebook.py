@@ -1570,6 +1570,12 @@ def notebook(dir         ='sage_notebook',
     import worksheet
     worksheet.init_sage_prestart()
 
+    if '/' in dir:
+	# change current working directory and make the notebook
+	# directory a subdirectory of the working directory.
+        base, dir = os.path.split(dir)
+        os.chdir(base)
+
     if restart_on_crash:
         # Start a new subprocess
         def f(x):  # format for passing on

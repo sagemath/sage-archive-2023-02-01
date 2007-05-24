@@ -49,6 +49,13 @@ SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 
 
+# The default is for there to be one sage session for
+# each worksheet.  If this is False, then there is just
+# one global SAGE session, like with Mathematica.
+# This variable gets sets when the notebook function
+# in notebook.py is called.
+multisession = True
+
 _a_sage = None
 def init_sage_prestart():
     global _a_sage
@@ -65,7 +72,8 @@ def init_sage_prestart():
 def one_prestarted_sage():
     global _a_sage
     X = _a_sage
-    init_sage_prestart()
+    if multisession:
+        init_sage_prestart()
     return X
 
 class Worksheet:

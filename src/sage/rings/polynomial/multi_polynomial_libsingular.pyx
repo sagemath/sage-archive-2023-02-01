@@ -324,6 +324,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            else:
+                raise TypeError, "parents do not match"
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # Accepting ZZ

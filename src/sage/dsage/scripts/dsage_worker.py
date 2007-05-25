@@ -169,11 +169,10 @@ class Worker(object):
         if failure.check(NoJobException):
             if self.sleep_time >= 60:
                 self.sleep_time = 60
-            else:
-                self.sleep_time = self.sleep_time * 2
             if self.log_level > 3:
                 msg = 'Sleeping for %s seconds' % self.sleep_time
                 log.msg(LOG_PREFIX % self.id + msg)
+            self.sleep_time = self.sleep_time * 2
             reactor.callLater(self.sleep_time, self.get_job)
         else:
             log.msg("Error: ", failure.getErrorMessage())

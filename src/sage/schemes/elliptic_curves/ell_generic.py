@@ -97,10 +97,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         f = y**2*z + (a1*x + a3*z)*y*z \
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
+        # TODO: cleanup, are these two point classes redundant?
         if K.is_field():
-            self._point_class = ell_point.EllipticCurvePoint_field
+            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
         else:
-            self._point_class = ell_point.EllipticCurvePoint
+            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
         return (self.__base_ring, self.__ainvs)

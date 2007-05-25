@@ -143,7 +143,7 @@ class HyperellipticCurve_finite_field(hyperelliptic_generic.HyperellipticCurve_g
                     points.append(self.point([x, -y, one], check=True))
         else:
             b = -h/2
-            D = b*b + f
+            D = b*b + f  # this is really disc/4
             for x in K:
                 Dval = D(x)
                 sqrtD = square_roots[Dval]

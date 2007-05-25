@@ -48,29 +48,29 @@ cdef extern from "Python.h":
     # Create a new integer object with a value of ival. If the value
     # exceeds LONG_MAX, a long integer object is returned.
 
-    long PyInt_AsLong(object  io)
+    long PyInt_AsLong(object io)
     # Will first attempt to cast the object to a PyIntObject, if it is
     # not already one, and then return its value. If there is an
     # error, -1 is returned, and the caller should check
     # PyErr_Occurred() to find out whether there was an error, or
     # whether the value just happened to be -1.
 
-    long PyInt_AS_LONG(object  io)
+    long PyInt_AS_LONG(object io)
     # Return the value of the object io. No error checking is performed.
 
-    unsigned long PyInt_AsUnsignedLongMask(object  io)
+    unsigned long PyInt_AsUnsignedLongMask(object io)
     # Will first attempt to cast the object to a PyIntObject or
     # PyLongObject, if it is not already one, and then return its
     # value as unsigned long. This function does not check for
     # overflow.
 
     ctypedef unsigned long long PY_LONG_LONG
-    PY_LONG_LONG PyInt_AsUnsignedLongLongMask(object  io)
+    PY_LONG_LONG PyInt_AsUnsignedLongLongMask(object io)
     # Will first attempt to cast the object to a PyIntObject or
     # PyLongObject, if it is not already one, and then return its
     # value as unsigned long long, without checking for overflow.
 
-    Py_ssize_t PyInt_AsSsize_t(object  io)
+    Py_ssize_t PyInt_AsSsize_t(object io)
     # Will first attempt to cast the object to a PyIntObject or
     # PyLongObject, if it is not already one, and then return its
     # value as Py_ssize_t.

@@ -8,88 +8,88 @@ cdef extern from "Python.h":
     # PyTypeObject PyDict_Type
     # This instance of PyTypeObject represents the Python dictionary type. This is exposed to Python programs as dict and types.DictType.
 
-    int PyDict_Check(	object p)
+    int PyDict_Check(object p)
     # Return true if p is a dict object or an instance of a subtype of
     # the dict type.
 
-    int PyDict_CheckExact(	object p)
+    int PyDict_CheckExact(object p)
     # Return true if p is a dict object, but not an instance of a
     # subtype of the dict type.
 
-    object PyDict_New(	)
+    object PyDict_New()
     # Return value: New reference.
     # Return a new empty dictionary, or NULL on failure.
 
-    object PyDictProxy_New(	object dict)
+    object PyDictProxy_New(object dict)
     # Return value: New reference.
     # Return a proxy object for a mapping which enforces read-only
     # behavior. This is normally used to create a proxy to prevent
     # modification of the dictionary for non-dynamic class types.
 
-    void PyDict_Clear(	object p)
+    void PyDict_Clear(object p)
     # Empty an existing dictionary of all key-value pairs.
 
-    int PyDict_Contains(	object p, object key)
+    int PyDict_Contains(object p, object key)
     # Determine if dictionary p contains key. If an item in p is
     # matches key, return 1, otherwise return 0. On error, return
     # -1. This is equivalent to the Python expression "key in p".
 
-    object PyDict_Copy(	object p)
+    object PyDict_Copy(object p)
     # Return value: New reference.
     # Return a new dictionary that contains the same key-value pairs as p.
 
-    int PyDict_SetItem(	object p, object key, object val)
+    int PyDict_SetItem(object p, object key, object val)
     # Insert value into the dictionary p with a key of key. key must
     # be hashable; if it isn't, TypeError will be raised. Return 0 on
     # success or -1 on failure.
 
-    int PyDict_SetItemString(	object p,  char *key, object val)
+    int PyDict_SetItemString(object p, char *key, object val)
     # Insert value into the dictionary p using key as a key. key
     # should be a char*. The key object is created using
     # PyString_FromString(key). Return 0 on success or -1 on failure.
 
-    int PyDict_DelItem(	object p, object key)
+    int PyDict_DelItem(object p, object key)
     # Remove the entry in dictionary p with key key. key must be
     # hashable; if it isn't, TypeError is raised. Return 0 on success
     # or -1 on failure.
 
-    int PyDict_DelItemString(	object p, char *key)
+    int PyDict_DelItemString(object p, char *key)
     # Remove the entry in dictionary p which has a key specified by
     # the string key. Return 0 on success or -1 on failure.
 
-    PyObject* PyDict_GetItem(	object p, object key)
+    PyObject* PyDict_GetItem(object p, object key)
     # Return value: Borrowed reference.
     # Return the object from dictionary p which has a key key. Return
     # NULL if the key key is not present, but without setting an
     # exception.
 
-    PyObject* PyDict_GetItemString(	object p,  char *key)
+    PyObject* PyDict_GetItemString(object p, char *key)
     # Return value: Borrowed reference.
     # This is the same as PyDict_GetItem(), but key is specified as a
     # char*, rather than a PyObject*.
 
-    object PyDict_Items(	object p)
+    object PyDict_Items(object p)
     # Return value: New reference.
     # Return a PyListObject containing all the items from the
     # dictionary, as in the dictionary method items() (see the Python
     # Library Reference).
 
-    object PyDict_Keys(	object p)
+    object PyDict_Keys(object p)
     # Return value: New reference.
     # Return a PyListObject containing all the keys from the
     # dictionary, as in the dictionary method keys() (see the Python
     # Library Reference).
 
-    object PyDict_Values(	object p)
+    object PyDict_Values(object p)
     # Return value: New reference.
     # Return a PyListObject containing all the values from the
     # dictionary p, as in the dictionary method values() (see the
     # Python Library Reference).
 
-    Py_ssize_t PyDict_Size(	object p)
+    Py_ssize_t PyDict_Size(object p)
     # Return the number of items in the dictionary. This is equivalent to "len(p)" on a dictionary.
 
-    int PyDict_Next(	object p, Py_ssize_t *ppos, PyObject* *pkey, PyObject* *pvalue)
+    int PyDict_Next(object p, Py_ssize_t *ppos, PyObject* *pkey, PyObject* *pvalue)
     # Iterate over all key-value pairs in the dictionary p. The int
     # referred to by ppos must be initialized to 0 prior to the first
     # call to this function to start the iteration; the function
@@ -128,7 +128,7 @@ cdef extern from "Python.h":
     #    Py_DECREF(o);
     # }
 
-    int PyDict_Merge(	object a, object b, int override)
+    int PyDict_Merge(object a, object b, int override)
     # Iterate over mapping object b adding key-value pairs to
     # dictionary a. b may be a dictionary, or any object supporting
     # PyMapping_Keys() and PyObject_GetItem(). If override is true,
@@ -137,11 +137,11 @@ cdef extern from "Python.h":
     # matching key in a. Return 0 on success or -1 if an exception was
     # raised.
 
-    int PyDict_Update(	object a, object b)
+    int PyDict_Update(object a, object b)
     # This is the same as PyDict_Merge(a, b, 1) in C, or a.update(b)
     # in Python. Return 0 on success or -1 if an exception was raised.
 
-    int PyDict_MergeFromSeq2(	object a, object seq2, int override)
+    int PyDict_MergeFromSeq2(object a, object seq2, int override)
     # Update or merge into dictionary a, from the key-value pairs in
     # seq2. seq2 must be an iterable object producing iterable objects
     # of length 2, viewed as key-value pairs. In case of duplicate

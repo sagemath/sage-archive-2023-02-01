@@ -8,15 +8,15 @@ cdef extern from "Python.h":
     # 3. Reference Counts
     #####################################################################
     # The macros in this section are used for managing reference counts of Python objects.
-    void Py_INCREF(	object o)
+    void Py_INCREF(object o)
     # Increment the reference count for object o. The object must not
     # be NULL; if you aren't sure that it isn't NULL, use
     # Py_XINCREF().
 
-    void Py_XINCREF(	object o)
+    void Py_XINCREF(object o)
     # Increment the reference count for object o. The object may be NULL, in which case the macro has no effect.
 
-    void Py_DECREF(	object o)
+    void Py_DECREF(object o)
     # Decrement the reference count for object o. The object must not
     # be NULL; if you aren't sure that it isn't NULL, use
     # Py_XDECREF(). If the reference count reaches zero, the object's
@@ -34,13 +34,13 @@ cdef extern from "Python.h":
     # temporary variable, update the list data structure, and then
     # call Py_DECREF() for the temporary variable.
 
-    void Py_XDECREF(	object o)
+    void Py_XDECREF(object o)
     # Decrement the reference count for object o. The object may be
     # NULL, in which case the macro has no effect; otherwise the
     # effect is the same as for Py_DECREF(), and the same warning
     # applies.
 
-    void Py_CLEAR(	object o)
+    void Py_CLEAR(object o)
     # Decrement the reference count for object o. The object may be
     # NULL, in which case the macro has no effect; otherwise the
     # effect is the same as for Py_DECREF(), except that the argument

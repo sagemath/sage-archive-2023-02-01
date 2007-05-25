@@ -11,11 +11,11 @@ cdef extern from "Python.h":
     # function type. It is exposed to Python programmers as
     # types.FunctionType.
 
-    int PyFunction_Check(	object o)
+    int PyFunction_Check(object o)
     # Return true if o is a function object (has type
     # PyFunction_Type). The parameter must not be NULL.
 
-    object PyFunction_New(	object code, object globals)
+    object PyFunction_New(object code, object globals)
     # Return value: New reference.
     # Return a new function object associated with the code object
     # code. globals must be a dictionary with the global variables
@@ -24,36 +24,36 @@ cdef extern from "Python.h":
     # the code object, the argument defaults and closure are set to
     # NULL.
 
-    PyObject* PyFunction_GetCode(	object op)
+    PyObject* PyFunction_GetCode(object op)
     # Return value: Borrowed reference.
     # Return the code object associated with the function object op.
 
-    PyObject* PyFunction_GetGlobals(	object op)
+    PyObject* PyFunction_GetGlobals(object op)
     # Return value: Borrowed reference.
     # Return the globals dictionary associated with the function object op.
 
-    PyObject* PyFunction_GetModule(	object op)
+    PyObject* PyFunction_GetModule(object op)
     # Return value: Borrowed reference.
     # Return the __module__ attribute of the function object op. This
     # is normally a string containing the module name, but can be set
     # to any other object by Python code.
 
-    PyObject* PyFunction_GetDefaults(	object op)
+    PyObject* PyFunction_GetDefaults(object op)
     # Return value: Borrowed reference.
     # Return the argument default values of the function object
     # op. This can be a tuple of arguments or NULL.
 
-    int PyFunction_SetDefaults(	object op, object defaults)
+    int PyFunction_SetDefaults(object op, object defaults)
     # Set the argument default values for the function object
     # op. defaults must be Py_None or a tuple.
     # Raises SystemError and returns -1 on failure.
 
-    PyObject* PyFunction_GetClosure(	object op)
+    PyObject* PyFunction_GetClosure(object op)
     # Return value: Borrowed reference.
     # Return the closure associated with the function object op. This
     # can be NULL or a tuple of cell objects.
 
-    int PyFunction_SetClosure(	object op, object closure)
+    int PyFunction_SetClosure(object op, object closure)
     # Set the closure associated with the function object op. closure
     # must be Py_None or a tuple of cell objects.
     # Raises SystemError and returns -1 on failure.

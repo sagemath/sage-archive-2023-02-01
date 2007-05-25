@@ -6,7 +6,7 @@ cdef extern from "Python.h":
     ############################################################################
     # PyTypeObject PyInstance_Type
     # Type object for class instances.
-    # int PyInstance_Check(	PyObject *obj)
+    # int PyInstance_Check(PyObject *obj)
     # Return true if obj is an instance.
 
     object PyInstance_New(PyObject* cls, object arg, object kw)
@@ -15,7 +15,7 @@ cdef extern from "Python.h":
     # and kw are used as the positional and keyword parameters to the
     # object's constructor.
 
-    object PyInstance_NewRaw(	object cls, object dict)
+    object PyInstance_NewRaw(object cls, object dict)
     # Return value: New reference.
     # Create a new instance of a specific class without calling its
     # constructor. class is the class of new object. The dict

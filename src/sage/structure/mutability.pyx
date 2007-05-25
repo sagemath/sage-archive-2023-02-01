@@ -61,16 +61,10 @@ cdef class Mutability:
             sage: v.is_immutable()
             True
         """
-        try:
-            return self._is_immutable
-        except AttributeError:
-            return False
+        self._is_immutable
 
     def is_mutable(self):
-        try:
-            return not self._is_immutable
-        except AttributeError:
-            return True
+        return not self._is_immutable
 
     def __reduce__(self):
         return Mutability, (self._is_immutable, )

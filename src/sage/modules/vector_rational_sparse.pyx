@@ -56,17 +56,17 @@ cdef class Vector_mpq:
         cdef int n
         n = self.cmp(x)
         if op == 0:
-            return bool(n < 0)
+            return (n < 0)
         elif op == 1:
-            return bool(n <= 0)
+            return (n <= 0)
         elif op == 2:
-            return bool(n == 0)
+            return (n == 0)
         elif op == 3:
-            return bool(n != 0)
+            return (n != 0)
         elif op == 4:
-            return bool(n > 0)
+            return (n > 0)
         else:
-            return bool(n >= 0)
+            return (n >= 0)
 
     def __setitem__(self, Py_ssize_t n, x):
         mpq_vector_set_entry(&self.v, n, (<Rational> x).value)

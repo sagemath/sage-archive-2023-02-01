@@ -760,7 +760,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         raise NotImplementedError
 
     def _is_exact_zero(self):
-        return bool(mpz_sgn(self.unit) == -1)
+        return mpz_sgn(self.unit) == -1
 
     def is_zero(self, absprec = None):
         r"""
@@ -774,7 +774,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
         """
         if absprec is None:
-            return bool(mpz_sgn(self.unit) <= 0)
+            return mpz_sgn(self.unit) <= 0
         if mpz_sgn(self.unit) == -1:
             return True
         self._normalize()
@@ -785,7 +785,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                 raise PrecisionError, "Not enough precision to determine if element is zero"
             else:
                 return True
-        return bool(self.ordp >= mpz_get_si((<Integer>absprec).value))
+        return self.ordp >= mpz_get_si((<Integer>absprec).value)
 
     def is_equal_to(self, right, absprec=None):
         r"""
@@ -827,7 +827,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                             mpz_clear(tmp)
                             return False
                     else:
-                        return bool(mpz_cmp(self.unit, (<pAdicCappedRelativeElement>right).unit) == 0)
+                        return mpz_cmp(self.unit, (<pAdicCappedRelativeElement>right).unit) == 0
                 else:
                     if mpz_cmp(self.prime_pow.dense_list[(<pAdicCappedRelativeElement>right).relprec], self.unit) <= 0:
                         mpz_init(tmp)
@@ -839,7 +839,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                             mpz_clear(tmp)
                             return False
                     else:
-                        return bool(mpz_cmp(self.unit, (<pAdicCappedRelativeElement>right).unit) == 0)
+                        return mpz_cmp(self.unit, (<pAdicCappedRelativeElement>right).unit) == 0
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         cdef unsigned long aprec

@@ -15,7 +15,8 @@ import  sage.structure.element
 cdef class RealNumber(sage.structure.element.RingElement)  # forward decl
 
 cdef class RealField(sage.rings.ring.Field):
-    cdef int __prec, sci_not
+    cdef int __prec
+    cdef bint sci_not
     cdef mp_rnd_t rnd
     cdef object rnd_str
     cdef RealNumber _new(self)

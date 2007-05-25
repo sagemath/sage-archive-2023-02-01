@@ -3,8 +3,8 @@ from sage.rings.ring cimport Field
 from sage.structure.parent  cimport Parent
 
 cdef extern from *:
-    int finite(double)
-    int isinf(double)
+    bint finite(double)
+    bint isinf(double)
     double NAN
     double INFINITY
 
@@ -17,7 +17,7 @@ cdef extern from "stdsage.h":
 cdef extern from "Python.h":
     ctypedef struct PyTypeObject
     ctypedef struct PyObject
-    int PyObject_TypeCheck(object o, PyTypeObject *t)
+    bint PyObject_TypeCheck(object o, PyTypeObject *t)
 
 cdef extern from "qd/qd_real.h":
 
@@ -44,8 +44,8 @@ cdef extern from "qd/qd_real.h":
     double qd_to_double "to_double"(qd a)
 
     # Nan, inf
-    int qd_is_nan "isnan"(qd a)
-    int qd_is_inf "isinf"(qd a)
+    bint qd_is_nan "isnan"(qd a)
+    bint qd_is_inf "isinf"(qd a)
 
 # C interface to qd
 cdef extern from "qd/c_qd.h":

@@ -54,9 +54,9 @@ cimport free_module_element
 
 
 cdef class Vector_rational_dense(free_module_element.FreeModuleElement):
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 1
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 0
 
     cdef _new_c(self):

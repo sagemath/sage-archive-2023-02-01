@@ -53,9 +53,9 @@ cdef extern from "givaro/givgfq.h":
         int (* axpy)(int r, int a, int b, int c)
         int (* axmy)(int r, int a, int b, int c)
         int (* amxy)(int r, int a, int b, int c)
-        int (* isZero)(int e)
-        int (* isOne)(int e)
-        int (* isunit)(int e)
+        bint (* isZero)(int e)
+        bint (* isOne)(int e)
+        bint (* isunit)(int e)
 
     GivaroGfq *gfq_factorypk "new GFqDom<int>" (unsigned int p, unsigned int k)
     # SAGE specific method, not found upstream

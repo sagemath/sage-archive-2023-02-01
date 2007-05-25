@@ -464,13 +464,13 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         """
         if absprec is None:
-            return bool(mpz_sgn(self.value) == 0)
+            return mpz_sgn(self.value) == 0
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         cdef unsigned long aprec
         aprec = mpz_get_ui((<Integer>absprec).value)
         if aprec >= self.prime_pow._cache_limit:
-            return bool(mpz_sgn(self.value) == 0)
+            return mpz_sgn(self.value) == 0
         cdef mpz_t tmp
         mpz_init(tmp)
         mpz_mod(tmp, self.value, self.prime_pow.dense_list[aprec])
@@ -494,7 +494,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
         """
         if absprec is None:
-            return bool(mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0)
+            return mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if absprec < 0:
@@ -502,7 +502,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         cdef unsigned long aprec
         aprec = mpz_get_ui((<Integer>absprec).value)
         if aprec >= self.prime_pow._cache_limit:
-            return bool(mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0)
+            return mpz_cmp(self.value, (<pAdicFixedModElement>right).value) == 0
         cdef mpz_t tmp1, tmp2
         mpz_init(tmp1)
         mpz_init(tmp2)
@@ -883,13 +883,7 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
         return (val, unit)
 
     def __hash__(self):
-        return self._hash()
-
-    cdef long _hash(self) except -1:
-        cdef Integer ans
-        ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.value)
-        return hash(ans)
+        return hash(self.lift_c())
 
 def make_pAdicFixedModElement(parent, value):
     return parent(value)

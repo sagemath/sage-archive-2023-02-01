@@ -75,7 +75,7 @@ def is_ParentWithGens(x):
         sage: is_ParentWithGens(Primes())
         False
     """
-    return bool(PY_TYPE_CHECK(x, ParentWithGens))
+    return PY_TYPE_CHECK(x, ParentWithGens)
 
 def is_ParentWithAdditiveAbelianGens(x):
     """
@@ -90,7 +90,7 @@ def is_ParentWithAdditiveAbelianGens(x):
         sage: is_ParentWithAdditiveAbelianGens(QQ^3)
         True
     """
-    return bool(PY_TYPE_CHECK(x, ParentWithAdditiveAbelianGens))
+    return PY_TYPE_CHECK(x, ParentWithAdditiveAbelianGens)
 
 def is_ParentWithMultiplicativeAbelianGens(x):
     """
@@ -105,7 +105,7 @@ def is_ParentWithMultiplicativeAbelianGens(x):
         sage: is_ParentWithMultiplicativeAbelianGens(DirichletGroup(11))
         True
     """
-    return bool(PY_TYPE_CHECK(x, ParentWithMultiplicativeAbelianGens))
+    return PY_TYPE_CHECK(x, ParentWithMultiplicativeAbelianGens)
 
 def _certify_names(names):
     v = []

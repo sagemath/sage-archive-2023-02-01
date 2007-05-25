@@ -306,7 +306,7 @@ cdef class Element(sage_object.SageObject):
         """
         if not hasattr(self,'__call__'):
             return self
-        parent=self.parent()
+        parent=self._parent
         if not is_ParentWithGens(parent):
             return self
         variables=[]
@@ -389,13 +389,13 @@ cdef class Element(sage_object.SageObject):
         if self._parent.is_atomic_repr():
             return True
         s = str(self)
-        return PyBool_FromLong(s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1)
+        return s.find("+") == -1 and s.find("-") == -1 and s.find(" ") == -1
 
     def __nonzero__(self):
         """
         Return True if self does not equal self.parent()(0).
         """
-        return PyBool_FromLong(self != self._parent(0))
+        return self != self._parent(0)
 
     def is_zero(self):
         """
@@ -405,7 +405,7 @@ cdef class Element(sage_object.SageObject):
         NOTE: Do not re-implement this method in your subclass but
         implement __nonzero__ instead.
         """
-        return PyBool_FromLong(not self)
+        return not self
 
     def _cmp_(left, right):
         return left._cmp(right)
@@ -459,17 +459,17 @@ cdef class Element(sage_object.SageObject):
 
     cdef _rich_to_bool(self, int op, int r):
         if op == 0:  #<
-            return PyBool_FromLong(r  < 0)
+            return (r  < 0)
         elif op == 2: #==
-            return PyBool_FromLong(r == 0)
+            return (r == 0)
         elif op == 4: #>
-            return PyBool_FromLong(r  > 0)
+            return (r  > 0)
         elif op == 1: #<=
-            return PyBool_FromLong(r <= 0)
+            return (r <= 0)
         elif op == 3: #!=
-            return PyBool_FromLong(r != 0)
+            return (r != 0)
         elif op == 5: #>=
-            return PyBool_FromLong(r >= 0)
+            return (r >= 0)
 
     ####################################################################
     # For a derived Pyrex class, you **must** put the following in
@@ -856,7 +856,7 @@ def module_element_generic_multiply(left, right):
     return module_element_generic_multiply_c(left, right)
 
 cdef module_element_generic_multiply_c(left, right):
-    cdef int is_element
+    cdef bint is_element
     if PY_TYPE_CHECK(right, ModuleElement) and not PY_TYPE_CHECK(right, RingElement):
         # do left * (a module element right)
         is_element = PY_TYPE_CHECK(left, Element)
@@ -1145,7 +1145,7 @@ def is_RingElement(x):
 cdef class RingElement(ModuleElement):
     ##################################################
     def is_one(self):
-        return PyBool_FromLong(self == self.parent()(1))
+        return self == self._parent(1)
 
     ##################################
     # Multiplication
@@ -1414,7 +1414,7 @@ def is_CommutativeRingElement(x):
 
 cdef class CommutativeRingElement(RingElement):
     def _im_gens_(self, codomain, im_gens):
-        if len(im_gens) == 1 and self.parent().gen(0) == 1:
+        if len(im_gens) == 1 and self._parent.gen(0) == 1:
             return codomain(self)
         raise NotImplementedError
 
@@ -1484,16 +1484,16 @@ cdef class CommutativeRingElement(RingElement):
             x^2 + 2*z^2
         """
         from sage.rings.all import is_Ideal
-        if not is_Ideal(I) or not I.ring() is self.parent():
-            I = self.parent().ideal(I)
+        if not is_Ideal(I) or not I.ring() is self._parent:
+            I = self._parent.ideal(I)
             #raise TypeError, "I = %s must be an ideal in %s"%(I, self.parent())
         return I.reduce(self)
 
 cdef class Vector(ModuleElement):
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         raise NotImplementedError
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         raise NotImplementedError
 
     def __mul__(left, right):
@@ -1550,10 +1550,10 @@ def is_Vector(x):
     return IS_INSTANCE(x, Vector)
 
 cdef class Matrix(AlgebraElement):
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         raise NotImplementedError
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         raise NotImplementedError
 
     def __mul__(left, right):
@@ -1791,7 +1791,7 @@ cdef class FieldElement(CommutativeRingElement):
             sage: a = QQ(2); a.is_unit()
             True
         """
-        return PyBool_FromLong(not self.is_zero())
+        return not not self
 
     def _gcd(self, FieldElement other):
         """
@@ -1800,7 +1800,7 @@ cdef class FieldElement(CommutativeRingElement):
         if self.is_zero() and other.is_zero():
             return self
         else:
-            return self.parent()(1)
+            return self._parent(1)
 
     def _lcm(self, FieldElement other):
         """
@@ -1809,10 +1809,10 @@ cdef class FieldElement(CommutativeRingElement):
         if self.is_zero() and other.is_zero():
             return self
         else:
-            return self.parent()(1)
+            return self._parent(1)
 
     def _xgcd(self, FieldElement other):
-        R = self.parent()
+        R = self._parent
         if not self.is_zero():
             return R(1), ~self, R(0)
         elif not other.is_zero():
@@ -1822,7 +1822,7 @@ cdef class FieldElement(CommutativeRingElement):
 
 
     def quo_rem(self, right):
-        if not isinstance(right, FieldElement) or not (right.parent() is self.parent()):
+        if not isinstance(right, FieldElement) or not (right._parent is self._parent):
             right = self.parent()(right)
         return self/right, 0
 
@@ -1904,7 +1904,7 @@ import  sage.modules.module
 #################################################################################
 # parent
 #################################################################################
-cdef parent_c(x):
+cdef inline parent_c(x):
     if PY_TYPE_CHECK(x,Element):
         return (<Element>x)._parent
     return <object>PY_TYPE(x)
@@ -1925,7 +1925,7 @@ def coerce(Parent p, x):
 #################################################################################
 # canonical coercion of two ring elements into one of their parents.
 #################################################################################
-cdef _verify_canonical_coercion_c(x, y):
+cdef inline _verify_canonical_coercion_c(x, y):
     if not have_same_parent(x,y):
         raise RuntimeError, """There is a bug in the coercion code in SAGE.
 Both x (=%s) and y (=%s) are supposed to have identical parents but they don't.
@@ -2053,7 +2053,7 @@ cdef bin_op_c(x, y, op):
     # parent'' rule.
     # The next rule to try is scalar multiplication by coercing
     # into the base ring.
-    cdef int x_is_modelt, y_is_modelt
+    cdef bint x_is_modelt, y_is_modelt
 
     y_is_modelt = PY_TYPE_CHECK(y, ModuleElement)
     if y_is_modelt:

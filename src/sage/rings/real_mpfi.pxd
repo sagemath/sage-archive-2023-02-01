@@ -18,7 +18,8 @@ cimport real_mpfr
 cdef class RealIntervalFieldElement(sage.structure.element.RingElement)  # forward decl
 
 cdef class RealIntervalField(sage.rings.ring.Field):
-    cdef int __prec, sci_not
+    cdef int __prec
+    cdef bint sci_not
     # Cache RealField instances for the lower, upper, and middle bounds.
     # These have the same precision as the interval field;
     # __lower_field rounds down, __upper_field rounds up.

@@ -851,7 +851,7 @@ def is_Field(x):
         sage: is_Field(5)
         False
     """
-    return bool(isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field()))
+    return isinstance(x, Field) or (hasattr(x, 'is_field') and x.is_field())
 
 cdef class Field(PrincipalIdealDomain):
     """
@@ -1343,6 +1343,6 @@ def is_Ring(x):
         sage: is_Ring(ZZ)
         True
     """
-    return bool(isinstance(x, Ring))
+    return isinstance(x, Ring)
 
 

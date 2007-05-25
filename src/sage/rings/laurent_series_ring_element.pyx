@@ -273,6 +273,9 @@ cdef class LaurentSeries(AlgebraElement):
             s += " + %s"%bigoh
         return s[1:]
 
+    def __hash__(self):
+        return hash(self.__u) ^ self.__n
+
     def __getitem__(self, i):
         """
         EXAMPLES:
@@ -617,6 +620,9 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
@@ -655,12 +661,18 @@ cdef class LaurentSeries(AlgebraElement):
             True
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
-
         prec = self.common_prec(right)
-        n = min(self.__n, right.__n)
+        if not prec:
+            return 0
+        zero = self.base_ring()(0)
+
+        if self.__n < right.__n:
+            return cmp(self.__u[0], zero)
+        elif self.__n > right.__n:
+            return cmp(zero, right.__u[0])
 
         # zero pad coefficients on the left, to line them up for comparison
-        zero = self.base_ring()(0)
+        cdef long n = min(self.__n, right.__n)
         x = [zero] * (self.__n - n) + self.__u.list()
         y = [zero] * (right.__n - n) + right.__u.list()
 

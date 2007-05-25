@@ -17,7 +17,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef long ordp
     cdef unsigned long relprec
     #cdef PowComputer_class prime_pow
-    cdef int _normalized
+    cdef bint _normalized
     cdef void set_exact_zero(pAdicCappedRelativeElement self)
     cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
     cdef void set_precs(pAdicCappedRelativeElement self, unsigned long relprec)

@@ -19,8 +19,8 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef public object _base_ring
     cdef sage.structure.mutability.Mutability _mutability
 
-    cdef int _will_use_strassen(self, Matrix right) except -2
-    cdef int _will_use_strassen_echelon(self) except -2
+    cdef bint _will_use_strassen(self, Matrix right) except -2
+    cdef bint _will_use_strassen_echelon(self) except -2
     cdef int _strassen_default_cutoff(self, Matrix right) except -2
     cdef int _strassen_default_echelon_cutoff(self) except -2
 
@@ -49,7 +49,7 @@ cdef class Matrix(sage.structure.element.Matrix):
     cdef check_column_bounds_and_mutability(self, Py_ssize_t c1, Py_ssize_t c2)
     cdef swap_rows_c(self, Py_ssize_t r1, Py_ssize_t r2)
     cdef swap_columns_c(self, Py_ssize_t c1, Py_ssize_t c2)
-    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s,   Py_ssize_t col_start)
+    cdef add_multiple_of_row_c(self, Py_ssize_t i, Py_ssize_t j,    s, Py_ssize_t col_start)
     cdef add_multiple_of_column_c(self, Py_ssize_t i, Py_ssize_t j, s, Py_ssize_t row_start)
     cdef rescale_row_c(self, Py_ssize_t i, s, Py_ssize_t start_col)
     cdef rescale_col_c(self, Py_ssize_t i, s, Py_ssize_t start_row)

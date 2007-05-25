@@ -59,7 +59,7 @@ from sage.rings.integral_domain import is_IntegralDomain
 import polynomial_fateman
 
 def is_Polynomial(f):
-    return bool(PY_TYPE_CHECK(f, Polynomial))
+    return PY_TYPE_CHECK(f, Polynomial)
 
 cdef class Polynomial(CommutativeAlgebraElement):
     """
@@ -658,7 +658,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         return R
 
     def _is_atomic(self):
-        return PyBool_FromLong(self.degree() == self.valuation())
+        return self.degree() == self.valuation()
 
     def _mul_generic(self, right):
         if self is right:
@@ -1283,7 +1283,7 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHORS:
             -- Naqi Jaffery (2006-01-24): examples
         """
-        return bool(not self.is_zero() and self[self.degree()] == 1)
+        return not self.is_zero() and self[self.degree()] == 1
 
     def is_unit(self):
         r"""
@@ -2031,11 +2031,16 @@ cdef class Polynomial_generic_dense(Polynomial):
     def __reduce__(self):
         return make_generic_polynomial, (self._parent, self.__coeffs)
 
+    def __nonzero__(self):
+        return len(self.__coeffs) > 0
+
     def __hash__(self):
-        if self.degree() >= 1:
+        if len(self.__coeffs) > 1:
             return hash(tuple(self.__coeffs))
-        else:
+        elif len(self.__coeffs) == 1:
             return hash(self[0])
+        else:
+            return 0
 
     cdef void __normalize(self):
         x = self.__coeffs

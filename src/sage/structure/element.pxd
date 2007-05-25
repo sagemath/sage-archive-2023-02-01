@@ -115,8 +115,8 @@ cdef class Vector(ModuleElement):
     cdef Vector _vector_times_vector_c(Vector left, Vector right)     # do *NOT* override, but OK to call directly
     cdef Vector _vector_times_vector_c_impl(Vector left, Vector right)  # OK to override, but do *NOT* call directly
 
-    cdef int is_sparse_c(self)
-    cdef int is_dense_c(self)
+    cdef bint is_sparse_c(self)
+    cdef bint is_dense_c(self)
 
 
 cdef class Matrix(AlgebraElement):
@@ -131,8 +131,8 @@ cdef class Matrix(AlgebraElement):
     cdef Vector _matrix_times_vector_c_impl(matrix_left, Vector vector_right)    # OK to override, but do *NOT* call directly
     cdef Matrix _matrix_times_matrix_c_impl(left, Matrix right)                  # OK to override, but do *NOT* call directly
 
-    cdef int is_sparse_c(self)
-    cdef int is_dense_c(self)
+    cdef bint is_sparse_c(self)
+    cdef bint is_dense_c(self)
 
 
 

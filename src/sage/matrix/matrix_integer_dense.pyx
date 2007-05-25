@@ -203,6 +203,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         A._initialized = True
         return A
 
+    def __hash__(self):
+        return self._hash()
+
     def __dealloc__(self):
         """
         Frees all the memory allocated for this matrix.
@@ -274,7 +277,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             Full MatrixSpace of 1 by 100000 dense matrices over Integer Ring
         """
         cdef Py_ssize_t i, j
-        cdef int is_list
+        cdef bint is_list
         cdef Integer x
 
         if entries is None:
@@ -442,9 +445,6 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
-
-    def __hash__(self):
-        return self._hash()
 
     ########################################################################
     # LEVEL 1 helpers:
@@ -1975,7 +1975,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         F = self.charpoly().factor()
         if len(F) == 1:
             V = self.base_ring()**self.nrows()
-            return decomp_seq([(V, bool(F[0][1]==1))])
+            return decomp_seq([(V, F[0][1]==1)])
 
         A = self.change_ring(QQ)
         X = A.decomposition(**kwds)

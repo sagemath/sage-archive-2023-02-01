@@ -512,9 +512,9 @@ cdef class pAdicGenericElement(LocalGenericElement):
         elif self.precision_relative() < 1:
             return True
         elif self.parent().prime() != 2:
-            return bool((self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square()))
+            return (self.valuation() % 2 == 0) and (self.unit_part().residue(1).is_square())
         else:
-            return bool((self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1))
+            return (self.valuation() % 2 == 0) and (self.unit_part().residue(3) == 1)
 
     def log(self, branch = None):
         r"""

@@ -410,7 +410,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: GF(3, 'a').is_prime_field()
             True
         """
-        return bool(self.degree()==1)
+        return self.degree()==1
 
     def is_prime(FiniteField_givaro self):
         """
@@ -420,7 +420,7 @@ cdef class FiniteField_givaro(FiniteField):
             sage: GF(3, 'a').is_prime()
             True
         """
-        return bool(self.degree()==1)
+        return self.degree()==1
 
     def random_element(FiniteField_givaro self):
         """
@@ -1238,7 +1238,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(0).is_zero()
             True
         """
-        return not bool((<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
+        return not (<FiniteField_givaro>self._parent).objectptr.isZero(self.element)
 
     def is_one(FiniteField_givaroElement self):
         r"""
@@ -1252,7 +1252,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(1).is_one()
             True
         """
-        return bool((<FiniteField_givaro>self._parent).objectptr.isOne(self.element))
+        return (<FiniteField_givaro>self._parent).objectptr.isOne(self.element)
 
     def is_unit(FiniteField_givaroElement self):
         """
@@ -1267,11 +1267,11 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k(0).is_unit()
             False
         """
-        return bool(not (<FiniteField_givaro>self._parent).objectptr.isZero(self.element))
+        return not (<FiniteField_givaro>self._parent).objectptr.isZero(self.element)
         # **WARNING** Givaro seems to define unit to mean in the prime field,
         # which is totally wrong!  It's a confusion with the underlying polynomial
         # representation maybe??  That's why the following is commented out.
-        # return bool((<FiniteField_givaro>self._parent).objectptr.isunit(self.element))
+        # return (<FiniteField_givaro>self._parent).objectptr.isunit(self.element)
 
 
     def is_square(FiniteField_givaroElement self):
@@ -1296,7 +1296,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             return True
         n = K.order_c() - 1
         a = self**(n / 2)
-        return bool(a == 1) or bool (a == 0)
+        return a == 1 or a == 0
 
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):

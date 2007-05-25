@@ -145,10 +145,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         sage: loads(dumps(a)) == a
         True
         """
-        cdef Integer aprec
-        aprec = PY_NEW(Integer)
-        mpz_set_ui(aprec.value, self.absprec)
-        return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), aprec)
+        return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
     cdef void set_precs(pAdicCappedAbsoluteElement self, unsigned long absprec):
         """
@@ -482,7 +479,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
         """
         if absprec is None:
-            return bool(mpz_sgn(self.value) == 0)
+            return mpz_sgn(self.value) == 0
         cdef Integer _absprec
         if not PY_TYPE_CHECK(absprec, Integer):
             _absprec = Integer(absprec)
@@ -896,13 +893,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return (val, self)
 
     def __hash__(self):
-        return self._hash()
-
-    cdef long _hash(self) except -1:
-        cdef Integer ans
-        ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.value)
-        return hash(ans)
+        return hash(self.lift_c())
 
 def make_pAdicCappedAbsoluteElement(parent, x, absprec):
     return parent(x, absprec=absprec)

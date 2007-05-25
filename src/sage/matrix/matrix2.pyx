@@ -1399,7 +1399,7 @@ cdef class Matrix(matrix1.Matrix):
                 if m > 1 and not is_diagonalizable:
                     B = B**m
                 W = B.kernel()
-                E.append((W, bool(m==1)))
+                E.append((W, m==1))
                 continue
 
             # General case, i.e., deg(g) > 1:
@@ -1434,7 +1434,7 @@ cdef class Matrix(matrix1.Matrix):
                 if W.rank() == m * g.degree():
                     t = verbose('now computing row space', level=2, caller_name='generic spin decomp')
                     W.echelonize()
-                    E.append((W.row_space(), bool(m==1)))
+                    E.append((W.row_space(), m==1))
                     verbose('computed row space', level=2,t=t, caller_name='generic spin decomp')
                     break
                 else:
@@ -1470,9 +1470,9 @@ cdef class Matrix(matrix1.Matrix):
                               self.base_ring(), self.nrows(), sparse=self.is_sparse())
             m = F[0][1]
             if dual:
-                return decomp_seq([(V, bool(m==1))]), decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)]), decomp_seq([(V, m==1)])
             else:
-                return decomp_seq([(V, bool(m==1))])
+                return decomp_seq([(V, m==1)])
         F.sort()
         for g, m in f.factor():
             t = verbose('decomposition -- Computing g(self) for an irreducible factor g of degree %s'%g.degree(),level=2)
@@ -1484,10 +1484,10 @@ cdef class Matrix(matrix1.Matrix):
                 B = B ** m
                 verbose('done powering',t2)
             t = verbose('decomposition -- done computing g(self)', level=2, t=t)
-            E.append((B.kernel(), bool(m==1)))
+            E.append((B.kernel(), m==1))
             t = verbose('decomposition -- time to compute kernel', level=2, t=t)
             if dual:
-                Edual.append((B.transpose().kernel(), bool(m==1)))
+                Edual.append((B.transpose().kernel(), m==1))
                 verbose('decomposition -- time to compute dual kernel', level=2, t=t)
         if dual:
             return E, Edual

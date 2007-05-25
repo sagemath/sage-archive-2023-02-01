@@ -21,10 +21,10 @@ import sage.matrix.matrix_space
 
 cdef class Matrix_sparse(matrix.Matrix):
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 1
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 0
 
     def change_ring(self, ring):
@@ -33,7 +33,7 @@ cdef class Matrix_sparse(matrix.Matrix):
                 return self
             return self.copy()
 
-        M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse())
+        M = sage.matrix.matrix_space.MatrixSpace(ring, self._nrows, self._ncols, sparse=self.is_sparse_c())
         return M(self.dict(), coerce=True, copy=False)
 
     def __copy__(self):
@@ -245,7 +245,7 @@ cdef class Matrix_sparse(matrix.Matrix):
 
         return left.new_matrix(left._nrows, right._ncols, entries=e, coerce=False, copy=False)
 
-    cdef int _will_use_strassen(self, matrix0.Matrix right) except -2:
+    cdef bint _will_use_strassen(self, matrix0.Matrix right) except -2:
         # never use Strassen for sparse matrix multiply
         return 0
 

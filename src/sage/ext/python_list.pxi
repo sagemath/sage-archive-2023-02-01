@@ -4,7 +4,7 @@ cdef extern from "Python.h":
     ############################################################################
     # Lists
     ############################################################################
-    object  PyList_New(Py_ssize_t len)
+    object PyList_New(Py_ssize_t len)
     # Return a new list of length len on success, or NULL on
     # failure. Note: If length is greater than zero, the returned list
     # object's items are set to NULL. Thus you cannot use abstract API
@@ -12,10 +12,10 @@ cdef extern from "Python.h":
     # Python code before setting all items to a real object with
     # PyList_SetItem().
 
-    int PyList_Check(object p)
+    bint PyList_Check(object p)
     # Return true if p is a list object or an instance of a subtype of the list type.
 
-    int PyList_CheckExact(object p)
+    bint PyList_CheckExact(object p)
     # Return true if p is a list object, but not an instance of a subtype of the list type.
 
     Py_ssize_t PyList_Size(object list)

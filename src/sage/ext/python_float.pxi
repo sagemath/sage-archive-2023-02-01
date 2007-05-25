@@ -9,11 +9,11 @@ cdef extern from "Python.h":
     # PyTypeObject PyFloat_Type
     # This instance of PyTypeObject represents the Python floating point type. This is the same object as float and types.FloatType.
 
-    int PyFloat_Check(object p)
+    bint PyFloat_Check(object p)
     # Return true if its argument is a PyFloatObject or a subtype of
     # PyFloatObject.
 
-    int PyFloat_CheckExact(object p)
+    bint PyFloat_CheckExact(object p)
     # Return true if its argument is a PyFloatObject, but not a
     # subtype of PyFloatObject.
 

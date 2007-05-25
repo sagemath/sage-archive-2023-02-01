@@ -37,15 +37,15 @@ cdef extern from "Python.h":
     # object. Likewise, the constructor functions work with any
     # iterable Python object.
 
-    int PyAnySet_Check(object p)
+    bint PyAnySet_Check(object p)
     # Return true if p is a set object, a frozenset object, or an
     # instance of a subtype.
 
-    int PyAnySet_CheckExact(object p)
+    bint PyAnySet_CheckExact(object p)
     # Return true if p is a set object or a frozenset object but not
     # an instance of a subtype.
 
-    int PyFrozenSet_CheckExact(object p)
+    bint PyFrozenSet_CheckExact(object p)
     # Return true if p is a frozenset object but not an instance of a subtype.
 
     PySet_New(object iterable)

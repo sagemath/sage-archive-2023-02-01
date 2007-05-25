@@ -8,7 +8,7 @@ cdef extern from "Python.h":
     # 6.2 Number Protocol
     #####################################################################
 
-    int PyNumber_Check(object o)
+    bint PyNumber_Check(object o)
     # Returns 1 if the object o provides numeric protocols, and false
     # otherwise. This function always succeeds.
 
@@ -203,7 +203,7 @@ cdef extern from "Python.h":
     # failure. The operation is done in-place when o1 supports
     # it. This is the equivalent of the Python statement "o1 |= o2".
 
-    int PyNumber_Coerce(   PyObject* *p1, PyObject* *p2)
+    int PyNumber_Coerce(PyObject **p1, PyObject **p2)
     # This function takes the addresses of two variables of type
     # PyObject*. If the objects pointed to by *p1 and *p2 have the
     # same type, increment their reference count and return 0
@@ -248,5 +248,5 @@ cdef extern from "Python.h":
     # and the value is clipped to PY_SSIZE_T_MIN for a negative
     # integer or PY_SSIZE_T_MAX for a positive integer.
 
-    int PyIndex_Check(object o)
+    bint PyIndex_Check(object o)
     # Returns True if o is an index integer (has the nb_index slot of the tp_as_number structure filled in).

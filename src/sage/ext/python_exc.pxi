@@ -58,7 +58,7 @@ cdef extern from "Python.h":
     # set; a memory access violation will occur if no exception has
     # been raised.
 
-    int PyErr_GivenExceptionMatches(object given, object exc)
+    bint PyErr_GivenExceptionMatches(object given, object exc)
     # Return true if the given exception matches the exception in
     # exc. If exc is a class object, this also returns true when given
     # is an instance of a subclass. If exc is a tuple, all exceptions

@@ -5,7 +5,7 @@ cdef extern from "Python.h":
     # 6.4 Mapping Protocol
     ############################################################################
 
-    int PyMapping_Check(object o)
+    bint PyMapping_Check(object o)
     # Return 1 if the object provides mapping protocol, and 0
     # otherwise. This function always succeeds.
 
@@ -24,12 +24,12 @@ cdef extern from "Python.h":
     # on failure. This is equivalent to the Python statement "del
     # o[key]".
 
-    int PyMapping_HasKeyString(object o, char *key)
+    bint PyMapping_HasKeyString(object o, char *key)
     # On success, return 1 if the mapping object has the key key and 0
     # otherwise. This is equivalent to the Python expression
     # "o.has_key(key)". This function always succeeds.
 
-    int PyMapping_HasKey(object o, object key)
+    bint PyMapping_HasKey(object o, object key)
     # Return 1 if the mapping object has the key key and 0
     # otherwise. This is equivalent to the Python expression
     # "o.has_key(key)". This function always succeeds.

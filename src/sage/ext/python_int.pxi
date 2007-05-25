@@ -8,11 +8,11 @@ cdef extern from "Python.h":
     # This instance of PyTypeObject represents the Python plain
     # integer type. This is the same object as int and types.IntType.
 
-    int PyInt_Check(object  o)
+    bint PyInt_Check(object  o)
     # Return true if o is of type PyInt_Type or a subtype of
     # PyInt_Type.
 
-    int PyInt_CheckExact(object  o)
+    bint PyInt_CheckExact(object  o)
     # Return true if o is of type PyInt_Type, but not a subtype of
     # PyInt_Type.
 

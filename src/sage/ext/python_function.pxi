@@ -11,7 +11,7 @@ cdef extern from "Python.h":
     # function type. It is exposed to Python programmers as
     # types.FunctionType.
 
-    int PyFunction_Check(object o)
+    bint PyFunction_Check(object o)
     # Return true if o is a function object (has type
     # PyFunction_Type). The parameter must not be NULL.
 

@@ -8,11 +8,11 @@ cdef extern from "Python.h":
     # PyTypeObject PyDict_Type
     # This instance of PyTypeObject represents the Python dictionary type. This is exposed to Python programs as dict and types.DictType.
 
-    int PyDict_Check(object p)
+    bint PyDict_Check(object p)
     # Return true if p is a dict object or an instance of a subtype of
     # the dict type.
 
-    int PyDict_CheckExact(object p)
+    bint PyDict_CheckExact(object p)
     # Return true if p is a dict object, but not an instance of a
     # subtype of the dict type.
 

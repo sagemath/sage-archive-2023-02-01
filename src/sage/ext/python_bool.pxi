@@ -10,7 +10,7 @@ cdef extern from "Python.h":
     # such, the normal creation and deletion functions don't apply to
     # booleans. The following macros are available, however.
 
-    int PyBool_Check(object o)
+    bint PyBool_Check(object o)
     # Return true if o is of type PyBool_Type.
 
     #PyObject* Py_False

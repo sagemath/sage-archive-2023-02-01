@@ -14,11 +14,11 @@ cdef extern from "Python.h":
     # it is the same object as str and types.StringType in the Python
     # layer.
 
-    int PyString_Check(object o)
+    bint PyString_Check(object o)
     # Return true if the object o is a string object or an instance of
     # a subtype of the string type.
 
-    int PyString_CheckExact(object o)
+    bint PyString_CheckExact(object o)
     # Return true if the object o is a string object, but not an instance of a subtype of the string type.
 
     object PyString_FromString(char *v)

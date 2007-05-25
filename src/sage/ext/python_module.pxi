@@ -122,11 +122,11 @@ cdef extern from "Python.h":
     # This instance of PyTypeObject represents the Python module
     # type. This is exposed to Python programs as types.ModuleType.
 
-    int PyModule_Check(object p)
+    bint PyModule_Check(object p)
     # Return true if p is a module object, or a subtype of a module
     # object.
 
-    int PyModule_CheckExact(object p)
+    bint PyModule_CheckExact(object p)
     # Return true if p is a module object, but not a subtype of PyModule_Type.
 
     object PyModule_New( char *name)

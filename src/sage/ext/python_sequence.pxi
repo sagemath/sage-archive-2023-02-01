@@ -6,7 +6,7 @@ cdef extern from "Python.h":
     ctypedef void PyObject
 
 
-    int PySequence_Check(object o)
+    bint PySequence_Check(object o)
     # Return 1 if the object provides sequence protocol, and 0
     # otherwise. This function always succeeds.
 

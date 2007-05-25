@@ -8,7 +8,7 @@ cdef extern from "Python.h":
     # PyTypeObject PyMethod_Type
     # This instance of PyTypeObject represents the Python method type. This is exposed to Python programs as types.MethodType.
 
-    int PyMethod_Check(object o)
+    bint PyMethod_Check(object o)
     # Return true if o is a method object (has type
     # PyMethod_Type). The parameter must not be NULL.
 

@@ -486,6 +486,10 @@ cdef class Element(sage_object.SageObject):
     # For a *Python* class just define __cmp__ as always.
     # But note that when this gets called you can assume that
     # both inputs have identical parents.
+    #
+    # If your __cmp__ methods are not getting called, verify that the
+    # canonical_coercion(x,y) is not throwing errors.
+    #
     ####################################################################
     def __richcmp__(left, right, int op):
         return (<Element>left)._richcmp(right, op)

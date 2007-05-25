@@ -357,9 +357,9 @@ except:
             self.report_failure(new)
             self.restart()
             return
+        sanitized_output = self.clean_output(new)
         if self.log_level > 3:
             print 'Output before sanitizing: \n' , sanitized_output
-        sanitized_output = self.clean_output(new)
         if self.log_level > 3:
             print 'Output after sanitizing: \n', sanitized_output
         if sanitized_output == '' and not done:

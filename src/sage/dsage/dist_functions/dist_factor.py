@@ -17,7 +17,7 @@ class DistributedFactor(DistributedFunction):
     """
 
     def __init__(self, DSage, n, concurrent=10, verbosity=0,
-                 trial_division_limit=10000, name='DistributedFactor',
+                 trial_division_limit=1000000, name='DistributedFactor',
                  use_qsieve=False):
         """
         Parameters:

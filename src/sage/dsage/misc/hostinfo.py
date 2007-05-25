@@ -114,7 +114,6 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             return d
 
         if platform == 'darwin':
-            """OS X Worker. """
             cmd = '/usr/sbin/sysctl'
             args = ('-a', 'hw')
             d = utils.getProcessOutput(cmd, args, errortoo=1)
@@ -210,10 +209,6 @@ class ClassicHostInfo(object):
 
             kernel_version = os.popen('uname -r').readline().strip()
             host_info['kernel_version'] = kernel_version
-
-            if not host_info.has_key('model name'):
-                model = os.popen('uname -p').readline().strip()
-                host_info['model name'] = model
         if platform == 'darwin':
             for line in os.popen('sysctl -a hw machdep').readlines():
                 l = line.strip()
@@ -272,7 +267,6 @@ class ClassicHostInfo(object):
                 canonical_info[unify_info[k]] = v
             except KeyError:
                 pass
-
         try:
             import sage.version
             canonical_info['sage_version'] = sage.version.version

@@ -920,7 +920,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                               '.txt', '.ico', '.sws'] or \
                self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
-               self.path[-3:] in ['.ps', '.js'] or \
+               self.path[-3:] in ['.ps', '.js', '.hg'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
             try:
                 return self.get_file()

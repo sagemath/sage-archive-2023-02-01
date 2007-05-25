@@ -31,6 +31,7 @@ AUTHORS:
 import operator
 
 include "../../ext/stdsage.pxi"
+include '../../ext/interrupt.pxi'
 
 import sage.rings.field_element
 import sage.rings.infinity
@@ -365,7 +366,7 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef void _reduce_c_(self):
         """
-            Pull out common factors from the numerator and denominator!
+        Pull out common factors from the numerator and denominator!
         """
         cdef ntl_c_ZZ gcd
         cdef ntl_c_ZZ t1
@@ -420,7 +421,9 @@ cdef class NumberFieldElement(FieldElement):
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
+        _sig_on
         MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+        _sig_off
         x._reduce_c_()
         return x
 
@@ -450,7 +453,9 @@ cdef class NumberFieldElement(FieldElement):
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
+        _sig_on
         MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+        _sig_off
         x._reduce_c_()
         return x
 

@@ -1487,7 +1487,8 @@ def notebook(dir         ='sage_notebook',
              log_server = False,
              kill_idle   = 0,
              restart_on_crash = False,
-             auto_restart = 1800):
+             auto_restart = 1800,
+             multisession = True):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1529,6 +1530,10 @@ def notebook(dir         ='sage_notebook',
                       every 5 seconds in this mode.
         auto_restart -- if restart_on_crash is True, always restart
                       the server every this many seconds.
+        multisession -- (default: True) The default is for there to be
+                       one sage session for each worksheet.  If this
+                       is False, then there is just one global SAGE
+                       session, like with Mathematica.
 
     NOTES:
 
@@ -1575,6 +1580,13 @@ def notebook(dir         ='sage_notebook',
 
     import worksheet
     worksheet.init_sage_prestart()
+    worksheet.multisession = multisession
+
+    if '/' in dir:
+	# change current working directory and make the notebook
+	# directory a subdirectory of the working directory.
+        base, dir = os.path.split(dir)
+        os.chdir(base)
 
     if restart_on_crash:
         # Start a new subprocess
@@ -1589,10 +1601,10 @@ def notebook(dir         ='sage_notebook',
             S = sage.interfaces.sage0.Sage()
             time.sleep(1)
             S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False)"%(
+            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False, multisession=%s)"%(
                 f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
                 f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
-                f(warn), f(ignore_lock), f(log_server), f(kill_idle)
+                f(warn), f(ignore_lock), f(log_server), f(kill_idle), f(multisession)
                 )
             print cmd
             S._send(cmd)

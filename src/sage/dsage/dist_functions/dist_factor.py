@@ -16,9 +16,9 @@ class DistributedFactor(DistributedFunction):
            Yi Qiang
     """
 
-    def __init__(self, DSage, n, concurrent=10, verbosity=0,
+    def __init__(self, DSage, n, concurrent=10, B1=2000, curves=50,
                  trial_division_limit=1000000, name='DistributedFactor',
-                 use_qsieve=False):
+                 use_qsieve=False, verbosity=0):
         """
         Parameters:
             DSage -- an instance of a dsage connection
@@ -37,8 +37,8 @@ class DistributedFactor(DistributedFunction):
         self.n = n
         self.prime_factors = []
         self.composite_factors = []
-        self.cur_B1 = 2000
-        self.curve_count = 50
+        self.cur_B1 = B1
+        self.curves = curves
         self.concurrent = concurrent
         self.verbosity = verbosity
         self.name = name
@@ -98,12 +98,13 @@ else:
     e = ECM()
     DSAGE_RESULT = [e.find_factor(n, B1=%s, c=%s, I=%s), e.primality, e.last_params, 'ecm']
 
-""" % (n, self.cur_B1, self.curve_count, rate_multiplier), name='ecm' )
+""" % (n, self.cur_B1, self.curves, rate_multiplier), name='ecm' )
         job.n = int(n)
         job.algorithm = 'ecm'
         job.verifiable = True
         job.type = 'ecm'
         job.timeout = 60*60*24
+
         return job
 
     def process_result(self, job):

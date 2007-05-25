@@ -450,7 +450,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             (1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1)
             sage: K.<a> = GF(16)
             sage: E = E.change_ring(K)
-            sage: E.lift(a^3)
+            sage: E.lift_x(a^3)
             (a^3 : a^3 + a : 1)
 
 

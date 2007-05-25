@@ -95,6 +95,9 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
     def gp_mod(*args):
         return args[0]
     ans = sage_eval(v, {'Mod': gp_mod, 'y': K.gen(0)})
+    if two_torsion != 1:
+        # haven't figured out how to extract pts, other info
+        ans = [ans, "not extracted", []]
     if shift:
         # Undo the x -> x+a translation above
         ans[2] = [[P[0]+shift, P[1]] for P in ans[2]]

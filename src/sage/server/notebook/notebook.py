@@ -783,6 +783,9 @@ class Notebook(SageObject):
         print_open_msg(address, port)
         print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
 
+        f = file('%s/pid'%self.directory(), 'w')
+        f.writelines(["%d\n"%os.getpid(), str(port)])
+        f.close()
 
         if open_viewer:
             open_page(address, port)
@@ -1636,9 +1639,6 @@ def notebook(dir         ='sage_notebook',
                 return
             except OSError:
                 pass
-        f = file('%s/pid'%dir, 'w')
-        f.writelines(["%d\n"%os.getpid(), str(port)])
-        f.close()
         try:
             nb = load('%s/nb.sobj'%dir, compress=False)
         except:

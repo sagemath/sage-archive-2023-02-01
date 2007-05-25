@@ -112,12 +112,11 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
     def __reduce__(self):
         return make_point, (self.curve(), self._coords)
 
-################## mostly from  SchemeMorphism_projective_coordinates_field ###################
-
     def __init__(self, curve, v, check=True):
         X = curve.point_homset()
         AdditiveGroupElement.__init__(self, X)
         if check:
+            # mostly from  SchemeMorphism_projective_coordinates_field
             d = X.codomain().ambient_space().ngens()
             if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
@@ -150,8 +149,6 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
         self._coords = v
 
 
-################## From SchemeMorphism_coordinates ###################
-
     def _repr_(self):
         return self.codomain().ambient_space()._repr_generic_point(self._coords)
 
@@ -178,15 +175,11 @@ class EllipticCurvePoint_field(AdditiveGroupElement): # SchemeMorphism_abelian_v
     def scheme(self):
         return self.codomain()
 
-################## From Morphism ###################
-
     def domain(self):
         return self.parent().domain()
 
     def codomain(self):
         return self.parent().codomain()
-
-####################
 
     def order(self):
         """

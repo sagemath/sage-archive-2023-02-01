@@ -364,6 +364,10 @@ WRAP_NCOLS = 80
 # Temporarily disabled while we try fix the firefox windows hang bug.
 JSMATH=False
 
+def open_page(address, port):
+    cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
+    os.system(cmd)
+
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
@@ -781,8 +785,7 @@ class Notebook(SageObject):
 
 
         if open_viewer:
-            cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
-            os.system(cmd)
+            open_page(address, port)
         while True:
             try:
                 notebook_server.serve()
@@ -1612,9 +1615,14 @@ def notebook(dir         ='sage_notebook',
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
-        if os.path.exists('%s/pid'%dir) and not ignore_lock:
-            f = file('%s/pid'%dir)
-            p = f.read()
+        pidfile = '%s/pid'%dir
+        if os.path.exists(pidfile) and not ignore_lock:
+            f = file(pidfile)
+            try:
+                p, oldport = f.readlines()
+            except ValueError:
+                p = file(pidfile).read()
+                oldport = port
             f.close()
             try:
                 #This is a hack to check whether or not the process is running.
@@ -1623,11 +1631,13 @@ def notebook(dir         ='sage_notebook',
                                  " not responding, you will need to kill that process to continue.",
                                  " If another (non-sage) process is running with that PID, call",
                                  " notebook(..., ignore_lock = True, ...). " ])
+                if open_viewer:
+                   open_page(address, int(oldport))
                 return
             except OSError:
                 pass
         f = file('%s/pid'%dir, 'w')
-        f.write("%d"%os.getpid())
+        f.writelines(["%d\n"%os.getpid(), str(port)])
         f.close()
         try:
             nb = load('%s/nb.sobj'%dir, compress=False)

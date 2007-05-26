@@ -467,13 +467,24 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
             i = j+4
 
         if     not in_number and \
-               not in_quote()and \
-               (line[i].isdigit() or \
+               not in_quote():
+
+            if i < len(line)-1 and line[i] == '\\':
+                j = i+1
+                while j < len(line) and line[j].isspace():
+                    j += 1
+
+                while j < len(line) and isalphadigit_(line[j]):
+                    j += 1
+                line = line[:i] + ".solve_right(" + line[i+1:j] + ')' + line[j:]
+                i = j+12
+
+            elif (line[i].isdigit() or \
                    (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \
                (i == 0 or (i > 0 and not (isalphadigit_(line[i-1]) \
                                           or line[i-1] == ')'))):
-            in_number = True
-            num_start = i
+                in_number = True
+                num_start = i
 
         # Decide if we hit a comment, so we're done.
         if line[i] == '#' and not (in_single_quote or in_double_quote or in_triple_quote):

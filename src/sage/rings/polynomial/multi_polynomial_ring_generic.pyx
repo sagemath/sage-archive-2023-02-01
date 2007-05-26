@@ -39,14 +39,15 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
         TESTS:
         This fairly complicated code (from Michel Vandenbergh) ends up
         imlicitly calling _coerce_c_impl:
-            sage: z=QQ['z'].gen()
-            sage: W=NumberField(z^2+1,'s')
-            sage: Q.<u,v,w>=W[]
-            sage: W1=FractionField(Q)
-            sage: S.<x,y,z>=W1[]
-            sage: L=FractionField(S)
+            sage: z = polygen(QQ, 'z')
+            sage: W.<s>=NumberField(z^2+1)
+            sage: Q.<u,v,w> = W[]
+            sage: W1 = FractionField (Q)
+            sage: S.<x,y,z> = W1[]
             sage: u + x
             x + u
+            sage: x + 1/u
+            x + 1/u
         """
         try:
             P = x.parent()

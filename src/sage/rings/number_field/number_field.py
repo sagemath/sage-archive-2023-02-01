@@ -1028,6 +1028,18 @@ class NumberField_extension(NumberField_generic):
         """
         Return root of defining polynomial, which is a generator of
         the relative number field over the base.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2+1); k
+            sage: y = polygen(k)
+            sage: m.<b> = k.extension(y^2+3); m
+            Extension by x^2 + 3 of the Number Field in a with defining polynomial x^2 + 1
+            sage: c = m.gen_relative(); c
+            1/4*b^3 + 5/2*b
+            sage: c^2 + 3
+            0
+            sage: m.gen()
+            b
         """
         try:
             return self.__gen_relative
@@ -1035,13 +1047,6 @@ class NumberField_extension(NumberField_generic):
             rnf = self.pari_rnf()
             f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
             self.__gen_relative = number_field_element.NumberFieldElement(self, f)
-            return self.__gen_relative
-
-            if self.__polynomial != None:
-                X = self.__polynomial.parent().gen()
-            else:
-                X = PolynomialRing(rational_field.RationalField()).gen()
-            self.__gen_relative = number_field_element.NumberFieldElement(self, X)
             return self.__gen_relative
 
     def pari_polynomial(self):

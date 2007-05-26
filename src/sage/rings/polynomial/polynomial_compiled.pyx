@@ -1,10 +1,11 @@
 """
 Polynomial Compilers
 
-AUTHOR:
-    -- Tom Boothby
-
+AUTHORS:
+    -- Tom Boothby, initial design & implementation
+    -- Robert Bradshaw, bug fixes / suggested & assisted with significant design improvements
 """
+
 ################################################################################
 #       Copyright (C) 2007 Tom Boothby <boothby@u.washington.edu>
 #
@@ -14,8 +15,6 @@ AUTHOR:
 ################################################################################
 
 from sage.misc.sagex_ds cimport BinaryTree
-#from math import ceil, sqrt, log, floor
-#from sage.rings.integer import Integer
 
 cdef class CompiledPolynomialFunction:
     """
@@ -39,14 +38,69 @@ cdef class CompiledPolynomialFunction:
     """
 
 
-    def __init__(self, coeffs, method='quick'):
+    def __init__(self, coeffs, method='binary'):
+        """
+        Compiles a polynomial into an evaluation DAG representation which
+        is at least as optimal as using Horner's Rule.  For polynomials
+        which have a relatively large number of zero coefficients, the
+        improvement over Horner's Rule grows significantly.
+
+        Here is a rough description of the algorithm.  Actual
+        implementation differs slightly, for sake of speed.  Specifically,
+        steps 1 and 3 are done at the same time.
+
+        Step 1: Collect Coefficient Gaps.
+                Scan through coefficient list, and record the lengths of
+                sequences of zero coefficients.  This corresponds to
+                collapsing Horner's Form into a reduced representation.
+                For example,
+                  x^8 + x^4 + x^2 + 1
+                   = ((((((((1)*x + 0)*x+0)*x+0)*x+1)*x+0)*x+0)*x+1)*x+0)*x+1
+                   = ((((1)*x^4 + 1)*x^2 + 1)*x^2 + 1
+                gives a list of "gaps": [2,4]
+
+        Step 2: Fill in Gap Structure.
+                Given the list of gaps, find a reasonable sequence of
+                of multiplications / squarings of x that will result in
+                the computation of all desired exponents.  Record this
+                sequence of steps as an evaluation DAG, and retain
+                references to the nodes representing the desired
+                exponents.  For the example above, we would have:
+                  x^2 = x*x
+                  x^4 = (x^2) * (x^2)
+
+        Step 3: Construct Evaluation Dag.
+                Rescan the coefficient list, and build an evaluation DAG
+                represention for the reduced Horner Form as above.
+                Whenever a sequence of zeros is encountered, muliply by
+                the appropriate "gap" node.  Retain a reference to the
+                result node.
+
+        Implementation considerations:
+
+         * By combining steps 1 and 3, we greatly improve the speed of
+        this construction, but some complexity is introduced.  The
+        solution to this is that "dummy" nodes are created to represent
+        the desired gaps.  As the structure of the gaps is filled in,
+        these dummies get references to usable DAG nodes.  After all gaps
+        are filled in, we strip out dummy nodes, and are left with a
+        complete representation of our polynomial.
+
+         * The "binary" method (currently the only method; others are
+        forthcoming) requires the gaps to considered in order, and adds
+        additional dummies as it goes.  Hence, the gaps are put into a
+        binary tree.
+
+        """
         cdef generic_pd max_gap, dag
+        cdef BinaryTree gaps
+
         self._coeffs = coeffs
         gaps, dag = self._parse_structure()
         max_gap = <generic_pd>(gaps.get_max())
         if max_gap.label > 1:
-            if method == 'quick':
-                self._fill_gaps_quick(gaps)
+            if method == 'binary':
+                self._fill_gaps_binary(gaps)
             elif method == 'pippenger':
                 raise NotImplementedError, "Implementation of Pippenger's Algorithm is not ready for prime time."
                 self._fill_gaps_pippenger()
@@ -61,14 +115,24 @@ cdef class CompiledPolynomialFunction:
     cdef object eval(CompiledPolynomialFunction self, object x):
         cdef object temp
         try:
-            pd_eval(self._dag, x, self._coeffs)
-            temp = self._dag.value
-            pd_clean(self._dag)
+            pd_eval(self._dag, x, self._coeffs)  #see further down
+            temp = self._dag.value               #for an explanation
+            pd_clean(self._dag)                  #of these 3 lines
             return temp
         except:
             raise RuntimeError, "Polynomial evaluation error in val()!"
 
     cdef object _parse_structure(CompiledPolynomialFunction self):
+        """
+        Loop through the coefficients of the polynomial, and collect
+        coefficient gap widths.  Meanwhile, construct the evaluation
+        DAG; inserting dummy nodes wherever there are gaps of width
+        greater than 1.
+
+        Return the resultant head DAG node, and a binary tree
+        containing the dummy nodes.
+        """
+
         cdef BinaryTree gaps
         cdef int d, i
         cdef generic_pd s
@@ -99,6 +163,11 @@ cdef class CompiledPolynomialFunction:
         return gaps, s
 
     cdef generic_pd _get_gap(CompiledPolynomialFunction self, BinaryTree gaps, int gap):
+        """
+        Find an entry in the BinaryTree gaps, identified by the int gap.
+        If such an entry does not exist, create it and put it in the tree.
+        """
+
         cdef generic_pd g
         g = gaps.get(gap)
         if g is not None:
@@ -108,43 +177,159 @@ cdef class CompiledPolynomialFunction:
             gaps.insert(gap,g)
             return g
 
-    cdef void _fill_gaps_quick(CompiledPolynomialFunction self, BinaryTree gaps):
+    cdef void _fill_gaps_binary(CompiledPolynomialFunction self, BinaryTree gaps):
+        """
+        The desired gaps come in a tree, filled with dummy nodes (with the
+        exception of the var node, which is not a dummy).  The nodes are
+        labeled with their width.  When we refer to multiplication or
+        squaring nodes, we give the current dummy node a usable dag of the
+        appropriate type, which treats the nodes being operated on as
+        argument.  That is, if we want to multiply nodes A and B, and
+        give the result to M, we would call
+            M.fill(mul_pd(A,B))
+        and refer to this operation as
+            M = A*B
+
+        Sometimes we want a node that isn't in the tree.  In that case, we
+        create a new dummy node, and put it into the tree.  The phrase
+        "get the node for..." means that we obtain one with the _get_gap
+        method, which may create a new node.
+
+
+        Fill in the gaps with the following algorithm:
+
+        Step 1: Remove max node from the tree, denote its width m.
+                If m == 1, halt.
+        Step 2: If m is even, check if m/2 is already in our tree.
+                If yes, square the node corresponding to m/2, and
+                go to step 1.
+        Step 3: Peek at the next-largest, and denote its width n.
+                Write m = qn+r.
+                If r != 0, get the node R, whose gap-width is r.
+                  Also, get the node QN, whose width is qn.
+                  Then, set M = R*QN and go to step 1.
+                If r == 0, we have two cases:
+                  q is even:  get/create the node for q/n, denote it T.
+                              Set M = T**2 and go to step 1.
+                  q is odd: get/create the node for (Q-1)*N, denote it T.
+                              Set M = T*N and go to step 1.
+
+        The r == 0 case in step 3 is equivalent to binary exponentiation.
+        """
+
+
         cdef int m,n,k,r,half
-        cdef generic_pd T,M,H
-        cdef dummy_pd N
+        cdef generic_pd T,N,H
+        cdef dummy_pd M
         T = gaps.pop_max()
         while T is not None:
-            M = gaps.get_max()
-            if M is None:
+            N = gaps.get_max()
+            if N is None:
                 return
             else:
-                N = <dummy_pd>T
+                M = <dummy_pd>T
             m = M.label
             n = N.label
-            k = n/m
-            r = n%m
-            half = n/2
+            k = m/n
+            r = m%n
+            half = m/2
 
             found = False
-            if n % 2 == 0 and m >= half:
+            if m % 2 == 0 and n >= half:
                 H = gaps.get(half)
                 if H is not None:
-                    N.fill(sqr_pd(H))
+                    M.fill(sqr_pd(H))
                     found = True
 
             if not found:
                 if r > 0:
-                    N.fill(mul_pd(self._get_gap(gaps, m*k), self._get_gap(gaps, r)))
+                    M.fill(mul_pd(self._get_gap(gaps, n*k), self._get_gap(gaps, r)))
                 elif k % 2 == 0:
-                    N.fill(sqr_pd(self._get_gap(gaps, m*k/2)))
+                    M.fill(sqr_pd(self._get_gap(gaps, n*k/2)))
                 else:
-                    N.fill(mul_pd(self._get_gap(gaps, m*(k-1)), M))
+                    M.fill(mul_pd(self._get_gap(gaps, n*(k-1)), N))
 
             T = gaps.pop_max()
 
 
 
+########################################################
+#
+#  Polynomial DAG Code
+#
+# An "evaluation DAG" is a rather generic concept.  What
+# follows is a set of DAG classes whih are suitable for
+# evaluating polynomials in Horner's form, and very
+# little else.  Let's call them polydags from here down.
+# DAG in all-caps is a whole graph. However,
+# polydag or pd := polynomial DAG node
+#
+# 5 operations, and 3 types of constants are implemented:
+#
+#  univar_pd: a variable of a univariate polynomial.
+#  var_pd: a variable of a multivariate polynomial.
+#          parametrized by an index number.
+#  const_pd: a coefficient of a polynomial.  Also
+#            parametrized by an index number.
+#
+# unary operations:
+#
+#  sqr_pd: takes another polydag as an argument, squares
+#          by multiplying argument's value by itself.
+#  pow_pd: takes another polydag, and an int, as arguments.
+#          exponentiates with the ** operator.
+#
+# binary operations:
+#
+#  add_pd: adds values of two other polydags.
+#  mul_pd: like add_pd, but we with multiplication
+#  abc_pd: not technically binary, but it only depends
+#          upon two other polydags, so it fits into the
+#          class structure this way.  Multiplies the
+#          values of two other polydags, and adds the
+#          coefficient corresponding to the given index.
+#
+# Polydag structure:
+#  properties:
+#    value: some python object.  Should be None before
+#           and after the DAG is evaluated.
+#    refs: number of polydag nodes that reference self
+#    hits: number of times, during current computation,
+#          that self.value has been accessed
+#    label: used to identify nodes from the outside.
+#           specifically, when they're in a binary tree.
+#
+#  methods:
+#    eval: runs the computation for which the node is
+#          intended, and stores the result in self.value.
+#          Takes 2 python objects as arguments.  The first
+#          is the value of the variable, for univariate
+#          polynomials, or a tuple of values for multi-
+#          variate.  The second is the list of coefficients.
+#          The reason for taking the list of coefficients,
+#          rather than holding references to them, is that
+#          we can implement recursive calling at some later
+#          date.
+#    nodummies: recursively evict dummies, replacing them
+#               with the non-dummy nodes that they
+#               reference.
 
+
+
+
+# These inline functions are called wherever a node gets
+# evaluated.  First, pd_eval is called to ensure that the
+# target DAG node will have its .value property set. It
+# serves two purposes:
+#   1) Count the number of times this node has been asked
+#      for its value.
+#   2) Call the node's eval() function if and only if it
+#      has not been called yet.  These functions are
+#      inlined to prevent excessive function calls.
+# Then, pd_clean is called.  It checks to see if all of
+# the polydag's dependents have phoned in, and resets
+# self.value to None if they have.  Thus, we don't hold
+# on to intermediate values any longer than we have to.
 
 cdef inline void pd_eval(generic_pd pd, object vars, object coeffs):
     if pd.value is None:
@@ -289,7 +474,4 @@ cdef class abc_pd(binary_pd):
         self.value = self.left.value * self.right.value + coeffs[self.index]
         pd_clean(self.left)
         pd_clean(self.right)
-
-
-
 

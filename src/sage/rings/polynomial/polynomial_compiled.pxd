@@ -11,7 +11,7 @@ cdef class CompiledPolynomialFunction:
 
     cdef object _parse_structure(CompiledPolynomialFunction)
     cdef generic_pd _get_gap(CompiledPolynomialFunction, BinaryTree, int)
-    cdef void _fill_gaps_quick(CompiledPolynomialFunction, BinaryTree)
+    cdef void _fill_gaps_binary(CompiledPolynomialFunction, BinaryTree)
     cdef object eval(CompiledPolynomialFunction, object)
 
 cdef class generic_pd:

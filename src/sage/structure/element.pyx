@@ -1745,6 +1745,16 @@ cdef class EuclideanDomainElement(PrincipalIdealDomainElement):
     def quo_rem(self, other):
         raise NotImplementedError
 
+    def __divmod__(self, other):
+        """
+        Return the quotient and remainder of self divided by other.
+
+        EXAMPLES:
+            sage: divmod(5,3)
+            (1, 2)
+        """
+        return self.quo_rem(other)
+
     def __floordiv__(self,right):
         """
         Quotient of division of self by other.  This is denoted //.

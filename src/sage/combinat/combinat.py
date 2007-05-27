@@ -383,8 +383,8 @@ def fibonacci_sequence(start, stop=None, algorithm='pari'):
 
 def fibonacci_range(start, stop=None, algorithm='pari'):
     r"""
-    Returns an iterator over all of the Fibonacci numbers in the given range
-    from \code{f_n = start} to \code{f_n = stop}
+    Returns an iterator over all of the Fibonacci numbers in the given range,
+    including \code{f_n = start} up to, but not including, \code{f_n = stop}.
 
     EXAMPLES:
         sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
@@ -396,6 +396,9 @@ def fibonacci_range(start, stop=None, algorithm='pari'):
         sage: fibs = [i for i in fibonacci_range(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
+
+        sage: list(fibonacci_range(13, 34))
+        [13, 21]
 
     A solution to the second Project Euler problem:
         sage: sum([i for i in fibonacci_range(10^6) if is_even(i)])

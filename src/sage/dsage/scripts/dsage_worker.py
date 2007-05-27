@@ -558,7 +558,7 @@ class Monitor(object):
 
     def __init__(self, server='localhost', port=8081,
                  username=getuser(),
-                 ssl=True,
+                 ssl=False,
                  workers=2,
                  anonymous=False,
                  priority=20,

@@ -57,7 +57,7 @@ class DSage(object):
                  pubkey_file=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
                  privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
                  log_level=0,
-                 ssl=True):
+                 ssl=False):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys
@@ -367,7 +367,7 @@ class BlockingDSage(DSage):
                  pubkey_file=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
                  privkey_file=os.path.join(DSAGE_DIR, 'dsage_key'),
                  log_level=0,
-                 ssl=True):
+                 ssl=False):
 
         from twisted.cred import credentials
         from twisted.conch.ssh import keys

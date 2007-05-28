@@ -476,7 +476,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
 
                 while j < len(line) and not line[j] in '*/;:\\':
                     j += 1
-                line = line[:i] + ".solve_right(" + line[i+1:j] + ')' + line[j:]
+                line = line[:i] + "._backslash_(" + line[i+1:j] + ')' + line[j:]
 
             elif (line[i].isdigit() or \
                    (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \

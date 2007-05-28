@@ -474,10 +474,9 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 while j < len(line) and line[j].isspace():
                     j += 1
 
-                while j < len(line) and isalphadigit_(line[j]):
+                while j < len(line) and not line[j] in '*/;:\\':
                     j += 1
                 line = line[:i] + ".solve_right(" + line[i+1:j] + ')' + line[j:]
-                i = j+12
 
             elif (line[i].isdigit() or \
                    (len(line)>i+1 and line[i] == '.' and line[i+1].isdigit())) and \

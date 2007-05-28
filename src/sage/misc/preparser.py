@@ -474,7 +474,7 @@ def preparse(line, reset=True, do_time=False, ignore_prompts=False):
                 while j < len(line) and line[j].isspace():
                     j += 1
 
-                while j < len(line) and not line[j] in '*/;:\\':
+                while j < len(line) and not line[j] in '*/;:\\#\'"':
                     j += 1
                 line = line[:i] + "._backslash_(" + line[i+1:j] + ')' + line[j:]
 

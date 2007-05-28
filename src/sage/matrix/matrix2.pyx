@@ -17,6 +17,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.element import is_Vector
 from   sage.misc.misc import verbose, get_verbose, graphics_filename
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
@@ -34,7 +35,7 @@ cdef class Matrix(matrix1.Matrix):
         return self.solve_right(B)
 
     def solve_right(self, B):
-        """
+        r"""
         If self is a matrix $A$, then this function returns a vector
         or matrix $X$ such that $A X = B$.  If $B$ is a vector then
         $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
@@ -45,16 +46,14 @@ cdef class Matrix(matrix1.Matrix):
 
         INPUT:
             B -- a matrix or vector
-
         OUTPUT:
             a matrix or vector
 
         EXAMPLES:
-            sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
-            sage: b = vector(QQ,[1,2,3])
-            sage: x = A \ b; x
-            (-13/12, 23/12, -7/12)
-            sage: A * x
+            sage: A = matrix(3, [8,1,6, 3,5,7, 4,9,2])
+            sage: b = A \ vector([1,2,3]); b
+            (1/20, 3/10, 1/20)
+            sage: A*b
             (1, 2, 3)
 
         We illustrate left associativity, etc., of the backslash operator.
@@ -78,8 +77,18 @@ cdef class Matrix(matrix1.Matrix):
             [-1  2]
             [ 3  2]
         """
-        # *Really* dumb generic algorithm -- enough so I can write
-        # doctests and at least try it for "feel".
+        if isinstance(B, Matrix):
+            if self.nrows() != B.nrows():
+                raise TypeError, "self and B must have the same number of rows"
+        elif is_Vector(B):
+            if self.nrows() != B.degree():
+                raise TypeError, "number of rows of self must equal the degree of B"
+        else:
+            raise TypeError, "B must be a matrix or vector"
+
+
+        # This is a *really* dumb generic algorithm -- enough so I can
+        # write doctests and at least try it for "feel".
         return (~self)*B
 
 

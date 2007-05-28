@@ -146,9 +146,11 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_server.py -d %s -p %s -l %s -f %s ' + \
-                              '-c %s -k %s --statsfile=%s --ssl=%s'
+                              '-c %s -k %s --statsfile=%s'
         cmd = cmd % (db_file, port, log_level, log_file, cert, privkey,
-                     stats_file, ssl)
+                     stats_file)
+        if ssl:
+            cmd += ' --ssl'
         if not blocking:
             cmd += ' --noblock'
             spawn(cmd, verbose=verbose)
@@ -181,11 +183,12 @@ class DistributedSage(object):
         """
 
         cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
-                               '--privkey=%s --pubkey=%s --priority=%s ' + \
-                               '--ssl=%s'
+                               '--privkey=%s --pubkey=%s --priority=%s '
         cmd = cmd % (server, port, username, workers, delay, log_level,
-                     log_file, privkey, pubkey, priority, ssl)
+                     log_file, privkey, pubkey, priority)
 
+        if ssl:
+            cmd += ' --ssl'
         if not blocking:
             cmd += ' --noblock'
             spawn(cmd, verbose=verbose)

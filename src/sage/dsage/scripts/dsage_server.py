@@ -39,7 +39,6 @@ from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
-from sage.dsage.misc.config import get_bool
 from sage.dsage.misc.config import check_dsage_dir
 
 def usage():
@@ -74,7 +73,8 @@ def usage():
                            'default=~/.sage/dsage/dsage.xml')
     parser.add_option('--ssl',
                       dest='ssl',
-                      default=True,
+                      action='store_true',
+                      default=False,
                       help='enable or disable ssl')
     parser.add_option('-k', '--privkey',
                       dest='privkey',
@@ -164,7 +164,7 @@ def main(options):
 
     LOG_FILE = options.logfile
     LOG_LEVEL = options.loglevel
-    SSL = get_bool(options.ssl)
+    SSL = options.ssl
     SSL_PRIVKEY = options.privkey
     SSL_CERT = options.cert
     CLIENT_PORT = options.port

@@ -43,7 +43,6 @@ from sage.dsage.twisted.pb import PBClientFactory
 from sage.dsage.misc.constants import DELIMITER
 from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
-from sage.dsage.misc.config import get_bool
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
@@ -826,7 +825,8 @@ def usage():
                       help='log level. default=0')
     parser.add_option('--ssl',
                       dest='ssl',
-                      default=True,
+                      action='store_true',
+                      default=False,
                       help='enable or disable ssl')
     parser.add_option('--privkey',
                       dest='privkey_file',
@@ -864,7 +864,7 @@ def usage():
 
 def main():
     options = usage()
-    SSL = get_bool(options.ssl)
+    SSL = options.ssl
     monitor = Monitor(server=options.server,
                       port=options.port,
                       username=options.username,

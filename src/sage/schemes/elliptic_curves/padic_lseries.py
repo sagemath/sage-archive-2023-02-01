@@ -346,15 +346,20 @@ class pAdicLseries(SageObject):
 
 
 class pAdicLseriesOrdinary(pAdicLseries):
-    def series(self, n, series_prec=20):
-        """
-        Return the n-th approximation to the p-adic L-series as a
-        power series in T (corresponding to $\gamma-1$ with $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).
-        Each coefficient is a p-adic number whose
-        precision is provably correct.
+    def series(self, n=2, prec=5):
+        r"""
+        Return the $n$-th approximation to the $p$-adic $L$-series as
+        a power series in T (corresponding to $\gamma-1$ with
+        $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
+        coefficient is a p-adic number whose precision is provably
+        correct.
 
         INPUT:
-            n -- a positive integer
+            n -- (default: 2) a positive integer
+            prec -- (default: 5) maxima number of terms of the series
+                    to compute; to compute as many as possible just
+                    give a very large number for prec; the result will
+                    still be correct.
 
         EXAMPLES:
         We compute some $p$-adic $L$-functions associated to the elliptic
@@ -398,19 +403,19 @@ class pAdicLseriesOrdinary(pAdicLseries):
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
-        try:
-            return self.__series[n]
-        except AttributeError:
-            self.__series = {}
-        except KeyError:
-            pass
 
         p = self._p
 
         bounds = self._prec_bounds(n)
-        prec = max(bounds[1:]) + 5
-        res_series_prec = min(p**(n-1),series_prec)
+        padic_prec = max(bounds[1:]) + 5
+        res_series_prec = min(p**(n-1), prec)
 
+        try:
+            return self.__series[(n,res_series_prec)]
+        except AttributeError:
+            self.__series = {}
+        except KeyError:
+            pass
 
         K = QQ
         gamma = K(1 + p)
@@ -419,30 +424,35 @@ class pAdicLseriesOrdinary(pAdicLseries):
         L = R(0)
         one_plus_T_factor = R(1)
         gamma_power = 1
-        teich = self.teichmuller(prec)
+        teich = self.teichmuller(padic_prec)
         for j in range(p**(n-1)):
             s = K(0)
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += self.measure(b, n, prec).lift()
+                s += self.measure(b, n, padic_prec).lift()
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
         # Now create series but with each coefficient truncated
         # so it is proven correct:
-        K = Qp(p, prec, print_mode='series')
+        K = Qp(p, padic_prec, print_mode='series')
         R = PowerSeriesRing(K,'T',res_series_prec)
         L = R(L,res_series_prec)
         aj = L.list()
         if len(aj) > 0:
-            aj = [aj[0].add_bigoh(prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
+            aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec ) * self._quotient_of_periods
-        self.__series[n] = L
+        self.__series[(n,res_series_prec)] = L
         return L
+
+    power_series = series
 
     def is_ordinary(self):
         """
+        Return True if the elliptic that this L function is attached
+        to is ordinary.
+
         EXAMPLES:
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.is_ordinary()
@@ -452,6 +462,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
     def is_supersingular(self):
         """
+        Return True if the elliptic that this L function is attached
+        to is supersingular.
+
         EXAMPLES:
             sage: L = EllipticCurve('11a').padic_lseries(5)
             sage: L.is_supersingular()
@@ -544,6 +557,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         L *= self._quotient_of_periods
         self.__series[n] = L
         return L
+
+    power_series = series
 
     def is_ordinary(self):
         return False

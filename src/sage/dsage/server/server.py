@@ -245,6 +245,7 @@ class DSageServer(pb.Root):
         if completed:
             jdict['result'] = result
             jdict['status'] = 'completed'
+            log.msg('%s completed!' % job_id)
 
         jdict['update_time'] = datetime.datetime.now()
 

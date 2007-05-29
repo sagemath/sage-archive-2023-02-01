@@ -454,13 +454,18 @@ except:
             return False
 
     def kill_sage(self):
+        """
+        Try to hard kill the SAGE instance.
+
+        """
+
         try:
             pid = self.sage.pid()
             cmd = 'kill -9 -%s'%pid
             os.system(cmd)
-            self.start()
+            del self.sage
         except Exception, msg:
-            self.start()
+            log.msg(msg)
 
     def stop(self, hard_reset=False):
         """
@@ -471,6 +476,7 @@ except:
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
             self.kill_sage()
+            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -537,7 +543,7 @@ except:
 
         try:
             delta = datetime.datetime.now() - self.job_start_time
-            if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+            if delta.seconds >= (5): # more than 5 minutes, do a hard reset
                 self.stop(hard_reset=True)
             else:
                 self.stop()

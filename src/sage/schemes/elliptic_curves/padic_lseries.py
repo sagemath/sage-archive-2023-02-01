@@ -181,6 +181,8 @@ class pAdicLseries(SageObject):
         z = 1/(alpha**n)
         w = p**(n-1)
         f = self._modular_symbol
+        if self._E.conductor() % p == 0:
+            return z * f(a/(p*w))
         return z * f(a/(p*w)) - (z/alpha) * f(a/w)
 
     def alpha(self, prec=20):
@@ -417,6 +419,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
         except KeyError:
             pass
 
+        p = self._p
+
+        res_series_prec = min(p**(n-1),series_prec)
         K = QQ
         gamma = K(1 + p)
         R = PowerSeriesRing(K,'T',res_series_prec)

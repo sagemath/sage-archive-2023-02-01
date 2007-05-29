@@ -199,12 +199,15 @@ class DSage(object):
         factory = PBClientFactory()
 
         if self.SSL == 1:
-            from twisted.internet import ssl
-            contextFactory = ssl.ClientContextFactory()
-            reactor.connectSSL(self.server,
-                               self.port,
-                               factory,
-                               contextFactory)
+            # Old, uses OpenSSL, SAGE uses GNUTLS now
+            # from twisted.internet import ssl
+            # contextFactory = ssl.ClientContextFactory()
+            # reactor.connectSSL(self.server,
+            #                    self.port,
+            #                    factory,
+            #                    contextFactory)
+            cred = X509Credentials()
+            reactor.connectTLS(self.server, self.port, factory, cred)
         else:
             reactor.connectTCP(self.server, self.port, factory)
 

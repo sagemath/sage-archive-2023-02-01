@@ -243,6 +243,7 @@ def main(options):
                     cred.session_params.compressions = (COMP_LZO,
                                                         COMP_DEFLATE,
                                                         COMP_NULL)
+                    reactor.listenTLS(NEW_CLIENT_PORT, client_factory, cred)
                     break
                 else:
                     reactor.listenTCP(NEW_CLIENT_PORT, client_factory)

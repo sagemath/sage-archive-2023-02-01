@@ -423,9 +423,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def aplist(self, n, python_ints=False):
         r"""
-        The Fourier coefficients up to and including $a_p$ of the
-        modular form attached to this elliptic curve, for all primes
-        $p\leq n$.
+        The Fourier coefficients $a_p$ of the modular form attached to
+        this elliptic curve, for all primes $p\leq n$.
 
         INPUT:
             n -- integer
@@ -1853,8 +1852,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         EXAMPLES:
             sage: I = CC.0
             sage: E = EllipticCurve('37a')
-            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time
-            [(0.500000000, 0), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
+            sage: E.Lseries_values_along_line(1, 0.5+20*I, 5)     # long time and slightly random output
+            [(0.500000000, -5.45450037e-18), (0.400000000 + 4.00000000*I, 3.31920245 - 2.60028054*I), (0.300000000 + 8.00000000*I, -0.886341185 - 0.422640337*I), (0.200000000 + 12.0000000*I, -3.50558936 - 0.108531690*I), (0.100000000 + 16.0000000*I, -3.87043288 - 1.88049411*I)]
         """
         from sage.lfunctions.lcalc import lcalc
         return lcalc.values_along_line(s0-RationalField()('1/2'),
@@ -2926,6 +2925,67 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             ell = p
         return not self.is_ordinary(p, ell)
 
+    def supersingular_primes(self, B):
+        """
+        Return a list of all supersingular primes for this elliptic curve
+        up to and possibly including B.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.aplist(20)
+            [-2, -1, 1, -2, 1, 4, -2, 0]
+            sage: e.supersingular_primes(1000)
+            [2, 19, 29, 199, 569, 809]
+
+            sage: e = EllipticCurve('27a')
+            sage: e.aplist(20)
+            [0, 0, 0, -1, 0, 5, 0, -7]
+            sage: e.supersingular_primes(97)
+            [2, 3, 5, 11, 17, 23, 29, 41, 47, 53, 59, 71, 83, 89]
+            sage: e.ordinary_primes(97)
+            [7, 13, 19, 31, 37, 43, 61, 67, 73, 79, 97]
+            sage: e.supersingular_primes(3)
+            [2, 3]
+            sage: e.supersingular_primes(2)
+            [2]
+            sage: e.supersingular_primes(1)
+            []
+        """
+        v = self.aplist(max(B, 3))
+        P = arith.prime_range(max(B,3)+1)
+        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]==0] + \
+                      [P[i] for i in range(2,len(v)) if v[i] == 0]
+
+    def ordinary_primes(self, B):
+        """
+        Return a list of all ordinary primes for this elliptic curve
+        up to and possibly including B.
+
+        EXAMPLES:
+            sage: e = EllipticCurve('11a')
+            sage: e.aplist(20)
+            [-2, -1, 1, -2, 1, 4, -2, 0]
+            sage: e.ordinary_primes(97)
+            [3, 5, 7, 11, 13, 17, 23, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97]
+            sage: e = EllipticCurve('49a')
+            sage: e.aplist(20)
+            [1, 0, 0, 0, 4, 0, 0, 0]
+            sage: e.supersingular_primes(97)
+            [3, 5, 7, 13, 17, 19, 31, 41, 47, 59, 61, 73, 83, 89, 97]
+            sage: e.ordinary_primes(97)
+            [2, 11, 23, 29, 37, 43, 53, 67, 71, 79]
+            sage: e.ordinary_primes(3)
+            [2]
+            sage: e.ordinary_primes(2)
+            [2]
+            sage: e.ordinary_primes(1)
+            []
+        """
+        v = self.aplist(max(B, 3) )
+        P = arith.prime_range(max(B,3) +1)
+        return [P[i] for i in [0,1] if P[i] <= B and v[i]%P[i]!=0] +\
+               [P[i] for i in range(2,len(v)) if v[i] != 0]
+
     def eval_modular_form(self, points, prec):
         if not isinstance(points, (list,xrange)):
             try:
@@ -3952,10 +4012,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: E.padic_regulator(5, 10)
             4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + O(5^9)
 
-        A rank zero example:
-            sage: EllipticCurve('11a').padic_regulator(3)
-            1 + O(3^20)    ???
-
         An anomalous case:
             sage: E.padic_regulator(53, 10)
             27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + O(53^9)
@@ -4036,10 +4092,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         A rank two example:
             sage: EllipticCurve('389a').padic_height_pairing_matrix(5,10)
-            [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^9)   2*5 + 3*5^2 + 3*5^3 + 3*5^4 + 2*5^5 + O(5^7)]
-            [                        2*5 + 3*5^2 + 3*5^3 + 3*5^4 + 2*5^5 + O(5^7)   3*5^3 + 5^4 + 5^6 + O(5^7)]
-
-
+            [2*5 + 2*5^2 + 4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + 3*5^7 + 4*5^8 + O(5^9)                   4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)]
+            [                  4*5 + 3*5^3 + 2*5^4 + 5^5 + 3*5^7 + 3*5^8 + O(5^9)                     5 + 4*5^2 + 4*5^3 + 2*5^4 + 4*5^5 + 5^6 + O(5^9)]
 
         An anomalous rank 3 example:
             sage: E = EllipticCurve("5077a")
@@ -4493,22 +4547,18 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: X.padic_sigma(5, 10, E2=my_E2)
             (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
-          Check that sigma is ``weight 1''. [This test is disabled until
-          trac \#254 is addressed. The lines f(2*t)/2 and g should return
-          exactly the same answer. Currently there is some precision loss.] #seems to work now
-            sage.: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
-            sage.: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
-            sage.: t = f.parent().gen()
-            sage.: f(2*t)/2
-            sage.: g
-             (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(t^11)
+          Check that sigma is ``weight 1''.
+            sage: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
+            sage: g = EllipticCurve([-1*(2**4), 3*(2**6)]).padic_sigma(5, 10)
+            sage: t = f.parent().gen()
+            sage: f(2*t)/2
+            (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(t^11)
+            sage: g
+            (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(t^11)
             sage: f(2*t)/2 -g
             O(t^11)
 
           Test that it returns consistent results over a range of precision:
-          [NOTE: this test currently FAILS due to trac \#255. It seems to be
-          essentially correct though. Should be revisited when that bug is
-          resolved.]
             sage: max_N = 30   # get up to at least p^2         # long time
             sage: E = EllipticCurve([1, 1, 1, 1, 1])            # long time
             sage: p = 5                                         # long time
@@ -4599,6 +4649,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         sigma[0] = K(0, N +1)
         sigma[1] = K(1, N)
         for n in range(2, N+1):
+            print n, sigma[n].lift(), N, N-n+1, K(sigma[n].lift(), N - n + 1)
             sigma[n] = K(sigma[n].lift(), N - n + 1)
 
         S = rings.PowerSeriesRing(K, "t", N+1)

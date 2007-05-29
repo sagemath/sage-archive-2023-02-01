@@ -267,10 +267,12 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         return d
 
     def _job_done(self, remoteobj, jdict):
+        import time
         job_id = jdict['job_id']
         result = jdict['result']
         d = remoteobj.callRemote('job_done', job_id,
-                                 'Nothing.', result, False)
+                                 'Nothing.', result, False,
+                                 time.time() - time.time())
         d.addCallback(self._done_job)
 
         return d

@@ -226,7 +226,8 @@ class AnonymousMonitorPerspective(DefaultPerspective):
 
         return self.DSageServer.job_failed(job_id, traceback)
 
-    def perspective_job_done(self, job_id, output, result, completed):
+    def perspective_job_done(self, job_id, output, result, completed,
+                             cpu_time):
         if not (isinstance(job_id, str) or isinstance(completed, bool)):
             log.msg('Bad job_id passed to perspective_job_done')
             log.msg('job_id: %s' % (job_id))
@@ -237,7 +238,8 @@ class AnonymousMonitorPerspective(DefaultPerspective):
             uuid = self.mind[1]['uuid']
             self.DSageServer.set_busy(uuid, busy=False)
 
-        return self.DSageServer.job_done(job_id, output, result, completed)
+        return self.DSageServer.job_done(job_id, output, result, completed,
+                                         cpu_time)
 
 class MonitorPerspective(AnonymousMonitorPerspective):
     """

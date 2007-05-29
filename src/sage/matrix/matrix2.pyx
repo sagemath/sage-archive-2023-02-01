@@ -78,9 +78,44 @@ cdef class Matrix(matrix1.Matrix):
             sage: A * X
             [-1  2]
             [ 3  2]
+
+        Solving over a polynomial ring:
+            sage: A = matrix(2, [x,2*x,-5*x^2+1,3])
+            sage: v = vector([3,4*x - 2])
+            sage: X = A \ v
+            sage: X
+            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            sage: A * X == v
+            True
         """
-        C = self.augment(B).echelon_form()
-        return C.matrix_from_columns(range(self.ncols(),C.ncols()))
+        if not self.is_square():
+            raise NotImplementedError, "input matrix must be square"
+
+        K = self.base_ring()
+        if not K.is_integral_domain():
+            raise TypeError, "base ring must be an integral domain"
+        if not K.is_field():
+            K = K.fraction_field()
+            self = self.change_ring(K)
+
+        matrix = True
+        if is_Vector(B):
+            matrix = False
+            C = self.matrix_space(self.nrows(), 1)(B.list())
+        else:
+            C = B
+
+        D = self.augment(C).echelon_form()
+        if D.rank() < D.nrows():
+            raise ValueError, "input matrix must have full rank but it doesn't"
+
+        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
+
 
 
     def prod_of_row_sums(self, cols):

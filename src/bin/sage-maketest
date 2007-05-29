@@ -1,6 +1,6 @@
 #!/bin/sh
 
-sage -b
+#sage -b
 
 # Run DSAGE unit tests
 sage-dsage-trial 2>&1 | tee .test-dsage.log | tee -a test.log

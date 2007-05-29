@@ -17,6 +17,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.element import is_Vector
 from   sage.misc.misc import verbose, get_verbose, graphics_filename
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
@@ -30,6 +31,93 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
+    def _backslash_(self, B):
+        return self.solve_right(B)
+
+    def solve_right(self, B):
+        r"""
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        INPUT:
+            B -- a matrix or vector
+
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
+            sage: b = vector(QQ,[1,2,3])
+            sage: x = A \ b; x
+            (-13/12, 23/12, -7/12)
+            sage: A * x
+            (1, 2, 3)
+
+        We illustrate left associativity, etc., of the backslash operator.
+            sage: A = matrix(QQ, 2, [1,2,3,4])
+            sage: A \ A
+            [1 0]
+            [0 1]
+            sage: A \ A \ A
+            [1 2]
+            [3 4]
+            sage: A.parent()(1) \ A
+            [1 2]
+            [3 4]
+            sage: A \ (A \ A)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: X = A \ (A - 2); X
+            [ 5 -2]
+            [-3  2]
+            sage: A * X
+            [-1  2]
+            [ 3  2]
+
+        Solving over a polynomial ring:
+            sage: A = matrix(2, [x,2*x,-5*x^2+1,3])
+            sage: v = vector([3,4*x - 2])
+            sage: X = A \ v
+            sage: X
+            ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
+            sage: A * X == v
+            True
+        """
+        if not self.is_square():
+            raise NotImplementedError, "input matrix must be square"
+
+        K = self.base_ring()
+        if not K.is_integral_domain():
+            raise TypeError, "base ring must be an integral domain"
+        if not K.is_field():
+            K = K.fraction_field()
+            self = self.change_ring(K)
+
+        matrix = True
+        if is_Vector(B):
+            matrix = False
+            C = self.matrix_space(self.nrows(), 1)(B.list())
+        else:
+            C = B
+
+        D = self.augment(C).echelon_form()
+        if D.rank() < D.nrows():
+            raise ValueError, "input matrix must have full rank but it doesn't"
+
+        X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
+
+
+
     def prod_of_row_sums(self, cols):
         r"""
         Calculate the product of all row sums of a submatrix of $A$ for a

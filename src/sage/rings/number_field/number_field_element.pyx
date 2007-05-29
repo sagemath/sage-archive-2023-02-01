@@ -31,6 +31,7 @@ AUTHORS:
 import operator
 
 include "../../ext/stdsage.pxi"
+include '../../ext/interrupt.pxi'
 
 import sage.rings.field_element
 import sage.rings.infinity
@@ -363,9 +364,58 @@ cdef class NumberFieldElement(FieldElement):
             return sage.rings.arith.generic_power(x, right, one=self.parent()(1))
         return sage.rings.arith.generic_power(self, right, one=self.parent()(1))
 
+    def is_square(self):
+        return len(self.sqrt(all=True)) > 0
+
+    def sqrt(self, all=False):
+        """
+        Returns the square root of this number in the given number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^2 - 3)
+            sage: K(3).sqrt()
+            a
+            sage: K(3).sqrt(all=True)
+            [a, -a]
+            sage: K(a^10).sqrt()
+            9*a
+            sage: K(49).sqrt()
+            7
+            sage: K(1+a).sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: a + 1 not a square in Number Field in a with defining polynomial x^2 - 3
+            sage: K(0).sqrt()
+            0
+            sage: K((7+a)^2).sqrt(all=True)
+            [a + 7, -a - 7]
+
+            sage: K.<a> = CyclotomicField(7)
+            sage: a.sqrt()
+            a^4
+
+            sage: K.<a> = NumberField(x^5 - x + 1)
+            sage: (a^4 + a^2 - 3*a + 2).sqrt()
+            a^3 - a^2
+
+        ALGORITHM:
+            Use Pari to factor $x^2$ - \code{self} in K.
+
+        """
+        # For now, use pari's factoring abilities
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self._parent, 't')
+        f = R([-self, 0, 1])
+        roots = f.roots()
+        if all:
+            return [r[0] for r in roots]
+        elif len(roots) > 0:
+            return roots[0][0]
+        else:
+            raise ValueError, "%s not a square in %s"%(self, self._parent)
+
     cdef void _reduce_c_(self):
         """
-            Pull out common factors from the numerator and denominator!
+        Pull out common factors from the numerator and denominator!
         """
         cdef ntl_c_ZZ gcd
         cdef ntl_c_ZZ t1
@@ -420,7 +470,9 @@ cdef class NumberFieldElement(FieldElement):
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
+        _sig_on
         MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+        _sig_off
         x._reduce_c_()
         return x
 
@@ -450,7 +502,9 @@ cdef class NumberFieldElement(FieldElement):
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
+        _sig_on
         MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+        _sig_off
         x._reduce_c_()
         return x
 
@@ -780,15 +834,7 @@ cdef class NumberFieldElement(FieldElement):
             sage: b^2 - (22+a)
             0
         """
-        # The minimal polynomial is square-free and
-        # divisible by same irreducible factors as
-        # the characteristic polynomial.
-        # TODO: factoring to find the square-free part is idiotic.
-        # Instead use a GCD algorithm!
-        f = sage.rings.polynomial.polynomial_ring.PolynomialRing(QQ, str(var))(1)
-        for g, _ in self.charpoly(var).factor():
-            f *= g
-        return f
+        return self.charpoly(var).radical() # square free part of charpoly
 
     def matrix(self):
         r"""

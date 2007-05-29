@@ -18,6 +18,13 @@ def viewer():
     if not (BROWSER is None):
         return BROWSER
 
+    if os.environ.has_key('SAGE_BROWSER'):
+        BROWSER = os.environ['SAGE_BROWSER']
+        DVI_VIEWER = BROWSER
+        PDF_VIEWER = BROWSER
+        PNG_VIEWER = BROWSER
+        return BROWSER
+
     if os.uname()[0] == 'Darwin':
         # Simple on OS X, since there is an open command that opens
         # anything, using the user's preferences.

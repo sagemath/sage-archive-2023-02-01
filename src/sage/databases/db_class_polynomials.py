@@ -41,7 +41,7 @@ def _pad_int_str(s,n):
 class ClassPolynomialDatabase:
     def _dbpath(self,disc,level=1):
         if level != 1:
-            raise NotImplementedError, "Level (= %s) > 1 not yet implemented."%s
+            raise NotImplementedError, "Level (= %s) > 1 not yet implemented."%level
         n1 = 5000*((abs(disc)-1)//5000)
         s1 = _pad_int_str(n1+1,disc_length)
         s2 = _pad_int_str(n1+5000,disc_length)

@@ -160,7 +160,6 @@ class DSageServer(pb.Root):
 
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, submit_job] %s' % (jdict))
-
         if jdict['code'] is None:
             return False
         if jdict['name'] is None:
@@ -171,7 +170,10 @@ class DSageServer(pb.Root):
 
         jdict['update_time'] = datetime.datetime.now()
 
-        return self.jobdb.store_job(jdict)
+        job_id = self.jobdb.store_job(jdict)
+        log.msg('Received job %s' % job_id)
+
+        return job_id
 
     def get_all_jobs(self):
         """

@@ -306,13 +306,13 @@ fi
 
 if [ $1 = "-server" -o $1 = "--server" ]; then
    shift
-   dsage_server.py
+   dsage_server.py "$@"
    exit $?
 fi
 
 if [ $1 = "-worker" -o $1 = "--worker" ]; then
    shift
-   dsage_worker.py
+   dsage_worker.py "$@"
    exit $?
 fi
 

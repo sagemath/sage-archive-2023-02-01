@@ -30,6 +30,61 @@ from sage.modules.free_module_element import is_FreeModuleElement
 from random import randint
 
 cdef class Matrix(matrix1.Matrix):
+    def _backslash_(self, B):
+        return self.solve_right(B)
+
+    def solve_right(self, B):
+        """
+        If self is a matrix $A$, then this function returns a vector
+        or matrix $X$ such that $A X = B$.  If $B$ is a vector then
+        $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        INPUT:
+            B -- a matrix or vector
+
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: A = matrix(QQ, 3, [1,2,3,-1,2,5,2,3,1])
+            sage: b = vector(QQ,[1,2,3])
+            sage: x = A \ b; x
+            (-13/12, 23/12, -7/12)
+            sage: A * x
+            (1, 2, 3)
+
+        We illustrate left associativity, etc., of the backslash operator.
+            sage: A = matrix(QQ, 2, [1,2,3,4])
+            sage: A \ A
+            [1 0]
+            [0 1]
+            sage: A \ A \ A
+            [1 2]
+            [3 4]
+            sage: A.parent()(1) \ A
+            [1 2]
+            [3 4]
+            sage: A \ (A \ A)
+            [  -2    1]
+            [ 3/2 -1/2]
+            sage: X = A \ (A - 2); X
+            [ 5 -2]
+            [-3  2]
+            sage: A * X
+            [-1  2]
+            [ 3  2]
+        """
+        # *Really* dumb generic algorithm -- enough so I can write
+        # doctests and at least try it for "feel".
+        #return (~self)*B
+        C = self.augment(B).echelon_form()
+        return C.matrix_from_columns(range(self.ncols(),C.ncols()))
+
+
     def prod_of_row_sums(self, cols):
         r"""
         Calculate the product of all row sums of a submatrix of $A$ for a

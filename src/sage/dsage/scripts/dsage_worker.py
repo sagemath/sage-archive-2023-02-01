@@ -33,6 +33,11 @@ from twisted.python import log
 from twisted.spread import banana
 banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
+from gnutls.constants import *
+from gnutls.crypto import *
+from gnutls.errors import *
+from gnutls.interfaces.twisted import X509Credentials
+
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
@@ -557,7 +562,7 @@ class Monitor(object):
 
     def __init__(self, server='localhost', port=8081,
                  username=getuser(),
-                 ssl=False,
+                 ssl=True,
                  workers=2,
                  anonymous=False,
                  priority=20,
@@ -706,10 +711,14 @@ class Monitor(object):
         self.factory = PBClientFactory()
         try:
             if self.ssl:
-                from twisted.internet import ssl
-                contextFactory = ssl.ClientContextFactory()
-                reactor.connectSSL(self.server, self.port,
-                                   self.factory, contextFactory)
+                # For OpenSSL, SAGE uses GNUTLS now
+                # from twisted.internet import ssl
+                # contextFactory = ssl.ClientContextFactory()
+                # reactor.connectSSL(self.server, self.port,
+                #                    self.factory, contextFactory)
+                cred = X509Credentials()
+                reactor.connectTLS(self.server, self.port, self.factory,
+                                   cred)
             else:
                 reactor.connectTCP(self.server, self.port, self.factory)
         except Exception, msg:

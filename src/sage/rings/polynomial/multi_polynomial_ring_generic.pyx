@@ -36,6 +36,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             * any ring that canonically coerces to the base ring of this
               polynomial ring.
 
+        TESTS:
+        This fairly complicated code (from Michel Vandenbergh) ends up
+        imlicitly calling _coerce_c_impl:
+            sage: z = polygen(QQ, 'z')
+            sage: W.<s>=NumberField(z^2+1)
+            sage: Q.<u,v,w> = W[]
+            sage: W1 = FractionField (Q)
+            sage: S.<x,y,z> = W1[]
+            sage: u + x
+            x + u
+            sage: x + 1/u
+            x + 1/u
         """
         try:
             P = x.parent()
@@ -44,10 +56,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 if P.variable_names() == self.variable_names():
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
-                    else:
-                        raise TypeError, "no natural map between bases of polynomial rings"
-                else:
-                    raise TypeError, "polynomial ring has a different indeterminate names"
 
         except AttributeError:
             pass

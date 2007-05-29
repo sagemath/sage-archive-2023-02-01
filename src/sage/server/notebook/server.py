@@ -88,6 +88,18 @@ SAGE_ROOT = os.environ['SAGE_ROOT']
 
 static_images = ['favicon.ico', 'corner.png', 'evaluate.png', 'evaluate_over.png', 'sagelogo.png']
 
+def safe_path(path):
+    """
+    Return a safe version of the given path, i.e., a relative path with no ..'s.
+    The idea is to make it so the server can't just easily return arbitrary files
+    that it has access to.   Of course, right now in SAGE one can execute a command
+    in a cell that uses os.system to look at anything.  But in the future the
+    subcommands will be run in a sandbox themselves, so protecting the server
+    is still relevant.
+    """
+    return path.lstrip('/').replace('..','dotdot_not_allowed')
+
+
 
 class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
     def get_postvars(self):
@@ -487,7 +499,7 @@ class WebServer(BaseHTTPServer.BaseHTTPRequestHandler):
         if i == -1:
             return self.file_not_found(path)
         filename = path[i+1:]
-        file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,filename)).read()
+        file = open('%s/devel/sage/sage/%s'%(SAGE_ROOT,safe_path(filename))).read()
         file = file.replace('<','&lt;')
         s = """
 <html>
@@ -548,8 +560,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         #  file
         # file_name is the name of the file requested
         doc_path = os.path.abspath(os.environ['SAGE_ROOT'] + '/doc/')
-        print doc_path
-        file = open(doc_path + full_path + file_name,'r')
+        file = open(doc_path + '/' + safe_path(full_path + file_name),'r')
         doc_page_html = file.read()
         file.close()
         docProcessStart = time.time()
@@ -704,7 +715,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
         self.send_response(200)
         self.send_header("Content-type", 'application/sage')
         self.end_headers()
-        binfile = open('%s/%s.sws'%(notebook.directory(), filename), 'rb').read()
+        binfile = open('%s/%s.sws'%(notebook.directory(), safe_path(filename)), 'rb').read()
         f = StringIO()
         f.write(binfile)
         f.seek(0)
@@ -726,16 +737,14 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
 
         If the path matches none of the strings,
         then a '200 File Not Found' error is return.
-
-        This function could be cleaned up?
         """
         compressed = False
         path = self.path.replace('%20',' ')
-        if path[-5:] == '.sobj':
+        if path.endswith('.sobj'):
             path = '%s/%s'%(os.path.abspath(notebook.object_directory()), path)
         else:
-            path = path[1:]
-        if path[-5:] == '.html' and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
+            path = safe_path(path)
+        if path.endswith('.html') and not '/' in path and not '/jsmath' in path and not '/highlight' in path:
             worksheet_filename = path[:-5]
             if worksheet_filename == '__history__':
                 self.input_history_text()
@@ -759,7 +768,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self.wfile.write(self.robots())
             return
 
-        elif path[-4:] == '.sws':
+        elif path.endswith('.sws'):
 
             worksheet_filename = path[:-4]
             self.download_worksheet(worksheet_filename)
@@ -920,7 +929,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                               '.txt', '.ico', '.sws'] or \
                self.path[-2:] in ['.c'] or \
                self.path[-5:] in ['.sobj', '.html'] or \
-               self.path[-3:] in ['.ps', '.js'] or \
+               self.path[-3:] in ['.ps', '.js', '.hg'] or \
                ('/jsmath/' in self.path and self.path[-3] == '.js'):
             try:
                 return self.get_file()
@@ -1075,6 +1084,7 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
             self._images = {}
             return self.image(filename)
         except KeyError:
+	    filename = safe_path(filename)
             self._images[filename] = open(SAGE_EXTCODE +
                   '/notebook/images/' + filename, 'rb').read()
             return self._images[filename]

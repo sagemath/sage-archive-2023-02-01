@@ -17,6 +17,7 @@ include "../ext/stdsage.pxi"
 include "../ext/python.pxi"
 
 from   sage.structure.sequence import _combinations, Sequence
+from   sage.structure.element import is_Vector
 from   sage.misc.misc import verbose, get_verbose, graphics_filename
 from   sage.rings.number_field.all import is_NumberField
 from   sage.rings.integer_ring import ZZ
@@ -34,7 +35,7 @@ cdef class Matrix(matrix1.Matrix):
         return self.solve_right(B)
 
     def solve_right(self, B):
-        """
+        r"""
         If self is a matrix $A$, then this function returns a vector
         or matrix $X$ such that $A X = B$.  If $B$ is a vector then
         $X$ is a vector and if $B$ is a matrix, then $X$ is a matrix.
@@ -78,9 +79,6 @@ cdef class Matrix(matrix1.Matrix):
             [-1  2]
             [ 3  2]
         """
-        # *Really* dumb generic algorithm -- enough so I can write
-        # doctests and at least try it for "feel".
-        #return (~self)*B
         C = self.augment(B).echelon_form()
         return C.matrix_from_columns(range(self.ncols(),C.ncols()))
 

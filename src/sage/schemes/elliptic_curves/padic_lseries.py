@@ -487,9 +487,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             m = E.modular_symbol_space(sign=1)
             b = m.boundary_map().codomain()
             C = b._known_cusps()  # all known, since computed the boundary map
-            ans = max([valuation(self.modular_symbol(a).denominator(), p) for a in C], [0]) # very strange
-            if ans > 0:
-                ans = 0
+            ans = max([valuation(self.modular_symbol(a).denominator(), p) for a in C])
         self.__c_bound = ans
         return ans
 
@@ -501,7 +499,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
 class pAdicLseriesSupersingular(pAdicLseries):
-    def series(self, n, series_prec=20):
+    def series(self, n, prec=20):
         """
         Return the n-th approximation to the p-adic L-series as a
         power series in T (corresponding to $\gamma-1$ with $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).
@@ -524,21 +522,22 @@ class pAdicLseriesSupersingular(pAdicLseries):
             raise ValueError, "n (=%s) must be a positive integer"%n
 
         try:
-            return self.__series[n]
+            return self.__series[(n,res_series_prec)]
         except AttributeError:
             self.__series = {}
         except KeyError:
             pass
 
         bounds = self._prec_bounds(n)
-        prec = max(bounds[1:]) + 5
-
+        padic_prec = max(sum(bounds[1:],[])) + 5
         p = self._p
 
-        alpha = self.alpha(prec=prec)
+        res_series_prec = min(p**(n-1), prec)
+
+        alpha = self.alpha(prec=padic_prec)
         K = alpha.parent()
         gamma = 1 + p
-        R = PowerSeriesRing(K,'T',series_prec)
+        R = PowerSeriesRing(K,'T',res_series_prec)
         T = R(R.gen(), p**(n-1))
         L = R(0)
         one_plus_T_factor = R(1)
@@ -553,11 +552,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
-        # To fix this, just need to use p-adic extension rings, which
-        # David Roe has probably not quite finished yet.
-        print 'WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.'
-        L *= self._quotient_of_periods
-        self.__series[n] = L
+        # Now create series but with each coefficient truncated
+        # so it is proven correct:
+        L = R(L,res_series_prec)
+        aj = L.list()
+        if len(aj) > 0:
+            aj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
+            aj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
+        L = R(aj,res_series_prec ) * self._quotient_of_periods
+        self.__series[(n,res_series_prec)] = L
         return L
 
     power_series = series
@@ -571,8 +574,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def _prec_bounds(self, n):
         p = self._p
         e = self._e_bounds(n-1)
-        c = ZZ(n+2)/2
-        return [infinity] + [(e[j] - c).floor() for j in range(1,len(e))]
+        c0 = ZZ(n+2)/2
+        c1 = ZZ(n+1)/2
+        return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
 
 
     def Dp_valued_series(self, n, series_prec=20):

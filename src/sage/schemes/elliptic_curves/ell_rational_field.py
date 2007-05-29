@@ -4896,7 +4896,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
 
 
-    # 	def	weierstrass_p(self):
+    # def weierstrass_p(self):
     #         # TODO: add allowing negative valuations for power series
     #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
     #                - (a4+a1*a3)*t**2  + O(t**3)

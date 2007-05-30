@@ -908,7 +908,7 @@ class SymbolicExpression(RingElement):
 
         Polynomials can be useful for getting the coefficients
         of an expression:
-            age: g = 6*x^2 - 5
+            sage: g = 6*x^2 - 5
             sage: g.coeffs()
             [[-5, 0], [6, 2]]
             sage: g.polynomial(QQ).list()

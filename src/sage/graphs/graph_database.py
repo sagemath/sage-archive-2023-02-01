@@ -231,11 +231,11 @@ class GraphDatabase():
             True
             sage: b[5]
             (23, u'D@K', 5, 3, 1, 0, 1, 1, 1, 3.0, u'DF{')
-            sage: b = graphs_query.cursor(query="select graph6 from graph_data \
+            sage.: b = graphs_query.cursor(query="select graph6 from graph_data \
             ...                 inner join misc on graph_data.graph_id=misc.graph_id \
             ...                 where induced_subgraphs regexp '.*A_.*'", with_regexp=True)
             ...
-            sage: len(b)
+            sage.: len(b)
             1245
             sage: b = graphs_query.cursor(query='select * from graph_data \
             ...                 inner join misc on misc.graph_id=graph_data.graph_id \
@@ -1332,13 +1332,13 @@ class GraphDatabase():
             F@LAG
             sage: (Graph('FJ?GW')).is_isomorphic(Graph('F@LAG'))
             True
-            sage: g = graphs_query.get_list(query="select graph_data.graph6 \
+            sage.: g = graphs_query.get_list(query="select graph_data.graph6 \
             ...             from graph_data inner join misc on \
             ...             misc.graph_id=graph_data.graph_id where \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
             ...
             sage.: graphs_list.show_graphs(g)
-            sage: graphs_list.to_graph6(g)
+            sage.: graphs_list.to_graph6(g)
             'E~~w\nFJ\\zw\nFJ\\~w\nFJ^~w\nFJ~~w\nFN~~w\nF^~~w\nF~~~w\n'
         """
         if ( query is None ):

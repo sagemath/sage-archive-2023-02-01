@@ -66,16 +66,16 @@ class pAdicLseries(SageObject):
         sage: L.series(1)
         O(T^1)
         sage: L.series(2)
-        (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
+        O(5^4) + O(5^1)*T + (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
         sage: L.series(3, prec=10)
-        (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(T^10)
+        O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(5^2)*T^9 + O(T^10)
 
     A prime p such that E[p] is reducible:
         sage: L = EllipticCurve('11a').padic_lseries(5)
         sage: L.series(1)
         5 + 4*5^2 + O(5^3) + O(T)
         sage: L.series(2)
-        5 + 4*5^2 + 4*5^3 + O(5^4) + O(T^5)
+        5 + 4*5^2 + 4*5^3 + O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + O(5^1)*T^4 + O(T^5)
         sage: L.series(3)
         5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + O(5^2))*T + (5 + O(5^2))*T^2 + (4*5 + O(5^2))*T^3 + (3*5 + O(5^2))*T^4 + O(T^5)
     """
@@ -388,7 +388,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             True
             sage: L = E.padic_lseries(p)
             sage: L.series(3)
-            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + (2*3 + O(3^2))*T^4 + O(T^5)
+            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + O(3^1)*T^3 + (2*3 + O(3^2))*T^4 + O(T^5)
 
 
         Another example at a prime of bad reduction, where the
@@ -401,7 +401,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             True
             sage: L = E.padic_lseries(p)
             sage: L.series(2)
-            (10 + O(11))*T + (6 + O(11))*T^2 + (2 + O(11))*T^3 + (5 + O(11))*T^4 + O(T^5)
+            O(11^4) + (10 + O(11))*T + (6 + O(11))*T^2 + (2 + O(11))*T^3 + (5 + O(11))*T^4 + O(T^5)
 
         We compute a $p$-adic $L$-function that vanishes to order $2$.
             sage: E = EllipticCurve('389a')
@@ -412,9 +412,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(1)
             O(T^1)
             sage: L.series(2)
-            (2 + O(3))*T^2 + O(T^3)
+            O(3^4) + O(3^1)*T + (2 + O(3))*T^2 + O(T^3)
             sage: L.series(3)
-            (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
         """
         n = ZZ(n)
         if n < 1:
@@ -624,7 +624,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(2)
-            (4 + 4*5^2 + O(5^4) + (1 + 2*5 + 5^2 + 4*5^3 + O(5^4))*T + (4 + 2*5 + 4*5^2 + 5^3 + O(5^4))*T^2 + (1 + 4*5 + 3*5^2 + 4*5^3 + O(5^4))*T^3 + (2 + 5^2 + O(5^3))*T^4, (3*5 + 4*5^2 + 2*5^3 + O(5^4))*T + (5 + 4*5^2 + O(5^4))*T^2 + (2*5 + 4*5^2 + 5^3 + O(5^4))*T^3 + (1 + 4*5 + 2*5^3 + O(5^4))*T^4)
+            (4 + 4*5^2 + O(5^4) + (1 + 2*5 + 5^2 + 4*5^3 + O(5^4))*T + (4 + 2*5 + 4*5^2 + 5^3 + O(5^4))*T^2 + (1 + 4*5 + 3*5^2 + 4*5^3 + O(5^4))*T^3 + (2 + 5^2 + O(5^3))*T^4, O(5^4) + (3*5 + 4*5^2 + 2*5^3 + O(5^4))*T + (5 + 4*5^2 + O(5^4))*T^2 + (2*5 + 4*5^2 + 5^3 + O(5^4))*T^3 + (1 + 4*5 + 2*5^3 + O(5^4))*T^4)
         """
         E = self._E
         p = self._p

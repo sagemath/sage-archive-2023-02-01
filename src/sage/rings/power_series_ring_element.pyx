@@ -395,10 +395,10 @@ cdef class PowerSeries(AlgebraElement):
             coeffs = list(d.iteritems())
             coeffs.sort()
             for (n, x) in coeffs:
-                if x:
+                x = repr(x)
+                if x != '0':
                     if s != ' ':
                         s += " + "
-                    x = repr(x)
                     if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -414,10 +414,10 @@ cdef class PowerSeries(AlgebraElement):
             first = True
             for n in xrange(m):
                 x = v[n]
-                if x:
+                x = repr(x)
+                if x != '0':
                     if not first:
                         s += " + "
-                    x = repr(x)
                     if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -470,10 +470,10 @@ cdef class PowerSeries(AlgebraElement):
         first = True
         for n in xrange(m):
             x = v[n]
-            if x:
+            x = sage.misc.latex.latex(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:

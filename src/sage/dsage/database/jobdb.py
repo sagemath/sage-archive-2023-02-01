@@ -402,7 +402,10 @@ class JobDatabaseSQLite(JobDatabase):
      failures INTEGER DEFAULT 0,
      creation_time timestamp NOT NULL,
      update_time timestamp,
+     start_time timestamp,
      finish_time timestamp,
+     cpu_time REAL,
+     wall_time REAL,
      verifiable BOOL,
      private BOOL DEFAULT 0,
      timeout INTEGER DEFAULT 600,
@@ -486,6 +489,9 @@ class JobDatabaseSQLite(JobDatabase):
                 killed,
                 verifiable,
                 monitor_id,
+                cpu_time,
+                wall_time,
+                start_time,
                 failures
                 FROM jobs WHERE job_id = ?"""
 

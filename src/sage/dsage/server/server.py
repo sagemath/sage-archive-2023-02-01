@@ -27,6 +27,7 @@ from twisted.python import log
 
 from sage.dsage.errors.exceptions import BadTypeError
 from sage.dsage.database.job import expand_job
+from sage.dsage.misc.misc import timedelta_to_seconds
 
 
 class DSageServer(pb.Root):
@@ -77,6 +78,7 @@ class DSageServer(pb.Root):
             if self.LOG_LEVEL > 3:
                 log.msg('[DSage, get_job]' + ' Sending job %s' % job_id)
             jdict['status'] = 'processing'
+            jdict['start_time'] = datetime.datetime.now()
             self.jobdb.store_job(jdict)
 
         return jdict
@@ -160,7 +162,6 @@ class DSageServer(pb.Root):
 
         if self.LOG_LEVEL > 3:
             log.msg('[DSage, submit_job] %s' % (jdict))
-
         if jdict['code'] is None:
             return False
         if jdict['name'] is None:
@@ -171,7 +172,10 @@ class DSageServer(pb.Root):
 
         jdict['update_time'] = datetime.datetime.now()
 
-        return self.jobdb.store_job(jdict)
+        job_id = self.jobdb.store_job(jdict)
+        log.msg('Received job %s' % job_id)
+
+        return job_id
 
     def get_all_jobs(self):
         """
@@ -215,7 +219,7 @@ class DSageServer(pb.Root):
 
         return self.jobdb.get_next_job_id()
 
-    def job_done(self, job_id, output, result, completed):
+    def job_done(self, job_id, output, result, completed, cpu_time):
         """
         job_done is called by the workers check_output method.
 
@@ -229,9 +233,9 @@ class DSageServer(pb.Root):
         """
 
         if self.LOG_LEVEL > 0:
-            log.msg('[DSage, job_done] Job %s called back' % (job_id))
+            log.msg('[DSage, job_done] %s called back' % (job_id))
         if self.LOG_LEVEL > 3:
-            log.msg('[DSage, job_done] Output: %s ' % output)
+            log.msg('[DSage, job_done] output: %s ' % output)
             log.msg('[DSage, job_done] completed: %s ' % completed)
 
         jdict = self.get_job_by_id(job_id)
@@ -242,7 +246,12 @@ class DSageServer(pb.Root):
             jdict['output'] = output
         if completed:
             jdict['result'] = result
+            jdict['cpu_time'] = cpu_time
+            delta = timedelta_to_seconds(datetime.datetime.now() -
+                                         jdict['start_time'])
+            jdict['wall_time'] = delta
             jdict['status'] = 'completed'
+            log.msg('%s completed!' % job_id)
 
         jdict['update_time'] = datetime.datetime.now()
 

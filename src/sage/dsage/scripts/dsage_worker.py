@@ -33,6 +33,11 @@ from twisted.python import log
 from twisted.spread import banana
 banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
+from gnutls.constants import *
+from gnutls.crypto import *
+from gnutls.errors import *
+from gnutls.interfaces.twisted import X509Credentials
+
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
@@ -123,7 +128,7 @@ class Worker(object):
             self.report_failure(msg)
             self.restart()
 
-    def job_done(self, output, result, completed):
+    def job_done(self, output, result, completed, cpu_time):
         """
         job_done is a callback for doJob.  Called when a job completes.
 
@@ -139,7 +144,8 @@ class Worker(object):
                                           self.job.job_id,
                                           output,
                                           result,
-                                          completed)
+                                          completed,
+                                          cpu_time)
         except Exception, msg:
             log.msg(msg)
             log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
@@ -250,13 +256,18 @@ class Worker(object):
         SAVE_RESULT = """try:
     save(DSAGE_RESULT, 'result.sobj', compress=True)
 except:
-    save('No DSAGE_RESULT', 'result.sobj', compress=True)"""
+    save('No DSAGE_RESULT', 'result.sobj', compress=True)
+"""
         job_file.write("alarm(%s)\n\n" % (timeout))
+        job_file.write("import time\n\n")
         job_file.write(BEGIN)
+        job_file.write('start = time.time()\n')
         job_file.write(parsed_file)
         job_file.write("\n\n")
         job_file.write(END)
+        job_file.write("\n")
         job_file.write(SAVE_RESULT)
+        job_file.write("save((time.time()-start), 'cpu_time.sobj', compress=False)")
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
@@ -347,10 +358,12 @@ except:
         except IOError, msg: # File does not exist yet
             done = False
         if done:
+            cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
             self.free = True
             self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
+            cpu_time = None
         if self.check_failure(new):
             self.report_failure(new)
             self.restart()
@@ -363,7 +376,7 @@ except:
         if sanitized_output == '' and not done:
             self.increase_checker_task_timeout()
         else:
-            d = self.job_done(sanitized_output, result, done)
+            d = self.job_done(sanitized_output, result, done, cpu_time)
             d.addErrback(self._catch_failure)
 
     def report_failure(self, failure):
@@ -449,13 +462,18 @@ except:
             return False
 
     def kill_sage(self):
+        """
+        Try to hard kill the SAGE instance.
+
+        """
+
         try:
             pid = self.sage.pid()
             cmd = 'kill -9 -%s'%pid
             os.system(cmd)
-            self.start()
+            del self.sage
         except Exception, msg:
-            self.start()
+            log.msg(msg)
 
     def stop(self, hard_reset=False):
         """
@@ -466,6 +484,7 @@ except:
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
             self.kill_sage()
+            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -532,7 +551,7 @@ except:
 
         try:
             delta = datetime.datetime.now() - self.job_start_time
-            if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+            if delta.seconds >= (3*60): # more than 3 minutes, do a hard reset
                 self.stop(hard_reset=True)
             else:
                 self.stop()
@@ -557,7 +576,7 @@ class Monitor(object):
 
     def __init__(self, server='localhost', port=8081,
                  username=getuser(),
-                 ssl=False,
+                 ssl=True,
                  workers=2,
                  anonymous=False,
                  priority=20,
@@ -706,10 +725,14 @@ class Monitor(object):
         self.factory = PBClientFactory()
         try:
             if self.ssl:
-                from twisted.internet import ssl
-                contextFactory = ssl.ClientContextFactory()
-                reactor.connectSSL(self.server, self.port,
-                                   self.factory, contextFactory)
+                # For OpenSSL, SAGE uses GNUTLS now
+                # from twisted.internet import ssl
+                # contextFactory = ssl.ClientContextFactory()
+                # reactor.connectSSL(self.server, self.port,
+                #                    self.factory, contextFactory)
+                cred = X509Credentials()
+                reactor.connectTLS(self.server, self.port, self.factory,
+                                   cred)
             else:
                 reactor.connectTCP(self.server, self.port, self.factory)
         except Exception, msg:

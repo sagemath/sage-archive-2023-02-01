@@ -122,7 +122,7 @@ class DistributedSage(object):
 
         return d
 
-    def server(self, blocking=True, port=8081, log_level=0, ssl=False,
+    def server(self, blocking=True, port=8081, log_level=0, ssl=True,
                db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
                log_file=os.path.join(DSAGE_DIR, 'server.log'),
                privkey=os.path.join(DSAGE_DIR, 'cacert.pem'),
@@ -158,7 +158,7 @@ class DistributedSage(object):
             os.system(cmd)
 
     def worker(self, server='localhost', port=8081, workers=2, delay=5.0,
-               username=getuser(), blocking=True, ssl=False, log_level=0,
+               username=getuser(), blocking=True, ssl=True, log_level=0,
                anonymous=False, priority=20,
                privkey=os.path.join(DSAGE_DIR, 'dsage_key'),
                pubkey=os.path.join(DSAGE_DIR, 'dsage_key.pub'),

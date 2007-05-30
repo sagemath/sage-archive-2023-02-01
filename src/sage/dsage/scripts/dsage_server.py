@@ -30,6 +30,11 @@ from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
+from gnutls.constants import *
+from gnutls.crypto import *
+from gnutls.errors import *
+from gnutls.interfaces.twisted import X509Credentials
+
 from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.monitordb import MonitorDatabase
@@ -225,11 +230,20 @@ def main(options):
                 port_used = False
             if not port_used:
                 if SSL:
-                    ssl_context = ssl.DefaultOpenSSLContextFactory(
-                                    SSL_PRIVKEY, SSL_CERT)
-                    reactor.listenSSL(NEW_CLIENT_PORT,
-                                      client_factory,
-                                      contextFactory = ssl_context)
+                    ## This for OpenSSL, SAGE uses GNUTLS now
+                    ## ssl_context = ssl.DefaultOpenSSLContextFactory(
+                    ##                 SSL_PRIVKEY, SSL_CERT)
+                    ## reactor.listenSSL(NEW_CLIENT_PORT,
+                    ##                   client_factory,
+                    ##                   contextFactory = ssl_context)
+                    cert = X509Certificate(open(SSL_CERT).read())
+                    key = X509PrivateKey(open(SSL_PRIVKEY).read())
+                    cred = X509Credentials(cert, key)
+                    cred.verify_peer = False # Do not verify certs
+                    cred.session_params.compressions = (COMP_LZO,
+                                                        COMP_DEFLATE,
+                                                        COMP_NULL)
+                    reactor.listenTLS(NEW_CLIENT_PORT, client_factory, cred)
                     break
                 else:
                     reactor.listenTCP(NEW_CLIENT_PORT, client_factory)

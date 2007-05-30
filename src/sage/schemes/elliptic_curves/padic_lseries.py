@@ -432,6 +432,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             return ans
 
         p = self._p
+            pass
 
         K = QQ
         gamma = K(1 + p)
@@ -503,9 +504,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             m = E.modular_symbol_space(sign=1)
             b = m.boundary_map().codomain()
             C = b._known_cusps()  # all known, since computed the boundary map
-            ans = max([valuation(self.modular_symbol(a).denominator(), p) for a in C], [0]) # very strange
-            if ans > 0:
-                ans = 0
+            ans = max([valuation(self.modular_symbol(a).denominator(), p) for a in C])
         self.__c_bound = ans
         return ans
 
@@ -550,10 +549,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
 
         bounds = self._prec_bounds(n)
-        padic_prec = max(bounds[1:]) + 5
+        padic_prec = max(sum(bounds[1:],[])) + 5
         p = self._p
 
-
+        prec = min(p**(n-1), prec)
         ans = self._get_series_from_cache(n, prec)
         if not ans is None:
             return ans
@@ -576,14 +575,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
-        # To fix this, just need to use p-adic extension rings, which
-        # are not quite finished yet.
-
-        #print 'WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.'
-        L *= self._quotient_of_periods
-
+        # Now create series but with each coefficient truncated
+        # so it is proven correct:
+        L = R(L,prec)
+        aj = L.list()
+        if len(aj) > 0:
+            aj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
+            aj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
+        L = R(aj,prec ) * self._quotient_of_periods
         self._set_series_in_cache(n, prec, L)
-
         return L
 
     power_series = series
@@ -597,8 +597,9 @@ class pAdicLseriesSupersingular(pAdicLseries):
     def _prec_bounds(self, n):
         p = self._p
         e = self._e_bounds(n-1)
-        c = ZZ(n+2)/2
-        return [infinity] + [(e[j] - c).floor() for j in range(1,len(e))]
+        c0 = ZZ(n+2)/2
+        c1 = ZZ(n+1)/2
+        return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
 
 
     def Dp_valued_series(self, n=2, prec=5):

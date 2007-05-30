@@ -22,7 +22,7 @@ from functional import (diff, derivative,
                         integrate, limit, lim,
                         taylor, simplify)
 
-from var import (var, function)
+from var import (var, function, clear_vars)
 
 from predefined import (a,
                       b,

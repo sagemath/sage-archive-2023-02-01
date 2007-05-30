@@ -923,14 +923,10 @@ x.innerHTML = prettyPrintOne(x.innerHTML);
                 return
             self.path = self.path[:i]
 
-        #verbose(self.path)
-        if self.path[-4:] in ['.eps', '.pdf', '.png', '.bmp', '.svg', '.tex', \
-                              '.dvi', '.log', '.css',\
-                              '.txt', '.ico', '.sws'] or \
-               self.path[-2:] in ['.c'] or \
-               self.path[-5:] in ['.sobj', '.html'] or \
-               self.path[-3:] in ['.ps', '.js', '.hg'] or \
-               ('/jsmath/' in self.path and self.path[-3] == '.js'):
+
+
+        if has_valid_file_extension(self.path) or \
+               ('/jsmath/' in self.path and self.path.endswith('.js')):
             try:
                 return self.get_file()
             except:
@@ -1173,3 +1169,17 @@ def gzip_compress(data, compresslevel=9):
     io.seek(0)
     return io.read()
 
+
+
+
+VALID_EXTENSIONS = ['eps', 'pdf', 'png', 'bmp', 'svg', 'tex',
+                    'dvi', 'log', 'css',
+                    'txt', 'ico', 'sws',
+                    'c', 'sobj', 'html',
+                    'ps', 'js', 'hg', 'patch']
+
+def has_valid_file_extension(path):
+    for ext in VALID_EXTENSIONS:
+        if path.endswith('.' + ext):
+            return True
+    return False

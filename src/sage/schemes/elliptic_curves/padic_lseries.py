@@ -22,7 +22,7 @@ AUTHORS:
 ######################################################################
 
 
-from sage.rings.integer_ring import ZZ
+from sage.rings.integer_ring import   ZZ
 from sage.rings.rational_field import QQ
 from sage.rings.padics.factory import Qp
 from sage.rings.infinity import infinity
@@ -54,7 +54,6 @@ class pAdicLseries(SageObject):
         sage: L = e.padic_lseries(3); L
         3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
         sage: L.series(2)
-        WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.
         ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
 
     An ordinary example:
@@ -67,19 +66,18 @@ class pAdicLseries(SageObject):
         sage: L.series(1)
         O(T^1)
         sage: L.series(2)
-        (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
-        sage: L.series(3,series_prec=10)
-        (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(T^10)
+        O(5^4) + O(5^1)*T + (4 + O(5))*T^2 + (2 + O(5))*T^3 + (3 + O(5))*T^4 + O(T^5)
+        sage: L.series(3, prec=10)
+        O(5^5) + O(5^2)*T + (4 + 4*5 + O(5^2))*T^2 + (2 + 4*5 + O(5^2))*T^3 + (3 + O(5^2))*T^4 + (1 + O(5))*T^5 + (3*5 + O(5^2))*T^6 + (4 + 5 + O(5^2))*T^7 + (2 + 5 + O(5^2))*T^8 + O(5^2)*T^9 + O(T^10)
 
     A prime p such that E[p] is reducible:
         sage: L = EllipticCurve('11a').padic_lseries(5)
         sage: L.series(1)
         5 + 4*5^2 + O(5^3) + O(T)
         sage: L.series(2)
-        5 + 4*5^2 + 4*5^3 + O(5^4) + O(T^5)
+        5 + 4*5^2 + 4*5^3 + O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + O(5^1)*T^4 + O(T^5)
         sage: L.series(3)
-        5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + O(5^2))*T + (5 + O(5^2))*T^2 + (4*5 + O(5^2))*T^3 + (3*5 + O(5^2))*T^4 + (3*5 + O(5^2))*T^6 + (4*5 + O(5^2))*T^8 + (5 + O(5^2))*T^9 + (5 + O(5^2))*T^11 + (3*5 + O(5^2))*T^13 + (3*5 + O(5^2))*T^14 + (3*5 + O(5^2))*T^16 + (4*5 + O(5^2))*T^18 + (2*5 + O(5^2))*T^21 + (3*5 + O(5^2))*T^22 + (2*5 + O(5^2))*T^23 + (2*5 + O(5^2))*T^24 + O(T^25)
-
+        5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + O(5^2))*T + (5 + O(5^2))*T^2 + (4*5 + O(5^2))*T^3 + (3*5 + O(5^2))*T^4 + O(T^5)
     """
     def __init__(self, E, p, normalize):
         """
@@ -250,7 +248,7 @@ class pAdicLseries(SageObject):
 
     def order_of_vanishing(self, proof=True):
         """
-        Return the order of vanishing of this p-adic L-series.
+        Return the order of vanishing of this $p$-adic $L$-series.
 
         The output of this function is provably correct, due to a
         theorem of Kato.  This function will terminate if and only if
@@ -261,7 +259,7 @@ class pAdicLseries(SageObject):
         then you may conclude that the p-adic BSD rank conjecture is
         true and that the p-part of Sha is finite.
 
-        NOTE: currently p must be a prime of good ordinary reduction.
+        NOTE: currently $p$ must be a prime of good ordinary reduction.
 
         EXAMPLES:
             sage: L = EllipticCurve('11a').padic_lseries(3)
@@ -346,14 +344,28 @@ class pAdicLseries(SageObject):
         w = (1+T)**(p**n) - 1
         return [infinity] + [valuation(w[j],p) for j in range(1,w.degree()+1)]
 
+    def _get_series_from_cache(self, n, prec):
+        try:
+            return self.__series[(n,prec)]
+        except AttributeError:
+            self.__series = {}
+        except KeyError:
+            for _n, _prec in self.__series.keys():
+                if _n == n and _prec <= prec:
+                    return self.__series[(_n,_prec)].add_bigoh(prec)
+        return None
+
+    def _set_series_in_cache(self, n, prec, f):
+        self.__series[(n,prec)] = f
+
 
 class pAdicLseriesOrdinary(pAdicLseries):
     def series(self, n=2, prec=5):
         r"""
         Return the $n$-th approximation to the $p$-adic $L$-series as
-        a power series in T (corresponding to $\gamma-1$ with
+        a power series in $T$ (corresponding to $\gamma-1$ with
         $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
-        coefficient is a p-adic number whose precision is provably
+        coefficient is a $p$-adic number whose precision is provably
         correct.
 
         INPUT:
@@ -362,6 +374,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
                     to compute; to compute as many as possible just
                     give a very large number for prec; the result will
                     still be correct.
+
+        ALIAS:
+            power_series is identical to series.
 
         EXAMPLES:
         We compute some $p$-adic $L$-functions associated to the elliptic
@@ -373,7 +388,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             True
             sage: L = E.padic_lseries(p)
             sage: L.series(3)
-            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + (2*3 + O(3^2))*T^4 + (2 + O(3^2))*T^5 + (1 + O(3))*T^6 + (2 + O(3^2))*T^7 + (2 + O(3^2))*T^8 + O(T^9)
+            2 + 3 + 3^2 + 2*3^3 + O(3^5) + (1 + 3 + O(3^2))*T + (1 + 2*3 + O(3^2))*T^2 + O(3^1)*T^3 + (2*3 + O(3^2))*T^4 + O(T^5)
 
 
         Another example at a prime of bad reduction, where the
@@ -386,7 +401,7 @@ class pAdicLseriesOrdinary(pAdicLseries):
             True
             sage: L = E.padic_lseries(p)
             sage: L.series(2)
-            (10 + O(11))*T + (6 + O(11))*T^2 + (2 + O(11))*T^3 + (5 + O(11))*T^4 + (4 + O(11))*T^5 + (1 + O(11))*T^6 + (5 + O(11))*T^8 + (6 + O(11))*T^9 + (5 + O(11))*T^10 + O(T^11)
+            O(11^4) + (10 + O(11))*T + (6 + O(11))*T^2 + (2 + O(11))*T^3 + (5 + O(11))*T^4 + O(T^5)
 
         We compute a $p$-adic $L$-function that vanishes to order $2$.
             sage: E = EllipticCurve('389a')
@@ -397,9 +412,9 @@ class pAdicLseriesOrdinary(pAdicLseries):
             sage: L.series(1)
             O(T^1)
             sage: L.series(2)
-            (2 + O(3))*T^2 + O(T^3)
+            O(3^4) + O(3^1)*T + (2 + O(3))*T^2 + O(T^3)
             sage: L.series(3)
-            (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + (1 + O(3^2))*T^5 + (2 + O(3))*T^6 + (1 + 3 + O(3^2))*T^7 + (1 + 3 + O(3^2))*T^8 + O(T^9)
+            O(3^5) + O(3^2)*T + (2 + 2*3 + O(3^2))*T^2 + (2 + O(3))*T^3 + (1 + 3 + O(3^2))*T^4 + O(T^5)
         """
         n = ZZ(n)
         if n < 1:
@@ -412,16 +427,12 @@ class pAdicLseriesOrdinary(pAdicLseries):
         padic_prec = max(bounds[1:]) + 5
         res_series_prec = min(p**(n-1), prec)
 
-        try:
-            return self.__series[(n,res_series_prec)]
-        except AttributeError:
-            self.__series = {}
-        except KeyError:
-            pass
+        ans = self._get_series_from_cache(n, res_series_prec)
+        if not ans is None:
+            return ans
 
         p = self._p
 
-        res_series_prec = min(p**(n-1),series_prec)
         K = QQ
         gamma = K(1 + p)
         R = PowerSeriesRing(K,'T',res_series_prec)
@@ -448,14 +459,16 @@ class pAdicLseriesOrdinary(pAdicLseries):
         if len(aj) > 0:
             aj = [aj[0].add_bigoh(padic_prec-2)] + [aj[j].add_bigoh(bounds[j]) for j in range(1,len(aj))]
         L = R(aj,res_series_prec ) * self._quotient_of_periods
-        self.__series[(n,res_series_prec)] = L
+
+        self._set_series_in_cache(n, res_series_prec, L)
+
         return L
 
     power_series = series
 
     def is_ordinary(self):
         """
-        Return True if the elliptic that this L function is attached
+        Return True if the elliptic that this $L$-function is attached
         to is ordinary.
 
         EXAMPLES:
@@ -504,63 +517,73 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
 class pAdicLseriesSupersingular(pAdicLseries):
-    def series(self, n, series_prec=20):
-        """
-        Return the n-th approximation to the p-adic L-series as a
-        power series in T (corresponding to $\gamma-1$ with $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).
-        Each coefficient is a p-adic number whose
-        precision is _not_ correct.
+    def series(self, n=2, prec=5):
+        r"""
+        Return the $n$-th approximation to the $p$-adic $L$-series as a
+        power series in $T$ (corresponding to $\gamma-1$ with
+        $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
+        coefficient is a $p$-adic number whose precision is probably
+        {\em not} correct.
+
+        WARNING: ** The output precision is not as high as claimed! **
 
         INPUT:
-            n -- a positive integer
+            n -- (default: 2) a positive integer
+            prec -- (default: 5) maxima number of terms of the series
+                    to compute; to compute as many as possible just
+                    give a very large number for prec; the result will
+                    still be correct.
+
+        ALIAS:
+            power_series is identical to series.
 
         EXAMPLES:
             sage: L = EllipticCurve('37a').padic_lseries(3)
             sage: L.series(2)
-            WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.
-            ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T + ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T^2 + O(T^3)
+            ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
             sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + 3 + O(3^3)
+            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
         n = ZZ(n)
         if n < 1:
             raise ValueError, "n (=%s) must be a positive integer"%n
 
-        try:
-            return self.__series[n]
-        except AttributeError:
-            self.__series = {}
-        except KeyError:
-            pass
 
         bounds = self._prec_bounds(n)
-        prec = max(bounds[1:]) + 5
-
+        padic_prec = max(bounds[1:]) + 5
         p = self._p
 
-        alpha = self.alpha(prec=prec)
+
+        ans = self._get_series_from_cache(n, prec)
+        if not ans is None:
+            return ans
+
+        alpha = self.alpha(prec=padic_prec)
         K = alpha.parent()
         gamma = 1 + p
-        R = PowerSeriesRing(K,'T',series_prec)
+        R = PowerSeriesRing(K,'T',prec)
         T = R(R.gen(), p**(n-1))
         L = R(0)
         one_plus_T_factor = R(1)
         gamma_power = 1
-        teich = self.teichmuller(prec)
+        teich = self.teichmuller(padic_prec)
         for j in range(p**(n-1)):
             s = K(0)
             for a in range(1,p):
                 b = teich[a] * gamma_power
-                s += self.measure(b, n, prec)
+                s += self.measure(b, n, padic_prec)
             L += s * one_plus_T_factor
             one_plus_T_factor *= 1+T
             gamma_power *= gamma
 
         # To fix this, just need to use p-adic extension rings, which
-        # David Roe has probably not quite finished yet.
-        print 'WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.'
+        # are not quite finished yet.
+
+        #print 'WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.'
         L *= self._quotient_of_periods
-        self.__series[n] = L
+
+        self._set_series_in_cache(n, prec, L)
+
         return L
 
     power_series = series
@@ -578,40 +601,43 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return [infinity] + [(e[j] - c).floor() for j in range(1,len(e))]
 
 
-    def Dp_valued_series(self, n, series_prec=20):
-        """
+    def Dp_valued_series(self, n=2, prec=5):
+        r"""
         Returns a vector of two components which are p-adic power series.
         The answer v is such that
             $$(1-\varphi)^(-2)* L_p(E,T) = v[1] * \omega + v[2] * \eta$$
         as an element of the Dieudonne module $D_p(E) = H^1_{dR}(E/\QQ_p)$ where
         $\omega$ is the invariant differential and $\eta$ is $x\cdot\omega$.
-        According to the p-adic BSD this function has a zero of order rank(E(Q)) and it's leading term is
-        +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with valuesin D_p(E).
+        According to the p-adic BSD this function has a zero of order
+        rank(E(Q)) and it's leading term is
+        \begin{verbatim}
+    +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with valuesin D_p(E).
+        \end{verbatim}
+
+        WARNING: ** The output precision is not as high as claimed! **
 
         INPUT:
-            n -- a positive integer
+            n -- (default: 2) a positive integer
+            prec -- (default: 5) a positive integer
 
         EXAMPLES:
-            sage: L = EllipticCurve('37a').padic_lseries(3)
-            sage: L.series(2)
-            WARNING: supersingular prime -- answer is *not* to as high of precision as claimed.
-            ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T + ((3^-1 + O(3^3))*alpha + 2*3^-1 + O(3^3))*T^2 + O(T^3)
-            sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + 3 + O(3^3)
-
+            sage: E = EllipticCurve('14a')
+            sage: L = E.padic_lseries(5)
+            sage: L.Dp_valued_series(2)
+            (4 + 4*5^2 + O(5^4) + (1 + 2*5 + 5^2 + 4*5^3 + O(5^4))*T + (4 + 2*5 + 4*5^2 + 5^3 + O(5^4))*T^2 + (1 + 4*5 + 3*5^2 + 4*5^3 + O(5^4))*T^3 + (2 + 5^2 + O(5^3))*T^4, O(5^4) + (3*5 + 4*5^2 + 2*5^3 + O(5^4))*T + (5 + 4*5^2 + O(5^4))*T^2 + (2*5 + 4*5^2 + 5^3 + O(5^4))*T^3 + (1 + 4*5 + 2*5^3 + O(5^4))*T^4)
         """
         E = self._E
         p = self._p
-        lps = self.series(n, series_prec=series_prec)
+        lps = self.series(n, prec=prec)
 
         # now split up the series in two lps = G + H * alpha
         R = lps.base_ring().base_ring() # Qp
-        QpT , T = PowerSeriesRing(R,'T',series_prec).objgen()
+        QpT , T = PowerSeriesRing(R,'T',prec).objgen()
         G = sum([R(lps[n][0])*T**n for n in range(0,lps.prec())])
         H = sum([R(lps[n][1])*T**n for n in range(0,lps.prec())])
 
-         # now compute phi
-        phi =  self._geometric_frob_on_Dp(p)
+        # now compute phi
+        phi =  self.geometric_frob_on_Dp(p)
         phi_omega_0 = phi[0,0]
         phi_omega_1 = phi[1,0]
         lpv = vector([G  + R(E.ap(p))*H - R(p) * phi_omega_0* H , - R(p)*phi_omega_1*H])  # this is L_p
@@ -620,11 +646,22 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return resu
 
 
-    def _geometric_frob_on_Dp(self, prec=20):
-        """
+    def geometric_frob_on_Dp(self, prec=20):
+        r"""
         This returns the geometric Frobenius $\varphi$ on the Diedonne module $D_p(E)$
-        with respect to the basis $\omega$, the invariatn differential and $\eta=x\omega$.
+        with respect to the basis $\omega$, the invariant differential and $\eta=x\omega$.
         It satisfies  $phi^2 - a_p/p*phi + 1/p = 0$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('14a')
+            sage: L = E.padic_lseries(5)
+            sage: F = L.geometric_frob_on_Dp(5)
+            sage: F
+            [ 3 + 4*5 + 3*5^2 + 4*5^3 + O(5^4) 2*5^-1 + 1 + 3*5 + 3*5^3 + O(5^4)]
+            [     2 + 4*5 + 5^2 + 5^4 + O(5^5)            2 + 5^2 + 5^4 + O(5^5)]
+            sage: F^2 - E.ap(5)/5 * F + 1/5
+            [O(5^4) O(5^3)]
+            [O(5^4) O(5^4)]
         """
         E = self._E
         p = self._p
@@ -649,9 +686,15 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
 
     def bernardi_sigma_function(self, prec=20):
-        """
+        r"""
         Return the  p-adic sigma function of Bernardi in terms of $z = log(t)$.
         This is the same as padic_sigma with E2 = 0.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('14a')
+            sage: L = E.padic_lseries(5)
+            sage: L.bernardi_sigma_function(5) # Todo: some sort of consistency check!?
+            z + 1/24*z^3 + 29/384*z^5 - 8399/322560*z^7 - 291743/92897280*z^9 + O(z^11)
         """
         E = self._E
         p = self._p
@@ -666,7 +709,6 @@ class pAdicLseriesSupersingular(pAdicLseries):
         si = z * minusx.integral().integral().exp()
 
         return si
-
 
 
     def Dp_valued_height(self,prec=20):

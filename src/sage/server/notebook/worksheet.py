@@ -55,19 +55,22 @@ SAGE_ERROR=SC+'r'
 # This variable gets sets when the notebook function
 # in notebook.py is called.
 multisession = True
-
-_a_sage = None
-def init_sage_prestart():
-    global _a_sage
-    _a_sage = Sage(maxread = 1)
-    _a_sage._start(block_during_init=False)
-    E = _a_sage.expect()
+def initialized_sage():
+    S = Sage(maxread = 1)
+    S._start(block_during_init=False)
+    E = S.expect()
     E.sendline('\n')
     E.expect('>>>')
     cmd = 'from sage.all import *;'
     cmd += 'from sage.all_notebook import *;'
     cmd += 'import sage.server.support as _support_; '
     E.sendline(cmd)
+    return S
+
+_a_sage = None
+def init_sage_prestart():
+    global _a_sage
+    _a_sage = initialized_sage()
 
 def one_prestarted_sage():
     global _a_sage
@@ -809,6 +812,9 @@ class Worksheet:
             del self.__variables
         except AttributeError:
             pass
+
+        # We do this to avoid getting a stale SAGE that uses old code.
+        self.__sage = initialized_sage()
 
         self._enqueue_auto_cells()
         self.start_next_comp()

@@ -4018,7 +4018,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
-            sage: E.padic_regulator(5, 10)
+            sage: E.padic_regulator(5, 10)                       # long time
             4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
 
         Check that answers agree over a range of precisions:
@@ -4962,38 +4962,51 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def tate_curve(self, p):
         r"""
-        Creates the Tate Curve. This is a $p$-adic curve with split multiplicative reduction of the form
-        $y^2+xy=x^3+s_4 x+s_6$ which is isomorphic to the given curve over the algebraic closure of $\QQ_p$.
-        Its points over $\QQ_p$ are isomorphic to $\QQ_p^{\times}/q^{\Z}$ for a certain parameter $q\in\Z_p$.
+        Creates the Tate Curve over the $p$-adics associated to this elliptic curves.
 
+        This Tate curve a $p$-adic curve with split multiplicative
+        reduction of the form $y^2+xy=x^3+s_4 x+s_6$ which is
+        isomorphic to the given curve over the algebraic closure of
+        $\QQ_p$.  Its points over $\QQ_p$ are isomorphic to
+        $\QQ_p^{\times}/q^{\Z}$ for a certain parameter $q\in\Z_p$.
 
         INPUT:
-            p -- prime where the curve has potentially multiplicative reduction.
+
+            p -- a prime where the curve has multiplicative reduction.
 
 
         EXAMPLES:
             sage: e = EllipticCurve('130a1')
-            sage: eq = e.tate_curve(5); eq
-            5-adic uniformised elliptic curve of Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+            sage: e.tate_curve(2)
+            2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
 
-            # this returns the parameter q
-            sage: eq.parameter(prec=5)
+        The input curve must have multiplicative reduction at the prime.
+            sage: e.tate_curve(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The elliptic curve must have multiplicative reduction at 3
+
+        We compute with $p=5$:
+            sage: T = e.tate_curve(5); T
+            5-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+
+        We find the Tate parameter $q$:
+            sage: T.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
 
-            # the L-invariant
-            sage: eq.L_invariant(prec=10)
+        We compute the $L$-invariant of the curve:
+            sage: T.L_invariant(prec=10)
             5^3 + 4*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 3*5^8 + 5^9 + O(5^10)
-
         """
         try:
-            return self._tate_curve
+            return self._tate_curve[p]
         except AttributeError:
             self._tate_curve = {}
         except KeyError:
             pass
 
         Eq = ell_tate_curve.TateCurve(self,p)
-        self._tate_curve = Eq
+        self._tate_curve[p] = Eq
         return Eq
 
 

@@ -231,11 +231,11 @@ class GraphDatabase():
             True
             sage: b[5]
             (23, u'D@K', 5, 3, 1, 0, 1, 1, 1, 3.0, u'DF{')
-            sage.: b = graphs_query.cursor(query="select graph6 from graph_data \
+            sage: b = graphs_query.cursor(query="select graph6 from graph_data \
             ...                 inner join misc on graph_data.graph_id=misc.graph_id \
             ...                 where induced_subgraphs regexp '.*A_.*'", with_regexp=True)
             ...
-            sage.: len(b)
+            sage: len(b)
             1245
             sage: b = graphs_query.cursor(query='select * from graph_data \
             ...                 inner join misc on misc.graph_id=graph_data.graph_id \

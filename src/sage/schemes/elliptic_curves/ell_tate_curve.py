@@ -3,6 +3,7 @@ Tate's parametrisation of p-adic curves with multiplicative reduction
 
 AUTHORS:
    -- chris wuthrich (23/05/2007): first version
+   -- William Stein (2007-05-29): added some examples.
 """
 
 ######################################################################
@@ -32,11 +33,13 @@ from sage.misc.all import verbose, denominator, prod
 import sage.matrix.all as matrix
 
 class TateCurve(SageObject):
-    """
-    Tate's $p$-adic uniformisation of an elliptic curve with multiplicative reduction.
-    Reference : Silverman. Advanced Topics in the Arithmetic of Elliptic Curves.
+    r"""
+    Tate's $p$-adic uniformisation of an elliptic curve with
+    multiplicative reduction.  Reference : Silverman. Advanced Topics
+    in the Arithmetic of Elliptic Curves.
 
-    NOTE : Some of its functions will need the reduction to be split multiplicative over $\QQ_p$.
+    NOTE : Some of the methods of this Tate curve only work when the
+    reduction is split multiplicative over $\QQ_p$.
 
     EXAMPLES:
         sage: e = EllipticCurve('130a1')
@@ -47,7 +50,7 @@ class TateCurve(SageObject):
         """
         INPUT:
             E -- an elliptic curve
-            p -- a prime where E has potentially multiplicative reduction,
+            p -- a prime where E has multiplicative reduction,
                  i. e. such that j(E) has negative valuation
         """
         self._p = ZZ(p)
@@ -56,14 +59,14 @@ class TateCurve(SageObject):
         if not p.is_prime():
             raise ValueError, "p (=%s) must be a prime"%p
         if E.j_invariant().valuation(p) >= 0:
-            raise ValueError, "The elliptic curve must have potentially multiplicative reduction at %s"%p
+            raise ValueError, "The elliptic curve must have multiplicative reduction at %s"%p
 
 
     def _repr_(self):
         """
         Return print representation.
         """
-        s = "%s-adic uniformised elliptic curve of %s"%(self._p, self._E)
+        s = "%s-adic Tate curve associated to the %s"%(self._p, self._E)
         return s
 
     def originial_curve(self):
@@ -200,7 +203,7 @@ class TateCurve(SageObject):
             sage: eq.is_split()
             True
 
-            saeg: eq = EllipticCurve('37a1').tate_curve(37)
+            sage: eq = EllipticCurve('37a1').tate_curve(37)
             sage: eq.is_split()
             False
         """
@@ -318,8 +321,15 @@ class TateCurve(SageObject):
             sage: e = EllipticCurve('130a1')
             sage: eq = e.tate_curve(5)
             sage: P = e.gens()[0]
-            sage: eq.lift(12*P, prec=10)
+            sage: l = eq.lift(12*P, prec=10); l
             1 + 4*5 + 5^3 + 5^4 + 4*5^5 + 5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)
+
+        Now we map the lift l back and check that it is indeed right.
+            sage: eq.parametrisation_onto_original_curve(l)
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 3*5^-3 + 5^-1 + 4 + 2*5^2 + 3*5^3 + 3*5^4 + 5^5 + O(5^6) : 1 + O(5^20))
+            sage: e5 = e.change_ring(Qp(5,9))
+            sage: e5(12*P)
+            (4*5^-2 + 2*5^-1 + 4*5 + 3*5^3 + 5^4 + 2*5^5 + 4*5^6 + O(5^7) : 3*5^-3 + 5^-1 + 4 + 2*5^2 + 3*5^3 + 3*5^4 + 5^5 + O(5^6) : 1 + O(5^9))
         """
         p = self._p
         R = Qp(self._p,prec)

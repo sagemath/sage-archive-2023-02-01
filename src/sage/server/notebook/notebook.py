@@ -1057,9 +1057,9 @@ class Notebook(SageObject):
 
         body += '<div class="fivepix"></div>\n'
         body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
-        body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
+        body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
         body += '     Saved Objects</div>\n'
-        body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
+        body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
 
         #body += '<div class="fivepix"></div>\n'
         #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
@@ -1070,9 +1070,9 @@ class Notebook(SageObject):
 
         body += '<div class="fivepix"></div>\n'
         body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
-        body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
+        body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
         body += '     Attached Files</div>\n'
-        body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
+        body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
         body += endpanespan
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
@@ -1090,7 +1090,7 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
 
-        body += '<script type="text/javascript">toggle_left_pane()</script>'
+        #body += '<script type="text/javascript">toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):

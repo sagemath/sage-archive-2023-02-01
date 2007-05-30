@@ -16,6 +16,8 @@ from sage.misc.html import html
 
 from sage.misc.sh import sh
 
+from sage.calculus.predefined import *
+
 
 
 

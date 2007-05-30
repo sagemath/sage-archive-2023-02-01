@@ -431,9 +431,6 @@ class pAdicLseriesOrdinary(pAdicLseries):
         if not ans is None:
             return ans
 
-        p = self._p
-            pass
-
         K = QQ
         gamma = K(1 + p)
         R = PowerSeriesRing(K,'T',res_series_prec)

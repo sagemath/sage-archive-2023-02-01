@@ -3,7 +3,7 @@ Tate's parametrisation of p-adic curves with multiplicative reduction
 
 AUTHORS:
    -- chris wuthrich (23/05/2007): first version
-   -- William Stein (2007-05-29): added some examples.
+   -- William Stein (2007-05-29): added some examples; editing.
 """
 
 ######################################################################
@@ -44,7 +44,7 @@ class TateCurve(SageObject):
     EXAMPLES:
         sage: e = EllipticCurve('130a1')
         sage: eq = e.tate_curve(5); eq
-        5-adic uniformised elliptic curve of Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+        5-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
     """
     def __init__(self,E,p):
         """
@@ -322,7 +322,7 @@ class TateCurve(SageObject):
             sage: eq = e.tate_curve(5)
             sage: P = e.gens()[0]
             sage: l = eq.lift(12*P, prec=10); l
-            1 + 4*5 + 5^3 + 5^4 + 4*5^5 + 5^6 + 5^7 + 4*5^8 + 5^9 + O(5^10)
+            1 + 5 + 3*5^3 + 2*5^5 + 2*5^6 + 3*5^7 + 5^9 + O(5^10)
 
         Now we map the lift l back and check that it is indeed right.
             sage: eq.parametrisation_onto_original_curve(l)

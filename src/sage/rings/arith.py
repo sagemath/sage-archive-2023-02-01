@@ -1141,7 +1141,11 @@ XGCD = xgcd
 
 def inverse_mod(a, m):
     """
-    The inverse of the integer a modulo the integer m.
+    The inverse of the ring element a modulo m.
+
+    If no special inverse_mod is defined for the elements, it tries
+    to coerce them into integers and perform the inversion there
+
     sage: inverse_mod(7,1)
     0
     sage: inverse_mod(5,14)
@@ -1149,11 +1153,10 @@ def inverse_mod(a, m):
     sage: inverse_mod(3,-5)
     2
     """
-    if m<0:
-        m *= -1
-    if m==1:
-        return 0
-    return integer_ring.ZZ((~(pari(a).Mod(m))).lift())
+    try:
+        return a.inverse_mod(m)
+    except AttributeError:
+        return integer.Integer(a).inverse_mod(m)
 
 # def sqrt_mod(a, m):
 #     """A square root of a modulo m."""

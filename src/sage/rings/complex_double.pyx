@@ -516,6 +516,11 @@ cdef class ComplexDoubleElement(FieldElement):
             s = "0"
         return s
 
+    def _latex_(self):
+        import re
+        s = str(self).replace('*I', 'i')
+        return re.sub(r"e\+?(-?\d+)", r" \\times 10^{\1}", s)
+
     cdef GEN _gen(self):
         cdef GEN y
         y = cgetg(3, t_COMPLEX)    # allocate space for a complex number

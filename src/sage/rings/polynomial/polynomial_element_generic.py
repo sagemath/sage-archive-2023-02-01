@@ -527,9 +527,10 @@ class Polynomial_rational_dense(Polynomial_generic_field):
 
 
         if fraction_field_element.is_FractionFieldElement(x):
-            if x.denominator().degree() >= 1:
-                raise TypeError, "denominator must be constant"
-                x = x.numerator() * (~x.denominator()[0])
+            if not x.denominator().is_unit():
+                raise TypeError, "denominator must be a unit"
+            elif x.denominator() != 1:
+                x = x.numerator() * x.denominator().inverse_of_unit()
             else:
                 x = x.numerator()
 

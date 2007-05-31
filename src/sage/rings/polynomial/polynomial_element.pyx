@@ -56,6 +56,7 @@ from sage.rings.integer_ring import ZZ
 
 from sage.rings.integral_domain import is_IntegralDomain
 
+
 import polynomial_fateman
 
 def is_Polynomial(f):
@@ -417,8 +418,92 @@ cdef class Polynomial(CommutativeAlgebraElement):
             Univariate Polynomial Ring in x over Rational Field
         """
         if self.degree() > 0:
-            raise ValueError, "self is not a unit."
+            if not self.is_unit():
+                raise ValueError, "self is not a unit."
+            else:
+                raise NotImplementedError, "polynomial inversion over non-integral domains not implemented"
         return self.parent()(~(self[0]))
+
+    def inverse_mod(a, m):
+        """
+        Inverts the polynomial a with respect to m, or throw a
+        ValueError if no such inverse exists.
+
+        EXAMMPLES:
+            sage: S.<t> = QQ[]
+            sage: f = inverse_mod(t^2 + 1, t^3 + 1); f
+            -1/2*t^2 - 1/2*t + 1/2
+            sage: f * (t^2 + 1) % (t^3 + 1)
+            1
+            sage: f = t.inverse_mod((t+1)^7); f
+            -t^6 - 7*t^5 - 21*t^4 - 35*t^3 - 35*t^2 - 21*t - 7
+            sage: (f * t) + (t+1)^7
+            1
+
+        It also works over in-exact rings, but note that due to rounding
+        error the product is only guerenteed to be withing epsilon of the
+        constant polynomial 1.
+            sage: R.<x> = RDF[]
+            sage: f = inverse_mod(x^2 + 1, x^5 + x + 1); f
+            0.4*x^4 - 0.2*x^3 - 0.4*x^2 + 0.2*x + 0.8
+            sage: f * (x^2 + 1) % (x^5 + x + 1)
+            -5.55111512313e-17*x^3 - 5.55111512313e-17*x^2 - 5.55111512313e-17*x + 1.0
+            sage: f = inverse_mod(x^3 - x + 1, x - 2); f
+            0.142857142857
+            sage: f * (x^3 - x + 1) % (x - 2)
+            1.0
+
+        ALGORITHM:
+            Solve the system as + mt = 1, returning s as the inverse
+            of a mod m.
+
+            Uses the Euclidean algorithm for exact rings, and solves a
+            linear system for the coefficients of s and t for inexact rings
+            (as the Euclidean algorithm may not converge in that case).
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-05-31)
+        """
+        if m.degree() == 1:
+            # a(x) mod (x-r) = a(r)
+            u = a(-m[0]/m[1])
+            return a.parent()(~u)
+        if a.parent().is_exact():
+            # use xgcd
+            g, s, _ = a.xgcd(m)
+            if g == 1:
+                return s
+            elif g.is_unit():
+                return g.inverse_of_unit() * s
+            else:
+                raise ValueError, "Impossible inverse modulo"
+        else:
+            # xgcd may not converge for inexact rings.
+            # Instead solve for the coefficients of
+            # s (degree n-1) and t (degree n-2) in
+            #               as + mt = 1
+            # as a linear system.
+            from sage.matrix.constructor import matrix
+            from sage.modules.free_module_element import vector
+            a %= m
+            n = m.degree()
+            R = a.parent().base_ring()
+            M = matrix(R, 2*n-1)
+            # a_i s_j x^{i+j} terms
+            for i in range(n):
+                for j in range(n):
+                    M[i+j, j] = a[i]
+            # m_i t_j x^{i+j} terms
+            for i in range(n+1):
+                for j in range(n-1):
+                    M[i+j, j+n] = m[i]
+            v = vector(R, [R(1)] + [R(0)]*(2*n-2)) # the constant polynomial 1
+            if M.is_invertible():
+                x = ~M*v # there has to be a better way to solve
+                return a.parent()(list(x)[0:n])
+            else:
+                raise ValueError, "Impossible inverse modulo"
+
 
     def __long__(self):
         """
@@ -1311,7 +1396,6 @@ cdef class Polynomial(CommutativeAlgebraElement):
             for i in range(1,self.degree()+1):
                 if not self[i].is_nilpotent():
                     return False
-            return True
         return self[0].is_unit()
 
     def is_nilpotent(self):

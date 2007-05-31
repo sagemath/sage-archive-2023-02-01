@@ -143,6 +143,11 @@ cdef class ComplexNumber(sage.structure.element.FieldElement):
             s = "0"
         return s
 
+    def _latex_(self):
+        import re
+        s = self.str().replace('*I', 'i')
+        return re.sub(r"e(-?\d+)", r" \\times 10^{\1}", s)
+
     def _pari_(self):
         return sage.libs.pari.all.pari.complex(self.real()._pari_(), self.imag()._pari_())
 

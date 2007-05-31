@@ -88,6 +88,7 @@ import sage.misc.latex as latex
 import multi_polynomial_element
 import padics.polynomial_padic_capped_relative_dense as polynomial_padic_capped_relative_dense
 import sage.rings.polynomial.padics.polynomial_padic_flat
+from sage.rings.fraction_field_element import FractionFieldElement
 
 from sage.libs.ntl.all import ZZ as ntl_ZZ, set_modulus
 
@@ -162,7 +163,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
-        elif is_Element(x) and x.parent() == self.base_ring():
+        elif is_Element(x) and x in self.base_ring():
             return self([x])
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()
@@ -180,6 +181,11 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
             return x._polynomial_(self)
         elif is_MagmaElement(x):
             x = list(x.Eltseq())
+        elif isinstance(x, FractionFieldElement):
+            if x.denominator().is_unit():
+                x = x.numerator() * x.denominator().inverse_of_unit()
+            else:
+                raise TypeError, "denominator must be a unit"
         if absprec is None:
             return C(self, x, check, is_gen, construct=construct)
         else:

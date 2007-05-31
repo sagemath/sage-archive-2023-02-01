@@ -632,11 +632,12 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # now split up the series in two lps = G + H * alpha
         R = lps.base_ring().base_ring() # Qp
         QpT , T = PowerSeriesRing(R,'T',prec).objgen()
-        G = sum([R(lps[n][0])*T**n for n in range(0,lps.prec())])
-        H = sum([R(lps[n][1])*T**n for n in range(0,lps.prec())])
+        G = QpT([lps[n][0] for n in range(0,lps.prec())])
+        H = QpT([lps[n][1] for n in range(0,lps.prec())])
+
 
         # now compute phi
-        phi =  self.geometric_frob_on_Dp(p)
+        phi =  self.geometric_frob_on_Dp(prec=prec)
         phi_omega_0 = phi[0,0]
         phi_omega_1 = phi[1,0]
         R = phi_omega_0.parent()

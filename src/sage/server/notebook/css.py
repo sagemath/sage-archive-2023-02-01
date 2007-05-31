@@ -671,7 +671,7 @@ a.upload_worksheet:hover {
 }
 
 span.pane a.worksheet_current {
-   font-size:12px;
+   font-size:14px;
    padding-left:1ex;
    border-top:1px solid <color2>;
    background-color:<color2>;
@@ -680,7 +680,7 @@ span.pane a.worksheet_current {
  }
 
 span.pane a.worksheet_current_computing {
-   font-size:12px;
+   font-size:14px;
    padding-left:1ex;
    border-top:1px solid <color1>;
    background-color:#ffd1d1;

@@ -571,6 +571,34 @@ class SymbolicExpression(RingElement):
         """
         return cmp(maxima(self), maxima(right))
 
+    def _richcmp_(left, right, op):
+        """
+        TESTS:
+            sage: 3 < x
+            3 < x
+            sage: 3 <= x
+            3 <= x
+            sage: 3 == x
+            3 == x
+            sage: 3 >= x
+            3 >= x
+            sage: 3 > x
+            3 > x
+        """
+        if op == 0:  #<
+            return left < right
+        elif op == 2: #==
+            return left == right
+        elif op == 4: #>
+            return left > right
+        elif op == 1: #<=
+            return left <= right
+        elif op == 3: #!=
+            return left != right
+        elif op == 5: #>=
+            return left >= right
+
+
     def _neg_(self):
         """
         Return the formal negative of self.

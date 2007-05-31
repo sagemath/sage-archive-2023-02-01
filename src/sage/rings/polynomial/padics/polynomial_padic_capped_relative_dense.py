@@ -1,3 +1,6 @@
+"""
+"""
+
 import sage.rings.polynomial.polynomial_element_generic
 import sage.rings.polynomial.polynomial_element
 import sage.rings.integer
@@ -25,13 +28,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: R([K(13), K(1)])
-        (1 + O(13^7))*t + (13 + O(13^8))
-        sage: T.<t> = ZZ[]
-        sage: R(t + 2)
-        (1 + O(13^7))*t + (2 + O(13^7))
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: R([K(13), K(1)])
+            (1 + O(13^7))*t + (13 + O(13^8))
+            sage: T.<t> = ZZ[]
+            sage: R(t + 2)
+            (1 + O(13^7))*t + (2 + O(13^7))
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
@@ -136,7 +139,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             if val is infinity:
                 pass
             elif val != 0:
-                self._relprecs = [prec - val for prec in self._relprecs]
+                self._relprecs = [max(prec - val,0) for prec in self._relprecs]
                 v = [Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)]
                 self._poly.ntl_set_directly(v)
                 self._valbase += val

@@ -103,8 +103,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        if len(x) == 1 and not x[0]:
-            x = []
+        # Remove this -- for p-adics this is terrible, since it kills any non exact zero.
+        #if len(x) == 1 and not x[0]:
+        #    x = []
+
         self._list = x
         self._valaddeds = [a.valuation() for a in x]
         self._valbase = sage.rings.padics.misc.min(self._valaddeds)
@@ -135,7 +137,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
                 pass
             elif val != 0:
                 self._relprecs = [prec - val for prec in self._relprecs]
-                self._poly.ntl_set_directly([Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)])
+                v = [Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)]
+                self._poly.ntl_set_directly(v)
                 self._valbase += val
                 self._valaddeds = [c - val for c in self._valaddeds]
             else:
@@ -256,13 +259,22 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return list(self._list)
 
     def _repr(self, name=None):
+        """
+        TESTS:
+            sage: k = Qp(5,10)
+            sage: R.<x> = k[]
+            sage: f = R([k(0,-3), 0, k(0,-1)]); f
+            (O(5^-1))*x^2 + (O(5^-3))
+            sage: f + f
+            (O(5^-1))*x^2 + (O(5^-3))
+        """
         # TODO: what is new here (that doesn't come from parent class)?
         s = " "
-        m = self.degree() + 1
+        coeffs = self.list()
+        m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
-        coeffs = self.list()
         for n in r:
             x = coeffs[n]
             if x.valuation() < infinity:

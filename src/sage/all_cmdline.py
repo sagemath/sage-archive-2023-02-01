@@ -5,6 +5,7 @@ sage_mode = 'cmdline'
 try:
 
     from sage.all import *
+    from sage.calculus.predefined import *
 
 except ValueError, msg:
     import traceback
@@ -15,4 +16,4 @@ except ValueError, msg:
     raise ValueError, msg
 
 
-from sage.calculus.predefined import *
+

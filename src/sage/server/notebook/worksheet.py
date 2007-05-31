@@ -61,11 +61,12 @@ def initialized_sage():
     E = S.expect()
     E.sendline('\n')
     E.expect('>>>')
-    cmd = 'from sage.all import *;'
-    cmd += 'from sage.all_notebook import *;'
+    cmd = 'from sage.all_notebook import *;'
     cmd += 'import sage.server.support as _support_; '
     E.sendline(cmd)
     return S
+
+
 
 _a_sage = None
 def init_sage_prestart():
@@ -371,28 +372,11 @@ class Worksheet:
             return False
         return True
 
-    def sage(self):
-        try:
-            S = self.__sage
-            if not S._expect is None:
-                return S
-        except AttributeError:
-            pass
-        S = one_prestarted_sage()
-        verbose("Initializing SAGE.")
-        os.environ['PAGER'] = 'cat'
-        self.__sage = S
-        try:
-            del self.__variables
-        except AttributeError:
-            pass
-        self.__next_block_id = 0
+    def initialize_sage(self):
         print "Starting SAGE server for worksheet %s..."%self.name()
         self.delete_cell_input_files()
         object_directory = os.path.abspath(self.__notebook.object_directory())
-        #verbose(object_directory)
-        # We do exactly one eval below of one long line instead of
-        # a whole bunch of short ones.
+        S = self.__sage
         try:
             cmd = '__DIR__="%s/"; DIR=__DIR__;'%self.DIR()
             cmd += '_support_.init("%s", globals()); '%object_directory
@@ -407,8 +391,25 @@ class Worksheet:
         A = self.attached_files()
         for F in A.iterkeys():
             A[F] = 0  # expire all
-
         return S
+
+    def sage(self):
+        try:
+            S = self.__sage
+            if not S._expect is None:
+                return S
+        except AttributeError:
+            pass
+        self.__sage = one_prestarted_sage()
+        verbose("Initializing SAGE.")
+        os.environ['PAGER'] = 'cat'
+        try:
+            del self.__variables
+        except AttributeError:
+            pass
+        self.__next_block_id = 0
+        self.initialize_sage()
+        return self.__sage
 
     def _enqueue_auto_cells(self):
         for c in self.__cells:
@@ -815,6 +816,7 @@ class Worksheet:
 
         # We do this to avoid getting a stale SAGE that uses old code.
         self.__sage = initialized_sage()
+        self.initialize_sage()
 
         self._enqueue_auto_cells()
         self.start_next_comp()

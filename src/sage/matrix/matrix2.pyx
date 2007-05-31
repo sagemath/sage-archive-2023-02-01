@@ -88,6 +88,18 @@ cdef class Matrix(matrix1.Matrix):
             ((-8*x^2 + 4*x + 9)/(10*x^3 + x), (19*x^2 - 2*x - 3)/(10*x^3 + x))
             sage: A * X == v
             True
+
+        Solving a system over the p-adics:
+            sage: k = Qp(5,4)
+            sage: a = matrix(k, 3, [1,7,3,2,5,4,1,1,2]); a
+            [    1 + O(5^4) 2 + 5 + O(5^4)     3 + O(5^4)]
+            [    2 + O(5^4)     5 + O(5^5)     4 + O(5^4)]
+            [    1 + O(5^4)     1 + O(5^4)     2 + O(5^4)]
+            sage: v = vector(k, 3, [1,2,3])
+            sage: x = a \ v; x
+            (4 + 5 + 5^2 + 3*5^3 + O(5^4), 2 + 5 + 3*5^2 + 5^3 + O(5^4), 1 + 5 + O(5^4))
+            sage: a * x == v
+            True
         """
         if not self.is_square():
             raise NotImplementedError, "input matrix must be square"

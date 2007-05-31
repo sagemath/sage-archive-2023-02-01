@@ -2,7 +2,9 @@
 
 from __future__ import with_statement
 
+
 from sage.all import *
+from sage.calculus.predefined import *
 
 sage_mode = 'notebook'
 
@@ -20,7 +22,7 @@ from sage.misc.html import html
 
 from sage.misc.sh import sh
 
-from sage.calculus.predefined import *
+
 
 
 

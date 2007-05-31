@@ -420,12 +420,14 @@ cdef class pAdicFixedModElement(pAdicBaseGenericElement):
 
     def add_bigoh(self, absprec):
         """
-        Returns a new element with precision decreased to absprec
+        Returns a new element with precision decreased to absprec.
+
         INPUT:
             self -- a p-adic element
             absprec -- an integer
         OUTPUT:
-            element -- self with precision set to the minimum of self's precision and absprec
+            element -- self with precision set to the minimum of
+                       self's precision and absprec
 
         EXAMPLES:
             sage: R = Zp(7,4,'fixed-mod','series'); a = R(8); a.add_bigoh(1)

@@ -464,10 +464,14 @@ cdef class Polynomial(CommutativeAlgebraElement):
         AUTHOR:
             -- Robert Bradshaw (2007-05-31)
         """
-        if m.degree() == 1:
+        if m.degree() == 1 and m[1].is_unit():
             # a(x) mod (x-r) = a(r)
-            u = a(-m[0]/m[1])
-            return a.parent()(~u)
+            r = -m[0]
+            if not m[1].is_one():
+                r *= m.base_ring()(~m[1])
+            u = a(r)
+            if u.is_unit():
+                return a.parent()(~u)
         if a.parent().is_exact():
             # use xgcd
             g, s, _ = a.xgcd(m)

@@ -29,6 +29,7 @@ import fraction_field
 import integer_ring
 
 import sage.misc.latex as latex
+from sage.misc.misc import prod
 
 def is_FractionFieldElement(x):
     return isinstance(x, FractionFieldElement)
@@ -97,6 +98,59 @@ class FractionFieldElement(field_element.FieldElement):
 
     def denominator(self):
         return self.__denominator
+
+    def partial_fraction_decomposition(self):
+        """
+        Decomposes fraction field element into a whole part and
+        a list of fraction field elements over prime power denominators.
+
+        The sum will be equal to the original fraction.
+
+        EXAMPLES:
+            sage: S.<t> = QQ[]
+            sage: q = 1/(t+1) + 2/(t+2) + 3/(t-3); q
+            (6*t^2 + 4*t - 6)/(t^3 - 7*t - 6)
+            sage: whole, parts = q.partial_fraction_decomposition(); parts
+            [3/(t - 3), 1/(t + 1), 2/(t + 2)]
+            sage: sum(parts) == q
+            True
+            sage: q = 1/(t^3+1) + 2/(t^2+2) + 3/(t-3)^5
+            sage: whole, parts = q.partial_fraction_decomposition(); parts
+            [1/3/(t + 1), (-1/3*t + 2/3)/(t^2 - t + 1), 2/(t^2 + 2), 3/(t^5 - 15*t^4 + 90*t^3 - 270*t^2 + 405*t - 243)]
+            sage: sum(parts) == q
+            True
+
+        We do the best we can over in-exact fields.
+            sage: R.<x> = RealField(20)[]
+            sage: q = 1/(x^2 + 2)^2 + 1/(x-1); q
+            (1.0000*x^4 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
+            sage: whole, parts = q.partial_fraction_decomposition(); parts
+            [(-0.0000076294*x^2 + 1.0000)/(1.0000*x^4 + 4.0000*x^2 + 4.0000), 1.0000/(1.0000*x - 1.0000)]
+            sage: sum(parts)
+            (1.0000*x^4 - 0.0000076294*x^3 + 4.0000*x^2 + 1.0000*x + 3.0000)/(1.0000*x^5 - 1.0000*x^4 + 4.0000*x^3 - 4.0000*x^2 + 4.0000*x - 4.0000)
+
+        AUTHOR:
+            -- Robert Bradshaw (2007-05-31)
+        """
+        denom = self.denominator()
+        whole, numer = self.numerator().quo_rem(denom)
+        factors = denom.factor()
+        if factors.unit_part != 1:
+            numer *= ~factors.unit_part()
+        if not self.parent().is_exact():
+            # factors not grouped in this case
+            # TODO: think about changing the factor code itself
+            # (what side effects would this have this be bad?)
+            all = {}
+            for r in factors: all[r[0]] = 0
+            for r in factors: all[r[0]] += r[1]
+            factors = all.iteritems()
+        factors = [r[0]**r[1] for r in factors]
+        parts = []
+        for d in factors:
+            n = numer * prod([r for r in factors if r != d]).inverse_mod(d) % d # we know the inverse exists as the two are relatively prime
+            parts.append(n/d)
+        return whole, parts
 
     def __call__(self, *x):
         """

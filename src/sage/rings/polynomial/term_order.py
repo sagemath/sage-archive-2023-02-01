@@ -616,9 +616,7 @@ class TermOrder(SageObject):
         EXAMPLE:
             sage: P = PolynomialRing(GF(127),8,names='x',order='degrevlex(3),lex(5)')
             sage: P._macaulay2_()
-            ZZ
-            --- [x0, x1, x2, x3, x4, x5, x6, x7, MonomialOrder => {GRevLex => 3, Lex => 5}, MonomialSize => 16]
-            127
+            ZZ/127 [x0, x1, x2, x3, x4, x5, x6, x7, MonomialOrder => {GRevLex => 3, Lex => 5}, MonomialSize => 16]
         """
         return self.__macaulay2_str
 

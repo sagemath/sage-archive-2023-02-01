@@ -582,7 +582,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             bj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
             bj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
         L = sum([ bj[j] * T**j for j in range(0,len(bj))])
-        print 'after :', bj
+       #print 'after :', bj
         L = L * self._quotient_of_periods
         self._set_series_in_cache(n, prec, L)
         return L

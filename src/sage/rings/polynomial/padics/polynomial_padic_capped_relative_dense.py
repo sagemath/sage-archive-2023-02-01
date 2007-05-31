@@ -149,7 +149,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def _comp_list(self):
         if self.degree() == -1 and self._valbase == infinity:
-            return []
+            self._list = []
+            return self._list
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \

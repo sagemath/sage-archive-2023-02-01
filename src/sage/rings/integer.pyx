@@ -2025,9 +2025,14 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             Traceback (most recent call last):
             ...
             ValueError: square root of 2 not an integer
+            sage: Integer(144).sqrt(all=True)
+            [12, -12]
             sage: Integer(0).sqrt(all=True)
             [0]
         """
+        if mpz_sgn(self.value) == 0:
+            return [self] if all else self
+
         if mpz_sgn(self.value) < 0:
             if not extend:
                 raise ValueError, "square root of negative number not an integer"
@@ -2060,10 +2065,7 @@ cdef class Integer(sage.structure.element.EuclideanDomainElement):
             return sqrt(self, all=all)
 
         if all:
-            if z.is_zero():
-                return [z]
-            else:
-                [z, -z]
+           return [z, -z]
         return z
 
     def _xgcd(self, Integer n):

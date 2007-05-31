@@ -331,8 +331,9 @@ def _multi_variate(base_ring, names, n, sparse, order):
     names = normalize_names(n, names)
 
     import multi_polynomial_ring as m
+    from term_order import TermOrder
 
-    order = m.TermOrder(order)
+    order = TermOrder(order, n)
 
     if isinstance(names, list):
         names = tuple(names)

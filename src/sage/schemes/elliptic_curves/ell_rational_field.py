@@ -4018,7 +4018,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         An anomalous case where the precision drops some:
             sage: E = EllipticCurve("5077a")
-            sage: E.padic_regulator(5, 10)
+            sage: E.padic_regulator(5, 10)                       # long time
             4*5 + 3*5^2 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^8)
 
         Check that answers agree over a range of precisions:
@@ -4528,11 +4528,11 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         EXAMPLES:
             sage: EllipticCurve([-1, 1/4]).padic_sigma(5, 10)
-            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + (1 + 2*5 + O(5^2))*t^9 + O(t^11)
+            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (2 + 2*5 + 5^2 + 4*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (1 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
 
           Run it with a consistency check:
             sage: EllipticCurve("37a").padic_sigma(5, 10, check=True)
-            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 3*5^6 + 4*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Boundary cases:
             sage: EllipticCurve([1, 1, 1, 1, 1]).padic_sigma(5, 1)
@@ -4545,7 +4545,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: my_E2 = X.padic_E2(5, 8)
             sage: my_E2 = my_E2 + 5**5    # oops!!!
             sage: X.padic_sigma(5, 10, E2=my_E2)
-            (1 + O(5^10))*t + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
+            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (3 + 2*5^2 + 3*5^3 + 4*5^5 + 2*5^6 + 3*5^7 + O(5^8))*t^3 + (3 + 2*5 + 2*5^2 + 2*5^3 + 2*5^4 + 2*5^5 + 2*5^6 + O(5^7))*t^4 + (2 + 4*5^2 + 4*5^3 + 5^4 + 3*5^5 + O(5^6))*t^5 + (2 + 3*5 + 5^4 + O(5^5))*t^6 + (4 + 3*5 + 2*5^2 + O(5^4))*t^7 + (2 + 3*5 + 2*5^2 + O(5^3))*t^8 + (4*5 + O(5^2))*t^9 + (1 + O(5))*t^10 + O(t^11)
 
           Check that sigma is ``weight 1''.
             sage: f = EllipticCurve([-1, 3]).padic_sigma(5, 10)
@@ -4554,7 +4554,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: f(2*t)/2
             (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(t^11)
             sage: g
-            (1 + O(5^10))*t + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + (4 + 2*5 + O(5^2))*t^9 + O(t^11)
+            O(5^11) + (1 + O(5^10))*t + O(5^9)*t^2 + (4 + 3*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 3*5^6 + 5^7 + O(5^8))*t^3 + O(5^7)*t^4 + (3 + 3*5^2 + 5^4 + 2*5^5 + O(5^6))*t^5 + O(5^5)*t^6 + (4 + 5 + 3*5^3 + O(5^4))*t^7 + O(5^3)*t^8 + (4 + 2*5 + O(5^2))*t^9 + O(5^1)*t^10 + O(t^11)
             sage: f(2*t)/2 -g
             O(t^11)
 
@@ -4566,9 +4566,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: max_sigma = E.padic_sigma(p, max_N, E2=E2)    # long time
             sage: for N in range(3, max_N):                     # long time
             ...      sigma = E.padic_sigma(p, N, E2=E2)         # long time
-            ...      for n in range(sigma.prec()):              # long time
-            ...          assert sigma[n] == max_sigma[n]        # long time
-
+            ...      assert sigma == max_sigma
         """
         if check_hypotheses:
             p = self.__check_padic_hypotheses(p)
@@ -4947,7 +4945,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
 
 
-    # 	def	weierstrass_p(self):
+    # def weierstrass_p(self):
     #         # TODO: add allowing negative valuations for power series
     #         return 1/t**2 + a1/t + rings.frac(1,12)*(a1-8*a2) -a3*t \
     #                - (a4+a1*a3)*t**2  + O(t**3)
@@ -4965,38 +4963,51 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
     def tate_curve(self, p):
         r"""
-        Creates the Tate Curve. This is a $p$-adic curve with split multiplicative reduction of the form
-        $y^2+xy=x^3+s_4 x+s_6$ which is isomorphic to the given curve over the algebraic closure of $\QQ_p$.
-        Its points over $\QQ_p$ are isomorphic to $\QQ_p^{\times}/q^{\Z}$ for a certain parameter $q\in\Z_p$.
+        Creates the Tate Curve over the $p$-adics associated to this elliptic curves.
 
+        This Tate curve a $p$-adic curve with split multiplicative
+        reduction of the form $y^2+xy=x^3+s_4 x+s_6$ which is
+        isomorphic to the given curve over the algebraic closure of
+        $\QQ_p$.  Its points over $\QQ_p$ are isomorphic to
+        $\QQ_p^{\times}/q^{\Z}$ for a certain parameter $q\in\Z_p$.
 
         INPUT:
-            p -- prime where the curve has potentially multiplicative reduction.
+
+            p -- a prime where the curve has multiplicative reduction.
 
 
         EXAMPLES:
             sage: e = EllipticCurve('130a1')
-            sage: eq = e.tate_curve(5); eq
-            5-adic uniformised elliptic curve of Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+            sage: e.tate_curve(2)
+            2-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
 
-            # this returns the parameter q
-            sage: eq.parameter(prec=5)
+        The input curve must have multiplicative reduction at the prime.
+            sage: e.tate_curve(3)
+            Traceback (most recent call last):
+            ...
+            ValueError: The elliptic curve must have multiplicative reduction at 3
+
+        We compute with $p=5$:
+            sage: T = e.tate_curve(5); T
+            5-adic Tate curve associated to the Elliptic Curve defined by y^2 + x*y + y = x^3 - 33*x + 68 over Rational Field
+
+        We find the Tate parameter $q$:
+            sage: T.parameter(prec=5)
             3*5^3 + 3*5^4 + 2*5^5 + 2*5^6 + 3*5^7 + O(5^8)
 
-            # the L-invariant
-            sage: eq.L_invariant(prec=10)
+        We compute the $L$-invariant of the curve:
+            sage: T.L_invariant(prec=10)
             5^3 + 4*5^4 + 2*5^5 + 2*5^6 + 2*5^7 + 3*5^8 + 5^9 + O(5^10)
-
         """
         try:
-            return self._tate_curve
+            return self._tate_curve[p]
         except AttributeError:
             self._tate_curve = {}
         except KeyError:
             pass
 
         Eq = ell_tate_curve.TateCurve(self,p)
-        self._tate_curve = Eq
+        self._tate_curve[p] = Eq
         return Eq
 
 

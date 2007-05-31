@@ -62,6 +62,9 @@ class Job(Persistent):
         # new, completed, incomplete, processing
         self.jdict['status'] = 'new'
         self.jdict['creation_time'] = datetime.datetime.now()
+        self.jdict['cpu_time'] = None
+        self.jdict['start_time'] = None
+        self.jdict['wall_time'] = None
         self.jdict['update_time'] = None
         self.jdict['finish_time'] = None
         self.jdict['killed'] = False
@@ -71,6 +74,7 @@ class Job(Persistent):
         self.jdict['verifiable'] = False # is this job easily verified?
         self.jdict['timeout'] = 600 # default timeout for jobs in seconds
         self.jdict['private'] = False
+        self.jdict['depends'] = {}
         # These might become deprecated
         self.jdict['parent'] = parent
         self.jdict['children'] = []
@@ -136,7 +140,8 @@ class Job(Persistent):
                 result = cPickle.loads(zlib.decompress(self.jdict['result']))
             except Exception, msg2:
                 try:
-                    result = cPickle.loads(bz2.decompress(self.jdict['result']))
+                    result = cPickle.loads(
+                                bz2.decompress(self.jdict['result']))
                 except:
                     result = self.jdict['result']
         return result
@@ -252,6 +257,44 @@ class Job(Persistent):
             self.jdict['private'] = value
         return locals()
     private = property(**private())
+
+    def depends():
+        doc = "The depends property."
+        def fget(self):
+            return self.jdict['depends']
+        def fset(self, value):
+            self.jdict['depends'] = value
+        def fdel(self):
+            del self.jdict['depends']
+        return locals()
+    depends = property(**depends())
+
+    def cpu_time():
+        doc = "Amount of time the computation took."
+        def fget(self):
+            return self.jdict['cpu_time']
+        def fset(self, value):
+            self.jdict['cpu_time'] = value
+        return locals()
+    cpu_time = property(**cpu_time())
+
+    def wall_time():
+        doc = "The wall_time property."
+        def fget(self):
+            return self.jdict['wall_time']
+        def fset(self, value):
+            self.jdict['wall_time'] = value
+        return locals()
+    wall_time = property(**wall_time())
+
+    def start_time():
+        doc = "The start_time property."
+        def fget(self):
+            return self.jdict['start_time']
+        def fset(self, value):
+            self.jdict['start_time'] = value
+        return locals()
+    start_time = property(**start_time())
 
     def attach(self, var, obj, file_name=None):
         """

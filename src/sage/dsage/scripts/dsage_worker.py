@@ -20,11 +20,12 @@
 
 import sys
 import os
-import ConfigParser
 import cPickle
 import zlib
 import pexpect
 import datetime
+import uuid
+from getpass import getuser
 
 from twisted.spread import pb
 from twisted.internet import reactor, defer, error, task
@@ -32,20 +33,21 @@ from twisted.python import log
 from twisted.spread import banana
 banana.SIZE_LIMIT = 100*1024*1024 # 100 MegaBytes
 
+from gnutls.constants import *
+from gnutls.crypto import *
+from gnutls.errors import *
+from gnutls.interfaces.twisted import X509Credentials
+
 from sage.interfaces.sage0 import Sage
 from sage.misc.preparser import preparse_file
 
 from sage.dsage.database.job import Job, expand_job
-from sage.dsage.misc.hostinfo import HostInfo, ClassicHostInfo
-from sage.dsage.misc.config import get_conf, get_bool
+from sage.dsage.misc.hostinfo import ClassicHostInfo
 from sage.dsage.errors.exceptions import NoJobException
 from sage.dsage.twisted.pb import PBClientFactory
-from sage.dsage.misc.constants import delimiter as DELIMITER
+from sage.dsage.misc.constants import DELIMITER
+from sage.dsage.misc.constants import DSAGE_DIR
 from sage.dsage.misc.misc import random_str
-
-pb.setUnjellyableForClass(HostInfo, HostInfo)
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
 
 START_MARKER = '___BEGIN___'
 END_MARKER = '___END___'
@@ -63,18 +65,18 @@ class Worker(object):
 
     """
 
-    def __init__(self, remoteobj, id):
+    def __init__(self, remoteobj, id, log_level=0, delay=5.0):
         self.remoteobj = remoteobj
         self.id = id
         self.free = True
         self.job = None
-        self.conf = get_conf('monitor')
-        self.log_level = self.conf['log_level']
-        self.delay = self.conf['delay']
+        self.log_level = log_level
+        self.delay = delay
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_timeout = 0.5
         self.got_output = False
         self.job_start_time = None
+        self.sleep_time = 5.0
         self.start()
 
         # import some basic modules into our Sage() instance
@@ -119,14 +121,14 @@ class Worker(object):
         if not isinstance(self.job, Job):
             raise NoJobException
         try:
+            self.sleep_time = 5.0 # Sets it to the default
             self.doJob(self.job)
         except Exception, msg:
-            log.err(msg)
-            d = self.remoteobj.callRemote('job_failed', self.job.job_id, msg)
-            d.addErrback(self._catch_failure)
+            log.msg(msg)
+            self.report_failure(msg)
             self.restart()
 
-    def job_done(self, output, result, completed):
+    def job_done(self, output, result, completed, cpu_time):
         """
         job_done is a callback for doJob.  Called when a job completes.
 
@@ -142,7 +144,8 @@ class Worker(object):
                                           self.job.job_id,
                                           output,
                                           result,
-                                          completed)
+                                          completed,
+                                          cpu_time)
         except Exception, msg:
             log.msg(msg)
             log.msg('[Worker: %s, job_done] Disconnected, reconnecting in %s'\
@@ -168,15 +171,17 @@ class Worker(object):
 
         """
 
-        sleep_time = 5.0
         if failure.check(NoJobException):
+            if self.sleep_time >= 60:
+                self.sleep_time = 60
             if self.log_level > 3:
-                msg = 'Sleeping for %s seconds' % sleep_time
+                msg = 'Sleeping for %s seconds' % self.sleep_time
                 log.msg(LOG_PREFIX % self.id + msg)
-            reactor.callLater(sleep_time, self.get_job)
+            self.sleep_time = self.sleep_time * 2
+            reactor.callLater(self.sleep_time, self.get_job)
         else:
-            log.err("Error: ", failure.getErrorMessage())
-            log.err("Traceback: ", failure.printTraceback())
+            log.msg("Error: ", failure.getErrorMessage())
+            log.msg("Traceback: ", failure.printTraceback())
 
     def setup_tmp_dir(self, job):
         """
@@ -232,7 +237,7 @@ class Worker(object):
                             msg = 'Loaded %s' % fname
                             log.msg(LOG_PREFIX % self.id + msg)
             except Exception, msg:
-                log.err(LOG_PREFIX % self.id + msg)
+                log.msg(LOG_PREFIX % self.id + msg)
 
     def write_job_file(self, job):
         """
@@ -251,13 +256,18 @@ class Worker(object):
         SAVE_RESULT = """try:
     save(DSAGE_RESULT, 'result.sobj', compress=True)
 except:
-    save('No DSAGE_RESULT', 'result.sobj', compress=True)"""
+    save('No DSAGE_RESULT', 'result.sobj', compress=True)
+"""
         job_file.write("alarm(%s)\n\n" % (timeout))
+        job_file.write("import time\n\n")
         job_file.write(BEGIN)
+        job_file.write('start = time.time()\n')
         job_file.write(parsed_file)
         job_file.write("\n\n")
         job_file.write(END)
+        job_file.write("\n")
         job_file.write(SAVE_RESULT)
+        job_file.write("save((time.time()-start), 'cpu_time.sobj', compress=False)")
         job_file.close()
         if self.log_level > 2:
             log.msg('[Worker: %s] Wrote job file. ' % (self.id))
@@ -273,8 +283,7 @@ except:
 
         """
 
-        if self.log_level > 3:
-            log.msg(LOG_PREFIX % self.id + 'Executing job %s ' % job.job_id)
+        log.msg(LOG_PREFIX % self.id + 'Starting job %s ' % job.job_id)
 
         self.free = False
         self.got_output = False
@@ -285,7 +294,8 @@ except:
         except AssertionError:
             self.checker_task.stop()
             self.checker_task.start(self.checker_timeout, now=False)
-        log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
+        if self.log_level > 2:
+            log.msg(LOG_PREFIX % self.id + 'Starting checker task...')
 
         self.tmp_job_dir = self.setup_tmp_dir(job)
         self.extract_job_data(job)
@@ -328,45 +338,63 @@ except:
             if self.checker_task.running:
                 self.checker_task.stop()
             return
-
         if self.log_level > 1:
             msg = 'Checking job %s' % self.job.job_id
             log.msg(LOG_PREFIX % self.id + msg)
         try:
-            foo, output, new = self.sage._so_far()
             os.chdir(self.tmp_job_dir)
+            # foo, output, new = self.sage._so_far()
+            done, new = self.sage._get()
             result = open('result.sobj', 'rb').read()
             done = True
         except RuntimeError, msg: # Error in calling worker.sage._so_far()
             done = False
-            log.err(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
+            if self.log_level > 1:
+                log.msg(LOG_PREFIX % self.id + 'RuntimeError: %s' % msg)
+                log.msg("Don't worry, the RuntimeError above " +
+                        "is a non-fatal SAGE failure")
             self.increase_checker_task_timeout()
             return
         except IOError, msg: # File does not exist yet
             done = False
         if done:
+            cpu_time = cPickle.loads(open('cpu_time.sobj', 'rb').read())
             self.free = True
             self.reset_checker()
         else:
             result = cPickle.dumps('Job not done yet.', 2)
+            cpu_time = None
         if self.check_failure(new):
             self.report_failure(new)
             self.restart()
             return
-
         sanitized_output = self.clean_output(new)
+        if self.log_level > 3:
+            print 'Output before sanitizing: \n' , sanitized_output
+        if self.log_level > 3:
+            print 'Output after sanitizing: \n', sanitized_output
         if sanitized_output == '' and not done:
             self.increase_checker_task_timeout()
         else:
-            d = self.job_done(sanitized_output, result, done)
+            d = self.job_done(sanitized_output, result, done, cpu_time)
             d.addErrback(self._catch_failure)
 
     def report_failure(self, failure):
+        """
+        Reports failure of a job.
+
+        """
+
+        import shutil
+        shutil.move(self.tmp_job_dir, self.tmp_job_dir + '_failed')
+
         msg = 'Job %s failed!' % (self.job.job_id)
-        log.err(LOG_PREFIX % self.id + msg)
-        log.err('Traceback: \n%s' % failure)
+        log.msg(LOG_PREFIX % self.id + msg)
+        log.msg('Traceback: \n%s' % failure)
         d = self.remoteobj.callRemote('job_failed', self.job.job_id, failure)
         d.addErrback(self._catch_failure)
+
+        return d
 
     def increase_checker_task_timeout(self):
         """
@@ -382,8 +410,9 @@ except:
             self.checker_timeout = 300.0
         self.checker_task = task.LoopingCall(self.check_work)
         self.checker_task.start(self.checker_timeout, now=False)
-        msg = 'Checking output again in %s' % self.checker_timeout
-        log.msg(LOG_PREFIX % self.id + msg)
+        if self.log_level > 0:
+            msg = 'Checking output again in %s' % self.checker_timeout
+            log.msg(LOG_PREFIX % self.id + msg)
 
     def clean_output(self, sage_output):
         """
@@ -432,6 +461,20 @@ except:
         else:
             return False
 
+    def kill_sage(self):
+        """
+        Try to hard kill the SAGE instance.
+
+        """
+
+        try:
+            pid = self.sage.pid()
+            cmd = 'kill -9 -%s'%pid
+            os.system(cmd)
+            del self.sage
+        except Exception, msg:
+            log.msg(msg)
+
     def stop(self, hard_reset=False):
         """
         Stops the current worker and resets it's internal state.
@@ -440,8 +483,8 @@ except:
 
         if hard_reset:
             log.msg(LOG_PREFIX % self.id + 'Performing hard reset.')
-            self.sage.quit()
-            self.sage = Sage()
+            self.kill_sage()
+            self.start()
         else: # try for a soft reset
             INTERRUPT_TRIES = 20
             timeout = 0.3
@@ -455,19 +498,18 @@ except:
                         success = True
                         break
                     except (pexpect.TIMEOUT, pexpect.EOF), msg:
+                        success = False
                         if self.log_level > 3:
                             msg = 'Interrupting SAGE (try %s)' % i
                             log.msg(LOG_PREFIX % self.id + msg)
             except Exception, msg:
                 success = False
-                log.err(msg)
-                log.err(LOG_PREFIX % self.id + "Performing hard reset.")
+                log.msg(msg)
+                log.msg(LOG_PREFIX % self.id + "Performing hard reset.")
 
             if not success:
-                pid = self.sage.pid()
-                cmd = 'kill -9 -%s'%pid
-                os.system(cmd)
-                self.sage = Sage()
+                self.kill_sage()
+                self.start()
             else:
                 self.sage.reset()
         self.free = True
@@ -482,17 +524,23 @@ except:
         if not hasattr(self, 'sage'):
             if self.log_level > 3:
                 logfile = DSAGE_DIR + '/%s-pexpect.log' % self.id
-                self.sage = Sage(logfile=logfile)
+                self.sage = Sage(maxread=1, logfile=logfile)
             else:
-                self.sage = Sage()
+                self.sage = Sage(maxread=1)
             try:
                 self.sage._start(block_during_init=True)
-                self.sage._expect.delaybeforesend = 0.2
             except RuntimeError, msg: # Could not start SAGE
                 print msg
+                print 'Failed to start a worker, probably Expect issues.'
                 reactor.stop()
                 sys.exit(-1)
-
+        E = self.sage.expect()
+        E.sendline('\n')
+        E.expect('>>>')
+        cmd = 'from sage.all import *;'
+        cmd += 'from sage.all_notebook import *;'
+        cmd += 'import sage.server.support as _support_; '
+        E.sendline(cmd)
         self.get_job()
 
     def restart(self):
@@ -501,11 +549,14 @@ except:
 
         """
 
-        delta = datetime.datetime.now() - self.job_start_time
-        if delta.seconds >= (60*5): # more than 5 minutes, do a hard reset
+        try:
+            delta = datetime.datetime.now() - self.job_start_time
+            if delta.seconds >= (3*60): # more than 3 minutes, do a hard reset
+                self.stop(hard_reset=True)
+            else:
+                self.stop()
+        except TypeError:
             self.stop(hard_reset=True)
-        else:
-            self.stop()
         self.job_start_time = None
         self.start()
         self.reset_checker()
@@ -523,37 +574,46 @@ class Monitor(object):
 
     """
 
-    def __init__(self, server='localhost', port=8081, ssl=True,
-                 workers=2, anonymous=False, priority=20, delay=5.0,
-                 log_level=0):
+    def __init__(self, server='localhost', port=8081,
+                 username=getuser(),
+                 ssl=True,
+                 workers=2,
+                 anonymous=False,
+                 priority=20,
+                 delay=5.0,
+                 log_level=0,
+                 log_file=os.path.join(DSAGE_DIR, 'worker.log'),
+                 pubkey_file=None,
+                 privkey_file=None):
+        self.server = server
+        self.port = port
+        self.username = username
+        self.ssl = ssl
+        self.workers = workers
+        self.anonymous = anonymous
+        self.priority = priority
+        self.delay = delay
+        self.log_level = log_level
+        self.log_file = log_file
+        self.pubkey_file = pubkey_file
+        self.privkey_file = privkey_file
 
-        self.conf = get_conf('monitor')
-        self.uuid = self.conf['id']
-        self.workers = int(self.conf['workers'])
-        self.log_file = self.conf['log_file']
-        self.log_level = self.conf['log_level']
-        self.delay = float(self.conf['delay'])
-        self.anonymous = get_bool(self.conf['anonymous'])
-        self.ssl = get_bool(self.conf['ssl'])
-        self.priority = int(self.conf['priority'])
-        if server is None:
-            self.server = self.conf['server']
-        else:
-            self.server = server
-        if port is None:
-            if self.server == 'localhost':
-                self.port = int(get_conf('server')['client_port'])
-            else:
-                self.port = int(self.conf['port'])
-        else:
-            self.port = port
         self.remoteobj = None
         self.connected = False
         self.reconnecting = False
         self.worker_pool = None
+        self.sleep_time = 1.0
 
         self.host_info = ClassicHostInfo().host_info
-        self.host_info['uuid'] = self.uuid
+        try:
+            uuid_file = os.path.join(DSAGE_DIR, 'worker.uuid')
+            uuid_ = open(uuid_file).readlines()[0]
+        except Exception, e:
+            uuid_ = str(uuid.uuid1())
+            f = open(uuid_file, 'w')
+            f.write(uuid_)
+            f.close()
+        self.host_info['uuid'] = uuid_
         self.host_info['workers'] = self.workers
 
         self._startLogging(self.log_file)
@@ -561,12 +621,12 @@ class Monitor(object):
         try:
             os.nice(self.priority)
         except OSError, msg:
-            log.err('Error setting priority: %s' % (self.priority))
+            log.msg('Error setting priority: %s' % (self.priority))
             pass
         if not self.anonymous:
             from twisted.cred import credentials
             from twisted.conch.ssh import keys
-            self._get_auth_info()
+            self.DATA =  random_str(500)
             # public key authentication information
             self.pubkey_str =keys.getPublicKeyString(self.pubkey_file)
             # try getting the private key object without a passphrase first
@@ -597,25 +657,6 @@ class Monitor(object):
             log.startLogging(worker_log)
             log.msg("Logging to file: ", log_file)
 
-
-    def _get_auth_info(self):
-        self.DATA =  random_str(500)
-        self.DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
-        # Begin reading configuration
-        try:
-            conf_file = os.path.join(self.DSAGE_DIR, 'client.conf')
-            config = ConfigParser.ConfigParser()
-            config.read(conf_file)
-
-            self.username = config.get('auth', 'username')
-            self.privkey_file = os.path.expanduser(config.get('auth',
-                                                   'privkey_file'))
-            self.pubkey_file = os.path.expanduser(config.get('auth',
-                                                  'pubkey_file'))
-        except Exception, msg:
-            print msg
-            raise
-
     def _getpassphrase(self):
         import getpass
         passphrase = getpass.getpass('Passphrase (Hit enter for None): ')
@@ -633,10 +674,9 @@ class Monitor(object):
         else:
             for worker in self.worker_pool:
                 worker.remoteobj = self.remoteobj # Update workers
-        # self.submit_host_info()
 
     def _disconnected(self, remoteobj):
-        log.err('Lost connection to the server.')
+        log.msg('Lost connection to the server.')
         self.connected = False
         self._retryConnect()
 
@@ -659,44 +699,54 @@ class Monitor(object):
                     worker.restart()
 
     def _retryConnect(self):
-        log.err('[Monitor] Disconnected, reconnecting in %s' % self.delay)
+        log.msg('[Monitor] Disconnected, reconnecting in %s' % self.delay)
         if not self.connected:
             reactor.callLater(self.delay, self.connect)
 
     def _catchConnectionFailure(self, failure):
-        log.err("Error: ", failure.getErrorMessage())
-        log.err("Traceback: ", failure.printTraceback())
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
         self._disconnected(None)
 
     def _catch_failure(self, failure):
-        log.err("Error: ", failure.getErrorMessage())
-        log.err("Traceback: ", failure.printTraceback())
+        log.msg("Error: ", failure.getErrorMessage())
+        log.msg("Traceback: ", failure.printTraceback())
 
     def connect(self):
         """
         This method connects the monitor to a remote PB server.
 
         """
+
         if self.connected: # Don't connect multiple times
             return
 
         factory = pb.PBClientFactory()
+        self.factory = PBClientFactory()
+        try:
+            if self.ssl:
+                # For OpenSSL, SAGE uses GNUTLS now
+                # from twisted.internet import ssl
+                # contextFactory = ssl.ClientContextFactory()
+                # reactor.connectSSL(self.server, self.port,
+                #                    self.factory, contextFactory)
+                cred = X509Credentials()
+                reactor.connectTLS(self.server, self.port, self.factory,
+                                   cred)
+            else:
+                reactor.connectTCP(self.server, self.port, self.factory)
+        except Exception, msg:
+            self._retryConnect()
 
         log.msg(DELIMITER)
         log.msg('DSAGE Worker')
         log.msg('Started with PID: %s' % (os.getpid()))
         log.msg('Connecting to %s:%s' % (self.server, self.port))
-        log.msg(DELIMITER)
-
-        self.factory = PBClientFactory()
         if self.ssl:
-            from twisted.internet import ssl
-            contextFactory = ssl.ClientContextFactory()
-            reactor.connectSSL(self.server, self.port,
-                               self.factory, contextFactory)
-            log.msg('Using SSL...')
+            log.msg('Using SSL: True')
         else:
-            reactor.connectTCP(self.server, self.port, self.factory)
+            log.msg('Using SSL: False')
+        log.msg(DELIMITER)
 
         if not self.anonymous:
             log.msg('Connecting as authenticated worker...\n')
@@ -718,7 +768,8 @@ class Monitor(object):
         """
 
         log.msg('[Monitor] Starting %s workers...' % (self.workers))
-        self.worker_pool = [Worker(remoteobj, x) for x in range(self.workers)]
+        self.worker_pool = [Worker(remoteobj, x, self.log_level, self.delay)
+                            for x in range(self.workers)]
 
     def check_killed_jobs(self):
         """
@@ -756,39 +807,110 @@ class Monitor(object):
         # self.tsk1.stop()
         self.tsk2.stop()
 
+def usage():
+    """
+    Prints usage help.
+
+    """
+
+    from optparse import OptionParser
+
+    usage = ['usage: %prog [options]\n',
+              'Bug reports to <yqiang@gmail.com>']
+    parser = OptionParser(usage=''.join(usage))
+    parser.add_option('-s', '--server',
+                      dest='server',
+                      default='localhost',
+                      help='hostname. Default is localhost')
+    parser.add_option('-p', '--port',
+                      dest='port',
+                      type='int',
+                      default=8081,
+                      help='port to connect to. default=8081')
+    parser.add_option('-d', '--delay',
+                      dest='delay',
+                      type='float',
+                      default=5,
+                      help='delay before checking for new job. default=5')
+    parser.add_option('-a', '--anonymous',
+                      dest='anonymous',
+                      default=False,
+                      action='store_true',
+                      help='Connect as anonymous worker. default=False')
+    parser.add_option('-f', '--logfile',
+                      dest='logfile',
+                      default=os.path.join(DSAGE_DIR, 'worker.log'),
+                      help='log file')
+    parser.add_option('-l', '--loglevel',
+                      dest='loglevel',
+                      type='int',
+                      default=0,
+                      help='log level. default=0')
+    parser.add_option('--ssl',
+                      dest='ssl',
+                      action='store_true',
+                      default=False,
+                      help='enable or disable ssl')
+    parser.add_option('--privkey',
+                      dest='privkey_file',
+                      default=os.path.join(DSAGE_DIR, 'dsage_key'),
+                      help='private key file. default = ' +
+                           '~/.sage/dsage/dsage_key')
+    parser.add_option('--pubkey',
+                      dest='pubkey_file',
+                      default=os.path.join(DSAGE_DIR, 'dsage_key.pub'),
+                      help='public key file. default = ' +
+                           '~/.sage/dsage/dsage_key.pub')
+    parser.add_option('-w', '--workers',
+                      dest='workers',
+                      type='int',
+                      default=2,
+                      help='number of workers. default=2')
+    parser.add_option('--priority',
+                      dest='priority',
+                      type='int',
+                      default=20,
+                      help='priority of workers. default=20')
+    parser.add_option('-u', '--username',
+                      dest='username',
+                      default=getuser(),
+                      help='username')
+    parser.add_option('--noblock',
+                      dest='noblock',
+                      action='store_true',
+                      default=False,
+                      help='tells that the server was ' +
+                           'started in blocking mode')
+    (options, args) = parser.parse_args()
+
+    return options
+
 def main():
-    """
-    argv[1] == hostname
-    argv[2] == port
-
-    """
-
-    if len(sys.argv) == 3:
-        hostname, port = sys.argv[1:3]
-        try:
-            port = int(port)
-        except:
-            port = None
-        if hostname == 'None':
-            hostname = None
-        else:
-            try:
-                hostname = str(hostname)
-            except Exception, msg:
-                log.err(msg)
-                hostname = None
-    else:
-        hostname = port = None
-
-    monitor = Monitor(hostname, port)
-
+    options = usage()
+    SSL = options.ssl
+    monitor = Monitor(server=options.server,
+                      port=options.port,
+                      username=options.username,
+                      ssl=SSL,
+                      workers=options.workers,
+                      anonymous=options.anonymous,
+                      priority=options.priority,
+                      delay=options.delay,
+                      log_file=options.logfile,
+                      log_level=options.loglevel,
+                      pubkey_file=options.pubkey_file,
+                      privkey_file=options.privkey_file)
     monitor.connect()
     monitor.start_looping_calls()
-
     try:
-        reactor.run()
+        if options.noblock:
+            reactor.run(installSignalHandlers=0)
+        else:
+            reactor.run(installSignalHandlers=1)
     except:
+        log.msg('Error starting the twisted reactor, exiting...')
         sys.exit()
 
 if __name__ == '__main__':
+    usage()
     main()

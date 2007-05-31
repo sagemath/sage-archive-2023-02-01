@@ -67,6 +67,7 @@ from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
 from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
 from matrix_modn_dense import Matrix_modn_dense
@@ -1671,12 +1672,99 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise ZeroDivisionError, "input matrix must be nonsingular"
             return self._solve_iml(P.identity_matrix(), right=True)
 
+    def solve_right(self, B):
+        r"""
+        If self is a matrix $A$ of full rank, then this function
+        returns a vector or matrix $X$ such that $A X = B$.  If $B$ is
+        a vector then $X$ is a vector and if $B$ is a matrix, then $X$
+        is a matrix.  The base ring of $X$ is the integers unless a
+        denominator is needed in which case the base ring is the
+        rational numbers.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        NOTE: This is currently only implemented when A is square.
+
+        INPUT:
+            B -- a matrix or vector
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 2, [0, -1, 1, 0])
+            sage: v = vector(ZZ, [2, 3])
+            sage: a \ v
+            (3, -2)
+            sage: parent(a\v)
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+
+        We solve a bigger system where the answer is over the rationals.
+            sage: a = matrix(ZZ, 3, 3, [1,2,3,4, 5, 6, 8, -2, 3])
+            sage: v = vector(ZZ, [1,2,3])
+            sage: w = a \ v; w
+            (2/15, -4/15, 7/15)
+            sage: parent(w)
+            Vector space of dimension 3 over Rational Field
+            sage: a * w
+            (1, 2, 3)
+
+        We solve a system where the right hand matrix has multiple columns.
+            sage: a = matrix(ZZ, 3, 3, [1,2,3,4, 5, 6, 8, -2, 3])
+            sage: b = matrix(ZZ, 3, 2, [1,5, 2, -3, 3, 0])
+            sage: w = a \ b; w
+            [ 2/15 -19/5]
+            [-4/15 -27/5]
+            [ 7/15 98/15]
+            sage: a * w
+            [ 1  5]
+            [ 2 -3]
+            [ 3  0]
+
+        TESTS:
+        We create a random 100x100 matrix and solve the corresponding system,
+        then verify that the result is correct.
+            sage: n = 100
+            sage: a = random_matrix(ZZ,n)
+            sage: v = vector(ZZ,n,range(n))
+            sage: x = a \ v
+            sage: a * x == v
+            True
+
+        """
+        # It would probably be much better to rewrite linbox so it
+        # throws an error instead of ** going into an infinite loop **
+        # in the non-full rank case.  In any case, we do this for now,
+        # since rank is very fast and infinite loops are evil.
+        if self.rank() < self.nrows():
+            raise ValueError, "self must be of full rank."
+
+        if not self.is_square():
+            raise NotImplementedError, "the input matrix must be square."
+
+        matrix = True
+        C = B
+        if not isinstance(B, Matrix_integer_dense):
+            if is_Vector(B):
+                matrix = False
+                C = self.matrix_space(self.nrows(), 1)(B.list())
+            else:
+                raise NotImplementedError
+        X, d = self._solve_iml(C, right=True)
+        if d != 1:
+            X = (1/d) * X
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
 
     def _solve_iml(self, Matrix_integer_dense B, right=True):
         """
-        Let A equal self. Given B return an integer matrix C and an
-        integer d such that self C*A == d*B if right is False or
-        A*C == d*B if right is True.
+        Let A equal self be a square matrix. Given B return an integer
+        matrix C and an integer d such that self C*A == d*B if right
+        is False or A*C == d*B if right is True.
 
         OUTPUT:
             C -- integer matrix
@@ -1722,6 +1810,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Integer D
 
         if self._nrows != self._ncols:
+            # This is *required* by the IML function we call below.
             raise ArithmeticError, "self must be square"
 
         if self.nrows() == 1:

@@ -364,6 +364,10 @@ WRAP_NCOLS = 80
 # Temporarily disabled while we try fix the firefox windows hang bug.
 JSMATH=False
 
+def open_page(address, port):
+    cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
+    os.system(cmd)
+
 class Notebook(SageObject):
     def __init__(self, dir='sage_notebook', username=None,
                  password=None, color='default', system=None,
@@ -779,10 +783,12 @@ class Notebook(SageObject):
         print_open_msg(address, port)
         print "WARNING: The SAGE Notebook works best with ** Firefox/Mozilla **."
 
+        f = file('%s/pid'%self.directory(), 'w')
+        f.writelines(["%d\n"%os.getpid(), str(port)])
+        f.close()
 
         if open_viewer:
-            cmd = '%s http://%s:%s 1>&2 >/dev/null &'%(browser(), address, port)
-            os.system(cmd)
+            open_page(address, port)
         while True:
             try:
                 notebook_server.serve()
@@ -1051,9 +1057,9 @@ class Notebook(SageObject):
 
         body += '<div class="fivepix"></div>\n'
         body += '  <div class="objects_topbar"  onClick="toggle_menu(\'object_list\');">'
-        body += '     <span class="plusminus" id="object_list_hider">[-]</span>'
+        body += '     <span class="plusminus" id="object_list_hider">[+]</span>'
         body += '     Saved Objects</div>\n'
-        body += '  <div class="object_list" id="object_list">%s</div>\n'%self.object_list_html()
+        body += '  <div class="hidden" id="object_list">%s</div>\n'%self.object_list_html()
 
         #body += '<div class="fivepix"></div>\n'
         #body += '  <div class="variables_topbar" onClick="toggle_menu(\'variable_list\');">'
@@ -1064,9 +1070,9 @@ class Notebook(SageObject):
 
         body += '<div class="fivepix"></div>\n'
         body += '  <div class="attached_topbar" onClick="toggle_menu(\'attached_list\');">'
-        body += '     <span class="plusminus" id="attached_list_hider">[-]</span>'
+        body += '     <span class="plusminus" id="attached_list_hider">[+]</span>'
         body += '     Attached Files</div>\n'
-        body += '  <div class="attached_list" id="attached_list">%s</div><br>\n'%\
+        body += '  <div class="hidden" id="attached_list">%s</div><br>\n'%\
                 worksheet.attached_html()
         body += endpanespan
         body += '<script type="text/javascript">focus(%s)</script>\n'%(worksheet[0].id())
@@ -1084,7 +1090,7 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
 
-        body += '<script type="text/javascript">toggle_left_pane()</script>'
+        #body += '<script type="text/javascript">toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):
@@ -1481,7 +1487,8 @@ def notebook(dir         ='sage_notebook',
              log_server = False,
              kill_idle   = 0,
              restart_on_crash = False,
-             auto_restart = 1800):
+             auto_restart = 1800,
+             multisession = True):
     r"""
     Start a SAGE notebook web server at the given port.
 
@@ -1523,6 +1530,10 @@ def notebook(dir         ='sage_notebook',
                       every 5 seconds in this mode.
         auto_restart -- if restart_on_crash is True, always restart
                       the server every this many seconds.
+        multisession -- (default: True) The default is for there to be
+                       one sage session for each worksheet.  If this
+                       is False, then there is just one global SAGE
+                       session, like with Mathematica.
 
     NOTES:
 
@@ -1569,6 +1580,13 @@ def notebook(dir         ='sage_notebook',
 
     import worksheet
     worksheet.init_sage_prestart()
+    worksheet.multisession = multisession
+
+    if '/' in dir:
+	# change current working directory and make the notebook
+	# directory a subdirectory of the working directory.
+        base, dir = os.path.split(dir)
+        os.chdir(base)
 
     if restart_on_crash:
         # Start a new subprocess
@@ -1583,10 +1601,10 @@ def notebook(dir         ='sage_notebook',
             S = sage.interfaces.sage0.Sage()
             time.sleep(1)
             S.eval("from sage.server.notebook.notebook import notebook")
-            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False)"%(
+            cmd = "notebook(dir=%s,port=%s, address=%s, open_viewer=%s, max_tries=%s, username=%s, password=%s, color=%s, system=%s, jsmath=%s, show_debug=%s, splashpage=%s, warn=%s, ignore_lock=%s, log_server=%s, kill_idle=%s, restart_on_crash=False, multisession=%s)"%(
                 f(dir), f(port), f(address), f(open_viewer), f(max_tries), f(username),
                 f(password), f(color), f(system), f(jsmath), f(show_debug), f(splashpage),
-                f(warn), f(ignore_lock), f(log_server), f(kill_idle)
+                f(warn), f(ignore_lock), f(log_server), f(kill_idle), f(multisession)
                 )
             print cmd
             S._send(cmd)
@@ -1612,9 +1630,14 @@ def notebook(dir         ='sage_notebook',
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (it is not even a directory).'%dir
         if not (os.path.exists('%s/nb.sobj'%dir) or os.path.exists('%s/nb-backup.sobj'%dir)):
             raise RuntimeError, '"%s" is not a valid SAGE notebook directory (missing nb.sobj).'%dir
-        if os.path.exists('%s/pid'%dir) and not ignore_lock:
-            f = file('%s/pid'%dir)
-            p = f.read()
+        pidfile = '%s/pid'%dir
+        if os.path.exists(pidfile) and not ignore_lock:
+            f = file(pidfile)
+            try:
+                p, oldport = f.readlines()
+            except ValueError:
+                p = file(pidfile).read()
+                oldport = port
             f.close()
             try:
                 #This is a hack to check whether or not the process is running.
@@ -1623,12 +1646,11 @@ def notebook(dir         ='sage_notebook',
                                  " not responding, you will need to kill that process to continue.",
                                  " If another (non-sage) process is running with that PID, call",
                                  " notebook(..., ignore_lock = True, ...). " ])
+                if open_viewer:
+                   open_page(address, int(oldport))
                 return
             except OSError:
                 pass
-        f = file('%s/pid'%dir, 'w')
-        f.write("%d"%os.getpid())
-        f.close()
         try:
             nb = load('%s/nb.sobj'%dir, compress=False)
         except:

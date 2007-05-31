@@ -1,4 +1,5 @@
 """
+p-adic Capped Relative Dense Polynomials
 """
 
 import sage.rings.polynomial.polynomial_element_generic
@@ -673,14 +674,27 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def degree(self):
         """
-        Returns the degree of self, ie the largest n so that the coefficient of x^n is distinguishable from 0.
+        Returns the degree of self, i.e., the largest $n$ so that the
+        coefficient of $x^n$ does not compare equal to $0$.
+
+        EXAMPLES:
+            sage: K = Qp(3,10)
+            sage: x = O(3^5)
+            sage: li =[3^i * x for i in range(0,5)]; li
+            [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
+            sage: R.<T> = K[[]]
+            sage: f = R(li); f
+            O(3^5) + O(3^6)*T + O(3^7)*T^2 + O(3^8)*T^3 + O(3^9)*T^4
+            sage: f.degree()
+            -1
         """
-	self._normalize()
+        self._normalize()
         return self._poly.degree()
 
     def prec_degree(self):
         """
-        Returns the largest n so that precision information is stored about the coefficient of x^n.
+        Returns the largest $n$ so that precision information is
+        stored about the coefficient of $x^n$.
 
         Always greater than or equal to degree.
         """

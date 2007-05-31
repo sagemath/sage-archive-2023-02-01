@@ -324,6 +324,7 @@ packedmatrix *invertPackedFlexRussian(packedmatrix *m,
   packedmatrix *big=concatPacked(m, identity);
   int size=m->cols;
   int twokay=TWOPOW(k);
+  int i;
   packedmatrix *mytable=createPackedMatrix(twokay, size*2);
 
   int *mylookups=(int *)safeCalloc(twokay, sizeof(int));
@@ -332,8 +333,14 @@ packedmatrix *invertPackedFlexRussian(packedmatrix *m,
 
   rank=fourRussiansPackedFlex(big, YES, k, mytable, mylookups);
 
-  if ( rank!=min(m->cols,m->rows)  )  answer=NULL;
-  else answer=copySubMatrixPacked(big, 0, size, size-1, size*2-1);
+  for(i=0; i < size; i++) {
+    if (!readPackedCell(big, i,i )) {
+      answer=NULL;
+      break;
+    }
+  }
+  if (i == size)
+    answer=copySubMatrixPacked(big, 0, size, size-1, size*2-1);
 
   free(mylookups);
   destroyPackedMatrix(mytable);

@@ -49,6 +49,13 @@ SAGE_END=SC+'e'
 SAGE_ERROR=SC+'r'
 
 
+# The default is for there to be one sage session for
+# each worksheet.  If this is False, then there is just
+# one global SAGE session, like with Mathematica.
+# This variable gets sets when the notebook function
+# in notebook.py is called.
+multisession = True
+
 _a_sage = None
 def init_sage_prestart():
     global _a_sage
@@ -65,7 +72,8 @@ def init_sage_prestart():
 def one_prestarted_sage():
     global _a_sage
     X = _a_sage
-    init_sage_prestart()
+    if multisession:
+        init_sage_prestart()
     return X
 
 class Worksheet:
@@ -85,9 +93,9 @@ class Worksheet:
         dir = ''.join(dir)
         self.__filename = dir
         self.__dir = '%s/%s'%(notebook.worksheet_directory(), dir)
-        while os.path.exists(self.__dir):
-            self.__dir += "_"
-            self.__filename += '_'
+        #while os.path.exists(self.__dir):
+        #    self.__dir += "_"
+        #    self.__filename += '_'
         self.__comp_is_running = False
         if not os.path.exists(self.__dir):
             os.makedirs(self.__dir)
@@ -1326,10 +1334,10 @@ def extract_first_compute_cell(text):
     i = text.find('{{{')
     if i == -1:
         raise EOFError
-    j = text.find('}}}')
+    j = text.find('\n}}}')
     if j <= i:
         j = len(text)
-    k = text.find('///')
+    k = text.find('\n///')
     if k == -1 or k > j:
         input = text[i+3:j]
         output = ''
@@ -1337,12 +1345,12 @@ def extract_first_compute_cell(text):
     else:
         input = text[i+3:k].strip()
         # Find the graphics block, if there is one.
-        l = text[k+3:].find('///')
-        if l != -1 and l+k+3 < j:
-            graphics = text[l+k+3+3:j]
+        l = text[k+4:].find('\n///')
+        if l != -1 and l+k+4 < j:
+            graphics = text[l+k+4+3:j]
         else:
             graphics = ''
             l = j
-        output = text[k+3:l].strip()
-    return input.strip(), output, graphics, j+3
+        output = text[k+4:l].strip()
+    return input.strip(), output, graphics, j+4
 

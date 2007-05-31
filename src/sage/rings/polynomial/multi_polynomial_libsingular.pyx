@@ -406,7 +406,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         if PY_TYPE_CHECK(element, SingularElement):
             element = str(element)
 
-        if PY_TYPE_CHECK(element,str):
+        if PY_TYPE_CHECK(element, basestring):
             # let python do the the parsing
             element = sage_eval(element,self.gens_dict())
 

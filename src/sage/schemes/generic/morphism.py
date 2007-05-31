@@ -27,7 +27,8 @@ import scheme
 import spec
 
 def is_SchemeMorphism(f):
-    return isinstance(f, SchemeMorphism);
+    from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
+    return isinstance(f, (SchemeMorphism, EllipticCurvePoint_field));
 
 class SchemeMorphism(Morphism):
     """
@@ -344,8 +345,9 @@ class SchemeMorphism_projective_coordinates_field(SchemeMorphism_projective_coor
             X = X(X.base_ring())
         SchemeMorphism.__init__(self, X)
         if check:
+            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field # TODO: fix circular ref.
             d = X.codomain().ambient_space().ngens()
-            if is_SchemeMorphism(v):
+            if is_SchemeMorphism(v) or isinstance(v, EllipticCurvePoint_field):
                 v = list(v)
             if not isinstance(v,(list,tuple)):
                 raise TypeError, \

@@ -1,12 +1,23 @@
 r"""
 Multivariate Polynomial Rings
 
+\SAGE implements multivariate polynomial rings through several
+backends. The generic implementation used the classes \code{PolyDict}
+and \code{ETuple} to construct a dictionary with exponent tuples as
+keys and coefficients as values.
+
+Additionally, specialized and optimized implementations are provided
+for multivariate polynomials over $\Q$ and $\F_p$. These are
+implemented in the classes \code{MPolynomialRing_libsingular} and
+\code{MPolynomial_libsingular}
+
 AUTHORS:
     -- David Joyner and William Stein
     -- Kiran S. Kedlaya (2006-02-12): added Macaulay2 analogues of
               Singular features
     -- Martin Albrecht (2006-04-21): reorganize class hiearchy for singular rep
-    -- Martin Albrecht: refactored to link in MPolynomialRing_libsingular
+    -- Martin Albrecht (2007-04-20): reorganized class hierarchy to support Pyrex
+              implementations
 
 EXAMPLES:
 
@@ -172,7 +183,7 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: f = U[2]; f                                            # optional
              3 2    3
             x y  + y
-            sage: R(f)                                                   # optional
+            sage: R(repr(f))                                             # optional
             y^3 + x^3*y^2
 
         Some other subtle coercions.  We create polynomial rings in 2 variables

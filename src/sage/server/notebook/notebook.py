@@ -1090,7 +1090,7 @@ class Notebook(SageObject):
             body += '    cell_set_running(active_cell_list[i]); \n'
             body += 'start_update_check(); </script>\n'
 
-        body += '<script type="text/javascript">toggle_left_pane()</script>'
+        #body += '<script type="text/javascript">toggle_left_pane()</script>'
         return body
 
     def edit_window(self, worksheet):

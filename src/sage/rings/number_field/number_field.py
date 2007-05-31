@@ -1031,6 +1031,7 @@ class NumberField_extension(NumberField_generic):
 
         EXAMPLES:
             sage: k.<a> = NumberField(x^2+1); k
+            Number Field in a with defining polynomial x^2 + 1
             sage: y = polygen(k)
             sage: m.<b> = k.extension(y^2+3); m
             Extension by x^2 + 3 of the Number Field in a with defining polynomial x^2 + 1

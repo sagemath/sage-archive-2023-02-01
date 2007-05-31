@@ -691,7 +691,7 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: (1 - alpha^(-1))^2 * r
             3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + 3^7 + O(3^9)
             sage: P(0)
-            3 + 3^2 + 2*3^4 + 2*3^5 + 2*3^6 + O(3^7)
+            3 + 3^2 + 2*3^4 + 2*3^5 + O(3^6)
         """
         key = (p, normalize)
         try:
@@ -4647,7 +4647,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         sigma[0] = K(0, N +1)
         sigma[1] = K(1, N)
         for n in range(2, N+1):
-            print n, sigma[n].lift(), N, N-n+1, K(sigma[n].lift(), N - n + 1)
             sigma[n] = K(sigma[n].lift(), N - n + 1)
 
         S = rings.PowerSeriesRing(K, "t", N+1)

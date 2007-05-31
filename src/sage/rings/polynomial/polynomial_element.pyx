@@ -43,7 +43,7 @@ from sage.misc.latex import latex
 from sage.structure.factorization import Factorization
 
 from sage.interfaces.all import singular as singular_default, is_SingularElement
-from sage.libs.all import pari, pari_gen
+from sage.libs.all import pari, pari_gen, PariError
 
 from sage.rings.real_mpfr import RealField, is_RealNumber, is_RealField
 RR = RealField()
@@ -1090,6 +1090,21 @@ cdef class Polynomial(CommutativeAlgebraElement):
             (1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + -1.0000000000000000000000000000*I) * (1.0000000000000000000000000000*x + 1.0000000000000000000000000000*I)
             sage: expand(F)
             1.0000000000000000000000000000*I*x^2 + 1.0000000000000000000000000000*I
+
+        Over a complicated number field:
+            sage: x = polygen(QQ, 'x')
+            sage: f = x^6 + 10/7*x^5 - 867/49*x^4 - 76/245*x^3 + 3148/35*x^2 - 25944/245*x + 48771/1225
+            sage: K.<a> = NumberField(f)
+            sage: S.<T> = K[]
+            sage: ff = S(f); ff
+            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
+            sage: F = ff.factor()
+            sage: len(F)
+            4
+            sage: F[:2]
+            [(T + -a, 1), (T + -40085763200/924556084127*a^5 - 145475769880/924556084127*a^4 + 527617096480/924556084127*a^3 + 1289745809920/924556084127*a^2 - 3227142391585/924556084127*a - 401502691578/924556084127, 1)]
+            sage: expand(F)
+            T^6 + 10/7*T^5 + (-867/49)*T^4 + (-76/245)*T^3 + 3148/35*T^2 + (-25944/245)*T + 48771/1225
         """
 
         # PERFORMANCE NOTE:
@@ -1116,7 +1131,10 @@ cdef class Polynomial(CommutativeAlgebraElement):
               sage.rings.integer_ring.is_IntegerRing(R) or \
               sage.rings.rational_field.is_RationalField(R):
 
-            G = list(self._pari_('x').factor())
+            try:
+                G = list(self._pari_('x').factor())
+            except PariError:
+                raise NotImplementedError
 
         elif is_NumberField(R) or is_FiniteField(R):
 
@@ -1670,6 +1688,18 @@ cdef class Polynomial(CommutativeAlgebraElement):
             X^6 - 3*I*X^5 - X^5 + 3*I*X^4 - sqrt(2)*X^4 - 3*X^4 + 3*sqrt(2)*I*X^3 + I*X^3 + sqrt(2)*X^3 + 3*X^3 - 3*sqrt(2)*I*X^2 - I*X^2 + 3*sqrt(2)*X^2 - sqrt(2)*I*X - 3*sqrt(2)*X + sqrt(2)*I
             sage: print f.roots()
             [(I, 3), (-2^(1/4), 1), (2^(1/4), 1), (1, 1)]
+
+        An example where the base ring doesn't have a factorization algorithm (yet).  Note
+        that this is currently done via nave enumeration, so could be very slow:
+            sage: R = Integers(6)
+            sage: S.<x> = R['x']
+            sage: p = x^2-1
+            sage: p.roots()
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)
+            sage: p.roots(multiplicities=False)
+            [1, 5]
         """
         seq = []
 
@@ -1688,6 +1718,12 @@ cdef class Polynomial(CommutativeAlgebraElement):
         try:
             rts = self.factor()
         except NotImplementedError:
+            if K.is_finite():
+                if multiplicities:
+                    raise NotImplementedError, "root finding with multiplicities for this polynomial not implemented (try the multiplicities=False option)"
+                else:
+                    return [a for a in K if not self(a)]
+
             raise NotImplementedError, "root finding for this polynomial not implemented"
         for fac in rts:
             g = fac[0]

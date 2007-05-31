@@ -1,5 +1,7 @@
 """nodoctest"""
 
+sage_mode = 'cmdline'
+
 try:
 
     from sage.all import *

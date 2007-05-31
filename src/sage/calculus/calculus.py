@@ -540,22 +540,40 @@ class SymbolicExpression(RingElement):
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.lt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.lt)
+        except TypeError:
+            return False
 
     def __le__(self, right):
-        return SymbolicEquation(self, SR(right), operator.le)
+        try:
+            return SymbolicEquation(self, SR(right), operator.le)
+        except TypeError:
+            return False
 
     def __eq__(self, right):
-        return SymbolicEquation(self, SR(right), operator.eq)
+        try:
+            return SymbolicEquation(self, SR(right), operator.eq)
+        except TypeError:
+            return False
 
     def __ne__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ne)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ne)
+        except TypeError:
+            return False
 
     def __ge__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ge)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ge)
+        except TypeError:
+            return False
 
     def __gt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.gt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.gt)
+        except TypeError:
+            return False
 
     def __cmp__(self, right):
         """

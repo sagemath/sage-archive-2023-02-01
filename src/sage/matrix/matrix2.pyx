@@ -80,6 +80,7 @@ cdef class Matrix(matrix1.Matrix):
             [ 3  2]
 
         Solving over a polynomial ring:
+            sage: x = polygen(QQ, 'x')
             sage: A = matrix(2, [x,2*x,-5*x^2+1,3])
             sage: v = vector([3,4*x - 2])
             sage: X = A \ v

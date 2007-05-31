@@ -40,8 +40,16 @@ def _pad_int_str(s,n):
 
 class ClassPolynomialDatabase:
     def _dbpath(self,disc,level=1):
+        """
+        TESTS:
+            sage: db = HilbertClassPolynomialDatabase()
+            sage: db.__getitem__(-23,level=2)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: Level (= 2) > 1 not yet implemented.
+        """
         if level != 1:
-            raise NotImplementedError, "Level (= %s) > 1 not yet implemented."%s
+            raise NotImplementedError, "Level (= %s) > 1 not yet implemented."%level
         n1 = 5000*((abs(disc)-1)//5000)
         s1 = _pad_int_str(n1+1,disc_length)
         s2 = _pad_int_str(n1+5000,disc_length)
@@ -63,6 +71,19 @@ class ClassPolynomialDatabase:
 class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):
     """
     The database of Hilbert class polynomials.
+
+    EXAMPLES:
+        sage: db = HilbertClassPolynomialDatabase()
+        sage: db[-4]                 # optional Kohel database required
+        x - 1728
+        sage: db[-7]                 # optional
+        x + 3375
+        sage: f = db[-23]; f         # optional
+        x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
+        sage: f.discriminant().factor()    # optional
+        -1 * 5^18 * 7^12 * 11^4 * 17^2 * 19^2 * 23
+        sage: db[-23]                      # optional
+        x^3 + 3491750*x^2 - 5151296875*x + 12771880859375
     """
     def __init__(self):
         """
@@ -72,6 +93,10 @@ class HilbertClassPolynomialDatabase(ClassPolynomialDatabase):
 
     def __repr__(self):
         return "Hilbert class polynomial database"
+
+######################################################
+# None of the following are implemented yet.
+######################################################
 
 class AtkinClassPolynomialDatabase(ClassPolynomialDatabase):
     """

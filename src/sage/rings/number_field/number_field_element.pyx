@@ -462,19 +462,36 @@ cdef class NumberFieldElement(FieldElement):
             sage: C.<zeta12>=CyclotomicField(12)
             sage: zeta12*zeta12^11
             1
+            sage: G.<a> = NumberField(x^3 + 2/3*x + 1)
+            sage: a^3
+            -2/3*a - 1
+            sage: a^3+a
+            1/3*a - 1
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
-        x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
         self._parent_poly_c_( &parent_num, &parent_den )
-        _sig_on
-        MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
-        _sig_off
-        x._reduce_c_()
-        return x
+        # an ugly hack fix for the fact that MulMod doesn't handle non-monic polynomials
+        # I expect that PARI will win out over NTL for reasons of speed and things like this
+        # that will be the elegant fix
+        if ZZX_is_monic( &parent_num ):
+            x = self._new()
+            _sig_on
+            mul_ZZ(x.__denominator, self.__denominator, _right.__denominator)
+            MulMod_ZZX(x.__numerator, self.__numerator, _right.__numerator, parent_num)
+            _sig_off
+            x._reduce_c_()
+            return x
+        else:
+            return self.parent()(self._pari_()*right._pari_())
+            #  Hmm, this next bit is not so straight-forward as I thought it should be
+            # I'll get back to this when I benchmark
+#            mul_ZZX(x.__numerator, self.__numerator, _right.__numerator)
+#            if ZZX_degree(&x.__numerator) >= ZZX_degree(&parent_num):
+#                PseudoRem_ZZX(x.__numerator, x.__numerator, parent_num)
+#                mul_ZZ(x.__denominator, x.__denominator, parent_den)
 
         #NOTES: In LiDIA, they build a multiplication table for the
         #number field, so it's not necessary to reduce modulo the
@@ -485,31 +502,53 @@ cdef class NumberFieldElement(FieldElement):
 
     cdef RingElement _div_c_impl(self, RingElement right):
         """
-        Returns the product of self and other as elements of a number field.
+        Returns the quotient of self and other as elements of a number field.
 
         EXAMPLES:
             sage: C.<I>=CyclotomicField(4)
             sage: 1/I
             -I
+            sage: I/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Number field element division by zero
+
+            sage: G.<a> = NumberField(x^3 + 2/3*x + 1)
+            sage: a/a
+            1
+            sage: 1/a
+            -a^2 - 2/3
+            sage: a/0
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: Number field element division by zero
         """
         cdef NumberFieldElement x
         cdef NumberFieldElement _right = right
         cdef ntl_c_ZZX inv_num
         cdef ntl_c_ZZ inv_den
-        _right._invert_c_(&inv_num, &inv_den)
-        x = self._new()
-        mul_ZZ(x.__denominator, self.__denominator, inv_den)
         cdef ntl_c_ZZ parent_den
         cdef ntl_c_ZZX parent_num
+        if not _right:
+            raise ZeroDivisionError, "Number field element division by zero"
         self._parent_poly_c_( &parent_num, &parent_den )
-        _sig_on
-        MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
-        _sig_off
-        x._reduce_c_()
-        return x
+        if ZZX_is_monic( &parent_num ):
+            _right._invert_c_(&inv_num, &inv_den)
+            x = self._new()
+            _sig_on
+            mul_ZZ(x.__denominator, self.__denominator, inv_den)
+            MulMod_ZZX(x.__numerator, self.__numerator, inv_num, parent_num)
+            _sig_off
+            x._reduce_c_()
+            return x
+        else:
+            return self.parent()(self._pari_()/right._pari_())
 
     def __floordiv__(self, other):
         return self / other
+
+    def __nonzero__(self):
+        return not IsZero_ZZX(self.__numerator)
 
     cdef ModuleElement _neg_c_impl(self):
         cdef NumberFieldElement x

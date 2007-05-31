@@ -1332,13 +1332,13 @@ class GraphDatabase():
             F@LAG
             sage: (Graph('FJ?GW')).is_isomorphic(Graph('F@LAG'))
             True
-            sage: g = graphs_query.get_list(query="select graph_data.graph6 \
+            sage.: g = graphs_query.get_list(query="select graph_data.graph6 \
             ...             from graph_data inner join misc on \
             ...             misc.graph_id=graph_data.graph_id where \
             ...             misc.induced_subgraphs regexp '.*E~~w.*'")
             ...
             sage.: graphs_list.show_graphs(g)
-            sage: graphs_list.to_graph6(g)
+            sage.: graphs_list.to_graph6(g)
             'E~~w\nFJ\\zw\nFJ\\~w\nFJ^~w\nFJ~~w\nFN~~w\nF^~~w\nF~~~w\n'
         """
         if ( query is None ):

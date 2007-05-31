@@ -137,12 +137,15 @@ class DSageServerTestCase(unittest.TestCase):
             self.assert_(job.update_time < datetime.datetime.now())
 
     def testjob_done(self):
+        import time
         job = expand_job(self.dsage_server.get_job())
         result = 'done'
         output = 'done '
         completed = True
         job_id = self.dsage_server.job_done(job.job_id,
-                                            output, result, completed)
+                                            output, result,
+                                            completed,
+                                            time.time() - time.time())
         job = expand_job(self.dsage_server.get_job_by_id(job_id))
         self.assertEquals(job.output, output)
         self.assertEquals(job.result, result)
@@ -153,7 +156,8 @@ class DSageServerTestCase(unittest.TestCase):
         output = 'testing'
         completed = False
         job_id = self.dsage_server.job_done(job.job_id, output, result,
-                                            completed)
+                                            completed,
+                                            time.time() - time.time())
         job = expand_job(self.dsage_server.get_job_by_id(job_id))
         self.assert_(isinstance(job.output, str))
         self.assert_(job.status != 'completed')

@@ -8,6 +8,16 @@
 
 include "../ext/stdsage.pxi"
 
+# TODO: Unpickled parents with base sometimes have thier base set to None.
+# This causes a segfault in the module arithmatic architecture.
+#
+# sage: H = HomsetWithBase(QQ, RR, base=ZZ); H
+# sage: H0 = loads(dumps(H))
+# sage: H.base_ring(), H0.base_ring()
+# (Integer Ring, None)
+#
+# Perhaps the code below would help (why was it commented out?).
+
 ## def make_parent_with_base_v0(_class, _dict, base, has_coerce_map_from):
 ##     """
 ##     This should work for any Python class deriving from this, as long

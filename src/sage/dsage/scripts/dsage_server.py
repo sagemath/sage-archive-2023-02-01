@@ -30,6 +30,11 @@ from twisted.spread import pb
 from twisted.python import log
 from twisted.cred import portal
 
+from gnutls.constants import *
+from gnutls.crypto import *
+from gnutls.errors import *
+from gnutls.interfaces.twisted import X509Credentials
+
 from sage.dsage.database.jobdb import JobDatabaseSQLite
 from sage.dsage.database.clientdb import ClientDatabase
 from sage.dsage.database.monitordb import MonitorDatabase
@@ -37,31 +42,71 @@ from sage.dsage.twisted.pb import Realm
 from sage.dsage.twisted.pb import _SSHKeyPortalRoot
 from sage.dsage.twisted.pubkeyauth import PublicKeyCredentialsCheckerDB
 from sage.dsage.server.server import DSageServer
-from sage.dsage.misc.config import get_conf, get_bool
-from sage.dsage.misc.constants import delimiter as DELIMITER
-
-DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+from sage.dsage.misc.constants import DELIMITER
+from sage.dsage.misc.constants import DSAGE_DIR
+from sage.dsage.misc.config import check_dsage_dir
 
 def usage():
-    """Prints usage help."""
+    """
+    Prints usage help.
+
+    """
 
     # usage options
-    usage = ['usage: %progr [options]\n',
-              'required options: --jobdir\n\n',
+    usage = ['usage: %prog [options]\n',
               'Bug reports to <yqiang@gmail.com>']
 
     parser = OptionParser(usage=''.join(usage))
-    parser.add_option("-j", "--jobdir", dest="dir",
-                        help="directory containing jobs")
+    parser.add_option('-p', '--port',
+                      dest='port',
+                      type='int',
+                      default=8081,
+                      help='port to listen on')
+    parser.add_option('-f', '--logfile',
+                      dest='logfile',
+                      default=os.path.join(DSAGE_DIR, 'server.log'),
+                      help='log file. default=~/.sage/dsage/server.log')
+    parser.add_option('-l', '--loglevel',
+                      dest='loglevel',
+                      type='int',
+                      default=0,
+                      help='log level, higher means more verbose')
+    parser.add_option('--statsfile',
+                      dest='statsfile',
+                      default=os.path.join(DSAGE_DIR, 'dsage.xml'),
+                      help='xml file for dsage statistics. ' +
+                           'default=~/.sage/dsage/dsage.xml')
+    parser.add_option('--ssl',
+                      dest='ssl',
+                      action='store_true',
+                      default=False,
+                      help='enable or disable ssl')
+    parser.add_option('-k', '--privkey',
+                      dest='privkey',
+                      default=os.path.join(DSAGE_DIR, 'cacert.pem'),
+                      help='private key for ssl certificate')
+    parser.add_option('-c', '--cert',
+                      dest='cert',
+                      default=os.path.join(DSAGE_DIR, 'pubcert.pem'),
+                      help='ssl certificate')
+    parser.add_option('-d', '--dbfile',
+                      dest='dbfile',
+                      default=os.path.join(DSAGE_DIR, 'dsage.db'),
+                      help='database file')
+    parser.add_option('--job_failures',
+                      dest='job_failure_threshold',
+                      type='int',
+                      default=3,
+                      help='sets the threshold for job failures')
+    parser.add_option('--noblock',
+                      dest='noblock',
+                      action='store_true',
+                      default=False,
+                      help='tells that the server was ' +
+                           'started in blocking mode')
 
     (options, args) = parser.parse_args()
-#    if options.dir == None:
-#        parser.print_help()
-#        sys.exit(0)
-#        parser.error("Please specify a valid job directory with the \
-#                    --jobdir flag.")
 
-#     sys.path.append(os.path.abspath(options.dir))
     return options
 
 def write_stats(dsage_server, stats_file):
@@ -75,6 +120,12 @@ def write_stats(dsage_server, stats_file):
         return
 
 def create_manhole():
+    """
+    This is a manhole backdoor to inspect a running server.
+    ONLY turn it on for debugging, otherwise you can get pwn3d.
+
+    """
+
     from twisted.manhole import telnet
     factory = telnet.ShellFactory()
     factory.username = 'yqiang'
@@ -89,6 +140,8 @@ def startLogging(log_file):
 
     """
 
+    check_dsage_dir()
+
     if log_file == 'stdout':
         log.startLogging(sys.stdout)
         log.msg('WARNING: DSAGE Server ONLY logging to stdout!')
@@ -98,30 +151,42 @@ def startLogging(log_file):
         log.startLogging(server_log)
         log.msg("DSAGE Server: Logging to file: ", log_file)
 
-def main():
+def main(options):
     """
     Main execution loop of the server.
 
     """
 
-    config = get_conf('server')
-    LOG_FILE = config['log_file']
-    LOG_LEVEL = config['log_level']
-    SSL = get_bool(config['ssl'])
-    SSL_PRIVKEY = config['privkey_file']
-    SSL_CERT = config['cert_file']
-    CLIENT_PORT = int(config['client_port'])
-    PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
-    STATS_FILE = config['stats_file']
+    # config = get_conf('server')
+    # LOG_FILE = config['log_file']
+    # LOG_LEVEL = config['log_level']
+    # SSL = get_bool(config['ssl'])
+    # SSL_PRIVKEY = config['privkey_file']
+    # SSL_CERT = config['cert_file']
+    # CLIENT_PORT = int(config['client_port'])
+    # PUBKEY_DATABASE = os.path.expanduser(config['pubkey_database'])
+    # STATS_FILE = config['stats_file']
+
+    LOG_FILE = options.logfile
+    LOG_LEVEL = options.loglevel
+    SSL = options.ssl
+    SSL_PRIVKEY = options.privkey
+    SSL_CERT = options.cert
+    CLIENT_PORT = options.port
+    STATS_FILE = options.statsfile
+    DB_FILE = options.dbfile
+    FAILURE_THRESHOLD = options.job_failure_threshold
 
     # start logging
     startLogging(LOG_FILE)
 
     # Job database
-    jobdb = JobDatabaseSQLite()
-
+    jobdb = JobDatabaseSQLite(db_file=DB_FILE,
+                              job_failure_threshold=FAILURE_THRESHOLD,
+                              log_file=LOG_FILE, log_level=LOG_LEVEL)
     # Worker database
-    monitordb = MonitorDatabase()
+    monitordb = MonitorDatabase(db_file=DB_FILE,
+                                log_file=LOG_FILE, log_level=LOG_LEVEL)
 
     # Client database
     clientdb = ClientDatabase()
@@ -165,44 +230,65 @@ def main():
                 port_used = False
             if not port_used:
                 if SSL:
-                    ssl_context = ssl.DefaultOpenSSLContextFactory(
-                                    SSL_PRIVKEY, SSL_CERT)
-                    reactor.listenSSL(NEW_CLIENT_PORT,
-                                      client_factory,
-                                      contextFactory = ssl_context)
+                    ## This for OpenSSL, SAGE uses GNUTLS now
+                    ## ssl_context = ssl.DefaultOpenSSLContextFactory(
+                    ##                 SSL_PRIVKEY, SSL_CERT)
+                    ## reactor.listenSSL(NEW_CLIENT_PORT,
+                    ##                   client_factory,
+                    ##                   contextFactory = ssl_context)
+                    cert = X509Certificate(open(SSL_CERT).read())
+                    key = X509PrivateKey(open(SSL_PRIVKEY).read())
+                    cred = X509Credentials(cert, key)
+                    cred.verify_peer = False # Do not verify certs
+                    cred.session_params.compressions = (COMP_LZO,
+                                                        COMP_DEFLATE,
+                                                        COMP_NULL)
+                    reactor.listenTLS(NEW_CLIENT_PORT, client_factory, cred)
                     break
                 else:
                     reactor.listenTCP(NEW_CLIENT_PORT, client_factory)
                     break
             else:
-                raise SystemError('Trying to bind to open port: %s.' % (NEW_CLIENT_PORT))
+                raise SystemError('Trying to bind to open port: '
+                                  + '%s.' % (NEW_CLIENT_PORT))
         except (SystemError, error.CannotListenError):
             attempts += 1
             NEW_CLIENT_PORT += 1
+        except Exception, msg:
+            print 'Exception: ', msg
+            if SSL:
+                print 'Error starting server with SSL enabled, please ' + \
+                      'check your configuration'
+            else:
+                print 'Error starting server, please check your configuration'
+            sys.exit()
 
     if CLIENT_PORT != NEW_CLIENT_PORT:
         log.msg(DELIMITER)
         log.msg("***NOTICE***")
-        log.msg("Changing listening port in server.conf to %s" % (NEW_CLIENT_PORT))
+        log.msg("Changing listening port " +
+                "to %s" % (NEW_CLIENT_PORT))
         log.msg(DELIMITER)
-        import ConfigParser
-        cparser = ConfigParser.ConfigParser()
-        cparser.read(config['conf_file'])
-        cparser.set('server', 'client_port', NEW_CLIENT_PORT)
-        cparser.write(open(config['conf_file'], 'w'))
 
     log.msg(DELIMITER)
     log.msg('DSAGE Server')
     log.msg('Started with PID: %s' % (os.getpid()))
     if SSL:
-        log.msg('Using SSL...')
-    log.msg('Listening on %s' % (NEW_CLIENT_PORT))
+        log.msg('Using SSL: True')
+    else:
+        log.msg('Using SSL: False')
+    log.msg('Listening on port: %s' % (NEW_CLIENT_PORT))
     log.msg(DELIMITER)
 
+    # Code below can be turned on to do countrefs
     # from sage.dsage.misc.countrefs import logInThread
     # logInThread(n=15)
     # reactor.callWhenRunning(create_manhole)
-    reactor.run(installSignalHandlers=1)
+    if options.noblock:
+        reactor.run(installSignalHandlers=0)
+    else:
+        reactor.run(installSignalHandlers=1)
 
 if __name__ == "__main__":
-    main()
+    options = usage()
+    main(options)

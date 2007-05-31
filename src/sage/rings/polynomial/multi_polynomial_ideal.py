@@ -76,6 +76,17 @@ We do a Groebner basis computation over a number field:
     sage: S.0^3 - zeta*S.1^3
     0
 
+Two examples from the Mathematica documentation (done in SAGE):
+    We compute a Groebner basis:
+        sage: R.<x,y> = PolynomialRing(QQ, order='lex')
+        sage: ideal(x^2 - 2*y^2, x*y - 3).groebner_basis()
+        [2*y^4 - 9, 3*x - 2*y^3]
+
+    We show that three polynomials have no common root:
+        sage: R.<x,y> = QQ[]
+        sage: ideal(x+y, x^2 - 1, y^2 - 2*x).groebner_basis()
+        [1]
+
 TESTS:
     sage: x,y,z = QQ['x,y,z'].gens()
     sage: I = ideal(x^5 + y^4 + z^3 - 1,  x^3 + y^3 + z^2 - 1)
@@ -628,9 +639,10 @@ class MPolynomialIdeal_singular_repr:
         returns $(g_1, \dots, g_s)$ such that:
 
         * $(f_1,\dots,f_n) = (g_1,\dots,g_s)$
-        * $L(g_i)\neq L(g_j)$ for all $i\neq j$
-        * $L(g_i)$ does not divide m for all monomials m of
+        * $LT(g_i)\neq LT(g_j)$ for all $i\neq j$
+        * $LT(g_i)$ does not divide m for all monomials m of
           $\{g_1,\dots,g_{i-1},g_{i+1},\dots,g_s\}$
+        * $LC(g_i) == 1$ for all $i$.
 
         ALGORITHM: Uses Singular's interred command
 
@@ -641,9 +653,13 @@ class MPolynomialIdeal_singular_repr:
         s = self._singular_().parent()
         o = s.option("get")
         s.option("redSB")
+        s.option("redTail")
         R = self.ring()
-        ret = Sequence([ R(f) for f in self._singular_().interred() ], R,
-                       check=False, immutable=True)
+        ret = []
+        for f in self._singular_().interred():
+            f = R(f)
+            ret.append(f/f.lc()) # lead coeffs are not reduced by interred
+        ret = Sequence( ret, R, check=False, immutable=True)
         s.option("set",o)
         return ret
 

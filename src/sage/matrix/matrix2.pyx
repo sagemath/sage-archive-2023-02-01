@@ -109,6 +109,8 @@ cdef class Matrix(matrix1.Matrix):
             C = B
 
         D = self.augment(C).echelon_form()
+        if D.rank() < D.nrows():
+            raise ValueError, "input matrix must have full rank but it doesn't"
 
         X = D.matrix_from_columns(range(self.ncols(),D.ncols()))
         if not matrix:

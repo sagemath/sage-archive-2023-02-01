@@ -639,9 +639,10 @@ class MPolynomialIdeal_singular_repr:
         returns $(g_1, \dots, g_s)$ such that:
 
         * $(f_1,\dots,f_n) = (g_1,\dots,g_s)$
-        * $L(g_i)\neq L(g_j)$ for all $i\neq j$
-        * $L(g_i)$ does not divide m for all monomials m of
+        * $LT(g_i)\neq LT(g_j)$ for all $i\neq j$
+        * $LT(g_i)$ does not divide m for all monomials m of
           $\{g_1,\dots,g_{i-1},g_{i+1},\dots,g_s\}$
+        * $LC(g_i) == 1$ for all $i$.
 
         ALGORITHM: Uses Singular's interred command
 
@@ -652,9 +653,13 @@ class MPolynomialIdeal_singular_repr:
         s = self._singular_().parent()
         o = s.option("get")
         s.option("redSB")
+        s.option("redTail")
         R = self.ring()
-        ret = Sequence([ R(f) for f in self._singular_().interred() ], R,
-                       check=False, immutable=True)
+        ret = []
+        for f in self._singular_().interred():
+            f = R(f)
+            ret.append(f/f.lc()) # lead coeffs are not reduced by interred
+        ret = Sequence( ret, R, check=False, immutable=True)
         s.option("set",o)
         return ret
 

@@ -1,14 +1,14 @@
 """
-Multivariate polynomials over QQ and GF(p) implemented using SINGULAR as backend.
+Multivariate polynomials via libSINGULAR.
 
 AUTHORS:
-    Martin Albrecht <malb@informatik.uni-bremen.de>
+    -- Martin Albrecht <malb@informatik.uni-bremen.de>
 
 TODO:
-   * implement GF(p^n)
-   * implement block orderings
-   * implement Real, Complex
-   * test under CYGWIN (link error)
+   -- implement $GF(p^n)$
+   -- implement block orderings
+   -- implement Real, Complex
+   -- test under CYGWIN (link error)
 
 """
 # We do this as we get a link error for init_csage(). However, on
@@ -36,7 +36,8 @@ from sage.libs.singular.singular cimport Conversion
 cdef Conversion co
 co = Conversion()
 
-from sage.rings.polynomial.multi_polynomial_ring import TermOrder, MPolynomialRing_polydict_domain
+from sage.rings.polynomial.multi_polynomial_ring import MPolynomialRing_polydict_domain
+from sage.rings.polynomial.term_order import TermOrder
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial_polydict
 from sage.rings.polynomial.multi_polynomial_ideal import MPolynomialIdeal
 from sage.rings.polynomial.polydict import ETuple
@@ -118,6 +119,15 @@ cdef init_singular():
 # call it
 init_singular()
 
+order_dict = {"dp":ringorder_dp,
+              "Dp":ringorder_Dp,
+              "lp":ringorder_lp,
+              "rp":ringorder_rp,
+              "ds":ringorder_ds,
+              "Ds":ringorder_Ds,
+              "ls":ringorder_ls,
+              }
+
 cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
     """
     A multivariate polynomial ring over QQ or GF(p) implemented using SINGULAR.
@@ -161,6 +171,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         cdef char **_names
         cdef char *_name
         cdef int i
+        cdef int nblcks
+        cdef int offset
         cdef int characteristic
 
         n = int(n)
@@ -169,7 +181,9 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
 
         self.__ngens = n
 
-        MPolynomialRing_generic.__init__(self, base_ring, n, names, TermOrder(order))
+        order = TermOrder(order, n)
+
+        MPolynomialRing_generic.__init__(self, base_ring, n, names, order)
 
         self._has_singular = True
 
@@ -191,8 +205,6 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         else:
             raise NotImplementedError, "Only GF(p) and QQ are supported right now, sorry"
 
-        order = TermOrder(order).singular_str()
-
         self._ring = rDefault(characteristic, n, _names)
         if(self._ring != currRing): rChangeCurrRing(self._ring)
 
@@ -203,26 +215,34 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
         omFree(self._ring.block0)
         omFree(self._ring.block1)
 
-        self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
-        self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
-        self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
-        self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
+        nblcks = len(order.blocks)
+        offset = 0
 
-        if order == "dp":
-            self._ring.order[0] = ringorder_dp
-        elif order == "Dp":
-            self._ring.order[0] = ringorder_Dp
-        elif order == "lp":
-            self._ring.order[0] = ringorder_lp
-        elif order == "rp":
-            self._ring.order[0] = ringorder_rp
-        else:
-            self._ring.order[0] = ringorder_lp
+##         if nblcks == 1:
+##             self._ring.wvhdl  = <int **>omAlloc0(3 * sizeof(int*))
+##             self._ring.order  = <int *>omAlloc0(3* sizeof(int *))
+##             self._ring.block0 = <int *>omAlloc0(3 * sizeof(int *))
+##             self._ring.block1 = <int *>omAlloc0(3 * sizeof(int *))
+##             self._ring.order[0] = order_dict.get(order.singular_str(),ringorder_lp)
+##             self._ring.order[1] = ringorder_C
+##             self._ring.block0[0] = 1
+##             self._ring.block1[0] = n
+##         else:
+        self._ring.wvhdl  = <int **>omAlloc0((nblcks + 2) * sizeof(int*))
+        self._ring.order  = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+        self._ring.block0 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
+        self._ring.block1 = <int *>omAlloc0((nblcks + 2) * sizeof(int *))
 
-        self._ring.order[1] = ringorder_C
+        for i from 0 <= i < nblcks:
+            self._ring.order[i] = order_dict.get(order.blocks[i][0], ringorder_lp)
+            self._ring.block0[i] = offset + 1
+            if order.blocks[i][1] == 0: # may be zero in some cases
+                self._ring.block1[i] = offset + n
+            else:
+                self._ring.block1[i] = offset + order.blocks[i][1]
+            offset = self._ring.block1[i]
 
-        self._ring.block0[0] = 1
-        self._ring.block1[0] = n
+        self._ring.order[nblcks] = ringorder_C
 
         rComplete(self._ring, 1)
         self._ring.ShortOut = 0
@@ -304,6 +324,8 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
                         p_SetExp(mon, pos+1, m[pos], _ring)
                     p_Setm(mon, _ring)
                     _p = p_Add_q(_p, mon, _ring)
+            else:
+                raise TypeError, "parents do not match"
 
         elif PY_TYPE_CHECK(element, CommutativeRingElement):
             # Accepting ZZ
@@ -1604,7 +1626,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         return s
 
     def _latex_(self):
-        """
+        r"""
         Return a polynomial latex representation of self.
 
         EXAMPLE:
@@ -2666,7 +2688,7 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
 ##         id_Delete(&res, r)
 ##         return quo
 
-        quo = singclap_pdivide( p_Copy(_self._poly, r), p_Copy(_right._poly, r) )
+        quo = singclap_pdivide( _self._poly, _right._poly )
         return new_MP(parent, quo)
 
     def factor(self, param=0):
@@ -2896,15 +2918,17 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         NOTE: This only works for GF(p) and QQ as base rings
         """
         cdef ring *_ring = (<MPolynomialRing_libsingular>self._parent)._ring
-        cdef poly *ret
+        cdef poly *ret, *prod, *gcd
         if(_ring != currRing): rChangeCurrRing(_ring)
 
         if self._parent is not g._parent:
             g = (<MPolynomialRing_libsingular>self._parent)._coerce_c(g)
 
-        ret = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
-        ret = singclap_pdivide( pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring),
-                                ret )
+        gcd = singclap_gcd(p_Copy(self._poly, _ring), p_Copy((<MPolynomial_libsingular>g)._poly, _ring))
+        prod = pp_Mult_qq(self._poly, (<MPolynomial_libsingular>g)._poly, _ring)
+        ret = singclap_pdivide(prod , gcd )
+        p_Delete(&prod, _ring)
+        p_Delete(&gcd, _ring)
         return new_MP(self._parent, ret)
 
     def is_square_free(self):
@@ -2951,24 +2975,9 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if right.is_zero():
             raise ZeroDivisionError
 
-        quo = singclap_pdivide( p_Copy(self._poly, r), p_Copy(right._poly, r) )
+        quo = singclap_pdivide( self._poly, right._poly )
         rem = p_Add_q(p_Copy(self._poly, r), p_Neg(pp_Mult_qq(right._poly, quo, r), r), r)
         return new_MP(parent, quo), new_MP(parent, rem)
-
-##         selfI = idInit(1,1)
-##         rightI = idInit(1,1)
-##         selfI.m[0] = p_Copy(self._poly, r)
-##         rightI.m[0] = p_Copy(right._poly, r)
-##         res = idLift(rightI, selfI, &R, 0, 0, 1);
-
-##         quo = new_MP(parent, pTakeOutComp1(&res.m[0],1))
-##         rem = new_MP(parent, p_Copy(R.m[0],r))
-
-##         id_Delete(&selfI, r)
-##         id_Delete(&rightI, r)
-##         id_Delete(&R, r)
-##         id_Delete(&res, r)
-##         return quo,rem
 
     def _magma_(self, magma=None):
         """

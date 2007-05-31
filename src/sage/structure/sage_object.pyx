@@ -443,27 +443,55 @@ def load(filename, compress=True, verbose=True):
     return X
 
 
-def save(obj, filename=None, compress=True):
+def save(obj, filename=None, compress=True, **kwds):
     """
     save(obj, filename=None):
 
     Save obj to the file with name filename, which will
     have an .sobj extension added if it doesn't have one.
     This will \emph{replace} the contents of filename.
+
+    EXAMPLES:
+        sage: a = matrix(2, [1,2,3,-5/2])
+        sage: save(a, 'test.sobj')
+        sage: load('test.sobj')
+        [   1    2]
+        [   3 -5/2]
+        sage: E = EllipticCurve([-1,0])
+        sage: P = plot(E)
+        sage: save(P, 'test.sobj')
+        sage: save(P, filename="sage.png", xmin=-2)
+        sage: load('test.sobj')
+        Graphics object consisting of 2 graphics primitives
     """
-    try:
-        obj.save(filename, compress)
-    except (AttributeError, RuntimeError, TypeError):
-        s = cPickle.dumps(obj, protocol=2)
-        if compress:
-            s = comp.compress(s)
-        open(process(filename), 'wb').write(s)
+    if not '.' in filename:
+        filename += '.sobj'
+
+    if filename.endswith('.sobj'):
+        try:
+            obj.save(filename=filename, compress=compress, **kwds)
+        except (AttributeError, RuntimeError, TypeError):
+            s = cPickle.dumps(obj, protocol=2)
+            if compress:
+                s = comp.compress(s)
+            open(process(filename), 'wb').write(s)
+    else:
+        # Saving an object to an image file.
+        obj.save(filename, **kwds)
 
 def dumps(obj, compress=True):
     """
     dumps(obj):
 
     Dump obj to a string s.  To recover obj, use loads(s).
+
+    EXAMPLES:
+        sage: a = 2/3
+        sage: s = dumps(a)
+        sage: print len(s)
+        49
+        sage: loads(s)
+        2/3
     """
     try:
         return obj.dumps(compress)
@@ -477,6 +505,13 @@ def loads(s, compress=True):
     """
     Recover an object x that has been dumped to a string s
     using s = dumps(x).
+
+    EXAMPLES:
+        sage: a = matrix(2, [1,2,3,-4/3])
+        sage: s = dumps(a)
+        sage: loads(s)
+        [   1    2]
+        [   3 -4/3]
     """
     if not isinstance(s, str):
         raise TypeError, "s must be a string"

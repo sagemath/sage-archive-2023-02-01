@@ -513,18 +513,16 @@ class pAdicLseriesOrdinary(pAdicLseries):
 
 
 class pAdicLseriesSupersingular(pAdicLseries):
-    def series(self, n=2, prec=5):
+    def series(self, n=3, prec=5):
         r"""
         Return the $n$-th approximation to the $p$-adic $L$-series as a
         power series in $T$ (corresponding to $\gamma-1$ with
         $\gamma=1+p$ as a generator of $1+p\mathbb{Z}_p$).  Each
         coefficient is a $p$-adic number whose precision is probably
-        {\em not} correct.
-
-        WARNING: ** The output precision is not as high as claimed! **
+        correct.
 
         INPUT:
-            n -- (default: 2) a positive integer
+            n -- (default: 3) a positive integer
             prec -- (default: 5) maxima number of terms of the series
                     to compute; to compute as many as possible just
                     give a very large number for prec; the result will
@@ -535,10 +533,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
         EXAMPLES:
             sage: L = EllipticCurve('37a').padic_lseries(3)
-            sage: L.series(2)
-            ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
+            sage: L.series(4)
+            (O(3^1))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T +
+            ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 +
+            ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
             sage: L.alpha(2).parent()
-            Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
+			Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped
+            relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
         n = ZZ(n)
         if n < 1:
@@ -600,7 +601,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
 
 
-    def Dp_valued_series(self, n=2, prec=5):
+    def Dp_valued_series(self, n=3, prec=5):
         r"""
         Returns a vector of two components which are p-adic power series.
         The answer v is such that
@@ -613,17 +614,19 @@ class pAdicLseriesSupersingular(pAdicLseries):
            +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E).
         \end{verbatim}
 
-        WARNING: ** The output precision is not as high as claimed! **
+        WARNING: ** Currently the normalisation of the Frobenius is not chosen
+		correctly and hence only mod p the function satisfies the padic BSD **
 
         INPUT:
-            n -- (default: 2) a positive integer
+            n -- (default: 3) a positive integer
             prec -- (default: 5) a positive integer
 
         EXAMPLES:
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: L.Dp_valued_series(2)
-            (4 + 4*5^2 + O(5^4) + (1 + 2*5 + 5^2 + 4*5^3 + O(5^4))*T + (4 + 2*5 + 4*5^2 + 5^3 + O(5^4))*T^2 + (1 + 4*5 + 3*5^2 + 4*5^3 + O(5^4))*T^3 + (2 + 5^2 + O(5^3))*T^4, O(5^4) + (3*5 + 4*5^2 + 2*5^3 + O(5^4))*T + (5 + 4*5^2 + O(5^4))*T^2 + (2*5 + 4*5^2 + 5^3 + O(5^4))*T^3 + (1 + 4*5 + 2*5^3 + O(5^4))*T^4)
+            sage: L.Dp_valued_series(4)
+			(4 + 4*5^2 + O(5^4) + (1 + O(5))*T + (4 + O(5))*T^2 + (1 + O(5))*T^3 + (2 + O(5))*T^4 + O(T^5),
+			 O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + (1 + O(5))*T^4 + O(T^5))
         """
         E = self._E
         p = self._p
@@ -632,16 +635,18 @@ class pAdicLseriesSupersingular(pAdicLseries):
         # now split up the series in two lps = G + H * alpha
         R = lps.base_ring().base_ring() # Qp
         QpT , T = PowerSeriesRing(R,'T',prec).objgen()
-        G = QpT([lps[n][0] for n in range(0,lps.prec())])
-        H = QpT([lps[n][1] for n in range(0,lps.prec())])
-
+        G = QpT([lps[n][0] for n in range(0,lps.prec())], prec)
+        H = QpT([lps[n][1] for n in range(0,lps.prec())], prec)
+        #print G,H
 
         # now compute phi
-        phi =  self.geometric_frob_on_Dp(prec=prec)
+        phi =  self.geometric_frob_on_Dp()
         phi_omega_0 = phi[0,0]
         phi_omega_1 = phi[1,0]
+        #print phi
         R = phi_omega_0.parent()
         lpv = vector([G  + R(E.ap(p))*H - R(p) * phi_omega_0* H , - R(p)*phi_omega_1*H])  # this is L_p
+        #print lpv
         eps = (1-phi)**(-2)
         resu = lpv*eps.transpose()
         return resu
@@ -649,9 +654,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
     def geometric_frob_on_Dp(self, prec=20):
         r"""
-        This returns the geometric Frobenius $\varphi$ on the Diedonne module $D_p(E)$
+        This returns a geometric Frobenius $\varphi$ on the Diedonne module $D_p(E)$
         with respect to the basis $\omega$, the invariant differential and $\eta=x\omega$.
         It satisfies  $phi^2 - a_p/p*phi + 1/p = 0$.
+
+		It is not clear what normalisation we use here.
 
         EXAMPLES:
             sage: E = EllipticCurve('14a')

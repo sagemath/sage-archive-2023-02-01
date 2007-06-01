@@ -145,7 +145,7 @@ class FractionFieldElement(field_element.FieldElement):
             for r in factors: all[r[0]] = 0
             for r in factors: all[r[0]] += r[1]
             factors = all.iteritems()
-        factors = [r[0]**r[1] for r in factors]
+        factors = [r**e for r,e in factors]
         parts = []
         for d in factors:
             n = numer * prod([r for r in factors if r != d]).inverse_mod(d) % d # we know the inverse exists as the two are relatively prime

@@ -49,13 +49,6 @@ class pAdicLseries(SageObject):
     The p-adic L-series of an elliptic curve.
 
     EXAMPLES:
-    A superingular example:
-        sage: e = EllipticCurve('37a')
-        sage: L = e.padic_lseries(3); L
-        3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
-        sage: L.series(2)
-        ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
-
     An ordinary example:
         sage: e = EllipticCurve('389a')
         sage: L = e.padic_lseries(5)
@@ -73,11 +66,11 @@ class pAdicLseries(SageObject):
     A prime p such that E[p] is reducible:
         sage: L = EllipticCurve('11a').padic_lseries(5)
         sage: L.series(1)
-        5 + 4*5^2 + O(5^3) + O(T)
+        5 + O(5^2) + O(T)
         sage: L.series(2)
-        5 + 4*5^2 + 4*5^3 + O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + O(5^1)*T^4 + O(T^5)
+        5 + 4*5^2 + O(5^3) + O(5^0)*T + O(5^0)*T^2 + O(5^0)*T^3 + O(5^0)*T^4 + O(T^5)
         sage: L.series(3)
-        5 + 4*5^2 + 4*5^3 + O(5^5) + (4*5 + O(5^2))*T + (5 + O(5^2))*T^2 + (4*5 + O(5^2))*T^3 + (3*5 + O(5^2))*T^4 + O(T^5)
+        5 + 4*5^2 + 4*5^3 + O(5^4) + O(5^1)*T + O(5^1)*T^2 + O(5^1)*T^3 + O(5^1)*T^4 + O(T^5)
     """
     def __init__(self, E, p, normalize):
         """
@@ -208,7 +201,7 @@ class pAdicLseries(SageObject):
             sage: alpha = L.alpha(10); alpha
             (1 + O(3^10))*alpha
             sage: alpha^2 - E.ap(3)*alpha + 3
-            0
+            (O(3^10))*alpha^2 + (O(3^11))*alpha + (O(3^11))
 
         A reducible prime:
             sage: L = EllipticCurve('11a').padic_lseries(5)
@@ -534,9 +527,14 @@ class pAdicLseriesSupersingular(pAdicLseries):
             power_series is identical to series.
 
         EXAMPLES:
-            sage: L = EllipticCurve('37a').padic_lseries(3)
+        A superingular example, where we must compute to higher precision to see anything.
+            sage: e = EllipticCurve('37a')
+            sage: L = e.padic_lseries(3); L
+            3-adic L-series of Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: L.series(2)
-            ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T + ((3^-1 + O(3^2))*alpha + (2*3^-1 + O(3^2)))*T^2 + O(T^3)
+            O(T^3)
+            sage: L.series(4)         # takes a long time (several seconds)
+    (O(3^1))*alpha + (O(3^2)) + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T + ((O(3^-1))*alpha + (2*3^-1 + O(3^0)))*T^2 + ((O(3^-2))*alpha + (O(3^-1)))*T^3 + ((O(3^-1))*alpha + (3^-1 + O(3^0)))*T^4 + O(T^5)
             sage: L.alpha(2).parent()
             Univariate Quotient Polynomial Ring in alpha over 3-adic Field with capped relative precision 2 with modulus (1 + O(3^2))*x^2 + (3 + O(3^3))*x + (3 + O(3^3))
         """
@@ -623,7 +621,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(2)
-            (4 + 4*5^2 + O(5^4) + (1 + 2*5 + 5^2 + 4*5^3 + O(5^4))*T + (4 + 2*5 + 4*5^2 + 5^3 + O(5^4))*T^2 + (1 + 4*5 + 3*5^2 + 4*5^3 + O(5^4))*T^3 + (2 + 5^2 + O(5^3))*T^4, O(5^4) + (3*5 + 4*5^2 + 2*5^3 + O(5^4))*T + (5 + 4*5^2 + O(5^4))*T^2 + (2*5 + 4*5^2 + 5^3 + O(5^4))*T^3 + (1 + 4*5 + 2*5^3 + O(5^4))*T^4)
+            (4 + 4*5^2 + O(5^3), 0)
         """
         E = self._E
         p = self._p

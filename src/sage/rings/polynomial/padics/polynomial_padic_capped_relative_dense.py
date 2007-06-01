@@ -276,7 +276,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         s = " "
         coeffs = self.list()
         m = len(coeffs)
-        while coeffs[m-1].valuation() == infinity:
+        while m > 0 and coeffs[m-1].valuation() == infinity:
             m -= 1
         r = reversed(xrange(m))
         if name is None:

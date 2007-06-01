@@ -663,11 +663,11 @@ class pAdicLseriesSupersingular(pAdicLseries):
         EXAMPLES:
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
-            sage: F = L.geometric_frob_on_Dp(5)
-            sage: F
+            sage: phi = L.geometric_frob_on_Dp(5)
+            sage: phi
             [ 3 + 4*5 + 3*5^2 + 4*5^3 + O(5^4) 2*5^-1 + 1 + 3*5 + 3*5^3 + O(5^4)]
             [     2 + 4*5 + 5^2 + 5^4 + O(5^5)            2 + 5^2 + 5^4 + O(5^5)]
-            sage: F^2 - E.ap(5)/5 * F + 1/5
+            sage: phi^2 - E.ap(5)/5 * phi + 1/5
             [O(5^4) O(5^3)]
             [O(5^4) O(5^4)]
         """
@@ -720,12 +720,20 @@ class pAdicLseriesSupersingular(pAdicLseries):
 
 
     def Dp_valued_height(self,prec=20):
-        """
+        r"""
         Returns the canonical $p$-adic height with values in the Dieudonne module $D_p(E)$.
         It is defined to be
             $$h_{\eta} \cdot \omega - h_{\omega} \cdot \eta$$
         where $h_{\eta}$ is made out of the sigma function of Bernardi and
         $h_{\omega}$ is $-log^2$.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('53a')
+            sage: L = E.padic_lseries(5)
+            sage: h = L.Dp_valued_height(7)
+			sage: h(E.gens()[0])
+			(2*5 + 3*5^2 + 2*5^3 + 5^4 + 3*5^6 + 3*5^7 + O(5^8),
+			4*5^2 + 4*5^3 + 4*5^5 + 4*5^6 + 2*5^7 + 5^8 + O(5^9))
         """
         E = self._E
         p = self._p
@@ -764,6 +772,13 @@ class pAdicLseriesSupersingular(pAdicLseries):
         """
         Returns the canonical $p$-adic regulator with values in the Dieudonne module $D_p(E)$
         as defined by Perrin-Riou using the canonical $p$-adic height.
+
+        EXAMPLES:
+            sage: E = EllipticCurve('43a')
+            sage: L = E.padic_lseries(7)
+            sage: L.Dp_valued_regulator(7)
+			(2*7 + 2*7^2 + 5*7^3 + 7^4 + 7^5 + 4*7^6 + 2*7^7 + O(7^8),
+			 2*7^2 + 4*7^3 + 2*7^5 + 3*7^6 + 6*7^7 + O(7^8))
         """
 
         p = self._p

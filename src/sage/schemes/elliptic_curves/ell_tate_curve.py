@@ -241,10 +241,11 @@ class TateCurve(SageObject):
     # From here on all function need  that the curve has split multiplicative reduction.
 
     def L_invariant(self,prec=20):
-        """
-        Returns the 'mysterious' $L$-invariant associated to an elliptic curve with split
-        multiplicative reduction. One instance where this constant appears is in the
-        exceptional case of the $p$-adic Birch and Swinnerton-Dyer conjecture as
+        r"""
+        Returns the ``mysterious'' $\mathcal{L}$-invariant associated
+        to an elliptic curve with split multiplicative reduction. One
+        instance where this constant appears is in the exceptional
+        case of the $p$-adic Birch and Swinnerton-Dyer conjecture as
         formulated by Mazur-Tate-Teitelbaum (Invent. Math. 84, 1986).
 
         EXAMPLES:

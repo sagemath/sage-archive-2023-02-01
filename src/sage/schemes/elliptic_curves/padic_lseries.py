@@ -558,7 +558,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         K = alpha.parent()
         gamma = 1 + p
         R = PowerSeriesRing(K,'T',prec)
-        T = R(R.gen(), p**(n-1))
+        T = R(R.gen(), prec)
         L = R(0)
         one_plus_T_factor = R(1)
         gamma_power = 1
@@ -577,9 +577,10 @@ class pAdicLseriesSupersingular(pAdicLseries):
         L = R(L,prec)
         aj = L.list()
         if len(aj) > 0:
-            aj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
-            aj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
-        L = R(aj,prec ) * self._quotient_of_periods
+            bj = [aj[0][0].add_bigoh(padic_prec-2) + alpha * aj[0][1].add_bigoh(padic_prec-2)]
+            bj += [aj[j][0].add_bigoh(bounds[j][0]) + alpha * aj[j][1].add_bigoh(bounds[j][1]) for j in range(1,len(aj))]
+            L = R(bj, prec)
+        L = L * self._quotient_of_periods
         self._set_series_in_cache(n, prec, L)
         return L
 
@@ -595,7 +596,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         p = self._p
         e = self._e_bounds(n-1)
         c0 = ZZ(n+2)/2
-        c1 = ZZ(n+1)/2
+        c1 = ZZ(n+3)/2
         return [[infinity,infinity]] + [[(e[j] - c0).floor(), (e[j] - c1).floor()] for j in range(1,len(e))]
 
 
@@ -609,7 +610,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         According to the p-adic BSD this function has a zero of order
         rank(E(Q)) and it's leading term is
         \begin{verbatim}
-    +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with valuesin D_p(E).
+           +- #Sha(E/Q) * Tamagawa product / Torsion^2 * padic height regulator with values in D_p(E).
         \end{verbatim}
 
         WARNING: ** The output precision is not as high as claimed! **
@@ -638,6 +639,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
         phi =  self.geometric_frob_on_Dp(p)
         phi_omega_0 = phi[0,0]
         phi_omega_1 = phi[1,0]
+        R = phi_omega_0.parent()
         lpv = vector([G  + R(E.ap(p))*H - R(p) * phi_omega_0* H , - R(p)*phi_omega_1*H])  # this is L_p
         eps = (1-phi)**(-2)
         resu = lpv*eps.transpose()

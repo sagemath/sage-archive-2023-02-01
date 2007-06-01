@@ -1,3 +1,7 @@
+"""
+p-adic Capped Relative Dense Polynomials
+"""
+
 import sage.rings.polynomial.polynomial_element_generic
 import sage.rings.polynomial.polynomial_element
 import sage.rings.integer
@@ -25,13 +29,13 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
     def __init__(self, parent, x=None, check=True, is_gen=False, construct = False, absprec = infinity, relprec = infinity):
         """
         TESTS:
-        sage: K = Qp(13,7)
-        sage: R.<t> = K[]
-        sage: R([K(13), K(1)])
-        (1 + O(13^7))*t + (13 + O(13^8))
-        sage: T.<t> = ZZ[]
-        sage: R(t + 2)
-        (1 + O(13^7))*t + (2 + O(13^7))
+            sage: K = Qp(13,7)
+            sage: R.<t> = K[]
+            sage: R([K(13), K(1)])
+            (1 + O(13^7))*t + (13 + O(13^8))
+            sage: T.<t> = ZZ[]
+            sage: R(t + 2)
+            (1 + O(13^7))*t + (2 + O(13^7))
         """
         Polynomial.__init__(self, parent, is_gen=is_gen)
         if construct:
@@ -103,8 +107,10 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
         from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 
-        if len(x) == 1 and not x[0]:
-            x = []
+        # Remove this -- for p-adics this is terrible, since it kills any non exact zero.
+        #if len(x) == 1 and not x[0]:
+        #    x = []
+
         self._list = x
         self._valaddeds = [a.valuation() for a in x]
         self._valbase = sage.rings.padics.misc.min(self._valaddeds)
@@ -134,8 +140,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             if val is infinity:
                 pass
             elif val != 0:
-                self._relprecs = [prec - val for prec in self._relprecs]
-                self._poly.ntl_set_directly([Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)])
+                self._relprecs = [max(prec - val,0) for prec in self._relprecs]
+                v = [Integer(0) if (e is infinity) else ((c // prime_pow(val)) % prime_pow(e)) for (c,e) in zip(selflist, self._relprecs)]
+                self._poly.ntl_set_directly(v)
                 self._valbase += val
                 self._valaddeds = [c - val for c in self._valaddeds]
             else:
@@ -149,7 +156,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def _comp_list(self):
         if self.degree() == -1 and self._valbase == infinity:
-            return []
+            self._list = []
+            return self._list
         polylist = self._poly.list()
         polylen = len(polylist)
         self._list = [self.base_ring()(polylist[i], absprec = self._relprecs[i]) << self._valbase for i in range(polylen)] \
@@ -255,13 +263,22 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         return list(self._list)
 
     def _repr(self, name=None):
+        """
+        TESTS:
+            sage: k = Qp(5,10)
+            sage: R.<x> = k[]
+            sage: f = R([k(0,-3), 0, k(0,-1)]); f
+            (O(5^-1))*x^2 + (O(5^-3))
+            sage: f + f
+            (O(5^-1))*x^2 + (O(5^-3))
+        """
         # TODO: what is new here (that doesn't come from parent class)?
         s = " "
-        m = self.degree() + 1
+        coeffs = self.list()
+        m = len(coeffs)
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
-        coeffs = self.list()
         for n in r:
             x = coeffs[n]
             if x.valuation() < infinity:
@@ -657,14 +674,27 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def degree(self):
         """
-        Returns the degree of self, ie the largest n so that the coefficient of x^n is distinguishable from 0.
+        Returns the degree of self, i.e., the largest $n$ so that the
+        coefficient of $x^n$ does not compare equal to $0$.
+
+        EXAMPLES:
+            sage: K = Qp(3,10)
+            sage: x = O(3^5)
+            sage: li =[3^i * x for i in range(0,5)]; li
+            [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
+            sage: R.<T> = K[[]]
+            sage: f = R(li); f
+            O(3^5) + O(3^6)*T + O(3^7)*T^2 + O(3^8)*T^3 + O(3^9)*T^4
+            sage: f.degree()
+            -1
         """
-	self._normalize()
+        self._normalize()
         return self._poly.degree()
 
     def prec_degree(self):
         """
-        Returns the largest n so that precision information is stored about the coefficient of x^n.
+        Returns the largest $n$ so that precision information is
+        stored about the coefficient of $x^n$.
 
         Always greater than or equal to degree.
         """

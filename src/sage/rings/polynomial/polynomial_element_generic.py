@@ -1230,6 +1230,28 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             variable = self.parent().variable_name()
         return pari(self.list()).Polrev(variable)
 
+    def square_free_decomposition(self):
+        """
+        Return the square-free decomposition of self.  This is
+        a partial factorization of self into square-free, relatively
+        prime polynomials.
+
+        This is a wrapper for the NTL function SquareFreeDecomp.
+
+        EXAMPLES:
+            sage: x = polygen(ZZ)
+            sage: p = 37 * (x-1)^2 * (x-2)^2 * (x-3)^3 * (x-4)
+            sage: p.square_free_decomposition()
+            (37) * (x - 4) * (x^2 - 3*x + 2)^2 * (x - 3)^3
+        """
+        p = self.__poly
+        c = p.content()
+        if c != 1:
+            p = (self // c).__poly
+        decomp = p.square_free_decomposition()
+        pdecomp = [(self.parent()(f, construct=True), exp) for (f, exp) in decomp]
+        return Factorization(pdecomp, unit=c, sort=False)
+
     def factor_mod(self, p):
         """
         Return the factorization of self modulo the prime p.

@@ -1149,6 +1149,31 @@ cdef class ntl_ZZX:
         ZZX_preallocate_space(self.x, n)
         _sig_off
 
+    def square_free_decomposition(self):
+        """
+        Returns the square-free decomposition of self (a partial
+        factorization into square-free, relatively prime polynomials)
+        as a list of 2-tuples, where the first element in each tuple
+        is a factor, and the second is its exponent.
+        Assumes that self is primitive.
+
+        EXAMPLES:
+            sage: f = ntl.ZZX([0, 1, 2, 1])
+            sage: f.square_free_decomposition()
+            [([0 1], 1), ([1 1], 2)]
+        """
+        cdef ntl_c_ZZX** v
+        cdef long* e
+        cdef long i, n
+        _sig_on
+        ZZX_square_free_decomposition(&v, &e, &n, self.x)
+        _sig_off
+        F = []
+        for i from 0 <= i < n:
+            F.append((make_ZZX(v[i]), e[i]))
+        free(v)
+        free(e)
+        return F
 
     cdef set(self, void* x):  # only used internally for initialization; assumes self.x not set yet!
         self.x = <ntl_c_ZZX*>x

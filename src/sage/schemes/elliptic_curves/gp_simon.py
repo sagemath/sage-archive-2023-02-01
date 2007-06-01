@@ -55,7 +55,11 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
         # Simon's program requires that this name be y.
         with localvars(K.polynomial().parent(), 'y'):
             gp.eval("K = bnfinit(%s);" % K.polynomial())
+            if verbose >= 2:
+                print "K = bnfinit(%s);" % K.polynomial()
         gp.eval("%s = Mod(y,K.pol);" % K.gen())
+        if verbose >= 2:
+            print "%s = Mod(y,K.pol);" % K.gen()
 
     if two_torsion == 1:
         if K == QQ:
@@ -64,7 +68,7 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
             # Simon's program requires that the coefficients do NOT all lie in a subfield of K
             if A.minpoly().degree() != K.degree():
                 shift = K.gen()
-                shifted = (x+shift)**3 + A*(x+shift)**2 + B*(x+shift) + C
+                shifted = f(x+shift)
                 C, B, A, _ = shifted
             cmd = 'main(K, %s,%s,%s);'%(A,B,C)
 
@@ -72,9 +76,7 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
         if C != 0:
             # If E[2] = Z/2Z, it must be of the form y^2 = x^3 + Ax^2 + Bx
             shift = -factors[0][0][0]
-            print f, "=", factors, "->", shift
-            shifted = (x+shift)**3 + A*(x+shift)**2 + B*(x+shift) + C
-            print shifted
+            shifted = f(x+shift)
             C, B, A, _ = shifted
         cmd = 'main2(K, [0, %s, 0, %s, 0])'%(A,B)
 
@@ -83,6 +85,8 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
 
     gp('DEBUGLEVEL=%s; LIM1=%s; LIM3=%s; LIMTRIV=%s; MAXPROB=%s; LIMBIGPRIME=%s;'%(
         verbose, lim1, lim3, limtriv, maxprob, limbigprime))
+    if verbose >= 2:
+        print cmd
     s = gp.eval('ans=%s;'%cmd)
     if s.find("***") != -1:
         print s
@@ -90,14 +94,17 @@ def simon_two_descent(A, B, C, verbose=0, lim1=5, lim3=50, limtriv=10, maxprob=2
     if verbose > 0:
         print s
     v = gp.eval('ans')
+    if verbose >= 2:
+        print "v = ", v
     # pari represents field elements as Mod(poly, defining-poly)
     # so this function will return the respective elements of K
     def gp_mod(*args):
         return args[0]
     ans = sage_eval(v, {'Mod': gp_mod, 'y': K.gen(0)})
     if two_torsion != 1:
-        # haven't figured out how to extract pts, other info
-        ans = [ans, "not extracted", []]
+        # selmer group rank and generating points not
+        # returned for non-trivial 2-torsion
+        ans = [ans, -1, []]
     if shift:
         # Undo the x -> x+a translation above
         ans[2] = [[P[0]+shift, P[1]] for P in ans[2]]

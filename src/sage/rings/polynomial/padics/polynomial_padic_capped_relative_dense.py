@@ -276,6 +276,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         s = " "
         coeffs = self.list()
         m = len(coeffs)
+        while coeffs[m-1].valuation() == infinity:
+            m -= 1
         r = reversed(xrange(m))
         if name is None:
             name = self.parent().variable_name()
@@ -370,7 +372,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: a = t^4 + 17*t^2 + 1
         sage: b = -t^4 + 9*t^2 + 13*t - 1
         sage: c = a + b; c
-        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
         sage: c.list()
         [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
         """
@@ -403,7 +405,7 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: a = t^4 + 17*t^2 + 1
         sage: b = t^4 - 9*t^2 - 13*t + 1
         sage: c = a - b; c
-        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
         sage: c.list()
         [O(13^7), 13 + O(13^8), 2*13 + O(13^7), 0, O(13^7)]
         """
@@ -474,11 +476,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: a = t^4 + 17*t^2 + 1
         sage: b = -t^4 + 9*t^2 + 13*t - 1
         sage: c = a + b; c
-        (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
+        (O(13^7))*t^4 + (2*13 + O(13^7))*t^2 + (13 + O(13^8))*t + (O(13^7))
         sage: d = R([K(1,4), K(2, 6), K(1, 5)]); d
         (1 + O(13^5))*t^2 + (2 + O(13^6))*t + (1 + O(13^4))
         sage: e = c * d; e
-        (2*13 + O(13^6))*t^4 + (5*13 + O(13^6))*t^3 + (4*13 + O(13^5))*t^2 + (13 + O(13^5))*t + (O(13^7))
+        (O(13^7))*t^6 + (O(13^7))*t^5 + (2*13 + O(13^6))*t^4 + (5*13 + O(13^6))*t^3 + (4*13 + O(13^5))*t^2 + (13 + O(13^5))*t + (O(13^7))
         sage: e.list()
         [O(13^7),
          13 + O(13^5),
@@ -561,7 +563,8 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
 
     def rshift_coeffs(self, shift, no_list = False):
         """
-        Returns a new polynomial whose coefficients are p-adiclly shifted to the right by shift.
+        Returns a new polynomial whose coefficients are p-adiclly
+        shifted to the right by shift.
 
         NOTES: Type Qp(5)(0).__rshift__? for more information.
 
@@ -571,11 +574,11 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
         sage: a = t^2 + K(13,3)*t + 169; a
         (1 + O(13^4))*t^2 + (13 + O(13^3))*t + (13^2 + O(13^6))
         sage: b = a.rshift_coeffs(1); b
-        (1 + O(13^2))*t + (13 + O(13^5))
+        (O(13^3))*t^2 + (1 + O(13^2))*t + (13 + O(13^5))
         sage: b.list()
         [13 + O(13^5), 1 + O(13^2), O(13^3)]
         sage: b = a.rshift_coeffs(2); b
-        (1 + O(13^4))
+        (O(13^2))*t^2 + (O(13^1))*t + (1 + O(13^4))
         sage: b.list()
         [1 + O(13^4), O(13^1), O(13^2)]
         """
@@ -682,9 +685,9 @@ class Polynomial_padic_capped_relative_dense(Polynomial_generic_domain):
             sage: x = O(3^5)
             sage: li =[3^i * x for i in range(0,5)]; li
             [O(3^5), O(3^6), O(3^7), O(3^8), O(3^9)]
-            sage: R.<T> = K[[]]
+            sage: R.<T> = K[]
             sage: f = R(li); f
-            O(3^5) + O(3^6)*T + O(3^7)*T^2 + O(3^8)*T^3 + O(3^9)*T^4
+            (O(3^9))*T^4 + (O(3^8))*T^3 + (O(3^7))*T^2 + (O(3^6))*T + (O(3^5))
             sage: f.degree()
             -1
         """

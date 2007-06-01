@@ -163,7 +163,7 @@ class PolynomialRing_general(sage.algebras.algebra.Algebra):
         C = self.__polynomial_class
         if isinstance(x, C) and x.parent() is self:
             return x
-        elif is_Element(x) and x in self.base_ring():
+        elif is_Element(x) and x.parent() == self.base_ring():
             return self([x])
         elif is_SingularElement(x) and self._has_singular:
             self._singular_().set_ring()

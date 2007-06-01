@@ -744,7 +744,7 @@ class Worksheet:
             if i >= 0:
                 return s[:i-1]
         # Remove any control codes that might have not got stripped out.
-        return s.replace(SAGE_BEGIN,'').replace(SAGE_END,'').replace(SC)
+        return s.replace(SAGE_BEGIN,'').replace(SAGE_END,'').replace(SC,'')
 
     def is_last_id_and_previous_is_nonempty(self, id):
         if self.__cells[-1].id() != id:

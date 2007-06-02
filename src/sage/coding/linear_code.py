@@ -1301,13 +1301,13 @@ class LinearCode(module.Module):
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
             sage: C.zeta_function()
-            (1/5 + 2/5*T + 2/5*T^2)/(1 - 3*T + 2*T^2)
+            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
             sage: C = ExtendedTernaryGolayCode()
             sage: C.zeta_function()
-            (1/7 + 3/7*T + 3/7*T^2)/(1 - 4*T + 3*T^2)
+            (3/7*T^2 + 3/7*T + 1/7)/(3*T^2 - 4*T + 1)
             sage: C.zeta_function(mode="dual")
-            ((1/7 + 3/7*T + 3/7*T^2)/(1 - 4*T + 3*T^2),
-            (243/7 + 729/7*T + 729/7*T^2)/(243 - 972*T + 729*T^2))
+            ((3/7*T^2 + 3/7*T + 1/7)/(3*T^2 - 4*T + 1),
+             (729/7*T^2 + 729/7*T + 243/7)/(729*T^2 - 972*T + 243))
 
         REFERENCES:
             I. Duursma, "Weight distributions of geometric Goppa codes," Trans. A.M.S., 351 (1999)3609-3639.
@@ -1649,7 +1649,7 @@ class LinearCode(module.Module):
             sage: C.sd_zeta_polynomial()
             2/5*T^2 + 2/5*T + 1/5
             sage: C.zeta_function()
-            (1/5 + 2/5*T + 2/5*T^2)/(1 - 3*T + 2*T^2)
+            (2/5*T^2 + 2/5*T + 1/5)/(2*T^2 - 3*T + 1)
             sage: C = ExtendedQuadraticResidueCode(17,GF(2))
             sage: P = C.sd_zeta_polynomial(); P
             8/91*T^8 + 16/91*T^7 + 212/1001*T^6 + 28/143*T^5 + 43/286*T^4 + 14/143*T^3 + 53/1001*T^2 + 2/91*T + 1/182

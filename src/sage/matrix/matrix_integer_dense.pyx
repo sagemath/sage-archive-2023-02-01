@@ -1027,6 +1027,26 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0]
             [  0   0   0   0   0]
             [  0   0   0   0   0]
+
+            Make sure the zero matrices are handled correctly
+            sage: m = matrix(ZZ,3,3,[0]*9)
+            sage: m.echelon_form()
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m = matrix(ZZ,3,1,[0]*3)
+            sage: m.echelon_form()
+            [0]
+            [0]
+            [0]
+            sage: m = matrix(ZZ,1,3,[0]*3)
+            sage: m.echelon_form()
+            [0 0 0]
+
+            The ultimate border case!
+            sage: m = matrix(ZZ,0,0,[])
+            sage: m.echelon_form()
+            []
         """
         x = self.fetch('echelon_form')
         if not x is None:
@@ -1056,7 +1076,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Matrix_integer_dense H_m
         H = convert_parimatrix(w[0])
-        if nc == 1:
+        # if H=[] may occur if we start with a column of zeroes
+        if nc == 1 and H!=[]:
             H = [H]
 
         # We do a 'fast' change of the above into a list of ints,
@@ -2086,6 +2107,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 def _parimatrix_to_strlist(A):
     s = str(A)
     s = s.replace('Mat(','').replace(')','')
+    # Deal correctly with an empty pari matrix [;]
+    if s=='[;]':
+        return []
     s = s.replace(';',',').replace(' ','')
     s = s.replace(",", "','")
     s = s.replace("[", "['")
@@ -2096,6 +2120,9 @@ def _parimatrix_to_reversed_strlist(A):
     s = str(A)
     if s.find('Mat') != -1:
         return _parimatrix_to_strlist(A)
+    # Deal correctly with an empty pari matrix [;]
+    if s=='[;]':
+        return []
     s = s.replace('[','').replace(']','').replace(' ','')
     v = s.split(';')
     v.reverse()

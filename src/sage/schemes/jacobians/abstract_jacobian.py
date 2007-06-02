@@ -30,7 +30,7 @@ class Jacobian_generic(Scheme):
         if not is_Field(C.base_ring()):
             raise TypeError, "C (=%s) must be defined over a field."%C
         self.__curve = C
-        scheme.Scheme.__init__(self, C.base_scheme())
+        Scheme.__init__(self, C.base_scheme())
 
     def _repr_(self):
         return "Jacobian of %s"%self.__curve

@@ -28,7 +28,7 @@ import homset
 
 import morphism
 
-#import spec
+import spec
 
 def is_Scheme(x):
     """

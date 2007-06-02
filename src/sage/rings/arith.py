@@ -967,14 +967,22 @@ def sigma(n, k=1):
         6
         sage: sigma(5,2)
         26
+
+    AUTHORS:
+        -- William Stein: original implementation
+        -- Craig Citro (2007-06-01): rewrote for huge speedup
     """
-    n = integer_ring.ZZ(n)
-    k = integer_ring.ZZ(k)
-    return sum([d**k for d in divisors(n)])
+    ZZ = integer_ring.ZZ
+    n = ZZ(n)
+    k = ZZ(k)
+    one = ZZ(1)
+
+    return sage.misc.misc.prod([ (p**((expt+one)*k) - one) // (p**k - one)
+                                 for p,expt in factor(n) ])
 
 def gcd(a, b=0, integer=False):
     """
-    The greatest commond divisor of a and b.
+    The greatest common divisor of a and b.
 
     INPUT:
         a -- number

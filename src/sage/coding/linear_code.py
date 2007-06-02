@@ -194,9 +194,10 @@ def hamming_weight(v):
     return len(v.nonzero_positions())
 
 def wtdist(Gmat, F):
-    """
+    r"""
     INPUT:
-        Gmat -- a string representing a GAP generator matrix G of a linear code.
+        Gmat -- a string representing a GAP generator matrix G of a
+                linear code.
         F -- a (SAGE) finite field - the base field of the code.
 
     OUTPUT:
@@ -210,8 +211,8 @@ def wtdist(Gmat, F):
 
     Here Gstr is a generator matrix of the Hamming [7,4,3] binary code.
 
-    ALGORITHM:
-        Uses C programs written by Steve Linton in the kernel of GAP, so is fairly fast.
+    ALGORITHM: Uses C programs written by Steve Linton in the kernel
+        of GAP, so is fairly fast.
 
     AUTHOR: David Joyner (2005-11)
     """
@@ -227,15 +228,15 @@ def wtdist(Gmat, F):
     return v
 
 def min_wt_vec(Gmat,F):
-    """
-    Uses C programs written by Steve Linton in the kernel of GAP, so is fairly fast.
+    r"""
+    Uses C programs written by Steve Linton in the kernel of GAP, so
+    is fairly fast.
 
     INPUT:
         Same as wtdist.
 
     OUTPUT:
-        Returns a minimum weight vector v, the "message" vector m such that m*G = v,
-        and the (minimum) weight, as a triple.
+        Returns a minimum weight vector v, the"message" vector m such that m*G = v, and the (minimum) weight, as a triple.
 
     EXAMPLES:
         sage: Gstr = "Z(2)*[[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]]"
@@ -324,10 +325,11 @@ def minimum_distance_why(n,k,F):
     print bounds[2]
 
 def best_known_linear_code(n,k,F):
-    """
-    best_known_linear_code returns the best known (as of 11 May 2006) linear code of
-    length n, dimension k over field F. The function uses the tables described in bounds_minimum_distance
-    to construct this code.
+    r"""
+    best_known_linear_code returns the best known (as of 11 May 2006)
+    linear code of length n, dimension k over field F. The function
+    uses the tables described in bounds_minimum_distance to construct
+    this code.
 
     This does not require an internet connection.
 
@@ -344,20 +346,25 @@ def best_known_linear_code(n,k,F):
     return gap.eval("BestKnownLinearCode(%s,%s,GF(%s))"%(n,k,q))
 
 def bounds_minimum_distance(n,k,F):
-    """
-    The function bounds_minimum_distance calculates a lower and upper bound for the minimum
-    distance of an optimal linear code with word length n, dimension k over field F. The
-    function returns a record with the two bounds and an explanation for each bound. The
+    r"""
+    The function bounds_minimum_distance calculates a lower and upper
+    bound for the minimum distance of an optimal linear code with word
+    length n, dimension k over field F. The function returns a record
+    with the two bounds and an explanation for each bound. The
     function Display can be used to show the explanations.
 
-    The values for the lower and upper bound are obtained from a table constructed by Cen Tjhai for GUAVA,
-    derived from the table of Brouwer. (See http://www.win.tue.nl/~aeb/voorlincod.html or use the SAGE function
-    minimum_distance_why for the most recent data.) These tables contain lower and upper bounds for
-    q=2 (n <= 257), 3 (n <= 243), 4 (n <= 256). (Current as of 11 May 2006.)
-    For codes over other fields and for larger word lengths, trivial bounds are used.
+    The values for the lower and upper bound are obtained from a table
+    constructed by Cen Tjhai for GUAVA, derived from the table of
+    Brouwer. (See http://www.win.tue.nl/~aeb/voorlincod.html or use
+    the SAGE function minimum_distance_why for the most recent data.)
+    These tables contain lower and upper bounds for q=2 (n <= 257), 3
+    (n <= 243), 4 (n <= 256). (Current as of 11 May 2006.)  For codes
+    over other fields and for larger word lengths, trivial bounds are
+    used.
 
-    This does not require an internet connection. The format of the output is a
-    little non-intuitive. Try print bounds_minimum_distance(10,5,GF(2)) for example.
+    This does not require an internet connection. The format of the
+    output is a little non-intuitive. Try print
+    bounds_minimum_distance(10,5,GF(2)) for example.
     """
     q = F.order()
     gap.eval("data := BoundsMinimumDistance(%s,%s,GF(%s))"%(n,k,q))
@@ -365,7 +372,7 @@ def bounds_minimum_distance(n,k,F):
     return Ldata
 
 def LinearCode_from_vectorspace(self):
-    """
+    r"""
     Converts a VectorSpace over GF(q) into a LinearCode
 
     EXAMPLES:
@@ -391,16 +398,19 @@ def LinearCode_from_vectorspace(self):
 
 class LinearCode(module.Module):
     r"""
-    A class for linear codes over a finite field or finite ring.
-    Each instance is a linear code determined by a generator matrix $G$
-    (i.e., a k x n matrix of (full) rank $k$, $k\leq n$ over a finite field $F$.
+    A class for linear codes over a finite field or finite ring.  Each
+    instance is a linear code determined by a generator matrix $G$
+    (i.e., a k x n matrix of (full) rank $k$, $k\leq n$ over a finite
+    field $F$.
 
     INPUT:
-        G -- a generator matrix over $F$. (G can be defined over a finite ring but
-             the matrices over that ring must have certain attributes, such as "rank".)
+        G -- a generator matrix over $F$. (G can be defined over a
+             finite ring but the matrices over that ring must have
+             certain attributes, such as"rank".)
 
     OUTPUT:
-        The linear code of length $n$ over $F$ having $G$ as a generator matrix.
+        The linear code of length $n$ over $F$ having $G$ as a
+        generator matrix.
 
     EXAMPLES:
         sage: MS = MatrixSpace(GF(2),4,7)
@@ -471,7 +481,7 @@ class LinearCode(module.Module):
         return self.__gens
 
     def list(self):
-        """
+        r"""
         Return list of all elements of this linear code.
 
         EXAMPLES:
@@ -610,7 +620,7 @@ class LinearCode(module.Module):
         return min_wt_vec(Gstr,F)[2]
 
     def genus(self):
-        """
+        r"""
         Returns the "Duursma genus" of the code, gamma_C = n+1-k-d.
         """
         d = self.minimum_distance()
@@ -649,7 +659,7 @@ class LinearCode(module.Module):
         return cmp(self.__gen_mat, right.__gen_mat)
 
     def decode(self, right):
-        """
+        r"""
         Wraps GUAVA's Decodeword. Hamming codes have a special
         decoding algorithm. Otherwise, syndrome decoding is used.
 
@@ -685,7 +695,7 @@ class LinearCode(module.Module):
         return V(ans)
 
     def dual_code(self):
-        """
+        r"""
         Wraps GUAVA's DualCode.
 
         OUTPUT:
@@ -731,8 +741,8 @@ class LinearCode(module.Module):
         returns the code of length n+1 where the last digit $c_n$
         satisfies the check condition $c_0+...+c_n=0$. If self is an
         $[n,k,d]$ binary code then the extended code $C^{\vee}$ is an
-        $[n+1,k,d^{\vee}]$ code, where $d^=d$ (if d is even) and $d^{\vee}=d+1$ (if
-        $d$ is odd).
+        $[n+1,k,d^{\vee}]$ code, where $d^=d$ (if d is even) and
+        $d^{\vee}=d+1$ (if $d$ is odd).
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(4,'a'))
@@ -759,7 +769,7 @@ class LinearCode(module.Module):
         return LinearCode(MS(Gx))
 
     def check_mat(self):
-        """
+        r"""
         Returns the check matrix of self.
 
         EXAMPLES:
@@ -822,9 +832,9 @@ class LinearCode(module.Module):
         return True
 
     def is_permutation_automorphism(self,g):
-        """
-        Returns 1 if g is an element of S_n (n = length of self) and if
-        g is an automorphism of self.
+        r"""
+        Returns $1$ if $g$ is an element of $S_n$ ($n$ = length of
+        self) and if $g$ is an automorphism of self.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(3))
@@ -854,13 +864,15 @@ class LinearCode(module.Module):
         return 1
 
     def permutation_automorphism_group(self,mode=None):
-        """
-        If C is an [n,k,d] code over F this function computes the
-        subgroup $Aut(C) \subset S_n$ of all permutation automorphisms of C.
-        If mode="verbose" then code-theoretic data is printed out at several
-        stages of the computation.
+        r"""
+        If $C$ is an $[n,k,d]$ code over $F$, this function computes
+        the subgroup $Aut(C) \subset S_n$ of all permutation
+        automorphisms of $C$.  If mode="verbose" then
+        code-theoretic data is printed out at several stages
+        of the computation.
 
-        Combines an idea of mine with an improvement suggested by Cary Huffman.
+        Combines an idea of mine with an improvement suggested by Cary
+        Huffman.
 
         EXAMPLES:
             sage: MS = MatrixSpace(GF(2),4,8)
@@ -926,9 +938,9 @@ class LinearCode(module.Module):
         return G
 
     def permuted_code(self,p):
-        """
-        Returns the permuted code - the code C which is equivalenet to self via
-        the column permutation p.
+        r"""
+        Returns the permuted code -- the code $C$ which is equivalenet
+        to self via the column permutation $p$.
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
@@ -970,13 +982,15 @@ class LinearCode(module.Module):
         return LinearCode(Gp)
 
     def standard_form(self,mode=None):
-        """
-        An [n,k]  linear code with generator matrix G is in standard form is the row-reduced
-        echelon form of G is (I,A), where I denotes the kxk identity matrix and A is a kx(n-k) block.
-        This method returns a pair (C,p) where C is a code permutation equivalent to self
-        and p in $S_n$ (n = length of C) is the permutation sending self to C.
-        When mode = "verbose" the new generator matrix in the standard form
-        (I,A) is "Display"ed.
+        r"""
+        An $[n,k]$ linear code with generator matrix $G$ is in
+        standard form is the row-reduced echelon form of $G$ is
+        $(I,A)$, where $I$ denotes the $k \times k$ identity matrix
+        and $A$ is a $k \times (n-k)$ block.  This method returns a
+        pair $(C,p)$ where $C$ is a code permutation equivalent to
+        self and $p$ in $S_n$ ($n$ = length of $C$) is the permutation
+        sending self to $C$.  When mode ="verbose" the new generator
+        matrix in the standard form $(I,A)$ is "Display"'d.
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
@@ -1022,7 +1036,7 @@ class LinearCode(module.Module):
         return LinearCode(MS(Gp)),p
 
     def module_composition_factors(self,gp):
-        """
+        r"""
         Prints the GAP record of the Meataxe composition factors module in
         Meataxe notation.
 
@@ -1054,10 +1068,10 @@ class LinearCode(module.Module):
         print gap("MTX.CompositionFactors( M )")
 
     def galois_closure(self, F0):
-        """
-        If self is a linear code defined over F and F0 is a subfield
-        with Galois group G = Gal(F/F0) then this returns the G-module
-        $C^-$ containing C.
+        r"""
+        If self is a linear code defined over $F$ and $F_0$ is a subfield
+        with Galois group $G = Gal(F/F_0)$ then this returns the $G$-module
+        $C^-$ containing $C$.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(4,'a'))
@@ -1098,9 +1112,8 @@ class LinearCode(module.Module):
         return LinearCode(G)
 
     def is_galois_closed(self):
-        """
-        Checks if C is equal to its Galois closure.
-
+        r"""
+        Checks if $C$ is equal to its Galois closure.
         """
         F = self.base_ring()
         p = F.characteristic()
@@ -1108,42 +1121,61 @@ class LinearCode(module.Module):
 
     def assmus_mattson_designs(self,t,mode=None):
         r"""
-        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]): Let A0, A1, ..., An
-        be the weights of the codewords in a binary linear [n , k, d] code C, and let
-        A0*, A1*, ..., An* be the weights of the codewords in its dual [n, n-k, d*] code C*.
-        Fix a t, 0<t<d, and let $s = |{ i | Ai* \not= 0, 0<i\leq n-t}|$. Assume $s\leq d-t$.
+        Assmus and Mattson Theorem (section 8.4, page 303 of [HP]):
+        Let $A_0, A_1, ..., A_n$ be the weights of the codewords in a
+        binary linear $[n , k, d]$ code $C$, and let $A_0^*, A_1^*,
+        ..., A_n^*$ be the weights of the codewords in its dual $[n,
+        n-k, d^*]$ code $C^*$.  Fix a $t$, $0<t<d$, and let
+        $$
+             s = |{ i | A_i^* \not= 0, 0<i\leq n-t}|.
+        $$
+        Assume $s\leq d-t$.
+
         (1) If $Ai\not= 0$ and $d\leq i\leq n then Ci = { c in C | wt(c) = i}$
             holds a simple t-design.
-        (2) If $Ai*\not= 0$ and $d*\leq i\leq n-t then Ci* = { c in C* | wt(c) = i}$
-            holds a simple t-design.
 
-        A {\bf block design} is a pair (X,B), where X is a non-empty finite set of v>0 elements called
-        {\bf points}, and B is a non-empty finite multiset of size b whose elements are called {\bf blocks}, such
-        that each block is a non-empty finite multiset of k points. A design without repeated blocks is called
-        a {\bf simple} block design. If every subset of points of size t is contained in exactly lambda blocks
-        the the block design is called a {\bf t-(v,k,lambda) design} (or simply a t-design when the parameters
-        are not specfied). When lambda=1 then the block design is called a {\bf S(t,k,v) Steiner system}.
+        (2) If $Ai*\not= 0$ and $d*\leq i\leq n-t then Ci* = { c in C*
+            | wt(c) = i}$ holds a simple t-design.
 
-        In the Assmus and Mattson Theorem (1), X is the set {1,2,...,n} of coordinate locations
-        and B = {supp(c) | c in Ci} is the set of supports of the codewords of C of weight i. Therefore,
-        the parameters of the t-design for Ci are
+        A {\bf block design} is a pair $(X,B)$, where $X$ is a
+        non-empty finite set of $v>0$ elements called {\bf points},
+        and $B$ is a non-empty finite multiset of size b whose
+        elements are called {\bf blocks}, such that each block is a
+        non-empty finite multiset of $k$ points. $A$ design without
+        repeated blocks is called a {\bf simple} block design. If
+        every subset of points of size $t$ is contained in exactly
+        lambda blocks the the block design is called a {\bf
+        $t-(v,k,lambda)$ design} (or simply a $t$-design when the
+        parameters are not specfied). When $\lambda=1$ then the block
+        design is called a {\bf $S(t,k,v)$ Steiner system}.
+
+        In the Assmus and Mattson Theorem (1), $X$ is the set
+        $\{1,2,...,n\}$ of coordinate locations and
+        $B = \{supp(c) | c in C_i\}$ is the set of
+        supports of the codewords of $C$ of weight $i$.
+        Therefore, the parameters of the $t$-design for $C_i$ are
+        \begin{verbatim}
              t =       given
              v =       n
              k =       i   (k not to be confused with dim(C))
              b =       Ai
-             lambda =  b*binomial(k,t)/binomial(v,t)  (by Theorem 8.1.6, p 294, in [HP])
+             lambda = b*binomial(k,t)/binomial(v,t) (by Theorem 8.1.6,
+                      p 294, in [HP])
+        \end{verbatim}
 
         Setting the mode="verbose" option prints out the values of the parameters.
 
-        The first example below means that the binary [24,12,8]-code C has the property
-        that the (support of the) codewords of weight 8 (resp, 12, 16) form a 5-design.
-        Similarly for its dual code C* (of course C=C* in this case, so this info is extraneous).
-        The test fails to produce 6-designs (ie, the hypotheses of the theorem fail
-        to hold, not that the 6-designs definitely don't exist). The command
-        assmus_mattson_designs(C,5,mode="verbose") returns the same value but prints out more
-        detailed information.
-        The second example below illustrates the blocks of the 5-(24, 8, 1) design
-        (ie, the S(5,8,24) Steiner system).
+        The first example below means that the binary [24,12,8]-code C
+        has the property that the (support of the) codewords of weight
+        8 (resp, 12, 16) form a 5-design.  Similarly for its dual code
+        C* (of course C=C* in this case, so this info is extraneous).
+        The test fails to produce 6-designs (ie, the hypotheses of the
+        theorem fail to hold, not that the 6-designs definitely don't
+        exist). The command assmus_mattson_designs(C,5,mode="verbose")
+        returns the same value but prints out more detailed information.
+
+        The second example below illustrates the blocks of the 5-(24,
+        8, 1) design (ie, the S(5,8,24) Steiner system).
 
         EXAMPLES:
             sage: C = ExtendedBinaryGolayCode()             #  example 1
@@ -1205,14 +1237,19 @@ class LinearCode(module.Module):
         return 0
 
     def zeta_function2(self,mode=None):
-        """
+        r"""
         Returns the Duursma zeta function of the code.
 
-        mode = "dual" computes both the zeta function of $C$ and that of $C*$
-        mode = "normalized" computes the normalized zeta function of $C$, $zeta_C(T)*T(1-genus(C))$
-               (NOTE: if xi(T,C) denotes the normalized zeta function then
-                $xi(T,C*) = xi(1/(qT),C)$ is equivalent to
-                $zeta_{C*}(T) = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2)$, where
+        INPUT:
+
+           mode -- string;
+                -- "dual" computes both the zeta function
+                   of $C$ and that of $C*$,
+                -- "normalized" computes the normalized zeta function
+                of $C$, $zeta_C(T)*T(1-genus(C))$ (NOTE: if xi(T,C)
+                denotes the normalized zeta function then $xi(T,C*) =
+                xi(1/(qT),C)$ is equivalent to $zeta_{C*}(T) =
+                zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2)$, where
                 $gamma = gamma(C)$ and $gamma* = gamma(C*)$.)
 
         EXAMPLES:
@@ -1226,10 +1263,13 @@ class LinearCode(module.Module):
         Both these examples occur in Duursma's paper below.
 
         REFERENCES:
-             I. Duursma, "Weight distributions of geometric Goppa codes," Trans. A.M.S., 351 (1999)3609-3639.
 
-        NOTE: This is somewhat experimental code. It sometimes returns "fail" for a reason
-        I don't fully understand. However, when it does return a polynomial, the answer is
+             I. Duursma, "Weight distributions of geometric Goppa codes,"
+             Trans. A.M.S., 351 (1999)3609-3639.
+
+        NOTE: This is somewhat experimental code. It sometimes
+        returns "fail" for a reason I don't fully understand.
+        However, when it does return a polynomial, the answer is
         (as far as I know) correct.
         """
         from sage.rings.polynomial.polynomial_ring import PolynomialRing
@@ -1288,14 +1328,17 @@ class LinearCode(module.Module):
         return "fails"
 
     def zeta_function(self,mode=None):
-        """
+        r"""
         Returns the Duursma zeta function of the code.
 
-        mode = "dual" computes both the zeta function of C and that of C*
-        mode = "normalized" computes the normalized zeta function of C, zeta_C(T)*T(1-genus(C))
-            (NOTE: if xi(T,C) denotes the normalized zeta function then
-            xi(T,C*) = xi(1/(qT),C) is equivalent to
-            zeta_{C*}(T) = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2), where
+        INPUT:
+            mode -- string
+               mode = "dual" computes both the zeta function of C and that of C*
+               mode = "normalized" computes the normalized zeta function of C, zeta_C(T)*T(1-genus(C))
+
+            (NOTE: if xi(T,C) denotes the normalized zeta function
+            then xi(T,C*) = xi(1/(qT),C) is equivalent to zeta_{C*}(T)
+            = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2), where
             gamma = gamma(C) and gamma* = gamma(C*).)
 
         EXAMPLES:
@@ -1365,16 +1408,15 @@ class LinearCode(module.Module):
         return "fails"
 
     def punctured(self,L):
-        """
+        r"""
         Returns the code punctured at the positions L, $L \subset \{1,2,...,n\}$.
         If C is a code of length n in GF(q) then the code $C^L$ obtained from C
         by puncturing at the positions in L is the code of length n-|L|
         consisting of codewords of $C$ which have their $i-th$ coordinate
         deleted if $i \in L$ and left alone if $i\notin L$:
-
-        \[
-        C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C},
-        \]
+        $$
+            C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C},
+        $$
         where $\{1,2,...,n\}-T = \{i_1,...,i_N\}$. In particular, if $L=\{j\}$ then
         $C^L$ is simply the code obtained from $C$ by deleting the $j-th$ coordinate
         of each codeword. The code $C^L$ is called the {\it punctured code at $L$}.
@@ -1404,7 +1446,7 @@ class LinearCode(module.Module):
         return LinearCode(MS(G2))
 
     def shortened(self,L):
-        """
+        r"""
         Returns the code shortened at the positions L, $L \subset \{1,2,...,n\}$.
         Consider the subcode $C(L)$ consisting of all codewords $c\in C$ which
         satisfy $c_i=0$ for all $i\in L$. The punctured code $C(L)^L$ is called
@@ -1436,7 +1478,7 @@ class LinearCode(module.Module):
         return LinearCode(MS(Gs))
 
     def binomial_moment(self,i):
-        """
+        r"""
         Returns the i-th binomial moment of the $[n,k,d]_q$-code $C$:
         \[
         B_i(C) = \sum_{S, |S|=i} \frac{q^{k_S}-1}{q-1}
@@ -1486,9 +1528,9 @@ class LinearCode(module.Module):
         return b
 
     def divisor(self):
-        """
-        Returns the divisor of a code (the divisor is the smallest integer d0>0 such that each
-        A_i>0 iff i is divisible by d0).
+        r"""
+        Returns the divisor of a code (the divisor is the smallest
+        integer $d_0>0$ such that each $A_i>0$ iff $i$ is divisible by $d_0$).
 
         EXAMPLES:
             sage: C = ExtendedBinaryGolayCode()
@@ -1510,9 +1552,9 @@ class LinearCode(module.Module):
         return 1
 
     def support(self):
-        """
-        Returns the set of indices j where A_j is nonzero,
-        where spectrum(self) = [A_0,A_1,...,A_n].
+        r"""
+        Returns the set of indices $j$ where $A_j$ is nonzero,
+        where spectrum(self) = $[A_0,A_1,...,A_n]$.
 
         EXAMPLES:
             sage: C = HammingCode(3,GF(2))
@@ -1528,9 +1570,9 @@ class LinearCode(module.Module):
         return V(self.spectrum()).support()
 
     def characteristic_polynomial(self):
-        """
-        Returns the characteristic polynomial of a linear code, as defined in
-        van Lint's text [vL].
+        r"""
+        Returns the characteristic polynomial of a linear code, as
+        defined in van Lint's text [vL].
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))
@@ -1552,10 +1594,11 @@ class LinearCode(module.Module):
         return q**(n-k)*prod([1-x/j for j in Sd if j>0])
 
     def sd_duursma_data(C,i):
-        """
+        r"""
         INPUT:
-           The formally s.d. code C and the type number (1,2,3,4) (does not check if C
-           is actually sd)
+           The formally s.d. code C and the type number (1,2,3,4)
+           (does not check if C is actually sd)
+
         RETURN:
            The data v,m as in Duursama [1]
 
@@ -1582,14 +1625,16 @@ class LinearCode(module.Module):
         return [v,m]
 
     def sd_duursma_q(C,i,d0):
-        """
+        r"""
+
         INPUT:
-           The s.d. code C, the type number (1,2,3,4) (does not check if C
-           is actually sd), and the divisor d0 (the smallest integer d0>0 such that each
-           A_i>0 iff i is divisible by d0).
+           C -- an sd code (does not check if C is actually an sd code),
+           i -- the type number, one of 1,2,3,4,
+           d0 -- and the divisor d0 (the smallest integer d0>0 such that each
+                 A_i>0 iff i is divisible by d0).
 
         RETURN:
-           The coefficients q_0, q_1, ...,  of q(T) as in Duursama [1].
+           The coefficients $q_0, q_1, ...,$  of $q(T)$ as in Duursama [1].
 
         EXAMPLES:
 
@@ -1639,10 +1684,12 @@ class LinearCode(module.Module):
         return q/q(1)
 
     def sd_zeta_polynomial(C,type=1):
-        """
-        Returns the Duursma zeta function of a self-dual code using the construction in [D].
+        r"""
+        Returns the Duursma zeta function of a self-dual code using
+        the construction in [D].
 
-        type = type of the s.d. code (1,2,3, or 4)
+        INPUT:
+            type -- type of the s.d. code; one of 1,2,3, or 4.
 
         EXAMPLES:
             sage: C = ExtendedQuadraticResidueCode(7,GF(2))

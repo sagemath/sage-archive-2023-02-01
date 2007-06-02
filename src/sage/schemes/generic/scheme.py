@@ -28,7 +28,7 @@ import homset
 
 import morphism
 
-import spec
+#import spec
 
 def is_Scheme(x):
     """
@@ -301,5 +301,5 @@ class AffineScheme(Scheme):
         return Scheme.hom(self, x, Y)
 
 
-import morphism
-import spec
+#import morphism
+#import spec

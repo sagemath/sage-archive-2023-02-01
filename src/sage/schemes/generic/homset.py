@@ -144,7 +144,6 @@ def enum_affine_finite_field(X):
 from sage.categories.all import HomsetWithBase, Schemes
 from sage.rings.all      import (
     is_FiniteField, is_RationalField, is_RingHomomorphism, ZZ)
-
 import spec
 
 import morphism
@@ -320,7 +319,6 @@ class SchemeHomsetModule_abelian_variety_coordinates_field(SchemeHomset_projecti
 
     def base_extend(self, R):
         if R != sage.rings.integer_ring.ZZ:
-            raise NotImplementedError, "elliptic curve point sets viewed as modules over rings other than ZZ not implemented"
-
+            raise NotImplementedError, "Abelian variety point sets not implemented as modules over rings other than ZZ."
         return self
 

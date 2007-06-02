@@ -20,7 +20,7 @@ all.py -- export of schemes to SAGE
 #                  http://www.gnu.org/licenses/
 #*****************************************************************************
 
-
+from jacobians.all import *
 
 from hyperelliptic_curves.all import *
 

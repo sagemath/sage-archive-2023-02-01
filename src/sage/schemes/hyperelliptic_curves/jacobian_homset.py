@@ -26,12 +26,12 @@ EXAMPLES:
 #*****************************************************************************
 
 import sage.schemes.generic.spec as spec
-from sage.rings.all import is_Polynomial, PolynomialRing
+from sage.rings.all import is_Polynomial, PolynomialRing, ZZ
 from sage.schemes.generic.homset import SchemeHomset_generic
 from sage.schemes.generic.morphism import is_SchemeMorphism
-from sage.schemes.jacobians.abstract_jacobian import Jacobian
+#from sage.schemes.jacobians.abstract_jacobian import Jacobian_generic
 from hyperelliptic_generic import is_HyperellipticCurve
-from jacobian_morphism import JacobianMorphism_divisor_class
+from jacobian_morphism import JacobianMorphism_divisor_class_field
 
 class JacobianHomset_divisor_classes(SchemeHomset_generic):
     def __init__(self, X, S):
@@ -74,15 +74,15 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
         """
         if P == 0:
             R = PolynomialRing(self.value_ring(), 'x')
-            return JacobianMorphism_divisor_class(self, (R(1),R(0)))
-        elif isinstance(P,JacobianMorphism_divisor_class) and self == P.parent():
+            return JacobianMorphism_divisor_class_field(self, (R(1),R(0)))
+        elif isinstance(P,JacobianMorphism_divisor_class_field) and self == P.parent():
             return P
         elif isinstance(P,(list,tuple)):
             if len(P) != 2:
                 raise TypeError, "Argument P (= %s) must have length 2"%P
             P1 = P[0]; P2 = P[1]
             if is_Polynomial(P1) and is_Polynomial(P2):
-                return JacobianMorphism_divisor_class(self, P)
+                return JacobianMorphism_divisor_class_field(self, P)
             if is_SchemeMorphism(P1) and is_SchemeMorphism(P2):
                 return self(P1) - self(P2)
         elif is_SchemeMorphism(P):
@@ -98,7 +98,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
             return -1
 
     def _point_morphism_class(self, *args, **kwds):
-        return JacobianMorphism_divisor_class(*args, **kwds)
+        return JacobianMorphism_divisor_class_field(*args, **kwds)
 
     def curve(self):
         return self.codomain().curve()
@@ -113,3 +113,7 @@ class JacobianHomset_divisor_classes(SchemeHomset_generic):
         else:
             raise TypeError, "Domain of argument must be of the form Spec(S)."
 
+    def base_extend(self, R):
+        if R != ZZ:
+            raise NotImplementedError, "Jacobian point sets viewed as modules over rings other than ZZ not implemented"
+        return self

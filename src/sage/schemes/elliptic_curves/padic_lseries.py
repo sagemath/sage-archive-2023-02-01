@@ -621,7 +621,7 @@ class pAdicLseriesSupersingular(pAdicLseries):
             sage: E = EllipticCurve('14a')
             sage: L = E.padic_lseries(5)
             sage: L.Dp_valued_series(2)
-            (4 + 4*5^2 + O(5^3), 0)
+            (4 + 4*5^2 + O(5^3) + O(T^5), O(T^5))
         """
         E = self._E
         p = self._p

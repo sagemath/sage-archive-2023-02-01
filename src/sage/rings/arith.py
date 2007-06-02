@@ -971,6 +971,16 @@ def sigma(n, k=1):
     AUTHORS:
         -- William Stein: original implementation
         -- Craig Citro (2007-06-01): rewrote for huge speedup
+
+    TESTS:
+        sage: sigma(100,4)
+        106811523
+        sage: sigma(factorial(100),3).mod(144169)
+        3672
+        sage: sigma(factorial(150),12).mod(691)
+        176
+        sage: RR(sigma(factorial(133),20))
+        2.80414775675747e4523
     """
     ZZ = integer_ring.ZZ
     n = ZZ(n)

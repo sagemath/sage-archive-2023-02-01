@@ -34,7 +34,7 @@ from sage.structure.element import (IntegralDomainElement, EuclideanDomainElemen
 from sage.rings.polynomial.polynomial_singular_interface import Polynomial_singular_repr
 
 from sage.libs.all import pari, pari_gen
-from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
+from sage.libs.ntl.all import ZZ as ntl_ZZ, ZZX, ZZX_class, zero_ZZX, ZZ_p, ZZ_pX, ZZ_pX_class, set_modulus
 from sage.structure.factorization import Factorization
 
 from sage.rings.infinity import infinity
@@ -978,7 +978,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
             self.__poly = ZZX(x)
             return
 
-        self.__poly = ZZX([])
+        self.__poly = zero_ZZX.copy()
 
         if x is None:
             return         # leave initialized to 0 polynomial.

@@ -34,6 +34,7 @@ from sage.libs.ntl.ntl import (make_new_ZZ as ZZ,
 
                  make_new_ZZX as ZZX, \
                  ntl_ZZX as ZZX_class, \
+                 zero_ZZX, one_ZZX, \
 
                  ntl_setSeed, \
 

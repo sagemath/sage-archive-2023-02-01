@@ -102,7 +102,8 @@ class DistributedSage(object):
     def __init__(self):
         pass
 
-    def start_all(self, port=8081, workers=2, log_level=0, verbose=True):
+    def start_all(self, port=8081, workers=2, log_level=0, poll_rate=5.0,
+                  verbose=True):
         """
         Start the server and worker and returns a connection to the server.
 
@@ -113,7 +114,7 @@ class DistributedSage(object):
         self.server(port=port, log_level=log_level, blocking=False,
                     verbose=verbose)
         self.worker(port=port, workers=workers, log_level=log_level,
-                    blocking=False, verbose=verbose)
+                    blocking=False, poll_rate=poll_rate, verbose=verbose)
 
         import time
         time.sleep(1)  # Allow the server to start completely before trying
@@ -157,7 +158,7 @@ class DistributedSage(object):
         else:
             os.system(cmd)
 
-    def worker(self, server='localhost', port=8081, workers=2, delay=5.0,
+    def worker(self, server='localhost', port=8081, workers=2, poll_rate=5.0,
                username=getuser(), blocking=True, ssl=True, log_level=0,
                anonymous=False, priority=20,
                privkey=os.path.join(DSAGE_DIR, 'dsage_key'),
@@ -184,7 +185,7 @@ class DistributedSage(object):
 
         cmd = 'dsage_worker.py -s %s -p %s -u %s -w %s -d %s -l %s -f %s ' + \
                                '--privkey=%s --pubkey=%s --priority=%s '
-        cmd = cmd % (server, port, username, workers, delay, log_level,
+        cmd = cmd % (server, port, username, workers, poll_rate, log_level,
                      log_file, privkey, pubkey, priority)
 
         if ssl:

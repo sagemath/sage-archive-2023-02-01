@@ -89,7 +89,7 @@ def setup_worker():
     # config.set('ssl', 'ssl', 1)
     # config.set('log', 'log_file', LOG_FILE)
     # config.set('log', 'log_level', '0')
-    # config.set('general', 'delay', '5')
+    # config.set('general', 'poll_rate', '5')
     # config.set('general', 'anonymous', False)
     # conf_file = os.path.join(DSAGE_DIR, 'worker.conf')
     # config.write(open(conf_file, 'w'))

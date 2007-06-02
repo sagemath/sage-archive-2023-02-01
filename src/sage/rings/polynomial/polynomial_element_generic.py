@@ -1247,7 +1247,7 @@ class Polynomial_integer_dense(Polynomial_generic_domain,
         p = self.__poly
         c = p.content()
         if c != 1:
-            p = (self // c).__poly
+            p = p / ZZX([c])
         decomp = p.square_free_decomposition()
         pdecomp = [(self.parent()(f, construct=True), exp) for (f, exp) in decomp]
         return Factorization(pdecomp, unit=c, sort=False)

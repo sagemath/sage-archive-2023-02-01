@@ -256,9 +256,9 @@ from functions import Function_gen, Function_arith, Function, FunctionRing_class
 import sage.calculus.calculus
 
 class Constant(Function):
-    def __init__(self, conversions={}):
+    def __init__(self, conversions={}, parent=sage.calculus.calculus.SR):
         self._conversions = conversions
-        RingElement.__init__(self, sage.calculus.calculus.SR)
+        RingElement.__init__(self, parent)
 
     # The maxima one is special:
     def _maxima_(self, session=None):
@@ -442,7 +442,7 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
-    def _real_double_(self,R):
+    def _real_double_(self, R):
         return R.pi()
 
     def _real_rqdf_(self, R):
@@ -1078,4 +1078,8 @@ class Brun(Constant):
 	return 1.9021605831040
 
 brun=Brun()
+
+
+
+
 

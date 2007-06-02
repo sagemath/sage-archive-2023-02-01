@@ -64,7 +64,7 @@ class EllipticCurve_padic_field(EllipticCurve_field, HyperellipticCurve_padic_fi
         except AttributeError:
             pass
         F = self.base_ring()
-        self.__pari = pari('ellinit(%s,%s,%s,%s,%s)'%(F.characteristic(), [b._pari_() for b in self.ainvs()]))
+        self.__pari = pari('ellinit(%s,%s,%s,%s,%s)'%tuple([b._pari_() for b in self.ainvs()]))
         return self.__pari
 
 

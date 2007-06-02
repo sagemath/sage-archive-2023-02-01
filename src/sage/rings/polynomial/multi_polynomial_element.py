@@ -12,6 +12,12 @@ AUTHORS:
               added examples of the new \code{R.<x,y> = PolynomialRing(QQ,2) notation}.
     -- Martin Albrecht: improved singular coercions (restructed class hierarchy) and added
                         ETuples
+
+EXAMPLES:
+We verify Lagrange's four squares identity:
+    sage: R.<a0,a1,a2,a3,b0,b1,b2,b3> = ZZ[]
+    sage: (a0^2 + a1^2 + a2^2 + a3^2)*(b0^2 + b1^2 + b2^2 + b3^2) == (a0*b0 - a1*b1 - a2*b2 - a3*b3)^2 + (a0*b1 + a1*b0 + a2*b3 - a3*b2)^2 + (a0*b2 - a1*b3 + a2*b0 + a3*b1)^2 + (a0*b3 + a1*b2 - a2*b1 + a3*b0)^2
+    True
 """
 
 #*****************************************************************************
@@ -118,20 +124,7 @@ class MPolynomial_element(MPolynomial):
     def __cmp__(self, right):
         """
         Compares right to self with respect to the term order of
-        self.parent(). Where 'lex', 'deglex', 'revlex', and 'degrevlex' are
-        accepted.
-
-        We say $a >_{lex} b$ if, in the vector difference $a-b \in Z^n$,
-        the left-most nonzero entry is positive.
-
-        We say $a >_{revlex} b$ if, in the vector difference $a-b \in Z^n$,
-        the right-most nonzero entry is positive.
-
-        We say $a >_{deglex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        left-most nonzero entry of $a -b \in \ZZ^n$ is positive.
-
-        We say $a >_{degrevlex} b$ if, $|a| > |b|$, or $|a| = |b|$ and the
-        right-most nonzero entry of $a -b \in Z^n$ is negative.
+        self.parent().
 
         EXAMPLES:
              sage: R.<x,y,z>=PolynomialRing(GF(7),3,order='lex')

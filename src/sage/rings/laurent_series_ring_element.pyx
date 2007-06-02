@@ -182,10 +182,10 @@ cdef class LaurentSeries(AlgebraElement):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            if x != 0:
+            x = str(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = str(x)
                 if not atomic_repr and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "(%s)"%x
                 if e == 1:
@@ -235,10 +235,10 @@ cdef class LaurentSeries(AlgebraElement):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            if x != 0:
+            x = sage.misc.latex.latex(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if e == 1:

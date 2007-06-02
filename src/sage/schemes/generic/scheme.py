@@ -123,11 +123,24 @@ class Scheme(ParentWithBase):
         elif isinstance(S, morphism.SchemeMorphism_coordinates):
             if S.codomain() == self:
                 return S
+        else:
+            # TODO: fix circular import resulting from non-multiple inheritance
+            from sage.schemes.elliptic_curves.ell_point import EllipticCurvePoint_field
+            if isinstance(S, EllipticCurvePoint_field):
+                if S.codomain() == self:
+                    return S
+                else:
+                    return self.point(S)
         return self.point(args)
 
     def point_homset(self, R=None):
-        if R is None:
-            R = self.base_ring()
+        if R is None or R == self.base_ring():
+            # optimize common case
+            try:
+                return self.__ring_point_homset
+            except AttributeError:
+                self.__ring_point_homset = self._homset_class(self,self.base_ring())
+                return self.__ring_point_homset
         try:
             return self.__point_homset[R]
         except AttributeError:

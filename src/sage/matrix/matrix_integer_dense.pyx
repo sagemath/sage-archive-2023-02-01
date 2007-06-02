@@ -1012,7 +1012,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             algorithm, cutoff -- ignored currently
-            include_zero_rows -- (default: True) if False, don't include zero rows.
+            include_zero_rows -- (default: True) if False,
+                                 don't include zero rows.
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1028,7 +1029,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0]
             [  0   0   0   0   0]
 
-            Make sure the zero matrices are handled correctly
+        TESTS:
+        Make sure the zero matrices are handled correctly:
             sage: m = matrix(ZZ,3,3,[0]*9)
             sage: m.echelon_form()
             [0 0 0]
@@ -1043,7 +1045,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             sage: m.echelon_form()
             [0 0 0]
 
-            The ultimate border case!
+        The ultimate border case!
             sage: m = matrix(ZZ,0,0,[])
             sage: m.echelon_form()
             []

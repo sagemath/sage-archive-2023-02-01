@@ -23,9 +23,8 @@ import sqlite3
 
 from twisted.python import log
 
-from sage.dsage.twisted.pubkeyauth import get_pubkey_string
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.config import get_conf
+from sage.dsage.misc.constants import DSAGE_DIR
 
 class ClientDatabase(object):
     """
@@ -49,7 +48,9 @@ class ClientDatabase(object):
     )
     """ % TABLENAME
 
-    def __init__(self, test=False):
+    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'), log_level=0,
+                 test=False):
         """
         Parameters:
         test -- set to true if you would like to do testing.
@@ -60,8 +61,7 @@ class ClientDatabase(object):
         if test:
             self.db_file = 'clientdb_test.db'
         else:
-            self.conf = get_conf(type='clientdb')
-            self.db_file = self.conf['db_file']
+            self.db_file = db_file
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):

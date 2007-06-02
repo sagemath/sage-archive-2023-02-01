@@ -1449,7 +1449,7 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False, debug_level=0):
+def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
     if int_:
         Z = int
     else:
@@ -1460,7 +1460,12 @@ def __factor_using_pari(n, int_=False, debug_level=0):
     F = pari(n).factor()
     B = F[0]
     e = F[1]
+    if proof:
+        for i in xrange(len(B)):
+            if not B[i].isprime():
+                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+
     if debug_level > 0:
         pari.set_debug_level(prev)
     return v
@@ -1516,8 +1521,16 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-        sage: factor(2^197 + 1)       # takes a long time
+    SAGE calls PARI's factor, which has proof False by default.   SAGE by default
+    *does* check primality of each factor that is returned. To turn this off, do
+    proof False.
+        sage: factor(3^89-1, proof=False)
+        2 * 179 * 1611479891519807 * 5042939439565996049162197
+
+        sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
+
+        sage:
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
@@ -1540,7 +1553,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     #if n < 10000000000: return __factor_using_trial_division(n)
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
-                                   int_=int_, debug_level=verbose), unit)
+                                   int_=int_, debug_level=verbose, proof=proof), unit)
     elif algorithm == 'kash':
         from sage.interfaces.all import kash
         F = kash.eval('Factorization(%s)'%n)

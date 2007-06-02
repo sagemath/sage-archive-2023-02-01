@@ -180,7 +180,7 @@ from sage.misc.misc import prod, add
 from sage.misc.functional import log
 from sage.rings.rational_field import QQ
 from sage.structure.parent_gens import ParentWithGens
-from sage.rings.polynomial_ring_constructor import PolynomialRing
+from sage.rings.polynomial.polynomial_ring_constructor import PolynomialRing
 from sage.rings.fraction_field import FractionField
 from sage.rings.integer_ring import IntegerRing
 from sage.combinat.combinat import partitions_set

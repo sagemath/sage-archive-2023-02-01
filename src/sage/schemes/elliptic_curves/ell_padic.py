@@ -1,5 +1,7 @@
 """
 Access to MAGMA code for computing p-adic height pairings.
+
+(deprecated)
 """
 
 #*****************************************************************************

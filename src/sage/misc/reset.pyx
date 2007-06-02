@@ -62,8 +62,20 @@ def restore(vars=None):
         NameError: name 'ww' is not defined
     """
     G = globals()  # this is the reason the code must be in SageX.
-    import sage.all
-    D = sage.all.__dict__
+    if not G.has_key('sage_mode'):
+        import sage.all
+        D = sage.all.__dict__
+    else:
+        mode = G['sage_mode']
+        if mode == 'cmdline':
+            import sage.all_cmdline
+            D = sage.all_cmdline.__dict__
+        elif mode == 'notebook':
+            import sage.all_notebook
+            D = sage.all_notebook.__dict__
+        else:
+            import sage.all
+            D = sage.all.__dict__
     _restore(G, D, vars)
     import sage.calculus.calculus
     _restore(sage.calculus.calculus.syms_cur, sage.calculus.calculus.syms_default, vars)

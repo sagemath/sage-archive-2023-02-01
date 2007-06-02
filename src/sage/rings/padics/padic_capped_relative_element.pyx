@@ -241,7 +241,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         self.ordp = absprec
         self._normalized = 1
 
-    cdef void set_precs(pAdicCappedRelativeElement self, unsigned long relprec):
+    cdef void set_precs(pAdicCappedRelativeElement self, long relprec):
         self.relprec = relprec
 
     cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec):
@@ -496,7 +496,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     cdef RingElement _floordiv_c_impl(self, RingElement right):
         cdef pAdicCappedRelativeElement ans
-        cdef unsigned long relprec, diff
+        cdef long relprec, diff
         (<pAdicCappedRelativeElement>right)._normalize()
         self._normalize()
         # For fields, we define floor division as normal division and % as always 0
@@ -697,12 +697,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
 
     def add_bigoh(self, absprec):
         """
-        Returns a new element with absolute precision decreased to absprec
+        Returns a new element with absolute precision decreased to
+        absprec.
+
         INPUT:
             self -- a p-adic element
             absprec -- an integer
+
         OUTPUT:
-            element -- self with precision set to the minimum of self's precision and absprec
+            element -- self with precision set to the minimum of
+                       self's precision and absprec
 
         EXAMPLE:
             sage: R = Zp(7,4,'capped-rel','series'); a = R(8); a.add_bigoh(1)
@@ -714,12 +718,28 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             sage: b = R(0); b.add_bigoh(3)
             O(7^3)
 
-        Note precision does not ever increase.
+        The precision never increases:
             sage: R(4).add_bigoh(2).add_bigoh(4)
             4 + O(7^2)
+
+        Another example that illustrates that the precision does not
+        increase:
+            sage: k = Qp(3,5)
+            sage: a = k(1234123412/3^70); a
+            2*3^-70 + 3^-69 + 3^-68 + 3^-67 + O(3^-65)
+            sage: a.add_bigoh(2)
+            2*3^-70 + 3^-69 + 3^-68 + 3^-67 + O(3^-65)
+
+            sage: k = Qp(5,10)
+            sage: a = k(1/5^3 + 5^2); a
+            5^-3 + 5^2 + O(5^7)
+            sage: a.add_bigoh(2)
+            5^-3 + O(5^2)
+            sage: a.add_bigoh(-1)
+            5^-3 + O(5^-1)
         """
         cdef pAdicCappedRelativeElement ans
-        cdef long aprec
+        cdef long aprec, newprec
         if PY_TYPE_CHECK(absprec, int):
             aprec = absprec
         else:
@@ -730,12 +750,16 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
             ans = self._new_c()
             ans.set_inexact_zero(aprec)
             return ans
-        # Do we need to worry about overflow?
+        # Do we still need to worry about overflow?
         if aprec > self.ordp + self.relprec:
             return self
+
         ans = self._new_c()
         ans.ordp = self.ordp
-        ans.set_precs(aprec - self.ordp)
+        newprec = aprec - self.ordp
+        if newprec >= self.relprec:
+            return self
+        ans.set_precs(newprec)
         mpz_set(ans.unit, self.unit)
         if mpz_cmp(self.unit, self.prime_pow.dense_list[ans.relprec]) >= 0:
             ans._normalized = 0
@@ -842,7 +866,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
                         return bool(mpz_cmp(self.unit, (<pAdicCappedRelativeElement>right).unit) == 0)
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
-        cdef unsigned long aprec
+        cdef long aprec
         aprec = mpz_get_ui((<Integer>absprec).value)
         if mpz_sgn(self.unit) == -1:
             if mpz_sgn((<pAdicCappedRelativeElement>right).unit) == -1:
@@ -1090,7 +1114,8 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     def precision_relative(self):
         """
         Returns the relative precision of self
-         INPUT:
+
+        INPUT:
             self -- a p-adic element
         OUTPUT:
             integer -- the relative precision of self
@@ -1125,7 +1150,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         """
         cdef Integer selfvalue, modulus
         cdef PowComputer_class powerer
-        cdef unsigned long aprec
+        cdef long aprec
         if not PY_TYPE_CHECK(absprec, Integer):
             absprec = Integer(absprec)
         if absprec > self.precision_absolute():
@@ -1313,7 +1338,7 @@ cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
         return hash(self.lift_c())
 
     def _teichmuller_set(self, Integer n, Integer absprec):
-        cdef unsigned long aprec
+        cdef long aprec
         if mpz_divisible_p(n.value, self.prime_pow.prime.value):
             self.set_exact_zero()
         else:

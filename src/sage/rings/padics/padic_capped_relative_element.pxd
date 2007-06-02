@@ -15,12 +15,12 @@ from sage.rings.padics.pow_computer cimport PowComputer_class
 cdef class pAdicCappedRelativeElement(pAdicBaseGenericElement):
     cdef mpz_t unit    #An exact zero is indicated by unit < 0
     cdef long ordp
-    cdef unsigned long relprec
+    cdef long relprec
     #cdef PowComputer_class prime_pow
     cdef int _normalized
     cdef void set_exact_zero(pAdicCappedRelativeElement self)
     cdef void set_inexact_zero(pAdicCappedRelativeElement self, long absprec)
-    cdef void set_precs(pAdicCappedRelativeElement self, unsigned long relprec)
+    cdef void set_precs(pAdicCappedRelativeElement self, long relprec)
     cdef void set_from_Integers(pAdicCappedRelativeElement self, Integer ordp, Integer unit, Integer relprec)
     cdef pAdicCappedRelativeElement _new_c(pAdicCappedRelativeElement self)
     cdef void _normalize(pAdicCappedRelativeElement self)

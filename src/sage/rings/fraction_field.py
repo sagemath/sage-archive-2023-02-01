@@ -239,7 +239,6 @@ class FractionField_generic(field.Field):
                 S = self.ring()
                 if S.has_coerce_map_from(P):
                     return self(x)
-                raise TypeError
         except AttributeError:
             pass
         return self._coerce_try(x, [self.ring()])

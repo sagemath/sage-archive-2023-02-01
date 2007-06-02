@@ -1775,10 +1775,13 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         y_offset = min(self.min_pow_y(), 0)
         y_degree = max(self.max_pow_y(), 0)
         coeffs = []
+        n = y_degree - y_offset + 1
         for a in self._f.list():
-            coeffs.append( [zero] * (a.valuation()-y_offset) + a.list() + [zero]*(y_degree - a.degree()) )
+            k = a.valuation() - y_offset
+            z = a.list()
+            coeffs.append( [zero] * k + z + [zero]*(n - len(z) - k))
         while len(coeffs) < self.parent().degree():
-            coeffs.append( [zero] * (y_degree - y_offset + 1) )
+            coeffs.append( [zero] * n )
         V = FreeModule(self.base_ring() if R is None else R, self.parent().degree())
         coeffs = transpose_list(coeffs)
         return [V(a) for a in coeffs], y_offset

@@ -208,24 +208,36 @@ def delta_qexp(prec=10, var='q'):
         Traceback (most recent call last):
         ...
         ValueError: prec must be positive
+
+    AUTHORS:
+        -- William Stein: original code
+        -- David Harvey (2007-05): sped up first squaring step
     """
     if prec <= 0:
         raise ValueError, "prec must be positive"
     v = [0] * prec
-    stop = int((-1+math.sqrt(1+8*prec))/2.0)
-    for n in range(stop+1):
-        k = 2*n+1
-        if n % 2 != 0:
-            k = -k
-        try:
-            v[n*(n+1)//2] = k
-        except IndexError:
-            break
 
+    # Let F = \sum_{n >= 0} (-1)^n (2n+1) q^(floor(n(n+1)/2)).
+    # Then delta is F^8.
+
+    # First compute F^2 directly by naive polynomial multiplication,
+    # since F is very sparse.
+
+    stop = int((-1+math.sqrt(1+8*prec))/2.0)
+    # make list of index/value pairs for the sparse poly
+    values = [(n*(n+1)//2, ((-2*n-1) if (n & 1) else (2*n+1))) \
+              for n in range(stop+1)]
+
+    for (i1, v1) in values:
+        for (i2, v2) in values:
+            try:
+                v[i1 + i2] += v1 * v2
+            except IndexError:
+                break
+
+    # then use NTL to compute the remaining fourth power
     f = ntl.ZZX(v)
     t = verbose('made series')
-    f = (f*f).truncate(prec)
-    t = verbose('squared (1 of 3)', t)
     f = (f*f).truncate(prec)
     t = verbose('squared (2 of 3)', t)
     f = (f*f).truncate(prec)

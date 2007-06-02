@@ -740,6 +740,8 @@ class pAdicLseriesSupersingular(pAdicLseries):
         n = arith.LCM(n, E.Np(p)) # allowed here because E has good reduction at p
 
         def height(P,check=True):
+            if P.is_finite_order():
+                return Qp(p,prec)(0)
             if check:
                 assert P.curve() == E, "the point P must lie on the curve from which the height function was created"
             Q = n * P

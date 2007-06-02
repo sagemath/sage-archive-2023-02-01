@@ -3930,51 +3930,53 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             raise ArithmeticError, "p must be a good ordinary prime"
         return p
 
+## I removed these because some of the code they depend on --- namely kedlaya.m
+## can't be legally redistributed.
+##
+##     # This is the old version of padic_height that requires MAGMA:
+##     def padic_height_magma(self, p, P, prec=20):
+##         """
+##         Return the cyclotomic $p$-adic height of $P$, in the sense
+##         of Mazur and Tate.
 
-    # This is the old version of padic_height that requires MAGMA:
-    def padic_height_magma(self, p, P, prec=20):
-        """
-        Return the cyclotomic $p$-adic height of $P$, in the sense
-        of Mazur and Tate.
+##         \note{This function requires that Magma to be installed on your
+##         computer.}
 
-        \note{This function requires that Magma to be installed on your
-        computer.}
-
-        INPUT:
-            p -- prime
-            P -- point
-            prec -- integer (default: 20) affects the precision; the
-                    precision is *not* guaranteed to be this high!
-        OUTPUT:
-            p-adic number
-        """
-        p = self.__check_padic_hypotheses(p)
-        if not P in self:
-            raise ArithmeticError, "P = (%s) must be a point on this curve"%P
-        return padic_height.padic_height(self.a_invariants(), p, P, prec)
+##         INPUT:
+##             p -- prime
+##             P -- point
+##             prec -- integer (default: 20) affects the precision; the
+##                     precision is *not* guaranteed to be this high!
+##         OUTPUT:
+##             p-adic number
+##         """
+##         p = self.__check_padic_hypotheses(p)
+##         if not P in self:
+##             raise ArithmeticError, "P = (%s) must be a point on this curve"%P
+##         return padic_height.padic_height(self.a_invariants(), p, P, prec)
 
 
-    # This is the old version of padic_regulator that requires MAGMA:
-    def padic_regulator_magma(self, p, prec=20):
-        """
-        Return the cyclotomic $p$-adic regulator of $P$, in the sense
-        of Mazur and Tate.
+##     # This is the old version of padic_regulator that requires MAGMA:
+##     def padic_regulator_magma(self, p, prec=20):
+##         """
+##         Return the cyclotomic $p$-adic regulator of $P$, in the sense
+##         of Mazur and Tate.
 
-        \note{This function requires that Magma to be installed on your
-        computer.}
+##         \note{This function requires that Magma to be installed on your
+##         computer.}
 
-        INPUT:
-            p -- prime
-            prec -- integer (default: 20) affects the precision; the
-                    precision is *not* guaranteed to be this high!
-        OUTPUT:
-            p-adic number
-        """
-        p = self.__check_padic_hypotheses(p)
-        return padic_height.padic_regulator(self.a_invariants(),
-                                            p,
-                                            self.gens(),
-                                            prec)
+##         INPUT:
+##             p -- prime
+##             prec -- integer (default: 20) affects the precision; the
+##                     precision is *not* guaranteed to be this high!
+##         OUTPUT:
+##             p-adic number
+##         """
+##         p = self.__check_padic_hypotheses(p)
+##         return padic_height.padic_regulator(self.a_invariants(),
+##                                             p,
+##                                             self.gens(),
+##                                             prec)
 
     def padic_regulator(self, p, prec=20, height=None, check_hypotheses=True):
         r"""
@@ -4358,9 +4360,6 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             in "Efficient Computation of p-adic Heights"
             -- chris wuthrich (05/2007): added supersingular and multiplicative heights
 
-        TODO:
-            -- Probably this code is broken when P is a torsion point.
-
         EXAMPLES:
             sage: E = EllipticCurve("37a")
             sage: P = E.gens()[0]
@@ -4368,25 +4367,46 @@ class EllipticCurve_rational_field(EllipticCurve_field):
             sage: h(P)
             4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + O(5^9)
 
-          An anomalous case:
+        An anomalous case:
             sage: h = E.padic_height(53, 10)
             sage: h(P)
             27*53^-1 + 22 + 32*53 + 5*53^2 + 42*53^3 + 20*53^4 + 43*53^5 + 30*53^6 + 17*53^7 + 22*53^8 + O(53^9)
 
-          Boundary case:
+        Boundary case:
             sage: E.padic_height(5, 3)(P)
             4*5 + O(5^2)
 
-          A case that works the division polynomial code a little harder:
+        A case that works the division polynomial code a little harder:
             sage: E.padic_height(5, 10)(5*P)
             4*5^3 + 3*5^4 + 3*5^5 + 4*5^6 + O(5^7)
 
-          Check that answers agree over a range of precisions:
+        Check that answers agree over a range of precisions:
             sage: max_prec = 30    # make sure we get past p^2    # long time
             sage: full = E.padic_height(5, max_prec)(P)           # long time
             sage: for prec in range(1, max_prec):                 # long time
             ...       assert E.padic_height(5, prec)(P) == full   # long time
 
+        A supersingular prime for a curve:
+            sage: E = EllipticCurve('37a')
+            sage: E.is_supersingular(3)
+            True
+            sage: h = E.padic_height(3, 5)
+            sage: h(E.gens()[0])
+            (2*3 + 2*3^2 + 3^3 + 2*3^4 + 2*3^5 + O(3^6), 3^2 + 3^3 + 3^4 + 3^5 + O(3^7))
+            sage: E.padic_regulator(5)
+            4*5 + 3*5^2 + 3*5^3 + 4*5^4 + 4*5^5 + 5^6 + 4*5^8 + 3*5^9 + 3*5^10 + 5^11 + 5^12 + 3*5^13 + 3*5^15 + 2*5^16 + 3*5^17 + 2*5^18 + O(5^19)
+            sage: E.padic_regulator(3,5)
+
+        A torsion point in both the good and supersingular cases:
+            sage: E = EllipticCurve('11a')
+            sage: P = E.torsion_subgroup().gens()[0]; P
+            (5 : 5 : 1)
+            sage: h = E.padic_height(19, 5)
+            sage: h(P)
+            0
+            sage: h = E.padic_height(5, 5)
+            sage: h(P)
+            0
         """
         if check_hypotheses:
             if not p.is_prime():
@@ -4403,12 +4423,10 @@ class EllipticCurve_rational_field(EllipticCurve_field):
 
         if self.conductor() % p == 0:
             Eq = self.tate_curve(p,prec=prec)
-            h = Eq.height(prec=prec)
-            return h
+            return Eq.height(prec=prec)
         elif self.ap(p) % p == 0:
             lp = self.padic_lseries(p)
-            reg = lp.Dp_valed_height(prec=prec)
-            return h
+            return lp.Dp_valued_height(prec=prec)
 
         #else good ordinary case
 
@@ -4437,6 +4455,8 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         #print "post-setup"
 
         def height(P, check=True):
+            if P.is_finite_order():
+                return K(0)
             if check:
                 assert P.curve() == E, "the point P must lie on the curve " \
                        "from which the height function was created"
@@ -4934,14 +4954,14 @@ class EllipticCurve_rational_field(EllipticCurve_field):
         return frob_p.change_ring(Zp(p, prec))
 
 
-    # This is the old version of padic_E2 that requires MAGMA:
-    def padic_E2_magma(self, p, prec=20):
-        """
-        Return the value of the $p$-adic.
-        """
-        p = self.__check_padic_hypotheses(p)
-        c4, c6 = self.c_invariants()
-        return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
+##     # This is the old version of padic_E2 that requires MAGMA:
+##     def padic_E2_magma(self, p, prec=20):
+##         """
+##         Return the value of the $p$-adic.
+##         """
+##         p = self.__check_padic_hypotheses(p)
+##         c4, c6 = self.c_invariants()
+##         return padic_height.padic_E2_of_c4c6(c4, c6, p, prec)
 
 
     # def weierstrass_p(self):

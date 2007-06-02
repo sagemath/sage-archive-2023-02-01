@@ -123,6 +123,7 @@ def sagex(filename, verbose=False, compile_message=False,
 
     clean_filename = sanitize(filename)
     base = os.path.split(os.path.splitext(clean_filename)[0])[1]
+    abs_base = os.path.abspath(os.path.split(os.path.splitext(clean_filename)[0])[0])
 
     build_dir = '%s/%s'%(SPYX_TMP, base)
     if os.path.exists(build_dir):
@@ -142,7 +143,8 @@ def sagex(filename, verbose=False, compile_message=False,
         if not os.path.isdir(G):
             os.unlink(G)
 
-    os.system('cd "%s"; ln -s "%s"/devel/sage/sage/ext/*.c .'%(build_dir, SAGE_ROOT))
+    cmd = 'cd "%s"; ln -s "%s"/* .'%(build_dir, abs_base)
+    os.system(cmd)
 
     if compile_message:
         print "Compiling %s..."%filename

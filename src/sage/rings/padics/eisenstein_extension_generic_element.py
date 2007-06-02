@@ -1,23 +1,23 @@
 import sage.rings.finite_field
-import sage.rings.polynomial_quotient_ring_element
+import sage.rings.polynomial.polynomial_quotient_ring_element
 from sage.rings.padics.misc import min
 import sage.rings.integer
 import sage.rings.rational
 import sage.rings.integer_mod
 import sage.rings.finite_field_element
-import sage.rings.polynomial_ring_constructor
+import sage.rings.polynomial.polynomial_ring_constructor
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_ring_lazy
-import sage.rings.polynomial_element
+import sage.rings.polynomial.polynomial_element
 import sage.rings.infinity
 import sys
-import sage.rings.polynomial_ring_constructor
+import sage.rings.polynomial.polynomial_ring_constructor
 import sage.rings.padics.padic_extension_generic_element
 
 GF = sage.rings.finite_field.GF
-PolynomialRing = sage.rings.polynomial_ring_constructor.PolynomialRing
+PolynomialRing = sage.rings.polynomial.polynomial_ring_constructor.PolynomialRing
 infinity = sage.rings.infinity.infinity
-PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
+PQRElement = sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
@@ -25,7 +25,8 @@ is_FiniteFieldElement = sage.rings.finite_field_element.is_FiniteFieldElement
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
-Polynomial = sage.rings.polynomial_element.Polynomial
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
+#pAdicRingGenericElement = sage.rings.padics.padic_ring_generic_element.pAdicRingGenericElement
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 pAdicExtensionGenericElement = sage.rings.padics.padic_extension_generic_element.pAdicExtensionGenericElement
 

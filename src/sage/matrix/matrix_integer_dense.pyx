@@ -65,8 +65,9 @@ from sage.rings.rational_field import QQ
 from sage.rings.integer_ring import ZZ, IntegerRing_class
 from sage.rings.integer_ring cimport IntegerRing_class
 from sage.rings.integer_mod_ring import IntegerModRing
-from sage.rings.polynomial_ring import PolynomialRing
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
+from sage.structure.element import is_Vector
 from sage.structure.sequence import Sequence
 
 from matrix_modn_dense import Matrix_modn_dense
@@ -339,8 +340,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         (VERY UNSAFE -- value *must* be of type Integer).
 
         INPUT:
-            ij -- tuple (i,j), where i is the row and j the column
-        Alternatively, ij can be an integer, and the ij-th row is set.
+        i -- row
+        j -- column
+        value -- The value to set self[i,j] to.  value MUST be of type Integer
 
         EXAMPLES:
             sage: a = matrix(ZZ,2,3, range(6)); a
@@ -930,6 +932,11 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         _lift_crt(result, res, mm)  # changes result
         return result
 
+    cdef void reduce_entry_unsafe(self, Py_ssize_t i, Py_ssize_t j, Integer modulus):
+        # Used for p-adic matrices.
+        if mpz_cmp(self._matrix[i][j], modulus.value) >= 0 or mpz_cmp_ui(self._matrix[i][j], 0) < 0:
+            mpz_mod(self._matrix[i][j], self._matrix[i][j], modulus.value)
+
     def _mod_int(self, modulus):
         return self._mod_int_c(modulus)
 
@@ -1005,7 +1012,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         INPUT:
             algorithm, cutoff -- ignored currently
-            include_zero_rows -- (default: True) if False, don't include zero rows.
+            include_zero_rows -- (default: True) if False,
+                                 don't include zero rows.
 
         EXAMPLES:
             sage: A = MatrixSpace(ZZ,2)([1,2,3,4])
@@ -1020,6 +1028,27 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
             [  0   0   0   0   0]
             [  0   0   0   0   0]
             [  0   0   0   0   0]
+
+        TESTS:
+        Make sure the zero matrices are handled correctly:
+            sage: m = matrix(ZZ,3,3,[0]*9)
+            sage: m.echelon_form()
+            [0 0 0]
+            [0 0 0]
+            [0 0 0]
+            sage: m = matrix(ZZ,3,1,[0]*3)
+            sage: m.echelon_form()
+            [0]
+            [0]
+            [0]
+            sage: m = matrix(ZZ,1,3,[0]*3)
+            sage: m.echelon_form()
+            [0 0 0]
+
+        The ultimate border case!
+            sage: m = matrix(ZZ,0,0,[])
+            sage: m.echelon_form()
+            []
         """
         x = self.fetch('echelon_form')
         if not x is None:
@@ -1049,7 +1078,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 
         cdef Matrix_integer_dense H_m
         H = convert_parimatrix(w[0])
-        if nc == 1:
+        # if H=[] may occur if we start with a column of zeroes
+        if nc == 1 and H!=[]:
             H = [H]
 
         # We do a 'fast' change of the above into a list of ints,
@@ -1370,7 +1400,8 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         \note{NTL only knows dense matrices, so if you provide a
         sparse matrix NTL will allocate memory for every zero entry.}
         """
-        return mat_ZZ(self._nrows,self._ncols, self.list())
+        import sage.libs.ntl.ntl
+        return sage.libs.ntl.ntl.ntl_mat_ZZ(self._nrows,self._ncols, self.list())
 
 
     ####################################################################################
@@ -1664,12 +1695,99 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
                 raise ZeroDivisionError, "input matrix must be nonsingular"
             return self._solve_iml(P.identity_matrix(), right=True)
 
+    def solve_right(self, B):
+        r"""
+        If self is a matrix $A$ of full rank, then this function
+        returns a vector or matrix $X$ such that $A X = B$.  If $B$ is
+        a vector then $X$ is a vector and if $B$ is a matrix, then $X$
+        is a matrix.  The base ring of $X$ is the integers unless a
+        denominator is needed in which case the base ring is the
+        rational numbers.
+
+        NOTE: In SAGE one can also write \code{A \ B} for
+        \code{A.solve_right(B)}, i.e., SAGE implements the ``the
+        MATLAB/Octave backslash operator''.
+
+        NOTE: This is currently only implemented when A is square.
+
+        INPUT:
+            B -- a matrix or vector
+        OUTPUT:
+            a matrix or vector
+
+        EXAMPLES:
+            sage: a = matrix(ZZ, 2, [0, -1, 1, 0])
+            sage: v = vector(ZZ, [2, 3])
+            sage: a \ v
+            (3, -2)
+            sage: parent(a\v)
+            Ambient free module of rank 2 over the principal ideal domain Integer Ring
+
+        We solve a bigger system where the answer is over the rationals.
+            sage: a = matrix(ZZ, 3, 3, [1,2,3,4, 5, 6, 8, -2, 3])
+            sage: v = vector(ZZ, [1,2,3])
+            sage: w = a \ v; w
+            (2/15, -4/15, 7/15)
+            sage: parent(w)
+            Vector space of dimension 3 over Rational Field
+            sage: a * w
+            (1, 2, 3)
+
+        We solve a system where the right hand matrix has multiple columns.
+            sage: a = matrix(ZZ, 3, 3, [1,2,3,4, 5, 6, 8, -2, 3])
+            sage: b = matrix(ZZ, 3, 2, [1,5, 2, -3, 3, 0])
+            sage: w = a \ b; w
+            [ 2/15 -19/5]
+            [-4/15 -27/5]
+            [ 7/15 98/15]
+            sage: a * w
+            [ 1  5]
+            [ 2 -3]
+            [ 3  0]
+
+        TESTS:
+        We create a random 100x100 matrix and solve the corresponding system,
+        then verify that the result is correct.
+            sage: n = 100
+            sage: a = random_matrix(ZZ,n)
+            sage: v = vector(ZZ,n,range(n))
+            sage: x = a \ v
+            sage: a * x == v
+            True
+
+        """
+        # It would probably be much better to rewrite linbox so it
+        # throws an error instead of ** going into an infinite loop **
+        # in the non-full rank case.  In any case, we do this for now,
+        # since rank is very fast and infinite loops are evil.
+        if self.rank() < self.nrows():
+            raise ValueError, "self must be of full rank."
+
+        if not self.is_square():
+            raise NotImplementedError, "the input matrix must be square."
+
+        matrix = True
+        C = B
+        if not isinstance(B, Matrix_integer_dense):
+            if is_Vector(B):
+                matrix = False
+                C = self.matrix_space(self.nrows(), 1)(B.list())
+            else:
+                raise NotImplementedError
+        X, d = self._solve_iml(C, right=True)
+        if d != 1:
+            X = (1/d) * X
+        if not matrix:
+            # Convert back to a vector
+            return (X.base_ring() ** X.nrows())(X.list())
+        else:
+            return X
 
     def _solve_iml(self, Matrix_integer_dense B, right=True):
         """
-        Let A equal self. Given B return an integer matrix C and an
-        integer d such that self C*A == d*B if right is False or
-        A*C == d*B if right is True.
+        Let A equal self be a square matrix. Given B return an integer
+        matrix C and an integer d such that self C*A == d*B if right
+        is False or A*C == d*B if right is True.
 
         OUTPUT:
             C -- integer matrix
@@ -1715,6 +1833,7 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
         cdef Integer D
 
         if self._nrows != self._ncols:
+            # This is *required* by the IML function we call below.
             raise ArithmeticError, "self must be square"
 
         if self.nrows() == 1:
@@ -1990,6 +2109,9 @@ cdef class Matrix_integer_dense(matrix_dense.Matrix_dense):   # dense or sparse
 def _parimatrix_to_strlist(A):
     s = str(A)
     s = s.replace('Mat(','').replace(')','')
+    # Deal correctly with an empty pari matrix [;]
+    if s=='[;]':
+        return []
     s = s.replace(';',',').replace(' ','')
     s = s.replace(",", "','")
     s = s.replace("[", "['")
@@ -2000,6 +2122,9 @@ def _parimatrix_to_reversed_strlist(A):
     s = str(A)
     if s.find('Mat') != -1:
         return _parimatrix_to_strlist(A)
+    # Deal correctly with an empty pari matrix [;]
+    if s=='[;]':
+        return []
     s = s.replace('[','').replace(']','').replace(' ','')
     v = s.split(';')
     v.reverse()

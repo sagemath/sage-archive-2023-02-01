@@ -6,7 +6,7 @@ EXAMPLE:
     sage: PP, (X,Y,Z) = ProjectiveSpace(2,QQ,'X,Y,Z').objgens()
     sage: f = X^4 + Y^4 + Z^4 - 3*X*Y*Z*(X+Y+Z)
     sage: C = QuarticCurve(f); C
-    Quartic Curve over Rational Field defined by Z^4 + Y^4 - 3*X*Y*Z^2 - 3*X*Y^2*Z - 3*X^2*Y*Z + X^4
+    Quartic Curve over Rational Field defined by X^4 + Y^4 - 3*X^2*Y*Z - 3*X*Y^2*Z - 3*X*Y*Z^2 + Z^4
 """
 
 #*****************************************************************************

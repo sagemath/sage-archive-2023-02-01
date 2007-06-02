@@ -78,7 +78,7 @@ TESTS:
 
 import weakref
 import power_series_ring_element
-import polynomial_ring
+import polynomial.polynomial_ring as polynomial_ring
 import laurent_series_ring
 import commutative_ring
 import integral_domain

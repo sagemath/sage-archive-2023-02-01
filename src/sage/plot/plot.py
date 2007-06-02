@@ -628,6 +628,14 @@ class Graphics(SageObject):
         """
         Show this graphics image with the default image viewer.
 
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
+
         EXAMPLES:
             sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
             sage.: c.show(xmin=-1, xmax=3, ymin=-1, ymax=3)
@@ -693,7 +701,8 @@ class Graphics(SageObject):
 
         return xmin,xmax,ymin,ymax
 
-    def save(self, filename=None, xmin=None, xmax=None, ymin=None, ymax=None,
+    def save(self, filename='sage.png',
+             xmin=None, xmax=None, ymin=None, ymax=None,
              figsize=DEFAULT_FIGSIZE, figure=None, sub=None, savenow=True,
              dpi=DEFAULT_DPI, axes=None, axes_label=None, fontsize=None,
              frame=False, verify=True):
@@ -1716,13 +1725,22 @@ bar_chart = BarChartFactory()
 
 class CircleFactory(GraphicPrimitiveFactory_circle):
     """
-
-    A circle at a point = (x,y) with radius = r
+    Return a circle at a point = (x,y) with radius = r.
     Type circle.options to see all options
 
+    circle(center, radius, **kwds)
+
+    INPUT:
+        center -- a 2-tuple (x,y)
+        radius -- a positive number
+        alpha -- default: 1
+        fill -- default: False
+        thickness -- default: 1
+        rgbcolor -- default: (0,0,0)
+
     EXAMPLES:
-    sage: c = circle((1,1),1,rgbcolor=(1,0,0))
-    sage: c.save()
+        sage: c = circle((1,1), 1, rgbcolor=(1,0,0))
+        sage: c.save()
 
     To correct the apect ratio of certain graphics, it is necessary
     to show with a 'figsize' of square dimensions.
@@ -2755,6 +2773,14 @@ class GraphicsArray(SageObject):
              axes = None, **args):
         r"""
         Show this graphics array using the default viewer.
+
+        OPTIONAL INPUT:
+            filename -- (default: None) string
+            dpi -- dots per inch
+            figsize -- [width, height] (same for square aspect)
+            axes -- (default: True)
+            fontsize -- positive integer
+            frame -- (default: False) draw a MATLAB-like frame around the image
         """
         if (figsize != DEFAULT_FIGSIZE): self.__set_figsize__(figsize)
         if EMBEDDED_MODE:

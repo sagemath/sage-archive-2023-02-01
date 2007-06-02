@@ -1,11 +1,11 @@
-import sage.rings.polynomial_element
+import sage.rings.polynomial.polynomial_element
 
 #import sage.rings.padics.padic_ring
 #import sage.rings.padics.padic_ring_element
 #import sage.rings.padics.padic_field
 #import sage.rings.padics.padic_field_element
 
-#class pAdicPolynomial(sage.rings.polynomial_element.Polynomial):
+#class pAdicPolynomial(sage.rings.polynomial.polynomial_element.Polynomial):
 #    def _mul_(self):
 #        """
 #        Override the default Karatsuba because it leaks precision

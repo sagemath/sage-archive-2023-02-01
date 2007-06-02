@@ -99,7 +99,11 @@ class ClientRemoteCallsTest(unittest.TestCase):
                                                self.data,
                                                self.signature)
         pubkey = base64.encodestring(self.public_key_str).strip()
-        self.clientdb.add_user(self.username, pubkey)
+        try:
+            self.clientdb.del_user(self.username)
+            self.clientdb.add_user(self.username, pubkey)
+        except:
+            self.clientdb.add_user(self.username, pubkey)
 
     def tearDown(self):
         self.connection.disconnect()
@@ -206,7 +210,11 @@ class MonitorRemoteCallsTest(unittest.TestCase):
                                                self.data,
                                                self.signature)
         pubkey = base64.encodestring(self.public_key_str).strip()
-        self.clientdb.add_user(self.username, pubkey)
+        try:
+            self.clientdb.del_user(self.username)
+            self.clientdb.add_user(self.username, pubkey)
+        except:
+            self.clientdb.add_user(self.username, pubkey)
 
     def tearDown(self):
         self.connection.disconnect()
@@ -246,7 +254,8 @@ class MonitorRemoteCallsTest(unittest.TestCase):
 
     def testremote_job_done(self):
         factory = PBClientFactory()
-        self.connection = reactor.connectTCP(self.hostname, self.port, factory)
+        self.connection = reactor.connectTCP(self.hostname, self.port,
+                                             factory)
         d = factory.login(self.creds, (pb.Referenceable(), hf))
         job = Job()
         job.code = "2+2"
@@ -258,10 +267,12 @@ class MonitorRemoteCallsTest(unittest.TestCase):
         return d
 
     def _job_done(self, remoteobj, jdict):
+        import time
         job_id = jdict['job_id']
         result = jdict['result']
         d = remoteobj.callRemote('job_done', job_id,
-                                 'Nothing.', result, False)
+                                 'Nothing.', result, False,
+                                 time.time() - time.time())
         d.addCallback(self._done_job)
 
         return d

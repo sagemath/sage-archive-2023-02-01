@@ -49,6 +49,7 @@ cdef extern from "math.h":
 
 import operator
 
+
 import integer_mod_ring
 import arith
 import rational
@@ -438,8 +439,8 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
         AUTHOR:
          -- Craig Citro
         """
-        import polynomial_ring
-        R = polynomial_ring.PolynomialRing(self._parent, var)
+        from polynomial.polynomial_ring import PolynomialRing
+        R = PolynomialRing(self._parent, var)
         return R([-self,1])
 
     def norm(self):
@@ -600,13 +601,19 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             [20, 160, 200, 340]
             sage: R(1).sqrt(all=True)
             [1, 19, 71, 89, 91, 109, 161, 179, 181, 199, 251, 269, 271, 289, 341, 359]
+            sage: R(0).sqrt(all=True)
+            [0, 60, 120, 180, 240, 300]
 
-            sage: R = Integers(5*13^2*37); R
-            Ring of integers modulo 31265
+            sage: R = Integers(5*13^3*37); R
+            Ring of integers modulo 406445
             sage: v = R(-1).sqrt(all=True); v
-            [3817, 5507, 13252, 14942, 16323, 18013, 25758, 27448]
+            [78853, 111808, 160142, 193097, 213348, 246303, 294637, 327592]
             sage: [x^2 for x in v]
-            [31264, 31264, 31264, 31264, 31264, 31264, 31264, 31264]
+            [406444, 406444, 406444, 406444, 406444, 406444, 406444, 406444]
+            sage: v = R(169).sqrt(all=True); min(v), -max(v), len(v)
+            (13, 13, 104)
+            sage: all([x^2==169 for x in v])
+            True
 
         Modulo a power of 2:
             sage: R = Integers(2^7); R
@@ -618,6 +625,7 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             [23, 41, 87, 105]
             sage: [x for x in R if x^2==17]
             [23, 41, 87, 105]
+
         """
         if self.is_one():
             if all:
@@ -627,9 +635,15 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
 
         if not self.is_square_c():
             if extend:
-                R = self.parent()['x']
                 y = 'sqrt%s'%self
-                Q = R.quotient(R.gen()**2 - R(self), names=(y,))
+                R = self.parent()['x']
+                modulus = R.gen()**2 - R(self)
+                if self._parent.is_field():
+                    import finite_field
+                    Q = finite_field.FiniteField(self.__modulus.sageInteger**2, y, modulus)
+                else:
+                    R = self.parent()['x']
+                    Q = R.quotient(modulus, names=(y,))
                 z = Q.gen()
                 if all:
                     # TODO
@@ -638,13 +652,40 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             raise ValueError, "self must be a square"
 
         F = self._parent.factored_order()
+        cdef long e, exp, val
         if len(F) == 1:
             p, e = F[0]
 
             if all and e > 1 and not self.is_unit():
-                # TODO -- this is the *one* and only remaining STUPID SLOW CASE.
-                v = [x for x in self.parent() if x*x == self]
-                return v
+                if self.is_zero():
+                    # All multiples of p^ciel(e/2) vanish
+                    return [self._parent(x) for x in xrange(0, self.__modulus.sageInteger, p**((e+1)/2))]
+                else:
+                    z = self.lift()
+                    val = z.valuation(p)/2  # square => valuation is even
+                    from integer_mod_ring import IntegerModRing
+                    # Find the unit part (mod the ring with appropriate precision)
+                    u = IntegerModRing(p**(e-val))(z // p**(2*val))
+                    # will add multiples of p^exp
+                    exp = e - val
+                    if p == 2:
+                        exp -= 1  # note the factor of 2 below
+                    if 2*exp < e:
+                        exp = (e+1)/2
+                    # For all a^2 = u and all integers b
+                    #   (a*p^val + b*p^exp) ^ 2
+                    #   = u*p^(2*val) + 2*a*b*p^(val+exp) + b^2*p^(2*exp)
+                    #   = u*p^(2*val)  mod p^e
+                    # whenever min(val+exp, 2*exp) > e
+                    p_val = p**val
+                    p_exp = p**exp
+                    w = [self._parent(a.lift() * p_val + b)
+                            for a in u.sqrt(all=True)
+                            for b in xrange(0, self.__modulus.sageInteger, p_exp)]
+                    if p == 2:
+                        w = list(set(w))
+                    w.sort()
+                    return w
 
             if e > 1:
                 x = square_root_mod_prime_power(mod(self, p**e), p, e)
@@ -655,9 +696,10 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
             if not all:
                 return x
 
-            v = list(set([x*a for a in self.parent().square_roots_of_one()]))
+            v = list(set([x*a for a in self._parent.square_roots_of_one()]))
             v.sort()
             return v
+
         else:
             if not all:
                 # Use CRT to combine together a square root modulo each prime power
@@ -691,6 +733,9 @@ cdef class IntegerMod_abstract(sage.structure.element.CommutativeRingElement):
                     v.append(a)
                 v.sort()
                 return v
+
+    def square_root(self):
+        return self.sqrt()
 
     def _balanced_abs(self):
         """
@@ -1520,6 +1565,42 @@ cdef class IntegerMod_int(IntegerMod_abstract):
                     return 0
             return 1
 
+    def sqrt(self, extend=True, all=False):
+        cdef int_fast32_t i, n = self.__modulus.int32
+        if n > 100:
+            moduli = self._parent.factored_order()
+        # Unless the modulus is tiny, test to see if we're in the really
+        # easy case of n prime, n = 3 mod 4.
+        if n > 100 and n % 4 == 3 and len(moduli) == 1 and moduli[0][1] == 1:
+            if jacobi_int(self.ivalue, self.__modulus.int32) == 1:
+                # it's a non-zero square, sqrt(a) = a^(p+1)/4
+                i = mod_pow_int(self.ivalue, (self.__modulus.int32+1)/4, n)
+                if i > n/2:
+                    i = n-i
+                if all:
+                    return [self._new_c(i), self._new_c(n-i)]
+                else:
+                    return self._new_c(i)
+            elif self.ivalue == 0:
+                return self
+            elif not extend:
+                raise ValueError, "self must be a square"
+        # Now we use a heuristic to guess whether or not it will
+        # be faster to just brute-force search for squares in a c loop...
+        # TODO: more tuning?
+        elif n <= 100 or n / (1 << len(moduli)) < 5000:
+            if all:
+                return [self._new_c(i) for i from 0 <= i < n if (i*i) % n == self.ivalue]
+            else:
+                for i from 0 <= i <= n/2:
+                    if (i*i) % n == self.ivalue:
+                        return self._new_c(i)
+                if not extend:
+                    raise ValueError, "self must be a square"
+        # Either it failed but extend was True, or the generic algorithm is better
+        return IntegerMod_abstract.sqrt(self, extend=extend, all=all)
+
+
     def _balanced_abs(self):
         """
         This function returns x or -x, whichever has a positive
@@ -1722,7 +1803,7 @@ cdef class IntegerMod_int64(IntegerMod_abstract):
 
     cdef void set_from_int(IntegerMod_int64 self, int_fast64_t ivalue):
         if ivalue < 0:
-            self.ivalue = self.__modulus.int64 + (ivalue % self.__modulus.int64)
+            self.ivalue = self.__modulus.int64 + (ivalue % self.__modulus.int64) # Is ivalue % self.__modulus.int64 actually negative?
         elif ivalue >= self.__modulus.int64:
             self.ivalue = ivalue % self.__modulus.int64
         else:
@@ -2211,7 +2292,8 @@ def square_root_mod_prime(IntegerMod_abstract a, p=None):
 
     TESTS:
         Every case appears in the first hundred primes.
-        sage: all([(a*a).sqrt()^2 == a*a for p in prime_range(100) for a in Integers(p)])
+        sage: from sage.rings.integer_mod import square_root_mod_prime   # sqrt() uses brute force for small p
+        sage: all([square_root_mod_prime(a*a)^2 == a*a for p in prime_range(100) for a in Integers(p)])
         True
     """
     if a.is_zero() or a.is_one():

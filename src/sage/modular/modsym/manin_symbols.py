@@ -30,7 +30,7 @@ import sage.modular.modsym.g1list as g1list
 import sage.modular.modsym.ghlist as ghlist
 import sage.modular.modsym.modular_symbols
 import sage.rings.arith as arith
-import sage.rings.polynomial_ring as polynomial_ring
+import sage.rings.polynomial.polynomial_ring as polynomial_ring
 import sage.rings.all as rings
 
 from sage.structure.sage_object import SageObject

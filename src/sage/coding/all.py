@@ -12,14 +12,15 @@ from guava import (HammingCode,
                    ExtendedQuadraticResidueCode,
                    QuasiQuadraticResidueCode,
                    BinaryReedMullerCode,
-                   BinaryGolayCode,
+                   CyclicCode, RandomLinearCodeGuava)
+
+from code_constructions import (BinaryGolayCode,
                    ExtendedBinaryGolayCode,
                    TernaryGolayCode,
                    ExtendedTernaryGolayCode,
                    RandomLinearCode,
                    ToricCode,
-                   TrivialCode,
-                   CyclicCode)
+                   TrivialCode)
 
 from ag_code import ag_code
 

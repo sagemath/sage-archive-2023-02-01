@@ -29,7 +29,7 @@ import quotient_ring_element
 import sage.misc.latex as latex
 import commutative_ring
 import ideal
-import multi_polynomial_ideal
+import sage.rings.polynomial.multi_polynomial_ideal
 import sage.structure.parent_gens
 from sage.interfaces.all import singular as singular_default, is_SingularElement
 
@@ -85,7 +85,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         sage: S.<a,b> = R.quo(1 + y^2)
         sage: T.<c,d> = S.quo(a)
         sage: T
-        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, 1 + y^2)
+        Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x, y^2 + 1)
         sage: T.gens()
         (0, d)
     """
@@ -160,11 +160,11 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: pi = S.cover(); pi
             Ring morphism:
               From: Polynomial Ring in x, y over Rational Field
-              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+              To:   Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               Defn: Natural quotient map
             sage: L = S.lift(); L
             Set-theoretic ring morphism:
-              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (y^2 + x^2)
+              From: Quotient of Polynomial Ring in x, y over Rational Field by the ideal (x^2 + y^2)
               To:   Polynomial Ring in x, y over Rational Field
               Defn: Choice of lifting map
             sage: L(S.0)
@@ -175,9 +175,9 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         Note that some reduction may be applied so that the lift of a reduction
         need not equal the original element.
             sage: z = pi(x^3 + 2*y^2); z
-            2*ybar^2 - xbar*ybar^2
+            -xbar*ybar^2 + 2*ybar^2
             sage: L(z)
-            2*y^2 - x*y^2
+            -x*y^2 + 2*y^2
             sage: L(z) == x^3 + 2*y^2
             False
         """
@@ -222,7 +222,8 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
         return self.__R
 
     def ideal(self, gens, coerce=False):
-        if not self.__R._has_singular:
+        from sage.rings.polynomial.multi_polynomial_libsingular import MPolynomialRing_libsingular
+        if not isinstance(self.__R,MPolynomialRing_libsingular) and not self.__R._has_singular:
             # pass through
             MPolynomialRing_generic.ideal(self,gens,coerce)
         if is_SingularElement(gens):
@@ -232,7 +233,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             gens = [gens]
         if coerce:
             gens = [self(x) for x in gens]  # this will even coerce from singular ideals correctly!
-        return multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
+        return sage.rings.polynomial.multi_polynomial_ideal.MPolynomialIdeal(self, gens, coerce=False)
 
     def _can_convert_to_singular(self):
         return self.__R._can_convert_to_singular()
@@ -268,7 +269,7 @@ class QuotientRing_generic(commutative_ring.CommutativeRing, sage.structure.pare
             sage: S._coerce_(2/3)
             2/3
             sage: S._coerce_(a^2 - b)
-            -1*b - b^2
+            -b^2 - b
             sage: S._coerce_(GF(7)(3))
             Traceback (most recent call last):
             ...

@@ -1,4 +1,4 @@
-import sage.rings.polynomial_quotient_ring as pqr
+import sage.rings.polynomial.polynomial_quotient_ring as pqr
 import sage.rings.padics.padic_generic
 #import sage.rings.padics.eisenstein_extension_generic_element
 import sage.rings.padics.padic_ring_generic
@@ -6,7 +6,7 @@ import sage.rings.padics.padic_field_generic
 import padic_extension_generic
 
 pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
-#PolynomialQuotientRing_domain = sage.rings.polynomial_quotient_ring.PolynomialQuotientRing_domain
+#PolynomialQuotientRing_domain = sage.rings.polynomial.polynomial_quotient_ring.PolynomialQuotientRing_domain
 #EisensteinExtensionGenericElement = sage.rings.padics.eisenstein_extension_generic_element.EisensteinExtensionGenericElement
 #pAdicRingBaseGeneric = sage.rings.padics.padic_ring_generic.pAdicRingBaseGeneric
 #pAdicFieldBaseGeneric = sage.rings.padics.padic_field_generic.pAdicFieldBaseGeneric

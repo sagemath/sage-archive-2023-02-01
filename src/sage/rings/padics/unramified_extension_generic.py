@@ -1,11 +1,11 @@
 import padic_ring_base_generic
 import sage.rings.finite_field
-import sage.rings.polynomial_ring
-import sage.rings.polynomial_quotient_ring as pqr
+import sage.rings.polynomial.polynomial_ring
+import sage.rings.polynomial.polynomial_quotient_ring as pqr
 import sage.rings.padics.unramified_extension_generic_element
-#import sage.rings.polynomial_quotient_ring_element
+#import sage.rings.polynomial.polynomial_quotient_ring_element
 #import sage.rings.padics.padic_ring_generic
-#import sage.rings.polynomial_element
+#import sage.rings.polynomial.polynomial_element
 #import sage.rings.padics.unramified_extension_generic
 #import sage.rings.padics.padic_ring_extension_generic
 #import sage.rings.padics.padic_ring_fixed_mod
@@ -16,7 +16,7 @@ import padic_extension_generic
 pAdicRingBaseGeneric = padic_ring_base_generic.pAdicRingBaseGeneric
 pAdicExtensionGeneric = padic_extension_generic.pAdicExtensionGeneric
 UnramifiedExtensionGenericElement = sage.rings.padics.unramified_extension_generic_element.UnramifiedExtensionGenericElement
-PolynomialRing = sage.rings.polynomial_ring.PolynomialRing
+PolynomialRing = sage.rings.polynomial.polynomial_ring.PolynomialRing
 GF = sage.rings.finite_field.GF
 pAdicGeneric = sage.rings.padics.padic_generic.pAdicGeneric
 

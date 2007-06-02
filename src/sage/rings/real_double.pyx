@@ -1360,7 +1360,7 @@ def RealDoubleField():
 
 
 def is_RealDoubleElement(x):
-    return PY_TYPE_CHECK(x, RealDoubleElement)
+    return bool(PY_TYPE_CHECK(x, RealDoubleElement))
 
 
 
@@ -1565,4 +1565,4 @@ def time_alloc(n):
 
 def pool_stats():
     print "Used pool %s / %s times" % (use_pool, total_alloc)
-    print "Pool contains %s / %s items" % (integer_pool_count, integer_pool_size)
+    print "Pool contains %s / %s items" % (element_pool_count, element_pool_size)

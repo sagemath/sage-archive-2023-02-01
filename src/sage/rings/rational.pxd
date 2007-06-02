@@ -12,3 +12,4 @@ cdef class Rational(sage.structure.element.FieldElement):
     cdef _rshift(self, long int exp)
 
     cdef integer.Integer _integer_c(self)
+    cdef _val_unit(self, integer.Integer p)

@@ -31,10 +31,7 @@ EXAMPLES:
 AUTHORS:
      -- Martin Albrecht <malb@informatik.uni-bremen.de> (2006-06-05)
      -- William Stein (2006-12-07): editing, lots of docs, etc.
-
-TODO:
-    * Need a finite_field_givaro.pxd file, so functionality can be
-      used directly from other SageX code.
+     -- Robert Bradshaw (2007-05-23): is_square/sqrt, pow.
 """
 
 
@@ -132,8 +129,8 @@ cdef void late_import():
     import sage.rings.rational
     Rational = sage.rings.rational.Rational
 
-    import sage.rings.polynomial_element
-    is_Polynomial = sage.rings.polynomial_element.is_Polynomial
+    import sage.rings.polynomial.polynomial_element
+    is_Polynomial = sage.rings.polynomial.polynomial_element.is_Polynomial
 
     import sage.databases.conway
     ConwayPolynomials = sage.databases.conway.ConwayPolynomials
@@ -141,11 +138,11 @@ cdef void late_import():
     import sage.rings.finite_field
     conway_polynomial = sage.rings.finite_field.conway_polynomial
 
-    import sage.rings.multi_polynomial_element
-    MPolynomial = sage.rings.multi_polynomial_element.MPolynomial
+    import sage.rings.polynomial.multi_polynomial_element
+    MPolynomial = sage.rings.polynomial.multi_polynomial_element.MPolynomial
 
-    import sage.rings.polynomial_element
-    Polynomial = sage.rings.polynomial_element.Polynomial
+    import sage.rings.polynomial.polynomial_element
+    Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 
     import sage.modules.free_module_element
     FreeModuleElement = sage.modules.free_module_element.FreeModuleElement
@@ -513,6 +510,10 @@ cdef class FiniteField_givaro(FiniteField):
             sage: F.multiplicative_generator()^3
             12*a + 11
 
+            sage: k.<a> = GF(29^3)
+            sage: k(48771/1225)
+            28
+
         """
 
         cdef int res
@@ -567,8 +568,6 @@ cdef class FiniteField_givaro(FiniteField):
         elif PY_TYPE_CHECK(e, Rational):
             num = e.numer()
             den = e.denom()
-            if num>=self.characteristic() or den>=self.characteristic():
-                raise TypeError, "unable to coerce"
             return self(num)/self(den)
 
         elif PY_TYPE_CHECK(e, gen):
@@ -847,7 +846,7 @@ cdef class FiniteField_givaro(FiniteField):
 
     cdef polynomial_ring_c(self, variable_name):
         if self._polynomial_ring is None:
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             if variable_name is None:
                 # todo: is this cache necessary?
                 self._polynomial_ring = PolynomialRing(self.prime_subfield_C(),self.variable_name())
@@ -1286,16 +1285,80 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             [True, True, True, True, True]
             sage: [x.is_square() for x in k if not x in v]
             [False, False, False, False]
-        """
-        #copied from finite_field_element.py
-        cdef FiniteField_givaro K
-        K = self._parent
-        if K.characteristic() == 2:
-            return True
-        n = K.order_c() - 1
-        a = self**(n / 2)
-        return bool(a == 1) or bool (a == 0)
 
+        ALGORITHM:
+            Elements are stored as powers of generators, so we simply check
+            to see if it is an even power of a generator.
+
+        TESTS:
+            sage: K = GF(27, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+            sage: K = GF(25, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+            sage: K = GF(16, 'a')
+            sage: set([a*a for a in K]) == set([a for a in K if a.is_square()])
+            True
+        """
+        cdef FiniteField_givaro field = <FiniteField_givaro>self._parent
+        if field.objectptr.characteristic() == 2:
+            return True
+        elif self.element == field.objectptr.one:
+            return True
+        else:
+            return self.element % 2 == 0
+
+    def sqrt(FiniteField_givaroElement self, all=False, extend=False):
+        """
+        Return a square root of this finite field element in its
+        parent, if there is one.  Otherwise, raise a ValueError.
+
+        EXAMPLES:
+            sage: k.<a> = GF(7^2)
+            sage: k(2).sqrt()
+            3
+            sage: k(3).sqrt()
+            2*a + 6
+            sage: k(3).sqrt()**2
+            3
+            sage: k(4).sqrt()
+            2
+            sage: k.<a> = GF(7^3)
+            sage: k(3).sqrt()
+            Traceback (most recent call last):
+            ...
+            ValueError: must be a perfect square.
+
+        ALGORITHM:
+            Self is stored as $a^k$ for some generator $a$.
+            Return $a^(k/2)$ for even $k$.
+
+        TESTS:
+            sage: K = GF(49, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+            sage: K = GF(27, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+            sage: K = GF(8, 'a')
+            sage: all([a.sqrt()*a.sqrt() == a for a in K if a.is_square()])
+            True
+        """
+        if all:
+            a = self.sqrt()
+            return [a, -a] if -a != a else [a]
+        cdef FiniteField_givaro field = <FiniteField_givaro>self._parent
+        if self.element == field.objectptr.one:
+            return make_FiniteField_givaroElement(field, field.objectptr.one)
+        elif self.element % 2 == 0:
+            return make_FiniteField_givaroElement(field, self.element/2)
+        elif field.objectptr.characteristic() == 2:
+            return make_FiniteField_givaroElement(field, (field.objectptr.cardinality() - 1 + self.element)/2)
+        elif extend:
+            raise NotImplementedError # TODO: fix this once we have nested embeddings of finite fields
+        else:
+            raise ValueError, "must be a perfect square."
 
     cdef ModuleElement _add_c_impl(self, ModuleElement right):
         """
@@ -1335,8 +1398,15 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: k.<g> = GF(2**8)
             sage: g/g
             1
+
+            sage: k(1) / k(0)
+            Traceback (most recent call last):
+            ...
+            ZeroDivisionError: division by zero in finite field.
         """
         cdef int r
+        if (<FiniteField_givaroElement>right).element == 0:
+            raise ZeroDivisionError, 'division by zero in finite field.'
         r = parent_object(self).objectptr.div(r, self.element,
                                               (<FiniteField_givaroElement>right).element)
         return make_FiniteField_givaroElement(parent_object(self),r)
@@ -1582,7 +1652,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: f = (b^2+1).polynomial(); f
             b + 4
             sage: type(f)
-            <class 'sage.rings.polynomial_element_generic.Polynomial_dense_mod_p'>
+            <class 'sage.rings.polynomial.polynomial_element_generic.Polynomial_dense_mod_p'>
             sage: parent(f)
             Univariate Polynomial Ring in b over Finite Field of size 5
         """
@@ -1596,7 +1666,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             ret.append(coeff)
             quo = quo/b
         if not name is None and F.variable_name() != name:
-            from sage.rings.polynomial_ring import PolynomialRing
+            from sage.rings.polynomial.polynomial_ring import PolynomialRing
             return PolynomialRing(F.prime_subfield_C(), name)(ret)
         else:
             return F.polynomial_ring()(ret)
@@ -1801,7 +1871,7 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
             sage: a^2 + 18*a + 2
             0
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         R = PolynomialRing(parent_object(self).prime_subfield_C(), var)
         return R(self._pari_().charpoly('x').lift())
 
@@ -1874,35 +1944,6 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
         """
         return hash(self.log_to_int())
 
-    def square_root(FiniteField_givaroElement self):
-        """
-        Return a square root of this finite field element in its
-        parent, if there is one.  Otherwise, raise a ValueError.
-
-        EXAMPLES:
-            sage: k.<a> = GF(7^2)
-            sage: k(2).square_root()
-            4
-            sage: k(3).square_root()
-            5*a + 1
-            sage: k(3).square_root()**2
-            3
-            sage: k(4).square_root()
-            5
-            sage: k.<a> = GF(7^3)
-            sage: k(3).square_root()
-            Traceback (most recent call last):
-            ...
-            ValueError: must be a perfect square.
-        """
-        from sage.rings.polynomial_ring import PolynomialRing
-        R = PolynomialRing(parent_object(self), 'x')
-        f = R([-self, 0, 1])
-        g = f.factor()
-        if len(g) == 2 or g[0][1] == 2:
-            return -g[0][0][0]
-        raise ValueError, "must be a perfect square."
-
     def vector(FiniteField_givaroElement self):
         """
         Return a vector in self.parent().vector_space() matching self.
@@ -1953,10 +1994,9 @@ cdef class FiniteField_givaroElement(FiniteFieldElement):
 def unpickle_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     return make_FiniteField_givaroElement(parent, x)
 
-cdef FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
+cdef inline FiniteField_givaroElement make_FiniteField_givaroElement(FiniteField_givaro parent, int x):
     cdef FiniteField_givaroElement y
     cdef PyObject** w
-
 
     if parent._array is None:
         #y = FiniteField_givaroElement(parent)

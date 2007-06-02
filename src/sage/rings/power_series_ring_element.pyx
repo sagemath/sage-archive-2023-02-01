@@ -80,9 +80,8 @@ include "../ext/stdsage.pxi"
 import operator
 
 from infinity import infinity, is_Infinite
-from polynomial_ring import PolynomialRing
-import polynomial_element_generic
-import polynomial_element
+from sage.rings.polynomial.polynomial_ring import PolynomialRing
+import sage.rings.polynomial.polynomial_element
 import power_series_ring
 import sage.misc.misc
 import ring_element
@@ -99,7 +98,7 @@ from sage.rings.arith import integer_ceil as ceil
 
 from sage.rings.ring import is_Field
 
-Polynomial = polynomial_element.Polynomial_generic_dense
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial_generic_dense
 
 from sage.structure.element cimport AlgebraElement, RingElement, ModuleElement, Element
 
@@ -396,10 +395,10 @@ cdef class PowerSeries(AlgebraElement):
             coeffs = list(d.iteritems())
             coeffs.sort()
             for (n, x) in coeffs:
-                if x:
+                x = repr(x)
+                if x != '0':
                     if s != ' ':
                         s += " + "
-                    x = repr(x)
                     if not atomic_repr and n > 0 and (x.find("+") != -1 or x.find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -415,10 +414,10 @@ cdef class PowerSeries(AlgebraElement):
             first = True
             for n in xrange(m):
                 x = v[n]
-                if x:
+                x = repr(x)
+                if x != '0':
                     if not first:
                         s += " + "
-                    x = repr(x)
                     if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                         x = "(%s)"%x
                     if n > 1:
@@ -471,10 +470,10 @@ cdef class PowerSeries(AlgebraElement):
         first = True
         for n in xrange(m):
             x = v[n]
-            if x:
+            x = sage.misc.latex.latex(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if n > 1:
@@ -624,13 +623,14 @@ cdef class PowerSeries(AlgebraElement):
             return f._prec
 
     cdef RingElement _mul_c_impl(self, RingElement right_r):
+        # TODO: doctest
         cdef PowerSeries right = <PowerSeries>right_r
         if self.is_zero():
             return self
         if right.is_zero():
             return right
         sp = self._prec
-        rp = right_.prec
+        rp = right._prec
         if sp is infinity:
             if rp is infinity:
                 prec = infinity

@@ -121,7 +121,7 @@ class LocalGeneric(sage.rings.ring.CommutativeRing):
         OUTPUT:
             polynomial -- the defining polynomial of this ring as an extension over its ground ring
         """
-        from sage.rings.polynomial_ring import PolynomialRing
+        from sage.rings.polynomial.polynomial_ring import PolynomialRing
         x = PolynomialRing(self, var).gen()
         return x - 1
 

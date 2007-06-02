@@ -113,7 +113,7 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
         sage: G = PermutationGroup(['(1,2,3)(4,5)', '(1,2,3,4,5)'])
         sage: sigma = G.gen(0)
         sage: f * sigma
-        -1*z^2 + y^2 + 3*x^2
+        3*x^2 + y^2 - z^2
 
     """
     def __init__(self, g, parent = None, check = True):
@@ -350,13 +350,13 @@ class PermutationGroupElement(element.MultiplicativeGroupElement):
             sage: f = x^2 + y^2 - z^2 + 2*u^2
             sage: sigma, tau = G.gens()
             sage: f*sigma
-            2*v^2 + z^2 + y^2 - x^2
+            -x^2 + y^2 + z^2 + 2*v^2
             sage: f*tau
-            2*v^2 - u^2 + z^2 + y^2
+            y^2 + z^2 - u^2 + 2*v^2
             sage: f*(sigma*tau)
-            u^2 + z^2 - y^2 + 2*x^2
+            2*x^2 - y^2 + z^2 + u^2
             sage: (f*sigma)*tau
-            u^2 + z^2 - y^2 + 2*x^2
+            2*x^2 - y^2 + z^2 + u^2
         """
         if is_Polynomial(left):
             if self != 1:

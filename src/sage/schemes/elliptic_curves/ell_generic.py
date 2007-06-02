@@ -20,7 +20,7 @@ Elliptic curves over a general ring
 
 import math
 
-from sage.rings.all import MPolynomialRing
+from sage.rings.all import MPolynomialRing, PolynomialRing
 
 import sage.plot.all as plot
 
@@ -97,10 +97,11 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
         f = y**2*z + (a1*x + a3*z)*y*z \
             - (x**3 + a2*x**2*z + a4*x*z**2 + a6*z**3)
         plane_curve.ProjectiveCurve_generic.__init__(self, PP, f)
+        # TODO: cleanup, are these two point classes redundant?
         if K.is_field():
-            self._point_class = ell_point.EllipticCurvePoint_field
+            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint_field
         else:
-            self._point_class = ell_point.EllipticCurvePoint
+            self._point_morphism_class = self._point_class = ell_point.EllipticCurvePoint
 
     def _defining_params_(self):
         return (self.__base_ring, self.__ainvs)
@@ -286,7 +287,10 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
     def __cmp__(self, other):
         if not isinstance(other, EllipticCurve_generic):
             return -1
-        return misc.generic_cmp(self.ainvs(), other.ainvs())
+        t = cmp(self.base_ring(), other.base_ring())
+        if t:
+            return t
+        return cmp(self.ainvs(), other.ainvs())
 
     def __contains__(self, P):
         """
@@ -356,8 +360,7 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E([0,0])
             Traceback (most recent call last):
             ...
-            TypeError: coordinates [0, 0, 1] do not define a point on Elliptic Curve
-            defined by y^2  = x^3 +1 over Finite Field of size 7
+            TypeError: coordinates [0, 0, 1] do not define a point on Elliptic Curve defined by y^2  = x^3 +1 over Finite Field of size 7
 
         We create a point on an elliptic curve over a number field.
             sage: x = polygen(RationalField())
@@ -373,13 +376,26 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             (a : 0 : 1)
             sage: P+P
             (0 : 1 : 0)
+
+        Another example involving p-adics:
+            sage: E = EllipticCurve('37a1')
+            sage: P = E([0,0]); P
+            (0 : 0 : 1)
+            sage: R = pAdicField(3,20)
+            sage: Ep = E.base_extend(R); Ep
+            Elliptic Curve defined by y^2 + (1+O(3^20))*y = x^3 + (2+2*3+2*3^2+2*3^3+2*3^4+2*3^5+2*3^6+2*3^7+2*3^8+2*3^9+2*3^10+2*3^11+2*3^12+2*3^13+2*3^14+2*3^15+2*3^16+2*3^17+2*3^18+2*3^19+O(3^20))*x over 3-adic Field with capped relative precision 20
+            sage: Ep(P)
+            (0 : 0 : 1 + O(3^20))
         """
         if len(args) == 1 and args[0] == 0:
             R = self.base_ring()
             return self.point([R(0),R(1),R(0)], check=False)
+        if isinstance(args[0],
+              (ell_point.EllipticCurvePoint_field, ell_point.EllipticCurvePoint)):
+            args = tuple(args[0])
         return plane_curve.ProjectiveCurve_generic.__call__(self, *args, **kwds)
 
-    def lift_x(self, x):
+    def lift_x(self, x, all=False):
         """
         Given the x-coordinate of a point on the curve, use the defining
         polynomial to find all affine points on this curve with the
@@ -389,77 +405,96 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             sage: E = EllipticCurve('37a'); E
             Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
             sage: E.lift_x(1)
-            [(1 : 0 : 1), (1 : -1 : 1)]
+            (1 : 0 : 1)
             sage: E.lift_x(2)
-            [(2 : 2 : 1), (2 : -3 : 1)]
-            sage: E.lift_x(1/4)
+            (2 : 2 : 1)
+            sage: E.lift_x(1/4, all=True)
             [(1/4 : -3/8 : 1), (1/4 : -5/8 : 1)]
 
         There are no rational points with x-cordinate 3.
             sage: E.lift_x(3)
-            []
+            Traceback (most recent call last):
+            ...
+            ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 - x over Rational Field
 
         However, there are two such points in $E(\R)$:
-            sage: E.change_ring(RR).lift_x(3)
+            sage: E.change_ring(RR).lift_x(3, all=True)
             [(3.00000000000000 : 4.42442890089805 : 1.00000000000000), (3.00000000000000 : -5.42442890089805 : 1.00000000000000)]
 
         And of course it always works in $E(\C)$:
-            sage: E.change_ring(RR).lift_x(.5)
+            sage: E.change_ring(RR).lift_x(.5, all=True)
             []
             sage: E.change_ring(CC).lift_x(.5)
-            [(0.500000000000000 : -0.500000000000000 + 0.353553390593274*I : 1.00000000000000), (0.500000000000000 : -0.500000000000000 - 0.353553390593274*I : 1.00000000000000)]
+            (0.500000000000000 : -0.500000000000000 + 0.353553390593274*I : 1.00000000000000)
 
         We can perform these operations over finite fields too:
             sage: E = E.change_ring(GF(17)); E
             Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
             sage: E.lift_x(7)
-            [(7 : 11 : 1), (7 : 5 : 1)]
+            (7 : 11 : 1)
             sage: E.lift_x(3)
-            []
+            Traceback (most recent call last):
+            ...
+            ValueError: No point with x-coordinate 3 on Elliptic Curve defined by y^2 + y = x^3 + 16*x over Finite Field of size 17
 
         Note that there is only one lift with x-coordinate 10 in $E(\F_17)$.
-            sage: E.lift_x(10)
+            sage: E.lift_x(10, all=True)
             [(10 : 8 : 1)]
 
         We can lift over more exotic rings too.
             sage: E = EllipticCurve('37a');
             sage: E.lift_x(pAdicField(17, 5)(6))
-            [(6 + O(17^5) : 2 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5) : 1 + O(17^5)), (6 + O(17^5) : 14 + O(17^5) : 1 + O(17^5))]
+            (6 + O(17^5) : 2 + 16*17 + 16*17^2 + 16*17^3 + 16*17^4 + O(17^5) : 1 + O(17^5))
             sage: K.<t> = PowerSeriesRing(QQ, 't', 5)
             sage: E.lift_x(1+t)
-            [(1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1), (1 + t : -1 - 2*t + t^2 - 5*t^3 + 21*t^4 + O(t^5) : 1)]
+            (1 + t : 2*t - t^2 + 5*t^3 - 21*t^4 + O(t^5) : 1)
+            sage: K.<a> = GF(16)
+            sage: E = E.change_ring(K)
+            sage: E.lift_x(a^3)
+            (a^3 : a^3 + a : 1)
+
+
+        AUTHOR: Robert Bradshaw, 2007-04-24
 
         TEST:
             sage: E = EllipticCurve('37a').weierstrass_model().change_ring(GF(17))
-            sage: E.lift_x(3)
+            sage: E.lift_x(3, all=True)
             []
-            sage: E.lift_x(7)
+            sage: E.lift_x(7, all=True)
             [(7 : 3 : 1), (7 : 14 : 1)]
         """
         a1, a2, a3, a4, a6 = self.ainvs()
         f = ((x + a2) * x + a4) * x + a6
-        x += self.base_ring()(0)
+        K = self.base_ring()
+        x += K(0)
         one = x.parent()(1)
         if a1.is_zero() and a3.is_zero():
-            if f.is_zero():
-                return [self.point([x,x.parent()(0), one], check=False)]
-            if not f.is_square():
-                return []
-            else:
-                y = f.sqrt(extend=False)
-                return [self.point([x,  y, one], check=False),
-                        self.point([x, -y, one], check=False)]
+            if f.is_square():
+                if all:
+                    ys = f.sqrt(all=True)
+                    return [self.point([x, y, one], check=False) for y in ys]
+                else:
+                    return self.point([x, f.sqrt(), one], check=False)
         else:
             b = (a1*x + a3)
             D = b*b + 4*f
-            if D.is_zero():
-                return [self.point([x, -b/2, one], check=False)]
-            if not D.is_square():
-                return []
-            else:
-                sqrtD = D.sqrt(extend=False)
-                return [self.point([x, (-b+sqrtD)/2, one], check=False),
-                        self.point([x, (-b-sqrtD)/2, one], check=False)]
+            if K.characteristic() == 2:
+                R = PolynomialRing(K, 'y')
+                F = R([-f,b,1])
+                ys = F.roots()
+                if all:
+                    return [self.point([x, y[0], one], check=False) for y in ys]
+                elif len(ys) > 0:
+                    return self.point([x, ys[0][0], one], check=False)
+            elif D.is_square():
+                if all:
+                    return [self.point([x, (-b+d)/2, one], check=False) for d in D.sqrt(all=True)]
+                else:
+                    return self.point([x, (-b+D.sqrt())/2, one], check=False)
+        if all:
+            return []
+        else:
+            raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
 
     def _homset_class(self, *args, **kwds):
         return homset.SchemeHomsetModule_abelian_variety_coordinates_field(*args, **kwds)
@@ -1317,3 +1352,12 @@ class EllipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             return self.__formal_group
 
     formal = formal_group
+
+
+    def hyperelliptic_polynomials(self):
+        K = self.base_ring()
+        R = PolynomialRing(K, 'x')
+        x = R.gen(0)
+        a1, a2, a3, a4, a6 = self.ainvs()
+        return R([a6, a4, a2, 1]), R([a3, a1])
+

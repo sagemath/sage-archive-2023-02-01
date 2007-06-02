@@ -1,16 +1,16 @@
 from __future__ import with_statement
 from sage.rings.finite_field import GF
 from sage.rings.padics.misc import min
-import sage.rings.polynomial_quotient_ring_element
+import sage.rings.polynomial.polynomial_quotient_ring_element
 import sage.rings.integer
 import sage.rings.rational
 import sage.rings.integer_mod
 import sage.rings.finite_field_element
-import sage.rings.polynomial_ring_constructor
+import sage.rings.polynomial.polynomial_ring_constructor
 import sage.rings.padics.padic_ring_generic
 import sage.rings.padics.padic_ring_lazy
 import sage.rings.padics.padic_ring_capped_relative
-import sage.rings.polynomial_element
+import sage.rings.polynomial.polynomial_element
 import sage.rings.infinity
 import sys
 import padic_generic
@@ -18,7 +18,7 @@ import padic_ring_base_generic
 import sage.rings.arith
 
 infinity = sage.rings.infinity.infinity
-PQRElement = sage.rings.polynomial_quotient_ring_element.PolynomialQuotientRingElement
+PQRElement = sage.rings.polynomial.polynomial_quotient_ring_element.PolynomialQuotientRingElement
 Integer = sage.rings.integer.Integer
 Rational = sage.rings.rational.Rational
 is_IntegerMod = sage.rings.integer_mod.is_IntegerMod
@@ -27,7 +27,7 @@ pAdicRingBaseGeneric = sage.rings.padics.padic_ring_base_generic.pAdicRingBaseGe
 pAdicRingCappedRelative = sage.rings.padics.padic_ring_capped_relative.pAdicRingCappedRelative
 pAdicRingFixedMod = sage.rings.padics.padic_ring_fixed_mod.pAdicRingFixedMod
 pAdicRingCappedAbsolute = sage.rings.padics.padic_ring_capped_absolute.pAdicRingCappedAbsolute
-Polynomial = sage.rings.polynomial_element.Polynomial
+Polynomial = sage.rings.polynomial.polynomial_element.Polynomial
 pAdicGenericElement = sage.rings.padics.padic_generic_element.pAdicGenericElement
 pAdicRingLazy = sage.rings.padics.padic_ring_lazy.pAdicRingLazy
 local_print_mode = sage.rings.padics.padic_generic.local_print_mode

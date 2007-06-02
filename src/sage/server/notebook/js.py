@@ -1524,11 +1524,6 @@ function set_input_text(id, text) {
     return false;
 }
 
-function set_variable_list(variables) {
-    var varlist = get_element('variable_list');
-    varlist.innerHTML = variables;
-}
-
 function set_object_list(objects) {
     var objlist = get_element('object_list');
     objlist.innerHTML = objects;
@@ -1633,7 +1628,6 @@ function check_for_cell_update_callback(status, response_text) {
             set_input_text(id, new_cell_input);
         }
 
-        set_variable_list(variable_list);
         set_object_list(object_list);
         set_attached_files_list(attached_files_list);
     }
@@ -1940,7 +1934,6 @@ function restart_sage_callback(status, response_text) {
     var link = get_element("restart_sage");
     link.className = "restart_sage";
     link.innerHTML = "Restart";
-    set_variable_list('');
     sync_active_cell_list();
 }
 

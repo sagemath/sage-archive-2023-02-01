@@ -158,7 +158,7 @@ cdef class arith_int:
 
         x = self.abs_int(v1); y = v2
         if v1<0:  y = -1*y
-        if x<=bnd and gcd_int(x,y)==1:
+        if x<=bnd and self.c_gcd_int(x,y)==1:
             n[0] = y
             d[0] = x
             return 0

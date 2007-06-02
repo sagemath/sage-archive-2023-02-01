@@ -6,7 +6,7 @@ cimport matrix_pid_dense
 import  matrix_pid_dense
 
 import matrix_space
-import sage.rings.polynomial_ring
+import sage.rings.polynomial.polynomial_ring
 import sage.rings.number_field.number_field
 import sage.misc.misc
 
@@ -61,7 +61,7 @@ cdef class Matrix_field_dense(matrix_pid_dense.Matrix_pid_dense):
         if self._nrows != self._ncols:
             raise ArithmeticError, "charpoly of non-square matrix not defined."
 
-        R = sage.rings.polynomial_ring.PolynomialRing(self.base_ring())
+        R = sage.rings.polynomial.polynomial_ring.PolynomialRing(self.base_ring())
         zero = R(0)
         if self._nrows == 0:
             self._cache['charpoly'] = zero

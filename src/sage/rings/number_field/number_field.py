@@ -32,6 +32,8 @@ import sage.rings.arith
 import sage.rings.complex_field
 import sage.rings.ring
 
+from sage.structure.element import is_Element
+
 import sage.structure.parent_gens
 
 _gp = None
@@ -56,8 +58,8 @@ import sage.rings.integer_ring as integer_ring
 import sage.rings.infinity as infinity
 import sage.rings.rational as rational
 import sage.rings.integer as integer
-import sage.rings.polynomial_ring as polynomial_ring
-import sage.rings.polynomial_element as polynomial_element
+import sage.rings.polynomial.polynomial_ring as polynomial_ring
+import sage.rings.polynomial.polynomial_element as polynomial_element
 import sage.rings.ideal as ideal
 import sage.rings.complex_field
 import sage.groups.abelian_gps.abelian_group
@@ -267,6 +269,17 @@ class NumberField_generic(field.Field):
     def __call__(self, x):
         """
         Coerce x into this number field.
+
+        EXAMPLES:
+            sage: K.<a> = NumberField(x^3 + 17)
+            sage: K(a) is a
+            True
+            sage: K('a^2 + 2/3*a + 5')
+            a^2 + 2/3*a + 5
+            sage: K('1').parent()
+            Number Field in a with defining polynomial x^3 + 17
+            sage: K(3/5).parent()
+            Number Field in a with defining polynomial x^3 + 17
         """
         if isinstance(x, number_field_element.NumberFieldElement):
             if x.parent() is self:
@@ -274,7 +287,19 @@ class NumberField_generic(field.Field):
             elif x.parent() == self:
                 return number_field_element.NumberFieldElement(self, x.polynomial())
             return self._coerce_from_other_number_field(x)
+        elif isinstance(x,str):
+            return self._coerce_from_str(x)
         return self._coerce_non_number_field_element_in(x)
+
+    def _coerce_from_str(self, x):
+        # provide string coercion, as
+        # for finite fields
+        w = sage.misc.all.sage_eval(x,locals=\
+                                  {self.variable_name():self.gen()})
+        if not (is_Element(w) and w.parent() is self):
+            return self(w)
+        else:
+            return w
 
     def _coerce_from_other_number_field(self, x):
         f = x.polynomial()
@@ -506,7 +531,7 @@ class NumberField_generic(field.Field):
             name = name[0]
         if name is None:
             raise TypeError, "the variable name must be specified."
-        return NumberField_extension(self, poly, repr(name))
+        return NumberField_extension(self, poly, str(name))
 
     def factor_integer(self, n):
         r"""
@@ -1003,6 +1028,19 @@ class NumberField_extension(NumberField_generic):
         """
         Return root of defining polynomial, which is a generator of
         the relative number field over the base.
+
+        EXAMPLES:
+            sage: k.<a> = NumberField(x^2+1); k
+            Number Field in a with defining polynomial x^2 + 1
+            sage: y = polygen(k)
+            sage: m.<b> = k.extension(y^2+3); m
+            Extension by x^2 + 3 of the Number Field in a with defining polynomial x^2 + 1
+            sage: c = m.gen_relative(); c
+            1/4*b^3 + 5/2*b
+            sage: c^2 + 3
+            0
+            sage: m.gen()
+            b
         """
         try:
             return self.__gen_relative
@@ -1010,13 +1048,6 @@ class NumberField_extension(NumberField_generic):
             rnf = self.pari_rnf()
             f = (pari('x') - rnf[10][2]*rnf[10][1]).lift()
             self.__gen_relative = number_field_element.NumberFieldElement(self, f)
-            return self.__gen_relative
-
-            if self.__polynomial != None:
-                X = self.__polynomial.parent().gen()
-            else:
-                X = PolynomialRing(rational_field.RationalField()).gen()
-            self.__gen_relative = number_field_element.NumberFieldElement(self, X)
             return self.__gen_relative
 
     def pari_polynomial(self):
@@ -1273,6 +1304,8 @@ class NumberField_cyclotomic(NumberField_generic):
                 return self._coerce_from_other_number_field(x)
         elif sage.interfaces.gap.is_GapElement(x):
             return self._coerce_from_gap(x)
+        elif isinstance(x,str):
+            return self._coerce_from_str(x)
         else:
             return self._coerce_non_number_field_element_in(x)
 

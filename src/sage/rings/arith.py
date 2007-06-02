@@ -82,9 +82,9 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     33'rd bit.
         sage: z = sqrt(RealField(200)(2)) + (1/2)^33
         sage: p = algdep(z, 4); p
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: factor(p)
-        282290629538*x^4 - 328198982473*x^3 - 431830253159*x^2 + 148348421539*x + 452988542792
+        177858662573*x^4 + 59566570004*x^3 - 221308611561*x^2 - 84791308378*x - 317384111411
         sage: algdep(z, 4, known_bits=32)
         x^2 - 2
         sage: algdep(z, 4, known_digits=10)
@@ -96,8 +96,8 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
     """
 
     # TODO -- change to use PARI C library???
-    import sage.rings.polynomial_ring
-    x = sage.rings.polynomial_ring.PolynomialRing(
+    import sage.rings.polynomial.polynomial_ring
+    x = sage.rings.polynomial.polynomial_ring.PolynomialRing(
         integer_ring.IntegerRing(), 'x').gen()
 
     if isinstance(z, (int, long, integer.Integer)):
@@ -122,7 +122,7 @@ def algdep(z, n, known_bits=None, use_bits=None, known_digits=None, use_digits=N
         # try to use about 51 bits of our 32-bit value.  Similarly
         # bad things would happen on a 64-bit machine with RealField(65).)
         log2 = 0.301029995665
-        digits = int(log2 * z.prec())
+        digits = int(log2 * z.prec()) - 2
         if known_bits is not None:
             known_digits = log2 * known_bits
         if known_digits is not None:
@@ -967,14 +967,32 @@ def sigma(n, k=1):
         6
         sage: sigma(5,2)
         26
+
+    AUTHORS:
+        -- William Stein: original implementation
+        -- Craig Citro (2007-06-01): rewrote for huge speedup
+
+    TESTS:
+        sage: sigma(100,4)
+        106811523
+        sage: sigma(factorial(100),3).mod(144169)
+        3672
+        sage: sigma(factorial(150),12).mod(691)
+        176
+        sage: RR(sigma(factorial(133),20))
+        2.80414775675747e4523
     """
-    n = integer_ring.ZZ(n)
-    k = integer_ring.ZZ(k)
-    return sum([d**k for d in divisors(n)])
+    ZZ = integer_ring.ZZ
+    n = ZZ(n)
+    k = ZZ(k)
+    one = ZZ(1)
+
+    return sage.misc.misc.prod([ (p**((expt+one)*k) - one) // (p**k - one)
+                                 for p,expt in factor(n) ])
 
 def gcd(a, b=0, integer=False):
     """
-    The greatest commond divisor of a and b.
+    The greatest common divisor of a and b.
 
     INPUT:
         a -- number
@@ -1449,7 +1467,7 @@ def __factor_using_trial_division(n):
     F.sort()
     return F
 
-def __factor_using_pari(n, int_=False, debug_level=0):
+def __factor_using_pari(n, int_=False, debug_level=0, proof=True):
     if int_:
         Z = int
     else:
@@ -1460,7 +1478,12 @@ def __factor_using_pari(n, int_=False, debug_level=0):
     F = pari(n).factor()
     B = F[0]
     e = F[1]
+    if proof:
+        for i in xrange(len(B)):
+            if not B[i].isprime():
+                raise RuntimeError, "failed to correctly factor %s with proof=True (bad 'prime'=%s)"%(n, B[i])
     v = [(Z(B[i]),Z(e[i])) for i in xrange(len(B))]
+
     if debug_level > 0:
         pari.set_debug_level(prev)
     return v
@@ -1516,8 +1539,16 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-        sage: factor(2^197 + 1)       # takes a long time
+    SAGE calls PARI's factor, which has proof False by default.   SAGE by default
+    *does* check primality of each factor that is returned. To turn this off, do
+    proof False.
+        sage: factor(3^89-1, proof=False)
+        2 * 179 * 1611479891519807 * 5042939439565996049162197
+
+        sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
+
+        sage:
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):
@@ -1540,7 +1571,7 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
     #if n < 10000000000: return __factor_using_trial_division(n)
     if algorithm == 'pari':
         return factorization.Factorization(__factor_using_pari(n,
-                                   int_=int_, debug_level=verbose), unit)
+                                   int_=int_, debug_level=verbose, proof=proof), unit)
     elif algorithm == 'kash':
         from sage.interfaces.all import kash
         F = kash.eval('Factorization(%s)'%n)
@@ -2349,6 +2380,8 @@ def convergent(v, n):
         sage: convergent([2, 1, 2, 1, 1, 4, 1, 1], 7)
         193/71
     """
+    if hasattr(v, 'convergent'):
+        return v.convergent(n)
     Q = sage.rings.rational_field.RationalField()
     i = int(n)
     x = Q(v[i])
@@ -2379,6 +2412,8 @@ def convergents(v):
         sage: convergents([2, 1, 2, 1, 1, 4, 1, 1])
         [2, 3, 8/3, 11/4, 19/7, 87/32, 106/39, 193/71]
     """
+    if hasattr(v, 'convergents'):
+        return v.convergents()
     Q = sage.rings.rational_field.RationalField()
     if not isinstance(v, list):
         v = pari(v).contfrac()
@@ -2437,11 +2472,11 @@ def continuant(v, n=None):
         517656/190435
         sage: x = MPolynomialRing(RationalField(),'x',5).gens()
         sage: continuant(x)
-        x4 + x2 + x2*x3*x4 + x0 + x0*x3*x4 + x0*x1*x4 + x0*x1*x2 + x0*x1*x2*x3*x4
+        x0*x1*x2*x3*x4 + x0*x1*x2 + x0*x1*x4 + x0*x3*x4 + x2*x3*x4 + x0 + x2 + x4
         sage: continuant(x, 3)
-        x2 + x0 + x0*x1*x2
+        x0*x1*x2 + x0 + x2
         sage: continuant(x,2)
-        1 + x0*x1
+        x0*x1 + 1
 
         $K_n(z,z,\cdots,z) = sum_{k=0}^n {n-k} \choose k z^{n-2k}$:
 

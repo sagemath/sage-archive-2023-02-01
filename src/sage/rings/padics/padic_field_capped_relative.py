@@ -133,12 +133,13 @@ pAdicBaseGenericElement = padic_base_generic_element.pAdicBaseGenericElement
 pAdicLazyElement = padic_lazy_element.pAdicLazyElement
 pAdicCappedRelativeElement = sage.rings.padics.padic_capped_relative_element.pAdicCappedRelativeElement
 #pAdicRingCappedRelativeElement = sage.rings.padics.padic_ring_capped_relative_element.pAdicRingCappedRelativeElement
-#pAdicRingCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicRingCappedAbsoluteElement
+#pAdicCappedAbsoluteElement = sage.rings.padics.padic_ring_capped_absolute_element.pAdicCappedAbsoluteElement
 #Zp = sage.rings.padics.zp.Zp
 
 class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGeneric):
     def __init__(self, p, prec, print_mode, names):
         pAdicFieldBaseGeneric.__init__(self, p, prec, print_mode, names, pAdicCappedRelativeElement)
+        self.prime_pow._set_in_field(True)
 
     r"""
     An implementation of p-adic fields with capped relative precision.
@@ -169,5 +170,5 @@ class pAdicFieldCappedRelative(pAdicFieldBaseGeneric, pAdicCappedRelativeFieldGe
         OUTPUT:
             the p-adic ring that is the integer ring of this field
         """
-        from sage.rings.padics.zp import Zp
+        from sage.rings.padics.factory import Zp
         return Zp(self.prime(), self.precision_cap(), 'capped-rel', self.print_mode())

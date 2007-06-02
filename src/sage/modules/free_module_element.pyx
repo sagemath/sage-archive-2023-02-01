@@ -425,9 +425,9 @@ cdef class FreeModuleElement(element_Vector):   # abstract base class
         """
         EXAMPLES:
             sage: v = vector(QQ['x,y'], [1,2, 'x*y', 'x^2-y^2']); v
-            (1, 2, x*y, -1*y^2 + x^2)
+            (1, 2, x*y, x^2 - y^2)
             sage: v[1:]
-            (2, x*y, -1*y^2 + x^2)
+            (2, x*y, x^2 - y^2)
             sage: v[:2]
             (1, 2)
             sage: type(v[1:])

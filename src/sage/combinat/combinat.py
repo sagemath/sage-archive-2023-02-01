@@ -5,8 +5,9 @@ AUTHORS:
         -- David Joyner (2006-07), initial implementation.
         -- William Stein (2006-07), editing of docs and code; many optimizations,
                       refinements, and bug fixes in corner cases
-        -- DJ (2006-09): bug fix for combinations, added permutations_iterator,
-                      combinations_iterator from Python Cookbook, edited docs.
+        -- David Joyner (2006-09): bug fix for combinations, added
+                      permutations_iterator, combinations_iterator
+                      from Python Cookbook, edited docs.
         -- Bobby Moretti (2007-05) added a lazy fibonacci sequence generator
 
 This module implements some combinatorial functions, as listed
@@ -355,10 +356,17 @@ def fibonacci(n, algorithm="pari"):
     else:
         raise ValueError, "no algorithm %s"%algorithm
 
-def fibonacci_sequence(start, stop=None, algorithm='pari'):
+def fibonacci_sequence(start, stop=None, algorithm=None):
     r"""
     Returns an iterator over the Fibonacci sequence, for all fibonacci numbers
     $f_n$ from \code{n = start} up to (but not including) \code{n = stop}
+
+    INPUT:
+        start -- starting value
+        stop -- stopping value
+        algorithm -- default (None) -- passed on to fibonacci function (or
+                     not passed on if None, i.e., use the default).
+
 
     EXAMPLES:
         sage: fibs = [i for i in fibonacci_sequence(10, 20)]
@@ -368,52 +376,62 @@ def fibonacci_sequence(start, stop=None, algorithm='pari'):
         sage: sum([i for i in fibonacci_sequence(100, 110)])
         69919376923075308730013
 
+    SEE ALSO: fibonacci_xrange
+
     AUTHOR:
         Bobby Moretti
     """
     from sage.rings.integer_ring import ZZ
-    start = ZZ(start)
-    if stop == None:
-        stop = start
+    if stop is None:
+        stop = ZZ(start)
         start = ZZ(0)
     else:
+        start = ZZ(start)
         stop = ZZ(stop)
-    for n in range(start, stop):
-        yield fibonacci(n, algorithm=algorithm)
 
-def fibonacci_range(start, stop=None, algorithm='pari'):
+    if algorithm:
+        for n in xrange(start, stop):
+            yield fibonacci(n, algorithm=algorithm)
+    else:
+        for n in xrange(start, stop):
+            yield fibonacci(n)
+
+def fibonacci_xrange(start, stop=None, algorithm='pari'):
     r"""
     Returns an iterator over all of the Fibonacci numbers in the given range,
     including \code{f_n = start} up to, but not including, \code{f_n = stop}.
 
     EXAMPLES:
-        sage: fibs_in_some_range =  [i for i in fibonacci_range(10^7, 10^8)]
+        sage: fibs_in_some_range =  [i for i in fibonacci_xrange(10^7, 10^8)]
         sage: len(fibs_in_some_range)
         4
         sage: fibs_in_some_range
         [14930352, 24157817, 39088169, 63245986]
 
-        sage: fibs = [i for i in fibonacci_range(10, 100)]
+        sage: fibs = [i for i in fibonacci_xrange(10, 100)]
         sage: fibs
         [13, 21, 34, 55, 89]
 
-        sage: list(fibonacci_range(13, 34))
+        sage: list(fibonacci_xrange(13, 34))
         [13, 21]
 
     A solution to the second Project Euler problem:
-        sage: sum([i for i in fibonacci_range(10^6) if is_even(i)])
+        sage: sum([i for i in fibonacci_xrange(10^6) if is_even(i)])
         1089154
+
+    SEE ALSO: fibonacci_sequence
 
     AUTHOR:
         Bobby Moretti
     """
     from sage.rings.integer_ring import ZZ
-    start = ZZ(start)
-    if stop == None:
-        stop = start
+    if stop is None:
+        stop = ZZ(start)
         start = ZZ(0)
     else:
+        start = ZZ(start)
         stop = ZZ(stop)
+
     # iterate until we've gotten high enough
     fn = 0
     n = 0

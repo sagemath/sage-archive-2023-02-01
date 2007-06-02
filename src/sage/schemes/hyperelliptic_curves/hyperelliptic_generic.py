@@ -97,31 +97,30 @@ class HyperellipticCurve_generic(plane_curve.ProjectiveCurve_generic):
             P = PolynomialRing(K, var)
             return (P(f),P(h))
 
-    def lift_x(self, x):
+    def lift_x(self, x, all=False):
         f, h = self._hyperelliptic_polynomials
         x += self.base_ring()(0)
         one = x.parent()(1)
         if h.is_zero():
             y2 = f(x)
-            if y2.is_zero():
-                return self.point([x, y2, one], check=False)
-            elif y2.is_square():
-                y = y2.square_root()
-                return [self.point([x, y, one], check=False),
-                        self.point([x,-y, one], check=False)]
-            else:
-                return []
+            if y2.is_square():
+                if all:
+                    return [self.point([x, y, one], check=False) for y in y2.sqrt(all=True)]
+                else:
+                    return self.point([x, y2.sqrt(), one], check=False)
         else:
             b = h(x)
             D = b*b + 4*f(x)
-            if D.is_zero():
-                return [self.point([x, -b/2, one], check=False)]
-            elif D.is_square():
-                sqrtD = D.square_root()
-                return [self.point([x, (-b+sqrtD)/2, one], check=False),
-                        self.point([x, (-b-sqrtD)/2, one], check=False)]
-            else:
-                return []
+            if D.is_square():
+                if all:
+                    return [self.point([x, (-b+d)/2, one], check=False) for d in D.sqrt(all=True)]
+                else:
+                    return self.point([x, (-b+D.sqrt())/2, one], check=False)
+        if all:
+            return []
+        else:
+            raise ValueError, "No point with x-coordinate %s on %s"%(x, self)
+
 
     def genus(self):
         return self._genus

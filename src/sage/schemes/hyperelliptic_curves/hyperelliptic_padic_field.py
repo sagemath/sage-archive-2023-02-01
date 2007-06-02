@@ -45,11 +45,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
 #        print P[0]
 #        print Q[0] - P[0]
         x = P[0]+t*(Q[0]-P[0])
-        pts = self.lift_x(x)
-        if (pts[0][1] - P[1]).valuation() > 0:
-            return pts[0]
+        pt = self.lift_x(x)
+        if (pt[1] - P[1]).valuation() > 0:
+            return pt
         else:
-            return pts[1]
+            return -pt
 
     def tiny_integrals(self, F, P, Q):
         """
@@ -116,11 +116,11 @@ class HyperellipticCurve_padic_field(hyperelliptic_generic.HyperellipticCurve_ge
         """
         K = P[0].parent()
         x = K.teichmuller(P[0])
-        pts = self.lift_x(x)
-        if (pts[0][1] - P[1]).valuation() > 0:
-            return pts[0]
+        pt = self.lift_x(x)
+        if (pt[1] - P[1]).valuation() > 0:
+            return pt
         else:
-            return pts[1]
+            return -pt
 
     def coleman_integrals_on_basis(self, P, Q):
         import sage.schemes.elliptic_curves.monsky_washnitzer as monsky_washnitzer

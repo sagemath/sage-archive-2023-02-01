@@ -414,7 +414,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def add_bigoh(pAdicCappedAbsoluteElement self, absprec):
         """
-        Returns a new element with absolute precision decreased to prec
+        Returns a new element with absolute precision decreased to prec.
+        The precision never increases.
 
         INPUT:
             self -- a p-adic element
@@ -425,6 +426,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         EXAMPLES:
             sage: R = Zp(7,4,'capped-abs','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
+
+            sage: k = ZpCA(3,5)
+            sage: a = k(41); a
+            2 + 3 + 3^2 + 3^3 + O(3^5)
+            sage: a.add_bigoh(7)
+            2 + 3 + 3^2 + 3^3 + O(3^5)
+            sage: a.add_bigoh(3)
+            2 + 3 + 3^2 + O(3^3)
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long newprec

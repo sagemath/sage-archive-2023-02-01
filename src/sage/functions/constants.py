@@ -351,6 +351,32 @@ class Constant(Function):
         """
         return False
 
+    def __lt__(self, right):
+        return self._ser().__lt__(right)
+
+    def __le__(self, right):
+        return self._ser().__le__(right)
+
+    def __eq__(self, right):
+        """
+        EXAMPLES:
+            sage: solve(pi == 2*x)
+            [x == (pi/2)]
+            sage: solve(cos(x^2) == pi)
+            [x == (-sqrt(acos(pi))), x == sqrt(acos(pi))]
+        """
+        return self._ser().__eq__(right)
+
+    def __ne__(self, right):
+        return self._ser().__ne__(right)
+
+    def __ge__(self, right):
+        return self._ser().__ge__(right)
+
+    def __gt__(self, right):
+        return self._ser().__gt__(right)
+
+
 
 class Constant_gen(Constant, Function_gen):
     def __init__(self, x):

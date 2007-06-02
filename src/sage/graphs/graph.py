@@ -186,7 +186,7 @@ TUTORIAL:
             sage: L = graphs_query.get_list(num_vertices=7, diameter=5)
             sage.: graphs_list.show_graphs(L)
 
-        6. Visualization
+        5. Visualization
 
         To see a graph G you are working with, right now there are two main options:
 
@@ -574,10 +574,13 @@ class GenericGraph(SageObject):
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
         """
-        for v in self.vertices():
-            if not vertex_dict.has_key(v):
-                vertex_dict[v] = None
-        self._assoc = vertex_dict
+        try:
+            for v in vertex_dict:
+                self._assoc[v] = vertex_dict[v]
+        except:
+            self._assoc = {}
+            for v in vertex_dict:
+                self._assoc[v] = vertex_dict[v]
 
     def obj(self, vertex):
         """
@@ -597,7 +600,10 @@ class GenericGraph(SageObject):
             sage: T.obj(1)
             Flower Snark: Graph on 20 vertices
         """
-        return self._assoc[vertex]
+        try:
+            return self._assoc[vertex]
+        except:
+            return None
 
     def loop_vertices(self):
         """
@@ -1034,25 +1040,30 @@ class Graph(GenericGraph):
          2: [ 1.125     ,-0.12867615],
          3: [ 0.12743933,-1.125     ],
          4: [-1.125     ,-0.50118505]}
-        name -- (must be an explicitly named parameter, i.e.,
-                 name="complete") gives the graph a name
-        loops -- boolean, whether to allow loops (ignored if data is an instance of
-                 the Graph class)
-        multiedges -- boolean, whether to allow multiple edges (ignored if data is
-                      an instance of the Graph class)
-        format -- if None, Graph tries to guess- can be several values, including:
-            'graph6' -- Brendan McKay's graph6 format, in a string (if the string has
-                        multiple graphs, the first graph is taken)
-            'sparse6' -- Brendan McKay's sparse6 format, in a string (if the string has
-                        multiple graphs, the first graph is taken)
-            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the number
-                        of edges \{i,j\}
-            'labeled_adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal to the
-                        label of the single edge \{i,j\}
-            'incidence_matrix' -- a SAGE matrix, with one column C for each edge, where
-                        if C represents \{i, j\}, C[i] is -1 and C[j] is 1
+        name -- (must be an explicitly named parameter, i.e., name="complete")
+            gives the graph a name
+        loops -- boolean, whether to allow loops (ignored if data is an
+            instance of the Graph class)
+        multiedges -- boolean, whether to allow multiple edges (ignored if
+            data is an instance of the Graph class)
+        format -- if None, Graph tries to guess- can be several values,
+            including:
+            'graph6' -- Brendan McKay's graph6 format, in a string (if the
+                string has multiple graphs, the first graph is taken)
+            'sparse6' -- Brendan McKay's sparse6 format, in a string (if the
+                string has multiple graphs, the first graph is taken)
+            'adjacency_matrix' -- a square SAGE matrix M, with M[i][j] equal
+                to the number of edges \{i,j\}
+            'labeled_adjacency_matrix' -- a square SAGE matrix M, with M[i][j]
+                equal to the label of the single edge \{i,j\}
+            'incidence_matrix' -- a SAGE matrix, with one column C for each
+                edge, where if C represents \{i, j\}, C[i] is -1 and C[j] is 1
+            'elliptic_curve_congruence' -- data must be an iterable container
+                of elliptic curves, and the graph produced has each curve as a
+                vertex (it's Cremona label) and an edge E-F labelled p if and
+                only if E is congruent to F mod p
         boundary -- a list of boundary vertices, if none, graph is considered as a 'graph
-                    without boundary'
+            without boundary'
 
     EXAMPLES:
     We illustrate the first six input formats (the other two
@@ -1265,6 +1276,32 @@ class Graph(GenericGraph):
                     k = c.dict().keys()
                     e.append((k[0],k[1]))
                 self._nxg.add_edges_from(e)
+        elif format == 'elliptic_curve_congruence':
+            from sage.rings.arith import lcm, prime_divisors, prange
+            from sage.misc.misc import prod
+            self._nxg = networkx.XGraph(None, selfloops=loops, **kwds)
+            curves = list(data)
+            self.add_vertices( [curve.cremona_label() for curve in curves] )
+            for i in range(self.order()):
+                for j in range(i):
+                    E = curves[i]
+                    F = curves[j]
+                    M = E.conductor()
+                    N = F.conductor()
+                    MN = lcm(M, N)
+                    p_MN = prime_divisors(MN)
+                    lim = prod([(j^(MN.ord(j)) + j^(MN.ord(j)-1)) for j in p_MN])
+                    a_E = E.anlist(lim)
+                    a_F = F.anlist(lim)
+                    l_list = [p for p in prange(lim) if p not in p_MN ]
+                    p_edges = l_list
+                    for l in l_list:
+                        n = a_E[l] - a_F[l]
+                        if n != 0:
+                            P = prime_divisors(n)
+                            p_edges = [p for p in p_edges if p in P]
+                    if len(p_edges) > 0:
+                        self.add_edge(E.cremona_label(), F.cremona_label(), str(p_edges)[1:-1])
         if kwds.has_key('name'):
             self._nxg.name = kwds['name']
         self._pos = pos

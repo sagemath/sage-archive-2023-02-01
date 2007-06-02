@@ -64,15 +64,6 @@ if ' ' in DOT_SAGE:
         print "directory with no spaces that you have write"
         print "permissions to before you start sage."
 
-SPYX_TMP = '%s/spyx/%s'%(DOT_SAGE, HOSTNAME)
-
-if not os.path.exists(SPYX_TMP):
-    try:
-        os.makedirs(SPYX_TMP)
-    except OSError, msg:
-        print msg
-        raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
-
 SAGE_TMP='%s/temp/%s/%s/'%(DOT_SAGE, HOSTNAME, os.getpid())
 if not os.path.exists(SAGE_TMP):
     try:
@@ -81,8 +72,10 @@ if not os.path.exists(SAGE_TMP):
         print msg
         raise OSError, " ** Error trying to create the SAGE tmp directory in your home directory.  A possible cause of this might be that you built or upgraded SAGE after typing 'su'.  You probably need to delete the directory $HOME/.sage."
 
-SAGE_DATA = '%s/data'%SAGE_ROOT
-SAGE_EXTCODE = '%s/data/extcode'%SAGE_ROOT
+SAGE_DATA = '%s/data/'%SAGE_ROOT
+SAGE_EXTCODE = '%s/data/extcode/'%SAGE_ROOT
+SPYX_TMP = '%s/spyx/'%SAGE_TMP
+
 
 def delete_tmpfiles():
     # !!!If you change this, see also SAGE_ROOT/local/bin/sage-doctest!!!

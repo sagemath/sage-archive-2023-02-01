@@ -2,6 +2,12 @@
 
 from __future__ import with_statement
 
+
+from sage.all import *
+from sage.calculus.predefined import *
+
+sage_mode = 'notebook'
+
 from sage.misc.latex import Latex, lprint, typeset, JSMath
 latex = Latex(density=130)
 latex_debug = Latex(debug=True, density=130)
@@ -15,6 +21,8 @@ from sage.misc.python import python
 from sage.misc.html import html
 
 from sage.misc.sh import sh
+
+
 
 
 

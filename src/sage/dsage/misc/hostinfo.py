@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 ############################################################################
 #
 #   DSAGE: Distributed SAGE
@@ -23,7 +24,11 @@ from twisted.internet import reactor, utils, defer
 from twisted.python import log
 
 class HostInfo(pb.Copyable, pb.RemoteCopy):
-    """Class to gather computer specifications on the running host."""
+    """
+    Class to gather computer specifications on the running host.
+
+    """
+
     def __str__(self):
         return str(self.host_info)
 
@@ -48,7 +53,7 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
 
             l = [li.strip() for li in l]
             if l[0] == 'hw.cpufrequency':
-                host_info['cpu Mhz'] = str(int(l[1]) / 1000000.0)
+                host_info['cpu Mhz'] = (int(l[1]) / 1000000.0)
             elif l[0] == 'hw.availcpu':
                 host_info['cpus'] = int(l[1])
             elif l[0] == 'hw.physmem':
@@ -109,7 +114,6 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             return d
 
         if platform == 'darwin':
-            """OS X Worker. """
             cmd = '/usr/sbin/sysctl'
             args = ('-a', 'hw')
             d = utils.getProcessOutput(cmd, args, errortoo=1)
@@ -142,10 +146,14 @@ class HostInfo(pb.Copyable, pb.RemoteCopy):
             except KeyError:
                 pass
 
-        import sage.version
-        canonical_info['sage_version'] = sage.version.version
+        try:
+            import sage.version
+            canonical_info['sage_version'] = sage.version.version
+        except ImportError:
+            canonical_info['sage_version'] = 'unknown'
 
         self.host_info = canonical_info
+
         return self.host_info
 
 class ClassicHostInfo(object):
@@ -165,89 +173,76 @@ class ClassicHostInfo(object):
 
     def get_host_info(self, platform):
         host_info = {}
+        host_info['os'] = platform
         if platform in ('linux', 'linux2', 'cygwin'):
-            try:
-                # os
-                host_info['os'] = platform
-                # cpu info
-                cpuinfo = open('/proc/cpuinfo','r').readlines()
+            cpuinfo = open('/proc/cpuinfo','r').readlines()
+            cpus = 0
+            for line in cpuinfo:
+                if 'processor' in line:
+                    cpus += 1
+                s = line.split(':')
+                if s != ['\n']:
+                    if s[0].strip() == 'cpu MHz':
+                        host_info[s[0].strip()] = int(float(s[1].strip()))
+                    else:
+                        host_info[s[0].strip()] = s[1].strip()
+            host_info['cpus'] = cpus
 
-                cpus = 0
-                for line in cpuinfo:
-                    if 'processor' in line:
-                        cpus += 1
-                    s = line.split(':')
-                    if s != ['\n']:
+            uptime = open('/proc/uptime', 'r').readline().split(' ')
+            host_info['uptime'] = int(float(uptime[0]))
+
+            meminfo = open('/proc/meminfo', 'r').readlines()
+            for line in meminfo:
+                s = line.split(':')
+                if s != ['\n']:
+                    if s[0].strip() == 'MemTotal':
+                        mem_total = int(int(s[1].split()[0].strip()) / 1024)
+                        host_info[s[0].strip()] = mem_total
+                    elif s[0].strip() == 'MemFree':
+                        mem_free = int(int(s[1].split()[0].strip()) / 1024)
+                        host_info[s[0].strip()] = mem_free
+                    else:
                         host_info[s[0].strip()] = s[1].strip()
 
-                host_info['cpus'] = cpus
+            hostname = os.popen('hostname').readline().strip()
+            host_info['hostname'] = hostname
 
-                # uptime
-                uptime = open('/proc/uptime', 'r').readline().split(' ')
-                host_info['uptime'] = uptime[0]
-
-                # memory info
-                meminfo = open('/proc/meminfo', 'r').readlines()
-                for line in meminfo:
-                    s = line.split(':')
-                    if s != ['\n']:
-                        host_info[s[0].strip()] = s[1].strip()
-
-                # hostname
-                hostname = os.popen('hostname').readline().strip()
-                host_info['hostname'] = hostname
-
-                # kernel version
-                kernel_version = os.popen('uname -r').readline().strip()
-                host_info['kernel_version'] = kernel_version
-
-            except IOError:
-                raise
-
-            host_info['os'] = platform
-
-            return self.canonical_info(host_info)
+            kernel_version = os.popen('uname -r').readline().strip()
+            host_info['kernel_version'] = kernel_version
         if platform == 'darwin':
-            try:
-                # os
-                for line in os.popen('sysctl -a hw machdep').readlines():
-                    l = line.strip()
-                    if '=' in l:
-                        l = l.split('=')
-                    if ':' in line:
-                        l = l.split(':')
+            for line in os.popen('sysctl -a hw machdep').readlines():
+                l = line.strip()
+                if '=' in l:
+                    l = l.split('=')
+                if ':' in line:
+                    l = l.split(':')
 
-                    l = [li.strip() for li in l]
-                    if l[0] == 'hw.cpufrequency':
-                        host_info['cpu MHz'] = str(int(l[1]) / 1000000)
-                    elif l[0] == 'hw.availcpu':
-                        host_info['cpus'] = int(l[1])
-                    elif l[0] == 'hw.physmem':
-                        host_info['MemTotal'] = l[1]
-                    elif l[0] == 'hw.usermem':
-                        mem_total = int(host_info['MemTotal'])
-                        user_mem = int(l[1])
-                        mem_free = int((mem_total - user_mem) / (1024*1024))
-                        host_info['MemFree'] = mem_free
-                    elif l[0] == 'machdep.cpu.brand_string':
-                        host_info['model name'] = l[1]
-                    elif l[0] == 'hw.model': # OS X PPC
-                        host_info['model name'] = l[1]
+                l = [li.strip() for li in l]
+                if l[0] == 'hw.cpufrequency':
+                    host_info['cpu MHz'] = str(int(l[1]) / 1000000)
+                elif l[0] == 'hw.availcpu':
+                    host_info['cpus'] = int(l[1])
+                elif l[0] == 'hw.physmem':
+                    host_info['MemTotal'] = int(int(l[1]) / (1024*1024))
+                elif l[0] == 'hw.usermem':
+                    mem_total = int(host_info['MemTotal'])
+                    user_mem = int(l[1]) / (1024*1024)
+                    mem_free = int(mem_total - user_mem)
+                    host_info['MemFree'] = mem_free
+                elif l[0] == 'machdep.cpu.brand_string':
+                    host_info['model name'] = l[1]
+                elif l[0] == 'hw.model': # OS X PPC
+                    host_info['model name'] = l[1]
 
-                # hostname
-                hostname = os.popen('hostname').readline().strip()
-                host_info['hostname'] = hostname
+            # hostname
+            hostname = os.popen('hostname').readline().strip()
+            host_info['hostname'] = hostname
 
-                # kernel version
-                kernel_version = os.popen('uname -r').readline().strip()
-                host_info['kernel_version'] = kernel_version
-            except IOError, msg:
-                log.msg(msg)
-                raise
+            # kernel version
+            kernel_version = os.popen('uname -r').readline().strip()
+            host_info['kernel_version'] = kernel_version
 
-            host_info['os'] = platform
-
-            return self.canonical_info(host_info)
+        return self.canonical_info(host_info)
 
     def canonical_info(self, platform_host_info):
         """
@@ -256,31 +251,30 @@ class ClassicHostInfo(object):
         """
 
         unify_info = {'model name': 'cpu_model',
-                          'cpu MHz': 'cpu_speed',
-                          'MemTotal': 'mem_total',
-                          'MemFree': 'mem_free',
-                          'kernel_version': 'kernel_version',
-                          'processor': 'processors',
-                          'cache size': 'cpu_cache_size',
-                          'fpu': 'fpu',
-                          'hostname': 'hostname',
-                          'cpus': 'cpus',
-                          'ip': 'ip',
-                          'os': 'os'
-                     }
-
+                      'cpu MHz': 'cpu_speed',
+                      'MemTotal': 'mem_total',
+                      'MemFree': 'mem_free',
+                      'kernel_version': 'kernel_version',
+                      'cache size': 'cpu_cache_size',
+                      'fpu': 'fpu',
+                      'hostname': 'hostname',
+                      'cpus': 'cpus',
+                      'ip': 'ip',
+                      'os': 'os'}
         canonical_info = {}
         for k,v in platform_host_info.iteritems():
             try:
                 canonical_info[unify_info[k]] = v
             except KeyError:
                 pass
-
-        import sage.version
-        canonical_info['sage_version'] = sage.version.version
+        try:
+            import sage.version
+            canonical_info['sage_version'] = sage.version.version
+        except ImportError:
+            canonical_info['sage_version'] = 'unknown'
 
         return canonical_info
 
-if __name__ == 'main':
-    h = HostInfo().get_host_info()
-    reactor.run()
+if __name__ == '__main__':
+    h = ClassicHostInfo()
+    print h

@@ -1,5 +1,17 @@
 """
 Elliptic curves over number fields
+
+EXAMPLES:
+    sage: k.<i> = NumberField(x^2+1)
+    sage: E = EllipticCurve([i,2])
+    sage: E.j_invariant()
+    -23328/365*i + 864/365
+    sage: E.simon_two_descent()
+    (1, 1, [(2*i : -2*i + 2 : 1)])
+    sage: P = E([2*i,-2*i+2])
+    sage: P+P
+    (15/32*i + 3/4 : 139/256*i + 339/256 : 1)
+
 """
 
 #*****************************************************************************

@@ -18,8 +18,6 @@ This file gathers together all the tables in SAGE.
 
     * SymbolicData() -- many benchmark and testing ideals
 
-    * Linear codes -- linear_code_bound
-
     * Symbolic Data -- benchmark and test ideals
 
 EXAMPLES:
@@ -80,7 +78,10 @@ from sloane import sloane_sequence, sloane_find, SloaneEncyclopedia
 
 from symbolic_data import SymbolicData
 
-from lincodes import linear_code_bound
+# commented out, since it's broken -- nobody updated the parser
+# for the new format; nobody complained it didn't work, so it
+# can't be that important.
+#from lincodes import linear_code_bound
 
 from odlyzko import zeta_zeros
 

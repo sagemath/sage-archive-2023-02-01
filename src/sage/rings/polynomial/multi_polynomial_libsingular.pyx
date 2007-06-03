@@ -76,6 +76,8 @@ from sage.misc.misc import mul
 from sage.misc.sage_eval import sage_eval
 from sage.misc.latex import latex
 
+from sage.interfaces.all import macaulay2
+
 
 # shared library loading
 cdef extern from "dlfcn.h":
@@ -601,7 +603,7 @@ cdef class MPolynomialRing_libsingular(MPolynomialRing_generic):
             sage: macaulay2(R)        # optional
             QQ [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             sage: R.<x,y> = GF(17)[]
-            sage: macaulay2(R)        # optional
+            sage: print macaulay2(R)        # optional
             ZZ
             -- [x, y, MonomialOrder => GRevLex, MonomialSize => 16]
             17
@@ -1686,6 +1688,30 @@ cdef class MPolynomial_libsingular(sage.rings.polynomial.multi_polynomial.MPolyn
         if len(poly) == 0:
             return "0"
         return poly
+
+    def _macaulay2_(self, macaulay2=macaulay2):
+        """
+        Return corresponding Macaulay2 polynomial.
+
+        EXAMPLES:
+            sage: R.<x,y> = PolynomialRing(GF(7), 2)   # optional
+            sage: f = (x^3 + 2*y^2*x)^7; f          # optional
+            x^21 + 2*x^7*y^14
+            sage: h = f._macaulay2_(); h            # optional
+             21     7 14
+            x   + 2x y
+            sage: R(h)                              # optional
+            2*x^7*y^14 + x^21
+            sage: R(h^20) == f^20                   # optional
+            True
+        """
+        try:
+            if self.__macaulay2.parent() is macaulay2:
+                return self.__macaulay2
+        except AttributeError:
+            pass
+        self.parent()._macaulay2_set_ring(macaulay2)
+        return macaulay2(repr(self))
 
     def _repr_with_changed_varnames(self, varnames):
         """

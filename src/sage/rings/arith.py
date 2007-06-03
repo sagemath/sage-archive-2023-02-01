@@ -23,6 +23,7 @@ import sage.rings.real_mpfr
 import sage.structure.factorization as factorization
 from sage.structure.element import RingElement, canonical_coercion, bin_op
 from sage.interfaces.all import gp
+from sage.misc.misc import prod
 
 import integer_ring
 import integer
@@ -981,14 +982,23 @@ def sigma(n, k=1):
         176
         sage: RR(sigma(factorial(133),20))
         2.80414775675747e4523
+        sage: sigma(factorial(100),0)
+        39001250856960000
+        sage: sigma(factorial(41),1)
+        229199532273029988767733858700732906511758707916800
     """
     ZZ = integer_ring.ZZ
     n = ZZ(n)
     k = ZZ(k)
     one = ZZ(1)
 
-    return sage.misc.misc.prod([ (p**((expt+one)*k) - one) // (p**k - one)
-                                 for p,expt in factor(n) ])
+    if (k == ZZ(0)):
+        return prod([ expt+one for p, expt in factor(n) ])
+    elif (k == one):
+        return prod([ (p**(expt+one) - one) // (p - one) for p, expt in factor(n) ])
+    else:
+        return prod([ (p**((expt+one)*k)-one) // (p**k-one) for p,expt in factor(n) ])
+
 
 def gcd(a, b=0, integer=False):
     """
@@ -1542,16 +1552,16 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-    SAGE calls PARI's factor, which has proof False by default.   SAGE by default
-    *does* check primality of each factor that is returned. To turn this off, do
-    proof False.
+    SAGE calls PARI's factor, which has proof False by default.  SAGE
+    by default *does* check primality of each factor that is
+    returned. To turn this off, do proof False.
+
         sage: factor(3^89-1, proof=False)
         2 * 179 * 1611479891519807 * 5042939439565996049162197
 
         sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
-        sage:
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):

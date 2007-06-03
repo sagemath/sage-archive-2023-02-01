@@ -168,7 +168,7 @@ import copy
 import sage.modules.free_module as fm
 import sage.modules.module as module
 import sage.modules.free_module_element as fme
-from sage.databases.lincodes import linear_code_bound
+#from sage.databases.lincodes import linear_code_bound
 from sage.interfaces.all import gap
 from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace
@@ -273,56 +273,56 @@ def min_wt_vec(Gmat,F):
             ans = x
     return ans
 
-def minimum_distance_lower_bound(n,k,F):
-    r"""
-    Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven,
-    via Steven Sivek's linear_code_bound.
+## def minimum_distance_lower_bound(n,k,F):
+##     r"""
+##     Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
+##     Tables of A. E. Brouwer,   Techn. Univ. Eindhoven,
+##     via Steven Sivek's linear_code_bound.
 
-    EXAMPLES:
-    sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))     # optional (net connection)
-        3
+##     EXAMPLES:
+##     sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))     # optional (net connection)
+##         3
 
-    Obviously requires an internet connection.
-    """
-    q = F.order()
-    bounds = linear_code_bound(q,n,k)
-    return bounds[0]
+##     Obviously requires an internet connection.
+##     """
+##     q = F.order()
+##     bounds = linear_code_bound(q,n,k)
+##     return bounds[0]
 
-def minimum_distance_upper_bound(n,k,F):
-    r"""
-    Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-    via Steven Sivek's linear_code_bound.
+## def minimum_distance_upper_bound(n,k,F):
+##     r"""
+##     Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
+##     Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+##     via Steven Sivek's linear_code_bound.
 
-    EXAMPLES:
-        sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))  # optional (net connection)
-        3
+##     EXAMPLES:
+##         sage: sage.coding.linear_code.minimum_distance_upper_bound(7,4,GF(2))  # optional (net connection)
+##         3
 
-    Obviously requires an internet connection.
-    """
-    q = F.order()
-    bounds = linear_code_bound(q,n,k)
-    return bounds[1]
+##     Obviously requires an internet connection.
+##     """
+##     q = F.order()
+##     bounds = linear_code_bound(q,n,k)
+##     return bounds[1]
 
-def minimum_distance_why(n,k,F):
-    r"""
-    Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-    Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
-    via Steven Sivek's linear_code_bound.
+## def minimum_distance_why(n,k,F):
+##     r"""
+##     Connects to http://www.win.tue.nl/~aeb/voorlincod.html
+##     Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+##     via Steven Sivek's linear_code_bound.
 
-    EXAMPLES:
-        sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
-        Lb(7,4) = 3 is found by truncation of:
-        Lb(8,4) = 4 is found by the (u|u+v) construction
-        applied to [4,3,2] and [4,1,4]-codes
-        Ub(7,4) = 3 follows by the Griesmer bound.
+##     EXAMPLES:
+##         sage: sage.coding.linear_code.minimum_distance_why(7,4,GF(2))  # optional (net connection)
+##         Lb(7,4) = 3 is found by truncation of:
+##         Lb(8,4) = 4 is found by the (u|u+v) construction
+##         applied to [4,3,2] and [4,1,4]-codes
+##         Ub(7,4) = 3 follows by the Griesmer bound.
 
-    Obviously requires an internet connection.
-    """
-    q = F.order()
-    bounds = linear_code_bound(q,n,k)
-    print bounds[2]
+##     Obviously requires an internet connection.
+##     """
+##     q = F.order()
+##     bounds = linear_code_bound(q,n,k)
+##     print bounds[2]
 
 def best_known_linear_code(n,k,F):
     r"""
@@ -418,8 +418,6 @@ class LinearCode(module.Module):
         sage: C  = LinearCode(G)
         sage: C
         Linear code of length 7, dimension 4 over Finite Field of size 2
-        sage: C.minimum_distance_upper_bound()   # optional (net connection)
-        3
         sage: C.base_ring()
         Finite Field of size 2
         sage: C.dimension()
@@ -432,8 +430,6 @@ class LinearCode(module.Module):
         [1, 0, 0, 7, 7, 0, 0, 1]
         sage: C.weight_distribution()
         [1, 0, 0, 7, 7, 0, 0, 1]
-        sage: C.minimum_distance_why()     # optional (net connection)
-        Ub(7,4) = 3 follows by the Griesmer bound.
         sage: MS = MatrixSpace(GF(5),4,7)
         sage: G  = MS([[1,1,1,0,0,0,0], [1,0,0,1,1,0,0], [0,1,0,1,0,1,0], [1,1,0,1,0,0,1]])
         sage: C  = LinearCode(G)
@@ -442,6 +438,10 @@ class LinearCode(module.Module):
 
     AUTHOR: David Joyner (11-2005)
     """
+    #    sage: C.minimum_distance_upper_bound()   # optional (net connection)
+    #    3
+    #    sage: C.minimum_distance_why()     # optional (net connection)
+    #    Ub(7,4) = 3 follows by the Griesmer bound.
     def __init__(self, gen_mat):
         base_ring = gen_mat[0][0].parent()
         ParentWithGens.__init__(self, base_ring)
@@ -543,48 +543,48 @@ class LinearCode(module.Module):
     def characteristic(self):
         return (self.base_ring()).characteristic()
 
-    def minimum_distance_lower_bound(self):
-        r"""
-        Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+##     def minimum_distance_lower_bound(self):
+##         r"""
+##         Connects to \verb+http://www.win.tue.nl/~aeb/voorlincod.html+
+##         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
-        Obviously requires an internet connection
-        """
-        q = (self.base_ring()).order()
-        n = self.length()
-        k = self.dimension()
-        bounds = linear_code_bound(q,n,k)
-        return bounds[0]
+##         Obviously requires an internet connection
+##         """
+##         q = (self.base_ring()).order()
+##         n = self.length()
+##         k = self.dimension()
+##         bounds = linear_code_bound(q,n,k)
+##         return bounds[0]
 
-    def minimum_distance_upper_bound(self):
-        r"""
-        Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+##     def minimum_distance_upper_bound(self):
+##         r"""
+##         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
+##         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
-        Obviously requires an internet connection
-        """
-        q = (self.base_ring()).order()
-        n = self.length()
-        k = self.dimension()
-        bounds = linear_code_bound(q,n,k)
-        return bounds[1]
+##         Obviously requires an internet connection
+##         """
+##         q = (self.base_ring()).order()
+##         n = self.length()
+##         k = self.dimension()
+##         bounds = linear_code_bound(q,n,k)
+##         return bounds[1]
 
-    def minimum_distance_why(self):
-        r"""
-        Connects to http://www.win.tue.nl/~aeb/voorlincod.html
-        Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
+##     def minimum_distance_why(self):
+##         r"""
+##         Connects to http://www.win.tue.nl/~aeb/voorlincod.html
+##         Tables of A. E. Brouwer,   Techn. Univ. Eindhoven
 
-        Obviously requires an internet connection.
-        """
-        q = (self.base_ring()).order()
-        n = self.length()
-        k = self.dimension()
-        bounds = linear_code_bound(q,n,k)
-        lines = bounds[2].split("\n")
-        for line in lines:
-            if len(line)>0:
-                if line[0] == "U":
-                    print line
+##         Obviously requires an internet connection.
+##         """
+##         q = (self.base_ring()).order()
+##         n = self.length()
+##         k = self.dimension()
+##         bounds = linear_code_bound(q,n,k)
+##         lines = bounds[2].split("\n")
+##         for line in lines:
+##             if len(line)>0:
+##                 if line[0] == "U":
+##                     print line
 
     def minimum_distance(self):
         r"""
@@ -605,13 +605,13 @@ class LinearCode(module.Module):
 	    [    0     0     1     1     0     0     0     0     x x + 1]
             sage: C.minimum_distance()       ## random
             2
-            sage: C.minimum_distance_upper_bound()  # optional (net connection)
-            5
-            sage: C.minimum_distance_why()          # optional (net connection)
-            Ub(10,5) = 5 follows by the Griesmer bound.
-
 
         """
+        #sage: C.minimum_distance_upper_bound()  # optional (net connection)
+        #5
+        #    sage: C.minimum_distance_why()          # optional (net connection)
+        #    Ub(10,5) = 5 follows by the Griesmer bound.
+
         F = self.base_ring()
         q = F.order()
         G = self.gen_mat()

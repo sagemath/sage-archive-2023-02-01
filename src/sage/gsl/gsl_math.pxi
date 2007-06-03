@@ -34,11 +34,11 @@ cdef extern from "gsl/gsl_math.h":
 
   double M_EULER
 
-  int  gsl_isnan(double x)
+  bint gsl_isnan(double x)
 
-  int  gsl_isinf(double x)
+  bint gsl_isinf(double x)
 
-  int  gsl_finite(double x)
+  bint gsl_finite(double x)
 
   double  gsl_log1p(double x)
 
@@ -76,9 +76,9 @@ cdef extern from "gsl/gsl_math.h":
 
   int GSL_SIGN(double x)
 
-  int GSL_IS_ODD(int n)
+  bint GSL_IS_ODD(int n)
 
-  int GSL_IS_EVEN(int n)
+  bint GSL_IS_EVEN(int n)
 
   double GSL_MAX(double a, double  b)
 

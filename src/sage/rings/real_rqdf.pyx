@@ -119,7 +119,7 @@ cdef qd *qd_from_mpfr(mpfr_t rr):
     cdef double d[4]
     cdef int i
     cdef mpfr_t cur, res
-    cdef int isnan
+    cdef bint isnan
     isnan = 0
     # The most significant double
     d[0] = mpfr_get_d(rr, GMP_RNDZ)
@@ -1055,7 +1055,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: (w-w).is_NaN()
             True
         """
-        return bool(qd_is_nan(qd_deref(self.initptr)))
+        return qd_is_nan(qd_deref(self.initptr))
 
     def is_infinity(self):
         """
@@ -1070,7 +1070,7 @@ cdef class QuadDoubleElement(FieldElement):
             sage: w.is_infinity ()
             True
         """
-        return bool(qd_is_inf(qd_deref(self.initptr)))
+        return qd_is_inf(qd_deref(self.initptr))
 
     def is_positive_infinity(self):
         """

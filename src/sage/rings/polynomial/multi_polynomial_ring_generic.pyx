@@ -3,13 +3,14 @@ include '../../ext/stdsage.pxi'
 from sage.structure.parent_gens cimport ParentWithGens
 import sage.misc.latex
 import multi_polynomial_ideal
-
+from term_order import TermOrder
 
 def is_MPolynomialRing(x):
     return bool(PY_TYPE_CHECK(x, MPolynomialRing_generic))
 
 cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
     def __init__(self, base_ring, n, names, order):
+        order = TermOrder(order,n)
         if not isinstance(base_ring, sage.rings.ring.CommutativeRing):
             raise TypeError, "Base ring must be a commutative ring."
         n = int(n)
@@ -36,6 +37,18 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
             * any ring that canonically coerces to the base ring of this
               polynomial ring.
 
+        TESTS:
+        This fairly complicated code (from Michel Vandenbergh) ends up
+        imlicitly calling _coerce_c_impl:
+            sage: z = polygen(QQ, 'z')
+            sage: W.<s>=NumberField(z^2+1)
+            sage: Q.<u,v,w> = W[]
+            sage: W1 = FractionField (Q)
+            sage: S.<x,y,z> = W1[]
+            sage: u + x
+            x + u
+            sage: x + 1/u
+            x + 1/u
         """
         try:
             P = x.parent()
@@ -44,10 +57,6 @@ cdef class MPolynomialRing_generic(sage.rings.ring.CommutativeRing):
                 if P.variable_names() == self.variable_names():
                     if self.has_coerce_map_from(P.base_ring()):
                         return self(x)
-                    else:
-                        raise TypeError, "no natural map between bases of polynomial rings"
-                else:
-                    raise TypeError, "polynomial ring has a different indeterminate names"
 
         except AttributeError:
             pass

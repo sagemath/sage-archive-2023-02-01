@@ -121,9 +121,6 @@ cdef class Matrix_padic_capped_relative_dense(Matrix_dense):
     def __richcmp__(Matrix self, right, int op):  # always need for mysterious reasons.
         return self._richcmp(right, op)
     def __hash__(self):
-        return self._hash()
-
-    def _hash(self):
         x = self.fetch('hash')
         if not x is None: return x
 

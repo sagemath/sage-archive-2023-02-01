@@ -24,7 +24,7 @@ import sqlite3
 from twisted.python import log
 
 import sage.dsage.database.sql_functions as sql_functions
-from sage.dsage.misc.config import get_conf
+from sage.dsage.misc.constants import DSAGE_DIR
 
 class MonitorDatabase(object):
     """
@@ -53,27 +53,26 @@ class MonitorDatabase(object):
     )
     """
 
-    def __init__(self, test=False):
+    def __init__(self, db_file=os.path.join(DSAGE_DIR, 'db', 'dsage.db'),
+                 log_file=os.path.join(DSAGE_DIR, 'server.log'), log_level=0,
+                 test=False):
         self.tablename = 'monitors'
         if test:
             self.db_file = 'monitordb_test.db'
             self.log_level = 5
             self.log_file = 'monitordb_test.log'
         else:
-            self.conf = get_conf(type='monitordb')
-            self.db_file = self.conf['db_file']
+            self.db_file = db_file
+            self.log_file = log_file
+            self.log_level = log_level
             if not os.path.exists(self.db_file):
                 dir, file = os.path.split(self.db_file)
                 if not os.path.isdir(dir):
                     os.mkdir(dir)
-            self.log_level = self.conf['log_level']
-            self.log_file = self.conf['log_file']
         self.con = sqlite3.connect(self.db_file,
                 isolation_level=None,
                 detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
         sql_functions.optimize_sqlite(self.con)
-        # Don't use this, it's slow!
-        # self.con.text_factory = sqlite3.OptimizedUnicode
         self.con.text_factory = str
 
         if sql_functions.table_exists(self.con, self.tablename) is None:

@@ -87,10 +87,10 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
         y._init(self._degree, self._parent, self._p)
         return y
 
-    cdef int is_dense_c(self):
+    cdef bint is_dense_c(self):
         return 1
 
-    cdef int is_sparse_c(self):
+    cdef bint is_sparse_c(self):
         return 0
 
     def __copy__(self):
@@ -144,14 +144,14 @@ cdef class Vector_modn_dense(free_module_element.FreeModuleElement):
     cdef int _cmp_c_impl(left, Element right) except -2:
         """
         EXAMPLES:
-            sage: v = vector(ZZ, [0,0,0,0])
+            sage: v = vector(GF(5), [0,0,0,0])
             sage: v == 0
             True
             sage: v == 1
             False
             sage: v == v
             True
-            sage: w = vector(ZZ, [-1,0,0,0])
+            sage: w = vector(GF(11), [1,0,0,0])
             sage: w < v
             True
             sage: w > v

@@ -184,6 +184,20 @@ the same as the default one, then the following would return 27,
 which would be very confusing indeed!
     sage: expand((x+y)^3)
     y^3 + 3*x*y^2 + 3*x^2*y + x^3
+
+Set x to be 5 in maxima:
+    sage: maxima('x: 5')
+    5
+    sage: maxima('x + x + %pi')
+    %pi+10
+
+This simplification is done using maxima (behind the scenes):
+    sage: x + x + pi
+    2*x + pi
+
+Note that x is still x, since the maxima used by the calculus package
+is different than the one in the interactive interpreter.
+
 """
 
 import weakref
@@ -257,6 +271,15 @@ def is_SymbolicExpressionRing(x):
     """
     return isinstance(x, SymbolicExpressionRing_class)
 
+cache = {}
+class uniq(object):
+    def __new__(cls):
+        global cache
+        if cache.has_key(cls):
+            return cache[cls]
+        O = object.__new__(cls)
+        cache[cls] = O
+        return O
 
 class SymbolicExpressionRing_class(CommutativeRing):
     """
@@ -271,6 +294,12 @@ class SymbolicExpressionRing_class(CommutativeRing):
     def __init__(self):
         self._default_precision = 53 # default precision bits
         ParentWithBase.__init__(self, RR)
+
+    def __cmp__(self, other):
+        return cmp(type(self), type(other))
+
+    def __reduce__(self):
+        return SymbolicExpressionRing, tuple([])
 
     def __call__(self, x):
         """
@@ -511,22 +540,40 @@ class SymbolicExpression(RingElement):
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.lt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.lt)
+        except TypeError:
+            return False
 
     def __le__(self, right):
-        return SymbolicEquation(self, SR(right), operator.le)
+        try:
+            return SymbolicEquation(self, SR(right), operator.le)
+        except TypeError:
+            return False
 
     def __eq__(self, right):
-        return SymbolicEquation(self, SR(right), operator.eq)
+        try:
+            return SymbolicEquation(self, SR(right), operator.eq)
+        except TypeError:
+            return False
 
     def __ne__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ne)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ne)
+        except TypeError:
+            return False
 
     def __ge__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ge)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ge)
+        except TypeError:
+            return False
 
     def __gt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.gt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.gt)
+        except TypeError:
+            return False
 
     def __cmp__(self, right):
         """
@@ -541,6 +588,34 @@ class SymbolicExpression(RingElement):
             0
         """
         return cmp(maxima(self), maxima(right))
+
+    def _richcmp_(left, right, op):
+        """
+        TESTS:
+            sage: 3 < x
+            3 < x
+            sage: 3 <= x
+            3 <= x
+            sage: 3 == x
+            3 == x
+            sage: 3 >= x
+            3 >= x
+            sage: 3 > x
+            3 > x
+        """
+        if op == 0:  #<
+            return left < right
+        elif op == 2: #==
+            return left == right
+        elif op == 4: #>
+            return left > right
+        elif op == 1: #<=
+            return left <= right
+        elif op == 3: #!=
+            return left != right
+        elif op == 5: #>=
+            return left >= right
+
 
     def _neg_(self):
         """
@@ -647,6 +722,39 @@ class SymbolicExpression(RingElement):
         """
         return long(int(self))
 
+    def numerical_approx(self, prec=53):
+        """
+        Return a numerical approximation of self as either a real or
+        complex number.
+
+        INPUT:
+            prec -- integer (default: 53): the number of bits of precision
+
+        OUTPUT:
+            A RealNumber or ComplexNumber approximation of self with
+            prec bits of precision.
+
+        EXAMPLES:
+            sage: cos(3).numerical_approx()
+            -0.989992496600445
+            sage: cos(3).numerical_approx(200)
+            -0.98999249660044545727157279473126130239367909661558832881409
+            sage: (i + 1).numerical_approx(32)
+            1.00000000 + 1.00000000*I
+            sage: (pi + e + sqrt(2)).numerical_approx(100)
+            7.2740880444219335226246195788
+        """
+        # make sure the field is of the right precision
+        prec = Integer(prec)
+        field = RealField(prec)
+
+        try:
+            approx = self._mpfr_(field)
+        except TypeError:
+            # try to return a complex result
+            approx = self._complex_mpfr_field_(ComplexField(prec))
+
+        return approx
 
     def _mpfr_(self, field):
         raise TypeError
@@ -843,6 +951,17 @@ class SymbolicExpression(RingElement):
             x^2 - 2/3*x + 1
             sage: f.polynomial(GF(19))
             x^2 + 12*x + 1
+
+        Polynomials can be useful for getting the coefficients
+        of an expression:
+            sage: g = 6*x^2 - 5
+            sage: g.coeffs()
+            [[-5, 0], [6, 2]]
+            sage: g.polynomial(QQ).list()
+            [-5, 0, 6]
+            sage: g.polynomial(QQ).dict()
+            {0: -5, 1: 0, 2: 6}
+
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)
@@ -2703,7 +2822,7 @@ common_varnames = ['alpha',
                    'zeta',
                    'eta',
                    'theta',
-                   'Theta'
+                   'Theta',
                    'iota',
                    'kappa',
                    'lambda',
@@ -2711,18 +2830,18 @@ common_varnames = ['alpha',
                    'mu',
                    'nu',
                    'xi',
-                   'Xi'
+                   'Xi',
                    'pi',
-                   'Pi'
+                   'Pi',
                    'rho',
                    'sigma',
-                   'Sigma'
+                   'Sigma',
                    'tau',
                    'upsilon',
                    'varphi',
                    'chi',
                    'psi',
-                   'Psi'
+                   'Psi',
                    'omega',
                    'Omega']
 

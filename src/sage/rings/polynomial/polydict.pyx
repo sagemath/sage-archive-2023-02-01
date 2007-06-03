@@ -291,7 +291,7 @@ cdef class PolyDict:
             return True
         # A polynomial is homogeneous if the number of different
         # exponent sums is at most 1.
-        return bool(len(set(map(sum,K))) <= 1)
+        return len(set(map(sum,K))) <= 1
 
     def homogenize(PolyDict self):
         R = self.__repn

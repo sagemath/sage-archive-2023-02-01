@@ -490,9 +490,23 @@ class pAdicGeneric(sage.rings.ring.PrincipalIdealDomain,
             return self.prime() - 1
 
     def extension(self, modulus, prec = None, names = None, print_mode = None, halt = None):
+        """
+        Create an extension of this p-adic ring.
+
+        WARNING -- this isn't ready for general use yet.
+
+        EXAMPLES:
+            sage: k = Qp(5)
+            sage: R.<x> = k[]
+            sage: l.<a> = k.extension(x^2 + 5)
+            Traceback (most recent call last):
+            ...
+            NotImplementedError: This is not yet ready for general use.
+        """
+        raise NotImplementedError, "This is not yet ready for general use."
         if not self is modulus.base_ring():
             modulus = modulus.parent().change_ring(self)(modulus)
-        from sage.rings.padics.extension_factory import ExtensionFactory
+        from sage.rings.padics.factory import ExtensionFactory
         return ExtensionFactory(modulus, prec, print_mode, halt, names, check = True)
 
     ext = extension

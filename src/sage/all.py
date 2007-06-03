@@ -152,15 +152,16 @@ copyright = license
 
 
 
-def save_session(state, name='default_session', verbose=False):
-    """
-    Save all variables defined during this session (that can be saved)
-    to the given filename.  The variables will be saved to a dictionary,
-    which can be loaded using load(name).
+def save_session(state, name='sage_session', verbose=False):
+    r"""
+    Save all variables that can be saved wto the given filename.  The
+    variables will be saved to a dictionary, which can be loaded using
+    load(name) or load_session.
 
-    From the interpreter use \code{save_session(name)} (i.e., ignore
-    that state argument).
+    From the interpreter use \code{save_session(name)} (i.e., you may
+    ignore that state argument).
     """
+    import cPickle
     S = set(show_identifiers(state))
     D = {}
     for k, x in state.items():
@@ -168,18 +169,18 @@ def save_session(state, name='default_session', verbose=False):
             if k in S:
                 if type(x) == type(save_session):
                     raise TypeError, '%s is a function'%k
-                _ = loads(dumps(x))
+                _ = cPickle.loads(cPickle.dumps(x, protocol=2))
                 if verbose:
                     print "Saving %s"%k
                 D[k] = x
-        except (IOError, TypeError), msg:
+        except Exception, msg:
             if verbose:
                 print "Not saving %s: %s"%(k, msg)
             pass
     save(D, name)
 
-def load_session(state, name='default_session', verbose=True):
-    """
+def load_session(state, name='sage_session', verbose=False):
+    r"""
     Load a saved session.
 
     From the interpreter use \code{load_session(name)} (i.e., ignore
@@ -188,7 +189,8 @@ def load_session(state, name='default_session', verbose=True):
     This merges in all variables from a previously saved session.  It
     does not clear out the variables in the current sessions, unless
     they are overwritten.  You can thus merge multiple sessions, and
-    don't loose all your current work when you use this command.
+    don't necessarily loose all your current work when you use this
+    command.
     """
     D = load(name)
     for k, x in D.items():
@@ -210,7 +212,9 @@ def show_identifiers(state):
 iglob = set(['quit_sage', 'InteractiveShell', \
              'Out', 'In', 'help', 'view_all', \
              'os', 'iglob', 'variables', '__', '_dh', "_ii", '_i2',
-             '_i1', '_iii', '_i', '_ih', '___', '_oh', '_', '__nonzero__', '__IP']).union(set(globals().keys()))
+             '_i1', '_iii', '_i', '_ih', '___', '_oh', '_', '__nonzero__', '__IP'])
+
+#.union(set(globals().keys()))
 
 _cpu_time_ = cputime()
 _wall_time_ = walltime()

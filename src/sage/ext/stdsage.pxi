@@ -27,12 +27,12 @@ cdef extern from "stdsage.h":
     void init_global_empty_tuple()
     object PY_NEW(object t)
     void* PY_TYPE(object o)
-    int PY_TYPE_CHECK(object o, object t)
+    bint PY_TYPE_CHECK(object o, object t)
     object IS_INSTANCE(object o, object t)
     void PY_SET_TP_NEW(object t1, object t2)
-    int HAS_DICTIONARY(object o)
+    bint HAS_DICTIONARY(object o)
     PyObject** FAST_SEQ_UNSAFE(object o)
-    int PY_IS_NUMERIC(object o)
+    bint PY_IS_NUMERIC(object o)
 
 
 # Memory management

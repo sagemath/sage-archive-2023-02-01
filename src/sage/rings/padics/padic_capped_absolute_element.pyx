@@ -145,10 +145,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         sage: loads(dumps(a)) == a
         True
         """
-        cdef Integer aprec
-        aprec = PY_NEW(Integer)
-        mpz_set_ui(aprec.value, self.absprec)
-        return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), aprec)
+        return make_pAdicCappedAbsoluteElement, (self.parent(), self.lift(), self.absprec)
 
     cdef void set_precs(pAdicCappedAbsoluteElement self, unsigned long absprec):
         """
@@ -414,7 +411,8 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
     def add_bigoh(pAdicCappedAbsoluteElement self, absprec):
         """
-        Returns a new element with absolute precision decreased to prec
+        Returns a new element with absolute precision decreased to prec.
+        The precision never increases.
 
         INPUT:
             self -- a p-adic element
@@ -425,6 +423,14 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
         EXAMPLES:
             sage: R = Zp(7,4,'capped-abs','series'); a = R(8); a.add_bigoh(1)
             1 + O(7)
+
+            sage: k = ZpCA(3,5)
+            sage: a = k(41); a
+            2 + 3 + 3^2 + 3^3 + O(3^5)
+            sage: a.add_bigoh(7)
+            2 + 3 + 3^2 + 3^3 + O(3^5)
+            sage: a.add_bigoh(3)
+            2 + 3 + 3^2 + O(3^3)
         """
         cdef pAdicCappedAbsoluteElement ans
         cdef unsigned long newprec
@@ -482,7 +488,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
 
         """
         if absprec is None:
-            return bool(mpz_sgn(self.value) == 0)
+            return mpz_sgn(self.value) == 0
         cdef Integer _absprec
         if not PY_TYPE_CHECK(absprec, Integer):
             _absprec = Integer(absprec)
@@ -896,13 +902,7 @@ cdef class pAdicCappedAbsoluteElement(pAdicBaseGenericElement):
             return (val, self)
 
     def __hash__(self):
-        return self._hash()
-
-    cdef long _hash(self) except -1:
-        cdef Integer ans
-        ans = PY_NEW(Integer)
-        mpz_set(ans.value, self.value)
-        return hash(ans)
+        return hash(self.lift_c())
 
 def make_pAdicCappedAbsoluteElement(parent, x, absprec):
     return parent(x, absprec=absprec)

@@ -28,14 +28,14 @@ cdef extern from "Python.h":
     # available for allocating and releasing memory from the Python
     # heap:
 
-    void* PyMem_Malloc(	size_t n)
+    void* PyMem_Malloc(size_t n)
     # Allocates n bytes and returns a pointer of type void* to the
     # allocated memory, or NULL if the request fails. Requesting zero
     # bytes returns a distinct non-NULL pointer if possible, as if
     # PyMem_Malloc(1) had been called instead. The memory will not
     # have been initialized in any way.
 
-    void* PyMem_Realloc(	void *p, size_t n)
+    void* PyMem_Realloc(void *p, size_t n)
     # Resizes the memory block pointed to by p to n bytes. The
     # contents will be unchanged to the minimum of the old and the new
     # sizes. If p is NULL, the call is equivalent to PyMem_Malloc(n);
@@ -44,7 +44,7 @@ cdef extern from "Python.h":
     # NULL, it must have been returned by a previous call to
     # PyMem_Malloc() or PyMem_Realloc().
 
-    void PyMem_Free(	void *p)
+    void PyMem_Free(void *p)
     # Frees the memory block pointed to by p, which must have been
     # returned by a previous call to PyMem_Malloc() or
     # PyMem_Realloc(). Otherwise, or if PyMem_Free(p) has been called
@@ -54,16 +54,16 @@ cdef extern from "Python.h":
     # The following type-oriented macros are provided for
     # convenience. Note that TYPE refers to any C type.
 
-    # TYPE* PyMem_New(	TYPE, size_t n)
+    # TYPE* PyMem_New(TYPE, size_t n)
     # Same as PyMem_Malloc(), but allocates (n * sizeof(TYPE)) bytes
     # of memory. Returns a pointer cast to TYPE*. The memory will not
     # have been initialized in any way.
 
-    # TYPE* PyMem_Resize(	void *p, TYPE, size_t n)
+    # TYPE* PyMem_Resize(void *p, TYPE, size_t n)
     # Same as PyMem_Realloc(), but the memory block is resized to (n *
     # sizeof(TYPE)) bytes. Returns a pointer cast to TYPE*.
 
-    void PyMem_Del(	void *p)
+    void PyMem_Del(void *p)
     # Same as PyMem_Free().
 
     # In addition, the following macro sets are provided for calling

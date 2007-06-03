@@ -182,10 +182,10 @@ cdef class LaurentSeries(AlgebraElement):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            if x != 0:
+            x = str(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = str(x)
                 if not atomic_repr and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "(%s)"%x
                 if e == 1:
@@ -235,10 +235,10 @@ cdef class LaurentSeries(AlgebraElement):
         for n in xrange(m):
             x = v[n]
             e = n + valuation
-            if x != 0:
+            x = sage.misc.latex.latex(x)
+            if x != '0':
                 if not first:
                     s += " + "
-                x = sage.misc.latex.latex(x)
                 if not atomic_repr and n > 0 and (x[1:].find("+") != -1 or x[1:].find("-") != -1):
                     x = "\\left(%s\\right)"%x
                 if e == 1:
@@ -272,6 +272,9 @@ cdef class LaurentSeries(AlgebraElement):
                 return bigoh
             s += " + %s"%bigoh
         return s[1:]
+
+    def __hash__(self):
+        return hash(self.__u) ^ self.__n
 
     def __getitem__(self, i):
         """
@@ -617,6 +620,9 @@ cdef class LaurentSeries(AlgebraElement):
             return self.prec()
         return min(self.prec(), f.prec())
 
+    def __richcmp__(left, right, int op):
+        return (<Element>left)._richcmp(right, op)
+
     cdef int _cmp_c_impl(self, Element right_r) except -2:
         r"""
         Comparison of self and right.
@@ -655,12 +661,18 @@ cdef class LaurentSeries(AlgebraElement):
             True
         """
         cdef LaurentSeries right = <LaurentSeries>right_r
-
         prec = self.common_prec(right)
-        n = min(self.__n, right.__n)
+        if not prec:
+            return 0
+        zero = self.base_ring()(0)
+
+        if self.__n < right.__n:
+            return cmp(self.__u[0], zero)
+        elif self.__n > right.__n:
+            return cmp(zero, right.__u[0])
 
         # zero pad coefficients on the left, to line them up for comparison
-        zero = self.base_ring()(0)
+        cdef long n = min(self.__n, right.__n)
         x = [zero] * (self.__n - n) + self.__u.list()
         y = [zero] * (right.__n - n) + right.__u.list()
 

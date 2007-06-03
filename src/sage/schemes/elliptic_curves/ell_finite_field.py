@@ -20,6 +20,7 @@ Elliptic curves over finite fields
 import random
 
 from ell_field import EllipticCurve_field
+from sage.schemes.hyperelliptic_curves.hyperelliptic_finite_field import HyperellipticCurve_finite_field
 import sage.rings.ring as ring
 from sage.rings.all import Integer, PolynomialRing
 import gp_cremona
@@ -34,7 +35,7 @@ import ell_point
 import sage.libs.pari
 pari = sage.libs.pari.all.pari
 
-class EllipticCurve_finite_field(EllipticCurve_field):
+class EllipticCurve_finite_field(EllipticCurve_field, HyperellipticCurve_finite_field):
     """
     Elliptic curve over a finite field.
     """
@@ -103,7 +104,8 @@ class EllipticCurve_finite_field(EllipticCurve_field):
         #G.ymin(0)
         return G
 
-    def __points_over_prime_field(self):
+    def _points_over_prime_field(self):
+        # TODO, eliminate when polynomial calling is fast
         G, pts = self.abelian_group()
         points = [self(0)]
         if len(pts) == 0:
@@ -122,31 +124,6 @@ class EllipticCurve_finite_field(EllipticCurve_field):
                 for R in points[:n]:
                     points.append(R + Q)
                 Q += P
-        return points
-
-
-    def __points_over_arbitrary_field(self):
-        # todo: This function used to have the following comment:
-
-        ### TODO -- rewrite this insanely stupid implementation!!
-        ### print "WARNING: Using very very stupid algorithm for finding points over"
-        ### print "non-prime finite field.  Please rewrite.  See the file ell_finite.field.py."
-        ### The best way to rewrite is to extend Cremona's code (either gp or mwrank) so
-        ### it works over non-prime fields (should be easy), then generate up the group.
-
-        # I changed the algorithm so that it's not as naive as it used to be.
-        # But it's still surely far from optimal; I don't know anything about
-        # point enumeration algorithms. -- David Harvey (2006-09-24)
-
-        points = [self(0)]
-        R = PolynomialRing(self.base_ring(), 'x')
-        a1, a2, a3, a4, a6 = self.ainvs()
-        for x in self.base_field():
-            f = R([-(x**3 + a2*x**2 + a4*x + a6), (a1*x + a3), 1])
-            factors = f.factor()
-            if len(factors) == 2 or factors[0][1] == 2:
-                for factor in factors:
-                    points.append(self([x, -factor[0][0]]))
         return points
 
     def points(self):
@@ -174,16 +151,16 @@ class EllipticCurve_finite_field(EllipticCurve_field):
           sage: (p + 1)**2 - a_sub_p**2
           32
           sage: E.points()
-          [(0 : 1 : 0), (0 : 3*a + 1 : 1), (0 : 2*a + 4 : 1), (4*a : 0 : 1), (a + 3 : 4*a : 1), (a + 3 : a : 1), (a + 2 : 4*a + 4 : 1), (a + 2 : a + 1 : 1), (a + 4 : 0 : 1), (2 : 3*a + 1 : 1), (2 : 2*a + 4 : 1), (2*a + 4 : 4*a + 4 : 1), (2*a + 4 : a + 1 : 1), (4*a + 4 : 4*a + 1 : 1), (4*a + 4 : a + 4 : 1), (4 : 4 : 1), (4 : 1 : 1), (a : 4 : 1), (a : 1 : 1), (4*a + 3 : 4*a + 2 : 1), (4*a + 3 : a + 3 : 1), (4*a + 1 : 4 : 1), (4*a + 1 : 1 : 1), (3 : 3*a + 1 : 1), (3 : 2*a + 4 : 1), (2*a : 3*a : 1), (2*a : 2*a : 1), (3*a + 1 : 4*a + 2 : 1), (3*a + 1 : a + 3 : 1), (3*a + 2 : 3*a + 2 : 1), (3*a + 2 : 2*a + 3 : 1), (1 : 0 : 1)]
+          [(0 : 1 : 0), (0 : 2*a + 4 : 1), (0 : 3*a + 1 : 1), (4*a : 0 : 1), (a + 3 : 4*a : 1), (a + 3 : a : 1), (a + 2 : 4*a + 4 : 1), (a + 2 : a + 1 : 1), (a + 4 : 0 : 1), (2 : 2*a + 4 : 1), (2 : 3*a + 1 : 1), (2*a + 4 : 4*a + 4 : 1), (2*a + 4 : a + 1 : 1), (4*a + 4 : a + 4 : 1), (4*a + 4 : 4*a + 1 : 1), (4 : 1 : 1), (4 : 4 : 1), (a : 1 : 1), (a : 4 : 1), (4*a + 3 : a + 3 : 1), (4*a + 3 : 4*a + 2 : 1), (4*a + 1 : 1 : 1), (4*a + 1 : 4 : 1), (3 : 2*a + 4 : 1), (3 : 3*a + 1 : 1), (2*a : 3*a : 1), (2*a : 2*a : 1), (3*a + 1 : a + 3 : 1), (3*a + 1 : 4*a + 2 : 1), (3*a + 2 : 2*a + 3 : 1), (3*a + 2 : 3*a + 2 : 1), (1 : 0 : 1)]
         """
         try:
             return self.__points
         except AttributeError: pass
 
         if self.base_ring().is_prime():
-            self.__points = self.__points_over_prime_field()
+            self.__points = self._points_over_prime_field() # _points_cache_sqrt
         else:
-            self.__points = self.__points_over_arbitrary_field()
+            self.__points = self._points_fast_sqrt()
 
         return self.__points
 

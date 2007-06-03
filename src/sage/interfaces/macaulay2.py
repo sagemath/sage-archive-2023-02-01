@@ -282,9 +282,12 @@ class Macaulay2Element(ExpectElement):
         for i in range(len(self)):  # zero-indexed!
             yield self[i]
 
-    def __repr__(self):
+    def __str__(self):
         P = self._check_valid()
         return P.get(self.name())
+
+    def __repr__(self):
+        return self.str()
 
     def str(self):
         P = self._check_valid()

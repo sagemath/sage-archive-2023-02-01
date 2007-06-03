@@ -102,15 +102,18 @@ class Sage(Expect):
     """
     def __init__(self, maxread=10000, script_subdirectory=None,
                        logfile=None,  preparse=True, server=None,
-                       do_cleaner=True, python=True, path=None):
+                       do_cleaner=True, python=True, path=None,
+                       init_code=None):
         if python:
             command = "sage -python -u"
             prompt = ">>>"
-            init_code = ['from sage.all import *', 'import cPickle']
+            if init_code is None:
+                init_code = ['from sage.all import *', 'import cPickle']
         else:
             command = "sage"
             prompt = "sage: "
-            init_code = ['import cPickle']
+            if init_code is None:
+                init_code = ['import cPickle']
 
         Expect.__init__(self,
                         name = 'sage',

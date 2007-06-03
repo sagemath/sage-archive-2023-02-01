@@ -1433,7 +1433,9 @@ def matrix_of_frobenius_hyperelliptic(Q, p=None, prec=None, M=None):
     prof("make matrix")
     # now take care of precision capping
     M = matrix(real_prec_ring, [a for f, a in reduced])
-    M += real_prec_ring(0).add_bigoh(prec)
+    for i in range(M.ncols()):
+        for j in range(M.nrows()):
+            M[i,j] = M[i,j].add_bigoh(prec)
 #    print prof
     return M.transpose(), [f for f, a in reduced]
 
@@ -1773,10 +1775,13 @@ class SpecialHyperellipticQuotientElement(CommutativeAlgebraElement):
         y_offset = min(self.min_pow_y(), 0)
         y_degree = max(self.max_pow_y(), 0)
         coeffs = []
+        n = y_degree - y_offset + 1
         for a in self._f.list():
-            coeffs.append( [zero] * (a.valuation()-y_offset) + a.list() + [zero]*(y_degree - a.degree()) )
+            k = a.valuation() - y_offset
+            z = a.list()
+            coeffs.append( [zero] * k + z + [zero]*(n - len(z) - k))
         while len(coeffs) < self.parent().degree():
-            coeffs.append( [zero] * (y_degree - y_offset + 1) )
+            coeffs.append( [zero] * n )
         V = FreeModule(self.base_ring() if R is None else R, self.parent().degree())
         coeffs = transpose_list(coeffs)
         return [V(a) for a in coeffs], y_offset
@@ -2230,5 +2235,7 @@ class MonskyWashnitzerDifferential(ModuleElement):
 
     def coleman_integral(self, P, Q):
         return self.parent().base_ring().curve().coleman_integral(self, P, Q)
+
+    integrate = coleman_integral
 
 ### end of file

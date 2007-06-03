@@ -63,6 +63,7 @@ from matrix_integer_dense import _lift_crt
 import sage.structure.coerce
 from sage.structure.element cimport ModuleElement, RingElement, Element, Vector
 from sage.rings.integer cimport Integer
+from sage.rings.ring import is_Ring
 from sage.rings.integer_ring import ZZ, is_IntegerRing
 from sage.rings.finite_field import GF
 from sage.rings.integer_mod_ring import is_IntegerModRing
@@ -857,6 +858,8 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
             sage: b.parent()
             Full MatrixSpace of 2 by 2 dense matrices over Univariate Polynomial Ring in x over Rational Field
         """
+        if not is_Ring(R):
+            raise TypeError, "R must be a ring"
         from matrix_modn_dense import MAX_MODULUS
         if R == self._base_ring:
             return self
@@ -1202,7 +1205,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         if len(F) == 1:
             V = QQ**self.nrows()
             m = F[0][1]
-            return decomp_seq([(V,bool(m==1))])
+            return decomp_seq([(V, m==1)])
 
         V = ZZ**self.nrows()
         v = V.random_element()
@@ -1223,7 +1226,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     B = B**m
                 B = B.change_ring(QQ)
                 W = B.kernel(algorithm = kernel_algorithm, **kwds)
-                E.append((W, bool(m==1)))
+                E.append((W, m==1))
                 continue
 
             # General case, i.e., deg(g) > 1:
@@ -1260,7 +1263,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
                     W = W.change_ring(QQ)
                     t = verbose('now computing row space', level=2, caller_name='rational decomp')
                     W.echelonize(algorithm = echelon_algorithm, **kwds)
-                    E.append((W.row_space(), bool(m==1)))
+                    E.append((W.row_space(), m==1))
                     verbose('computed row space', level=2,t=t, caller_name='rational decomp')
                     break
                 else:
@@ -1448,7 +1451,7 @@ cdef class Matrix_rational_dense(matrix_dense.Matrix_dense):
         nc = ZA._ncols
         QA = Matrix_rational_dense.__new__(Matrix_rational_dense, self.parent(), None, None, None)
 
-        cdef int is_integral, lcm_trick
+        cdef bint is_integral, lcm_trick
         is_integral = 0
         lcm_trick = 0
 

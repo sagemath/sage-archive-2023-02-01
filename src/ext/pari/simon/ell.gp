@@ -1,5 +1,5 @@
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
-\\       Copyright (C) 2005 Denis Simon
+\\       Copyright (C) 2007 Denis Simon
 \\
 \\ Distributed under the terms of the GNU General Public License (GPL)
 \\
@@ -18,7 +18,7 @@
 \\ Denis SIMON -> simon@math.unicaen.fr
 \\
 \\  *********************************************
-\\  *          VERSION 25/10/2005               *
+\\  *          VERSION 16/03/2007               *
 \\  *********************************************
 \\
 \\ Programme de calcul du rang des courbes elliptiques
@@ -490,16 +490,17 @@ if (DEBUGLEVEL >= 5, print("fin de nfissquare 0"));
 
 \\ a doit etre un carre modulo les ideaux p
 
-  pfact = idealfactor(nf,a);
-  for ( i = 1 ,length(pfact[,1]),
-    if (pfact[i,2]%2 ,
-if (DEBUGLEVEL >= 5, print("fin de nfissquare"));
-      return (res)));
-  for ( i = 1 ,length(pfact[,1]),
-    if ( pfact[i,1][1]%2 && !psquarenf(nf,a,pfact[i,1]) ,
-if (DEBUGLEVEL >= 5, print("fin de nfissquare"));
-      return (res)));
+\\  pfact = idealfactor(nf,a);
+\\  for ( i = 1 ,length(pfact[,1]),
+\\    if (pfact[i,2]%2 ,
+\\if (DEBUGLEVEL >= 5, print("fin de nfissquare"));
+\\      return (res)));
+\\  for ( i = 1 ,length(pfact[,1]),
+\\    if ( pfact[i,1][1]%2 && !psquarenf(nf,a,pfact[i,1]) ,
+\\if (DEBUGLEVEL >= 5, print("fin de nfissquare"));
+\\      return (res)));
 \\
+
 \\ tous les plgements reels doivent etre >0
 \\
   r1=nf.sign[1];

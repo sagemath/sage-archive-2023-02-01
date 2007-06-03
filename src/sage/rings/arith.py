@@ -982,6 +982,10 @@ def sigma(n, k=1):
         176
         sage: RR(sigma(factorial(133),20))
         2.80414775675747e4523
+        sage: sigma(factorial(100),0)
+        39001250856960000
+        sage: sigma(factorial(41),1)
+        229199532273029988767733858700732906511758707916800
     """
     ZZ = integer_ring.ZZ
     n = ZZ(n)

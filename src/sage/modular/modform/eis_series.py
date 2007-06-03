@@ -19,14 +19,14 @@ from sage.rings.all import (bernoulli, CyclotomicField,
                             LCM, is_squarefree)
 
 def eisenstein_series_qexp(k, prec=10, K=QQ):
-    """
-    Return the q-expansion of the weight k Eisenstein series
-    to precision prec in the field K.
+    r"""
+    Return the $q$-expansion of the weight $k$ Eisenstein series
+    to precision prec in the field $K$.
 
-    Here's a rough description of how the algorithm works:
-    we know E_k = const + sum_n sigma(n,k-1) * q^n. Now, we
-    basically just compute all the sigma(n,k-1) simultaneously,
-    as sigma is multiplicative.
+    Here's a rough description of how the algorithm works: we know
+    $E_k = const + \sum_n sigma(n,k-1) q^n$. Now, we basically just
+    compute all the $\sigma(n,k-1)$ simultaneously, as $\sigma$ is
+    multiplicative.
 
     INPUT:
         k -- even positive integer

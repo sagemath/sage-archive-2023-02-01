@@ -1335,7 +1335,6 @@ class LinearCode(module.Module):
             mode -- string
                mode = "dual" computes both the zeta function of C and that of C*
                mode = "normalized" computes the normalized zeta function of C, zeta_C(T)*T(1-genus(C))
-
             (NOTE: if xi(T,C) denotes the normalized zeta function
             then xi(T,C*) = xi(1/(qT),C) is equivalent to zeta_{C*}(T)
             = zeta_C(1/(qT))*q^(gamma-1)T^(gamma+gamma*-2), where
@@ -1415,7 +1414,7 @@ class LinearCode(module.Module):
         consisting of codewords of $C$ which have their $i-th$ coordinate
         deleted if $i \in L$ and left alone if $i\notin L$:
         $$
-            C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C},
+            C^L = \{(c_{i_1},...,c_{i_N})\ |\ (c_1,...,c_n)\in C\},
         $$
         where $\{1,2,...,n\}-T = \{i_1,...,i_N\}$. In particular, if $L=\{j\}$ then
         $C^L$ is simply the code obtained from $C$ by deleting the $j-th$ coordinate

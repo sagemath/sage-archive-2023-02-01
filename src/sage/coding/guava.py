@@ -20,7 +20,6 @@ import copy
 import sage.modules.free_module as fm
 import sage.modules.module as module
 import sage.modules.free_module_element as fme
-from sage.databases.lincodes import linear_code_bound
 from sage.interfaces.all import gap
 from sage.misc.preparser import *
 from sage.matrix.matrix_space import MatrixSpace

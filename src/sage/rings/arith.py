@@ -1552,16 +1552,16 @@ def factor(n, proof=True, int_=False, algorithm='pari', verbose=0, **kwds):
         sage: factor(2004)
         2^2 * 3 * 167
 
-    SAGE calls PARI's factor, which has proof False by default.   SAGE by default
-    *does* check primality of each factor that is returned. To turn this off, do
-    proof False.
+    SAGE calls PARI's factor, which has proof False by default.  SAGE
+    by default *does* check primality of each factor that is
+    returned. To turn this off, do proof False.
+
         sage: factor(3^89-1, proof=False)
         2 * 179 * 1611479891519807 * 5042939439565996049162197
 
         sage: factor(2^197 + 1)       # takes a long time (e.g., 3 seconds!)
         3 * 197002597249 * 1348959352853811313 * 251951573867253012259144010843
 
-        sage:
     """
     Z = integer_ring.ZZ
     if not isinstance(n, (int,long, integer.Integer)):

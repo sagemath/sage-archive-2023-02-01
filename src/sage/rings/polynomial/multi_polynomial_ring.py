@@ -181,10 +181,9 @@ class MPolynomialRing_polydict( MPolynomialRing_macaulay2_repr, MPolynomialRing_
             sage: T = S*S*S                                              # optional
             sage: U = T.gens().entries().flatten()                       # optional
             sage: f = U[2]; f                                            # optional
-             3 2    3
-            x y  + y
+            x^6*y+2*x^3*y^2+y^3
             sage: R(repr(f))                                             # optional
-            y^3 + x^3*y^2
+            x^6*y + 2*x^3*y^2 + y^3
 
         Some other subtle coercions.  We create polynomial rings in 2 variables
         over the rationals, integers, and a finite field.

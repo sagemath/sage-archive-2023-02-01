@@ -125,15 +125,9 @@ class Octave(Expect):
         sage: octave.eval("b = [ 1; 3; 13]")                         # optional
         'b =\n\n 1\n 3\n 13\n\n'
         sage: octave.eval("c=a \\ b") # solves linear equation: a*c = b  # optional random output
-        'c =\n\n 1\n -0\n 0\n\n'
+        'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
         sage: octave.eval("c")                                 # optional random output
-        c =
-        <BLANKLINE>
-         1
-         -0
-         0
-        <BLANKLINE>
-        <BLANKLINE>
+        'c =\n\n 1\n 7.21645e-16\n -7.21645e-16\n\n'
     """
     def __init__(self, maxread=100, script_subdirectory="", logfile=None, server=None):
         Expect.__init__(self,
@@ -257,7 +251,7 @@ class Octave(Expect):
             sage: V3  = VectorSpace(QQ,3)
             sage: b   = V3([1,2,3])
             sage: octave.solve_linear_system(A,b)    # requires optional octave (and output is slightly random in low order bits)
-            [-0.33333299999999999, 0.66666700000000001, 0]
+            [-0.33333299999999999, 0.66666700000000001, -3.5236600000000002e-18]
 
         AUTHOR: David Joyner and William Stein
         """

@@ -44,6 +44,8 @@ import sage.libs.pari.all
 cimport integer
 import integer
 
+from integer_ring import ZZ
+
 from sage.structure.element cimport RingElement, ModuleElement
 from sage.structure.element import bin_op
 
@@ -597,9 +599,11 @@ cdef class Rational(sage.structure.element.FieldElement):
             sage: x = 64/4
             sage: x.sqrt()
             4
-            sage: x = 1000/10
+            sage: x = 100/1
             sage: x.sqrt()
             10
+            sage: x.sqrt(all=True)
+            [10, -10]
             sage: x = 81/5
             sage: x.sqrt()
             9/sqrt(5)
@@ -632,6 +636,9 @@ cdef class Rational(sage.structure.element.FieldElement):
         AUTHOR:
             -- Naqi Jaffery (2006-03-05): some examples
         """
+        if mpq_sgn(self.value) == 0:
+            return [self] if all else self
+
         if mpq_sgn(self.value) < 0:
             if not extend:
                 raise ValueError, "square root of negative number not rational"
@@ -667,6 +674,8 @@ cdef class Rational(sage.structure.element.FieldElement):
                 return K(self).sqrt(all=all)
             from sage.calculus.calculus import sqrt
             return sqrt(self, all=all)
+        if all:
+            return [z, -z]
         return z
 
     def period(self):
@@ -1346,7 +1355,18 @@ cdef class Rational(sage.structure.element.FieldElement):
         sage: QQ(0/4).is_zero()
         True
         """
-        # A rational number is zero iff its numerator is zero.
+
+    def is_integral(self):
+        r"""
+        Determine if a rational number is integral (i.e is in $\Z$).
+
+        EXAMPLES:
+            sage: QQ(1/2).is_integral()
+            False
+            sage: QQ(4/4).is_integral()
+            True
+        """
+        return bool(self in ZZ)
 
     cdef _lshift(self, long int exp):
         r"""

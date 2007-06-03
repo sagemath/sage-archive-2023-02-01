@@ -256,9 +256,9 @@ from functions import Function_gen, Function_arith, Function, FunctionRing_class
 import sage.calculus.calculus
 
 class Constant(Function):
-    def __init__(self, conversions={}):
+    def __init__(self, conversions={}, parent=sage.calculus.calculus.SR):
         self._conversions = conversions
-        RingElement.__init__(self, sage.calculus.calculus.SR)
+        RingElement.__init__(self, parent)
 
     # The maxima one is special:
     def _maxima_(self, session=None):
@@ -351,6 +351,32 @@ class Constant(Function):
         """
         return False
 
+    def __lt__(self, right):
+        return self._ser().__lt__(right)
+
+    def __le__(self, right):
+        return self._ser().__le__(right)
+
+    def __eq__(self, right):
+        """
+        EXAMPLES:
+            sage: solve(pi == 2*x)
+            [x == (pi/2)]
+            sage: solve(cos(x^2) == pi)
+            [x == (-sqrt(acos(pi))), x == sqrt(acos(pi))]
+        """
+        return self._ser().__eq__(right)
+
+    def __ne__(self, right):
+        return self._ser().__ne__(right)
+
+    def __ge__(self, right):
+        return self._ser().__ge__(right)
+
+    def __gt__(self, right):
+        return self._ser().__gt__(right)
+
+
 
 class Constant_gen(Constant, Function_gen):
     def __init__(self, x):
@@ -416,7 +442,7 @@ class Pi(Constant):
     def _mpfr_(self, R):
         return R.pi()
 
-    def _real_double_(self,R):
+    def _real_double_(self, R):
         return R.pi()
 
     def _real_rqdf_(self, R):
@@ -1052,4 +1078,8 @@ class Brun(Constant):
 	return 1.9021605831040
 
 brun=Brun()
+
+
+
+
 

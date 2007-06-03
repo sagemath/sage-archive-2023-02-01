@@ -184,6 +184,20 @@ the same as the default one, then the following would return 27,
 which would be very confusing indeed!
     sage: expand((x+y)^3)
     y^3 + 3*x*y^2 + 3*x^2*y + x^3
+
+Set x to be 5 in maxima:
+    sage: maxima('x: 5')
+    5
+    sage: maxima('x + x + %pi')
+    %pi+10
+
+This simplification is done using maxima (behind the scenes):
+    sage: x + x + pi
+    2*x + pi
+
+Note that x is still x, since the maxima used by the calculus package
+is different than the one in the interactive interpreter.
+
 """
 
 import weakref
@@ -526,22 +540,40 @@ class SymbolicExpression(RingElement):
         return plot(f, *args, **kwds)
 
     def __lt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.lt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.lt)
+        except TypeError:
+            return False
 
     def __le__(self, right):
-        return SymbolicEquation(self, SR(right), operator.le)
+        try:
+            return SymbolicEquation(self, SR(right), operator.le)
+        except TypeError:
+            return False
 
     def __eq__(self, right):
-        return SymbolicEquation(self, SR(right), operator.eq)
+        try:
+            return SymbolicEquation(self, SR(right), operator.eq)
+        except TypeError:
+            return False
 
     def __ne__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ne)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ne)
+        except TypeError:
+            return False
 
     def __ge__(self, right):
-        return SymbolicEquation(self, SR(right), operator.ge)
+        try:
+            return SymbolicEquation(self, SR(right), operator.ge)
+        except TypeError:
+            return False
 
     def __gt__(self, right):
-        return SymbolicEquation(self, SR(right), operator.gt)
+        try:
+            return SymbolicEquation(self, SR(right), operator.gt)
+        except TypeError:
+            return False
 
     def __cmp__(self, right):
         """
@@ -556,6 +588,34 @@ class SymbolicExpression(RingElement):
             0
         """
         return cmp(maxima(self), maxima(right))
+
+    def _richcmp_(left, right, op):
+        """
+        TESTS:
+            sage: 3 < x
+            3 < x
+            sage: 3 <= x
+            3 <= x
+            sage: 3 == x
+            3 == x
+            sage: 3 >= x
+            3 >= x
+            sage: 3 > x
+            3 > x
+        """
+        if op == 0:  #<
+            return left < right
+        elif op == 2: #==
+            return left == right
+        elif op == 4: #>
+            return left > right
+        elif op == 1: #<=
+            return left <= right
+        elif op == 3: #!=
+            return left != right
+        elif op == 5: #>=
+            return left >= right
+
 
     def _neg_(self):
         """
@@ -891,6 +951,17 @@ class SymbolicExpression(RingElement):
             x^2 - 2/3*x + 1
             sage: f.polynomial(GF(19))
             x^2 + 12*x + 1
+
+        Polynomials can be useful for getting the coefficients
+        of an expression:
+            sage: g = 6*x^2 - 5
+            sage: g.coeffs()
+            [[-5, 0], [6, 2]]
+            sage: g.polynomial(QQ).list()
+            [-5, 0, 6]
+            sage: g.polynomial(QQ).dict()
+            {0: -5, 1: 0, 2: 6}
+
 
             sage: f = x^2*e + x + pi/e
             sage: f.polynomial(RDF)

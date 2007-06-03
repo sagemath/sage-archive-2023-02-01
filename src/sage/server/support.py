@@ -70,33 +70,38 @@ def completions(s, globs, format=False, width=90):
     n = len(s)
     if n == 0:
         return '(empty string)'
-    if not '.' in s and not '(' in s:
-        v = [x for x in globs.keys() if x[:n] == s]
-    else:
-        if not ')' in s:
-            i = s.rfind('.')
-            method = s[i+1:]
-            obj = s[:i]
-            n = len(method)
+    try:
+        if not '.' in s and not '(' in s:
+            v = [x for x in globs.keys() if x[:n] == s] + \
+                [x for x in __builtins__.keys() if x[:n] == s]
         else:
-            obj = preparse(s)
-            method = ''
-        try:
-            O = eval(obj, globs)
-            D = dir(O)
-            try:
-                D += O.trait_names()
-            except (AttributeError, TypeError):
-                pass
-            if method == '':
-                v = [obj + '.'+x for x in D if x and x[0] != '_']
+            if not ')' in s:
+                i = s.rfind('.')
+                method = s[i+1:]
+                obj = s[:i]
+                n = len(method)
             else:
-                v = [obj + '.'+x for x in D if x[:n] == method]
-        except Exception, msg:
-            print msg
-            v = []
-    v = list(set(v))   # make uniq
-    v.sort()
+                obj = preparse(s)
+                method = ''
+            try:
+                O = eval(obj, globs)
+                D = dir(O)
+                try:
+                    D += O.trait_names()
+                except (AttributeError, TypeError):
+                    pass
+                if method == '':
+                    v = [obj + '.'+x for x in D if x and x[0] != '_']
+                else:
+                    v = [obj + '.'+x for x in D if x[:n] == method]
+            except Exception, msg:
+                print msg
+                v = []
+        v = list(set(v))   # make uniq
+        v.sort()
+    except Exception, msg:
+        print msg
+        v = []
     if format:
         if len(v) == 0:
             return "no completions of %s"%s

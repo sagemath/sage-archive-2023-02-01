@@ -5,6 +5,7 @@ Base class for sparse matrices
 cimport matrix
 cimport matrix0
 from   sage.structure.element    cimport Element
+from sage.rings.ring import is_Ring
 
 include '../ext/cdefs.pxi'
 include '../ext/stdsage.pxi'
@@ -28,6 +29,8 @@ cdef class Matrix_sparse(matrix.Matrix):
         return 0
 
     def change_ring(self, ring):
+        if not is_Ring(ring):
+            raise TypeError, "input must be a ring"
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self

@@ -34,3 +34,14 @@ def random_str(length=500):
     s = [chr(i) for i in [random.randint(65, 123) for n in range(length)]]
 
     return ''.join(s)
+
+def timedelta_to_seconds(d):
+    """
+    Converts a timedelta object into seconds.
+
+    """
+    days, seconds, microseconds = (d.days, d.seconds, d.microseconds)
+
+    seconds = float(days*24*60*60 + d.seconds + (d.microseconds/10.0**6))
+
+    return seconds

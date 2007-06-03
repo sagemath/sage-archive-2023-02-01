@@ -153,10 +153,8 @@ class DistributedFunction(object):
         """
 
         for job in self.outstanding_jobs:
-            try:
+            if isinstance(job, Job):
                self.submit_job(job, job_name, async)
-            except Exception, msg:
-               print msg
         self.outstanding_jobs = []
 
     def start(self):
@@ -235,7 +233,8 @@ class DistributedFunctionTest(DistributedFunction):
         self.result = 0
         self.results = []
         self.code = """DSAGE_RESULT=%s"""
-        self.outstanding_jobs = [Job(code=self.code % i, username='yqiang') for i in range(1, n+1)]
+        self.outstanding_jobs = [Job(code=self.code % i, username='yqiang')
+                                 for i in range(1, n+1)]
 
     def process_result(self, job):
         self.done = len(self.waiting_jobs) == 0

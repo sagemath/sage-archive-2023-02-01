@@ -47,6 +47,8 @@ cdef extern from "ntl_wrap.h":
     void content(ntl_c_ZZ d, ntl_c_ZZX f)
 #    ntl_c_ZZX *ZZX_factory "new NTL::ZZX" ()
 
+    void ZZX_square_free_decomposition(ntl_c_ZZX*** v, long** e, long* n, ntl_c_ZZX* x)
+
     #### ntl_c_ZZ
     ntl_c_ZZ* new_ZZ()
     ntl_c_ZZ* str_to_ZZ(char* s)

@@ -28,6 +28,15 @@ import uuid
 
 from sage.dsage.misc.misc import random_str
 
+
+def check_dsage_dir():
+    DSAGE_DIR = os.path.join(os.getenv('DOT_SAGE'), 'dsage')
+    if os.path.exists(DSAGE_DIR):
+        return
+    else:
+        print "Creating " + DSAGE_DIR
+        os.mkdir(DSAGE_DIR)
+
 def check_version(old_version):
     from sage.dsage.__version__ import version
     if version != old_version:
@@ -43,6 +52,22 @@ def read_conf(config):
         check_version(conf['version'])
     except ValueError, msg:
         raise ValueError(msg)
+    try:
+        conf['log_level'] = int(conf['log_level'])
+    except Exception, msg:
+        pass
+    try:
+        conf['workers'] = int(conf['workers'])
+    except Exception, msg:
+        pass
+    try:
+        conf['delay'] = float(conf['delay'])
+    except Exception, msg:
+        pass
+    try:
+        conf['priority'] = int(conf['priority'])
+    except Exception, msg:
+        pass
 
     return conf
 

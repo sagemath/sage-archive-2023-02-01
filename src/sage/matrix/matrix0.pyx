@@ -35,6 +35,7 @@ from   sage.structure.element    cimport ModuleElement, Element, RingElement, Ve
 from   sage.structure.mutability cimport Mutability
 
 from sage.rings.ring cimport CommutativeRing
+from sage.rings.ring import is_Ring
 
 import sage.modules.free_module
 
@@ -660,6 +661,9 @@ cdef class Matrix(sage.structure.element.Matrix):
             ...
             TypeError: matrix has denominators so can't change to ZZ.
         """
+        if not is_Ring(ring):
+            raise TypeError, "ring must be a ring"
+
         if ring is self._base_ring:
             if self._mutability._is_immutable:
                 return self

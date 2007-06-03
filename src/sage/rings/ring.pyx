@@ -265,6 +265,28 @@ cdef class Ring(ParentWithGens):
             return x
         return self._zero_element
 
+    def one_element(self):
+        """
+        Return the one element of this ring (cached), if it exists.
+
+        EXAMPLES:
+            sage: ZZ.one_element()
+            1
+            sage: QQ.one_element()
+            1
+            sage: QQ['x'].one_element()
+            1
+
+        The result is cached:
+            sage: ZZ.one_element() is ZZ.one_element()
+            True
+        """
+        if self._one_element is None:
+            x = self(1)
+            self._one_element = x
+            return x
+        return self._one_element
+
     def is_atomic_repr(self):
         """
         True if the elements have atomic string representations, in the sense
